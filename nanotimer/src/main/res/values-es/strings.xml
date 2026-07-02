@@ -115,6 +115,13 @@
   <string name="color_history_times_summary">Teñir los tiempos de verde (rápido) a rojo (lento)</string>
   <string name="color_sample_size">Tamaño de muestra de color</string>
   <string name="color_sample_size_summary">Cuántas resoluciones recientes se comparan para los colores</string>
+  <string name="timer_font">Fuente del temporizador</string>
+  <string name="timer_font_summary">Fuente usada en la pantalla del temporizador</string>
+  <string name="timer_font_modern">Moderna</string>
+  <string name="timer_font_classic">Clásica</string>
+  <string name="timer_font_mono">Monoespaciada</string>
+  <string name="timer_font_light">Fina</string>
+  <string name="timer_font_condensed">Condensada</string>
   <string name="session_times_coloring">Colorear últimos tiempos</string>
   <string name="session_times_coloring_summary">Cómo colorear los últimos 12 tiempos en la pantalla del temporizador</string>
   <string name="session_coloring_best_worst">Solo mejor y peor</string>

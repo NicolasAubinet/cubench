@@ -19,6 +19,15 @@
        android:summary="@string/keep_screen_on_summary"
        android:defaultValue="@bool/keep_timer_screen_on"/>
 
+    <com.cube.nanotimer.gui.widget.preferences.TimerFontListPreference
+       android:key="timer_font"
+       android:title="@string/timer_font"
+       android:summary="@string/timer_font_summary"
+       android:entries="@array/entries_timer_font"
+       android:entryValues="@array/entryvalues_timer_font"
+       android:dialogTitle="@string/timer_font"
+       android:defaultValue="1"/>
+
     <CheckBoxPreference
        android:key="color_history_times"
        android:title="@string/color_history_times"

@@ -119,6 +119,13 @@
   <string name="color_history_times_summary">Tint times from green (fast) to red (slow)</string>
   <string name="color_sample_size">Color sample size</string>
   <string name="color_sample_size_summary">How many recent solves the colors compare against</string>
+  <string name="timer_font">Timer font</string>
+  <string name="timer_font_summary">Font used for the timer display</string>
+  <string name="timer_font_modern">Modern</string>
+  <string name="timer_font_classic">Classic</string>
+  <string name="timer_font_mono">Monospace</string>
+  <string name="timer_font_light">Light</string>
+  <string name="timer_font_condensed">Condensed</string>
   <string name="session_times_coloring">Color last solves</string>
   <string name="session_times_coloring_summary">How to color the last 12 solves on the timer screen</string>
   <string name="session_coloring_best_worst">Best and worst only</string>

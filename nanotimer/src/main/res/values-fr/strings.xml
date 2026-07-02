@@ -115,6 +115,13 @@
   <string name="color_history_times_summary">Teinter les temps du vert (rapide) au rouge (lent)</string>
   <string name="color_sample_size">Échantillon des couleurs</string>
   <string name="color_sample_size_summary">Nombre de résolutions récentes auxquelles les couleurs se comparent</string>
+  <string name="timer_font">Police du chronomètre</string>
+  <string name="timer_font_summary">Police utilisée pour l\'affichage du chronomètre</string>
+  <string name="timer_font_modern">Moderne</string>
+  <string name="timer_font_classic">Classique</string>
+  <string name="timer_font_mono">Monospace</string>
+  <string name="timer_font_light">Fine</string>
+  <string name="timer_font_condensed">Condensée</string>
   <string name="session_times_coloring">Colorer les derniers temps</string>
   <string name="session_times_coloring_summary">Comment colorer les 12 derniers temps sur l\'écran du chronomètre</string>
   <string name="session_coloring_best_worst">Meilleur et pire seulement</string>

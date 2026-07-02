@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
+import com.cube.nanotimer.util.view.TimerFont;
 import com.cube.nanotimer.vo.ScramblesQuality;
 
 public enum Options {
@@ -25,6 +26,7 @@ public enum Options {
   public static final String INSPECTION_SOUNDS_KEY = "inspection_sounds";
   public static final String INSPECTION_SOUNDS_TYPE_KEY = "inspection_sounds_type";
   public static final String SHOW_TIME_WHEN_RUNNING = "show_time_when_running";
+  public static final String TIMER_FONT_KEY = "timer_font";
   public static final String KEEP_TIMER_SCREEN_ON_KEY = "keep_timer_screen_on";
   public static final String HIGH_PRECISION_TIMER_KEY = "high_precision_timer";
   public static final String COLOR_HISTORY_TIMES_KEY = "color_history_times";
@@ -95,6 +97,18 @@ public enum Options {
   public boolean isShowTimeWhenRunning() {
       Boolean defaultValue = context.getResources().getBoolean(R.bool.show_time_when_running);
       return sharedPreferences.getBoolean(SHOW_TIME_WHEN_RUNNING, defaultValue);
+  }
+
+  public TimerFont getTimerFont() {
+    if (sharedPreferences == null) {
+      return TimerFont.getDefault();
+    }
+    String value = sharedPreferences.getString(TIMER_FONT_KEY, String.valueOf(TimerFont.getDefault().getId()));
+    try {
+      return TimerFont.fromId(Integer.parseInt(value));
+    } catch (NumberFormatException e) {
+      return TimerFont.getDefault();
+    }
   }
 
   public boolean isKeepTimerScreenOnWhenTimerOff() {

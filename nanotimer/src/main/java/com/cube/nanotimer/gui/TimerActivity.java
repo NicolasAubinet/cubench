@@ -53,6 +53,7 @@ import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.DigitalTextView;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveAverages;
@@ -225,6 +226,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     super.onResume();
     App.INSTANCE.setContext(this);
     refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
+    if (tvTimer instanceof DigitalTextView) {
+      ((DigitalTextView) tvTimer).setFont(); // Re-apply in case the timer font option changed in the settings.
+    }
   }
 
   private void initActionBar() {
@@ -244,8 +248,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     TableLayout averagesLayout = (TableLayout) findViewById(R.id.averagesLayout);
     timerStepsLayout = (TableLayout) findViewById(R.id.timerStepsLayout);
 
-    if (currentOrientation == Configuration.ORIENTATION_PORTRAIT && cubeType == CubeType.SEVEN_BY_SEVEN) {
-      tvTimer.setTextSize(TypedValue.COMPLEX_UNIT_PX, tvTimer.getTextSize() - 5);
+    if (currentOrientation == Configuration.ORIENTATION_PORTRAIT && cubeType == CubeType.SEVEN_BY_SEVEN
+        && tvTimer instanceof DigitalTextView) {
+      ((DigitalTextView) tvTimer).reduceBaseTextSize(5);
     }
 
     Float scrambleTextSize = getCubeTypeScrambleTextSize();
