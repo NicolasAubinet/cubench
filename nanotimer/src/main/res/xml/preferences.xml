@@ -28,6 +28,15 @@
        android:dialogTitle="@string/timer_font"
        android:defaultValue="1"/>
 
+    <ListPreference
+       android:key="timer_font_size"
+       android:title="@string/timer_font_size"
+       android:summary="@string/timer_font_size_summary"
+       android:entries="@array/entries_timer_font_size"
+       android:entryValues="@array/entryvalues_timer_font_size"
+       android:dialogTitle="@string/timer_font_size"
+       android:defaultValue="2"/>
+
     <CheckBoxPreference
        android:key="color_history_times"
        android:title="@string/color_history_times"

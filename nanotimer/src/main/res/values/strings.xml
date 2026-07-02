@@ -126,6 +126,11 @@
   <string name="timer_font_mono">Monospace</string>
   <string name="timer_font_light">Light</string>
   <string name="timer_font_condensed">Condensed</string>
+  <string name="timer_font_size">Timer font size</string>
+  <string name="timer_font_size_summary">Size of the timer display</string>
+  <string name="timer_font_size_small">Small</string>
+  <string name="timer_font_size_medium">Medium</string>
+  <string name="timer_font_size_big">Big</string>
   <string name="session_times_coloring">Color last solves</string>
   <string name="session_times_coloring_summary">How to color the last 12 solves on the timer screen</string>
   <string name="session_coloring_best_worst">Best and worst only</string>

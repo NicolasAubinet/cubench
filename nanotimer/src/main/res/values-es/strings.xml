@@ -122,6 +122,11 @@
   <string name="timer_font_mono">Monoespaciada</string>
   <string name="timer_font_light">Fina</string>
   <string name="timer_font_condensed">Condensada</string>
+  <string name="timer_font_size">Tamaño del temporizador</string>
+  <string name="timer_font_size_summary">Tamaño de la pantalla del temporizador</string>
+  <string name="timer_font_size_small">Pequeño</string>
+  <string name="timer_font_size_medium">Mediano</string>
+  <string name="timer_font_size_big">Grande</string>
   <string name="session_times_coloring">Colorear últimos tiempos</string>
   <string name="session_times_coloring_summary">Cómo colorear los últimos 12 tiempos en la pantalla del temporizador</string>
   <string name="session_coloring_best_worst">Solo mejor y peor</string>

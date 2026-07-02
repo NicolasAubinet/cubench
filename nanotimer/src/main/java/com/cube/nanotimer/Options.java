@@ -17,6 +17,7 @@ public enum Options {
   public enum ScrambleNotificationMode { ALWAYS, MANUAL, NEVER }
   public enum CrossNeutrality { SPECIFIC, DUAL, FULL }
   public enum SessionTimesColoring { BEST_WORST, ALL_DISPLAYED, MATCH_HISTORY, NONE }
+  public enum TimerFontSize { SMALL, MEDIUM, LARGE }
 
   private Context context;
   private SharedPreferences sharedPreferences;
@@ -27,6 +28,7 @@ public enum Options {
   public static final String INSPECTION_SOUNDS_TYPE_KEY = "inspection_sounds_type";
   public static final String SHOW_TIME_WHEN_RUNNING = "show_time_when_running";
   public static final String TIMER_FONT_KEY = "timer_font";
+  public static final String TIMER_FONT_SIZE_KEY = "timer_font_size";
   public static final String KEEP_TIMER_SCREEN_ON_KEY = "keep_timer_screen_on";
   public static final String HIGH_PRECISION_TIMER_KEY = "high_precision_timer";
   public static final String COLOR_HISTORY_TIMES_KEY = "color_history_times";
@@ -108,6 +110,34 @@ public enum Options {
       return TimerFont.fromId(Integer.parseInt(value));
     } catch (NumberFormatException e) {
       return TimerFont.getDefault();
+    }
+  }
+
+  public TimerFontSize getTimerFontSize() {
+    if (sharedPreferences == null) {
+      return TimerFontSize.MEDIUM;
+    }
+    int size = Integer.parseInt(sharedPreferences.getString(TIMER_FONT_SIZE_KEY, "-1"));
+    switch (size) {
+      case 1:
+        return TimerFontSize.SMALL;
+      case 2:
+        return TimerFontSize.MEDIUM;
+      case 3:
+        return TimerFontSize.LARGE;
+      default:
+        return TimerFontSize.MEDIUM;
+    }
+  }
+
+  public float getTimerFontSizeScale() {
+    switch (getTimerFontSize()) {
+      case SMALL:
+        return 0.9f;
+      case LARGE:
+        return 1.3f;
+      default:
+        return 1.1f;
     }
   }
 

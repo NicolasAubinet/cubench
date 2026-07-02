@@ -32,7 +32,8 @@ public class DigitalTextView extends AppCompatTextView {
       }
       TimerFont font = Options.INSTANCE.getTimerFont();
       font.applyTo(this);
-      setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSizePx * font.getSizeScale());
+      float scale = font.getSizeScale() * Options.INSTANCE.getTimerFontSizeScale();
+      setTextSize(TypedValue.COMPLEX_UNIT_PX, baseTextSizePx * scale);
     }
   }
 

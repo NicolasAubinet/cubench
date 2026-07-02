@@ -122,6 +122,11 @@
   <string name="timer_font_mono">Monospace</string>
   <string name="timer_font_light">Fine</string>
   <string name="timer_font_condensed">Condensée</string>
+  <string name="timer_font_size">Taille du chronomètre</string>
+  <string name="timer_font_size_summary">Taille de l\'affichage du chronomètre</string>
+  <string name="timer_font_size_small">Petite</string>
+  <string name="timer_font_size_medium">Moyenne</string>
+  <string name="timer_font_size_big">Grande</string>
   <string name="session_times_coloring">Colorer les derniers temps</string>
   <string name="session_times_coloring_summary">Comment colorer les 12 derniers temps sur l\'écran du chronomètre</string>
   <string name="session_coloring_best_worst">Meilleur et pire seulement</string>

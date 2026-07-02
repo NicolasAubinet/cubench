@@ -34,6 +34,16 @@
     <item>4</item>
     <item>5</item>
   </string-array>
+  <string-array name="entries_timer_font_size">
+    <item>@string/timer_font_size_small</item>
+    <item>@string/timer_font_size_medium</item>
+    <item>@string/timer_font_size_big</item>
+  </string-array>
+  <string-array name="entryvalues_timer_font_size">
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+  </string-array>
   <string-array name="entries_session_times_coloring">
     <item>@string/session_coloring_best_worst</item>
     <item>@string/session_coloring_all_displayed</item>
