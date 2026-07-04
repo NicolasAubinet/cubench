@@ -78,13 +78,13 @@
 
             <TableRow>
 
-              <Spinner
+              <com.cube.nanotimer.util.view.DialogSpinner
                  android:id="@+id/spCubeType"
                  android:layout_width="0dp"
                  android:gravity="start"
                  style="@style/CustomSpinner"/>
 
-              <Spinner
+              <com.cube.nanotimer.util.view.DialogSpinner
                  android:id="@+id/spSolveType"
                  android:layout_width="0dp"
                  android:gravity="start"
