@@ -198,6 +198,9 @@
   <string name="generating_cube_scramble">%1$s mezclas generándose&#8230;\n%2$d de %3$d</string>
   <string name="stopping_generation">Parar generación&#8230;</string>
   <string name="new_record">¡Nuevo record!</string>
+  <string name="record_toast_header">¡Nuevos records!</string>
+  <string name="record_overlay_prev">(ant. %1$s)</string>
+  <string name="record_label_lifetime">PB</string>
   <string name="inspection">Inspección</string>
   <string name="ready">Listo</string>
 

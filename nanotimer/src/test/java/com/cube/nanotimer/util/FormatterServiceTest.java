@@ -32,4 +32,15 @@ public class FormatterServiceTest {
     Assert.assertEquals("3.00", FormatterService.INSTANCE.formatSolveTime(locTime, "", false));
     Assert.assertEquals("2.995", FormatterService.INSTANCE.formatSolveTime(locTime, "", true));
   }
+
+  @Test
+  public void testSolveTimeDifferenceFormat() {
+    Assert.assertEquals("-0.54", FormatterService.INSTANCE.formatSolveTimeDifference(540, false));
+    Assert.assertEquals("-0.540", FormatterService.INSTANCE.formatSolveTimeDifference(540, true));
+    Assert.assertEquals("-1.23", FormatterService.INSTANCE.formatSolveTimeDifference(1234, false));
+    Assert.assertEquals("-1.234", FormatterService.INSTANCE.formatSolveTimeDifference(1234, true));
+    // rounds to the displayed precision, like formatSolveTime
+    Assert.assertEquals("-0.00", FormatterService.INSTANCE.formatSolveTimeDifference(4, false));
+    Assert.assertEquals("-0.004", FormatterService.INSTANCE.formatSolveTimeDifference(4, true));
+  }
 }

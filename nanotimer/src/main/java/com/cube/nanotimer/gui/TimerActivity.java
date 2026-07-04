@@ -62,6 +62,8 @@ import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
@@ -79,6 +81,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
   private ViewGroup layout;
   private TableLayout sessionTimesLayout;
   private TableLayout timerStepsLayout;
+  private View recordOverlayCard;
+  private TextView tvRecordOverlayHeader;
+  private TableLayout recordOverlayTable;
+  private final Handler overlayHandler = new Handler();
 
   private CubeType cubeType;
   private SolveType solveType;
@@ -247,6 +253,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
     TableLayout averagesLayout = (TableLayout) findViewById(R.id.averagesLayout);
     timerStepsLayout = (TableLayout) findViewById(R.id.timerStepsLayout);
+    recordOverlayCard = findViewById(R.id.recordOverlayCard);
+    tvRecordOverlayHeader = (TextView) findViewById(R.id.tvRecordOverlayHeader);
+    recordOverlayTable = (TableLayout) findViewById(R.id.recordOverlayTable);
 
     if (currentOrientation == Configuration.ORIENTATION_PORTRAIT && cubeType == CubeType.SEVEN_BY_SEVEN
         && tvTimer instanceof DigitalTextView) {
@@ -1072,6 +1081,15 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
   private void timerStarted() {
     setKeepScreenOn(true);
     showMenuButton(false);
+    dismissRecordOverlay();
+  }
+
+  private void dismissRecordOverlay() {
+    overlayHandler.removeCallbacks(hideRecordOverlay);
+    if (recordOverlayCard != null) {
+      recordOverlayCard.animate().cancel();
+      recordOverlayCard.setVisibility(View.GONE);
+    }
   }
 
   private void timerStopped() {
@@ -1094,6 +1112,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     }
     animations = new ArrayList<Animation>();
 
+    final List<RecordInfo> records = new ArrayList<RecordInfo>();
 
     if (solveType.hasSteps()) {
       ((TextView) findViewById(R.id.tvAvgOfFive)).setText(
@@ -1109,10 +1128,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     } else if (solveType.isBlind()) {
       tvAccuracy.setText(FormatterService.INSTANCE.formatPercentage(solveAverages.getLifetimeAccuracy()));
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
-      refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf3() : null), getString(R.string.NA), showNotifications, false);
-      refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, true);
+      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf3() : null), getString(R.string.NA), showNotifications, "Mo3", 1));
+      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0));
 
       refreshAvgField(R.id.tvLifetimeAvg, solveAverages.getAvgOfLifetime(), getString(R.string.NA));
       refreshAvgField(R.id.tvAvgOfTwelve, solveAverages.getAvgOf12(), "-");
@@ -1132,16 +1151,20 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
       refreshAvgField(R.id.tvLifetimeAvg, solveAverages.getAvgOfLifetime(), getString(R.string.NA));
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
 
-      refreshAvgFieldWithRecord(R.id.tvBestOfFive, solveAverages.getBestOf5(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf5() : null), "-", showNotifications, false);
-      refreshAvgFieldWithRecord(R.id.tvBestOfTwelve, solveAverages.getBestOf12(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf12() : null), "-", showNotifications, false);
-      refreshAvgFieldWithRecord(R.id.tvBestOfFifty, solveAverages.getBestOf50(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf50() : null), "-", showNotifications, false);
-      refreshAvgFieldWithRecord(R.id.tvBestOfHundred, solveAverages.getBestOf100(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf100() : null), "-", showNotifications, false);
-      refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, true);
+      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfFive, solveAverages.getBestOf5(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf5() : null), "-", showNotifications, "Ao5", 2));
+      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfTwelve, solveAverages.getBestOf12(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf12() : null), "-", showNotifications, "Ao12", 3));
+      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfFifty, solveAverages.getBestOf50(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf50() : null), "-", showNotifications, "Ao50", 4));
+      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfHundred, solveAverages.getBestOf100(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf100() : null), "-", showNotifications, "Ao100", 5));
+      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0));
+    }
+
+    if (showNotifications) {
+      showRecordsSummary(records);
     }
   }
 
@@ -1175,8 +1198,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     }
   }
 
-  private void refreshAvgFieldWithRecord(int fieldId, Long value, Long previousValue, String defaultValue,
-                                         boolean showNotifications, boolean showBanner) {
+  // Refreshes a "best of" field, animating it (and, for the PB, showing the banner) on a new
+  // record. Returns a RecordInfo for the summary toast, or null when no record was set.
+  private RecordInfo refreshAvgFieldWithRecord(int fieldId, Long value, Long previousValue, String defaultValue,
+                                               boolean showNotifications,
+                                               String recordLabel, int priority) {
     refreshAvgField(fieldId, value, defaultValue);
     if (historySolvesCount > MIN_TIMES_FOR_RECORD_NOTIFICATION && previousValue != null && value != null && value < previousValue && !solveType.hasSteps()) {
       final int recordColor = getResources().getColor(R.color.new_record);
@@ -1185,21 +1211,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
 
       if (showNotifications) {
         final int defaultColor = defaultTextColor.getDefaultColor();
-        if (showBanner) {
-          setTitle(getString(R.string.new_record), recordColor);
-          final Handler bannerHandler = new Handler();
-          Timer bannerTimer = new Timer();
-          TimerTask bannerTimerTask = new TimerTask() {
-            public void run() {
-              bannerHandler.post(new Runnable() {
-                public void run() {
-                  setDefaultBannerText();
-                }
-              });
-            }
-          };
-          bannerTimer.schedule(bannerTimerTask, 3000);
-        }
 
         // animate text view color
         Animation a = new Animation() {
@@ -1226,6 +1237,87 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
       } else {
         tv.setTextColor(recordColor);
       }
+      return new RecordInfo(recordLabel, value, previousValue, priority);
+    }
+    return null;
+  }
+
+  private void collectRecord(List<RecordInfo> records, RecordInfo record) {
+    if (record != null) {
+      records.add(record);
+    }
+  }
+
+  // Fills the record overlay (header + one aligned row per record: label, margin, prev best)
+  // and animates it in. Rows live in the layout and are shown/hidden so scaling still applies.
+  private void showRecordsSummary(List<RecordInfo> records) {
+    if (records.isEmpty() || recordOverlayCard == null || recordOverlayTable == null) {
+      return;
+    }
+    Collections.sort(records, new Comparator<RecordInfo>() {
+      @Override
+      public int compare(RecordInfo a, RecordInfo b) {
+        return Integer.compare(a.priority, b.priority);
+      }
+    });
+    tvRecordOverlayHeader.setText("🏆 " + getString(
+        records.size() == 1 ? R.string.new_record : R.string.record_toast_header));
+    for (int i = 0; i < recordOverlayTable.getChildCount(); i++) {
+      TableRow row = (TableRow) recordOverlayTable.getChildAt(i);
+      if (i < records.size()) {
+        RecordInfo r = records.get(i);
+        ((TextView) row.getChildAt(0)).setText(r.label);
+        ((TextView) row.getChildAt(1)).setText(
+            FormatterService.INSTANCE.formatSolveTimeDifference(r.previous - r.value));
+        ((TextView) row.getChildAt(2)).setText(
+            getString(R.string.record_overlay_prev, FormatterService.INSTANCE.formatSolveTime(r.previous)));
+        row.setVisibility(View.VISIBLE);
+      } else {
+        row.setVisibility(View.GONE);
+      }
+    }
+    showRecordOverlay();
+  }
+
+  // In-screen replacement for a toast (system toasts are capped at 2 lines on Android 12+).
+  private void showRecordOverlay() {
+    if (recordOverlayCard == null) {
+      return;
+    }
+    overlayHandler.removeCallbacks(hideRecordOverlay);
+    recordOverlayCard.animate().cancel();
+    recordOverlayCard.setAlpha(0f);
+    recordOverlayCard.setVisibility(View.VISIBLE);
+    recordOverlayCard.animate().alpha(1f).setDuration(250);
+    overlayHandler.postDelayed(hideRecordOverlay, 4000);
+  }
+
+  private final Runnable hideRecordOverlay = new Runnable() {
+    @Override
+    public void run() {
+      if (recordOverlayCard == null) {
+        return;
+      }
+      recordOverlayCard.animate().alpha(0f).setDuration(400).withEndAction(new Runnable() {
+        @Override
+        public void run() {
+          recordOverlayCard.setVisibility(View.GONE);
+        }
+      });
+    }
+  };
+
+  private static class RecordInfo {
+    final String label;
+    final long value;
+    final long previous;
+    final int priority; // lower = shown first
+
+    RecordInfo(String label, long value, long previous, int priority) {
+      this.label = label;
+      this.value = value;
+      this.previous = previous;
+      this.priority = priority;
     }
   }
 

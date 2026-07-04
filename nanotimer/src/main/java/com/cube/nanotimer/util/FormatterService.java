@@ -65,6 +65,16 @@ public enum FormatterService {
     return sb.toString();
   }
 
+  // Formats a positive time improvement (in ms) as a signed delta, e.g. "-0.54".
+  // Uses the same precision as formatSolveTime so it matches the displayed times.
+  public String formatSolveTimeDifference(long diffMs) {
+    return formatSolveTimeDifference(diffMs, Options.INSTANCE.isUsingHighPrecisionTimer());
+  }
+
+  public String formatSolveTimeDifference(long diffMs, boolean parUseHighPrecision) {
+    return "-" + formatSolveTime(diffMs, null, parUseHighPrecision);
+  }
+
   public Long unformatSolveTime(String solveTime) {
     if (solveTime == null) {
       return null;
