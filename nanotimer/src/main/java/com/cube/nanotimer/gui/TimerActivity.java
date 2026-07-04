@@ -232,9 +232,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     super.onResume();
     App.INSTANCE.setContext(this);
     refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
-    if (tvTimer instanceof DigitalTextView) {
-      ((DigitalTextView) tvTimer).setFont(); // Re-apply in case the timer font option changed in the settings.
-    }
   }
 
   private void initActionBar() {
