@@ -34,7 +34,7 @@
      android:fontFeatureSettings="tnum"
      android:singleLine="true"/>
 
-  <!-- Status icon cluster, right-to-left: cyan dot, PB star, comment -->
+  <!-- Status icon cluster, right-to-left: cyan dot, PB trophy, comment -->
   <ImageView
      android:id="@+id/imgCircle"
      android:layout_width="7dp"
@@ -55,7 +55,7 @@
      android:layout_toStartOf="@+id/imgCircle"
      android:layout_marginRight="@dimen/space_s"
      android:layout_marginEnd="@dimen/space_s"
-     android:src="@drawable/star"/>
+     android:src="@drawable/trophy"/>
 
   <ImageView
      android:id="@+id/imgComment"

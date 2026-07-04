@@ -11,7 +11,7 @@
    android:paddingBottom="12dp"
    android:minWidth="300dp">
 
-  <!-- Hero: solve time + PB star -->
+  <!-- Hero: solve time + PB trophy -->
   <LinearLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
@@ -32,7 +32,7 @@
        android:layout_height="28dp"
        android:layout_gravity="center_vertical"
        android:layout_marginLeft="8dp"
-       android:src="@drawable/star"/>
+       android:src="@drawable/trophy"/>
   </LinearLayout>
 
   <!-- Date subtitle -->
