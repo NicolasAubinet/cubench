@@ -21,8 +21,7 @@ import com.cube.nanotimer.gui.widget.SelectionHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
 import com.cube.nanotimer.gui.widget.StepsCreator;
 import com.cube.nanotimer.gui.widget.dialog.FieldCreator;
-import com.cube.nanotimer.gui.widget.dialog.FieldEditDialog;
-import com.cube.nanotimer.gui.widget.dialog.FieldRenamer;
+import com.cube.nanotimer.gui.widget.dialog.FieldEditor;
 import com.cube.nanotimer.gui.widget.dialog.SolveTypeAddDialog;
 import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -43,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class SolveTypesActivity extends NanoTimerActivity implements SelectionHandler, FieldRenamer, FieldCreator, StepsCreator {
+public class SolveTypesActivity extends NanoTimerActivity implements SelectionHandler, FieldEditor, FieldCreator, StepsCreator {
 
   private DragSortListView lvSolveTypes;
   private SolveTypeListAdapter adapter;
@@ -52,7 +51,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   private List<CubeType> cubeTypes;
   private CubeType curCubeType;
 
-  private static final int ACTION_RENAME = 0;
+  private static final int ACTION_EDIT = 0;
   private static final int ACTION_DELETE = 1;
   private static final int ACTION_CREATESTEPS = 2;
 
@@ -139,10 +138,13 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   @Override
   public boolean onContextItemSelected(MenuItem menuItem) {
     final int position = ((AdapterContextMenuInfo) menuItem.getMenuInfo()).position;
-    if (menuItem.getItemId() == ACTION_RENAME) {
-      String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
-      FieldEditDialog fieldDialog = FieldEditDialog.newInstance(this, position, solveTypeName);
-      DialogUtils.showFragment(this, fieldDialog);
+    if (menuItem.getItemId() == ACTION_EDIT) {
+      SolveType solveType = liSolveTypes.get(position);
+      String solveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
+      String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
+      SolveTypeAddDialog editDialog =
+          SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position, solveTypeName, solveType.isBlind(), scrambleTypeName);
+      DialogUtils.showFragment(this, editDialog);
     } else if (menuItem.getItemId() == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
       DialogUtils.showYesNoConfirmation(this, getString(R.string.delete_solve_type_confirmation, solveTypeName),
@@ -189,7 +191,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     if (v.getId() == R.id.lvSolveTypes) {
       int position = ((AdapterContextMenuInfo) menuInfo).position;
       menu.setHeaderTitle(R.string.action);
-      menu.add(v.getId(), ACTION_RENAME, 0, R.string.rename);
+      menu.add(v.getId(), ACTION_EDIT, 0, R.string.edit);
       menu.add(v.getId(), ACTION_DELETE, 0, R.string.delete);
       if (position >= 0 && position < liSolveTypes.size() && !liSolveTypes.get(position).hasSteps()) {
         menu.add(v.getId(), ACTION_CREATESTEPS, 0, R.string.add_steps);
@@ -238,20 +240,45 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   }
 
   @Override
-  public boolean renameField(int index, String newName) {
-    newName = newName.trim();
-    if (!checkSolveTypeName(newName, index)) {
+  public boolean editField(int index, String name, Properties props) {
+    name = name.trim();
+    if (!checkSolveTypeName(name, index)) {
       return false;
     }
-    SolveType st = liSolveTypes.get(index);
-    st.setName(newName.trim());
-    App.INSTANCE.getService().updateSolveType(st, new DataCallback<Void>() {
+    SolveType oldSolveType = liSolveTypes.get(index);
+    boolean blindMode = Boolean.valueOf(props.getProperty(SolveTypeAddDialog.KEY_BLD, String.valueOf(false)));
+    ScrambleType scrambleType = parseScrambleType(props);
+
+    // Toggling blind changes what the cached avg columns mean, so the service must recompute them.
+    boolean blindChanged = (oldSolveType.isBlind() != blindMode);
+
+    SolveType updatedSolveType = new SolveType(oldSolveType.getId(), name, blindMode, scrambleType, oldSolveType.getCubeTypeId());
+    updatedSolveType.setSteps(oldSolveType.getSteps());
+    liSolveTypes.set(index, updatedSolveType);
+
+    App.INSTANCE.getService().updateSolveType(updatedSolveType, blindChanged, new DataCallback<Void>() {
       @Override
       public void onData(Void data) {
         refreshList();
       }
     });
     return true;
+  }
+
+  // Resolves the dialog's chosen scramble type (KEY_SCRAMBLE_TYPE is a spinner position; 0 = none),
+  // warming the random-state cache when a non-default type is first used.
+  private ScrambleType parseScrambleType(Properties props) {
+    int scrambleTypeIndex = Integer.parseInt(props.getProperty(SolveTypeAddDialog.KEY_SCRAMBLE_TYPE, String.valueOf(-1)));
+    if (scrambleTypeIndex > 0) {
+      ScrambleType scrambleType = curCubeType.getAvailableScrambleTypes()[scrambleTypeIndex];
+      if (!scrambleType.isDefault()) {
+        if (curCubeType.addUsedScrambleType(scrambleType)) {
+          ScramblerService.INSTANCE.checkScrambleCaches();
+        }
+      }
+      return scrambleType;
+    }
+    return null;
   }
 
   @Override
@@ -261,18 +288,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       return false;
     }
     boolean blindMode = Boolean.valueOf(props.getProperty(SolveTypeAddDialog.KEY_BLD, String.valueOf(false)));
-
-    ScrambleType scrambleType = null;
-    int scrambleTypeIndex = Integer.parseInt(props.getProperty(SolveTypeAddDialog.KEY_SCRAMBLE_TYPE, String.valueOf(-1)));
-    if (scrambleTypeIndex > 0) {
-      scrambleType = curCubeType.getAvailableScrambleTypes()[scrambleTypeIndex];
-
-      if (!scrambleType.isDefault()) {
-        if (curCubeType.addUsedScrambleType(scrambleType)) {
-          ScramblerService.INSTANCE.checkScrambleCaches();
-        }
-      }
-    }
+    ScrambleType scrambleType = parseScrambleType(props);
     SolveType st = new SolveType(name, blindMode, scrambleType, curCubeType.getId());
 
     liSolveTypes.add(st);

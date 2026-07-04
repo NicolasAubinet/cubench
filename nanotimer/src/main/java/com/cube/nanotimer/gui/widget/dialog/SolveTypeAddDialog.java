@@ -27,12 +27,19 @@ public class SolveTypeAddDialog extends ConfirmDialog {
 
   private static final String ARG_FIELD_CREATOR = "fieldCreator";
   private static final String ARG_CUBE_TYPE = "cubeType";
+  private static final String ARG_EDIT = "edit";
+  private static final String ARG_EDIT_POSITION = "editPosition";
+  private static final String ARG_EDIT_NAME = "editName";
+  private static final String ARG_EDIT_BLIND = "editBlind";
+  private static final String ARG_EDIT_SCRAMBLE_NAME = "editScrambleName";
 
   private EditText tfName;
   private LinearLayout scrambleTypeLayout;
   private Spinner spScrambleType;
 
   private ScrambleType previousScrambleType;
+  // Spinner position of the edited solve type's scramble type, resolved while the list is built.
+  private int editScrambleTypePosition;
 
   public static SolveTypeAddDialog newInstance(FieldCreator fieldCreator, CubeType cubeType) {
     SolveTypeAddDialog frag = new SolveTypeAddDialog();
@@ -43,9 +50,31 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     return frag;
   }
 
+  // Opens the same dialog pre-filled with an existing solve type's info, to edit it in place.
+  // fieldEditor must also implement FieldCreator (they are the same object) - it is stored once.
+  // scrambleTypeName is the name of the solve type's scramble type, or null for the default scramble.
+  public static <T extends FieldCreator & FieldEditor> SolveTypeAddDialog newInstanceForEdit(
+      T fieldEditor, CubeType cubeType, int position, String name, boolean blind, String scrambleTypeName) {
+    SolveTypeAddDialog frag = new SolveTypeAddDialog();
+    Bundle args = new Bundle();
+    args.putSerializable(ARG_FIELD_CREATOR, fieldEditor);
+    args.putString(ARG_CUBE_TYPE, cubeType.toString());
+    args.putBoolean(ARG_EDIT, true);
+    args.putInt(ARG_EDIT_POSITION, position);
+    args.putString(ARG_EDIT_NAME, name);
+    args.putBoolean(ARG_EDIT_BLIND, blind);
+    args.putString(ARG_EDIT_SCRAMBLE_NAME, scrambleTypeName);
+    frag.setArguments(args);
+    return frag;
+  }
+
+  private boolean isEditMode() {
+    return getArguments().getBoolean(ARG_EDIT, false);
+  }
+
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
-    dialog = getDialog(R.string.add);
+    dialog = getDialog(isEditMode() ? R.string.save : R.string.add);
 
     tfName = (EditText) view.findViewById(R.id.tfName);
 
@@ -56,9 +85,14 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     if (scrambleTypes.length > 0) {
       scrambleTypeLayout.setVisibility(View.VISIBLE);
 
+      String editScrambleTypeName = getArguments().getString(ARG_EDIT_SCRAMBLE_NAME);
       List<CharSequence> scrambleTypesNames = new ArrayList<>();
-      for (ScrambleType locScrambleType : scrambleTypes) {
-        scrambleTypesNames.add(getScrambleTypeTextString(locScrambleType));
+      for (int i = 0; i < scrambleTypes.length; i++) {
+        scrambleTypesNames.add(getScrambleTypeTextString(scrambleTypes[i]));
+        // Match by name (ScrambleType compares by name) to find the position to pre-select in edit mode.
+        if (editScrambleTypeName != null && editScrambleTypeName.equals(scrambleTypes[i].getName())) {
+          editScrambleTypePosition = i;
+        }
       }
 
       spScrambleType = (Spinner) view.findViewById(R.id.spScrambleType);
@@ -89,6 +123,18 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       scrambleTypeLayout.setVisibility(View.GONE);
     }
 
+    if (isEditMode()) {
+      // Pre-fill with the existing solve type's values. Setting the name up front also stops the
+      // scramble spinner's auto-naming listener from overwriting it (it only kicks in on an empty name).
+      tfName.setText(getArguments().getString(ARG_EDIT_NAME));
+      tfName.setSelection(0, tfName.length());
+      if (spScrambleType != null && editScrambleTypePosition < spScrambleType.getCount()) {
+        spScrambleType.setSelection(editScrambleTypePosition);
+      }
+      CheckBox cbBlind = (CheckBox) view.findViewById(R.id.cbBlind);
+      cbBlind.setChecked(getArguments().getBoolean(ARG_EDIT_BLIND, false));
+    }
+
     return dialog;
   }
 
@@ -108,8 +154,15 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     }
     props.put(KEY_SCRAMBLE_TYPE, String.valueOf(scrambleTypeItemPosition));
 
-    FieldCreator fieldCreator = (FieldCreator) getArguments().getSerializable(ARG_FIELD_CREATOR);
-    if (fieldCreator.createField(tfName.getText().toString(), props)) {
+    boolean confirmed;
+    if (isEditMode()) {
+      FieldEditor fieldEditor = (FieldEditor) getArguments().getSerializable(ARG_FIELD_CREATOR);
+      confirmed = fieldEditor.editField(getArguments().getInt(ARG_EDIT_POSITION), tfName.getText().toString(), props);
+    } else {
+      FieldCreator fieldCreator = (FieldCreator) getArguments().getSerializable(ARG_FIELD_CREATOR);
+      confirmed = fieldCreator.createField(tfName.getText().toString(), props);
+    }
+    if (confirmed) {
       dialog.dismiss();
     }
   }

@@ -44,6 +44,6 @@ public interface ServiceProvider {
 
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);
-  void updateSolveType(SolveType solveType);
+  void updateSolveType(SolveType solveType, boolean recalculateAverages);
   void deleteSolveType(SolveType solveType);
 }

@@ -28,6 +28,7 @@
   <string name="save">Save</string>
   <string name="action">Action</string>
   <string name="rename">Rename</string>
+  <string name="edit">Edit</string>
   <string name="cancel">Cancel</string>
   <string name="confirm">Confirm</string>
   <string name="solve_type_already_exists">A solve type with the same name already exists</string>

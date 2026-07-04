@@ -24,6 +24,7 @@
   <string name="save">Sauver</string>
   <string name="action">Action</string>
   <string name="rename">Renommer</string>
+  <string name="edit">Éditer</string>
   <string name="cancel">Annuler</string>
   <string name="confirm">Confirmer</string>
   <string name="solve_type_already_exists">Un type de résolution avec le même nom existe déjà</string>

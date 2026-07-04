@@ -221,11 +221,11 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
-  public void updateSolveType(final SolveType solveType, final DataCallback<Void> callback) {
+  public void updateSolveType(final SolveType solveType, final boolean recalculateAverages, final DataCallback<Void> callback) {
     run(new Runnable() {
       @Override
       public void run() {
-        provider.updateSolveType(solveType);
+        provider.updateSolveType(solveType, recalculateAverages);
         if (callback != null) {
           callback.onData(null);
         }

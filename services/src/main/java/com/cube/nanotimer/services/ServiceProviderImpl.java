@@ -799,10 +799,16 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
-  public void updateSolveType(SolveType solveType) {
+  public void updateSolveType(SolveType solveType, boolean recalculateAverages) {
     ContentValues values = new ContentValues();
     values.put(DB.COL_SOLVETYPE_NAME, solveType.getName());
+    values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
+    values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
     db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
+    if (recalculateAverages) {
+      recalculateAverages(0, solveType);
+      clearCaches();
+    }
   }
 
   @Override

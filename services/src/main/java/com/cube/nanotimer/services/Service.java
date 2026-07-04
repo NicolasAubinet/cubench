@@ -44,7 +44,7 @@ public interface Service {
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);
-  void updateSolveType(SolveType solveType, DataCallback<Void> callback);
+  void updateSolveType(SolveType solveType, boolean recalculateAverages, DataCallback<Void> callback);
   void deleteSolveType(SolveType solveType, DataCallback<Void> callback);
 
   ServiceProvider getProviderAccess();
