@@ -25,6 +25,7 @@ public class AddNewTimeDialog extends ConfirmDialog {
   private EditText tfMinutes;
   private EditText tfSeconds;
   private EditText tfHundreds;
+  private EditText tfScramble;
   private SwitchCompat cbDNF;
 
   private static final String ARG_RESULT_LISTENER = "resultListener";
@@ -79,7 +80,10 @@ public class AddNewTimeDialog extends ConfirmDialog {
     Bundle args = getArguments();
     final ResultListener resultListener = (ResultListener) args.getSerializable(ARG_RESULT_LISTENER) ;
     SolveType solveType = (SolveType) args.getSerializable(ARG_SOLVE_TYPE);
-    String scramble = args.getString(ARG_SCRAMBLE);
+    String scramble = tfScramble.getText().toString().trim();
+    if (scramble.isEmpty()) {
+      scramble = null;
+    }
 
     SolveTime solveTime = new SolveTime();
     solveTime.setTime(time);
@@ -106,7 +110,10 @@ public class AddNewTimeDialog extends ConfirmDialog {
     tfMinutes = (EditText) view.findViewById(R.id.tfMinutes);
     tfSeconds = (EditText) view.findViewById(R.id.tfSeconds);
     tfHundreds = (EditText) view.findViewById(R.id.tfHundreds);
+    tfScramble = (EditText) view.findViewById(R.id.tfScramble);
     cbDNF = view.findViewById(R.id.cbDNF);
+
+    tfScramble.setText(getArguments().getString(ARG_SCRAMBLE));
 
     tfMinutes.addTextChangedListener(new OnNumericFieldKeyListener(tfSeconds));
     tfSeconds.addTextChangedListener(new OnNumericFieldKeyListener(tfHundreds));
