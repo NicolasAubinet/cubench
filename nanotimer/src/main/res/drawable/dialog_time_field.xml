@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Rounded field background for the Add-time dialog. Border brightens to the accent on focus. -->
+<!-- Rounded, inset field background for the Add-time dialog. Sits inside the time panel card,
+     so the fill is darker than the card to read as a well. Border brightens to the accent on focus. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
   <item android:state_focused="true">
     <shape android:shape="rectangle">
-      <solid android:color="@color/timercardbg"/>
+      <solid android:color="@color/gray900"/>
       <stroke android:width="2dp" android:color="@color/lightblue"/>
       <corners android:radius="10dp"/>
     </shape>
   </item>
   <item>
     <shape android:shape="rectangle">
-      <solid android:color="@color/timercardbg"/>
+      <solid android:color="@color/gray900"/>
       <stroke android:width="1dp" android:color="@color/gray700"/>
       <corners android:radius="10dp"/>
     </shape>

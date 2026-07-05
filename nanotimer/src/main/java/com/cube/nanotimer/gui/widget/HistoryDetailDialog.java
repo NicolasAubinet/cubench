@@ -137,7 +137,7 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       tvTime.setTextColor(getResources().getColor(R.color.dnf_time));
     }
 
-    final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(v).create();
+    final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setCanceledOnTouchOutside(true);
 
     buPlusTwo.setOnClickListener(new OnClickListener() {

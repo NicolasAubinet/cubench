@@ -15,11 +15,16 @@ public abstract class ConfirmDialog extends NanoTimerDialogFragment {
   protected Dialog dialog;
   protected View view;
 
+  // Subclasses can return a dialog theme (e.g. the modern rounded frame) or 0 for the default.
+  protected int getDialogTheme() {
+    return 0;
+  }
+
   protected Dialog getDialog(int confirmText) {
     view = getCustomView();
     final AlertDialog d;
 
-    d = new AlertDialog.Builder(getActivity())
+    d = new AlertDialog.Builder(getActivity(), getDialogTheme())
         .setView(view)
         .setPositiveButton(confirmText, new DialogInterface.OnClickListener() {
           public void onClick(DialogInterface dialog, int whichButton) {
@@ -47,12 +52,14 @@ public abstract class ConfirmDialog extends NanoTimerDialogFragment {
     AlertDialog d = (AlertDialog) getDialog();
     if (d != null) {
       Button positiveButton = d.getButton(Dialog.BUTTON_POSITIVE);
-      positiveButton.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          onConfirm();
-        }
-      });
+      if (positiveButton != null) {
+        positiveButton.setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            onConfirm();
+          }
+        });
+      }
     }
   }
 

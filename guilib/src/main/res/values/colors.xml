@@ -66,6 +66,9 @@
   <color name="cube_green">#43A047</color>
   <color name="cube_blue">#1E88E5</color>
 
+  <color name="dialog_surface">#23272B</color>
+  <color name="dialog_divider">#1FFFFFFF</color>
+
   <color name="graybg">#323232</color>
   <!--<color name="graybg">#FF1C1E20</color>-->
   <color name="pushedbg">#454545</color>

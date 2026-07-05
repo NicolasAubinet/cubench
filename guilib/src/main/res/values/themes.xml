@@ -58,4 +58,23 @@
     <item name="android:dividerHeight">1dp</item>
   </style>
 
+  <!-- Modern dark rounded frame for app dialogs (Add time, session details, …). -->
+  <style name="NanoTimerDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+    <item name="android:windowBackground">@drawable/dialog_window_bg</item>
+    <item name="colorAccent">@color/lightblue</item>
+    <item name="android:textColorPrimary">@color/white</item>
+    <item name="android:windowMinWidthMinor">92%</item>
+    <item name="android:windowMinWidthMajor">70%</item>
+    <item name="buttonBarButtonStyle">@style/NanoTimerDialogButton</item>
+  </style>
+
+  <!-- Bottom action buttons for the dialogs above: sentence-case, accent, comfortable tap target. -->
+  <style name="NanoTimerDialogButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+    <item name="android:textColor">@color/lightblue</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textSize">15sp</item>
+    <item name="android:letterSpacing">0.02</item>
+    <item name="android:minHeight">44dp</item>
+  </style>
+
 </resources>
