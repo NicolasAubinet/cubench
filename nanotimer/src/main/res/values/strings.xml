@@ -342,7 +342,15 @@
   <string name="release_notes_features_html">
     <![CDATA[<html><body>
     <font color=\"white\">
-    <u><b>v1.4.0 <i>(New version)</i></b></u><br/>
+    <u><b>v1.4.1 <i>(New version)</i></b></u><br/>
+    <ul>
+      <li>New record overlay showing your improvement and previous time(s)</li>
+      <li>Add settings to choose the timer font and its size</li>
+      <li>Add scrambles to manually entered times</li>
+      <li>Scrambles are now copyable from solve details</li>
+      <li>Solve types can now be fully edited (scramble type, blind flag), not just renamed</li>
+    </ul>
+    <u><b>v1.4.0</b></u><br/>
     <b>Nano Timer is now Cubench! (Same app, new name.)</b><br/>
     <b>New features</b>
     <ul>

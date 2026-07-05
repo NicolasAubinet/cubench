@@ -338,7 +338,15 @@
   <string name="release_notes_features_html">
     <![CDATA[<html><body>
     <font color=\"white\">
-    <u><b>v1.4.0 <i>(Nouvelle version)</i></b></u><br/>
+    <u><b>v1.4.1 <i>(Nouvelle version)</i></b></u><br/>
+    <ul>
+      <li>Nouvel affichage de record montrant votre amélioration et le(s) temps précédent(s)</li>
+      <li>Ajout de réglages pour choisir la police du chrono et sa taille</li>
+      <li>Ajoutez des mélanges aux temps saisis manuellement</li>
+      <li>Les mélanges sont désormais copiables depuis les détails d\'une résolution</li>
+      <li>Les types de résolution peuvent désormais être entièrement modifiés (type de mélange, option \"blind\"), et non plus seulement renommés</li>
+    </ul>
+    <u><b>v1.4.0</b></u><br/>
     <b>Nano Timer s\'appelle désormais Cubench ! (Même application, nouveau nom.)</b><br/>
     <b>Nouveautés</b>
     <ul>
