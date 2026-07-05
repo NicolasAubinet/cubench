@@ -2,6 +2,8 @@ package com.cube.nanotimer.util.helper;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -108,6 +110,14 @@ public class DialogUtils {
       text = activity.getString(R.string.share_time_text, cubeType.getName(), timeStr, scramble, timestampStr, playStorePage);
     }
     shareData(activity, subject, text, null);
+  }
+
+  public static void copyScrambleToClipboard(Context context, String scramble) {
+    ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+    if (clipboard != null) {
+      clipboard.setPrimaryClip(ClipData.newPlainText("scramble", scramble));
+      showShortInfoMessage(context, R.string.scramble_copied);
+    }
   }
 
   private static DialogInterface.OnClickListener getYesNoClickListener(final YesNoListener listener) {

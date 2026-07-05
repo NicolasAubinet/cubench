@@ -116,10 +116,20 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       imgPb.setVisibility(View.GONE);
     }
 
+    final View scrambleCard = v.findViewById(R.id.scrambleCard);
     if (solveTime.getScramble() != null) {
       tvScramble.setText(ScrambleFormatterService.INSTANCE.formatToColoredScramble(solveTime.getScramble(), cubeType));
+      scrambleCard.setOnClickListener(new OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          String scramble = ScrambleFormatterService.INSTANCE.formatScrambleForExport(solveTime.getScramble(), cubeType);
+          DialogUtils.copyScrambleToClipboard(getActivity(), scramble);
+        }
+      });
     } else {
       tvScramble.setText(R.string.no_scramble);
+      scrambleCard.setClickable(false);
+      scrambleCard.setForeground(null);
     }
     tvDate.setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
     tvTime.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));

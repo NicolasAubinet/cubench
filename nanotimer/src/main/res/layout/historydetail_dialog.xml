@@ -132,10 +132,14 @@
            android:textSize="15sp"/>
       </LinearLayout>
 
-      <!-- Scramble card -->
+      <!-- Scramble card (tap to copy) -->
       <androidx.cardview.widget.CardView
+         android:id="@+id/scrambleCard"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
+         android:clickable="true"
+         android:focusable="true"
+         android:foreground="?android:attr/selectableItemBackground"
          style="@style/TableCardView">
         <com.cube.nanotimer.util.view.FontFitTextView
            android:id="@+id/tvScramble"
