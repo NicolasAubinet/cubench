@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -114,6 +115,32 @@ public class AddNewTimeDialog extends ConfirmDialog {
     cbDNF = view.findViewById(R.id.cbDNF);
 
     tfScramble.setText(getArguments().getString(ARG_SCRAMBLE));
+    // First tap (the one that focuses the field) selects the whole scramble so it can be
+    // wiped/replaced in one go; once focused, further taps position the cursor normally.
+    tfScramble.setOnTouchListener(new View.OnTouchListener() {
+      private boolean focusedByThisTouch;
+
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getActionMasked()) {
+          case MotionEvent.ACTION_DOWN:
+            focusedByThisTouch = !v.hasFocus();
+            break;
+          case MotionEvent.ACTION_UP:
+            if (focusedByThisTouch) {
+              focusedByThisTouch = false;
+              v.post(new Runnable() {
+                @Override
+                public void run() {
+                  tfScramble.selectAll();
+                }
+              });
+            }
+            break;
+        }
+        return false; // don't consume: normal focus and keyboard handling still runs
+      }
+    });
 
     tfMinutes.addTextChangedListener(new OnNumericFieldKeyListener(tfSeconds));
     tfSeconds.addTextChangedListener(new OnNumericFieldKeyListener(tfHundreds));
