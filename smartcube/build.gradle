@@ -22,5 +22,8 @@ android {
 }
 
 dependencies {
+    implementation 'no.nordicsemi.android:ble:2.7.5'
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
+
     testImplementation 'junit:junit:4.13.2'
 }
