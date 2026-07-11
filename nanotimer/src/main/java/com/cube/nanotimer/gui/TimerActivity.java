@@ -34,6 +34,7 @@ import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.SmartCubeChip;
+import com.cube.nanotimer.cube.SmartCubeSolveController;
 import com.cube.nanotimer.cube.SmartCubeTimerController;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
@@ -125,7 +126,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private volatile TimerState timerState = TimerState.STOPPED;
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
-  private SmartCubeTimerController cubeTimerController;
+  private SmartCubeSolveController solveController;
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
 
@@ -174,7 +175,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
 
     smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
-    cubeTimerController = new SmartCubeTimerController(this::onCubeSolveCompleted);
+    solveController = new SmartCubeSolveController(new SolveControllerListener());
     initActionBar();
 
     inspectionTime = Options.INSTANCE.getInspectionTime();
@@ -244,7 +245,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     super.onResume();
     App.INSTANCE.setContext(this);
     smartCubeChip.start();
-    cubeTimerController.start();
+    solveController.start();
     refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
   }
 
@@ -252,13 +253,48 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   protected void onPause() {
     super.onPause();
     smartCubeChip.stop();
-    cubeTimerController.stop();
+    solveController.stop();
   }
 
-  // Auto-stop: fired when the connected cube reaches solved during a running solve.
-  private void onCubeSolveCompleted() {
-    if (timerState == TimerState.RUNNING && !solveType.hasSteps()) {
-      stopTimer(true);
+  private class SolveControllerListener implements SmartCubeSolveController.Listener {
+    @Override
+    public void onCubeAutoStart() {
+      if (timerState == TimerState.STOPPED) {
+        startTimer();
+      }
+    }
+
+    @Override
+    public void onCubeAutoStop() {
+      if (timerState == TimerState.RUNNING && !solveType.hasSteps()) {
+        stopTimer(true);
+      }
+    }
+
+    @Override
+    public void onScrambleFollowChanged() {
+      renderScramble();
+    }
+  }
+
+  private void renderScramble() {
+    if (currentScramble == null) {
+      tvScramble.setText(R.string.scramble_generating);
+      return;
+    }
+    switch (solveController.getFollowMode()) {
+      case NEEDS_SOLVE:
+        tvScramble.setText(R.string.smart_cube_solve_first);
+        break;
+      case FOLLOWING:
+        tvScramble.setText(ScrambleFormatterService.INSTANCE.formatScrambleWithProgress(
+            currentScramble, cubeType, currentOrientation,
+            solveController.getDoneCount(), solveController.isWrong()));
+        break;
+      default:
+        tvScramble.setText(ScrambleFormatterService.INSTANCE.formatToColoredScramble(
+            currentScramble, cubeType, currentOrientation));
+        break;
     }
   }
 
@@ -659,11 +695,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       if (timerState == TimerState.STOPPED) {
         tvTimer.setText(timerText);
       }
-      if (currentScramble != null) {
-        tvScramble.setText(ScrambleFormatterService.INSTANCE.formatToColoredScramble(currentScramble, cubeType, currentOrientation));
-      } else {
-        tvScramble.setText(R.string.scramble_generating);
-      }
+      renderScramble();
       tvSolvesCount.setText(String.valueOf(solvesCount));
 
       refreshSessionFields();
@@ -849,7 +881,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       tvTimer.setText("--:--");
     }
     timerState = TimerState.RUNNING;
-    cubeTimerController.arm();
+    solveController.onTimerStarted();
   }
 
   private void stopTimer(boolean save) {
@@ -860,7 +892,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastTimerStopTs = curTime;
     long time = (curTime - timerStartTs);
     timerState = TimerState.STOPPED;
-    cubeTimerController.disarm();
+    solveController.onTimerStopped();
     if (timer != null) {
       timer.cancel();
       timer.purge();
@@ -1151,7 +1183,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
-          tvScramble.setText(ScrambleFormatterService.INSTANCE.formatToColoredScramble(currentScramble, cubeType, currentOrientation));
+          boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
+          ScrambleType scrambleType = solveType.getScrambleType();
+          boolean followable = is3x3 && (scrambleType == null || scrambleType.isDefault());
+          solveController.setScramble(currentScramble, is3x3, followable);
         }
       });
       foundScramble = true;

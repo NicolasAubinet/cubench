@@ -1,9 +1,11 @@
 package com.cube.nanotimer.util;
 
 import android.content.res.Configuration;
+import android.graphics.Typeface;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.Options.BigCubesNotation;
@@ -58,6 +60,57 @@ public enum ScrambleFormatterService {
       }
     }
     return splitted;
+  }
+
+  /**
+   * Color a scramble by smart-cube follow progress: moves already executed are shown "done",
+   * the expected next move is highlighted (or red when the last move was wrong), and the
+   * remaining moves stay pending. 3x3 only (space/newline-delimited single-char faces).
+   * @param doneCount number of scramble moves correctly executed so far
+   * @param wrong true when the last executed move did not match the expected next move
+   */
+  public Spannable formatScrambleWithProgress(String[] scramble, CubeType cubeType, int orientation,
+                                              int doneCount, boolean wrong) {
+    String s = formatScramble(scramble, cubeType, orientation);
+    Spannable span = new SpannableString(s);
+    int doneColor = getColor(R.color.green);
+    int currentColor = getColor(R.color.lightblue);
+    int wrongColor = getColor(R.color.red);
+    int pendingColor = getColor(R.color.white);
+
+    int tokenIndex = 0;
+    int i = 0;
+    while (i < s.length()) {
+      char c = s.charAt(i);
+      if (c == ' ' || c == '\n') {
+        i++;
+        continue;
+      }
+      int start = i;
+      while (i < s.length() && s.charAt(i) != ' ' && s.charAt(i) != '\n') {
+        i++;
+      }
+      int color;
+      boolean bold = false;
+      if (tokenIndex < doneCount) {
+        color = doneColor;
+      } else if (tokenIndex == doneCount) {
+        color = wrong ? wrongColor : currentColor;
+        bold = true;
+      } else {
+        color = pendingColor;
+      }
+      span.setSpan(new ForegroundColorSpan(color), start, i, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+      if (bold) {
+        span.setSpan(new StyleSpan(Typeface.BOLD), start, i, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+      }
+      tokenIndex++;
+    }
+    return span;
+  }
+
+  private int getColor(int resId) {
+    return App.INSTANCE.getContext().getResources().getColor(resId);
   }
 
   /**

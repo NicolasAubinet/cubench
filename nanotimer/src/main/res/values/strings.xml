@@ -613,4 +613,5 @@
   <string name="smart_cube_connect_title">Connect a smart cube</string>
   <string name="smart_cube_intro_body">A Bluetooth smart cube lets Cubench read your turns as you solve — so it can start and stop the timer automatically, with no tapping. More insights are on the way.</string>
   <string name="smart_cube_done">Done</string>
+  <string name="smart_cube_solve_first">Solve your cube to begin</string>
 </resources>
