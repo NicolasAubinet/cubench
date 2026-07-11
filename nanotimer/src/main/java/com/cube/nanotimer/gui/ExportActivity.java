@@ -184,7 +184,7 @@ public class ExportActivity extends NanoTimerActivity {
   }
 
   private void sendExportFile(File file) {
-    Uri uri = FileProvider.getUriForFile(this, "com.cube.nanotimer.fileprovider", file);
+    Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
     DialogUtils.shareData(this,
       getString(R.string.export_mail_subject),
       getString(R.string.export_mail_body, FormatterService.INSTANCE.formatDateTime(System.currentTimeMillis())),
