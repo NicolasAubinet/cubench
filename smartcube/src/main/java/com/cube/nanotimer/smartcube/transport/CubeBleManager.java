@@ -9,8 +9,9 @@ import no.nordicsemi.android.ble.callback.DataReceivedCallback;
 
 /**
  * Nordic {@link BleManager} for a smart cube: accepts any GATT profile (the driver
- * validates the services it needs) and exposes generic blocking connect / notify / write
- * operations. All blocking calls must run off the main thread.
+ * validates the services it needs) and exposes generic connect / notify / write
+ * operations. {@link #connectTo} blocks and must run off the main thread; notify and
+ * write are queued and return immediately, so they are safe to call from any thread.
  */
 final class CubeBleManager extends BleManager {
 
@@ -50,19 +51,11 @@ final class CubeBleManager extends BleManager {
 
   void enableNotify(BluetoothGattCharacteristic characteristic, DataReceivedCallback callback) {
     setNotificationCallback(characteristic).with(callback);
-    try {
-      enableNotifications(characteristic).await();
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to enable notifications", e);
-    }
+    enableNotifications(characteristic).enqueue();
   }
 
   void writeTo(BluetoothGattCharacteristic characteristic, byte[] data) {
-    try {
-      writeCharacteristic(characteristic, data, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT).await();
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to write characteristic", e);
-    }
+    writeCharacteristic(characteristic, data, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT).enqueue();
   }
 
   void disconnectDevice() {
