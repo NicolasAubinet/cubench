@@ -287,9 +287,15 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         tvScramble.setText(R.string.smart_cube_solve_first);
         break;
       case FOLLOWING:
-        tvScramble.setText(ScrambleFormatterService.INSTANCE.formatScrambleWithProgress(
-            currentScramble, cubeType, currentOrientation,
-            solveController.getDoneCount(), solveController.isWrong()));
+        if (solveController.isReadyToSolve()) {
+          tvScramble.setText(R.string.smart_cube_ready_to_solve);
+        } else if (solveController.isWrong()) {
+          tvScramble.setText(ScrambleFormatterService.INSTANCE.formatReverseMoves(
+              getString(R.string.smart_cube_undo), solveController.getReverseMoves()));
+        } else {
+          tvScramble.setText(ScrambleFormatterService.INSTANCE.formatScrambleWithProgress(
+              currentScramble, cubeType, currentOrientation, solveController.getDoneCount()));
+        }
         break;
       default:
         tvScramble.setText(ScrambleFormatterService.INSTANCE.formatToColoredScramble(

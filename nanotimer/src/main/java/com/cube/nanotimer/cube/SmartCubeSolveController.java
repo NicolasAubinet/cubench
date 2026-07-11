@@ -108,6 +108,16 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     return follower != null && follower.isWrong();
   }
 
+  /** True once the whole scramble has been followed and the timer is armed. */
+  public boolean isReadyToSolve() {
+    return phase == Phase.ARMED;
+  }
+
+  /** Notation to execute to undo the wrong moves, e.g. "U' R2". Empty when on track. */
+  public String getReverseMoves() {
+    return follower == null ? "" : follower.getReverseMoves();
+  }
+
   private void reevaluate() {
     if (phase != Phase.RUNNING && phase != Phase.ARMED) {
       applyScramble();
@@ -158,12 +168,10 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         }
         break;
       case FOLLOWING:
-        boolean changed = follower.onState(state);
-        if (follower.isComplete()) {
-          phase = Phase.ARMED;
-          changed = true;
-        }
-        if (changed) {
+        if (follower.onState(state)) { // reconcile only; moves drive the follow
+          if (follower.isComplete()) {
+            phase = Phase.ARMED;
+          }
           notifyChanged();
         }
         break;
@@ -174,8 +182,22 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   @Override
   public void onMove(CubeMove move) {
-    if (phase == Phase.ARMED) {
-      listener.onCubeAutoStart(); // -> startTimer -> onTimerStarted moves us to RUNNING
+    switch (phase) {
+      case FOLLOWING:
+        boolean changed = follower.onMove(move);
+        if (follower.isComplete()) {
+          phase = Phase.ARMED;
+          changed = true;
+        }
+        if (changed) {
+          notifyChanged();
+        }
+        break;
+      case ARMED:
+        listener.onCubeAutoStart(); // scramble is done; any move starts the solve
+        break;
+      default:
+        break;
     }
   }
 

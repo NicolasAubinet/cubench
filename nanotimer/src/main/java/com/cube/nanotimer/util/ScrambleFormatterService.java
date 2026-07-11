@@ -5,6 +5,7 @@ import android.graphics.Typeface;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
@@ -63,19 +64,18 @@ public enum ScrambleFormatterService {
   }
 
   /**
-   * Color a scramble by smart-cube follow progress: moves already executed are shown "done",
-   * the expected next move is highlighted (or red when the last move was wrong), and the
-   * remaining moves stay pending. 3x3 only (space/newline-delimited single-char faces).
+   * Color a scramble by smart-cube follow progress: already-executed moves fade to gray, the
+   * expected next move is highlighted in yellow, and the remaining moves keep their original
+   * column color. 3x3 only (space/newline-delimited single-char faces).
    * @param doneCount number of scramble moves correctly executed so far
-   * @param wrong true when the last executed move did not match the expected next move
    */
   public Spannable formatScrambleWithProgress(String[] scramble, CubeType cubeType, int orientation,
-                                              int doneCount, boolean wrong) {
+                                              int doneCount) {
     String s = formatScramble(scramble, cubeType, orientation);
+    Spannable base = colorFormattedScramble(s, cubeType); // source of the pending column colors
     Spannable span = new SpannableString(s);
-    int doneColor = getColor(R.color.green);
-    int currentColor = getColor(R.color.lightblue);
-    int wrongColor = getColor(R.color.red);
+    int doneColor = getColor(R.color.gray600);
+    int currentColor = getColor(R.color.cube_yellow);
     int pendingColor = getColor(R.color.white);
 
     int tokenIndex = 0;
@@ -95,10 +95,11 @@ public enum ScrambleFormatterService {
       if (tokenIndex < doneCount) {
         color = doneColor;
       } else if (tokenIndex == doneCount) {
-        color = wrong ? wrongColor : currentColor;
+        color = currentColor;
         bold = true;
       } else {
-        color = pendingColor;
+        ForegroundColorSpan[] columnColor = base.getSpans(start, start + 1, ForegroundColorSpan.class);
+        color = columnColor.length > 0 ? columnColor[0].getForegroundColor() : pendingColor;
       }
       span.setSpan(new ForegroundColorSpan(color), start, i, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
       if (bold) {
@@ -107,6 +108,36 @@ public enum ScrambleFormatterService {
       tokenIndex++;
     }
     return span;
+  }
+
+  private static final int MAX_REVERSE_MOVES_SHOWN = 7;
+
+  /** Build the "undo your wrong moves" prompt shown when the follow goes off the scramble. */
+  public Spannable formatReverseMoves(String header, String reverseMoves) {
+    reverseMoves = capReverseMoves(reverseMoves);
+    String text = header + "\n" + reverseMoves;
+    Spannable span = new SpannableString(text);
+    int movesStart = header.length() + 1;
+    span.setSpan(new ForegroundColorSpan(getColor(R.color.gray400)), 0, header.length(),
+        Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    span.setSpan(new RelativeSizeSpan(0.85f), 0, header.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    span.setSpan(new ForegroundColorSpan(getColor(R.color.red)), movesStart, text.length(),
+        Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    span.setSpan(new StyleSpan(Typeface.BOLD), movesStart, text.length(),
+        Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+    return span;
+  }
+
+  private static String capReverseMoves(String reverseMoves) {
+    String[] moves = reverseMoves.split(" ");
+    if (moves.length <= MAX_REVERSE_MOVES_SHOWN) {
+      return reverseMoves;
+    }
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < MAX_REVERSE_MOVES_SHOWN; i++) {
+      sb.append(moves[i]).append(' ');
+    }
+    return sb.append('…').toString();
   }
 
   private int getColor(int resId) {

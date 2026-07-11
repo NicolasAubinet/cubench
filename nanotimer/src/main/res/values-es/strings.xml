@@ -608,4 +608,6 @@
   <string name="smart_cube_intro_body">Un cubo inteligente Bluetooth permite a Cubench leer tus movimientos mientras resuelves, para iniciar y detener el cronómetro automáticamente, sin tocar la pantalla. Pronto llegarán más análisis.</string>
   <string name="smart_cube_done">Hecho</string>
   <string name="smart_cube_solve_first">Resuelve tu cubo para empezar</string>
+  <string name="smart_cube_ready_to_solve">Listo para resolver</string>
+  <string name="smart_cube_undo">Deshaz tus movimientos erróneos</string>
 </resources>
