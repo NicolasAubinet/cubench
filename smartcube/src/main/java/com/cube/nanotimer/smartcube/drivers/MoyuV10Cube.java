@@ -93,6 +93,9 @@ final class MoyuV10Cube implements SmartCube {
       }
       // InfoEvent carries nothing consumers need yet.
     }
+    if (parser.pollNeedsResync()) {
+      requestState(); // re-anchor from the cube after an unrecoverable move gap
+    }
   }
 
   private void setConnection(CubeConnection newConnection) {

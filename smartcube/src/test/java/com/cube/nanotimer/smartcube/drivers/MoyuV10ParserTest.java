@@ -70,4 +70,33 @@ public class MoyuV10ParserTest {
     parser.resetAnchor();
     assertEquals(1, parser.parse(C163, 1200).size()); // re-anchors
   }
+
+  @Test
+  public void normalMoveDoesNotRequestResync() {
+    MoyuV10Parser parser = newParser();
+    parser.parse(C163, 1000); // anchor at moveCnt 5
+    parser.parse(C165, 1500); // one move -> moveCnt 6
+    assertFalse(parser.pollNeedsResync());
+  }
+
+  @Test
+  public void largeMoveGapRequestsResyncOnce() {
+    MoyuV10Parser parser = newParser();
+    parser.parse(C163, 1000);           // anchor at moveCnt 5
+    parser.parse(movePacket(12), 1500); // jumped 7 moves, more than a packet carries
+    assertTrue(parser.pollNeedsResync());
+    assertFalse(parser.pollNeedsResync()); // clears on read
+  }
+
+  // MoYu V10 base key/IV (same constants the parser derives its cipher from).
+  private static final int[] BASE_KEY = {21, 119, 58, 92, 103, 14, 45, 31, 23, 103, 42, 19, 155, 103, 82, 87};
+  private static final int[] BASE_IV = {17, 35, 38, 37, 134, 42, 44, 59, 85, 6, 127, 49, 126, 103, 33, 87};
+
+  /** An encrypted 165 packet with the given move counter and five (valid, zero-code) moves. */
+  private static int[] movePacket(int moveCnt) {
+    int[] plain = new int[20];
+    plain[0] = 165;
+    plain[11] = moveCnt; // move counter lives in bits 88..96
+    return GanCipher.forMac(BASE_KEY, BASE_IV, GanCipher.macBytes("CF:30:16:00:AB:CD")).encode(plain);
+  }
 }

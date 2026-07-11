@@ -35,6 +35,7 @@ public final class MoyuV10Parser {
   private long deviceTime = 0;
   private long deviceTimeOffset = 0;
   private int batteryLevel = 0;
+  private boolean needsResync = false;
 
   public MoyuV10Parser(int[] macBytes) {
     this.cipher = GanCipher.forMac(BASE_KEY, BASE_IV, macBytes);
@@ -51,6 +52,16 @@ public final class MoyuV10Parser {
   /** Force the next state message to re-anchor (used after packet loss). */
   public void resetAnchor() {
     prevMoveCnt = -1;
+  }
+
+  /**
+   * True (once) after a move gap larger than a packet can carry, so the tracked state has
+   * drifted; the driver should request a fresh state to re-anchor. Clears on read.
+   */
+  public boolean pollNeedsResync() {
+    boolean v = needsResync;
+    needsResync = false;
+    return v;
   }
 
   /** Realign the tracked model to {@code state} without a physical resync. */
@@ -119,6 +130,7 @@ public final class MoyuV10Parser {
     prevMoveCnt = moveCnt;
     if (moveDiff > moves.size()) {
       moveDiff = moves.size();
+      needsResync = true; // lost more moves than the packet carries; tracked state has drifted
     }
 
     long calcTs = deviceTime + deviceTimeOffset;
