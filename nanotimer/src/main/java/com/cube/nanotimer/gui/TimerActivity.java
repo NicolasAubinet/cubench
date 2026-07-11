@@ -286,6 +286,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       case NEEDS_SOLVE:
         tvScramble.setText(R.string.smart_cube_solve_first);
         break;
+      case SOLVING:
+        tvScramble.setText(R.string.smart_cube_solving);
+        break;
       case FOLLOWING:
         if (solveController.isReadyToSolve()) {
           tvScramble.setText(R.string.smart_cube_ready_to_solve);

@@ -23,7 +23,7 @@ import com.cube.nanotimer.smartcube.model.CubeStateListener;
 public class SmartCubeSolveController implements CubeStateListener, CubeMoveListener {
 
   /** What the timer screen should show for the scramble. */
-  public enum FollowMode { INACTIVE, NEEDS_SOLVE, FOLLOWING }
+  public enum FollowMode { INACTIVE, NEEDS_SOLVE, FOLLOWING, SOLVING }
 
   public interface Listener {
     void onCubeAutoStart();
@@ -76,6 +76,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     if (cubeDriven && SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.RUNNING;
       sawUnsolved = false;
+      notifyChanged(); // swap the scramble for the "solving" state
     } else {
       phase = Phase.INACTIVE;
     }
@@ -92,6 +93,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       case FOLLOWING:
       case ARMED:
         return FollowMode.FOLLOWING;
+      case RUNNING:
+        return FollowMode.SOLVING;
       default:
         return FollowMode.INACTIVE;
     }

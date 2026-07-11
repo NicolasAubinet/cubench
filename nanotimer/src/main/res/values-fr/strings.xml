@@ -610,5 +610,6 @@
   <string name="smart_cube_done">Terminé</string>
   <string name="smart_cube_solve_first">Résolvez votre cube pour commencer</string>
   <string name="smart_cube_ready_to_solve">Prêt à résoudre</string>
+  <string name="smart_cube_solving">Résolution en cours</string>
   <string name="smart_cube_undo">Annulez vos mauvais mouvements</string>
 </resources>
