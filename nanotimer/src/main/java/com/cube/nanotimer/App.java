@@ -2,6 +2,7 @@ package com.cube.nanotimer;
 
 import android.content.Context;
 import com.cube.nanotimer.Options.ScrambleNotificationMode;
+import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.MainScreenActivity;
 import com.cube.nanotimer.gui.widget.ReleaseNotes;
 import com.cube.nanotimer.scrambler.ScramblerService;
@@ -53,6 +54,7 @@ public enum App {
       service = ServiceImpl.getInstance(context);
       Options.INSTANCE.setContext(context);
       ScramblerService.INSTANCE.init(context);
+      SmartCubeManager.INSTANCE.init(context);
       initRandomStateGenListener(context);
 
       getService().getAllUsedScrambleTypes(new DataCallback<Map<CubeType, List<ScrambleType>>>() {
