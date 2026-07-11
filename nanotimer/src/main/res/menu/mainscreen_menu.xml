@@ -4,7 +4,7 @@
 
   <item android:id="@+id/itSmartCube"
      android:title="@string/smart_cube_title"
-     android:icon="@drawable/ic_smart_cube"
+     app:actionLayout="@layout/smart_cube_chip"
      app:showAsAction="always"/>
 
   <item android:id="@+id/itAppIcon"

@@ -38,7 +38,9 @@ import android.widget.Toast;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.gui.widget.AboutDialog;
+import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
@@ -92,6 +94,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private final List<SolveTime> liHistory = new ArrayList<>();
   private HistoryListAdapter historyListAdapter;
   private MenuListAdapter menuListAdapter;
+  private SmartCubeChip smartCubeChip;
 
   private int previousLastItem = 0;
 
@@ -206,6 +209,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
     setSortMode(TimesSort.TIMESTAMP);
 
+    smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
+
     buStart = findViewById(R.id.buStart);
 //    buStart.setShadowLayer(1, 3f, 3f, getResources().getColor(R.color.black));
     buStart.setOnClickListener(new OnClickListener() {
@@ -234,16 +239,14 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     }
     menu.findItem(R.id.itAppIcon).setIcon(drawableIcon);
 
+    MenuItem smartCubeItem = menu.findItem(R.id.itSmartCube);
+    smartCubeChip.bind(smartCubeItem != null ? smartCubeItem.getActionView() : null);
+
     return super.onCreateOptionsMenu(menu);
   }
 
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == R.id.itSmartCube) {
-      startActivity(new Intent(this, SmartCubeActivity.class));
-      return true;
-    }
-    return super.onOptionsItemSelected(item);
+  private void openSmartCubeConnect() {
+    DialogUtils.showFragment(this, new SmartCubeConnectDialog());
   }
 
   private void initHistoryList() {
@@ -352,11 +355,18 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
     buStart.setEnabled(true);
 
+    smartCubeChip.start();
     invalidateOptionsMenu();
 
     refreshCubeTypes();
 
     setSortMode(TimesSort.TIMESTAMP);
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    smartCubeChip.stop();
   }
 
   private void refreshDataSet(final ArrayAdapter arrayAdapter) {

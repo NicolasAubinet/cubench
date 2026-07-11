@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+  <!-- Value-explanation slot (§8b): tells a first-time user what connecting buys them. -->
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/smart_cube_connect_title"
+      android:textColor="@color/white"
+      android:textSize="21sp"
+      android:textStyle="bold"/>
+
+  <TextView
+      android:id="@+id/tvSmartCubeIntro"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="8dp"
+      android:text="@string/smart_cube_intro_body"
+      android:textSize="14sp"/>
+
+  <TextView
+      android:id="@+id/tvSmartCubeStatus"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:textColor="@color/white"
+      android:textSize="14sp"
+      android:textStyle="bold"/>
+
+  <ListView
+      android:id="@+id/lvSmartCubes"
+      android:layout_width="match_parent"
+      android:layout_height="200dp"
+      android:layout_marginTop="12dp"/>
+
+  <Button
+      android:id="@+id/btnSmartCubeDisconnect"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="12dp"
+      android:text="@string/smart_cube_disconnect"
+      android:visibility="gone"/>
+</LinearLayout>

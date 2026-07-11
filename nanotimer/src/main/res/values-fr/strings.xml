@@ -605,4 +605,7 @@
   <string name="smart_cube_connect_failed">Échec de la connexion: %s</string>
   <string name="smart_cube_permission_denied">Permission Bluetooth refusée</string>
   <string name="smart_cube_battery">Batterie: %1$d%%</string>
+  <string name="smart_cube_connect_title">Connecter un smart cube</string>
+  <string name="smart_cube_intro_body">Un smart cube Bluetooth permet à Cubench de lire vos mouvements pendant que vous résolvez — pour démarrer et arrêter le chrono automatiquement, sans toucher l\'écran. D\'autres analyses arrivent bientôt.</string>
+  <string name="smart_cube_done">Terminé</string>
 </resources>

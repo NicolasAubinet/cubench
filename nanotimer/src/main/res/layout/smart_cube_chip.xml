@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/smartCubeChip"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:background="?attr/selectableItemBackground"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+  <ImageView
+      android:id="@+id/imgSmartCubeChip"
+      android:layout_width="30dp"
+      android:layout_height="30dp"
+      android:layout_gravity="center"
+      android:src="@drawable/ic_smart_cube"
+      android:contentDescription="@string/smart_cube_title"/>
+
+  <!-- Battery % overlaid on the icon (bold white + black stroke) to keep the chip narrow. -->
+  <com.cube.nanotimer.util.view.OutlineTextView
+      android:id="@+id/tvSmartCubeChipBattery"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center"
+      android:visibility="gone"/>
+</FrameLayout>

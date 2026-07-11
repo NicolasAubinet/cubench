@@ -11,6 +11,7 @@ import android.os.Handler;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.MenuItemCompat;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -32,11 +33,15 @@ import com.cube.nanotimer.Options.BigCubesNotation;
 import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
+import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SessionDetailDialog;
-import com.cube.nanotimer.gui.widget.TimeChangedHandler;import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
+import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
+import com.cube.nanotimer.gui.widget.TimeChangedHandler;
+import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
+import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.scrambler.ScramblerService;
@@ -118,6 +123,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private final long HOLD_TO_START_MIN_DURATION = 500;
   private volatile TimerState timerState = TimerState.STOPPED;
   private boolean showMenu = true;
+  private SmartCubeChip smartCubeChip;
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
 
@@ -165,6 +171,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     cubeSession = new CubeSession();
     App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
 
+    smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
     initActionBar();
 
     inspectionTime = Options.INSTANCE.getInspectionTime();
@@ -233,14 +240,50 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   protected void onResume() {
     super.onResume();
     App.INSTANCE.setContext(this);
+    smartCubeChip.start();
     refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    smartCubeChip.stop();
   }
 
   private void initActionBar() {
     ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-    actionBar.setCustomView(R.layout.textcentered_actionbar);
+    View customView = getLayoutInflater().inflate(R.layout.textcentered_actionbar, null);
+    actionBar.setCustomView(customView,
+        new ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.MATCH_PARENT));
     actionBar.setDisplayHomeAsUpEnabled(true);
+
+    // Drop the default inset between the nav button and the custom view so the title and the
+    // cube chip get the full width (otherwise the title is clipped).
+    Toolbar decorToolbar = findToolbar(getWindow().getDecorView());
+    if (decorToolbar != null) {
+      decorToolbar.setContentInsetStartWithNavigation(0);
+      decorToolbar.setContentInsetsAbsolute(0, decorToolbar.getContentInsetEnd());
+    }
+
+    smartCubeChip.bind(customView.findViewById(R.id.smartCubeChip));
+    smartCubeChip.setHideWhenDisconnected(true); // on the timer, only show when a cube is connected
+  }
+
+  private Toolbar findToolbar(View view) {
+    if (view instanceof Toolbar) {
+      return (Toolbar) view;
+    }
+    if (view instanceof ViewGroup) {
+      ViewGroup group = (ViewGroup) view;
+      for (int i = 0; i < group.getChildCount(); i++) {
+        Toolbar found = findToolbar(group.getChildAt(i));
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+    return null;
   }
 
   private void initViews() {
@@ -429,6 +472,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return true;
   }
 
+  private void openSmartCubeConnect() {
+    DialogUtils.showFragment(this, new SmartCubeConnectDialog());
+  }
+
   private void showMenuButton(boolean show) {
     if (this.showMenu != show) {
       this.showMenu = show;
@@ -436,16 +483,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
       getSupportActionBar().setDisplayHomeAsUpEnabled(show);
 
-      // adjust action bar layout so that the text is always centered
-      // and to allow to stop the timer by pushing anywhere on the action bar
-      View actionBarLayout = findViewById(R.id.actionbarLayout);
-      ViewGroup.LayoutParams actionBarLayoutParams = actionBarLayout.getLayoutParams();
-
-      if (show) {
-        actionBarLayoutParams.width = LayoutParams.WRAP_CONTENT;
-      } else {
-        actionBarLayoutParams.width = LayoutParams.MATCH_PARENT;
-      }
+      // Hide the cube chip while the timer runs so the whole action bar stays a tap target
+      // (no dead zone); it reappears when the timer stops (if a cube is connected).
+      smartCubeChip.setSuppressed(!show);
     }
   }
 
