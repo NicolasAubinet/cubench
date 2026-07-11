@@ -34,6 +34,7 @@ import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.SmartCubeChip;
+import com.cube.nanotimer.cube.SmartCubeTimerController;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
@@ -124,6 +125,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private volatile TimerState timerState = TimerState.STOPPED;
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
+  private SmartCubeTimerController cubeTimerController;
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
 
@@ -172,6 +174,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
 
     smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
+    cubeTimerController = new SmartCubeTimerController(this::onCubeSolveCompleted);
     initActionBar();
 
     inspectionTime = Options.INSTANCE.getInspectionTime();
@@ -241,6 +244,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     super.onResume();
     App.INSTANCE.setContext(this);
     smartCubeChip.start();
+    cubeTimerController.start();
     refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
   }
 
@@ -248,6 +252,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   protected void onPause() {
     super.onPause();
     smartCubeChip.stop();
+    cubeTimerController.stop();
+  }
+
+  // Auto-stop: fired when the connected cube reaches solved during a running solve.
+  private void onCubeSolveCompleted() {
+    if (timerState == TimerState.RUNNING && !solveType.hasSteps()) {
+      stopTimer(true);
+    }
   }
 
   private void initActionBar() {
@@ -837,6 +849,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       tvTimer.setText("--:--");
     }
     timerState = TimerState.RUNNING;
+    cubeTimerController.arm();
   }
 
   private void stopTimer(boolean save) {
@@ -847,6 +860,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastTimerStopTs = curTime;
     long time = (curTime - timerStartTs);
     timerState = TimerState.STOPPED;
+    cubeTimerController.disarm();
     if (timer != null) {
       timer.cancel();
       timer.purge();
