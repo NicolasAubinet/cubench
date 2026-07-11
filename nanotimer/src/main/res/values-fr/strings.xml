@@ -49,7 +49,7 @@
 
   <string name="lifetime_best">Meilleur temps:</string>
   <string name="lifetime_avg">Moy. de 1000:</string>
-  <string name="lifetime_accuracy">Réussis sur 1000:</string>
+  <string name="lifetime_accuracy">Succ. sur 1000:</string>
   <string name="last_mean_of_three">Moy. de 3:</string>
   <string name="best_mean_of_three">Meilleur Mo3:</string>
   <string name="solves_count">Résolutions:</string>
