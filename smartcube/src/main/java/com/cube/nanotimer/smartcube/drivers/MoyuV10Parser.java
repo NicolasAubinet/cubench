@@ -54,6 +54,11 @@ public final class MoyuV10Parser {
     prevMoveCnt = -1;
   }
 
+  /** False between {@link #resetAnchor} and the next state packet, while moves are dropped. */
+  public boolean isAnchored() {
+    return prevMoveCnt != -1;
+  }
+
   /**
    * True (once) after a move gap larger than a packet can carry, so the tracked state has
    * drifted; the driver should request a fresh state to re-anchor. Clears on read.

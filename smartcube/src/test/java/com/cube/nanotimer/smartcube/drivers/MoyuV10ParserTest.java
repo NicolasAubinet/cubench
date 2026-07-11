@@ -80,6 +80,18 @@ public class MoyuV10ParserTest {
   }
 
   @Test
+  public void isAnchoredTracksTheAnchorState() {
+    MoyuV10Parser parser = newParser();
+    assertFalse(parser.isAnchored());   // no state yet
+    parser.parse(C163, 1000);
+    assertTrue(parser.isAnchored());
+    parser.resetAnchor();
+    assertFalse(parser.isAnchored());   // dropping moves until a fresh state arrives
+    parser.parse(C163, 1100);
+    assertTrue(parser.isAnchored());    // re-anchored
+  }
+
+  @Test
   public void largeMoveGapRequestsResyncOnce() {
     MoyuV10Parser parser = newParser();
     parser.parse(C163, 1000);           // anchor at moveCnt 5

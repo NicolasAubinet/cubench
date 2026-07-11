@@ -28,10 +28,14 @@ final class MoyuV10Cube implements SmartCube {
   private final List<CubeConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
   private final List<CubeBatteryListener> batteryListeners = new CopyOnWriteArrayList<>();
 
+  private static final long RESYNC_RETRY_INTERVAL_MS = 250;
+
   private BleCharacteristic writeChr;
   private CubeState lastState = CubeState.SOLVED;
   private CubeConnection connection = CubeConnection.CONNECTING;
   private Integer batteryLevel;
+  private volatile boolean awaitingResync = false;
+  private volatile long lastResyncRequestMs = 0;
 
   MoyuV10Cube(DiscoveredCube device, BlePeripheral peripheral, MoyuV10Parser parser) {
     this.device = device;
@@ -94,8 +98,25 @@ final class MoyuV10Cube implements SmartCube {
       // InfoEvent carries nothing consumers need yet.
     }
     if (parser.pollNeedsResync()) {
-      requestState(); // re-anchor from the cube after an unrecoverable move gap
+      beginResync(); // an unrecoverable move gap drifted the model; re-anchor from the cube
+    } else if (awaitingResync) {
+      if (parser.isAnchored()) {
+        awaitingResync = false; // a fresh state packet re-anchored us
+      } else if (System.currentTimeMillis() - lastResyncRequestMs >= RESYNC_RETRY_INTERVAL_MS) {
+        sendStateRequest(); // the state packet was lost; keep asking until it arrives
+      }
     }
+  }
+
+  private void beginResync() {
+    parser.resetAnchor();
+    awaitingResync = true;
+    sendStateRequest();
+  }
+
+  private void sendStateRequest() {
+    lastResyncRequestMs = System.currentTimeMillis();
+    writeChr.write(parser.encodeRequest(MoyuV10Parser.OP_STATUS));
   }
 
   private void setConnection(CubeConnection newConnection) {
@@ -165,8 +186,7 @@ final class MoyuV10Cube implements SmartCube {
 
   @Override
   public void requestState() {
-    parser.resetAnchor();
-    writeChr.write(parser.encodeRequest(MoyuV10Parser.OP_STATUS));
+    beginResync();
   }
 
   @Override
