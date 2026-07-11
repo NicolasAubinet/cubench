@@ -76,7 +76,7 @@ Tests are plain **JUnit 4**.
 
 ### Data model (`datamodel` module)
 - `CubeType` is an enum of puzzles (2x2…7x7, Megaminx, Pyraminx, Skewb, Square-1,
-  Clock), each with a stable integer `id` used in the DB and cache filenames.
+  Clock, FTO), each with a stable integer `id` used in the DB and cache filenames.
 - A `SolveType` is a user-defined practice category under a `CubeType` (lets you
   keep separate histories for the same puzzle), optionally with ordered
   `SolveTypeStep`s (multi-step timing) and an optional `blind` flag.
@@ -89,7 +89,7 @@ Tests are plain **JUnit 4**.
 - `ScramblerFactory.getScrambler(CubeType)` returns a basic random-move
   `Scrambler` per puzzle (`scrambler/basic/`).
 - `ScramblerService.INSTANCE` (enum singleton) manages **random-state** scrambles
-  (`scrambler/randomstate/`) for 3x3, 2x2, Pyraminx and Square-1 — these are
+  (`scrambler/randomstate/`) for 3x3, 2x2, Pyraminx, Square-1 and FTO — these are
   expensive Kociemba/two-phase-style searches, so they are:
   - generated on background threads (one per CPU core minus one),
   - cached **in memory** (capped at `MAX_SCRAMBLES_IN_MEMORY = 500`) and **on
