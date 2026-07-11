@@ -594,4 +594,15 @@
     </ul>
     </body></html>]]>
   </string>
+
+  <string name="smart_cube_title">Cube connecté</string>
+  <string name="smart_cube_scan">Scanner</string>
+  <string name="smart_cube_disconnect">Déconnecter</string>
+  <string name="smart_cube_status_idle">Appuyez sur Scanner pour trouver votre cube</string>
+  <string name="smart_cube_scanning">Recherche…</string>
+  <string name="smart_cube_connecting">Connexion à %s…</string>
+  <string name="smart_cube_connected">Connecté</string>
+  <string name="smart_cube_connect_failed">Échec de la connexion: %s</string>
+  <string name="smart_cube_permission_denied">Permission Bluetooth refusée</string>
+  <string name="smart_cube_battery">Batterie: %1$d%%</string>
 </resources>

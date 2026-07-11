@@ -50,6 +50,7 @@ dependencies {
     implementation project(':services')
     implementation project(':filebrowser')
     implementation project(':wheel')
+    implementation project(':smartcube')
     
     implementation 'asia.ivity.android:drag-sort-listview:1.0'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'

@@ -599,4 +599,15 @@
     </font>
     </body></html>]]>
   </string>
+
+  <string name="smart_cube_title">Smart cube</string>
+  <string name="smart_cube_scan">Scan</string>
+  <string name="smart_cube_disconnect">Disconnect</string>
+  <string name="smart_cube_status_idle">Tap Scan to find your cube</string>
+  <string name="smart_cube_scanning">Scanning…</string>
+  <string name="smart_cube_connecting">Connecting to %s…</string>
+  <string name="smart_cube_connected">Connected</string>
+  <string name="smart_cube_connect_failed">Connection failed: %s</string>
+  <string name="smart_cube_permission_denied">Bluetooth permission denied</string>
+  <string name="smart_cube_battery">Battery: %1$d%%</string>
 </resources>

@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto">
 
+  <item android:id="@+id/itSmartCube"
+     android:title="@string/smart_cube_title"
+     android:icon="@drawable/ic_smart_cube"
+     app:showAsAction="always"/>
+
   <item android:id="@+id/itAppIcon"
      android:title="@string/app_name"
      android:icon="@drawable/app_icon_cube"

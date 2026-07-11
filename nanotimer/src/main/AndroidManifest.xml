@@ -8,6 +8,14 @@
           android:maxSdkVersion="28" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
+  <!-- Smart (Bluetooth) cube -->
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+          android:usesPermissionFlags="neverForLocation" />
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+
   <!-- Permissions for Stackmat -->
   <!--<uses-permission android:name="android.permission.RECORD_AUDIO" />-->
   <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />-->
@@ -50,6 +58,9 @@
        android:windowSoftInputMode="stateAlwaysHidden"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden">
     </activity>
+    <activity android:name=".gui.SmartCubeActivity"
+       android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
+       android:exported="false"/>
 
     <!--<service android:name=".scrambler.randomstate.ChargingStateService"/>
     <receiver android:name=".scrambler.randomstate.ChargingStateReceiver" android:exported="false">

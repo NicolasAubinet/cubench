@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -234,6 +235,15 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     menu.findItem(R.id.itAppIcon).setIcon(drawableIcon);
 
     return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.itSmartCube) {
+      startActivity(new Intent(this, SmartCubeActivity.class));
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   private void initHistoryList() {
