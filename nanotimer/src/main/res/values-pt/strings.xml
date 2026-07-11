@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">Cubench</string>
+  <string name="app_formerly_name">Antes Nano Timer</string>
+  <string name="app_name_copyright">&#169; 2014–2026 Cubench\nGratuito e de código aberto (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
+  <string name="app_description">Cronômetro de Cubo de Rubik para Android</string>
+  <string name="app_license">Este aplicativo usa as bibliotecas drag-sort-listview, MPAndroidChart e android-wheel licenciadas sob Apache 2.0. Os diagramas de scramble são gerados com cubing.js e scramble-display (GPL-3.0) e three.js (MIT).</string>
+  <string name="feedback_message">Se você encontrar um bug ou tiver sugestões ou comentários, não hesite em enviar um e-mail para o endereço abaixo.</string>
+  <string name="dev_name">Nicolas Aubinet</string>
+  <string name="email">NanoTimerCube@gmail.com</string>
+  <string name="about">Sobre</string>
+  <string name="backspace_exit">Toque em voltar novamente para sair</string>
+
+  <string name="cube_type">Tipo de cubo</string>
+  <string name="solve_type">Tipo de resolução</string>
+  <string name="history">Histórico</string>
+  <string name="solves">resoluções</string>
+  <string name="scramble">Scramble</string>
+  <string name="scrambleC">Scramble:</string>
+  <string name="scramble_copied">Scramble copiado!</string>
+  <string name="start">Iniciar</string>
+
+  <string name="add">Adicionar</string>
+  <string name="add_solvetype">Adicionar um tipo de resolução</string>
+  <string name="save">Salvar</string>
+  <string name="action">Ação</string>
+  <string name="rename">Renomear</string>
+  <string name="edit">Editar</string>
+  <string name="cancel">Cancelar</string>
+  <string name="confirm">Confirmar</string>
+  <string name="solve_type_already_exists">Já existe um tipo de resolução com o mesmo nome</string>
+  <string name="step_already_exists">Já existe uma etapa com o mesmo nome para este tipo de resolução</string>
+  <string name="name_contains_forbidden_char">Caractere inválido no nome: \'%1$s\'</string>
+  <string name="delete_solve_type_confirmation">Tem certeza de que deseja excluir o tipo de resolução \'%1$s\' e todos os seus tempos?</string>
+  <string name="new_session_confirmation">Tem certeza de que deseja iniciar uma nova sessão?\n\nAs sessões permitem acompanhar estatísticas (resoluções, média, melhores tempos) de uma série de resoluções. Iniciar uma nova sessão apaga os tempos exibidos para começar do zero (seu histórico não é afetado).</string>
+  <string name="solvetype_has_times_addsteps">Este tipo de resolução contém tempos. Adicionar etapas irá excluí-los. Tem certeza de que deseja continuar?</string>
+  <string name="min_steps_count_not_reached">Você deve criar pelo menos duas etapas</string>
+  <string name="max_steps_count_reached">O limite de etapas foi atingido</string>
+  <string name="add_step">Adicionar uma etapa</string>
+  <string name="add_steps">Adicionar etapas</string>
+  <string name="step_name">Nome da etapa</string>
+  <string name="solve_type_name_reserved">Este nome de tipo de resolução é reservado.\nEscolha outro.</string>
+
+  <string name="last_avg_of">Última méd. de</string>
+  <string name="best_avg_of">Melhor méd. de</string>
+  <string name="success_avg">Méd. de sucessos</string>
+  <string name="accuracy">Precisão</string>
+  <string name="life">Geral</string>
+
+  <string name="lifetime_best">Melhor tempo:</string>
+  <string name="lifetime_avg">Méd. de 1000:</string>
+  <string name="lifetime_accuracy">Precisão em 1000:</string>
+  <string name="last_mean_of_three">Méd. de 3:</string>
+  <string name="best_mean_of_three">Melhor Mo3:</string>
+  <string name="solves_count">Resoluções:</string>
+  <string name="mean_of_three">Méd. de 3:</string>
+
+  <string name="plus_two">+2</string>
+  <string name="add_penalty">Adicionar uma penalidade</string>
+  <string name="DNF">DNF</string>
+  <string name="delete">Excluir</string>
+  <string name="session_details">Detalhes da sessão</string>
+  <string name="new_session">Nova sessão</string>
+  <string name="date">Data:</string>
+  <string name="time">Tempo:</string>
+  <string name="averages">Médias</string>
+  <string name="steps">Etapas</string>
+  <string name="stepsC">Etapas:</string>
+  <string name="NA">N/A</string>
+  <string name="no_scramble">Sem scramble\n(o tempo foi adicionado manualmente)</string>
+
+  <string name="session_avg">Média:</string>
+  <string name="session_solves">Resoluções:</string>
+  <string name="session_best">Melhor:</string>
+  <string name="session_deviation">Desvio:</string>
+  <string name="total_solves">Total de resoluções:</string>
+  <string name="more">Mais</string>
+  <string name="best_averages">Melhores médias</string>
+  <string name="times">Tempos</string>
+  <string name="session_best_mean_of_three">Melhor Mo3:</string>
+  <string name="session_success_average">Méd. de sucessos:</string>
+  <string name="session_accuracy">Precisão:</string>
+  <string name="session_start">Início:</string>
+
+  <string name="clear_history">Limpar o histórico</string>
+  <string name="clear_history_solve_type_confirmation">Tem certeza de que deseja excluir todos os tempos deste tipo de resolução?</string>
+  <string name="clear_all_history_confirmation">Tem certeza de que deseja excluir todo o histórico?</string>
+
+  <string name="language">Idioma</string>
+  <string name="english">Inglês</string>
+  <string name="french">Francês</string>
+  <string name="spanish">Espanhol</string>
+  <string name="portuguese">Português</string>
+
+  <string name="settings">Configurações</string>
+  <string name="look_and_feel">Aparência</string>
+  <string name="timer_screen">Tela do cronômetro</string>
+  <string name="inspection_mode">Modo de inspeção</string>
+  <string name="inspection_mode_summary">Selecionar o modo de inspeção do cronômetro</string>
+  <string name="hold_and_release_inspection_mode">Segurar e soltar: <i>Pressionar e soltar uma vez para iniciar</i></string>
+  <string name="automatic_inspection_mode">Automático: <i>Início automático quando a inspeção termina</i></string>
+  <string name="official_inspection_mode">Oficial: <i>Pressionar por 0,5s para iniciar, usa as regras oficiais de inspeção +2/DNF</i></string>
+  <string name="inspection_time">Tempo de inspeção</string>
+  <string name="inspection_time_summary">Selecionar o tempo de inspeção do cronômetro</string>
+  <string name="inspection_sounds">Sons de inspeção</string>
+  <string name="inspection_sounds_summary">Ativar / desativar os sons de inspeção</string>
+  <string name="inspection_sounds_type">Tipo de avisos de inspeção</string>
+  <string name="inspection_sounds_type_summary">Selecionar o tipo de avisos</string>
+  <string name="classic_inspection_sound_type">Clássico (aviso 3 segundos antes do fim)</string>
+  <string name="official_inspection_sound_type">Oficial (avisos aos 8 e 12 segundos)</string>
+  <string name="show_time_when_running">Mostrar o tempo durante a resolução</string>
+  <string name="show_time_when_running_summary">Mostrar o tempo enquanto o cronômetro está rodando</string>
+  <string name="keep_screen_on">Manter a tela ligada</string>
+  <string name="keep_screen_on_summary">Quando o cronômetro não está rodando</string>
+  <string name="high_precision_timer">Cronômetro de alta precisão</string>
+  <string name="high_precision_timer_summary">Mostrar os milissegundos</string>
+  <string name="color_history_times">Colorir os tempos do histórico</string>
+  <string name="color_history_times_summary">Tingir os tempos do verde (rápido) ao vermelho (lento)</string>
+  <string name="color_sample_size">Amostra de cores</string>
+  <string name="color_sample_size_summary">Número de resoluções recentes com as quais as cores se comparam</string>
+  <string name="timer_font">Fonte do cronômetro</string>
+  <string name="timer_font_summary">Fonte usada na exibição do cronômetro</string>
+  <string name="timer_font_modern">Moderna</string>
+  <string name="timer_font_classic">Clássica</string>
+  <string name="timer_font_mono">Monoespaçada</string>
+  <string name="timer_font_light">Fina</string>
+  <string name="timer_font_condensed">Condensada</string>
+  <string name="timer_font_size">Tamanho do cronômetro</string>
+  <string name="timer_font_size_summary">Tamanho da exibição do cronômetro</string>
+  <string name="timer_font_size_small">Pequeno</string>
+  <string name="timer_font_size_medium">Médio</string>
+  <string name="timer_font_size_big">Grande</string>
+  <string name="session_times_coloring">Colorir os últimos tempos</string>
+  <string name="session_times_coloring_summary">Como colorir os 12 últimos tempos na tela do cronômetro</string>
+  <string name="session_coloring_best_worst">Apenas melhor e pior</string>
+  <string name="session_coloring_all_displayed">Relativo aos 12 últimos</string>
+  <string name="session_coloring_match_history">Como o histórico</string>
+  <string name="session_coloring_none">Nenhuma</string>
+  <string name="solve_types">Tipos de resolução</string>
+  <string name="edit_solve_types">Editar os tipos de resolução</string>
+  <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>
+  <string name="clear_all_history">Excluir todos os tempos</string>
+  <string name="yes">Sim</string>
+  <string name="no">Não</string>
+  <string name="choose_cube_type">Escolha um tipo de cubo:</string>
+  <string name="scrambles">Scrambles</string>
+  <string name="big_cubes_notation">Notação de cubos grandes</string>
+  <string name="big_cubes_notation_summary">Escolher o sistema de notação dos cubos grandes</string>
+  <string name="clock_notation">Notação do Clock</string>
+  <string name="clock_notation_summary">Escolha o sistema de notação do Clock</string>
+  <string name="use_modern_scrambles">Usar scrambles de estado aleatório</string>
+  <string name="use_modern_scrambles_summary">Usar scrambles de alta qualidade para os cubos compatíveis (recomendado).</string>
+  <string name="scrambles_quality">Qualidade dos scrambles</string>
+  <string name="scrambles_quality_summary">Selecionar a qualidade dos scrambles</string>
+  <string name="normal_quality">Normal</string>
+  <string name="low_quality">Baixa (mais movimentos, mais rápida de gerar)</string>
+  <string name="pregen_scrambles">Gerar scrambles manualmente</string>
+  <string name="pregen_scrambles_summary">Gerar manualmente scrambles de estado aleatório</string>
+  <string name="r_u_f">r u f</string>
+  <string name="rw_uw_fw">Rw Uw Fw</string>
+  <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
+  <string name="clock_UUdd_ux_dx">UUdd u=-3,d=2</string>
+  <string name="clock_URx_DRx_DLx">UR1+ DR6+ DL5- UL3+</string>
+  <string name="ads">Anúncios</string>
+  <string name="ads_style">Tipo de anúncios</string>
+  <string name="ads_style_summary">Escolher entre banner, intersticial ou misto</string>
+  <string name="banner">Banner</string>
+  <string name="interstitial">Intersticial</string>
+  <string name="mixed">Misto</string>
+  <string name="want_to_clear_scramble_cache">Deseja limpar o cache de scrambles?</string>
+  <string name="modern_scrambles_settings">Configurações dos scrambles de estado aleatório</string>
+  <string name="modern_scrambles_settings_summary">Escolher quando / como os scrambles são gerados</string>
+  <string name="notification_mode">Modo de notificação</string>
+  <string name="notification_mode_summary">Escolher quando exibir a notificação de geração</string>
+  <string name="when_generating">Sempre ao gerar</string>
+  <string name="when_generating_manually">Apenas em gerações manuais</string>
+  <string name="never_show_notif">Nunca (não recomendado)</string>
+  <string name="generate_when_plugged_in">Gerar quando conectado</string>
+  <string name="generate_when_plugged_in_summary">Gerar scrambles automaticamente quando conectado à energia</string>
+  <string name="gen_count_when_plugged_in">Quantidade de scrambles ao carregar</string>
+  <string name="gen_count_when_plugged_in_summary">Quantidade de scrambles a gerar ao carregar o dispositivo</string>
+  <string name="min_cache_size">Tamanho mínimo do cache</string>
+  <string name="min_cache_size_summary">Iniciar a geração automática quando atingido</string>
+  <string name="max_cache_size">Tamanho máximo do cache</string>
+  <string name="max_cache_size_summary">Parar a geração automática quando atingido</string>
+  <string name="min_scramble_cache_bigger_than_max">O tamanho mínimo do cache é maior que o máximo. O mínimo será definido como %1$d</string>
+  <string name="min_scramble_cache_too_close_to_max">O tamanho mínimo do cache está muito próximo do máximo. O mínimo será definido como %1$d</string>
+  <string name="max_scramble_cache_smaller_than_min">O tamanho máximo do cache é menor que o mínimo. O máximo será definido como %1$d</string>
+  <string name="max_scramble_cache_too_close_to_min">O tamanho máximo do cache está muito próximo do mínimo. O máximo será definido como %1$d</string>
+
+  <string name="total_scrambles_count">Total de scrambles gerados: %1$d</string>
+  <string name="scrambles_already_generating">Scrambles já estão sendo gerados.</string>
+  <string name="scrambles_count_not_valid">O número de scrambles não é válido.</string>
+  <string name="scrambles_count">Número de scrambles:</string>
+  <string name="scrambles_count_label">Número de scrambles</string>
+  <string name="generate">Gerar</string>
+  <string name="stop_generation">Parar a geração</string>
+  <string name="preparing_generation">Preparando a geração&#8230;</string>
+  <string name="scrambles_being_generated">Gerando scrambles %1$s</string>
+  <string name="generating_scramble">Gerando scramble %1$d de %2$d</string>
+  <string name="generating_cube_scramble">Gerando scrambles %1$s&#8230;\n%2$d de %3$d</string>
+  <string name="stopping_generation">Parando a geração&#8230;</string>
+  <string name="new_record">Novo recorde!</string>
+  <string name="record_toast_header">Novos recordes!</string>
+  <string name="record_overlay_prev">(ant. %1$s)</string>
+  <string name="record_label_lifetime">PB</string>
+  <string name="inspection">Inspeção</string>
+  <string name="ready">Pronto</string>
+
+  <string name="rate_message">Se você gosta do Cubench, reserve um momento para avaliá-lo.\nObrigado pelo seu apoio.</string>
+  <string name="rate">Avaliar</string>
+  <string name="rate_now">Avaliar agora</string>
+  <string name="ask_later">Mais tarde</string>
+  <string name="dont_ask_again">Nunca</string>
+  <string name="could_not_find_market">Não foi possível encontrar o app da loja</string>
+  <string name="could_not_launch_market">Não foi possível abrir a loja</string>
+  <string name="release_notes">Notas da versão</string>
+  <string name="close">Fechar</string>
+
+  <string name="edit_solve_types_dots">Editar os tipos&#8230;</string>
+  <string name="solve_types_shortcut">Atalho para tipos de resolução</string>
+  <string name="solve_types_shortcut_summary">Mostra \"Editar os tipos de resolução\" na lista</string>
+  <string name="blind">Às cegas</string>
+  <string name="blind_mode">Modo às cegas</string>
+
+  <string name="import_export">Importar / exportar</string>
+  <string name="export_times">Exportar</string>
+  <string name="export_summary">Exportar o histórico de tempos</string>
+  <string name="select_all">Selecionar tudo</string>
+  <string name="times_limit">Número máximo de tempos:</string>
+  <string name="no_limit">&lt;Sem limite&gt;</string>
+  <string name="export_mail_subject">Exportação de histórico Cubench</string>
+  <string name="export_mail_body">Exportação de histórico a partir de %1$s</string>
+  <string name="send_via">Enviar via:</string>
+  <string name="no_data_to_export">Nenhum dado para exportar</string>
+  <string name="select_at_least_one_solve_type">Selecione pelo menos um tipo de resolução para exportar</string>
+  <string name="exporting_history">Exportando o histórico…</string>
+  <string name="import_requires_read_permissions">É necessária permissão de leitura para importar</string>
+  <string name="read_permission_denied_cant_import">A permissão de leitura foi negada, não é possível importar.</string>
+
+  <string name="import_times">Importar</string>
+  <string name="storage">Armazenamento</string>
+  <string name="line">linha</string>
+  <string name="error_in_line">Erro na linha %1$d</string>
+  <string name="import_invalid_columns_count">Número de colunas inválido. Verifique o arquivo de importação ou tente exportar novamente.</string>
+  <string name="import_error">Erro de importação</string>
+  <string name="could_not_convert_time">Não foi possível converter o tempo \'%1$s\'</string>
+  <string name="could_not_convert_date">Não foi possível converter a data \'%1$s\'</string>
+  <string name="could_not_find_cube_type">Não foi possível encontrar o tipo de cubo \'%1$s\'.\nVerifique o arquivo importado ou tente atualizar.</string>
+  <string name="could_not_find_scramble_type">Não foi possível encontrar o tipo de scramble \'%1$s\' para o cubo \'%2$s\'.\nVerifique o arquivo importado ou tente atualizar.</string>
+  <string name="solve_type_conflict">Inconsistência encontrada no tipo de resolução \'%1$s\' do tipo de cubo \'%2$s\'.\nVerifique o arquivo importado ou entre em contato com o suporte em %3$s.</string>
+  <string name="invalid_step_format">Formato de etapa inválido \'%1$s\'</string>
+  <string name="could_not_convert_step_time">Não foi possível converter o tempo da etapa \'%1$s\'</string>
+  <string name="error_reading_import_file">Não foi possível ler o arquivo de importação: %1$s</string>
+  <string name="reading_import_file">Lendo o arquivo de importação…\n(isso pode levar alguns minutos dependendo do tamanho do arquivo)</string>
+  <string name="solve_types_do_not_exist">Os seguintes tipos de resolução não existem:\n%1$s\nDeseja criá-los?</string>
+  <string name="fetching_solve_types">Carregando os tipos de resolução…</string>
+  <string name="inserting_solve_types">Inserindo os tipos de resolução…</string>
+  <string name="inserting_times">Inserindo os tempos no banco de dados…</string>
+  <string name="times_imported_successfully">Os tempos foram importados com sucesso!\n%1$d novos tempos foram inseridos.</string>
+  <string name="no_new_times_inserted">Nenhum novo tempo foi inserido porque já estavam no banco de dados.</string>
+  <string name="no_import_data_found">Nenhum dado de importação no arquivo.</string>
+  <string name="invalid_import_file_format">Formato de arquivo de importação inválido. Selecione um tipo de importação válido ou tente exportar novamente.</string>
+  <string name="ok">OK</string>
+
+  <string name="graphs">Gráficos</string>
+  <string name="progression">Progressão</string>
+  <string name="smooth">Suavizar</string>
+  <string name="day">Dia</string>
+  <string name="week">Semana</string>
+  <string name="month">Mês</string>
+  <string name="year">Ano</string>
+  <string name="all">Tudo</string>
+  <string name="no_data_found">Nenhum dado encontrado</string>
+  <string name="ao5">Ao5</string>
+  <string name="ao12">Ao12</string>
+  <string name="chart_type_progression">Progressão</string>
+  <string name="chart_type_frequency">Frequência</string>
+
+  <string name="show_best_times">Ordenar por melhores tempos</string>
+  <string name="show_history">Ordenar por data</string>
+  <string name="best_times">Melhores tempos</string>
+
+  <string name="add_time">Adicionar um tempo</string>
+  <string name="select_time_to_add">Digite um tempo a adicionar:</string>
+  <string name="time_unit_min">min</string>
+  <string name="time_unit_sec">seg</string>
+  <string name="time_unit_ms">ms</string>
+
+  <string name="cross_solver">Solucionador de cruz</string>
+  <string name="cross_neutrality">Neutralidade</string>
+  <string name="cross_face">Face</string>
+  <string name="cross_neutrality_specific">Específica</string>
+  <string name="cross_neutrality_dual">Dupla</string>
+  <string name="cross_neutrality_full">Completa</string>
+  <string name="cross_solving">Resolvendo…</string>
+  <string name="cross_no_scramble">Nenhum scramble disponível no momento</string>
+
+  <string name="scramble_view">Ver o scramble</string>
+  <string name="scramble_view_no_scramble">Nenhum scramble disponível no momento</string>
+  <string name="no_solve_to_comment">Nenhuma resolução para comentar no momento</string>
+  <string name="no_solve_for_action">Nenhuma resolução à qual aplicar isto</string>
+  <string name="scramble_view_clock_notation_hint">O diagrama não está disponível para esta notação do Clock. Mude para a notação UR/DR/DL nas opções para vê-lo.</string>
+  <string name="cross_section_title">Cruz %1$s · %2$d movimentos</string>
+  <string name="cross_solutions_count">%1$d soluções ótimas</string>
+  <string name="cross_subtext_solved">já resolvida</string>
+  <string name="cross_show_all">Mostrar as %1$d</string>
+  <string name="cross_show_fewer">Mostrar menos</string>
+  <string name="invalid_integer_value">Valor inválido. Digite um número inteiro.</string>
+  <string name="invalid_value_for_field">Valor inválido para %1$s</string>
+  <string name="please_set_a_value">Especifique um valor</string>
+  <string name="minutes">minutos</string>
+  <string name="seconds">segundos</string>
+  <string name="hundreds">centésimos</string>
+
+  <string name="share_time">Compartilhar o tempo</string>
+  <string name="share_time_subject">Novo tempo de resolução: %1$s</string>
+  <string name="share_time_text">Acabei de resolver o cubo %1$s em %2$s!\n\nScramble:\n%3$s\n\nCronometrado em %4$s com o aplicativo Android Cubench:\n%5$s</string>
+  <string name="share_time_steps_text">Acabei de resolver o cubo %1$s em %2$s com os seguintes tempos de etapa:\n%3$s\nScramble:\n%4$s\n\nCronometrado em %5$s com o aplicativo Android Cubench:\n%6$s</string>
+  <string name="comment">Comentar</string>
+  <string name="comment_label">Comentário</string>
+
+  <string name="scramble_typeC">Tipo de scramble:</string>
+  <string name="scramble_type">Tipo de scramble</string>
+  <string name="name">Nome</string>
+  <string name="scramble_type_default">Aleatório</string>
+  <string name="scramble_type_f2l">F2L</string>
+  <string name="scramble_type_last_layer">Última camada</string>
+  <string name="scramble_type_pll">PLL</string>
+  <string name="scramble_type_corners">Apenas cantos</string>
+  <string name="scramble_type_edges">Apenas arestas</string>
+  <string name="scramble_type_roux_last_10_pieces">10 últimas peças do Roux</string>
+  <string name="scramble_type_roux_last_6_edges">6 últimas arestas do Roux</string>
+  <string name="scramble_type_parity">Paridade</string>
+
+  <string name="scramble_generating">Scramble sendo gerado\nAguarde&#8230;</string>
+  <string name="can_not_add_time_while_generating">Não é possível adicionar um tempo quando não há scramble</string>
+
+  <string name="release_notes_features_html">
+    <![CDATA[<html><body>
+    <font color=\"white\">
+    <u><b>v1.4.1 <i>(Nova versão)</i></b></u><br/>
+    <ul>
+      <li>Novo aviso de recorde mostrando sua melhora e o(s) tempo(s) anterior(es)</li>
+      <li>Novas configurações para escolher a fonte do cronômetro e seu tamanho</li>
+      <li>Adicione scrambles aos tempos inseridos manualmente</li>
+      <li>Os scrambles agora podem ser copiados a partir dos detalhes de uma resolução</li>
+      <li>Os tipos de resolução agora podem ser totalmente editados (tipo de scramble, opção "às cegas"), e não apenas renomeados</li>
+    </ul>
+    <u><b>v1.4.0</b></u><br/>
+    <b>O Nano Timer agora se chama Cubench! (O mesmo aplicativo, novo nome.)</b><br/>
+    <b>Novidades</b>
+    <ul>
+      <li>Visualizador de scrambles para todos os quebra-cabeças</li>
+      <li>Novo tipo de quebra-cabeça FTO, com scrambles de estado aleatório (random-state)</li>
+      <li>Solucionador de cruz 3x3: soluções de cruz ótimas para qualquer face e neutralidade de cor</li>
+      <li>A janela "Adicionar tempo" agora suporta milissegundos e DNF</li>
+    </ul>
+    <b>Melhorias</b>
+    <ul>
+      <li>Renovação e modernização da interface em todo o aplicativo</li>
+      <li>Novos ícones e banner do aplicativo</li>
+      <li>Tempos de resolução coloridos no histórico (verde = bom, vermelho = ruim), com novas configurações de "Aparência"</li>
+      <li>Os tipos "às cegas" agora mostram os melhores/piores tempos a partir de 2 sucessos nas 12 últimas resoluções (em vez de 5)</li>
+    </ul>
+    <b>Correções</b>
+    <ul>
+      <li>Correção de uma falha ao abrir os tipos de resolução a partir das configurações</li>
+      <li>Correção dos milissegundos truncados ao exportar os tempos</li>
+    </ul>
+    <u><b>v1.3.16</b></u>
+    <ul>
+      <li>Possibilidade de adicionar etapas aos tipos de resolução "às cegas"</li>
+      <li>Atualização de diversas bibliotecas e dependências</li>
+      <li>Atualização da versão do Android para atender aos novos padrões da loja</li>
+    </ul>
+    <u><b>v1.3.15</b></u>
+    <ul>
+      <li>Ajuste da importação/exportação para comentários contendo vírgulas ou quebras de linha</li>
+      <li>Adição da data e hora na janela de detalhes da resolução</li>
+      <li>Aumento do tamanho da fonte do scramble na janela de detalhes da resolução</li>
+      <li>Atualização da versão do Android para atender aos novos padrões da loja</li>
+    </ul>
+    <u><b>v1.3.14</b></u>
+    <ul>
+      <li>Ajuste da funcionalidade de importação que não funcionava em algumas versões do Android</li>
+    </ul>
+    <u><b>v1.3.13</b></u>
+    <ul>
+      <li>Ajuste de uma falha que alguns usuários encontravam</li>
+    </ul>
+    <u><b>v1.3.12</b></u>
+    <ul>
+      <li>Atualização da versão do Android e das dependências</li>
+      <li>Adição da possibilidade de cancelar um +2 clicando nele uma segunda vez</li>
+    </ul>
+    <u><b>v1.3.11</b></u>
+    <ul>
+      <li>Ajuste de um bug na importação de tempos que tornava alguns tempos de resolução incorretos</li>
+    </ul>
+    <u><b>v1.3.10</b></u>
+    <ul>
+      <li>Ajuste de uma falha que impedia adicionar etapas a um tipo de resolução</li>
+    </ul>
+    <u><b>v1.3.9</b></u>
+    <ul>
+      <li>Desbloqueio de todas as funcionalidades para todos (não há mais versão Pro paga)</li>
+      <li>O Cubench agora é livre e de código aberto!</li>
+    </ul>
+    <u><b>v1.3.8</b></u>
+    <ul>
+      <li>Ajuste de um problema de textos que apareciam muito pequenos em alguns dispositivos</li>
+    </ul>
+    <u><b>v1.3.7</b></u>
+    <ul>
+      <li>Remoção dos anúncios</li>
+      <li>Ajuste do primeiro movimento dos scrambles de Megaminx</li>
+    </ul>
+    <u><b>v1.3.6</b></u>
+    <ul>
+      <li>Adição de comentários às resoluções</li>
+      <li>Adição dos ao5 e ao12 ao gráfico de progressão</li>
+      <li>Ajuste de um problema de arredondamento nos tempos de resolução</li>
+      <li>Atualização da versão-alvo do Android</li>
+      <li>Mudança do provedor de anúncios</li>
+    </ul>
+    <u><b>v1.3.5</b></u>
+    <ul>
+      <li>Adição da opção "Cronômetro de alta precisão"</li>
+    </ul>
+    <u><b>v1.3.4</b></u>
+    <ul>
+      <li>Ajuste da tela do cronômetro que não era exibida corretamente em dispositivos de baixa resolução</li>
+    </ul>
+    <u><b>v1.3.3</b></u>
+    <ul>
+      <li>Tornar o aplicativo compatível com Android 2.3.3 e superior</li>
+      <li>Ajuste de falhas ocasionais</li>
+    </ul>
+    <u><b>v1.3.2</b></u>
+    <ul>
+      <li>Melhoria do uso da CPU quando scrambles são gerados para evitar lentidão no aplicativo</li>
+      <li>Ajuste da troca de idioma que não funcionava corretamente em alguns dispositivos</li>
+      <li>Melhoria da interface de seleção do tipo de cubo acessada pelas configurações</li>
+      <li>Ajuste de uma janela que às vezes aparecia várias vezes após mudar a qualidade dos scrambles</li>
+      <li>Possibilidade de adicionar novamente o tipo de resolução padrão após excluí-lo</li>
+      <li>Adição de um botão de fechar nas notas da versão</li>
+      <li>Ajuste de falhas ocasionais</li>
+    </ul>
+    <u><b>v1.3.1</b></u>
+    <ul>
+      <li>Ajuste de uma falha que aparecia ao iniciar o aplicativo em alguns dispositivos</li>
+      <li>Ajuste de uma falha que podia aparecer ao exportar grandes quantidades de tempos</li>
+    </ul>
+    <u><b>v1.3.0</b></u>
+    <ul>
+      <li>Reformulação da interface do usuário</li>
+      <li>Adição do francês e do espanhol</li>
+      <li>Suporte a scrambles especiais para o 3x3x3: F2L, Last Layer, PLL, arestas e outros</li>
+      <li>Suporte a scrambles de estado aleatório para Square-1 e Pyraminx</li>
+      <li>Melhoria de desempenho em processadores multi-core para a geração de scrambles</li>
+      <li>Fusão das opções de qualidade de scramble alta e normal</li>
+      <li>Adaptação das permissões de importação para Android KitKat e superior</li>
+      <li>Adaptação do ícone de notificação de geração dos scrambles para Android Lollipop e superior</li>
+    </ul>
+    <u><b>v1.2.1</b></u>
+    <ul>
+      <li>Add support for 3 different Clock scramble styles (via Settings)</li>
+      <li>Generate new scramble when inspection results in DNF</li>
+      <li>Allow to use official inspection mode with no inspection time</li>
+      <li>Fix official inspection bug when inspection resulted in DNF</li>
+    </ul>
+    <u><b>v1.2.0</b></u>
+    <ul>
+      <li>Add scramble to \"Share time\" content</li>
+      <li>Add new \"Official\" inspection mode (push for 0.5s to start, use official +2/DNF inspection rules)</li>
+      <li>Support new Clock scramble notation style (enable in Settings)</li>
+      <li>Only consider the middle 90% of times for avg50 and avg100</li>
+      <li>Fix inspection time setting</li>
+    </ul>
+    <u><b>v1.1.9</b></u>
+    <ul>
+      <li>Fix averages table layout that did not display correctly on some devices</li>
+      <li>Fix incorrect last averages when importing old times</li>
+      <li>Other minor fixes and improvements</li>
+    </ul>
+    <u><b>v1.1.8</b></u>
+    <ul>
+      <li>Hide action bar menu button when timer is running</li>
+      <li>Fix import bug that was causing PB flag to be incorrect</li>
+      <li>Fix PB flag recalculation after time deletion</li>
+      <li>Fix crash that was sometimes happening when changing options</li>
+    </ul>
+    <u><b>v1.1.7</b></u>
+    <ul>
+      <li>New \"Share time\" feature allowing to share times with your friends</li>
+      <li>Moved \"Add time\" menu to timer screen to save with current scramble, and switched to text entries instead of wheels</li>
+      <li>Minor fixes and improvements</li>
+    </ul>
+    <u><b>v1.1.6</b></u>
+    <ul>
+      <li>Pro: Import times from CSV (synchronization handled to avoid inserting times that already exist). Requires a re-export.</li>
+      <li>Pro: Enter times manually</li>
+      <li>Pro: New frequency graph (solves count over time)</li>
+      <li>Pro: Allow to export times with and without steps all at once</li>
+      <li>Moved export/import buttons to main menu</li>
+      <li>Improved graphs smoothing</li>
+      <li>Various fixes and improvements</li>
+    </ul>
+    <u><b>v1.1.5</b></u>
+    <ul>
+      <li>Show best times (accessible from history screen menu)</li>
+      <li>Show session start in session details</li>
+      <li>Pro: Allow to see previous sessions details (not retro-active)</li>
+      <li>Pro app update check</li>
+      <li>Improved Android 5.0 UI</li>
+    </ul>
+    <u><b>v1.1.4</b></u>
+    <ul>
+      <li>Added icon next to best times in history</li>
+      <li>New setting to hide time when timer is running</li>
+      <li>New official inspection warning sounds and setting</li>
+      <li>Adapted automatic inspection mode to start on release</li>
+      <li>Added standard deviation and best time to session details</li>
+      <li>Scrambles generation when plugged in is now on by default</li>
+      <li>Disabled inspection for blind solve types</li>
+      <li>Updated app theme</li>
+    </ul>
+    <u><b>v1.1.3</b></u>
+    <ul>
+      <li>Pro: added progression graph</li>
+      <li>Fixed crash sometimes happening when device is plugged in/out</li>
+      <li>Removed non-used permissions</li>
+    </ul>
+    <u><b>v1.1.2</b></u>
+    <ul>
+      <li>Added random-state scrambles customization options</li>
+      <li>Option to automatically generate scrambles when device is charging</li>
+      <li>Added support for Pro version</li>
+      <li>Pro: export history to CSV by mail</li>
+    </ul>
+    <u><b>v1.1.1</b></u>
+    <ul>
+      <li>New random-state scrambles for 3x3x3 and 2x2x2</li>
+      <li>Scrambles pre-generation</li>
+      <li>Timer screen fields changes (means to averages)</li>
+      <li>New blind solve mode with additional blind-related statistics</li>
+      <li>Session details window improvements</li>
+    </ul>
+    <u><b>v1.1.0</b></u>
+    <ul>
+      <li>Improved graphical interface</li>
+      <li>New \"session details\" timer window</li>
+      <li>Total solves count now shown in history</li>
+    </ul>
+    <u><b>v1.0.2</b></u>
+    <ul>
+      <li>Scrambles for Square-1 and Clock</li>
+      <li>Average of 50</li>
+      <li>Shortcut to solve types editing from solve types list</li>
+      <li>Improved scrambles format based on type and orientation</li>
+      <li>Displayed averages in history details</li>
+      <li>Option to choose big cubes notation system</li>
+      <li>Set Skewb and Pyraminx scramble sizes to 15</li>
+    </ul>
+    <u><b>v1.0.1</b></u>
+    <ul>
+      <li>Changed session times grid order (the latest time is now in the top-left cell)</li>
+      <li>Reduced length of pyraminx and skewb scrambles from 25 to 20</li>
+      <li>Pyraminx corner moves are now at the end of the scramble</li>
+      <li>Minor GUI improvements</li>
+    </ul>
+    </body></html>]]>
+  </string>
+</resources>

@@ -111,11 +111,13 @@
     <item>@string/english</item>
     <item>@string/french</item>
     <item>@string/spanish</item>
+    <item>@string/portuguese</item>
   </string-array>
   <string-array name="language_codes">
     <item>en</item>
     <item>fr</item>
     <item>es</item>
+    <item>pt</item>
   </string-array>
   <string-array name="mainscreen_menu_items">
     <item>@string/settings</item>

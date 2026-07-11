@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">datamodel</string>
+
+  <string name="two_by_two">2x2x2</string>
+  <string name="three_by_three">3x3x3</string>
+  <string name="four_by_four">4x4x4</string>
+  <string name="five_by_five">5x5x5</string>
+  <string name="six_by_six">6x6x6</string>
+  <string name="seven_by_seven">7x7x7</string>
+  <string name="megaminx">Megaminx</string>
+  <string name="fto">FTO</string>
+  <string name="pyraminx">Pyraminx</string>
+  <string name="skewb">Skewb</string>
+  <string name="square1">Square-1</string>
+  <string name="clock">Clock</string>
+
+  <string name="def">Padrão</string>
+  <string name="one_handed">Uma mão</string>
+  <string name="blindfolded">Às cegas</string>
+  <string name="CFOP_steps">Etapas CFOP</string>
+  <string name="last_layer">Última camada</string>
+
+  <string name="updating_database">Atualizando o banco de dados, aguarde.</string>
+</resources>

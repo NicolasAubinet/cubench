@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="can_not_retrieve_files">Não foi possível ler os arquivos da pasta externa.\nVerifique suas permissões.</string>
+</resources>
