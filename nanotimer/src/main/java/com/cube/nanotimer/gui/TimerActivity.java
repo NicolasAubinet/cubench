@@ -32,6 +32,7 @@ import com.cube.nanotimer.Options.BigCubesNotation;
 import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
+import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SessionDetailDialog;
 import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
@@ -118,6 +119,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
   private volatile TimerState timerState = TimerState.STOPPED;
   private boolean showMenu = true;
   private boolean oversteppedInspection = false;
+  private boolean reviewRequested = false; // at most one review request per timer session
 
   private long lastTimerStartTs;
   private long lastTimerStopTs;
@@ -915,6 +917,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
 
     addTimeToUI(time);
     App.INSTANCE.getService().saveTime(solveTime, solveAverageCallback);
+
+    if (time > 0 && !reviewRequested) { // ask for a review after a completed solve, never after a DNF
+      reviewRequested = true;
+      InAppReviewManager.maybeRequestReview(this);
+    }
   }
 
   private void addTimeToUI(long time) {

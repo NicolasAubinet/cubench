@@ -3,7 +3,6 @@ package com.cube.nanotimer;
 import android.content.Context;
 import com.cube.nanotimer.Options.ScrambleNotificationMode;
 import com.cube.nanotimer.gui.MainScreenActivity;
-import com.cube.nanotimer.gui.widget.AppRater;
 import com.cube.nanotimer.gui.widget.ReleaseNotes;
 import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent;
@@ -88,7 +87,6 @@ public enum App {
   private void appGUILaunched(Context context) {
     appGUILaunched = true;
     AppLaunchStats.appLaunched(context);
-    AppRater.appLaunched(context);
     ReleaseNotes.appLaunched(context);
   }
 

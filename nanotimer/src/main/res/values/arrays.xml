@@ -127,5 +127,6 @@
     <item>@string/clear_history</item>
     <item>@string/language</item>
     <item>@string/about</item>
+    <item>@string/rate_app</item>
   </string-array>
 </resources>

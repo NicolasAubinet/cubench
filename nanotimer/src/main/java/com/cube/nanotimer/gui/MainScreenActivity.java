@@ -329,6 +329,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       case 6:
         DialogUtils.showFragment(this, AboutDialog.newInstance());
         break;
+      case 7:
+        Utils.openPlayStorePage(this, getPackageName());
+        break;
     }
   }
 
@@ -772,6 +775,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             break;
           case 6:
             imageResource = R.drawable.menu_about;
+            break;
+          case 7:
+            imageResource = R.drawable.menu_rate;
             break;
         }
         if (imageResource != null) {

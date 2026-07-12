@@ -207,11 +207,7 @@
   <string name="inspection">Inspeção</string>
   <string name="ready">Pronto</string>
 
-  <string name="rate_message">Se você gosta do Cubench, reserve um momento para avaliá-lo.\nObrigado pelo seu apoio.</string>
-  <string name="rate">Avaliar</string>
-  <string name="rate_now">Avaliar agora</string>
-  <string name="ask_later">Mais tarde</string>
-  <string name="dont_ask_again">Nunca</string>
+  <string name="rate_app">Avaliar o Cubench</string>
   <string name="could_not_find_market">Não foi possível encontrar o app da loja</string>
   <string name="could_not_launch_market">Não foi possível abrir a loja</string>
   <string name="release_notes">Notas da versão</string>

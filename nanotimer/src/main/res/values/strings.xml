@@ -211,11 +211,7 @@
   <string name="inspection">Inspection</string>
   <string name="ready">Ready</string>
 
-  <string name="rate_message">If you like Cubench, please take a moment to rate it.\nThank you for your support.</string>
-  <string name="rate">Rate</string>
-  <string name="rate_now">Rate now</string>
-  <string name="ask_later">Ask later</string>
-  <string name="dont_ask_again">Never</string>
+  <string name="rate_app">Rate Cubench</string>
   <string name="could_not_find_market">Could not find the market app</string>
   <string name="could_not_launch_market">Could not launch the market</string>
   <string name="release_notes">Release notes</string>
