@@ -323,7 +323,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         break;
       case 5:
         items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.languages)));
-        ArrayList<Integer> flagIcons = new ArrayList<>(Arrays.asList(R.drawable.flag_uk, R.drawable.flag_france, R.drawable.flag_spain, R.drawable.flag_brazil));
+        ArrayList<Integer> flagIcons = new ArrayList<>(Arrays.asList(R.drawable.flag_uk, R.drawable.flag_france, R.drawable.flag_spain, R.drawable.flag_portugal));
         DialogUtils.showFragment(this, SelectorFragmentDialog.newInstance(ID_LANGUAGE, items, flagIcons, null, true, this));
         break;
       case 6:
