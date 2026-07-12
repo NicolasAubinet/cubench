@@ -339,7 +339,12 @@
   <string name="release_notes_features_html">
     <![CDATA[<html><body>
     <font color=\"white\">
-    <u><b>v1.4.1 <i>(New version)</i></b></u><br/>
+    <u><b>v1.4.2 <i>(New version)</i></b></u><br/>
+    <ul>
+      <li>Portuguese translation</li>
+      <li>You can now rate Cubench from the menu, without leaving the app</li>
+    </ul>
+    <u><b>v1.4.1</b></u><br/>
     <ul>
       <li>New record overlay showing your improvement and previous time(s)</li>
       <li>Add settings to choose the timer font and its size</li>

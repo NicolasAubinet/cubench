@@ -335,7 +335,12 @@
   <string name="release_notes_features_html">
     <![CDATA[<html><body>
     <font color=\"white\">
-    <u><b>v1.4.1 <i>(Nueva versión)</i></b></u><br/>
+    <u><b>v1.4.2 <i>(Nueva versión)</i></b></u><br/>
+    <ul>
+      <li>Traducción al portugués</li>
+      <li>Ahora puedes valorar Cubench desde el menú, sin salir de la aplicación</li>
+    </ul>
+    <u><b>v1.4.1</b></u><br/>
     <ul>
       <li>Nuevo aviso de récord que muestra tu mejora y el/los tiempo(s) anterior(es)</li>
       <li>Nuevos ajustes para elegir la fuente del cronómetro y su tamaño</li>
