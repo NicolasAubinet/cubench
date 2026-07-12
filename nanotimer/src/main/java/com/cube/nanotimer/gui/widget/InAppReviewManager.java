@@ -15,9 +15,16 @@ import com.google.android.play.core.review.ReviewManagerFactory;
  */
 public class InAppReviewManager {
 
-  private final static int DAYS_UNTIL_PROMPT = 5;
-  private final static int LAUNCHES_UNTIL_PROMPT = 5;
-  private final static int DAYS_BETWEEN_REQUESTS = 60;
+  private final static int SOLVES_UNTIL_PROMPT = 50;
+  private final static int DAYS_UNTIL_PROMPT = 3;
+  private final static int DAYS_BETWEEN_REQUESTS = 30;
+
+  /**
+   * Set to true (and upload to an internal testing track) to fire on the first solve, to check
+   * how the card looks. BuildConfig.DEBUG is no use here: the card only shows for a build that
+   * Play installed, which is never a debug build.
+   */
+  private final static boolean TEST_MODE = false;
 
   private final static String PREFS_NAME = "apprater";
   private final static String KEY_LAST_REQUEST = "date_lastrequest";
@@ -27,8 +34,8 @@ public class InAppReviewManager {
    * Requests a review if the local gate allows it. Fails silently if the flow is unavailable
    * (offline, no Play Store, quota reached).
    */
-  public static void maybeRequestReview(final Activity activity) {
-    if (!canRequest(activity)) {
+  public static void maybeRequestReview(final Activity activity, int solvesCount) {
+    if (!canRequest(activity, solvesCount)) {
       return;
     }
 
@@ -45,18 +52,20 @@ public class InAppReviewManager {
     });
   }
 
-  private static boolean canRequest(Activity activity) {
+  private static boolean canRequest(Activity activity, int solvesCount) {
     SharedPreferences prefs = activity.getSharedPreferences(PREFS_NAME, 0);
     if (prefs.getBoolean(KEY_DONT_SHOW_AGAIN, false)) { // set by the legacy rate dialog
       return false;
     }
+    if (TEST_MODE) {
+      return true;
+    }
 
-    long launchCount = AppLaunchStats.getLaunchCount(activity);
     long firstLaunchDate = AppLaunchStats.getFirstLaunchDate(activity);
     long lastRequestDate = prefs.getLong(KEY_LAST_REQUEST, 0);
 
     long currentTime = System.currentTimeMillis();
-    return launchCount >= LAUNCHES_UNTIL_PROMPT &&
+    return solvesCount >= SOLVES_UNTIL_PROMPT &&
         currentTime >= firstLaunchDate + Utils.daysToMs(DAYS_UNTIL_PROMPT) &&
         (lastRequestDate == 0 || currentTime >= lastRequestDate + Utils.daysToMs(DAYS_BETWEEN_REQUESTS));
   }

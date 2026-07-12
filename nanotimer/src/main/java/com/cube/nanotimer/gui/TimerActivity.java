@@ -920,7 +920,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
 
     if (time > 0 && !reviewRequested) { // ask for a review after a completed solve, never after a DNF
       reviewRequested = true;
-      InAppReviewManager.maybeRequestReview(this);
+      InAppReviewManager.maybeRequestReview(this, historySolvesCount);
     }
   }
 
