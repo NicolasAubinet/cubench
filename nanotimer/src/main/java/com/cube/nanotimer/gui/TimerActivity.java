@@ -35,7 +35,6 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
-import com.cube.nanotimer.cube.SmartCubeTimerController;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
