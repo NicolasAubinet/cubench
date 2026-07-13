@@ -120,6 +120,22 @@ public class CFOPStepDetectorTest {
   }
 
   @Test
+  public void revisesACrossClaimedByARivalFaceOnceF2lConfirmsTheRealOne() {
+    // Here the cross of another face is briefly complete before the D cross is: the solve's own
+    // cross lands on the second move, and only F2L can tell the two apart.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' F'");
+
+    play("F");
+    assertFalse(Face.D.equals(detector.getCrossFace())); // a rival face claims the cross
+
+    play("R");
+    play("R U R'"); // F2L confirms D, and the cross time reverts to D's own
+    assertEquals(Face.D, detector.getCrossFace());
+    assertEquals(Long.valueOf(200), detector.getStepTimestampMs(CFOPStepDetector.CROSS));
+    assertEquals(Long.valueOf(500), detector.getStepTimestampMs(CFOPStepDetector.F2L));
+  }
+
+  @Test
   public void detectsTheCrossFaceTheSolveWasBuiltOn() {
     startFrom("D"); // breaks the D cross, leaves the whole U side of the cube in place
     assertEquals(Face.U, detector.getCrossFace());
