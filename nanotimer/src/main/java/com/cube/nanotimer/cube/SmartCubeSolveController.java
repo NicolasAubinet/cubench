@@ -1,11 +1,17 @@
 package com.cube.nanotimer.cube;
 
+import android.util.Log;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
+import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
+import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
+import com.cube.nanotimer.smartcube.step.StepTime;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Owns the whole cube-driven solve lifecycle, isolated from the timer screen:
@@ -35,8 +41,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private enum Phase { INACTIVE, NEEDS_SOLVE, FOLLOWING, ARMED, RUNNING }
 
+  private static final String LOG_TAG = "SmartCube";
+
   private final Listener listener;
   private final CubeConnectionListener connectionListener = connection -> reevaluate();
+  private final SolveAnalyzer analyzer = new SolveAnalyzer(new CFOPStepDetector());
 
   private String[] scramble;
   private boolean cubeDriven; // auto-stop applies (3x3 + connected)
@@ -44,6 +53,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private ScrambleFollower follower;
   private Phase phase = Phase.INACTIVE;
   private boolean sawUnsolved;
+  private boolean analyzing;
 
   public SmartCubeSolveController(Listener listener) {
     this.listener = listener;
@@ -83,7 +93,16 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   }
 
   public void onTimerStopped() {
+    if (analyzing) {
+      logStepTimes();
+      analyzing = false;
+    }
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
+  }
+
+  /** The CFOP breakdown of the solve just finished. Empty unless the cube drove it. */
+  public List<StepTime> getStepTimes() {
+    return analyzer.getStepTimes();
   }
 
   public FollowMode getFollowMode() {
@@ -129,6 +148,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private void applyScramble() {
     follower = null;
+    analyzing = false;
     if (!followable || scramble == null || !SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.INACTIVE;
       notifyChanged();
@@ -154,6 +174,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   @Override
   public void onState(CubeState state) {
+    if (analyzing) {
+      analyzer.onState(state);
+    }
     switch (phase) {
       case RUNNING:
         if (!state.isSolved()) {
@@ -197,11 +220,46 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         }
         break;
       case ARMED:
+        beginAnalysis(move); // the cube is still scrambled here: the move has not been applied yet
         listener.onCubeAutoStart(); // scramble is done; any move starts the solve
+        break;
+      case RUNNING:
+        if (analyzing) {
+          analyzer.onMove(move);
+        } else {
+          beginAnalysis(move); // tap-started solve: the first move opens the breakdown
+        }
         break;
       default:
         break;
     }
+  }
+
+  private void beginAnalysis(CubeMove move) {
+    CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
+    if (state == null) {
+      return;
+    }
+    analyzer.start(state, move.getCubeTimestampMs());
+    analyzing = true;
+    analyzer.onMove(move);
+  }
+
+  private void logStepTimes() {
+    StringBuilder sb = new StringBuilder("Solve breakdown:");
+    for (StepTime step : getStepTimes()) {
+      appendStepTime(sb, step, "\n  ");
+      for (StepTime subStep : step.getSubSteps()) {
+        appendStepTime(sb, subStep, "\n      ");
+      }
+    }
+    Log.i(LOG_TAG, sb.toString());
+  }
+
+  private static void appendStepTime(StringBuilder sb, StepTime step, String indent) {
+    sb.append(indent).append(String.format(Locale.US, "%-8s %5.2f  (recognition %.2f, execution %.2f)",
+        step.getStepName(), step.getTotalMs() / 1000f,
+        step.getRecognitionMs() / 1000f, step.getExecutionMs() / 1000f));
   }
 
   private void notifyChanged() {
