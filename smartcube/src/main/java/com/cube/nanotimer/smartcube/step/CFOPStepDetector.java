@@ -1,6 +1,5 @@
 package com.cube.nanotimer.smartcube.step;
 
-import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
@@ -33,16 +32,23 @@ public final class CFOPStepDetector implements StepDetector {
   public static final int PLL = 3;
 
   private static final String[] STEP_NAMES = {"Cross", "F2L", "OLL", "PLL"};
+
+  /**
+   * PLL has no parts. A two-look PLL permutes the corners first, but in a one-look algorithm the
+   * corners often fall into place a move or two before the edges anyway — so the split cannot tell
+   * the two apart from the cube alone, and a one-look solve would be reported as a two-look. A
+   * two-look PLL is simply a longer execution.
+   */
   private static final String[][] SUB_STEP_NAMES = {
     {},
     {"Slot 1", "Slot 2", "Slot 3", "Slot 4"},
     {"Edges", "Corners"},
-    {"Corners", "Edges"},
+    {},
   };
 
   /** Where each step's sub-goals start in the flat sub-goal arrays. */
   private static final int[] SUB_STEP_OFFSET = {0, 0, 4, 6};
-  private static final int SUB_GOAL_COUNT = 8;
+  private static final int SUB_GOAL_COUNT = 6;
 
   private static final String SOLVED = CubeState.SOLVED_FACELETS;
   private static final String FACES = "URFDLB";
@@ -143,10 +149,6 @@ public final class CFOPStepDetector implements StepDetector {
         markSubGoal(face, 4, edgesOriented, timestampMs);
         markSubGoal(face, 5, cornersOriented, timestampMs);
       }
-      if (oll) {
-        markSubGoal(face, 6, permutedUpToAuf(facelets, face, CORNERS), timestampMs);
-        markSubGoal(face, 7, permutedUpToAuf(facelets, face, EDGES), timestampMs);
-      }
 
       markStep(face, CROSS, cross, timestampMs);
       markStep(face, F2L, f2l, timestampMs);
@@ -229,35 +231,6 @@ public final class CFOPStepDetector implements StepDetector {
     return true;
   }
 
-  /**
-   * The last-layer pieces of this kind are permuted, allowing for a final AUF: the layer may still
-   * need turning to line up with the rest of the cube.
-   */
-  private static boolean permutedUpToAuf(String facelets, int face, int[][] pieces) {
-    int opposite = opposite(face);
-    Face auf = Face.valueOf(String.valueOf(FACES.charAt(opposite)));
-    CubieCube cube = new CubieCube();
-    if (!cube.fromFacelet(facelets)) {
-      return false;
-    }
-    for (int turn = 0; turn < 4; turn++) {
-      if (allInPlace(cube.toFaceCube(), pieces, opposite)) {
-        return true;
-      }
-      cube.applyMove(auf, false);
-    }
-    return false;
-  }
-
-  private static boolean allInPlace(String facelets, int[][] pieces, int face) {
-    for (int[] piece : pieces) {
-      if (touches(piece, face) && !inPlace(facelets, piece)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   private static boolean touches(int[] piece, int face) {
     for (int facelet : piece) {
       if (SOLVED.charAt(facelet) == FACES.charAt(face)) {
@@ -322,6 +295,18 @@ public final class CFOPStepDetector implements StepDetector {
   @Override
   public Long getStepTimestampMs(int index) {
     return crossFace == null ? null : times[crossFace][index];
+  }
+
+  /**
+   * A last-layer turn opening OLL or PLL is an AUF: the solver is squaring the case up to read it,
+   * not solving it yet. Cross and F2L have no such move — their last-layer turns do build the step.
+   */
+  @Override
+  public boolean isAlignmentMove(int step, CubeMove move) {
+    if (crossFace == null || (step != OLL && step != PLL)) {
+      return false;
+    }
+    return move.getFace() == Face.valueOf(String.valueOf(FACES.charAt(opposite(crossFace))));
   }
 
   @Override

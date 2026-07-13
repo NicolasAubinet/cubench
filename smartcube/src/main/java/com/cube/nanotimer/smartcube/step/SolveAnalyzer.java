@@ -18,7 +18,7 @@ import java.util.List;
 public final class SolveAnalyzer {
 
   private final StepDetector detector;
-  private final List<Long> moveTimestampsMs = new ArrayList<>();
+  private final List<CubeMove> moves = new ArrayList<>();
 
   private long solveStartMs;
   private CubeMove pendingMove;
@@ -29,7 +29,7 @@ public final class SolveAnalyzer {
 
   /** Begin a solve. {@code startTimestampMs} is the cube-clock time of the move that started it. */
   public void start(CubeState startState, long startTimestampMs) {
-    moveTimestampsMs.clear();
+    moves.clear();
     solveStartMs = startTimestampMs;
     pendingMove = null;
     detector.reset(startState, startTimestampMs);
@@ -37,7 +37,7 @@ public final class SolveAnalyzer {
 
   public void onMove(CubeMove move) {
     pendingMove = move;
-    moveTimestampsMs.add(move.getCubeTimestampMs());
+    moves.add(move);
   }
 
   public void onState(CubeState state) {
@@ -56,8 +56,9 @@ public final class SolveAnalyzer {
       }
       List<StepTime> subSteps = splitSubSteps(step, previousCompleteMs, completeMs);
       times.add(subSteps.isEmpty()
-          ? timeFor(step, detector.stepName(step), previousCompleteMs, completeMs, step == 0, subSteps)
-          : sumOf(step, detector.stepName(step), subSteps));
+          ? timeFor(step, step, detector.stepName(step), previousCompleteMs, completeMs, step == 0,
+              subSteps)
+          : sumOf(step, detector.stepName(step), subSteps, worthSplitting(subSteps)));
       previousCompleteMs = completeMs;
     }
     return times;
@@ -82,43 +83,70 @@ public final class SolveAnalyzer {
       long subCompleteMs = last
           ? completeMs
           : Math.max(previousMs, detector.getSubStepTimestampMs(step, subStep));
-      subSteps.add(timeFor(subStep, detector.subStepName(step, subStep), previousMs, subCompleteMs,
-          step == 0 && i == 0, new ArrayList<>()));
+      subSteps.add(timeFor(step, subStep, detector.subStepName(step, subStep), previousMs,
+          subCompleteMs, step == 0 && i == 0, new ArrayList<>()));
       previousMs = subCompleteMs;
     }
     return subSteps;
   }
 
-  private StepTime timeFor(int index, String name, long previousCompleteMs, long completeMs,
+  private StepTime timeFor(int step, int index, String name, long previousCompleteMs, long completeMs,
       boolean includeStartMove, List<StepTime> subSteps) {
-    Long firstMoveMs = firstMoveAfter(previousCompleteMs, includeStartMove);
+    Long firstMoveMs = firstMoveIn(step, previousCompleteMs, completeMs, includeStartMove);
     long recognitionMs = 0;
     long executionMs = 0;
-    if (firstMoveMs != null && firstMoveMs <= completeMs) { // else it has no moves of its own: a skip
+    if (firstMoveMs != null) { // else it has no moves of its own: a skip
       recognitionMs = firstMoveMs - previousCompleteMs;
       executionMs = completeMs - firstMoveMs;
     }
     return new StepTime(index, name, recognitionMs, executionMs, subSteps);
   }
 
-  private static StepTime sumOf(int step, String name, List<StepTime> subSteps) {
+  private static StepTime sumOf(int step, String name, List<StepTime> subSteps, boolean split) {
     long recognitionMs = 0;
     long executionMs = 0;
     for (StepTime subStep : subSteps) {
       recognitionMs += subStep.getRecognitionMs();
       executionMs += subStep.getExecutionMs();
     }
-    return new StepTime(step, name, recognitionMs, executionMs, subSteps);
+    return new StepTime(step, name, recognitionMs, executionMs,
+        split ? subSteps : new ArrayList<>());
   }
 
-  /** The first move of a step: the first one past the previous step, which the solve's own move opens. */
-  private Long firstMoveAfter(long previousCompleteMs, boolean includeStart) {
-    for (Long timestampMs : moveTimestampsMs) {
-      if (timestampMs > previousCompleteMs || (includeStart && timestampMs == previousCompleteMs)) {
-        return timestampMs;
+  /** Only one part actually done — a one-look OLL or PLL, or a step the scramble half-gave: the
+   * step is the part, and splitting it would invent a structure the solve did not have. */
+  private static boolean worthSplitting(List<StepTime> subSteps) {
+    int done = 0;
+    for (StepTime subStep : subSteps) {
+      if (subStep.getTotalMs() > 0) {
+        done++;
       }
     }
-    return null;
+    return done > 1;
+  }
+
+  /**
+   * The move a step's execution starts on: the first one after the step before it, skipping any AUF
+   * the solver made to read the case — that alignment is part of recognising it. A step made only of
+   * alignment moves (a skip left with just an AUF) still starts on the first of them.
+   */
+  private Long firstMoveIn(int step, long previousCompleteMs, long completeMs, boolean includeStart) {
+    CubeMove first = null;
+    for (CubeMove move : moves) {
+      long timestampMs = move.getCubeTimestampMs();
+      boolean withinStep = timestampMs > previousCompleteMs
+          || (includeStart && timestampMs == previousCompleteMs);
+      if (!withinStep || timestampMs > completeMs) {
+        continue;
+      }
+      if (first == null) {
+        first = move;
+      }
+      if (!detector.isAlignmentMove(step, move)) {
+        return move.getCubeTimestampMs();
+      }
+    }
+    return first == null ? null : first.getCubeTimestampMs();
   }
 
   public boolean isComplete() {

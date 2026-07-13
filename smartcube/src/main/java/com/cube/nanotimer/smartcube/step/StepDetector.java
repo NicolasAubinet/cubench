@@ -23,6 +23,12 @@ public interface StepDetector {
   /** Cube-clock time at which the step was reached, or null while it is still pending. */
   Long getStepTimestampMs(int index);
 
+  /**
+   * True when the move only realigns the last layer to read a case (an AUF), rather than building
+   * the step. Such moves opening a step count as recognition, not execution.
+   */
+  boolean isAlignmentMove(int step, CubeMove move);
+
   /** The parts a step is built in, if any: they complete in whatever order the solver works in. */
   int subStepCount(int step);
 

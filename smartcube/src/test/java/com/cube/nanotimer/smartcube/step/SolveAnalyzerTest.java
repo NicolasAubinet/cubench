@@ -123,7 +123,7 @@ public class SolveAnalyzerTest {
   }
 
   @Test
-  public void leavesOneSubStepZeroWhenAStepIsDoneInOneLook() {
+  public void reportsAOneLookStepAsASingleStep() {
     startFrom(T_PERM, SUNE); // a one-look OLL: anti-Sune orients edges and corners together
 
     play(ANTI_SUNE, 700, 100);
@@ -131,8 +131,20 @@ public class SolveAnalyzerTest {
     StepTime oll = analyzer.getStepTimes().get(2);
     assertEquals(700, oll.getRecognitionMs()); // the single pause, counted once
     assertEquals(700, oll.getExecutionMs()); // 8 moves, 100ms apart
-    assertEquals(0, oll.getSubSteps().get(0).getTotalMs()); // edges were already oriented: no part
-    assertEquals(1400, oll.getSubSteps().get(1).getTotalMs());
+    assertTrue(oll.getSubSteps().isEmpty()); // only one part was needed: it is the step
+  }
+
+  @Test
+  public void countsAnAufBeforeAnAlgorithmAsRecognition() {
+    // The last layer needs squaring up before the PLL can be read: that U is part of recognising it.
+    startFrom(T_PERM, "U'");
+
+    play("U", 800, 100); // AUF
+    play(T_PERM, 300, 100); // the algorithm proper
+
+    StepTime pll = analyzer.getStepTimes().get(3);
+    assertEquals(800 + 300, pll.getRecognitionMs()); // the think, the AUF, and the think after it
+    assertEquals(1400, pll.getExecutionMs()); // only the algorithm
   }
 
   @Test
