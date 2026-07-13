@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
@@ -13,6 +14,13 @@ import java.util.List;
  * with the previous one. A step is dated at its first completion and never retracted: later steps
  * routinely disturb earlier ones for a few moves (an F2L insertion lifts a cross edge out and back).
  *
+ * <p>The steps that are built in parts carry sub-steps — F2L its 4 slots, OLL its edge and corner
+ * orientation, PLL its corner and edge permutation — so the pauses <em>between</em> the parts are
+ * counted as recognition rather than disappearing into the step's execution. Sub-steps complete in
+ * whatever order the solver works in, and are dated by the run they were in when the step completed
+ * (a slot broken and rebuilt counts from the rebuild). A one-look OLL or PLL completes both of its
+ * sub-steps on the same move, leaving one of them zero.
+ *
  * <p>The cross face is auto-detected. All six candidates are tracked, and F2L completion confirms
  * which one the solve was actually built on — so a cross that happens to be complete on some other
  * face (in the scramble, or in passing) is discarded rather than mistaken for the real one.
@@ -25,9 +33,23 @@ public final class CFOPStepDetector implements StepDetector {
   public static final int PLL = 3;
 
   private static final String[] STEP_NAMES = {"Cross", "F2L", "OLL", "PLL"};
+  private static final String[][] SUB_STEP_NAMES = {
+    {},
+    {"Slot 1", "Slot 2", "Slot 3", "Slot 4"},
+    {"Edges", "Corners"},
+    {"Corners", "Edges"},
+  };
+
+  /** Where each step's sub-goals start in the flat sub-goal arrays. */
+  private static final int[] SUB_STEP_OFFSET = {0, 0, 4, 6};
+  private static final int SUB_GOAL_COUNT = 8;
 
   private static final String SOLVED = CubeState.SOLVED_FACELETS;
   private static final String FACES = "URFDLB";
+
+  /** Facelet offsets within a face: corners at the four points, edges between them. */
+  private static final int[] CORNER_POSITIONS = {0, 2, 6, 8};
+  private static final int[] EDGE_POSITIONS = {1, 3, 5, 7};
 
   /** Corner facelet indices, one triple per corner (URF, UFL, ...), as in {@code CubieCube}. */
   private static final int[][] CORNERS = {
@@ -41,7 +63,27 @@ public final class CFOPStepDetector implements StepDetector {
     {30, 43}, {34, 52}, {23, 12}, {21, 41}, {50, 39}, {48, 14},
   };
 
+  /** The 4 F2L slots of each cross face: a first-layer corner and the middle edge beside it. */
+  private static final int[][] SLOT_CORNERS = new int[6][4];
+  private static final int[][] SLOT_EDGES = new int[6][4];
+
+  static {
+    for (int face = 0; face < 6; face++) {
+      int slot = 0;
+      for (int corner = 0; corner < CORNERS.length; corner++) {
+        if (!touches(CORNERS[corner], face)) {
+          continue;
+        }
+        char[] sides = sideColours(CORNERS[corner], face);
+        SLOT_CORNERS[face][slot] = corner;
+        SLOT_EDGES[face][slot] = edgeBetween(sides[0], sides[1]);
+        slot++;
+      }
+    }
+  }
+
   private final Long[][] times = new Long[6][STEP_NAMES.length]; // [cross face][step]
+  private final Long[][] subGoalTimes = new Long[6][SUB_GOAL_COUNT]; // [cross face][sub-goal]
   private final Long[] reported = new Long[STEP_NAMES.length];
 
   private Integer crossFace; // provisional until F2L confirms it
@@ -50,8 +92,9 @@ public final class CFOPStepDetector implements StepDetector {
 
   @Override
   public void reset(CubeState startState, long startTimestampMs) {
-    for (Long[] faceTimes : times) {
-      Arrays.fill(faceTimes, null);
+    for (int face = 0; face < 6; face++) {
+      Arrays.fill(times[face], null);
+      Arrays.fill(subGoalTimes[face], null);
     }
     Arrays.fill(reported, null);
     crossFace = null;
@@ -85,17 +128,42 @@ public final class CFOPStepDetector implements StepDetector {
     boolean solved = SOLVED.equals(facelets);
     for (int face = 0; face < 6; face++) {
       boolean cross = crossDone(facelets, face);
-      boolean f2l = cross && f2lDone(facelets, face);
-      boolean oll = f2l && lastLayerOriented(facelets, face);
-      mark(face, CROSS, cross, timestampMs);
-      mark(face, F2L, f2l, timestampMs);
-      mark(face, OLL, oll, timestampMs);
-      mark(face, PLL, solved, timestampMs);
+      boolean f2l = cross && slotsDone(facelets, face); // the 4 slots are the whole first two layers
+      boolean edgesOriented = lastLayerOriented(facelets, face, EDGE_POSITIONS);
+      boolean cornersOriented = lastLayerOriented(facelets, face, CORNER_POSITIONS);
+
+      boolean oll = f2l && edgesOriented && cornersOriented;
+      for (int slot = 0; slot < 4; slot++) {
+        markSubGoal(face, slot, slotDone(facelets, face, slot), timestampMs);
+      }
+      // A sub-goal is only watched inside its own step: orientation once the layers are there,
+      // permutation once they are oriented. Otherwise one satisfied by chance earlier in the
+      // solve would take the credit for a part the solver has not done yet.
+      if (f2l) {
+        markSubGoal(face, 4, edgesOriented, timestampMs);
+        markSubGoal(face, 5, cornersOriented, timestampMs);
+      }
+      if (oll) {
+        markSubGoal(face, 6, permutedUpToAuf(facelets, face, CORNERS), timestampMs);
+        markSubGoal(face, 7, permutedUpToAuf(facelets, face, EDGES), timestampMs);
+      }
+
+      markStep(face, CROSS, cross, timestampMs);
+      markStep(face, F2L, f2l, timestampMs);
+      markStep(face, OLL, oll, timestampMs);
+      markStep(face, PLL, solved, timestampMs);
     }
     updateCrossFace();
   }
 
-  private void mark(int face, int step, boolean done, long timestampMs) {
+  /** Dated at its first completion, like a step: the parts that follow disturb it in passing. */
+  private void markSubGoal(int face, int subGoal, boolean done, long timestampMs) {
+    if (done && subGoalTimes[face][subGoal] == null) {
+      subGoalTimes[face][subGoal] = timestampMs;
+    }
+  }
+
+  private void markStep(int face, int step, boolean done, long timestampMs) {
     if (done && times[face][step] == null) {
       times[face][step] = timestampMs;
     }
@@ -134,28 +202,56 @@ public final class CFOPStepDetector implements StepDetector {
     return true;
   }
 
-  /** Cross plus the 4 first-layer corners and the 4 middle-layer edges: the first two layers. */
-  private static boolean f2lDone(String facelets, int face) {
-    int opposite = opposite(face);
-    for (int[] corner : CORNERS) {
-      if (touches(corner, face) && !inPlace(facelets, corner)) {
-        return false;
-      }
-    }
-    for (int[] edge : EDGES) {
-      if (!touches(edge, face) && !touches(edge, opposite) && !inPlace(facelets, edge)) {
+  /** One F2L slot: its first-layer corner and the middle edge beside it are both in place. */
+  private static boolean slotDone(String facelets, int face, int slot) {
+    return inPlace(facelets, CORNERS[SLOT_CORNERS[face][slot]])
+        && inPlace(facelets, EDGES[SLOT_EDGES[face][slot]]);
+  }
+
+  private static boolean slotsDone(String facelets, int face) {
+    for (int slot = 0; slot < 4; slot++) {
+      if (!slotDone(facelets, face, slot)) {
         return false;
       }
     }
     return true;
   }
 
-  /** The last-layer face shows a single colour; its pieces may still be permuted wrong. */
-  private static boolean lastLayerOriented(String facelets, int face) {
+  /** The given positions of the last-layer face all show its colour: those pieces are oriented. */
+  private static boolean lastLayerOriented(String facelets, int face, int[] positions) {
     int opposite = opposite(face);
     char colour = FACES.charAt(opposite);
-    for (int i = opposite * 9; i < opposite * 9 + 9; i++) {
-      if (facelets.charAt(i) != colour) {
+    for (int position : positions) {
+      if (facelets.charAt(opposite * 9 + position) != colour) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * The last-layer pieces of this kind are permuted, allowing for a final AUF: the layer may still
+   * need turning to line up with the rest of the cube.
+   */
+  private static boolean permutedUpToAuf(String facelets, int face, int[][] pieces) {
+    int opposite = opposite(face);
+    Face auf = Face.valueOf(String.valueOf(FACES.charAt(opposite)));
+    CubieCube cube = new CubieCube();
+    if (!cube.fromFacelet(facelets)) {
+      return false;
+    }
+    for (int turn = 0; turn < 4; turn++) {
+      if (allInPlace(cube.toFaceCube(), pieces, opposite)) {
+        return true;
+      }
+      cube.applyMove(auf, false);
+    }
+    return false;
+  }
+
+  private static boolean allInPlace(String facelets, int[][] pieces, int face) {
+    for (int[] piece : pieces) {
+      if (touches(piece, face) && !inPlace(facelets, piece)) {
         return false;
       }
     }
@@ -180,6 +276,30 @@ public final class CFOPStepDetector implements StepDetector {
     return true;
   }
 
+  /** The two colours of a corner other than the given face's. */
+  private static char[] sideColours(int[] corner, int face) {
+    char[] sides = new char[2];
+    int found = 0;
+    for (int facelet : corner) {
+      char colour = SOLVED.charAt(facelet);
+      if (colour != FACES.charAt(face)) {
+        sides[found++] = colour;
+      }
+    }
+    return sides;
+  }
+
+  private static int edgeBetween(char first, char second) {
+    for (int edge = 0; edge < EDGES.length; edge++) {
+      char a = SOLVED.charAt(EDGES[edge][0]);
+      char b = SOLVED.charAt(EDGES[edge][1]);
+      if ((a == first && b == second) || (a == second && b == first)) {
+        return edge;
+      }
+    }
+    throw new IllegalStateException("No edge between " + first + " and " + second);
+  }
+
   private static int opposite(int face) {
     return (face + 3) % 6;
   }
@@ -202,6 +322,21 @@ public final class CFOPStepDetector implements StepDetector {
   @Override
   public Long getStepTimestampMs(int index) {
     return crossFace == null ? null : times[crossFace][index];
+  }
+
+  @Override
+  public int subStepCount(int step) {
+    return SUB_STEP_NAMES[step].length;
+  }
+
+  @Override
+  public String subStepName(int step, int subStep) {
+    return SUB_STEP_NAMES[step][subStep];
+  }
+
+  @Override
+  public Long getSubStepTimestampMs(int step, int subStep) {
+    return crossFace == null ? null : subGoalTimes[crossFace][SUB_STEP_OFFSET[step] + subStep];
   }
 
   @Override

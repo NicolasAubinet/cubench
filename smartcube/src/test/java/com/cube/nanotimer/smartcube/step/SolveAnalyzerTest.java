@@ -84,6 +84,58 @@ public class SolveAnalyzerTest {
   }
 
   @Test
+  public void countsThePausesBetweenF2lSlotsAsRecognition() {
+    // Each scramble chunk pulls one pair out of its slot; the solve puts them back one at a time,
+    // with a think before each. All four pauses are recognition.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' U R", "L' U L", "L U' L'", "R' F'");
+
+    play("F R", 0, 600); // cross
+    play("L U L'", 500, 100);
+    play("L' U' L", 400, 100);
+    play("R' U' R", 300, 100);
+    play("R U R'", 200, 100);
+
+    List<StepTime> steps = analyzer.getStepTimes();
+    StepTime f2l = steps.get(1);
+    assertEquals(500 + 400 + 300 + 200, f2l.getRecognitionMs());
+    assertEquals(4, f2l.getSubSteps().size());
+    assertEquals(500, f2l.getSubSteps().get(0).getRecognitionMs());
+    assertEquals(200, f2l.getSubSteps().get(3).getRecognitionMs());
+    assertEquals(f2l.getTotalMs(),
+        f2l.getSubSteps().stream().mapToLong(StepTime::getTotalMs).sum());
+  }
+
+  @Test
+  public void countsThePauseBetweenTheTwoLooksOfOll() {
+    // Orient the edges, think, then orient the corners: the pause between is OLL recognition.
+    startFrom(T_PERM, SUNE, "F U R U' R' F'"); // the inverse of the edge-orientation alg below
+
+    play("F R U R' U' F'", 600, 100); // edge orientation
+    play(ANTI_SUNE, 900, 100); // corner orientation
+
+    StepTime oll = analyzer.getStepTimes().get(2);
+    assertEquals(2, oll.getSubSteps().size());
+    assertEquals("Edges", oll.getSubSteps().get(0).getStepName());
+    assertEquals(600, oll.getSubSteps().get(0).getRecognitionMs());
+    assertEquals("Corners", oll.getSubSteps().get(1).getStepName());
+    assertEquals(900, oll.getSubSteps().get(1).getRecognitionMs());
+    assertEquals(600 + 900, oll.getRecognitionMs()); // both pauses, not just the first
+  }
+
+  @Test
+  public void leavesOneSubStepZeroWhenAStepIsDoneInOneLook() {
+    startFrom(T_PERM, SUNE); // a one-look OLL: anti-Sune orients edges and corners together
+
+    play(ANTI_SUNE, 700, 100);
+
+    StepTime oll = analyzer.getStepTimes().get(2);
+    assertEquals(700, oll.getRecognitionMs()); // the single pause, counted once
+    assertEquals(700, oll.getExecutionMs()); // 8 moves, 100ms apart
+    assertEquals(0, oll.getSubSteps().get(0).getTotalMs()); // edges were already oriented: no part
+    assertEquals(1400, oll.getSubSteps().get(1).getTotalMs());
+  }
+
+  @Test
   public void reportsASkippedStepAsZero() {
     startFrom(T_PERM); // cross, F2L and OLL are all already done: only PLL is left
 

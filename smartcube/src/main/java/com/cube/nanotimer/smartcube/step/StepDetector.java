@@ -23,5 +23,13 @@ public interface StepDetector {
   /** Cube-clock time at which the step was reached, or null while it is still pending. */
   Long getStepTimestampMs(int index);
 
+  /** The parts a step is built in, if any: they complete in whatever order the solver works in. */
+  int subStepCount(int step);
+
+  String subStepName(int step, int subStep);
+
+  /** Cube-clock time the sub-step was reached, or null while its step is still pending. */
+  Long getSubStepTimestampMs(int step, int subStep);
+
   boolean isComplete();
 }
