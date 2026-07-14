@@ -45,9 +45,10 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private static final String LOG_TAG = "SmartCube";
 
   private final Listener listener;
-  private final CubeConnectionListener connectionListener = connection -> reevaluate();
+  private final CubeConnectionListener connectionListener = this::onConnection;
   private final SolveAnalyzer analyzer = new SolveAnalyzer(new CFOPStepDetector());
 
+  private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
   private String[] scramble;
   private boolean cubeDriven; // auto-stop applies (3x3 + connected)
@@ -148,6 +149,18 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   /** Notation to execute to undo the wrong moves, e.g. "U' R2". Empty when on track. */
   public String getReverseMoves() {
     return follower == null ? "" : follower.getReverseMoves();
+  }
+
+  /**
+   * Only a real change restarts the follow. Re-subscribing (the screen coming back from the
+   * background) replays the connection we already had, and rebuilding on that would drop a scramble
+   * the user is halfway through; the state replayed on re-subscribe reconciles the progress instead.
+   */
+  private void onConnection(CubeConnection connection) {
+    if (connection != this.connection) {
+      this.connection = connection;
+      reevaluate();
+    }
   }
 
   private void reevaluate() {
