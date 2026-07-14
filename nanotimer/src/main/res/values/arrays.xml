@@ -129,6 +129,12 @@
     <item>es</item>
     <item>pt</item>
   </string-array>
+  <array name="solve_step_colors">
+    <item>@color/step_cross</item>
+    <item>@color/step_f2l</item>
+    <item>@color/step_oll</item>
+    <item>@color/step_pll</item>
+  </array>
   <string-array name="mainscreen_menu_items">
     <item>@string/settings</item>
     <item>@string/show_best_times</item>

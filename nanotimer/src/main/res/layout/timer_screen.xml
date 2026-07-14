@@ -31,6 +31,12 @@
          android:paddingLeft="2px"
          android:paddingRight="2px"
          android:orientation="vertical">
+        <!-- This spacer and the step bar's band below share the free space. The lighter spacer
+             lifts the timer off the action bar; the bar stays midway whatever the ratio. -->
+        <Space
+           android:layout_width="match_parent"
+           android:layout_height="0px"
+           android:layout_weight="0.4"/>
         <TableLayout
            android:id="@+id/timerStepsLayout"
            android:layout_width="match_parent"
@@ -106,6 +112,21 @@
 
           </androidx.cardview.widget.CardView>
 
+        </FrameLayout>
+
+        <!-- The band holds the gap under the scramble, and the bar rides in the middle of it. -->
+        <FrameLayout
+           android:layout_width="match_parent"
+           android:layout_height="0px"
+           android:layout_weight="1">
+          <com.cube.nanotimer.gui.widget.SolveStepBar
+             android:id="@+id/solveStepBar"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_vertical"
+             android:layout_marginLeft="8px"
+             android:layout_marginRight="8px"
+             android:visibility="gone"/>
         </FrameLayout>
       </LinearLayout>
 

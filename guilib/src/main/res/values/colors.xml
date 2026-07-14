@@ -66,6 +66,12 @@
   <color name="cube_green">#43A047</color>
   <color name="cube_blue">#1E88E5</color>
 
+  <!-- Smart-cube solve steps, in solve order: cross, F2L, then the warm last-layer pair -->
+  <color name="step_cross">@color/lightblue</color>
+  <color name="step_f2l">@color/cube_green</color>
+  <color name="step_oll">@color/cube_yellow</color>
+  <color name="step_pll">@color/cube_orange</color>
+
   <color name="dialog_surface">#23272B</color>
   <color name="dialog_divider">#1FFFFFFF</color>
 

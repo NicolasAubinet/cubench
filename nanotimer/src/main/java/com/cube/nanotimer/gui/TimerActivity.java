@@ -40,6 +40,7 @@ import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SessionDetailDialog;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
+import com.cube.nanotimer.gui.widget.SolveStepBar;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
@@ -51,6 +52,7 @@ import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent.State;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CubeSession;
+import com.cube.nanotimer.smartcube.step.StepTime;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.ScrambleViewNotation;
@@ -126,6 +128,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
   private SmartCubeSolveController solveController;
+  private SolveStepBar solveStepBar;
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
 
@@ -273,6 +276,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     @Override
     public void onScrambleFollowChanged() {
       renderScramble();
+      reserveStepBreakdownSpace();
     }
   }
 
@@ -354,6 +358,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     recordOverlayCard = findViewById(R.id.recordOverlayCard);
     tvRecordOverlayHeader = (TextView) findViewById(R.id.tvRecordOverlayHeader);
     recordOverlayTable = (TableLayout) findViewById(R.id.recordOverlayTable);
+    solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
 
     if (currentOrientation == Configuration.ORIENTATION_PORTRAIT && cubeType == CubeType.SEVEN_BY_SEVEN
         && tvTimer instanceof DigitalTextView) {
@@ -906,6 +911,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       timer.purge();
     }
     timerStopped();
+    showStepBreakdown();
     if (oversteppedInspection) {
       time += 2000; // add 2s to time if started solve after inspection time ended (for official inspection mode)
       oversteppedInspection = false;
@@ -1206,6 +1212,32 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     setKeepScreenOn(true);
     showMenuButton(false);
     dismissRecordOverlay();
+    hideStepBreakdown();
+  }
+
+  private void showStepBreakdown() {
+    List<StepTime> steps = solveController.getStepTimes();
+    if (steps.isEmpty()) { // the cube did not see this solve through: nothing to break down
+      hideStepBreakdown();
+      return;
+    }
+    solveStepBar.setSteps(steps);
+    solveStepBar.setVisibility(View.VISIBLE);
+  }
+
+  private void hideStepBreakdown() {
+    solveStepBar.setVisibility(canBreakDownSolves() ? View.INVISIBLE : View.GONE);
+  }
+
+  /** Keep the bar's height reserved while a cube is connected, so a solve never shifts the layout. */
+  private void reserveStepBreakdownSpace() {
+    if (solveStepBar.getVisibility() != View.VISIBLE) { // never hide the solve just finished
+      hideStepBreakdown();
+    }
+  }
+
+  private boolean canBreakDownSolves() {
+    return !solveType.hasSteps() && solveController.isCubeDriven();
   }
 
   private void dismissRecordOverlay() {

@@ -88,6 +88,29 @@
     <item name="android:fontFeatureSettings">tnum</item>
   </style>
 
+  <!-- Smart-cube step bar legend: a coloured step name and its time, one cell per step. -->
+  <style name="StepLegendCellPx">
+    <item name="android:layout_width">0px</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:orientation">horizontal</item>
+    <item name="android:gravity">center</item>
+  </style>
+
+  <style name="StepLegendNamePx">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">19px</item>
+    <item name="android:singleLine">true</item>
+  </style>
+
+  <style name="StepLegendTimePx" parent="StepLegendNamePx">
+    <item name="android:layout_marginLeft">4px</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textColor">@color/white</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+  </style>
+
   <style name="TableCell">
     <item name="android:textSize">15sp</item>
     <item name="android:gravity">center</item>

@@ -10,6 +10,7 @@ import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.smartcube.step.StepTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -47,6 +48,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private final CubeConnectionListener connectionListener = connection -> reevaluate();
   private final SolveAnalyzer analyzer = new SolveAnalyzer(new CFOPStepDetector());
 
+  private List<StepTime> stepTimes = Collections.emptyList();
   private String[] scramble;
   private boolean cubeDriven; // auto-stop applies (3x3 + connected)
   private boolean followable; // scramble-follow + auto-start apply (3x3 default scramble)
@@ -93,6 +95,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   }
 
   public void onTimerStopped() {
+    // Only a solve the cube saw through to solved has a breakdown; a tap stop mid-solve has none.
+    stepTimes = analyzing && analyzer.isComplete()
+        ? analyzer.getStepTimes() : Collections.<StepTime>emptyList();
     if (analyzing) {
       logStepTimes();
       analyzing = false;
@@ -100,9 +105,14 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
   }
 
-  /** The CFOP breakdown of the solve just finished. Empty unless the cube drove it. */
+  /** The CFOP breakdown of the solve just finished. Empty unless the cube drove it to solved. */
   public List<StepTime> getStepTimes() {
-    return analyzer.getStepTimes();
+    return stepTimes;
+  }
+
+  /** True when a solve now would be broken down into steps: a 3x3 with a cube connected. */
+  public boolean isCubeDriven() {
+    return cubeDriven && SmartCubeManager.INSTANCE.isConnected();
   }
 
   public FollowMode getFollowMode() {
