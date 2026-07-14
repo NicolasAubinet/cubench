@@ -205,7 +205,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         break;
       case FOLLOWING:
         if (follower.onState(state)) { // reconcile only; moves drive the follow
-          if (follower.isComplete()) {
+          if (follower.isLost()) {
+            phase = Phase.NEEDS_SOLVE; // the cube is somewhere we cannot place: ask for a solved one
+          } else if (follower.isComplete()) {
             phase = Phase.ARMED;
           }
           notifyChanged();

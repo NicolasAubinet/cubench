@@ -46,6 +46,7 @@ public class ScrambleFollower {
   private final Deque<Turn> wrongMoves = new ArrayDeque<>(); // deviating quarter turns to undo
 
   private int doneCount;
+  private boolean lost;
 
   public ScrambleFollower(String[] scramble) {
     CubieCube cube = new CubieCube();
@@ -113,14 +114,17 @@ public class ScrambleFollower {
   private boolean apply(String facelets, Turn move) {
     int prevDone = doneCount;
     String prevReverse = getReverseMoves();
+    boolean prevLost = lost;
     Integer full = fullStates.get(facelets);
     Integer half = halfStates.get(facelets);
     if (full != null) {
       doneCount = full;
       wrongMoves.clear();
+      lost = false;
     } else if (half != null) {
       doneCount = half;
       wrongMoves.clear();
+      lost = false;
     } else if (move != null) {
       if (!wrongMoves.isEmpty() && isInverse(wrongMoves.peek(), move)) {
         wrongMoves.pop();
@@ -128,9 +132,13 @@ public class ScrambleFollower {
         wrongMoves.push(move);
       }
     } else {
-      wrongMoves.clear(); // desynced to an unknown state; no move history to reverse
+      // The cube jumped somewhere the moves cannot account for, so the follow is worthless: the
+      // wrong moves are unknown, and doneCount is a memory of a cube that is no longer this one.
+      wrongMoves.clear();
+      doneCount = 0;
+      lost = true;
     }
-    return doneCount != prevDone || !getReverseMoves().equals(prevReverse);
+    return doneCount != prevDone || lost != prevLost || !getReverseMoves().equals(prevReverse);
   }
 
   private static boolean isInverse(Turn a, Turn b) {
@@ -141,6 +149,12 @@ public class ScrambleFollower {
     tracked.fromFacelet(CubieCube.SOLVED_FACELET);
     wrongMoves.clear();
     doneCount = 0;
+    lost = false;
+  }
+
+  /** True when the cube turned up somewhere the moves cannot explain: the follow means nothing. */
+  public boolean isLost() {
+    return lost;
   }
 
   public int getDoneCount() {
