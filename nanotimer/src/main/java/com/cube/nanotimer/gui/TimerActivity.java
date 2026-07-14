@@ -32,11 +32,11 @@ import com.cube.nanotimer.Options.BigCubesNotation;
 import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
+import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SessionDetailDialog;
-import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
-import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
+import com.cube.nanotimer.gui.widget.TimeChangedHandler;import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.scrambler.ScramblerService;
@@ -70,7 +70,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class TimerActivity extends NanoTimerActivity implements ResultListener {
+public class TimerActivity extends NanoTimerActivity implements ResultListener, TimeChangedHandler {
 
   private enum TimerState {STOPPED, RUNNING, INSPECTING}
 
@@ -398,7 +398,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
-    menu.findItem(R.id.itShareTime).setVisible(showMenu && lastSolveTime != null);
+    menu.findItem(R.id.itLastSolve).setVisible(showMenu && lastSolveTime != null);
     menu.findItem(R.id.itSessionDetails).setVisible(showMenu && hasNewSession);
     ScrambleType scrambleType = solveType.getScrambleType();
     boolean crossSolverAvailable = cubeType == CubeType.THREE_BY_THREE
@@ -490,11 +490,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
             DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
           }
           break;
-        case R.id.itComment:
+        case R.id.itLastSolve:
           if (lastSolveTime != null) {
-            DialogUtils.showFragment(this, CommentSolveDialog.newInstance(lastSolveTime, null));
-          } else {
-            DialogUtils.showShortInfoMessage(this, R.string.no_solve_to_comment);
+            DialogUtils.showFragment(this, HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this));
           }
           break;
         case R.id.itSessionDetails:
@@ -523,11 +521,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
             DialogUtils.showShortInfoMessage(this, R.string.can_not_add_time_while_generating);
           }
           break;
-        case R.id.itShareTime:
-          if (lastSolveTime != null) {
-            DialogUtils.shareTime(this, lastSolveTime, cubeType);
-          }
-          break;
         case R.id.itCrossSolver:
           if (currentScramble != null) {
             String scramble = ScrambleFormatterService.INSTANCE.formatScrambleAsSingleLine(currentScramble, cubeType);
@@ -542,6 +535,36 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
       }
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void onTimeChanged(final SolveTime solveTime) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        lastSolveTime = solveTime;
+        tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
+        setTimerTextColor(solveTime.getTime());
+        cubeSession.setLastTime(solveTime.getTime());
+        refreshSessionFields();
+        App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
+      }
+    });
+  }
+
+  @Override
+  public void onTimeDeleted(SolveTime solveTime) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        cubeSession.deleteLast();
+        historySolvesCount--;
+        setSolvesCount(solvesCount - 1);
+        refreshSessionFields();
+        resetTimer();
+        App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
+      }
+    });
   }
 
   // Opens the scramble diagram for the current scramble.
@@ -1435,7 +1458,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
         public void run() {
           prevSolveAverages = solveAverages;
           solveAverages = data;
-          lastSolveTime = data.getSolveTime();
+          if (data.getSolveTime() != null) { // a plain averages refresh carries no solve; keep the one we have
+            lastSolveTime = data.getSolveTime();
+          }
           refreshAvgFields(true);
         }
       });

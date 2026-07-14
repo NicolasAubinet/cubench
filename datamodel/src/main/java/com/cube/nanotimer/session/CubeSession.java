@@ -46,6 +46,12 @@ public class CubeSession extends TimesStatistics {
     }
   }
 
+  public void setLastTime(long time) {
+    if (!times.isEmpty()) {
+      times.set(0, time);
+    }
+  }
+
   public void deleteLast() {
     if (!times.isEmpty()) {
       times.removeFirst();

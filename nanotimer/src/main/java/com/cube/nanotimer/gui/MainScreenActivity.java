@@ -707,16 +707,21 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   }
 
   @Override
-  public void onTimeDeleted(SolveTime solveTime) {
-    for (Iterator<SolveTime> it = liHistory.iterator(); it.hasNext(); ) {
-      SolveTime st = it.next();
-      if (st.getId() == solveTime.getId()) {
-        it.remove();
-        historyListAdapter.notifyDataSetChanged();
-        setSolvesCount(solvesCount - 1);
-        break;
+  public void onTimeDeleted(final SolveTime solveTime) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        for (Iterator<SolveTime> it = liHistory.iterator(); it.hasNext(); ) {
+          SolveTime st = it.next();
+          if (st.getId() == solveTime.getId()) {
+            it.remove();
+            historyListAdapter.notifyDataSetChanged();
+            setSolvesCount(solvesCount - 1);
+            break;
+          }
+        }
       }
-    }
+    });
   }
 
   private void updateListTime(final SolveTime solveTime) {

@@ -167,9 +167,9 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       public void onClick(View view) {
         App.INSTANCE.getService().deleteTime(solveTime, new DataCallback<SolveAverages>() {
           public void onData(SolveAverages data) {
+            handler.onTimeDeleted(solveTime); // once deleted, so a handler may safely re-read the averages
           }
         });
-        handler.onTimeDeleted(solveTime);
         dialog.dismiss();
       }
     });
