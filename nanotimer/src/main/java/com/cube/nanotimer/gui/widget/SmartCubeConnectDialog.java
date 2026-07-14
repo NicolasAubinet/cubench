@@ -21,6 +21,7 @@ import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,8 @@ import java.util.List;
 public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
 
   private TextView tvStatus;
+  private TextView tvResyncHint;
+  private Button btnResync;
   private Button btnDisconnect;
   private ListView lvCubes;
 
@@ -61,8 +64,15 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     View v = getActivity().getLayoutInflater().inflate(R.layout.smart_cube_connect_dialog, null);
     tvStatus = v.findViewById(R.id.tvSmartCubeStatus);
+    tvResyncHint = v.findViewById(R.id.tvSmartCubeResyncHint);
+    btnResync = v.findViewById(R.id.btnSmartCubeResync);
     btnDisconnect = v.findViewById(R.id.btnSmartCubeDisconnect);
     lvCubes = v.findViewById(R.id.lvSmartCubes);
+
+    btnResync.setOnClickListener(view -> {
+      SmartCubeManager.INSTANCE.syncSolved();
+      DialogUtils.showShortInfoMessage(getActivity(), R.string.smart_cube_resynced);
+    });
 
     discoveredAdapter = new ArrayAdapter<>(getActivity(), R.layout.smart_cube_list_item, new ArrayList<>());
     lvCubes.setAdapter(discoveredAdapter);
@@ -144,6 +154,8 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
     boolean connected = SmartCubeManager.INSTANCE.isConnected();
     boolean wasConnected = btnDisconnect.getVisibility() == View.VISIBLE;
     btnDisconnect.setVisibility(connected ? View.VISIBLE : View.GONE);
+    btnResync.setVisibility(connected ? View.VISIBLE : View.GONE);
+    tvResyncHint.setVisibility(connected ? View.VISIBLE : View.GONE);
     lvCubes.setVisibility(connected ? View.GONE : View.VISIBLE);
     if (connected) {
       StringBuilder status = new StringBuilder(getString(R.string.smart_cube_connected));

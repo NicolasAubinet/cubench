@@ -37,6 +37,23 @@
       android:layout_height="200dp"
       android:layout_marginTop="12dp"/>
 
+  <TextView
+      android:id="@+id/tvSmartCubeResyncHint"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:text="@string/smart_cube_resync_hint"
+      android:textSize="13sp"
+      android:visibility="gone"/>
+
+  <Button
+      android:id="@+id/btnSmartCubeResync"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="8dp"
+      android:text="@string/smart_cube_resync"
+      android:visibility="gone"/>
+
   <Button
       android:id="@+id/btnSmartCubeDisconnect"
       android:layout_width="match_parent"

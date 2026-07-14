@@ -97,6 +97,18 @@ public enum SmartCubeManager {
     }
   }
 
+  /**
+   * Realign the tracked state to a solved cube. A cube whose own model has drifted keeps reporting
+   * a state the cube is not in (and can even report an impossible one), which no amount of
+   * reconnecting fixes: it is the cube that is wrong, and only the solver can say so.
+   */
+  public void syncSolved() {
+    SmartCube current = cube;
+    if (current != null) {
+      bleExecutor.execute(() -> current.syncState(new CubeState(CubeState.SOLVED_FACELETS)));
+    }
+  }
+
   public boolean isConnected() {
     return cube != null && connection == CubeConnection.READY;
   }

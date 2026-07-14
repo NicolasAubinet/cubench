@@ -198,6 +198,7 @@ final class MoyuV10Cube implements SmartCube {
   public void syncState(CubeState state) {
     parser.setState(state);
     lastState = state;
+    notifyState(state); // the screens track the cube by its state stream, so the realignment must show
   }
 
   @Override

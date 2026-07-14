@@ -608,6 +608,9 @@
   <string name="smart_cube_connect_title">Connecter un smart cube</string>
   <string name="smart_cube_intro_body">Un smart cube Bluetooth permet à Cubench de lire vos mouvements pendant que vous résolvez — pour démarrer et arrêter le chrono automatiquement, sans toucher l\'écran. D\'autres analyses arrivent bientôt.</string>
   <string name="smart_cube_done">Terminé</string>
+  <string name="smart_cube_resync">Mon cube est résolu</string>
+  <string name="smart_cube_resync_hint">Si l\'application croit que votre cube est mélangé alors qu\'il ne l\'est pas, c\'est que le cube s\'est perdu. Résolvez-le, puis touchez ci-dessous.</string>
+  <string name="smart_cube_resynced">État du cube réaligné</string>
   <string name="smart_cube_solve_first">Résolvez votre cube pour commencer</string>
   <string name="smart_cube_ready_to_solve">Prêt à résoudre</string>
   <string name="smart_cube_solving">Résolution en cours</string>
