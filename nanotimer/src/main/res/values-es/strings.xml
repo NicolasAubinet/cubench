@@ -307,6 +307,12 @@
   <string name="scramble_view_no_scramble">Aún no hay mezcla disponible</string>
   <string name="no_solve_for_action">Aún no hay resolución a la que aplicar esto</string>
   <string name="last_solve">Última resolución</string>
+
+  <string name="breakdown">Desglose</string>
+  <string name="breakdown_step">Paso</string>
+  <string name="breakdown_recognition">Recon.</string>
+  <string name="breakdown_execution">Ejec.</string>
+  <string name="breakdown_total">Total</string>
   <string name="scramble_view_clock_notation_hint">El diagrama no está disponible para esta notación de Clock. Cambia a la notación UR/DR/DL en las opciones para verlo.</string>
   <string name="cross_section_title">Cruz %1$s · %2$d movimientos</string>
   <string name="cross_solutions_count">%1$d soluciones óptimas</string>

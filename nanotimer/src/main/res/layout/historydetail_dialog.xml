@@ -11,28 +11,53 @@
    android:paddingBottom="12dp"
    android:minWidth="300dp">
 
-  <!-- Hero: solve time + PB trophy -->
+  <!-- Hero: solve time + PB trophy, flanked by the two actions on the solve itself -->
   <LinearLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:orientation="horizontal"
-     android:gravity="center">
-    <TextView
-       android:id="@+id/tvTime"
-       android:layout_width="wrap_content"
+     android:gravity="center_vertical">
+    <ImageButton
+       android:id="@+id/buComment"
+       android:layout_width="44dp"
+       android:layout_height="44dp"
+       android:scaleType="fitCenter"
+       android:padding="10dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:src="@drawable/comment"
+       android:contentDescription="@string/comment"/>
+    <LinearLayout
+       android:layout_width="0dp"
        android:layout_height="wrap_content"
-       android:layout_gravity="center_vertical"
-       android:textColor="@color/white"
-       android:textStyle="bold"
-       android:fontFeatureSettings="tnum"
-       android:textSize="36sp"/>
-    <ImageView
-       android:id="@+id/imgPb"
-       android:layout_width="28dp"
-       android:layout_height="28dp"
-       android:layout_gravity="center_vertical"
-       android:layout_marginLeft="8dp"
-       android:src="@drawable/trophy"/>
+       android:layout_weight="1"
+       android:orientation="horizontal"
+       android:gravity="center">
+      <TextView
+         android:id="@+id/tvTime"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_vertical"
+         android:textColor="@color/white"
+         android:textStyle="bold"
+         android:fontFeatureSettings="tnum"
+         android:textSize="36sp"/>
+      <ImageView
+         android:id="@+id/imgPb"
+         android:layout_width="28dp"
+         android:layout_height="28dp"
+         android:layout_gravity="center_vertical"
+         android:layout_marginLeft="8dp"
+         android:src="@drawable/trophy"/>
+    </LinearLayout>
+    <ImageButton
+       android:id="@+id/buShareTime"
+       android:layout_width="44dp"
+       android:layout_height="44dp"
+       android:scaleType="fitCenter"
+       android:padding="8dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:src="@android:drawable/ic_menu_share"
+       android:contentDescription="@string/share_time"/>
   </LinearLayout>
 
   <!-- Date subtitle -->
@@ -44,33 +69,6 @@
      android:gravity="center"
      android:textColor="@color/secondary_text"
      android:textSize="14sp"/>
-
-  <!-- Comment + share actions -->
-  <LinearLayout
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:orientation="horizontal"
-     android:gravity="center"
-     android:layout_marginTop="2dp">
-    <ImageButton
-       android:id="@+id/buComment"
-       android:layout_width="44dp"
-       android:layout_height="44dp"
-       android:scaleType="fitCenter"
-       android:padding="10dp"
-       android:background="?android:attr/selectableItemBackgroundBorderless"
-       android:src="@drawable/comment"
-       android:contentDescription="@string/comment"/>
-    <ImageButton
-       android:id="@+id/buShareTime"
-       android:layout_width="44dp"
-       android:layout_height="44dp"
-       android:scaleType="fitCenter"
-       android:padding="8dp"
-       android:background="?android:attr/selectableItemBackgroundBorderless"
-       android:src="@android:drawable/ic_menu_share"
-       android:contentDescription="@string/share_time"/>
-  </LinearLayout>
 
   <ScrollView
      android:layout_width="match_parent"
@@ -150,6 +148,44 @@
            android:textSize="15sp"
            custom:myfont="MONOSPACE"/>
       </androidx.cardview.widget.CardView>
+
+      <!-- Solve breakdown (smart-cube solves only): the step bar, then the step times -->
+      <LinearLayout
+         android:id="@+id/breakdownSection"
+         android:orientation="vertical"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="14dp"
+         android:visibility="gone">
+
+        <TextView
+           android:text="@string/breakdown"
+           android:layout_marginBottom="6dp"
+           style="@style/DialogSectionLabel"/>
+
+        <androidx.cardview.widget.CardView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           style="@style/TableCardView">
+          <LinearLayout
+             android:orientation="vertical"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:padding="10dp">
+            <com.cube.nanotimer.util.view.SolveStepBarView
+               android:id="@+id/breakdownBar"
+               android:layout_width="match_parent"
+               android:layout_height="20dp"
+               android:layout_marginBottom="10dp"/>
+            <TableLayout
+               android:id="@+id/breakdownTable"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:stretchColumns="0"/>
+          </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+      </LinearLayout>
 
       <!-- Averages -->
       <LinearLayout

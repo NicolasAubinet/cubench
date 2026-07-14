@@ -3,28 +3,37 @@ package com.cube.nanotimer.gui.widget;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import androidx.fragment.app.FragmentManager;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.smartcube.step.StepTime;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.FontFitTextView;
+import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class HistoryDetailDialog extends NanoTimerDialogFragment {
 
@@ -32,10 +41,18 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
   private static final String ARG_CUBETYPE = "cubetype";
 
   private TimeChangedHandler handler;
+  private List<StepTime> stepTimes = Collections.emptyList();
 
   public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType, TimeChangedHandler handler) {
+    return newInstance(solveTime, cubeType, handler, Collections.<StepTime>emptyList());
+  }
+
+  /** @param stepTimes the smart cube's step breakdown of this solve, empty when it has none */
+  public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType, TimeChangedHandler handler,
+      List<StepTime> stepTimes) {
     HistoryDetailDialog hd = new HistoryDetailDialog();
     hd.handler = handler;
+    hd.stepTimes = stepTimes;
 
     Bundle bundle = new Bundle();
     bundle.putSerializable(ARG_SOLVETIME, solveTime);
@@ -95,6 +112,8 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
         }
       });
     }
+
+    buildBreakdown(v);
 
     final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
     final TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
@@ -189,6 +208,109 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
     });
 
     return dialog;
+  }
+
+  /**
+   * The step bar the timer showed, with the numbers behind it: a row per step, and its parts on rows
+   * of their own, folded away until the step is tapped.
+   */
+  private void buildBreakdown(View v) {
+    if (stepTimes.isEmpty()) {
+      return;
+    }
+    int[] colors = getStepColors();
+    ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(stepTimes, colors);
+
+    TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
+    table.addView(headerRow());
+    for (int i = 0; i < stepTimes.size(); i++) {
+      StepTime step = stepTimes.get(i);
+      TextView name = cell(R.style.BreakdownStepName, step.getStepName());
+      name.setTextColor(colors[i % colors.length]);
+      TableRow row = stepRow(step, name);
+      table.addView(row);
+
+      List<TableRow> partRows = new ArrayList<TableRow>();
+      for (StepTime part : step.getSubSteps()) {
+        TableRow partRow = subStepRow(part);
+        partRow.setVisibility(View.GONE);
+        partRows.add(partRow);
+        table.addView(partRow);
+      }
+      if (!partRows.isEmpty()) {
+        makeExpandable(row, name, partRows);
+      }
+    }
+    v.findViewById(R.id.breakdownSection).setVisibility(View.VISIBLE);
+  }
+
+  private void makeExpandable(TableRow row, final TextView name, final List<TableRow> partRows) {
+    setChevron(name, false);
+    TypedValue background = new TypedValue();
+    getActivity().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, background, true);
+    row.setBackgroundResource(background.resourceId);
+    row.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        boolean expand = partRows.get(0).getVisibility() != View.VISIBLE;
+        for (TableRow partRow : partRows) {
+          partRow.setVisibility(expand ? View.VISIBLE : View.GONE);
+        }
+        setChevron(name, expand);
+      }
+    });
+  }
+
+  private void setChevron(TextView name, boolean expanded) {
+    name.setCompoundDrawablesWithIntrinsicBounds(0, 0,
+        expanded ? R.drawable.ic_chevron_up : R.drawable.ic_chevron_down, 0);
+  }
+
+  private int[] getStepColors() {
+    TypedArray stepColors = getResources().obtainTypedArray(R.array.solve_step_colors);
+    int[] colors = new int[stepColors.length()];
+    for (int i = 0; i < colors.length; i++) {
+      colors[i] = stepColors.getColor(i, 0);
+    }
+    stepColors.recycle();
+    return colors;
+  }
+
+  private TableRow headerRow() {
+    TableRow row = new TableRow(getActivity());
+    row.addView(cell(R.style.BreakdownHeaderName, getString(R.string.breakdown_step)));
+    row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_recognition)));
+    row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_execution)));
+    row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_total)));
+    return row;
+  }
+
+  private TableRow stepRow(StepTime step, TextView name) {
+    TableRow row = new TableRow(getActivity());
+    row.addView(name);
+    row.addView(cell(R.style.BreakdownRecognitionCell, formatTime(step.getRecognitionMs())));
+    row.addView(cell(R.style.BreakdownCell, formatTime(step.getExecutionMs())));
+    row.addView(cell(R.style.BreakdownCell, formatTime(step.getTotalMs())));
+    return row;
+  }
+
+  private TableRow subStepRow(StepTime part) {
+    TableRow row = new TableRow(getActivity());
+    row.addView(cell(R.style.BreakdownSubName, part.getStepName()));
+    row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
+    row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
+    row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
+    return row;
+  }
+
+  private TextView cell(int style, String text) {
+    TextView cell = new TextView(getActivity(), null, 0, style);
+    cell.setText(text);
+    return cell;
+  }
+
+  private String formatTime(long timeMs) {
+    return FormatterService.INSTANCE.formatSolveTime(timeMs);
   }
 
   private void saveTime(final SolveTime solveTime) {

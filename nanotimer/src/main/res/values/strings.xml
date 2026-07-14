@@ -311,6 +311,12 @@
   <string name="scramble_view_no_scramble">No scramble available yet</string>
   <string name="no_solve_for_action">No solve to apply this to yet</string>
   <string name="last_solve">Last solve</string>
+
+  <string name="breakdown">Breakdown</string>
+  <string name="breakdown_step">Step</string>
+  <string name="breakdown_recognition">Recog</string>
+  <string name="breakdown_execution">Exec</string>
+  <string name="breakdown_total">Total</string>
   <string name="scramble_view_clock_notation_hint">The diagram isn\'t available for this Clock notation. Switch to the UR/DR/DL notation in the options to see it.</string>
   <string name="cross_section_title">%1$s cross · %2$d moves</string>
   <string name="cross_solutions_count">%1$d optimal solutions</string>

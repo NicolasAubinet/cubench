@@ -98,6 +98,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private SolveType solveType;
   private String[] currentScramble;
   private SolveTime lastSolveTime;
+  private List<StepTime> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -592,7 +593,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           break;
         case R.id.itLastSolve:
           if (lastSolveTime != null) {
-            DialogUtils.showFragment(this, HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this));
+            DialogUtils.showFragment(this,
+                HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this, lastSolveSteps));
           }
           break;
         case R.id.itSessionDetails:
@@ -733,6 +735,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        lastSolveSteps = Collections.emptyList(); // a hand-entered time is now the last solve, and no cube saw it
         addTimeToUI(solveAverages.getSolveTime().getTime());
         generateScramble();
       }
@@ -987,6 +990,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         timer.purge();
       }
       lastSolveTime = null;
+      lastSolveSteps = Collections.emptyList();
       timerStartTs = 0;
       resetTimerText();
     }
@@ -1215,12 +1219,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   private void showStepBreakdown() {
-    List<StepTime> steps = solveController.getStepTimes();
-    if (steps.isEmpty()) { // the cube did not see this solve through: nothing to break down
+    lastSolveSteps = solveController.getStepTimes();
+    if (lastSolveSteps.isEmpty()) { // the cube did not see this solve through: nothing to break down
       hideStepBreakdown();
       return;
     }
-    solveStepBar.setSteps(steps);
+    solveStepBar.setSteps(lastSolveSteps);
     solveStepBar.setVisibility(View.VISIBLE);
   }
 
