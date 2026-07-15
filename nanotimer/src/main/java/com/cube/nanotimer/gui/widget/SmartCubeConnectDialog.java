@@ -3,6 +3,8 @@ package com.cube.nanotimer.gui.widget;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -38,6 +40,7 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
   private ArrayAdapter<String> discoveredAdapter;
 
   private ActivityResultLauncher<String[]> permissionLauncher;
+  private ActivityResultLauncher<Intent> enableBluetoothLauncher;
 
   private final CubeConnectionListener connectionListener = connection -> updateUi();
   private final CubeBatteryListener batteryListener = level -> updateUi();
@@ -52,9 +55,17 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
             granted = granted && Boolean.TRUE.equals(g);
           }
           if (granted) {
-            startScan();
+            maybeScan();
           } else {
             tvStatus.setText(R.string.smart_cube_permission_denied);
+          }
+        });
+    enableBluetoothLauncher = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(), result -> {
+          if (SmartCubeManager.INSTANCE.isBluetoothEnabled()) {
+            startScan();
+          } else {
+            tvStatus.setText(R.string.smart_cube_bluetooth_off);
           }
         });
   }
@@ -112,6 +123,9 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
     String[] missing = missingPermissions();
     if (missing.length > 0) {
       permissionLauncher.launch(missing);
+    } else if (!SmartCubeManager.INSTANCE.isBluetoothEnabled()) {
+      tvStatus.setText(R.string.smart_cube_bluetooth_off);
+      enableBluetoothLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
     } else {
       startScan();
     }
@@ -121,7 +135,12 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
     discovered.clear();
     discoveredAdapter.clear();
     tvStatus.setText(R.string.smart_cube_scanning);
-    SmartCubeManager.INSTANCE.startScan(this::onDiscovered);
+    try {
+      SmartCubeManager.INSTANCE.startScan(this::onDiscovered);
+    } catch (Exception e) {
+      // The adapter can be switched off between the check above and the scan starting.
+      tvStatus.setText(R.string.smart_cube_bluetooth_off);
+    }
   }
 
   private void onDiscovered(DiscoveredCube found) {

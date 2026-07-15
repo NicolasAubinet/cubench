@@ -609,6 +609,7 @@
   <string name="smart_cube_connected">Conectado</string>
   <string name="smart_cube_connect_failed">Error de conexión: %s</string>
   <string name="smart_cube_permission_denied">Permiso de Bluetooth denegado</string>
+  <string name="smart_cube_bluetooth_off">Activa el Bluetooth para conectar tu cubo</string>
   <string name="smart_cube_battery">Batería: %1$d%%</string>
   <string name="smart_cube_connect_title">Conectar un cubo inteligente</string>
   <string name="smart_cube_intro_body">Un cubo inteligente Bluetooth permite a Cubench leer tus movimientos mientras resuelves, para iniciar y detener el cronómetro automáticamente, sin tocar la pantalla. Pronto llegarán más análisis.</string>

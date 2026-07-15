@@ -1,6 +1,9 @@
 package com.cube.nanotimer.cube;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import com.cube.nanotimer.smartcube.SmartCube;
@@ -50,6 +53,18 @@ public enum SmartCubeManager {
   public void startScan(SmartCubeScanListener listener) {
     ensureScanner();
     scanner.scan(found -> mainHandler.post(() -> listener.onCubeDiscovered(found)));
+  }
+
+  /** Whether the device has a Bluetooth adapter and it is currently on. */
+  public boolean isBluetoothEnabled() {
+    BluetoothAdapter adapter;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      BluetoothManager manager = context.getSystemService(BluetoothManager.class);
+      adapter = manager != null ? manager.getAdapter() : null;
+    } else {
+      adapter = BluetoothAdapter.getDefaultAdapter();
+    }
+    return adapter != null && adapter.isEnabled();
   }
 
   public void stopScan() {
