@@ -92,6 +92,16 @@
     <item>2</item>
     <item>3</item>
   </string-array>
+  <string-array name="entries_record_notification">
+    <item>@string/record_notif_any</item>
+    <item>@string/record_notif_pb_only</item>
+    <item>@string/record_notif_never</item>
+  </string-array>
+  <string-array name="entryvalues_record_notification">
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+  </string-array>
   <string-array name="graph_periods">
     <item>@string/day</item>
     <item>@string/week</item>

@@ -106,6 +106,15 @@
        android:summary="@string/high_precision_timer_summary"
        android:defaultValue="@bool/high_precision_timer"/>
 
+    <ListPreference
+       android:key="record_notification_mode"
+       android:title="@string/record_notification_mode"
+       android:summary="@string/record_notification_mode_summary"
+       android:entries="@array/entries_record_notification"
+       android:entryValues="@array/entryvalues_record_notification"
+       android:dialogTitle="@string/record_notification_mode"
+       android:defaultValue="@integer/record_notification_mode"/>
+
   </PreferenceCategory>
 
   <PreferenceCategory

@@ -208,6 +208,11 @@
   <string name="record_toast_header">New records!</string>
   <string name="record_overlay_prev">(prev %1$s)</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="record_notification_mode">New record panel</string>
+  <string name="record_notification_mode_summary">Choose when to show the new record panel</string>
+  <string name="record_notif_any">For any record</string>
+  <string name="record_notif_pb_only">Only for a new PB</string>
+  <string name="record_notif_never">Never</string>
   <string name="inspection">Inspection</string>
   <string name="ready">Ready</string>
 

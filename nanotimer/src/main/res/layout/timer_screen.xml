@@ -106,74 +106,6 @@
 
           </androidx.cardview.widget.CardView>
 
-          <FrameLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_marginBottom="-3000px"
-             android:elevation="12dp"
-             android:clipChildren="false"
-             android:clipToPadding="false">
-            <androidx.cardview.widget.CardView
-               android:id="@+id/recordOverlayCard"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:layout_gravity="top|center_horizontal"
-               android:clickable="false"
-               android:focusable="false"
-               android:visibility="gone"
-               style="@style/TableCardViewPx">
-              <LinearLayout
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:orientation="horizontal">
-                <View
-                   android:layout_width="4px"
-                   android:layout_height="match_parent"
-                   android:background="@color/new_record"/>
-                <LinearLayout
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:orientation="vertical"
-                   android:paddingLeft="16px"
-                   android:paddingRight="18px"
-                   android:paddingTop="11px"
-                   android:paddingBottom="11px">
-                  <TextView android:id="@+id/tvRecordOverlayHeader" style="@style/RecordOverlayHeaderPx"/>
-                  <TableLayout
-                     android:id="@+id/recordOverlayTable"
-                     android:layout_width="wrap_content"
-                     android:layout_height="wrap_content">
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                  </TableLayout>
-                </LinearLayout>
-              </LinearLayout>
-            </androidx.cardview.widget.CardView>
-          </FrameLayout>
-
         </FrameLayout>
       </LinearLayout>
 
@@ -378,6 +310,70 @@
           <com.cube.nanotimer.util.view.FontFitTextView style="@style/TableCellPx"/>
         </TableRow>
       </TableLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Record panel: floats at the top-center of the screen so it doesn't cover the scramble. -->
+    <androidx.cardview.widget.CardView
+       android:id="@+id/recordOverlayCard"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_alignParentTop="true"
+       android:layout_centerHorizontal="true"
+       android:layout_marginTop="8px"
+       android:elevation="12dp"
+       android:clickable="false"
+       android:focusable="false"
+       android:visibility="gone"
+       style="@style/TableCardViewPx">
+      <LinearLayout
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal">
+        <View
+           android:layout_width="4px"
+           android:layout_height="match_parent"
+           android:background="@color/new_record"/>
+        <LinearLayout
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           android:paddingLeft="16px"
+           android:paddingRight="18px"
+           android:paddingTop="11px"
+           android:paddingBottom="11px">
+          <TextView android:id="@+id/tvRecordOverlayHeader" style="@style/RecordOverlayHeaderPx"/>
+          <TableLayout
+             android:id="@+id/recordOverlayTable"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content">
+            <TableRow android:visibility="gone">
+              <TextView style="@style/RecordOverlayLabelPx"/>
+              <TextView style="@style/RecordOverlayMarginPx"/>
+              <TextView style="@style/RecordOverlayPrevPx"/>
+            </TableRow>
+            <TableRow android:visibility="gone">
+              <TextView style="@style/RecordOverlayLabelPx"/>
+              <TextView style="@style/RecordOverlayMarginPx"/>
+              <TextView style="@style/RecordOverlayPrevPx"/>
+            </TableRow>
+            <TableRow android:visibility="gone">
+              <TextView style="@style/RecordOverlayLabelPx"/>
+              <TextView style="@style/RecordOverlayMarginPx"/>
+              <TextView style="@style/RecordOverlayPrevPx"/>
+            </TableRow>
+            <TableRow android:visibility="gone">
+              <TextView style="@style/RecordOverlayLabelPx"/>
+              <TextView style="@style/RecordOverlayMarginPx"/>
+              <TextView style="@style/RecordOverlayPrevPx"/>
+            </TableRow>
+            <TableRow android:visibility="gone">
+              <TextView style="@style/RecordOverlayLabelPx"/>
+              <TextView style="@style/RecordOverlayMarginPx"/>
+              <TextView style="@style/RecordOverlayPrevPx"/>
+            </TableRow>
+          </TableLayout>
+        </LinearLayout>
+      </LinearLayout>
     </androidx.cardview.widget.CardView>
 
   </RelativeLayout>

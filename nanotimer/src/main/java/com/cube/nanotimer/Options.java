@@ -15,6 +15,7 @@ public enum Options {
   public enum BigCubesNotation { RUF, RWUWFW }
   public enum ClockNotation { UUdU_x_x, UUdd_ux_dx, URx_DRx_DLx }
   public enum ScrambleNotificationMode { ALWAYS, MANUAL, NEVER }
+  public enum RecordNotificationMode { ANY, PB_ONLY, NEVER }
   public enum CrossNeutrality { SPECIFIC, DUAL, FULL }
   public enum SessionTimesColoring { BEST_WORST, ALL_DISPLAYED, MATCH_HISTORY, NONE }
   public enum TimerFontSize { SMALL, MEDIUM, LARGE }
@@ -37,6 +38,7 @@ public enum Options {
   public static final String BIG_CUBES_NOTATION_KEY = "big_cubes_notation";
   public static final String CLOCK_NOTATION_SYSTEM_KEY = "clock_notation";
   public static final String SOLVE_TYPES_SHORTCUT_KEY = "solve_types_shortcut";
+  public static final String RECORD_NOTIFICATION_MODE_KEY = "record_notification_mode";
   public static final String CROSS_NEUTRALITY_KEY = "cross_neutrality";
   public static final String CROSS_FACE_KEY = "cross_face";
 
@@ -186,6 +188,20 @@ public enum Options {
         return BigCubesNotation.RWUWFW;
       default:
         return BigCubesNotation.RUF;
+    }
+  }
+
+  public RecordNotificationMode getRecordNotificationMode() {
+    int mode = Integer.parseInt(sharedPreferences.getString(RECORD_NOTIFICATION_MODE_KEY, "-1"));
+    switch (mode) {
+      case 1:
+        return RecordNotificationMode.ANY;
+      case 2:
+        return RecordNotificationMode.PB_ONLY;
+      case 3:
+        return RecordNotificationMode.NEVER;
+      default:
+        return RecordNotificationMode.ANY;
     }
   }
 

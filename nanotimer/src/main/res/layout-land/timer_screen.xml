@@ -15,127 +15,131 @@
      android:baselineAligned="false"
      android:orientation="horizontal">
 
-    <LinearLayout
+    <FrameLayout
        android:layout_width="match_parent"
        android:layout_height="match_parent"
-       android:orientation="vertical"
        android:layout_marginLeft="3px"
        android:clipChildren="false"
        android:clipToPadding="false"
        android:layout_weight="7">
-      <com.cube.nanotimer.util.view.DigitalTextView
-         android:id="@+id/tvTimer"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:textSize="72px"
-         android:layout_marginTop="50px"
-         android:layout_marginBottom="15px"
-         android:textColor="@color/white"
-         android:layout_gravity="center"/>
 
-      <FrameLayout
+      <LinearLayout
          android:layout_width="match_parent"
-         android:layout_height="wrap_content"
+         android:layout_height="match_parent"
+         android:orientation="vertical"
          android:clipChildren="false"
          android:clipToPadding="false">
-
-        <androidx.cardview.widget.CardView
+        <com.cube.nanotimer.util.view.DigitalTextView
+           android:id="@+id/tvTimer"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:layout_gravity="center_horizontal"
-           style="@style/TableCardViewPx">
-
-          <LinearLayout
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:orientation="vertical"
-             android:paddingLeft="10px"
-             android:paddingRight="10px"
-             android:paddingTop="6px"
-             android:paddingBottom="8px">
-
-            <com.cube.nanotimer.util.view.FontFitTextView
-               android:id="@+id/tvScramble"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:gravity="center_horizontal"
-               app:myfont="MONOSPACE"
-               style="@style/ScrambleTextFieldPx"/>
-
-          </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
+           android:textSize="72px"
+           android:layout_marginTop="50px"
+           android:layout_marginBottom="15px"
+           android:textColor="@color/white"
+           android:layout_gravity="center"/>
 
         <FrameLayout
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:layout_marginBottom="-3000px"
-           android:elevation="12dp"
            android:clipChildren="false"
            android:clipToPadding="false">
+
           <androidx.cardview.widget.CardView
-             android:id="@+id/recordOverlayCard"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
-             android:layout_gravity="top|center_horizontal"
-             android:clickable="false"
-             android:focusable="false"
-             android:visibility="gone"
+             android:layout_gravity="center_horizontal"
              style="@style/TableCardViewPx">
+
             <LinearLayout
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
-               android:orientation="horizontal">
-              <View
-                 android:layout_width="4px"
-                 android:layout_height="match_parent"
-                 android:background="@color/new_record"/>
-              <LinearLayout
+               android:orientation="vertical"
+               android:paddingLeft="10px"
+               android:paddingRight="10px"
+               android:paddingTop="6px"
+               android:paddingBottom="8px">
+
+              <com.cube.nanotimer.util.view.FontFitTextView
+                 android:id="@+id/tvScramble"
                  android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
-                 android:orientation="vertical"
-                 android:paddingLeft="14px"
-                 android:paddingRight="16px"
-                 android:paddingTop="9px"
-                 android:paddingBottom="9px">
-                <TextView android:id="@+id/tvRecordOverlayHeader" style="@style/RecordOverlayHeaderPx"/>
-                <TableLayout
-                   android:id="@+id/recordOverlayTable"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content">
-                  <TableRow android:visibility="gone">
-                    <TextView style="@style/RecordOverlayLabelPx"/>
-                    <TextView style="@style/RecordOverlayMarginPx"/>
-                    <TextView style="@style/RecordOverlayPrevPx"/>
-                  </TableRow>
-                  <TableRow android:visibility="gone">
-                    <TextView style="@style/RecordOverlayLabelPx"/>
-                    <TextView style="@style/RecordOverlayMarginPx"/>
-                    <TextView style="@style/RecordOverlayPrevPx"/>
-                  </TableRow>
-                  <TableRow android:visibility="gone">
-                    <TextView style="@style/RecordOverlayLabelPx"/>
-                    <TextView style="@style/RecordOverlayMarginPx"/>
-                    <TextView style="@style/RecordOverlayPrevPx"/>
-                  </TableRow>
-                  <TableRow android:visibility="gone">
-                    <TextView style="@style/RecordOverlayLabelPx"/>
-                    <TextView style="@style/RecordOverlayMarginPx"/>
-                    <TextView style="@style/RecordOverlayPrevPx"/>
-                  </TableRow>
-                  <TableRow android:visibility="gone">
-                    <TextView style="@style/RecordOverlayLabelPx"/>
-                    <TextView style="@style/RecordOverlayMarginPx"/>
-                    <TextView style="@style/RecordOverlayPrevPx"/>
-                  </TableRow>
-                </TableLayout>
-              </LinearLayout>
+                 android:gravity="center_horizontal"
+                 app:myfont="MONOSPACE"
+                 style="@style/ScrambleTextFieldPx"/>
+
             </LinearLayout>
+
           </androidx.cardview.widget.CardView>
+
         </FrameLayout>
 
-      </FrameLayout>
-    </LinearLayout>
+      </LinearLayout>
+
+      <!-- Record panel: floats at the top-center so it doesn't cover the scramble. -->
+      <androidx.cardview.widget.CardView
+         android:id="@+id/recordOverlayCard"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="top|center_horizontal"
+         android:layout_marginTop="8px"
+         android:elevation="12dp"
+         android:clickable="false"
+         android:focusable="false"
+         android:visibility="gone"
+         style="@style/TableCardViewPx">
+        <LinearLayout
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal">
+          <View
+             android:layout_width="4px"
+             android:layout_height="match_parent"
+             android:background="@color/new_record"/>
+          <LinearLayout
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:orientation="vertical"
+             android:paddingLeft="14px"
+             android:paddingRight="16px"
+             android:paddingTop="9px"
+             android:paddingBottom="9px">
+            <TextView android:id="@+id/tvRecordOverlayHeader" style="@style/RecordOverlayHeaderPx"/>
+            <TableLayout
+               android:id="@+id/recordOverlayTable"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content">
+              <TableRow android:visibility="gone">
+                <TextView style="@style/RecordOverlayLabelPx"/>
+                <TextView style="@style/RecordOverlayMarginPx"/>
+                <TextView style="@style/RecordOverlayPrevPx"/>
+              </TableRow>
+              <TableRow android:visibility="gone">
+                <TextView style="@style/RecordOverlayLabelPx"/>
+                <TextView style="@style/RecordOverlayMarginPx"/>
+                <TextView style="@style/RecordOverlayPrevPx"/>
+              </TableRow>
+              <TableRow android:visibility="gone">
+                <TextView style="@style/RecordOverlayLabelPx"/>
+                <TextView style="@style/RecordOverlayMarginPx"/>
+                <TextView style="@style/RecordOverlayPrevPx"/>
+              </TableRow>
+              <TableRow android:visibility="gone">
+                <TextView style="@style/RecordOverlayLabelPx"/>
+                <TextView style="@style/RecordOverlayMarginPx"/>
+                <TextView style="@style/RecordOverlayPrevPx"/>
+              </TableRow>
+              <TableRow android:visibility="gone">
+                <TextView style="@style/RecordOverlayLabelPx"/>
+                <TextView style="@style/RecordOverlayMarginPx"/>
+                <TextView style="@style/RecordOverlayPrevPx"/>
+              </TableRow>
+            </TableLayout>
+          </LinearLayout>
+        </LinearLayout>
+      </androidx.cardview.widget.CardView>
+
+    </FrameLayout>
 
     <RelativeLayout
        android:layout_width="wrap_content"

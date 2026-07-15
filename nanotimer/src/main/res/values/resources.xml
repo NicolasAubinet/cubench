@@ -17,6 +17,7 @@
   <integer name="clock_notation">3</integer>
   <integer name="scrambles_quality">1</integer>
   <integer name="scramble_notification_mode">1</integer>
+  <integer name="record_notification_mode">1</integer>
   <integer name="min_scramble_cache_size">25</integer>
   <integer name="max_scramble_cache_size">50</integer>
 </resources>

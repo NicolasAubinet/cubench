@@ -1133,9 +1133,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
       tvAccuracy.setText(FormatterService.INSTANCE.formatPercentage(solveAverages.getLifetimeAccuracy()));
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf3() : null), getString(R.string.NA), showNotifications, "Mo3", 1));
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf3() : null), getString(R.string.NA), showNotifications, "Mo3", 1, false));
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0));
+          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0, true));
 
       refreshAvgField(R.id.tvLifetimeAvg, solveAverages.getAvgOfLifetime(), getString(R.string.NA));
       refreshAvgField(R.id.tvAvgOfTwelve, solveAverages.getAvgOf12(), "-");
@@ -1156,19 +1156,38 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
 
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfFive, solveAverages.getBestOf5(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf5() : null), "-", showNotifications, "Ao5", 2));
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf5() : null), "-", showNotifications, "Ao5", 2, false));
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfTwelve, solveAverages.getBestOf12(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf12() : null), "-", showNotifications, "Ao12", 3));
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf12() : null), "-", showNotifications, "Ao12", 3, false));
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfFifty, solveAverages.getBestOf50(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf50() : null), "-", showNotifications, "Ao50", 4));
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf50() : null), "-", showNotifications, "Ao50", 4, false));
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfHundred, solveAverages.getBestOf100(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf100() : null), "-", showNotifications, "Ao100", 5));
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf100() : null), "-", showNotifications, "Ao100", 5, false));
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0));
+          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0, true));
     }
 
     if (showNotifications) {
-      showRecordsSummary(records);
+      showRecordsSummary(filterRecordsForNotification(records));
+    }
+  }
+
+  // Applies the "New record panel" setting: ANY shows all records, PB_ONLY keeps only the
+  // lifetime best single, NEVER shows nothing. Only gates the panel, not the in-table highlight.
+  private List<RecordInfo> filterRecordsForNotification(List<RecordInfo> records) {
+    switch (Options.INSTANCE.getRecordNotificationMode()) {
+      case NEVER:
+        return new ArrayList<RecordInfo>();
+      case PB_ONLY:
+        List<RecordInfo> pbOnly = new ArrayList<RecordInfo>();
+        for (RecordInfo r : records) {
+          if (r.isPB) {
+            pbOnly.add(r);
+          }
+        }
+        return pbOnly;
+      default:
+        return records;
     }
   }
 
@@ -1206,7 +1225,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
   // record. Returns a RecordInfo for the summary toast, or null when no record was set.
   private RecordInfo refreshAvgFieldWithRecord(int fieldId, Long value, Long previousValue, String defaultValue,
                                                boolean showNotifications,
-                                               String recordLabel, int priority) {
+                                               String recordLabel, int priority, boolean isPB) {
     refreshAvgField(fieldId, value, defaultValue);
     if (historySolvesCount > MIN_TIMES_FOR_RECORD_NOTIFICATION && previousValue != null && value != null && value < previousValue && !solveType.hasSteps()) {
       final int recordColor = getResources().getColor(R.color.new_record);
@@ -1241,7 +1260,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
       } else {
         tv.setTextColor(recordColor);
       }
-      return new RecordInfo(recordLabel, value, previousValue, priority);
+      return new RecordInfo(recordLabel, value, previousValue, priority, isPB);
     }
     return null;
   }
@@ -1316,12 +1335,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener {
     final long value;
     final long previous;
     final int priority; // lower = shown first
+    final boolean isPB; // true for the lifetime best single (PB), false for average records
 
-    RecordInfo(String label, long value, long previous, int priority) {
+    RecordInfo(String label, long value, long previous, int priority, boolean isPB) {
       this.label = label;
       this.value = value;
       this.previous = previous;
       this.priority = priority;
+      this.isPB = isPB;
     }
   }
 

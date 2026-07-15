@@ -204,6 +204,11 @@
   <string name="record_toast_header">¡Nuevos records!</string>
   <string name="record_overlay_prev">(ant. %1$s)</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="record_notification_mode">Panel de record</string>
+  <string name="record_notification_mode_summary">Elige cuándo mostrar el panel de nuevo record</string>
+  <string name="record_notif_any">Para cualquier record</string>
+  <string name="record_notif_pb_only">Solo para un nuevo PB</string>
+  <string name="record_notif_never">Nunca</string>
   <string name="inspection">Inspección</string>
   <string name="ready">Listo</string>
 
