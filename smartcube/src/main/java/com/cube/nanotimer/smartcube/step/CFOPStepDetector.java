@@ -96,6 +96,7 @@ public final class CFOPStepDetector implements StepDetector {
   private Integer crossFace; // provisional until F2L confirms it
   private boolean confirmed;
   private long lastTimestampMs;
+  private long solveStartMs;
 
   @Override
   public void reset(CubeState startState, long startTimestampMs) {
@@ -107,6 +108,7 @@ public final class CFOPStepDetector implements StepDetector {
     crossFace = null;
     confirmed = false;
     lastTimestampMs = startTimestampMs;
+    solveStartMs = startTimestampMs;
     evaluate(startState.getFacelets(), startTimestampMs);
     for (int step = 0; step < STEP_NAMES.length; step++) {
       reported[step] = getStepTimestampMs(step);
@@ -176,12 +178,20 @@ public final class CFOPStepDetector implements StepDetector {
     if (confirmed) {
       return;
     }
+    // F2L confirms the cross face. When several faces reach it in the same state — a solve whose
+    // last layer skips, so F2L completes at the solved state and every face looks done at once —
+    // the real cross is the one built first, so break the tie on the earliest cross.
+    int confirmedFace = -1;
     for (int face = 0; face < 6; face++) {
-      if (times[face][F2L] != null) {
-        crossFace = face;
-        confirmed = true;
-        return;
+      if (times[face][F2L] != null
+          && (confirmedFace == -1 || times[face][CROSS] < times[confirmedFace][CROSS])) {
+        confirmedFace = face;
       }
+    }
+    if (confirmedFace != -1) {
+      crossFace = confirmedFace;
+      confirmed = true;
+      return;
     }
     if (crossFace != null && times[crossFace][CROSS] != null) {
       return;
@@ -328,5 +338,24 @@ public final class CFOPStepDetector implements StepDetector {
   @Override
   public boolean isComplete() {
     return times[0][PLL] != null;
+  }
+
+  /**
+   * A CFOP solve builds the cross first, then the F2L pairs on top of it — so the cross completes
+   * strictly before F2L. A Roux solve builds its blocks first and leaves the last cross edges for
+   * the end, so its cross completes together with F2L (the slots were already done); the same holds
+   * for freestyle, where nothing assembles until the finish. Any step may be a skip and still match:
+   * a skipped OLL/PLL only affects the later boundaries, never cross-before-F2L. The one case where
+   * the cross does not precede F2L yet the solve is still CFOP is a scramble that already left the
+   * first two layers solved (an OLL/PLL drill) — there both are skips, done at the solve start.
+   */
+  @Override
+  public boolean matchesMethod() {
+    Long cross = getStepTimestampMs(CROSS);
+    Long f2l = getStepTimestampMs(F2L);
+    if (cross == null || f2l == null) {
+      return false;
+    }
+    return cross < f2l || f2l == solveStartMs;
   }
 }

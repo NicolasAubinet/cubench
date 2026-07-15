@@ -152,4 +152,9 @@ public final class SolveAnalyzer {
   public boolean isComplete() {
     return detector.isComplete();
   }
+
+  /** Whether the solve matched the detector's method (§7b). Meaningful once {@link #isComplete()}. */
+  public boolean matchesMethod() {
+    return detector.matchesMethod();
+  }
 }

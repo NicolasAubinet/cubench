@@ -43,4 +43,12 @@ public interface StepDetector {
   Long getSubStepTimestampMs(int step, int subStep);
 
   boolean isComplete();
+
+  /**
+   * Whether the observed milestones are consistent with this method having been used — reached in
+   * the method's order, each before the solve finished, with any step skipped still counting. A
+   * solve that does not match (a different method, or freestyle) gets no breakdown, only its total.
+   * Meaningful once the solve is {@link #isComplete() complete}.
+   */
+  boolean matchesMethod();
 }

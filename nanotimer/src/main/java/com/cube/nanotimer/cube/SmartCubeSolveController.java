@@ -96,8 +96,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   }
 
   public void onTimerStopped() {
-    // Only a solve the cube saw through to solved has a breakdown; a tap stop mid-solve has none.
-    stepTimes = analyzing && analyzer.isComplete()
+    // Only a solve the cube saw through to solved, and whose steps match the method, has a
+    // breakdown; a tap stop mid-solve, or a solve that did not follow the method, has none.
+    stepTimes = analyzing && analyzer.isComplete() && analyzer.matchesMethod()
         ? analyzer.getStepTimes() : Collections.<StepTime>emptyList();
     if (analyzing) {
       logStepTimes();

@@ -1,6 +1,7 @@
 package com.cube.nanotimer.smartcube.step;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
@@ -145,6 +146,43 @@ public class SolveAnalyzerTest {
     StepTime pll = analyzer.getStepTimes().get(3);
     assertEquals(800 + 300, pll.getRecognitionMs()); // the think, the AUF, and the think after it
     assertEquals(1400, pll.getExecutionMs()); // only the algorithm
+  }
+
+  @Test
+  public void matchesARealCfopSolve() {
+    // Cross, then F2L, then the last layer: the cross completes before F2L, so this is CFOP.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' F'");
+
+    play("F R", 0, 600);
+    play("R U R'", 500, 100);
+    play(ANTI_SUNE, 800, 100);
+    play(T_PERM, 400, 100);
+
+    assertTrue(analyzer.isComplete());
+    assertTrue(analyzer.matchesMethod());
+  }
+
+  @Test
+  public void matchesWhenTheScrambleLeftTheFirstTwoLayersSolved() {
+    // An OLL/PLL drill: cross and F2L come free with the scramble (both skips, done at the start).
+    startFrom(T_PERM);
+
+    play(T_PERM, 900, 100);
+
+    assertTrue(analyzer.isComplete());
+    assertTrue(analyzer.matchesMethod());
+  }
+
+  @Test
+  public void doesNotMatchWhenTheFirstTwoLayersAreFinishedAllAtOnce() {
+    // Both layers are assembled together at the end (cross does not precede F2L), the shape a
+    // Roux or freestyle solve takes when seen through a CFOP detector — no CFOP breakdown.
+    startFrom("L R");
+
+    play("R' L'", 500, 100);
+
+    assertTrue(analyzer.isComplete());
+    assertFalse(analyzer.matchesMethod());
   }
 
   @Test
