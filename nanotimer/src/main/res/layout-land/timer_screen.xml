@@ -15,74 +15,66 @@
      android:baselineAligned="false"
      android:orientation="horizontal">
 
-    <FrameLayout
+    <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="match_parent"
+       android:orientation="vertical"
        android:layout_marginLeft="3px"
        android:clipChildren="false"
        android:clipToPadding="false"
        android:layout_weight="7">
+      <com.cube.nanotimer.util.view.DigitalTextView
+         android:id="@+id/tvTimer"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:textSize="72px"
+         android:layout_marginTop="50px"
+         android:layout_marginBottom="15px"
+         android:textColor="@color/white"
+         android:layout_gravity="center"/>
 
-      <LinearLayout
+      <FrameLayout
          android:layout_width="match_parent"
-         android:layout_height="match_parent"
-         android:orientation="vertical"
+         android:layout_height="wrap_content"
          android:clipChildren="false"
          android:clipToPadding="false">
-        <com.cube.nanotimer.util.view.DigitalTextView
-           android:id="@+id/tvTimer"
+
+        <androidx.cardview.widget.CardView
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:textSize="72px"
-           android:layout_marginTop="50px"
-           android:layout_marginBottom="15px"
-           android:textColor="@color/white"
-           android:layout_gravity="center"/>
+           android:layout_gravity="center_horizontal"
+           style="@style/TableCardViewPx">
 
-        <FrameLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:clipChildren="false"
-           android:clipToPadding="false">
-
-          <androidx.cardview.widget.CardView
+          <LinearLayout
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
-             android:layout_gravity="center_horizontal"
-             style="@style/TableCardViewPx">
+             android:orientation="vertical"
+             android:paddingLeft="10px"
+             android:paddingRight="10px"
+             android:paddingTop="6px"
+             android:paddingBottom="8px">
 
-            <LinearLayout
+            <com.cube.nanotimer.util.view.FontFitTextView
+               android:id="@+id/tvScramble"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
-               android:orientation="vertical"
-               android:paddingLeft="10px"
-               android:paddingRight="10px"
-               android:paddingTop="6px"
-               android:paddingBottom="8px">
+               android:gravity="center_horizontal"
+               app:myfont="MONOSPACE"
+               style="@style/ScrambleTextFieldPx"/>
 
-              <com.cube.nanotimer.util.view.FontFitTextView
-                 android:id="@+id/tvScramble"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:gravity="center_horizontal"
-                 app:myfont="MONOSPACE"
-                 style="@style/ScrambleTextFieldPx"/>
+          </LinearLayout>
 
-            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-          </androidx.cardview.widget.CardView>
+      </FrameLayout>
 
-        </FrameLayout>
-
-      </LinearLayout>
-
-      <!-- Record panel: floats at the top-center so it doesn't cover the scramble. -->
+      <!-- Record panel: sits just below the scramble in the empty column space and grows down. -->
       <androidx.cardview.widget.CardView
          android:id="@+id/recordOverlayCard"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:layout_gravity="top|center_horizontal"
-         android:layout_marginTop="8px"
+         android:layout_gravity="center_horizontal"
+         android:layout_marginTop="10px"
          android:elevation="12dp"
          android:clickable="false"
          android:focusable="false"
@@ -139,7 +131,7 @@
         </LinearLayout>
       </androidx.cardview.widget.CardView>
 
-    </FrameLayout>
+    </LinearLayout>
 
     <RelativeLayout
        android:layout_width="wrap_content"

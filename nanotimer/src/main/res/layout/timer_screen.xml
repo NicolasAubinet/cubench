@@ -116,41 +116,129 @@
          android:orientation="vertical"
          android:layout_weight="1"
          android:gravity="top"
+         android:clipChildren="false"
+         android:clipToPadding="false"
          android:padding="1px">
 
         <!--<TextView style="@style/DividerRow"-->
            <!--android:layout_marginLeft="3px"/>-->
 
-        <androidx.cardview.widget.CardView
+        <!-- The session grid and the record panel share a frame so the panel can float over the
+             grid. Elevation lifts the whole frame above the stats below, so a tall multi-record
+             panel draws down over the grid (and stats) instead of pushing content around. -->
+        <FrameLayout
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           style="@style/TableCardViewPx">
+           android:elevation="12dp"
+           android:clipChildren="false"
+           android:clipToPadding="false">
 
-          <TableLayout
-             android:id="@+id/sessionTimesLayout"
+          <androidx.cardview.widget.CardView
              android:layout_width="match_parent"
-             android:layout_height="wrap_content">
-            <TableRow>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-            </TableRow>
-            <TableRow>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-            </TableRow>
-            <TableRow>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-              <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-            </TableRow>
-          </TableLayout>
+             android:layout_height="wrap_content"
+             style="@style/TableCardViewPx">
 
-        </androidx.cardview.widget.CardView>
+            <TableLayout
+               android:id="@+id/sessionTimesLayout"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content">
+              <TableRow>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+              </TableRow>
+              <TableRow>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+              </TableRow>
+              <TableRow>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+              </TableRow>
+            </TableLayout>
+
+          </androidx.cardview.widget.CardView>
+
+          <!-- Overlay wrapper: the huge negative bottom margin keeps the panel from expanding the
+               frame, so the grid and stats keep their positions while the panel floats on top. Its
+               elevation must clear the session grid's own cardElevation (2dp) so it draws in front.
+               The card's negative top margin starts it in the gap below the scramble; extra record
+               rows then grow down over the grid. -->
+          <FrameLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginBottom="-3000px"
+             android:elevation="12dp"
+             android:clipChildren="false"
+             android:clipToPadding="false">
+            <androidx.cardview.widget.CardView
+               android:id="@+id/recordOverlayCard"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_gravity="top|center_horizontal"
+               android:layout_marginTop="-30px"
+               android:clickable="false"
+               android:focusable="false"
+               android:visibility="gone"
+               style="@style/TableCardViewPx">
+              <LinearLayout
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:orientation="horizontal">
+                <View
+                   android:layout_width="4px"
+                   android:layout_height="match_parent"
+                   android:background="@color/new_record"/>
+                <LinearLayout
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:paddingLeft="16px"
+                   android:paddingRight="18px"
+                   android:paddingTop="11px"
+                   android:paddingBottom="11px">
+                  <TextView android:id="@+id/tvRecordOverlayHeader" style="@style/RecordOverlayHeaderPx"/>
+                  <TableLayout
+                     android:id="@+id/recordOverlayTable"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content">
+                    <TableRow android:visibility="gone">
+                      <TextView style="@style/RecordOverlayLabelPx"/>
+                      <TextView style="@style/RecordOverlayMarginPx"/>
+                      <TextView style="@style/RecordOverlayPrevPx"/>
+                    </TableRow>
+                    <TableRow android:visibility="gone">
+                      <TextView style="@style/RecordOverlayLabelPx"/>
+                      <TextView style="@style/RecordOverlayMarginPx"/>
+                      <TextView style="@style/RecordOverlayPrevPx"/>
+                    </TableRow>
+                    <TableRow android:visibility="gone">
+                      <TextView style="@style/RecordOverlayLabelPx"/>
+                      <TextView style="@style/RecordOverlayMarginPx"/>
+                      <TextView style="@style/RecordOverlayPrevPx"/>
+                    </TableRow>
+                    <TableRow android:visibility="gone">
+                      <TextView style="@style/RecordOverlayLabelPx"/>
+                      <TextView style="@style/RecordOverlayMarginPx"/>
+                      <TextView style="@style/RecordOverlayPrevPx"/>
+                    </TableRow>
+                    <TableRow android:visibility="gone">
+                      <TextView style="@style/RecordOverlayLabelPx"/>
+                      <TextView style="@style/RecordOverlayMarginPx"/>
+                      <TextView style="@style/RecordOverlayPrevPx"/>
+                    </TableRow>
+                  </TableLayout>
+                </LinearLayout>
+              </LinearLayout>
+            </androidx.cardview.widget.CardView>
+          </FrameLayout>
+
+        </FrameLayout>
 
         <!--<TextView style="@style/DividerRow"-->
            <!--android:layout_marginLeft="3px"/>-->
@@ -310,70 +398,6 @@
           <com.cube.nanotimer.util.view.FontFitTextView style="@style/TableCellPx"/>
         </TableRow>
       </TableLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Record panel: floats at the top-center of the screen so it doesn't cover the scramble. -->
-    <androidx.cardview.widget.CardView
-       android:id="@+id/recordOverlayCard"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_alignParentTop="true"
-       android:layout_centerHorizontal="true"
-       android:layout_marginTop="8px"
-       android:elevation="12dp"
-       android:clickable="false"
-       android:focusable="false"
-       android:visibility="gone"
-       style="@style/TableCardViewPx">
-      <LinearLayout
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:orientation="horizontal">
-        <View
-           android:layout_width="4px"
-           android:layout_height="match_parent"
-           android:background="@color/new_record"/>
-        <LinearLayout
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:orientation="vertical"
-           android:paddingLeft="16px"
-           android:paddingRight="18px"
-           android:paddingTop="11px"
-           android:paddingBottom="11px">
-          <TextView android:id="@+id/tvRecordOverlayHeader" style="@style/RecordOverlayHeaderPx"/>
-          <TableLayout
-             android:id="@+id/recordOverlayTable"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content">
-            <TableRow android:visibility="gone">
-              <TextView style="@style/RecordOverlayLabelPx"/>
-              <TextView style="@style/RecordOverlayMarginPx"/>
-              <TextView style="@style/RecordOverlayPrevPx"/>
-            </TableRow>
-            <TableRow android:visibility="gone">
-              <TextView style="@style/RecordOverlayLabelPx"/>
-              <TextView style="@style/RecordOverlayMarginPx"/>
-              <TextView style="@style/RecordOverlayPrevPx"/>
-            </TableRow>
-            <TableRow android:visibility="gone">
-              <TextView style="@style/RecordOverlayLabelPx"/>
-              <TextView style="@style/RecordOverlayMarginPx"/>
-              <TextView style="@style/RecordOverlayPrevPx"/>
-            </TableRow>
-            <TableRow android:visibility="gone">
-              <TextView style="@style/RecordOverlayLabelPx"/>
-              <TextView style="@style/RecordOverlayMarginPx"/>
-              <TextView style="@style/RecordOverlayPrevPx"/>
-            </TableRow>
-            <TableRow android:visibility="gone">
-              <TextView style="@style/RecordOverlayLabelPx"/>
-              <TextView style="@style/RecordOverlayMarginPx"/>
-              <TextView style="@style/RecordOverlayPrevPx"/>
-            </TableRow>
-          </TableLayout>
-        </LinearLayout>
-      </LinearLayout>
     </androidx.cardview.widget.CardView>
 
   </RelativeLayout>
