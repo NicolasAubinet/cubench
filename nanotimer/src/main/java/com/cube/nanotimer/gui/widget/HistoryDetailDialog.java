@@ -19,7 +19,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.services.db.DataCallback;
-import com.cube.nanotimer.smartcube.step.StepTime;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -27,6 +27,7 @@ import com.cube.nanotimer.util.view.FontFitTextView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveAverages;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 
@@ -41,18 +42,9 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
   private static final String ARG_CUBETYPE = "cubetype";
 
   private TimeChangedHandler handler;
-  private List<StepTime> stepTimes = Collections.emptyList();
-
   public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType, TimeChangedHandler handler) {
-    return newInstance(solveTime, cubeType, handler, Collections.<StepTime>emptyList());
-  }
-
-  /** @param stepTimes the smart cube's step breakdown of this solve, empty when it has none */
-  public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType, TimeChangedHandler handler,
-      List<StepTime> stepTimes) {
     HistoryDetailDialog hd = new HistoryDetailDialog();
     hd.handler = handler;
-    hd.stepTimes = stepTimes;
 
     Bundle bundle = new Bundle();
     bundle.putSerializable(ARG_SOLVETIME, solveTime);
@@ -113,7 +105,7 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       });
     }
 
-    buildBreakdown(v);
+    buildBreakdown(v, solveTime.getSmartcubeSteps());
 
     final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
     final TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
@@ -214,25 +206,27 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
    * The step bar the timer showed, with the numbers behind it: a row per step, and its parts on rows
    * of their own, folded away until the step is tapped.
    */
-  private void buildBreakdown(View v) {
-    if (stepTimes.isEmpty()) {
+  private void buildBreakdown(View v, List<SolveStep> steps) {
+    if (steps == null || steps.isEmpty()) {
       return;
     }
     int[] colors = getStepColors();
-    ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(stepTimes, colors);
+    ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
     TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
     table.addView(headerRow());
-    for (int i = 0; i < stepTimes.size(); i++) {
-      StepTime step = stepTimes.get(i);
-      TextView name = cell(R.style.BreakdownStepName, step.getStepName());
+    for (int i = 0; i < steps.size(); i++) {
+      SolveStep step = steps.get(i);
+      TextView name = cell(R.style.BreakdownStepName,
+          Utils.toSmartCubeStepLocalizedName(getActivity(), step.getName(), i));
       name.setTextColor(colors[i % colors.length]);
       TableRow row = stepRow(step, name);
       table.addView(row);
 
       List<TableRow> partRows = new ArrayList<TableRow>();
-      for (StepTime part : step.getSubSteps()) {
-        TableRow partRow = subStepRow(part);
+      List<SolveStep> parts = step.getSubSteps();
+      for (int j = 0; j < parts.size(); j++) {
+        TableRow partRow = subStepRow(parts.get(j), j);
         partRow.setVisibility(View.GONE);
         partRows.add(partRow);
         table.addView(partRow);
@@ -285,7 +279,7 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
     return row;
   }
 
-  private TableRow stepRow(StepTime step, TextView name) {
+  private TableRow stepRow(SolveStep step, TextView name) {
     TableRow row = new TableRow(getActivity());
     row.addView(name);
     row.addView(cell(R.style.BreakdownRecognitionCell, formatTime(step.getRecognitionMs())));
@@ -294,9 +288,10 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
     return row;
   }
 
-  private TableRow subStepRow(StepTime part) {
+  private TableRow subStepRow(SolveStep part, int position) {
     TableRow row = new TableRow(getActivity());
-    row.addView(cell(R.style.BreakdownSubName, part.getStepName()));
+    row.addView(cell(R.style.BreakdownSubName,
+        Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));

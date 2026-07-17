@@ -313,6 +313,13 @@
   <string name="breakdown_recognition">Recon.</string>
   <string name="breakdown_execution">Exéc.</string>
   <string name="breakdown_total">Total</string>
+  <string name="smartcube_step_cross">Croix</string>
+  <string name="smartcube_step_f2l">F2L</string>
+  <string name="smartcube_step_oll">OLL</string>
+  <string name="smartcube_step_pll">PLL</string>
+  <string name="smartcube_step_edges">Arêtes</string>
+  <string name="smartcube_step_corners">Coins</string>
+  <string name="smartcube_step_pair">Paire %d</string>
   <string name="scramble_view_clock_notation_hint">Le diagramme n\'est pas disponible pour cette notation Clock. Passez à la notation UR/DR/DL dans les options pour le voir.</string>
   <string name="cross_section_title">Croix %1$s · %2$d mouvements</string>
   <string name="cross_solutions_count">%1$d solutions optimales</string>

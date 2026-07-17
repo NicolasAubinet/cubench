@@ -35,6 +35,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
+import com.cube.nanotimer.cube.SolveStepConverter;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
@@ -51,7 +52,6 @@ import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent.State;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CubeSession;
-import com.cube.nanotimer.smartcube.step.StepTime;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.ScrambleViewNotation;
@@ -62,9 +62,11 @@ import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveAverages;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
@@ -98,7 +100,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private SolveType solveType;
   private String[] currentScramble;
   private SolveTime lastSolveTime;
-  private List<StepTime> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
+  private List<SolveStep> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -594,7 +596,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         case R.id.itLastSolve:
           if (lastSolveTime != null) {
             DialogUtils.showFragment(this,
-                HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this, lastSolveSteps));
+                HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this));
           }
           break;
         case R.id.itSessionDetails:
@@ -1040,6 +1042,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (solveType.hasSteps()) {
       solveTime.setStepsTimes(stepsTimes.toArray(new Long[0]));
     }
+    if (!solveTime.isDNF() && !lastSolveSteps.isEmpty()) { // the cube broke this solve into method steps
+      solveTime.setSmartcubeMethod(CubeMethod.CFOP);
+      solveTime.setSmartcubeSteps(lastSolveSteps);
+    }
 
     addTimeToUI(time);
     App.INSTANCE.getService().saveTime(solveTime, solveAverageCallback);
@@ -1219,7 +1225,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   private void showStepBreakdown() {
-    lastSolveSteps = solveController.getStepTimes();
+    lastSolveSteps = SolveStepConverter.toSolveSteps(solveController.getStepTimes());
     if (lastSolveSteps.isEmpty()) { // the cube did not see this solve through: nothing to break down
       hideStepBreakdown();
       return;

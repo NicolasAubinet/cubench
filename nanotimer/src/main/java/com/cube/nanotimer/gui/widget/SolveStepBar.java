@@ -8,9 +8,10 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.smartcube.step.StepTime;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.vo.SolveStep;
 import java.util.List;
 
 /**
@@ -50,16 +51,16 @@ public class SolveStepBar extends LinearLayout {
     }
   }
 
-  public void setSteps(List<StepTime> steps) {
+  public void setSteps(List<SolveStep> steps) {
     bar.setSteps(steps, colors);
     for (int i = 0; i < MAX_STEPS; i++) {
       if (i >= steps.size()) {
         cells[i].setVisibility(GONE);
         continue;
       }
-      StepTime step = steps.get(i);
+      SolveStep step = steps.get(i);
       cells[i].setVisibility(VISIBLE);
-      names[i].setText(step.getStepName());
+      names[i].setText(Utils.toSmartCubeStepLocalizedName(getContext(), step.getName(), i));
       names[i].setTextColor(colors[i % colors.length]);
       times[i].setText(FormatterService.INSTANCE.formatSolveTime(step.getTotalMs()));
     }

@@ -8,7 +8,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
-import com.cube.nanotimer.smartcube.step.StepTime;
+import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +34,7 @@ public class SolveStepBarView extends View {
   private final RectF bounds = new RectF();
   private final Path corners = new Path();
 
-  private List<StepTime> steps = Collections.emptyList();
+  private List<SolveStep> steps = Collections.emptyList();
   private int[] colors = new int[0];
 
   public SolveStepBarView(Context context) {
@@ -46,7 +46,7 @@ public class SolveStepBarView extends View {
   }
 
   /** @param colors one per step, in step order */
-  public void setSteps(List<StepTime> steps, int[] colors) {
+  public void setSteps(List<SolveStep> steps, int[] colors) {
     this.steps = new ArrayList<>(steps);
     this.colors = colors;
     invalidate();
@@ -56,7 +56,7 @@ public class SolveStepBarView extends View {
   protected void onDraw(Canvas canvas) {
     long totalMs = 0;
     int drawnSteps = 0;
-    for (StepTime step : steps) {
+    for (SolveStep step : steps) {
       totalMs += step.getTotalMs();
       if (step.getTotalMs() > 0) { // a skipped step takes no width, and no gap either
         drawnSteps++;
@@ -74,7 +74,7 @@ public class SolveStepBarView extends View {
 
     float left = 0;
     for (int i = 0; i < steps.size(); i++) {
-      StepTime step = steps.get(i);
+      SolveStep step = steps.get(i);
       if (step.getTotalMs() <= 0) {
         continue;
       }
@@ -84,7 +84,7 @@ public class SolveStepBarView extends View {
     }
   }
 
-  private void drawStep(Canvas canvas, StepTime step, int color, float left, float stepWidth,
+  private void drawStep(Canvas canvas, SolveStep step, int color, float left, float stepWidth,
       float height, float corner, float partGap) {
     canvas.save();
     corners.reset();
@@ -92,13 +92,13 @@ public class SolveStepBarView extends View {
     corners.addRoundRect(bounds, corner, corner, Path.Direction.CW);
     canvas.clipPath(corners);
 
-    List<StepTime> parts = step.getSubSteps().isEmpty()
+    List<SolveStep> parts = step.getSubSteps().isEmpty()
         ? Collections.singletonList(step)
         : step.getSubSteps();
 
     float partLeft = left;
     for (int i = 0; i < parts.size(); i++) {
-      StepTime part = parts.get(i);
+      SolveStep part = parts.get(i);
       float partWidth = stepWidth * part.getTotalMs() / step.getTotalMs();
       boolean last = i == parts.size() - 1;
       float partRight = partLeft + partWidth - (last ? 0 : partGap); // the gap separates the parts

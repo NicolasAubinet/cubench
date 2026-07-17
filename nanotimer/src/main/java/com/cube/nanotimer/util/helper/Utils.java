@@ -140,6 +140,13 @@ public class Utils {
     return context.getString(nameStringResourceId);
   }
 
+  /** Localized name of a smart cube breakdown step code; position numbers repeated parts (the
+   * F2L pairs), 1-based, and is ignored by the codes that do not carry a number. */
+  public static String toSmartCubeStepLocalizedName(Context context, String code, int position) {
+    int resId = getStringIdentifier(context, "smartcube_step_" + code);
+    return resId == 0 ? code : context.getString(resId, position + 1);
+  }
+
   public static String toSolveTypeLocalizedName(Context context, String solveTypeName) {
     String localizedName = solveTypeName;
     Integer locTranslationId = App.INSTANCE.getDynamicTranslations().getSolveTypeNameResourceId(localizedName);
