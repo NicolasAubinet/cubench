@@ -2,6 +2,7 @@ package com.cube.nanotimer.vo;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 
 public class SolveTime implements Serializable {
 
@@ -14,6 +15,8 @@ public class SolveTime implements Serializable {
   private String comment;
   private SolveType solveType;
   private Long[] stepsTimes;
+  private CubeMethod smartcubeMethod;
+  private List<SolveStep> smartcubeSteps;
 
   public SolveTime() {
   }
@@ -114,6 +117,27 @@ public class SolveTime implements Serializable {
 
   public boolean hasSteps() {
     return stepsTimes != null && stepsTimes.length > 0;
+  }
+
+  public CubeMethod getSmartcubeMethod() {
+    return smartcubeMethod;
+  }
+
+  public void setSmartcubeMethod(CubeMethod smartcubeMethod) {
+    this.smartcubeMethod = smartcubeMethod;
+  }
+
+  public List<SolveStep> getSmartcubeSteps() {
+    return smartcubeSteps;
+  }
+
+  public void setSmartcubeSteps(List<SolveStep> smartcubeSteps) {
+    this.smartcubeSteps = smartcubeSteps;
+  }
+
+  /** Whether this solve carries a smart cube method breakdown (matched the method when solved). */
+  public boolean hasSmartcubeBreakdown() {
+    return smartcubeSteps != null && !smartcubeSteps.isEmpty();
   }
 
   @Override
