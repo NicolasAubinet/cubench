@@ -71,10 +71,10 @@ public class SolveAnalyzerTest {
 
     List<StepTime> steps = analyzer.getStepTimes();
     assertEquals(4, steps.size());
-    assertStep(steps.get(0), "Cross", 0, 600);
-    assertStep(steps.get(1), "F2L", 500, 200);
-    assertStep(steps.get(2), "OLL", 800, 700);
-    assertStep(steps.get(3), "PLL", 400, 1400);
+    assertStep(steps.get(0), "cross", 0, 600);
+    assertStep(steps.get(1), "f2l", 500, 200);
+    assertStep(steps.get(2), "oll", 800, 700);
+    assertStep(steps.get(3), "pll", 400, 1400);
     assertTrue(analyzer.isComplete());
 
     long total = 0;
@@ -116,9 +116,9 @@ public class SolveAnalyzerTest {
 
     StepTime oll = analyzer.getStepTimes().get(2);
     assertEquals(2, oll.getSubSteps().size());
-    assertEquals("Edges", oll.getSubSteps().get(0).getStepName());
+    assertEquals("edges", oll.getSubSteps().get(0).getStepName());
     assertEquals(600, oll.getSubSteps().get(0).getRecognitionMs());
-    assertEquals("Corners", oll.getSubSteps().get(1).getStepName());
+    assertEquals("corners", oll.getSubSteps().get(1).getStepName());
     assertEquals(900, oll.getSubSteps().get(1).getRecognitionMs());
     assertEquals(600 + 900, oll.getRecognitionMs()); // both pauses, not just the first
   }
@@ -193,9 +193,9 @@ public class SolveAnalyzerTest {
 
     List<StepTime> steps = analyzer.getStepTimes();
     assertEquals(4, steps.size());
-    assertStep(steps.get(0), "Cross", 0, 0);
-    assertStep(steps.get(1), "F2L", 0, 0);
-    assertStep(steps.get(2), "OLL", 0, 0);
-    assertStep(steps.get(3), "PLL", 900, 1400);
+    assertStep(steps.get(0), "cross", 0, 0);
+    assertStep(steps.get(1), "f2l", 0, 0);
+    assertStep(steps.get(2), "oll", 0, 0);
+    assertStep(steps.get(3), "pll", 900, 1400);
   }
 }

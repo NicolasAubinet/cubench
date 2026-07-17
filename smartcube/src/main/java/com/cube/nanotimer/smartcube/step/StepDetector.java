@@ -33,11 +33,11 @@ public interface StepDetector {
   int subStepCount(int step);
 
   /**
-   * @param position the part's rank in the order the solver completed them, so a method whose parts
-   *     have no identity worth reporting (an F2L pair: the cube's slot numbering is not something the
-   *     solver can act on) can name them by when they were built instead
+   * The sub-step's code, localized when displayed. A method whose parts have no identity worth
+   * reporting (an F2L pair: the cube's slot numbering is not something the solver can act on) names
+   * them all alike and lets the display number them by their completed order (the sub-step's rank).
    */
-  String subStepName(int step, int subStep, int position);
+  String subStepName(int step, int subStep);
 
   /** Cube-clock time the sub-step was reached, or null while its step is still pending. */
   Long getSubStepTimestampMs(int step, int subStep);

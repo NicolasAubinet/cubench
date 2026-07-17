@@ -31,7 +31,7 @@ public final class CFOPStepDetector implements StepDetector {
   public static final int OLL = 2;
   public static final int PLL = 3;
 
-  private static final String[] STEP_NAMES = {"Cross", "F2L", "OLL", "PLL"};
+  private static final String[] STEP_NAMES = {"cross", "f2l", "oll", "pll"};
 
   /**
    * PLL has no parts. A two-look PLL permutes the corners first, but in a one-look algorithm the
@@ -39,11 +39,12 @@ public final class CFOPStepDetector implements StepDetector {
    * the two apart from the cube alone, and a one-look solve would be reported as a two-look. A
    * two-look PLL is simply a longer execution.
    */
-  /** F2L's four entries only carry the count: its pairs are named by the order they were built. */
+  /** Step codes, localized when displayed. F2L's four entries only carry the count: its pairs are all
+   * "pair", named by the order they were built (the sub-step's position) when shown. */
   private static final String[][] SUB_STEP_NAMES = {
     {},
     {"", "", "", ""},
-    {"Edges", "Corners"},
+    {"edges", "corners"},
     {},
   };
 
@@ -326,8 +327,8 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   @Override
-  public String subStepName(int step, int subStep, int position) {
-    return step == F2L ? "Pair " + (position + 1) : SUB_STEP_NAMES[step][subStep];
+  public String subStepName(int step, int subStep) {
+    return step == F2L ? "pair" : SUB_STEP_NAMES[step][subStep];
   }
 
   @Override

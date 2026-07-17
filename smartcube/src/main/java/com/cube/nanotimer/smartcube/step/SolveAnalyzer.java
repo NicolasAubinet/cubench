@@ -83,7 +83,7 @@ public final class SolveAnalyzer {
       long subCompleteMs = last
           ? completeMs
           : Math.max(previousMs, detector.getSubStepTimestampMs(step, subStep));
-      subSteps.add(timeFor(step, subStep, detector.subStepName(step, subStep, i), previousMs,
+      subSteps.add(timeFor(step, subStep, detector.subStepName(step, subStep), previousMs,
           subCompleteMs, step == 0 && i == 0, new ArrayList<>()));
       previousMs = subCompleteMs;
     }
