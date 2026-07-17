@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.cube.nanotimer.services.db.DB;
 import com.cube.nanotimer.session.TimesStatistics;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
@@ -13,6 +14,7 @@ import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SessionDetails;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
@@ -331,6 +333,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_TIMEHISTORY_AVG12, avg12);
     values.put(DB.COL_TIMEHISTORY_AVG50, avg50);
     values.put(DB.COL_TIMEHISTORY_AVG100, avg100);
+    if (solveTime.hasSmartcubeBreakdown()) {
+      values.put(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD, solveTime.getSmartcubeMethod().getCode());
+    }
     long historyId = db.insert(DB.TABLE_TIMEHISTORY, null, values);
     if (solveTime.hasSteps()) {
       Iterator<SolveTypeStep> stsIt = getSolveTypeSteps(solveTime.getSolveType().getId()).iterator();
@@ -341,6 +346,9 @@ public class ServiceProviderImpl implements ServiceProvider {
         values.put(DB.COL_TIMEHISTORYSTEP_TIMEHISTORY_ID, historyId);
         db.insert(DB.TABLE_TIMEHISTORYSTEP, null, values);
       }
+    }
+    if (solveTime.hasSmartcubeBreakdown()) {
+      insertSmartcubeSteps(historyId, solveTime.getSmartcubeSteps());
     }
     cachedTime.setSolveId((int) historyId);
     solveTime.setId((int) historyId);
@@ -512,6 +520,7 @@ public class ServiceProviderImpl implements ServiceProvider {
 
     // remove from DB
     db.delete(DB.TABLE_TIMEHISTORYSTEP, DB.COL_TIMEHISTORYSTEP_TIMEHISTORY_ID + " = ?", getStringArray(solveTime.getId()));
+    db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " = ?", getStringArray(solveTime.getId()));
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_ID + " = ?", getStringArray(solveTime.getId()));
 
     if (cachedSolveTimes.size() == CACHE_MIN_SIZE) { // re-read the cache if we reach the minimum size
@@ -561,6 +570,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_TIMEHISTORY_COMMENT);
     q.append("     , ").append(DB.COL_TIMEHISTORY_PLUSTWO);
     q.append("     , ").append(DB.COL_TIMEHISTORY_PB);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
 
@@ -602,6 +612,11 @@ public class ServiceProviderImpl implements ServiceProvider {
         if (solveType.hasSteps()) {
           List<Long> stepTimes = getSolveTimeSteps(st.getId());
           st.setStepsTimes(stepTimes.size() == 0 ? null : stepTimes.toArray(new Long[0]));
+        }
+        String method = cursor.getString(7);
+        if (method != null) {
+          st.setSmartcubeMethod(CubeMethod.fromCode(method));
+          st.setSmartcubeSteps(getSmartcubeSteps(st.getId()));
         }
         history.add(st);
       }
@@ -646,9 +661,80 @@ public class ServiceProviderImpl implements ServiceProvider {
     return stepTimes;
   }
 
+  private void insertSmartcubeSteps(long historyId, List<SolveStep> steps) {
+    for (SolveStep step : steps) {
+      insertSmartcubeStep(historyId, step.getStepIndex(), null, step);
+      List<SolveStep> subSteps = step.getSubSteps();
+      for (int i = 0; i < subSteps.size(); i++) {
+        insertSmartcubeStep(historyId, step.getStepIndex(), i, subSteps.get(i));
+      }
+    }
+  }
+
+  private void insertSmartcubeStep(long historyId, int stepIndex, Integer subIndex, SolveStep step) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX, stepIndex);
+    values.put(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX, subIndex); // null for the step itself
+    values.put(DB.COL_SMARTCUBE_SOLVESTEP_NAME, step.getName());
+    values.put(DB.COL_SMARTCUBE_SOLVESTEP_TIME, step.getTotalMs());
+    values.put(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION, step.getRecognitionMs());
+    values.put(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID, historyId);
+    db.insert(DB.TABLE_SMARTCUBE_SOLVESTEP, null, values);
+  }
+
+  /** The method breakdown of one solve: a step per top-level row, its parts (the rows with a
+   * sub_index) folded under it. NULL sub_index sorts first, so each step precedes its parts. */
+  private List<SolveStep> getSmartcubeSteps(int solveTimeId) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
+    q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX);
+    q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
+    q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
+    q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION);
+    q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP);
+    q.append(" WHERE ").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID).append(" = ?");
+    q.append(" ORDER BY ").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
+    q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX);
+
+    List<SolveStep> steps = new ArrayList<SolveStep>();
+    List<SolveStep> subSteps = new ArrayList<SolveStep>();
+    int stepIndex = -1;
+    String name = null;
+    long recognitionMs = 0;
+    long timeMs = 0;
+    boolean pending = false;
+    Cursor cursor = db.rawQuery(q.toString(), getStringArray(solveTimeId));
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        if (cursor.isNull(1)) { // a step: close the previous one, then start this one
+          if (pending) {
+            steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps));
+          }
+          stepIndex = cursor.getInt(0);
+          name = cursor.getString(2);
+          timeMs = cursor.getLong(3);
+          recognitionMs = cursor.getLong(4);
+          subSteps = new ArrayList<SolveStep>();
+          pending = true;
+        } else { // a part of the step being read
+          long partTime = cursor.getLong(3);
+          long partRecognition = cursor.getLong(4);
+          subSteps.add(new SolveStep(cursor.getInt(1), cursor.getString(2),
+              partRecognition, partTime - partRecognition, new ArrayList<SolveStep>()));
+        }
+      }
+      if (pending) {
+        steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps));
+      }
+      cursor.close();
+    }
+    return steps;
+  }
+
   @Override
   public void deleteHistory() {
     db.delete(DB.TABLE_TIMEHISTORYSTEP, null, null);
+    db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, null, null);
     db.delete(DB.TABLE_TIMEHISTORY, null, null);
     clearCaches();
   }
@@ -658,6 +744,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     for (SolveTypeStep step : solveType.getSteps()) {
       db.delete(DB.TABLE_TIMEHISTORYSTEP, DB.COL_TIMEHISTORYSTEP_SOLVETYPESTEP_ID + " = ?", getStringArray(step.getId()));
     }
+    db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP,
+        DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " IN (SELECT " + DB.COL_ID + " FROM " + DB.TABLE_TIMEHISTORY
+            + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?)", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     if (solveType.equals(currentSolveType)) {
       clearCaches();
