@@ -511,6 +511,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     // remove from DB
+    db.delete(DB.TABLE_TIMEHISTORYSTEP, DB.COL_TIMEHISTORYSTEP_TIMEHISTORY_ID + " = ?", getStringArray(solveTime.getId()));
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_ID + " = ?", getStringArray(solveTime.getId()));
 
     if (cachedSolveTimes.size() == CACHE_MIN_SIZE) { // re-read the cache if we reach the minimum size
@@ -647,6 +648,7 @@ public class ServiceProviderImpl implements ServiceProvider {
 
   @Override
   public void deleteHistory() {
+    db.delete(DB.TABLE_TIMEHISTORYSTEP, null, null);
     db.delete(DB.TABLE_TIMEHISTORY, null, null);
     clearCaches();
   }
