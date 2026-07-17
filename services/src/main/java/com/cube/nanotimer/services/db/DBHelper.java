@@ -62,6 +62,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_TIMEHISTORY_AVG100 + " INTEGER, " +
         DB.COL_TIMEHISTORY_PLUSTWO + " INTEGER DEFAULT 0, " +
         DB.COL_TIMEHISTORY_PB + " INTEGER DEFAULT 0, " +
+        DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT, " +
         DB.COL_TIMEHISTORY_SOLVETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_TIMEHISTORY_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
       ");"
@@ -83,6 +84,20 @@ public class DBHelper extends SQLiteOpenHelper {
         "FOREIGN KEY (" + DB.COL_TIMEHISTORYSTEP_SOLVETYPESTEP_ID + ") REFERENCES " + DB.TABLE_SOLVETYPESTEP + " (" + DB.COL_ID + "), " +
         "FOREIGN KEY (" + DB.COL_TIMEHISTORYSTEP_TIMEHISTORY_ID + ") REFERENCES " + DB.TABLE_TIMEHISTORY + " (" + DB.COL_ID + ") " +
       ");"
+    );
+
+    db.execSQL("CREATE TABLE " + DB.TABLE_SMARTCUBE_SOLVESTEP + "(" +
+        DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + " INTEGER NOT NULL, " +
+        DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " INTEGER, " +
+        DB.COL_SMARTCUBE_SOLVESTEP_NAME + " TEXT, " +
+        DB.COL_SMARTCUBE_SOLVESTEP_TIME + " INTEGER NOT NULL, " +
+        DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + " INTEGER NOT NULL, " +
+        DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " INTEGER, " +
+        "FOREIGN KEY (" + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + ") REFERENCES " + DB.TABLE_TIMEHISTORY + " (" + DB.COL_ID + ") " +
+      ");"
+    );
+    db.execSQL("CREATE INDEX " + DB.IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY +
+        " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (" + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + ");"
     );
 
     db.execSQL("CREATE TABLE " + DB.TABLE_SESSION + "(" +
@@ -160,6 +175,25 @@ public class DBHelper extends SQLiteOpenHelper {
 
     if (oldVersion < 15) {
       insertSolveType(getString(R.string.def), insertCubeType(12, getString(R.string.fto)));
+    }
+
+    if (oldVersion < 16) {
+      // Add the step breakdown of smart cube solves, and the method it was solved with
+      db.execSQL("CREATE TABLE " + DB.TABLE_SMARTCUBE_SOLVESTEP + "(" +
+          DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + " INTEGER NOT NULL, " +
+          DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " INTEGER, " +
+          DB.COL_SMARTCUBE_SOLVESTEP_NAME + " TEXT, " +
+          DB.COL_SMARTCUBE_SOLVESTEP_TIME + " INTEGER NOT NULL, " +
+          DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + " INTEGER NOT NULL, " +
+          DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " INTEGER, " +
+          "FOREIGN KEY (" + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + ") REFERENCES " + DB.TABLE_TIMEHISTORY + " (" + DB.COL_ID + ") " +
+        ");"
+      );
+      db.execSQL("CREATE INDEX " + DB.IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY +
+          " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (" + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + ");"
+      );
+
+      db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT");
     }
 
 //    progressDialog.hide();

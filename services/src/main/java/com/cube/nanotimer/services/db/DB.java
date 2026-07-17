@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 15;
+  public static final int DB_VERSION = 16;
 
   public static final String COL_ID = "id";
 
@@ -29,6 +29,7 @@ public class DB {
   public static final String COL_TIMEHISTORY_AVG100 = "avg100";
   public static final String COL_TIMEHISTORY_PLUSTWO = "plustwo";
   public static final String COL_TIMEHISTORY_PB = "pb";
+  public static final String COL_TIMEHISTORY_SMARTCUBE_METHOD = "smartcube_method"; // method code of the solve's step breakdown, null when there is no breakdown (manual solve, or cube solve that matched no method)
   public static final String COL_TIMEHISTORY_SOLVETYPE_ID = "solvetype_id";
 
   public static final String TABLE_SOLVETYPESTEP = "solvetypestep";
@@ -40,6 +41,15 @@ public class DB {
   public static final String COL_TIMEHISTORYSTEP_TIME = "time";
   public static final String COL_TIMEHISTORYSTEP_SOLVETYPESTEP_ID = "solvetypestep_id";
   public static final String COL_TIMEHISTORYSTEP_TIMEHISTORY_ID = "timehistory_id";
+
+  public static final String TABLE_SMARTCUBE_SOLVESTEP = "smartcube_solvestep";
+  public static final String COL_SMARTCUBE_SOLVESTEP_STEP_INDEX = "step_index";
+  public static final String COL_SMARTCUBE_SOLVESTEP_SUB_INDEX = "sub_index"; // null for the step itself, else the position of one of its parts
+  public static final String COL_SMARTCUBE_SOLVESTEP_NAME = "name"; // step code (ex: "cross", "pair"), translated when displayed
+  public static final String COL_SMARTCUBE_SOLVESTEP_TIME = "time";
+  public static final String COL_SMARTCUBE_SOLVESTEP_RECOGNITION = "recognition"; // execution time is the remainder of the step time
+  public static final String COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID = "timehistory_id";
+  public static final String IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY = "idx_smartcube_solvestep_timehistory";
 
   public static final String TABLE_SESSION = "session";
   public static final String COL_SESSION_START = "start";
