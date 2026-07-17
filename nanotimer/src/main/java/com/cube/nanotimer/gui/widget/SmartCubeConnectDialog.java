@@ -164,12 +164,18 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
 
       @Override
       public void onError(Exception e) {
+        if (!isAdded()) {
+          return;
+        }
         tvStatus.setText(getString(R.string.smart_cube_connect_failed, String.valueOf(e.getMessage())));
       }
     });
   }
 
   private void updateUi() {
+    if (!isAdded()) {
+      return; // a connect callback can land after the dialog is dismissed
+    }
     boolean connected = SmartCubeManager.INSTANCE.isConnected();
     boolean wasConnected = btnDisconnect.getVisibility() == View.VISIBLE;
     btnDisconnect.setVisibility(connected ? View.VISIBLE : View.GONE);
