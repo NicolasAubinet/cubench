@@ -593,6 +593,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
             setSolvesCount(solvesCount - 1);
             refreshSessionFields();
             resetTimer();
+            hideStepBreakdown(); // the breakdown belonged to the solve that is now gone
           } else {
             DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
           }
@@ -670,6 +671,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         setSolvesCount(solvesCount - 1);
         refreshSessionFields();
         resetTimer();
+        hideStepBreakdown(); // the breakdown belonged to the solve that is now gone
         App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
       }
     });
