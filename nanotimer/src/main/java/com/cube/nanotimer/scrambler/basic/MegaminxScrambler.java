@@ -39,7 +39,9 @@ public class MegaminxScrambler implements Scrambler {
       }
       scramble.add(move.toString());
 
-      scramble.add("\n");
+      if (i < LINES_COUNT - 1) {
+        scramble.add("\n");
+      }
     }
     return scramble.toArray(new String[0]);
   }
