@@ -63,6 +63,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_TIMEHISTORY_PLUSTWO + " INTEGER DEFAULT 0, " +
         DB.COL_TIMEHISTORY_PB + " INTEGER DEFAULT 0, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT, " +
+        DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " TEXT, " +
         DB.COL_TIMEHISTORY_SOLVETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_TIMEHISTORY_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
       ");"
@@ -194,6 +195,11 @@ public class DBHelper extends SQLiteOpenHelper {
       );
 
       db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT");
+    }
+
+    if (oldVersion < 17) {
+      // Add the moves of smart cube solves, kept even when no method matched
+      db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN " + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " TEXT");
     }
 
 //    progressDialog.hide();

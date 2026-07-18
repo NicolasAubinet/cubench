@@ -101,6 +101,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private String[] currentScramble;
   private SolveTime lastSolveTime;
   private List<SolveStep> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
+  private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -741,6 +742,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       @Override
       public void run() {
         lastSolveSteps = Collections.emptyList(); // a hand-entered time is now the last solve, and no cube saw it
+        lastSolveMoves = "";
         addTimeToUI(solveAverages.getSolveTime().getTime());
         generateScramble();
       }
@@ -996,6 +998,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
       lastSolveTime = null;
       lastSolveSteps = Collections.emptyList();
+      lastSolveMoves = "";
       timerStartTs = 0;
       resetTimerText();
     }
@@ -1045,9 +1048,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (solveType.hasSteps()) {
       solveTime.setStepsTimes(stepsTimes.toArray(new Long[0]));
     }
-    if (!solveTime.isDNF() && !lastSolveSteps.isEmpty()) { // the cube broke this solve into method steps
-      solveTime.setSmartcubeMethod(CubeMethod.CFOP);
-      solveTime.setSmartcubeSteps(lastSolveSteps);
+    if (!solveTime.isDNF()) {
+      if (!lastSolveSteps.isEmpty()) { // the cube broke this solve into method steps
+        solveTime.setSmartcubeMethod(CubeMethod.CFOP);
+        solveTime.setSmartcubeSteps(lastSolveSteps);
+      }
+      if (!lastSolveMoves.isEmpty()) { // the cube timed it, whether or not a method matched
+        solveTime.setSmartcubeMoves(lastSolveMoves);
+      }
     }
 
     addTimeToUI(time);
@@ -1229,6 +1237,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private void showStepBreakdown() {
     lastSolveSteps = SolveStepConverter.toSolveSteps(solveController.getStepTimes());
+    lastSolveMoves = solveController.getSolveMoves(); // captured before the early return: a solve with no breakdown still has moves
     if (lastSolveSteps.isEmpty()) { // the cube did not see this solve through: nothing to break down
       hideStepBreakdown();
       return;

@@ -336,6 +336,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (solveTime.hasSmartcubeBreakdown()) {
       values.put(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD, solveTime.getSmartcubeMethod().getCode());
     }
+    if (solveTime.hasSmartcubeMoves()) { // kept even when no method matched: the breakdown is optional, the solution is not
+      values.put(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES, solveTime.getSmartcubeMoves());
+    }
     long historyId = db.insert(DB.TABLE_TIMEHISTORY, null, values);
     if (solveTime.hasSteps()) {
       Iterator<SolveTypeStep> stsIt = getSolveTypeSteps(solveTime.getSolveType().getId()).iterator();
@@ -571,6 +574,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_TIMEHISTORY_PLUSTWO);
     q.append("     , ").append(DB.COL_TIMEHISTORY_PB);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
 
@@ -618,6 +622,7 @@ public class ServiceProviderImpl implements ServiceProvider {
           st.setSmartcubeMethod(CubeMethod.fromCode(method));
           st.setSmartcubeSteps(getSmartcubeSteps(st.getId()));
         }
+        st.setSmartcubeMoves(cursor.getString(8));
         history.add(st);
       }
       cursor.close();

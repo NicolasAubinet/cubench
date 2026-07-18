@@ -17,6 +17,7 @@ public class SolveTime implements Serializable {
   private Long[] stepsTimes;
   private CubeMethod smartcubeMethod;
   private List<SolveStep> smartcubeSteps;
+  private String smartcubeMoves;
 
   public SolveTime() {
   }
@@ -135,9 +136,23 @@ public class SolveTime implements Serializable {
     this.smartcubeSteps = smartcubeSteps;
   }
 
+  /** The solve's moves with their offsets from its start, null unless a cube timed it to solved. */
+  public String getSmartcubeMoves() {
+    return smartcubeMoves;
+  }
+
+  public void setSmartcubeMoves(String smartcubeMoves) {
+    this.smartcubeMoves = smartcubeMoves;
+  }
+
   /** Whether this solve carries a smart cube method breakdown (matched the method when solved). */
   public boolean hasSmartcubeBreakdown() {
     return smartcubeSteps != null && !smartcubeSteps.isEmpty();
+  }
+
+  /** Whether a cube recorded this solve's moves. True even when no method matched. */
+  public boolean hasSmartcubeMoves() {
+    return smartcubeMoves != null && !smartcubeMoves.isEmpty();
   }
 
   @Override

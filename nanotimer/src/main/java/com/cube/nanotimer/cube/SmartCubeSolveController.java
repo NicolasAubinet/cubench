@@ -50,6 +50,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
+  private String solveMoves = "";
   private String[] scramble;
   private boolean cubeDriven; // auto-stop applies (3x3 + connected)
   private boolean followable; // scramble-follow + auto-start apply (3x3 default scramble)
@@ -100,6 +101,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     // breakdown; a tap stop mid-solve, or a solve that did not follow the method, has none.
     stepTimes = analyzing && analyzer.isComplete() && analyzer.matchesMethod()
         ? analyzer.getStepTimes() : Collections.<StepTime>emptyList();
+    // The moves need no method: an unrecognised solve still has a solution worth keeping.
+    solveMoves = analyzing && analyzer.isComplete()
+        ? SolveMovesFormat.format(analyzer.getMoves(), analyzer.getSolveStartMs()) : "";
     if (analyzing) {
       logStepTimes();
       analyzing = false;
@@ -110,6 +114,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   /** The CFOP breakdown of the solve just finished. Empty unless the cube drove it to solved. */
   public List<StepTime> getStepTimes() {
     return stepTimes;
+  }
+
+  /** The moves of the solve just finished, stored form. Empty unless the cube saw it to solved. */
+  public String getSolveMoves() {
+    return solveMoves;
   }
 
   /** True when a solve now would be broken down into steps: a 3x3 with a cube connected. */
