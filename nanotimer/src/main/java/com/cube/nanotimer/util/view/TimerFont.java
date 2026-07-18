@@ -19,7 +19,7 @@ import java.util.Map;
  * value) and must stay stable across releases.
  */
 public enum TimerFont {
-  MODERN(1, R.string.timer_font_modern, null, "sans-serif", Typeface.BOLD, "tnum", 1.00f),
+  MODERN(1, R.string.timer_font_modern, "Roboto-Bold.ttf", null, Typeface.NORMAL, "tnum", 1.00f),
   CLASSIC(2, R.string.timer_font_classic, "Digital_dream_Fat_Skew_Narrow.ttf", null, Typeface.NORMAL, null, 0.77f),
   MONOSPACE(3, R.string.timer_font_mono, "DroidSansMono.ttf", null, Typeface.BOLD, "tnum", 0.99f),
   LIGHT(4, R.string.timer_font_light, null, "sans-serif-light", Typeface.NORMAL, "tnum", 1.00f),
