@@ -5,17 +5,21 @@ The .ttf files in this directory are vendored (committed) third-party fonts
 used for the timer display and the scramble text.
 
 --------------------------------------------------------------------------
-1. Roboto-Bold.ttf
+1. Roboto-Bold.ttf, Roboto-Light.ttf, RobotoCondensed-Bold.ttf
 --------------------------------------------------------------------------
    - https://github.com/googlefonts/roboto-classic
    - Copyright 2011 The Roboto Project Authors.
    - Licensed: SIL Open Font License, Version 1.1. Full text reproduced
      below as required by clause 2.
-   - Unmodified static build, obtained from https://fonts.google.com/specimen/Roboto
+   - Unmodified static builds, obtained from
+     https://fonts.google.com/specimen/Roboto
+     (RobotoCondensed-Bold.ttf is that download's Roboto_Condensed-Bold.ttf,
+     renamed only.)
 
-   Bundled rather than resolved from the system "sans-serif" family so the
-   timer's tabular-figure ("tnum") feature is guaranteed on every device;
-   OEM ROMs substitute their own font there, and not all of them have it.
+   Bundled rather than resolved from the system "sans-serif",
+   "sans-serif-light" and "sans-serif-condensed" families: OEM ROMs
+   substitute their own font there, and a proportional substitute makes the
+   running timer's digits jitter. All three have equal-width digits.
 
 --------------------------------------------------------------------------
 2. DroidSansMono.ttf

@@ -22,8 +22,8 @@ public enum TimerFont {
   MODERN(1, R.string.timer_font_modern, "Roboto-Bold.ttf", null, Typeface.NORMAL, "tnum", 1.00f),
   CLASSIC(2, R.string.timer_font_classic, "Digital_dream_Fat_Skew_Narrow.ttf", null, Typeface.NORMAL, null, 0.77f),
   MONOSPACE(3, R.string.timer_font_mono, "DroidSansMono.ttf", null, Typeface.BOLD, "tnum", 0.99f),
-  LIGHT(4, R.string.timer_font_light, null, "sans-serif-light", Typeface.NORMAL, "tnum", 1.00f),
-  CONDENSED(5, R.string.timer_font_condensed, null, "sans-serif-condensed", Typeface.BOLD, "tnum", 1.00f);
+  LIGHT(4, R.string.timer_font_light, "Roboto-Light.ttf", null, Typeface.NORMAL, "tnum", 1.00f),
+  CONDENSED(5, R.string.timer_font_condensed, "RobotoCondensed-Bold.ttf", null, Typeface.NORMAL, "tnum", 1.00f);
 
   private final int id;
   private final int nameResId;
