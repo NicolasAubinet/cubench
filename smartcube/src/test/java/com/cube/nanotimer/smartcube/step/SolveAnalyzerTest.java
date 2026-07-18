@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -82,6 +83,36 @@ public class SolveAnalyzerTest {
       total += step.getTotalMs();
     }
     assertEquals(timestampMs - SOLVE_START_MS, total); // the steps account for the whole solve
+  }
+
+  @Test
+  public void recordsEveryMoveSoTheSplitRebuildsFromTheStepDurationsAlone() {
+    startFrom(T_PERM, SUNE, "R U' R'", "R' F'");
+
+    play("F R", 0, 600);
+    play("R U R'", 500, 100);
+    play(ANTI_SUNE, 800, 100);
+    play(T_PERM, 400, 100);
+
+    List<CubeMove> moves = analyzer.getMoves();
+    assertEquals(2 + 3 + 8 + 15, moves.size());
+
+    // Partition the way a reader with only the persisted durations can: walk the cumulative step
+    // totals against each move's offset into the solve.
+    List<StepTime> steps = analyzer.getStepTimes();
+    int[] perStep = new int[steps.size()];
+    long boundaryMs = 0;
+    int move = 0;
+    for (int i = 0; i < steps.size(); i++) {
+      boundaryMs += steps.get(i).getTotalMs();
+      while (move < moves.size()
+          && moves.get(move).getCubeTimestampMs() - analyzer.getSolveStartMs() <= boundaryMs) {
+        perStep[i]++;
+        move++;
+      }
+    }
+    assertArrayEquals(new int[] {2, 3, 8, 15}, perStep);
+    assertEquals(moves.size(), move); // every move landed in a step
   }
 
   @Test

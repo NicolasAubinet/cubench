@@ -3,6 +3,7 @@ package com.cube.nanotimer.smartcube.step;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -43,6 +44,17 @@ public final class SolveAnalyzer {
   public void onState(CubeState state) {
     detector.onState(state, pendingMove);
     pendingMove = null;
+  }
+
+  /** The solve's moves in order, timestamped on the cube clock. */
+  public List<CubeMove> getMoves() {
+    return Collections.unmodifiableList(moves);
+  }
+
+  /** The origin the step durations are measured from, so a move's offset into the solve is
+   * {@code getCubeTimestampMs() - getSolveStartMs()}. */
+  public long getSolveStartMs() {
+    return solveStartMs;
   }
 
   /** The steps reached so far, in order. */
