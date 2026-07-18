@@ -187,6 +187,39 @@
 
       </LinearLayout>
 
+      <!-- Solution: what was actually turned, folded away until asked for -->
+      <LinearLayout
+         android:id="@+id/solutionSection"
+         android:orientation="vertical"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="14dp"
+         android:visibility="gone">
+
+        <TextView
+           android:id="@+id/solutionLabel"
+           android:layout_marginBottom="6dp"
+           android:drawablePadding="4dp"
+           style="@style/DialogSectionLabel"/>
+
+        <androidx.cardview.widget.CardView
+           android:id="@+id/solutionCard"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:visibility="gone"
+           style="@style/TableCardView">
+          <LinearLayout
+             android:id="@+id/solutionSteps"
+             android:orientation="vertical"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:paddingLeft="10dp"
+             android:paddingRight="10dp"
+             android:paddingTop="10dp"/>
+        </androidx.cardview.widget.CardView>
+
+      </LinearLayout>
+
       <!-- Averages -->
       <LinearLayout
          android:id="@+id/averagesTable"

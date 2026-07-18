@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,5 +26,45 @@ public final class SolveMovesFormat {
       sb.append(move.getNotation()).append(OFFSET_SEPARATOR).append(move.getCubeTimestampMs() - solveStartMs);
     }
     return sb.toString();
+  }
+
+  /** Parses the stored form back. Skips anything malformed rather than losing the whole solution. */
+  public static List<Move> parse(String stored) {
+    List<Move> moves = new ArrayList<Move>();
+    if (stored == null || stored.isEmpty()) {
+      return moves;
+    }
+    for (String token : stored.trim().split(" +")) {
+      int at = token.lastIndexOf(OFFSET_SEPARATOR);
+      if (at <= 0) {
+        continue;
+      }
+      try {
+        moves.add(new Move(token.substring(0, at), Long.parseLong(token.substring(at + 1))));
+      } catch (NumberFormatException e) {
+        // a corrupted offset costs its move, not the rest of the solution
+      }
+    }
+    return moves;
+  }
+
+  /** One quarter turn: the cube reports doubles as two, which {@link SolveSolution} folds back. */
+  public static final class Move {
+
+    private final String notation;
+    private final long offsetMs;
+
+    Move(String notation, long offsetMs) {
+      this.notation = notation;
+      this.offsetMs = offsetMs;
+    }
+
+    public String getNotation() {
+      return notation;
+    }
+
+    public long getOffsetMs() {
+      return offsetMs;
+    }
   }
 }

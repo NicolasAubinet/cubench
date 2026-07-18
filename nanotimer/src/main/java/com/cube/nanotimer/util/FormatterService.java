@@ -19,6 +19,11 @@ public enum FormatterService {
     return formatSolveTime(solveTime, null);
   }
 
+  /** Turns per second, to one decimal — the precision the figure is worth. */
+  public String formatTps(double tps) {
+    return String.format(Locale.getDefault(), "%.1f", tps);
+  }
+
   public String formatSolveTime(Long solveTime, String defaultValue) {
     return formatSolveTime(solveTime, defaultValue, Options.INSTANCE.isUsingHighPrecisionTimer());
   }

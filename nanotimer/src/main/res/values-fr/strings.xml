@@ -313,6 +313,10 @@
   <string name="breakdown_recognition">Recon.</string>
   <string name="breakdown_execution">Exéc.</string>
   <string name="breakdown_total">Total</string>
+  <string name="breakdown_moves">Mvts</string>
+  <string name="solution">Solution</string>
+  <string name="solution_moves">%d mouvements</string>
+  <string name="solution_tps">%s TPS</string>
   <string name="smartcube_step_cross">Croix</string>
   <string name="smartcube_step_f2l">F2L</string>
   <string name="smartcube_step_oll">OLL</string>
