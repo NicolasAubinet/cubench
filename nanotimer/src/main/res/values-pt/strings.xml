@@ -613,4 +613,26 @@
     </ul>
     </body></html>]]>
   </string>
+
+  <string name="smart_cube_title">Cubo inteligente</string>
+  <string name="smart_cube_scan">Buscar</string>
+  <string name="smart_cube_disconnect">Desconectar</string>
+  <string name="smart_cube_status_idle">Toque em Buscar para encontrar seu cubo</string>
+  <string name="smart_cube_scanning">Buscando…</string>
+  <string name="smart_cube_connecting">Conectando a %s…</string>
+  <string name="smart_cube_connected">Conectado</string>
+  <string name="smart_cube_connect_failed">Falha na conexão: %s</string>
+  <string name="smart_cube_permission_denied">Permissão de Bluetooth negada</string>
+  <string name="smart_cube_bluetooth_off">Ative o Bluetooth para conectar seu cubo</string>
+  <string name="smart_cube_battery">Bateria: %1$d%%</string>
+  <string name="smart_cube_connect_title">Conectar um cubo inteligente</string>
+  <string name="smart_cube_intro_body">Um cubo inteligente Bluetooth permite que o Cubench leia seus movimentos enquanto você resolve, para iniciar e parar o cronômetro automaticamente, sem tocar na tela. Mais análises estão a caminho.</string>
+  <string name="smart_cube_done">Pronto</string>
+  <string name="smart_cube_resync">Meu cubo está resolvido</string>
+  <string name="smart_cube_resync_hint">Se o aplicativo acha que seu cubo está embaralhado quando não está, o cubo se perdeu. Resolva-o e toque abaixo.</string>
+  <string name="smart_cube_resynced">Estado do cubo realinhado</string>
+  <string name="smart_cube_solve_first">Resolva seu cubo para começar</string>
+  <string name="smart_cube_ready_to_solve">Pronto para resolver</string>
+  <string name="smart_cube_solving">Resolução em andamento</string>
+  <string name="smart_cube_undo">Desfaça seus movimentos errados</string>
 </resources>
