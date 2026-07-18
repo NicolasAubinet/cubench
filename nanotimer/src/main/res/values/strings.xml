@@ -344,7 +344,16 @@
   <string name="release_notes_features_html">
     <![CDATA[<html><body>
     <font color=\"white\">
-    <u><b>v1.4.2 <i>(New version)</i></b></u><br/>
+    <u><b>v1.4.3 <i>(New version)</i></b></u><br/>
+    <ul>
+      <li>The new record panel no longer covers the scramble</li>
+      <li>New setting to choose when the record panel appears: for any record, only for a new PB, or never</li>
+      <li>New “Last solve” menu entry on the timer screen, opening the solve details — commenting and sharing have moved there</li>
+      <li>Refreshed popups and dropdowns to match the rest of the app</li>
+      <li>Fixed the timer digits shifting around while timing on some devices</li>
+      <li>Megaminx scrambles no longer end with an empty line</li>
+    </ul>
+    <u><b>v1.4.2</b></u><br/>
     <ul>
       <li>Portuguese translation</li>
       <li>You can now rate Cubench from the menu, without leaving the app</li>
