@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rounded surface for spinner dropdowns, to match the dialog frame. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <!-- Elevated card colour, not dialog_surface: the popup also opens over dialogs, where a
+       dialog_surface fill would be invisible against the frame behind it. -->
+  <solid android:color="@color/timercardbg"/>
+  <corners android:radius="14dp"/>
+  <!-- Keeps the first and last rows off the rounded edge. -->
+  <padding android:top="8dp" android:bottom="8dp"/>
+</shape>

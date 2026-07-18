@@ -217,7 +217,9 @@
     <item name="android:gravity">center</item>
     <item name="android:singleLine">true</item>
     <item name="android:textAllCaps">false</item>
-    <item name="android:popupBackground">@color/darkblue</item>
+    <item name="android:popupBackground">@drawable/spinner_popup_bg</item>
+    <!-- Drop the popup below the field so it doesn't cover the label above it. -->
+    <item name="android:dropDownVerticalOffset">10dp</item>
   </style>
 
   <style name="TableCardView">
