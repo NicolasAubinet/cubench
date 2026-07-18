@@ -15,6 +15,10 @@ import com.cube.nanotimer.smartcube.transport.BleService;
 import com.cube.nanotimer.smartcube.transport.BleUuid;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /** A connected MoYu V10, translating parser events into the {@link SmartCube} callbacks. */
 final class MoyuV10Cube implements SmartCube {
@@ -29,13 +33,22 @@ final class MoyuV10Cube implements SmartCube {
   private final List<CubeBatteryListener> batteryListeners = new CopyOnWriteArrayList<>();
 
   private static final long RESYNC_RETRY_INTERVAL_MS = 250;
+  private static final long RESYNC_SLOW_RETRY_INTERVAL_MS = 2000;
+  private static final int RESYNC_FAST_RETRIES = 8;
+
+  private final ScheduledExecutorService resyncScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+    Thread thread = new Thread(r, "moyu-resync");
+    thread.setDaemon(true);
+    return thread;
+  });
+  private final Object resyncLock = new Object();
 
   private BleCharacteristic writeChr;
   private CubeState lastState = CubeState.SOLVED;
   private CubeConnection connection = CubeConnection.CONNECTING;
   private Integer batteryLevel;
   private volatile boolean awaitingResync = false;
-  private volatile long lastResyncRequestMs = 0;
+  private ScheduledFuture<?> resyncRetry;
 
   MoyuV10Cube(DiscoveredCube device, BlePeripheral peripheral, MoyuV10Parser parser) {
     this.device = device;
@@ -52,6 +65,7 @@ final class MoyuV10Cube implements SmartCube {
     readChr.addValueListener(this::onData);
     peripheral.addConnectionListener(up -> {
       if (!up) {
+        stopResyncing();
         setConnection(CubeConnection.LOST);
       }
     });
@@ -99,23 +113,57 @@ final class MoyuV10Cube implements SmartCube {
     }
     if (parser.pollNeedsResync()) {
       beginResync(); // an unrecoverable move gap drifted the model; re-anchor from the cube
-    } else if (awaitingResync) {
-      if (parser.isAnchored()) {
-        awaitingResync = false; // a fresh state packet re-anchored us
-      } else if (System.currentTimeMillis() - lastResyncRequestMs >= RESYNC_RETRY_INTERVAL_MS) {
-        sendStateRequest(); // the state packet was lost; keep asking until it arrives
-      }
+    } else if (awaitingResync && parser.isAnchored()) {
+      endResync(); // a fresh state packet re-anchored us
     }
   }
 
   private void beginResync() {
+    boolean alreadyResyncing;
+    synchronized (resyncLock) {
+      alreadyResyncing = awaitingResync;
+      awaitingResync = true;
+    }
     parser.resetAnchor();
-    awaitingResync = true;
     sendStateRequest();
+    if (!alreadyResyncing) {
+      scheduleResyncRetry(1); // one chain at a time: a second would double the request rate
+    }
+  }
+
+  private void endResync() {
+    synchronized (resyncLock) {
+      awaitingResync = false;
+      if (resyncRetry != null) {
+        resyncRetry.cancel(false);
+        resyncRetry = null;
+      }
+    }
+  }
+
+  /** Unanchored, the parser drops every move packet, so only a timer can drive the retry. */
+  private void scheduleResyncRetry(int attempt) {
+    long delay = attempt <= RESYNC_FAST_RETRIES ? RESYNC_RETRY_INTERVAL_MS : RESYNC_SLOW_RETRY_INTERVAL_MS;
+    synchronized (resyncLock) {
+      if (!awaitingResync || resyncScheduler.isShutdown()) {
+        return;
+      }
+      resyncRetry = resyncScheduler.schedule(() -> {
+        if (!awaitingResync || parser.isAnchored()) {
+          endResync();
+          return;
+        }
+        try {
+          sendStateRequest();
+        } catch (RuntimeException e) {
+          // A failed write must not break the chain, or the cube stays unanchored for good.
+        }
+        scheduleResyncRetry(attempt + 1);
+      }, delay, TimeUnit.MILLISECONDS);
+    }
   }
 
   private void sendStateRequest() {
-    lastResyncRequestMs = System.currentTimeMillis();
     writeChr.write(parser.encodeRequest(MoyuV10Parser.OP_STATUS));
   }
 
@@ -208,7 +256,13 @@ final class MoyuV10Cube implements SmartCube {
 
   @Override
   public void disconnect() {
+    stopResyncing();
     peripheral.disconnect();
     setConnection(CubeConnection.DISCONNECTED);
+  }
+
+  private void stopResyncing() {
+    endResync();
+    resyncScheduler.shutdownNow();
   }
 }
