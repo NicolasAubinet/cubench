@@ -112,10 +112,13 @@ Tests are plain **JUnit 4**.
   introduce regions or controls that swallow the touch without toggling the timer.
 - `Options.INSTANCE` wraps `SharedPreferences` (keys in `res/xml/preferences.xml`).
 - Import/export is CSV (`util/exportimport/`), shared via a `FileProvider`
-  (authority `com.cube.nanotimer.fileprovider`).
-- Localized into English, French (`values-fr`), Spanish (`values-es`). Add new
-  user-facing strings to `strings.xml` in **every** locale (and the right module —
-  `guilib`/`filebrowser`/`services` each have their own).
+  (authority `${applicationId}.fileprovider` — the debug build has an
+  `applicationIdSuffix`, so never hardcode the authority).
+- Localized into English, French (`values-fr`), Spanish (`values-es`) and
+  Portuguese (`values-pt`). Add new user-facing strings to `strings.xml` in
+  **all four** locales — forgetting one leaves that language showing English.
+  Localized strings live in `nanotimer`, `datamodel` and `filebrowser`
+  (`guilib` and `services` only hold `app_name`, untranslated).
 
 ### "Pro" unlock (legacy / inactive)
 The app is now **completely free, open-source, and fully unlocked** — it used to
