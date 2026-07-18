@@ -52,12 +52,16 @@ public final class SolveSolution {
     return new SolveSolution(steps, total, timeMs);
   }
 
-  /** A step's moves, split into one group per part — the pairs of an F2L, the looks of an OLL. */
+  /**
+   * A step's moves, split into one group per part — the pairs of an F2L, the looks of an OLL. The
+   * groups stay aligned with the parts, empty ones included, so each part can be shown its own
+   * count; anything the parts did not account for trails behind them.
+   */
   private static List<String> groupsFor(List<Move> moves, int from, int to, List<SolveStep> parts,
       long stepStartMs) {
     List<String> groups = new ArrayList<String>();
     if (parts.isEmpty()) {
-      addGroup(groups, moves, from, to);
+      groups.add(toHalfTurns(moves.subList(from, to)));
       return groups;
     }
     long boundaryMs = stepStartMs;
@@ -65,17 +69,13 @@ public final class SolveSolution {
     for (SolveStep part : parts) {
       boundaryMs += part.getTotalMs();
       int end = endOf(moves, taken, boundaryMs);
-      addGroup(groups, moves, taken, end);
+      groups.add(toHalfTurns(moves.subList(taken, end)));
       taken = end;
     }
-    addGroup(groups, moves, taken, to); // anything the parts did not account for stays visible
-    return groups;
-  }
-
-  private static void addGroup(List<String> groups, List<Move> moves, int from, int to) {
-    if (to > from) {
-      groups.add(toHalfTurns(moves.subList(from, to)));
+    if (to > taken) {
+      groups.add(toHalfTurns(moves.subList(taken, to)));
     }
+    return groups;
   }
 
   private static int endOf(List<Move> moves, int from, long boundaryMs) {
@@ -136,9 +136,18 @@ public final class SolveSolution {
     private static int countMoves(List<String> groups) {
       int count = 0;
       for (String group : groups) {
-        count += group.isEmpty() ? 0 : group.split(" ").length;
+        count += countMoves(group);
       }
       return count;
+    }
+
+    private static int countMoves(String group) {
+      return group.isEmpty() ? 0 : group.split(" ").length;
+    }
+
+    /** The moves of one part, by its position in the step — 0 for a part built with none. */
+    public int getPartMoveCount(int part) {
+      return part < groups.size() ? countMoves(groups.get(part)) : 0;
     }
 
     public int getIndex() {
@@ -157,6 +166,9 @@ public final class SolveSolution {
     public String getMoves() {
       StringBuilder sb = new StringBuilder();
       for (String group : groups) {
+        if (group.isEmpty()) { // a part built with no move of its own would show as a stray separator
+          continue;
+        }
         if (sb.length() > 0) {
           sb.append(GROUP_SEPARATOR);
         }

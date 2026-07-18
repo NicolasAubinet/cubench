@@ -21,6 +21,7 @@ import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.scrambler.cross.CrossFormatter;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers.FaceSolutions;
+import com.cube.nanotimer.util.helper.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -405,17 +406,9 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
     return dot;
   }
 
-  // Standard WCA face colors. Decorative: the face letter remains the unambiguous label.
+  // Decorative: the face letter remains the unambiguous label.
   private int faceColorRes(CrossFace f) {
-    switch (f) {
-      case U: return R.color.cube_white;
-      case D: return R.color.cube_yellow;
-      case R: return R.color.cube_red;
-      case L: return R.color.cube_orange;
-      case F: return R.color.cube_green;
-      case B: return R.color.cube_blue;
-      default: return R.color.gray400;
-    }
+    return Utils.getFaceColorRes(f.name().charAt(0));
   }
 
   private static boolean isLightColor(int c) {

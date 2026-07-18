@@ -291,7 +291,7 @@
 
   <style name="BreakdownSubName" parent="BreakdownSubCell">
     <item name="android:gravity">left</item>
-    <item name="android:paddingLeft">18dp</item>
+    <item name="android:paddingLeft">12dp</item>
   </style>
 
   <!-- The solution reads as a transcript, so its steps stack instead of sharing the table's columns. -->

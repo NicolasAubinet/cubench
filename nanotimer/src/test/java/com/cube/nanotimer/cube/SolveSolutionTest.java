@@ -74,6 +74,21 @@ public class SolveSolutionTest {
   }
 
   @Test
+  public void countsAPartThatTookNoMoveWithoutShiftingTheOnesAfterIt() {
+    // The middle pair was already in its slot: it owns no move, and must not take the next one's.
+    String stored = moves("R@0", "U@100", "L@200");
+    List<SolveStep> steps = Arrays.asList(step("f2l", 0, 200,
+        step("pair_rf", 0, 100), step("pair_fl", 0, 0), step("pair_lb", 0, 100)));
+
+    SolveSolution.Step f2l = SolveSolution.from(stored, steps, 200).getSteps().get(0);
+
+    assertEquals(2, f2l.getPartMoveCount(0));
+    assertEquals(0, f2l.getPartMoveCount(1));
+    assertEquals(1, f2l.getPartMoveCount(2));
+    assertEquals("R U · L", f2l.getMoves()); // the empty part leaves no stray separator
+  }
+
+  @Test
   public void rebuildsARealSolveRecordedOnTheCube() {
     // Step durations and move offsets taken from a solve recorded on a MoYu WeiLong V10.
     List<SolveStep> steps = Arrays.asList(

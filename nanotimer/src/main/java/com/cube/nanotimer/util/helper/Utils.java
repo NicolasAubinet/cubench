@@ -25,6 +25,8 @@ public class Utils {
 
   public static final char[] FORBIDDEN_NAME_CHARACTERS = new char[] { '"', ',', ';', '|', '=' };
 
+  private static final String PAIR_CODE_PREFIX = "pair_";
+
   public static final String LANGUAGE_PREFS_NAME = "language";
   public static final String LANGUAGE_PREF_KEY = "picked";
 
@@ -143,8 +145,38 @@ public class Utils {
   /** Localized name of a smart cube breakdown step code; position numbers repeated parts (the
    * F2L pairs), 1-based, and is ignored by the codes that do not carry a number. */
   public static String toSmartCubeStepLocalizedName(Context context, String code, int position) {
-    int resId = getStringIdentifier(context, "smartcube_step_" + code);
+    int resId = getStringIdentifier(context, "smartcube_step_" + toSmartCubeStepBaseCode(code));
     return resId == 0 ? code : context.getString(resId, position + 1);
+  }
+
+  /** An F2L pair is stored per slot ("pair_rf"); they all share the one "pair" name. */
+  private static String toSmartCubeStepBaseCode(String code) {
+    return code != null && code.startsWith(PAIR_CODE_PREFIX) ? "pair" : code;
+  }
+
+  /**
+   * The two faces an F2L pair sits between, from its slot code, or null for any other step (and for
+   * the pairs of solves recorded before the slot was stored).
+   */
+  public static char[] getSmartCubePairFaces(String code) {
+    if (code == null || !code.startsWith(PAIR_CODE_PREFIX)) {
+      return null;
+    }
+    String faces = code.substring(PAIR_CODE_PREFIX.length()).toUpperCase(Locale.US);
+    return faces.length() == 2 ? faces.toCharArray() : null;
+  }
+
+  /** Standard WCA face colors. Decorative: the app never relies on them to identify a face. */
+  public static int getFaceColorRes(char face) {
+    switch (face) {
+      case 'U': return R.color.cube_white;
+      case 'D': return R.color.cube_yellow;
+      case 'R': return R.color.cube_red;
+      case 'L': return R.color.cube_orange;
+      case 'F': return R.color.cube_green;
+      case 'B': return R.color.cube_blue;
+      default: return R.color.gray400;
+    }
   }
 
   public static String toSolveTypeLocalizedName(Context context, String solveTypeName) {

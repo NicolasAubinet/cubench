@@ -4,9 +4,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.res.TypedArray;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ImageSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -231,7 +238,7 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       List<TableRow> partRows = new ArrayList<TableRow>();
       List<SolveStep> parts = step.getSubSteps();
       for (int j = 0; j < parts.size(); j++) {
-        TableRow partRow = subStepRow(parts.get(j), j);
+        TableRow partRow = subStepRow(parts.get(j), j, partMoveCountOf(solution, i, j));
         partRow.setVisibility(View.GONE);
         partRows.add(partRow);
         table.addView(partRow);
@@ -246,6 +253,11 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
   private String moveCountOf(SolveSolution solution, int stepIndex) {
     return stepIndex < solution.getSteps().size()
         ? String.valueOf(solution.getSteps().get(stepIndex).getMoveCount()) : "";
+  }
+
+  private String partMoveCountOf(SolveSolution solution, int stepIndex, int part) {
+    return stepIndex < solution.getSteps().size()
+        ? String.valueOf(solution.getSteps().get(stepIndex).getPartMoveCount(part)) : "";
   }
 
   /**
@@ -344,18 +356,56 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
     return row;
   }
 
-  private TableRow subStepRow(SolveStep part, int position) {
+  private TableRow subStepRow(SolveStep part, int position, String moveCount) {
     TableRow row = new TableRow(getActivity());
-    row.addView(cell(R.style.BreakdownSubName,
-        Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)));
+    row.addView(cell(R.style.BreakdownSubName, withPairColors(part.getName(),
+        Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position))));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
-    row.addView(cell(R.style.BreakdownSubCell, ""));
+    row.addView(cell(R.style.BreakdownSubCell, moveCount));
     return row;
   }
 
-  private TextView cell(int style, String text) {
+  /**
+   * An F2L pair is labelled by the order it was built, so the two colours of its slot are what says
+   * <em>which</em> pair it was. Solves recorded before the slot was stored simply keep the label.
+   */
+  private CharSequence withPairColors(String code, String label) {
+    char[] faces = Utils.getSmartCubePairFaces(code);
+    if (faces == null) {
+      return label;
+    }
+    SpannableStringBuilder text = new SpannableStringBuilder(" " + label);
+    text.setSpan(new ImageSpan(pairSwatch(faces), ImageSpan.ALIGN_BASELINE),
+        0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    return text;
+  }
+
+  /** The slot's two colours as one rectangle split down the middle, with the gap to the label built
+   * into the drawable so it stays a fixed size rather than a space character's. */
+  private Drawable pairSwatch(char[] faces) {
+    int height = dp(9);
+    int gap = dp(7);
+    LayerDrawable swatch = new LayerDrawable(new Drawable[] {
+        new ColorDrawable(color(Utils.getFaceColorRes(faces[0]))),
+        new ColorDrawable(color(Utils.getFaceColorRes(faces[1]))),
+    });
+    swatch.setLayerInset(0, 0, 0, height + gap, 0);
+    swatch.setLayerInset(1, height, 0, gap, 0);
+    swatch.setBounds(0, 0, height * 2 + gap, height);
+    return swatch;
+  }
+
+  private int dp(int value) {
+    return (int) (value * getResources().getDisplayMetrics().density);
+  }
+
+  private int color(int colorResId) {
+    return ContextCompat.getColor(getActivity(), colorResId);
+  }
+
+  private TextView cell(int style, CharSequence text) {
     TextView cell = new TextView(getActivity(), null, 0, style);
     cell.setText(text);
     return cell;

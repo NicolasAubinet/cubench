@@ -6,6 +6,7 @@ import com.cube.nanotimer.smartcube.model.Face;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Detects the CFOP milestones (Cross, F2L, OLL, PLL) on the live facelet stream. Each one is a
@@ -39,8 +40,8 @@ public final class CFOPStepDetector implements StepDetector {
    * the two apart from the cube alone, and a one-look solve would be reported as a two-look. A
    * two-look PLL is simply a longer execution.
    */
-  /** Step codes, localized when displayed. F2L's four entries only carry the count: its pairs are all
-   * "pair", named by the order they were built (the sub-step's position) when shown. */
+  /** Step codes, localized when displayed. F2L's four entries only carry the count: each pair is
+   * coded by the slot it sits in ({@link #SLOT_CODES}), but shown by the order it was built. */
   private static final String[][] SUB_STEP_NAMES = {
     {},
     {"", "", "", ""},
@@ -75,6 +76,9 @@ public final class CFOPStepDetector implements StepDetector {
   private static final int[][] SLOT_CORNERS = new int[6][4];
   private static final int[][] SLOT_EDGES = new int[6][4];
 
+  /** Each slot's code, carrying the two faces it sits between ("pair_rf") so it can be told apart. */
+  private static final String[][] SLOT_CODES = new String[6][4];
+
   static {
     for (int face = 0; face < 6; face++) {
       int slot = 0;
@@ -85,6 +89,7 @@ public final class CFOPStepDetector implements StepDetector {
         char[] sides = sideColours(CORNERS[corner], face);
         SLOT_CORNERS[face][slot] = corner;
         SLOT_EDGES[face][slot] = edgeBetween(sides[0], sides[1]);
+        SLOT_CODES[face][slot] = ("pair_" + sides[0] + sides[1]).toLowerCase(Locale.US);
         slot++;
       }
     }
@@ -328,7 +333,10 @@ public final class CFOPStepDetector implements StepDetector {
 
   @Override
   public String subStepName(int step, int subStep) {
-    return step == F2L ? "pair" : SUB_STEP_NAMES[step][subStep];
+    if (step != F2L) {
+      return SUB_STEP_NAMES[step][subStep];
+    }
+    return crossFace == null ? "pair" : SLOT_CODES[crossFace][subStep];
   }
 
   @Override
