@@ -246,7 +246,12 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         }
         break;
       case ARMED:
-        beginAnalysis(move); // the cube is still scrambled here: the move has not been applied yet
+        // Stays ARMED if the timer refused to start, so later moves must not re-anchor the analyzer.
+        if (analyzing) {
+          analyzer.onMove(move);
+        } else {
+          beginAnalysis(move); // the cube is still scrambled here: the move has not been applied yet
+        }
         listener.onCubeAutoStart(); // scramble is done; any move starts the solve
         break;
       case RUNNING:

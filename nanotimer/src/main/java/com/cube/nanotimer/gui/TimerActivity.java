@@ -263,7 +263,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private class SolveControllerListener implements SmartCubeSolveController.Listener {
     @Override
     public void onCubeAutoStart() {
-      if (timerState == TimerState.STOPPED) {
+      if (timerState == TimerState.INSPECTING) {
+        stopInspectionTimer();
+        startTimer();
+      } else if (timerState == TimerState.STOPPED) {
         startTimer();
       }
     }
