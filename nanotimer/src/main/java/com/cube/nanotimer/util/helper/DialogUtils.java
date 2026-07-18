@@ -3,6 +3,7 @@ package com.cube.nanotimer.util.helper;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipData;
+import android.content.ActivityNotFoundException;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -76,17 +77,23 @@ public class DialogUtils {
             .show();
   }
 
-  public static void shareData(Activity activity, String subject, String text, Uri uri) {
-    Intent i = ShareCompat.IntentBuilder.from(activity)
-      .setType("message/rfc822")
+  public static void shareData(Activity activity, String subject, String text, Uri uri, String mimeType) {
+    ShareCompat.IntentBuilder builder = ShareCompat.IntentBuilder.from(activity)
+      .setType(mimeType)
       .setSubject(subject)
       .setText(text)
-      .setStream(uri)
-      .setChooserTitle(R.string.send_via)
-      .createChooserIntent()
+      .setChooserTitle(R.string.send_via);
+    if (uri != null) {
+      builder.setStream(uri);
+    }
+    Intent i = builder.createChooserIntent()
       .addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET)
       .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-    activity.startActivity(i);
+    try {
+      activity.startActivity(i);
+    } catch (ActivityNotFoundException e) {
+      showInfoMessage(activity, R.string.no_app_to_share);
+    }
   }
 
   public static void shareTime(Activity activity, SolveTime solveTime, CubeType cubeType) {
@@ -109,7 +116,7 @@ public class DialogUtils {
     } else {
       text = activity.getString(R.string.share_time_text, cubeType.getName(), timeStr, scramble, timestampStr, playStorePage);
     }
-    shareData(activity, subject, text, null);
+    shareData(activity, subject, text, null, "text/plain");
   }
 
   public static void copyScrambleToClipboard(Context context, String scramble) {

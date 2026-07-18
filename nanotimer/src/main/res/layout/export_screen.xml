@@ -29,7 +29,7 @@
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginBottom="3dp"
-     android:layout_above="@+id/buExport">
+     android:layout_above="@+id/buSaveToFile">
     <CheckBox
        android:id="@+id/cbLimit"
        android:text="@string/times_limit"
@@ -50,8 +50,17 @@
   </LinearLayout>
 
   <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buSaveToFile"
+     android:text="@string/export_save_to_file"
+     android:layout_above="@+id/buExport"
+     android:layout_marginLeft="@dimen/space_m"
+     android:layout_marginRight="@dimen/space_m"
+     android:layout_marginBottom="@dimen/space_s"
+     style="@style/BigButton"/>
+
+  <androidx.appcompat.widget.AppCompatButton
      android:id="@+id/buExport"
-     android:text="@string/export_times"
+     android:text="@string/export_share"
      android:layout_alignParentBottom="true"
      android:layout_marginLeft="@dimen/space_m"
      android:layout_marginRight="@dimen/space_m"

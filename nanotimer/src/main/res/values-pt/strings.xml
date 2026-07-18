@@ -235,6 +235,12 @@
   <string name="export_mail_subject">Exportação de histórico Cubench</string>
   <string name="export_mail_body">Exportação de histórico a partir de %1$s</string>
   <string name="send_via">Enviar via:</string>
+  <string name="export_share">Partilhar</string>
+  <string name="export_save_to_file">Guardar num ficheiro</string>
+  <string name="export_saved">Histórico guardado</string>
+  <string name="export_saved_to">Histórico guardado em %1$s</string>
+  <string name="export_save_failed">Não foi possível guardar o ficheiro de histórico</string>
+  <string name="no_app_to_share">Nenhuma aplicação neste dispositivo consegue partilhar. Utilize antes «Guardar num ficheiro».</string>
   <string name="no_data_to_export">Nenhum dado para exportar</string>
   <string name="select_at_least_one_solve_type">Selecione pelo menos um tipo de resolução para exportar</string>
   <string name="exporting_history">Exportando o histórico…</string>
@@ -350,6 +356,7 @@
       <li>Pop-ups e listas suspensas renovados para combinar com o resto do aplicativo</li>
       <li>Corrigidos os dígitos do cronômetro que se moviam durante a cronometragem em alguns aparelhos</li>
       <li>Os scrambles de Megaminx não terminam mais com uma linha vazia</li>
+      <li>A exportação agora pode guardar o seu histórico diretamente num ficheiro, e a partilha funciona com mais aplicações</li>
     </ul>
     <u><b>v1.4.2</b></u><br/>
     <ul>

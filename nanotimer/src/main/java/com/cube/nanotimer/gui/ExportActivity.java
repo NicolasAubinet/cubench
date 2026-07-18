@@ -1,12 +1,15 @@
 package com.cube.nanotimer.gui;
 
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import androidx.core.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -38,9 +41,14 @@ import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class ExportActivity extends NanoTimerActivity {
 
@@ -53,6 +61,11 @@ public class ExportActivity extends NanoTimerActivity {
   private static final String PREFS_NAME = "export";
   private static final String EXPORT_LIMIT_KEY = "limit";
   private static final String EXPORT_FILE_NAME = "export.csv";
+  private static final String EXPORT_MIME_TYPE = "text/csv";
+  private static final int REQ_CREATE_DOCUMENT = 1;
+
+  // CSV waiting to be copied to the destination picked by the system document picker
+  private File pendingSaveFile;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +129,15 @@ public class ExportActivity extends NanoTimerActivity {
     buExport.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        export();
+        export(true);
+      }
+    });
+
+    Button buSaveToFile = (Button) findViewById(R.id.buSaveToFile);
+    buSaveToFile.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        export(false);
       }
     });
   }
@@ -134,7 +155,7 @@ public class ExportActivity extends NanoTimerActivity {
     tfLimit.setText(timesLimitText);
   }
 
-  private void export() {
+  private void export(final boolean share) {
     List<Integer> solveTypeIds = new ArrayList<Integer>();
     synchronized (liItems) {
       for (ListItem it : liItems) {
@@ -173,7 +194,11 @@ public class ExportActivity extends NanoTimerActivity {
             if (data != null && !data.isEmpty()) {
               CSVGenerator generator = new ExportCSVGenerator(data);
               File file = FileUtils.createCSVFile(ExportActivity.this, EXPORT_FILE_NAME, generator);
-              sendExportFile(file);
+              if (share) {
+                sendExportFile(file);
+              } else {
+                saveExportFile(file);
+              }
             } else {
               DialogUtils.showInfoMessage(ExportActivity.this, R.string.no_data_to_export);
             }
@@ -188,7 +213,67 @@ public class ExportActivity extends NanoTimerActivity {
     DialogUtils.shareData(this,
       getString(R.string.export_mail_subject),
       getString(R.string.export_mail_body, FormatterService.INSTANCE.formatDateTime(System.currentTimeMillis())),
-      uri);
+      uri, EXPORT_MIME_TYPE);
+  }
+
+  private void saveExportFile(File file) {
+    pendingSaveFile = file;
+    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+      .addCategory(Intent.CATEGORY_OPENABLE)
+      .setType(EXPORT_MIME_TYPE)
+      .putExtra(Intent.EXTRA_TITLE, getDefaultExportFileName());
+    try {
+      startActivityForResult(intent, REQ_CREATE_DOCUMENT);
+    } catch (ActivityNotFoundException e) {
+      // no document picker on this device (stripped ROM): fall back to the app's own storage folder
+      saveToAppStorage(file);
+    }
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode != REQ_CREATE_DOCUMENT) {
+      return;
+    }
+    File source = pendingSaveFile;
+    pendingSaveFile = null;
+    if (resultCode != RESULT_OK || data == null || data.getData() == null) {
+      return; // user cancelled
+    }
+    if (source == null) {
+      // the generated CSV was lost (process killed while the picker was open)
+      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+      return;
+    }
+    try {
+      FileUtils.copyFileTo(source, getContentResolver().openOutputStream(data.getData()));
+      DialogUtils.showInfoMessage(this, R.string.export_saved);
+    } catch (IOException e) {
+      Log.e("[NanoTimer]", "Could not save export file", e);
+      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+    }
+  }
+
+  private void saveToAppStorage(File file) {
+    File dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+    if (dir == null) {
+      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+      return;
+    }
+    File dest = new File(dir, getDefaultExportFileName());
+    try {
+      FileUtils.copyFileTo(file, new FileOutputStream(dest));
+      DialogUtils.showInfoMessage(this, getString(R.string.export_saved_to, dest.getAbsolutePath()));
+    } catch (IOException e) {
+      Log.e("[NanoTimer]", "Could not save export file", e);
+      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+    }
+  }
+
+  private String getDefaultExportFileName() {
+    String date = new SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.ENGLISH).format(new Date());
+    return "cubench_export_" + date + ".csv";
   }
 
   private class ExportListAdapter extends ArrayAdapter<ListItem> {

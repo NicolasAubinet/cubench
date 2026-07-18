@@ -237,6 +237,12 @@
   <string name="export_mail_subject">Cubench history export</string>
   <string name="export_mail_body">History export from %1$s</string>
   <string name="send_via">Send via:</string>
+  <string name="export_share">Share</string>
+  <string name="export_save_to_file">Save to file</string>
+  <string name="export_saved">History saved</string>
+  <string name="export_saved_to">History saved to %1$s</string>
+  <string name="export_save_failed">Could not save the history file</string>
+  <string name="no_app_to_share">No app on this device can handle sharing. Use "Save to file" instead.</string>
   <string name="no_data_to_export">Could not find any data to export</string>
   <string name="select_at_least_one_solve_type">Please select at least one solve type to export</string>
   <string name="exporting_history">Exporting history…</string>
@@ -352,6 +358,7 @@
       <li>Refreshed popups and dropdowns to match the rest of the app</li>
       <li>Fixed the timer digits shifting around while timing on some devices</li>
       <li>Megaminx scrambles no longer end with an empty line</li>
+      <li>Export can now save your history directly to a file, and sharing it works with more apps</li>
     </ul>
     <u><b>v1.4.2</b></u><br/>
     <ul>

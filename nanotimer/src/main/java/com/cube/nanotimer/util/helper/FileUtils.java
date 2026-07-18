@@ -185,6 +185,25 @@ public class FileUtils {
     return file;
   }
 
+  // copies the file to the given stream, which is always closed
+  public static void copyFileTo(File source, OutputStream os) throws IOException {
+    if (os == null) {
+      throw new IOException("Could not open the destination stream");
+    }
+    InputStream is = new FileInputStream(source);
+    try {
+      byte[] buffer = new byte[4096];
+      int read;
+      while ((read = is.read(buffer)) != -1) {
+        os.write(buffer, 0, read);
+      }
+      os.flush();
+    } finally {
+      try { is.close(); } catch (IOException ignored) { }
+      try { os.close(); } catch (IOException ignored) { }
+    }
+  }
+
   public static byte[] loadCompressedGzip(String fileName) throws IOException, DataFormatException {
     RandomAccessFile f = new RandomAccessFile(fileName, "r");
     byte[] data = new byte[(int)f.length()];
