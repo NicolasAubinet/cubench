@@ -89,7 +89,7 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
       showFallback(fallback, fallbackText);
     }
 
-    return new AlertDialog.Builder(getActivity())
+    return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
         .setTitle(R.string.scramble_view)
         .setView(view)
         .setPositiveButton(R.string.close, null)

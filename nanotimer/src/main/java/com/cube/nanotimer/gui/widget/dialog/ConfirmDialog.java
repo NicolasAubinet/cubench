@@ -15,9 +15,9 @@ public abstract class ConfirmDialog extends NanoTimerDialogFragment {
   protected Dialog dialog;
   protected View view;
 
-  // Subclasses can return a dialog theme (e.g. the modern rounded frame) or 0 for the default.
+  // Subclasses can override to opt out of the modern rounded frame by returning 0.
   protected int getDialogTheme() {
-    return 0;
+    return R.style.NanoTimerDialogTheme;
   }
 
   protected Dialog getDialog(int confirmText) {

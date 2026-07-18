@@ -41,7 +41,7 @@ public class DialogUtils {
   public static AlertDialog showYesNoConfirmation(Context context, String message, final YesNoListener listener) {
     DialogInterface.OnClickListener clickListener = getYesNoClickListener(listener);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme);
     return builder.setMessage(message)
         .setPositiveButton(R.string.yes, clickListener)
         .setNegativeButton(R.string.no, clickListener).show();
@@ -54,14 +54,14 @@ public class DialogUtils {
   public static AlertDialog showConfirmCancelDialog(Context context, int messageId, int parConfirmMessageId, int parCancelMessageId, final YesNoListener listener) {
     DialogInterface.OnClickListener clickListener = getYesNoClickListener(listener);
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme);
     return builder.setMessage(messageId)
         .setPositiveButton(parConfirmMessageId, clickListener)
         .setNegativeButton(parCancelMessageId, clickListener).show();
   }
 
   public static AlertDialog showOkDialog(Context context, String title, String message) {
-    return new AlertDialog.Builder(context)
+    return new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton(R.string.ok, null)
@@ -69,7 +69,7 @@ public class DialogUtils {
   }
 
   public static AlertDialog showOkDialog(Context context, int titleId, int messageId) {
-    return new AlertDialog.Builder(context)
+    return new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme)
             .setTitle(titleId)
             .setMessage(messageId)
             .setPositiveButton(R.string.ok, null)

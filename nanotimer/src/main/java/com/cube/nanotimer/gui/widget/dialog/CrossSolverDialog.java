@@ -83,7 +83,7 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
     refreshSwatchStyles();
     llFace.setVisibility(neutrality == CrossNeutrality.FULL ? View.GONE : View.VISIBLE);
 
-    AlertDialog dialog = new AlertDialog.Builder(getActivity())
+    AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
         .setTitle(R.string.cross_solver)
         .setView(view)
         .setPositiveButton(R.string.close, null)

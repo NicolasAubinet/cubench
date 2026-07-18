@@ -162,7 +162,7 @@ public class GUIUtils {
   }
 
   public static AlertDialog showLoadingIndicator(Context context) {
-    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme);
     ProgressBar pbar = new ProgressBar(context);
     pbar.setIndeterminate(true);
     AlertDialog dialog = builder.setView(pbar).create();

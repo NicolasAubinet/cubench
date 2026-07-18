@@ -72,7 +72,7 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
     View titleView = getTitleView();
     initSessionsList(v);
 
-    final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(v).create();
+    final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setCustomTitle(titleView);
     dialog.setCanceledOnTouchOutside(true);
     return dialog;

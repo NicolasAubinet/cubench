@@ -44,7 +44,7 @@ public class ReleaseNotes {
 
     Utils.updateContextWithPrefsLocale(context); // needed to display release notes in the correct language (if default language was changed)
 
-    final AlertDialog dialog = new AlertDialog.Builder(context).setView(v).create();
+    final AlertDialog dialog = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setTitle(context.getString(R.string.release_notes));
     dialog.setCanceledOnTouchOutside(true);
 

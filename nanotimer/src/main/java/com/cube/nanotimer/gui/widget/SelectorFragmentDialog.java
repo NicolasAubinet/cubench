@@ -76,7 +76,7 @@ public class SelectorFragmentDialog extends NanoTimerDialogFragment {
     adapter = getNewAdapter();
     lvItems.setAdapter(adapter);
 
-    final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(v).create();
+    final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
 
     if (title != null) {

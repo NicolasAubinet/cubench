@@ -28,7 +28,7 @@ public class AboutDialog extends NanoTimerDialogFragment {
     TextView tvAppName = (TextView) v.findViewById(R.id.tvAppName);
     tvAppName.setText(tvAppName.getText().toString() + " v" + Utils.getAppVersion(getActivity()));
 
-    final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(v).create();
+    final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setCanceledOnTouchOutside(true);
     dialog.setCustomTitle(getTitleView());
 

@@ -64,7 +64,7 @@ public class AddStepsDialog extends NanoTimerDialogFragment implements FieldRena
 
   private Dialog getCreationDialog() {
     View view = getActivity().getLayoutInflater().inflate(R.layout.add_steps_dialog, null);
-    final AlertDialog d = new AlertDialog.Builder(getActivity())
+    final AlertDialog d = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
         .setView(view)
         .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
           public void onClick(DialogInterface dialog, int whichButton) {

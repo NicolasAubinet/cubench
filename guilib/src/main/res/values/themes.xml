@@ -9,6 +9,9 @@
     <item name="colorAccent">@color/color_accent</item>
     <item name="actionBarStyle">@style/NanoTimerActionBar</item>
 
+    <!-- Catches dialogs the framework builds for us (preference dialogs), which take no theme argument. -->
+    <item name="android:alertDialogTheme">@style/NanoTimerDialogTheme</item>
+
     <!--<item name="homeAsUpIndicator">@drawable/icon</item>-->
     <!--<item name="android:homeAsUpIndicator">@drawable/icon</item>-->
 
@@ -39,6 +42,7 @@
     <item name="colorPrimaryDark">@color/color_primary_dark</item>
     <item name="colorAccent">@color/color_accent</item>
 
+    <item name="android:alertDialogTheme">@style/NanoTimerDialogTheme</item>
     <item name="android:listViewStyle">@style/NanoTimerListView</item>
   </style>
 

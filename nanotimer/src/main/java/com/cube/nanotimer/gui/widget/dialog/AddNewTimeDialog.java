@@ -52,11 +52,6 @@ public class AddNewTimeDialog extends ConfirmDialog {
   }
 
   @Override
-  protected int getDialogTheme() {
-    return R.style.NanoTimerDialogTheme;
-  }
-
-  @Override
   protected void onConfirm() {
     int minutes;
     int seconds;
