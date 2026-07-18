@@ -351,10 +351,10 @@
       <li>Le panneau de nouveau record ne recouvre plus le mélange</li>
       <li>Nouveau réglage pour choisir quand le panneau de record apparaît : pour tout record, seulement pour un nouveau PB, ou jamais</li>
       <li>Nouvelle entrée « Dernier temps » dans le menu du chrono, qui ouvre le détail du temps — le commentaire et le partage s\'y trouvent désormais</li>
-      <li>Popups et listes déroulantes rafraîchis pour s\'accorder au reste de l\'application</li>
       <li>Correction des chiffres du chrono qui bougeaient pendant le chronométrage sur certains appareils</li>
       <li>Les mélanges Megaminx ne se terminent plus par une ligne vide</li>
       <li>L\'exportation peut désormais enregistrer votre historique directement dans un fichier, et son partage fonctionne avec plus d\'applications</li>
+      <li>Popups et listes déroulantes rafraîchis pour s\'accorder au reste de l\'application</li>
     </ul>
     <u><b>v1.4.2</b></u><br/>
     <ul>

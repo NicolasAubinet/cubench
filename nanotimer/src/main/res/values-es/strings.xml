@@ -351,10 +351,10 @@
       <li>El panel de nuevo record ya no tapa la mezcla</li>
       <li>Nuevo ajuste para elegir cuándo aparece el panel de record: para cualquier record, solo para un nuevo PB, o nunca</li>
       <li>Nueva entrada «Último tiempo» en el menú del cronómetro, que abre el detalle del tiempo — comentar y compartir están ahí ahora</li>
-      <li>Ventanas y listas desplegables renovadas para armonizar con el resto de la aplicación</li>
       <li>Corregidos los dígitos del cronómetro que se movían durante el cronometraje en algunos dispositivos</li>
       <li>Las mezclas de Megaminx ya no terminan con una línea vacía</li>
       <li>La exportación ahora puede guardar su historia directamente en un archivo, y compartirla funciona con más aplicaciones</li>
+      <li>Ventanas y listas desplegables renovadas para armonizar con el resto de la aplicación</li>
     </ul>
     <u><b>v1.4.2</b></u><br/>
     <ul>

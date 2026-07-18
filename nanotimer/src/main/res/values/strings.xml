@@ -355,10 +355,10 @@
       <li>The new record panel no longer covers the scramble</li>
       <li>New setting to choose when the record panel appears: for any record, only for a new PB, or never</li>
       <li>New “Last solve” menu entry on the timer screen, opening the solve details — commenting and sharing have moved there</li>
-      <li>Refreshed popups and dropdowns to match the rest of the app</li>
       <li>Fixed the timer digits shifting around while timing on some devices</li>
       <li>Megaminx scrambles no longer end with an empty line</li>
       <li>Export can now save your history directly to a file, and sharing it works with more apps</li>
+      <li>Refreshed popups and dropdowns to match the rest of the app</li>
     </ul>
     <u><b>v1.4.2</b></u><br/>
     <ul>
