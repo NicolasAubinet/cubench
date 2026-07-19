@@ -7,9 +7,17 @@
    android:layout_height="wrap_content"
    android:paddingLeft="16dp"
    android:paddingRight="16dp"
-   android:paddingTop="16dp"
+   android:paddingTop="8dp"
    android:paddingBottom="12dp"
    android:minWidth="300dp">
+
+  <!-- The grip: what says the sheet can be dragged back down to close it. -->
+  <View
+     android:layout_width="32dp"
+     android:layout_height="4dp"
+     android:layout_gravity="center_horizontal"
+     android:layout_marginBottom="10dp"
+     android:background="@drawable/bottomsheet_drag_handle"/>
 
   <!-- Hero: solve time + PB trophy, flanked by the two actions on the solve itself -->
   <LinearLayout
@@ -71,8 +79,9 @@
      android:textSize="14sp"/>
 
   <!-- The only child that may shrink: it gives up its height to the actions below rather than
-       pushing them out of the window when the breakdown is long. -->
-  <ScrollView
+       pushing them out of the window when the breakdown is long. Nested rather than plain, so the
+       sheet lets it scroll back up instead of reading the drag as a pull on itself. -->
+  <androidx.core.widget.NestedScrollView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
@@ -260,7 +269,7 @@
 
     </LinearLayout>
 
-  </ScrollView>
+  </androidx.core.widget.NestedScrollView>
 
   <!-- Actions -->
   <LinearLayout

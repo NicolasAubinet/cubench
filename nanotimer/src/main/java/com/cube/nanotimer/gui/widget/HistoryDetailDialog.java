@@ -1,7 +1,6 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.res.TypedArray;
 import android.graphics.drawable.ColorDrawable;
@@ -42,13 +41,14 @@ import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class HistoryDetailDialog extends NanoTimerDialogFragment {
+public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private static final String ARG_SOLVETIME = "solvetime";
   private static final String ARG_CUBETYPE = "cubetype";
@@ -167,7 +167,8 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       tvTime.setTextColor(getResources().getColor(R.color.dnf_time));
     }
 
-    final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
+    final BottomSheetDialog dialog = new BottomSheetDialog(getActivity(), getTheme());
+    dialog.setContentView(v);
     dialog.setCanceledOnTouchOutside(true);
 
     buPlusTwo.setOnClickListener(new OnClickListener() {

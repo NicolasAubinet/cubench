@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The dialog surface, rounded at the top only: the sheet is anchored to the bottom edge. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/dialog_surface"/>
+  <corners
+     android:topLeftRadius="24dp"
+     android:topRightRadius="24dp"/>
+</shape>

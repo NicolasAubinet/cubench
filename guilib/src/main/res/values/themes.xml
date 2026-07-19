@@ -72,6 +72,19 @@
     <item name="buttonBarButtonStyle">@style/NanoTimerDialogButton</item>
   </style>
 
+  <!-- Sheets that rise from the bottom edge, for detail too tall to sit comfortably in a dialog.
+       Theme.Design rather than the MaterialComponents overlay: the host activities are AppCompat
+       themed and do not carry the Material attributes that overlay expects. -->
+  <style name="NanoTimerBottomSheetTheme" parent="Theme.Design.BottomSheetDialog">
+    <item name="bottomSheetStyle">@style/NanoTimerBottomSheet</item>
+    <item name="colorAccent">@color/lightblue</item>
+    <item name="android:textColorPrimary">@color/white</item>
+  </style>
+
+  <style name="NanoTimerBottomSheet" parent="Widget.Design.BottomSheet.Modal">
+    <item name="android:background">@drawable/bottomsheet_window_bg</item>
+  </style>
+
   <!-- Bottom action buttons for the dialogs above: sentence-case, accent, comfortable tap target. -->
   <style name="NanoTimerDialogButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
     <item name="android:textColor">@color/lightblue</item>
