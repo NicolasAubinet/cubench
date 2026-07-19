@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.crypto.GanCipher;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.util.List;
 import org.junit.Test;
@@ -100,6 +101,57 @@ public class MoyuV10ParserTest {
     assertFalse(parser.pollNeedsResync()); // clears on read
   }
 
+  /**
+   * Real gyro packets captured off a WeiLong V10 (probe 4.11a), re-encrypted here because the
+   * capture logged them post-decrypt. Cube held still, then after a ~90° turn, then after a
+   * second perpendicular one.
+   */
+  private static final int[] G_REST = {171, 243, 138, 199, 63, 227, 155, 185, 250, 98, 8, 112, 255, 208, 53, 50, 0, 0, 0, 0};
+  private static final int[] G_QUARTER = {171, 226, 72, 253, 46, 9, 2, 163, 255, 255, 164, 159, 255, 241, 83, 141, 212, 0, 0, 0};
+  private static final int[] G_DIAGONAL = {171, 206, 111, 112, 31, 217, 28, 101, 223, 103, 39, 232, 223, 226, 3, 38, 224, 0, 0, 0};
+
+  private static CubeOrientation gyro(int[] plain) {
+    List<MoyuEvent> events = newParser().parse(encrypted(plain), 1000);
+    assertEquals(1, events.size());
+    return ((MoyuEvent.GyroEvent) events.get(0)).getOrientation();
+  }
+
+  @Test
+  public void gyroPacketDecodesToUnitQuaternion() {
+    CubeOrientation rest = gyro(G_REST);
+    assertEquals(0.9966, rest.getW(), 1e-4);
+    assertEquals(-0.0824, rest.getX(), 1e-4);
+    assertEquals(-0.0088, rest.getY(), 1e-4);
+    assertEquals(0.0031, rest.getZ(), 1e-4);
+  }
+
+  @Test
+  public void everyGyroPacketIsNormalised() {
+    for (int[] packet : new int[][] {G_REST, G_QUARTER, G_DIAGONAL}) {
+      assertEquals(1.0, gyro(packet).normSquared(), 1e-6);
+    }
+  }
+
+  @Test
+  public void gyroTracksPhysicalRotation() {
+    assertEquals(9.5, gyro(G_REST).angleDegrees(), 0.5);        // at rest, near identity
+    assertEquals(85.5, gyro(G_QUARTER).angleDegrees(), 0.5);    // one quarter turn of the whole cube
+    assertEquals(121.2, gyro(G_DIAGONAL).angleDegrees(), 0.5);  // two perpendicular ones: body diagonal
+  }
+
+  /** A quarter turn is a rotation about a single axis: the other two components vanish. */
+  @Test
+  public void quarterTurnIsASingleAxisRotation() {
+    CubeOrientation q = gyro(G_QUARTER);
+    assertEquals(0.0, q.getX(), 0.01);
+    assertEquals(0.0, q.getY(), 0.01);
+    assertEquals(-0.679, q.getZ(), 1e-3);
+  }
+
+  private static int[] encrypted(int[] plain) {
+    return GanCipher.forMac(BASE_KEY, BASE_IV, GanCipher.macBytes("CF:30:16:00:AB:CD")).encode(plain);
+  }
+
   // MoYu V10 base key/IV (same constants the parser derives its cipher from).
   private static final int[] BASE_KEY = {21, 119, 58, 92, 103, 14, 45, 31, 23, 103, 42, 19, 155, 103, 82, 87};
   private static final int[] BASE_IV = {17, 35, 38, 37, 134, 42, 44, 59, 85, 6, 127, 49, 126, 103, 33, 87};
@@ -109,6 +161,6 @@ public class MoyuV10ParserTest {
     int[] plain = new int[20];
     plain[0] = 165;
     plain[11] = moveCnt; // move counter lives in bits 88..96
-    return GanCipher.forMac(BASE_KEY, BASE_IV, GanCipher.macBytes("CF:30:16:00:AB:CD")).encode(plain);
+    return encrypted(plain);
   }
 }

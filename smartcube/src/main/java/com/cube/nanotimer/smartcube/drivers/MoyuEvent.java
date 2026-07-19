@@ -1,11 +1,13 @@
 package com.cube.nanotimer.smartcube.drivers;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 
 /** One decoded event from the MoYu V10's notification stream. */
 public sealed interface MoyuEvent
-    permits MoyuEvent.StateEvent, MoyuEvent.MoveEvent, MoyuEvent.BatteryEvent, MoyuEvent.InfoEvent {
+    permits MoyuEvent.StateEvent, MoyuEvent.MoveEvent, MoyuEvent.BatteryEvent, MoyuEvent.InfoEvent,
+        MoyuEvent.GyroEvent {
 
   /** The cube's initial full state (anchors move tracking). */
   final class StateEvent implements MoyuEvent {
@@ -36,6 +38,19 @@ public sealed interface MoyuEvent
 
     public CubeState getStateAfter() {
       return stateAfter;
+    }
+  }
+
+  /** The cube's physical orientation, streamed continuously and unrelated to moves. */
+  final class GyroEvent implements MoyuEvent {
+    private final CubeOrientation orientation;
+
+    public GyroEvent(CubeOrientation orientation) {
+      this.orientation = orientation;
+    }
+
+    public CubeOrientation getOrientation() {
+      return orientation;
     }
   }
 

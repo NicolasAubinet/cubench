@@ -3,6 +3,7 @@ package com.cube.nanotimer.smartcube.drivers;
 import com.cube.nanotimer.smartcube.crypto.GanCipher;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.util.ArrayList;
@@ -125,9 +126,27 @@ public final class MoyuV10Parser {
         }
         return emitMoves(timeOffs, moves, hostTimeMs);
       }
+      case 171: {
+        // Unit quaternion (w, x, y, z) as 4 signed LE int32s scaled by 2^30; reverse-engineered
+        // from a real V10, as neither csTimer nor the sibling decodes this opcode.
+        double[] q = new double[4];
+        for (int i = 0; i < 4; i++) {
+          q[i] = i32le(s, 1 + i * 4) / (double) (1 << 30);
+        }
+        return List.of(new MoyuEvent.GyroEvent(new CubeOrientation(q[0], q[1], q[2], q[3])));
+      }
       default:
         return List.of();
     }
+  }
+
+  /** Signed little-endian int32 starting at {@code byteOffset} ({@link #val} overflows at 32 bits). */
+  private static int i32le(String bits, int byteOffset) {
+    int b0 = val(bits, byteOffset * 8, byteOffset * 8 + 8);
+    int b1 = val(bits, (byteOffset + 1) * 8, (byteOffset + 1) * 8 + 8);
+    int b2 = val(bits, (byteOffset + 2) * 8, (byteOffset + 2) * 8 + 8);
+    int b3 = val(bits, (byteOffset + 3) * 8, (byteOffset + 3) * 8 + 8);
+    return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
   }
 
   private List<MoyuEvent> emitMoves(int[] timeOffs, List<CubeMove> moves, long hostTimeMs) {

@@ -6,6 +6,7 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
@@ -45,6 +46,7 @@ final class MoyuV10Cube implements SmartCube {
 
   private BleCharacteristic writeChr;
   private CubeState lastState = CubeState.SOLVED;
+  private volatile CubeOrientation lastOrientation;
   private CubeConnection connection = CubeConnection.CONNECTING;
   private Integer batteryLevel;
   private volatile boolean awaitingResync = false;
@@ -108,6 +110,8 @@ final class MoyuV10Cube implements SmartCube {
       } else if (event instanceof MoyuEvent.BatteryEvent battery) {
         batteryLevel = battery.getLevel();
         notifyBattery(battery.getLevel());
+      } else if (event instanceof MoyuEvent.GyroEvent gyro) {
+        lastOrientation = gyro.getOrientation(); // ~20 Hz: stored for polling, never broadcast
       }
       // InfoEvent carries nothing consumers need yet.
     }
@@ -230,6 +234,11 @@ final class MoyuV10Cube implements SmartCube {
   @Override
   public Integer getBatteryLevel() {
     return batteryLevel;
+  }
+
+  @Override
+  public CubeOrientation getOrientation() {
+    return lastOrientation;
   }
 
   @Override

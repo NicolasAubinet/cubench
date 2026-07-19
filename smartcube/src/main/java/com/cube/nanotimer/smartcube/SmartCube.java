@@ -4,6 +4,7 @@ import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
@@ -33,6 +34,13 @@ public interface SmartCube {
 
   /** Last known battery percentage 0–100, or null if not yet received. */
   Integer getBatteryLevel();
+
+  /**
+   * The cube's last reported physical orientation, or null if it has no gyro or none has
+   * arrived yet. Polled rather than pushed: the stream runs at ~20 Hz, far faster than any
+   * consumer needs, so callers sample it at the moments that matter (e.g. when a move lands).
+   */
+  CubeOrientation getOrientation();
 
   /** Pull a fresh full state from the cube to re-anchor after packet loss. */
   void requestState();
