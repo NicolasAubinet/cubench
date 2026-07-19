@@ -150,6 +150,11 @@ public final class SolveSolution {
       return part < groups.size() ? countMoves(groups.get(part)) : 0;
     }
 
+    /** The moves of one part, by its position in the step — empty for a part built with none. */
+    public String getPartMoves(int part) {
+      return part < groups.size() ? groups.get(part) : "";
+    }
+
     public int getIndex() {
       return index;
     }

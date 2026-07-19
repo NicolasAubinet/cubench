@@ -294,31 +294,31 @@
     <item name="android:paddingLeft">12dp</item>
   </style>
 
-  <!-- The solution reads as a transcript, so its steps stack instead of sharing the table's columns. -->
-  <style name="SolutionStepName">
-    <item name="android:textSize">13sp</item>
-    <item name="android:textStyle">bold</item>
-    <item name="android:textAllCaps">true</item>
-    <item name="android:letterSpacing">0.07</item>
-  </style>
-
-  <style name="SolutionStepCount" parent="SolutionStepName">
-    <item name="android:textStyle">normal</item>
+  <!-- The solve's totals, beside the switch they describe. A figure rather than a heading, so it
+       keeps its case where the section label above it does not. -->
+  <style name="BreakdownMeta" parent="DialogSectionLabel">
     <item name="android:textAllCaps">false</item>
     <item name="android:letterSpacing">0</item>
-    <item name="android:textColor">@color/secondary_text</item>
     <item name="android:fontFeatureSettings">tnum</item>
   </style>
 
-  <style name="SolutionMoves">
+  <!-- The moves a step was spent on, under its row in the breakdown: a transcript to read, so it
+       runs the width of the table rather than sharing its columns. -->
+  <style name="BreakdownMoves">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:textSize">14sp</item>
+    <item name="android:textSize">13sp</item>
     <item name="android:textColor">@color/white</item>
     <item name="android:fontFamily">monospace</item>
     <item name="android:lineSpacingExtra">2dp</item>
     <item name="android:paddingTop">1dp</item>
-    <item name="android:paddingBottom">9dp</item>
+    <item name="android:paddingBottom">7dp</item>
+  </style>
+
+  <!-- A part's moves sit under its own row, so they indent with it. -->
+  <style name="BreakdownSubMoves" parent="BreakdownMoves">
+    <item name="android:textColor">@color/secondary_text</item>
+    <item name="android:paddingLeft">12dp</item>
   </style>
 
   <style name="TableCardView">

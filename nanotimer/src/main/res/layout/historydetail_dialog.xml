@@ -70,9 +70,12 @@
      android:textColor="@color/secondary_text"
      android:textSize="14sp"/>
 
+  <!-- The only child that may shrink: it gives up its height to the actions below rather than
+       pushing them out of the window when the breakdown is long. -->
   <ScrollView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
+     android:layout_weight="1"
      android:layout_marginTop="8dp">
 
     <LinearLayout
@@ -158,10 +161,32 @@
          android:layout_marginTop="14dp"
          android:visibility="gone">
 
-        <TextView
-           android:text="@string/breakdown"
-           android:layout_marginBottom="6dp"
-           style="@style/DialogSectionLabel"/>
+        <!-- Label, the solve's move count and turn rate, then the switch that turns the table into
+             a full reconstruction without moving anything already on screen. -->
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:gravity="center_vertical"
+           android:layout_marginBottom="6dp">
+          <TextView
+             android:id="@+id/breakdownLabel"
+             style="@style/DialogSectionLabel"/>
+          <Space
+             android:layout_width="0dp"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"/>
+          <TextView
+             android:id="@+id/movesSwitchLabel"
+             android:layout_marginRight="6dp"
+             android:text="@string/breakdown_moves"
+             style="@style/DialogSectionLabel"/>
+          <androidx.appcompat.widget.SwitchCompat
+             android:id="@+id/swMoves"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:contentDescription="@string/breakdown_moves"/>
+        </LinearLayout>
 
         <androidx.cardview.widget.CardView
            android:layout_width="match_parent"
@@ -176,46 +201,20 @@
                android:id="@+id/breakdownBar"
                android:layout_width="match_parent"
                android:layout_height="20dp"
-               android:layout_marginBottom="10dp"/>
+               android:layout_marginBottom="6dp"/>
+            <!-- What the bar adds up to, under the bar it describes. -->
+            <TextView
+               android:id="@+id/breakdownTotals"
+               android:layout_gravity="center_horizontal"
+               android:layout_marginBottom="8dp"
+               android:visibility="gone"
+               style="@style/BreakdownMeta"/>
             <TableLayout
                android:id="@+id/breakdownTable"
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
                android:stretchColumns="0"/>
           </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-      </LinearLayout>
-
-      <!-- Solution: what was actually turned, folded away until asked for -->
-      <LinearLayout
-         android:id="@+id/solutionSection"
-         android:orientation="vertical"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="14dp"
-         android:visibility="gone">
-
-        <TextView
-           android:id="@+id/solutionLabel"
-           android:layout_marginBottom="6dp"
-           android:drawablePadding="4dp"
-           style="@style/DialogSectionLabel"/>
-
-        <androidx.cardview.widget.CardView
-           android:id="@+id/solutionCard"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:visibility="gone"
-           style="@style/TableCardView">
-          <LinearLayout
-             android:id="@+id/solutionSteps"
-             android:orientation="vertical"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:paddingLeft="10dp"
-             android:paddingRight="10dp"
-             android:paddingTop="10dp"/>
         </androidx.cardview.widget.CardView>
 
       </LinearLayout>

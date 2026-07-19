@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
@@ -17,13 +18,14 @@ import android.text.style.ImageSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import com.cube.nanotimer.App;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveSolution;
@@ -123,7 +125,6 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
         solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves());
     SolveSolution solution = SolveSolution.from(solveTime.getSmartcubeMoves(), steps, durationMs);
     buildBreakdown(v, steps, solution);
-    buildSolution(v, solution);
 
     final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
     final TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
@@ -222,7 +223,8 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
 
   /**
    * The step bar the timer showed, with the numbers behind it: a row per step, and its parts on rows
-   * of their own, folded away until the step is tapped.
+   * of their own, folded away until the step is tapped. The moves each row was spent on sit under it,
+   * shown or hidden as a whole by the switch in the section header.
    */
   private void buildBreakdown(View v, List<SolveStep> steps, SolveSolution solution) {
     if (steps == null || steps.isEmpty()) {
@@ -243,19 +245,112 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       TableRow row = stepRow(step, name, moveCountOf(solution, i));
       table.addView(row);
 
-      List<TableRow> partRows = new ArrayList<TableRow>();
+      StepRows stepRows = new StepRows(name);
+      stepRows.moves = movesRow(table, R.style.BreakdownMoves, movesOf(solution, i));
       List<SolveStep> parts = step.getSubSteps();
       for (int j = 0; j < parts.size(); j++) {
         TableRow partRow = subStepRow(parts.get(j), j, partMoveCountOf(solution, i, j));
-        partRow.setVisibility(View.GONE);
-        partRows.add(partRow);
         table.addView(partRow);
+        stepRows.partRows.add(partRow);
+        stepRows.partMoves.add(movesRow(table, R.style.BreakdownSubMoves, partMovesOf(solution, i, j)));
       }
-      if (!partRows.isEmpty()) {
-        makeExpandable(row, name, partRows);
+      breakdownRows.add(stepRows);
+      if (!stepRows.partRows.isEmpty()) {
+        makeExpandable(row, stepRows);
       }
     }
+    buildMovesSwitch(v, solution);
+    applyRowVisibility();
     v.findViewById(R.id.breakdownSection).setVisibility(View.VISIBLE);
+  }
+
+  /**
+   * The rows of one step, so a change of switch or of fold can be applied to all of them at once.
+   * A step's own moves stand in for its parts' while it is folded, and step it aside when it opens.
+   */
+  private static final class StepRows {
+    private final TextView name;
+    private final List<TableRow> partRows = new ArrayList<TableRow>();
+    private final List<TextView> partMoves = new ArrayList<TextView>();
+    private TextView moves;
+    private boolean expanded;
+
+    private StepRows(TextView name) {
+      this.name = name;
+    }
+  }
+
+  private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
+  private boolean showMoves;
+
+  /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */
+  private void buildMovesSwitch(View v, SolveSolution solution) {
+    ((TextView) v.findViewById(R.id.breakdownLabel)).setText(getString(R.string.breakdown));
+    TextView totals = (TextView) v.findViewById(R.id.breakdownTotals);
+    TextView label = (TextView) v.findViewById(R.id.movesSwitchLabel);
+    SwitchCompat sw = (SwitchCompat) v.findViewById(R.id.swMoves);
+    if (solution.isEmpty()) { // nothing was recorded to show: the switch would toggle empty rows
+      label.setVisibility(View.GONE);
+      sw.setVisibility(View.GONE);
+      return;
+    }
+    totals.setText(getString(R.string.breakdown_moves_count, solution.getMoveCount()) + " · "
+        + getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
+    totals.setVisibility(View.VISIBLE);
+    showMoves = Options.INSTANCE.isBreakdownShowMoves();
+    sw.setChecked(showMoves);
+    sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton button, boolean checked) {
+        showMoves = checked;
+        Options.INSTANCE.setBreakdownShowMoves(checked);
+        applyRowVisibility();
+      }
+    });
+  }
+
+  /**
+   * A part's rows follow its step's fold; the moves rows follow the switch on top of that. A folded
+   * step shows the moves of the whole step, an open one leaves them to its parts.
+   */
+  private void applyRowVisibility() {
+    for (StepRows step : breakdownRows) {
+      boolean hasParts = !step.partRows.isEmpty();
+      setVisible(step.moves, showMoves && !(hasParts && step.expanded));
+      for (int i = 0; i < step.partRows.size(); i++) {
+        setVisible(step.partRows.get(i), step.expanded);
+        setVisible(step.partMoves.get(i), step.expanded && showMoves);
+      }
+    }
+  }
+
+  private void setVisible(View view, boolean visible) {
+    if (view != null) {
+      view.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+  }
+
+  /**
+   * The moves go straight into the table rather than into a row of it, so they run its whole width
+   * instead of being squeezed into the name column. A step that turned nothing has no row at all.
+   */
+  private TextView movesRow(TableLayout table, int style, String moves) {
+    if (moves == null || moves.isEmpty()) {
+      return null;
+    }
+    TextView view = cell(style, moves);
+    table.addView(view);
+    return view;
+  }
+
+  private String movesOf(SolveSolution solution, int stepIndex) {
+    return stepIndex < solution.getSteps().size()
+        ? solution.getSteps().get(stepIndex).getMoves() : "";
+  }
+
+  private String partMovesOf(SolveSolution solution, int stepIndex, int part) {
+    return stepIndex < solution.getSteps().size()
+        ? solution.getSteps().get(stepIndex).getPartMoves(part) : "";
   }
 
   private String moveCountOf(SolveSolution solution, int stepIndex) {
@@ -268,65 +363,17 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
         ? String.valueOf(solution.getSteps().get(stepIndex).getPartMoveCount(part)) : "";
   }
 
-  /**
-   * The moves themselves, a block per step: what the breakdown's times were spent on. Folded away
-   * behind its own label, because it is a transcript to read rather than a table to scan.
-   */
-  private void buildSolution(View v, SolveSolution solution) {
-    if (solution.isEmpty()) {
-      return;
-    }
-    int[] colors = getStepColors();
-    LinearLayout container = (LinearLayout) v.findViewById(R.id.solutionSteps);
-    for (SolveSolution.Step step : solution.getSteps()) {
-      if (step.getMoveCount() == 0) { // a skipped step turned nothing: it has no line to show
-        continue;
-      }
-      TextView name = cell(R.style.SolutionStepName,
-          Utils.toSmartCubeStepLocalizedName(getActivity(), step.getName(), step.getIndex()));
-      name.setTextColor(Utils.isUnfinishedTail(step.getName())
-          ? ContextCompat.getColor(getActivity(), R.color.gray600)
-          : colors[step.getIndex() % colors.length]);
-
-      LinearLayout heading = new LinearLayout(getActivity());
-      // Set in code, not in the style: layout_* attributes are ignored for a view built this way.
-      heading.addView(name,
-          new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
-      heading.addView(cell(R.style.SolutionStepCount, String.valueOf(step.getMoveCount())));
-      container.addView(heading);
-      container.addView(cell(R.style.SolutionMoves, step.getMoves()));
-    }
-
-    final View card = v.findViewById(R.id.solutionCard);
-    final TextView label = (TextView) v.findViewById(R.id.solutionLabel);
-    label.setText(getString(R.string.solution) + " · "
-        + getString(R.string.solution_moves, solution.getMoveCount()) + " · "
-        + getString(R.string.solution_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
-    setChevron(label, false);
-    label.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        boolean expand = card.getVisibility() != View.VISIBLE;
-        card.setVisibility(expand ? View.VISIBLE : View.GONE);
-        setChevron(label, expand);
-      }
-    });
-    v.findViewById(R.id.solutionSection).setVisibility(View.VISIBLE);
-  }
-
-  private void makeExpandable(TableRow row, final TextView name, final List<TableRow> partRows) {
-    setChevron(name, false);
+  private void makeExpandable(TableRow row, final StepRows stepRows) {
+    setChevron(stepRows.name, false);
     TypedValue background = new TypedValue();
     getActivity().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, background, true);
     row.setBackgroundResource(background.resourceId);
     row.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        boolean expand = partRows.get(0).getVisibility() != View.VISIBLE;
-        for (TableRow partRow : partRows) {
-          partRow.setVisibility(expand ? View.VISIBLE : View.GONE);
-        }
-        setChevron(name, expand);
+        stepRows.expanded = !stepRows.expanded;
+        setChevron(stepRows.name, stepRows.expanded);
+        applyRowVisibility();
       }
     });
   }

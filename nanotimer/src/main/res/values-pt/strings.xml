@@ -316,9 +316,8 @@
   <string name="breakdown_execution">Exec.</string>
   <string name="breakdown_total">Total</string>
   <string name="breakdown_moves">Movs</string>
-  <string name="solution">Solução</string>
-  <string name="solution_moves">%d movimentos</string>
-  <string name="solution_tps">%s TPS</string>
+  <string name="breakdown_moves_count">%d movimentos</string>
+  <string name="breakdown_tps">%s TPS</string>
   <string name="smartcube_step_cross">Cruz</string>
   <string name="smartcube_step_f2l">F2L</string>
   <string name="smartcube_step_oll">OLL</string>

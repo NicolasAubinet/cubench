@@ -41,6 +41,7 @@ public enum Options {
   public static final String RECORD_NOTIFICATION_MODE_KEY = "record_notification_mode";
   public static final String CROSS_NEUTRALITY_KEY = "cross_neutrality";
   public static final String CROSS_FACE_KEY = "cross_face";
+  public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
 
   public static final String RANDOMSTATE_SCRAMBLES_KEY = "randomstate_scrambles";
   public static final String SCRAMBLES_QUALITY_KEY = "scrambles_quality";
@@ -244,6 +245,16 @@ public enum Options {
 
   public void setCrossFaceIndex(int faceIndex) {
     sharedPreferences.edit().putInt(CROSS_FACE_KEY, faceIndex).apply();
+  }
+
+  // Whether the solve breakdown shows the moves of each step. Not a preference screen entry: it is
+  // set by the switch on the breakdown itself, and kept so the dialog reopens the way it was left.
+  public boolean isBreakdownShowMoves() {
+    return sharedPreferences.getBoolean(BREAKDOWN_SHOW_MOVES_KEY, false);
+  }
+
+  public void setBreakdownShowMoves(boolean showMoves) {
+    sharedPreferences.edit().putBoolean(BREAKDOWN_SHOW_MOVES_KEY, showMoves).apply();
   }
 
   public boolean isRandomStateScrambles() {
