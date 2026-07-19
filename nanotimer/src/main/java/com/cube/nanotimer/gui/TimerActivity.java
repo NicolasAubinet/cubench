@@ -33,6 +33,7 @@ import com.cube.nanotimer.Options.BigCubesNotation;
 import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
+import com.cube.nanotimer.cube.ScrambleFollower;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
@@ -1225,8 +1226,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         @Override
         public void run() {
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
-          ScrambleType scrambleType = solveType.getScrambleType();
-          boolean followable = is3x3 && (scrambleType == null || scrambleType.isDefault());
+          boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable);
         }
       });

@@ -176,4 +176,33 @@ public class ScrambleFollowerTest {
     assertEquals(2, follower.getDoneCount());
     assertFalse(follower.isWrong());
   }
+
+  @Test
+  public void followsASpecialScrambleTypeSequence() {
+    // A last-layer scramble is a plain face-turn sequence like any other, so it must be followable.
+    String[] scramble = {"R", "U", "R'", "U'"};
+    assertTrue(ScrambleFollower.canFollow(scramble));
+
+    ScrambleFollower follower = new ScrambleFollower(scramble);
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.R, false);
+    turn(follower, mirror, Face.U, false);
+    turn(follower, mirror, Face.R, true);
+    turn(follower, mirror, Face.U, true);
+    assertTrue(follower.isComplete());
+  }
+
+  @Test
+  public void rejectsScramblesWithSliceOrWideMoves() {
+    // roux_last_10_pieces appends a lowercase slice/wide move: the follower cannot track those.
+    assertFalse(ScrambleFollower.canFollow(new String[] {"R", "U", "m'"}));
+    assertFalse(ScrambleFollower.canFollow(new String[] {"R", "U", "r2"}));
+    assertFalse(ScrambleFollower.canFollow(null));
+    assertTrue(ScrambleFollower.canFollow(new String[] {"R", "", "U2"})); // blanks are harmless
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void refusesToBuildFromAnUnsupportedMove() {
+    new ScrambleFollower(new String[] {"R", "m", "U"});
+  }
 }

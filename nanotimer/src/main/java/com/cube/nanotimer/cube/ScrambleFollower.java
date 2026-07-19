@@ -54,6 +54,9 @@ public class ScrambleFollower {
     for (String token : scramble) {
       Step step = parseToken(token);
       if (step == null) {
+        if (token != null && !token.trim().isEmpty()) { // skipping it would track a different scramble
+          throw new IllegalArgumentException("Unsupported scramble move: " + token);
+        }
         continue;
       }
       int index = steps.size();
@@ -71,12 +74,32 @@ public class ScrambleFollower {
     }
   }
 
+  /**
+   * True when every token is a plain face turn, the only notation the follower can track. Rules out
+   * the slice and wide moves some scramble types append (they also move the centres, which the
+   * facelet targets assume fixed).
+   */
+  public static boolean canFollow(String[] scramble) {
+    if (scramble == null) {
+      return false;
+    }
+    for (String token : scramble) {
+      if (token != null && !token.trim().isEmpty() && parseToken(token) == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   private static Step parseToken(String token) {
     if (token == null || token.trim().isEmpty()) {
       return null;
     }
     token = token.trim();
-    Face face = Face.valueOf(token.substring(0, 1));
+    Face face = parseFace(token.substring(0, 1));
+    if (face == null) {
+      return null;
+    }
     String modifier = token.substring(1);
     if (modifier.startsWith("'")) {
       return new Step(face, -1);
@@ -84,6 +107,15 @@ public class ScrambleFollower {
       return new Step(face, 2);
     }
     return new Step(face, 1);
+  }
+
+  private static Face parseFace(String letter) {
+    for (Face face : Face.values()) {
+      if (face.name().equals(letter)) {
+        return face;
+      }
+    }
+    return null;
   }
 
   private static void applyStep(CubieCube cube, Step step) {
