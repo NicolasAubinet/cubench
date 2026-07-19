@@ -361,10 +361,35 @@ public final class CFOPStepDetector implements StepDetector {
   @Override
   public boolean matchesMethod() {
     Long cross = getStepTimestampMs(CROSS);
-    Long f2l = getStepTimestampMs(F2L);
-    if (cross == null || f2l == null) {
+    if (cross == null) {
       return false;
     }
+    Long f2l = getStepTimestampMs(F2L);
+    if (f2l == null) {
+      return matchesOnFirstPair(cross);
+    }
     return cross < f2l || f2l == solveStartMs;
+  }
+
+  /**
+   * The same check on a solve that stopped inside F2L: the cross was built before the first pair went
+   * in. Roux is still rejected — mid-block it has no cross at all — and so is ZZ, whose cross only
+   * completes around the second pair (EOLine leaves two of its edges out). Not strict, unlike the
+   * complete check: a keyhole insertion finishes the cross <em>with</em> the pair rather than before
+   * it. A lone cross proves nothing (every method builds one eventually), so it never matches.
+   *
+   * <p>The cross face is still provisional here — only F2L confirms it — so this rests on a guess no
+   * later step will correct. It takes an accidental cross <em>and</em> one of that same face's slots
+   * to mislead it, which is why the guess is worth trusting this far and no further.
+   */
+  private boolean matchesOnFirstPair(long crossMs) {
+    Long firstPair = null;
+    for (int subStep = 0; subStep < subStepCount(F2L); subStep++) {
+      Long pairMs = getSubStepTimestampMs(F2L, subStep);
+      if (pairMs != null && (firstPair == null || pairMs < firstPair)) {
+        firstPair = pairMs;
+      }
+    }
+    return firstPair != null && crossMs <= firstPair;
   }
 }

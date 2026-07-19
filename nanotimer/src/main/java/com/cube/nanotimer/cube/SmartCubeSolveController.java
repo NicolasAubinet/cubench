@@ -50,6 +50,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
+  private Integer stoppedStep;
   private String solveMoves = "";
   private String[] scramble;
   private boolean cubeDriven; // auto-stop applies (3x3 + connected)
@@ -97,12 +98,14 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   }
 
   public void onTimerStopped() {
-    // Only a solve the cube saw through to solved, and whose steps match the method, has a
-    // breakdown; a tap stop mid-solve, or a solve that did not follow the method, has none.
-    stepTimes = analyzing && analyzer.isComplete() && analyzer.matchesMethod()
-        ? analyzer.getStepTimes() : Collections.<StepTime>emptyList();
+    // A solve the cube drove has a breakdown as far as its milestones went, whether or not it
+    // reached solved — a botched PLL is exactly the solve worth looking at. What still earns none is
+    // a method the milestones never fitted, or a prefix too short to tell the methods apart.
+    boolean matched = analyzing && analyzer.matchesMethod();
+    stepTimes = matched ? analyzer.getStepTimes() : Collections.<StepTime>emptyList();
+    stoppedStep = matched ? analyzer.getStoppedStep() : null;
     // The moves need no method: an unrecognised solve still has a solution worth keeping.
-    solveMoves = analyzing && analyzer.isComplete()
+    solveMoves = analyzing
         ? SolveMovesFormat.format(analyzer.getMoves(), analyzer.getSolveStartMs()) : "";
     if (analyzing) {
       logStepTimes();
@@ -111,12 +114,18 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
   }
 
-  /** The CFOP breakdown of the solve just finished. Empty unless the cube drove it to solved. */
+  /** The CFOP breakdown of the solve just finished, as far as it got. Empty unless the cube drove
+   * it and its milestones matched the method. */
   public List<StepTime> getStepTimes() {
     return stepTimes;
   }
 
-  /** The moves of the solve just finished, stored form. Empty unless the cube saw it to solved. */
+  /** The step the solve just finished stopped in, null when the cube saw it through to solved. */
+  public Integer getStoppedStep() {
+    return stoppedStep;
+  }
+
+  /** The moves of the solve just finished, stored form. Empty unless the cube drove it. */
   public String getSolveMoves() {
     return solveMoves;
   }

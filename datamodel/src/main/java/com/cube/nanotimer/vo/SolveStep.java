@@ -16,14 +16,21 @@ public class SolveStep implements Serializable {
   private final String name; // step code (ex: "cross", "pair"), localized when displayed
   private final long recognitionMs;
   private final long executionMs;
+  private final boolean complete;
   private final List<SolveStep> subSteps;
 
   public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
       List<SolveStep> subSteps) {
+    this(stepIndex, name, recognitionMs, executionMs, subSteps, true);
+  }
+
+  public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
+      List<SolveStep> subSteps, boolean complete) {
     this.stepIndex = stepIndex;
     this.name = name;
     this.recognitionMs = recognitionMs;
     this.executionMs = executionMs;
+    this.complete = complete;
     this.subSteps = Collections.unmodifiableList(subSteps);
   }
 
@@ -45,6 +52,12 @@ public class SolveStep implements Serializable {
 
   public long getTotalMs() {
     return recognitionMs + executionMs;
+  }
+
+  /** False when the solve stopped inside this step: only its finished parts are here, and it ends
+   * at the last of them rather than at the step's own milestone. */
+  public boolean isComplete() {
+    return complete;
   }
 
   /** The parts this step was built in, oldest first. Empty when it has none. */

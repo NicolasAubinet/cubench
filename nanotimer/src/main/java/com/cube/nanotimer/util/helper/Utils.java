@@ -13,8 +13,10 @@ import android.os.BatteryManager;
 import android.preference.PreferenceManager;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.security.SecureRandom;
@@ -152,6 +154,21 @@ public class Utils {
   /** An F2L pair is stored per slot ("pair_rf"); they all share the one "pair" name. */
   private static String toSmartCubeStepBaseCode(String code) {
     return code != null && code.startsWith(PAIR_CODE_PREFIX) ? "pair" : code;
+  }
+
+  /**
+   * The name a breakdown step is shown under: a step the solve stopped inside says so, since it holds
+   * only the parts that were finished and would otherwise read as a step that was seen through.
+   */
+  public static String toSmartCubeStepDisplayName(Context context, SolveStep step, int position) {
+    String name = toSmartCubeStepLocalizedName(context, step.getName(), position);
+    return step.isComplete() ? name : context.getString(R.string.smartcube_step_partial, name);
+  }
+
+  /** The tail segment: turning after the last milestone, on a solve the cube never saw finish. It
+   * belongs to no step, so it is drawn apart from them rather than in the step colours. */
+  public static boolean isUnfinishedTail(String code) {
+    return SolveBreakdown.UNFINISHED_STEP.equals(code);
   }
 
   /**

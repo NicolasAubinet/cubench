@@ -57,23 +57,65 @@ public final class SolveAnalyzer {
     return solveStartMs;
   }
 
-  /** The steps reached so far, in order. */
+  /**
+   * The steps reached, in order, ending in the one the solve stopped inside if it holds any finished
+   * parts. On an unfinished solve they stop short of the whole: the turning after the last milestone
+   * belongs to no step, and is left for the display to derive from {@link #getStoppedStep()}.
+   */
   public List<StepTime> getStepTimes() {
     List<StepTime> times = new ArrayList<>();
     long previousCompleteMs = solveStartMs;
     for (int step = 0; step < detector.stepCount(); step++) {
       Long completeMs = detector.getStepTimestampMs(step);
       if (completeMs == null) {
+        StepTime partial = partialStep(step, previousCompleteMs);
+        if (partial != null) {
+          times.add(partial);
+        }
         break;
       }
       List<StepTime> subSteps = splitSubSteps(step, previousCompleteMs, completeMs);
       times.add(subSteps.isEmpty()
           ? timeFor(step, step, detector.stepName(step), previousCompleteMs, completeMs, step == 0,
               subSteps)
-          : sumOf(step, detector.stepName(step), subSteps, worthSplitting(subSteps)));
+          : sumOf(step, detector.stepName(step), subSteps, worthSplitting(subSteps), true));
       previousCompleteMs = completeMs;
     }
     return times;
+  }
+
+  /**
+   * The step the solve was in when it stopped, or null when it ran to the end. The steps account for
+   * the whole solve exactly when this is null, so it is also what says a tail has to be drawn.
+   */
+  public Integer getStoppedStep() {
+    for (int step = 0; step < detector.stepCount(); step++) {
+      if (detector.getStepTimestampMs(step) == null) {
+        return step;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The step the solve stopped inside: the parts it did finish, ending at the last of them. Null when
+   * it got nowhere, or has no parts to report (a botched PLL) — then it is all tail. A lone part is
+   * kept rather than collapsed: it is the only record of a step that reached no milestone.
+   */
+  private StepTime partialStep(int step, long previousCompleteMs) {
+    Long lastPartMs = null;
+    for (int subStep = 0; subStep < detector.subStepCount(step); subStep++) {
+      Long partMs = detector.getSubStepTimestampMs(step, subStep);
+      if (partMs != null && (lastPartMs == null || partMs > lastPartMs)) {
+        lastPartMs = partMs;
+      }
+    }
+    if (lastPartMs == null) {
+      return null;
+    }
+    List<StepTime> subSteps = splitSubSteps(step, previousCompleteMs, lastPartMs);
+    return subSteps.isEmpty() ? null
+        : sumOf(step, detector.stepName(step), subSteps, true, false);
   }
 
   /** A step's parts, oldest first: each one's thinking and turning, measured from the one before. */
@@ -114,7 +156,8 @@ public final class SolveAnalyzer {
     return new StepTime(index, name, recognitionMs, executionMs, subSteps);
   }
 
-  private static StepTime sumOf(int step, String name, List<StepTime> subSteps, boolean split) {
+  private static StepTime sumOf(int step, String name, List<StepTime> subSteps, boolean split,
+      boolean complete) {
     long recognitionMs = 0;
     long executionMs = 0;
     for (StepTime subStep : subSteps) {
@@ -122,7 +165,7 @@ public final class SolveAnalyzer {
       executionMs += subStep.getExecutionMs();
     }
     return new StepTime(step, name, recognitionMs, executionMs,
-        split ? subSteps : new ArrayList<>());
+        split ? subSteps : new ArrayList<>(), complete);
   }
 
   /** Only one part actually done — a one-look OLL or PLL, or a step the scramble half-gave: the

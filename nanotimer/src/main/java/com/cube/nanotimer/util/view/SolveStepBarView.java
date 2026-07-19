@@ -8,6 +8,9 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
+import androidx.core.content.ContextCompat;
+import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,15 +37,19 @@ public class SolveStepBarView extends View {
   private final RectF bounds = new RectF();
   private final Path corners = new Path();
 
+  private final int tailColor;
+
   private List<SolveStep> steps = Collections.emptyList();
   private int[] colors = new int[0];
 
   public SolveStepBarView(Context context) {
     super(context);
+    tailColor = ContextCompat.getColor(context, R.color.gray600);
   }
 
   public SolveStepBarView(Context context, AttributeSet attributes) {
     super(context, attributes);
+    tailColor = ContextCompat.getColor(context, R.color.gray600);
   }
 
   /** @param colors one per step, in step order */
@@ -120,7 +127,12 @@ public class SolveStepBarView extends View {
     canvas.drawRect(left, 0, right, height, paint);
   }
 
+  /** The tail is deliberately outside the step palette: colouring it like a step would claim it
+   * was one. */
   private int colorOf(int step) {
+    if (Utils.isUnfinishedTail(steps.get(step).getName())) {
+      return tailColor;
+    }
     return colors.length == 0 ? Color.WHITE : colors[step % colors.length];
   }
 }

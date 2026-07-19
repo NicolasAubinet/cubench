@@ -326,6 +326,8 @@
   <string name="smartcube_step_edges">Arestas</string>
   <string name="smartcube_step_corners">Cantos</string>
   <string name="smartcube_step_pair">Par %d</string>
+  <string name="smartcube_step_unfinished">Inacabado</string>
+  <string name="smartcube_step_partial">%s (parcial)</string>
   <string name="scramble_view_clock_notation_hint">O diagrama não está disponível para esta notação do Clock. Mude para a notação UR/DR/DL nas opções para vê-lo.</string>
   <string name="cross_section_title">Cruz %1$s · %2$d movimentos</string>
   <string name="cross_solutions_count">%1$d soluções ótimas</string>

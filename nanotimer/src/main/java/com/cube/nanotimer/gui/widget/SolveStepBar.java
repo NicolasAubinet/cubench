@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
@@ -60,8 +61,12 @@ public class SolveStepBar extends LinearLayout {
       }
       SolveStep step = steps.get(i);
       cells[i].setVisibility(VISIBLE);
+      // Plain name, no "(partial)" marker: the cell is a quarter of the screen, and a longer label
+      // pushes the time out of it. The detail dialog has the room to say it.
       names[i].setText(Utils.toSmartCubeStepLocalizedName(getContext(), step.getName(), i));
-      names[i].setTextColor(colors[i % colors.length]);
+      names[i].setTextColor(Utils.isUnfinishedTail(step.getName())
+          ? ContextCompat.getColor(getContext(), R.color.gray600)
+          : colors[i % colors.length]);
       times[i].setText(FormatterService.INSTANCE.formatSolveTime(step.getTotalMs()));
     }
   }

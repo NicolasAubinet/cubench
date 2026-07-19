@@ -64,6 +64,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_TIMEHISTORY_PB + " INTEGER DEFAULT 0, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " TEXT, " +
+        DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " INTEGER, " +
         DB.COL_TIMEHISTORY_SOLVETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_TIMEHISTORY_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
       ");"
@@ -200,6 +201,42 @@ public class DBHelper extends SQLiteOpenHelper {
     if (oldVersion < 17) {
       // Add the moves of smart cube solves, kept even when no method matched
       db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN " + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " TEXT");
+    }
+
+    if (oldVersion < 18) {
+      // A per-step "complete" flag, replaced by timehistory.smartcube_stopped_step in 19 before it
+      // ever shipped. Literal column name: this DDL is frozen, so it cannot follow DB.java.
+      db.execSQL("ALTER TABLE " + DB.TABLE_SMARTCUBE_SOLVESTEP + " ADD COLUMN "
+          + "complete INTEGER NOT NULL DEFAULT 1");
+    }
+
+    if (oldVersion < 19) {
+      // Record where an unfinished solve stopped, once per solve rather than once per step.
+      db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN "
+          + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " INTEGER");
+
+      // Drop 18's "complete" column by rebuilding the table around it: no DROP COLUMN before
+      // SQLite 3.35, which is well past minSdk 21. Only a device that ran 18 has the column, but
+      // the rebuild is written to run on either shape, so the copy names every column it keeps.
+      db.execSQL("ALTER TABLE " + DB.TABLE_SMARTCUBE_SOLVESTEP + " RENAME TO smartcube_solvestep_old");
+      db.execSQL("CREATE TABLE " + DB.TABLE_SMARTCUBE_SOLVESTEP + "("
+          + "step_index INTEGER NOT NULL, "
+          + "sub_index INTEGER, "
+          + "name TEXT, "
+          + "time INTEGER NOT NULL, "
+          + "recognition INTEGER NOT NULL, "
+          + "timehistory_id INTEGER, "
+          + "FOREIGN KEY (timehistory_id) REFERENCES " + DB.TABLE_TIMEHISTORY + " (" + DB.COL_ID + ") "
+          + ");"
+      );
+      db.execSQL("INSERT INTO " + DB.TABLE_SMARTCUBE_SOLVESTEP
+          + " (step_index, sub_index, name, time, recognition, timehistory_id)"
+          + " SELECT step_index, sub_index, name, time, recognition, timehistory_id"
+          + " FROM smartcube_solvestep_old");
+      db.execSQL("DROP TABLE smartcube_solvestep_old"); // takes its index with it
+      db.execSQL("CREATE INDEX " + DB.IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY
+          + " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (timehistory_id);"
+      );
     }
 
 //    progressDialog.hide();

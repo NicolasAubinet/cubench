@@ -339,6 +339,10 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (solveTime.hasSmartcubeMoves()) { // kept even when no method matched: the breakdown is optional, the solution is not
       values.put(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES, solveTime.getSmartcubeMoves());
     }
+    // Only alongside a breakdown: on its own there are no steps for it to point into.
+    if (solveTime.hasSmartcubeBreakdown() && solveTime.getSmartcubeStoppedStep() != null) {
+      values.put(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP, solveTime.getSmartcubeStoppedStep());
+    }
     long historyId = db.insert(DB.TABLE_TIMEHISTORY, null, values);
     if (solveTime.hasSteps()) {
       Iterator<SolveTypeStep> stsIt = getSolveTypeSteps(solveTime.getSolveType().getId()).iterator();
@@ -575,6 +579,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_TIMEHISTORY_PB);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
 
@@ -617,12 +622,14 @@ public class ServiceProviderImpl implements ServiceProvider {
           List<Long> stepTimes = getSolveTimeSteps(st.getId());
           st.setStepsTimes(stepTimes.size() == 0 ? null : stepTimes.toArray(new Long[0]));
         }
+        Integer stoppedStep = cursor.isNull(9) ? null : cursor.getInt(9);
         String method = cursor.getString(7);
         if (method != null) {
           st.setSmartcubeMethod(CubeMethod.fromCode(method));
-          st.setSmartcubeSteps(getSmartcubeSteps(st.getId()));
+          st.setSmartcubeSteps(getSmartcubeSteps(st.getId(), stoppedStep));
         }
         st.setSmartcubeMoves(cursor.getString(8));
+        st.setSmartcubeStoppedStep(stoppedStep);
         history.add(st);
       }
       cursor.close();
@@ -687,9 +694,14 @@ public class ServiceProviderImpl implements ServiceProvider {
     db.insert(DB.TABLE_SMARTCUBE_SOLVESTEP, null, values);
   }
 
-  /** The method breakdown of one solve: a step per top-level row, its parts (the rows with a
-   * sub_index) folded under it. NULL sub_index sorts first, so each step precedes its parts. */
-  private List<SolveStep> getSmartcubeSteps(int solveTimeId) {
+  /**
+   * The method breakdown of one solve: a step per top-level row, its parts (the rows with a
+   * sub_index) folded under it. NULL sub_index sorts first, so each step precedes its parts.
+   *
+   * @param stoppedStep the step the solve stopped in, null when it finished: that one step holds
+   *     only the parts that were done, which is not visible in the rows themselves
+   */
+  private List<SolveStep> getSmartcubeSteps(int solveTimeId, Integer stoppedStep) {
     StringBuilder q = new StringBuilder();
     q.append("SELECT ").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
     q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX);
@@ -713,7 +725,8 @@ public class ServiceProviderImpl implements ServiceProvider {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         if (cursor.isNull(1)) { // a step: close the previous one, then start this one
           if (pending) {
-            steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps));
+            steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps,
+                stoppedStep == null || stoppedStep != stepIndex));
           }
           stepIndex = cursor.getInt(0);
           name = cursor.getString(2);
@@ -729,7 +742,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         }
       }
       if (pending) {
-        steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps));
+        steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps,
+            !Integer.valueOf(stepIndex).equals(stoppedStep)));
       }
       cursor.close();
     }

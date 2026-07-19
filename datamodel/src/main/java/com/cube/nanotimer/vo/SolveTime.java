@@ -7,6 +7,9 @@ import java.util.List;
 public class SolveTime implements Serializable {
 
   private int id;
+  /** What a +2 adds to the recorded time. Penalty, not solving: never counted as turning. */
+  public static final long PLUS_TWO_PENALTY_MS = 2000;
+
   private long timestamp;
   private long time;
   private boolean plusTwo;
@@ -18,6 +21,7 @@ public class SolveTime implements Serializable {
   private CubeMethod smartcubeMethod;
   private List<SolveStep> smartcubeSteps;
   private String smartcubeMoves;
+  private Integer smartcubeStoppedStep;
 
   public SolveTime() {
   }
@@ -108,9 +112,9 @@ public class SolveTime implements Serializable {
 
       if (adjustTime) {
         if (plusTwo) {
-          setTime(time + 2000);
+          setTime(time + PLUS_TWO_PENALTY_MS);
         } else {
-          setTime(time - 2000);
+          setTime(time - PLUS_TWO_PENALTY_MS);
         }
       }
     }
@@ -136,13 +140,25 @@ public class SolveTime implements Serializable {
     this.smartcubeSteps = smartcubeSteps;
   }
 
-  /** The solve's moves with their offsets from its start, null unless a cube timed it to solved. */
+  /** The solve's moves with their offsets from its start, null unless a cube drove it. */
   public String getSmartcubeMoves() {
     return smartcubeMoves;
   }
 
   public void setSmartcubeMoves(String smartcubeMoves) {
     this.smartcubeMoves = smartcubeMoves;
+  }
+
+  /**
+   * The step the solve stopped in, null when the cube saw it through to solved. The steps account
+   * for the whole solve exactly when this is null; otherwise the rest is turning no step reached.
+   */
+  public Integer getSmartcubeStoppedStep() {
+    return smartcubeStoppedStep;
+  }
+
+  public void setSmartcubeStoppedStep(Integer smartcubeStoppedStep) {
+    this.smartcubeStoppedStep = smartcubeStoppedStep;
   }
 
   /** Whether this solve carries a smart cube method breakdown (matched the method when solved). */

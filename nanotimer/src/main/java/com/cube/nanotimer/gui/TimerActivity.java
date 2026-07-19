@@ -34,6 +34,7 @@ import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.SmartCubeChip;
+import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
 import com.cube.nanotimer.cube.SolveStepConverter;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
@@ -102,6 +103,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private SolveTime lastSolveTime;
   private List<SolveStep> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
   private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
+  private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -745,6 +747,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       public void run() {
         lastSolveSteps = Collections.emptyList(); // a hand-entered time is now the last solve, and no cube saw it
         lastSolveMoves = "";
+        lastSolveStoppedStep = null;
         addTimeToUI(solveAverages.getSolveTime().getTime());
         generateScramble();
       }
@@ -922,9 +925,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       timer.purge();
     }
     timerStopped();
-    showStepBreakdown();
+    showStepBreakdown(time);
     if (oversteppedInspection) {
-      time += 2000; // add 2s to time if started solve after inspection time ended (for official inspection mode)
+      time += SolveTime.PLUS_TWO_PENALTY_MS; // started the solve after inspection ran out (official inspection mode)
       oversteppedInspection = false;
     }
     // update time once more to get the ms right
@@ -1001,6 +1004,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       lastSolveTime = null;
       lastSolveSteps = Collections.emptyList();
       lastSolveMoves = "";
+      lastSolveStoppedStep = null;
       timerStartTs = 0;
       resetTimerText();
     }
@@ -1054,6 +1058,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       if (!lastSolveSteps.isEmpty()) { // the cube broke this solve into method steps
         solveTime.setSmartcubeMethod(CubeMethod.CFOP);
         solveTime.setSmartcubeSteps(lastSolveSteps);
+        solveTime.setSmartcubeStoppedStep(lastSolveStoppedStep); // null unless it stopped short
       }
       if (!lastSolveMoves.isEmpty()) { // the cube timed it, whether or not a method matched
         solveTime.setSmartcubeMoves(lastSolveMoves);
@@ -1237,14 +1242,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     hideStepBreakdown();
   }
 
-  private void showStepBreakdown() {
+  /** @param solveDurationMs what the timer measured, before any penalty: a +2 is not solving time */
+  private void showStepBreakdown(long solveDurationMs) {
     lastSolveSteps = SolveStepConverter.toSolveSteps(solveController.getStepTimes());
+    lastSolveStoppedStep = solveController.getStoppedStep();
     lastSolveMoves = solveController.getSolveMoves(); // captured before the early return: a solve with no breakdown still has moves
-    if (lastSolveSteps.isEmpty()) { // the cube did not see this solve through: nothing to break down
+    if (lastSolveSteps.isEmpty()) { // no cube drove it, or its milestones fitted no method
       hideStepBreakdown();
       return;
     }
-    solveStepBar.setSteps(lastSolveSteps);
+    // The tail is drawn but never stored, so lastSolveSteps stays the form that gets saved.
+    solveStepBar.setSteps(SolveBreakdown.withUnfinishedTail(lastSolveSteps, lastSolveStoppedStep,
+        solveDurationMs, lastSolveMoves));
     solveStepBar.setVisibility(View.VISIBLE);
   }
 

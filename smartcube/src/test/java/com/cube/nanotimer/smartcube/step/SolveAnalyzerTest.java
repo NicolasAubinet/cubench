@@ -54,6 +54,10 @@ public class SolveAnalyzerTest {
     }
   }
 
+  private List<StepTime> stepTimes() {
+    return analyzer.getStepTimes();
+  }
+
   private static void assertStep(StepTime step, String name, long recognitionMs, long executionMs) {
     assertEquals(name, step.getStepName());
     assertEquals(recognitionMs, step.getRecognitionMs());
@@ -70,7 +74,7 @@ public class SolveAnalyzerTest {
     play(ANTI_SUNE, 800, 100);
     play(T_PERM, 400, 100);
 
-    List<StepTime> steps = analyzer.getStepTimes();
+    List<StepTime> steps = stepTimes();
     assertEquals(4, steps.size());
     assertStep(steps.get(0), "cross", 0, 600);
     assertStep(steps.get(1), "f2l", 500, 200);
@@ -99,7 +103,7 @@ public class SolveAnalyzerTest {
 
     // Partition the way a reader with only the persisted durations can: walk the cumulative step
     // totals against each move's offset into the solve.
-    List<StepTime> steps = analyzer.getStepTimes();
+    List<StepTime> steps = stepTimes();
     int[] perStep = new int[steps.size()];
     long boundaryMs = 0;
     int move = 0;
@@ -127,7 +131,7 @@ public class SolveAnalyzerTest {
     play("R' U' R", 300, 100);
     play("R U R'", 200, 100);
 
-    List<StepTime> steps = analyzer.getStepTimes();
+    List<StepTime> steps = stepTimes();
     StepTime f2l = steps.get(1);
     assertEquals(500 + 400 + 300 + 200, f2l.getRecognitionMs());
     assertEquals(4, f2l.getSubSteps().size());
@@ -145,7 +149,7 @@ public class SolveAnalyzerTest {
     play("F R U R' U' F'", 600, 100); // edge orientation
     play(ANTI_SUNE, 900, 100); // corner orientation
 
-    StepTime oll = analyzer.getStepTimes().get(2);
+    StepTime oll = stepTimes().get(2);
     assertEquals(2, oll.getSubSteps().size());
     assertEquals("edges", oll.getSubSteps().get(0).getStepName());
     assertEquals(600, oll.getSubSteps().get(0).getRecognitionMs());
@@ -160,7 +164,7 @@ public class SolveAnalyzerTest {
 
     play(ANTI_SUNE, 700, 100);
 
-    StepTime oll = analyzer.getStepTimes().get(2);
+    StepTime oll = stepTimes().get(2);
     assertEquals(700, oll.getRecognitionMs()); // the single pause, counted once
     assertEquals(700, oll.getExecutionMs()); // 8 moves, 100ms apart
     assertTrue(oll.getSubSteps().isEmpty()); // only one part was needed: it is the step
@@ -174,7 +178,7 @@ public class SolveAnalyzerTest {
     play("U", 800, 100); // AUF
     play(T_PERM, 300, 100); // the algorithm proper
 
-    StepTime pll = analyzer.getStepTimes().get(3);
+    StepTime pll = stepTimes().get(3);
     assertEquals(800 + 300, pll.getRecognitionMs()); // the think, the AUF, and the think after it
     assertEquals(1400, pll.getExecutionMs()); // only the algorithm
   }
@@ -217,12 +221,97 @@ public class SolveAnalyzerTest {
   }
 
   @Test
+  public void keepsTheFinishedPairsOfAnF2lTheSolveStoppedInside() {
+    startFrom(T_PERM, SUNE, "R U' R'", "R' U R", "L' U L", "L U' L'", "R' F'");
+
+    play("F R", 0, 600); // cross
+    play("L U L'", 500, 100); // pair 1
+    play("L' U' L", 400, 100); // pair 2
+    play("U U U", 700, 100); // then it went nowhere: U turns finish no slot
+
+    List<StepTime> steps = stepTimes();
+    assertFalse(analyzer.isComplete());
+    assertEquals(Integer.valueOf(CFOPStepDetector.F2L), analyzer.getStoppedStep());
+
+    assertEquals(2, steps.size()); // no tail here: it is derived from the stopped step at display
+    assertTrue(steps.get(0).isComplete());
+    StepTime f2l = steps.get(1);
+    assertEquals("f2l", f2l.getStepName());
+    assertFalse(f2l.isComplete()); // two of its four pairs: it never reached its milestone
+    assertEquals(2, f2l.getSubSteps().size());
+
+    // The steps stop at the last pair, leaving the U turns after it to the tail.
+    long total = 0;
+    for (StepTime step : steps) {
+      total += step.getTotalMs();
+    }
+    assertEquals(600 + 500 + 200 + 400 + 200, total);
+  }
+
+  @Test
+  public void reportsNoStoppedStepWhenTheSolveRanToTheEnd() {
+    startFrom(T_PERM, SUNE, "R U' R'", "R' F'");
+
+    play("F R", 0, 600);
+    play("R U R'", 500, 100);
+    play(ANTI_SUNE, 800, 100);
+    play(T_PERM, 400, 100);
+
+    assertTrue(analyzer.isComplete());
+    assertEquals(null, analyzer.getStoppedStep()); // nothing left over, so no tail to draw
+  }
+
+  @Test
+  public void keepsASoloPairRatherThanCollapsingIt() {
+    // One pair is the whole of what the F2L got done. It has to survive as a part: an incomplete step
+    // writes its parts and nothing else, so collapsing it would lose the step altogether.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' U R", "L' U L", "L U' L'", "R' F'");
+
+    play("F R", 0, 600);
+    play("L U L'", 500, 100);
+    play("U U", 400, 100);
+
+    StepTime f2l = stepTimes().get(1);
+    assertFalse(f2l.isComplete());
+    assertEquals(1, f2l.getSubSteps().size());
+  }
+
+  @Test
+  public void matchesOnTheFirstPairWhenTheSolveStoppedInsideF2l() {
+    // The cross went in before the first pair: CFOP-shaped, even though F2L never finished.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' U R", "L' U L", "L U' L'", "R' F'");
+
+    play("F R", 0, 600);
+    play("L U L'", 500, 100);
+
+    assertFalse(analyzer.isComplete());
+    assertTrue(analyzer.matchesMethod());
+  }
+
+  @Test
+  public void doesNotMatchOnACrossAlone() {
+    // Every method builds a cross eventually, so one on its own says nothing about which was used —
+    // and a breakdown resting on it would be a guess.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' U R", "L' U L", "L U' L'", "R' F'");
+
+    play("F R", 0, 600);
+    play("U U", 500, 100);
+
+    assertFalse(analyzer.isComplete());
+    assertFalse(analyzer.matchesMethod());
+
+    List<StepTime> steps = stepTimes();
+    assertEquals(1, steps.size()); // just the cross: no F2L step was invented for the U turns
+    assertEquals("cross", steps.get(0).getStepName());
+  }
+
+  @Test
   public void reportsASkippedStepAsZero() {
     startFrom(T_PERM); // cross, F2L and OLL are all already done: only PLL is left
 
     play(T_PERM, 900, 100);
 
-    List<StepTime> steps = analyzer.getStepTimes();
+    List<StepTime> steps = stepTimes();
     assertEquals(4, steps.size());
     assertStep(steps.get(0), "cross", 0, 0);
     assertStep(steps.get(1), "f2l", 0, 0);

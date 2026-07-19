@@ -25,6 +25,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -114,9 +115,14 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       });
     }
 
-    SolveSolution solution = SolveSolution.from(solveTime.getSmartcubeMoves(),
-        solveTime.getSmartcubeSteps(), solveTime.getTime());
-    buildBreakdown(v, solveTime.getSmartcubeSteps(), solution);
+    // The tail is derived rather than stored, so it is added back here, before anything reads the
+    // breakdown: the solution splits its moves by the same step windows the bar draws. Both measure
+    // against the turning time, not the recorded one, so a DNF still has a breakdown and a turn rate.
+    long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
+    List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(solveTime.getSmartcubeSteps(),
+        solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves());
+    SolveSolution solution = SolveSolution.from(solveTime.getSmartcubeMoves(), steps, durationMs);
+    buildBreakdown(v, steps, solution);
     buildSolution(v, solution);
 
     final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
@@ -230,8 +236,10 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       TextView name = cell(R.style.BreakdownStepName,
-          Utils.toSmartCubeStepLocalizedName(getActivity(), step.getName(), i));
-      name.setTextColor(colors[i % colors.length]);
+          Utils.toSmartCubeStepDisplayName(getActivity(), step, i));
+      name.setTextColor(Utils.isUnfinishedTail(step.getName())
+          ? ContextCompat.getColor(getActivity(), R.color.gray600)
+          : colors[i % colors.length]);
       TableRow row = stepRow(step, name, moveCountOf(solution, i));
       table.addView(row);
 
@@ -276,7 +284,9 @@ public class HistoryDetailDialog extends NanoTimerDialogFragment {
       }
       TextView name = cell(R.style.SolutionStepName,
           Utils.toSmartCubeStepLocalizedName(getActivity(), step.getName(), step.getIndex()));
-      name.setTextColor(colors[step.getIndex() % colors.length]);
+      name.setTextColor(Utils.isUnfinishedTail(step.getName())
+          ? ContextCompat.getColor(getActivity(), R.color.gray600)
+          : colors[step.getIndex() % colors.length]);
 
       LinearLayout heading = new LinearLayout(getActivity());
       // Set in code, not in the style: layout_* attributes are ignored for a view built this way.

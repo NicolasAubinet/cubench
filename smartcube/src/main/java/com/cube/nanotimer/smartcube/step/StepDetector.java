@@ -48,7 +48,10 @@ public interface StepDetector {
    * Whether the observed milestones are consistent with this method having been used — reached in
    * the method's order, each before the solve finished, with any step skipped still counting. A
    * solve that does not match (a different method, or freestyle) gets no breakdown, only its total.
-   * Meaningful once the solve is {@link #isComplete() complete}.
+   *
+   * <p>Also meaningful on a solve that stopped early: a prefix of the milestones, in order, is a
+   * legitimate partial match. It is never relaxed into "store something anyway" — a prefix too short
+   * to tell the methods apart does not match.
    */
   boolean matchesMethod();
 }

@@ -328,6 +328,8 @@
   <string name="smartcube_step_edges">Edges</string>
   <string name="smartcube_step_corners">Corners</string>
   <string name="smartcube_step_pair">Pair %d</string>
+  <string name="smartcube_step_unfinished">Unfinished</string>
+  <string name="smartcube_step_partial">%s (partial)</string>
   <string name="scramble_view_clock_notation_hint">The diagram isn\'t available for this Clock notation. Switch to the UR/DR/DL notation in the options to see it.</string>
   <string name="cross_section_title">%1$s cross · %2$d moves</string>
   <string name="cross_solutions_count">%1$d optimal solutions</string>
