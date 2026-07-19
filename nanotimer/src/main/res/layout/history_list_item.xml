@@ -34,25 +34,42 @@
      android:fontFeatureSettings="tnum"
      android:singleLine="true"/>
 
-  <!-- Status icon cluster, right-to-left: cyan dot, PB trophy, comment -->
-  <ImageView
-     android:id="@+id/imgCircle"
-     android:layout_width="7dp"
-     android:layout_height="7dp"
+  <!-- Status icon cluster, right-to-left: where the solve came from, PB trophy, comment -->
+
+  <!-- One slot, one mark: the circle for a solve timed by hand, the cube for one the cube timed
+       itself. Wrapped so the icons after it keep their anchor whichever of the two is showing,
+       and sized by that mark so a manual solve's row is spaced exactly as it was. -->
+  <FrameLayout
+     android:id="@+id/solveSourceMarker"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
      android:layout_centerVertical="true"
      android:layout_toLeftOf="@+id/tvTime"
      android:layout_toStartOf="@+id/tvTime"
      android:layout_marginRight="@dimen/space_s"
-     android:layout_marginEnd="@dimen/space_s"
-     android:src="@drawable/history_circle"/>
+     android:layout_marginEnd="@dimen/space_s">
+    <ImageView
+       android:id="@+id/imgCircle"
+       android:layout_width="7dp"
+       android:layout_height="7dp"
+       android:layout_gravity="center"
+       android:src="@drawable/history_circle"/>
+    <ImageView
+       android:id="@+id/imgSmartCube"
+       android:layout_width="14dp"
+       android:layout_height="14dp"
+       android:layout_gravity="center"
+       android:visibility="gone"
+       android:src="@drawable/ic_smartcube_solve"/>
+  </FrameLayout>
 
   <ImageView
      android:id="@+id/imgPb"
      android:layout_width="16dp"
      android:layout_height="16dp"
      android:layout_centerVertical="true"
-     android:layout_toLeftOf="@+id/imgCircle"
-     android:layout_toStartOf="@+id/imgCircle"
+     android:layout_toLeftOf="@+id/solveSourceMarker"
+     android:layout_toStartOf="@+id/solveSourceMarker"
      android:layout_marginRight="@dimen/space_s"
      android:layout_marginEnd="@dimen/space_s"
      android:src="@drawable/trophy"/>

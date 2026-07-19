@@ -849,6 +849,10 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           // gray. Set on every bind so recycled rows never keep a stale color.
           tvTime.setTextColor(timeColorScale.colorFor(st));
 
+          boolean fromCube = st.getSmartcubeMoves() != null;
+          view.findViewById(R.id.imgSmartCube).setVisibility(fromCube ? View.VISIBLE : View.GONE);
+          view.findViewById(R.id.imgCircle).setVisibility(fromCube ? View.GONE : View.VISIBLE);
+
           if (st.isPb()) {
             view.findViewById(R.id.imgPb).setVisibility(View.VISIBLE);
           } else {

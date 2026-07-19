@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A cube seen corner-on, marking a solve the cube timed itself. Stands in the history list where
+     a manual solve shows the plain circle, so the two share a colour and a slot. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+   android:width="24dp"
+   android:height="24dp"
+   android:viewportWidth="24"
+   android:viewportHeight="24">
+  <!-- The silhouette, then the three edges meeting at the near corner. -->
+  <path
+     android:strokeColor="@color/history_marker"
+     android:strokeWidth="2"
+     android:strokeLineJoin="round"
+     android:strokeLineCap="round"
+     android:pathData="M12,3 L20,7.5 L20,16.5 L12,21 L4,16.5 L4,7.5 Z"/>
+  <path
+     android:strokeColor="@color/history_marker"
+     android:strokeWidth="2"
+     android:strokeLineCap="round"
+     android:pathData="M12,12 L12,21 M12,12 L4,7.5 M12,12 L20,7.5"/>
+</vector>
