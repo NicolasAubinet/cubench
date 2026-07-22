@@ -316,8 +316,8 @@
   </style>
 
   <!-- A part's moves sit under its own row, so they indent with it. -->
+  <!-- Inherits the parent's white: grey is reserved for rotations, which are not moves. -->
   <style name="BreakdownSubMoves" parent="BreakdownMoves">
-    <item name="android:textColor">@color/secondary_text</item>
     <item name="android:paddingLeft">12dp</item>
   </style>
 

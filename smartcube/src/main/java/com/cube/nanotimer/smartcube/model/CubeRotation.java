@@ -15,13 +15,6 @@ import java.util.Map;
 public final class CubeRotation {
 
   /**
-   * The gyro's axes are not the cube's. Measured on a real V10 (probe 4.11a): a physical
-   * {@code y} rotates about gyro −Z and an {@code x} about gyro −Y, which makes the cube's
-   * right-handed (R, U, F) frame (−Y, −Z, +X) in gyro axes.
-   */
-  private static final double ROOT_HALF = Math.sqrt(0.5);
-
-  /**
    * Generators in the cube's own frame: R = (1,0,0), U = (0,1,0), F = (0,0,1). Ordered by how
    * naturally a cuber writes them — several orientations have more than one shortest spelling
    * ({@code y x} and {@code x z'} are the same cube), and the search keeps whichever it meets
@@ -33,10 +26,29 @@ public final class CubeRotation {
     {1, 0, 0}, {1, 0, 0}, {1, 0, 0},
     {0, 0, 1}, {0, 0, 1}, {0, 0, 1},
   };
-  private static final double[] GEN_ANGLES = {90, -90, 180, 90, -90, 180, 90, -90, 180};
+  /**
+   * Negative, because cube notation turns the opposite way to the right-hand rule: {@code y} is
+   * clockwise seen from above, which about +U is −90°. Getting this backwards labels every
+   * rotation as its own inverse, which reads plausibly and replays wrongly.
+   */
+  private static final double[] GEN_ANGLES = {-90, 90, 180, -90, 90, 180, -90, 90, 180};
 
   /** Beyond this the reading is not a clean orientation change and is treated as unknown. */
   private static final double MATCH_TOLERANCE_DEGREES = 35;
+
+  /** Outward normals of each face in the cube's own frame. */
+  private static final Map<Character, double[]> FACE_NORMALS = faceNormals();
+
+  private static Map<Character, double[]> faceNormals() {
+    Map<Character, double[]> normals = new LinkedHashMap<Character, double[]>();
+    normals.put('R', new double[] {1, 0, 0});
+    normals.put('L', new double[] {-1, 0, 0});
+    normals.put('U', new double[] {0, 1, 0});
+    normals.put('D', new double[] {0, -1, 0});
+    normals.put('F', new double[] {0, 0, 1});
+    normals.put('B', new double[] {0, 0, -1});
+    return normals;
+  }
 
   private static final List<CubeRotation> ALL = buildAll();
 
@@ -57,8 +69,85 @@ public final class CubeRotation {
     return notation.isEmpty();
   }
 
+  /** True for the nine 180° cells ({@code y2}, {@code x2}, the edge flips and their kin). */
+  public boolean isHalfTurn() {
+    return Math.abs(quaternion.getW()) < 0.26; // |w| is 0 at 180°, 0.5 at the 120° corners
+  }
+
   public static List<CubeRotation> all() {
     return ALL;
+  }
+
+  /** The rotation spelled {@code notation}, or null if nothing spells it. */
+  public static CubeRotation byNotation(String notation) {
+    for (CubeRotation rotation : ALL) {
+      if (rotation.notation.equals(notation)) {
+        return rotation;
+      }
+    }
+    return null;
+  }
+
+  /** This rotation followed by {@code next}. The later rotation goes on the left. */
+  public CubeRotation then(CubeRotation next) {
+    return ofQuaternion(next.quaternion.multiply(quaternion));
+  }
+
+  /** The rotation as seen by a solver who has already turned the cube by {@code frame}. */
+  public CubeRotation seenFrom(CubeRotation frame) {
+    return ofQuaternion(frame.quaternion.multiply(quaternion).multiply(frame.quaternion.inverse()));
+  }
+
+  /**
+   * Where the face labelled {@code face} has been carried to. With the cube turned by this
+   * rotation, a turn the cube still calls {@code face} is the one a solver would now write as
+   * the returned letter.
+   */
+  public char mapFace(char face) {
+    double[] normal = FACE_NORMALS.get(face);
+    if (normal == null) {
+      return face;
+    }
+    double[] turned = rotate(normal);
+    char best = face;
+    double bestDot = -2;
+    for (Map.Entry<Character, double[]> candidate : FACE_NORMALS.entrySet()) {
+      double[] n = candidate.getValue();
+      double dot = turned[0] * n[0] + turned[1] * n[1] + turned[2] * n[2];
+      if (dot > bestDot) {
+        bestDot = dot;
+        best = candidate.getKey();
+      }
+    }
+    return best;
+  }
+
+  /** Carries a face normal through this rotation: {@code q·v·q⁻¹}. */
+  private double[] rotate(double[] v) {
+    CubeOrientation p = new CubeOrientation(0, v[0], v[1], v[2]);
+    CubeOrientation r = quaternion.multiply(p).multiply(quaternion.inverse());
+    return new double[] {r.getX(), r.getY(), r.getZ()};
+  }
+
+  private static CubeRotation ofQuaternion(CubeOrientation q) {
+    CubeRotation best = null;
+    double bestDot = -1;
+    for (CubeRotation candidate : ALL) {
+      double dot = Math.abs(q.dot(candidate.quaternion));
+      if (dot > bestDot) {
+        bestDot = dot;
+        best = candidate;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * The closest of the 24 to {@code delta}, with no tolerance at all. For readings known to be a
+   * real reorientation — the opening of a solve — where snapping a noisy reading beats dropping it.
+   */
+  public static CubeRotation closest(CubeOrientation delta) {
+    return ofQuaternion(toCubeFrame(delta));
   }
 
   /**
@@ -80,9 +169,16 @@ public final class CubeRotation {
     return errorDegrees <= MATCH_TOLERANCE_DEGREES ? best : null;
   }
 
-  /** Re-expresses a gyro-frame rotation in the cube's frame: R = −Y, U = −Z, F = +X. */
+  /**
+   * Re-expresses a gyro-frame delta in the cube's frame: R = +X, U = +Z, F = −Y. A proper
+   * rotation (one swap, one negation), which it must be — an improper map is a mirror, and a
+   * mirrored delta depends on the frame it was composed in, i.e. on the session's arbitrary
+   * gyro zero. Pinned together with {@link CubeOrientation#deltaTo} by three captured sessions
+   * with scripted {@code y}/{@code x}/{@code z} sections; the axis letters only mean anything
+   * for that delta order, so don't re-derive one without the other.
+   */
   static CubeOrientation toCubeFrame(CubeOrientation gyro) {
-    return new CubeOrientation(gyro.getW(), -gyro.getY(), -gyro.getZ(), gyro.getX());
+    return new CubeOrientation(gyro.getW(), gyro.getX(), gyro.getZ(), -gyro.getY());
   }
 
   private static List<CubeRotation> buildAll() {
@@ -95,7 +191,9 @@ public final class CubeRotation {
       List<CubeRotation> next = new ArrayList<>();
       for (CubeRotation from : frontier) {
         for (int g = 0; g < GEN_NAMES.length; g++) {
-          CubeOrientation turned = from.quaternion.multiply(generator(g));
+          // A notation reads left to right in the solver's fixed frame, so the added generator
+          // multiplies on the left, as in then(). On the right it would read about moved axes.
+          CubeOrientation turned = generator(g).multiply(from.quaternion);
           if (found.containsKey(key(turned))) {
             continue;
           }

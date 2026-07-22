@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.drivers;
 
+import android.util.Log;
 import com.cube.nanotimer.smartcube.SmartCube;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
@@ -10,6 +11,7 @@ import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
+import com.cube.nanotimer.smartcube.model.StillnessTracker;
 import com.cube.nanotimer.smartcube.transport.BleCharacteristic;
 import com.cube.nanotimer.smartcube.transport.BlePeripheral;
 import com.cube.nanotimer.smartcube.transport.BleService;
@@ -23,6 +25,14 @@ import java.util.concurrent.TimeUnit;
 
 /** A connected MoYu V10, translating parser events into the {@link SmartCube} callbacks. */
 final class MoyuV10Cube implements SmartCube {
+
+  /**
+   * Logs the raw gyro/move/poll stream for offline tracker replay — every rotation-tracking bug
+   * so far was diagnosed by replaying this capture against a solve the solver could describe.
+   * Off for release: at ~20 Hz it floods logcat and costs a string per sample.
+   */
+  private static final boolean CAPTURE = false;
+  private static final String CAPTURE_TAG = "GyroCapture";
 
   private final DiscoveredCube device;
   private final BlePeripheral peripheral;
@@ -47,6 +57,7 @@ final class MoyuV10Cube implements SmartCube {
   private BleCharacteristic writeChr;
   private CubeState lastState = CubeState.SOLVED;
   private volatile CubeOrientation lastOrientation;
+  private final StillnessTracker stillness = new StillnessTracker();
   private CubeConnection connection = CubeConnection.CONNECTING;
   private Integer batteryLevel;
   private volatile boolean awaitingResync = false;
@@ -99,11 +110,16 @@ final class MoyuV10Cube implements SmartCube {
   }
 
   private void onData(int[] raw) {
-    for (MoyuEvent event : parser.parse(raw, System.currentTimeMillis())) {
+    long nowMs = System.currentTimeMillis();
+    for (MoyuEvent event : parser.parse(raw, nowMs)) {
       if (event instanceof MoyuEvent.StateEvent state) {
         lastState = state.getState();
         notifyState(lastState);
       } else if (event instanceof MoyuEvent.MoveEvent move) {
+        if (CAPTURE) {
+          capture("M " + System.currentTimeMillis() + " " + move.getMove().getCubeTimestampMs()
+              + " " + move.getMove().getNotation());
+        }
         notifyMove(move.getMove());
         lastState = move.getStateAfter();
         notifyState(lastState);
@@ -112,6 +128,8 @@ final class MoyuV10Cube implements SmartCube {
         notifyBattery(battery.getLevel());
       } else if (event instanceof MoyuEvent.GyroEvent gyro) {
         lastOrientation = gyro.getOrientation(); // ~20 Hz: stored for polling, never broadcast
+        stillness.onSample(gyro.getOrientation(), nowMs);
+        logOrientation("G", gyro.getOrientation());
       }
       // InfoEvent carries nothing consumers need yet.
     }
@@ -238,7 +256,29 @@ final class MoyuV10Cube implements SmartCube {
 
   @Override
   public CubeOrientation getOrientation() {
-    return lastOrientation;
+    CubeOrientation orientation = lastOrientation;
+    logOrientation("P", orientation); // what the tracker actually pairs with the triggering move
+    return orientation;
+  }
+
+  @Override
+  public StillnessTracker.Window getStillWindow(long heldAfterMs) {
+    return stillness.getStillWindow(heldAfterMs);
+  }
+
+  private static void logOrientation(String kind, CubeOrientation q) {
+    if (CAPTURE && q != null) {
+      capture(kind + " " + System.currentTimeMillis() + " "
+          + q.getW() + " " + q.getX() + " " + q.getY() + " " + q.getZ());
+    }
+  }
+
+  private static void capture(String line) {
+    try {
+      Log.i(CAPTURE_TAG, line);
+    } catch (RuntimeException e) {
+      // JVM unit tests have no android.util.Log; the capture is a hardware-only diagnostic.
+    }
   }
 
   @Override

@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,14 +19,52 @@ public final class SolveMovesFormat {
   }
 
   public static String format(List<CubeMove> moves, long solveStartMs) {
+    return format(moves, Collections.<RotationTracker.Rotation>emptyList(), solveStartMs);
+  }
+
+  /**
+   * The moves with the solver's whole-cube rotations merged in by time. A rotation is written as
+   * its own token ({@code "y@1200"}) ahead of the move it preceded, so the stored stream stays the
+   * raw cube-frame one: the face letters are untouched and a replay can simply skip the rotations.
+   */
+  public static String format(List<CubeMove> moves, List<RotationTracker.Rotation> rotations,
+      long solveStartMs) {
     StringBuilder sb = new StringBuilder();
+    int next = 0;
     for (CubeMove move : moves) {
-      if (sb.length() > 0) {
-        sb.append(' ');
+      long moveOffset = move.getCubeTimestampMs() - solveStartMs;
+      while (next < rotations.size()
+          && rotations.get(next).getTimestampMs() - solveStartMs <= moveOffset) {
+        RotationTracker.Rotation rotation = rotations.get(next++);
+        for (String token : rotation.getNotation().split(" ")) {
+          append(sb, token, rotation.getTimestampMs() - solveStartMs);
+        }
       }
-      sb.append(move.getNotation()).append(OFFSET_SEPARATOR).append(move.getCubeTimestampMs() - solveStartMs);
+      append(sb, move.getNotation(), moveOffset);
+    }
+    for (; next < rotations.size(); next++) { // rotations after the last move, if the solve ended on one
+      RotationTracker.Rotation rotation = rotations.get(next);
+      for (String token : rotation.getNotation().split(" ")) {
+        append(sb, token, rotation.getTimestampMs() - solveStartMs);
+      }
     }
     return sb.toString();
+  }
+
+  private static void append(StringBuilder sb, String notation, long offsetMs) {
+    if (sb.length() > 0) {
+      sb.append(' ');
+    }
+    sb.append(notation).append(OFFSET_SEPARATOR).append(offsetMs);
+  }
+
+  /** Whole-cube rotations are lowercase, face turns uppercase — the cube reports only faces. */
+  public static boolean isRotation(String notation) {
+    if (notation.isEmpty()) {
+      return false;
+    }
+    char axis = notation.charAt(0);
+    return axis == 'x' || axis == 'y' || axis == 'z';
   }
 
   /** Parses the stored form back. Skips anything malformed rather than losing the whole solution. */

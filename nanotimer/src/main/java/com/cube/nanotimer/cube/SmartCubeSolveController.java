@@ -43,10 +43,13 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private enum Phase { INACTIVE, NEEDS_SOLVE, FOLLOWING, ARMED, RUNNING }
 
   private static final String LOG_TAG = "SmartCube";
+  /** A follow pause longer than this means the cube was set down, not a slow scramble. */
+  private static final long FOLLOW_RESUME_GAP_MS = 60_000;
 
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
   private final SolveAnalyzer analyzer = new SolveAnalyzer(new CFOPStepDetector());
+  private final RotationTracker rotationTracker = new RotationTracker();
 
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
@@ -59,6 +62,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private Phase phase = Phase.INACTIVE;
   private boolean sawUnsolved;
   private boolean analyzing;
+  private long scrambleStartWallMs; // 0 until the first followed move of the current scramble
+  private long lastFollowMoveWallMs;
 
   public SmartCubeSolveController(Listener listener) {
     this.listener = listener;
@@ -106,7 +111,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     stoppedStep = matched ? analyzer.getStoppedStep() : null;
     // The moves need no method: an unrecognised solve still has a solution worth keeping.
     solveMoves = analyzing
-        ? SolveMovesFormat.format(analyzer.getMoves(), analyzer.getSolveStartMs()) : "";
+        ? SolveMovesFormat.format(analyzer.getMoves(), rotationTracker.getRotations(),
+            analyzer.getSolveStartMs())
+        : "";
     if (analyzing) {
       logStepTimes();
       analyzing = false;
@@ -191,6 +198,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private void applyScramble() {
     follower = null;
     analyzing = false;
+    rotationTracker.reset(); // a new scramble re-anchors at its own first move
+    scrambleStartWallMs = 0;
+    lastFollowMoveWallMs = 0;
     if (!followable || scramble == null || !SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.INACTIVE;
       notifyChanged();
@@ -241,6 +251,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
             phase = Phase.NEEDS_SOLVE; // the cube is somewhere we cannot place: ask for a solved one
           } else if (follower.isComplete()) {
             phase = Phase.ARMED;
+            rotationTracker.scrambleComplete(System.currentTimeMillis());
           }
           notifyChanged();
         }
@@ -254,9 +265,27 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   public void onMove(CubeMove move) {
     switch (phase) {
       case FOLLOWING:
+        // Scrambling is when the cube is known to be held in the standard position, so its still
+        // windows are fed as candidates for the standard grip. Only windows begun after this
+        // scramble started count: the cube resting on the mat minutes earlier was also "still",
+        // in whatever grip the previous solve left it.
+        long followMoveWallMs = System.currentTimeMillis();
+        if (scrambleStartWallMs == 0) {
+          scrambleStartWallMs = followMoveWallMs;
+        } else if (followMoveWallMs - lastFollowMoveWallMs > FOLLOW_RESUME_GAP_MS) {
+          // A long pause mid-follow means the cube was set down: grips from before it say
+          // nothing about how it is held now, and a real solve once anchored on the grip the
+          // cube had rested in for hours. The break's own still window began before the new
+          // cut-off, so it can never become the anchor either.
+          scrambleStartWallMs = followMoveWallMs;
+          rotationTracker.restartAnchor();
+        }
+        lastFollowMoveWallMs = followMoveWallMs;
+        rotationTracker.anchor(SmartCubeManager.INSTANCE.getStillWindow(scrambleStartWallMs));
         boolean changed = follower.onMove(move);
         if (follower.isComplete()) {
           phase = Phase.ARMED;
+          rotationTracker.scrambleComplete(System.currentTimeMillis());
           changed = true;
         }
         if (changed) {
@@ -265,6 +294,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         break;
       case ARMED:
         // Stays ARMED if the timer refused to start, so later moves must not re-anchor the analyzer.
+        trackRotation(move);
         if (analyzing) {
           analyzer.onMove(move);
         } else {
@@ -273,6 +303,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         listener.onCubeAutoStart(); // scramble is done; any move starts the solve
         break;
       case RUNNING:
+        trackRotation(move);
         if (analyzing) {
           analyzer.onMove(move);
         } else {
@@ -282,6 +313,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       default:
         break;
     }
+  }
+
+  private void trackRotation(CubeMove move) {
+    rotationTracker.onMove(SmartCubeManager.INSTANCE.getStillWindow(scrambleStartWallMs),
+        SmartCubeManager.INSTANCE.getOrientation(), move.getCubeTimestampMs());
   }
 
   private void beginAnalysis(CubeMove move) {

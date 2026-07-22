@@ -26,6 +26,81 @@ public class SolveSolutionTest {
     return sb.toString();
   }
 
+  /**
+   * After a y the cube's B face is on the solver's right, so the turn the cube still calls B is
+   * the one they would write as R. Without this the sequence cannot be followed at all.
+   */
+  @Test
+  public void faceLettersAreRewrittenIntoTheSolversFrame() {
+    SolveSolution solution =
+        SolveSolution.from(moves("y@0", "B@10"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("y R", solution.getSteps().get(0).getMoves());
+  }
+
+  /**
+   * Rotations need the same treatment. After a y the cube's F axis has swung to the solver's
+   * left, so a further half turn about it is one they would write as x2, not z2.
+   */
+  @Test
+  public void rotationsAreRewrittenIntoTheSolversFrame() {
+    SolveSolution solution =
+        SolveSolution.from(moves("y@0", "z2@10"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("y x2", solution.getSteps().get(0).getMoves());
+  }
+
+  /**
+   * A reorientation of more than a quarter turn is stored as its tokens at one offset. They must
+   * be read back as one rotation: "y z2" is y then z2 where the solver stands, and relabelling
+   * the z2 as if the y had already turned its axes would name a different reorientation.
+   */
+  @Test
+  public void aStoredReorientationsTokensAreReadBackAsOneRotation() {
+    // The 28.24 solve's opening: y' x2, minted by the tracker under its minimal spelling y z2.
+    SolveSolution solution = SolveSolution.from(moves("y@0", "z2@0", "U@10", "F@20"),
+        Arrays.asList(step("cross", 0, 100)), 100);
+
+    // It flips the cube over, so the cube's U is at the solver's D and its F at their R.
+    assertEquals("y z2 D R", solution.getSteps().get(0).getMoves());
+  }
+
+  @Test
+  public void withoutRotationsTheLettersAreLeftAlone() {
+    SolveSolution solution = SolveSolution.from(moves("R@0", "U'@10", "B@20"),
+        Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("R U' B", solution.getSteps().get(0).getMoves());
+  }
+
+  @Test
+  public void rotationsAreShownButNotCounted() {
+    // Turning the whole cube solves nothing, so it must not inflate the count or deflate the TPS.
+    String stored = moves("y@0", "R@10", "U@20", "x@30", "F@40");
+    List<SolveStep> steps = Arrays.asList(step("cross", 0, 100));
+
+    SolveSolution solution = SolveSolution.from(stored, steps, 1000);
+
+    // Stored cube-frame "y R U x F" reads as "y F U z U" where the solver stands: the body-frame
+    // x is their z, and after it the cube's F faces up.
+    assertEquals("y F U z U", solution.getSteps().get(0).getMoves());
+    assertEquals(3, solution.getMoveCount()); // the three turns, not the two rotations
+    assertEquals(3, solution.getSteps().get(0).getMoveCount());
+    assertEquals(3.0, solution.getTps(), 1e-9); // 3 moves in one second, not 5
+  }
+
+  @Test
+  public void aStepOfNothingButRotationsCountsZeroMoves() {
+    String stored = moves("y@0", "x@10");
+    List<SolveStep> steps = Arrays.asList(step("cross", 0, 100));
+
+    SolveSolution solution = SolveSolution.from(stored, steps, 100);
+
+    // A turn about the cube's R axis, after a y has swung it to the front, is the solver's z.
+    assertEquals("y z", solution.getSteps().get(0).getMoves());
+    assertEquals(0, solution.getMoveCount());
+  }
+
   @Test
   public void splitsMovesAcrossStepsOnTheirDurations() {
     String stored = moves("R@0", "U@100", "F@200", "L@300", "D@400");
@@ -131,4 +206,5 @@ public class SolveSolutionTest {
 
     assertEquals("R F", solution.getSteps().get(0).getMoves());
   }
+
 }

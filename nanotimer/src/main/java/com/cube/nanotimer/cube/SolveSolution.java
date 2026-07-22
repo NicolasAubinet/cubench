@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.cube.SolveMovesFormat.Move;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +31,7 @@ public final class SolveSolution {
 
   /** Empty when the solve carries no moves, so callers can hide the section on one check. */
   public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps, long timeMs) {
-    List<Move> moves = SolveMovesFormat.parse(storedMoves);
+    List<Move> moves = inSolversFrame(SolveMovesFormat.parse(storedMoves));
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
       return new SolveSolution(new ArrayList<Step>(), 0, timeMs);
     }
@@ -50,6 +51,47 @@ public final class SolveSolution {
       taken = end;
     }
     return new SolveSolution(steps, total, timeMs);
+  }
+
+  /**
+   * Rewrites the stored stream the way the solver would have written it.
+   *
+   * <p>The cube names its faces in its own frame, which never moves: it reports {@code B} for the
+   * same piece of plastic however the cube is being held. Read literally next to a rotation that is
+   * wrong — turn the cube and {@code B} is no longer where a reader's {@code B} is. So each face
+   * letter is carried through the rotations made before it, and each rotation is itself re-expressed
+   * from the frame the solver was already in, leaving a sequence that can just be followed.
+   *
+   * <p>The stored stream stays raw for exactly this reason: the frame is rebuilt on the way out, so
+   * a correction here fixes solves already recorded.
+   */
+  private static List<Move> inSolversFrame(List<Move> stored) {
+    CubeRotation frame = CubeRotation.byNotation("");
+    List<Move> rewritten = new ArrayList<Move>(stored.size());
+    for (int i = 0; i < stored.size(); i++) {
+      Move move = stored.get(i);
+      String notation = move.getNotation();
+      if (SolveMovesFormat.isRotation(notation)) {
+        // One reorientation is stored as tokens sharing an offset; relabelled one at a time its
+        // spelling would be misread as being about moved axes, so it is reassembled first.
+        StringBuilder composite = new StringBuilder(notation);
+        while (i + 1 < stored.size() && stored.get(i + 1).getOffsetMs() == move.getOffsetMs()
+            && SolveMovesFormat.isRotation(stored.get(i + 1).getNotation())) {
+          composite.append(' ').append(stored.get(++i).getNotation());
+        }
+        CubeRotation rotation = CubeRotation.byNotation(composite.toString());
+        if (rotation == null) {
+          continue;
+        }
+        CubeRotation seen = rotation.seenFrom(frame);
+        rewritten.add(new Move(seen.getNotation(), move.getOffsetMs()));
+        frame = frame.then(seen); // the solver-frame rotation: then() composes in that frame
+      } else {
+        rewritten.add(new Move(frame.mapFace(notation.charAt(0)) + notation.substring(1),
+            move.getOffsetMs()));
+      }
+    }
+    return rewritten;
   }
 
   /**
@@ -90,7 +132,8 @@ public final class SolveSolution {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < moves.size(); i++) {
       String notation = moves.get(i).getNotation();
-      boolean isDouble = i + 1 < moves.size() && moves.get(i + 1).getNotation().equals(notation);
+      boolean isDouble = i + 1 < moves.size() && moves.get(i + 1).getNotation().equals(notation)
+          && notation.indexOf(' ') < 0; // "y z2" twice is not a half turn of anything
       if (sb.length() > 0) {
         sb.append(' ');
       }
@@ -141,8 +184,18 @@ public final class SolveSolution {
       return count;
     }
 
+    /** Rotations are shown but never counted: turning the whole cube solves nothing. */
     private static int countMoves(String group) {
-      return group.isEmpty() ? 0 : group.split(" ").length;
+      if (group.isEmpty()) {
+        return 0;
+      }
+      int count = 0;
+      for (String token : group.split(" ")) {
+        if (!SolveMovesFormat.isRotation(token)) {
+          count++;
+        }
+      }
+      return count;
     }
 
     /** The moves of one part, by its position in the step — 0 for a part built with none. */

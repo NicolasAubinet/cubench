@@ -12,9 +12,11 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
+import com.cube.nanotimer.smartcube.model.StillnessTracker;
 import com.cube.nanotimer.smartcube.scanner.CubeScanner;
 import com.cube.nanotimer.smartcube.scanner.CubeScannerFactory;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -138,6 +140,18 @@ public enum SmartCubeManager {
 
   public CubeState getCurrentState() {
     return currentState;
+  }
+
+  /** How the cube is being held, or null without a connected cube or a gyro reading yet. */
+  public CubeOrientation getOrientation() {
+    SmartCube connected = cube;
+    return connected == null ? null : connected.getOrientation();
+  }
+
+  /** The latest still window begun after {@code heldAfterMs}, or null. Wobble-immune. */
+  public StillnessTracker.Window getStillWindow(long heldAfterMs) {
+    SmartCube connected = cube;
+    return connected == null ? null : connected.getStillWindow(heldAfterMs);
   }
 
   public DiscoveredCube getConnectedDevice() {

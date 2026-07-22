@@ -64,7 +64,15 @@ public final class CubeOrientation {
 
   /**
    * The rotation carrying this orientation to {@code later}, expressed in the <em>cube's own
-   * frame</em>. The world frame cancels, so the result needs no reference or calibration.
+   * frame</em>. The gyro's arbitrary zero cancels, so the result needs no calibration.
+   *
+   * <p>That zero multiplies every reading on the <em>left</em>, so the product cancelling it is
+   * the textbook body-frame delta {@code this⁻¹·later}. The reverse order cancels a right-side
+   * offset instead: it read two whole sessions correctly because their zeros happened to sit at
+   * identity, then a session zeroed a quarter turn off conjugated every delta by that quarter
+   * turn — scripted {@code x} rotations surfacing as {@code z'} while {@code y}s stayed clean,
+   * since a yaw offset leaves the vertical axis alone. Pinned by three captured sessions with
+   * scripted {@code y}/{@code x}/{@code z} sections, one with its zero far from identity.
    */
   public CubeOrientation deltaTo(CubeOrientation later) {
     return inverse().multiply(later);
@@ -72,6 +80,12 @@ public final class CubeOrientation {
 
   public double dot(CubeOrientation o) {
     return w * o.w + x * o.x + y * o.y + z * o.z;
+  }
+
+  /** The angle in degrees separating this orientation from {@code o}; q and −q are one rotation. */
+  public double angleToDegrees(CubeOrientation o) {
+    double clamped = Math.min(1, Math.abs(dot(o)));
+    return Math.toDegrees(2 * Math.acos(clamped));
   }
 
   @Override

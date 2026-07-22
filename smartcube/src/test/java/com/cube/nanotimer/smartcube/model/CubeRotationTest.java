@@ -13,7 +13,10 @@ public class CubeRotationTest {
 
   /**
    * Orientations captured off a real V10 (probe 4.11a): the cube at rest, after a {@code y},
-   * and after a further {@code x}. Raw gyro frame, as the parser emits them.
+   * and after a further {@code x}. Raw gyro frame, as the parser emits them. The delta
+   * convention these read through was pinned by three later full-solve captures with scripted
+   * {@code y}/{@code x}/{@code z} sections; that this probe reads exactly as scripted under it
+   * is an independent cross-check, not the calibration itself.
    */
   private static final CubeOrientation REST = new CubeOrientation(0.99661, -0.08238, -0.00879, 0.00311);
   private static final CubeOrientation AFTER_Y = new CubeOrientation(0.73423, -0.00566, -0.00588, -0.67894);
@@ -47,21 +50,41 @@ public class CubeRotationTest {
     assertTrue(none.isIdentity());
   }
 
-  /** The capture's first transition was a physical y; the second an x. */
   @Test
   public void recognisesTheCapturedYRotation() {
     assertEquals("y", CubeRotation.nearest(REST.deltaTo(AFTER_Y)).getNotation());
   }
 
+  /** A physical x done on a y-rotated cube IS the cube's own z': display maps it back (§seenFrom). */
   @Test
-  public void recognisesTheCapturedXRotation() {
-    assertEquals("x", CubeRotation.nearest(AFTER_Y.deltaTo(AFTER_Y_X)).getNotation());
+  public void recognisesTheCapturedXRotationInTheCubesFrame() {
+    assertEquals("z'", CubeRotation.nearest(AFTER_Y.deltaTo(AFTER_Y_X)).getNotation());
   }
 
-  /** Composing both, measured against the resting reference, is the two-token sequence. */
+  /** Composing both, measured against the resting reference, is one two-token corner rotation. */
   @Test
   public void recognisesTheCombinedRotation() {
     assertEquals("y x", CubeRotation.nearest(REST.deltaTo(AFTER_Y_X)).getNotation());
+  }
+
+  /**
+   * A two-token notation reads left to right in the solver's fixed frame: carrying a face through
+   * "y x" must be the same as carrying it through y, then through x. Composing the generators on
+   * the wrong side passes every single-token test and swaps exactly this.
+   */
+  @Test
+  public void twoTokenNotationsReadLeftToRightInAFixedFrame() {
+    for (CubeRotation rotation : CubeRotation.all()) {
+      String[] tokens = rotation.getNotation().split(" ");
+      if (tokens.length != 2) {
+        continue;
+      }
+      CubeRotation first = CubeRotation.byNotation(tokens[0]);
+      CubeRotation second = CubeRotation.byNotation(tokens[1]);
+      for (char face : "RLUDFB".toCharArray()) {
+        assertEquals("in " + rotation, second.mapFace(first.mapFace(face)), rotation.mapFace(face));
+      }
+    }
   }
 
   /** Face turns leave orientation alone: the capture's R turns drifted under 6 degrees. */
@@ -79,4 +102,14 @@ public class CubeRotationTest {
     CubeOrientation midTurn = new CubeOrientation(Math.cos(half), 0, 0, -Math.sin(half));
     assertNull(CubeRotation.nearest(midTurn));
   }
+
+  /** For a reading known to be a reorientation, closest() snaps where nearest() gives up. */
+  @Test
+  public void closestSnapsAReadingBeyondTheTolerance() {
+    double half = Math.toRadians(50) / 2; // 50° toward a y: outside tolerance from everything
+    CubeOrientation offTolerance = new CubeOrientation(Math.cos(half), 0, 0, -Math.sin(half));
+    assertNull(CubeRotation.nearest(offTolerance));
+    assertEquals("y", CubeRotation.closest(offTolerance).getNotation());
+  }
+
 }

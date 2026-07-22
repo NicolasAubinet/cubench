@@ -11,8 +11,10 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,6 +29,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
+import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -339,9 +342,30 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     if (moves == null || moves.isEmpty()) {
       return null;
     }
-    TextView view = cell(style, moves);
+    TextView view = cell(style, dimRotations(moves));
     table.addView(view);
     return view;
+  }
+
+  /**
+   * Greys the whole-cube rotations so the turns stand out from them. They are not moves and are
+   * not counted, and setting them apart also makes a habit visible at a glance — more than one
+   * rotation inside a single F2L pair, say.
+   */
+  private CharSequence dimRotations(String moves) {
+    SpannableString text = new SpannableString(moves);
+    int color = ContextCompat.getColor(getActivity(), R.color.gray600);
+    for (int start = 0; start < moves.length(); ) {
+      int end = moves.indexOf(' ', start);
+      if (end < 0) {
+        end = moves.length();
+      }
+      if (SolveMovesFormat.isRotation(moves.substring(start, end))) {
+        text.setSpan(new ForegroundColorSpan(color), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      }
+      start = end + 1;
+    }
+    return text;
   }
 
   private String movesOf(SolveSolution solution, int stepIndex) {
