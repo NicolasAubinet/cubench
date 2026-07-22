@@ -54,13 +54,18 @@ public final class MoyuV10Driver extends CubeDriver {
   }
 
   @Override
+  public String getMacAddress(CubeAdvertisement adv) {
+    return deriveMac(adv);
+  }
+
+  @Override
   public SmartCube connect(BlePeripheral peripheral, CubeAdvertisement adv, String macAddress) {
     String mac = macAddress != null ? macAddress : deriveMac(adv);
     if (mac == null) {
       throw new IllegalStateException("MoYu V10 requires a MAC address");
     }
     DiscoveredCube device = new DiscoveredCube(
-        peripheral.getId(), peripheral.getName(), CubeBrand.MOYU_V10, getModelName(adv), false);
+        peripheral.getId(), peripheral.getName(), CubeBrand.MOYU_V10, getModelName(adv), mac, false);
     MoyuV10Cube cube = new MoyuV10Cube(device, peripheral, new MoyuV10Parser(GanCipher.macBytes(mac)));
     cube.start();
     return cube;

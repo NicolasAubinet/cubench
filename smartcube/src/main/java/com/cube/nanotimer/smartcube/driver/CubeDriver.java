@@ -54,6 +54,11 @@ public abstract class CubeDriver {
     return getBrand().toString();
   }
 
+  /** The cube's MAC address when it can be derived from the advertisement, else null. */
+  public String getMacAddress(CubeAdvertisement adv) {
+    return null;
+  }
+
   /** Bring up a connected {@link SmartCube} over an already-open peripheral. Blocking. */
   public abstract SmartCube connect(BlePeripheral peripheral, CubeAdvertisement adv, String macAddress);
 }

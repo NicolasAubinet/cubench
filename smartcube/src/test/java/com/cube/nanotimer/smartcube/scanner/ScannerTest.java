@@ -56,6 +56,7 @@ public class ScannerTest {
     assertEquals(CubeBrand.MOYU_V10, discovered.get(0).getBrand());
     assertEquals("MoYu WeiLong V10 AI", discovered.get(0).getModelName());
     assertFalse(discovered.get(0).needsMac()); // MAC derived from the name
+    assertEquals("CF:30:16:00:AB:CD", discovered.get(0).getMacAddress());
 
     SmartCube cube = scanner.connect(discovered.get(0));
     assertEquals(CubeConnection.READY, cube.getConnection());

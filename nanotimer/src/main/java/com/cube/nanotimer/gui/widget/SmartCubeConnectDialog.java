@@ -187,6 +187,9 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
       DiscoveredCube device = SmartCubeManager.INSTANCE.getConnectedDevice();
       if (device != null) {
         status.append(" · ").append(device.getName());
+        if (device.getMacAddress() != null) {
+          status.append('\n').append(getString(R.string.smart_cube_mac, device.getMacAddress()));
+        }
       }
       Integer battery = SmartCubeManager.INSTANCE.getBattery();
       if (battery != null) {

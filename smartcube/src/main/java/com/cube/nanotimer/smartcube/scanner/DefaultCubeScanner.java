@@ -39,7 +39,7 @@ public final class DefaultCubeScanner implements CubeScanner {
       drivers.put(result.getDeviceId(), driver);
       onDiscovered.accept(new DiscoveredCube(
           result.getDeviceId(), result.getName(), driver.getBrand(), driver.getModelName(adv),
-          driver.needsExplicitMac(adv)));
+          driver.getMacAddress(adv), driver.needsExplicitMac(adv)));
     });
   }
 

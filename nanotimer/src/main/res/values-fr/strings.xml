@@ -343,6 +343,7 @@
   <string name="share_time_text">Je viens de résoudre le cube %1$s en %2$s!\n\nMélange:\n%3$s\n\nChronométré le %4$s avec l\'application android Cubench:\n%5$s</string>
   <string name="share_time_steps_text">Je viens de résoudre le cube %1$s en %2$s avec les temps d\'étapes suivants:\n%3$s\nMélange:\n%4$s\n\nChonométré le %5$s avec l\'application android Cubench:\n%6$s</string>
   <string name="share_include_breakdown">Inclure la décomposition et la reconstruction de la résolution ?</string>
+  <string name="smart_cube_mac">MAC: %s</string>
   <string name="share_smartcube_data">Données du cube connecté :</string>
   <string name="comment">Commenter</string>
   <string name="comment_label">Commentaire</string>
