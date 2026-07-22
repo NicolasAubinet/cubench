@@ -1,6 +1,5 @@
 package com.cube.nanotimer.cube;
 
-import android.util.Log;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
@@ -12,7 +11,6 @@ import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.smartcube.step.StepTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Owns the whole cube-driven solve lifecycle, isolated from the timer screen:
@@ -42,7 +40,6 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private enum Phase { INACTIVE, NEEDS_SOLVE, FOLLOWING, ARMED, RUNNING }
 
-  private static final String LOG_TAG = "SmartCube";
   /** A follow pause longer than this means the cube was set down, not a slow scramble. */
   private static final long FOLLOW_RESUME_GAP_MS = 60_000;
 
@@ -114,10 +111,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         ? SolveMovesFormat.format(analyzer.getMoves(), rotationTracker.getRotations(),
             analyzer.getSolveStartMs())
         : "";
-    if (analyzing) {
-      logStepTimes();
-      analyzing = false;
-    }
+    analyzing = false;
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
   }
 
@@ -330,22 +324,6 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     analyzer.onMove(move);
   }
 
-  private void logStepTimes() {
-    StringBuilder sb = new StringBuilder("Solve breakdown:");
-    for (StepTime step : getStepTimes()) {
-      appendStepTime(sb, step, "\n  ");
-      for (StepTime subStep : step.getSubSteps()) {
-        appendStepTime(sb, subStep, "\n      ");
-      }
-    }
-    Log.i(LOG_TAG, sb.toString());
-  }
-
-  private static void appendStepTime(StringBuilder sb, StepTime step, String indent) {
-    sb.append(indent).append(String.format(Locale.US, "%-8s %5.2f  (recognition %.2f, execution %.2f)",
-        step.getStepName(), step.getTotalMs() / 1000f,
-        step.getRecognitionMs() / 1000f, step.getExecutionMs() / 1000f));
-  }
 
   private void notifyChanged() {
     listener.onScrambleFollowChanged();
