@@ -277,7 +277,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     private final List<TableRow> partRows = new ArrayList<TableRow>();
     private final List<TextView> partMoves = new ArrayList<TextView>();
     private TextView moves;
-    private boolean expanded;
+    private boolean expanded = true; // folding is for skimming; a solve opens fully told
 
     private StepRows(TextView name) {
       this.name = name;
@@ -389,7 +389,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   private void makeExpandable(TableRow row, final StepRows stepRows) {
-    setChevron(stepRows.name, false);
+    setChevron(stepRows.name, stepRows.expanded);
     TypedValue background = new TypedValue();
     getActivity().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, background, true);
     row.setBackgroundResource(background.resourceId);

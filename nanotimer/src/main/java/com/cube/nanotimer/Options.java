@@ -250,7 +250,7 @@ public enum Options {
   // Whether the solve breakdown shows the moves of each step. Not a preference screen entry: it is
   // set by the switch on the breakdown itself, and kept so the dialog reopens the way it was left.
   public boolean isBreakdownShowMoves() {
-    return sharedPreferences.getBoolean(BREAKDOWN_SHOW_MOVES_KEY, false);
+    return sharedPreferences.getBoolean(BREAKDOWN_SHOW_MOVES_KEY, true);
   }
 
   public void setBreakdownShowMoves(boolean showMoves) {
