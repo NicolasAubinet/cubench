@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.core.app.ShareCompat;
 import android.widget.Toast;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SolveShareFormat;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.YesNoListener;
@@ -96,7 +97,29 @@ public class DialogUtils {
     }
   }
 
-  public static void shareTime(Activity activity, SolveTime solveTime, CubeType cubeType) {
+  /** A cube-recorded solve first asks whether to include the breakdown and reconstruction —
+   * the long form hands over everything needed to look into a solve, but is noise for a plain
+   * "look at my time" share. */
+  public static void shareTime(final Activity activity, final SolveTime solveTime, final CubeType cubeType) {
+    if (!solveTime.hasSmartcubeMoves()) {
+      shareTime(activity, solveTime, cubeType, false);
+      return;
+    }
+    showYesNoConfirmation(activity, R.string.share_include_breakdown, new YesNoListener() {
+      @Override
+      public void onYes() {
+        shareTime(activity, solveTime, cubeType, true);
+      }
+
+      @Override
+      public void onNo() {
+        shareTime(activity, solveTime, cubeType, false);
+      }
+    });
+  }
+
+  private static void shareTime(Activity activity, SolveTime solveTime, CubeType cubeType,
+      boolean withSmartcubeData) {
     String timeStr = FormatterService.INSTANCE.formatSolveTime(solveTime.getTime());
     String timestampStr = FormatterService.INSTANCE.formatExportDateTime(solveTime.getTimestamp());
     String subject = activity.getString(R.string.share_time_subject, timeStr);
@@ -115,6 +138,9 @@ public class DialogUtils {
       text = activity.getString(R.string.share_time_steps_text, cubeType.getName(), timeStr, stepsSb.toString(), scramble, timestampStr, playStorePage);
     } else {
       text = activity.getString(R.string.share_time_text, cubeType.getName(), timeStr, scramble, timestampStr, playStorePage);
+    }
+    if (withSmartcubeData) {
+      text += "\n\n" + SolveShareFormat.smartcubeSection(activity, solveTime);
     }
     shareData(activity, subject, text, null, "text/plain");
   }

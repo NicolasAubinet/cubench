@@ -344,6 +344,8 @@
   <string name="share_time_subject">Novo tempo de resolução: %1$s</string>
   <string name="share_time_text">Acabei de resolver o cubo %1$s em %2$s!\n\nScramble:\n%3$s\n\nCronometrado em %4$s com o aplicativo Android Cubench:\n%5$s</string>
   <string name="share_time_steps_text">Acabei de resolver o cubo %1$s em %2$s com os seguintes tempos de etapa:\n%3$s\nScramble:\n%4$s\n\nCronometrado em %5$s com o aplicativo Android Cubench:\n%6$s</string>
+  <string name="share_include_breakdown">Incluir o detalhamento e a reconstrução da resolução?</string>
+  <string name="share_smartcube_data">Dados do cubo inteligente:</string>
   <string name="comment">Comentar</string>
   <string name="comment_label">Comentário</string>
 

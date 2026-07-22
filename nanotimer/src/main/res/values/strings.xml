@@ -346,6 +346,8 @@
   <string name="share_time_subject">New solve time: %1$s</string>
   <string name="share_time_text">I just solved the %1$s cube in %2$s!\n\nScramble:\n%3$s\n\nTimed on %4$s with Cubench android app:\n%5$s</string>
   <string name="share_time_steps_text">I just solved the %1$s cube in %2$s with the following steps times:\n%3$s\nScramble:\n%4$s\n\nTimed on %5$s with Cubench android app:\n%6$s</string>
+  <string name="share_include_breakdown">Include the breakdown and the solve reconstruction?</string>
+  <string name="share_smartcube_data">Smart cube data:</string>
   <string name="comment">Comment</string>
   <string name="comment_label">Comment</string>
 
