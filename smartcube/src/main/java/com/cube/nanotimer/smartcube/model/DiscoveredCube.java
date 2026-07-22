@@ -6,12 +6,14 @@ public final class DiscoveredCube {
   private final String id;
   private final String name;
   private final CubeBrand brand;
+  private final String modelName;
   private final boolean needsMac;
 
-  public DiscoveredCube(String id, String name, CubeBrand brand, boolean needsMac) {
+  public DiscoveredCube(String id, String name, CubeBrand brand, String modelName, boolean needsMac) {
     this.id = id;
     this.name = name;
     this.brand = brand;
+    this.modelName = modelName;
     this.needsMac = needsMac;
   }
 
@@ -28,6 +30,11 @@ public final class DiscoveredCube {
     return brand;
   }
 
+  /** Human-readable model label (e.g. "MoYu WeiLong V11 AI"), from the driver. */
+  public String getModelName() {
+    return modelName;
+  }
+
   /** True when a MAC must be supplied because it couldn't be derived automatically. */
   public boolean needsMac() {
     return needsMac;
@@ -35,6 +42,6 @@ public final class DiscoveredCube {
 
   @Override
   public String toString() {
-    return "DiscoveredCube(" + name + ", " + brand + ")";
+    return "DiscoveredCube(" + name + ", " + modelName + ")";
   }
 }

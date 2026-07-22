@@ -49,6 +49,11 @@ public abstract class CubeDriver {
     return false;
   }
 
+  /** Human-readable model label for scan-list rows (e.g. "MoYu WeiLong V11 AI"). */
+  public String getModelName(CubeAdvertisement adv) {
+    return getBrand().toString();
+  }
+
   /** Bring up a connected {@link SmartCube} over an already-open peripheral. Blocking. */
   public abstract SmartCube connect(BlePeripheral peripheral, CubeAdvertisement adv, String macAddress);
 }

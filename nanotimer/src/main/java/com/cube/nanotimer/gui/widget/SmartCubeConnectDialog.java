@@ -150,7 +150,7 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
       }
     }
     discovered.add(found);
-    discoveredAdapter.add(found.getName() + " (" + found.getBrand() + ")");
+    discoveredAdapter.add(found.getModelName() + " (" + found.getName() + ")");
   }
 
   private void connect(DiscoveredCube target) {

@@ -40,29 +40,39 @@ public final class MoyuV10Driver extends CubeDriver {
     return deriveMac(adv) == null;
   }
 
+  /** V10 and V11 share the WCU_MY32 name; only the MAC prefix tells them apart. */
+  @Override
+  public String getModelName(CubeAdvertisement adv) {
+    String mac = deriveMac(adv);
+    if (mac != null && mac.startsWith("CF:30:16:02")) {
+      return "MoYu WeiLong V11 AI";
+    }
+    if (mac != null && mac.startsWith("CF:30:16:00")) {
+      return "MoYu WeiLong V10 AI";
+    }
+    return "MoYu WeiLong AI";
+  }
+
   @Override
   public SmartCube connect(BlePeripheral peripheral, CubeAdvertisement adv, String macAddress) {
     String mac = macAddress != null ? macAddress : deriveMac(adv);
     if (mac == null) {
       throw new IllegalStateException("MoYu V10 requires a MAC address");
     }
-    DiscoveredCube device =
-        new DiscoveredCube(peripheral.getId(), peripheral.getName(), CubeBrand.MOYU_V10, false);
+    DiscoveredCube device = new DiscoveredCube(
+        peripheral.getId(), peripheral.getName(), CubeBrand.MOYU_V10, getModelName(adv), false);
     MoyuV10Cube cube = new MoyuV10Cube(device, peripheral, new MoyuV10Parser(GanCipher.macBytes(mac)));
     cube.start();
     return cube;
   }
 
   /**
-   * Best-effort MAC discovery: from the device name (WCU_MY32_XXXX → CF:30:16:00:XX:XX),
-   * else from advertisement manufacturer data (last 6 bytes, reversed). Null if neither works.
+   * Best-effort MAC discovery: from advertisement manufacturer data (last 6 bytes, reversed —
+   * the cube's real MAC), else from the device name (WCU_MY32_XXXX → CF:30:16:00:XX:XX).
+   * Manufacturer data wins because the name-derived prefix only holds for the V10 — the V11
+   * uses the same name format but a CF:30:16:02 MAC prefix. Null if neither works.
    */
   public static String deriveMac(CubeAdvertisement adv) {
-    String name = adv.getName() == null ? "" : adv.getName();
-    if (NAME_MAC.matcher(name).matches()) {
-      String tail = name.substring(9).toUpperCase();
-      return "CF:30:16:00:" + tail.substring(0, 2) + ":" + tail.substring(2, 4);
-    }
     for (int[] data : adv.getManufacturerData().values()) {
       if (data.length >= 6) {
         StringBuilder mac = new StringBuilder();
@@ -78,6 +88,11 @@ public final class MoyuV10Driver extends CubeDriver {
         }
         return mac.toString().toUpperCase();
       }
+    }
+    String name = adv.getName() == null ? "" : adv.getName();
+    if (NAME_MAC.matcher(name).matches()) {
+      String tail = name.substring(9).toUpperCase();
+      return "CF:30:16:00:" + tail.substring(0, 2) + ":" + tail.substring(2, 4);
     }
     return null;
   }

@@ -81,7 +81,7 @@ public class SmartCubeActivity extends NanoTimerActivity {
       }
     }
     discovered.add(found);
-    discoveredAdapter.add(found.getName() + " (" + found.getBrand() + ")");
+    discoveredAdapter.add(found.getModelName() + " (" + found.getName() + ")");
   }
 
   private void connect(DiscoveredCube target) {
