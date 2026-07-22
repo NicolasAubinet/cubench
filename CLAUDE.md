@@ -15,6 +15,11 @@ averages, graphs and sessions. Published on Google Play as `com.cube.nanotimer`
 - `minSdk 21`, `compile/targetSdk 36`. AndroidX (`useAndroidX=true`, Jetifier on).
 - Current version: see `nanotimer/build.gradle` (`versionCode` / `versionName`).
 
+Related project: **3StyleTrainer** (sibling Flutter app, same owner) lives at
+`C:\Projects\3StyleTrainer\three_style_trainer`. Its `packages/smartcube/lib/src/` Dart
+package is the reference implementation the `smartcube` module was ported from, and its
+`docs/smart-cube-integration-plan.md` holds the smart-cube protocol research of record.
+
 ## Modules
 
 The build is split into one app module and several libraries (see
