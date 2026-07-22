@@ -254,6 +254,7 @@
   <string name="line">line</string>
   <string name="error_in_line">Error in line %1$d</string>
   <string name="import_invalid_columns_count">Invalid columns count. Please check the import file format or try re-exporting.</string>
+  <string name="import_invalid_smartcube_data">Invalid smart cube data: %s</string>
   <string name="import_error">Import error</string>
   <string name="could_not_convert_time">Could not convert time \'%1$s\'</string>
   <string name="could_not_convert_date">Could not convert date \'%1$s\'</string>

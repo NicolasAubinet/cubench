@@ -252,6 +252,7 @@
   <string name="line">linha</string>
   <string name="error_in_line">Erro na linha %1$d</string>
   <string name="import_invalid_columns_count">Número de colunas inválido. Verifique o arquivo de importação ou tente exportar novamente.</string>
+  <string name="import_invalid_smartcube_data">Dados do cubo inteligente inválidos: %s</string>
   <string name="import_error">Erro de importação</string>
   <string name="could_not_convert_time">Não foi possível converter o tempo \'%1$s\'</string>
   <string name="could_not_convert_date">Não foi possível converter a data \'%1$s\'</string>

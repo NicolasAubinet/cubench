@@ -84,12 +84,22 @@ public enum FormatterService {
     if (solveTime == null) {
       return null;
     }
+    Long time = parseSolveTime(solveTime);
+    if (time != null) {
+      return time;
+    }
+    // Only a non-numeric string can be one of the localized sentinels; checking them last keeps
+    // the numeric path free of the Android context (which also makes imports unit-testable).
     if (solveTime.equals(App.INSTANCE.getContext().getString(R.string.DNF))) {
       return (long) -1;
     }
     if (solveTime.equals(App.INSTANCE.getContext().getString(R.string.NA))) {
       return (long) -2;
     }
+    return null;
+  }
+
+  private Long parseSolveTime(String solveTime) {
     String[] split = solveTime.split(":");
     if (split.length > 2) {
       return null;
@@ -118,8 +128,8 @@ public enum FormatterService {
 
       ts += seconds * 1000;
       ts += minutes * 60000;
-    } catch (NumberFormatException e) {
-      return null;
+    } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+      return null; // a time with no decimal part ("5") used to escape as an uncaught exception
     }
 
     return ts;

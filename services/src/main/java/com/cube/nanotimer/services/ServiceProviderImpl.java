@@ -1069,6 +1069,9 @@ public class ServiceProviderImpl implements ServiceProvider {
       q.append("     , ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_SCRAMBLE_TYPE);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SCRAMBLE);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_COMMENT);
+      q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
+      q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
+      q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
       q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
       q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
       q.append("   ON ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
@@ -1091,6 +1094,9 @@ public class ServiceProviderImpl implements ServiceProvider {
           ExportResult result = new ExportResult(cursor.getInt(0), cubeTypeId, cursor.getString(2), cursor.getInt(3),
               cursor.getString(4), cursor.getLong(5), cursor.getLong(6), (cursor.getInt(7) == 1), (cursor.getInt(8) == 1),
               cursor.getString(9), cursor.getString(10), cursor.getString(11));
+          result.setSmartcubeMethod(CubeMethod.fromCode(cursor.getString(12)));
+          result.setSmartcubeMoves(cursor.getString(13));
+          result.setSmartcubeStoppedStep(cursor.isNull(14) ? null : cursor.getInt(14));
           curResults.add(result);
         }
         cursor.close();
@@ -1104,6 +1110,11 @@ public class ServiceProviderImpl implements ServiceProvider {
         for (ExportResult r : curResults) {
           r.setStepsNames(stepsNames);
           r.setStepsTimes(getSolveTimeSteps(r.getSolveTimeId()).toArray(new Long[0]));
+        }
+      }
+      for (ExportResult r : curResults) { // a method is only ever stored alongside its step rows
+        if (r.getSmartcubeMethod() != null) {
+          r.setSmartcubeSteps(getSmartcubeSteps(r.getSolveTimeId(), r.getSmartcubeStoppedStep()));
         }
       }
       results.addAll(curResults);

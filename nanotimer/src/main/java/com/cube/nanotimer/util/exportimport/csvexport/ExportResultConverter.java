@@ -2,10 +2,14 @@ package com.cube.nanotimer.util.exportimport.csvexport;
 
 import android.content.Context;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SolveMovesFormat;
+import com.cube.nanotimer.cube.SolveStepsFormat;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.exportimport.CSVFormatException;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.ExportResult;
+import com.cube.nanotimer.vo.SolveStep;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +42,16 @@ public class ExportResultConverter {
     return sb.toString();
   }
 
-  public static String toCSVLine(ExportResult result) {
+  /**
+   * @param withSmartcubeFields whether the file carries the four smart-cube columns; a whole file
+   *     is one format or the other, so this follows the header the generator chose
+   */
+  public static String toCSVLine(ExportResult result, boolean withSmartcubeFields) {
+    if (!withSmartcubeFields
+        && (result.getSmartcubeMoves() != null || result.hasSmartcubeBreakdown())) {
+      // Writing this solve without its smart-cube columns would silently drop recorded data.
+      throw new IllegalArgumentException("Solve carries smart cube data the format cannot hold");
+    }
     StringBuilder sb = new StringBuilder();
     sb.append(result.getCubeTypeName());
     sb.append(",");
@@ -63,6 +76,24 @@ public class ExportResultConverter {
     if (result.getScramble() != null) {
       sb.append(escapeString(result.getScramble()));
     }
+    if (withSmartcubeFields) {
+      sb.append(",");
+      if (result.getSmartcubeMethod() != null) {
+        sb.append(result.getSmartcubeMethod().getCode());
+      }
+      sb.append(",");
+      if (result.getSmartcubeMoves() != null) {
+        sb.append(result.getSmartcubeMoves());
+      }
+      sb.append(",");
+      if (result.hasSmartcubeBreakdown()) {
+        sb.append(SolveStepsFormat.format(result.getSmartcubeSteps()));
+      }
+      sb.append(",");
+      if (result.getSmartcubeStoppedStep() != null) {
+        sb.append(result.getSmartcubeStoppedStep());
+      }
+    }
     sb.append(",");
     if (result.getComment() != null) {
       String encodedComment = encodeComment(result.getComment());
@@ -71,10 +102,15 @@ public class ExportResultConverter {
     return sb.toString();
   }
 
-  public static ExportResult fromCSVLine(Context context, String line) throws CSVFormatException {
-    int MAX_FIELDS_COUNT = 10;
-    List<String> fields = getFieldsFromCSVLine(line, MAX_FIELDS_COUNT);
-    if (fields.size() < 8) { // 8 fields is older version, 9 fields contains the scramble type, 10 fields contains comment
+  /**
+   * @param maxFieldsCount how many fields the file's header announced
+   *     ({@link ExportCSVGenerator#getMaxFieldsCount}) — commas beyond it belong to the comment
+   */
+  public static ExportResult fromCSVLine(Context context, String line, int maxFieldsCount) throws CSVFormatException {
+    List<String> fields = getFieldsFromCSVLine(line, maxFieldsCount);
+    // 8 fields is the oldest version, 9 adds the scramble type, 10 the comment, 14 the smart cube
+    boolean smartcubeFormat = fields.size() == ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT;
+    if (fields.size() < 8 || (!smartcubeFormat && fields.size() > ExportCSVGenerator.MAX_FIELDS_COUNT)) {
       throw new CSVFormatException(context.getString(R.string.import_invalid_columns_count));
     }
     String cubeTypeName = fields.get(0);
@@ -103,16 +139,76 @@ public class ExportResultConverter {
       scramble = null;
     }
 
+    int commentFieldIndex = smartcubeFormat ? 13 : 9;
     String comment = null;
-    if (fields.size() > 9) {
-      comment = decodeComment(fields.get(9));
+    if (fields.size() > commentFieldIndex) {
+      comment = decodeComment(fields.get(commentFieldIndex));
     }
 
     ExportResult exportResult = new ExportResult(cubeTypeName, solveTypeName, time, timestamp, plusTwo, blindType, scrambleTypeName, scramble, comment);
     String stepsField = fields.get(4);
     exportResult.setStepsTimes(getStepsTimes(context, stepsField));
     exportResult.setStepsNames(getStepsNames(context, stepsField));
+    if (smartcubeFormat) {
+      try {
+        applySmartcubeFields(exportResult, fields.get(9), fields.get(10), fields.get(11), fields.get(12));
+      } catch (IllegalArgumentException e) {
+        throw new CSVFormatException(context.getString(R.string.import_invalid_smartcube_data, e.getMessage()));
+      }
+    }
     return exportResult;
+  }
+
+  /**
+   * Applies a new-format line's smart-cube fields, validating them as one record: the fields
+   * reference each other (steps need their method, the stopped step points into the steps), so a
+   * half-valid set is rejected whole rather than half-imported. Empty fields mean a solve no cube
+   * drove and stay null.
+   */
+  static void applySmartcubeFields(ExportResult result, String method, String moves, String steps,
+      String stoppedStep) {
+    method = method.trim(); // tolerate hand-edited whitespace, in every field
+    moves = moves.trim();
+    steps = steps.trim();
+    stoppedStep = stoppedStep.trim();
+    if (!method.isEmpty()) {
+      CubeMethod cubeMethod = CubeMethod.fromCode(method);
+      if (cubeMethod == null) {
+        throw new IllegalArgumentException("Unknown method: \"" + method + "\"");
+      }
+      result.setSmartcubeMethod(cubeMethod);
+    }
+    if (!moves.isEmpty()) {
+      if (SolveMovesFormat.parse(moves).isEmpty()) { // the lenient parser found not one valid move
+        throw new IllegalArgumentException("Unreadable moves: \"" + moves + "\"");
+      }
+      result.setSmartcubeMoves(moves);
+    }
+    List<SolveStep> parsedSteps = SolveStepsFormat.parse(steps);
+    if (!parsedSteps.isEmpty()) {
+      if (result.getSmartcubeMethod() == null) { // the persistence layer requires the pair
+        throw new IllegalArgumentException("Steps without a method");
+      }
+      result.setSmartcubeSteps(parsedSteps);
+    } else if (result.getSmartcubeMethod() != null) {
+      throw new IllegalArgumentException("Method without its steps");
+    }
+    if (!stoppedStep.isEmpty()) {
+      int stopped;
+      try {
+        stopped = Integer.parseInt(stoppedStep);
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid stopped step: \"" + stoppedStep + "\"");
+      }
+      boolean known = false;
+      for (SolveStep step : parsedSteps) {
+        known = known || step.getStepIndex() == stopped;
+      }
+      if (!known) { // also rejects a stopped step on a line that has no steps at all
+        throw new IllegalArgumentException("Stopped step " + stopped + " matches no step");
+      }
+      result.setSmartcubeStoppedStep(stopped);
+    }
   }
 
   private static Long[] getStepsTimes(Context context, String stepsField) throws CSVFormatException {

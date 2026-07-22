@@ -250,6 +250,7 @@
   <string name="line">ligne</string>
   <string name="error_in_line">Erreur dans la ligne %1$d</string>
   <string name="import_invalid_columns_count">Nombre de colonnes invalide. Vérifiez le fichier d\'import ou essayez de ré-exporter.</string>
+  <string name="import_invalid_smartcube_data">Données de cube connecté invalides : %s</string>
   <string name="import_error">Erreur d\'importation</string>
   <string name="could_not_convert_time">Impossible de convertir le temps \'%1$s\'</string>
   <string name="could_not_convert_date">Impossible to convertir la date \'%1$s\'</string>

@@ -111,6 +111,10 @@ public class CSVDataReader extends AsyncTask<InputStream, Void, ImportTimesData>
         exportResult.isPlusTwo(), exportResult.getScramble(), solveType);
       solveTime.setStepsTimes(exportResult.getStepsTimes());
       solveTime.setComment(exportResult.getComment());
+      solveTime.setSmartcubeMethod(exportResult.getSmartcubeMethod());
+      solveTime.setSmartcubeMoves(exportResult.getSmartcubeMoves());
+      solveTime.setSmartcubeSteps(exportResult.getSmartcubeSteps());
+      solveTime.setSmartcubeStoppedStep(exportResult.getSmartcubeStoppedStep());
       importData.addSolveTime(solveType, solveTime);
     }
     return importData;
@@ -141,9 +145,13 @@ public class CSVDataReader extends AsyncTask<InputStream, Void, ImportTimesData>
 
   private List<ExportResult> getExportResults(List<String> lines) throws CSVFormatException {
     List<ExportResult> results = new ArrayList<ExportResult>();
+    if (lines.isEmpty()) { // a file with no lines has no header line to read the format from
+      return results;
+    }
+    int maxFieldsCount = ExportCSVGenerator.getMaxFieldsCount(lines.get(0));
     for (int i = 1; i < lines.size(); i++) {
       try {
-        results.add(ExportResultConverter.fromCSVLine(context, lines.get(i)));
+        results.add(ExportResultConverter.fromCSVLine(context, lines.get(i), maxFieldsCount));
       } catch (CSVFormatException e) {
         throw new CSVFormatException(context.getString(R.string.error_in_line, (i+1)) + ": " + e.getMessage());
       }
