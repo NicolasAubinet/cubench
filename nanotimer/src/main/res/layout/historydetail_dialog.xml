@@ -85,7 +85,7 @@
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
-     android:layout_marginTop="8dp">
+     android:layout_marginTop="2dp">
 
     <LinearLayout
        android:orientation="vertical"
@@ -140,6 +140,44 @@
            android:textColor="@color/white"
            android:textStyle="bold"
            android:textSize="15sp"/>
+      </LinearLayout>
+
+      <!-- Scramble header: label on the left, the scramble-derived tools on the right. Each tool
+           button is shown only when it applies to this solve (see HistoryDetailDialog). -->
+      <LinearLayout
+         android:id="@+id/scrambleHeader"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal"
+         android:gravity="center_vertical"
+         android:layout_marginBottom="4dp">
+        <TextView
+           android:text="@string/scramble"
+           android:layout_gravity="center_vertical"
+           style="@style/DialogSectionLabel"/>
+        <Space
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_weight="1"/>
+        <ImageButton
+           android:id="@+id/buScrambleView"
+           android:layout_width="32dp"
+           android:layout_height="32dp"
+           android:scaleType="fitCenter"
+           android:padding="6dp"
+           android:background="?android:attr/selectableItemBackgroundBorderless"
+           android:src="@drawable/ic_scramble_view"
+           android:contentDescription="@string/scramble_view"/>
+        <ImageButton
+           android:id="@+id/buCrossSolver"
+           android:layout_width="32dp"
+           android:layout_height="32dp"
+           android:layout_marginLeft="4dp"
+           android:scaleType="fitCenter"
+           android:padding="6dp"
+           android:background="?android:attr/selectableItemBackgroundBorderless"
+           android:src="@drawable/ic_menu_cross_solver"
+           android:contentDescription="@string/cross_solver"/>
       </LinearLayout>
 
       <!-- Scramble card (tap to copy) -->

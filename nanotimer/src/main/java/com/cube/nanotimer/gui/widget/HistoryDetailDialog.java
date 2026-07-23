@@ -32,14 +32,18 @@ import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
+import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
+import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
+import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.FontFitTextView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.vo.CubeType;
+import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -164,6 +168,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       scrambleCard.setClickable(false);
       scrambleCard.setForeground(null);
     }
+    setUpScrambleTools(v, solveTime, cubeType);
     tvDate.setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
     tvTime.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
     if (solveTime.isDNF()) {
@@ -223,6 +228,61 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     });
 
     return dialog;
+  }
+
+  /**
+   * The scramble-derived study tools shown in the scramble header: a visual scramble diagram, and
+   * (3x3 full scrambles only) the optimal-cross solver. Each button is hidden when it doesn't apply,
+   * and the whole header goes with the card when there is no scramble to work from.
+   */
+  private void setUpScrambleTools(View v, final SolveTime solveTime, final CubeType cubeType) {
+    ImageButton buScrambleView = (ImageButton) v.findViewById(R.id.buScrambleView);
+    ImageButton buCrossSolver = (ImageButton) v.findViewById(R.id.buCrossSolver);
+
+    if (solveTime.getScramble() == null) {
+      v.findViewById(R.id.scrambleHeader).setVisibility(View.GONE);
+      return;
+    }
+    // The scramble is stored as one string; the tools below want it split back into moves.
+    final String[] scramble = ScrambleFormatterService.INSTANCE
+        .parseStringScrambleToArray(solveTime.getScramble(), cubeType);
+
+    boolean scrambleViewAvailable = ScrambleViewNotation.getRenderKey(cubeType) != null;
+    buScrambleView.setVisibility(scrambleViewAvailable ? View.VISIBLE : View.GONE);
+    if (scrambleViewAvailable) {
+      buScrambleView.setOnClickListener(new OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          openScrambleView(cubeType, scramble);
+        }
+      });
+    }
+
+    ScrambleType scrambleType = solveTime.getSolveType().getScrambleType();
+    boolean crossSolverAvailable = cubeType == CubeType.THREE_BY_THREE
+        && (scrambleType == null || scrambleType.isDefault()); // null scramble type means the default full scramble
+    buCrossSolver.setVisibility(crossSolverAvailable ? View.VISIBLE : View.GONE);
+    if (crossSolverAvailable) {
+      buCrossSolver.setOnClickListener(new OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          String single = ScrambleFormatterService.INSTANCE.formatScrambleAsSingleLine(scramble, cubeType);
+          DialogUtils.showFragment(getActivity(), CrossSolverDialog.newInstance(single));
+        }
+      });
+    }
+  }
+
+  private void openScrambleView(CubeType cubeType, String[] scramble) {
+    String key = ScrambleViewNotation.getRenderKey(cubeType);
+    String moves = ScrambleViewNotation.toCubingNotation(scramble, cubeType);
+    String readable = ScrambleFormatterService.INSTANCE.formatScrambleAsSingleLine(scramble, cubeType);
+    // When the diagram can't be drawn (a Clock pin notation), show the text and nudge toward the
+    // notation that does render — mirrors TimerActivity.openScrambleView.
+    String fallback = (moves == null && cubeType == CubeType.CLOCK)
+        ? getString(R.string.scramble_view_clock_notation_hint) + "\n\n" + readable
+        : readable;
+    DialogUtils.showFragment(getActivity(), ScrambleViewDialog.newInstance(key, moves, fallback));
   }
 
   /**
