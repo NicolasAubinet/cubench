@@ -14,6 +14,8 @@ import com.cube.nanotimer.Options.ClockNotation;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.vo.CubeType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public enum ScrambleFormatterService {
@@ -78,18 +80,10 @@ public enum ScrambleFormatterService {
     int currentColor = getColor(R.color.cube_yellow);
     int pendingColor = getColor(R.color.white);
 
-    int tokenIndex = 0;
-    int i = 0;
-    while (i < s.length()) {
-      char c = s.charAt(i);
-      if (c == ' ' || c == '\n') {
-        i++;
-        continue;
-      }
-      int start = i;
-      while (i < s.length() && s.charAt(i) != ' ' && s.charAt(i) != '\n') {
-        i++;
-      }
+    List<int[]> tokens = moveTokenRanges(s);
+    for (int tokenIndex = 0; tokenIndex < tokens.size(); tokenIndex++) {
+      int start = tokens.get(tokenIndex)[0];
+      int end = tokens.get(tokenIndex)[1];
       int color;
       boolean bold = false;
       if (tokenIndex < doneCount) {
@@ -101,13 +95,35 @@ public enum ScrambleFormatterService {
         ForegroundColorSpan[] columnColor = base.getSpans(start, start + 1, ForegroundColorSpan.class);
         color = columnColor.length > 0 ? columnColor[0].getForegroundColor() : pendingColor;
       }
-      span.setSpan(new ForegroundColorSpan(color), start, i, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+      span.setSpan(new ForegroundColorSpan(color), start, end, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
       if (bold) {
-        span.setSpan(new StyleSpan(Typeface.BOLD), start, i, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        span.setSpan(new StyleSpan(Typeface.BOLD), start, end, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
       }
-      tokenIndex++;
     }
     return span;
+  }
+
+  /**
+   * The character ranges {@code [start, end)} of each move in a formatted scramble, split on the
+   * spaces and newlines that {@link #formatScramble} inserts. Lets callers address moves by index
+   * (colour the current one, animate the one just executed, …) without re-scanning the string.
+   */
+  public List<int[]> moveTokenRanges(CharSequence s) {
+    List<int[]> tokens = new ArrayList<>();
+    int i = 0;
+    while (i < s.length()) {
+      char c = s.charAt(i);
+      if (c == ' ' || c == '\n') {
+        i++;
+        continue;
+      }
+      int start = i;
+      while (i < s.length() && s.charAt(i) != ' ' && s.charAt(i) != '\n') {
+        i++;
+      }
+      tokens.add(new int[] {start, i});
+    }
+    return tokens;
   }
 
   private static final int MAX_REVERSE_MOVES_SHOWN = 7;

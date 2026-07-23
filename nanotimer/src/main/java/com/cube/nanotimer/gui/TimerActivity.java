@@ -23,7 +23,9 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
+import android.view.animation.OvershootInterpolator;
 import android.view.animation.Transformation;
+import android.animation.ValueAnimator;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -37,6 +39,7 @@ import com.cube.nanotimer.cube.ScrambleFollower;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
+import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.SolveStepConverter;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
@@ -64,6 +67,8 @@ import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
+import com.cube.nanotimer.util.view.ParticleView;
+import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -135,6 +140,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private SmartCubeChip smartCubeChip;
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
+  private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
+  private ParticleView particleView; // full-screen confetti overlay, fired on a personal best
+  private ScrambleFollowAnimator scrambleAnimator; // subtle per-move zoom during a cube follow
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
 
@@ -192,6 +200,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     keepScreenOnWhenTimerOff = Options.INSTANCE.isKeepTimerScreenOnWhenTimerOff();
 
     initViews();
+
+    // A pass-through overlay for the personal-best confetti: non-clickable, so the whole timer
+    // stays a tap target; idle (drawing nothing) until a PB fires it.
+    particleView = new ParticleView(this);
+    addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
     defaultTextColor = tvSolvesCount.getTextColors();
     defaultTimerTextColor = tvTimer.getTextColors();
@@ -291,28 +304,36 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private void renderScramble() {
     if (currentScramble == null) {
+      scrambleAnimator.reset();
       tvScramble.setText(R.string.scramble_generating);
       return;
     }
     switch (solveController.getFollowMode()) {
       case NEEDS_SOLVE:
+        scrambleAnimator.reset();
         tvScramble.setText(R.string.smart_cube_solve_first);
         break;
       case SOLVING:
+        scrambleAnimator.reset();
         tvScramble.setText(R.string.smart_cube_solving);
         break;
       case FOLLOWING:
         if (solveController.isReadyToSolve()) {
+          scrambleAnimator.reset();
           tvScramble.setText(R.string.smart_cube_ready_to_solve);
         } else if (solveController.isWrong()) {
+          scrambleAnimator.reset();
           tvScramble.setText(ScrambleFormatterService.INSTANCE.formatReverseMoves(
               getString(R.string.smart_cube_undo), solveController.getReverseMoves()));
         } else {
-          tvScramble.setText(ScrambleFormatterService.INSTANCE.formatScrambleWithProgress(
-              currentScramble, cubeType, currentOrientation, solveController.getDoneCount()));
+          // The animator owns the per-move zoom; it sets the (already coloured) progress text itself.
+          int doneCount = solveController.getDoneCount();
+          scrambleAnimator.show(ScrambleFormatterService.INSTANCE.formatScrambleWithProgress(
+              currentScramble, cubeType, currentOrientation, doneCount), doneCount);
         }
         break;
       default:
+        scrambleAnimator.reset();
         tvScramble.setText(ScrambleFormatterService.INSTANCE.formatToColoredScramble(
             currentScramble, cubeType, currentOrientation));
         break;
@@ -368,6 +389,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvRecordOverlayHeader = (TextView) findViewById(R.id.tvRecordOverlayHeader);
     recordOverlayTable = (TableLayout) findViewById(R.id.recordOverlayTable);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
+    tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
+    scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
 
     if (currentOrientation == Configuration.ORIENTATION_PORTRAIT && cubeType == CubeType.SEVEN_BY_SEVEN
         && tvTimer instanceof DigitalTextView) {
@@ -934,10 +957,31 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // update time once more to get the ms right
     // (as all ms do not necessarily appear when timing, some are skipped due to refresh interval)
     updateTimerText(time);
+    playSolveCompletionFlourish(time);
     if (save) {
       saveTime(time);
     }
     generateScramble();
+  }
+
+  // A small pop and accent flash on the time when a smart cube stops the solve, so the finish
+  // registers as an event. Tap-timed solves are left exactly as they were, and a DNF gets nothing.
+  private void playSolveCompletionFlourish(long time) {
+    if (time < 0 || !solveController.isCubeDriven()) {
+      return;
+    }
+    tvTimer.animate().cancel();
+    tvTimer.setScaleX(1.18f);
+    tvTimer.setScaleY(1.18f);
+    tvTimer.animate().scaleX(1f).scaleY(1f).setDuration(300).setInterpolator(new OvershootInterpolator());
+
+    final int accent = getResources().getColor(R.color.lightblue);
+    final int endColor = defaultTimerTextColor.getDefaultColor();
+    ValueAnimator flash = ValueAnimator.ofFloat(0f, 1f);
+    flash.setDuration(500);
+    flash.addUpdateListener(a -> tvTimer.setTextColor(
+        GUIUtils.getColorCodeBetween(accent, endColor, (float) a.getAnimatedValue())));
+    flash.start();
   }
 
   private void startInspectionTimer() {
@@ -1252,13 +1296,40 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       return;
     }
     // The tail is drawn but never stored, so lastSolveSteps stays the form that gets saved.
-    solveStepBar.setSteps(SolveBreakdown.withUnfinishedTail(lastSolveSteps, lastSolveStoppedStep,
-        solveDurationMs, lastSolveMoves));
+    List<SolveStep> barSteps = SolveBreakdown.withUnfinishedTail(lastSolveSteps, lastSolveStoppedStep,
+        solveDurationMs, lastSolveMoves);
+    solveStepBar.setSteps(barSteps);
     solveStepBar.setVisibility(View.VISIBLE);
+    solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
+    showSolveStats(SolveSolution.from(lastSolveMoves, barSteps, solveDurationMs));
+  }
+
+  // Reveals the solve's move count and turn rate under the bar; hidden when the solve carries no moves.
+  private void showSolveStats(SolveSolution solution) {
+    if (tvSolveStats == null) {
+      return;
+    }
+    if (solution.isEmpty()) {
+      tvSolveStats.setVisibility(View.INVISIBLE);
+      return;
+    }
+    tvSolveStats.setText(getString(R.string.breakdown_moves_count, solution.getMoveCount()) + " · "
+        + getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
+    tvSolveStats.setAlpha(0f);
+    tvSolveStats.setVisibility(View.VISIBLE);
+    tvSolveStats.animate().alpha(1f).setDuration(250);
   }
 
   private void hideStepBreakdown() {
-    solveStepBar.setVisibility(canBreakDownSolves() ? View.INVISIBLE : View.GONE);
+    int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
+    solveStepBar.setVisibility(visibility);
+    if (tvSolveStats != null) {
+      tvSolveStats.animate().cancel();
+      if (visibility == View.INVISIBLE && tvSolveStats.length() == 0) {
+        tvSolveStats.setText(" "); // reserve one line so a finished solve never nudges the bar
+      }
+      tvSolveStats.setVisibility(visibility);
+    }
   }
 
   /** Keep the bar's height reserved while a cube is connected, so a solve never shifts the layout. */
@@ -1352,7 +1423,23 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
 
     if (showNotifications) {
-      showRecordsSummary(filterRecordsForNotification(records));
+      List<RecordInfo> toNotify = filterRecordsForNotification(records);
+      showRecordsSummary(toNotify);
+      celebratePbIfAny(toNotify);
+    }
+  }
+
+  // Confetti for an actual personal best only (the lifetime best single, never an average), and
+  // only among the records the notification setting lets through — so "never notify" stays quiet.
+  private void celebratePbIfAny(List<RecordInfo> records) {
+    if (particleView == null) {
+      return;
+    }
+    for (RecordInfo r : records) {
+      if (r.isPB) {
+        particleView.burst();
+        return;
+      }
     }
   }
 

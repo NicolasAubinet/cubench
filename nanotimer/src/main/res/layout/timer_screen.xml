@@ -119,14 +119,31 @@
            android:layout_width="match_parent"
            android:layout_height="0px"
            android:layout_weight="1">
-          <com.cube.nanotimer.gui.widget.SolveStepBar
-             android:id="@+id/solveStepBar"
+          <LinearLayout
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:layout_gravity="center_vertical"
-             android:layout_marginLeft="8px"
-             android:layout_marginRight="8px"
-             android:visibility="gone"/>
+             android:orientation="vertical">
+            <com.cube.nanotimer.gui.widget.SolveStepBar
+               android:id="@+id/solveStepBar"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginLeft="8px"
+               android:layout_marginRight="8px"
+               android:visibility="gone"/>
+            <TextView
+               android:id="@+id/tvSolveStats"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_gravity="center_horizontal"
+               android:layout_marginTop="4px"
+               android:clickable="false"
+               android:focusable="false"
+               android:fontFeatureSettings="tnum"
+               android:textColor="@color/secondary_text"
+               android:textSize="19px"
+               android:visibility="gone"/>
+          </LinearLayout>
         </FrameLayout>
       </LinearLayout>
 

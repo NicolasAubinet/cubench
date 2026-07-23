@@ -1,10 +1,12 @@
 package com.cube.nanotimer.gui.widget;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.core.content.ContextCompat;
@@ -28,6 +30,7 @@ public class SolveStepBar extends LinearLayout {
   private final TextView[] names = new TextView[MAX_STEPS];
   private final TextView[] times = new TextView[MAX_STEPS];
   private final SolveStepBarView bar;
+  private ValueAnimator revealAnimator;
 
   public SolveStepBar(Context context, AttributeSet attributes) {
     super(context, attributes);
@@ -69,5 +72,18 @@ public class SolveStepBar extends LinearLayout {
           : colors[i % colors.length]);
       times[i].setText(FormatterService.INSTANCE.formatSolveTime(step.getTotalMs()));
     }
+  }
+
+  /** Sweeps the bar in left-to-right; used to make a finished smart-cube solve feel less abrupt. */
+  public void animateIn() {
+    if (revealAnimator != null) {
+      revealAnimator.cancel();
+    }
+    bar.setProgress(0f);
+    revealAnimator = ValueAnimator.ofFloat(0f, 1f);
+    revealAnimator.setDuration(400);
+    revealAnimator.setInterpolator(new DecelerateInterpolator());
+    revealAnimator.addUpdateListener(a -> bar.setProgress((float) a.getAnimatedValue()));
+    revealAnimator.start();
   }
 }

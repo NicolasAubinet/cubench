@@ -41,6 +41,7 @@ public class SolveStepBarView extends View {
 
   private List<SolveStep> steps = Collections.emptyList();
   private int[] colors = new int[0];
+  private float progress = 1f; // left-to-right reveal fraction; 1 = fully drawn
 
   public SolveStepBarView(Context context) {
     super(context);
@@ -59,6 +60,12 @@ public class SolveStepBarView extends View {
     invalidate();
   }
 
+  /** The reveal fraction, 0 (nothing) to 1 (whole bar); drives the sweep-in animation. */
+  public void setProgress(float progress) {
+    this.progress = Math.max(0f, Math.min(1f, progress));
+    invalidate();
+  }
+
   @Override
   protected void onDraw(Canvas canvas) {
     long totalMs = 0;
@@ -71,6 +78,10 @@ public class SolveStepBarView extends View {
     }
     if (totalMs <= 0) {
       return;
+    }
+
+    if (progress < 1f) { // clip to a growing left-to-right window for the reveal
+      canvas.clipRect(0, 0, getWidth() * progress, getHeight());
     }
 
     float height = getHeight();
