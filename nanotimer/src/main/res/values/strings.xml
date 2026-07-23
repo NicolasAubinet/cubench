@@ -7,7 +7,7 @@
   <!--<string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>-->
   <!--<string name="admob_banner_unit_id" translatable="false">ca-app-pub-8294291525564683/1182680112</string>-->
   <!--<string name="admob_banner_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>-->
-  <string name="app_description">Rubik\'s Cube timer for Android</string>
+  <string name="app_description">Speedcubing timer for Android</string>
   <string name="app_license">This app uses drag-sort-listview, MPAndroidChart and android-wheel libraries licensed under Apache 2.0. Scramble diagrams are drawn with cubing.js and scramble-display (GPL-3.0) and three.js (MIT).</string>
   <string name="feedback_message">If you encounter a bug or have any suggestions or comments, don\'t hesitate to send an email to the address below.</string>
   <string name="dev_name">Nicolas Aubinet</string>

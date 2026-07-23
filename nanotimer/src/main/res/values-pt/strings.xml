@@ -3,7 +3,7 @@
   <string name="app_name">Cubench</string>
   <string name="app_formerly_name">Antes Nano Timer</string>
   <string name="app_name_copyright">&#169; 2014–2026 Cubench\nGratuito e de código aberto (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
-  <string name="app_description">Cronômetro de Cubo de Rubik para Android</string>
+  <string name="app_description">Cronômetro de speedcubing para Android</string>
   <string name="app_license">Este aplicativo usa as bibliotecas drag-sort-listview, MPAndroidChart e android-wheel licenciadas sob Apache 2.0. Os diagramas de scramble são gerados com cubing.js e scramble-display (GPL-3.0) e three.js (MIT).</string>
   <string name="feedback_message">Se você encontrar um bug ou tiver sugestões ou comentários, não hesite em enviar um e-mail para o endereço abaixo.</string>
   <string name="dev_name">Nicolas Aubinet</string>
