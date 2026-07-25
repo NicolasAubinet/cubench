@@ -1,11 +1,12 @@
 package com.cube.nanotimer.smartcube.drivers;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 
 /** One decoded event from a GAN cube's notification stream. */
 public sealed interface GanEvent
-    permits GanEvent.StateEvent, GanEvent.MoveEvent, GanEvent.DesyncEvent,
+    permits GanEvent.StateEvent, GanEvent.MoveEvent, GanEvent.GyroEvent, GanEvent.DesyncEvent,
         GanEvent.HistoryRequestEvent, GanEvent.BatteryEvent, GanEvent.InfoEvent,
         GanEvent.DisconnectEvent {
 
@@ -38,6 +39,19 @@ public sealed interface GanEvent
 
     public CubeState getStateAfter() {
       return stateAfter;
+    }
+  }
+
+  /** The cube's physical orientation, streamed continuously and unrelated to moves. */
+  final class GyroEvent implements GanEvent {
+    private final CubeOrientation orientation;
+
+    public GyroEvent(CubeOrientation orientation) {
+      this.orientation = orientation;
+    }
+
+    public CubeOrientation getOrientation() {
+      return orientation;
     }
   }
 

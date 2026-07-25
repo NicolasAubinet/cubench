@@ -58,6 +58,9 @@ public final class GanGen2Parser implements GanProtocol {
   /** A packet carries at most the last 7 moves. */
   private static final int MAX_RECOVERABLE_MOVES = 7;
 
+  /** The orientation quaternion starts right after the 4-bit event type. */
+  private static final int GYRO_BIT = 4;
+
   private final GanCipher cipher;
   private final CubieCube cube = new CubieCube();
 
@@ -123,6 +126,10 @@ public final class GanGen2Parser implements GanProtocol {
       return List.of();
     }
     switch (packet.val(0, 4)) {
+      case 0x01:
+        return packet.has(GYRO_BIT + GanGyro.BITS)
+            ? List.of(new GanEvent.GyroEvent(GanGyro.decode(packet, GYRO_BIT)))
+            : List.<GanEvent>of();
       case 0x02:
         return parseMoves(packet, hostTimeMs);
       case 0x04:
@@ -144,8 +151,6 @@ public final class GanGen2Parser implements GanProtocol {
       case 0x0D:
         return List.of(new GanEvent.DisconnectEvent());
       default:
-        // 0x01 is the gyro stream, which nothing decodes yet: the cubes that have one report
-        // orientation, but the timer gets none from them until it is.
         return List.of();
     }
   }

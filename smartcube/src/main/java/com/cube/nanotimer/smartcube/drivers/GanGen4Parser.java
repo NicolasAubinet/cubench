@@ -78,6 +78,10 @@ public final class GanGen4Parser extends GanBufferedParser {
         return parseMoveHistory(packet, dataLength, hostTimeMs);
       case 0xED:
         return packet.has(124) ? parseFacelets(packet, hostTimeMs) : List.<GanEvent>of();
+      case 0xEC:
+        return packet.has(payloadBit() + GanGyro.BITS)
+            ? List.of(new GanEvent.GyroEvent(GanGyro.decode(packet, payloadBit())))
+            : List.<GanEvent>of();
       case 0xEF:
         return packet.has(16 + dataLength * 8)
             ? parseBattery(packet.val(8 + dataLength * 8, 8)) : List.<GanEvent>of();
@@ -85,8 +89,6 @@ public final class GanGen4Parser extends GanBufferedParser {
         if (eventType >= 0xFA && eventType <= 0xFE) {
           return parseHardware(packet, eventType, dataLength);
         }
-        // 0xEC is the gyro stream, which nothing decodes yet: the GAN12 ui Maglev reports
-        // orientation, but the timer gets none from it until it is.
         return List.of();
     }
   }

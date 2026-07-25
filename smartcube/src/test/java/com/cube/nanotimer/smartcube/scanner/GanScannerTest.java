@@ -2,6 +2,8 @@ package com.cube.nanotimer.smartcube.scanner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.SmartCube;
@@ -11,6 +13,7 @@ import com.cube.nanotimer.smartcube.drivers.GanDriver;
 import com.cube.nanotimer.smartcube.model.CubeBrand;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.smartcube.model.Face;
@@ -77,6 +80,28 @@ public class GanScannerTest {
     assertEquals(U_FACELET, cube.getCurrentState().getFacelets());
   }
 
+  /** The orientation stream is polled rather than pushed, so it has to reach the cube's own getter. */
+  @Test
+  public void gyroReadingsReachTheConnectedCube() {
+    FakeBle.Chr stateChr = new FakeBle.Chr(BleUuid.normalize(GanDriver.GEN2_STATE_CHR_UUID));
+    FakeBle.Chr commandChr = new FakeBle.Chr(BleUuid.normalize(GanDriver.GEN2_COMMAND_CHR_UUID));
+    FakeBle.Service service = new FakeBle.Service(BleUuid.normalize(GanDriver.GEN2_SERVICE),
+        Arrays.asList(stateChr, commandChr));
+    FakeBle.Peripheral peripheral =
+        new FakeBle.Peripheral("dev1", "GAN-1234", Collections.singletonList(service));
+    CubeScanner scanner = CubeScannerFactory.create(new FakeBle.Transport(peripheral, SCAN_RESULT));
+    List<DiscoveredCube> discovered = new ArrayList<>();
+    scanner.scan(discovered::add);
+    SmartCube cube = scanner.connect(discovered.get(0));
+
+    assertNull(cube.getOrientation()); // nothing has been reported yet
+    stateChr.push(gyro());
+
+    CubeOrientation orientation = cube.getOrientation();
+    assertNotNull(orientation);
+    assertEquals(1.0, orientation.getW(), 1e-4);
+  }
+
   /** A cube exposing no GAN service at all must fail the handshake rather than connect half-open. */
   @Test
   public void aPeripheralWithoutAGanServiceIsRejected() {
@@ -118,6 +143,15 @@ public class GanScannerTest {
     plain[1] = (serial & 0x0F) << 4;
     writeBits(plain, 12, 3, new int[] {0, 1, 2, 3, 4, 5, 6});          // corner permutation
     writeBits(plain, 47, 4, new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}); // edge permutation
+    return encrypted(plain);
+  }
+
+  /** A Gen2 gyro packet: opcode 0x01, then the identity quaternion from bit 4. */
+  private static int[] gyro() {
+    int[] plain = new int[20];
+    plain[0] = 0x01 << 4 | 0x07; // event type, then the top nibble of w's 0x7FFF magnitude
+    plain[1] = 0xFF;
+    plain[2] = 0xF0;
     return encrypted(plain);
   }
 

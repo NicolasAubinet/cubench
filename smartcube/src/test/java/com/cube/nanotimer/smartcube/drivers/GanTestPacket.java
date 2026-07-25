@@ -39,6 +39,19 @@ final class GanTestPacket {
     return this;
   }
 
+  /**
+   * Write an orientation the way the cube encodes it: four 16-bit components in {@code w, x, y, z}
+   * order, each a sign bit and a magnitude out of {@code 0x7FFF}.
+   */
+  GanTestPacket putQuaternion(int firstBit, double w, double x, double y, double z) {
+    double[] components = {w, x, y, z};
+    for (int i = 0; i < components.length; i++) {
+      int magnitude = (int) Math.round(Math.abs(components[i]) * 0x7FFF);
+      put(firstBit + i * 16, 16, components[i] < 0 ? magnitude | 0x8000 : magnitude);
+    }
+    return this;
+  }
+
   int[] encrypted() {
     return cipher().encode(bytes.clone());
   }
