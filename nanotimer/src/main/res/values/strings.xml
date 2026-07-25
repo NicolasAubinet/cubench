@@ -668,4 +668,11 @@
   <string name="smart_cube_permission_settings_action">Open app settings</string>
   <string name="smart_cube_failed_title">Could not connect</string>
   <string name="smart_cube_scan_again">Scan again</string>
+
+  <string name="quick_action">Quick action</string>
+  <string name="quick_action_none">None</string>
+  <string name="discard_solve_title">Discard this solve?</string>
+  <string name="discard_solve_confirmation">The timer stopped and the time was saved. Discarding removes it.</string>
+  <string name="discard_solve">Discard</string>
+  <string name="keep_solve">Keep</string>
 </resources>

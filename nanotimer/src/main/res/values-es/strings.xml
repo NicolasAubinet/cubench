@@ -662,4 +662,11 @@
   <string name="smart_cube_permission_settings_action">Abrir ajustes</string>
   <string name="smart_cube_failed_title">No se pudo conectar</string>
   <string name="smart_cube_scan_again">Buscar de nuevo</string>
+
+  <string name="quick_action">Acción rápida</string>
+  <string name="quick_action_none">Ninguna</string>
+  <string name="discard_solve_title">¿Descartar este tiempo?</string>
+  <string name="discard_solve_confirmation">El temporizador se detuvo y el tiempo se guardó. Descartarlo lo elimina.</string>
+  <string name="discard_solve">Descartar</string>
+  <string name="keep_solve">Conservar</string>
 </resources>

@@ -665,4 +665,11 @@
   <string name="smart_cube_permission_settings_action">Abrir configurações</string>
   <string name="smart_cube_failed_title">Não foi possível conectar</string>
   <string name="smart_cube_scan_again">Procurar de novo</string>
+
+  <string name="quick_action">Ação rápida</string>
+  <string name="quick_action_none">Nenhuma</string>
+  <string name="discard_solve_title">Descartar este tempo?</string>
+  <string name="discard_solve_confirmation">O cronômetro parou e o tempo foi salvo. Descartá-lo o remove.</string>
+  <string name="discard_solve">Descartar</string>
+  <string name="keep_solve">Manter</string>
 </resources>

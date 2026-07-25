@@ -115,6 +115,11 @@ Tests are plain **JUnit 4**.
   (or stopped) when it didn't because they happened to press an inert area. When adding or
   changing views in the timer screen, keep the whole surface clickable for start/stop — don't
   introduce regions or controls that swallow the touch without toggling the timer.
+  The action bar's home button stays live through a run (shown as a cross) so phones without
+  a back button can still abandon a solve — and it obeys the rule rather than bending it: it
+  stops the timer exactly like a tap anywhere else, then asks whether to discard the solve it
+  just recorded. A stray press therefore behaves like the tap the user meant, never like a
+  press that did nothing. Anything new in the timer screen has to clear that same bar.
 - `Options.INSTANCE` wraps `SharedPreferences` (keys in `res/xml/preferences.xml`).
 - Import/export is CSV (`util/exportimport/`), shared via a `FileProvider`
   (authority `${applicationId}.fileprovider` — the debug build has an

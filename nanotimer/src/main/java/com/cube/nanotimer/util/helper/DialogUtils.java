@@ -62,6 +62,17 @@ public class DialogUtils {
         .setNegativeButton(parCancelMessageId, clickListener).show();
   }
 
+  /** Titled variant, for a confirmation whose consequence needs a line of explanation. */
+  public static AlertDialog showConfirmCancelDialog(Context context, int titleId, int messageId, int parConfirmMessageId, int parCancelMessageId, final YesNoListener listener) {
+    DialogInterface.OnClickListener clickListener = getYesNoClickListener(listener);
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme);
+    return builder.setTitle(titleId)
+        .setMessage(messageId)
+        .setPositiveButton(parConfirmMessageId, clickListener)
+        .setNegativeButton(parCancelMessageId, clickListener).show();
+  }
+
   public static AlertDialog showOkDialog(Context context, String title, String message) {
     return new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme)
             .setTitle(title)

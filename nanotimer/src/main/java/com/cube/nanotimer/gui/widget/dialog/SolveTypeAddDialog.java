@@ -8,6 +8,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -15,6 +17,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
+import com.cube.nanotimer.vo.TimerQuickAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +27,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
 
   public static final String KEY_BLD = "key_bld";
   public static final String KEY_SCRAMBLE_TYPE = "key_scrambleType";
+  public static final String KEY_QUICK_ACTION = "key_quickAction";
 
   private static final String ARG_FIELD_CREATOR = "fieldCreator";
   private static final String ARG_CUBE_TYPE = "cubeType";
@@ -32,14 +36,25 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   private static final String ARG_EDIT_NAME = "editName";
   private static final String ARG_EDIT_BLIND = "editBlind";
   private static final String ARG_EDIT_SCRAMBLE_NAME = "editScrambleName";
+  private static final String ARG_EDIT_QUICK_ACTION = "editQuickAction";
+
+  // Offered in the order the timer menu lists them, with the opt-out last.
+  private static final TimerQuickAction[] QUICK_ACTIONS = {
+      TimerQuickAction.SCRAMBLE_VIEW, TimerQuickAction.PLUS_TWO, TimerQuickAction.DNF,
+      TimerQuickAction.DELETE, TimerQuickAction.LAST_SOLVE, TimerQuickAction.ADD_TIME,
+      TimerQuickAction.CROSS_SOLVER, TimerQuickAction.NONE};
 
   private EditText tfName;
   private LinearLayout scrambleTypeLayout;
   private Spinner spScrambleType;
+  private Spinner spQuickAction;
+  private CheckBox cbBlind;
 
   private ScrambleType previousScrambleType;
   // Spinner position of the edited solve type's scramble type, resolved while the list is built.
   private int editScrambleTypePosition;
+  // The quick actions that apply to this cube type, in spinner order.
+  private final List<TimerQuickAction> quickActions = new ArrayList<>();
 
   public static SolveTypeAddDialog newInstance(FieldCreator fieldCreator, CubeType cubeType) {
     SolveTypeAddDialog frag = new SolveTypeAddDialog();
@@ -54,7 +69,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   // fieldEditor must also implement FieldCreator (they are the same object) - it is stored once.
   // scrambleTypeName is the name of the solve type's scramble type, or null for the default scramble.
   public static <T extends FieldCreator & FieldEditor> SolveTypeAddDialog newInstanceForEdit(
-      T fieldEditor, CubeType cubeType, int position, String name, boolean blind, String scrambleTypeName) {
+      T fieldEditor, CubeType cubeType, int position, String name, boolean blind, String scrambleTypeName,
+      TimerQuickAction quickAction) {
     SolveTypeAddDialog frag = new SolveTypeAddDialog();
     Bundle args = new Bundle();
     args.putSerializable(ARG_FIELD_CREATOR, fieldEditor);
@@ -64,6 +80,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     args.putString(ARG_EDIT_NAME, name);
     args.putBoolean(ARG_EDIT_BLIND, blind);
     args.putString(ARG_EDIT_SCRAMBLE_NAME, scrambleTypeName);
+    args.putInt(ARG_EDIT_QUICK_ACTION, quickAction.getId());
     frag.setArguments(args);
     return frag;
   }
@@ -123,6 +140,9 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       scrambleTypeLayout.setVisibility(View.GONE);
     }
 
+    cbBlind = (CheckBox) view.findViewById(R.id.cbBlind);
+    initQuickActionSpinner(cubeType);
+
     if (isEditMode()) {
       // Pre-fill with the existing solve type's values. Setting the name up front also stops the
       // scramble spinner's auto-naming listener from overwriting it (it only kicks in on an empty name).
@@ -131,11 +151,66 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       if (spScrambleType != null && editScrambleTypePosition < spScrambleType.getCount()) {
         spScrambleType.setSelection(editScrambleTypePosition);
       }
-      CheckBox cbBlind = (CheckBox) view.findViewById(R.id.cbBlind);
       cbBlind.setChecked(getArguments().getBoolean(ARG_EDIT_BLIND, false));
+      selectQuickAction(TimerQuickAction.fromId(
+          getArguments().getInt(ARG_EDIT_QUICK_ACTION, TimerQuickAction.SCRAMBLE_VIEW.getId())));
+    } else {
+      selectQuickAction(TimerQuickAction.getDefault(false));
     }
 
+    // Only attached once the values above are in place, so pre-filling does not trip it.
+    cbBlind.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        // Follow the blind flag only while the quick action is still the other mode's default:
+        // an explicitly chosen action is the user's, and stays put.
+        if (getSelectedQuickAction() == TimerQuickAction.getDefault(!isChecked)) {
+          selectQuickAction(TimerQuickAction.getDefault(isChecked));
+        }
+      }
+    });
+
     return dialog;
+  }
+
+  private void initQuickActionSpinner(CubeType cubeType) {
+    quickActions.clear();
+    List<CharSequence> labels = new ArrayList<>();
+    for (TimerQuickAction action : QUICK_ACTIONS) {
+      if (action == TimerQuickAction.CROSS_SOLVER && cubeType != CubeType.THREE_BY_THREE) {
+        continue; // the cross solver only knows 3x3
+      }
+      quickActions.add(action);
+      labels.add(getString(getQuickActionLabel(action)));
+    }
+
+    spQuickAction = (Spinner) view.findViewById(R.id.spQuickAction);
+    ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, labels);
+    adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+    spQuickAction.setAdapter(adapter);
+  }
+
+  private int getQuickActionLabel(TimerQuickAction action) {
+    switch (action) {
+      case SCRAMBLE_VIEW: return R.string.scramble_view;
+      case PLUS_TWO:      return R.string.add_penalty;
+      case DNF:           return R.string.DNF;
+      case DELETE:        return R.string.delete;
+      case LAST_SOLVE:    return R.string.last_solve;
+      case ADD_TIME:      return R.string.add_time;
+      case CROSS_SOLVER:  return R.string.cross_solver;
+      default:            return R.string.quick_action_none;
+    }
+  }
+
+  private TimerQuickAction getSelectedQuickAction() {
+    int position = spQuickAction.getSelectedItemPosition();
+    return (position >= 0 && position < quickActions.size()) ? quickActions.get(position) : TimerQuickAction.NONE;
+  }
+
+  private void selectQuickAction(TimerQuickAction action) {
+    int position = quickActions.indexOf(action);
+    spQuickAction.setSelection(position >= 0 ? position : 0);
   }
 
   private String getScrambleTypeTextString(ScrambleType scrambleType) {
@@ -144,8 +219,6 @@ public class SolveTypeAddDialog extends ConfirmDialog {
 
   @Override
   protected void onConfirm() {
-    CheckBox cbBlind = (CheckBox) view.findViewById(R.id.cbBlind);
-
     Properties props = new Properties();
     props.put(KEY_BLD, String.valueOf(cbBlind.isChecked()));
     int scrambleTypeItemPosition = -1;
@@ -153,6 +226,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       scrambleTypeItemPosition = spScrambleType.getSelectedItemPosition();
     }
     props.put(KEY_SCRAMBLE_TYPE, String.valueOf(scrambleTypeItemPosition));
+    props.put(KEY_QUICK_ACTION, String.valueOf(getSelectedQuickAction().getId()));
 
     boolean confirmed;
     if (isEditMode()) {

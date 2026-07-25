@@ -11,12 +11,14 @@ public class SolveType implements Serializable, NameHolder {
   private SolveTypeStep[] steps = new SolveTypeStep[0];
   private ScrambleType scrambleType;
   private boolean blind = false;
+  private TimerQuickAction quickAction;
 
   public SolveType(String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
     this.name = name;
     this.blind = blind;
     this.scrambleType = scrambleType;
     this.cubeTypeId = cubeTypeId;
+    this.quickAction = TimerQuickAction.getDefault(blind);
   }
 
   public SolveType(int id, String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
@@ -53,6 +55,14 @@ public class SolveType implements Serializable, NameHolder {
     return blind;
   }
 
+  public TimerQuickAction getQuickAction() {
+    return quickAction;
+  }
+
+  public void setQuickAction(TimerQuickAction quickAction) {
+    this.quickAction = quickAction;
+  }
+
   public SolveTypeStep[] getSteps() {
     return steps;
   }
@@ -76,6 +86,7 @@ public class SolveType implements Serializable, NameHolder {
     if (cubeTypeId != solveType.cubeTypeId) return false;
     if (blind != solveType.blind) return false;
     if (!name.equals(solveType.name)) return false;
+    if (quickAction != solveType.quickAction) return false;
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
     if (!Arrays.equals(steps, solveType.steps)) return false;
     return scrambleType == solveType.scrambleType;
@@ -89,6 +100,7 @@ public class SolveType implements Serializable, NameHolder {
     result = 31 * result + (steps != null ? Arrays.hashCode(steps) : 0);
     result = 31 * result + (scrambleType != null ? scrambleType.hashCode() : 0);
     result = 31 * result + (blind ? 1 : 0);
+    result = 31 * result + (quickAction != null ? quickAction.hashCode() : 0);
     return result;
   }
 }

@@ -663,4 +663,11 @@
   <string name="smart_cube_permission_settings_action">Ouvrir les paramètres</string>
   <string name="smart_cube_failed_title">Connexion impossible</string>
   <string name="smart_cube_scan_again">Rechercher à nouveau</string>
+
+  <string name="quick_action">Action rapide</string>
+  <string name="quick_action_none">Aucune</string>
+  <string name="discard_solve_title">Supprimer ce temps ?</string>
+  <string name="discard_solve_confirmation">Le chronomètre s\'est arrêté et le temps a été enregistré. Le supprimer l\'effacera.</string>
+  <string name="discard_solve">Supprimer</string>
+  <string name="keep_solve">Garder</string>
 </resources>

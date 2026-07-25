@@ -72,4 +72,30 @@
      android:paddingBottom="12dp"
      android:layout_marginTop="16dp"/>
 
+  <!-- After the blind checkbox: ticking it moves this to DNF, so the cause reads before the effect. -->
+  <LinearLayout
+     android:orientation="vertical"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="16dp">
+
+    <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="@string/quick_action"
+       android:textAllCaps="true"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"
+       android:letterSpacing="0.08"
+       android:layout_marginBottom="6dp"/>
+
+    <Spinner
+       android:id="@+id/spQuickAction"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:gravity="start"
+       style="@style/CustomSpinner"/>
+
+  </LinearLayout>
+
 </LinearLayout>

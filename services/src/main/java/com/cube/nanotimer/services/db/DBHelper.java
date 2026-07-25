@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.R;
 import com.cube.nanotimer.vo.ScrambleType;
+import com.cube.nanotimer.vo.TimerQuickAction;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -45,6 +46,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_SOLVETYPE_POSITION + " INTEGER DEFAULT 0, " +
         DB.COL_SOLVETYPE_BLIND + " INTEGER DEFAULT 0, " +
         DB.COL_SOLVETYPE_SCRAMBLE_TYPE + " TEXT, " +
+        DB.COL_SOLVETYPE_QUICK_ACTION + " INTEGER DEFAULT " + TimerQuickAction.SCRAMBLE_VIEW.getId() + ", " +
         DB.COL_SOLVETYPE_CUBETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_SOLVETYPE_CUBETYPE_ID + ") REFERENCES " + DB.TABLE_CUBETYPE + " (" + DB.COL_ID + ") " +
       ");"
@@ -237,6 +239,16 @@ public class DBHelper extends SQLiteOpenHelper {
       db.execSQL("CREATE INDEX " + DB.IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY
           + " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (timehistory_id);"
       );
+    }
+
+    if (oldVersion < 20) {
+      // Which menu action each solve type puts in the timer's action bar. Blind types get DNF:
+      // the scramble the other types show is of no use to a blindfolded solver.
+      db.execSQL("ALTER TABLE " + DB.TABLE_SOLVETYPE + " ADD COLUMN "
+          + DB.COL_SOLVETYPE_QUICK_ACTION + " INTEGER DEFAULT " + TimerQuickAction.SCRAMBLE_VIEW.getId());
+      db.execSQL("UPDATE " + DB.TABLE_SOLVETYPE
+          + " SET " + DB.COL_SOLVETYPE_QUICK_ACTION + " = " + TimerQuickAction.DNF.getId()
+          + " WHERE " + DB.COL_SOLVETYPE_BLIND + " = 1");
     }
 
 //    progressDialog.hide();

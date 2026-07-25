@@ -77,6 +77,7 @@ import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
+import com.cube.nanotimer.vo.TimerQuickAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -543,14 +544,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
-    menu.findItem(R.id.itLastSolve).setVisible(showMenu && lastSolveTime != null);
     menu.findItem(R.id.itSessionDetails).setVisible(showMenu && hasNewSession);
-    ScrambleType scrambleType = solveType.getScrambleType();
-    boolean crossSolverAvailable = cubeType == CubeType.THREE_BY_THREE
-        && (scrambleType == null || scrambleType.isDefault()); // null scramble type means the default full scramble
-    menu.findItem(R.id.itCrossSolver).setVisible(showMenu && crossSolverAvailable);
+    menu.findItem(R.id.itCrossSolver).setVisible(showMenu && isCrossSolverAvailable());
     menu.findItem(R.id.itScrambleView).setVisible(showMenu && ScrambleViewNotation.getRenderKey(cubeType) != null);
     return super.onPrepareOptionsMenu(menu);
+  }
+
+  private boolean isCrossSolverAvailable() {
+    ScrambleType scrambleType = solveType.getScrambleType();
+    return cubeType == CubeType.THREE_BY_THREE
+        && (scrambleType == null || scrambleType.isDefault()); // null scramble type means the default full scramble
   }
 
   @Override
@@ -563,15 +566,55 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     for (int i = 0; i < menu.size(); i++) {
       menu.getItem(i).setVisible(showMenu);
     }
-    // The scramble-view icon is multi-coloured (a scrambled cube face); clear any
-    // action-bar tint so its colours show instead of being flattened to one.
-    MenuItemCompat.setIconTintList(menu.findItem(R.id.itScrambleView), null);
     if (solveType.hasSteps()) {
       menu.findItem(R.id.itSessionDetails).setVisible(false);
       menu.findItem(R.id.itNewSession).setVisible(false);
       menu.findItem(R.id.itAddTime).setVisible(false);
     }
+    setUpQuickAction(menu);
     return true;
+  }
+
+  /** Promotes the solve type's chosen action to the action bar; the rest stay in the overflow menu. */
+  private void setUpQuickAction(Menu menu) {
+    int itemId = getQuickActionItemId();
+    if (itemId == 0) {
+      return;
+    }
+    MenuItem quickActionItem = menu.findItem(itemId);
+    quickActionItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+    if (itemId == R.id.itScrambleView) {
+      // In the action bar the scramble-view icon is the multi-coloured one, and its colours only
+      // show with the tint cleared. The overflow keeps the flat white variant from the menu XML.
+      quickActionItem.setIcon(R.drawable.ic_scramble_view);
+      MenuItemCompat.setIconTintList(quickActionItem, null);
+    }
+  }
+
+  /** The menu item to promote, or 0 when the solve type wants none or its choice does not apply here. */
+  private int getQuickActionItemId() {
+    TimerQuickAction quickAction = solveType.getQuickAction();
+    if (quickAction == null) {
+      quickAction = TimerQuickAction.getDefault(solveType.isBlind());
+    }
+    switch (quickAction) {
+      case SCRAMBLE_VIEW:
+        return ScrambleViewNotation.getRenderKey(cubeType) != null ? R.id.itScrambleView : 0;
+      case PLUS_TWO:
+        return R.id.itPlusTwo;
+      case DNF:
+        return R.id.itDNF;
+      case DELETE:
+        return R.id.itDelete;
+      case LAST_SOLVE:
+        return R.id.itLastSolve;
+      case ADD_TIME:
+        return solveType.hasSteps() ? 0 : R.id.itAddTime;
+      case CROSS_SOLVER:
+        return isCrossSolverAvailable() ? R.id.itCrossSolver : 0;
+      default:
+        return 0;
+    }
   }
 
   private void openSmartCubeConnect() {
@@ -583,7 +626,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       this.showMenu = show;
       supportInvalidateOptionsMenu();
 
-      getSupportActionBar().setDisplayHomeAsUpEnabled(show);
+      // The home button stays through the run (phones without a back button have no other way to
+      // abandon a solve), but turns into a cross: there it discards rather than navigates back.
+      ActionBar actionBar = getSupportActionBar();
+      if (show) {
+        actionBar.setHomeAsUpIndicator(null);
+      } else {
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_cancel_solve);
+      }
 
       // Hide the cube chip while the timer runs so the whole action bar stays a tap target
       // (no dead zone); it reappears when the timer stops (if a cube is connected).
@@ -591,8 +641,65 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
+  /**
+   * The home button is a stop tap like any other on this screen: it ends the solve, and only then
+   * is the user asked whether to keep the time. A stepped solve short of its last step stops all
+   * the same, with nothing to ask - its untapped steps have no times, so none can be recorded.
+   */
+  private void cancelPressed() {
+    if (solveType.hasSteps() && stepsTimes.size() < solveType.getSteps().length - 1) {
+      stopTimer(false);
+      resetTimer();
+      return;
+    }
+    if (solveType.hasSteps()) {
+      nextSolveStep(); // the tap closes the last step, exactly as it would anywhere else on screen
+    }
+    stopTimer(true);
+    if (timerState == TimerState.STOPPED) { // a stop too soon after the start is ignored
+      confirmDiscardSolve();
+    }
+  }
+
+  /** Offers to throw away the solve that was just stopped and saved. */
+  private void confirmDiscardSolve() {
+    DialogUtils.showConfirmCancelDialog(this, R.string.discard_solve_title, R.string.discard_solve_confirmation,
+        R.string.discard_solve, R.string.keep_solve, new YesNoListener() {
+          @Override
+          public void onYes() {
+            deleteLastSolve();
+          }
+        });
+  }
+
+  private void deleteLastSolve() {
+    if (lastSolveTime == null) {
+      DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
+      return;
+    }
+    App.INSTANCE.getService().deleteTime(lastSolveTime, solveAverageCallback);
+    cubeSession.deleteLast();
+    historySolvesCount--;
+    setSolvesCount(solvesCount - 1);
+    refreshSessionFields();
+    resetTimer();
+    hideStepBreakdown(); // the breakdown belonged to the solve that is now gone
+  }
+
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    // Handled before the stopped check below: while the timer runs it is the only live control.
+    if (item.getItemId() == android.R.id.home) {
+      if (timerState == TimerState.RUNNING) {
+        cancelPressed();
+      } else if (timerState == TimerState.INSPECTING) {
+        stopInspectionTimer();
+        resetTimer();
+      } else {
+        finish();
+      }
+      return true;
+    }
     if (timerState == TimerState.STOPPED) {
       switch (item.getItemId()) {
         case R.id.itPlusTwo:
@@ -621,22 +728,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           }
           break;
         case R.id.itDelete:
-          if (lastSolveTime != null) {
-            App.INSTANCE.getService().deleteTime(lastSolveTime, solveAverageCallback);
-            cubeSession.deleteLast();
-            historySolvesCount--;
-            setSolvesCount(solvesCount - 1);
-            refreshSessionFields();
-            resetTimer();
-            hideStepBreakdown(); // the breakdown belonged to the solve that is now gone
-          } else {
-            DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
-          }
+          deleteLastSolve();
           break;
         case R.id.itLastSolve:
           if (lastSolveTime != null) {
             DialogUtils.showFragment(this,
                 HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this));
+          } else {
+            DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
           }
           break;
         case R.id.itSessionDetails:

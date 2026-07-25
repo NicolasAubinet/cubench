@@ -33,6 +33,7 @@ import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
+import com.cube.nanotimer.vo.TimerQuickAction;
 import com.cube.nanotimer.vo.TimesSort;
 import com.mobeta.android.dslv.DragSortController;
 import com.mobeta.android.dslv.DragSortListView;
@@ -142,8 +143,8 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       SolveType solveType = liSolveTypes.get(position);
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
-      SolveTypeAddDialog editDialog =
-          SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position, solveTypeName, solveType.isBlind(), scrambleTypeName);
+      SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position,
+          solveTypeName, solveType.isBlind(), scrambleTypeName, getQuickAction(solveType));
       DialogUtils.showFragment(this, editDialog);
     } else if (menuItem.getItemId() == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
@@ -254,6 +255,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
 
     SolveType updatedSolveType = new SolveType(oldSolveType.getId(), name, blindMode, scrambleType, oldSolveType.getCubeTypeId());
     updatedSolveType.setSteps(oldSolveType.getSteps());
+    updatedSolveType.setQuickAction(parseQuickAction(props, blindMode));
     liSolveTypes.set(index, updatedSolveType);
 
     App.INSTANCE.getService().updateSolveType(updatedSolveType, blindChanged, new DataCallback<Void>() {
@@ -281,6 +283,18 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     return null;
   }
 
+  // Which timer menu action the solve type puts in the action bar (KEY_QUICK_ACTION is its stored id).
+  private TimerQuickAction parseQuickAction(Properties props, boolean blind) {
+    String id = props.getProperty(SolveTypeAddDialog.KEY_QUICK_ACTION);
+    return (id != null) ? TimerQuickAction.fromId(Integer.parseInt(id)) : TimerQuickAction.getDefault(blind);
+  }
+
+  // Solve types stored before the quick action existed fall back to the default for their mode.
+  private TimerQuickAction getQuickAction(SolveType solveType) {
+    return (solveType.getQuickAction() != null)
+        ? solveType.getQuickAction() : TimerQuickAction.getDefault(solveType.isBlind());
+  }
+
   @Override
   public boolean createField(String name, Properties props) {
     name = name.trim();
@@ -290,6 +304,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     boolean blindMode = Boolean.valueOf(props.getProperty(SolveTypeAddDialog.KEY_BLD, String.valueOf(false)));
     ScrambleType scrambleType = parseScrambleType(props);
     SolveType st = new SolveType(name, blindMode, scrambleType, curCubeType.getId());
+    st.setQuickAction(parseQuickAction(props, blindMode));
 
     liSolveTypes.add(st);
     App.INSTANCE.getService().addSolveType(st, new DataCallback<Integer>() {

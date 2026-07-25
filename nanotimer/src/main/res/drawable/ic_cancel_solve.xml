@@ -1,0 +1,15 @@
+<!-- Replaces the action bar's back arrow while the timer runs: there it discards the solve
+     rather than navigating back, and a cross says that where an arrow would not. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M6.5,6.5 L17.5,17.5 M17.5,6.5 L6.5,17.5"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>

@@ -19,6 +19,7 @@ import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
+import com.cube.nanotimer.vo.TimerQuickAction;
 import com.cube.nanotimer.vo.TimesSort;
 
 import java.util.ArrayList;
@@ -94,6 +95,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append(", ").append(DB.COL_SOLVETYPE_BLIND);
     q.append(", ").append(DB.COL_SOLVETYPE_SCRAMBLE_TYPE);
     q.append(", ").append(DB.COL_SOLVETYPE_CUBETYPE_ID);
+    q.append(", ").append(DB.COL_SOLVETYPE_QUICK_ACTION);
     q.append(" FROM ").append(DB.TABLE_SOLVETYPE);
     q.append(" WHERE ").append(DB.COL_SOLVETYPE_CUBETYPE_ID).append(" = ?");
     q.append(" ORDER BY ").append(DB.COL_SOLVETYPE_POSITION);
@@ -101,6 +103,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         SolveType st = new SolveType(cursor.getInt(0), cursor.getString(1), (cursor.getInt(2) == 1), toScrambleType(cubeType, cursor.getString(3)), cursor.getInt(4));
+        st.setQuickAction(TimerQuickAction.fromId(cursor.getInt(5)));
         st.setSteps(getSolveTypeSteps(st.getId()).toArray(new SolveTypeStep[0]));
         solveTypes.add(st);
       }
@@ -881,6 +884,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_CUBETYPE_ID, solveType.getCubeTypeId());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
+    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType));
     int id = (int) db.insert(DB.TABLE_SOLVETYPE, null, values);
     solveType.setId(id);
 
@@ -914,6 +918,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_NAME, solveType.getName());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
+    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType));
     db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
     if (recalculateAverages) {
       recalculateAverages(0, solveType);
@@ -1473,6 +1478,15 @@ public class ServiceProviderImpl implements ServiceProvider {
 
   private ScrambleType toScrambleType(CubeType cubeType, String scrambleTypeStr) {
     return cubeType.getScrambleTypeFromString(scrambleTypeStr);
+  }
+
+  // Solve types built by the older constructors carry no quick action, so fall back to the default.
+  private int toQuickActionId(SolveType solveType) {
+    TimerQuickAction quickAction = solveType.getQuickAction();
+    if (quickAction == null) {
+      quickAction = TimerQuickAction.getDefault(solveType.isBlind());
+    }
+    return quickAction.getId();
   }
 
   boolean fakeTimesInserted = false;
