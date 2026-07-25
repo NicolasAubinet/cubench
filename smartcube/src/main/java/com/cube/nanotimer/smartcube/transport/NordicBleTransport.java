@@ -92,7 +92,8 @@ public final class NordicBleTransport implements BleTransport {
         }
       }
     }
-    return new BleScanResult(result.getDevice().getAddress(), name, serviceUuids, manufacturerData);
+    return new BleScanResult(
+        result.getDevice().getAddress(), name, serviceUuids, manufacturerData, result.getRssi());
   }
 
   private static int[] toIntArray(byte[] bytes) {

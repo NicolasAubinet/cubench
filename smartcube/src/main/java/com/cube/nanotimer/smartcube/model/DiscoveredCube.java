@@ -9,15 +9,22 @@ public final class DiscoveredCube {
   private final String modelName;
   private final String macAddress;
   private final boolean needsMac;
+  private final Integer rssi;
 
   public DiscoveredCube(String id, String name, CubeBrand brand, String modelName,
       String macAddress, boolean needsMac) {
+    this(id, name, brand, modelName, macAddress, needsMac, null);
+  }
+
+  public DiscoveredCube(String id, String name, CubeBrand brand, String modelName,
+      String macAddress, boolean needsMac, Integer rssi) {
     this.id = id;
     this.name = name;
     this.brand = brand;
     this.modelName = modelName;
     this.macAddress = macAddress;
     this.needsMac = needsMac;
+    this.rssi = rssi;
   }
 
   /** Platform BLE id (not the MAC — the MAC may still need deriving). */
@@ -46,6 +53,14 @@ public final class DiscoveredCube {
   /** True when a MAC must be supplied because it couldn't be derived automatically. */
   public boolean needsMac() {
     return needsMac;
+  }
+
+  /**
+   * Signal strength of the advertisement this cube was found in, in dBm, or null when the scan
+   * didn't report one. Only meaningful while scanning — it is not refreshed after connecting.
+   */
+  public Integer getRssi() {
+    return rssi;
   }
 
   @Override

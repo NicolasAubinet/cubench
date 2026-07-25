@@ -626,10 +626,8 @@
   <string name="smart_cube_connected">Connecté</string>
   <string name="smart_cube_connect_failed">Échec de la connexion: %s</string>
   <string name="smart_cube_permission_denied">Permission Bluetooth refusée</string>
-  <string name="smart_cube_bluetooth_off">Activez le Bluetooth pour connecter votre cube</string>
   <string name="smart_cube_battery">Batterie: %1$d%%</string>
-  <string name="smart_cube_connect_title">Connecter un smart cube</string>
-  <string name="smart_cube_intro_body">Un smart cube Bluetooth permet à Cubench de lire vos mouvements pendant que vous résolvez — pour démarrer et arrêter le chrono automatiquement, sans toucher l\'écran. D\'autres analyses arrivent bientôt.</string>
+  <string name="smart_cube_intro_body">Un smart cube Bluetooth transmet à Cubench chacun de vos mouvements au moment où vous le faites. Une fois le vôtre appairé, trois choses changent.</string>
   <string name="smart_cube_done">Terminé</string>
   <string name="smart_cube_resync">Mon cube est résolu</string>
   <string name="smart_cube_resync_hint">Si l\'application croit que votre cube est mélangé alors qu\'il ne l\'est pas, c\'est que le cube s\'est perdu. Résolvez-le, puis touchez ci-dessous.</string>
@@ -638,4 +636,35 @@
   <string name="smart_cube_ready_to_solve">Prêt à résoudre</string>
   <string name="smart_cube_solving">Résolution en cours</string>
   <string name="smart_cube_undo">Annulez vos mauvais mouvements</string>
+
+  <!-- Smart cube: panneau d\'explication au premier lancement -->
+  <string name="smart_cube_intro_title">Ce que fait un smart cube</string>
+  <string name="smart_cube_intro_timing_title">Le chrono se lance tout seul</string>
+  <string name="smart_cube_intro_timing_body">Il démarre au premier mouvement et s\'arrête dès que le cube est résolu. Sans toucher l\'écran, sans départ manqué.</string>
+  <string name="smart_cube_intro_scramble_title">Des mélanges à suivre</string>
+  <string name="smart_cube_intro_scramble_body">Cubench vous regarde appliquer le mélange, coche chaque mouvement au passage et vous dit quand vous êtes prêt.</string>
+  <string name="smart_cube_intro_breakdown_title">Chaque solve, détaillé</string>
+  <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL et PLL sont chronométrés séparément, avec le nombre de mouvements, la vitesse et la reconstruction complète.</string>
+  <string name="smart_cube_intro_continue">Appairer mon cube</string>
+  <string name="smart_cube_help">Ce que fait un smart cube</string>
+
+  <!-- Smart cube: états d\'appairage -->
+  <string name="smart_cube_searching_title">Recherche de votre cube</string>
+  <string name="smart_cube_searching_body">Faites un quart de tour pour réveiller votre cube, et gardez-le près du téléphone.</string>
+  <string name="smart_cube_none_yet">Aucun cube pour l\'instant</string>
+  <plurals name="smart_cube_found_count">
+    <item quantity="one">%d cube à proximité · touchez pour connecter</item>
+    <item quantity="other">%d cubes à proximité · touchez pour connecter</item>
+  </plurals>
+  <string name="smart_cube_connected_battery">Connecté · %1$d%%</string>
+  <string name="smart_cube_bluetooth_off_title">Le Bluetooth est désactivé</string>
+  <string name="smart_cube_bluetooth_off_body">Cubench a besoin du Bluetooth pour trouver votre cube.</string>
+  <string name="smart_cube_bluetooth_on_action">Activer le Bluetooth</string>
+  <string name="smart_cube_permission_title">Permission requise</string>
+  <string name="smart_cube_permission_body">Cubench a besoin de la permission de détecter les appareils à proximité. Il ne cherche que des cubes, et rien ne quitte votre téléphone.</string>
+  <string name="smart_cube_permission_action">Accorder la permission</string>
+  <string name="smart_cube_permission_settings_body">Cubench ne peut plus demander cette permission d\'ici. Ouvrez les paramètres de l\'application et autorisez les appareils à proximité.</string>
+  <string name="smart_cube_permission_settings_action">Ouvrir les paramètres</string>
+  <string name="smart_cube_failed_title">Connexion impossible</string>
+  <string name="smart_cube_scan_again">Rechercher à nouveau</string>
 </resources>

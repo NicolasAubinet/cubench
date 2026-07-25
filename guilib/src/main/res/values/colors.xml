@@ -72,6 +72,15 @@
   <color name="step_oll">@color/cube_yellow</color>
   <color name="step_pll">@color/cube_orange</color>
 
+  <!-- Signal-strength bars on a discovered cube -->
+  <color name="signal_on">@color/cube_green</color>
+  <color name="signal_off">@color/gray700</color>
+
+  <!-- Smart-cube connect sheet status pill: a washed fill with the matching text on top -->
+  <color name="pill_scan_bg">#266CCCEC</color>
+  <color name="pill_live_bg">#2643A047</color>
+  <color name="pill_live_text">#7BD983</color>
+
   <color name="history_marker">@color/iceblue</color>
 
   <color name="dialog_surface">#23272B</color>

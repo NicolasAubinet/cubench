@@ -1,22 +1,28 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.ConnectCallback;
 import com.cube.nanotimer.cube.SmartCubeManager;
@@ -24,20 +30,41 @@ import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Connect sheet: explains what a smart cube enables, scans, and connects on tap. */
-public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
+/**
+ * The smart-cube sheet: explains what a smart cube buys you, scans for one, and connects on tap.
+ *
+ * <p>It opens on the explanation the first time and on the pairing panel every time after that, so
+ * the pitch is made once rather than sat between the user and their cube forever. The help button
+ * brings the explanation back on demand.
+ */
+public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
 
-  private TextView tvStatus;
-  private TextView tvResyncHint;
+  private View introPanel;
+  private View pairPanel;
+  private Button btnIntroContinue;
+  private View pairActions;
+  private ImageButton btnHelp;
+
+  private SmartCubeRadarView radar;
+  private ImageView imgGlyph;
+  private TextView tvPill;
+  private TextView tvTitle;
+  private TextView tvBody;
+  private Button btnFix;
+  private TextView tvListLabel;
+  private LinearLayout cubeList;
+  private View resyncBlock;
   private Button btnResync;
   private Button btnDisconnect;
-  private ListView lvCubes;
 
   private final List<DiscoveredCube> discovered = new ArrayList<>();
-  private ArrayAdapter<String> discoveredAdapter;
+  private boolean scanning;
+  private boolean permissionAsked;
+  private boolean btPromptLaunched;
 
   private ActivityResultLauncher<String[]> permissionLauncher;
   private ActivityResultLauncher<Intent> enableBluetoothLauncher;
@@ -57,7 +84,7 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
           if (granted) {
             maybeScan();
           } else {
-            tvStatus.setText(R.string.smart_cube_permission_denied);
+            showPermissionNeeded();
           }
         });
     enableBluetoothLauncher = registerForActivityResult(
@@ -65,38 +92,47 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
           if (SmartCubeManager.INSTANCE.isBluetoothEnabled()) {
             startScan();
           } else {
-            tvStatus.setText(R.string.smart_cube_bluetooth_off);
+            showBluetoothOff();
           }
         });
   }
 
-  @NonNull
   @Override
-  public Dialog onCreateDialog(Bundle savedInstanceState) {
-    View v = getActivity().getLayoutInflater().inflate(R.layout.smart_cube_connect_dialog, null);
-    tvStatus = v.findViewById(R.id.tvSmartCubeStatus);
-    tvResyncHint = v.findViewById(R.id.tvSmartCubeResyncHint);
+  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle state) {
+    View v = inflater.inflate(R.layout.smart_cube_connect_dialog, container, false);
+
+    introPanel = v.findViewById(R.id.smartCubeIntroPanel);
+    pairPanel = v.findViewById(R.id.smartCubePairPanel);
+    btnIntroContinue = v.findViewById(R.id.buSmartCubeIntroContinue);
+    pairActions = v.findViewById(R.id.smartCubePairActions);
+
+    radar = v.findViewById(R.id.smartCubeRadar);
+    imgGlyph = v.findViewById(R.id.imgSmartCubeGlyph);
+    tvPill = v.findViewById(R.id.tvSmartCubeStatusPill);
+    tvTitle = v.findViewById(R.id.tvSmartCubeStatusTitle);
+    tvBody = v.findViewById(R.id.tvSmartCubeStatusBody);
+    btnFix = v.findViewById(R.id.buSmartCubeFix);
+    tvListLabel = v.findViewById(R.id.tvSmartCubeListLabel);
+    cubeList = v.findViewById(R.id.smartCubeList);
+    resyncBlock = v.findViewById(R.id.smartCubeResyncBlock);
     btnResync = v.findViewById(R.id.btnSmartCubeResync);
     btnDisconnect = v.findViewById(R.id.btnSmartCubeDisconnect);
-    lvCubes = v.findViewById(R.id.lvSmartCubes);
+
+    btnHelp = v.findViewById(R.id.buSmartCubeHelp);
+    btnHelp.setOnClickListener(view -> showIntro());
+    btnIntroContinue.setOnClickListener(view -> {
+      Options.INSTANCE.setSmartCubeIntroSeen(true);
+      showPairing();
+    });
 
     btnResync.setOnClickListener(view -> {
       SmartCubeManager.INSTANCE.syncSolved();
       DialogUtils.showShortInfoMessage(getActivity(), R.string.smart_cube_resynced);
     });
-
-    discoveredAdapter = new ArrayAdapter<>(getActivity(), R.layout.smart_cube_list_item, new ArrayList<>());
-    lvCubes.setAdapter(discoveredAdapter);
-    lvCubes.setOnItemClickListener((parent, view, position, id) -> connect(discovered.get(position)));
-
     btnDisconnect.setOnClickListener(view -> SmartCubeManager.INSTANCE.disconnect());
+    v.findViewById(R.id.buSmartCubeDone).setOnClickListener(view -> dismiss());
 
-    AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
-        .setView(v)
-        .setPositiveButton(R.string.smart_cube_done, null)
-        .create();
-    dialog.setCanceledOnTouchOutside(true);
-    return dialog;
+    return v;
   }
 
   @Override
@@ -104,10 +140,11 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
     super.onStart();
     SmartCubeManager.INSTANCE.addConnectionListener(connectionListener);
     SmartCubeManager.INSTANCE.addBatteryListener(batteryListener);
-    if (SmartCubeManager.INSTANCE.isConnected()) {
-      updateUi();
+    // A cube already connected is the answer to "what is this", so the pitch is skipped for it.
+    if (!Options.INSTANCE.isSmartCubeIntroSeen() && !SmartCubeManager.INSTANCE.isConnected()) {
+      showIntro();
     } else {
-      maybeScan();
+      showPairing();
     }
   }
 
@@ -116,16 +153,54 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
     super.onStop();
     SmartCubeManager.INSTANCE.removeConnectionListener(connectionListener);
     SmartCubeManager.INSTANCE.removeBatteryListener(batteryListener);
-    SmartCubeManager.INSTANCE.stopScan();
+    stopScan();
+  }
+
+  /** The explanation. Nothing scans behind it: a permission prompt over the pitch reads as a trap. */
+  private void showIntro() {
+    stopScan();
+    introPanel.setVisibility(View.VISIBLE);
+    // "Pair my cube" would be an odd thing to offer someone whose cube is already paired.
+    btnIntroContinue.setText(SmartCubeManager.INSTANCE.isConnected()
+        ? R.string.ok : R.string.smart_cube_intro_continue);
+    btnIntroContinue.setVisibility(View.VISIBLE);
+    pairPanel.setVisibility(View.GONE);
+    pairActions.setVisibility(View.GONE);
+    btnHelp.setVisibility(View.GONE); // this panel is the help
+    radar.showIdle();
+  }
+
+  private void showPairing() {
+    introPanel.setVisibility(View.GONE);
+    btnIntroContinue.setVisibility(View.GONE);
+    pairPanel.setVisibility(View.VISIBLE);
+    pairActions.setVisibility(View.VISIBLE);
+    btnHelp.setVisibility(View.VISIBLE);
+    if (SmartCubeManager.INSTANCE.isConnected()) {
+      updateUi();
+    } else {
+      maybeScan();
+    }
+  }
+
+  private boolean showingIntro() {
+    return introPanel.getVisibility() == View.VISIBLE;
   }
 
   private void maybeScan() {
-    String[] missing = missingPermissions();
-    if (missing.length > 0) {
-      permissionLauncher.launch(missing);
+    if (missingPermissions().length > 0) {
+      showPermissionNeeded(); // rendered first: the sheet must not be blank behind the system prompt
+      if (!permissionBlocked()) {
+        requestPermissions();
+      }
     } else if (!SmartCubeManager.INSTANCE.isBluetoothEnabled()) {
-      tvStatus.setText(R.string.smart_cube_bluetooth_off);
-      enableBluetoothLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+      showBluetoothOff();
+      // Once per sheet only: the panel carries the same button, and an OEM prompt that stops the
+      // activity would otherwise re-fire this from onStart every time the user declines.
+      if (!btPromptLaunched) {
+        btPromptLaunched = true;
+        enableBluetoothLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+      }
     } else {
       startScan();
     }
@@ -133,29 +208,123 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
 
   private void startScan() {
     discovered.clear();
-    discoveredAdapter.clear();
-    tvStatus.setText(R.string.smart_cube_scanning);
+    cubeList.removeAllViews();
     try {
       SmartCubeManager.INSTANCE.startScan(this::onDiscovered);
+      scanning = true;
+      showSearching();
+    } catch (SecurityException e) {
+      showPermissionNeeded(); // the permission was revoked from under us — not an adapter problem
     } catch (Exception e) {
       // The adapter can be switched off between the check above and the scan starting.
-      tvStatus.setText(R.string.smart_cube_bluetooth_off);
+      showBluetoothOff();
     }
   }
 
+  private void stopScan() {
+    scanning = false;
+    SmartCubeManager.INSTANCE.stopScan();
+  }
+
+  /** A cube already on the list is re-advertising: keep its bars live rather than ignoring it. */
   private void onDiscovered(DiscoveredCube found) {
-    for (DiscoveredCube existing : discovered) {
-      if (existing.getId().equals(found.getId())) {
+    if (!scanning) {
+      return; // discoveries are posted to the main thread, so some land after the scan is stopped
+    }
+    for (int i = 0; i < discovered.size(); i++) {
+      if (discovered.get(i).getId().equals(found.getId())) {
+        discovered.set(i, found);
+        bindSignal(rowFor(found.getId()), found.getRssi());
         return;
       }
     }
     discovered.add(found);
-    discoveredAdapter.add(found.getModelName() + " (" + found.getName() + ")");
+    addCubeRow(found);
+    showSearching();
+  }
+
+  private void addCubeRow(DiscoveredCube cube) {
+    View row = getLayoutInflater().inflate(R.layout.smart_cube_list_item, cubeList, false);
+    row.setTag(cube.getId());
+    ((TextView) row.findViewById(R.id.tvCubeModel)).setText(cube.getModelName());
+    ((TextView) row.findViewById(R.id.tvCubeName)).setText(cube.getName());
+    bindSignal(row, cube.getRssi());
+    // Read the cube off the list rather than capturing it: later advertisements replace the entry.
+    row.setOnClickListener(view -> {
+      DiscoveredCube target = cubeFor((String) view.getTag());
+      if (target != null) {
+        connect(target);
+      }
+    });
+    if (cubeList.getChildCount() > 0) {
+      ((LinearLayout.LayoutParams) row.getLayoutParams()).topMargin =
+          getResources().getDimensionPixelSize(R.dimen.smart_cube_row_gap);
+    }
+    cubeList.addView(row);
+  }
+
+  /** Rows and cubes are matched on the cube's id, never on position: order is not a promise. */
+  private View rowFor(String cubeId) {
+    for (int i = 0; i < cubeList.getChildCount(); i++) {
+      View row = cubeList.getChildAt(i);
+      if (cubeId.equals(row.getTag())) {
+        return row;
+      }
+    }
+    return null;
+  }
+
+  private DiscoveredCube cubeFor(String cubeId) {
+    for (DiscoveredCube cube : discovered) {
+      if (cube.getId().equals(cubeId)) {
+        return cube;
+      }
+    }
+    return null;
+  }
+
+  /** Four bars of signal, filled from the advertisement's dBm. Hidden when the scan reports none. */
+  private void bindSignal(View row, Integer rssi) {
+    if (row == null) {
+      return;
+    }
+    View bars = row.findViewById(R.id.cubeSignal);
+    if (rssi == null) {
+      bars.setVisibility(View.GONE);
+      return;
+    }
+    bars.setVisibility(View.VISIBLE);
+    int lit = signalBars(rssi);
+    int on = ContextCompat.getColor(requireContext(), R.color.signal_on);
+    int off = ContextCompat.getColor(requireContext(), R.color.signal_off);
+    int[] ids = {R.id.cubeSignal1, R.id.cubeSignal2, R.id.cubeSignal3, R.id.cubeSignal4};
+    for (int i = 0; i < ids.length; i++) {
+      row.findViewById(ids[i]).setBackgroundColor(i < lit ? on : off);
+    }
+  }
+
+  /** Usable BLE range runs from about -40 dBm in the hand to -100 at the edge of the room. */
+  private static int signalBars(int rssi) {
+    if (rssi >= -60) {
+      return 4;
+    } else if (rssi >= -70) {
+      return 3;
+    } else if (rssi >= -80) {
+      return 2;
+    }
+    return 1;
   }
 
   private void connect(DiscoveredCube target) {
-    SmartCubeManager.INSTANCE.stopScan();
-    tvStatus.setText(getString(R.string.smart_cube_connecting, target.getName()));
+    stopScan();
+    radar.showSearching(); // still working — the halo only settles once the cube answers
+    tvPill.setVisibility(View.GONE);
+    tvTitle.setText(getString(R.string.smart_cube_connecting, target.getModelName()));
+    setBody(target.getName());
+    tvListLabel.setVisibility(View.GONE);
+    cubeList.setVisibility(View.GONE);
+    btnFix.setVisibility(View.GONE);
+
     SmartCubeManager.INSTANCE.connect(target, new ConnectCallback() {
       @Override
       public void onConnected() {
@@ -167,38 +336,157 @@ public class SmartCubeConnectDialog extends NanoTimerDialogFragment {
         if (!isAdded()) {
           return;
         }
-        tvStatus.setText(getString(R.string.smart_cube_connect_failed, String.valueOf(e.getMessage())));
+        showConnectFailed(e);
       }
     });
   }
 
+  /** Re-renders whichever state the sheet is in. Connection callbacks can land at any moment. */
   private void updateUi() {
-    if (!isAdded()) {
-      return; // a connect callback can land after the dialog is dismissed
+    if (!isAdded() || showingIntro()) {
+      return; // a connect callback can land after the dialog is dismissed, or behind the intro
     }
-    boolean connected = SmartCubeManager.INSTANCE.isConnected();
+    // Registering a listener fires it straight away, so this can run before a panel is even chosen:
+    // it may re-render, but it must never be what starts a scan.
     boolean wasConnected = btnDisconnect.getVisibility() == View.VISIBLE;
-    btnDisconnect.setVisibility(connected ? View.VISIBLE : View.GONE);
-    btnResync.setVisibility(connected ? View.VISIBLE : View.GONE);
-    tvResyncHint.setVisibility(connected ? View.VISIBLE : View.GONE);
-    lvCubes.setVisibility(connected ? View.GONE : View.VISIBLE);
-    if (connected) {
-      StringBuilder status = new StringBuilder(getString(R.string.smart_cube_connected));
-      DiscoveredCube device = SmartCubeManager.INSTANCE.getConnectedDevice();
-      if (device != null) {
-        status.append(" · ").append(device.getName());
-        if (device.getMacAddress() != null) {
-          status.append('\n').append(getString(R.string.smart_cube_mac, device.getMacAddress()));
-        }
-      }
-      Integer battery = SmartCubeManager.INSTANCE.getBattery();
-      if (battery != null) {
-        status.append('\n').append(getString(R.string.smart_cube_battery, battery));
-      }
-      tvStatus.setText(status.toString());
+    if (SmartCubeManager.INSTANCE.isConnected()) {
+      showConnected();
+    } else if (scanning) {
+      showSearching();
     } else if (wasConnected) {
-      startScan(); // user disconnected or the cube dropped → back to scanning
+      maybeScan(); // the user disconnected, or the cube dropped → back to looking for one
     }
+  }
+
+  private void showConnected() {
+    Integer battery = SmartCubeManager.INSTANCE.getBattery();
+    DiscoveredCube device = SmartCubeManager.INSTANCE.getConnectedDevice();
+
+    radar.showLinked(battery);
+    setGlyphActive(true);
+    if (battery == null) {
+      setPill(getString(R.string.smart_cube_connected), R.color.pill_live_bg, R.color.pill_live_text);
+    } else {
+      setPill(getString(R.string.smart_cube_connected_battery, battery),
+          R.color.pill_live_bg, R.color.pill_live_text);
+    }
+    tvTitle.setText(device != null ? device.getModelName() : getString(R.string.smart_cube_title));
+    setBody(device != null && device.getMacAddress() != null
+        ? getString(R.string.smart_cube_mac, device.getMacAddress()) : null);
+
+    btnFix.setVisibility(View.GONE);
+    tvListLabel.setVisibility(View.GONE);
+    cubeList.setVisibility(View.GONE);
+    resyncBlock.setVisibility(View.VISIBLE);
+    btnDisconnect.setVisibility(View.VISIBLE);
+  }
+
+  private void showSearching() {
+    radar.showSearching();
+    setGlyphActive(true);
+    setPill(getString(R.string.smart_cube_scanning), R.color.pill_scan_bg, R.color.lightblue);
+    tvTitle.setText(R.string.smart_cube_searching_title);
+    setBody(getString(R.string.smart_cube_searching_body));
+
+    boolean empty = discovered.isEmpty();
+    tvListLabel.setText(empty ? getString(R.string.smart_cube_none_yet)
+        : getResources().getQuantityString(
+            R.plurals.smart_cube_found_count, discovered.size(), discovered.size()));
+    tvListLabel.setVisibility(View.VISIBLE);
+    cubeList.setVisibility(empty ? View.GONE : View.VISIBLE);
+    btnFix.setVisibility(View.GONE);
+    resyncBlock.setVisibility(View.GONE);
+    btnDisconnect.setVisibility(View.GONE);
+  }
+
+  private void showBluetoothOff() {
+    showProblem(getString(R.string.smart_cube_bluetooth_off_title),
+        getString(R.string.smart_cube_bluetooth_off_body),
+        R.string.smart_cube_bluetooth_on_action,
+        view -> enableBluetoothLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)));
+  }
+
+  /** Asking again is pointless once the system has stopped prompting, so the button changes target. */
+  private void showPermissionNeeded() {
+    if (permissionBlocked()) {
+      showProblem(getString(R.string.smart_cube_permission_title),
+          getString(R.string.smart_cube_permission_settings_body),
+          R.string.smart_cube_permission_settings_action, view -> openAppSettings());
+    } else {
+      showProblem(getString(R.string.smart_cube_permission_title),
+          getString(R.string.smart_cube_permission_body),
+          R.string.smart_cube_permission_action, view -> requestPermissions());
+    }
+  }
+
+  private void requestPermissions() {
+    permissionAsked = true;
+    permissionLauncher.launch(missingPermissions());
+  }
+
+  /**
+   * Whether asking again would do nothing. After a denial the system returns straight away, with no
+   * prompt shown, for any permission it will no longer offer — Settings is then the only way through.
+   */
+  private boolean permissionBlocked() {
+    String[] missing = missingPermissions();
+    if (!permissionAsked || missing.length == 0) {
+      return false;
+    }
+    for (String permission : missing) {
+      if (shouldShowRequestPermissionRationale(permission)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private void openAppSettings() {
+    startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", requireContext().getPackageName(), null)));
+  }
+
+  private void showConnectFailed(Exception e) {
+    showProblem(getString(R.string.smart_cube_failed_title),
+        getString(R.string.smart_cube_connect_failed, String.valueOf(e.getMessage())),
+        R.string.smart_cube_scan_again, view -> maybeScan());
+  }
+
+  /** A stopped state, with the button that gets past it — never a dead end. */
+  private void showProblem(String title, String body, int actionText, View.OnClickListener action) {
+    scanning = false;
+    radar.showIdle();
+    setGlyphActive(false);
+    tvPill.setVisibility(View.GONE); // the title already carries the state
+    tvTitle.setText(title);
+    setBody(body);
+
+    btnFix.setText(actionText);
+    btnFix.setOnClickListener(action);
+    btnFix.setVisibility(View.VISIBLE);
+    tvListLabel.setVisibility(View.GONE);
+    cubeList.setVisibility(View.GONE);
+    resyncBlock.setVisibility(View.GONE);
+    btnDisconnect.setVisibility(View.GONE);
+  }
+
+  /** The glyph goes grey when the halo stops: nothing is happening, and it should look like it. */
+  private void setGlyphActive(boolean active) {
+    imgGlyph.setColorFilter(ContextCompat.getColor(requireContext(),
+        active ? R.color.lightblue : R.color.gray700));
+  }
+
+  private void setPill(String text, int backgroundColor, int textColor) {
+    tvPill.setText(text);
+    tvPill.setTextColor(ContextCompat.getColor(requireContext(), textColor));
+    ViewCompat.setBackgroundTintList(tvPill,
+        ColorStateList.valueOf(ContextCompat.getColor(requireContext(), backgroundColor)));
+    tvPill.setVisibility(View.VISIBLE);
+  }
+
+  private void setBody(String text) {
+    tvBody.setText(text);
+    tvBody.setVisibility(text == null ? View.GONE : View.VISIBLE);
   }
 
   private String[] missingPermissions() {

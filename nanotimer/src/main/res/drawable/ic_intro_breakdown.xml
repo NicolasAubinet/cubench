@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Intro row: the solve step bar in miniature, for the per-step breakdown. Segments fade back the
+     way the real bar's later steps do. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+   android:width="24dp"
+   android:height="24dp"
+   android:viewportWidth="24"
+   android:viewportHeight="24"
+   android:tint="@color/lightblue">
+  <path android:fillColor="#FFFFFF" android:pathData="M2,5 h6.4 v14 h-6.4 z"/>
+  <path android:fillColor="#FFFFFF" android:fillAlpha="0.75" android:pathData="M9.2,5 h5.2 v14 h-5.2 z"/>
+  <path android:fillColor="#FFFFFF" android:fillAlpha="0.5" android:pathData="M15.2,5 h3.4 v14 h-3.4 z"/>
+  <path android:fillColor="#FFFFFF" android:fillAlpha="0.3" android:pathData="M19.4,5 h2.6 v14 h-2.6 z"/>
+</vector>

@@ -631,10 +631,8 @@
   <string name="smart_cube_connected">Connected</string>
   <string name="smart_cube_connect_failed">Connection failed: %s</string>
   <string name="smart_cube_permission_denied">Bluetooth permission denied</string>
-  <string name="smart_cube_bluetooth_off">Turn on Bluetooth to connect your cube</string>
   <string name="smart_cube_battery">Battery: %1$d%%</string>
-  <string name="smart_cube_connect_title">Connect a smart cube</string>
-  <string name="smart_cube_intro_body">A Bluetooth smart cube lets Cubench read your turns as you solve — so it can start and stop the timer automatically, with no tapping. More insights are on the way.</string>
+  <string name="smart_cube_intro_body">A Bluetooth smart cube reports every turn to Cubench as you make it. Once yours is paired, three things change.</string>
   <string name="smart_cube_done">Done</string>
   <string name="smart_cube_resync">My cube is solved</string>
   <string name="smart_cube_resync_hint">If the app thinks your cube is scrambled when it is not, the cube has lost track of itself. Solve it, then tap below.</string>
@@ -643,4 +641,35 @@
   <string name="smart_cube_ready_to_solve">Ready to solve</string>
   <string name="smart_cube_solving">Solve in progress</string>
   <string name="smart_cube_undo">Undo your wrong moves</string>
+
+  <!-- Smart cube: the first-run explanation panel -->
+  <string name="smart_cube_intro_title">What a smart cube does</string>
+  <string name="smart_cube_intro_timing_title">The timer runs itself</string>
+  <string name="smart_cube_intro_timing_body">It starts on your first turn and stops the moment the cube is solved. No tapping, no missed starts.</string>
+  <string name="smart_cube_intro_scramble_title">Scrambles you can follow</string>
+  <string name="smart_cube_intro_scramble_body">Cubench watches you apply the scramble, marks off each move as it lands, and says when you are ready to go.</string>
+  <string name="smart_cube_intro_breakdown_title">Every solve, broken down</string>
+  <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL and PLL are timed separately, with move counts, turn speed and the full reconstruction.</string>
+  <string name="smart_cube_intro_continue">Pair my cube</string>
+  <string name="smart_cube_help">What a smart cube does</string>
+
+  <!-- Smart cube: pairing states -->
+  <string name="smart_cube_searching_title">Looking for your cube</string>
+  <string name="smart_cube_searching_body">Give your cube a quarter turn to wake it up, and keep it near the phone.</string>
+  <string name="smart_cube_none_yet">No cubes yet</string>
+  <plurals name="smart_cube_found_count">
+    <item quantity="one">%d cube nearby · tap to connect</item>
+    <item quantity="other">%d cubes nearby · tap to connect</item>
+  </plurals>
+  <string name="smart_cube_connected_battery">Connected · %1$d%%</string>
+  <string name="smart_cube_bluetooth_off_title">Bluetooth is off</string>
+  <string name="smart_cube_bluetooth_off_body">Cubench needs Bluetooth switched on to find your cube.</string>
+  <string name="smart_cube_bluetooth_on_action">Turn on Bluetooth</string>
+  <string name="smart_cube_permission_title">Permission needed</string>
+  <string name="smart_cube_permission_body">Cubench needs permission to find nearby devices. It only ever looks for cubes, and nothing leaves your phone.</string>
+  <string name="smart_cube_permission_action">Grant permission</string>
+  <string name="smart_cube_permission_settings_body">Cubench can no longer ask for this permission from here. Open the app settings and allow nearby devices.</string>
+  <string name="smart_cube_permission_settings_action">Open app settings</string>
+  <string name="smart_cube_failed_title">Could not connect</string>
+  <string name="smart_cube_scan_again">Scan again</string>
 </resources>
