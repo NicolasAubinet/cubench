@@ -7,28 +7,10 @@
      android:layout_height="13px"/>
 
   <LinearLayout
+     android:id="@+id/stepLegend"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginTop="4px"
-     android:orientation="horizontal">
-
-    <LinearLayout android:id="@+id/stepLegendCell0" style="@style/StepLegendCellPx">
-      <TextView android:id="@+id/tvStepName0" style="@style/StepLegendNamePx"/>
-      <TextView android:id="@+id/tvStepTime0" style="@style/StepLegendTimePx"/>
-    </LinearLayout>
-    <LinearLayout android:id="@+id/stepLegendCell1" style="@style/StepLegendCellPx">
-      <TextView android:id="@+id/tvStepName1" style="@style/StepLegendNamePx"/>
-      <TextView android:id="@+id/tvStepTime1" style="@style/StepLegendTimePx"/>
-    </LinearLayout>
-    <LinearLayout android:id="@+id/stepLegendCell2" style="@style/StepLegendCellPx">
-      <TextView android:id="@+id/tvStepName2" style="@style/StepLegendNamePx"/>
-      <TextView android:id="@+id/tvStepTime2" style="@style/StepLegendTimePx"/>
-    </LinearLayout>
-    <LinearLayout android:id="@+id/stepLegendCell3" style="@style/StepLegendCellPx">
-      <TextView android:id="@+id/tvStepName3" style="@style/StepLegendNamePx"/>
-      <TextView android:id="@+id/tvStepTime3" style="@style/StepLegendTimePx"/>
-    </LinearLayout>
-
-  </LinearLayout>
+     android:orientation="vertical"/>
 
 </merge>

@@ -23,7 +23,9 @@ public final class SolveShareFormat {
     List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(solveTime.getSmartcubeSteps(),
         solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves());
     StringBuilder sb = new StringBuilder();
-    if (steps != null && !steps.isEmpty()) {
+    // Solves recorded before the method breakdown stopped being kept for a solve type with its own
+    // steps still carry one. It is not shown anywhere, so it is not shared either.
+    if (steps != null && !steps.isEmpty() && !solveTime.hasSteps()) {
       appendBreakdown(context, sb, steps,
           SolveSolution.from(solveTime.getSmartcubeMoves(), steps, durationMs));
     }
