@@ -78,7 +78,6 @@ import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
-import com.cube.nanotimer.vo.TimerQuickAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -609,11 +608,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   /** The menu item to promote, or 0 when the solve type wants none or its choice does not apply here. */
   private int getQuickActionItemId() {
-    TimerQuickAction quickAction = solveType.getQuickAction();
-    if (quickAction == null) {
-      quickAction = TimerQuickAction.getDefault(solveType.isBlind());
-    }
-    switch (quickAction) {
+    switch (solveType.getQuickAction()) {
       case SCRAMBLE_VIEW:
         return ScrambleViewNotation.getRenderKey(cubeType) != null ? R.id.itScrambleView : 0;
       case PLUS_TWO:

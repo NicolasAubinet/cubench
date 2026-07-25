@@ -884,7 +884,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_CUBETYPE_ID, solveType.getCubeTypeId());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
-    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType));
+    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
     int id = (int) db.insert(DB.TABLE_SOLVETYPE, null, values);
     solveType.setId(id);
 
@@ -918,7 +918,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_NAME, solveType.getName());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
-    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType));
+    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
     db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
     if (recalculateAverages) {
       recalculateAverages(0, solveType);
@@ -1478,15 +1478,6 @@ public class ServiceProviderImpl implements ServiceProvider {
 
   private ScrambleType toScrambleType(CubeType cubeType, String scrambleTypeStr) {
     return cubeType.getScrambleTypeFromString(scrambleTypeStr);
-  }
-
-  // Solve types built by the older constructors carry no quick action, so fall back to the default.
-  private int toQuickActionId(SolveType solveType) {
-    TimerQuickAction quickAction = solveType.getQuickAction();
-    if (quickAction == null) {
-      quickAction = TimerQuickAction.getDefault(solveType.isBlind());
-    }
-    return quickAction.getId();
   }
 
   boolean fakeTimesInserted = false;

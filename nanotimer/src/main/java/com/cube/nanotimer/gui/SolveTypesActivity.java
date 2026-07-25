@@ -144,7 +144,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
       SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position,
-          solveTypeName, solveType.isBlind(), scrambleTypeName, getQuickAction(solveType));
+          solveTypeName, solveType.isBlind(), scrambleTypeName, solveType.getQuickAction());
       DialogUtils.showFragment(this, editDialog);
     } else if (menuItem.getItemId() == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
@@ -287,12 +287,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   private TimerQuickAction parseQuickAction(Properties props, boolean blind) {
     String id = props.getProperty(SolveTypeAddDialog.KEY_QUICK_ACTION);
     return (id != null) ? TimerQuickAction.fromId(Integer.parseInt(id)) : TimerQuickAction.getDefault(blind);
-  }
-
-  // Solve types stored before the quick action existed fall back to the default for their mode.
-  private TimerQuickAction getQuickAction(SolveType solveType) {
-    return (solveType.getQuickAction() != null)
-        ? solveType.getQuickAction() : TimerQuickAction.getDefault(solveType.isBlind());
   }
 
   @Override
