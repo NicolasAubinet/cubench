@@ -617,15 +617,11 @@
   </string>
 
   <string name="smart_cube_title">Cubo inteligente</string>
-  <string name="smart_cube_scan">Buscar</string>
   <string name="smart_cube_disconnect">Desconectar</string>
-  <string name="smart_cube_status_idle">Toca Buscar para encontrar tu cubo</string>
   <string name="smart_cube_scanning">Buscando…</string>
   <string name="smart_cube_connecting">Conectando a %s…</string>
   <string name="smart_cube_connected">Conectado</string>
   <string name="smart_cube_connect_failed">Error de conexión: %s</string>
-  <string name="smart_cube_permission_denied">Permiso de Bluetooth denegado</string>
-  <string name="smart_cube_battery">Batería: %1$d%%</string>
   <string name="smart_cube_intro_body">Un cubo inteligente Bluetooth transmite a Cubench cada movimiento en el momento en que lo haces. Cuando el tuyo esté vinculado, tres cosas cambian.</string>
   <string name="smart_cube_done">Hecho</string>
   <string name="smart_cube_resync">Mi cubo está resuelto</string>
