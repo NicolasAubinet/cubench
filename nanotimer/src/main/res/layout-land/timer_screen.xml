@@ -49,8 +49,8 @@
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:orientation="vertical"
-             android:paddingLeft="10px"
-             android:paddingRight="10px"
+             android:paddingLeft="6px"
+             android:paddingRight="6px"
              android:paddingTop="6px"
              android:paddingBottom="8px">
 
@@ -59,6 +59,8 @@
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
                android:gravity="center_horizontal"
+               android:paddingLeft="4px"
+               android:paddingRight="4px"
                app:myfont="MONOSPACE"
                style="@style/ScrambleTextFieldPx"/>
 
