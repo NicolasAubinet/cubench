@@ -2,6 +2,7 @@ package com.cube.nanotimer.smartcube.scanner;
 
 import android.content.Context;
 import com.cube.nanotimer.smartcube.driver.CubeDriverRegistry;
+import com.cube.nanotimer.smartcube.drivers.GanDriver;
 import com.cube.nanotimer.smartcube.drivers.MoyuV10Driver;
 import com.cube.nanotimer.smartcube.transport.BleTransport;
 import com.cube.nanotimer.smartcube.transport.NordicBleTransport;
@@ -30,5 +31,6 @@ public final class CubeScannerFactory {
     }
     driversRegistered = true;
     CubeDriverRegistry.INSTANCE.register(new MoyuV10Driver());
+    CubeDriverRegistry.INSTANCE.register(new GanDriver());
   }
 }

@@ -154,6 +154,34 @@ public final class CubieCube {
     return true;
   }
 
+  /**
+   * Load this cube from raw corner/edge permutation and orientation, as the GAN cubes report their
+   * state. Returns {@code false} on a value out of range — a corrupt packet, which must leave the
+   * tracked model as it was rather than half-written.
+   */
+  public boolean fromPermutation(int[] cp, int[] co, int[] ep, int[] eo) {
+    if (cp.length != 8 || co.length != 8 || ep.length != 12 || eo.length != 12) {
+      return false;
+    }
+    for (int i = 0; i < 8; i++) {
+      if (cp[i] < 0 || cp[i] > 7 || co[i] < 0 || co[i] > 2) {
+        return false;
+      }
+    }
+    for (int i = 0; i < 12; i++) {
+      if (ep[i] < 0 || ep[i] > 11 || eo[i] < 0 || eo[i] > 1) {
+        return false;
+      }
+    }
+    for (int i = 0; i < 8; i++) {
+      ca[i] = cp[i] | (co[i] << 3);
+    }
+    for (int i = 0; i < 12; i++) {
+      ea[i] = (ep[i] << 1) | eo[i];
+    }
+    return true;
+  }
+
   /** Apply a single quarter turn in place. */
   public void applyMove(Face face, boolean prime) {
     CubieCube tmp = new CubieCube();
