@@ -112,6 +112,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private List<SolveStep> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
   private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
+  private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -674,7 +675,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         R.string.discard_solve, R.string.keep_solve, new YesNoListener() {
           @Override
           public void onYes() {
-            deleteLastSolve();
+            if (lastSolveTime != null) {
+              deleteLastSolve();
+            } else {
+              discardWhenSaved = true; // it is still being written; drop it the moment it lands
+            }
           }
         });
   }
@@ -1004,6 +1009,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private void startTimer() {
     long curTime = System.currentTimeMillis();
+    // A discard still waiting on its save is dropped rather than carried into this solve, so a
+    // save that never lands can never take the wrong time with it.
+    discardWhenSaved = false;
     resetTimerText();
     lastTimerStartTs = curTime;
     if (curTime - lastTimerStopTs < STOP_START_DELAY) {
@@ -1842,6 +1850,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           solveAverages = data;
           if (data.getSolveTime() != null) { // a plain averages refresh carries no solve; keep the one we have
             lastSolveTime = data.getSolveTime();
+            if (discardWhenSaved) { // the solve the user already chose to discard has now been saved
+              discardWhenSaved = false;
+              deleteLastSolve();
+            }
           }
           refreshAvgFields(true);
         }
