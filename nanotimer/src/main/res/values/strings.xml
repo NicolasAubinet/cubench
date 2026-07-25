@@ -631,9 +631,7 @@
   <string name="smart_cube_connected">Connected</string>
   <string name="smart_cube_connect_failed">Connection failed: %s</string>
   <string name="smart_cube_permission_denied">Bluetooth permission denied</string>
-  <string name="smart_cube_bluetooth_off">Turn on Bluetooth to connect your cube</string>
   <string name="smart_cube_battery">Battery: %1$d%%</string>
-  <string name="smart_cube_connect_title">Connect a smart cube</string>
   <string name="smart_cube_intro_body">A Bluetooth smart cube reports every turn to Cubench as you make it. Once yours is paired, three things change.</string>
   <string name="smart_cube_done">Done</string>
   <string name="smart_cube_resync">My cube is solved</string>
@@ -670,6 +668,8 @@
   <string name="smart_cube_permission_title">Permission needed</string>
   <string name="smart_cube_permission_body">Cubench needs permission to find nearby devices. It only ever looks for cubes, and nothing leaves your phone.</string>
   <string name="smart_cube_permission_action">Grant permission</string>
+  <string name="smart_cube_permission_settings_body">Cubench can no longer ask for this permission from here. Open the app settings and allow nearby devices.</string>
+  <string name="smart_cube_permission_settings_action">Open app settings</string>
   <string name="smart_cube_failed_title">Could not connect</string>
   <string name="smart_cube_scan_again">Scan again</string>
 </resources>

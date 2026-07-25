@@ -5,8 +5,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,6 +63,8 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
 
   private final List<DiscoveredCube> discovered = new ArrayList<>();
   private boolean scanning;
+  private boolean permissionAsked;
+  private boolean btPromptLaunched;
 
   private ActivityResultLauncher<String[]> permissionLauncher;
   private ActivityResultLauncher<Intent> enableBluetoothLauncher;
@@ -184,12 +188,19 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   }
 
   private void maybeScan() {
-    String[] missing = missingPermissions();
-    if (missing.length > 0) {
-      permissionLauncher.launch(missing);
+    if (missingPermissions().length > 0) {
+      showPermissionNeeded(); // rendered first: the sheet must not be blank behind the system prompt
+      if (!permissionBlocked()) {
+        requestPermissions();
+      }
     } else if (!SmartCubeManager.INSTANCE.isBluetoothEnabled()) {
       showBluetoothOff();
-      enableBluetoothLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+      // Once per sheet only: the panel carries the same button, and an OEM prompt that stops the
+      // activity would otherwise re-fire this from onStart every time the user declines.
+      if (!btPromptLaunched) {
+        btPromptLaunched = true;
+        enableBluetoothLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+      }
     } else {
       startScan();
     }
@@ -217,10 +228,13 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
 
   /** A cube already on the list is re-advertising: keep its bars live rather than ignoring it. */
   private void onDiscovered(DiscoveredCube found) {
+    if (!scanning) {
+      return; // discoveries are posted to the main thread, so some land after the scan is stopped
+    }
     for (int i = 0; i < discovered.size(); i++) {
       if (discovered.get(i).getId().equals(found.getId())) {
         discovered.set(i, found);
-        bindSignal(cubeList.getChildAt(i), found.getRssi());
+        bindSignal(rowFor(found.getId()), found.getRssi());
         return;
       }
     }
@@ -231,16 +245,42 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
 
   private void addCubeRow(DiscoveredCube cube) {
     View row = getLayoutInflater().inflate(R.layout.smart_cube_list_item, cubeList, false);
+    row.setTag(cube.getId());
     ((TextView) row.findViewById(R.id.tvCubeModel)).setText(cube.getModelName());
     ((TextView) row.findViewById(R.id.tvCubeName)).setText(cube.getName());
     bindSignal(row, cube.getRssi());
     // Read the cube off the list rather than capturing it: later advertisements replace the entry.
-    row.setOnClickListener(view -> connect(discovered.get(cubeList.indexOfChild(view))));
+    row.setOnClickListener(view -> {
+      DiscoveredCube target = cubeFor((String) view.getTag());
+      if (target != null) {
+        connect(target);
+      }
+    });
     if (cubeList.getChildCount() > 0) {
       ((LinearLayout.LayoutParams) row.getLayoutParams()).topMargin =
           getResources().getDimensionPixelSize(R.dimen.smart_cube_row_gap);
     }
     cubeList.addView(row);
+  }
+
+  /** Rows and cubes are matched on the cube's id, never on position: order is not a promise. */
+  private View rowFor(String cubeId) {
+    for (int i = 0; i < cubeList.getChildCount(); i++) {
+      View row = cubeList.getChildAt(i);
+      if (cubeId.equals(row.getTag())) {
+        return row;
+      }
+    }
+    return null;
+  }
+
+  private DiscoveredCube cubeFor(String cubeId) {
+    for (DiscoveredCube cube : discovered) {
+      if (cube.getId().equals(cubeId)) {
+        return cube;
+      }
+    }
+    return null;
   }
 
   /** Four bars of signal, filled from the advertisement's dBm. Hidden when the scan reports none. */
@@ -280,7 +320,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     radar.showSearching(); // still working — the halo only settles once the cube answers
     tvPill.setVisibility(View.GONE);
     tvTitle.setText(getString(R.string.smart_cube_connecting, target.getModelName()));
-    tvBody.setText(target.getName());
+    setBody(target.getName());
     tvListLabel.setVisibility(View.GONE);
     cubeList.setVisibility(View.GONE);
     btnFix.setVisibility(View.GONE);
@@ -366,11 +406,44 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
         view -> enableBluetoothLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)));
   }
 
+  /** Asking again is pointless once the system has stopped prompting, so the button changes target. */
   private void showPermissionNeeded() {
-    showProblem(getString(R.string.smart_cube_permission_title),
-        getString(R.string.smart_cube_permission_body),
-        R.string.smart_cube_permission_action,
-        view -> permissionLauncher.launch(missingPermissions()));
+    if (permissionBlocked()) {
+      showProblem(getString(R.string.smart_cube_permission_title),
+          getString(R.string.smart_cube_permission_settings_body),
+          R.string.smart_cube_permission_settings_action, view -> openAppSettings());
+    } else {
+      showProblem(getString(R.string.smart_cube_permission_title),
+          getString(R.string.smart_cube_permission_body),
+          R.string.smart_cube_permission_action, view -> requestPermissions());
+    }
+  }
+
+  private void requestPermissions() {
+    permissionAsked = true;
+    permissionLauncher.launch(missingPermissions());
+  }
+
+  /**
+   * Whether asking again would do nothing. After a denial the system returns straight away, with no
+   * prompt shown, for any permission it will no longer offer — Settings is then the only way through.
+   */
+  private boolean permissionBlocked() {
+    String[] missing = missingPermissions();
+    if (!permissionAsked || missing.length == 0) {
+      return false;
+    }
+    for (String permission : missing) {
+      if (shouldShowRequestPermissionRationale(permission)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private void openAppSettings() {
+    startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", requireContext().getPackageName(), null)));
   }
 
   private void showConnectFailed(Exception e) {

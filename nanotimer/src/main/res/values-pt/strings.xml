@@ -628,9 +628,7 @@
   <string name="smart_cube_connected">Conectado</string>
   <string name="smart_cube_connect_failed">Falha na conexão: %s</string>
   <string name="smart_cube_permission_denied">Permissão de Bluetooth negada</string>
-  <string name="smart_cube_bluetooth_off">Ative o Bluetooth para conectar seu cubo</string>
   <string name="smart_cube_battery">Bateria: %1$d%%</string>
-  <string name="smart_cube_connect_title">Conectar um cubo inteligente</string>
   <string name="smart_cube_intro_body">Um cubo inteligente Bluetooth transmite ao Cubench cada movimento no instante em que você o faz. Depois que o seu estiver pareado, três coisas mudam.</string>
   <string name="smart_cube_done">Pronto</string>
   <string name="smart_cube_resync">Meu cubo está resolvido</string>
@@ -667,6 +665,8 @@
   <string name="smart_cube_permission_title">Permissão necessária</string>
   <string name="smart_cube_permission_body">O Cubench precisa de permissão para detectar dispositivos por perto. Ele só procura cubos, e nada sai do seu telefone.</string>
   <string name="smart_cube_permission_action">Conceder permissão</string>
+  <string name="smart_cube_permission_settings_body">O Cubench não pode mais pedir esta permissão daqui. Abra as configurações do aplicativo e permita dispositivos por perto.</string>
+  <string name="smart_cube_permission_settings_action">Abrir configurações</string>
   <string name="smart_cube_failed_title">Não foi possível conectar</string>
   <string name="smart_cube_scan_again">Procurar de novo</string>
 </resources>

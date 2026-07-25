@@ -37,7 +37,7 @@ public class SmartCubeRadarView extends View {
   private Integer batteryLevel;
   private long modeStartMs;
 
-  private int accentColor;
+  private final int accentColor;
 
   public SmartCubeRadarView(Context context) {
     this(context, null);
