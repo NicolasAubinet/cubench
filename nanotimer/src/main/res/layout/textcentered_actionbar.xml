@@ -1,22 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-   android:id="@+id/actionbarLayout"
+<!-- The cancel button floats over the bar: in the navigation slot it would shift the centred title. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
-   android:layout_height="match_parent"
-   android:gravity="center_vertical"
-   android:orientation="horizontal">
+   android:layout_height="match_parent">
 
-  <include layout="@layout/smart_cube_chip"/>
+  <LinearLayout
+     android:id="@+id/actionbarLayout"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:gravity="center_vertical"
+     android:orientation="horizontal">
 
-  <com.cube.nanotimer.util.view.FontFitTextView
-     android:id="@+id/tvTitle"
-     android:layout_width="0dp"
-     android:layout_height="wrap_content"
-     android:layout_weight="1"
-     android:gravity="center"
-     android:maxLines="1"
-     android:textColor="@color/white"
-     android:textSize="24sp"/>
+    <include layout="@layout/smart_cube_chip"/>
 
-</LinearLayout>
+    <com.cube.nanotimer.util.view.FontFitTextView
+       android:id="@+id/tvTitle"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:gravity="center"
+       android:maxLines="1"
+       android:textColor="@color/white"
+       android:textSize="24sp"/>
+
+  </LinearLayout>
+
+  <ImageView
+     android:id="@+id/imgCancelSolve"
+     android:layout_width="48dp"
+     android:layout_height="match_parent"
+     android:layout_gravity="start|center_vertical"
+     android:scaleType="center"
+     android:src="@drawable/ic_cancel_solve"
+     android:background="?android:attr/selectableItemBackgroundBorderless"
+     android:contentDescription="@string/discard_solve"
+     android:visibility="gone"/>
+
+</FrameLayout>

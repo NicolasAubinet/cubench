@@ -1,9 +1,11 @@
 package com.cube.nanotimer.gui.widget.dialog;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -11,8 +13,10 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeType;
@@ -175,19 +179,15 @@ public class SolveTypeAddDialog extends ConfirmDialog {
 
   private void initQuickActionSpinner(CubeType cubeType) {
     quickActions.clear();
-    List<CharSequence> labels = new ArrayList<>();
     for (TimerQuickAction action : QUICK_ACTIONS) {
       if (action == TimerQuickAction.CROSS_SOLVER && cubeType != CubeType.THREE_BY_THREE) {
         continue; // the cross solver only knows 3x3
       }
       quickActions.add(action);
-      labels.add(getString(getQuickActionLabel(action)));
     }
 
     spQuickAction = (Spinner) view.findViewById(R.id.spQuickAction);
-    ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, labels);
-    adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-    spQuickAction.setAdapter(adapter);
+    spQuickAction.setAdapter(new QuickActionAdapter(getContext(), quickActions));
   }
 
   private int getQuickActionLabel(TimerQuickAction action) {
@@ -200,6 +200,55 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       case ADD_TIME:      return R.string.add_time;
       case CROSS_SOLVER:  return R.string.cross_solver;
       default:            return R.string.quick_action_none;
+    }
+  }
+
+  /** The menu's own icons, so an action is picked by the sight of it, not only by its name. */
+  private int getQuickActionIcon(TimerQuickAction action) {
+    switch (action) {
+      // The flat white variant, the one the menu shows: the coloured icon is for the action bar.
+      case SCRAMBLE_VIEW: return R.drawable.ic_menu_scramble_view;
+      case PLUS_TWO:      return R.drawable.ic_menu_plus_two;
+      case DNF:           return R.drawable.ic_menu_dnf;
+      case DELETE:        return R.drawable.ic_menu_delete;
+      case LAST_SOLVE:    return R.drawable.ic_menu_last_solve;
+      case ADD_TIME:      return R.drawable.ic_menu_add_time;
+      case CROSS_SOLVER:  return R.drawable.ic_menu_cross_solver;
+      default:            return 0; // "none" has nothing to show
+    }
+  }
+
+  private class QuickActionAdapter extends ArrayAdapter<TimerQuickAction> {
+
+    QuickActionAdapter(Context context, List<TimerQuickAction> actions) {
+      super(context, R.layout.spinner_item_icon, actions);
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+      return buildRow(position, parent, R.layout.spinner_item_icon);
+    }
+
+    @Override
+    public View getDropDownView(int position, View convertView, ViewGroup parent) {
+      return buildRow(position, parent, R.layout.spinner_dropdown_item_icon);
+    }
+
+    // convertView is ignored: a Spinner pools closed and opened rows together, so it comes back
+    // as the wrong layout.
+    private View buildRow(int position, ViewGroup parent, int layoutId) {
+      View row = LayoutInflater.from(getContext()).inflate(layoutId, parent, false);
+      TimerQuickAction action = getItem(position);
+      ((TextView) row.findViewById(R.id.tvText)).setText(getQuickActionLabel(action));
+      ImageView imgIcon = (ImageView) row.findViewById(R.id.imgIcon);
+      int iconRes = getQuickActionIcon(action);
+      if (iconRes != 0) {
+        imgIcon.setImageResource(iconRes);
+        imgIcon.setVisibility(View.VISIBLE);
+      } else {
+        imgIcon.setVisibility(View.INVISIBLE); // keeps "none" aligned with the rows that have one
+      }
+      return row;
     }
   }
 

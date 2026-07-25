@@ -26,6 +26,7 @@ import android.view.animation.Animation;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.Transformation;
 import android.animation.ValueAnimator;
+import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -139,6 +140,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private volatile TimerState timerState = TimerState.STOPPED;
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
+  private ImageView imgCancelSolve; // discards the running solve, overlaid on the action bar
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
@@ -367,6 +369,19 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     smartCubeChip.bind(customView.findViewById(R.id.smartCubeChip));
     smartCubeChip.setHideWhenDisconnected(true); // on the timer, only show when a cube is connected
+
+    imgCancelSolve = (ImageView) customView.findViewById(R.id.imgCancelSolve);
+    imgCancelSolve.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (timerState == TimerState.RUNNING) {
+          cancelPressed();
+        } else if (timerState == TimerState.INSPECTING) {
+          stopInspectionTimer();
+          resetTimer();
+        }
+      }
+    });
   }
 
   private Toolbar findToolbar(View view) {
@@ -584,8 +599,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     MenuItem quickActionItem = menu.findItem(itemId);
     quickActionItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
     if (itemId == R.id.itScrambleView) {
-      // In the action bar the scramble-view icon is the multi-coloured one, and its colours only
-      // show with the tint cleared. The overflow keeps the flat white variant from the menu XML.
+      // The action bar gets the coloured icon, which needs its tint cleared; the overflow keeps
+      // the flat white one from the menu XML.
       quickActionItem.setIcon(R.drawable.ic_scramble_view);
       MenuItemCompat.setIconTintList(quickActionItem, null);
     }
@@ -626,14 +641,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       this.showMenu = show;
       supportInvalidateOptionsMenu();
 
-      // The home button stays through the run (phones without a back button have no other way to
-      // abandon a solve), but turns into a cross: there it discards rather than navigates back.
-      ActionBar actionBar = getSupportActionBar();
-      if (show) {
-        actionBar.setHomeAsUpIndicator(null);
-      } else {
-        actionBar.setHomeAsUpIndicator(R.drawable.ic_cancel_solve);
-      }
+      getSupportActionBar().setDisplayHomeAsUpEnabled(show);
+
+      // The cross stands in for the back arrow, which phones without a back button do not have.
+      imgCancelSolve.setVisibility(show ? View.GONE : View.VISIBLE);
 
       // Hide the cube chip while the timer runs so the whole action bar stays a tap target
       // (no dead zone); it reappears when the timer stops (if a cube is connected).
@@ -641,11 +652,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  /**
-   * The home button is a stop tap like any other on this screen: it ends the solve, and only then
-   * is the user asked whether to keep the time. A stepped solve short of its last step stops all
-   * the same, with nothing to ask - its untapped steps have no times, so none can be recorded.
-   */
+  /** A stop tap like any other: it ends the solve, and only then asks whether to keep the time. */
   private void cancelPressed() {
     if (solveType.hasSteps() && stepsTimes.size() < solveType.getSteps().length - 1) {
       stopTimer(false);
@@ -688,18 +695,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    // Handled before the stopped check below: while the timer runs it is the only live control.
-    if (item.getItemId() == android.R.id.home) {
-      if (timerState == TimerState.RUNNING) {
-        cancelPressed();
-      } else if (timerState == TimerState.INSPECTING) {
-        stopInspectionTimer();
-        resetTimer();
-      } else {
-        finish();
-      }
-      return true;
-    }
     if (timerState == TimerState.STOPPED) {
       switch (item.getItemId()) {
         case R.id.itPlusTwo:
