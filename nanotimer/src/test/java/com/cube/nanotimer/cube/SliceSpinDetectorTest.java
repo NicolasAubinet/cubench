@@ -166,6 +166,54 @@ public class SliceSpinDetectorTest {
   }
 
   @Test
+  public void foldsAnM2WhoseHalvesHideEachOthersRock() {
+    // Timings from a real PLL: two M pairs 115 ms apart. Neither half sees a clean 90° step —
+    // each reading spans the other's rock — so the four turns are measured as one 180° instead.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 27353));
+    detector.onMove(move("R'", 27356));
+    detector.onMove(move("L", 27471));
+    detector.onMove(move("R'", 27477));
+    detector.onMove(move("U", 28000));
+
+    TreeMap<Long, CubeOrientation> gyro = new TreeMap<Long, CubeOrientation>();
+    gyro.put(0L, BEFORE_M_PRIME);
+    gyro.put(27400L, AFTER_M_PRIME); // mid-M2, where a single half would take its reading
+    gyro.put(27600L, rockedTwice());
+    List<RotationTracker.Rotation> merged = detector.merge(noGripRotations(), history(gyro));
+
+    assertEquals(2, merged.size()); // one spin per half: the display collapses them into M2
+    assertEquals("x", merged.get(0).getNotation());
+    assertEquals("x", merged.get(1).getNotation());
+    assertEquals(27357, merged.get(0).getTimestampMs());
+    assertEquals(27478, merged.get(1).getTimestampMs());
+  }
+
+  @Test
+  public void dropsTheGripRotationThatWasReallyTheM2() {
+    // The rock of a whole M2 is a half turn, and settled it reads to the grip tracker as one —
+    // the more so now that gravity turns its up face with the core. Both halves get their spin,
+    // so the half turn has to go, or the frame turns twice for one rock.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 27353));
+    detector.onMove(move("R'", 27356));
+    detector.onMove(move("L", 27471));
+    detector.onMove(move("R'", 27477));
+    detector.onMove(move("U", 28000));
+
+    TreeMap<Long, CubeOrientation> gyro = new TreeMap<Long, CubeOrientation>();
+    gyro.put(0L, BEFORE_M_PRIME);
+    gyro.put(27400L, AFTER_M_PRIME);
+    gyro.put(27600L, rockedTwice());
+    List<RotationTracker.Rotation> grips = gripRotations(rotation("x2", 28000));
+    List<RotationTracker.Rotation> merged = detector.merge(grips, history(gyro));
+
+    assertEquals(2, merged.size()); // the x2 is gone; only the two halves' spins remain
+    assertEquals("x", merged.get(0).getNotation());
+    assertEquals("x", merged.get(1).getNotation());
+  }
+
+  @Test
   public void findsNothingWithoutAGyro() {
     // A cube that reports no orientation folds nothing: the raw faces stand and still replay.
     SliceSpinDetector detector = new SliceSpinDetector();
@@ -174,6 +222,11 @@ public class SliceSpinDetectorTest {
 
     SliceSpinDetector.Orientations none = timestampMs -> null;
     assertEquals(0, detector.merge(noGripRotations(), none).size());
+  }
+
+  /** The reading after the same rock twice over: an M2's 180°. */
+  private static CubeOrientation rockedTwice() {
+    return AFTER_M_PRIME.multiply(BEFORE_M_PRIME.deltaTo(AFTER_M_PRIME));
   }
 
   private static CubeMove move(String notation, long cubeMs) {

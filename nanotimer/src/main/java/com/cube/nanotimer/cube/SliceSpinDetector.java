@@ -9,17 +9,12 @@ import java.util.List;
 /**
  * Finds the slices a solve was turned with, by asking the gyro whether the core rocked.
  *
- * <p>The cube senses only its six outer faces, so a slice arrives as two opposite faces turned at
- * once — indistinguishable, in the move stream alone, from a genuine two-handed turn of those same
- * faces. The difference is physical: a slice turns the middle layer, which carries the core and the
- * gyro with it, while a two-hander leaves the core still. So each candidate pair is settled by the
- * readings either side of it: a clean quarter turn about the axis that slice would rock is a slice,
- * anything less is two honest face turns.
+ * <p>A slice reaches the move stream as two opposite faces at once, exactly like a two-handed turn
+ * of the same faces; only the core tells them apart, since the slice carries it and the gyro round.
+ * Runs after the solve because the reading proving the rock settles only once the turn is over.
  *
- * <p>Runs over the whole solve once it is finished, rather than live, because the reading that
- * proves the rock only settles after the turn is over. {@link RotationTracker} cannot answer this:
- * it reports the <em>grip</em>, deliberately conservatively, and dates a rotation at the next move
- * rather than at the event.
+ * <p>{@link RotationTracker} cannot answer this: it reports the <em>grip</em>, deliberately
+ * conservatively, and dates a rotation at the next move rather than at the event.
  */
 public final class SliceSpinDetector {
 
@@ -29,6 +24,9 @@ public final class SliceSpinDetector {
    */
   private static final long SETTLE_MS = 200;
 
+  /** Two slices closer than this are one M2: measured at 115 ms on a real solve. */
+  private static final long DOUBLE_GAP_MS = 250;
+
   private final List<Turn> turns = new ArrayList<Turn>();
 
   /** Where the orientation at a past moment is read back from. */
@@ -36,11 +34,7 @@ public final class SliceSpinDetector {
     CubeOrientation at(long timestampMs);
   }
 
-  /**
-   * Feed every solve move. Its cube timestamp is fitted to host time, so it dates the turn on the
-   * same clock the gyro samples carry — and unlike the moment the move was handled, it is right
-   * per move: a packet can deliver several at once, which would otherwise share one instant.
-   */
+  /** Feed every solve move: its cube timestamp is fitted to host time, the clock the gyro uses. */
   public void onMove(CubeMove move) {
     turns.add(new Turn(move.getNotation(), move.getCubeTimestampMs()));
   }
@@ -50,12 +44,8 @@ public final class SliceSpinDetector {
   }
 
   /**
-   * The solve's rotation tokens: {@code gripRotations} with each detected slice's core spin added,
-   * and any grip rotation that was really one of those spins removed.
-   *
-   * <p>The two must be reconciled rather than merely merged. A slice held long enough to leave a
-   * still window reads to the grip tracker as an ordinary reorientation — the gyro signal is the
-   * same event — so kept alongside its own spin it would turn the frame twice for one rock.
+   * The solve's rotation tokens: the grip tracker's, plus each slice's core spin, minus any grip
+   * rotation that was one of those spins — the same event twice would turn the frame twice.
    */
   public List<RotationTracker.Rotation> merge(List<RotationTracker.Rotation> gripRotations,
       Orientations orientations) {
@@ -65,7 +55,14 @@ public final class SliceSpinDetector {
       if (slice == null || turns.get(i + 1).atMs - turns.get(i).atMs > Slices.WINDOW_MS) {
         continue;
       }
-      if (!coreRocked(turns.get(i), turns.get(i + 1), slice[1], orientations)) {
+      if (isDoubleSlice(i, slice, orientations)) {
+        removeGripRotation(merged, halfTurnOf(slice[1]), turns.get(i).atMs, nextMoveMs(i + 4));
+        merged.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1));
+        merged.add(new RotationTracker.Rotation(slice[1], turns.get(i + 3).atMs + 1));
+        i += 3;
+        continue;
+      }
+      if (!rocked(turns.get(i), turns.get(i + 1), slice[1], orientations)) {
         continue;
       }
       removeGripRotation(merged, slice[1], turns.get(i).atMs, nextMoveMs(i + 2));
@@ -78,7 +75,30 @@ public final class SliceSpinDetector {
     return merged;
   }
 
-  private boolean coreRocked(Turn from, Turn to, String spin, Orientations orientations) {
+  /**
+   * True when turns {@code i..i+3} are one slice twice over: each half hides the other's rock, so
+   * the four are measured as one 180° step. Both halves still get a spin; the display recollapses.
+   */
+  private boolean isDoubleSlice(int i, String[] slice, Orientations orientations) {
+    if (i + 3 >= turns.size()) {
+      return false;
+    }
+    String[] second = Slices.forPair(turns.get(i + 2).notation, turns.get(i + 3).notation);
+    if (second == null || !second[0].equals(slice[0])
+        || turns.get(i + 3).atMs - turns.get(i + 2).atMs > Slices.WINDOW_MS
+        || turns.get(i + 2).atMs - turns.get(i + 1).atMs > DOUBLE_GAP_MS) {
+      return false;
+    }
+    return rocked(turns.get(i), turns.get(i + 3), halfTurnOf(slice[1]), orientations);
+  }
+
+  private static String halfTurnOf(String spin) {
+    CubeRotation quarter = CubeRotation.byNotation(spin);
+    return quarter.then(quarter).getNotation();
+  }
+
+  /** Whether the core turned by {@code spin} across these two turns. */
+  private boolean rocked(Turn from, Turn to, String spin, Orientations orientations) {
     CubeOrientation before = orientations.at(from.atMs - SETTLE_MS);
     CubeOrientation after = orientations.at(to.atMs + SETTLE_MS);
     if (before == null || after == null) {
