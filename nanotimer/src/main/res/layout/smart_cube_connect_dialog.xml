@@ -1,64 +1,322 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp">
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="16dp"
+   android:paddingRight="16dp"
+   android:paddingTop="8dp"
+   android:paddingBottom="14dp"
+   android:minWidth="300dp">
 
-  <!-- Value-explanation slot (§8b): tells a first-time user what connecting buys them. -->
-  <TextView
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:text="@string/smart_cube_connect_title"
-      android:textColor="@color/white"
-      android:textSize="21sp"
-      android:textStyle="bold"/>
+  <FrameLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content">
+    <!-- The grip: what says the sheet can be dragged back down to close it. -->
+    <View
+       android:layout_width="32dp"
+       android:layout_height="4dp"
+       android:layout_gravity="center_horizontal|center_vertical"
+       android:background="@drawable/bottomsheet_drag_handle"/>
+    <ImageButton
+       android:id="@+id/buSmartCubeHelp"
+       android:layout_width="34dp"
+       android:layout_height="34dp"
+       android:layout_gravity="end|right"
+       android:scaleType="fitCenter"
+       android:padding="6dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:src="@drawable/ic_help_outline"
+       android:contentDescription="@string/smart_cube_help"/>
+  </FrameLayout>
 
-  <TextView
-      android:id="@+id/tvSmartCubeIntro"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="8dp"
-      android:text="@string/smart_cube_intro_body"
-      android:textSize="14sp"/>
+  <androidx.core.widget.NestedScrollView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginTop="4dp">
 
-  <TextView
-      android:id="@+id/tvSmartCubeStatus"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="16dp"
-      android:textColor="@color/white"
-      android:textSize="14sp"
-      android:textStyle="bold"/>
+    <FrameLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content">
 
-  <ListView
-      android:id="@+id/lvSmartCubes"
-      android:layout_width="match_parent"
-      android:layout_height="200dp"
-      android:layout_marginTop="12dp"/>
+      <!-- ===== Pairing panel ===== -->
+      <LinearLayout
+         android:id="@+id/smartCubePairPanel"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:gravity="center_horizontal">
 
-  <TextView
-      android:id="@+id/tvSmartCubeResyncHint"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="16dp"
-      android:text="@string/smart_cube_resync_hint"
-      android:textSize="13sp"
-      android:visibility="gone"/>
+        <FrameLayout
+           android:layout_width="148dp"
+           android:layout_height="148dp">
+          <com.cube.nanotimer.util.view.SmartCubeRadarView
+             android:id="@+id/smartCubeRadar"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"/>
+          <ImageView
+             android:id="@+id/imgSmartCubeGlyph"
+             android:layout_width="46dp"
+             android:layout_height="46dp"
+             android:layout_gravity="center"
+             android:src="@drawable/ic_smart_cube"
+             android:tint="@color/lightblue"
+             android:contentDescription="@null"/>
+        </FrameLayout>
 
+        <TextView
+           android:id="@+id/tvSmartCubeStatusPill"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginBottom="8dp"
+           android:background="@drawable/smart_cube_pill"
+           android:paddingLeft="11dp"
+           android:paddingRight="11dp"
+           android:paddingTop="3dp"
+           android:paddingBottom="3dp"
+           android:textSize="12sp"
+           android:textStyle="bold"
+           android:visibility="gone"/>
+
+        <TextView
+           android:id="@+id/tvSmartCubeStatusTitle"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:gravity="center"
+           android:textColor="@color/white"
+           android:textSize="17sp"
+           android:textStyle="bold"/>
+
+        <TextView
+           android:id="@+id/tvSmartCubeStatusBody"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="4dp"
+           android:gravity="center"
+           android:textColor="@color/secondary_text"
+           android:textSize="13sp"/>
+
+        <!-- The way out of a problem state, next to the sentence that describes it. -->
+        <Button
+           android:id="@+id/buSmartCubeFix"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="14dp"
+           android:visibility="gone"
+           style="@style/DialogActionButton"/>
+
+        <!-- Counts what the scan has turned up, and says the rows are tappable. A sentence rather
+             than a section label: it changes as cubes arrive. -->
+        <TextView
+           android:id="@+id/tvSmartCubeListLabel"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="16dp"
+           android:layout_marginBottom="8dp"
+           android:textColor="@color/secondary_text"
+           android:textSize="12sp"
+           android:visibility="gone"/>
+
+        <!-- Discovered cubes, one smart_cube_list_item per row. -->
+        <LinearLayout
+           android:id="@+id/smartCubeList"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"/>
+
+        <!-- Realigning a cube that has lost track of itself: the explanation and its button, kept
+             together in one well so the button never reads as a general-purpose action. -->
+        <LinearLayout
+           android:id="@+id/smartCubeResyncBlock"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           android:layout_marginTop="16dp"
+           android:background="@drawable/cross_section_card"
+           android:padding="12dp"
+           android:visibility="gone">
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="@string/smart_cube_resync_hint"
+             android:textColor="@color/secondary_text"
+             android:textSize="12.5sp"/>
+          <Button
+             android:id="@+id/btnSmartCubeResync"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="10dp"
+             android:text="@string/smart_cube_resync"
+             android:background="@drawable/dialog_action_button_ghost"
+             style="@style/DialogActionButton"/>
+        </LinearLayout>
+
+      </LinearLayout>
+
+      <!-- ===== Intro panel: what a smart cube is for ===== -->
+      <LinearLayout
+         android:id="@+id/smartCubeIntroPanel"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="@string/smart_cube_intro_title"
+           android:textColor="@color/white"
+           android:textSize="20sp"
+           android:textStyle="bold"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="6dp"
+           android:text="@string/smart_cube_intro_body"
+           android:textColor="@color/secondary_text"
+           android:textSize="13.5sp"/>
+
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:layout_marginTop="18dp">
+          <ImageView
+             android:layout_width="24dp"
+             android:layout_height="24dp"
+             android:layout_marginEnd="14dp"
+             android:layout_marginRight="14dp"
+             android:layout_marginTop="1dp"
+             android:src="@drawable/ic_intro_timing"
+             android:contentDescription="@null"/>
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical">
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/smart_cube_intro_timing_title"
+               android:textColor="@color/white"
+               android:textSize="14.5sp"
+               android:textStyle="bold"/>
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="1dp"
+               android:text="@string/smart_cube_intro_timing_body"
+               android:textColor="@color/secondary_text"
+               android:textSize="12.5sp"/>
+          </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:layout_marginTop="16dp">
+          <ImageView
+             android:layout_width="24dp"
+             android:layout_height="24dp"
+             android:layout_marginEnd="14dp"
+             android:layout_marginRight="14dp"
+             android:layout_marginTop="1dp"
+             android:src="@drawable/ic_intro_scramble"
+             android:contentDescription="@null"/>
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical">
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/smart_cube_intro_scramble_title"
+               android:textColor="@color/white"
+               android:textSize="14.5sp"
+               android:textStyle="bold"/>
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="1dp"
+               android:text="@string/smart_cube_intro_scramble_body"
+               android:textColor="@color/secondary_text"
+               android:textSize="12.5sp"/>
+          </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:layout_marginTop="16dp">
+          <ImageView
+             android:layout_width="24dp"
+             android:layout_height="24dp"
+             android:layout_marginEnd="14dp"
+             android:layout_marginRight="14dp"
+             android:layout_marginTop="1dp"
+             android:src="@drawable/ic_intro_breakdown"
+             android:contentDescription="@null"/>
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical">
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/smart_cube_intro_breakdown_title"
+               android:textColor="@color/white"
+               android:textSize="14.5sp"
+               android:textStyle="bold"/>
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="1dp"
+               android:text="@string/smart_cube_intro_breakdown_body"
+               android:textColor="@color/secondary_text"
+               android:textSize="12.5sp"/>
+          </LinearLayout>
+        </LinearLayout>
+
+      </LinearLayout>
+
+    </FrameLayout>
+  </androidx.core.widget.NestedScrollView>
+
+  <!-- Actions. Only one of the two rows is on screen at a time, matching the panel above it. -->
   <Button
-      android:id="@+id/btnSmartCubeResync"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="8dp"
-      android:text="@string/smart_cube_resync"
-      android:visibility="gone"/>
+     android:id="@+id/buSmartCubeIntroContinue"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="18dp"
+     android:text="@string/smart_cube_intro_continue"
+     android:visibility="gone"
+     style="@style/DialogActionButton"/>
 
-  <Button
-      android:id="@+id/btnSmartCubeDisconnect"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="12dp"
-      android:text="@string/smart_cube_disconnect"
-      android:visibility="gone"/>
+  <LinearLayout
+     android:id="@+id/smartCubePairActions"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:layout_marginTop="16dp">
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/btnSmartCubeDisconnect"
+       android:layout_width="0dp"
+       android:layout_weight="1"
+       android:layout_marginRight="6dp"
+       android:layout_marginEnd="6dp"
+       android:text="@string/smart_cube_disconnect"
+       android:background="@drawable/dialog_action_button_danger"
+       android:visibility="gone"
+       style="@style/DialogActionButton"/>
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buSmartCubeDone"
+       android:layout_width="0dp"
+       android:layout_weight="1"
+       android:text="@string/smart_cube_done"
+       style="@style/DialogActionButton"/>
+  </LinearLayout>
+
 </LinearLayout>

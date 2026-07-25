@@ -631,7 +631,7 @@
   <string name="smart_cube_bluetooth_off">Ative o Bluetooth para conectar seu cubo</string>
   <string name="smart_cube_battery">Bateria: %1$d%%</string>
   <string name="smart_cube_connect_title">Conectar um cubo inteligente</string>
-  <string name="smart_cube_intro_body">Um cubo inteligente Bluetooth permite que o Cubench leia seus movimentos enquanto você resolve, para iniciar e parar o cronômetro automaticamente, sem tocar na tela. Mais análises estão a caminho.</string>
+  <string name="smart_cube_intro_body">Um cubo inteligente Bluetooth transmite ao Cubench cada movimento no instante em que você o faz. Depois que o seu estiver pareado, três coisas mudam.</string>
   <string name="smart_cube_done">Pronto</string>
   <string name="smart_cube_resync">Meu cubo está resolvido</string>
   <string name="smart_cube_resync_hint">Se o aplicativo acha que seu cubo está embaralhado quando não está, o cubo se perdeu. Resolva-o e toque abaixo.</string>
@@ -640,4 +640,33 @@
   <string name="smart_cube_ready_to_solve">Pronto para resolver</string>
   <string name="smart_cube_solving">Resolução em andamento</string>
   <string name="smart_cube_undo">Desfaça seus movimentos errados</string>
+
+  <!-- Cubo inteligente: painel explicativo da primeira vez -->
+  <string name="smart_cube_intro_title">O que um cubo inteligente faz</string>
+  <string name="smart_cube_intro_timing_title">O cronômetro se vira sozinho</string>
+  <string name="smart_cube_intro_timing_body">Ele começa no seu primeiro movimento e para assim que o cubo fica resolvido. Sem tocar na tela, sem largadas perdidas.</string>
+  <string name="smart_cube_intro_scramble_title">Embaralhamentos que dá para seguir</string>
+  <string name="smart_cube_intro_scramble_body">O Cubench vê você aplicar o embaralhamento, marca cada movimento conforme acontece e avisa quando você está pronto.</string>
+  <string name="smart_cube_intro_breakdown_title">Cada resolução, detalhada</string>
+  <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL e PLL são cronometrados separadamente, com contagem de movimentos, velocidade e a reconstrução completa.</string>
+  <string name="smart_cube_intro_continue">Parear meu cubo</string>
+  <string name="smart_cube_help">O que um cubo inteligente faz</string>
+
+  <!-- Cubo inteligente: estados de pareamento -->
+  <string name="smart_cube_searching_title">Procurando seu cubo</string>
+  <string name="smart_cube_searching_body">Dê um quarto de giro para acordá-lo e mantenha-o perto do telefone.</string>
+  <string name="smart_cube_none_yet">Nenhum cubo ainda</string>
+  <plurals name="smart_cube_found_count">
+    <item quantity="one">%d cubo por perto · toque para conectar</item>
+    <item quantity="other">%d cubos por perto · toque para conectar</item>
+  </plurals>
+  <string name="smart_cube_connected_battery">Conectado · %1$d%%</string>
+  <string name="smart_cube_bluetooth_off_title">O Bluetooth está desligado</string>
+  <string name="smart_cube_bluetooth_off_body">O Cubench precisa do Bluetooth ligado para encontrar seu cubo.</string>
+  <string name="smart_cube_bluetooth_on_action">Ligar o Bluetooth</string>
+  <string name="smart_cube_permission_title">Permissão necessária</string>
+  <string name="smart_cube_permission_body">O Cubench precisa de permissão para detectar dispositivos por perto. Ele só procura cubos, e nada sai do seu telefone.</string>
+  <string name="smart_cube_permission_action">Conceder permissão</string>
+  <string name="smart_cube_failed_title">Não foi possível conectar</string>
+  <string name="smart_cube_scan_again">Procurar de novo</string>
 </resources>

@@ -42,6 +42,7 @@ public enum Options {
   public static final String CROSS_NEUTRALITY_KEY = "cross_neutrality";
   public static final String CROSS_FACE_KEY = "cross_face";
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
+  public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
 
   public static final String RANDOMSTATE_SCRAMBLES_KEY = "randomstate_scrambles";
   public static final String SCRAMBLES_QUALITY_KEY = "scrambles_quality";
@@ -255,6 +256,16 @@ public enum Options {
 
   public void setBreakdownShowMoves(boolean showMoves) {
     sharedPreferences.edit().putBoolean(BREAKDOWN_SHOW_MOVES_KEY, showMoves).apply();
+  }
+
+  // Whether the smart-cube sheet has already explained itself. It leads with the explanation until
+  // it has been read once; the help button on the sheet brings it back afterwards.
+  public boolean isSmartCubeIntroSeen() {
+    return sharedPreferences.getBoolean(SMART_CUBE_INTRO_SEEN_KEY, false);
+  }
+
+  public void setSmartCubeIntroSeen(boolean seen) {
+    sharedPreferences.edit().putBoolean(SMART_CUBE_INTRO_SEEN_KEY, seen).apply();
   }
 
   public boolean isRandomStateScrambles() {

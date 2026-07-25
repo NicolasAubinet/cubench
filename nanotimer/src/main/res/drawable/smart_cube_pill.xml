@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status pill behind the radar. Solid white so the sheet can tint it per state (scanning, linked,
+     problem) — the tint replaces the colour outright, alpha included. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/white"/>
+  <corners android:radius="999dp"/>
+</shape>
