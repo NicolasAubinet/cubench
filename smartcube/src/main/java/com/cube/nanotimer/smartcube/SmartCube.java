@@ -50,6 +50,14 @@ public interface SmartCube {
    */
   StillnessTracker.Window getStillWindow(long heldAfterMs);
 
+  /**
+   * The orientation the cube was in at {@code timestampMs} (wall clock), or null if no reading was
+   * taken near it. Reading backwards is what tells a slice from a two-handed pair of the same two
+   * faces: the slice rocks the core, and the proof of it is the step between the readings either
+   * side of the turn.
+   */
+  CubeOrientation getOrientationAt(long timestampMs);
+
   /** Pull a fresh full state from the cube to re-anchor after packet loss. */
   void requestState();
 

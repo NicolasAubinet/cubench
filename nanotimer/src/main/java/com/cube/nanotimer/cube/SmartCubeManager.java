@@ -154,6 +154,12 @@ public enum SmartCubeManager {
     return connected == null ? null : connected.getStillWindow(heldAfterMs);
   }
 
+  /** How the cube was held at a moment already past, or null if nothing was read near it. */
+  public CubeOrientation getOrientationAt(long timestampMs) {
+    SmartCube connected = cube;
+    return connected == null ? null : connected.getOrientationAt(timestampMs);
+  }
+
   public DiscoveredCube getConnectedDevice() {
     return connectedDevice;
   }

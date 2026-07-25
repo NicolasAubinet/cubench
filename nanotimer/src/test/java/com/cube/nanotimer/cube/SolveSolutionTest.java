@@ -66,6 +66,83 @@ public class SolveSolutionTest {
   }
 
   @Test
+  public void foldsASlicePairThatCarriesItsCoreSpin() {
+    // A real slice turns the middle layer and rocks the core, which the gyro reports as x'. The
+    // pair plus that spin is one M; the spin is not shown but still turns the frame, so the U the
+    // cube reports next — measured from the rocked core — reads as an F.
+    SolveSolution solution = SolveSolution.from(
+        moves("R@0", "L'@10", "x'@20", "U@30"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("M F", solution.getSteps().get(0).getMoves());
+    assertEquals(2, solution.getMoveCount()); // the slice and the U, not the hidden spin
+  }
+
+  @Test
+  public void leavesASlicePairLiteralWithoutItsCoreSpin() {
+    // No spin means no slice: either a cube with no gyro, or a genuine two-handed R then L'. Either
+    // way the raw faces stand and still replay to a solved cube — the whole point for gyroless cubes.
+    SolveSolution solution = SolveSolution.from(
+        moves("R@0", "L'@10", "U@20"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("R L' U", solution.getSteps().get(0).getMoves());
+    assertEquals(3, solution.getMoveCount());
+  }
+
+  @Test
+  public void leavesAGenuineTwoHandedFaceMoveLiteral() {
+    // The bug that started this: F then B' with no core-spin is two honest face turns, not an S'.
+    SolveSolution solution = SolveSolution.from(
+        moves("F@0", "B'@10", "R@20", "D@30"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("F B' R D", solution.getSteps().get(0).getMoves());
+    assertEquals(4, solution.getMoveCount());
+  }
+
+  @Test
+  public void keepsANonSlicePairLiteral() {
+    // R and L turn opposite ways in space: never a slice, so it never folds even with a core spin.
+    SolveSolution solution =
+        SolveSolution.from(moves("R@0", "L@10"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("R L", solution.getSteps().get(0).getMoves());
+    assertEquals(2, solution.getMoveCount());
+  }
+
+  @Test
+  public void doesNotConsumeAGenuineRotationAsACoreSpin() {
+    // The pair is followed by a y, not the x' a real slice spins, so it does not fold: the faces
+    // stay literal and the y is a real reorientation that relabels what comes after.
+    SolveSolution solution = SolveSolution.from(
+        moves("R@0", "L'@10", "y@20", "F@30"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("R L' y L", solution.getSteps().get(0).getMoves());
+    assertEquals(3, solution.getMoveCount()); // R, L', F; the y is not counted
+  }
+
+  @Test
+  public void foldsTwoSlicesWithCoreSpinsIntoAHalfSlice() {
+    // Each M rocks the core, so both pairs carry an x'; M then M is M2 — one move, the way the
+    // double-turn fold already handles faces.
+    String stored = moves("R@0", "L'@10", "x'@20", "R@30", "L'@40", "x'@50");
+    SolveSolution solution =
+        SolveSolution.from(stored, Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("M2", solution.getSteps().get(0).getMoves());
+    assertEquals(1, solution.getMoveCount());
+  }
+
+  @Test
+  public void namesTheSliceInTheSolversFrameAfterARotation() {
+    // After a y the cube's R/L axis has swung to front/back; an M turns like L, and L has gone to
+    // B, so the solver would write the same slice as S'.
+    SolveSolution solution = SolveSolution.from(
+        moves("y@0", "R@10", "L'@20", "x'@30"), Arrays.asList(step("cross", 0, 100)), 100);
+
+    assertEquals("y S'", solution.getSteps().get(0).getMoves());
+    assertEquals(1, solution.getSteps().get(0).getMoveCount());
+  }
+
+  @Test
   public void withoutRotationsTheLettersAreLeftAlone() {
     SolveSolution solution = SolveSolution.from(moves("R@0", "U'@10", "B@20"),
         Arrays.asList(step("cross", 0, 100)), 100);

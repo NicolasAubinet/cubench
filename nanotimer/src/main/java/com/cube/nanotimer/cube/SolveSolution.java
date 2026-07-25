@@ -87,11 +87,61 @@ public final class SolveSolution {
         rewritten.add(new Move(seen.getNotation(), move.getOffsetMs()));
         frame = frame.then(seen); // the solver-frame rotation: then() composes in that frame
       } else {
-        rewritten.add(new Move(frame.mapFace(notation.charAt(0)) + notation.substring(1),
-            move.getOffsetMs()));
+        Move spin = sliceCoreSpin(stored, i);
+        if (spin != null) {
+          // A sensed opposite-face pair with the core-spin the gyro reports for a slice: the
+          // solver did one M/E/S, named in their frame. The spin is the same physical event, not a
+          // grip change, so it is not shown — but it still turns the frame, because the core really
+          // did rock and every later face the cube reports is measured from there.
+          Move next = stored.get(i + 1);
+          String[] slice = Slices.forPair(
+              relabelFace(frame, notation), relabelFace(frame, next.getNotation()));
+          rewritten.add(new Move(slice[0], move.getOffsetMs()));
+          frame = frame.then(CubeRotation.byNotation(spin.getNotation()).seenFrom(frame));
+          i += 2;
+        } else {
+          rewritten.add(new Move(frame.mapFace(notation.charAt(0)) + notation.substring(1),
+              move.getOffsetMs()));
+        }
       }
     }
     return rewritten;
+  }
+
+  /**
+   * When {@code stored[i]} and {@code stored[i+1]} are a slice-shaped pair immediately followed by
+   * the exact whole-cube spin the core makes during that slice, returns that spin; otherwise null.
+   *
+   * <p>The spin is what tells a real slice from a two-handed pair of the same two faces: a slice
+   * turns the middle layer and rocks the core (the gyro reports it), a two-handed pair leaves the
+   * core still. Folding is faithful only with the spin present, because {@code pair · spin = slice}
+   * exactly — fold without it and the reconstruction no longer solves. So a cube with no gyro emits
+   * no spin, nothing folds, and the raw faces stand: always replayable, just not as tidy.
+   */
+  private static Move sliceCoreSpin(List<Move> stored, int i) {
+    if (i + 2 >= stored.size()) {
+      return null;
+    }
+    String[] slice = slicePair(stored.get(i), stored.get(i + 1));
+    Move spin = stored.get(i + 2);
+    if (slice == null || !spin.getNotation().equals(slice[1])) {
+      return null;
+    }
+    boolean lone = i + 3 >= stored.size()
+        || !SolveMovesFormat.isRotation(stored.get(i + 3).getNotation())
+        || stored.get(i + 3).getOffsetMs() != spin.getOffsetMs();
+    return lone ? spin : null; // part of a bigger reorientation: leave it to the rotation path
+  }
+
+  /** The slice and spin for two moves close enough together to be one, or null. */
+  private static String[] slicePair(Move a, Move b) {
+    return b.getOffsetMs() - a.getOffsetMs() > Slices.WINDOW_MS
+        ? null
+        : Slices.forPair(a.getNotation(), b.getNotation());
+  }
+
+  private static String relabelFace(CubeRotation frame, String notation) {
+    return frame.mapFace(notation.charAt(0)) + notation.substring(1);
   }
 
   /**

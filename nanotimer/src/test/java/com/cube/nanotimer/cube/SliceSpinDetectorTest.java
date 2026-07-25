@@ -1,0 +1,211 @@
+package com.cube.nanotimer.cube;
+
+import static org.junit.Assert.assertEquals;
+
+import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.Face;
+import com.cube.nanotimer.vo.SolveStep;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeMap;
+import org.junit.Test;
+
+/**
+ * Driven by readings measured on a real V10 (capture of 2026-07-25): a scripted {@code M'},
+ * {@code M}, then a genuine two-handed turn of the same two faces, each held still either side.
+ * The slices stepped the gyro 88.9° and 82.4°; the two-hander moved it 4.1°, its noise floor.
+ * Deriving these by hand instead is how the rotation work lost three days to sign errors.
+ */
+public class SliceSpinDetectorTest {
+
+  /** Either side of the scripted {@code M'} — the cube reported it as {@code L R'}. */
+  private static final CubeOrientation BEFORE_M_PRIME =
+      new CubeOrientation(0.9920, -0.0567, -0.0070, 0.1121);
+  private static final CubeOrientation AFTER_M_PRIME =
+      new CubeOrientation(0.6718, -0.7358, -0.0716, 0.0460);
+
+  /** Either side of the scripted {@code M} back — reported as {@code L' R}, rocking the other way. */
+  private static final CubeOrientation AFTER_M =
+      new CubeOrientation(0.9917, -0.0838, 0.0016, 0.0973);
+
+  /** Either side of the two-handed control: the same faces, the core untouched. */
+  private static final CubeOrientation BEFORE_TWO_HANDED =
+      new CubeOrientation(0.9867, -0.0342, 0.0187, 0.1580);
+  private static final CubeOrientation AFTER_TWO_HANDED =
+      new CubeOrientation(0.9817, -0.0322, 0.0442, 0.1825);
+
+  @Test
+  public void readsAPairWithACoreRockAsASlice() {
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+    detector.onMove(move("U", 1400));
+
+    List<RotationTracker.Rotation> merged =
+        detector.merge(noGripRotations(), rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
+
+    assertEquals(1, merged.size());
+    assertEquals("x", merged.get(0).getNotation());
+    assertEquals(1031, merged.get(0).getTimestampMs()); // just behind the pair, where the fold looks
+  }
+
+  @Test
+  public void leavesAPairAloneWhenTheCoreDidNotMove() {
+    // The same two faces, turned two-handed: the core never rocks, so this is not a slice.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+
+    assertEquals(0,
+        detector.merge(noGripRotations(), rockedAt(1230, BEFORE_TWO_HANDED, AFTER_TWO_HANDED))
+            .size());
+  }
+
+  @Test
+  public void ignoresACoreRockTheOtherWay() {
+    // L R' rocks x; this reading is the x' of the slice back. The gyro moved, but not as this
+    // slice moves it — so the pair is two honest faces that happen to sit next to a reorientation.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+
+    assertEquals(0,
+        detector.merge(noGripRotations(), rockedAt(1230, AFTER_M_PRIME, AFTER_M)).size());
+  }
+
+  @Test
+  public void leavesFacesTurnedTooFarApartAlone() {
+    // Beyond the slice window the two turns are a deliberate pair, however the core moved.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1500));
+
+    assertEquals(0,
+        detector.merge(noGripRotations(), rockedAt(1700, BEFORE_M_PRIME, AFTER_M_PRIME)).size());
+  }
+
+  @Test
+  public void dropsTheGripRotationThatWasReallyTheSlice() {
+    // A slice held long enough to settle also reads as a reorientation to the grip tracker, which
+    // dates it at the next move. Kept as well as its own spin, one rock would turn the frame twice.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+    detector.onMove(move("U", 2600));
+
+    List<RotationTracker.Rotation> grips = gripRotations(rotation("x", 2600));
+    List<RotationTracker.Rotation> merged =
+        detector.merge(grips, rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
+
+    assertEquals(1, merged.size());
+    assertEquals("x", merged.get(0).getNotation());
+    assertEquals(1031, merged.get(0).getTimestampMs());
+  }
+
+  @Test
+  public void keepsAGripRotationMadeLaterInTheSolve() {
+    // Same axis, but two moves further on: a real regrip, not the rock the slice accounts for.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+    detector.onMove(move("U", 1400));
+    detector.onMove(move("F", 1800));
+
+    List<RotationTracker.Rotation> grips = gripRotations(rotation("x", 1800));
+    List<RotationTracker.Rotation> merged =
+        detector.merge(grips, rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
+
+    assertEquals(2, merged.size());
+    assertEquals(1031, merged.get(0).getTimestampMs()); // the slice's spin, then the regrip
+    assertEquals(1800, merged.get(1).getTimestampMs());
+  }
+
+  @Test
+  public void foldsBothHalvesOfASliceAndItsUndo() {
+    // The captured script itself: M' then M a second later, two rocks, each its own spin.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+    detector.onMove(move("L'", 2000));
+    detector.onMove(move("R", 2030));
+    detector.onMove(move("U", 2500));
+
+    TreeMap<Long, CubeOrientation> gyro = new TreeMap<Long, CubeOrientation>();
+    gyro.put(0L, BEFORE_M_PRIME);
+    gyro.put(1230L, AFTER_M_PRIME);
+    gyro.put(2230L, AFTER_M);
+    List<RotationTracker.Rotation> merged = detector.merge(noGripRotations(), history(gyro));
+
+    assertEquals(2, merged.size());
+    assertEquals("x", merged.get(0).getNotation());
+    assertEquals("x'", merged.get(1).getNotation());
+  }
+
+  @Test
+  public void theSpinLandsWhereTheDisplayFoldLooksForIt() {
+    // The contract between the two halves, which nothing else pins: the stored form writes a
+    // rotation ahead of the move it precedes, and the fold wants it directly behind the pair.
+    // Only the slice's own name is asserted — what the later faces relabel to is SolveSolution's.
+    List<CubeMove> moves = Arrays.asList(move("L", 1000), move("R'", 1030), move("U", 1400));
+    SliceSpinDetector detector = new SliceSpinDetector();
+    for (CubeMove move : moves) {
+      detector.onMove(move);
+    }
+
+    String stored = SolveMovesFormat.format(moves,
+        detector.merge(noGripRotations(), rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME)), 1000);
+    SolveSolution solution = SolveSolution.from(stored,
+        Arrays.asList(new SolveStep(0, "cross", 0, 1000, new ArrayList<SolveStep>())), 1000);
+
+    assertEquals("L@0 R'@30 x@31 U@400", stored);
+    assertEquals(2, solution.getMoveCount()); // the slice and the U; the spin is not a move
+    assertEquals("M'", solution.getSteps().get(0).getMoves().split(" ")[0]);
+  }
+
+  @Test
+  public void findsNothingWithoutAGyro() {
+    // A cube that reports no orientation folds nothing: the raw faces stand and still replay.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+
+    SliceSpinDetector.Orientations none = timestampMs -> null;
+    assertEquals(0, detector.merge(noGripRotations(), none).size());
+  }
+
+  private static CubeMove move(String notation, long cubeMs) {
+    boolean prime = notation.endsWith("'");
+    return new CubeMove(Face.valueOf(notation.substring(0, 1)), prime, cubeMs);
+  }
+
+  private static RotationTracker.Rotation rotation(String notation, long timestampMs) {
+    return new RotationTracker.Rotation(notation, timestampMs);
+  }
+
+  private static List<RotationTracker.Rotation> noGripRotations() {
+    return Collections.emptyList();
+  }
+
+  private static List<RotationTracker.Rotation> gripRotations(RotationTracker.Rotation... grips) {
+    return new ArrayList<RotationTracker.Rotation>(Arrays.asList(grips));
+  }
+
+  /** A gyro reading {@code before} until {@code fromMs}, and {@code after} from then on. */
+  private static SliceSpinDetector.Orientations rockedAt(long fromMs, CubeOrientation before,
+      CubeOrientation after) {
+    TreeMap<Long, CubeOrientation> samples = new TreeMap<Long, CubeOrientation>();
+    samples.put(0L, before);
+    samples.put(fromMs, after);
+    return history(samples);
+  }
+
+  private static SliceSpinDetector.Orientations history(TreeMap<Long, CubeOrientation> samples) {
+    return wallMs -> {
+      java.util.Map.Entry<Long, CubeOrientation> entry = samples.floorEntry(wallMs);
+      return entry == null ? null : entry.getValue();
+    };
+  }
+}

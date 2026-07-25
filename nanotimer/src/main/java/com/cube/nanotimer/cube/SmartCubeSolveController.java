@@ -47,6 +47,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private final CubeConnectionListener connectionListener = this::onConnection;
   private final SolveAnalyzer analyzer = new SolveAnalyzer(new CFOPStepDetector());
   private final RotationTracker rotationTracker = new RotationTracker();
+  private final SliceSpinDetector sliceSpins = new SliceSpinDetector();
 
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
@@ -108,7 +109,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     stoppedStep = matched ? analyzer.getStoppedStep() : null;
     // The moves need no method: an unrecognised solve still has a solution worth keeping.
     solveMoves = analyzing
-        ? SolveMovesFormat.format(analyzer.getMoves(), rotationTracker.getRotations(),
+        ? SolveMovesFormat.format(analyzer.getMoves(),
+            sliceSpins.merge(rotationTracker.getRotations(),
+                SmartCubeManager.INSTANCE::getOrientationAt),
             analyzer.getSolveStartMs())
         : "";
     analyzing = false;
@@ -193,6 +196,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     follower = null;
     analyzing = false;
     rotationTracker.reset(); // a new scramble re-anchors at its own first move
+    sliceSpins.reset();
     scrambleStartWallMs = 0;
     lastFollowMoveWallMs = 0;
     if (!followable || scramble == null || !SmartCubeManager.INSTANCE.isConnected()) {
@@ -288,7 +292,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         break;
       case ARMED:
         // Stays ARMED if the timer refused to start, so later moves must not re-anchor the analyzer.
-        trackRotation(move);
+        trackOrientation(move);
         if (analyzing) {
           analyzer.onMove(move);
         } else {
@@ -297,7 +301,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         listener.onCubeAutoStart(); // scramble is done; any move starts the solve
         break;
       case RUNNING:
-        trackRotation(move);
+        trackOrientation(move);
         if (analyzing) {
           analyzer.onMove(move);
         } else {
@@ -309,9 +313,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     }
   }
 
-  private void trackRotation(CubeMove move) {
+  /** Both readers of the gyro: the grip the solve is turned in, and the slices it is turned with. */
+  private void trackOrientation(CubeMove move) {
     rotationTracker.onMove(SmartCubeManager.INSTANCE.getStillWindow(scrambleStartWallMs),
         SmartCubeManager.INSTANCE.getOrientation(), move.getCubeTimestampMs());
+    sliceSpins.onMove(move);
   }
 
   private void beginAnalysis(CubeMove move) {

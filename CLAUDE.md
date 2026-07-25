@@ -151,3 +151,8 @@ Several subsystems are present but inactive — don't extend them without checki
 - Keep DB work behind `Service`; don't query SQLite directly from the GUI.
 - When adding a puzzle or scramble type, touch `CubeType`/`ScrambleTypes`
   (datamodel), the relevant scrambler + `ScramblerFactory`, and strings.
+- **Commit messages must stand on their own.** The planning docs at the repo root
+  (`SMARTCUBE_*`, `*_PLAN.md`, …) are local working files, listed in
+  `.git/info/exclude` and **never committed** — so a message referencing one of their
+  step IDs ("4.15", "3.11") points at something no reader of the history can open.
+  Describe the change itself instead.
