@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.StillnessTracker.Window;
 import org.junit.Test;
 
@@ -22,6 +23,13 @@ public class RotationTrackerTest {
     double half = Math.toRadians(degrees) / 2;
     // cube (w, 0, s, 0) sits in gyro axes (R=+X, U=+Z, F=−Y) as (w, 0, 0, s)
     return new CubeOrientation(Math.cos(half), 0, 0, Math.sin(half));
+  }
+
+  /** A gyro-frame quaternion for a turn about the cube's R axis, per the measured axis map. */
+  private static CubeOrientation aboutCubeR(double degrees) {
+    double half = Math.toRadians(degrees) / 2;
+    // cube (w, s, 0, 0) sits in gyro axes (R=+X, U=+Z, F=−Y) as (w, s, 0, 0)
+    return new CubeOrientation(Math.cos(half), Math.sin(half), 0, 0);
   }
 
   /** The orientation the gyro reports after turning the cube by {@code gyroDelta} from {@code from}. */
@@ -204,6 +212,26 @@ public class RotationTrackerTest {
   }
 
   /**
+   * The 40.25s regression: the solver was already turning at the first move, so the grip he had
+   * planned in — a 2.8 s settle ending 341 ms earlier — read 56° away and was vetoed as stale, and
+   * the opening was taken four moves later from the grip the turn ended in. The opening is the last
+   * grip held before the solve; the grip turned into afterwards is a rotation of its own.
+   */
+  @Test
+  public void theOpeningIsTheGripBeforeTheMoveEvenWhenAlreadyTurning() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    CubeOrientation planned = turnedFrom(grip, aboutCubeU(-90)); // the grip inspection settled in
+    tracker.onMove(still(planned, 6000), turnedFrom(planned, aboutCubeU(-56)), 100);
+    assertEquals(1, tracker.getRotations().size());
+    assertEquals("y", tracker.getRotations().get(0).getNotation());
+    assertEquals(100, tracker.getRotations().get(0).getTimestampMs());
+    moveAt(tracker, still(turnedFrom(planned, aboutCubeU(-90)), 7000), 400);
+    assertEquals(2, tracker.getRotations().size());
+    assertEquals("y", tracker.getRotations().get(1).getNotation());
+  }
+
+  /**
    * The regression that poisoned a real solve: a rotation crept back ~10° a window, each step
    * reading as noise. The reference must stay frozen between commits so the way back adds up.
    */
@@ -253,6 +281,47 @@ public class RotationTrackerTest {
     moveAt(tracker, still(turnedFrom(grip, aboutCubeU(-180)), 8000), 300);
     assertEquals(1, tracker.getRotations().size());
     assertEquals("y2", tracker.getRotations().get(0).getNotation());
+  }
+
+  /**
+   * Gravity reads the up face rather than inferring it, so a solver who scrambles the cube the
+   * same way up as they solve it — the assumption the old anchor rested on — is no longer told
+   * they never turned it over.
+   */
+  @Test
+  public void aCubeScrambledUpsideDownStillOpensTheRightWayUp() {
+    CubeOrientation flipped = turnedFrom(new CubeOrientation(1, 0, 0, 0), aboutCubeR(180));
+    RotationTracker tracker = anchoredAt(flipped);
+    moveAt(tracker, still(flipped, 6000), 100);
+    assertEquals(1, tracker.getRotations().size());
+    CubeRotation opening = CubeRotation.byNotation(tracker.getRotations().get(0).getNotation());
+    assertEquals('U', opening.mapFace('D')); // which face is up is known; the yaw is a coin toss
+  }
+
+  /**
+   * A tilt to look at the bottom face, held long enough to be still: measured at 65° on a real
+   * solve, which the old 35° tolerance snapped to a full quarter turn and never took back.
+   */
+  @Test
+  public void aPartialTiltHeldStillIsNotAQuarterTurn() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    moveAt(tracker, still(grip, 6000), 100);
+    moveAt(tracker, still(turnedFrom(grip, aboutCubeU(-65)), 8000), 300);
+    assertTrue(tracker.getRotations().isEmpty());
+  }
+
+  /** Rejecting leaves the reference frozen, so the real rotation still lands at a clean window. */
+  @Test
+  public void aRotationRejectedAsUncleanIsStillCaughtOnceItSettles() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    moveAt(tracker, still(grip, 6000), 100);
+    moveAt(tracker, still(turnedFrom(grip, aboutCubeU(-65)), 8000), 300); // mid-turn, refused
+    moveAt(tracker, still(turnedFrom(grip, aboutCubeU(-88)), 9000), 500); // arrived, accepted
+    assertEquals(1, tracker.getRotations().size());
+    assertEquals("y", tracker.getRotations().get(0).getNotation());
+    assertEquals(500, tracker.getRotations().get(0).getTimestampMs());
   }
 
   /** The window that committed a rotation must not commit it again at the next move. */

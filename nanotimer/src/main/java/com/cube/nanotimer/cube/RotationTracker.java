@@ -19,8 +19,8 @@ import java.util.List;
  * <p>The standard position is the grip held <em>longest</em> across the scramble's still windows.
  * Scrambling is when the solver provably holds the cube the way the scramble reads, but not every
  * instant of it — a {@code B} executed at an angle can own a still window — and dominance by held
- * time lets the brief tilts lose. The opening rotation runs from there to the first still grip
- * after the scramble completed: the settle at the end of inspection, measured clean instead of
+ * time lets the brief tilts lose. The opening rotation runs from there to the last still grip held
+ * before the first solve move: the settle at the end of inspection, measured clean instead of
  * sampled mid-turn at the first move.
  */
 public final class RotationTracker {
@@ -31,6 +31,14 @@ public final class RotationTracker {
    * rotation match tolerance: move-time wobble passes, a moved-on grip does not.
    */
   private static final double GRIP_AGREEMENT_DEGREES = 35;
+
+  /**
+   * How near a lattice orientation a reading must sit before it is taken as a real reorientation.
+   * Measured across a capture: deliberate rotations land within 20°, hand movement spreads from
+   * 30° up. Erring tight is safe — a rejected reading leaves the reference frozen, so a real
+   * rotation is caught at the next clean window, while accepting a peek poisons the frame for good.
+   */
+  private static final double GRIP_COMMIT_DEGREES = 20;
 
   private final List<Rotation> rotations = new ArrayList<Rotation>();
   private final List<Window> scrambleWindows = new ArrayList<Window>();
@@ -69,10 +77,13 @@ public final class RotationTracker {
    * completed resolves the opening; each later window a clean rotation away from the current grip
    * records that rotation, timestamped at this move — the first move made in the new grip.
    *
-   * <p>{@code now} is the instantaneous reading at the move: a window only counts while the cube
-   * is still near it. A slow rotation can ease through a briefly-steady angle and mint a window
-   * mid-way — committing that once relabelled a whole test solve — but by the move the cube has
-   * moved well past it, whereas a real grip stays within hand wobble of its window.
+   * <p>{@code now} is the instantaneous reading at the move: a later window only counts while the
+   * cube is still near it. A slow rotation can ease through a briefly-steady angle and mint a
+   * window mid-way — committing that once relabelled a whole test solve — but by the move the cube
+   * has moved well past it, whereas a real grip stays within hand wobble of its window.
+   *
+   * <p>The opening is exempt: its window is the last grip held before the solve, and a solver
+   * already turning at the first move has not stopped having started there.
    */
   public void onMove(Window window, CubeOrientation now, long moveTimestampMs) {
     if (window == null || scrambleCompleteWallMs == null) {
@@ -88,9 +99,6 @@ public final class RotationTracker {
         movesInTransit++;
       }
     }
-    if (now != null && window.getOrientation().angleToDegrees(now) > GRIP_AGREEMENT_DEGREES) {
-      return; // the cube has moved on since that window: a transient, not the grip
-    }
     if (reference == null) {
       if (window.getStartMs() <= scrambleCompleteWallMs) {
         return; // the latest still grip is still the scramble's: no inspection settle seen yet
@@ -99,18 +107,21 @@ public final class RotationTracker {
       if (scrambleGrip == null) {
         return; // no scramble grip was ever seen: a guessed opening would be worse than none
       }
-      // No tolerance: there is no "no rotation yet" here — the start grip simply is the opening.
-      CubeRotation opening = CubeRotation.closest(scrambleGrip.deltaTo(window.getOrientation()));
+      CubeRotation opening = opening(scrambleGrip, window.getOrientation());
       if (!opening.isIdentity()) {
         rotations.add(new Rotation(opening.getNotation(), moveTimestampMs));
       }
       commitGrip(window);
       return;
     }
+    if (now != null && window.getOrientation().angleToDegrees(now) > GRIP_AGREEMENT_DEGREES) {
+      return; // the cube has moved on since that window: a transient, not the grip
+    }
     if (window.getStartMs() <= consumedWindowStartMs) {
       return; // no new still grip since the last commit
     }
-    CubeRotation rotation = CubeRotation.nearest(reference.deltaTo(window.getOrientation()));
+    CubeRotation rotation =
+        CubeRotation.nearest(reference.deltaTo(window.getOrientation()), GRIP_COMMIT_DEGREES);
     if (rotation == null || rotation.isIdentity()) {
       // An ambiguous tilt, or noise. The reference stays frozen between commits so that a grip
       // creeping slowly back from a rotation still adds up to the rotation back.
@@ -122,6 +133,8 @@ public final class RotationTracker {
       // mid-burst. Re-zero on the new reading without recording anything; the letters come from
       // the cube's own move stream, so the solver's frame is unchanged — only the gyro's belief
       // moved. A real y2 is made in a pause, reaching here with no moves in transit.
+      // Gravity cannot sharpen this: the gyro rides the core, so a slice turns its up face while
+      // the cube sits still — judging by up face reported an M2's rock as a z2 mid-PLL.
       commitGrip(window);
       movesInTransit = 0;
       return;
@@ -129,6 +142,18 @@ public final class RotationTracker {
     rotations.add(new Rotation(rotation.getNotation(), moveTimestampMs));
     commitGrip(window);
     movesInTransit = 0;
+  }
+
+  /**
+   * The grip the solve starts in. Gravity gives the up face outright, leaving the four grips that
+   * differ in yaw, and the scramble grip picks between those: only the yaw is still assumed.
+   */
+  private static CubeRotation opening(CubeOrientation scrambleGrip, CubeOrientation solveGrip) {
+    // No tolerance on the yaw: there is no "no rotation yet" here — the start grip is the opening.
+    CubeRotation fromScramble = CubeRotation.closest(scrambleGrip.deltaTo(solveGrip));
+    CubeRotation measured = fromScramble.nearestOf(
+        CubeRotation.withFaceUp(CubeRotation.upFace(solveGrip)));
+    return measured == null ? fromScramble : measured;
   }
 
   private void commitGrip(Window window) {

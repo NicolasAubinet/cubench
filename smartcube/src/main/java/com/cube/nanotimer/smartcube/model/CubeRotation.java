@@ -155,6 +155,14 @@ public final class CubeRotation {
    * if it is too far from any of the 24 to call (a reading taken mid-turn, say).
    */
   public static CubeRotation nearest(CubeOrientation delta) {
+    return nearest(delta, MATCH_TOLERANCE_DEGREES);
+  }
+
+  /**
+   * As {@link #nearest(CubeOrientation)}, but for callers that must be sure rather than merely
+   * closest: a reading two thirds of the way through a turn is nearer to it than to standing still.
+   */
+  public static CubeRotation nearest(CubeOrientation delta, double toleranceDegrees) {
     CubeOrientation inCubeFrame = toCubeFrame(delta);
     CubeRotation best = null;
     double bestDot = -1;
@@ -166,8 +174,58 @@ public final class CubeRotation {
       }
     }
     double errorDegrees = Math.toDegrees(2 * Math.acos(Math.min(1, bestDot)));
-    return errorDegrees <= MATCH_TOLERANCE_DEGREES ? best : null;
+    return errorDegrees <= toleranceDegrees ? best : null;
   }
+
+  /**
+   * Which face of the cube is pointing up, read straight off one gyro sample — the fusion is
+   * gravity-referenced (measured on a V10), so this needs no anchor and cannot drift. Yaw can.
+   */
+  public static char upFace(CubeOrientation reading) {
+    // World up, carried into the cube's body by the reading, then relabelled onto the cube's own
+    // axes — the same swap toCubeFrame makes, applied to the vector rather than to a delta.
+    double[] inGyroAxes = new CubeRotation("", reading).rotate(WORLD_UP);
+    double[] up = {inGyroAxes[0], inGyroAxes[2], -inGyroAxes[1]};
+    char best = 'U';
+    double bestDot = -2;
+    for (Map.Entry<Character, double[]> candidate : FACE_NORMALS.entrySet()) {
+      double[] n = candidate.getValue();
+      double dot = up[0] * n[0] + up[1] * n[1] + up[2] * n[2];
+      if (dot > bestDot) {
+        bestDot = dot;
+        best = candidate.getKey();
+      }
+    }
+    return best;
+  }
+
+  /** The four ways to hold the cube with {@code face} on top: they differ only in yaw. */
+  public static List<CubeRotation> withFaceUp(char face) {
+    List<CubeRotation> candidates = new ArrayList<CubeRotation>();
+    for (CubeRotation rotation : ALL) {
+      if (rotation.mapFace(face) == 'U') {
+        candidates.add(rotation);
+      }
+    }
+    return candidates;
+  }
+
+  /** Whichever of {@code candidates} sits closest to this rotation; null if there are none. */
+  public CubeRotation nearestOf(List<CubeRotation> candidates) {
+    CubeRotation best = null;
+    double bestDot = -1;
+    for (CubeRotation candidate : candidates) {
+      double dot = Math.abs(quaternion.dot(candidate.quaternion));
+      if (dot > bestDot) {
+        bestDot = dot;
+        best = candidate;
+      }
+    }
+    return best;
+  }
+
+  /** World up in the gyro's frame, measured 2026-07-25: a constant, not a per-session zero. */
+  private static final double[] WORLD_UP = {0, 0, 1};
 
   /**
    * Re-expresses a gyro-frame delta in the cube's frame: R = +X, U = +Z, F = −Y. A proper
