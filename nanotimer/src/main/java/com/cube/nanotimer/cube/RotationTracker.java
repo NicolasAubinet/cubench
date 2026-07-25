@@ -33,10 +33,11 @@ public final class RotationTracker {
   private static final double GRIP_AGREEMENT_DEGREES = 35;
 
   /**
-   * How near a lattice orientation a reading must sit before it is taken as a real reorientation.
-   * Measured across a capture: deliberate rotations land within 20°, hand movement spreads from
-   * 30° up. Erring tight is safe — a rejected reading leaves the reference frozen, so a real
-   * rotation is caught at the next clean window, while accepting a peek poisons the frame for good.
+   * How near a lattice orientation a <em>yaw</em> regrip must sit to be taken as a real one. Hands
+   * are precise about the vertical: measured across captures, once gravity has taken each grip's
+   * tilt out, a real yaw lands within a few degrees, while a twist of the wrist and back sat 25°
+   * off. Erring tight is safe — a rejected reading leaves the reference frozen, so a real rotation
+   * is caught at the next clean window, while accepting a peek poisons the frame for good.
    */
   private static final double GRIP_COMMIT_DEGREES = 20;
 
@@ -46,12 +47,15 @@ public final class RotationTracker {
   private CubeOrientation reference;
   private long consumedWindowStartMs;
   private int movesInTransit; // moves made since the cube last read near the reference grip
+  private Window pendingFlip; // a grip on a new face, waiting for a second window to confirm it
+  private long pendingFlipMoveMs;
 
   /** Feed the latest still window seen while following the scramble. */
-  public void anchor(Window window) {
-    if (window == null || scrambleCompleteWallMs != null) {
+  public void anchor(Window rawWindow) {
+    if (rawWindow == null || scrambleCompleteWallMs != null) {
       return;
     }
+    Window window = upright(rawWindow);
     int last = scrambleWindows.size() - 1;
     if (last >= 0 && scrambleWindows.get(last).getStartMs() == window.getStartMs()) {
       scrambleWindows.set(last, window); // the same window, extended
@@ -85,10 +89,12 @@ public final class RotationTracker {
    * <p>The opening is exempt: its window is the last grip held before the solve, and a solver
    * already turning at the first move has not stopped having started there.
    */
-  public void onMove(Window window, CubeOrientation now, long moveTimestampMs) {
-    if (window == null || scrambleCompleteWallMs == null) {
+  public void onMove(Window rawWindow, CubeOrientation rawNow, long moveTimestampMs) {
+    if (rawWindow == null || scrambleCompleteWallMs == null) {
       return;
     }
+    Window window = upright(rawWindow);
+    CubeOrientation now = rawNow == null ? null : CubeRotation.upright(rawNow);
     // The committing move itself always reads far from the old grip — it is the first move made
     // in the new one — so the half-turn gate judges by the moves before it.
     int movesBeforeThis = movesInTransit;
@@ -120,12 +126,34 @@ public final class RotationTracker {
     if (window.getStartMs() <= consumedWindowStartMs) {
       return; // no new still grip since the last commit
     }
-    CubeRotation rotation =
-        CubeRotation.nearest(reference.deltaTo(window.getOrientation()), GRIP_COMMIT_DEGREES);
+    // Turning the cube onto another face takes a whole regrip and carries far more yaw slop than a
+    // regrip about the vertical does — 26° on a real solve, against the 0-3° a yaw lands within —
+    // so the tolerance would refuse every flip. What rejects a mere look there is the corroboration
+    // below, not an angle; gravity has already made the face itself exact.
+    boolean flip = isFlip(window);
+    CubeOrientation delta = reference.deltaTo(window.getOrientation());
+    CubeRotation rotation = flip
+        ? CubeRotation.closest(delta)
+        : CubeRotation.nearest(delta, GRIP_COMMIT_DEGREES);
     if (rotation == null || rotation.isIdentity()) {
       // An ambiguous tilt, or noise. The reference stays frozen between commits so that a grip
       // creeping slowly back from a rotation still adds up to the rotation back.
+      pendingFlip = null; // and a flip the cube came back from was a look at the bottom, not a turn
       return;
+    }
+    long recordAtMs = moveTimestampMs;
+    if (flip) {
+      // Turning the cube right over mid-solve is rare and deliberate; tilting it far enough to see
+      // the bottom, moves and all, happens constantly and reads identically in a single window.
+      // Gravity tells them apart as soon as a second window says the new face is still on top.
+      if (!confirmsPendingFlip(window)) {
+        if (pendingFlip == null || pendingFlip.getStartMs() != window.getStartMs()) {
+          pendingFlip = window;
+          pendingFlipMoveMs = moveTimestampMs;
+        }
+        return;
+      }
+      recordAtMs = pendingFlipMoveMs; // it belongs to the move it was first held at
     }
     if (rotation.isHalfTurn() && movesBeforeThis > 0) {
       // A half turn surfacing while face turns were being made is the gyro's yaw snapping —
@@ -139,7 +167,7 @@ public final class RotationTracker {
       movesInTransit = 0;
       return;
     }
-    rotations.add(new Rotation(rotation.getNotation(), moveTimestampMs));
+    rotations.add(new Rotation(rotation.getNotation(), recordAtMs));
     commitGrip(window);
     movesInTransit = 0;
   }
@@ -156,9 +184,27 @@ public final class RotationTracker {
     return measured == null ? fromScramble : measured;
   }
 
+  /** The same window with the grip's tilt taken out: gravity removes it without a reference. */
+  private static Window upright(Window window) {
+    return new Window(CubeRotation.upright(window.getOrientation()),
+        window.getStartMs(), window.getStartMs() + window.getDurationMs());
+  }
+
+  /** Whether this grip puts a different face on top than the one the frame is measured from. */
+  private boolean isFlip(Window window) {
+    return CubeRotation.upFace(reference) != CubeRotation.upFace(window.getOrientation());
+  }
+
+  /** True when a second, later window agrees the pending flip is where the cube has stayed. */
+  private boolean confirmsPendingFlip(Window window) {
+    return pendingFlip != null && pendingFlip.getStartMs() != window.getStartMs()
+        && isSameGrip(pendingFlip.getOrientation(), window.getOrientation());
+  }
+
   private void commitGrip(Window window) {
     reference = window.getOrientation();
     consumedWindowStartMs = window.getStartMs();
+    pendingFlip = null;
   }
 
   /** The grip held longest while scrambling, at its freshest reading; brief tilts lose to it. */
@@ -209,6 +255,7 @@ public final class RotationTracker {
     reference = null;
     consumedWindowStartMs = 0;
     movesInTransit = 0;
+    pendingFlip = null;
   }
 
   /** A whole-cube rotation, at the moment of the move it preceded. */

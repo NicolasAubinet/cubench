@@ -1,6 +1,7 @@
 package com.cube.nanotimer.smartcube.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -26,6 +27,46 @@ public class CubeRotationGravityTest {
     assertEquals('U', CubeRotation.upFace(WHITE_UP));
     assertEquals('D', CubeRotation.upFace(WHITE_DOWN));
     assertEquals('F', CubeRotation.upFace(GREEN_UP));
+  }
+
+  /** A grip is a cube orientation plus however far off square it is held; gravity removes the tilt. */
+  @Test
+  public void takesTheTiltOutOfAGripAndLeavesTheYawAlone() {
+    CubeOrientation square = new CubeOrientation(1, 0, 0, 0);
+    CubeOrientation tilted = tiltedBy(square, 25); // held 25° off, same face still on top
+
+    assertEquals('U', CubeRotation.upFace(tilted));
+    assertTrue(CubeRotation.upright(tilted).angleToDegrees(square) < 0.01);
+    assertTrue(CubeRotation.upright(square).angleToDegrees(square) < 0.01); // already square
+  }
+
+  /**
+   * Why it matters: two grips tilted opposite ways put both their tilts into the rotation between
+   * them, which is how a plain y came to sit 35° from any orientation and be refused as unclean.
+   */
+  @Test
+  public void collapsesTwoTiltsThatWouldOtherwiseHideAQuarterTurn() {
+    CubeOrientation square = new CubeOrientation(1, 0, 0, 0);
+    CubeOrientation from = tiltedBy(square, 25);
+    CubeOrientation to = tiltedBy(yawed(square), -25);
+
+    assertNull(CubeRotation.nearest(from.deltaTo(to), 20));
+    CubeRotation cleaned =
+        CubeRotation.nearest(CubeRotation.upright(from).deltaTo(CubeRotation.upright(to)), 20);
+    assertEquals("y", cleaned.getNotation());
+  }
+
+  /** A turn about the cube's R axis, which leaves white on top while tipping the cube off square. */
+  private static CubeOrientation tiltedBy(CubeOrientation grip, double degrees) {
+    double half = Math.toRadians(degrees) / 2;
+    // cube (w, s, 0, 0) sits in the gyro's axes (R=+X, U=+Z, F=−Y) as (w, s, 0, 0)
+    return grip.multiply(new CubeOrientation(Math.cos(half), Math.sin(half), 0, 0));
+  }
+
+  /** A quarter turn about the cube's U axis: the regrip the tilts were hiding. */
+  private static CubeOrientation yawed(CubeOrientation grip) {
+    double half = Math.toRadians(-90) / 2;
+    return grip.multiply(new CubeOrientation(Math.cos(half), 0, 0, Math.sin(half)));
   }
 
   @Test

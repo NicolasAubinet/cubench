@@ -232,6 +232,72 @@ public class RotationTrackerTest {
   }
 
   /**
+   * The 23.50s regression: every regrip of a whole solve was refused, because a solver holds the
+   * cube well off square and differencing two tilted grips puts <em>both</em> tilts into the
+   * rotation between them — a plain y measured 35° from any orientation. Gravity takes each grip's
+   * tilt out on its own, before the two are ever compared.
+   */
+  @Test
+  public void aRegripBetweenTiltedGripsIsStillAQuarterTurn() {
+    CubeOrientation square = new CubeOrientation(1, 0, 0, 0);
+    CubeOrientation held = turnedFrom(square, aboutCubeR(25)); // the solver's own tilt
+    RotationTracker tracker = anchoredAt(held);
+    moveAt(tracker, still(held, 6000), 100);
+    CubeOrientation regripped = turnedFrom(turnedFrom(square, aboutCubeU(-90)), aboutCubeR(-25));
+    moveAt(tracker, still(regripped, 7000), 300); // a y, tilted the other way this time
+    assertEquals(1, tracker.getRotations().size());
+    assertEquals("y", tracker.getRotations().get(0).getNotation());
+  }
+
+  /**
+   * A tilt far enough to see the bottom is a whole-cube rotation in a single window, and the solver
+   * turns faces during it — one real solve got an x' and a y2 x' that way, both impossible for the
+   * grip he was in. Only a second window still showing that face up makes it a reorientation.
+   */
+  @Test
+  public void aFlipTheCubeComesBackFromIsALookNotARotation() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    moveAt(tracker, still(grip, 6000), 100);
+    moveAt(tracker, still(turnedFrom(grip, aboutCubeR(-80)), 7000), 200); // tipped up to look under
+    assertTrue(tracker.getRotations().isEmpty());
+    moveAt(tracker, still(grip, 8000), 300); // and back to the grip he was solving in
+    assertTrue(tracker.getRotations().isEmpty());
+  }
+
+  /**
+   * The 51.80s regression: the solver turned the cube over mid-solve and the regrip carried 26° of
+   * yaw with it — a single degree further off than the 65° wrist-twist above, which sits 25° off and
+   * must be refused. No angle can separate those two. Gravity can: one changed the face on top.
+   */
+  @Test
+  public void aFlipCarryingYawSlopIsStillARotation() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    moveAt(tracker, still(grip, 6000), 100);
+    CubeOrientation flipped = turnedFrom(turnedFrom(grip, aboutCubeR(-90)), aboutCubeU(-26));
+    moveAt(tracker, still(flipped, 7000), 200);
+    moveAt(tracker, still(flipped, 8000), 300); // corroborated: the cube stayed turned over
+    assertEquals(1, tracker.getRotations().size());
+    assertEquals("x", tracker.getRotations().get(0).getNotation());
+    assertEquals(200, tracker.getRotations().get(0).getTimestampMs());
+  }
+
+  /** The same tilt, still there at the next window: a real x, dated at the move it began. */
+  @Test
+  public void aFlipTheCubeStaysInIsARotation() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    moveAt(tracker, still(grip, 6000), 100);
+    CubeOrientation flipped = turnedFrom(grip, aboutCubeR(-80));
+    moveAt(tracker, still(flipped, 7000), 200);
+    moveAt(tracker, still(flipped, 8000), 300);
+    assertEquals(1, tracker.getRotations().size());
+    assertEquals("x", tracker.getRotations().get(0).getNotation());
+    assertEquals(200, tracker.getRotations().get(0).getTimestampMs());
+  }
+
+  /**
    * The regression that poisoned a real solve: a rotation crept back ~10° a window, each step
    * reading as noise. The reference must stay frozen between commits so the way back adds up.
    */
@@ -340,9 +406,10 @@ public class RotationTrackerTest {
     RotationTracker tracker = anchoredAt(REST);
     moveAt(tracker, still(REST, 6000), 100);
     moveAt(tracker, still(AFTER_Y_X, 7000), 400); // both rotations happened before this move
+    moveAt(tracker, still(AFTER_Y_X, 8000), 600); // a second window: the cube stayed turned over
     assertEquals(1, tracker.getRotations().size());
     assertEquals("y x", tracker.getRotations().get(0).getNotation());
-    assertEquals(400, tracker.getRotations().get(0).getTimestampMs());
+    assertEquals(400, tracker.getRotations().get(0).getTimestampMs()); // dated where it first showed
   }
 
   @Test
@@ -350,6 +417,7 @@ public class RotationTrackerTest {
     RotationTracker tracker = anchoredAt(REST);
     moveAt(tracker, still(AFTER_Y, 6000), 100);   // opening rotation
     moveAt(tracker, still(AFTER_Y_X, 7000), 300); // then a second rotation
+    moveAt(tracker, still(AFTER_Y_X, 8000), 500); // still there at the next window: not a look
     assertEquals(2, tracker.getRotations().size());
     // A physical x on the y-rotated cube: the cube's own z', which display maps back to an x.
     assertEquals("z'", tracker.getRotations().get(1).getNotation());

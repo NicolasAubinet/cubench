@@ -124,8 +124,12 @@ public final class CubeRotation {
 
   /** Carries a face normal through this rotation: {@code q·v·q⁻¹}. */
   private double[] rotate(double[] v) {
-    CubeOrientation p = new CubeOrientation(0, v[0], v[1], v[2]);
-    CubeOrientation r = quaternion.multiply(p).multiply(quaternion.inverse());
+    return rotate(quaternion, v);
+  }
+
+  /** Carries {@code v} through {@code q}, as {@code q·v·q⁻¹}. */
+  private static double[] rotate(CubeOrientation q, double[] v) {
+    CubeOrientation r = q.multiply(new CubeOrientation(0, v[0], v[1], v[2])).multiply(q.inverse());
     return new double[] {r.getX(), r.getY(), r.getZ()};
   }
 
@@ -184,7 +188,7 @@ public final class CubeRotation {
   public static char upFace(CubeOrientation reading) {
     // World up, carried into the cube's body by the reading, then relabelled onto the cube's own
     // axes — the same swap toCubeFrame makes, applied to the vector rather than to a delta.
-    double[] inGyroAxes = new CubeRotation("", reading).rotate(WORLD_UP);
+    double[] inGyroAxes = rotate(reading, WORLD_UP);
     double[] up = {inGyroAxes[0], inGyroAxes[2], -inGyroAxes[1]};
     char best = 'U';
     double bestDot = -2;
@@ -197,6 +201,38 @@ public final class CubeRotation {
       }
     }
     return best;
+  }
+
+  /**
+   * The same grip with its tilt taken out and its yaw left alone. A grip is a lattice orientation
+   * turned by however far off square the cube is being held, so differencing two raw grips puts
+   * <em>both</em> their tilts into the rotation between them — measured across real solves, that is
+   * what left genuine regrips sitting 20-30° from any lattice orientation while a peek sat no
+   * further. Gravity names the face on top, so the shortest arc putting that face exactly up is
+   * knowable from the one reading, with no reference; only yaw, which gravity cannot see, survives.
+   */
+  public static CubeOrientation upright(CubeOrientation reading) {
+    double[] normal = FACE_NORMALS.get(upFace(reading));
+    // Back into the gyro's axes: the inverse of the swap upFace makes, since this turns a reading.
+    double[] inGyroAxes = {normal[0], -normal[2], normal[1]};
+    double[] pointing = rotate(reading.inverse(), inGyroAxes); // where that face points, in the world
+    return reading.multiply(shortestArc(pointing, WORLD_UP).inverse());
+  }
+
+  /**
+   * The turn carrying unit vector {@code from} onto {@code to} the short way round. The two are
+   * never opposite here — an up face is by definition the one nearest up — so the half-turn case,
+   * where the axis would vanish, cannot arise.
+   */
+  private static CubeOrientation shortestArc(double[] from, double[] to) {
+    double dot = from[0] * to[0] + from[1] * to[1] + from[2] * to[2];
+    CubeOrientation arc = new CubeOrientation(1 + dot,
+        from[1] * to[2] - from[2] * to[1],
+        from[2] * to[0] - from[0] * to[2],
+        from[0] * to[1] - from[1] * to[0]);
+    double norm = Math.sqrt(arc.normSquared());
+    return new CubeOrientation(
+        arc.getW() / norm, arc.getX() / norm, arc.getY() / norm, arc.getZ() / norm);
   }
 
   /** The four ways to hold the cube with {@code face} on top: they differ only in yaw. */
