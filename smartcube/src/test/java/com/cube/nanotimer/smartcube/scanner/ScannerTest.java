@@ -12,17 +12,12 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.smartcube.model.Face;
-import com.cube.nanotimer.smartcube.transport.BleCharacteristic;
-import com.cube.nanotimer.smartcube.transport.BlePeripheral;
 import com.cube.nanotimer.smartcube.transport.BleScanResult;
-import com.cube.nanotimer.smartcube.transport.BleService;
-import com.cube.nanotimer.smartcube.transport.BleTransport;
 import com.cube.nanotimer.smartcube.transport.BleUuid;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import org.junit.Test;
 
 /**
@@ -38,15 +33,15 @@ public class ScannerTest {
 
   @Test
   public void scanConnectDecodeThroughFakeTransport() {
-    FakeChr readChr = new FakeChr(BleUuid.normalize(MoyuV10Driver.READ_CHR_UUID));
-    FakeChr writeChr = new FakeChr(BleUuid.normalize(MoyuV10Driver.WRITE_CHR_UUID));
-    FakeService service =
-        new FakeService(BleUuid.normalize(MoyuV10Driver.SERVICE_UUID), Arrays.asList(readChr, writeChr));
-    FakePeripheral peripheral = new FakePeripheral("dev1", "WCU_MY32_ABCD", Collections.singletonList(service));
+    FakeBle.Chr readChr = new FakeBle.Chr(BleUuid.normalize(MoyuV10Driver.READ_CHR_UUID));
+    FakeBle.Chr writeChr = new FakeBle.Chr(BleUuid.normalize(MoyuV10Driver.WRITE_CHR_UUID));
+    FakeBle.Service service =
+        new FakeBle.Service(BleUuid.normalize(MoyuV10Driver.SERVICE_UUID), Arrays.asList(readChr, writeChr));
+    FakeBle.Peripheral peripheral = new FakeBle.Peripheral("dev1", "WCU_MY32_ABCD", Collections.singletonList(service));
     BleScanResult scanResult = new BleScanResult(
         "dev1", "WCU_MY32_ABCD",
         Collections.singletonList(BleUuid.normalize(MoyuV10Driver.SERVICE_UUID)), null);
-    FakeTransport transport = new FakeTransport(peripheral, scanResult);
+    FakeBle.Transport transport = new FakeBle.Transport(peripheral, scanResult);
 
     CubeScanner scanner = CubeScannerFactory.create(transport);
 
@@ -76,115 +71,5 @@ public class ScannerTest {
     assertFalse(moves.get(0).isPrime());
     assertEquals(U_FACELET, states.get(states.size() - 1).getFacelets());
     assertEquals(U_FACELET, cube.getCurrentState().getFacelets());
-  }
-
-  private static final class FakeChr implements BleCharacteristic {
-    private final String uuid;
-    private final List<Consumer<int[]>> listeners = new ArrayList<>();
-    final List<int[]> written = new ArrayList<>();
-
-    FakeChr(String uuid) {
-      this.uuid = uuid;
-    }
-
-    void push(int[] value) {
-      for (Consumer<int[]> listener : listeners) {
-        listener.accept(value);
-      }
-    }
-
-    @Override
-    public String getUuid() {
-      return uuid;
-    }
-
-    @Override
-    public void addValueListener(Consumer<int[]> onValue) {
-      listeners.add(onValue);
-    }
-
-    @Override
-    public void enableNotifications() {}
-
-    @Override
-    public void write(int[] data) {
-      written.add(data);
-    }
-  }
-
-  private static final class FakeService implements BleService {
-    private final String uuid;
-    private final List<BleCharacteristic> characteristics;
-
-    FakeService(String uuid, List<BleCharacteristic> characteristics) {
-      this.uuid = uuid;
-      this.characteristics = characteristics;
-    }
-
-    @Override
-    public String getUuid() {
-      return uuid;
-    }
-
-    @Override
-    public List<BleCharacteristic> getCharacteristics() {
-      return characteristics;
-    }
-  }
-
-  private static final class FakePeripheral implements BlePeripheral {
-    private final String id;
-    private final String name;
-    private final List<BleService> services;
-
-    FakePeripheral(String id, String name, List<BleService> services) {
-      this.id = id;
-      this.name = name;
-      this.services = services;
-    }
-
-    @Override
-    public String getId() {
-      return id;
-    }
-
-    @Override
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public void addConnectionListener(Consumer<Boolean> onConnected) {}
-
-    @Override
-    public List<BleService> discoverServices() {
-      return services;
-    }
-
-    @Override
-    public void disconnect() {}
-  }
-
-  private static final class FakeTransport implements BleTransport {
-    private final BlePeripheral peripheral;
-    private final BleScanResult result;
-
-    FakeTransport(BlePeripheral peripheral, BleScanResult result) {
-      this.peripheral = peripheral;
-      this.result = result;
-    }
-
-    @Override
-    public void scan(Consumer<BleScanResult> onResult) {
-      onResult.accept(result);
-    }
-
-    @Override
-    public void stopScan() {}
-
-    @Override
-    public BlePeripheral connect(String deviceId) {
-      return peripheral;
-    }
   }
 }
