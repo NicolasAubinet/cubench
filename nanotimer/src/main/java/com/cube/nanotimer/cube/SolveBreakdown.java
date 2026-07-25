@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Completes a stored breakdown for display by adding back what is deliberately not stored: the tail
+ * Assembles the step lists a solve is displayed through: the user's own steps from their tap times,
+ * and the cube's own, completed by adding back what is deliberately not stored — the tail
  * of a solve the cube never saw finish. The steps run back to back from the start, so whatever the
  * solve lasted beyond their total is turning that reached no milestone — a botched PLL, a blind
  * attempt that came out wrong. Deriving it keeps the step table free of a row that is not a step.
@@ -61,6 +62,26 @@ public final class SolveBreakdown {
     result.add(new SolveStep(index, UNFINISHED_STEP, recognitionMs, tailMs - recognitionMs,
         new ArrayList<SolveStep>()));
     return result;
+  }
+
+  /**
+   * The user's own steps as a breakdown, so the recorded moves can be split at the taps that ended
+   * them. The taps are the only boundaries, which is what lets this work without knowing what a step
+   * means — no name, and no thinking/turning split: a tap says when a step ended, nothing more.
+   *
+   * <p>Approximate by design, unlike the state-derived method split: a tap lands after the move it
+   * follows, and it is timed on the phone's clock while the moves are timed on the cube's.
+   */
+  public static List<SolveStep> fromStepTimes(Long[] stepTimes) {
+    List<SolveStep> steps = new ArrayList<SolveStep>();
+    if (stepTimes == null) {
+      return steps;
+    }
+    for (int i = 0; i < stepTimes.length; i++) {
+      long durationMs = stepTimes[i] == null ? 0 : stepTimes[i];
+      steps.add(new SolveStep(i, "", 0, durationMs, new ArrayList<SolveStep>()));
+    }
+    return steps;
   }
 
   private static long lastMoveOffsetMs(String moves) {

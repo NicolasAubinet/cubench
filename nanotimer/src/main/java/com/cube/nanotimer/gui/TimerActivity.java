@@ -290,7 +290,15 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     @Override
     public void onCubeAutoStop() {
-      if (timerState == TimerState.RUNNING && !solveType.hasSteps()) {
+      if (timerState != TimerState.RUNNING) {
+        return;
+      }
+      if (!solveType.hasSteps()) {
+        stopTimer(true);
+      } else if (stepsTimes.size() == solveType.getSteps().length - 1) {
+        // Only the last step can end on solved: stopping from an earlier one would have to invent
+        // times for the steps that were never tapped. Behind on taps, the user simply taps as before.
+        nextSolveStep();
         stopTimer(true);
       }
     }
@@ -413,6 +421,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
       findViewById(R.id.trAvgOfLife).setVisibility(View.VISIBLE);
       hideUnneededStepFields();
+      solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
     } else if (solveType.isBlind()) {
       findViewById(R.id.trAvgOfFive).setVisibility(View.GONE);
       findViewById(R.id.trLifetimeAccuracy).setVisibility(View.VISIBLE);
@@ -1100,7 +1109,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       solveTime.setStepsTimes(stepsTimes.toArray(new Long[0]));
     }
     if (!solveTime.isDNF()) {
-      if (!lastSolveSteps.isEmpty()) { // the cube broke this solve into method steps
+      // A solve type with its own steps is read through those alone, so the method's are not
+      // recorded: nothing would ever show them, and stored is worth keeping equal to shown.
+      if (!lastSolveSteps.isEmpty() && !solveType.hasSteps()) {
         solveTime.setSmartcubeMethod(CubeMethod.CFOP);
         solveTime.setSmartcubeSteps(lastSolveSteps);
         solveTime.setSmartcubeStoppedStep(lastSolveStoppedStep); // null unless it stopped short
@@ -1291,6 +1302,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastSolveSteps = SolveStepConverter.toSolveSteps(solveController.getStepTimes());
     lastSolveStoppedStep = solveController.getStoppedStep();
     lastSolveMoves = solveController.getSolveMoves(); // captured before the early return: a solve with no breakdown still has moves
+    if (solveType.hasSteps()) {
+      showManualStepBreakdown(solveDurationMs);
+      return;
+    }
     if (lastSolveSteps.isEmpty()) { // no cube drove it, or its milestones fitted no method
       hideStepBreakdown();
       return;
@@ -1302,6 +1317,31 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveStepBar.setVisibility(View.VISIBLE);
     solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
     showSolveStats(SolveSolution.from(lastSolveMoves, barSteps, solveDurationMs));
+  }
+
+  /**
+   * On a solve type with its own steps, those steps are the breakdown: the bar draws them, under the
+   * names they were given. The method's own steps are still recorded, but they say nothing this
+   * screen is about — the user's split replaces them wherever the solve is shown.
+   */
+  private void showManualStepBreakdown(long solveDurationMs) {
+    List<SolveStep> steps = SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0]));
+    if (lastSolveMoves.isEmpty() || steps.isEmpty()) { // no cube drove it, or it ended before a tap
+      hideStepBreakdown();
+      return;
+    }
+    solveStepBar.setSteps(steps, stepNames());
+    solveStepBar.setVisibility(View.VISIBLE);
+    solveStepBar.animateIn();
+    showSolveStats(SolveSolution.from(lastSolveMoves, steps, solveDurationMs));
+  }
+
+  private String[] stepNames() {
+    String[] names = new String[solveType.getSteps().length];
+    for (int i = 0; i < names.length; i++) {
+      names[i] = solveType.getSteps()[i].getName();
+    }
+    return names;
   }
 
   // Reveals the solve's move count and turn rate under the bar; hidden when the solve carries no moves.
@@ -1340,7 +1380,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   private boolean canBreakDownSolves() {
-    return !solveType.hasSteps() && solveController.isCubeDriven();
+    return solveController.isCubeDriven();
   }
 
   private void dismissRecordOverlay() {

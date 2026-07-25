@@ -109,6 +109,31 @@ public class SolveBreakdownTest {
   }
 
   @Test
+  public void turnsTapTimesIntoStepsTheMovesCanBeSplitAt() {
+    // The tap times are durations, so the steps run back to back and the moves fall where the taps
+    // put them: memo through 5.0s, execution after it.
+    List<SolveStep> steps = SolveBreakdown.fromStepTimes(new Long[] {5000L, 3000L});
+
+    assertEquals(2, steps.size());
+    assertEquals(5000, steps.get(0).getTotalMs());
+    assertEquals(3000, steps.get(1).getTotalMs());
+    assertEquals(1, steps.get(1).getStepIndex());
+    // A tap says when a step ended and nothing else: no name to show, and no thinking/turning split.
+    assertEquals("", steps.get(0).getName());
+    assertEquals(0, steps.get(0).getRecognitionMs());
+
+    SolveSolution solution = SolveSolution.from("R@0 U@4000 F@6000", steps, 8000);
+    assertEquals("R U", solution.getSteps().get(0).getMoves());
+    assertEquals("F", solution.getSteps().get(1).getMoves());
+  }
+
+  @Test
+  public void hasNoStepsToSplitAtWhenTheSolveHasNoTapTimes() {
+    assertEquals(0, SolveBreakdown.fromStepTimes(null).size());
+    assertEquals(0, SolveBreakdown.fromStepTimes(new Long[0]).size());
+  }
+
+  @Test
   public void addsNoTailWhenTheClocksDisagree() {
     // The timer stopped fractionally before the last milestone reached us over BLE. That skew is not
     // a segment worth drawing, and must never become a negative one.

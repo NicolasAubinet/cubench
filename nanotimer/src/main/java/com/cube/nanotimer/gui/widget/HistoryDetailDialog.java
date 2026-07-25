@@ -48,6 +48,7 @@ import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
+import com.cube.nanotimer.vo.SolveTypeStep;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
@@ -124,14 +125,18 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       });
     }
 
-    // The tail is derived rather than stored, so it is added back here, before anything reads the
-    // breakdown: the solution splits its moves by the same step windows the bar draws. Both measure
-    // against the turning time, not the recorded one, so a DNF still has a breakdown and a turn rate.
+    // The sheet shows one breakdown, measured against the turning time rather than the recorded one,
+    // so a DNF still has a breakdown and a turn rate. On a solve type with its own steps the user's
+    // split is the one it is read through; the method's steps are still recorded either way.
     long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
-    List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(solveTime.getSmartcubeSteps(),
-        solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves());
-    SolveSolution solution = SolveSolution.from(solveTime.getSmartcubeMoves(), steps, durationMs);
-    buildBreakdown(v, steps, solution);
+    if (!buildManualSteps(v, solveTime, durationMs)) {
+      // The tail is derived rather than stored, so it is added back here, before anything reads the
+      // breakdown: the solution splits its moves by the same step windows the bar draws.
+      List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(solveTime.getSmartcubeSteps(),
+          solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves());
+      buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps, durationMs),
+          getString(R.string.breakdown), null);
+    }
 
     final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
     final TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
@@ -286,27 +291,59 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   /**
+   * The breakdown drawn from the user's own steps, with the recorded moves split at the taps that
+   * ended them. Built only when a cube recorded the solve: without moves the table would say no more
+   * than the times line above.
+   *
+   * <p>The split is approximate where the method breakdown is exact — a tap lands a moment after the
+   * move it follows, and is timed on the phone's clock rather than the cube's. That is also why these
+   * steps have no thinking/turning split: a tap says when a step ended, nothing more.
+   *
+   * @return true when these steps take the section over, so the method's breakdown is not drawn
+   */
+  private boolean buildManualSteps(View v, SolveTime solveTime, long durationMs) {
+    String moves = solveTime.getSmartcubeMoves();
+    if (!solveTime.hasSteps() || moves == null || moves.isEmpty()) {
+      return false;
+    }
+    List<SolveStep> steps = SolveBreakdown.fromStepTimes(solveTime.getStepsTimes());
+    SolveSolution solution = SolveSolution.from(moves, steps, durationMs);
+    if (solution.isEmpty()) {
+      return false;
+    }
+    v.findViewById(R.id.trSteps).setVisibility(View.GONE); // the table tells it, and the moves with it
+    SolveTypeStep[] names = solveTime.getSolveType().hasSteps()
+        ? solveTime.getSolveType().getSteps() : new SolveTypeStep[0];
+    buildBreakdown(v, steps, solution, getString(R.string.steps), names);
+    return true;
+  }
+
+  /**
    * The step bar the timer showed, with the numbers behind it: a row per step, and its parts on rows
    * of their own, folded away until the step is tapped. The moves each row was spent on sit under it,
    * shown or hidden as a whole by the switch in the section header.
+   *
+   * @param userSteps the user's step names when their own steps are shown, null for the method's own
+   *                  — the user's carry no thinking/turning split, so those columns are left out
    */
-  private void buildBreakdown(View v, List<SolveStep> steps, SolveSolution solution) {
+  private void buildBreakdown(View v, List<SolveStep> steps, SolveSolution solution,
+      String label, SolveTypeStep[] userSteps) {
     if (steps == null || steps.isEmpty()) {
       return;
     }
+    boolean split = userSteps == null;
     int[] colors = getStepColors();
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
     TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
-    table.addView(headerRow());
+    table.addView(headerRow(split));
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
-      TextView name = cell(R.style.BreakdownStepName,
-          Utils.toSmartCubeStepDisplayName(getActivity(), step, i));
+      TextView name = cell(R.style.BreakdownStepName, stepName(step, i, userSteps));
       name.setTextColor(Utils.isUnfinishedTail(step.getName())
           ? ContextCompat.getColor(getActivity(), R.color.gray600)
           : colors[i % colors.length]);
-      TableRow row = stepRow(step, name, moveCountOf(solution, i));
+      TableRow row = stepRow(step, name, moveCountOf(solution, i), split);
       table.addView(row);
 
       StepRows stepRows = new StepRows(name);
@@ -323,9 +360,20 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         makeExpandable(row, stepRows);
       }
     }
-    buildMovesSwitch(v, solution);
+    buildMovesSwitch(v, solution, label);
     applyRowVisibility();
     v.findViewById(R.id.breakdownSection).setVisibility(View.VISIBLE);
+  }
+
+  /** A user step goes by the name it was given, or by its position when the steps changed since. */
+  private CharSequence stepName(SolveStep step, int index, SolveTypeStep[] userSteps) {
+    if (userSteps == null) {
+      return Utils.toSmartCubeStepDisplayName(getActivity(), step, index);
+    }
+    if (index < userSteps.length && userSteps[index].getName() != null) {
+      return userSteps[index].getName();
+    }
+    return getString(R.string.breakdown_step) + " " + (index + 1);
   }
 
   /**
@@ -348,16 +396,16 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private boolean showMoves;
 
   /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */
-  private void buildMovesSwitch(View v, SolveSolution solution) {
-    ((TextView) v.findViewById(R.id.breakdownLabel)).setText(getString(R.string.breakdown));
-    TextView totals = (TextView) v.findViewById(R.id.breakdownTotals);
-    TextView label = (TextView) v.findViewById(R.id.movesSwitchLabel);
+  private void buildMovesSwitch(View v, SolveSolution solution, String label) {
+    ((TextView) v.findViewById(R.id.breakdownLabel)).setText(label);
+    TextView movesLabel = (TextView) v.findViewById(R.id.movesSwitchLabel);
     SwitchCompat sw = (SwitchCompat) v.findViewById(R.id.swMoves);
     if (solution.isEmpty()) { // nothing was recorded to show: the switch would toggle empty rows
-      label.setVisibility(View.GONE);
+      movesLabel.setVisibility(View.GONE);
       sw.setVisibility(View.GONE);
       return;
     }
+    TextView totals = (TextView) v.findViewById(R.id.breakdownTotals);
     totals.setText(getString(R.string.breakdown_moves_count, solution.getMoveCount()) + " · "
         + getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
     totals.setVisibility(View.VISIBLE);
@@ -478,21 +526,25 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     return colors;
   }
 
-  private TableRow headerRow() {
+  private TableRow headerRow(boolean split) {
     TableRow row = new TableRow(getActivity());
     row.addView(cell(R.style.BreakdownHeaderName, getString(R.string.breakdown_step)));
-    row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_recognition)));
-    row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_execution)));
+    if (split) {
+      row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_recognition)));
+      row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_execution)));
+    }
     row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_total)));
     row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_moves)));
     return row;
   }
 
-  private TableRow stepRow(SolveStep step, TextView name, String moveCount) {
+  private TableRow stepRow(SolveStep step, TextView name, String moveCount, boolean split) {
     TableRow row = new TableRow(getActivity());
     row.addView(name);
-    row.addView(cell(R.style.BreakdownRecognitionCell, formatTime(step.getRecognitionMs())));
-    row.addView(cell(R.style.BreakdownCell, formatTime(step.getExecutionMs())));
+    if (split) {
+      row.addView(cell(R.style.BreakdownRecognitionCell, formatTime(step.getRecognitionMs())));
+      row.addView(cell(R.style.BreakdownCell, formatTime(step.getExecutionMs())));
+    }
     row.addView(cell(R.style.BreakdownCell, formatTime(step.getTotalMs())));
     row.addView(cell(R.style.BreakdownRecognitionCell, moveCount));
     return row;
