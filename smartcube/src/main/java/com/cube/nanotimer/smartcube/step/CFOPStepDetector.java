@@ -53,25 +53,6 @@ public final class CFOPStepDetector implements StepDetector {
   private static final int[] SUB_STEP_OFFSET = {0, 0, 4, 6};
   private static final int SUB_GOAL_COUNT = 6;
 
-  private static final String SOLVED = CubeState.SOLVED_FACELETS;
-  private static final String FACES = "URFDLB";
-
-  /** Facelet offsets within a face: corners at the four points, edges between them. */
-  private static final int[] CORNER_POSITIONS = {0, 2, 6, 8};
-  private static final int[] EDGE_POSITIONS = {1, 3, 5, 7};
-
-  /** Corner facelet indices, one triple per corner (URF, UFL, ...), as in {@code CubieCube}. */
-  private static final int[][] CORNERS = {
-    {8, 9, 20}, {6, 18, 38}, {0, 36, 47}, {2, 45, 11},
-    {29, 26, 15}, {27, 44, 24}, {33, 53, 42}, {35, 17, 51},
-  };
-
-  /** Edge facelet indices, one pair per edge (UR, UF, ...), as in {@code CubieCube}. */
-  private static final int[][] EDGES = {
-    {5, 10}, {7, 19}, {3, 37}, {1, 46}, {32, 16}, {28, 25},
-    {30, 43}, {34, 52}, {23, 12}, {21, 41}, {50, 39}, {48, 14},
-  };
-
   /** The 4 F2L slots of each cross face: a first-layer corner and the middle edge beside it. */
   private static final int[][] SLOT_CORNERS = new int[6][4];
   private static final int[][] SLOT_EDGES = new int[6][4];
@@ -82,11 +63,11 @@ public final class CFOPStepDetector implements StepDetector {
   static {
     for (int face = 0; face < 6; face++) {
       int slot = 0;
-      for (int corner = 0; corner < CORNERS.length; corner++) {
-        if (!touches(CORNERS[corner], face)) {
+      for (int corner = 0; corner < Cubies.CORNERS.length; corner++) {
+        if (!Cubies.touches(Cubies.CORNERS[corner], face)) {
           continue;
         }
-        char[] sides = sideColours(CORNERS[corner], face);
+        char[] sides = sideColours(Cubies.CORNERS[corner], face);
         SLOT_CORNERS[face][slot] = corner;
         SLOT_EDGES[face][slot] = edgeBetween(sides[0], sides[1]);
         SLOT_CODES[face][slot] = ("pair_" + sides[0] + sides[1]).toLowerCase(Locale.US);
@@ -140,12 +121,12 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   private void evaluate(String facelets, long timestampMs) {
-    boolean solved = SOLVED.equals(facelets);
+    boolean solved = Cubies.SOLVED.equals(facelets);
     for (int face = 0; face < 6; face++) {
       boolean cross = crossDone(facelets, face);
       boolean f2l = cross && slotsDone(facelets, face); // the 4 slots are the whole first two layers
-      boolean edgesOriented = lastLayerOriented(facelets, face, EDGE_POSITIONS);
-      boolean cornersOriented = lastLayerOriented(facelets, face, CORNER_POSITIONS);
+      boolean edgesOriented = lastLayerOriented(facelets, face, Cubies.EDGE_POSITIONS);
+      boolean cornersOriented = lastLayerOriented(facelets, face, Cubies.CORNER_POSITIONS);
 
       boolean oll = f2l && edgesOriented && cornersOriented;
       for (int slot = 0; slot < 4; slot++) {
@@ -213,8 +194,8 @@ public final class CFOPStepDetector implements StepDetector {
 
   /** The 4 edges of the cross face are in place. */
   private static boolean crossDone(String facelets, int face) {
-    for (int[] edge : EDGES) {
-      if (touches(edge, face) && !inPlace(facelets, edge)) {
+    for (int[] edge : Cubies.EDGES) {
+      if (Cubies.touches(edge, face) && !Cubies.inPlace(facelets, edge)) {
         return false;
       }
     }
@@ -223,8 +204,8 @@ public final class CFOPStepDetector implements StepDetector {
 
   /** One F2L slot: its first-layer corner and the middle edge beside it are both in place. */
   private static boolean slotDone(String facelets, int face, int slot) {
-    return inPlace(facelets, CORNERS[SLOT_CORNERS[face][slot]])
-        && inPlace(facelets, EDGES[SLOT_EDGES[face][slot]]);
+    return Cubies.inPlace(facelets, Cubies.CORNERS[SLOT_CORNERS[face][slot]])
+        && Cubies.inPlace(facelets, Cubies.EDGES[SLOT_EDGES[face][slot]]);
   }
 
   private static boolean slotsDone(String facelets, int face) {
@@ -238,28 +219,10 @@ public final class CFOPStepDetector implements StepDetector {
 
   /** The given positions of the last-layer face all show its colour: those pieces are oriented. */
   private static boolean lastLayerOriented(String facelets, int face, int[] positions) {
-    int opposite = opposite(face);
-    char colour = FACES.charAt(opposite);
+    int opposite = Cubies.opposite(face);
+    char colour = Cubies.FACES.charAt(opposite);
     for (int position : positions) {
       if (facelets.charAt(opposite * 9 + position) != colour) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private static boolean touches(int[] piece, int face) {
-    for (int facelet : piece) {
-      if (SOLVED.charAt(facelet) == FACES.charAt(face)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private static boolean inPlace(String facelets, int[] piece) {
-    for (int facelet : piece) {
-      if (facelets.charAt(facelet) != SOLVED.charAt(facelet)) {
         return false;
       }
     }
@@ -271,8 +234,8 @@ public final class CFOPStepDetector implements StepDetector {
     char[] sides = new char[2];
     int found = 0;
     for (int facelet : corner) {
-      char colour = SOLVED.charAt(facelet);
-      if (colour != FACES.charAt(face)) {
+      char colour = Cubies.SOLVED.charAt(facelet);
+      if (colour != Cubies.FACES.charAt(face)) {
         sides[found++] = colour;
       }
     }
@@ -280,9 +243,9 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   private static int edgeBetween(char first, char second) {
-    for (int edge = 0; edge < EDGES.length; edge++) {
-      char a = SOLVED.charAt(EDGES[edge][0]);
-      char b = SOLVED.charAt(EDGES[edge][1]);
+    for (int edge = 0; edge < Cubies.EDGES.length; edge++) {
+      char a = Cubies.SOLVED.charAt(Cubies.EDGES[edge][0]);
+      char b = Cubies.SOLVED.charAt(Cubies.EDGES[edge][1]);
       if ((a == first && b == second) || (a == second && b == first)) {
         return edge;
       }
@@ -290,13 +253,9 @@ public final class CFOPStepDetector implements StepDetector {
     throw new IllegalStateException("No edge between " + first + " and " + second);
   }
 
-  private static int opposite(int face) {
-    return (face + 3) % 6;
-  }
-
   /** The face the cross was built on, or null before any cross completes. */
   public Face getCrossFace() {
-    return crossFace == null ? null : Face.valueOf(String.valueOf(FACES.charAt(crossFace)));
+    return crossFace == null ? null : Cubies.faceAt(crossFace);
   }
 
   @Override
@@ -323,7 +282,7 @@ public final class CFOPStepDetector implements StepDetector {
     if (crossFace == null || (step != OLL && step != PLL)) {
       return false;
     }
-    return move.getFace() == Face.valueOf(String.valueOf(FACES.charAt(opposite(crossFace))));
+    return move.getFace() == Cubies.faceAt(Cubies.opposite(crossFace));
   }
 
   @Override
