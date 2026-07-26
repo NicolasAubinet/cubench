@@ -78,6 +78,21 @@ public final class SolveBreakdown {
   }
 
   /**
+   * The same breakdown without the stopping time — for the timer screen, where the legend is a
+   * share of the screen and that segment is not something the solver acts on. It is still real, and
+   * the detail sheet still shows it; here it would cost a cell to say the cube was put down.
+   */
+  public static List<SolveStep> withoutGap(List<SolveStep> steps) {
+    List<SolveStep> result = new ArrayList<SolveStep>();
+    for (SolveStep step : steps) {
+      if (!GAP_STEP.equals(step.getName())) {
+        result.add(step);
+      }
+    }
+    return result;
+  }
+
+  /**
    * The user's own steps as a breakdown, so the recorded moves can be split at the taps that ended
    * them. The taps are the only boundaries, which is what lets this work without knowing what a step
    * means — no name, and no thinking/turning split: a tap says when a step ended, nothing more.

@@ -107,8 +107,11 @@ public final class BlindStepDetector implements StepDetector {
         fullyMs[type] = timestampMs;
       }
     }
-    // A cube solved before a single turn is one waiting to be scrambled, not a solve already over.
-    if (memoMs != null && best[EDGES] == 0 && best[CORNERS] == 0) {
+    // Solved is the one thing read off the state of the moment rather than the best reached. The
+    // bests are attained at their own times, and one type being home now next to another that was
+    // home ten seconds ago is not a solved cube — it is two algorithms that happened to pass
+    // through. A cube solved before a single turn is one waiting to be scrambled, not a solve over.
+    if (memoMs != null && unsolved[EDGES] == 0 && unsolved[CORNERS] == 0) {
       solvedMs = timestampMs;
     }
   }

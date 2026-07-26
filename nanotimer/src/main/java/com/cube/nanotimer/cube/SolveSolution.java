@@ -51,7 +51,10 @@ public final class SolveSolution {
       SolveStep solveStep = solveSteps.get(i);
       long stepStartMs = boundaryMs;
       boundaryMs += solveStep.getTotalMs();
-      int end = endOf(moves, taken, boundaryMs);
+      // A step ends on the move that completed it and so owns that move — except a step that turned
+      // nothing, which owns none. Memorisation ends the moment the cube is first turned, and that
+      // turn is the first of the solving: shown under the memo it reads as a move made blind.
+      int end = solveStep.getExecutionMs() > 0 ? endOf(moves, taken, boundaryMs) : taken;
       Step step = new Step(i, solveStep.getName(),
           groupsFor(moves, taken, end, solveStep.getSubSteps(), stepStartMs));
       steps.add(step);

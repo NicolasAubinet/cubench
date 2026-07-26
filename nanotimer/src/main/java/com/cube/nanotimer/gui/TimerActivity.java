@@ -1426,9 +1426,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The tail is drawn but never stored, so lastSolveSteps stays the form that gets saved.
     List<SolveStep> barSteps = SolveBreakdown.withTail(lastSolveSteps, lastSolveStoppedStep,
         solveDurationMs, lastSolveMoves, lastSolveMethod);
-    solveStepBar.setSteps(barSteps);
+    solveStepBar.setSteps(SolveBreakdown.withoutGap(barSteps));
     solveStepBar.setVisibility(View.VISIBLE);
     solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
+    // The stats read the whole thing, gap included, so the move count is the same number the detail
+    // sheet shows — only the bar leaves it out.
     showSolveStats(SolveSolution.from(lastSolveMoves, barSteps));
   }
 
