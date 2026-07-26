@@ -341,6 +341,7 @@
   <string name="smartcube_step_lse_l4e">L4E</string>
   <string name="smartcube_step_memo">Memo</string>
   <string name="smartcube_step_execution">Execution</string>
+  <string name="smartcube_step_parity">Parity</string>
   <string name="smartcube_step_gap">Stopping</string>
   <string name="scramble_view_clock_notation_hint">The diagram isn\'t available for this Clock notation. Switch to the UR/DR/DL notation in the options to see it.</string>
   <string name="cross_section_title">%1$s cross · %2$d moves</string>
