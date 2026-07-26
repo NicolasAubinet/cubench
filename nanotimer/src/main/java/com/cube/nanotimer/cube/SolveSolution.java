@@ -21,24 +21,32 @@ public final class SolveSolution {
 
   private final List<Step> steps;
   private final int moveCount;
-  private final long timeMs;
+  private final long turningMs;
 
-  private SolveSolution(List<Step> steps, int moveCount, long timeMs) {
+  private SolveSolution(List<Step> steps, int moveCount, long turningMs) {
     this.steps = Collections.unmodifiableList(steps);
     this.moveCount = moveCount;
-    this.timeMs = timeMs;
+    this.turningMs = turningMs;
   }
 
-  /** Empty when the solve carries no moves, so callers can hide the section on one check. */
-  public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps, long timeMs) {
+  /**
+   * Empty when the solve carries no moves, so callers can hide the section on one check.
+   *
+   * <p>The step durations are the whole measure here: they run back to back from the solve start, so
+   * a move belongs to the step whose window its offset falls in, and their total is the solve. Pass
+   * the steps a solve is <em>displayed</em> through — tails included — or the last of the moves will
+   * fall outside every window.
+   */
+  public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps) {
     List<Move> moves = inSolversFrame(SolveMovesFormat.parse(storedMoves));
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
-      return new SolveSolution(new ArrayList<Step>(), 0, timeMs);
+      return new SolveSolution(new ArrayList<Step>(), 0, 0);
     }
     List<Step> steps = new ArrayList<Step>();
     int total = 0;
     int taken = 0;
     long boundaryMs = 0;
+    long turningMs = 0;
     for (int i = 0; i < solveSteps.size(); i++) {
       SolveStep solveStep = solveSteps.get(i);
       long stepStartMs = boundaryMs;
@@ -48,9 +56,12 @@ public final class SolveSolution {
           groupsFor(moves, taken, end, solveStep.getSubSteps(), stepStartMs));
       steps.add(step);
       total += step.getMoveCount();
+      if (solveStep.getExecutionMs() > 0) { // a step that turned nothing has none: see getTps
+        turningMs += solveStep.getTotalMs();
+      }
       taken = end;
     }
-    return new SolveSolution(steps, total, timeMs);
+    return new SolveSolution(steps, total, turningMs);
   }
 
   /**
@@ -207,9 +218,19 @@ public final class SolveSolution {
     return moveCount;
   }
 
-  /** Turns per second over the whole solve, 0 when it has no duration to divide by. */
+  /**
+   * Turns per second over the time actually spent turning, rather than over the whole solve. On a
+   * sighted solve the two are the same thing, since every step turns something. On a blind one they
+   * are not: memorising is most of the solve and moves nothing, and nothing stops the timer at the
+   * solved state, so dividing by the recorded time would report a rate the hands never went at.
+   *
+   * <p>A step counts as turning when it has <em>execution</em>, not merely a move: memorisation ends
+   * on the first turn and so owns it, but that turn is the first of the solving and belongs to the
+   * rate — which is what dividing by execution alone gives. The same test drops a solve's trailing
+   * stare, whether it was spent stuck or taking a blindfold off. 0 when nothing turned.
+   */
   public double getTps() {
-    return timeMs > 0 ? moveCount * 1000d / timeMs : 0;
+    return turningMs > 0 ? moveCount * 1000d / turningMs : 0;
   }
 
   public static final class Step {

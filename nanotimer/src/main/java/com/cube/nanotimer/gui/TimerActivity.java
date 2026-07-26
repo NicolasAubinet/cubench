@@ -1382,7 +1382,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         public void run() {
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
-          solveController.setScramble(currentScramble, is3x3, followable);
+          solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind());
         }
       });
       foundScramble = true;
@@ -1419,12 +1419,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       return;
     }
     // The tail is drawn but never stored, so lastSolveSteps stays the form that gets saved.
-    List<SolveStep> barSteps = SolveBreakdown.withUnfinishedTail(lastSolveSteps, lastSolveStoppedStep,
-        solveDurationMs, lastSolveMoves);
+    List<SolveStep> barSteps = SolveBreakdown.withTail(lastSolveSteps, lastSolveStoppedStep,
+        solveDurationMs, lastSolveMoves, lastSolveMethod);
     solveStepBar.setSteps(barSteps);
     solveStepBar.setVisibility(View.VISIBLE);
     solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
-    showSolveStats(SolveSolution.from(lastSolveMoves, barSteps, solveDurationMs));
+    showSolveStats(SolveSolution.from(lastSolveMoves, barSteps));
   }
 
   /**
@@ -1441,7 +1441,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveStepBar.setSteps(steps, stepNames());
     solveStepBar.setVisibility(View.VISIBLE);
     solveStepBar.animateIn();
-    showSolveStats(SolveSolution.from(lastSolveMoves, steps, solveDurationMs));
+    showSolveStats(SolveSolution.from(lastSolveMoves, steps));
   }
 
   private String[] stepNames() {

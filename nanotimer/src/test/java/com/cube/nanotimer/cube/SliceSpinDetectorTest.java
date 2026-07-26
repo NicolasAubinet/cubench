@@ -158,7 +158,7 @@ public class SliceSpinDetectorTest {
     String stored = SolveMovesFormat.format(moves,
         detector.merge(noGripRotations(), rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME)), 1000);
     SolveSolution solution = SolveSolution.from(stored,
-        Arrays.asList(new SolveStep(0, "cross", 0, 1000, new ArrayList<SolveStep>())), 1000);
+        Arrays.asList(new SolveStep(0, "cross", 0, 1000, new ArrayList<SolveStep>())));
 
     assertEquals("L@0 R'@30 x@31 U@400", stored);
     assertEquals(2, solution.getMoveCount()); // the slice and the U; the spin is not a move

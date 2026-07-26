@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import java.util.ArrayList;
@@ -23,18 +24,35 @@ public class SolveBreakdownTest {
 
   /** The breakdown of a stored solve, the way the history dialog builds it. */
   private static List<SolveStep> tailedSteps(SolveTime solveTime) {
-    return SolveBreakdown.withUnfinishedTail(solveTime.getSmartcubeSteps(),
+    return SolveBreakdown.withTail(solveTime.getSmartcubeSteps(),
         solveTime.getSmartcubeStoppedStep(), SolveBreakdown.solvingDurationMs(solveTime),
-        solveTime.getSmartcubeMoves());
+        solveTime.getSmartcubeMoves(), solveTime.getSmartcubeMethod());
   }
 
   @Test
   public void addsNoTailToASolveThatRanToTheEnd() {
-    List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(twoSteps(), null, 9000, "R@0");
+    List<SolveStep> steps = SolveBreakdown.withTail(twoSteps(), null, 9000, "R@0", CubeMethod.CFOP);
 
     assertEquals(2, steps.size()); // the steps already account for all of it
     assertEquals("cross", steps.get(0).getName());
     assertEquals("f2l", steps.get(1).getName());
+  }
+
+  /**
+   * Nothing stops a blind solve when the cube comes out solved — the solver cannot see it — so the
+   * time between the last milestone and the tap is real, and belongs to no step. A sighted solve
+   * that ran to the end never has one: the cube stopped it there.
+   */
+  @Test
+  public void givesAFinishedBlindSolveTheTimeItTookToStopIt() {
+    List<SolveStep> steps = SolveBreakdown.withTail(twoSteps(), null, 5000, "R@1000 U@2900",
+        CubeMethod.BLIND);
+
+    assertEquals(3, steps.size());
+    SolveStep gap = steps.get(2);
+    assertEquals(SolveBreakdown.GAP_STEP, gap.getName());
+    assertEquals(2000, gap.getTotalMs());
+    assertEquals(2, SolveBreakdown.withTail(twoSteps(), null, 5000, "R@1000", CubeMethod.CFOP).size());
   }
 
   @Test
@@ -43,15 +61,15 @@ public class SolveBreakdownTest {
     // aliasing on some inputs and not others is how a caller's mutation reaches the database.
     List<SolveStep> steps = twoSteps();
 
-    assertNotSame(steps, SolveBreakdown.withUnfinishedTail(steps, null, 9000, "R@0"));
-    assertNotSame(steps, SolveBreakdown.withUnfinishedTail(steps, 1, 5000, "R@1000 U@3400"));
+    assertNotSame(steps, SolveBreakdown.withTail(steps, null, 9000, "R@0", CubeMethod.CFOP));
+    assertNotSame(steps, SolveBreakdown.withTail(steps, 1, 5000, "R@1000 U@3400", CubeMethod.CFOP));
   }
 
   @Test
   public void fillsTheGapBetweenTheLastMilestoneAndTheStop() {
     // Stopped at 5s with 3s of steps: 2s belongs to no step. The first move after the milestone is
     // at 3.4s, so 400ms of it was thinking and the remaining 1.6s turning.
-    List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(twoSteps(), 1, 5000, "R@1000 U@3400 F@3900");
+    List<SolveStep> steps = SolveBreakdown.withTail(twoSteps(), 1, 5000, "R@1000 U@3400 F@3900", CubeMethod.CFOP);
 
     assertEquals(3, steps.size());
     SolveStep tail = steps.get(2);
@@ -65,7 +83,7 @@ public class SolveBreakdownTest {
   @Test
   public void countsATailWithNoMovesAsThinking() {
     // It stopped without turning anything after the last milestone: 2s of staring at the cube.
-    List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(twoSteps(), 1, 5000, "R@1000 U@2900");
+    List<SolveStep> steps = SolveBreakdown.withTail(twoSteps(), 1, 5000, "R@1000 U@2900", CubeMethod.CFOP);
 
     SolveStep tail = steps.get(2);
     assertEquals(2000, tail.getRecognitionMs());
@@ -122,7 +140,7 @@ public class SolveBreakdownTest {
     assertEquals("", steps.get(0).getName());
     assertEquals(0, steps.get(0).getRecognitionMs());
 
-    SolveSolution solution = SolveSolution.from("R@0 U@4000 F@6000", steps, 8000);
+    SolveSolution solution = SolveSolution.from("R@0 U@4000 F@6000", steps);
     assertEquals("R U", solution.getSteps().get(0).getMoves());
     assertEquals("F", solution.getSteps().get(1).getMoves());
   }
@@ -137,7 +155,7 @@ public class SolveBreakdownTest {
   public void addsNoTailWhenTheClocksDisagree() {
     // The timer stopped fractionally before the last milestone reached us over BLE. That skew is not
     // a segment worth drawing, and must never become a negative one.
-    List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(twoSteps(), 1, 2950, "R@1000");
+    List<SolveStep> steps = SolveBreakdown.withTail(twoSteps(), 1, 2950, "R@1000", CubeMethod.CFOP);
 
     assertEquals(2, steps.size());
   }

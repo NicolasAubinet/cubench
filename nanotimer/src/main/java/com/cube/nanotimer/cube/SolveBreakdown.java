@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.cube.SolveMovesFormat.Move;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import java.util.ArrayList;
@@ -17,6 +18,14 @@ public final class SolveBreakdown {
 
   /** Name code of the tail, localized when displayed. */
   public static final String UNFINISHED_STEP = "unfinished";
+
+  /**
+   * Name code of the other tail: a solve that <em>did</em> finish, with time left over after it.
+   * Only a blind solve has one — nothing stops its timer when the cube comes out solved, so what
+   * follows is the blindfold coming off, and possibly a few more turns made before the solver knew
+   * they were done.
+   */
+  public static final String GAP_STEP = "gap";
 
   private SolveBreakdown() {
   }
@@ -36,16 +45,20 @@ public final class SolveBreakdown {
   /**
    * @param solveDurationMs what the solve spent turning, from {@link #solvingDurationMs} for a stored
    *     solve, or straight off the timer for the one just finished
-   * @param stoppedStep the step the solve stopped in, null when it ran to the end (then the steps
-   *     already account for all of it and the list is returned untouched)
+   * @param stoppedStep the step the solve stopped in, null when it ran to the end
+   * @param method what the solve was read as, which decides whether a finished solve can still have
+   *     a tail: only a blind one is stopped by hand rather than by the cube, so only there does time
+   *     survive the last milestone. Everywhere else a finished solve's steps account for all of it
+   *     and the list is returned untouched.
    */
-  public static List<SolveStep> withUnfinishedTail(List<SolveStep> steps, Integer stoppedStep,
-      long solveDurationMs, String moves) {
+  public static List<SolveStep> withTail(List<SolveStep> steps, Integer stoppedStep,
+      long solveDurationMs, String moves, CubeMethod method) {
     if (steps == null) {
       return null;
     }
-    if (stoppedStep == null || steps.isEmpty()) { // always a copy, so no caller can alias the input
-      return new ArrayList<SolveStep>(steps);
+    boolean finished = stoppedStep == null;
+    if (steps.isEmpty() || (finished && method != CubeMethod.BLIND)) {
+      return new ArrayList<SolveStep>(steps); // always a copy, so no caller can alias the input
     }
     long accountedMs = 0;
     int index = 0;
@@ -59,8 +72,8 @@ public final class SolveBreakdown {
     }
     long recognitionMs = recognitionOf(moves, accountedMs, tailMs);
     List<SolveStep> result = new ArrayList<SolveStep>(steps);
-    result.add(new SolveStep(index, UNFINISHED_STEP, recognitionMs, tailMs - recognitionMs,
-        new ArrayList<SolveStep>()));
+    result.add(new SolveStep(index, finished ? GAP_STEP : UNFINISHED_STEP, recognitionMs,
+        tailMs - recognitionMs, new ArrayList<SolveStep>()));
     return result;
   }
 

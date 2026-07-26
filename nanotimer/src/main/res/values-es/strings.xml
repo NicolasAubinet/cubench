@@ -335,6 +335,9 @@
   <string name="smartcube_step_lse_eo">EO</string>
   <string name="smartcube_step_lse_ulur">UL/UR</string>
   <string name="smartcube_step_lse_l4e">L4E</string>
+  <string name="smartcube_step_memo">Memo</string>
+  <string name="smartcube_step_execution">Ejecución</string>
+  <string name="smartcube_step_gap">Parada</string>
   <string name="scramble_view_clock_notation_hint">El diagrama no está disponible para esta notación de Clock. Cambia a la notación UR/DR/DL en las opciones para verlo.</string>
   <string name="cross_section_title">Cruz %1$s · %2$d movimientos</string>
   <string name="cross_solutions_count">%1$d soluciones óptimas</string>

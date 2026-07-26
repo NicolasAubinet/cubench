@@ -141,7 +141,7 @@ public class SolveStepBarView extends View {
   /** The tail is deliberately outside the step palette: colouring it like a step would claim it
    * was one. */
   private int colorOf(int step) {
-    if (Utils.isUnfinishedTail(steps.get(step).getName())) {
+    if (Utils.isTailSegment(steps.get(step).getName())) {
       return tailColor;
     }
     return colors.length == 0 ? Color.WHITE : colors[step % colors.length];

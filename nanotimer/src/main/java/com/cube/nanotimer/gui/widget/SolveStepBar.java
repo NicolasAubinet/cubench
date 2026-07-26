@@ -84,7 +84,7 @@ public class SolveStepBar extends LinearLayout {
       }
       name.setText(stepNames != null && i < stepNames.length ? stepNames[i]
           : Utils.toSmartCubeStepLocalizedName(getContext(), step.getName(), i));
-      name.setTextColor(Utils.isUnfinishedTail(step.getName())
+      name.setTextColor(Utils.isTailSegment(step.getName())
           ? ContextCompat.getColor(getContext(), R.color.gray600)
           : colors[i % colors.length]);
       ((TextView) cells.get(i).findViewById(R.id.tvStepTime))

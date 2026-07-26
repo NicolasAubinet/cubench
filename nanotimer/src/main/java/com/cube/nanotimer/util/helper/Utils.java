@@ -165,10 +165,11 @@ public class Utils {
     return step.isComplete() ? name : context.getString(R.string.smartcube_step_partial, name);
   }
 
-  /** The tail segment: turning after the last milestone, on a solve the cube never saw finish. It
-   * belongs to no step, so it is drawn apart from them rather than in the step colours. */
-  public static boolean isUnfinishedTail(String code) {
-    return SolveBreakdown.UNFINISHED_STEP.equals(code);
+  /** A tail segment: the time after the last milestone, on a solve the cube never saw finish or on a
+   * blind one nothing stopped. It belongs to no step, so it is drawn apart from them rather than in
+   * the step colours. */
+  public static boolean isTailSegment(String code) {
+    return SolveBreakdown.UNFINISHED_STEP.equals(code) || SolveBreakdown.GAP_STEP.equals(code);
   }
 
   /**

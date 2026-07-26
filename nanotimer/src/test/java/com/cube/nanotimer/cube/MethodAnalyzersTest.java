@@ -31,7 +31,7 @@ public class MethodAnalyzersTest {
   };
 
   private final CubieCube cube = new CubieCube();
-  private final MethodAnalyzers analyzers = new MethodAnalyzers();
+  private final MethodAnalyzers analyzers = new MethodAnalyzers(false);
 
   /** Quarter turns of drift the slices have put between the solver's frame and the cube's. */
   private int drift;

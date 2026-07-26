@@ -48,7 +48,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
-  private final MethodAnalyzers analyzers = new MethodAnalyzers();
+  private MethodAnalyzers analyzers = new MethodAnalyzers(false);
   private final RotationTracker rotationTracker = new RotationTracker();
   private final SliceSpinDetector sliceSpins = new SliceSpinDetector();
 
@@ -60,12 +60,14 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private String[] scramble;
   private boolean cubeDriven; // auto-stop applies (3x3 + connected)
   private boolean followable; // scramble-follow + auto-start apply (3x3 default scramble)
+  private boolean blind; // the solve type memorises first: neither end of the solve is the cube's
   private ScrambleFollower follower;
   private Phase phase = Phase.INACTIVE;
   private boolean sawUnsolved;
   private boolean analyzing;
   private long scrambleStartWallMs; // 0 until the first followed move of the current scramble
   private long lastFollowMoveWallMs;
+  private long timerStartMs; // when the tap started the solve, on the cube's (host-fitted) clock
 
   public SmartCubeSolveController(Listener listener) {
     this.listener = listener;
@@ -86,18 +88,39 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   /**
    * @param cubeDriven true when the cube may auto-stop this solve (3x3, connected)
    * @param followable true when the scramble can be followed + auto-started (3x3 full scramble)
+   * @param blind true when the solve type is a blindfolded one, which turns both automatic ends of
+   *     the solve off (see {@link #onTimerStarted()})
    */
-  public void setScramble(String[] scramble, boolean cubeDriven, boolean followable) {
+  public void setScramble(String[] scramble, boolean cubeDriven, boolean followable, boolean blind) {
     this.scramble = scramble;
     this.cubeDriven = cubeDriven;
     this.followable = followable;
+    if (blind != this.blind) {
+      this.blind = blind;
+      analyzers = new MethodAnalyzers(blind); // a different solve type is read by different detectors
+    }
     applyScramble();
   }
 
+  /**
+   * A blind solve is timed by the taps at both ends and by nothing else.
+   *
+   * <p><b>Not auto-started</b>, because the tap opens the memorisation and the first move is the
+   * end of it, not the beginning of the solve — starting there would swallow the memo whole.
+   *
+   * <p><b>Not auto-stopped</b>, because the solver cannot see that the cube came out solved. They
+   * may well turn on past it, thinking an orientation is still out; and the time that counts is the
+   * one they stop, after the blindfold is off. Stopping at the solved state would quietly record a
+   * time nobody achieved.
+   */
   public void onTimerStarted() {
+    timerStartMs = System.currentTimeMillis(); // the cube's stamps are fitted to this same clock
     if (cubeDriven && SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.RUNNING;
       sawUnsolved = false;
+      if (blind) {
+        beginAnalysis(timerStartMs); // the memo starts here, with the cube untouched
+      }
       notifyChanged(); // swap the scramble for the "solving" state
     } else {
       phase = Phase.INACTIVE;
@@ -241,7 +264,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       case RUNNING:
         if (!state.isSolved()) {
           sawUnsolved = true;
-        } else if (sawUnsolved) {
+        } else if (sawUnsolved && !blind) { // a blind solve is stopped by its solver, never by us
           phase = Phase.INACTIVE;
           listener.onCubeAutoStop();
         }
@@ -301,6 +324,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         }
         break;
       case ARMED:
+        if (blind) {
+          break; // only the tap starts a blind solve: a turn before it opens nothing
+        }
         // Stays ARMED if the timer refused to start, so later moves must not re-anchor the analyzer.
         trackOrientation(move);
         if (analyzing) {
@@ -314,9 +340,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         trackOrientation(move);
         if (analyzing) {
           analyzers.onMove(move);
-        } else {
+        } else if (!blind) {
           beginAnalysis(move); // tap-started solve: the first move opens the breakdown
         }
+        // A blind solve that could not anchor at the tap gets no breakdown rather than one anchored
+        // at the first move, which would report a memo of zero it never had.
         break;
       default:
         break;
@@ -330,14 +358,21 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     sliceSpins.onMove(move);
   }
 
-  private void beginAnalysis(CubeMove move) {
+  /** Anchor the breakdown on the state the cube is in now, dated at the given moment. */
+  private void beginAnalysis(long startTimestampMs) {
     CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
     if (state == null) {
       return;
     }
-    analyzers.start(state, move.getCubeTimestampMs());
+    analyzers.start(state, startTimestampMs);
     analyzing = true;
-    analyzers.onMove(move);
+  }
+
+  private void beginAnalysis(CubeMove move) {
+    beginAnalysis(move.getCubeTimestampMs());
+    if (analyzing) {
+      analyzers.onMove(move);
+    }
   }
 
 

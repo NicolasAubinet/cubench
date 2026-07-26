@@ -132,9 +132,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     if (!buildManualSteps(v, solveTime, durationMs)) {
       // The tail is derived rather than stored, so it is added back here, before anything reads the
       // breakdown: the solution splits its moves by the same step windows the bar draws.
-      List<SolveStep> steps = SolveBreakdown.withUnfinishedTail(solveTime.getSmartcubeSteps(),
-          solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves());
-      buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps, durationMs),
+      List<SolveStep> steps = SolveBreakdown.withTail(solveTime.getSmartcubeSteps(),
+          solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves(),
+          solveTime.getSmartcubeMethod());
+      buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
           getString(R.string.breakdown), null);
     }
 
@@ -307,7 +308,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       return false;
     }
     List<SolveStep> steps = SolveBreakdown.fromStepTimes(solveTime.getStepsTimes());
-    SolveSolution solution = SolveSolution.from(moves, steps, durationMs);
+    SolveSolution solution = SolveSolution.from(moves, steps);
     if (solution.isEmpty()) {
       return false;
     }
@@ -340,7 +341,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       TextView name = cell(R.style.BreakdownStepName, stepName(step, i, userSteps));
-      name.setTextColor(Utils.isUnfinishedTail(step.getName())
+      name.setTextColor(Utils.isTailSegment(step.getName())
           ? ContextCompat.getColor(getActivity(), R.color.gray600)
           : colors[i % colors.length]);
       TableRow row = stepRow(step, name, moveCountOf(solution, i), split);

@@ -33,7 +33,7 @@ public class SolveSolutionTest {
   @Test
   public void faceLettersAreRewrittenIntoTheSolversFrame() {
     SolveSolution solution =
-        SolveSolution.from(moves("y@0", "B@10"), Arrays.asList(step("cross", 0, 100)), 100);
+        SolveSolution.from(moves("y@0", "B@10"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("y R", solution.getSteps().get(0).getMoves());
   }
@@ -45,7 +45,7 @@ public class SolveSolutionTest {
   @Test
   public void rotationsAreRewrittenIntoTheSolversFrame() {
     SolveSolution solution =
-        SolveSolution.from(moves("y@0", "z2@10"), Arrays.asList(step("cross", 0, 100)), 100);
+        SolveSolution.from(moves("y@0", "z2@10"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("y x2", solution.getSteps().get(0).getMoves());
   }
@@ -59,7 +59,7 @@ public class SolveSolutionTest {
   public void aStoredReorientationsTokensAreReadBackAsOneRotation() {
     // The 28.24 solve's opening: y' x2, minted by the tracker under its minimal spelling y z2.
     SolveSolution solution = SolveSolution.from(moves("y@0", "z2@0", "U@10", "F@20"),
-        Arrays.asList(step("cross", 0, 100)), 100);
+        Arrays.asList(step("cross", 0, 100)));
 
     // It flips the cube over, so the cube's U is at the solver's D and its F at their R.
     assertEquals("y z2 D R", solution.getSteps().get(0).getMoves());
@@ -71,7 +71,7 @@ public class SolveSolutionTest {
     // pair plus that spin is one M; the spin is not shown but still turns the frame, so the U the
     // cube reports next — measured from the rocked core — reads as an F.
     SolveSolution solution = SolveSolution.from(
-        moves("R@0", "L'@10", "x'@20", "U@30"), Arrays.asList(step("cross", 0, 100)), 100);
+        moves("R@0", "L'@10", "x'@20", "U@30"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("M F", solution.getSteps().get(0).getMoves());
     assertEquals(2, solution.getMoveCount()); // the slice and the U, not the hidden spin
@@ -82,7 +82,7 @@ public class SolveSolutionTest {
     // No spin means no slice: either a cube with no gyro, or a genuine two-handed R then L'. Either
     // way the raw faces stand and still replay to a solved cube — the whole point for gyroless cubes.
     SolveSolution solution = SolveSolution.from(
-        moves("R@0", "L'@10", "U@20"), Arrays.asList(step("cross", 0, 100)), 100);
+        moves("R@0", "L'@10", "U@20"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("R L' U", solution.getSteps().get(0).getMoves());
     assertEquals(3, solution.getMoveCount());
@@ -92,7 +92,7 @@ public class SolveSolutionTest {
   public void leavesAGenuineTwoHandedFaceMoveLiteral() {
     // The bug that started this: F then B' with no core-spin is two honest face turns, not an S'.
     SolveSolution solution = SolveSolution.from(
-        moves("F@0", "B'@10", "R@20", "D@30"), Arrays.asList(step("cross", 0, 100)), 100);
+        moves("F@0", "B'@10", "R@20", "D@30"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("F B' R D", solution.getSteps().get(0).getMoves());
     assertEquals(4, solution.getMoveCount());
@@ -102,7 +102,7 @@ public class SolveSolutionTest {
   public void keepsANonSlicePairLiteral() {
     // R and L turn opposite ways in space: never a slice, so it never folds even with a core spin.
     SolveSolution solution =
-        SolveSolution.from(moves("R@0", "L@10"), Arrays.asList(step("cross", 0, 100)), 100);
+        SolveSolution.from(moves("R@0", "L@10"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("R L", solution.getSteps().get(0).getMoves());
     assertEquals(2, solution.getMoveCount());
@@ -113,7 +113,7 @@ public class SolveSolutionTest {
     // The pair is followed by a y, not the x' a real slice spins, so it does not fold: the faces
     // stay literal and the y is a real reorientation that relabels what comes after.
     SolveSolution solution = SolveSolution.from(
-        moves("R@0", "L'@10", "y@20", "F@30"), Arrays.asList(step("cross", 0, 100)), 100);
+        moves("R@0", "L'@10", "y@20", "F@30"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("R L' y L", solution.getSteps().get(0).getMoves());
     assertEquals(3, solution.getMoveCount()); // R, L', F; the y is not counted
@@ -125,7 +125,7 @@ public class SolveSolutionTest {
     // double-turn fold already handles faces.
     String stored = moves("R@0", "L'@10", "x'@20", "R@30", "L'@40", "x'@50");
     SolveSolution solution =
-        SolveSolution.from(stored, Arrays.asList(step("cross", 0, 100)), 100);
+        SolveSolution.from(stored, Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("M2", solution.getSteps().get(0).getMoves());
     assertEquals(1, solution.getMoveCount());
@@ -136,7 +136,7 @@ public class SolveSolutionTest {
     // After a y the cube's R/L axis has swung to front/back; an M turns like L, and L has gone to
     // B, so the solver would write the same slice as S'.
     SolveSolution solution = SolveSolution.from(
-        moves("y@0", "R@10", "L'@20", "x'@30"), Arrays.asList(step("cross", 0, 100)), 100);
+        moves("y@0", "R@10", "L'@20", "x'@30"), Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("y S'", solution.getSteps().get(0).getMoves());
     assertEquals(1, solution.getSteps().get(0).getMoveCount());
@@ -145,7 +145,7 @@ public class SolveSolutionTest {
   @Test
   public void withoutRotationsTheLettersAreLeftAlone() {
     SolveSolution solution = SolveSolution.from(moves("R@0", "U'@10", "B@20"),
-        Arrays.asList(step("cross", 0, 100)), 100);
+        Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("R U' B", solution.getSteps().get(0).getMoves());
   }
@@ -154,9 +154,9 @@ public class SolveSolutionTest {
   public void rotationsAreShownButNotCounted() {
     // Turning the whole cube solves nothing, so it must not inflate the count or deflate the TPS.
     String stored = moves("y@0", "R@10", "U@20", "x@30", "F@40");
-    List<SolveStep> steps = Arrays.asList(step("cross", 0, 100));
+    List<SolveStep> steps = Arrays.asList(step("cross", 0, 1000));
 
-    SolveSolution solution = SolveSolution.from(stored, steps, 1000);
+    SolveSolution solution = SolveSolution.from(stored, steps);
 
     // Stored cube-frame "y R U x F" reads as "y F U z U" where the solver stands: the body-frame
     // x is their z, and after it the cube's F faces up.
@@ -171,7 +171,7 @@ public class SolveSolutionTest {
     String stored = moves("y@0", "x@10");
     List<SolveStep> steps = Arrays.asList(step("cross", 0, 100));
 
-    SolveSolution solution = SolveSolution.from(stored, steps, 100);
+    SolveSolution solution = SolveSolution.from(stored, steps);
 
     // A turn about the cube's R axis, after a y has swung it to the front, is the solver's z.
     assertEquals("y z", solution.getSteps().get(0).getMoves());
@@ -184,7 +184,7 @@ public class SolveSolutionTest {
     List<SolveStep> steps = Arrays.asList(step("cross", 0, 200), step("f2l", 0, 200),
         step("oll", 0, 0), step("pll", 0, 0));
 
-    SolveSolution solution = SolveSolution.from(stored, steps, 400);
+    SolveSolution solution = SolveSolution.from(stored, steps);
 
     assertEquals("R U F", solution.getSteps().get(0).getMoves()); // through offset 200
     assertEquals("L D", solution.getSteps().get(1).getMoves()); // through offset 400
@@ -198,7 +198,7 @@ public class SolveSolutionTest {
     String stored = moves("R@0", "R@50", "U'@100", "U'@150", "F@200");
     List<SolveStep> steps = Arrays.asList(step("cross", 0, 200));
 
-    SolveSolution solution = SolveSolution.from(stored, steps, 200);
+    SolveSolution solution = SolveSolution.from(stored, steps);
 
     assertEquals("R2 U2 F", solution.getSteps().get(0).getMoves()); // two U' turns are U2, not U'2
     assertEquals(3, solution.getMoveCount());
@@ -208,7 +208,7 @@ public class SolveSolutionTest {
   public void keepsOppositeTurnsOfTheSameFaceApart() {
     // R then R' is a turn and a turn back, not a half turn: two moves, honestly shown.
     SolveSolution solution =
-        SolveSolution.from(moves("R@0", "R'@50"), Arrays.asList(step("cross", 0, 50)), 50);
+        SolveSolution.from(moves("R@0", "R'@50"), Arrays.asList(step("cross", 0, 50)));
 
     assertEquals("R R'", solution.getSteps().get(0).getMoves());
     assertEquals(2, solution.getMoveCount());
@@ -220,7 +220,7 @@ public class SolveSolutionTest {
     List<SolveStep> steps = Arrays.asList(
         step("f2l", 0, 300, step("pair", 0, 100), step("pair", 0, 200)));
 
-    SolveSolution solution = SolveSolution.from(stored, steps, 300);
+    SolveSolution solution = SolveSolution.from(stored, steps);
 
     assertEquals("R U · L D", solution.getSteps().get(0).getMoves());
   }
@@ -232,7 +232,7 @@ public class SolveSolutionTest {
     List<SolveStep> steps = Arrays.asList(step("f2l", 0, 200,
         step("pair_rf", 0, 100), step("pair_fl", 0, 0), step("pair_lb", 0, 100)));
 
-    SolveSolution.Step f2l = SolveSolution.from(stored, steps, 200).getSteps().get(0);
+    SolveSolution.Step f2l = SolveSolution.from(stored, steps).getSteps().get(0);
 
     assertEquals(2, f2l.getPartMoveCount(0));
     assertEquals(0, f2l.getPartMoveCount(1));
@@ -256,7 +256,7 @@ public class SolveSolutionTest {
       tokens.add(faces[i % faces.length] + "@" + offsets[i]);
     }
 
-    SolveSolution solution = SolveSolution.from(moves(tokens.toArray(new String[0])), steps, 25424);
+    SolveSolution solution = SolveSolution.from(moves(tokens.toArray(new String[0])), steps);
 
     assertEquals(4, solution.getSteps().size());
     assertEquals("cross", solution.getSteps().get(0).getName());
@@ -271,17 +271,34 @@ public class SolveSolutionTest {
 
   @Test
   public void hasNothingToShowWithoutMoves() {
-    assertTrue(SolveSolution.from(null, Arrays.asList(step("cross", 0, 10)), 10).isEmpty());
-    assertTrue(SolveSolution.from("", Arrays.asList(step("cross", 0, 10)), 10).isEmpty());
-    assertTrue(SolveSolution.from("R@0", null, 10).isEmpty());
+    assertTrue(SolveSolution.from(null, Arrays.asList(step("cross", 0, 10))).isEmpty());
+    assertTrue(SolveSolution.from("", Arrays.asList(step("cross", 0, 10))).isEmpty());
+    assertTrue(SolveSolution.from("R@0", null).isEmpty());
   }
 
   @Test
   public void survivesACorruptedMove() {
     SolveSolution solution =
-        SolveSolution.from("R@0 U@bad F@100", Arrays.asList(step("cross", 0, 100)), 100);
+        SolveSolution.from("R@0 U@bad F@100", Arrays.asList(step("cross", 0, 100)));
 
     assertEquals("R F", solution.getSteps().get(0).getMoves());
+  }
+
+  /**
+   * A blind solve is mostly a step that moves nothing: 10s of memorising, 5s of turning, then 2s
+   * before the timer was stopped. The rate the hands went at is the middle one — over the whole 17s
+   * it would read as a third of what it was.
+   */
+  @Test
+  public void measuresTheRateOverTheStepsThatTurnedSomething() {
+    List<SolveStep> steps = Arrays.asList(step("memo", 10000, 0),
+        step("execution", 0, 5000), step("gap", 2000, 0));
+
+    SolveSolution solution =
+        SolveSolution.from(moves("R@10000", "U@11000", "F@12000", "L@13000", "B@14000"), steps);
+
+    assertEquals(5, solution.getMoveCount());
+    assertEquals(1.0, solution.getTps(), 1e-9);
   }
 
 }

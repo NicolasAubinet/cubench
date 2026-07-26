@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
+import com.cube.nanotimer.smartcube.step.BlindStepDetector;
 import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
 import com.cube.nanotimer.smartcube.step.RouxStepDetector;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
@@ -32,7 +33,17 @@ public final class MethodAnalyzers {
   private final Map<CubeMethod, SolveAnalyzer> analyzers =
       new LinkedHashMap<CubeMethod, SolveAnalyzer>();
 
-  public MethodAnalyzers() {
+  /**
+   * @param blind whether the solve type is a blindfolded one. A blind solve is not a sighted method
+   *     read through a blindfold: it is memorised first and its steps are the piece types, so the
+   *     sighted detectors have nothing to say about it and are not run at all. There is nothing to
+   *     resolve between either — the solve type declares this, it is not being guessed at.
+   */
+  public MethodAnalyzers(boolean blind) {
+    if (blind) {
+      analyzers.put(CubeMethod.BLIND, new SolveAnalyzer(new BlindStepDetector()));
+      return;
+    }
     analyzers.put(CubeMethod.ROUX, new SolveAnalyzer(new RouxStepDetector()));
     analyzers.put(CubeMethod.CFOP, new SolveAnalyzer(new CFOPStepDetector()));
   }
