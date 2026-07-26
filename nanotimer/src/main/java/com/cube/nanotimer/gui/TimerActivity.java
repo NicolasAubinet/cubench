@@ -567,9 +567,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   private boolean isCrossSolverAvailable() {
+    return cubeType == CubeType.THREE_BY_THREE && scramblesTheWholeCube();
+  }
+
+  /** Whether the solve type scrambles the whole cube, rather than a last layer or an F2L case.
+   * A null scramble type is the ordinary one, and by far the commonest: it means the full scramble. */
+  private boolean scramblesTheWholeCube() {
     ScrambleType scrambleType = solveType.getScrambleType();
-    return cubeType == CubeType.THREE_BY_THREE
-        && (scrambleType == null || scrambleType.isDefault()); // null scramble type means the default full scramble
+    return scrambleType == null || scrambleType.isDefault();
   }
 
   @Override
@@ -1403,7 +1408,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastSolveMethod = solveController.getMethod();
     lastSolveStoppedStep = solveController.getStoppedStep();
     lastSolveMoves = solveController.getSolveMoves(); // captured before the early return: a solve with no breakdown still has moves
-    if (!solveType.getScrambleType().isDefault()) {
+    if (!scramblesTheWholeCube()) {
       // A partial scramble leaves most milestones already reached, so every method fits it and none
       // is told apart. The moves are still worth keeping; the breakdown would be invented.
       lastSolveSteps = Collections.emptyList();
