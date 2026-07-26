@@ -6,9 +6,9 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
-import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.smartcube.step.StepTime;
+import com.cube.nanotimer.vo.CubeMethod;
 import java.util.Collections;
 import java.util.List;
 
@@ -43,14 +43,18 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   /** A follow pause longer than this means the cube was set down, not a slow scramble. */
   private static final long FOLLOW_RESUME_GAP_MS = 60_000;
 
+  /** What the solve was expected to be: nothing, until solve types carry a method of their own. */
+  private static final CubeMethod EXPECTED_METHOD = null;
+
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
-  private final SolveAnalyzer analyzer = new SolveAnalyzer(new CFOPStepDetector());
+  private final MethodAnalyzers analyzers = new MethodAnalyzers();
   private final RotationTracker rotationTracker = new RotationTracker();
   private final SliceSpinDetector sliceSpins = new SliceSpinDetector();
 
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
+  private CubeMethod method; // which one the solve just finished fitted, null for none
   private Integer stoppedStep;
   private String solveMoves = "";
   private String[] scramble;
@@ -104,22 +108,28 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     // A solve the cube drove has a breakdown as far as its milestones went, whether or not it
     // reached solved — a botched PLL is exactly the solve worth looking at. What still earns none is
     // a method the milestones never fitted, or a prefix too short to tell the methods apart.
-    boolean matched = analyzing && analyzer.matchesMethod();
-    stepTimes = matched ? analyzer.getStepTimes() : Collections.<StepTime>emptyList();
-    stoppedStep = matched ? analyzer.getStoppedStep() : null;
+    method = analyzing ? analyzers.resolve(EXPECTED_METHOD) : null;
+    SolveAnalyzer analyzer = method == null ? null : analyzers.get(method);
+    stepTimes = analyzer == null ? Collections.<StepTime>emptyList() : analyzer.getStepTimes();
+    stoppedStep = analyzer == null ? null : analyzer.getStoppedStep();
     // The moves need no method: an unrecognised solve still has a solution worth keeping.
     solveMoves = analyzing
-        ? SolveMovesFormat.format(analyzer.getMoves(),
+        ? SolveMovesFormat.format(analyzers.moves().getMoves(),
             sliceSpins.merge(rotationTracker.getRotations(),
                 SmartCubeManager.INSTANCE::getOrientationAt),
-            analyzer.getSolveStartMs())
+            analyzers.moves().getSolveStartMs())
         : "";
     analyzing = false;
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
   }
 
-  /** The CFOP breakdown of the solve just finished, as far as it got. Empty unless the cube drove
-   * it and its milestones matched the method. */
+  /** The method the solve just finished was solved with, null when its milestones fitted none. */
+  public CubeMethod getMethod() {
+    return method;
+  }
+
+  /** The breakdown of the solve just finished, as far as it got. Empty unless the cube drove it and
+   * its milestones fitted a method. */
   public List<StepTime> getStepTimes() {
     return stepTimes;
   }
@@ -225,7 +235,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   @Override
   public void onState(CubeState state) {
     if (analyzing) {
-      analyzer.onState(state);
+      analyzers.onState(state);
     }
     switch (phase) {
       case RUNNING:
@@ -294,7 +304,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         // Stays ARMED if the timer refused to start, so later moves must not re-anchor the analyzer.
         trackOrientation(move);
         if (analyzing) {
-          analyzer.onMove(move);
+          analyzers.onMove(move);
         } else {
           beginAnalysis(move); // the cube is still scrambled here: the move has not been applied yet
         }
@@ -303,7 +313,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       case RUNNING:
         trackOrientation(move);
         if (analyzing) {
-          analyzer.onMove(move);
+          analyzers.onMove(move);
         } else {
           beginAnalysis(move); // tap-started solve: the first move opens the breakdown
         }
@@ -325,9 +335,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     if (state == null) {
       return;
     }
-    analyzer.start(state, move.getCubeTimestampMs());
+    analyzers.start(state, move.getCubeTimestampMs());
     analyzing = true;
-    analyzer.onMove(move);
+    analyzers.onMove(move);
   }
 
 

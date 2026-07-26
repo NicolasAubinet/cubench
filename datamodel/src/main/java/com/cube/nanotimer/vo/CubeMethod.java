@@ -2,7 +2,8 @@ package com.cube.nanotimer.vo;
 
 /** A solving method whose steps a smart cube can break a solve into. Stored as its code. */
 public enum CubeMethod {
-  CFOP("CFOP");
+  CFOP("CFOP"),
+  ROUX("Roux");
 
   private final String code;
 

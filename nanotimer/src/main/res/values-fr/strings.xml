@@ -326,6 +326,15 @@
   <string name="smartcube_step_pair">Paire %d</string>
   <string name="smartcube_step_unfinished">Inachevé</string>
   <string name="smartcube_step_partial">%s (partiel)</string>
+  <string name="smartcube_step_fb">FB</string>
+  <string name="smartcube_step_sb">SB</string>
+  <string name="smartcube_step_cmll">CMLL</string>
+  <string name="smartcube_step_lse">LSE</string>
+  <string name="smartcube_step_cmll_orient">Orientation</string>
+  <string name="smartcube_step_cmll_permute">Permutation</string>
+  <string name="smartcube_step_lse_eo">EO</string>
+  <string name="smartcube_step_lse_ulur">UL/UR</string>
+  <string name="smartcube_step_lse_l4e">L4E</string>
   <string name="scramble_view_clock_notation_hint">Le diagramme n\'est pas disponible pour cette notation Clock. Passez à la notation UR/DR/DL dans les options pour le voir.</string>
   <string name="cross_section_title">Croix %1$s · %2$d mouvements</string>
   <string name="cross_solutions_count">%1$d solutions optimales</string>
