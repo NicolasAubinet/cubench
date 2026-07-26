@@ -317,6 +317,7 @@
   <string name="breakdown_moves">Mvts</string>
   <string name="breakdown_moves_count">%d mouvements</string>
   <string name="breakdown_tps">%s TPS</string>
+  <string name="breakdown_algs">%d algos</string>
   <string name="smartcube_step_cross">Croix</string>
   <string name="smartcube_step_f2l">F2L</string>
   <string name="smartcube_step_oll">OLL</string>
@@ -338,6 +339,7 @@
   <string name="smartcube_step_memo">Mémo</string>
   <string name="smartcube_step_execution">Exécution</string>
   <string name="smartcube_step_parity">Parité</string>
+  <string name="smartcube_step_undo">Annulé</string>
   <string name="smartcube_step_gap">Arrêt</string>
   <string name="scramble_view_clock_notation_hint">Le diagramme n\'est pas disponible pour cette notation Clock. Passez à la notation UR/DR/DL dans les options pour le voir.</string>
   <string name="cross_section_title">Croix %1$s · %2$d mouvements</string>

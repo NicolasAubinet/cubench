@@ -111,6 +111,15 @@ final class Cubies {
     return new String(colours);
   }
 
+  /** The piece named by the faces it belongs on — "UF", "DLF" — which is what a solver calls it. */
+  static String nameOf(int[] piece) {
+    StringBuilder name = new StringBuilder(piece.length);
+    for (int facelet : piece) {
+      name.append(SOLVED.charAt(facelet));
+    }
+    return name.toString();
+  }
+
   static Face faceAt(int face) {
     return Face.valueOf(String.valueOf(FACES.charAt(face)));
   }

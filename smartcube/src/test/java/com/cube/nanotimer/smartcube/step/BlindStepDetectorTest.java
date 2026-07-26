@@ -178,10 +178,14 @@ public class BlindStepDetectorTest {
   public void aSolveStoppedInsideItsFirstPieceTypeContradictsNothing() {
     String[] solve = {EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B};
     startFrom(solve);
-    play(EDGE_CYCLE_A); // the first block of cycles only: nothing has been finished
+    play(EDGE_CYCLE_A); // one algorithm of the edges, and then it stopped
 
-    assertEquals(2, detector.stepCount());
-    assertNull(detector.getStepTimestampMs(1));
+    // Memorisation, the edges as far as they got, and the turning that reached no further.
+    assertEquals(3, detector.stepCount());
+    assertEquals("edges", detector.stepName(1));
+    assertEquals(1, detector.subStepCount(1));
+    assertNull(detector.getStepTimestampMs(2));
+    assertFalse(detector.isComplete());
     assertTrue(detector.matchesMethod()); // a prefix in order is still a prefix in order
   }
 

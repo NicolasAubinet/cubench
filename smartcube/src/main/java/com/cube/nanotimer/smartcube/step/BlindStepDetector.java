@@ -3,76 +3,110 @@ package com.cube.nanotimer.smartcube.step;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
- * Splits a blindfolded solve into memorisation, the two piece types in whichever order they were
- * solved, and the parity that fixes what an odd permutation leaves over. The solver taps to start,
- * memorises without touching the cube, and the first turn is the moment the two meet — so memo is
- * the one step read off a move rather than off the state.
+ * Reads a blindfolded solve as memorisation and then the algorithms it was executed in: which
+ * pieces each one put home, grouped into the piece types they belong to.
  *
- * <p>Everything after it is read off <b>counts</b>: how many corners and how many edges are solved.
- * That is what makes one detector enough for every blind method — 3-style, M2 and Old Pochmann
- * differ in how a piece gets solved, not in when the count falls — and it needs no buffer, no letter
- * scheme and no memo to compare against.
+ * <p><b>Memorisation</b> is the one step read off a move rather than off the state — the solver taps
+ * to start, memorises without touching the cube, and the first turn is the moment the two meet. The
+ * solve is therefore anchored at the tap; anchored at the first move, as every other detector is, the
+ * memo would be zero by construction.
  *
- * <p>Three things separate this from the sighted detectors.
+ * <p><b>Everything after it is read off where the algorithms land.</b> An algorithm takes half the
+ * cube apart and puts it back, so mid-way through one the state means nothing — the counts swing on
+ * nearly every move. What is unmistakable is the landing: the cube arrives at almost exactly the
+ * state it was at the last landing, differing only in the small cycle the algorithm targeted. A
+ * commutator is a three-cycle; a flip or a twist moves two pieces; a parity swaps two of each. So a
+ * landing is a state {@value #CYCLE} or {@value #FLIP} pieces from the last one — nothing a blind
+ * solver runs touches more, and a state that reads more than that is not a landing but the middle
+ * of something.
  *
- * <p><b>The solve is anchored at the tap, not at the first move.</b> Everywhere else the first move
- * both starts the clock and opens the breakdown, which would make memo zero by construction.
+ * <p>Two details earn their place, both because a real solve showed what happens without them.
  *
- * <p><b>Where a phase ends is decided by the scramble, not watched for.</b> An odd permutation
- * cannot be cycled away, so it leaves a pair of each type swapped for one last algorithm; an even
- * one leaves nothing. Read off the start state, that says outright whether a phase ends on two
- * pieces or on none — where waiting to see a pair standing would mean reading the counts through
- * the very algorithm that swaps it back, and inventing a parity out of any moment an algorithm
- * happened to pass through on its way.
+ * <p><b>"Almost" is measured against every way the cube can sit.</b> Blind is full of slices, and a
+ * slice turns the core: relative to the centres the state is written against, it is everything else
+ * that moved. The closest of the 24 rotations is taken, and the landing is carried forward with that
+ * drift taken out — otherwise the next algorithm is compared against a frame the solve has left.
  *
- * <p><b>Progress is the best the solve has reached, not the count of the moment.</b> An algorithm
- * disturbs half the cube while it runs and the state arrives after every quarter turn, so the
- * instantaneous counts swing wildly inside one. Between algorithms progress really is monotone —
- * nothing already solved gets disturbed, net — so the running minimum is both the honest reading and
- * a monotone one, which leaves a milestone with no way to be dated twice.
+ * <p><b>A landing need not have gained anything.</b> A solver who spots a mistake undoes the
+ * algorithm and does another, and the undo is every bit as much a three-cycle. Demanding progress
+ * makes it invisible, and then the state it is compared against is one the solve has abandoned — on
+ * the recorded solve that left the whole rest of it unread. What the algorithm was worth is a
+ * question for its net effect afterwards, not for whether it happened.
  */
 public final class BlindStepDetector implements StepDetector {
 
-  private static final int EDGES = 0, CORNERS = 1, TYPES = 2;
+  private static final int EDGES = 0, CORNERS = 1;
+  /** A landing that gained pieces of both types: only a parity does that. */
+  private static final int PARITY_TYPE = 2;
+  /** A landing that gained nothing — an algorithm undone, or one that only moved the buffer on. */
+  private static final int NO_GAIN = -1;
 
-  /** Names in step order: memorisation, then whichever piece types and parity the solve had. */
   private static final String MEMO = "memo";
   private static final String PARITY = "parity";
+  private static final String UNDO = "undo";
   private static final String[] TYPE_NAMES = {"edges", "corners"};
 
-  /** What a solve that never told the piece types apart is left calling its one turning step. */
+  /** What a solve whose algorithms never read as any piece type's is left calling its turning. */
   private static final String EXECUTION = "execution";
 
-  /** The pair an odd permutation leaves over, which the parity algorithm swaps back. */
-  private static final int PARITY_REMAINDER = 2;
+  /** Pieces an algorithm moves: a three-cycle, a pair flipped or twisted, a parity's two of each. */
+  private static final int CYCLE = 3, FLIP = 2, PARITY_CYCLE = 4;
 
-  private final int[] best = new int[TYPES];
-  private final int[] unsolved = new int[TYPES];
-  private final Long[] cyclesMs = new Long[TYPES]; // the count first fell to the parity remainder
-  private final Long[] fullyMs = new Long[TYPES]; // ...and to none left at all
-  private final int[] othersLeftAtCycles = new int[TYPES];
+  private static final int[][] PIECES = new int[Cubies.EDGES.length + Cubies.CORNERS.length][];
 
+  static {
+    System.arraycopy(Cubies.EDGES, 0, PIECES, 0, Cubies.EDGES.length);
+    System.arraycopy(Cubies.CORNERS, 0, PIECES, Cubies.EDGES.length, Cubies.CORNERS.length);
+  }
+
+  /** One algorithm, dated where it landed and named for what it put home. */
+  private static final class Landing {
+    final long timestampMs;
+    final int type;
+    final String name;
+
+    Landing(long timestampMs, int type, String name) {
+      this.timestampMs = timestampMs;
+      this.type = type;
+      this.name = name;
+    }
+  }
+
+  /** Consecutive algorithms that worked on the same piece type: one step of the solve. */
+  private static final class Run {
+    final String name;
+    final List<Landing> landings = new ArrayList<>();
+
+    Run(String name) {
+      this.name = name;
+    }
+
+    long completedMs() {
+      return landings.get(landings.size() - 1).timestampMs;
+    }
+  }
+
+  private final List<Landing> landings = new ArrayList<>();
+
+  private String landed; // the state at the last landing, with the drift taken out
   private Long memoMs;
   private Long solvedMs;
   private long lastTimestampMs;
-  private boolean parity; // the scramble was an odd permutation, so a pair of each is left over
+  private boolean parity; // the scramble was an odd permutation, so one algorithm swaps two of each
+  private boolean parityFound;
 
   @Override
   public void reset(CubeState startState, long startTimestampMs) {
-    Arrays.fill(cyclesMs, null);
-    Arrays.fill(fullyMs, null);
-    Arrays.fill(othersLeftAtCycles, 0);
-    best[EDGES] = Cubies.EDGES.length;
-    best[CORNERS] = Cubies.CORNERS.length;
+    landings.clear();
     memoMs = null;
     solvedMs = null;
+    parityFound = false;
     lastTimestampMs = startTimestampMs;
-    parity = Cubies.isOddPermutation(startState.getFacelets());
-    evaluate(startState.getFacelets(), startTimestampMs);
+    landed = startState.getFacelets();
+    parity = Cubies.isOddPermutation(landed);
   }
 
   @Override
@@ -85,129 +119,152 @@ public final class BlindStepDetector implements StepDetector {
     }
     // Past the solved state nothing is read. A blind solver cannot see they are done and may turn on
     // thinking an orientation is still out; those turns are not the solve, and must not unfinish it.
-    if (solvedMs == null) {
-      evaluate(state.getFacelets(), lastTimestampMs);
+    if (memoMs != null && solvedMs == null) {
+      readLanding(state.getFacelets(), lastTimestampMs);
+      // Read whether or not the state was a landing: a solve can come out on turning that reads as
+      // no algorithm at all, and it has still come out.
+      if (isSolved(state.getFacelets())) {
+        solvedMs = lastTimestampMs;
+      }
     }
     return boundaries();
   }
 
-  private void evaluate(String facelets, long timestampMs) {
-    int rotation = frameOf(facelets);
-    unsolved[EDGES] = unsolvedIn(facelets, rotation, Cubies.EDGES);
-    unsolved[CORNERS] = unsolvedIn(facelets, rotation, Cubies.CORNERS);
-    for (int type = 0; type < TYPES; type++) {
-      best[type] = Math.min(best[type], unsolved[type]);
+  private void readLanding(String facelets, long timestampMs) {
+    int frame = closestFrame(facelets);
+    int touched = touched(facelets, frame);
+    List<String>[] gained = gained(facelets, frame);
+    boolean parityLanding = parity && !parityFound && touched == PARITY_CYCLE
+        && !gained[EDGES].isEmpty() && !gained[CORNERS].isEmpty();
+    if (touched != CYCLE && touched != FLIP && !parityLanding) {
+      return;
     }
-    for (int type = 0; type < TYPES; type++) {
-      if (best[type] <= remainder() && cyclesMs[type] == null) {
-        cyclesMs[type] = timestampMs;
-        othersLeftAtCycles[type] = best[1 - type];
-      }
-      if (best[type] == 0 && fullyMs[type] == null) {
-        fullyMs[type] = timestampMs;
-      }
-    }
-    // Solved is the one thing read off the state of the moment rather than the best reached. The
-    // bests are attained at their own times, and one type being home now next to another that was
-    // home ten seconds ago is not a solved cube — it is two algorithms that happened to pass
-    // through. A cube solved before a single turn is one waiting to be scrambled, not a solve over.
-    if (memoMs != null && unsolved[EDGES] == 0 && unsolved[CORNERS] == 0) {
-      solvedMs = timestampMs;
-    }
+    parityFound |= parityLanding;
+    landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), nameOf(gained)));
+    landed = withoutDrift(facelets, frame);
   }
 
-  /** What a phase of cycles leaves behind: nothing, or the pair only a parity algorithm can swap. */
-  private int remainder() {
-    return parity ? PARITY_REMAINDER : 0;
+  private static int typeOf(List<String>[] gained, boolean parityLanding) {
+    if (parityLanding) {
+      return PARITY_TYPE;
+    }
+    if (!gained[EDGES].isEmpty()) {
+      return EDGES;
+    }
+    return gained[CORNERS].isEmpty() ? NO_GAIN : CORNERS;
   }
 
-  /**
-   * The rotation the solve is being turned in. A slice is reported as its two face turns — the core
-   * moved, so relative to the centres the state is written against it is everything else that
-   * turned — and blind spends whole phases in slices. The frame is read back as the rotation that
-   * accounts for the most solved pieces, which needs no tracking of the drift itself: the pieces the
-   * solver has finished are the evidence of where their frame is.
-   */
-  private static int frameOf(String facelets) {
-    int frame = FaceletRotations.IDENTITY;
-    int mostSolved = -1;
+  /** The pieces put home, by the faces they belong on, so the display can colour them. */
+  private static String nameOf(List<String>[] gained) {
+    List<String> all = new ArrayList<>(gained[EDGES]);
+    all.addAll(gained[CORNERS]);
+    return all.isEmpty() ? UNDO : String.join("+", all);
+  }
+
+  /** The rotation under which the state differs from the last landing in the fewest pieces. */
+  private int closestFrame(String facelets) {
+    int closest = FaceletRotations.IDENTITY;
+    int fewest = Integer.MAX_VALUE;
     for (int rotation = 0; rotation < FaceletRotations.COUNT; rotation++) {
-      int solved = Cubies.EDGES.length - unsolvedIn(facelets, rotation, Cubies.EDGES)
-          + Cubies.CORNERS.length - unsolvedIn(facelets, rotation, Cubies.CORNERS);
-      if (solved > mostSolved) {
-        mostSolved = solved;
-        frame = rotation;
+      int differing = touched(facelets, rotation);
+      if (differing < fewest) {
+        fewest = differing;
+        closest = rotation;
       }
     }
-    return frame;
+    return closest;
   }
 
-  private static int unsolvedIn(String facelets, int rotation, int[][] pieces) {
-    int count = 0;
-    for (int[] piece : pieces) {
-      if (!Cubies.inPlace(facelets, piece, rotation)) {
-        count++;
+  private int touched(String facelets, int frame) {
+    int differing = 0;
+    for (int[] piece : PIECES) {
+      for (int facelet : piece) {
+        if (landed.charAt(facelet) != facelets.charAt(FaceletRotations.apply(frame, facelet))) {
+          differing++;
+          break;
+        }
       }
     }
-    return count;
+    return differing;
+  }
+
+  /** The pieces home now that were not at the last landing, split by type. */
+  @SuppressWarnings("unchecked")
+  private List<String>[] gained(String facelets, int frame) {
+    List<String>[] gained = new List[] {new ArrayList<String>(), new ArrayList<String>()};
+    for (int i = 0; i < PIECES.length; i++) {
+      if (Cubies.inPlace(facelets, PIECES[i], frame) && !Cubies.inPlace(landed, PIECES[i])) {
+        gained[i < Cubies.EDGES.length ? EDGES : CORNERS].add(Cubies.nameOf(PIECES[i]));
+      }
+    }
+    return gained;
+  }
+
+  /** Every piece home in some one way of holding the cube, which is what solved means. */
+  private static boolean isSolved(String facelets) {
+    for (int rotation = 0; rotation < FaceletRotations.COUNT; rotation++) {
+      boolean home = true;
+      for (int[] piece : PIECES) {
+        if (!Cubies.inPlace(facelets, piece, rotation)) {
+          home = false;
+          break;
+        }
+      }
+      if (home) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** The state as it would read with the drift taken out, so the next landing compares like for like. */
+  private static String withoutDrift(String facelets, int frame) {
+    char[] steady = new char[facelets.length()];
+    for (int facelet = 0; facelet < steady.length; facelet++) {
+      steady[facelet] = facelets.charAt(FaceletRotations.apply(frame, facelet));
+    }
+    return new String(steady);
   }
 
   /**
-   * The solve as steps, in the order they happened: memorisation, the piece type that was finished
-   * first, the other one, and the parity wherever it was done.
+   * The solve as steps: memorisation, then a step per stretch of algorithms that worked on the same
+   * piece type, with the parity — when there was one — standing apart wherever it was done.
    *
-   * <p>Parity is the stretch in which a type's leftover pair goes back where it belongs, and it can
-   * fall in two places. Done last — the common case — both types are sitting on their pair when the
-   * second one finishes, and one algorithm closes both, so it follows them. Done in between, the
-   * first type is whole before the second is started, and it sits between the two. It is emitted
-   * only when it happened: an even permutation has none, and inventing a step of no time would say
-   * the solve had one.
+   * <p>An algorithm that gained nothing belongs to the stretch it interrupted rather than to one of
+   * its own: undoing a mistake is part of solving that piece type, not a piece type of its own.
    */
+  private List<Run> runs() {
+    List<Run> runs = new ArrayList<>();
+    for (Landing landing : landings) {
+      String name = landing.type == PARITY_TYPE ? PARITY
+          : landing.type == NO_GAIN ? null : TYPE_NAMES[landing.type];
+      Run last = runs.isEmpty() ? null : runs.get(runs.size() - 1);
+      if (name == null && last != null) {
+        last.landings.add(landing); // an undo carries on with whatever was being solved
+        continue;
+      }
+      if (last == null || !last.name.equals(name)) {
+        last = new Run(name == null ? EXECUTION : name);
+        runs.add(last);
+      }
+      last.landings.add(landing);
+    }
+    return runs;
+  }
+
   private void layout(List<String> names, List<Long> times) {
     names.add(MEMO);
     times.add(memoMs);
-    if (cyclesMs[EDGES] == null && cyclesMs[CORNERS] == null) {
-      names.add(EXECUTION); // neither type was finished: nothing yet says which was being solved
+    for (Run run : runs()) {
+      names.add(run.name);
+      times.add(run.completedMs());
+    }
+    if (memoMs != null && solvedMs == null) {
+      // It stopped before the cube came out: the turning past the last landing reached nothing, and
+      // is left for the display to draw as the tail it is.
+      names.add(EXECUTION);
       times.add(null);
-      return;
     }
-    int first = firstFinished();
-    int second = 1 - first;
-    names.add(TYPE_NAMES[first]);
-    times.add(cyclesMs[first]);
-
-    Long firstWhole = parity ? fullyMs[first] : null;
-    boolean betweenTheTypes = firstWhole != null && cyclesMs[second] != null
-        && firstWhole > cyclesMs[first] && firstWhole <= cyclesMs[second];
-    if (betweenTheTypes) {
-      names.add(PARITY);
-      times.add(firstWhole);
-    }
-    names.add(TYPE_NAMES[second]);
-    times.add(cyclesMs[second]);
-
-    Long whole = parity ? latest(fullyMs[first], fullyMs[second]) : null;
-    if (!betweenTheTypes && whole != null && cyclesMs[second] != null && whole > cyclesMs[second]) {
-      names.add(PARITY);
-      times.add(whole);
-    }
-  }
-
-  private int firstFinished() {
-    if (cyclesMs[EDGES] == null) {
-      return CORNERS;
-    }
-    if (cyclesMs[CORNERS] == null) {
-      return EDGES;
-    }
-    return cyclesMs[CORNERS] < cyclesMs[EDGES] ? CORNERS : EDGES;
-  }
-
-  private static Long latest(Long first, Long second) {
-    if (first == null || second == null) {
-      return first == null ? second : first;
-    }
-    return Math.max(first, second);
   }
 
   private List<Long> stepTimes() {
@@ -250,19 +307,27 @@ public final class BlindStepDetector implements StepDetector {
     return false;
   }
 
+  /** Each algorithm of a step is a part of it, the way each pair of an F2L is. */
   @Override
   public int subStepCount(int step) {
-    return 0;
+    List<Run> runs = runs();
+    int run = step - 1;
+    return run >= 0 && run < runs.size() ? runs.get(run).landings.size() : 0;
   }
 
   @Override
   public String subStepName(int step, int subStep) {
-    throw new IndexOutOfBoundsException("Blind steps have no parts yet");
+    return runs().get(step - 1).landings.get(subStep).name;
   }
 
   @Override
   public Long getSubStepTimestampMs(int step, int subStep) {
-    return null;
+    List<Run> runs = runs();
+    int run = step - 1;
+    if (run < 0 || run >= runs.size() || subStep >= runs.get(run).landings.size()) {
+      return null;
+    }
+    return runs.get(run).landings.get(subStep).timestampMs;
   }
 
   @Override
@@ -271,31 +336,32 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * The cube was memorised before it was turned, and the piece types were solved <b>one after the
-   * other</b> — when the first was finished, the other still had more than its leftover pair out.
+   * The cube was memorised before it was turned, and it was executed as algorithms, one piece type
+   * at a time: the stretches read as one type and then the other, with at most a parity between or
+   * after them.
    *
-   * <p>That second clause is what a sighted solve done on a blind solve type fails, and it needs no
-   * threshold to say so: a last layer usually finishes its corners and its edges on the same turn,
-   * so whichever type is checked, the other one is already home. It is only asked of a solve that
-   * got far enough to answer it. One that stopped inside its first piece type has shown nothing to
-   * contradict, and a prefix in order is a legitimate partial match.
-   *
-   * <p><b>What it does not catch:</b> a sighted solve whose last layer permutes the edges alone (a
-   * U, Z or H perm) really does finish its corners first, with three edges still out, and passes.
-   * Separating that from a blind solve means measuring <em>how much</em> of the second type was
-   * still out, and every threshold that would do it is a guess at where a phase becomes real. Left
-   * open rather than guessed at: this detector runs only where the solve type says blind, so the
-   * case is a solve entered against the wrong type, not a solve being misread.
+   * <p>A solve that never came out is not asked to prove it — a prefix in order is a legitimate
+   * partial match. One that did, and whose turning read as no algorithm at all, is refused: the cube
+   * falling solved all at once is what a sighted solve done on a blind solve type looks like, and it
+   * has no algorithms to show for itself.
    */
   @Override
   public boolean matchesMethod() {
     if (memoMs == null) {
       return false;
     }
-    int first = firstFinished();
-    if (cyclesMs[first] == null) {
+    if (solvedMs == null) {
       return true;
     }
-    return othersLeftAtCycles[first] > PARITY_REMAINDER;
+    List<String> types = new ArrayList<>();
+    for (Run run : runs()) {
+      if (!PARITY.equals(run.name) && !types.contains(run.name)) {
+        types.add(run.name);
+      }
+    }
+    // One stretch per type, and no type coming back after the other has started: interleaving them
+    // is not how a blind solve is executed, and is how a sighted one looks.
+    int stretches = runs().size() - (parityFound ? 1 : 0);
+    return !types.isEmpty() && types.size() == stretches;
   }
 }

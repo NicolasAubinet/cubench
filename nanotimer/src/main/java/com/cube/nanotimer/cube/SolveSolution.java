@@ -21,11 +21,13 @@ public final class SolveSolution {
 
   private final List<Step> steps;
   private final int moveCount;
+  private final int partCount;
   private final long turningMs;
 
-  private SolveSolution(List<Step> steps, int moveCount, long turningMs) {
+  private SolveSolution(List<Step> steps, int moveCount, int partCount, long turningMs) {
     this.steps = Collections.unmodifiableList(steps);
     this.moveCount = moveCount;
+    this.partCount = partCount;
     this.turningMs = turningMs;
   }
 
@@ -40,13 +42,14 @@ public final class SolveSolution {
   public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps) {
     List<Move> moves = inSolversFrame(SolveMovesFormat.parse(storedMoves));
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
-      return new SolveSolution(new ArrayList<Step>(), 0, 0);
+      return new SolveSolution(new ArrayList<Step>(), 0, 0, 0);
     }
     List<Step> steps = new ArrayList<Step>();
     int total = 0;
     int taken = 0;
     long boundaryMs = 0;
     long turningMs = 0;
+    int parts = 0;
     for (int i = 0; i < solveSteps.size(); i++) {
       SolveStep solveStep = solveSteps.get(i);
       long stepStartMs = boundaryMs;
@@ -62,9 +65,10 @@ public final class SolveSolution {
       if (solveStep.getExecutionMs() > 0) { // a step that turned nothing has none: see getTps
         turningMs += solveStep.getTotalMs();
       }
+      parts += solveStep.getSubSteps().size();
       taken = end;
     }
-    return new SolveSolution(steps, total, turningMs);
+    return new SolveSolution(steps, total, parts, turningMs);
   }
 
   /**
@@ -219,6 +223,11 @@ public final class SolveSolution {
 
   public int getMoveCount() {
     return moveCount;
+  }
+
+  /** How many parts the steps were built from — for a blind solve, how many algorithms it took. */
+  public int getPartCount() {
+    return partCount;
   }
 
   /**

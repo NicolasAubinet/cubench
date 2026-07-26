@@ -1468,8 +1468,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       tvSolveStats.setVisibility(View.INVISIBLE);
       return;
     }
-    tvSolveStats.setText(getString(R.string.breakdown_moves_count, solution.getMoveCount()) + " · "
-        + getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
+    StringBuilder stats = new StringBuilder()
+        .append(getString(R.string.breakdown_moves_count, solution.getMoveCount())).append(" · ")
+        .append(getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
+    // A blind solve is executed as a run of algorithms, and how many it took is a number the solver
+    // reads their solve by. A sighted method's parts are not that -- an F2L is four pairs by
+    // definition, so counting them says nothing.
+    if (lastSolveMethod == CubeMethod.BLIND && solution.getPartCount() > 0) {
+      stats.append(" · ").append(getString(R.string.breakdown_algs, solution.getPartCount()));
+    }
+    tvSolveStats.setText(stats);
     tvSolveStats.setAlpha(0f);
     tvSolveStats.setVisibility(View.VISIBLE);
     tvSolveStats.animate().alpha(1f).setDuration(250);
