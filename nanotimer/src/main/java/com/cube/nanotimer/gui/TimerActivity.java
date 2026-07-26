@@ -1403,6 +1403,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastSolveMethod = solveController.getMethod();
     lastSolveStoppedStep = solveController.getStoppedStep();
     lastSolveMoves = solveController.getSolveMoves(); // captured before the early return: a solve with no breakdown still has moves
+    if (!solveType.getScrambleType().isDefault()) {
+      // A partial scramble leaves most milestones already reached, so every method fits it and none
+      // is told apart. The moves are still worth keeping; the breakdown would be invented.
+      lastSolveSteps = Collections.emptyList();
+      lastSolveMethod = null;
+      lastSolveStoppedStep = null;
+    }
     if (solveType.hasSteps()) {
       showManualStepBreakdown(solveDurationMs);
       return;
