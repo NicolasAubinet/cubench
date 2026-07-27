@@ -93,6 +93,14 @@ public final class CubeRotation {
     return ofQuaternion(next.quaternion.multiply(quaternion));
   }
 
+  /**
+   * The step carrying this rotation to {@code target}, in this rotation's own axes: the turning a
+   * solver already holding the cube this way has to do to end up holding it that way.
+   */
+  public CubeRotation to(CubeRotation target) {
+    return ofQuaternion(quaternion.inverse().multiply(target.quaternion));
+  }
+
   /** The rotation as seen by a solver who has already turned the cube by {@code frame}. */
   public CubeRotation seenFrom(CubeRotation frame) {
     return ofQuaternion(frame.quaternion.multiply(quaternion).multiply(frame.quaternion.inverse()));

@@ -8,7 +8,6 @@ import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 import org.junit.Test;
@@ -44,12 +43,12 @@ public class SliceSpinDetectorTest {
     detector.onMove(move("R'", 1030));
     detector.onMove(move("U", 1400));
 
-    List<RotationTracker.Rotation> merged =
-        detector.merge(noGripRotations(), rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
+    List<RotationTracker.Rotation> spins =
+        detector.coreSpins(rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
 
-    assertEquals(1, merged.size());
-    assertEquals("x", merged.get(0).getNotation());
-    assertEquals(1031, merged.get(0).getTimestampMs()); // just behind the pair, where the fold looks
+    assertEquals(1, spins.size());
+    assertEquals("x", spins.get(0).getNotation());
+    assertEquals(1031, spins.get(0).getTimestampMs()); // just behind the pair, where the fold looks
   }
 
   @Test
@@ -59,9 +58,7 @@ public class SliceSpinDetectorTest {
     detector.onMove(move("L", 1000));
     detector.onMove(move("R'", 1030));
 
-    assertEquals(0,
-        detector.merge(noGripRotations(), rockedAt(1230, BEFORE_TWO_HANDED, AFTER_TWO_HANDED))
-            .size());
+    assertEquals(0, detector.coreSpins(rockedAt(1230, BEFORE_TWO_HANDED, AFTER_TWO_HANDED)).size());
   }
 
   @Test
@@ -72,8 +69,7 @@ public class SliceSpinDetectorTest {
     detector.onMove(move("L", 1000));
     detector.onMove(move("R'", 1030));
 
-    assertEquals(0,
-        detector.merge(noGripRotations(), rockedAt(1230, AFTER_M_PRIME, AFTER_M)).size());
+    assertEquals(0, detector.coreSpins(rockedAt(1230, AFTER_M_PRIME, AFTER_M)).size());
   }
 
   @Test
@@ -83,44 +79,7 @@ public class SliceSpinDetectorTest {
     detector.onMove(move("L", 1000));
     detector.onMove(move("R'", 1500));
 
-    assertEquals(0,
-        detector.merge(noGripRotations(), rockedAt(1700, BEFORE_M_PRIME, AFTER_M_PRIME)).size());
-  }
-
-  @Test
-  public void dropsTheGripRotationThatWasReallyTheSlice() {
-    // A slice held long enough to settle also reads as a reorientation to the grip tracker, which
-    // dates it at the next move. Kept as well as its own spin, one rock would turn the frame twice.
-    SliceSpinDetector detector = new SliceSpinDetector();
-    detector.onMove(move("L", 1000));
-    detector.onMove(move("R'", 1030));
-    detector.onMove(move("U", 2600));
-
-    List<RotationTracker.Rotation> grips = gripRotations(rotation("x", 2600));
-    List<RotationTracker.Rotation> merged =
-        detector.merge(grips, rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
-
-    assertEquals(1, merged.size());
-    assertEquals("x", merged.get(0).getNotation());
-    assertEquals(1031, merged.get(0).getTimestampMs());
-  }
-
-  @Test
-  public void keepsAGripRotationMadeLaterInTheSolve() {
-    // Same axis, but two moves further on: a real regrip, not the rock the slice accounts for.
-    SliceSpinDetector detector = new SliceSpinDetector();
-    detector.onMove(move("L", 1000));
-    detector.onMove(move("R'", 1030));
-    detector.onMove(move("U", 1400));
-    detector.onMove(move("F", 1800));
-
-    List<RotationTracker.Rotation> grips = gripRotations(rotation("x", 1800));
-    List<RotationTracker.Rotation> merged =
-        detector.merge(grips, rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
-
-    assertEquals(2, merged.size());
-    assertEquals(1031, merged.get(0).getTimestampMs()); // the slice's spin, then the regrip
-    assertEquals(1800, merged.get(1).getTimestampMs());
+    assertEquals(0, detector.coreSpins(rockedAt(1700, BEFORE_M_PRIME, AFTER_M_PRIME)).size());
   }
 
   @Test
@@ -137,11 +96,11 @@ public class SliceSpinDetectorTest {
     gyro.put(0L, BEFORE_M_PRIME);
     gyro.put(1230L, AFTER_M_PRIME);
     gyro.put(2230L, AFTER_M);
-    List<RotationTracker.Rotation> merged = detector.merge(noGripRotations(), history(gyro));
+    List<RotationTracker.Rotation> spins = detector.coreSpins(history(gyro));
 
-    assertEquals(2, merged.size());
-    assertEquals("x", merged.get(0).getNotation());
-    assertEquals("x'", merged.get(1).getNotation());
+    assertEquals(2, spins.size());
+    assertEquals("x", spins.get(0).getNotation());
+    assertEquals("x'", spins.get(1).getNotation());
   }
 
   @Test
@@ -156,7 +115,7 @@ public class SliceSpinDetectorTest {
     }
 
     String stored = SolveMovesFormat.format(moves,
-        detector.merge(noGripRotations(), rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME)), 1000);
+        detector.coreSpins(rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME)), 1000);
     SolveSolution solution = SolveSolution.from(stored,
         Arrays.asList(new SolveStep(0, "cross", 0, 1000, new ArrayList<SolveStep>())));
 
@@ -180,37 +139,30 @@ public class SliceSpinDetectorTest {
     gyro.put(0L, BEFORE_M_PRIME);
     gyro.put(27400L, AFTER_M_PRIME); // mid-M2, where a single half would take its reading
     gyro.put(27600L, rockedTwice());
-    List<RotationTracker.Rotation> merged = detector.merge(noGripRotations(), history(gyro));
+    List<RotationTracker.Rotation> spins = detector.coreSpins(history(gyro));
 
-    assertEquals(2, merged.size()); // one spin per half: the display collapses them into M2
-    assertEquals("x", merged.get(0).getNotation());
-    assertEquals("x", merged.get(1).getNotation());
-    assertEquals(27357, merged.get(0).getTimestampMs());
-    assertEquals(27478, merged.get(1).getTimestampMs());
+    assertEquals(2, spins.size()); // one spin per half: the display collapses them into M2
+    assertEquals("x", spins.get(0).getNotation());
+    assertEquals("x", spins.get(1).getNotation());
+    assertEquals(27357, spins.get(0).getTimestampMs());
+    assertEquals(27478, spins.get(1).getTimestampMs());
   }
 
   @Test
-  public void dropsTheGripRotationThatWasReallyTheM2() {
-    // The rock of a whole M2 is a half turn, and settled it reads to the grip tracker as one —
-    // the more so now that gravity turns its up face with the core. Both halves get their spin,
-    // so the half turn has to go, or the frame turns twice for one rock.
+  public void readsARockThatLandsFortyDegreesOffAsTheSliceItIs() {
+    // Measured on solve 140: a real M' whose settled reading sat 40° off the quarter turn. Judged
+    // as a match against the 24 that is too far to call, but the pair leaves only two answers —
+    // rocked or held still — and 40° is the rock.
     SliceSpinDetector detector = new SliceSpinDetector();
-    detector.onMove(move("L", 27353));
-    detector.onMove(move("R'", 27356));
-    detector.onMove(move("L", 27471));
-    detector.onMove(move("R'", 27477));
-    detector.onMove(move("U", 28000));
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+    detector.onMove(move("U", 1400));
 
-    TreeMap<Long, CubeOrientation> gyro = new TreeMap<Long, CubeOrientation>();
-    gyro.put(0L, BEFORE_M_PRIME);
-    gyro.put(27400L, AFTER_M_PRIME);
-    gyro.put(27600L, rockedTwice());
-    List<RotationTracker.Rotation> grips = gripRotations(rotation("x2", 28000));
-    List<RotationTracker.Rotation> merged = detector.merge(grips, history(gyro));
+    List<RotationTracker.Rotation> spins =
+        detector.coreSpins(rockedAt(1230, BEFORE_M_PRIME, fortyDegreesShort()));
 
-    assertEquals(2, merged.size()); // the x2 is gone; only the two halves' spins remain
-    assertEquals("x", merged.get(0).getNotation());
-    assertEquals("x", merged.get(1).getNotation());
+    assertEquals(1, spins.size());
+    assertEquals("x", spins.get(0).getNotation());
   }
 
   @Test
@@ -221,7 +173,7 @@ public class SliceSpinDetectorTest {
     detector.onMove(move("R'", 1030));
 
     SliceSpinDetector.Orientations none = timestampMs -> null;
-    assertEquals(0, detector.merge(noGripRotations(), none).size());
+    assertEquals(0, detector.coreSpins(none).size());
   }
 
   /** The reading after the same rock twice over: an M2's 180°. */
@@ -229,21 +181,20 @@ public class SliceSpinDetectorTest {
     return AFTER_M_PRIME.multiply(BEFORE_M_PRIME.deltaTo(AFTER_M_PRIME));
   }
 
+  /** The measured rock, only 50° round its axis: 40° short of the quarter turn it is part of. */
+  private static CubeOrientation fortyDegreesShort() {
+    CubeOrientation rock = BEFORE_M_PRIME.deltaTo(AFTER_M_PRIME);
+    double axis = Math.sqrt(rock.getX() * rock.getX() + rock.getY() * rock.getY()
+        + rock.getZ() * rock.getZ());
+    double half = Math.toRadians(50) / 2;
+    double scale = Math.sin(half) / axis;
+    return BEFORE_M_PRIME.multiply(new CubeOrientation(Math.cos(half), rock.getX() * scale,
+        rock.getY() * scale, rock.getZ() * scale));
+  }
+
   private static CubeMove move(String notation, long cubeMs) {
     boolean prime = notation.endsWith("'");
     return new CubeMove(Face.valueOf(notation.substring(0, 1)), prime, cubeMs);
-  }
-
-  private static RotationTracker.Rotation rotation(String notation, long timestampMs) {
-    return new RotationTracker.Rotation(notation, timestampMs);
-  }
-
-  private static List<RotationTracker.Rotation> noGripRotations() {
-    return Collections.emptyList();
-  }
-
-  private static List<RotationTracker.Rotation> gripRotations(RotationTracker.Rotation... grips) {
-    return new ArrayList<RotationTracker.Rotation>(Arrays.asList(grips));
   }
 
   /** A gyro reading {@code before} until {@code fromMs}, and {@code after} from then on. */

@@ -13,8 +13,8 @@ import java.util.List;
  * of the same faces; only the core tells them apart, since the slice carries it and the gyro round.
  * Runs after the solve because the reading proving the rock settles only once the turn is over.
  *
- * <p>{@link RotationTracker} cannot answer this: it reports the <em>grip</em>, deliberately
- * conservatively, and dates a rotation at the next move rather than at the event.
+ * <p>{@link RotationTracker} cannot answer this: it samples the gyro <em>at</em> a move, and inside
+ * an LSE every such reading is mid-rock. It folds the spins found here into its own frame instead.
  */
 public final class SliceSpinDetector {
 
@@ -26,6 +26,15 @@ public final class SliceSpinDetector {
 
   /** Two slices closer than this are one M2: measured at 115 ms on a real solve. */
   private static final long DOUBLE_GAP_MS = 250;
+
+  /**
+   * How far off the expected quarter turn the core may read and still count as having rocked. The
+   * pair of faces names the spin outright, so the only question is rocked or held still, and a still
+   * core reads at its 4° noise floor: across seven captured solves real rocks spread from 0° to
+   * 42.8° and stopped dead. Anything from 43 to 90 behaves alike; the 35° a lattice match wants cuts
+   * six real rocks off the tail, each losing the frame a quarter turn for the rest of the solve.
+   */
+  private static final double ROCK_TOLERANCE_DEGREES = 45;
 
   private final List<Turn> turns = new ArrayList<Turn>();
 
@@ -44,35 +53,30 @@ public final class SliceSpinDetector {
   }
 
   /**
-   * The solve's rotation tokens: the grip tracker's, plus each slice's core spin, minus any grip
-   * rotation that was one of those spins — the same event twice would turn the frame twice.
+   * Every slice the core is confirmed to have rocked through, in the order they were turned. Each
+   * spin is dated one millisecond behind its pair, since the stored form writes a rotation ahead of
+   * the move it precedes and the display fold looks for it behind the pair, not inside it.
    */
-  public List<RotationTracker.Rotation> merge(List<RotationTracker.Rotation> gripRotations,
-      Orientations orientations) {
-    List<RotationTracker.Rotation> merged = new ArrayList<RotationTracker.Rotation>(gripRotations);
+  public List<RotationTracker.Rotation> coreSpins(Orientations orientations) {
+    List<RotationTracker.Rotation> spins = new ArrayList<RotationTracker.Rotation>();
     for (int i = 0; i + 1 < turns.size(); i++) {
       String[] slice = Slices.forPair(turns.get(i).notation, turns.get(i + 1).notation);
       if (slice == null || turns.get(i + 1).atMs - turns.get(i).atMs > Slices.WINDOW_MS) {
         continue;
       }
       if (isDoubleSlice(i, slice, orientations)) {
-        removeGripRotation(merged, halfTurnOf(slice[1]), turns.get(i).atMs, nextMoveMs(i + 4));
-        merged.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1));
-        merged.add(new RotationTracker.Rotation(slice[1], turns.get(i + 3).atMs + 1));
+        spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1));
+        spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 3).atMs + 1));
         i += 3;
         continue;
       }
       if (!rocked(turns.get(i), turns.get(i + 1), slice[1], orientations)) {
         continue;
       }
-      removeGripRotation(merged, slice[1], turns.get(i).atMs, nextMoveMs(i + 2));
-      // A rotation is written ahead of the move it precedes, so a spin dated with the pair would
-      // land in front of it. One millisecond later leaves it where the fold looks: just behind.
-      merged.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1));
+      spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1));
       i++; // both faces are spoken for: the second cannot also open a pair
     }
-    sortByTime(merged);
-    return merged;
+    return spins;
   }
 
   /**
@@ -104,36 +108,8 @@ public final class SliceSpinDetector {
     if (before == null || after == null) {
       return false; // no gyro, or no reading near enough: the faces stand as themselves
     }
-    CubeRotation rocked = CubeRotation.nearest(before.deltaTo(after));
+    CubeRotation rocked = CubeRotation.nearest(before.deltaTo(after), ROCK_TOLERANCE_DEGREES);
     return rocked != null && rocked.getNotation().equals(spin);
-  }
-
-  /** The grip tracker dates a rotation at the first move made in the new grip: the one after. */
-  private long nextMoveMs(int index) {
-    return index < turns.size() ? turns.get(index).atMs : Long.MAX_VALUE;
-  }
-
-  private static void removeGripRotation(List<RotationTracker.Rotation> rotations, String notation,
-      long afterMs, long untilMs) {
-    for (int i = 0; i < rotations.size(); i++) {
-      RotationTracker.Rotation rotation = rotations.get(i);
-      if (rotation.getNotation().equals(notation) && rotation.getTimestampMs() > afterMs
-          && rotation.getTimestampMs() <= untilMs) {
-        rotations.remove(i);
-        return;
-      }
-    }
-  }
-
-  private static void sortByTime(List<RotationTracker.Rotation> rotations) {
-    for (int i = 1; i < rotations.size(); i++) { // insertion sort: a solve holds a handful of these
-      RotationTracker.Rotation rotation = rotations.get(i);
-      int j = i - 1;
-      while (j >= 0 && rotations.get(j).getTimestampMs() > rotation.getTimestampMs()) {
-        rotations.set(j + 1, rotations.get(j--));
-      }
-      rotations.set(j + 1, rotation);
-    }
   }
 
   /** One face turn, at the moment the cube dates it. */

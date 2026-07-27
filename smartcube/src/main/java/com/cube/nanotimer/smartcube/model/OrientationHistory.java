@@ -7,8 +7,7 @@ import java.util.Deque;
  * A bounded history of the ~20 Hz orientation stream, so a reading can be taken at a moment that
  * has already passed.
  *
- * <p>{@link StillnessTracker} answers what grip the cube is in <em>now</em>; this answers what it
- * was in <em>then</em>. A slice's core rock can only be confirmed in hindsight: what marks it as a
+ * <p>A slice's core rock can only be confirmed in hindsight: what marks it as a
  * slice is a pair of opposite faces in the move stream, and by the time that pair has been seen,
  * the readings either side of it are already history.
  */

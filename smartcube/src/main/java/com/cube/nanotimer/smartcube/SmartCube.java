@@ -8,7 +8,6 @@ import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
-import com.cube.nanotimer.smartcube.model.StillnessTracker;
 
 /**
  * A connected smart cube. Brand-agnostic: consumers register listeners and never touch
@@ -42,13 +41,6 @@ public interface SmartCube {
    * consumer needs, so callers sample it at the moments that matter (e.g. when a move lands).
    */
   CubeOrientation getOrientation();
-
-  /**
-   * The latest window (~150 ms+) the cube was held still in, or null if it has not been still
-   * since {@code heldAfterMs}. Unlike {@link #getOrientation()} a still reading is immune to
-   * mid-turn wrist wobble, so it is what grip tracking should be based on.
-   */
-  StillnessTracker.Window getStillWindow(long heldAfterMs);
 
   /**
    * The orientation the cube was in at {@code timestampMs} (wall clock), or null if no reading was

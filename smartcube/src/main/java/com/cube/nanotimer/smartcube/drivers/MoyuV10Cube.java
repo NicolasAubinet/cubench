@@ -12,7 +12,6 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.smartcube.model.OrientationHistory;
-import com.cube.nanotimer.smartcube.model.StillnessTracker;
 import com.cube.nanotimer.smartcube.transport.BleCharacteristic;
 import com.cube.nanotimer.smartcube.transport.BlePeripheral;
 import com.cube.nanotimer.smartcube.transport.BleService;
@@ -58,7 +57,6 @@ final class MoyuV10Cube implements SmartCube {
   private BleCharacteristic writeChr;
   private CubeState lastState = CubeState.SOLVED;
   private volatile CubeOrientation lastOrientation;
-  private final StillnessTracker stillness = new StillnessTracker();
   private final OrientationHistory history = new OrientationHistory();
   private CubeConnection connection = CubeConnection.CONNECTING;
   private Integer batteryLevel;
@@ -130,7 +128,6 @@ final class MoyuV10Cube implements SmartCube {
         notifyBattery(battery.getLevel());
       } else if (event instanceof MoyuEvent.GyroEvent gyro) {
         lastOrientation = gyro.getOrientation(); // ~20 Hz: stored for polling, never broadcast
-        stillness.onSample(gyro.getOrientation(), nowMs);
         history.onSample(gyro.getOrientation(), nowMs);
         logOrientation("G", gyro.getOrientation());
       }
@@ -262,11 +259,6 @@ final class MoyuV10Cube implements SmartCube {
     CubeOrientation orientation = lastOrientation;
     logOrientation("P", orientation); // what the tracker actually pairs with the triggering move
     return orientation;
-  }
-
-  @Override
-  public StillnessTracker.Window getStillWindow(long heldAfterMs) {
-    return stillness.getStillWindow(heldAfterMs);
   }
 
   @Override
