@@ -69,15 +69,38 @@ public final class RotationTracker {
         CubeRotation spun = CubeRotation.byNotation(spin.getNotation());
         written = written.then(spun.seenFrom(written)); // a rock turns the frame the last one left
       }
-      if (!frame.rotation.getNotation().equals(written.getNotation())) {
-        rotations.add(new Rotation(written.to(frame.rotation).getNotation(), frame.timestampMs));
-        written = frame.rotation;
+      if (frame.rotation.getNotation().equals(written.getNotation())
+          || rockAccountsForIt(frame.rotation, written, coreSpins, nextSpin, frame.timestampMs)) {
+        continue;
       }
+      rotations.add(new Rotation(written.to(frame.rotation).getNotation(), frame.timestampMs));
+      written = frame.rotation;
     }
     for (; nextSpin < coreSpins.size(); nextSpin++) {
       rotations.add(coreSpins.get(nextSpin)); // a solve ending on a slice: its rock has no move after
     }
     return rotations;
+  }
+
+  /**
+   * Whether a move sits inside a slice pair whose rock, once taken, leaves nothing to write. Both
+   * faces of a pair are reported while the core is still turning, so the frame read at either is
+   * part-rocked — recording that would print a slice as {@code x M' x'} and only the return leg is
+   * the solver's. Anything the rock does not cover is still written where it happened.
+   */
+  private static boolean rockAccountsForIt(CubeRotation frame, CubeRotation written,
+      List<Rotation> coreSpins, int nextSpin, long moveTimestampMs) {
+    if (nextSpin >= coreSpins.size() || coreSpins.get(nextSpin).getPairFromMs() > moveTimestampMs) {
+      return false; // no pending rock this move could belong to
+    }
+    long pairFromMs = coreSpins.get(nextSpin).getPairFromMs();
+    CubeRotation rocked = written;
+    for (int i = nextSpin; i < coreSpins.size() && coreSpins.get(i).getPairFromMs() == pairFromMs;
+        i++) {
+      CubeRotation spun = CubeRotation.byNotation(coreSpins.get(i).getNotation());
+      rocked = rocked.then(spun.seenFrom(rocked)); // an M2 rocks twice, both halves of one pair
+    }
+    return frame.getNotation().equals(rocked.getNotation());
   }
 
   public void reset() {
@@ -102,10 +125,17 @@ public final class RotationTracker {
 
     private final String notation;
     private final long timestampMs;
+    private final long pairFromMs;
 
     Rotation(String notation, long timestampMs) {
+      this(notation, timestampMs, Long.MAX_VALUE);
+    }
+
+    /** A core spin, which also knows where the pair it was measured across began. */
+    Rotation(String notation, long timestampMs, long pairFromMs) {
       this.notation = notation;
       this.timestampMs = timestampMs;
+      this.pairFromMs = pairFromMs;
     }
 
     /** One or two tokens, e.g. {@code "y"} or {@code "y x'"}. */
@@ -115,6 +145,11 @@ public final class RotationTracker {
 
     public long getTimestampMs() {
       return timestampMs;
+    }
+
+    /** The first face of the pair this spin was measured across; never set on a regrip. */
+    long getPairFromMs() {
+      return pairFromMs;
     }
   }
 }
