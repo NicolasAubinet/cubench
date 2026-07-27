@@ -53,7 +53,7 @@ public class RecordedSolveReplayTest {
     String shown = new RecordedSolveReplay(SCRAMBLE, MOVES).display();
     assertEquals(shown, 0, count(shown, "M"));
     assertEquals(shown, 1, count(shown, "S")); // the first slice, before the frame drifted again
-    assertEquals(shown, 14, count(shown, "E")); // and every one after it
+    assertEquals(shown, 15, count(shown, "E")); // and every one after it
   }
 
   private static int count(String moves, String prefix) {

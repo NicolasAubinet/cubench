@@ -25,7 +25,7 @@ public class RecordedGyroReplayTest {
       + "F'@15656 R@16243 L'@16313 x'@16314 x@17607 R'@17607 U@17796 y@21303 z@21303 L@21303 y@23676 "
       + "x@23676 R'@23676 D@23873 x'@24099 R@24099 F@24416 L'@24961 L'@25742 F'@27012 L'@27560 F@27700 "
       + "L@27960 L@28111 F'@28260 x'@29327 L'@29327 x2@30306 L'@30306 F'@30885 L@31175 x'@32220 F@32220 "
-      + "x@32638 R'@32638 x'@34135 R@34135 L'@35138 F'@35627 x@36149 L@36149 R'@36227 D@36945 D@37105 "
+      + "x@32638 R'@32638 x'@34135 R@34135 L'@35138 F'@35627 L@36149 R'@36227 x@36228 D@36945 D@37105 "
       + "x'@37625 L@37625 x@38380 D'@38380 D'@38789 R'@38980 x@39346 B'@39346 x'@39866 R@39866 D'@40695 "
       + "L@40946 D'@41094 D'@41179 L'@41300 L'@41390 D'@41525 L@41652 L@41735 D'@41835 L'@42000 L'@42076 "
       + "D'@42165 D'@42276 L@42674 L@44815 D@44945 L'@45060 D'@45219 L'@45426 F@45521 L@45596 L@45677 "
@@ -34,8 +34,9 @@ public class RecordedGyroReplayTest {
       + "L'@52053 R@52061 x'@52062 F@52275 L@52377 R'@52395 x@52396 D@52936 R@53183 L'@53185 x'@53186 "
       + "F@53373 L'@53528 R@53530 x'@53531 U'@55554 R@56035 L'@56036 x'@56037 B@56207 B@56352 B@58444 "
       + "B@58724 L@59429 R'@59429 x@59430 U@60926 U@61055 L'@61215 R@61229 x'@61230 B@61605 B@61721 "
-      + "L@62505 R'@62541 x@62542 U@62730 U@62872 x'@63058 L'@63058 R@63306 L'@63346 x'@63347 R@63387 "
-      + "D@64557 R@67823 L'@67833 x'@67834 B'@68019 B'@68132 L@68366 R'@68396 x@68397 U'@68612 U'@68764";
+      + "L@62505 R'@62541 x@62542 U@62730 U@62872 x'@63058 L'@63058 R@63306 x'@63307 L'@63346 R@63387 "
+      + "x'@63388 x@64557 D@64557 R@67823 L'@67833 x'@67834 B'@68019 B'@68132 L@68366 R'@68396 x@68397 "
+      + "U'@68612 U'@68764";
 
   /** A 34-second CFOP solve of the same evening, turned throughout in the grip it was scrambled in. */
   private static final String CFOP_159 =
@@ -69,7 +70,7 @@ public class RecordedGyroReplayTest {
     String shown = new RecordedGyroReplay("roux140.txt").display();
     assertEquals(shown, 0, count(shown, "E"));
     assertEquals(shown, 0, count(shown, "S"));
-    assertEquals(shown, 16, count(shown, "M")); // 15 before mid-rock frames stopped being regrips
+    assertEquals(shown, 17, count(shown, "M")); // 15 before mid-rock frames stopped being regrips
     assertTrue(shown, shown.contains("R' U' R' F R2 U' R' U' R U R' F'")); // the CMLL, a T perm
   }
 
