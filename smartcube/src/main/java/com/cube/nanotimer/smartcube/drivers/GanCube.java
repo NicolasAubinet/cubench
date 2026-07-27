@@ -11,7 +11,6 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.smartcube.model.OrientationHistory;
-import com.cube.nanotimer.smartcube.model.StillnessTracker;
 import com.cube.nanotimer.smartcube.transport.BleCharacteristic;
 import com.cube.nanotimer.smartcube.transport.BlePeripheral;
 import com.cube.nanotimer.smartcube.transport.BleService;
@@ -49,7 +48,6 @@ final class GanCube implements SmartCube {
       });
   private final Object anchorLock = new Object();
 
-  private final StillnessTracker stillness = new StillnessTracker();
   private final OrientationHistory history = new OrientationHistory();
 
   private GanProtocol protocol;
@@ -125,7 +123,6 @@ final class GanCube implements SmartCube {
     for (GanEvent event : protocol.parse(raw, nowMs)) {
       if (event instanceof GanEvent.GyroEvent gyro) {
         lastOrientation = gyro.getOrientation(); // streamed fast: stored for polling, never broadcast
-        stillness.onSample(gyro.getOrientation(), nowMs);
         history.onSample(gyro.getOrientation(), nowMs);
       } else if (event instanceof GanEvent.StateEvent state) {
         lastState = state.getState();
@@ -265,11 +262,6 @@ final class GanCube implements SmartCube {
   @Override
   public CubeOrientation getOrientation() {
     return lastOrientation;
-  }
-
-  @Override
-  public StillnessTracker.Window getStillWindow(long heldAfterMs) {
-    return stillness.getStillWindow(heldAfterMs);
   }
 
   @Override
