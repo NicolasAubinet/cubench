@@ -42,6 +42,7 @@ import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.FontFitTextView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveAverages;
@@ -136,7 +137,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
           solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves(),
           solveTime.getSmartcubeMethod());
       buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
-          getString(R.string.breakdown), null);
+          getString(R.string.breakdown), null, solveTime.getSmartcubeMethod());
     }
 
     final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
@@ -315,7 +316,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.trSteps).setVisibility(View.GONE); // the table tells it, and the moves with it
     SolveTypeStep[] names = solveTime.getSolveType().hasSteps()
         ? solveTime.getSolveType().getSteps() : new SolveTypeStep[0];
-    buildBreakdown(v, steps, solution, getString(R.string.steps), names);
+    buildBreakdown(v, steps, solution, getString(R.string.steps), names, null);
     return true;
   }
 
@@ -328,7 +329,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    *                  — the user's carry no thinking/turning split, so those columns are left out
    */
   private void buildBreakdown(View v, List<SolveStep> steps, SolveSolution solution,
-      String label, SolveTypeStep[] userSteps) {
+      String label, SolveTypeStep[] userSteps, CubeMethod method) {
     if (steps == null || steps.isEmpty()) {
       return;
     }
@@ -361,7 +362,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         makeExpandable(row, stepRows);
       }
     }
-    buildMovesSwitch(v, solution, label);
+    buildMovesSwitch(v, solution, label, method);
     applyRowVisibility();
     v.findViewById(R.id.breakdownSection).setVisibility(View.VISIBLE);
   }
@@ -397,7 +398,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private boolean showMoves;
 
   /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */
-  private void buildMovesSwitch(View v, SolveSolution solution, String label) {
+  private void buildMovesSwitch(View v, SolveSolution solution, String label, CubeMethod method) {
     ((TextView) v.findViewById(R.id.breakdownLabel)).setText(label);
     TextView movesLabel = (TextView) v.findViewById(R.id.movesSwitchLabel);
     SwitchCompat sw = (SwitchCompat) v.findViewById(R.id.swMoves);
@@ -407,8 +408,15 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       return;
     }
     TextView totals = (TextView) v.findViewById(R.id.breakdownTotals);
-    totals.setText(getString(R.string.breakdown_moves_count, solution.getMoveCount()) + " · "
-        + getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
+    StringBuilder text = new StringBuilder()
+        .append(getString(R.string.breakdown_moves_count, solution.getMoveCount())).append(" · ")
+        .append(getString(R.string.breakdown_tps,
+            FormatterService.INSTANCE.formatTps(solution.getTps())));
+    // A blind solve is read by how many algorithms it took; a sighted method's parts are fixed.
+    if (method == CubeMethod.BLIND && solution.getPartCount() > 0) {
+      text.append(" · ").append(getString(R.string.breakdown_algs, solution.getPartCount()));
+    }
+    totals.setText(text);
     totals.setVisibility(View.VISIBLE);
     showMoves = Options.INSTANCE.isBreakdownShowMoves();
     sw.setChecked(showMoves);

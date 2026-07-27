@@ -4,6 +4,7 @@ import android.content.Context;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import java.util.List;
@@ -28,22 +29,27 @@ public final class SolveShareFormat {
     // steps still carry one. It is not shown anywhere, so it is not shared either.
     if (steps != null && !steps.isEmpty() && !solveTime.hasSteps()) {
       appendBreakdown(context, sb, steps,
-          SolveSolution.from(solveTime.getSmartcubeMoves(), steps));
+          SolveSolution.from(solveTime.getSmartcubeMoves(), steps), solveTime.getSmartcubeMethod());
     }
     appendRawData(context, sb, solveTime);
     return sb.toString();
   }
 
   private static void appendBreakdown(Context context, StringBuilder sb, List<SolveStep> steps,
-      SolveSolution solution) {
+      SolveSolution solution, CubeMethod method) {
     sb.append(context.getString(R.string.breakdown));
     if (!solution.isEmpty()) {
       sb.append(" (")
           .append(context.getString(R.string.breakdown_moves_count, solution.getMoveCount()))
           .append(" · ")
           .append(context.getString(R.string.breakdown_tps,
-              FormatterService.INSTANCE.formatTps(solution.getTps())))
-          .append(')');
+              FormatterService.INSTANCE.formatTps(solution.getTps())));
+      // A blind solve is read by how many algorithms it took; a sighted method's parts are fixed.
+      if (method == CubeMethod.BLIND && solution.getPartCount() > 0) {
+        sb.append(" · ")
+            .append(context.getString(R.string.breakdown_algs, solution.getPartCount()));
+      }
+      sb.append(')');
     }
     sb.append(":\n");
     for (int i = 0; i < steps.size(); i++) {
