@@ -42,11 +42,45 @@ final class Cubies {
   static final int FR = 8, FL = 9, BL = 10, BR = 11;
   static final int DFR = 4, DLF = 5, DBL = 6, DRB = 7;
 
+  /** Every piece, edges first: the slot order the detector and the naming both read pieces by. */
+  static final int[][] PIECES = new int[EDGES.length + CORNERS.length][];
+
+  static {
+    System.arraycopy(EDGES, 0, PIECES, 0, EDGES.length);
+    System.arraycopy(CORNERS, 0, PIECES, EDGES.length, CORNERS.length);
+  }
+
   private Cubies() {
   }
 
   static int opposite(int face) {
     return (face + 3) % 6;
+  }
+
+  static boolean isEdge(int slot) {
+    return slot < EDGES.length;
+  }
+
+  static int slotOf(int facelet) {
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      for (int candidate : PIECES[slot]) {
+        if (candidate == facelet) {
+          return slot;
+        }
+      }
+    }
+    return -1;
+  }
+
+  /** Where the piece currently sitting in the slot belongs — the same piece however twisted. */
+  static int homeSlotOf(String facelets, int slot) {
+    String found = coloursOf(facelets, PIECES[slot]);
+    for (int home = 0; home < PIECES.length; home++) {
+      if (PIECES[home].length == PIECES[slot].length && homeColoursOf(PIECES[home]).equals(found)) {
+        return home;
+      }
+    }
+    return -1;
   }
 
   /**
@@ -109,15 +143,6 @@ final class Cubies {
     }
     Arrays.sort(colours);
     return new String(colours);
-  }
-
-  /** The piece named by the faces it belongs on — "UF", "DLF" — which is what a solver calls it. */
-  static String nameOf(int[] piece) {
-    StringBuilder name = new StringBuilder(piece.length);
-    for (int facelet : piece) {
-      name.append(SOLVED.charAt(facelet));
-    }
-    return name.toString();
   }
 
   static Face faceAt(int face) {

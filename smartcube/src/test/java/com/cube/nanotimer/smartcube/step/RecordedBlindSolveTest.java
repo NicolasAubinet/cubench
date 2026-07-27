@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.util.ArrayList;
@@ -45,8 +46,10 @@ public class RecordedBlindSolveTest {
     assertEquals(0, detector.subStepCount(0));
     assertEquals(6, detector.subStepCount(1));
     assertEquals(4, detector.subStepCount(2));
-    assertEquals("UF+DB", detector.subStepName(1, 0));
-    assertEquals("URF+UFL+UBR", detector.subStepName(2, 3)); // a cycle's last: two targets and the buffer
+    assertEquals("DR+LU", detector.subStepName(1, 0));
+    // A cycle's last algorithm puts home its two targets and the buffer with them; the buffer is
+    // where the cycle started, so it is not one of the pieces the algorithm was for.
+    assertEquals("UFL+ULB", detector.subStepName(2, 3));
     // The corners end where the cube came out, not where they first happened to line up.
     assertEquals(SOLVED_AT_MS, (long) detector.getStepTimestampMs(2));
   }
@@ -81,8 +84,10 @@ public class RecordedBlindSolveTest {
     assertTrue(detector.matchesMethod());
     assertEquals(6, detector.subStepCount(1));
     assertEquals(4, detector.subStepCount(2));
-    assertEquals("UR+FL", detector.subStepName(1, 5)); // the two edges flipped in place
-    assertEquals("UBR+DLF", detector.subStepName(2, 3)); // the two corners twisted
+    // Flipped and twisted where they stand: nothing was shot anywhere, so the buffer being among
+    // them is the algorithm's doing and it is named.
+    assertEquals("UF+BL", detector.subStepName(1, 5)); // the two edges flipped in place
+    assertEquals("URF+DBL", detector.subStepName(2, 3)); // the two corners twisted
   }
 
   /**
@@ -102,7 +107,7 @@ public class RecordedBlindSolveTest {
     assertEquals("parity", detector.stepName(3));
     assertEquals(1, detector.subStepCount(3));
     // The one algorithm that puts back two of each, which is all a parity ever is.
-    assertEquals("UR+UB+UBR+DFR", detector.subStepName(3, 0));
+    assertEquals("UF+UR+URF+DLF", detector.subStepName(3, 0));
 
     List<String> edges = new ArrayList<String>();
     for (int part = 0; part < detector.subStepCount(1); part++) {
@@ -112,7 +117,89 @@ public class RecordedBlindSolveTest {
     assertEquals(2, Collections.frequency(edges, "undo"));
   }
 
+  /**
+   * A commutator is named by its two targets, and a target is a sticker rather than a piece. Solve
+   * 163's last corner algorithm puts three home — two targets and the buffer closing the cycle
+   * behind them — and is named by the two, in the order they were shot.
+   */
+  @Test
+  public void namesAnAlgorithmByTheStickersItsTargetsWereShotTo() {
+    replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
+
+    assertEquals("BUL+UBR", detector.subStepName(2, 2));
+    // The same on the edges: three pieces home, two of them targets.
+    assertEquals("UB+UR", detector.subStepName(1, 5));
+    // A cycle break solves only its second target -- the first receives the buffer's piece, which
+    // does not belong there. Both were shot at, so both are named.
+    assertEquals("RU+LU", detector.subStepName(1, 1));
+  }
+
+  /**
+   * Solve 184 went wrong on its opening algorithm, before any piece type had got anywhere. That
+   * leaves an algorithm gaining nothing with no stretch behind it to belong to, and standing alone
+   * it opened the solve with a step that is not a piece type — it belongs to the stretch it
+   * precedes. A cycle broken into on the first algorithm of a clean solve does the same thing.
+   *
+   * <p>It also shows an edge shot to <em>both</em> its stickers: flipped where it stands, it is two
+   * targets on one piece, and separating them by piece rather than by sticker loses one of them.
+   */
+  @Test
+  public void keepsAMisfiredOpeningInsideTheStretchItPrecedes() {
+    replay(RecordedBlindSolve.SCRAMBLE_184, RecordedBlindSolve.MOVES_184, Long.MAX_VALUE);
+
+    assertEquals(4, detector.stepCount()); // memo, edges, corners, parity -- and nothing else
+    assertEquals("edges", detector.stepName(1));
+    assertEquals("undo", detector.subStepName(1, 0)); // the misfire, inside the edges it precedes
+    assertEquals("RF+FR", detector.subStepName(1, 1)); // one edge, both its stickers
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        String name = detector.subStepName(step, part);
+        assertTrue("every algorithm names what it was shot at: " + name,
+            name.equals("undo") || name.contains("+"));
+      }
+    }
+  }
+
+  /**
+   * With no frame established the names are spelled as the cube reports them: wrong about the
+   * holding frame, and so about the sticker and the buffer, but it is all a solve can be read as
+   * when nothing says how the cube was picked up.
+   */
+  @Test
+  public void spellsTheNamesAsReportedUntilTheFrameIsKnown() {
+    replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE,
+        Integer.valueOf(BlindTargets.UNKNOWN_FRAME));
+
+    assertEquals("UFL+ULB+UBR", detector.subStepName(2, 2)); // the buffer among them, unnamed as such
+    assertEquals("UR+UL+UB", detector.subStepName(1, 5));
+  }
+
+  /**
+   * The pickup rotation is taken from the solve itself: the gyro writes it as the rotation token
+   * standing before the first face turn, and every one of these solves opens on {@code y} — the
+   * scramble turned green in front, the solve turned red in front. Nothing is told to the test that
+   * the app does not have, so the frame, its inverse and the names are all proved together.
+   */
   private void replay(String scramble, String moves, long lastOffsetMs) {
+    replay(scramble, moves, lastOffsetMs, null);
+  }
+
+  private void replay(String scramble, String moves, long lastOffsetMs, Integer frame) {
+    if (frame != null) {
+      detector.setHoldingFrame(frame);
+    }
+    boolean turned = false;
+    for (String token : moves.trim().split("\\s+")) {
+      String notation = token.substring(0, token.indexOf('@'));
+      if ("xyz".indexOf(notation.charAt(0)) < 0) {
+        break; // the first face turn: any rotation after this one is the solve's, not the pick-up
+      }
+      if (frame == null) {
+        detector.setPickupRotation(CubeRotation.byNotation(notation));
+      }
+      turned = true;
+    }
+    assertTrue("expected a pick-up rotation before the first turn", turned);
     for (String token : scramble.trim().split("\\s+")) {
       apply(token);
     }

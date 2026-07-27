@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.step.BlindStepDetector;
 import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
@@ -32,6 +33,7 @@ public final class MethodAnalyzers {
 
   private final Map<CubeMethod, SolveAnalyzer> analyzers =
       new LinkedHashMap<CubeMethod, SolveAnalyzer>();
+  private BlindStepDetector blindDetector;
 
   /**
    * @param blind whether the solve type is a blindfolded one. A blind solve is not a sighted method
@@ -41,11 +43,19 @@ public final class MethodAnalyzers {
    */
   public MethodAnalyzers(boolean blind) {
     if (blind) {
-      analyzers.put(CubeMethod.BLIND, new SolveAnalyzer(new BlindStepDetector()));
+      this.blindDetector = new BlindStepDetector();
+      analyzers.put(CubeMethod.BLIND, new SolveAnalyzer(blindDetector));
       return;
     }
     analyzers.put(CubeMethod.ROUX, new SolveAnalyzer(new RouxStepDetector()));
     analyzers.put(CubeMethod.CFOP, new SolveAnalyzer(new CFOPStepDetector()));
+  }
+
+  /** Blind names its targets in the grip they were memorised in; no sighted detector wants this. */
+  public void setPickupRotation(CubeRotation pickup) {
+    if (blindDetector != null) {
+      blindDetector.setPickupRotation(pickup);
+    }
   }
 
   public void start(CubeState startState, long startTimestampMs) {

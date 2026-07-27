@@ -1,6 +1,7 @@
 package com.cube.nanotimer.smartcube.step;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,6 @@ public final class BlindStepDetector implements StepDetector {
 
   private static final String MEMO = "memo";
   private static final String PARITY = "parity";
-  private static final String UNDO = "undo";
   private static final String[] TYPE_NAMES = {"edges", "corners"};
 
   /** What a solve whose algorithms never read as any piece type's is left calling its turning. */
@@ -55,12 +55,7 @@ public final class BlindStepDetector implements StepDetector {
   /** Pieces an algorithm moves: a three-cycle, a pair flipped or twisted, a parity's two of each. */
   private static final int CYCLE = 3, FLIP = 2, PARITY_CYCLE = 4;
 
-  private static final int[][] PIECES = new int[Cubies.EDGES.length + Cubies.CORNERS.length][];
-
-  static {
-    System.arraycopy(Cubies.EDGES, 0, PIECES, 0, Cubies.EDGES.length);
-    System.arraycopy(Cubies.CORNERS, 0, PIECES, Cubies.EDGES.length, Cubies.CORNERS.length);
-  }
+  private static final int[][] PIECES = Cubies.PIECES;
 
   /** One algorithm, dated where it landed and named for what it put home. */
   private static final class Landing {
@@ -91,12 +86,35 @@ public final class BlindStepDetector implements StepDetector {
 
   private final List<Landing> landings = new ArrayList<>();
 
+  private BlindTargets targets = new BlindTargets(BlindTargets.UNKNOWN_FRAME);
   private String landed; // the state at the last landing, with the drift taken out
   private Long memoMs;
   private Long solvedMs;
   private long lastTimestampMs;
   private boolean parity; // the scramble was an odd permutation, so one algorithm swaps two of each
   private boolean parityFound;
+
+  /**
+   * The whole-cube rotation the solver made picking the cube up, which the gyro already tracks for
+   * every solve — the scramble is turned green in front and a blind solve is turned in whatever
+   * grip the solver memorised in, and nothing rotates it after that.
+   *
+   * <p>Its <em>inverse</em> is the frame: the rotation carries the solver's front onto the face the
+   * cube reports it as, and names have to be spelled the other way round.
+   */
+  public void setPickupRotation(CubeRotation pickup) {
+    setHoldingFrame(pickup == null ? BlindTargets.UNKNOWN_FRAME
+        : FaceletRotations.inverse(FaceletRotations.of(pickup)));
+  }
+
+  /**
+   * The frame the solver is holding the cube in, which is not the one it reports in. Names are
+   * spelled in it and the buffer is found through it; left unknown they fall back to the reported
+   * frame.
+   */
+  void setHoldingFrame(int rotation) {
+    targets = new BlindTargets(rotation);
+  }
 
   @Override
   public void reset(CubeState startState, long startTimestampMs) {
@@ -133,18 +151,23 @@ public final class BlindStepDetector implements StepDetector {
   private void readLanding(String facelets, long timestampMs) {
     int frame = closestFrame(facelets);
     int touched = touched(facelets, frame);
-    List<String>[] gained = gained(facelets, frame);
+    List<Integer>[] gained = gained(facelets, frame);
     boolean parityLanding = parity && !parityFound && touched == PARITY_CYCLE
         && !gained[EDGES].isEmpty() && !gained[CORNERS].isEmpty();
     if (touched != CYCLE && touched != FLIP && !parityLanding) {
       return;
     }
     parityFound |= parityLanding;
-    landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), nameOf(gained)));
-    landed = withoutDrift(facelets, frame);
+    List<Integer> all = new ArrayList<>(gained[EDGES]);
+    all.addAll(gained[CORNERS]);
+    String steady = withoutDrift(facelets, frame);
+    // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
+    String name = targets.name(landed, steady, all, touched == CYCLE);
+    landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name));
+    landed = steady;
   }
 
-  private static int typeOf(List<String>[] gained, boolean parityLanding) {
+  private static int typeOf(List<Integer>[] gained, boolean parityLanding) {
     if (parityLanding) {
       return PARITY_TYPE;
     }
@@ -152,13 +175,6 @@ public final class BlindStepDetector implements StepDetector {
       return EDGES;
     }
     return gained[CORNERS].isEmpty() ? NO_GAIN : CORNERS;
-  }
-
-  /** The pieces put home, by the faces they belong on, so the display can colour them. */
-  private static String nameOf(List<String>[] gained) {
-    List<String> all = new ArrayList<>(gained[EDGES]);
-    all.addAll(gained[CORNERS]);
-    return all.isEmpty() ? UNDO : String.join("+", all);
   }
 
   /** The rotation under which the state differs from the last landing in the fewest pieces. */
@@ -190,11 +206,11 @@ public final class BlindStepDetector implements StepDetector {
 
   /** The pieces home now that were not at the last landing, split by type. */
   @SuppressWarnings("unchecked")
-  private List<String>[] gained(String facelets, int frame) {
-    List<String>[] gained = new List[] {new ArrayList<String>(), new ArrayList<String>()};
+  private List<Integer>[] gained(String facelets, int frame) {
+    List<Integer>[] gained = new List[] {new ArrayList<Integer>(), new ArrayList<Integer>()};
     for (int i = 0; i < PIECES.length; i++) {
       if (Cubies.inPlace(facelets, PIECES[i], frame) && !Cubies.inPlace(landed, PIECES[i])) {
-        gained[i < Cubies.EDGES.length ? EDGES : CORNERS].add(Cubies.nameOf(PIECES[i]));
+        gained[Cubies.isEdge(i) ? EDGES : CORNERS].add(i);
       }
     }
     return gained;
@@ -231,23 +247,39 @@ public final class BlindStepDetector implements StepDetector {
    * piece type, with the parity — when there was one — standing apart wherever it was done.
    *
    * <p>An algorithm that gained nothing belongs to the stretch it interrupted rather than to one of
-   * its own: undoing a mistake is part of solving that piece type, not a piece type of its own.
+   * its own: undoing a mistake is part of solving that piece type, not a piece type of its own. One
+   * that comes before any stretch has begun — a cycle broken into on the very first algorithm, or a
+   * mistake made straight away — belongs to the stretch it <em>precedes</em>, for the same reason.
+   * Left to stand alone it would open the solve with a step that is not a piece type at all.
    */
   private List<Run> runs() {
     List<Run> runs = new ArrayList<>();
+    List<Landing> beforeAnyRun = new ArrayList<>();
     for (Landing landing : landings) {
       String name = landing.type == PARITY_TYPE ? PARITY
           : landing.type == NO_GAIN ? null : TYPE_NAMES[landing.type];
-      Run last = runs.isEmpty() ? null : runs.get(runs.size() - 1);
-      if (name == null && last != null) {
-        last.landings.add(landing); // an undo carries on with whatever was being solved
+      if (name == null) {
+        if (runs.isEmpty()) {
+          beforeAnyRun.add(landing);
+        } else {
+          runs.get(runs.size() - 1).landings.add(landing);
+        }
         continue;
       }
+      Run last = runs.isEmpty() ? null : runs.get(runs.size() - 1);
       if (last == null || !last.name.equals(name)) {
-        last = new Run(name == null ? EXECUTION : name);
+        last = new Run(name);
         runs.add(last);
       }
+      last.landings.addAll(beforeAnyRun); // whatever preceded the first stretch opens it
+      beforeAnyRun.clear();
       last.landings.add(landing);
+    }
+    if (!beforeAnyRun.isEmpty()) {
+      // Nothing was ever put home: turning that reads as no piece type is all this solve has.
+      Run execution = new Run(EXECUTION);
+      execution.landings.addAll(beforeAnyRun);
+      runs.add(execution);
     }
     return runs;
   }

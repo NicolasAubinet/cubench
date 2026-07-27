@@ -47,6 +47,15 @@ public final class RotationTracker {
     frames.add(new Frame(CubeRotation.closest(delta), moveTimestampMs));
   }
 
+  /**
+   * The frame the solve's first move was made in — the rotation the solver made picking the cube up,
+   * since the scramble is turned green in front and the solve in whatever grip they prefer. Null
+   * until a move has been sampled, or when there is no gyro to sample.
+   */
+  public CubeRotation getPickupRotation() {
+    return frames.isEmpty() ? null : frames.get(0).rotation;
+  }
+
   public List<Rotation> getRotations() {
     return getRotations(Collections.<Rotation>emptyList());
   }

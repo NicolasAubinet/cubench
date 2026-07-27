@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -32,6 +33,7 @@ final class FaceletRotations {
 
   private static final int[][] FACELETS = new int[COUNT][];
   private static final int[][] FACE_MAPS = new int[COUNT][];
+  private static final int[] INVERSES = new int[COUNT];
 
   /** Outward direction of each face, in URFDLB order. */
   private static final int[][] NORMALS = {
@@ -57,6 +59,23 @@ final class FaceletRotations {
       }
     }
     IDENTITY = identity;
+    for (int r = 0; r < COUNT; r++) {
+      for (int s = 0; s < COUNT; s++) {
+        if (undoes(r, s)) {
+          INVERSES[r] = s;
+          break;
+        }
+      }
+    }
+  }
+
+  private static boolean undoes(int rotation, int candidate) {
+    for (int facelet = 0; facelet < 54; facelet++) {
+      if (FACELETS[candidate][FACELETS[rotation][facelet]] != facelet) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private FaceletRotations() {
@@ -69,6 +88,25 @@ final class FaceletRotations {
 
   static int face(int rotation, int face) {
     return FACE_MAPS[rotation][face];
+  }
+
+  /** The rotation that undoes this one: how to read a facelet back in the frame it came from. */
+  static int inverse(int rotation) {
+    return INVERSES[rotation];
+  }
+
+  /** The same rotation as the gyro writes it, so a tracked whole-cube turn can be read as a frame. */
+  static int of(CubeRotation rotation) {
+    for (int r = 0; r < COUNT; r++) {
+      boolean same = true;
+      for (int face = 0; face < 6 && same; face++) {
+        same = FACE_MAPS[r][face] == Cubies.FACES.indexOf(rotation.mapFace(Cubies.FACES.charAt(face)));
+      }
+      if (same) {
+        return r;
+      }
+    }
+    return IDENTITY;
   }
 
   /** The rotations that leave the given face where it is — a quarter turn about it, and its powers. */
