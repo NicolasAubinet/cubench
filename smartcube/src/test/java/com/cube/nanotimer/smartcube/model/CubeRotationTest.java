@@ -87,6 +87,21 @@ public class CubeRotationTest {
     }
   }
 
+  /**
+   * The step from one frame to another is in the frame's own axes, so applying it there arrives:
+   * {@code frame.then(step.seenFrom(frame))} is the target, for every pair of the 24.
+   */
+  @Test
+  public void toGivesTheStepThatCarriesOneFrameToAnother() {
+    for (CubeRotation from : CubeRotation.all()) {
+      for (CubeRotation target : CubeRotation.all()) {
+        CubeRotation step = from.to(target);
+        assertEquals(from + " -> " + target, target.getNotation(),
+            from.then(step.seenFrom(from)).getNotation());
+      }
+    }
+  }
+
   /** Face turns leave orientation alone: the capture's R turns drifted under 6 degrees. */
   @Test
   public void smallDriftIsNotARotation() {
