@@ -166,6 +166,7 @@ public class ServiceProviderImpl implements ServiceProvider {
   private SolveAverages updateTime(SolveTime solveTime) {
     ContentValues values = new ContentValues();
     values.put(DB.COL_TIMEHISTORY_TIME, solveTime.getTime());
+    values.put(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF, solveTime.getTimeBeforeDnf()); // written even when null: undoing a DNF clears it
     values.put(DB.COL_TIMEHISTORY_PLUSTWO, solveTime.isPlusTwo() ? 1 : 0);
     values.put(DB.COL_TIMEHISTORY_COMMENT, (solveTime.getComment() != null) ? solveTime.getComment() : "");
     long previousBestTime = getBestTimeBefore(solveTime);
@@ -326,6 +327,7 @@ public class ServiceProviderImpl implements ServiceProvider {
 
     ContentValues values = new ContentValues();
     values.put(DB.COL_TIMEHISTORY_TIME, solveTime.getTime());
+    values.put(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF, solveTime.getTimeBeforeDnf()); // an imported DNF can already carry one
     values.put(DB.COL_TIMEHISTORY_SOLVETYPE_ID, solveTime.getSolveType().getId());
     values.put(DB.COL_TIMEHISTORY_SCRAMBLE, solveTime.getScramble());
     values.put(DB.COL_TIMEHISTORY_COMMENT, solveTime.getComment());
@@ -583,6 +585,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
 
@@ -620,6 +623,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         st.setComment(cursor.getString(4));
         st.setPlusTwo(cursor.getInt(5) == 1, false);
         st.setPb(cursor.getInt(6) == 1);
+        st.setTimeBeforeDnf(getCursorLong(cursor, 10));
         st.setSolveType(solveType);
         if (solveType.hasSteps()) {
           List<Long> stepTimes = getSolveTimeSteps(st.getId());
@@ -1077,6 +1081,7 @@ public class ServiceProviderImpl implements ServiceProvider {
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
+      q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
       q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
       q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
       q.append("   ON ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
@@ -1102,6 +1107,7 @@ public class ServiceProviderImpl implements ServiceProvider {
           result.setSmartcubeMethod(CubeMethod.fromCode(cursor.getString(12)));
           result.setSmartcubeMoves(cursor.getString(13));
           result.setSmartcubeStoppedStep(cursor.isNull(14) ? null : cursor.getInt(14));
+          result.setTimeBeforeDnf(getCursorLong(cursor, 15));
           curResults.add(result);
         }
         cursor.close();
@@ -1142,6 +1148,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_BLIND);
     q.append("     , ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_SCRAMBLE_TYPE);
     q.append("     , ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_CUBETYPE_ID);
+    q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
     q.append("   ON ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
@@ -1159,6 +1166,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         st.setComment(cursor.getString(4));
         st.setPlusTwo(cursor.getInt(5) == 1, false);
         st.setPb(cursor.getInt(6) == 1);
+        st.setTimeBeforeDnf(getCursorLong(cursor, 12));
 
         int cubeTypeId = cursor.getInt(11);
         CubeType cubeType = CubeType.getCubeType(cubeTypeId);

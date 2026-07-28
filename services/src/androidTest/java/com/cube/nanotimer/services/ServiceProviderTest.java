@@ -1,7 +1,10 @@
 package com.cube.nanotimer.services;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.test.AndroidTestCase;
+import org.junit.After;
+import org.junit.Before;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.FrequencyData;
 import com.cube.nanotimer.vo.SolveAverages;
@@ -33,10 +36,13 @@ public class ServiceProviderTest extends AndroidTestCase {
   private SolveType solveTypeBlind;
   private int timeCpt = 0;
 
+  @Before
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    service = ServiceImpl.getInstance(getContext(), "testDB");
+    // AndroidJUnit4 drives this class, so the JUnit3 context AndroidTestCase would inject never
+    // arrives; the runner's own application context stands in for it.
+    service = ServiceImpl.getInstance(ApplicationProvider.getApplicationContext(), "testDB");
     provider = new ServiceProviderImpl(service.getWritableDatabase());
 
     List<CubeType> cubeTypes = provider.getCubeTypes(true);
@@ -65,6 +71,7 @@ public class ServiceProviderTest extends AndroidTestCase {
     }
   }
 
+  @After
   @Override
   public void tearDown() throws Exception {
     super.tearDown();
@@ -989,6 +996,71 @@ public class ServiceProviderTest extends AndroidTestCase {
         assertFalse(solveTimes.get(i).isPb());
       }
     }
+  }
+
+  // The time a DNF replaced must survive the write and come back on every read path, or the
+  // undo silently stops working after the history is reloaded.
+  @Test
+  public void testUndoADnfThroughThePersistenceLayer() {
+    provider.deleteHistory();
+    SolveTime st = saveTime(12345).getSolveTime();
+
+    st.setDNF();
+    st = provider.saveTime(st).getSolveTime();
+    assertTrue(st.isDNF());
+
+    // Re-read rather than trust the object we just handed in.
+    SolveTime reloaded = provider.getSolveTime(st.getId());
+    assertTrue(reloaded.isDNF());
+    assertTrue(reloaded.canUndoDNF());
+    assertEquals(Long.valueOf(12345), reloaded.getTimeBeforeDnf());
+    assertEquals(Long.valueOf(12345), getFirstTime().getTimeBeforeDnf()); // and through the history
+
+    reloaded.undoDNF();
+    provider.saveTime(reloaded);
+    SolveTime restored = provider.getSolveTime(reloaded.getId());
+    assertFalse(restored.isDNF());
+    assertEquals(12345, restored.getTime());
+    assertNull(restored.getTimeBeforeDnf()); // cleared, so a second undo has nothing to work from
+    assertFalse(restored.canUndoDNF());
+  }
+
+  // A DNF that never had a time — entered by hand, or migrated from a DB that overwrote it —
+  // stays a DNF: there is nothing to put back.
+  @Test
+  public void testADnfWithNoRecordedTimeStaysADnf() {
+    provider.deleteHistory();
+    SolveTime st = saveTime(-1).getSolveTime();
+
+    SolveTime reloaded = provider.getSolveTime(st.getId());
+    assertTrue(reloaded.isDNF());
+    assertFalse(reloaded.canUndoDNF());
+    assertNull(reloaded.getTimeBeforeDnf());
+
+    reloaded.undoDNF();
+    provider.saveTime(reloaded);
+    assertTrue(provider.getSolveTime(reloaded.getId()).isDNF());
+  }
+
+  // The averages must follow the time both ways: a DNF drops out of the mean, and undoing it
+  // puts the solve back in. This is what makes the negative sentinel worth keeping in the column.
+  @Test
+  public void testUndoingADnfPutsTheSolveBackIntoTheAverages() {
+    provider.deleteHistory();
+    saveTime(1000);
+    saveTime(2000);
+    SolveTime st = saveTime(3000).getSolveTime();
+    Long meanWithTheSolve = provider.getSolveAverages(solveType1).getMeanOf3();
+    assertEquals(Long.valueOf(2000), meanWithTheSolve);
+
+    st.setDNF();
+    st = provider.saveTime(st).getSolveTime();
+    assertEquals(Long.valueOf(-1), provider.getSolveAverages(solveType1).getMeanOf3()); // a DNF mean
+
+    st = provider.getSolveTime(st.getId());
+    st.undoDNF();
+    provider.saveTime(st);
+    assertEquals(meanWithTheSolve, provider.getSolveAverages(solveType1).getMeanOf3());
   }
 
   private SolveAverages saveTimes(long time, int count) {

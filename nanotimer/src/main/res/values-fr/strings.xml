@@ -58,6 +58,7 @@
   <string name="plus_two">+2</string>
   <string name="add_penalty">Ajouter une pénalité</string>
   <string name="DNF">DNF</string>
+  <string name="undo_dnf">Annuler le DNF</string>
   <string name="delete">Supprimer</string>
   <string name="session_details">Détails de session</string>
   <string name="new_session">Nouvelle session</string>
@@ -251,6 +252,7 @@
   <string name="error_in_line">Erreur dans la ligne %1$d</string>
   <string name="import_invalid_columns_count">Nombre de colonnes invalide. Vérifiez le fichier d\'import ou essayez de ré-exporter.</string>
   <string name="import_invalid_smartcube_data">Données de cube connecté invalides : %s</string>
+  <string name="import_invalid_time_before_dnf">Temps à restaurer invalide : %s</string>
   <string name="import_error">Erreur d\'importation</string>
   <string name="could_not_convert_time">Impossible de convertir le temps \'%1$s\'</string>
   <string name="could_not_convert_date">Impossible to convertir la date \'%1$s\'</string>

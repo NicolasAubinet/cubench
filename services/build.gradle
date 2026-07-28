@@ -16,6 +16,14 @@ android {
         }
     }
     namespace 'com.cube.nanotimer.services'
+    useLibrary 'android.test.base' // ServiceProviderTest extends AndroidTestCase
+}
+
+// Only on the test classpath: the instrumented dependencies drag in the jdk7/jdk8 stdlib splits,
+// whose classes kotlin-stdlib has carried itself since 1.8, and dexing rejects the duplicates.
+configurations.matching { it.name.toLowerCase().contains('androidtest') }.configureEach {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
 
 dependencies {
@@ -23,6 +31,7 @@ dependencies {
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     implementation 'androidx.appcompat:appcompat:1.7.1'
     testImplementation 'junit:junit:4.13.2'
     implementation project(':datamodel')

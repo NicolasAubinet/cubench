@@ -62,6 +62,7 @@
   <string name="plus_two">+2</string>
   <string name="add_penalty">Add penalty</string>
   <string name="DNF">DNF</string>
+  <string name="undo_dnf">Undo DNF</string>
   <string name="delete">Delete</string>
   <string name="session_details">Session details</string>
   <string name="new_session">New session</string>
@@ -255,6 +256,7 @@
   <string name="error_in_line">Error in line %1$d</string>
   <string name="import_invalid_columns_count">Invalid columns count. Please check the import file format or try re-exporting.</string>
   <string name="import_invalid_smartcube_data">Invalid smart cube data: %s</string>
+  <string name="import_invalid_time_before_dnf">Invalid time to restore: %s</string>
   <string name="import_error">Import error</string>
   <string name="could_not_convert_time">Could not convert time \'%1$s\'</string>
   <string name="could_not_convert_date">Could not convert date \'%1$s\'</string>

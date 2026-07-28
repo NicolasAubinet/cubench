@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 20;
+  public static final int DB_VERSION = 21;
 
   public static final String COL_ID = "id";
 
@@ -22,6 +22,7 @@ public class DB {
   public static final String TABLE_TIMEHISTORY = "timehistory";
   public static final String COL_TIMEHISTORY_TIMESTAMP = "timestamp";
   public static final String COL_TIMEHISTORY_TIME = "time";
+  public static final String COL_TIMEHISTORY_TIME_BEFORE_DNF = "time_before_dnf"; // the time a DNF replaced, null when there is none to restore
   public static final String COL_TIMEHISTORY_SCRAMBLE = "scramble";
   public static final String COL_TIMEHISTORY_COMMENT = "comment";
   public static final String COL_TIMEHISTORY_AVG5 = "avg5"; // column also used for "Mean of 3" for blind solve types

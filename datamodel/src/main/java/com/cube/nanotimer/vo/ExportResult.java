@@ -10,6 +10,7 @@ public class ExportResult {
   private int solveTypeId;
   private String solveTypeName;
   private long time;
+  private Long timeBeforeDnf;
   private long timestamp;
   private boolean plusTwo;
   private boolean blindType;
@@ -61,6 +62,15 @@ public class ExportResult {
 
   public void setTime(long time) {
     this.time = time;
+  }
+
+  /** The time a DNF replaced, null when there is none to restore (see {@link SolveTime}). */
+  public Long getTimeBeforeDnf() {
+    return timeBeforeDnf;
+  }
+
+  public void setTimeBeforeDnf(Long timeBeforeDnf) {
+    this.timeBeforeDnf = timeBeforeDnf;
   }
 
   public long getTimestamp() {

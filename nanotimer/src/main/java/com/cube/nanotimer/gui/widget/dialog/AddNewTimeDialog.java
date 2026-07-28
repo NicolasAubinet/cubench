@@ -70,7 +70,7 @@ public class AddNewTimeDialog extends ConfirmDialog {
 
     long time;
     if (cbDNF.isChecked()) {
-      time = -1;
+      time = SolveTime.DNF_TIME; // no time was ever entered, so there is none to restore later
     }
     else {
       time = minutes * 60000;

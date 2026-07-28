@@ -111,6 +111,7 @@ public class CSVDataReader extends AsyncTask<InputStream, Void, ImportTimesData>
         exportResult.isPlusTwo(), exportResult.getScramble(), solveType);
       solveTime.setStepsTimes(exportResult.getStepsTimes());
       solveTime.setComment(exportResult.getComment());
+      solveTime.setTimeBeforeDnf(exportResult.getTimeBeforeDnf()); // stays null for a file that predates the column
       solveTime.setSmartcubeMethod(exportResult.getSmartcubeMethod());
       solveTime.setSmartcubeMoves(exportResult.getSmartcubeMoves());
       solveTime.setSmartcubeSteps(exportResult.getSmartcubeSteps());

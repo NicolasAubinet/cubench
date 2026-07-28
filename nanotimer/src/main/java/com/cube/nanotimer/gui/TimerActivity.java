@@ -560,6 +560,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
+    // The label says which way the tap goes; a DNF with no time to restore keeps offering "DNF".
+    menu.findItem(R.id.itDNF).setTitle(
+        (lastSolveTime != null && lastSolveTime.canUndoDNF()) ? R.string.undo_dnf : R.string.DNF);
     menu.findItem(R.id.itSessionDetails).setVisible(showMenu && hasNewSession);
     menu.findItem(R.id.itCrossSolver).setVisible(showMenu && isCrossSolverAvailable());
     menu.findItem(R.id.itScrambleView).setVisible(showMenu && ScrambleViewNotation.getRenderKey(cubeType) != null);
@@ -719,13 +722,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         case R.id.itDNF:
           if (lastSolveTime == null) {
             DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
-          } else if (!lastSolveTime.isDNF()) {
-            lastSolveTime.setTime(-1);
-            App.INSTANCE.getService().saveTime(lastSolveTime, solveAverageCallback);
-            tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(lastSolveTime.getTime()));
-            setTimerTextColor(lastSolveTime.getTime());
-            cubeSession.setLastAsDNF();
-            refreshSessionFields();
+          } else {
+            toggleLastSolveDNF();
           }
           break;
         case R.id.itDelete:
@@ -781,12 +779,39 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return super.onOptionsItemSelected(item);
   }
 
+  /** Every assignment goes through here so the DNF item's label follows the solve it acts on. */
+  private void setLastSolveTime(SolveTime solveTime) {
+    lastSolveTime = solveTime;
+    supportInvalidateOptionsMenu();
+  }
+
+  /**
+   * Marks the last solve as a DNF, or takes that DNF back when it still knows the time it
+   * replaced. A DNF with nothing to restore is left alone: the tap does nothing.
+   */
+  private void toggleLastSolveDNF() {
+    if (lastSolveTime.canUndoDNF()) {
+      lastSolveTime.undoDNF();
+      cubeSession.setLastTime(lastSolveTime.getTime());
+    } else if (!lastSolveTime.isDNF()) {
+      lastSolveTime.setDNF();
+      cubeSession.setLastAsDNF();
+    } else {
+      return;
+    }
+    App.INSTANCE.getService().saveTime(lastSolveTime, solveAverageCallback);
+    tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(lastSolveTime.getTime()));
+    setTimerTextColor(lastSolveTime.getTime());
+    refreshSessionFields();
+    supportInvalidateOptionsMenu(); // the menu item now offers the other direction
+  }
+
   @Override
   public void onTimeChanged(final SolveTime solveTime) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        lastSolveTime = solveTime;
+        setLastSolveTime(solveTime);
         tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
         setTimerTextColor(solveTime.getTime());
         cubeSession.setLastTime(solveTime.getTime());
@@ -1159,7 +1184,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         timer.cancel();
         timer.purge();
       }
-      lastSolveTime = null;
+      setLastSolveTime(null);
       lastSolveSteps = Collections.emptyList();
       lastSolveMoves = "";
       lastSolveMethod = null;
@@ -1870,7 +1895,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           prevSolveAverages = solveAverages;
           solveAverages = data;
           if (data.getSolveTime() != null) { // a plain averages refresh carries no solve; keep the one we have
-            lastSolveTime = data.getSolveTime();
+            setLastSolveTime(data.getSolveTime());
             if (discardWhenSaved) { // the solve the user already chose to discard has now been saved
               discardWhenSaved = false;
               deleteLastSolve();

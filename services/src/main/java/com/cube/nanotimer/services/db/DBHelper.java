@@ -56,6 +56,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
         DB.COL_TIMEHISTORY_TIMESTAMP + " INTEGER, " +
         DB.COL_TIMEHISTORY_TIME + " INTEGER, " +
+        DB.COL_TIMEHISTORY_TIME_BEFORE_DNF + " INTEGER, " +
         DB.COL_TIMEHISTORY_SCRAMBLE + " TEXT, " +
         DB.COL_TIMEHISTORY_COMMENT + " TEXT, " +
         DB.COL_TIMEHISTORY_AVG5 + " INTEGER, " +
@@ -249,6 +250,12 @@ public class DBHelper extends SQLiteOpenHelper {
       db.execSQL("UPDATE " + DB.TABLE_SOLVETYPE
           + " SET " + DB.COL_SOLVETYPE_QUICK_ACTION + " = " + TimerQuickAction.DNF.getId()
           + " WHERE " + DB.COL_SOLVETYPE_BLIND + " = 1");
+    }
+
+    if (oldVersion < 21) {
+      // Remember the time a DNF replaced, so the DNF can be taken back.
+      db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN "
+          + DB.COL_TIMEHISTORY_TIME_BEFORE_DNF + " INTEGER");
     }
 
 //    progressDialog.hide();

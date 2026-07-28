@@ -99,6 +99,14 @@ public enum FormatterService {
     return null;
   }
 
+  /**
+   * Parses a plain solve time ("12.345", "1:05.120"), null when the string is not one. Unlike
+   * {@link #unformatSolveTime} it knows no localized sentinel, and so needs no Android context.
+   */
+  public Long unformatPlainSolveTime(String solveTime) {
+    return (solveTime == null) ? null : parseSolveTime(solveTime);
+  }
+
   private Long parseSolveTime(String solveTime) {
     String[] split = solveTime.split(":");
     if (split.length > 2) {

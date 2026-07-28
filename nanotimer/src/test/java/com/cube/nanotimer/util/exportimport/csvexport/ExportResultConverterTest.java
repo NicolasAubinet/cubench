@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,7 +71,7 @@ public class ExportResultConverterTest {
     String scramble = "(1,0) / (-3,0) / (3,3) /";
     ExportResult result = new ExportResult("Square-1", "Default", 5000, 1700000000000L, false, false, null, scramble, null);
     String csvLine = ExportResultConverter.toCSVLine(result, false);
-    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(csvLine, 10);
+    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(csvLine, ExportCSVGenerator.MAX_FIELDS_COUNT);
     Assert.assertEquals(scramble, fields.get(8)); // index 8 = scramble field
   }
 
@@ -83,7 +84,7 @@ public class ExportResultConverterTest {
     String csvLine = ExportResultConverter.toCSVLine(result, false);
     List<String> fields = ExportResultConverter.getFieldsFromCSVLine(csvLine, ExportCSVGenerator.MAX_FIELDS_COUNT);
     Assert.assertEquals(ExportCSVGenerator.MAX_FIELDS_COUNT, fields.size());
-    Assert.assertEquals(comment, ExportResultConverter.decodeComment(fields.get(9)));
+    Assert.assertEquals(comment, ExportResultConverter.decodeComment(fields.get(ExportCSVGenerator.MAX_FIELDS_COUNT - 1)));
   }
 
   // A spread of awkward comments must survive the encode/decode round-trip byte-for-byte.
@@ -134,7 +135,7 @@ public class ExportResultConverterTest {
     }
   }
 
-  // ---- Smart cube section (14-column format) -------------------------------------------------
+  // ---- Smart cube section (15-column format) -------------------------------------------------
 
   private static final String MOVES = "F@0 F@126 U@564 R'@1833 y@8778 z2@8778 D@9135";
   private static final String STEPS = "0:cross:0:2449 1:f2l:3279:15495 1.0:pair_fl:1294:2158"
@@ -149,7 +150,7 @@ public class ExportResultConverterTest {
     return result;
   }
 
-  // The line layout is the contract: 14 columns, smart cube fields in 9-12, comment last.
+  // The line layout is the contract: 15 columns, smart cube fields in 9-12, comment last.
   @Test
   public void testSmartcubeFieldsSitBeforeTheComment() {
     String csvLine = ExportResultConverter.toCSVLine(cubeResult("a comment"), true);
@@ -159,27 +160,73 @@ public class ExportResultConverterTest {
     Assert.assertEquals(MOVES, fields.get(10));
     Assert.assertEquals(STEPS, fields.get(11));
     Assert.assertEquals("2", fields.get(12));
-    Assert.assertEquals("a comment", fields.get(13));
+    Assert.assertEquals("", fields.get(13)); // no DNF, so no time to restore
+    Assert.assertEquals("a comment", fields.get(14));
+  }
+
+  // The headers are composed from column blocks rather than written out, so this is where the
+  // file format is actually pinned down: every layout the app has ever written, spelled out in
+  // full, oldest first. A header is what tells an importer where each field sits, so changing one
+  // of these strings changes the format — if this test needs editing, that is the warning.
+  @Test
+  public void testEveryKnownHeaderIsExactlyWhatWasWritten() {
+    Assert.assertEquals(Arrays.asList(
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scramble",
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble",
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,comment",
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,smartcubeMethod,smartcubeMoves,smartcubeSteps,smartcubeStopped,comment",
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,timeBeforeDnf,comment",
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,smartcubeMethod,smartcubeMoves,smartcubeSteps,smartcubeStopped,timeBeforeDnf,comment"),
+        ExportCSVGenerator.KNOWN_HEADER_LINES);
+
+    // The two the app writes today, and the one directly behind them, are the layouts the parser
+    // branches on by name.
+    Assert.assertEquals("cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,timeBeforeDnf,comment",
+        ExportCSVGenerator.CSV_HEADER_LINE);
+    Assert.assertEquals("cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,smartcubeMethod,smartcubeMoves,smartcubeSteps,smartcubeStopped,timeBeforeDnf,comment",
+        ExportCSVGenerator.SMARTCUBE_CSV_HEADER_LINE);
+    Assert.assertEquals("cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,smartcubeMethod,smartcubeMoves,smartcubeSteps,smartcubeStopped,comment",
+        ExportCSVGenerator.LEGACY_SMARTCUBE_CSV_HEADER_LINE);
   }
 
   // The header must announce as many columns as the lines carry, or the comment fold desyncs.
+  // Every layout the app ever wrote must still be recognized, each at its own column count.
   @Test
   public void testHeaderColumnCountMatchesTheLineLayout() {
-    Assert.assertEquals(ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT,
-        ExportCSVGenerator.SMARTCUBE_CSV_HEADER_LINE.split(",").length);
-    Assert.assertEquals(ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT,
-        ExportCSVGenerator.getMaxFieldsCount(ExportCSVGenerator.SMARTCUBE_CSV_HEADER_LINE));
-    Assert.assertEquals(ExportCSVGenerator.MAX_FIELDS_COUNT,
-        ExportCSVGenerator.CSV_HEADER_LINE.split(",").length);
-    Assert.assertEquals(ExportCSVGenerator.MAX_FIELDS_COUNT,
-        ExportCSVGenerator.getMaxFieldsCount(ExportCSVGenerator.CSV_HEADER_LINE));
-    Assert.assertTrue(ExportCSVGenerator.isHeaderLegit(ExportCSVGenerator.CSV_HEADER_LINE));
-    for (String oldHeader : ExportCSVGenerator.OLD_CSV_HEADER_LINES) {
-      Assert.assertEquals(ExportCSVGenerator.MAX_FIELDS_COUNT,
-          ExportCSVGenerator.getMaxFieldsCount(oldHeader));
-      Assert.assertTrue(ExportCSVGenerator.isHeaderLegit(oldHeader)); // old exports must stay importable
+    assertHeaderDeclares(ExportCSVGenerator.SMARTCUBE_CSV_HEADER_LINE, ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT);
+    assertHeaderDeclares(ExportCSVGenerator.CSV_HEADER_LINE, ExportCSVGenerator.MAX_FIELDS_COUNT);
+    assertHeaderDeclares(ExportCSVGenerator.LEGACY_SMARTCUBE_CSV_HEADER_LINE, ExportCSVGenerator.LEGACY_SMARTCUBE_MAX_FIELDS_COUNT);
+    for (String knownHeader : ExportCSVGenerator.KNOWN_HEADER_LINES) {
+      Assert.assertTrue(knownHeader, ExportCSVGenerator.isHeaderLegit(knownHeader)); // old exports stay importable
+      Assert.assertTrue(knownHeader, ExportCSVGenerator.isHeaderLegit(knownHeader.toUpperCase()));
     }
-    Assert.assertTrue(ExportCSVGenerator.isHeaderLegit(ExportCSVGenerator.SMARTCUBE_CSV_HEADER_LINE));
+    Assert.assertFalse(ExportCSVGenerator.isHeaderLegit("cubetype,solvetype,time"));
+
+    // The two layouts that predate the comment column wrote fewer columns, but their files have
+    // always been read with the comment folding at the tenth — that must not shift under them.
+    Assert.assertEquals(ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT,
+        ExportCSVGenerator.getMaxFieldsCount("cubetype,solvetype,time,date,steps,plustwo,blind,scramble"));
+    Assert.assertEquals(ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT,
+        ExportCSVGenerator.getMaxFieldsCount("cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble"));
+    Assert.assertEquals(ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT,
+        ExportCSVGenerator.getMaxFieldsCount("cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,comment"));
+  }
+
+  // Each layout must be distinct, or getMaxFieldsCount answers for the wrong one.
+  @Test
+  public void testNoTwoLayoutsShareAColumnCount() {
+    List<Integer> counts = new ArrayList<Integer>();
+    for (String knownHeader : ExportCSVGenerator.KNOWN_HEADER_LINES) {
+      Integer count = knownHeader.split(",").length;
+      Assert.assertFalse("duplicate column count: " + count, counts.contains(count));
+      counts.add(count);
+    }
+  }
+
+  private void assertHeaderDeclares(String header, int fieldsCount) {
+    Assert.assertEquals(header, fieldsCount, header.split(",").length);
+    Assert.assertEquals(header, fieldsCount, ExportCSVGenerator.getMaxFieldsCount(header));
+    Assert.assertTrue(header, ExportCSVGenerator.isHeaderLegit(header));
   }
 
   // Full field-level round-trip: export the record, split it back, re-apply the smart cube
@@ -196,7 +243,7 @@ public class ExportResultConverterTest {
     Assert.assertEquals(MOVES, reimported.getSmartcubeMoves());
     Assert.assertEquals(STEPS, SolveStepsFormat.format(reimported.getSmartcubeSteps()));
     Assert.assertEquals(Integer.valueOf(2), reimported.getSmartcubeStoppedStep());
-    Assert.assertEquals("PB, with a comma", ExportResultConverter.decodeComment(fields.get(13)));
+    Assert.assertEquals("PB, with a comma", ExportResultConverter.decodeComment(fields.get(14)));
   }
 
   // A solve no cube drove exports empty smart cube columns, and importing them stays null.
@@ -213,7 +260,7 @@ public class ExportResultConverterTest {
     Assert.assertNull(reimported.getSmartcubeMoves());
     Assert.assertNull(reimported.getSmartcubeSteps());
     Assert.assertNull(reimported.getSmartcubeStoppedStep());
-    Assert.assertEquals("note", fields.get(13));
+    Assert.assertEquals("note", fields.get(14));
   }
 
   // Moves without a recognized method are a legitimate record (the solve matched no method) and
@@ -277,21 +324,21 @@ public class ExportResultConverterTest {
     Assert.assertEquals(STEPS, fields.get(11));
   }
 
-  // Old 10-column lines keep parsing under their own header's fold count — the smart cube
-  // columns must not have shifted anything for them.
+  // A line without the smart cube columns keeps its own layout, comment last.
   @Test
-  public void testLegacyLinesKeepTheirLayout() {
+  public void testNonCubeLinesKeepTheirLayout() {
     ExportResult result = new ExportResult("3x3x3", "Default", 5000, 1700000000000L, false, false, null, "R U R'", "old, style");
-    String legacyLine = ExportResultConverter.toCSVLine(result, false);
-    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(legacyLine, ExportCSVGenerator.MAX_FIELDS_COUNT);
+    String plainLine = ExportResultConverter.toCSVLine(result, false);
+    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(plainLine, ExportCSVGenerator.MAX_FIELDS_COUNT);
     Assert.assertEquals(ExportCSVGenerator.MAX_FIELDS_COUNT, fields.size());
-    Assert.assertEquals("old, style", ExportResultConverter.decodeComment(fields.get(9)));
+    Assert.assertEquals("", fields.get(9)); // no DNF, so no time to restore
+    Assert.assertEquals("old, style", ExportResultConverter.decodeComment(fields.get(10)));
   }
 
-  // A history no cube ever touched must export exactly the previous format: legacy header,
-  // 10-column lines. Non-smart-cube users see no change at all.
+  // A history no cube ever touched must stay on the short header: the smart cube columns are
+  // only written when something fills them.
   @Test
-  public void testExportWithoutSmartcubeDataKeepsTheLegacyFormat() {
+  public void testExportWithoutSmartcubeDataKeepsTheShortFormat() {
     ExportCSVGenerator generator = new ExportCSVGenerator(Arrays.asList(
         new ExportResult("3x3x3", "Default", 5000, 1700000000000L, false, false, null, "R U R'", "note, with comma"),
         new ExportResult("3x3x3", "Default", 6000, 1700000001000L, true, false, null, "F2 U", null)));
@@ -342,7 +389,7 @@ public class ExportResultConverterTest {
   public void testOldestEightColumnLinesStillImport() throws Exception {
     String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
     ExportResult result = ExportResultConverter.fromCSVLine(null,
-        "3x3x3,Default,12.345," + date + ",,n,n,R U R' F2", ExportCSVGenerator.MAX_FIELDS_COUNT);
+        "3x3x3,Default,12.345," + date + ",,n,n,R U R' F2", ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT);
     Assert.assertEquals("3x3x3", result.getCubeTypeName());
     Assert.assertEquals("Default", result.getSolveTypeName());
     Assert.assertEquals(12345, result.getTime());
@@ -357,7 +404,7 @@ public class ExportResultConverterTest {
   public void testNineColumnLinesStillImport() throws Exception {
     String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
     ExportResult result = ExportResultConverter.fromCSVLine(null,
-        "3x3x3,OH,1:05.120," + date + ",,y,n,,\"R U R'\"", ExportCSVGenerator.MAX_FIELDS_COUNT);
+        "3x3x3,OH,1:05.120," + date + ",,y,n,,\"R U R'\"", ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT);
     Assert.assertEquals(65120, result.getTime());
     Assert.assertTrue(result.isPlusTwo());
     Assert.assertEquals("R U R'", result.getScramble());
@@ -370,7 +417,7 @@ public class ExportResultConverterTest {
     String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
     ExportResult result = ExportResultConverter.fromCSVLine(null,
         "3x3x3,Steps,10.000," + date + ",\"cross=2.000|rest=8.000\",n,y,,\"R U R'\",a note, with commas",
-        ExportCSVGenerator.MAX_FIELDS_COUNT);
+        ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT);
     Assert.assertTrue(result.isBlindType());
     Assert.assertEquals(2, result.getStepsNames().length);
     Assert.assertEquals("cross", result.getStepsNames()[0]);
@@ -380,10 +427,10 @@ public class ExportResultConverterTest {
     assertNoSmartcubeData(result);
   }
 
-  // The definitive backward-compatibility proof: a line built exactly as the pre-update app
-  // exported it (no smart cube columns) imports identically through the new parser.
+  // A solve no cube drove must survive a full write/read round-trip through the short format,
+  // awkward scramble and comment included.
   @Test
-  public void testPreUpdateExportImportsIdentically() throws Exception {
+  public void testNonCubeExportImportsIdentically() throws Exception {
     ExportResult original = new ExportResult("Square-1", "Default", 65120, 1700000000000L, true, false,
         null, "(1,0) / (-3,0) /", "note, with \"quote\"\nand a newline");
     ExportResult imported = ExportResultConverter.fromCSVLine(null,
@@ -437,5 +484,248 @@ public class ExportResultConverterTest {
       Assert.fail("Expected rejection of method=" + method + " moves=" + moves + " steps=" + steps + " stopped=" + stopped);
     } catch (IllegalArgumentException expected) {
     }
+  }
+
+  // ---- The time a DNF replaced ---------------------------------------------------------------
+  // A DNF now carries the time it took the place of, so the mark can be undone after a round-trip
+  // through a file. The time column still reads "DNF"; this is the extra column beside it.
+
+  // A DNF's own time column reads "DNF", a localized string the writer needs Android for, so
+  // these exercise the pre-DNF column on solves whose time column is plain. Its own value is
+  // always a real time, which is exactly why it stays context-free.
+  private static ExportResult dnfResult() {
+    return new ExportResult("3x3x3", "Default", -1, 1700000000000L, false, false, null, "R U R'", null);
+  }
+
+  private static String timeBeforeDnfFieldOf(ExportResult result, boolean withSmartcube) {
+    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(
+        ExportResultConverter.toCSVLine(result, withSmartcube),
+        withSmartcube ? ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT : ExportCSVGenerator.MAX_FIELDS_COUNT);
+    return fields.get(withSmartcube ? 13 : 9);
+  }
+
+  // The column sits between the last smart cube field and the comment, in both layouts.
+  @Test
+  public void testTimeBeforeDnfSitsBeforeTheComment() {
+    ExportResult plain = new ExportResult("3x3x3", "Default", 5000, 1700000000000L, false, false, null, "R U R'", "note");
+    plain.setTimeBeforeDnf(12345L);
+    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(
+        ExportResultConverter.toCSVLine(plain, false), ExportCSVGenerator.MAX_FIELDS_COUNT);
+    Assert.assertEquals(ExportCSVGenerator.MAX_FIELDS_COUNT, fields.size());
+    Assert.assertEquals("12.345", fields.get(9));
+    Assert.assertEquals("note", fields.get(10));
+
+    ExportResult withCube = cubeResult("note");
+    withCube.setTimeBeforeDnf(12345L);
+    fields = ExportResultConverter.getFieldsFromCSVLine(
+        ExportResultConverter.toCSVLine(withCube, true), ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT);
+    Assert.assertEquals(ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT, fields.size());
+    Assert.assertEquals("12.345", fields.get(13));
+    Assert.assertEquals("note", fields.get(14));
+  }
+
+  // Full millisecond precision, same as the time column: restoring a rounded time would quietly
+  // change the solve.
+  @Test
+  public void testTimeBeforeDnfKeepsMillisecondPrecision() {
+    ExportResult result = new ExportResult("3x3x3", "Default", 5000, 0, false, false, null, null, null);
+    result.setTimeBeforeDnf(2005L); // displays as "2.01" with high precision off
+    Assert.assertEquals("2.005", timeBeforeDnfFieldOf(result, false));
+
+    ExportResult reimported = dnfResult();
+    ExportResultConverter.applyTimeBeforeDnf(reimported, "2.005");
+    Assert.assertEquals(Long.valueOf(2005), reimported.getTimeBeforeDnf());
+  }
+
+  // Written by the exporter, read back by the importer, in both layouts.
+  @Test
+  public void testTimeBeforeDnfRoundTrips() {
+    for (boolean withSmartcube : new boolean[] { false, true }) {
+      ExportResult original = withSmartcube
+          ? cubeResult("note")
+          : new ExportResult("3x3x3", "Default", 5000, 1700000000000L, false, false, null, "R U R'", "note");
+      original.setTimeBeforeDnf(65120L);
+
+      ExportResult reimported = dnfResult();
+      ExportResultConverter.applyTimeBeforeDnf(reimported, timeBeforeDnfFieldOf(original, withSmartcube));
+      Assert.assertEquals(original.getTimeBeforeDnf(), reimported.getTimeBeforeDnf());
+    }
+  }
+
+  // A minute-long time uses the same "1:05.120" shape as the time column.
+  @Test
+  public void testTimeBeforeDnfHandlesMinutes() {
+    ExportResult result = dnfResult();
+    ExportResultConverter.applyTimeBeforeDnf(result, "1:05.120");
+    Assert.assertEquals(Long.valueOf(65120), result.getTimeBeforeDnf());
+  }
+
+  // The ordinary case: no DNF, or a DNF with nothing to restore. The empty field stays null.
+  @Test
+  public void testAnEmptyTimeBeforeDnfStaysNull() {
+    ExportResult solved = new ExportResult("3x3x3", "Default", 5000, 1700000000000L, false, false, null, null, null);
+    ExportResultConverter.applyTimeBeforeDnf(solved, "");
+    Assert.assertNull(solved.getTimeBeforeDnf());
+
+    ExportResult legacyDnf = new ExportResult("3x3x3", "Default", -1, 1700000000000L, false, false, null, null, null);
+    ExportResultConverter.applyTimeBeforeDnf(legacyDnf, "  ");
+    Assert.assertNull(legacyDnf.getTimeBeforeDnf()); // a DNF from before the column was kept
+  }
+
+  @Test
+  public void testWhitespaceAroundTimeBeforeDnfIsTolerated() {
+    ExportResult result = dnfResult();
+    ExportResultConverter.applyTimeBeforeDnf(result, " 12.345 ");
+    Assert.assertEquals(Long.valueOf(12345), result.getTimeBeforeDnf());
+  }
+
+  // The cross-field invariants: only a DNF can hold a time to restore, and only a real one.
+  @Test
+  public void testCorruptTimeBeforeDnfIsRejected() {
+    assertTimeBeforeDnfRejected(5000, "12.345");  // a time to restore on a solve that finished
+    assertTimeBeforeDnfRejected(-1, "hello");     // not a time at all
+    assertTimeBeforeDnfRejected(-1, "0.000");     // nothing worth restoring
+    assertTimeBeforeDnfRejected(-1, "-1");        // the sentinel itself
+    assertTimeBeforeDnfRejected(-1, "12345");     // no decimals: not the exported shape
+  }
+
+  private void assertTimeBeforeDnfRejected(long time, String timeBeforeDnf) {
+    ExportResult result = new ExportResult("3x3x3", "Default", time, 1700000000000L, false, false, null, null, null);
+    try {
+      ExportResultConverter.applyTimeBeforeDnf(result, timeBeforeDnf);
+      Assert.fail("Expected rejection of time=" + time + " timeBeforeDnf=" + timeBeforeDnf);
+    } catch (IllegalArgumentException expected) {
+    }
+  }
+
+  // A file written before the column existed has no field to read it from, and its DNFs simply
+  // have nothing to restore — importing one must not invent a time or shift the comment.
+  @Test
+  public void testFilesPredatingTheColumnImportWithNothingToRestore() throws Exception {
+    String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
+    ExportResult result = ExportResultConverter.fromCSVLine(null,
+        "3x3x3,Default,12.345," + date + ",,n,n,,\"R U R'\",a note, with commas",
+        ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT);
+    Assert.assertNull(result.getTimeBeforeDnf());
+    Assert.assertEquals("a note, with commas", result.getComment());
+
+    // And the same for the 14-column smart cube layout, whose comment also sits one field earlier.
+    result = ExportResultConverter.fromCSVLine(null,
+        "3x3x3,Default,29.376," + date + ",,n,n,,\"R U R'\",CFOP," + MOVES + "," + STEPS + ",2,a note, with commas",
+        ExportCSVGenerator.LEGACY_SMARTCUBE_MAX_FIELDS_COUNT);
+    Assert.assertNull(result.getTimeBeforeDnf());
+    Assert.assertEquals("a note, with commas", result.getComment());
+    Assert.assertEquals(CubeMethod.CFOP, result.getSmartcubeMethod());
+    Assert.assertEquals(Integer.valueOf(2), result.getSmartcubeStoppedStep());
+  }
+
+  // Every layout the app has written, read back through the current parser under its own header.
+  // This is the back-compat matrix: a file exported by any past version must still import, with
+  // every field landing where that version put it.
+  @Test
+  public void testEveryPastLayoutStillImports() throws Exception {
+    String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
+    String common = "3x3x3,Default,12.345," + date + ",,n,n";
+
+    // 8 columns: no scramble type, no comment.
+    ExportResult r = ExportResultConverter.fromCSVLine(null, common + ",\"R U R'\"",
+        ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT);
+    assertCommonFields(r);
+    Assert.assertNull(r.getScrambleTypeName());
+    Assert.assertNull(r.getComment());
+
+    // 9 columns: the scramble type arrives.
+    r = ExportResultConverter.fromCSVLine(null, common + ",last_layer,\"R U R'\"",
+        ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT);
+    assertCommonFields(r);
+    Assert.assertEquals("last_layer", r.getScrambleTypeName());
+    Assert.assertNull(r.getComment());
+
+    // 10 columns: the comment arrives, and takes the commas with it.
+    r = ExportResultConverter.fromCSVLine(null, common + ",,\"R U R'\",a note, with commas",
+        ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT);
+    assertCommonFields(r);
+    Assert.assertEquals("a note, with commas", r.getComment());
+    assertNoSmartcubeData(r);
+
+    // 14 columns: the smart cube block arrives, comment still last.
+    r = ExportResultConverter.fromCSVLine(null,
+        common + ",,\"R U R'\",CFOP," + MOVES + "," + STEPS + ",2,a note, with commas",
+        ExportCSVGenerator.LEGACY_SMARTCUBE_MAX_FIELDS_COUNT);
+    assertCommonFields(r);
+    Assert.assertEquals("a note, with commas", r.getComment());
+    Assert.assertEquals(CubeMethod.CFOP, r.getSmartcubeMethod());
+    Assert.assertEquals(MOVES, r.getSmartcubeMoves());
+    Assert.assertEquals(STEPS, SolveStepsFormat.format(r.getSmartcubeSteps()));
+    Assert.assertEquals(Integer.valueOf(2), r.getSmartcubeStoppedStep());
+    Assert.assertNull(r.getTimeBeforeDnf()); // the column did not exist yet
+  }
+
+  private void assertCommonFields(ExportResult result) {
+    Assert.assertEquals("3x3x3", result.getCubeTypeName());
+    Assert.assertEquals("Default", result.getSolveTypeName());
+    Assert.assertEquals(12345, result.getTime());
+    Assert.assertEquals(1700000000000L, result.getTimestamp());
+    Assert.assertEquals("R U R'", result.getScramble());
+    Assert.assertFalse(result.isPlusTwo());
+    Assert.assertFalse(result.isBlindType());
+  }
+
+  // A line must carry exactly the columns the layout its header announced calls for. Accepting a
+  // short one and reading it as whichever layout happens to have that many columns would shift
+  // every field past the missing one: a 15-column line short by one looks exactly like the
+  // 14-column layout, and its pre-DNF time would be imported as the solve's comment.
+  @Test
+  public void testALineMustMatchTheLayoutItsHeaderAnnounced() {
+    // The three oldest layouts share a fold count, so there the line's own count picks between them.
+    for (int fieldsCount = 8; fieldsCount <= ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT; fieldsCount++) {
+      Assert.assertTrue("legacy layout with " + fieldsCount + " fields",
+          ExportResultConverter.isFieldsCountValid(fieldsCount, ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT));
+    }
+    Assert.assertFalse(ExportResultConverter.isFieldsCountValid(7, ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT));
+
+    // Every layout since is exact — one field short is damage, not an older layout.
+    for (int maxFieldsCount : new int[] { ExportCSVGenerator.MAX_FIELDS_COUNT,
+        ExportCSVGenerator.LEGACY_SMARTCUBE_MAX_FIELDS_COUNT, ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT }) {
+      Assert.assertTrue(ExportResultConverter.isFieldsCountValid(maxFieldsCount, maxFieldsCount));
+      Assert.assertFalse(ExportResultConverter.isFieldsCountValid(maxFieldsCount - 1, maxFieldsCount));
+      Assert.assertFalse(ExportResultConverter.isFieldsCountValid(ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT, maxFieldsCount));
+    }
+    // The case that motivates the rule: 14 fields is a whole valid layout, but not under a 15 header.
+    Assert.assertFalse(ExportResultConverter.isFieldsCountValid(
+        ExportCSVGenerator.LEGACY_SMARTCUBE_MAX_FIELDS_COUNT, ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT));
+  }
+
+  // And the parser applies that rule rather than reading the damaged line anyway.
+  @Test
+  public void testTheParserRejectsALineShortOfItsLayout() {
+    String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
+    String shortLine = "3x3x3,Default,12.345," + date + ",,n,n,,\"R U R'\",CFOP,"
+        + MOVES + "," + STEPS + ",2,a note"; // 14 fields, under the 15-column header
+    try {
+      ExportResultConverter.fromCSVLine(null, shortLine, ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT);
+      Assert.fail("Expected a line short of its layout to be rejected");
+    } catch (Exception expected) {
+      // CSVFormatException in the app; wording it needs the context this test does not have.
+    }
+  }
+
+  // The new column must not disturb the fields around it: a full line still parses end to end.
+  @Test
+  public void testTheNewColumnLeavesEveryOtherFieldWhereItWas() throws Exception {
+    String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
+    // The time column says 29.376, so this solve is not a DNF and its pre-DNF field is empty —
+    // the layout is what is under test, and everything after the new column must still line up.
+    ExportResult result = ExportResultConverter.fromCSVLine(null,
+        "3x3x3,Default,29.376," + date + ",,n,n,,\"R U R'\",CFOP," + MOVES + "," + STEPS + ",2,,a note, with commas",
+        ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT);
+    Assert.assertEquals(29376, result.getTime());
+    Assert.assertEquals("R U R'", result.getScramble());
+    Assert.assertEquals(CubeMethod.CFOP, result.getSmartcubeMethod());
+    Assert.assertEquals(MOVES, result.getSmartcubeMoves());
+    Assert.assertEquals(STEPS, SolveStepsFormat.format(result.getSmartcubeSteps()));
+    Assert.assertEquals(Integer.valueOf(2), result.getSmartcubeStoppedStep());
+    Assert.assertEquals("a note, with commas", result.getComment());
+    Assert.assertNull(result.getTimeBeforeDnf());
   }
 }

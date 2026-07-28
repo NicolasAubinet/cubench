@@ -753,6 +753,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           public void run() {
             solveTime.setTime(data.getTime());
             solveTime.setPb(data.isPb());
+            solveTime.setTimeBeforeDnf(data.getTimeBeforeDnf()); // or reopening the sheet offers to undo a DNF that is gone
             historyListAdapter.notifyDataSetChanged();
           }
         });
