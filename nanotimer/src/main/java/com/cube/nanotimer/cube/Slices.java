@@ -15,8 +15,15 @@ import java.util.Map;
  */
 final class Slices {
 
-  /** A slice's two turns land this close together; further apart is a deliberate pair. */
-  static final long WINDOW_MS = 70;
+  /**
+   * How far apart a slice's two turns may land. Measured over nine captured solves: a slow L4E
+   * reports them up to 233 ms apart, and at the old 70 ms a third of them were never even looked at,
+   * printing as the {@code R L'} the cube reported. Widening cannot fold a deliberate pair, since
+   * the gyro still has to have seen the core rock; what it does risk is a whole-cube rotation
+   * between the two turns matching that rock exactly, which is why this stops at the gap two halves
+   * of an {@code M2} are allowed rather than going wider.
+   */
+  static final long WINDOW_MS = 250;
 
   private static final Map<String, String[]> BY_PAIR = byPair();
 

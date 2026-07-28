@@ -64,16 +64,17 @@ public final class SliceSpinDetector {
       if (slice == null || turns.get(i + 1).atMs - turns.get(i).atMs > Slices.WINDOW_MS) {
         continue;
       }
+      long pairFromMs = turns.get(i).atMs;
       if (isDoubleSlice(i, slice, orientations)) {
-        spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1));
-        spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 3).atMs + 1));
+        spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1, pairFromMs));
+        spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 3).atMs + 1, pairFromMs));
         i += 3;
         continue;
       }
       if (!rocked(turns.get(i), turns.get(i + 1), slice[1], orientations)) {
         continue;
       }
-      spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1));
+      spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1, pairFromMs));
       i++; // both faces are spoken for: the second cannot also open a pair
     }
     return spins;

@@ -18,8 +18,8 @@ import java.util.List;
  * sometimes.
  *
  * <p>Slices are {@link SliceSpinDetector}'s, since the core rocks over ~150 ms and every reading
- * taken at a move inside an LSE is mid-rock. Its spins are folded in here, and only what they do
- * <em>not</em> account for is the solver's own turning.
+ * taken at a move inside an LSE is mid-rock. Its spins are folded in here, and no frame is read at
+ * a move inside one of its pairs — what is left is the solver's own turning.
  */
 public final class RotationTracker {
 
@@ -78,15 +78,28 @@ public final class RotationTracker {
         CubeRotation spun = CubeRotation.byNotation(spin.getNotation());
         written = written.then(spun.seenFrom(written)); // a rock turns the frame the last one left
       }
-      if (!frame.rotation.getNotation().equals(written.getNotation())) {
-        rotations.add(new Rotation(written.to(frame.rotation).getNotation(), frame.timestampMs));
-        written = frame.rotation;
+      if (frame.rotation.getNotation().equals(written.getNotation())
+          || insideSlicePair(coreSpins, nextSpin, frame.timestampMs)) {
+        continue;
       }
+      rotations.add(new Rotation(written.to(frame.rotation).getNotation(), frame.timestampMs));
+      written = frame.rotation;
     }
     for (; nextSpin < coreSpins.size(); nextSpin++) {
       rotations.add(coreSpins.get(nextSpin)); // a solve ending on a slice: its rock has no move after
     }
     return rotations;
+  }
+
+  /**
+   * Whether a move sits inside a slice pair whose rock has not been taken yet: the reading there is
+   * mid-rock by construction, so no frame is read at it and the pair's turning is left to
+   * {@link SliceSpinDetector}, which measures it from settled readings either side.
+   */
+  private static boolean insideSlicePair(List<Rotation> coreSpins, int nextSpin,
+      long moveTimestampMs) {
+    return nextSpin < coreSpins.size()
+        && coreSpins.get(nextSpin).getPairFromMs() <= moveTimestampMs;
   }
 
   public void reset() {
@@ -111,10 +124,17 @@ public final class RotationTracker {
 
     private final String notation;
     private final long timestampMs;
+    private final long pairFromMs;
 
     Rotation(String notation, long timestampMs) {
+      this(notation, timestampMs, Long.MAX_VALUE);
+    }
+
+    /** A core spin, which also knows where the pair it was measured across began. */
+    Rotation(String notation, long timestampMs, long pairFromMs) {
       this.notation = notation;
       this.timestampMs = timestampMs;
+      this.pairFromMs = pairFromMs;
     }
 
     /** One or two tokens, e.g. {@code "y"} or {@code "y x'"}. */
@@ -124,6 +144,11 @@ public final class RotationTracker {
 
     public long getTimestampMs() {
       return timestampMs;
+    }
+
+    /** The first face of the pair this spin was measured across; never set on a regrip. */
+    long getPairFromMs() {
+      return pairFromMs;
     }
   }
 }

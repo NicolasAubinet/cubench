@@ -183,6 +183,45 @@ public class RotationTrackerTest {
     assertEquals(Arrays.asList("x@1031", "x@1200"), tokens(tracker.getRotations(spins("x", 1031))));
   }
 
+  /**
+   * Both faces of a pair are reported while the core is still turning, so the frame read at either
+   * is part-rocked. Writing that would print a slice as {@code x M' x'} — and split the pair, which
+   * makes the display fold give up and show the raw {@code L R'} instead of the {@code M}.
+   */
+  @Test
+  public void aFrameReadMidRockIsNotTheSolverRegripping() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(grip, 1000); // the pair's first face
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1030); // its second, the rock already read
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1200);
+    assertEquals(Arrays.asList("x@1031"), tokens(tracker.getRotations(spins("x", 1031, 1000))));
+  }
+
+  /** Even a frame the rock cannot explain is mid-rock, not a regrip: writing it splits the pair. */
+  @Test
+  public void aFrameTheRockCannotExplainIsStillNotARegripInsideThePair() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(grip, 1000); // the pair's first face
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-180)), 1030); // its second, read a half turn out
+    assertEquals(Arrays.asList("x@1031"), tokens(tracker.getRotations(spins("x", 1031, 1000))));
+  }
+
+  /** Only the pair is forgiven: the solver's own turning, once past it, is written down. */
+  @Test
+  public void aRegripAfterASliceIsStillRecorded() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(grip, 1000);
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1030); // the pair, mid-rock: nothing written
+    CubeOrientation regripped =
+        turnedFrom(turnedFrom(grip, aboutCubeR(-90)), aboutCubeU(-90)); // and then a real y
+    tracker.onMove(regripped, 1400);
+    assertEquals(Arrays.asList("x@1031", "y@1400"),
+        tokens(tracker.getRotations(spins("x", 1031, 1000))));
+  }
+
   /** A Roux solve usually ends on an M2: the last rock has no move after it to be read against. */
   @Test
   public void aSpinAfterTheLastMoveIsStillKept() {
@@ -213,6 +252,13 @@ public class RotationTrackerTest {
   private static List<RotationTracker.Rotation> spins(String notation, long timestampMs) {
     return new ArrayList<RotationTracker.Rotation>(
         Arrays.asList(new RotationTracker.Rotation(notation, timestampMs)));
+  }
+
+  /** A spin that knows the pair it was measured across, as {@link SliceSpinDetector} reports it. */
+  private static List<RotationTracker.Rotation> spins(String notation, long timestampMs,
+      long pairFromMs) {
+    return new ArrayList<RotationTracker.Rotation>(
+        Arrays.asList(new RotationTracker.Rotation(notation, timestampMs, pairFromMs)));
   }
 
   private static List<String> tokens(List<RotationTracker.Rotation> rotations) {
