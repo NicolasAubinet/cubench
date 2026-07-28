@@ -240,6 +240,72 @@ public class RecordedBlindSolveTest {
     }
   }
 
+  /**
+   * The buffer is the piece every algorithm moves — that is what being the buffer means — so an
+   * algorithm that left the piece the frame calls the buffer alone says the frame is wrong. It holds
+   * across every recorded solve, and where it does not the names must fall back to the cube's own
+   * spelling rather than being read confidently off a grip the solve never had.
+   *
+   * <p>Worth a test of its own because a wrong frame does not look wrong. It names a target that is
+   * really the buffer, drops a real target as if it were, and leaves behind names that read like
+   * plausible algorithms nobody did.
+   */
+  @Test
+  public void doesNotBelieveAFrameTheBufferDoesNotHoldUp() {
+    for (String[] solve : RecordedBlindSolve.ALL) {
+      RecordedBlindSolveTest none = new RecordedBlindSolveTest();
+      none.replay(solve[0], solve[1], Long.MAX_VALUE, Integer.valueOf(BlindTargets.UNKNOWN_FRAME));
+      List<String> reported = namesOf(none.detector);
+
+      RecordedBlindSolveTest pickup = new RecordedBlindSolveTest();
+      pickup.replay(solve[0], solve[1], Long.MAX_VALUE);
+      assertTrue("the pick-up frame is the one these solves were held in",
+          pickup.detector.isFramed());
+      assertFalse("and it is being read through", reported.equals(namesOf(pickup.detector)));
+
+      int disowned = 0;
+      for (int frame = 0; frame < 24; frame++) {
+        RecordedBlindSolveTest held = new RecordedBlindSolveTest();
+        held.replay(solve[0], solve[1], Long.MAX_VALUE, Integer.valueOf(frame));
+        if (!held.detector.isFramed()) {
+          disowned++;
+          assertEquals("a frame the buffer disowns is no frame at all",
+              reported, namesOf(held.detector));
+        }
+      }
+      assertTrue("a wrong grip should be caught by the buffer", disowned > 0);
+    }
+  }
+
+  /**
+   * Solve 190 is the one the rule was written for: the app read its grip a quarter turn out, and
+   * every name it printed was read through that. Two of them were impossible on their face — an
+   * algorithm shot at one target, and a corner named twice over as though its two stickers were two
+   * targets when the piece was the buffer itself. The buffer says so without being told: not one of
+   * the eleven algorithms moved the piece that frame calls the buffer's.
+   */
+  @Test
+  public void catchesTheFrameThatNamedTheBufferAsATarget() {
+    replay(RecordedBlindSolve.SCRAMBLE_190, RecordedBlindSolve.MOVES_190, Long.MAX_VALUE,
+        Integer.valueOf(17)); // the frame the app derived from a first move taken mid-slice
+
+    assertFalse(detector.isFramed());
+    for (String name : namesOf(detector)) {
+      assertFalse("the buffer must never be named twice as its own two targets: " + name,
+          name.equals("UBR-BUR"));
+    }
+  }
+
+  private static List<String> namesOf(BlindStepDetector detector) {
+    List<String> names = new ArrayList<String>();
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        names.add(detector.subStepName(step, part));
+      }
+    }
+    return names;
+  }
+
   /** Every algorithm of a solve, memorisation aside, in the order they were executed. */
   private static List<String> algorithmsOf(String scramble, String moves) {
     RecordedBlindSolveTest solve = new RecordedBlindSolveTest();

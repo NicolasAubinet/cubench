@@ -122,6 +122,16 @@ final class BlindTargets {
     return names.isEmpty() ? join(spellAll(plainly)) : join(names);
   }
 
+  /**
+   * Whether this algorithm moved the piece the frame says the buffer is. A shot starts at the
+   * buffer, so one that left it alone was not shot from where the frame claims — and every name read
+   * off that frame is then a confident guess at the wrong piece.
+   */
+  boolean movesBuffer(List<Integer> moved) {
+    return frame == UNKNOWN_FRAME
+        || moved.contains(Cubies.slotOf(FaceletRotations.apply(frame, bufferFor(moved))));
+  }
+
   /** Whose buffer to follow: the type the algorithm worked on is the type it was shot from. */
   private static int bufferFor(List<Integer> moved) {
     return Cubies.isEdge(moved.get(0)) ? EDGE_BUFFER : CORNER_BUFFER;
