@@ -21,38 +21,83 @@ import java.util.List;
  * somewhere — that facelet is the second.</b> Read from where the buffer's piece ended up rather
  * than from where it belongs, so a cycle break stays readable: there it is shot into a piece it does
  * not belong to, and only the second target comes home.
+ *
+ * <p><b>An algorithm that turned its pieces where they stand has no shot and no targets</b> — a flip
+ * or a twist is memorised as the pieces themselves, so it is said as all of them, buffer included,
+ * and marked for what was done to them. The mark is a code the display translates, since the pieces
+ * are spelled the same in every language and only the word for the turn is not.
  */
 final class BlindTargets {
 
   /** No frame established yet: names are spelled as the cube reports them, and nothing is dropped. */
   static final int UNKNOWN_FRAME = -1;
 
-  private static final String UNDO = "undo";
+  /** What a name is prefixed with when the algorithm turned its pieces where they stand. */
+  private static final String FLIP = "flip:", TWIST = "twist:";
 
   /** The buffers, as facelets of the frame the solver holds: the U sticker of UF and of UFR. */
   private static final int EDGE_BUFFER = 7, CORNER_BUFFER = 8;
 
+  /** The order a piece's faces are said in, in pairs: U/D first, then F/B, then R/L. */
+  private static final String SAID_ORDER = "UDFBRL";
+
   private final int frame;
+  private final int holding; // the same, usable when no frame is known: nothing is carried anywhere
   private final int reading; // the frame taken back off, to read a reported facelet as a held one
 
   BlindTargets(int frame) {
     this.frame = frame;
-    this.reading = frame == UNKNOWN_FRAME ? FaceletRotations.IDENTITY
-        : FaceletRotations.inverse(frame);
+    this.holding = frame == UNKNOWN_FRAME ? FaceletRotations.IDENTITY : frame;
+    this.reading = FaceletRotations.inverse(holding);
   }
 
   /**
-   * The name of one algorithm, from the drift-free states either side of it and the slots it put
-   * home. Only a shot — pieces cycled round rather than turned where they stand — has a buffer.
+   * The name of an algorithm that turned its pieces where they stand: a flip or a twist, said as
+   * every piece it turned. Nothing was shot anywhere, so there is no target order to read and no
+   * buffer to leave out — a buffer turned in place is as much of a memo item as any other piece.
+   *
+   * <p>A twist has a direction, and the state before the algorithm carries it: a corner is said from
+   * the face its U or D sticker was <em>sitting</em> on, so a corner belonging at UBL with white
+   * turned onto its left reads {@code LUB}. A flip has no direction to tell, so an edge is said as
+   * it stands.
    */
-  String name(String before, String after, List<Integer> gained, boolean shot) {
-    if (gained.isEmpty()) {
-      return UNDO; // it put nothing home: the solver spotted a mistake and took it back
+  String turnedName(String before, List<Integer> turned) {
+    boolean edges = Cubies.isEdge(turned.get(0));
+    List<String> names = new ArrayList<String>(turned.size());
+    for (int slot : turned) {
+      names.add(edges ? spell(slot) : spellFrom(twistedOnto(before, slot)));
     }
+    return (edges ? FLIP : TWIST) + join(names);
+  }
+
+  /** The facelet a twisted piece's U or D sticker is sitting on, which is what says which way. */
+  private int twistedOnto(String before, int slot) {
+    for (int held : Cubies.PIECES[heldSlotOf(slot)]) {
+      if (SAID_ORDER.indexOf(Cubies.SOLVED.charAt(held)) > 1) {
+        continue; // not the U or D sticker: it says nothing about which way the piece was turned
+      }
+      char sticker = Cubies.SOLVED.charAt(FaceletRotations.apply(holding, held));
+      for (int facelet : Cubies.PIECES[slot]) {
+        if (before.charAt(facelet) == sticker) {
+          return facelet;
+        }
+      }
+    }
+    return Cubies.PIECES[slot][0];
+  }
+
+  /**
+   * The name of one algorithm, from the drift-free states either side of it, the pieces it moved and
+   * the ones it put home. Only a shot — pieces cycled round rather than turned where they stand —
+   * has a buffer.
+   */
+  String name(String before, String after, List<Integer> moved, List<Integer> gained, boolean shot) {
+    // What to fall back on: what it put home, or what it merely moved when it put nothing home.
+    List<Integer> plainly = gained.isEmpty() ? moved : gained;
     if (frame == UNKNOWN_FRAME || !shot) {
-      return join(spellAll(gained));
+      return join(spellAll(plainly));
     }
-    int buffer = FaceletRotations.apply(frame, bufferFor(gained));
+    int buffer = FaceletRotations.apply(frame, bufferFor(moved));
     int first = shotTo(before, after, buffer);
     int second = first < 0 ? -1 : homeOfStickerAt(before, first);
     int bufferSlot = Cubies.slotOf(buffer);
@@ -74,12 +119,12 @@ final class BlindTargets {
         names.add(spell(slot));
       }
     }
-    return names.isEmpty() ? join(spellAll(gained)) : join(names);
+    return names.isEmpty() ? join(spellAll(plainly)) : join(names);
   }
 
   /** Whose buffer to follow: the type the algorithm worked on is the type it was shot from. */
-  private static int bufferFor(List<Integer> gained) {
-    return Cubies.isEdge(gained.get(0)) ? EDGE_BUFFER : CORNER_BUFFER;
+  private static int bufferFor(List<Integer> moved) {
+    return Cubies.isEdge(moved.get(0)) ? EDGE_BUFFER : CORNER_BUFFER;
   }
 
   /** The facelet the buffer's sticker landed on: on a cycle break that is not where it belongs. */
@@ -125,8 +170,12 @@ final class BlindTargets {
 
   /** The piece by the faces it belongs on, said in the order they are usually said. */
   private String spell(int slot) {
-    int held = Cubies.slotOf(FaceletRotations.apply(reading, Cubies.PIECES[slot][0]));
-    return letters(Cubies.PIECES[held], 0);
+    return letters(Cubies.PIECES[heldSlotOf(slot)], 0);
+  }
+
+  /** The same piece as the solver names it: where the slot the cube reports sits in their frame. */
+  private int heldSlotOf(int slot) {
+    return Cubies.slotOf(FaceletRotations.apply(reading, Cubies.PIECES[slot][0]));
   }
 
   /** The piece from this facelet round: the sticker shot to first, then the rest as it turns. */
@@ -142,10 +191,23 @@ final class BlindTargets {
     return letters(piece, start);
   }
 
+  /**
+   * A piece said from one of its stickers: that sticker's face first — which is the whole of what a
+   * target carries beyond the piece — and the rest in the order a piece is said in, U/D then F/B
+   * then R/L. That order is the standard one and is not the order the facelets are stored in, which
+   * runs round the piece: the corner at U, B and R is {@code UBR}, and shot to its B sticker it is
+   * {@code BUR} rather than the {@code BRU} that going round it gives.
+   */
   private static String letters(int[] piece, int start) {
     StringBuilder name = new StringBuilder(piece.length);
-    for (int i = 0; i < piece.length; i++) {
-      name.append(Cubies.SOLVED.charAt(piece[(start + i) % piece.length]));
+    name.append(Cubies.SOLVED.charAt(piece[start]));
+    for (int axis = 0; axis < SAID_ORDER.length() / 2; axis++) {
+      for (int i = 0; i < piece.length; i++) {
+        char letter = Cubies.SOLVED.charAt(piece[i]);
+        if (i != start && SAID_ORDER.indexOf(letter) / 2 == axis) {
+          name.append(letter);
+        }
+      }
     }
     return name.toString();
   }
@@ -154,7 +216,7 @@ final class BlindTargets {
     StringBuilder joined = new StringBuilder();
     for (String name : names) {
       if (joined.length() > 0) {
-        joined.append('+');
+        joined.append('-');
       }
       joined.append(name);
     }

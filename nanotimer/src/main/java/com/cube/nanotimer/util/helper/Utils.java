@@ -28,6 +28,7 @@ public class Utils {
   public static final char[] FORBIDDEN_NAME_CHARACTERS = new char[] { '"', ',', ';', '|', '=' };
 
   private static final String PAIR_CODE_PREFIX = "pair_";
+  private static final String FLIP_CODE_PREFIX = "flip:", TWIST_CODE_PREFIX = "twist:";
 
   public static final String LANGUAGE_PREFS_NAME = "language";
   public static final String LANGUAGE_PREF_KEY = "picked";
@@ -147,8 +148,32 @@ public class Utils {
   /** Localized name of a smart cube breakdown step code; position numbers repeated parts (the
    * F2L pairs), 1-based, and is ignored by the codes that do not carry a number. */
   public static String toSmartCubeStepLocalizedName(Context context, String code, int position) {
+    String turn = toSmartCubeTurnedName(context, code);
+    if (turn != null) {
+      return turn;
+    }
     int resId = getStringIdentifier(context, "smartcube_step_" + toSmartCubeStepBaseCode(code));
     return resId == 0 ? code : context.getString(resId, position + 1);
+  }
+
+  /**
+   * A blind algorithm that turned its pieces where they stand rather than shooting them anywhere
+   * ("flip:UF-UL"), said as the pieces plus what was done to them — otherwise null. The pieces are
+   * the code's own and are never translated; only the word for the turn is.
+   */
+  private static String toSmartCubeTurnedName(Context context, String code) {
+    if (code == null) {
+      return null;
+    }
+    if (code.startsWith(FLIP_CODE_PREFIX)) {
+      return context.getString(R.string.smartcube_step_flip,
+          code.substring(FLIP_CODE_PREFIX.length()));
+    }
+    if (code.startsWith(TWIST_CODE_PREFIX)) {
+      return context.getString(R.string.smartcube_step_twist,
+          code.substring(TWIST_CODE_PREFIX.length()));
+    }
+    return null;
   }
 
   /** An F2L pair is stored per slot ("pair_rf"); they all share the one "pair" name. */

@@ -36,6 +36,18 @@ import java.util.List;
  * makes it invisible, and then the state it is compared against is one the solve has abandoned — on
  * the recorded solve that left the whole rest of it unread. What the algorithm was worth is a
  * question for its net effect afterwards, not for whether it happened.
+ *
+ * <p><b>An algorithm is a flip or a twist when its net effect leaves every piece it touched in the
+ * slot that piece belongs to</b> — turned where it stands rather than cycled anywhere. Read off the
+ * effect rather than off how many pieces moved, which is what a real solve demanded: two flips and a
+ * twist all came out as commutators, and a three-corner twist moves three pieces exactly as a
+ * commutator does. The buffer is named among them, since nothing was shot and a buffer turned in
+ * place is a memo item like any other.
+ *
+ * <p><b>It is read across algorithms too.</b> A flip is often executed as two commutators, and the
+ * first of them can only take its pieces apart — so it gains nothing, and only the pair turns
+ * anything. A landing that gained nothing therefore joins the one after it when the two together
+ * turn pieces where they stand, and the flip reads as the one memo item it was.
  */
 public final class BlindStepDetector implements StepDetector {
 
@@ -47,6 +59,7 @@ public final class BlindStepDetector implements StepDetector {
 
   private static final String MEMO = "memo";
   private static final String PARITY = "parity";
+  private static final String UNDO = "undo";
   private static final String[] TYPE_NAMES = {"edges", "corners"};
 
   /** What a solve whose algorithms never read as any piece type's is left calling its turning. */
@@ -62,11 +75,13 @@ public final class BlindStepDetector implements StepDetector {
     final long timestampMs;
     final int type;
     final String name;
+    final String before;
 
-    Landing(long timestampMs, int type, String name) {
+    Landing(long timestampMs, int type, String name, String before) {
       this.timestampMs = timestampMs;
       this.type = type;
       this.name = name;
+      this.before = before;
     }
   }
 
@@ -161,10 +176,75 @@ public final class BlindStepDetector implements StepDetector {
     List<Integer> all = new ArrayList<>(gained[EDGES]);
     all.addAll(gained[CORNERS]);
     String steady = withoutDrift(facelets, frame);
-    // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
-    String name = targets.name(landed, steady, all, touched == CYCLE);
-    landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name));
+    if (!readOrientation(steady, timestampMs) && !readUndo(steady, timestampMs)) {
+      // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
+      String name = targets.name(landed, steady, moved(landed, steady), all, touched == CYCLE);
+      landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed));
+    }
     landed = steady;
+  }
+
+  /**
+   * A flip or a twist, if that is what landed here — on its own, or together with the algorithms
+   * before it that gained nothing, which is how a flip done as two commutators reads: each half
+   * takes its pieces apart, and only the pair puts them back turned.
+   */
+  private boolean readOrientation(String steady, long timestampMs) {
+    String from = landed;
+    for (int joined = 0; ; joined++) {
+      List<Integer> turned = turnedInPlace(from, steady);
+      if (turned != null && !turned.isEmpty()) {
+        for (int i = 0; i < joined; i++) {
+          landings.remove(landings.size() - 1); // the halves are the one algorithm they compose
+        }
+        int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
+        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from));
+        return true;
+      }
+      int previous = landings.size() - 1 - joined;
+      if (previous < 0 || landings.get(previous).type != NO_GAIN) {
+        return false; // one that put something home is an algorithm of its own, never half a turn
+      }
+      from = landings.get(previous).before;
+    }
+  }
+
+  /** An algorithm that puts the cube back where the one before it found it: a mistake taken back. */
+  private boolean readUndo(String steady, long timestampMs) {
+    if (landings.isEmpty() || !steady.equals(landings.get(landings.size() - 1).before)) {
+      return false;
+    }
+    landings.add(new Landing(timestampMs, NO_GAIN, UNDO, landed));
+    return true;
+  }
+
+  /**
+   * The pieces the two states differ in, when every one of them sits in the slot it belongs to on
+   * both sides — turned where it stands rather than cycled anywhere. Null if any of them moved.
+   */
+  private static List<Integer> turnedInPlace(String before, String after) {
+    List<Integer> turned = new ArrayList<>();
+    for (int slot : moved(before, after)) {
+      if (Cubies.homeSlotOf(before, slot) != slot || Cubies.homeSlotOf(after, slot) != slot) {
+        return null;
+      }
+      turned.add(slot);
+    }
+    return turned;
+  }
+
+  /** The pieces that read differently either side of an algorithm, however they differ. */
+  private static List<Integer> moved(String before, String after) {
+    List<Integer> moved = new ArrayList<>();
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      for (int facelet : PIECES[slot]) {
+        if (before.charAt(facelet) != after.charAt(facelet)) {
+          moved.add(slot);
+          break;
+        }
+      }
+    }
+    return moved;
   }
 
   private static int typeOf(List<Integer>[] gained, boolean parityLanding) {

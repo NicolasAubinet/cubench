@@ -46,10 +46,10 @@ public class RecordedBlindSolveTest {
     assertEquals(0, detector.subStepCount(0));
     assertEquals(6, detector.subStepCount(1));
     assertEquals(4, detector.subStepCount(2));
-    assertEquals("DR+LU", detector.subStepName(1, 0));
-    // A cycle's last algorithm puts home its two targets and the buffer with them; the buffer is
-    // where the cycle started, so it is not one of the pieces the algorithm was for.
-    assertEquals("UFL+ULB", detector.subStepName(2, 3));
+    assertEquals("DR-LU", detector.subStepName(1, 0));
+    // Three corners turned where they stand, the buffer among them: a twist moving as many pieces
+    // as a commutator, and read as one by what it left rather than by how many it touched.
+    assertEquals("twist:LUF-BUL-FUR", detector.subStepName(2, 3));
     // The corners end where the cube came out, not where they first happened to line up.
     assertEquals(SOLVED_AT_MS, (long) detector.getStepTimestampMs(2));
   }
@@ -85,17 +85,21 @@ public class RecordedBlindSolveTest {
     assertEquals(6, detector.subStepCount(1));
     assertEquals(4, detector.subStepCount(2));
     // Flipped and twisted where they stand: nothing was shot anywhere, so the buffer being among
-    // them is the algorithm's doing and it is named.
-    assertEquals("UF+BL", detector.subStepName(1, 5)); // the two edges flipped in place
-    assertEquals("URF+DBL", detector.subStepName(2, 3)); // the two corners twisted
+    // them is the algorithm's doing and it is named, and the name says what was done to them.
+    assertEquals("flip:UF-BL", detector.subStepName(1, 5)); // the two edges flipped in place
+    assertEquals("twist:RUF-LDB", detector.subStepName(2, 3)); // the two corners twisted
   }
 
   /**
    * Solve 165 is the awkward one: an odd scramble, so it ends on a parity — and part way through the
-   * edges the solver spotted a mistake, undid the algorithm and did another. An undo is an algorithm
-   * like any other and belongs to the piece type it interrupted; what it was worth is nothing, which
-   * is what naming it says. Demanding that an algorithm make progress leaves it unread, and the
-   * state everything after is compared against is then one the solve has abandoned.
+   * edges the solver spotted a mistake and took the algorithm back. An undo is an algorithm like any
+   * other and belongs to the piece type it interrupted; what it was worth is nothing, which is what
+   * naming it says. Demanding that an algorithm make progress leaves it unread, and the state
+   * everything after is compared against is then one the solve has abandoned.
+   *
+   * <p>The undo is the algorithm that <em>returns</em> the cube to where the one before it started,
+   * not the one that gained nothing — those are two different algorithms, and the one that gained
+   * nothing was still shot at two targets, which is what it is named for.
    */
   @Test
   public void readsAParityAndTheAlgorithmsTheSolverUndid() {
@@ -107,14 +111,15 @@ public class RecordedBlindSolveTest {
     assertEquals("parity", detector.stepName(3));
     assertEquals(1, detector.subStepCount(3));
     // The one algorithm that puts back two of each, which is all a parity ever is.
-    assertEquals("UF+UR+URF+DLF", detector.subStepName(3, 0));
+    assertEquals("UF-UR-UFR-DFL", detector.subStepName(3, 0));
 
     List<String> edges = new ArrayList<String>();
     for (int part = 0; part < detector.subStepCount(1); part++) {
       edges.add(detector.subStepName(1, part));
     }
     assertEquals(8, edges.size());
-    assertEquals(2, Collections.frequency(edges, "undo"));
+    assertEquals("UL-FD", edges.get(2)); // the algorithm that gained nothing, said by its targets
+    assertEquals(1, Collections.frequency(edges, "undo")); // and the one that took it back
   }
 
   /**
@@ -126,12 +131,12 @@ public class RecordedBlindSolveTest {
   public void namesAnAlgorithmByTheStickersItsTargetsWereShotTo() {
     replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
 
-    assertEquals("BUL+UBR", detector.subStepName(2, 2));
+    assertEquals("BUL-UBR", detector.subStepName(2, 2));
     // The same on the edges: three pieces home, two of them targets.
-    assertEquals("UB+UR", detector.subStepName(1, 5));
+    assertEquals("UB-UR", detector.subStepName(1, 5));
     // A cycle break solves only its second target -- the first receives the buffer's piece, which
     // does not belong there. Both were shot at, so both are named.
-    assertEquals("RU+LU", detector.subStepName(1, 1));
+    assertEquals("RU-LU", detector.subStepName(1, 1));
   }
 
   /**
@@ -140,8 +145,9 @@ public class RecordedBlindSolveTest {
    * it opened the solve with a step that is not a piece type — it belongs to the stretch it
    * precedes. A cycle broken into on the first algorithm of a clean solve does the same thing.
    *
-   * <p>It also shows an edge shot to <em>both</em> its stickers: flipped where it stands, it is two
-   * targets on one piece, and separating them by piece rather than by sticker loses one of them.
+   * <p>The misfire is two algorithms, not one: the solver shot at a pair, took it straight back, and
+   * then shot at the same pair again and kept it. Both of the first two gained nothing, so both
+   * belong to the stretch they precede.
    */
   @Test
   public void keepsAMisfiredOpeningInsideTheStretchItPrecedes() {
@@ -149,15 +155,102 @@ public class RecordedBlindSolveTest {
 
     assertEquals(4, detector.stepCount()); // memo, edges, corners, parity -- and nothing else
     assertEquals("edges", detector.stepName(1));
-    assertEquals("undo", detector.subStepName(1, 0)); // the misfire, inside the edges it precedes
-    assertEquals("RF+FR", detector.subStepName(1, 1)); // one edge, both its stickers
+    assertEquals("UR-FR", detector.subStepName(1, 0)); // the misfire, inside the edges it precedes
+    assertEquals("undo", detector.subStepName(1, 1)); // taken back to exactly where it started
+    assertEquals("UR-FR", detector.subStepName(1, 2)); // and shot again, this time kept
     for (int step = 1; step < detector.stepCount(); step++) {
       for (int part = 0; part < detector.subStepCount(step); part++) {
         String name = detector.subStepName(step, part);
         assertTrue("every algorithm names what it was shot at: " + name,
-            name.equals("undo") || name.contains("+"));
+            name.equals("undo") || name.contains("-"));
       }
     }
+  }
+
+  /**
+   * Solve 185 is the one that says an orientation cannot be recognised by how many pieces it moves.
+   * The owner's account of it: the edges end on two flips, UF/UL and DL/DR, and the corners on three
+   * corners twisted the same way — not one of them the buffer, which is the rare case.
+   *
+   * <p>Only the first flip was one algorithm. The second took two commutators, of which the first
+   * could only take the pieces apart, and the twist took two with a setup turn between them that
+   * left the first landing on nothing at all. So one orientation reads as two landings, one as two
+   * algorithms inside a single landing, and both have to come out as the one memo item they were.
+   */
+  @Test
+  public void readsAnOrientationHoweverManyAlgorithmsItTook() {
+    replay(RecordedBlindSolve.SCRAMBLE_185, RecordedBlindSolve.MOVES_185, Long.MAX_VALUE);
+
+    assertTrue(detector.isComplete());
+    assertTrue(detector.matchesMethod());
+    assertEquals(3, detector.stepCount());
+    assertEquals(6, detector.subStepCount(1));
+    assertEquals(3, detector.subStepCount(2));
+    assertEquals("UR-BL", detector.subStepName(1, 3)); // the last commutator before the flips
+    assertEquals("flip:UF-UL", detector.subStepName(1, 4)); // one algorithm
+    assertEquals("flip:DL-DR", detector.subStepName(1, 5)); // two, joined by what they left
+    // The flip is dated where it came out, and carries the whole of both its halves.
+    assertEquals(49550, (long) detector.getSubStepTimestampMs(1, 5));
+    // Three corners turned the same way with the buffer not among them: rare, and no shot at all.
+    // Each is said from the face its U or D sticker was sitting on, and all three are one step
+    // round from home the same way -- which is the solver's own account of it, all clockwise.
+    assertEquals("twist:LUB-LDF-BDL", detector.subStepName(2, 2));
+  }
+
+  /**
+   * A piece is said U/D first, then F/B, then R/L — the standard order, and not the order the
+   * facelets are stored in, which runs round the piece. A target brings the sticker it was shot to
+   * in front of that: the corner at B, U and R is {@code UBR}, and shot to its B sticker it is
+   * {@code BUR}, never the {@code BRU} that reading round the piece gives.
+   */
+  @Test
+  public void saysAPieceInTheOrderPiecesAreSaidIn() {
+    replay(RecordedBlindSolve.SCRAMBLE_185, RecordedBlindSolve.MOVES_185, Long.MAX_VALUE);
+
+    assertEquals("UFL-RDB", detector.subStepName(2, 0));
+    assertEquals("FDR-BUR", detector.subStepName(2, 1));
+  }
+
+  /**
+   * Two things follow from the order pieces are said in, and both hold across every recorded solve.
+   *
+   * <p><b>A flipped edge never begins with R or L.</b> R/L is the last of the three axes said, and an
+   * edge's two faces are on different axes — so whichever one it is not, the other comes first. The
+   * owner noticed it on the phone; it is the ordering showing through, not a coincidence.
+   *
+   * <p><b>A twisted corner never begins with U or D.</b> It is said from the face its U/D sticker is
+   * sitting on, and a corner that is twisted is exactly one whose U/D sticker is off its U/D face.
+   * Which also catches the direction going unread: failing to find the sticker would fall back to
+   * the piece's own U/D facelet, and the name would open with a U or a D.
+   */
+  @Test
+  public void saysAFlipAndATwistFromAFaceThatMeansSomething() {
+    for (String[] solve : RecordedBlindSolve.ALL) {
+      for (String name : algorithmsOf(solve[0], solve[1])) {
+        boolean flip = name.startsWith("flip:");
+        if (!flip && !name.startsWith("twist:")) {
+          continue;
+        }
+        for (String piece : name.substring(name.indexOf(':') + 1).split("-")) {
+          String never = flip ? "RL" : "UD";
+          assertEquals(name + " says " + piece + " from a " + never + " face",
+              -1, never.indexOf(piece.charAt(0)));
+        }
+      }
+    }
+  }
+
+  /** Every algorithm of a solve, memorisation aside, in the order they were executed. */
+  private static List<String> algorithmsOf(String scramble, String moves) {
+    RecordedBlindSolveTest solve = new RecordedBlindSolveTest();
+    solve.replay(scramble, moves, Long.MAX_VALUE);
+    List<String> names = new ArrayList<String>();
+    for (int step = 1; step < solve.detector.stepCount(); step++) {
+      for (int part = 0; part < solve.detector.subStepCount(step); part++) {
+        names.add(solve.detector.subStepName(step, part));
+      }
+    }
+    return names;
   }
 
   /**
@@ -170,8 +263,8 @@ public class RecordedBlindSolveTest {
     replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE,
         Integer.valueOf(BlindTargets.UNKNOWN_FRAME));
 
-    assertEquals("UFL+ULB+UBR", detector.subStepName(2, 2)); // the buffer among them, unnamed as such
-    assertEquals("UR+UL+UB", detector.subStepName(1, 5));
+    assertEquals("UFL-UBL-UBR", detector.subStepName(2, 2)); // the buffer among them, unnamed as such
+    assertEquals("UR-UL-UB", detector.subStepName(1, 5));
   }
 
   /**

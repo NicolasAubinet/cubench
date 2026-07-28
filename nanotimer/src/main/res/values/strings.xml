@@ -344,6 +344,8 @@
   <string name="smartcube_step_execution">Execution</string>
   <string name="smartcube_step_parity">Parity</string>
   <string name="smartcube_step_undo">Undo</string>
+  <string name="smartcube_step_flip">%s (flip)</string>
+  <string name="smartcube_step_twist">%s (twist)</string>
   <string name="smartcube_step_gap">Stopping</string>
   <string name="scramble_view_clock_notation_hint">The diagram isn\'t available for this Clock notation. Switch to the UR/DR/DL notation in the options to see it.</string>
   <string name="cross_section_title">%1$s cross · %2$d moves</string>
