@@ -18,8 +18,8 @@ import java.util.List;
  * sometimes.
  *
  * <p>Slices are {@link SliceSpinDetector}'s, since the core rocks over ~150 ms and every reading
- * taken at a move inside an LSE is mid-rock. Its spins are folded in here, and only what they do
- * <em>not</em> account for is the solver's own turning.
+ * taken at a move inside an LSE is mid-rock. Its spins are folded in here, and no frame is read at
+ * a move inside one of its pairs — what is left is the solver's own turning.
  */
 public final class RotationTracker {
 
@@ -70,7 +70,7 @@ public final class RotationTracker {
         written = written.then(spun.seenFrom(written)); // a rock turns the frame the last one left
       }
       if (frame.rotation.getNotation().equals(written.getNotation())
-          || rockAccountsForIt(frame.rotation, written, coreSpins, nextSpin, frame.timestampMs)) {
+          || insideSlicePair(coreSpins, nextSpin, frame.timestampMs)) {
         continue;
       }
       rotations.add(new Rotation(written.to(frame.rotation).getNotation(), frame.timestampMs));
@@ -83,24 +83,14 @@ public final class RotationTracker {
   }
 
   /**
-   * Whether a move sits inside a slice pair whose rock, once taken, leaves nothing to write. Both
-   * faces of a pair are reported while the core is still turning, so the frame read at either is
-   * part-rocked — recording that would print a slice as {@code x M' x'} and only the return leg is
-   * the solver's. Anything the rock does not cover is still written where it happened.
+   * Whether a move sits inside a slice pair whose rock has not been taken yet: the reading there is
+   * mid-rock by construction, so no frame is read at it and the pair's turning is left to
+   * {@link SliceSpinDetector}, which measures it from settled readings either side.
    */
-  private static boolean rockAccountsForIt(CubeRotation frame, CubeRotation written,
-      List<Rotation> coreSpins, int nextSpin, long moveTimestampMs) {
-    if (nextSpin >= coreSpins.size() || coreSpins.get(nextSpin).getPairFromMs() > moveTimestampMs) {
-      return false; // no pending rock this move could belong to
-    }
-    long pairFromMs = coreSpins.get(nextSpin).getPairFromMs();
-    CubeRotation rocked = written;
-    for (int i = nextSpin; i < coreSpins.size() && coreSpins.get(i).getPairFromMs() == pairFromMs;
-        i++) {
-      CubeRotation spun = CubeRotation.byNotation(coreSpins.get(i).getNotation());
-      rocked = rocked.then(spun.seenFrom(rocked)); // an M2 rocks twice, both halves of one pair
-    }
-    return frame.getNotation().equals(rocked.getNotation());
+  private static boolean insideSlicePair(List<Rotation> coreSpins, int nextSpin,
+      long moveTimestampMs) {
+    return nextSpin < coreSpins.size()
+        && coreSpins.get(nextSpin).getPairFromMs() <= moveTimestampMs;
   }
 
   public void reset() {

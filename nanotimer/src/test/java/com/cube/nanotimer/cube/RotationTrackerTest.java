@@ -198,7 +198,17 @@ public class RotationTrackerTest {
     assertEquals(Arrays.asList("x@1031"), tokens(tracker.getRotations(spins("x", 1031, 1000))));
   }
 
-  /** Only the rock is forgiven: turning the slice did not explain away is the solver's, and kept. */
+  /** Even a frame the rock cannot explain is mid-rock, not a regrip: writing it splits the pair. */
+  @Test
+  public void aFrameTheRockCannotExplainIsStillNotARegripInsideThePair() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(grip, 1000); // the pair's first face
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-180)), 1030); // its second, read a half turn out
+    assertEquals(Arrays.asList("x@1031"), tokens(tracker.getRotations(spins("x", 1031, 1000))));
+  }
+
+  /** Only the pair is forgiven: the solver's own turning, once past it, is written down. */
   @Test
   public void aRegripAfterASliceIsStillRecorded() {
     CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
