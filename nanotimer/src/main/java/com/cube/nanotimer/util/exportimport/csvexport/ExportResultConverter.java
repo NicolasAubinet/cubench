@@ -95,6 +95,10 @@ public class ExportResultConverter {
       }
     }
     sb.append(",");
+    if (result.getTimeBeforeDnf() != null) {
+      sb.append(FormatterService.INSTANCE.formatSolveTime(result.getTimeBeforeDnf(), null, true));
+    }
+    sb.append(",");
     if (result.getComment() != null) {
       String encodedComment = encodeComment(result.getComment());
       sb.append(encodedComment);
@@ -108,9 +112,14 @@ public class ExportResultConverter {
    */
   public static ExportResult fromCSVLine(Context context, String line, int maxFieldsCount) throws CSVFormatException {
     List<String> fields = getFieldsFromCSVLine(line, maxFieldsCount);
-    // 8 fields is the oldest version, 9 adds the scramble type, 10 the comment, 14 the smart cube
-    boolean smartcubeFormat = fields.size() == ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT;
-    if (fields.size() < 8 || (!smartcubeFormat && fields.size() > ExportCSVGenerator.MAX_FIELDS_COUNT)) {
+    // The layout is the one the file's header announced, never a guess from the line's own field
+    // count. Consecutive layouts differ by a single column, so a line that lost one would read as
+    // the shorter layout and quietly shift every field after it — the damage has to be reported.
+    boolean smartcubeFormat = maxFieldsCount == ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT
+        || maxFieldsCount == ExportCSVGenerator.LEGACY_SMARTCUBE_MAX_FIELDS_COUNT;
+    boolean withTimeBeforeDnf = maxFieldsCount == ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT
+        || maxFieldsCount == ExportCSVGenerator.MAX_FIELDS_COUNT;
+    if (!isFieldsCountValid(fields.size(), maxFieldsCount)) {
       throw new CSVFormatException(context.getString(R.string.import_invalid_columns_count));
     }
     String cubeTypeName = fields.get(0);
@@ -139,7 +148,9 @@ public class ExportResultConverter {
       scramble = null;
     }
 
-    int commentFieldIndex = smartcubeFormat ? 13 : 9;
+    // Without the pre-DNF field the comment simply sits where that field would have been.
+    int timeBeforeDnfFieldIndex = smartcubeFormat ? 13 : 9;
+    int commentFieldIndex = withTimeBeforeDnf ? timeBeforeDnfFieldIndex + 1 : timeBeforeDnfFieldIndex;
     String comment = null;
     if (fields.size() > commentFieldIndex) {
       comment = decodeComment(fields.get(commentFieldIndex));
@@ -156,7 +167,52 @@ public class ExportResultConverter {
         throw new CSVFormatException(context.getString(R.string.import_invalid_smartcube_data, e.getMessage()));
       }
     }
+    if (withTimeBeforeDnf) {
+      try {
+        applyTimeBeforeDnf(exportResult, fields.get(timeBeforeDnfFieldIndex));
+      } catch (IllegalArgumentException e) {
+        throw new CSVFormatException(context.getString(R.string.import_invalid_time_before_dnf, e.getMessage()));
+      }
+    }
     return exportResult;
+  }
+
+  /**
+   * Whether a line carries the number of fields the layout its header announced calls for.
+   * Only the three layouts predating the smart cube columns share a fold count, so only they let
+   * the line's own count say which it is: 8 fields is the oldest, 9 adds the scramble type, 10 the
+   * comment. Every layout since is exact, so a line short of its own layout is damaged rather than
+   * an older one — reading it as the older one would shift every field past the missing column.
+   */
+  static boolean isFieldsCountValid(int fieldsCount, int maxFieldsCount) {
+    if (maxFieldsCount == ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT) {
+      return fieldsCount >= 8 && fieldsCount <= maxFieldsCount;
+    }
+    return fieldsCount == maxFieldsCount;
+  }
+
+  /**
+   * Applies the time a DNF replaced. Only a DNF can carry one, and only a real time is worth
+   * restoring, so anything else is rejected rather than half-imported. An empty field is the
+   * ordinary case: a solve that is not a DNF, or a DNF with nothing to go back to.
+   */
+  static void applyTimeBeforeDnf(ExportResult result, String timeBeforeDnf) {
+    timeBeforeDnf = timeBeforeDnf.trim(); // tolerate hand-edited whitespace
+    if (timeBeforeDnf.isEmpty()) {
+      return;
+    }
+    if (result.getTime() >= 0) {
+      throw new IllegalArgumentException("A time to restore on a solve that is not a DNF");
+    }
+    // A plain time, never a sentinel: "DNF" here would leave nothing to restore.
+    Long time = FormatterService.INSTANCE.unformatPlainSolveTime(timeBeforeDnf);
+    if (time == null) {
+      throw new IllegalArgumentException("Unreadable time: \"" + timeBeforeDnf + "\"");
+    }
+    if (time <= 0) {
+      throw new IllegalArgumentException("Not a solve time: \"" + timeBeforeDnf + "\"");
+    }
+    result.setTimeBeforeDnf(time);
   }
 
   /**

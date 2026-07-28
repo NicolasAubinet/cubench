@@ -9,9 +9,12 @@ public class SolveTime implements Serializable {
   private int id;
   /** What a +2 adds to the recorded time. Penalty, not solving: never counted as turning. */
   public static final long PLUS_TWO_PENALTY_MS = 2000;
+  /** The time a DNF stands for. Negative is what the whole stats layer reads a DNF by. */
+  public static final long DNF_TIME = -1;
 
   private long timestamp;
   private long time;
+  private Long timeBeforeDnf;
   private boolean plusTwo;
   private boolean pb;
   private String scramble;
@@ -104,6 +107,40 @@ public class SolveTime implements Serializable {
 
   public boolean isDNF() {
     return time < 0;
+  }
+
+  /**
+   * The time this solve held before a DNF replaced it, null when there is none to go back to:
+   * a DNF recorded before this was kept, or one entered by hand, never had a time.
+   */
+  public Long getTimeBeforeDnf() {
+    return timeBeforeDnf;
+  }
+
+  public void setTimeBeforeDnf(Long timeBeforeDnf) {
+    this.timeBeforeDnf = timeBeforeDnf;
+  }
+
+  /** Marks the solve as a DNF, remembering the time it replaced so {@link #undoDNF} can put it back. */
+  public void setDNF() {
+    if (isDNF()) {
+      return; // already one: keep whatever it remembers rather than remembering the sentinel
+    }
+    timeBeforeDnf = (time > 0) ? time : null;
+    setTime(DNF_TIME);
+  }
+
+  /** Puts back the time {@link #setDNF} replaced. Does nothing when there is none. */
+  public void undoDNF() {
+    if (canUndoDNF()) {
+      setTime(timeBeforeDnf);
+      timeBeforeDnf = null;
+    }
+  }
+
+  /** Whether this is a DNF that still knows the time it replaced, and so can be taken back. */
+  public boolean canUndoDNF() {
+    return isDNF() && timeBeforeDnf != null;
   }
 
   public void setPlusTwo(boolean plusTwo, boolean adjustTime) {

@@ -151,9 +151,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     ImageView imgPb = (ImageView) v.findViewById(R.id.imgPb);
 
     if (solveTime.isDNF()) {
-      buDNF.setEnabled(false);
       buPlusTwo.setEnabled(false);
     }
+    buDNF.setText(solveTime.canUndoDNF() ? R.string.undo_dnf : R.string.DNF);
     if (solveTime.isPb()) {
       imgPb.setVisibility(View.VISIBLE);
     } else {
@@ -200,8 +200,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     buDNF.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (!solveTime.isDNF()) {
-          solveTime.setTime(-1);
+        if (solveTime.canUndoDNF()) {
+          solveTime.undoDNF();
+          saveTime(solveTime);
+        } else if (!solveTime.isDNF()) {
+          solveTime.setDNF();
           saveTime(solveTime);
         }
         dialog.dismiss();
