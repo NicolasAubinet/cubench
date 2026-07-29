@@ -249,6 +249,10 @@ public class RecordedBlindSolveTest {
    * piece that is — it is read off the cycle, one algorithm at a time, so that a solver who floats
    * their buffer is read as well as one who does not. Across these solves it comes out as the owner's
    * own two buffers throughout, which is a check on the reading precisely because it was never told.
+   *
+   * <p><b>One buffer per type is a fact about these captures, not a rule.</b> They are all the same
+   * solver's, and that solver does not float. A capture that does belongs in an assertion of its own
+   * — the synthetic pair of cycles sharing no piece next door is what pins the floating case.
    */
   @Test
   public void readsTheBufferOffTheCycleWithoutBeingToldWhatItIs() {
