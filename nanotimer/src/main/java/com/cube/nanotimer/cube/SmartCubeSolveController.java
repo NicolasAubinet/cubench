@@ -328,9 +328,10 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         break;
       case RUNNING:
         trackOrientation(move);
-        // The first solve move is where the pick-up shows: the scramble was turned green in front
-        // and this is the grip the solver memorised in, which is what their targets are named by.
-        analyzers.setPickupRotation(rotationTracker.getPickupRotation());
+        // The opening is where the pick-up shows: the scramble was turned green in front and this is
+        // the grip the solver memorised in, which is what their targets are named by. Asked again at
+        // every move, since a first move taken inside a slice pair is answered only by a later one.
+        analyzers.setPickupRotation(rotationTracker.getPickupRotation(sliceSpins.possiblePairs()));
         if (analyzing) {
           analyzers.onMove(move);
         } else if (!blind) {

@@ -48,12 +48,32 @@ public final class RotationTracker {
   }
 
   /**
-   * The frame the solve's first move was made in — the rotation the solver made picking the cube up,
-   * since the scramble is turned green in front and the solve in whatever grip they prefer. Null
-   * until a move has been sampled, or when there is no gyro to sample.
+   * The frame the solve was picked up in — the rotation the solver made taking the cube up, since
+   * the scramble is turned green in front and the solve in whatever grip they prefer. Null until a
+   * move has been sampled, or when there is no gyro to sample.
+   *
+   * <p>Read at the <b>first move not inside a slice pair</b>, and not simply at the first move. A
+   * slice carries the core round over ~150 ms, so a reading taken at either of its two faces is
+   * mid-rock and can land the frame a quarter turn out — which one captured solve did, opening on a
+   * pair 3 ms apart and spelling every blind target through the wrong grip. Nothing is lost by
+   * waiting: the solver has not regripped a few milliseconds in, so any early move answers this.
    */
-  public CubeRotation getPickupRotation() {
-    return frames.isEmpty() ? null : frames.get(0).rotation;
+  public CubeRotation getPickupRotation(List<Rotation> pairs) {
+    for (Frame frame : frames) {
+      if (!insideAnyPair(pairs, frame.timestampMs)) {
+        return frame.rotation;
+      }
+    }
+    return frames.isEmpty() ? null : frames.get(0).rotation; // nothing settled yet: the best there is
+  }
+
+  private static boolean insideAnyPair(List<Rotation> pairs, long timestampMs) {
+    for (Rotation pair : pairs) {
+      if (pair.getPairFromMs() <= timestampMs && timestampMs <= pair.getTimestampMs()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public List<Rotation> getRotations() {

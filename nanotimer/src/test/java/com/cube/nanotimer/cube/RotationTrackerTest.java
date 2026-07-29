@@ -239,6 +239,51 @@ public class RotationTrackerTest {
     assertEquals(Arrays.asList("y@100"), tokens(tracker.getRotations()));
   }
 
+  /** With nothing turned inside a pair, the pick-up is the frame of the very first move. */
+  @Test
+  public void thePickupIsTheFrameTheSolveOpenedIn() {
+    RotationTracker tracker = anchoredAt(REST);
+    tracker.onMove(AFTER_Y, 1000);
+    tracker.onMove(AFTER_Y, 1400);
+
+    assertEquals("y", tracker.getPickupRotation(noPairs()).getNotation());
+  }
+
+  /**
+   * A solve can open on a slice — one captured blind solve opens on two faces 3 ms apart — and the
+   * reading there is mid-rock, landing the frame a quarter turn out. Every blind target is then
+   * spelled through a grip the solver never held, and nothing about the names looks wrong. So the
+   * pick-up is read past the pair, at the first move whose frame the core was not still turning
+   * under.
+   */
+  @Test
+  public void thePickupIsNotReadInsideASlicePair() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-50)), 1000); // the pair's first face, mid-rock
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1003); // its second, the rock nearly done
+    tracker.onMove(turnedFrom(grip, aboutCubeU(-90)), 1400); // settled: the grip it was picked up in
+
+    assertEquals("x", tracker.getPickupRotation(noPairs()).getNotation()); // read at the pair
+    assertEquals("y", tracker.getPickupRotation(pairs(1000, 1003)).getNotation());
+  }
+
+  /** Asked before the solve has turned anything the pair does not cover, the best there is stands. */
+  @Test
+  public void thePickupInsideAPairStandsUntilAMoveComesOutsideOne() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1000);
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1003);
+
+    assertEquals("x", tracker.getPickupRotation(pairs(1000, 1003)).getNotation());
+  }
+
+  @Test
+  public void withoutAMoveThereIsNoPickup() {
+    assertEquals(null, anchoredAt(REST).getPickupRotation(noPairs()));
+  }
+
   @Test
   public void resetDropsTheReferenceAndTheFrames() {
     RotationTracker tracker = anchoredAt(REST);
@@ -247,6 +292,15 @@ public class RotationTrackerTest {
     assertTrue(tracker.getRotations().isEmpty());
     tracker.onMove(AFTER_Y, 200); // and with no reference nothing is read until one is anchored
     assertTrue(tracker.getRotations().isEmpty());
+  }
+
+  private static List<RotationTracker.Rotation> noPairs() {
+    return new ArrayList<RotationTracker.Rotation>();
+  }
+
+  /** A pair of faces as {@link SliceSpinDetector#possiblePairs} reports one, by its shape alone. */
+  private static List<RotationTracker.Rotation> pairs(long fromMs, long toMs) {
+    return spins("x", toMs, fromMs);
   }
 
   private static List<RotationTracker.Rotation> spins(String notation, long timestampMs) {

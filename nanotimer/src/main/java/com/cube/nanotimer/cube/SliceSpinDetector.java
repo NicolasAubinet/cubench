@@ -81,6 +81,27 @@ public final class SliceSpinDetector {
   }
 
   /**
+   * Every pair of opposite faces close enough together to be one slice's two turns, whether or not
+   * the core is confirmed to have rocked — asked while the solve is still running, which is before
+   * {@link #coreSpins} can answer anything: the reading that proves a rock settles 200 ms later.
+   *
+   * <p>The shape of the pair is enough for what wants it. A reading taken between two faces this
+   * close is taken mid-turn either way, and the frame read there is not to be trusted.
+   */
+  public List<RotationTracker.Rotation> possiblePairs() {
+    List<RotationTracker.Rotation> pairs = new ArrayList<RotationTracker.Rotation>();
+    for (int i = 0; i + 1 < turns.size(); i++) {
+      String[] slice = Slices.forPair(turns.get(i).notation, turns.get(i + 1).notation);
+      if (slice == null || turns.get(i + 1).atMs - turns.get(i).atMs > Slices.WINDOW_MS) {
+        continue;
+      }
+      pairs.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs, turns.get(i).atMs));
+      i++; // both faces are spoken for: the second cannot also open a pair
+    }
+    return pairs;
+  }
+
+  /**
    * True when turns {@code i..i+3} are one slice twice over: each half hides the other's rock, so
    * the four are measured as one 180° step. Both halves still get a spin; the display recollapses.
    */

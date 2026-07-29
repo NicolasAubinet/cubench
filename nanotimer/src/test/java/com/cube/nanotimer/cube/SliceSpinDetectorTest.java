@@ -72,6 +72,36 @@ public class SliceSpinDetectorTest {
     assertEquals(0, detector.coreSpins(rockedAt(1230, AFTER_M_PRIME, AFTER_M)).size());
   }
 
+  /**
+   * The pick-up frame is wanted while the solve runs, before any reading can prove a rock, so it
+   * asks for the pairs by their shape alone. A two-hander is reported here as well as a slice —
+   * deliberately: the frame read between two faces that close is mid-turn whichever it was.
+   */
+  @Test
+  public void reportsAPairByItsShapeBeforeAnyRockIsProved() {
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+    detector.onMove(move("U", 1400));
+
+    List<RotationTracker.Rotation> pairs = detector.possiblePairs();
+
+    assertEquals(1, pairs.size());
+    assertEquals(1000, pairs.get(0).getPairFromMs()); // the window either face was read inside
+    assertEquals(1030, pairs.get(0).getTimestampMs());
+  }
+
+  @Test
+  public void reportsNoPairWhereTheFacesAreNotOneSlicesOwn() {
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("R", 1000));
+    detector.onMove(move("L", 1030)); // the two faces turned opposite ways: never a slice
+    detector.onMove(move("U", 1100));
+    detector.onMove(move("D'", 1500)); // one slice's faces, but too far apart to be one turn
+
+    assertEquals(0, detector.possiblePairs().size());
+  }
+
   @Test
   public void leavesFacesTurnedTooFarApartAlone() {
     // Beyond the slice window the two turns are a deliberate pair, however the core moved.
