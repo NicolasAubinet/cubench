@@ -224,6 +224,10 @@
   <string name="solve_types_shortcut_summary">Affiche \"Éditer les temps de résolution\" dans la liste</string>
   <string name="blind">Blind</string>
   <string name="blind_mode">Mode blind</string>
+  <string name="blind_mode_summary">Suit les réussites et la moyenne de 3</string>
+  <string name="inspection_summary">Compte à rebours avant le début de la résolution</string>
+  <string name="inspection_summary_blind">Non utilisée pour les résolutions blind</string>
+  <string name="edit_solvetype">Modifier le type de résolution</string>
 
   <string name="import_export">Importer / exporter</string>
   <string name="export_times">Exporter</string>

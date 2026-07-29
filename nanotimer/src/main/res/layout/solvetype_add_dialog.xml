@@ -7,109 +7,244 @@
    android:paddingLeft="16dp"
    android:paddingRight="16dp"
    android:paddingTop="18dp"
-   android:paddingBottom="8dp">
+   android:paddingBottom="12dp">
+
+  <!-- Header: which puzzle this belongs to, then whether a type is being made or changed. -->
+  <TextView
+     android:id="@+id/tvCubeType"
+     style="@style/SelectorLabel"/>
 
   <TextView
-     android:layout_width="wrap_content"
-     android:layout_height="wrap_content"
-     android:text="@string/name"
-     android:textAllCaps="true"
-     android:textColor="@color/secondary_text"
-     android:textSize="12sp"
-     android:letterSpacing="0.08"
-     android:layout_marginBottom="6dp"/>
-
-  <EditText
-     android:id="@+id/tfName"
+     android:id="@+id/tvDialogTitle"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:background="@drawable/dialog_time_field"
-     android:paddingLeft="12dp"
-     android:paddingRight="12dp"
-     android:paddingTop="10dp"
-     android:paddingBottom="10dp"
+     android:layout_marginTop="2dp"
      android:textColor="@color/white"
-     android:textSize="16sp"
-     android:inputType="textCapSentences"/>
+     android:textStyle="bold"
+     android:textSize="20sp"/>
 
-  <LinearLayout
-     android:id="@+id/scrambleTypeLayout"
-     android:orientation="vertical"
+  <!-- The only child that may shrink, so the keyboard squeezes the fields rather than pushing
+       the buttons off the bottom. -->
+  <ScrollView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_marginTop="16dp">
+     android:layout_weight="1"
+     android:layout_marginTop="16dp"
+     android:scrollbars="none">
 
-    <TextView
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:text="@string/scramble_type"
-       android:textAllCaps="true"
-       android:textColor="@color/secondary_text"
-       android:textSize="12sp"
-       android:letterSpacing="0.08"
-       android:layout_marginBottom="6dp"/>
-
-    <Spinner
-       android:id="@+id/spScrambleType"
+    <LinearLayout
+       android:orientation="vertical"
        android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:gravity="start"
-       style="@style/CustomSpinner"/>
+       android:layout_height="wrap_content">
 
-  </LinearLayout>
+      <TextView
+         android:text="@string/name"
+         android:layout_marginBottom="6dp"
+         style="@style/DialogSectionLabel"/>
 
-  <CheckBox
-     android:id="@+id/cbBlind"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:text="@string/blind_mode"
-     android:textColor="@color/white"
-     android:textSize="16sp"
-     android:background="@drawable/dialog_toggle_row"
-     android:paddingLeft="16dp"
-     android:paddingRight="16dp"
-     android:paddingTop="12dp"
-     android:paddingBottom="12dp"
-     android:layout_marginTop="16dp"/>
+      <EditText
+         android:id="@+id/tfName"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:background="@drawable/dialog_time_field"
+         android:paddingLeft="12dp"
+         android:paddingRight="12dp"
+         android:paddingTop="10dp"
+         android:paddingBottom="10dp"
+         android:textColor="@color/white"
+         android:textSize="16sp"
+         android:inputType="textCapSentences"/>
 
-  <CheckBox
-     android:id="@+id/cbInspection"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:text="@string/inspection"
-     android:textColor="@color/white"
-     android:textSize="16sp"
-     android:background="@drawable/dialog_toggle_row"
-     android:paddingLeft="16dp"
-     android:paddingRight="16dp"
-     android:paddingTop="12dp"
-     android:paddingBottom="12dp"
-     android:layout_marginTop="8dp"/>
+      <LinearLayout
+         android:id="@+id/scrambleTypeLayout"
+         android:orientation="vertical"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="16dp">
 
-  <!-- After the blind checkbox: ticking it moves this to DNF, so the cause reads before the effect. -->
+        <TextView
+           android:text="@string/scramble_type"
+           android:layout_marginBottom="6dp"
+           style="@style/DialogSectionLabel"/>
+
+        <!-- Boxed like the name field above, so a spinner reads as something to tap rather than
+             as a line of text that happens to carry a caret. -->
+        <FrameLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:background="@drawable/dialog_time_field"
+           android:paddingLeft="8dp"
+           android:paddingRight="8dp"
+           android:paddingTop="4dp"
+           android:paddingBottom="4dp">
+
+          <Spinner
+             android:id="@+id/spScrambleType"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:gravity="start"
+             style="@style/CustomSpinner"/>
+
+        </FrameLayout>
+
+      </LinearLayout>
+
+      <!-- The two switches that change how the timer behaves, paired in one card. Before the quick
+           action: ticking blind moves both of them, so each cause reads before its effect. -->
+      <LinearLayout
+         android:orientation="vertical"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="16dp"
+         android:background="@drawable/dialog_toggle_row">
+
+        <LinearLayout
+           android:id="@+id/rowBlind"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:gravity="center_vertical"
+           android:padding="14dp"
+           android:background="?android:attr/selectableItemBackground">
+
+          <LinearLayout
+             android:orientation="vertical"
+             android:layout_width="0dp"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:layout_marginRight="12dp">
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/blind_mode"
+               android:textColor="@color/white"
+               android:textSize="16sp"/>
+            <TextView
+               android:id="@+id/tvBlindSummary"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="1dp"
+               android:text="@string/blind_mode_summary"
+               android:textColor="@color/secondary_text"
+               android:textSize="13sp"/>
+          </LinearLayout>
+
+          <androidx.appcompat.widget.SwitchCompat
+             android:id="@+id/swBlind"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:clickable="false"
+             android:focusable="false"
+             android:contentDescription="@string/blind_mode"/>
+
+        </LinearLayout>
+
+        <View
+           android:layout_width="match_parent"
+           android:layout_height="1dp"
+           android:layout_marginLeft="14dp"
+           android:layout_marginRight="14dp"
+           android:background="@color/gray700"/>
+
+        <LinearLayout
+           android:id="@+id/rowInspection"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:gravity="center_vertical"
+           android:padding="14dp"
+           android:background="?android:attr/selectableItemBackground">
+
+          <LinearLayout
+             android:orientation="vertical"
+             android:layout_width="0dp"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:layout_marginRight="12dp">
+            <TextView
+               android:id="@+id/tvInspectionTitle"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/inspection"
+               android:textColor="@color/white"
+               android:textSize="16sp"/>
+            <!-- Says why the switch is dead once blind mode owns the answer. -->
+            <TextView
+               android:id="@+id/tvInspectionSummary"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="1dp"
+               android:text="@string/inspection_summary"
+               android:textColor="@color/secondary_text"
+               android:textSize="13sp"/>
+          </LinearLayout>
+
+          <androidx.appcompat.widget.SwitchCompat
+             android:id="@+id/swInspection"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:clickable="false"
+             android:focusable="false"
+             android:contentDescription="@string/inspection"/>
+
+        </LinearLayout>
+
+      </LinearLayout>
+
+      <LinearLayout
+         android:orientation="vertical"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="16dp">
+
+        <TextView
+           android:text="@string/quick_action"
+           android:layout_marginBottom="6dp"
+           style="@style/DialogSectionLabel"/>
+
+        <FrameLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:background="@drawable/dialog_time_field"
+           android:paddingLeft="8dp"
+           android:paddingRight="8dp"
+           android:paddingTop="4dp"
+           android:paddingBottom="4dp">
+
+          <Spinner
+             android:id="@+id/spQuickAction"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:gravity="start"
+             style="@style/CustomSpinner"/>
+
+        </FrameLayout>
+
+      </LinearLayout>
+
+    </LinearLayout>
+
+  </ScrollView>
+
+  <!-- Actions: the same rounded row the solve details dialog ends on. -->
   <LinearLayout
-     android:orientation="vertical"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:gravity="center"
      android:layout_marginTop="16dp">
-
-    <TextView
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:text="@string/quick_action"
-       android:textAllCaps="true"
-       android:textColor="@color/secondary_text"
-       android:textSize="12sp"
-       android:letterSpacing="0.08"
-       android:layout_marginBottom="6dp"/>
-
-    <Spinner
-       android:id="@+id/spQuickAction"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:gravity="start"
-       style="@style/CustomSpinner"/>
-
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buCancel"
+       android:text="@string/cancel"
+       android:layout_marginRight="6dp"
+       android:layout_weight="1"
+       android:background="@drawable/dialog_action_button_ghost"
+       style="@style/DialogActionButton"/>
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buConfirm"
+       android:layout_marginLeft="6dp"
+       android:layout_weight="1"
+       style="@style/DialogActionButton"/>
   </LinearLayout>
 
 </LinearLayout>

@@ -1,15 +1,17 @@
 package com.cube.nanotimer.gui.widget.dialog;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
@@ -17,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import androidx.appcompat.widget.SwitchCompat;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeType;
@@ -54,9 +57,9 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   private LinearLayout scrambleTypeLayout;
   private Spinner spScrambleType;
   private Spinner spQuickAction;
-  private CheckBox cbBlind;
-  private CheckBox cbInspection;
-  // What the inspection box held before blind mode forced it off, to give back when blind is unticked.
+  private SwitchCompat swBlind;
+  private SwitchCompat swInspection;
+  // What the inspection switch held before blind mode forced it off, to give back when blind is unticked.
   private boolean inspectionBeforeBlind = true;
 
   private ScrambleType previousScrambleType;
@@ -101,7 +104,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
 
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
-    dialog = getDialog(isEditMode() ? R.string.save : R.string.add);
+    dialog = buildDialog();
 
     tfName = (EditText) view.findViewById(R.id.tfName);
 
@@ -150,10 +153,27 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       scrambleTypeLayout.setVisibility(View.GONE);
     }
 
-    cbBlind = (CheckBox) view.findViewById(R.id.cbBlind);
-    cbInspection = (CheckBox) view.findViewById(R.id.cbInspection);
-    cbInspection.setChecked(true);
+    swBlind = (SwitchCompat) view.findViewById(R.id.swBlind);
+    swInspection = (SwitchCompat) view.findViewById(R.id.swInspection);
+    swInspection.setChecked(true);
+    // The switch is not clickable itself: the whole row is, so the label answers to a tap too.
+    view.findViewById(R.id.rowBlind).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        swBlind.toggle();
+      }
+    });
+    view.findViewById(R.id.rowInspection).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        swInspection.toggle();
+      }
+    });
     initQuickActionSpinner(cubeType);
+
+    ((TextView) view.findViewById(R.id.tvCubeType)).setText(cubeType.getName());
+    ((TextView) view.findViewById(R.id.tvDialogTitle)).setText(
+        isEditMode() ? R.string.edit_solvetype : R.string.add_solvetype);
 
     if (isEditMode()) {
       // Pre-fill with the existing solve type's values. Setting the name up front also stops the
@@ -163,8 +183,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       if (spScrambleType != null && editScrambleTypePosition < spScrambleType.getCount()) {
         spScrambleType.setSelection(editScrambleTypePosition);
       }
-      cbBlind.setChecked(getArguments().getBoolean(ARG_EDIT_BLIND, false));
-      cbInspection.setChecked(getArguments().getBoolean(ARG_EDIT_INSPECTION, true));
+      swBlind.setChecked(getArguments().getBoolean(ARG_EDIT_BLIND, false));
+      swInspection.setChecked(getArguments().getBoolean(ARG_EDIT_INSPECTION, true));
       selectQuickAction(TimerQuickAction.fromId(
           getArguments().getInt(ARG_EDIT_QUICK_ACTION, TimerQuickAction.SCRAMBLE_VIEW.getId())));
     } else {
@@ -173,7 +193,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     refreshInspectionEnabled();
 
     // Only attached once the values above are in place, so pre-filling does not trip it.
-    cbBlind.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+    swBlind.setOnCheckedChangeListener(new OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         // Follow the blind flag only while the quick action is still the other mode's default:
@@ -183,9 +203,9 @@ public class SolveTypeAddDialog extends ConfirmDialog {
         }
         // Blind mode takes inspection away rather than defaulting it, so remember what to give back.
         if (isChecked) {
-          inspectionBeforeBlind = cbInspection.isChecked();
+          inspectionBeforeBlind = swInspection.isChecked();
         }
-        cbInspection.setChecked(!isChecked && inspectionBeforeBlind);
+        swInspection.setChecked(!isChecked && inspectionBeforeBlind);
         refreshInspectionEnabled();
       }
     });
@@ -193,11 +213,40 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     return dialog;
   }
 
-  /** A blindfolded solver has nothing to inspect, so blind mode holds the box off rather than offering it. */
+  // The frame's own button bar is left off: the layout ends on the rounded action row instead.
+  private Dialog buildDialog() {
+    view = getCustomView();
+    AlertDialog d = new AlertDialog.Builder(getActivity(), getDialogTheme()).setView(view).create();
+
+    ((Button) view.findViewById(R.id.buConfirm)).setText(isEditMode() ? R.string.save : R.string.add);
+    view.findViewById(R.id.buConfirm).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        onConfirm();
+      }
+    });
+    view.findViewById(R.id.buCancel).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        dismiss();
+      }
+    });
+
+    showSoftKeyboard(d);
+    return d;
+  }
+
+  /**
+   * A blindfolded solver has nothing to inspect, memorisation being the phase inspection would sit
+   * in, so blind mode holds the switch off and says why rather than leaving it dead without a word.
+   */
   private void refreshInspectionEnabled() {
-    boolean enabled = !cbBlind.isChecked();
-    cbInspection.setEnabled(enabled);
-    cbInspection.setAlpha(enabled ? 1f : 0.5f);
+    boolean enabled = !swBlind.isChecked();
+    swInspection.setEnabled(enabled);
+    view.findViewById(R.id.rowInspection).setEnabled(enabled);
+    view.findViewById(R.id.tvInspectionTitle).setAlpha(enabled ? 1f : 0.5f);
+    ((TextView) view.findViewById(R.id.tvInspectionSummary)).setText(
+        enabled ? R.string.inspection_summary : R.string.inspection_summary_blind);
   }
 
   private void initQuickActionSpinner(CubeType cubeType) {
@@ -292,8 +341,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   @Override
   protected void onConfirm() {
     Properties props = new Properties();
-    props.put(KEY_BLD, String.valueOf(cbBlind.isChecked()));
-    props.put(KEY_INSPECTION, String.valueOf(cbInspection.isChecked()));
+    props.put(KEY_BLD, String.valueOf(swBlind.isChecked()));
+    props.put(KEY_INSPECTION, String.valueOf(swInspection.isChecked()));
     int scrambleTypeItemPosition = -1;
     if (spScrambleType != null) {
       scrambleTypeItemPosition = spScrambleType.getSelectedItemPosition();

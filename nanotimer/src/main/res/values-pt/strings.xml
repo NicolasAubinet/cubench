@@ -226,6 +226,10 @@
   <string name="solve_types_shortcut_summary">Mostra \"Editar os tipos de resolução\" na lista</string>
   <string name="blind">Às cegas</string>
   <string name="blind_mode">Modo às cegas</string>
+  <string name="blind_mode_summary">Registra a precisão e a média de 3</string>
+  <string name="inspection_summary">Contagem decrescente antes do início da resolução</string>
+  <string name="inspection_summary_blind">Não utilizada nas resoluções às cegas</string>
+  <string name="edit_solvetype">Editar o tipo de resolução</string>
 
   <string name="import_export">Importar / exportar</string>
   <string name="export_times">Exportar</string>
