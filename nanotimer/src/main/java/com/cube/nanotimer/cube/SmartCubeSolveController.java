@@ -1,5 +1,7 @@
 package com.cube.nanotimer.cube;
 
+import android.os.Handler;
+import android.os.Looper;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
@@ -46,11 +48,16 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   /** What the solve was expected to be: nothing, until solve types carry a method of their own. */
   private static final CubeMethod EXPECTED_METHOD = null;
 
+  /** How far past the last move the moves wait for the gyro: a settled reading, plus a sample period
+   * for it to arrive. A solve ending on a slice has none yet when the cube reports it solved. */
+  private static final long GYRO_CATCHUP_MS = SliceSpinDetector.SETTLE_MS + 50;
+
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
   private MethodAnalyzers analyzers = new MethodAnalyzers(false);
   private final RotationTracker rotationTracker = new RotationTracker();
   private final SliceSpinDetector sliceSpins = new SliceSpinDetector();
+  private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
@@ -67,6 +74,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private boolean analyzing;
   private long lastFollowMoveWallMs; // 0 until the first followed move of the current scramble
   private long timerStartMs; // when the tap started the solve, on the cube's (host-fitted) clock
+  private long lastSolveMoveHostMs; // host clock at the solve's latest move, 0 before the first
+  private Runnable pendingRecord; // set while the moves are waiting on the gyro
 
   public SmartCubeSolveController(Listener listener) {
     this.listener = listener;
@@ -79,6 +88,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   }
 
   public void stop() {
+    recordMoves(); // the screen is going away: hand the solve over now rather than lose it
     SmartCubeManager.INSTANCE.removeStateListener(this);
     SmartCubeManager.INSTANCE.removeMoveListener(this);
     SmartCubeManager.INSTANCE.removeConnectionListener(connectionListener);
@@ -114,6 +124,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    */
   public void onTimerStarted() {
     timerStartMs = System.currentTimeMillis(); // the cube's stamps are fitted to this same clock
+    recordMoves(); // this solve's moves would land in the trackers the previous one still reads
     if (cubeDriven && SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.RUNNING;
       sawUnsolved = false;
@@ -126,23 +137,49 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     }
   }
 
-  public void onTimerStopped() {
+  /**
+   * Ends the solve and hands it over through {@code onRecorded}, which can run a moment after this
+   * returns: the moves wait on the gyro (see {@link #GYRO_CATCHUP_MS}), everything else is ready at
+   * once. It always runs, and always on the main thread.
+   */
+  public void onTimerStopped(Runnable onRecorded) {
     // A solve the cube drove has a breakdown as far as its milestones went, whether or not it
     // reached solved — a botched PLL is exactly the solve worth looking at. What still earns none is
     // a method the milestones never fitted, or a prefix too short to tell the methods apart.
-    method = analyzing ? analyzers.resolve(EXPECTED_METHOD) : null;
+    boolean cubeDrove = analyzing;
+    method = cubeDrove ? analyzers.resolve(EXPECTED_METHOD) : null;
     SolveAnalyzer analyzer = method == null ? null : analyzers.get(method);
     stepTimes = analyzer == null ? Collections.<StepTime>emptyList() : analyzer.getStepTimes();
     stoppedStep = analyzer == null ? null : analyzer.getStoppedStep();
-    // The moves need no method: an unrecognised solve still has a solution worth keeping.
-    solveMoves = analyzing
-        ? SolveMovesFormat.format(analyzers.moves().getMoves(),
-            rotationTracker.getRotations(
-                sliceSpins.coreSpins(SmartCubeManager.INSTANCE::getOrientationAt)),
-            analyzers.moves().getSolveStartMs())
-        : "";
-    analyzing = false;
+    analyzing = false; // no later state may still reach the analyzers while the moves wait
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
+    if (!cubeDrove) {
+      solveMoves = "";
+      onRecorded.run();
+      return;
+    }
+    pendingRecord = onRecorded;
+    long waitMs = lastSolveMoveHostMs + GYRO_CATCHUP_MS - System.currentTimeMillis();
+    if (waitMs <= 0) {
+      recordMoves(); // the last move is already old enough: nothing to wait for
+    } else {
+      mainHandler.postDelayed(this::recordMoves, waitMs);
+    }
+  }
+
+  /** Reads the solve's moves off the trackers and hands it over. Runs once per stop, whoever calls. */
+  private void recordMoves() {
+    if (pendingRecord == null) {
+      return;
+    }
+    Runnable onRecorded = pendingRecord;
+    pendingRecord = null;
+    // The moves need no method: an unrecognised solve still has a solution worth keeping.
+    solveMoves = SolveMovesFormat.format(analyzers.moves().getMoves(),
+        rotationTracker.getRotations(
+            sliceSpins.coreSpins(SmartCubeManager.INSTANCE::getOrientationAt)),
+        analyzers.moves().getSolveStartMs());
+    onRecorded.run();
   }
 
   /** The method the solve just finished was solved with, null when its milestones fitted none. */
@@ -225,11 +262,13 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   }
 
   private void applyScramble() {
+    recordMoves(); // the resets below are what a solve still waiting on the gyro reads
     follower = null;
     analyzing = false;
     rotationTracker.reset(); // a new scramble re-anchors at its own first move
     sliceSpins.reset();
     lastFollowMoveWallMs = 0;
+    lastSolveMoveHostMs = 0;
     if (!followable || scramble == null || !SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.INACTIVE;
       notifyChanged();
@@ -349,6 +388,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private void trackOrientation(CubeMove move) {
     rotationTracker.onMove(SmartCubeManager.INSTANCE.getOrientation(), move.getCubeTimestampMs());
     sliceSpins.onMove(move);
+    // Host time, not the move's own: the gyro samples are filed under the host clock, and the cube's
+    // is only fitted to it, re-anchoring at a 2 s error — too coarse to time a 250 ms wait on.
+    lastSolveMoveHostMs = System.currentTimeMillis();
   }
 
   /** Anchor the breakdown on the state the cube is in now, dated at the given moment. */

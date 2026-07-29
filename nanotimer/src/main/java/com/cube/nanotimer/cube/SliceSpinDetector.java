@@ -22,7 +22,7 @@ public final class SliceSpinDetector {
    * How far either side of a pair the settled readings are taken. Measured on a V10: at 50 ms the
    * core is still mid-rock (48° of a 90° step), by 150–200 ms it has arrived and holds.
    */
-  private static final long SETTLE_MS = 200;
+  static final long SETTLE_MS = 200;
 
   /** Two slices closer than this are one M2: measured at 115 ms on a real solve. */
   private static final long DOUBLE_GAP_MS = 250;
