@@ -224,7 +224,7 @@
   <string name="solve_types_shortcut_summary">Mostrar \"Editar más métodos\" en la lista</string>
   <string name="blind">A ciegas</string>
   <string name="blind_mode">Modo a ciegas</string>
-  <string name="blind_mode_summary">Memoriza el cubo y resuélvelo con los ojos vendados</string>
+  <string name="blind_mode_summary">Registra el éxito y la media de 3</string>
   <string name="inspection_summary">Cuenta atrás antes de empezar la resolución</string>
   <string name="inspection_summary_blind">No se usa en las resoluciones a ciegas</string>
   <string name="edit_solvetype">Editar método</string>
