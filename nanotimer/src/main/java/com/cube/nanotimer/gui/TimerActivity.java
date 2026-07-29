@@ -1836,9 +1836,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         stopTimer(true);
       }
       ignoreActionUp = true; // to avoid starting timer again when releasing
-    } else if (solveType.isBlind()) {
+    } else if (!solveType.hasInspection()) {
       if (parMotionEventAction == MotionEvent.ACTION_UP) {
-        // no inspection for blind solve types
+        // the solve type inspects before nothing: a release starts the solve straight away
         startTimer();
       }
     } else if (inspectionMode == InspectionMode.HOLD_AND_RELEASE) {

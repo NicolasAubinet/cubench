@@ -30,6 +30,7 @@ import java.util.Properties;
 public class SolveTypeAddDialog extends ConfirmDialog {
 
   public static final String KEY_BLD = "key_bld";
+  public static final String KEY_INSPECTION = "key_inspection";
   public static final String KEY_SCRAMBLE_TYPE = "key_scrambleType";
   public static final String KEY_QUICK_ACTION = "key_quickAction";
 
@@ -39,6 +40,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   private static final String ARG_EDIT_POSITION = "editPosition";
   private static final String ARG_EDIT_NAME = "editName";
   private static final String ARG_EDIT_BLIND = "editBlind";
+  private static final String ARG_EDIT_INSPECTION = "editInspection";
   private static final String ARG_EDIT_SCRAMBLE_NAME = "editScrambleName";
   private static final String ARG_EDIT_QUICK_ACTION = "editQuickAction";
 
@@ -53,6 +55,9 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   private Spinner spScrambleType;
   private Spinner spQuickAction;
   private CheckBox cbBlind;
+  private CheckBox cbInspection;
+  // What the inspection box held before blind mode forced it off, to give back when blind is unticked.
+  private boolean inspectionBeforeBlind = true;
 
   private ScrambleType previousScrambleType;
   // Spinner position of the edited solve type's scramble type, resolved while the list is built.
@@ -73,8 +78,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   // fieldEditor must also implement FieldCreator (they are the same object) - it is stored once.
   // scrambleTypeName is the name of the solve type's scramble type, or null for the default scramble.
   public static <T extends FieldCreator & FieldEditor> SolveTypeAddDialog newInstanceForEdit(
-      T fieldEditor, CubeType cubeType, int position, String name, boolean blind, String scrambleTypeName,
-      TimerQuickAction quickAction) {
+      T fieldEditor, CubeType cubeType, int position, String name, boolean blind, boolean inspection,
+      String scrambleTypeName, TimerQuickAction quickAction) {
     SolveTypeAddDialog frag = new SolveTypeAddDialog();
     Bundle args = new Bundle();
     args.putSerializable(ARG_FIELD_CREATOR, fieldEditor);
@@ -83,6 +88,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     args.putInt(ARG_EDIT_POSITION, position);
     args.putString(ARG_EDIT_NAME, name);
     args.putBoolean(ARG_EDIT_BLIND, blind);
+    args.putBoolean(ARG_EDIT_INSPECTION, inspection);
     args.putString(ARG_EDIT_SCRAMBLE_NAME, scrambleTypeName);
     args.putInt(ARG_EDIT_QUICK_ACTION, quickAction.getId());
     frag.setArguments(args);
@@ -145,6 +151,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     }
 
     cbBlind = (CheckBox) view.findViewById(R.id.cbBlind);
+    cbInspection = (CheckBox) view.findViewById(R.id.cbInspection);
+    cbInspection.setChecked(true);
     initQuickActionSpinner(cubeType);
 
     if (isEditMode()) {
@@ -156,11 +164,13 @@ public class SolveTypeAddDialog extends ConfirmDialog {
         spScrambleType.setSelection(editScrambleTypePosition);
       }
       cbBlind.setChecked(getArguments().getBoolean(ARG_EDIT_BLIND, false));
+      cbInspection.setChecked(getArguments().getBoolean(ARG_EDIT_INSPECTION, true));
       selectQuickAction(TimerQuickAction.fromId(
           getArguments().getInt(ARG_EDIT_QUICK_ACTION, TimerQuickAction.SCRAMBLE_VIEW.getId())));
     } else {
       selectQuickAction(TimerQuickAction.getDefault(false));
     }
+    refreshInspectionEnabled();
 
     // Only attached once the values above are in place, so pre-filling does not trip it.
     cbBlind.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -171,10 +181,23 @@ public class SolveTypeAddDialog extends ConfirmDialog {
         if (getSelectedQuickAction() == TimerQuickAction.getDefault(!isChecked)) {
           selectQuickAction(TimerQuickAction.getDefault(isChecked));
         }
+        // Blind mode takes inspection away rather than defaulting it, so remember what to give back.
+        if (isChecked) {
+          inspectionBeforeBlind = cbInspection.isChecked();
+        }
+        cbInspection.setChecked(!isChecked && inspectionBeforeBlind);
+        refreshInspectionEnabled();
       }
     });
 
     return dialog;
+  }
+
+  /** A blindfolded solver has nothing to inspect, so blind mode holds the box off rather than offering it. */
+  private void refreshInspectionEnabled() {
+    boolean enabled = !cbBlind.isChecked();
+    cbInspection.setEnabled(enabled);
+    cbInspection.setAlpha(enabled ? 1f : 0.5f);
   }
 
   private void initQuickActionSpinner(CubeType cubeType) {
@@ -270,6 +293,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   protected void onConfirm() {
     Properties props = new Properties();
     props.put(KEY_BLD, String.valueOf(cbBlind.isChecked()));
+    props.put(KEY_INSPECTION, String.valueOf(cbInspection.isChecked()));
     int scrambleTypeItemPosition = -1;
     if (spScrambleType != null) {
       scrambleTypeItemPosition = spScrambleType.getSelectedItemPosition();

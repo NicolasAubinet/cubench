@@ -72,6 +72,20 @@
      android:paddingBottom="12dp"
      android:layout_marginTop="16dp"/>
 
+  <CheckBox
+     android:id="@+id/cbInspection"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:text="@string/inspection"
+     android:textColor="@color/white"
+     android:textSize="16sp"
+     android:background="@drawable/dialog_toggle_row"
+     android:paddingLeft="16dp"
+     android:paddingRight="16dp"
+     android:paddingTop="12dp"
+     android:paddingBottom="12dp"
+     android:layout_marginTop="8dp"/>
+
   <!-- After the blind checkbox: ticking it moves this to DNF, so the cause reads before the effect. -->
   <LinearLayout
      android:orientation="vertical"

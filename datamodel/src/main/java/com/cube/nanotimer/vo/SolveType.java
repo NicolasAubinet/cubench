@@ -11,6 +11,7 @@ public class SolveType implements Serializable, NameHolder {
   private SolveTypeStep[] steps = new SolveTypeStep[0];
   private ScrambleType scrambleType;
   private boolean blind = false;
+  private boolean inspection = true;
   private TimerQuickAction quickAction;
 
   public SolveType(String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
@@ -18,6 +19,7 @@ public class SolveType implements Serializable, NameHolder {
     this.blind = blind;
     this.scrambleType = scrambleType;
     this.cubeTypeId = cubeTypeId;
+    this.inspection = !blind;
     this.quickAction = TimerQuickAction.getDefault(blind);
   }
 
@@ -55,6 +57,15 @@ public class SolveType implements Serializable, NameHolder {
     return blind;
   }
 
+  /** Whether the timer inspects before this solve type's solves. Always false for a blind one. */
+  public boolean hasInspection() {
+    return inspection && !blind;
+  }
+
+  public void setInspection(boolean inspection) {
+    this.inspection = inspection;
+  }
+
   public TimerQuickAction getQuickAction() {
     return quickAction;
   }
@@ -85,6 +96,7 @@ public class SolveType implements Serializable, NameHolder {
     if (id != solveType.id) return false;
     if (cubeTypeId != solveType.cubeTypeId) return false;
     if (blind != solveType.blind) return false;
+    if (inspection != solveType.inspection) return false;
     if (!name.equals(solveType.name)) return false;
     if (quickAction != solveType.quickAction) return false;
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
@@ -100,6 +112,7 @@ public class SolveType implements Serializable, NameHolder {
     result = 31 * result + (steps != null ? Arrays.hashCode(steps) : 0);
     result = 31 * result + (scrambleType != null ? scrambleType.hashCode() : 0);
     result = 31 * result + (blind ? 1 : 0);
+    result = 31 * result + (inspection ? 1 : 0);
     result = 31 * result + (quickAction != null ? quickAction.hashCode() : 0);
     return result;
   }
