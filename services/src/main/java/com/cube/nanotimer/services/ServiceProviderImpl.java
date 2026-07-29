@@ -96,6 +96,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append(", ").append(DB.COL_SOLVETYPE_SCRAMBLE_TYPE);
     q.append(", ").append(DB.COL_SOLVETYPE_CUBETYPE_ID);
     q.append(", ").append(DB.COL_SOLVETYPE_QUICK_ACTION);
+    q.append(", ").append(DB.COL_SOLVETYPE_INSPECTION);
     q.append(" FROM ").append(DB.TABLE_SOLVETYPE);
     q.append(" WHERE ").append(DB.COL_SOLVETYPE_CUBETYPE_ID).append(" = ?");
     q.append(" ORDER BY ").append(DB.COL_SOLVETYPE_POSITION);
@@ -104,6 +105,7 @@ public class ServiceProviderImpl implements ServiceProvider {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         SolveType st = new SolveType(cursor.getInt(0), cursor.getString(1), (cursor.getInt(2) == 1), toScrambleType(cubeType, cursor.getString(3)), cursor.getInt(4));
         st.setQuickAction(TimerQuickAction.fromId(cursor.getInt(5)));
+        st.setInspection(cursor.getInt(6) == 1);
         st.setSteps(getSolveTypeSteps(st.getId()).toArray(new SolveTypeStep[0]));
         solveTypes.add(st);
       }
@@ -887,6 +889,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_POSITION, position);
     values.put(DB.COL_SOLVETYPE_CUBETYPE_ID, solveType.getCubeTypeId());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
+    values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
     values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
     int id = (int) db.insert(DB.TABLE_SOLVETYPE, null, values);
@@ -921,6 +924,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     ContentValues values = new ContentValues();
     values.put(DB.COL_SOLVETYPE_NAME, solveType.getName());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
+    values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
     values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
     db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));

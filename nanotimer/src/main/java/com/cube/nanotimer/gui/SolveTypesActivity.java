@@ -144,7 +144,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
       SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position,
-          solveTypeName, solveType.isBlind(), scrambleTypeName, solveType.getQuickAction());
+          solveTypeName, solveType.isBlind(), solveType.hasInspection(), scrambleTypeName, solveType.getQuickAction());
       DialogUtils.showFragment(this, editDialog);
     } else if (menuItem.getItemId() == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
@@ -255,6 +255,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
 
     SolveType updatedSolveType = new SolveType(oldSolveType.getId(), name, blindMode, scrambleType, oldSolveType.getCubeTypeId());
     updatedSolveType.setSteps(oldSolveType.getSteps());
+    updatedSolveType.setInspection(parseInspection(props));
     updatedSolveType.setQuickAction(parseQuickAction(props, blindMode));
     liSolveTypes.set(index, updatedSolveType);
 
@@ -283,6 +284,11 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     return null;
   }
 
+  // Whether the timer inspects before this solve type's solves (a blind one never does, whatever is stored).
+  private boolean parseInspection(Properties props) {
+    return Boolean.valueOf(props.getProperty(SolveTypeAddDialog.KEY_INSPECTION, String.valueOf(true)));
+  }
+
   // Which timer menu action the solve type puts in the action bar (KEY_QUICK_ACTION is its stored id).
   private TimerQuickAction parseQuickAction(Properties props, boolean blind) {
     String id = props.getProperty(SolveTypeAddDialog.KEY_QUICK_ACTION);
@@ -298,6 +304,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     boolean blindMode = Boolean.valueOf(props.getProperty(SolveTypeAddDialog.KEY_BLD, String.valueOf(false)));
     ScrambleType scrambleType = parseScrambleType(props);
     SolveType st = new SolveType(name, blindMode, scrambleType, curCubeType.getId());
+    st.setInspection(parseInspection(props));
     st.setQuickAction(parseQuickAction(props, blindMode));
 
     liSolveTypes.add(st);

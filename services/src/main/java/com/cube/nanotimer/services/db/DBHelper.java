@@ -45,6 +45,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_SOLVETYPE_NAME + " TEXT NOT NULL, " +
         DB.COL_SOLVETYPE_POSITION + " INTEGER DEFAULT 0, " +
         DB.COL_SOLVETYPE_BLIND + " INTEGER DEFAULT 0, " +
+        DB.COL_SOLVETYPE_INSPECTION + " INTEGER DEFAULT 1, " +
         DB.COL_SOLVETYPE_SCRAMBLE_TYPE + " TEXT, " +
         DB.COL_SOLVETYPE_QUICK_ACTION + " INTEGER DEFAULT " + TimerQuickAction.SCRAMBLE_VIEW.getId() + ", " +
         DB.COL_SOLVETYPE_CUBETYPE_ID + " INTEGER, " +
@@ -256,6 +257,16 @@ public class DBHelper extends SQLiteOpenHelper {
       // Remember the time a DNF replaced, so the DNF can be taken back.
       db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN "
           + DB.COL_TIMEHISTORY_TIME_BEFORE_DNF + " INTEGER");
+    }
+
+    if (oldVersion < 22) {
+      // Whether the timer inspects before a solve, now chosen per solve type. Blind types keep the
+      // behaviour they always had, inspection having no place before a memorised solve.
+      db.execSQL("ALTER TABLE " + DB.TABLE_SOLVETYPE + " ADD COLUMN "
+          + DB.COL_SOLVETYPE_INSPECTION + " INTEGER DEFAULT 1");
+      db.execSQL("UPDATE " + DB.TABLE_SOLVETYPE
+          + " SET " + DB.COL_SOLVETYPE_INSPECTION + " = 0"
+          + " WHERE " + DB.COL_SOLVETYPE_BLIND + " = 1");
     }
 
 //    progressDialog.hide();
