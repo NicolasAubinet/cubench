@@ -228,6 +228,10 @@
   <string name="solve_types_shortcut_summary">Show \"Edit more solve types\" in list</string>
   <string name="blind">Blind</string>
   <string name="blind_mode">Blind mode</string>
+  <string name="blind_mode_summary">Memorise the cube, then solve it blindfolded</string>
+  <string name="inspection_summary">Count down before the solve starts</string>
+  <string name="inspection_summary_blind">Not used for blind solves</string>
+  <string name="edit_solvetype">Edit solve type</string>
 
   <string name="import_export">Import / export</string>
   <string name="export_times">Export</string>
