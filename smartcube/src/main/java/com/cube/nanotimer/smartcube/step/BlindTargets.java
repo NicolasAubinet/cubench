@@ -4,49 +4,39 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * What to call an algorithm: the two targets it was shot at, written the way the solver named them.
+ * What to call an algorithm: the cycle it shot, written the way the solver named it — the buffer it
+ * started from, then the target it was shot to, then the one after that.
  *
- * <p><b>Shot at, not put home.</b> An algorithm aims at two targets and usually solves both, but a
- * cycle break solves only the second — the first receives the buffer's piece, which does not belong
- * there. Both were still aimed at and both are named, because the pair is what the solver memorised.
- * They are the two pieces the algorithm moved that are not the buffer.
+ * <p><b>The buffer is named too</b>, because a solver may <em>float</em> theirs and start each cycle
+ * from whichever piece they please — the piece left out would be one the memo has a letter for.
  *
- * <p>A target carries three things a slot index does not: it is spelled in the frame the cube is
- * <em>held</em> in, not the one it reports in; it names a sticker, so {@code UBL} is not
- * {@code LUB}; and it is never the buffer, which is where the cycle starts rather than something
- * the algorithm was for.
+ * <p>A name carries two things a list of slots does not: it is spelled in the frame the cube is
+ * <em>held</em> in, not the one it reports in; and it names a sticker, so {@code UBL} is not
+ * {@code LUB}. Both come of following the cycle by where each piece was <b>sent</b>, which is where
+ * the solver aimed it — and not by where it belongs, which on a cycle break is somewhere else.
  *
- * <p>All three need the shot followed, which state alone gives: <b>the buffer's sticker lands
- * somewhere — that facelet is the first target; whatever sticker sat there beforehand belongs
- * somewhere — that facelet is the second.</b> Read from where the buffer's piece ended up rather
- * than from where it belongs, so a cycle break stays readable: there it is shot into a piece it does
- * not belong to, and only the second target comes home.
- *
- * <p><b>An algorithm that turned its pieces where they stand has no shot and no targets</b> — a flip
- * or a twist is memorised as the pieces themselves, so it is said as all of them, buffer included,
- * and marked for what was done to them. The mark is a code the display translates, since the pieces
- * are spelled the same in every language and only the word for the turn is not.
+ * <p><b>An algorithm that turned its pieces where they stand has no shot</b> — a flip or a twist is
+ * memorised as the pieces themselves, so it is said as all of them and marked for what was done to
+ * them. The mark is a code the display translates: pieces are spelled the same in every language.
  */
 final class BlindTargets {
 
-  /** No frame established yet: names are spelled as the cube reports them, and nothing is dropped. */
+  /** No frame established yet: names are spelled as the cube reports them. */
   static final int UNKNOWN_FRAME = -1;
+
+  /** Nothing says which piece the algorithm was shot from, so it is said as pieces and not a cycle. */
+  static final int NO_BUFFER = -1;
 
   /** What a name is prefixed with when the algorithm turned its pieces where they stand. */
   private static final String FLIP = "flip:", TWIST = "twist:";
 
-  /** The buffers, as facelets of the frame the solver holds: the U sticker of UF and of UFR. */
-  private static final int EDGE_BUFFER = 7, CORNER_BUFFER = 8;
-
   /** The order a piece's faces are said in, in pairs: U/D first, then F/B, then R/L. */
   private static final String SAID_ORDER = "UDFBRL";
 
-  private final int frame;
-  private final int holding; // the same, usable when no frame is known: nothing is carried anywhere
+  private final int holding; // the frame, or nothing carried anywhere when none is known
   private final int reading; // the frame taken back off, to read a reported facelet as a held one
 
   BlindTargets(int frame) {
-    this.frame = frame;
     this.holding = frame == UNKNOWN_FRAME ? FaceletRotations.IDENTITY : frame;
     this.reading = FaceletRotations.inverse(holding);
   }
@@ -87,59 +77,38 @@ final class BlindTargets {
   }
 
   /**
-   * The name of one algorithm, from the drift-free states either side of it, the pieces it moved and
-   * the ones it put home. Only a shot — pieces cycled round rather than turned where they stand —
-   * has a buffer.
+   * The name of one algorithm, from the drift-free states either side of it, the piece it was shot
+   * from and the pieces it moved. Where nothing says which piece it was shot from — a parity, or a
+   * cycle the solve has not settled the buffer of — the pieces are named as they stand instead.
    */
-  String name(String before, String after, List<Integer> moved, List<Integer> gained, boolean shot) {
-    // What to fall back on: what it put home, or what it merely moved when it put nothing home.
-    List<Integer> plainly = gained.isEmpty() ? moved : gained;
-    if (frame == UNKNOWN_FRAME || !shot) {
-      return join(spellAll(plainly));
-    }
-    int buffer = FaceletRotations.apply(frame, bufferFor(moved));
-    int first = shotTo(before, after, buffer);
-    int second = first < 0 ? -1 : homeOfStickerAt(before, first);
-    int bufferSlot = Cubies.slotOf(buffer);
-    List<String> names = new ArrayList<String>();
-    List<Integer> named = new ArrayList<Integer>();
-    // Two stickers of one piece are two targets, not one: a piece flipped where it stands is shot to
-    // each of its stickers in turn. So the pair is separated by sticker, and only the buffer's own
-    // piece drops out -- a shot resolving onto it never left its place, and was not aimed anywhere.
-    for (int target : new int[] {first, second}) {
-      int slot = target < 0 ? -1 : Cubies.slotOf(target);
-      if (slot >= 0 && slot != bufferSlot && (names.isEmpty() || first != second)) {
-        names.add(spellFrom(target));
-        named.add(slot);
-      }
-    }
-    // Whatever the shot does not account for is named as it stands, and the buffer never is.
-    for (int slot : gained) {
-      if (!named.contains(slot) && slot != bufferSlot) {
-        names.add(spell(slot));
-      }
-    }
-    return names.isEmpty() ? join(spellAll(plainly)) : join(names);
+  String name(String before, String after, int buffer, List<Integer> pieces) {
+    List<String> shot = buffer == NO_BUFFER ? null : shotNames(before, after, buffer, pieces.size());
+    return join(shot == null ? spellAll(pieces) : shot);
   }
 
   /**
-   * Whether this algorithm moved the piece the frame says the buffer is. A shot starts at the
-   * buffer, so one that left it alone was not shot from where the frame claims — and every name read
-   * off that frame is then a confident guess at the wrong piece.
+   * The cycle an algorithm shot, in the order the solver said it: the buffer, then each target at
+   * the sticker the piece before it landed on. Null unless the shot comes back round to the buffer,
+   * which is the one thing a cycle does.
    */
-  boolean movesBuffer(List<Integer> moved) {
-    return frame == UNKNOWN_FRAME
-        || moved.contains(Cubies.slotOf(FaceletRotations.apply(frame, bufferFor(moved))));
+  private List<String> shotNames(String before, String after, int buffer, int length) {
+    List<String> names = new ArrayList<String>(length);
+    names.add(spell(buffer));
+    int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);
+    int facelet = start;
+    for (int i = 1; i < length; i++) {
+      facelet = sentTo(before, after, facelet);
+      if (facelet < 0) {
+        return null;
+      }
+      names.add(spellFrom(facelet));
+    }
+    return sentTo(before, after, facelet) == start ? names : null;
   }
 
-  /** Whose buffer to follow: the type the algorithm worked on is the type it was shot from. */
-  private static int bufferFor(List<Integer> moved) {
-    return Cubies.isEdge(moved.get(0)) ? EDGE_BUFFER : CORNER_BUFFER;
-  }
-
-  /** The facelet the buffer's sticker landed on: on a cycle break that is not where it belongs. */
-  private static int shotTo(String before, String after, int buffer) {
-    int home = Cubies.homeSlotOf(before, Cubies.slotOf(buffer));
+  /** Where the sticker on this facelet ended up: a piece by its colours, a sticker by its own. */
+  private static int sentTo(String before, String after, int facelet) {
+    int home = Cubies.homeSlotOf(before, Cubies.slotOf(facelet));
     if (home < 0) {
       return -1;
     }
@@ -147,24 +116,10 @@ final class BlindTargets {
       if (Cubies.homeSlotOf(after, slot) != home) {
         continue;
       }
-      for (int facelet : Cubies.PIECES[slot]) {
-        if (after.charAt(facelet) == before.charAt(buffer)) {
-          return facelet;
+      for (int candidate : Cubies.PIECES[slot]) {
+        if (after.charAt(candidate) == before.charAt(facelet)) {
+          return candidate;
         }
-      }
-    }
-    return -1;
-  }
-
-  /** Where the sticker sitting on this facelet belongs: the next target the shot walks to. */
-  private static int homeOfStickerAt(String facelets, int facelet) {
-    int home = Cubies.homeSlotOf(facelets, Cubies.slotOf(facelet));
-    if (home < 0) {
-      return -1;
-    }
-    for (int candidate : Cubies.PIECES[home]) {
-      if (Cubies.SOLVED.charAt(candidate) == facelets.charAt(facelet)) {
-        return candidate;
       }
     }
     return -1;

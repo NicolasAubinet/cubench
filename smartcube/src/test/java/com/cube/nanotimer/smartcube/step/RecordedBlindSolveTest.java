@@ -46,7 +46,7 @@ public class RecordedBlindSolveTest {
     assertEquals(0, detector.subStepCount(0));
     assertEquals(6, detector.subStepCount(1));
     assertEquals(4, detector.subStepCount(2));
-    assertEquals("DR-LU", detector.subStepName(1, 0));
+    assertEquals("UF-DR-LU", detector.subStepName(1, 0));
     // Three corners turned where they stand, the buffer among them: a twist moving as many pieces
     // as a commutator, and read as one by what it left rather than by how many it touched.
     assertEquals("twist:LUF-BUL-FUR", detector.subStepName(2, 3));
@@ -99,7 +99,7 @@ public class RecordedBlindSolveTest {
    *
    * <p>The undo is the algorithm that <em>returns</em> the cube to where the one before it started,
    * not the one that gained nothing — those are two different algorithms, and the one that gained
-   * nothing was still shot at two targets, which is what it is named for.
+   * nothing still shot a cycle, which is what it is named for.
    */
   @Test
   public void readsAParityAndTheAlgorithmsTheSolverUndid() {
@@ -118,25 +118,25 @@ public class RecordedBlindSolveTest {
       edges.add(detector.subStepName(1, part));
     }
     assertEquals(8, edges.size());
-    assertEquals("UL-FD", edges.get(2)); // the algorithm that gained nothing, said by its targets
+    assertEquals("UF-UL-UR", edges.get(2)); // the one that gained nothing, said by the cycle it shot
     assertEquals(1, Collections.frequency(edges, "undo")); // and the one that took it back
   }
 
   /**
-   * A commutator is named by its two targets, and a target is a sticker rather than a piece. Solve
-   * 163's last corner algorithm puts three home — two targets and the buffer closing the cycle
-   * behind them — and is named by the two, in the order they were shot.
+   * A commutator is named by the cycle it shot — the buffer it started from and then the two
+   * targets — and each of those is a sticker rather than a piece. Solve 163's last corner algorithm
+   * closes a cycle, putting all three home, and is said in the order they were shot all the same.
    */
   @Test
-  public void namesAnAlgorithmByTheStickersItsTargetsWereShotTo() {
+  public void namesAnAlgorithmByTheStickersItsCycleWasShotTo() {
     replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
 
-    assertEquals("BUL-UBR", detector.subStepName(2, 2));
-    // The same on the edges: three pieces home, two of them targets.
-    assertEquals("UB-UR", detector.subStepName(1, 5));
+    assertEquals("UFR-BUL-UBR", detector.subStepName(2, 2));
+    // The same on the edges: three pieces home, the buffer among them.
+    assertEquals("UF-UB-UR", detector.subStepName(1, 5));
     // A cycle break solves only its second target -- the first receives the buffer's piece, which
-    // does not belong there. Both were shot at, so both are named.
-    assertEquals("RU-LU", detector.subStepName(1, 1));
+    // does not belong there. It is still where the buffer was shot, so it is still named.
+    assertEquals("UF-RU-LU", detector.subStepName(1, 1));
   }
 
   /**
@@ -148,6 +148,10 @@ public class RecordedBlindSolveTest {
    * <p>The misfire is two algorithms, not one: the solver shot at a pair, took it straight back, and
    * then shot at the same pair again and kept it. Both of the first two gained nothing, so both
    * belong to the stretch they precede.
+   *
+   * <p>The names say what went wrong: the same cycle both times, but shot first to {@code RF} where
+   * it wanted {@code FR} — the right slot, the wrong sticker, which leaves the piece flipped and is
+   * why the algorithm gained nothing.
    */
   @Test
   public void keepsAMisfiredOpeningInsideTheStretchItPrecedes() {
@@ -155,9 +159,9 @@ public class RecordedBlindSolveTest {
 
     assertEquals(4, detector.stepCount()); // memo, edges, corners, parity -- and nothing else
     assertEquals("edges", detector.stepName(1));
-    assertEquals("UR-FR", detector.subStepName(1, 0)); // the misfire, inside the edges it precedes
+    assertEquals("UF-UR-RF", detector.subStepName(1, 0)); // the misfire, inside the edges it precedes
     assertEquals("undo", detector.subStepName(1, 1)); // taken back to exactly where it started
-    assertEquals("UR-FR", detector.subStepName(1, 2)); // and shot again, this time kept
+    assertEquals("UF-UR-FR", detector.subStepName(1, 2)); // and shot again, this time kept
     for (int step = 1; step < detector.stepCount(); step++) {
       for (int part = 0; part < detector.subStepCount(step); part++) {
         String name = detector.subStepName(step, part);
@@ -186,7 +190,7 @@ public class RecordedBlindSolveTest {
     assertEquals(3, detector.stepCount());
     assertEquals(6, detector.subStepCount(1));
     assertEquals(3, detector.subStepCount(2));
-    assertEquals("UR-BL", detector.subStepName(1, 3)); // the last commutator before the flips
+    assertEquals("UF-UR-BL", detector.subStepName(1, 3)); // the last commutator before the flips
     assertEquals("flip:UF-UL", detector.subStepName(1, 4)); // one algorithm
     assertEquals("flip:DL-DR", detector.subStepName(1, 5)); // two, joined by what they left
     // The flip is dated where it came out, and carries the whole of both its halves.
@@ -207,8 +211,8 @@ public class RecordedBlindSolveTest {
   public void saysAPieceInTheOrderPiecesAreSaidIn() {
     replay(RecordedBlindSolve.SCRAMBLE_185, RecordedBlindSolve.MOVES_185, Long.MAX_VALUE);
 
-    assertEquals("UFL-RDB", detector.subStepName(2, 0));
-    assertEquals("FDR-BUR", detector.subStepName(2, 1));
+    assertEquals("UFR-UFL-RDB", detector.subStepName(2, 0));
+    assertEquals("UFR-FDR-BUR", detector.subStepName(2, 1));
   }
 
   /**
@@ -241,58 +245,56 @@ public class RecordedBlindSolveTest {
   }
 
   /**
-   * The buffer is the piece every algorithm moves — that is what being the buffer means — so an
-   * algorithm that left the piece the frame calls the buffer alone says the frame is wrong. It holds
-   * across every recorded solve, and where it does not the names must fall back to the cube's own
-   * spelling rather than being read confidently off a grip the solve never had.
-   *
-   * <p>Worth a test of its own because a wrong frame does not look wrong. It names a target that is
-   * really the buffer, drops a real target as if it were, and leaves behind names that read like
-   * plausible algorithms nobody did.
+   * Every algorithm is said from the piece it was shot from, and nothing tells the detector which
+   * piece that is — it is read off the cycle, one algorithm at a time, so that a solver who floats
+   * their buffer is read as well as one who does not. Across these solves it comes out as the owner's
+   * own two buffers throughout, which is a check on the reading precisely because it was never told.
    */
   @Test
-  public void doesNotBelieveAFrameTheBufferDoesNotHoldUp() {
+  public void readsTheBufferOffTheCycleWithoutBeingToldWhatItIs() {
     for (String[] solve : RecordedBlindSolve.ALL) {
-      RecordedBlindSolveTest none = new RecordedBlindSolveTest();
-      none.replay(solve[0], solve[1], Long.MAX_VALUE, Integer.valueOf(BlindTargets.UNKNOWN_FRAME));
-      List<String> reported = namesOf(none.detector);
-
-      RecordedBlindSolveTest pickup = new RecordedBlindSolveTest();
-      pickup.replay(solve[0], solve[1], Long.MAX_VALUE);
-      assertTrue("the pick-up frame is the one these solves were held in",
-          pickup.detector.isFramed());
-      assertFalse("and it is being read through", reported.equals(namesOf(pickup.detector)));
-
-      int disowned = 0;
-      for (int frame = 0; frame < 24; frame++) {
-        RecordedBlindSolveTest held = new RecordedBlindSolveTest();
-        held.replay(solve[0], solve[1], Long.MAX_VALUE, Integer.valueOf(frame));
-        if (!held.detector.isFramed()) {
-          disowned++;
-          assertEquals("a frame the buffer disowns is no frame at all",
-              reported, namesOf(held.detector));
+      for (String name : algorithmsOf(solve[0], solve[1])) {
+        String[] pieces = name.split("-");
+        if (name.equals("undo") || name.contains(":") || pieces.length == 4) {
+          continue; // a flip, a twist and a parity are none of them a cycle shot from anywhere
         }
+        assertEquals("a cycle is said as all three of its pieces: " + name, 3, pieces.length);
+        assertEquals("and from the buffer of its own type: " + name,
+            pieces[0].length() == 2 ? "UF" : "UFR", pieces[0]);
       }
-      assertTrue("a wrong grip should be caught by the buffer", disowned > 0);
     }
   }
 
   /**
-   * Solve 190 is the one the rule was written for: the app read its grip a quarter turn out, and
-   * every name it printed was read through that. Two of them were impossible on their face — an
-   * algorithm shot at one target, and a corner named twice over as though its two stickers were two
-   * targets when the piece was the buffer itself. The buffer says so without being told: not one of
-   * the eleven algorithms moved the piece that frame calls the buffer's.
+   * Solve 190 is the one whose grip the app read a quarter turn out. Read through the frame it was
+   * really held in, its corners are four clean pairs, each shot from the buffer.
+   *
+   * <p>What the wrong frame used to do was worse than misspell them: it printed an algorithm shot at
+   * a single target, and a corner named twice as though its own two stickers were two targets, since
+   * the buffer it was told of sat on a piece those algorithms never touched. Named as the cycle it
+   * shot, the same solve at the same wrong frame is still eleven three-cycles from one buffer — a
+   * wrong frame moves every letter and invents nothing, and only the frame itself can fix it.
    */
   @Test
-  public void catchesTheFrameThatNamedTheBufferAsATarget() {
+  public void readsAWrongFrameAsTheWrongSpellingAndNotTheWrongAlgorithm() {
     replay(RecordedBlindSolve.SCRAMBLE_190, RecordedBlindSolve.MOVES_190, Long.MAX_VALUE,
-        Integer.valueOf(17)); // the frame the app derived from a first move taken mid-slice
+        Integer.valueOf(13)); // the grip the solve was really held in
 
-    assertFalse(detector.isFramed());
-    for (String name : namesOf(detector)) {
-      assertFalse("the buffer must never be named twice as its own two targets: " + name,
-          name.equals("UBR-BUR"));
+    assertEquals("UFR-UBR-RDF", detector.subStepName(2, 0));
+    assertEquals("UFR-LUB-DBL", detector.subStepName(2, 1));
+    assertEquals("UFR-DFL-RDB", detector.subStepName(2, 2));
+    assertEquals("UFR-LUF-RUB", detector.subStepName(2, 3));
+
+    RecordedBlindSolveTest askew = new RecordedBlindSolveTest();
+    askew.replay(RecordedBlindSolve.SCRAMBLE_190, RecordedBlindSolve.MOVES_190, Long.MAX_VALUE,
+        Integer.valueOf(17)); // the frame the app derived from a first move taken mid-slice
+    List<String> names = namesOf(askew.detector);
+    assertEquals(11, names.size());
+    for (String name : names) {
+      String[] pieces = name.split("-");
+      assertEquals("still a cycle, however it is spelled: " + name, 3, pieces.length);
+      assertEquals("and still one buffer for the solve: " + name,
+          pieces[0].length() == 2 ? "UB" : "UBR", pieces[0]);
     }
   }
 
@@ -321,15 +323,16 @@ public class RecordedBlindSolveTest {
 
   /**
    * With no frame established the names are spelled as the cube reports them: wrong about the
-   * holding frame, and so about the sticker and the buffer, but it is all a solve can be read as
-   * when nothing says how the cube was picked up.
+   * holding frame and so about every letter, but it is all a solve can be read as when nothing says
+   * how the cube was picked up. Which cycle each algorithm shot is right either way — that is read
+   * off the cube and not off the grip.
    */
   @Test
   public void spellsTheNamesAsReportedUntilTheFrameIsKnown() {
     replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE,
         Integer.valueOf(BlindTargets.UNKNOWN_FRAME));
 
-    assertEquals("UFL-UBL-UBR", detector.subStepName(2, 2)); // the buffer among them, unnamed as such
+    assertEquals("UBR-LUF-UBL", detector.subStepName(2, 2)); // held, these are UFR-BUL-UBR
     assertEquals("UR-UL-UB", detector.subStepName(1, 5));
   }
 

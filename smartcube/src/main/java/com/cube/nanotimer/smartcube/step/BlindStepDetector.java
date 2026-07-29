@@ -41,8 +41,7 @@ import java.util.List;
  * slot that piece belongs to</b> — turned where it stands rather than cycled anywhere. Read off the
  * effect rather than off how many pieces moved, which is what a real solve demanded: two flips and a
  * twist all came out as commutators, and a three-corner twist moves three pieces exactly as a
- * commutator does. The buffer is named among them, since nothing was shot and a buffer turned in
- * place is a memo item like any other.
+ * commutator does.
  *
  * <p><b>It is read across algorithms too.</b> A flip is often executed as two commutators, and the
  * first of them can only take its pieces apart — so it gains nothing, and only the pair turns
@@ -71,22 +70,32 @@ public final class BlindStepDetector implements StepDetector {
   private static final int[][] PIECES = Cubies.PIECES;
 
   /**
-   * One algorithm, dated where it landed and named for what it put home — twice over, since whether
-   * the frame can be believed is only settled once the whole solve has been read.
+   * One algorithm, dated where it landed and named for the cycle it shot — which it can only be once
+   * the piece it was shot from is known, and that is sometimes a later algorithm's doing.
    */
   private static final class Landing {
     final long timestampMs;
     final int type;
-    final String name;
-    final String unframed;
     final String before;
+    final String after; // where it landed, kept only for a cycle that may still be renamed
+    final List<Integer> pieces;
+    String name;
+    int buffer;
 
-    Landing(long timestampMs, int type, String name, String unframed, String before) {
+    /** An algorithm with nothing left to settle: an undo, or a flip or a twist. */
+    Landing(long timestampMs, int type, String name, String before) {
+      this(timestampMs, type, name, before, null, null, BlindTargets.NO_BUFFER);
+    }
+
+    Landing(long timestampMs, int type, String name, String before, String after,
+        List<Integer> pieces, int buffer) {
       this.timestampMs = timestampMs;
       this.type = type;
       this.name = name;
-      this.unframed = unframed;
       this.before = before;
+      this.after = after;
+      this.pieces = pieces;
+      this.buffer = buffer;
     }
   }
 
@@ -106,11 +115,8 @@ public final class BlindStepDetector implements StepDetector {
 
   private final List<Landing> landings = new ArrayList<>();
 
-  /** The same reading with nothing assumed about the grip, kept for when the frame proves wrong. */
-  private final BlindTargets reported = new BlindTargets(BlindTargets.UNKNOWN_FRAME);
-
   private BlindTargets targets = new BlindTargets(BlindTargets.UNKNOWN_FRAME);
-  private boolean framed = true; // whether the buffer has held where the frame says it is
+  private int buffer; // the piece the solve is shooting from, for as long as it stays out
   private String landed; // the state at the last landing, with the drift taken out
   private Long memoMs;
   private Long solvedMs;
@@ -131,15 +137,9 @@ public final class BlindStepDetector implements StepDetector {
         : FaceletRotations.inverse(FaceletRotations.of(pickup)));
   }
 
-  /** Whether the frame has held up: the buffer has been where it says, in every algorithm so far. */
-  boolean isFramed() {
-    return framed;
-  }
-
   /**
    * The frame the solver is holding the cube in, which is not the one it reports in. Names are
-   * spelled in it and the buffer is found through it; left unknown they fall back to the reported
-   * frame.
+   * spelled in it; left unknown they fall back to the reported frame.
    */
   void setHoldingFrame(int rotation) {
     targets = new BlindTargets(rotation);
@@ -151,7 +151,7 @@ public final class BlindStepDetector implements StepDetector {
     memoMs = null;
     solvedMs = null;
     parityFound = false;
-    framed = true;
+    buffer = BlindTargets.NO_BUFFER;
     lastTimestampMs = startTimestampMs;
     landed = startState.getFacelets();
     parity = Cubies.isOddPermutation(landed);
@@ -193,14 +193,63 @@ public final class BlindStepDetector implements StepDetector {
     String steady = withoutDrift(facelets, frame);
     if (!readOrientation(steady, timestampMs) && !readUndo(steady, timestampMs)) {
       // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
-      List<Integer> moved = moved(landed, steady);
       boolean shot = touched == CYCLE;
-      framed &= !shot || targets.movesBuffer(moved);
+      List<Integer> moved = moved(landed, steady);
+      // A cycle is said as all three of its pieces; anything else, as what it put home.
+      List<Integer> named = shot || all.isEmpty() ? moved : all;
+      int shotFrom = shot ? bufferOf(moved, all) : BlindTargets.NO_BUFFER;
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding),
-          targets.name(landed, steady, moved, all, shot),
-          reported.name(landed, steady, moved, all, shot), landed));
+          targets.name(landed, steady, shotFrom, named), landed, shot ? steady : null, named,
+          shotFrom));
+      if (shot && shotFrom != BlindTargets.NO_BUFFER) {
+        nameWhatWaitedForIt(shotFrom);
+        // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
+        buffer = all.contains(shotFrom) ? BlindTargets.NO_BUFFER : shotFrom;
+      }
     }
     landed = steady;
+  }
+
+  /**
+   * Which piece an algorithm was shot from, told by the cube rather than configured, since a solver
+   * who floats their buffer has no fixed piece to be told about.
+   *
+   * <p><b>A shot leaves the buffer holding a piece that is not its own</b>, so a cycle that put all
+   * but one of its pieces home was shot from the one it left out. That is every clean algorithm; a
+   * cycle break leaves two pieces out and a closing cycle none, and those say nothing on their own.
+   * There it is <b>whatever the solve was already shooting from</b> — a buffer stays the buffer
+   * until an algorithm brings it home.
+   */
+  private int bufferOf(List<Integer> moved, List<Integer> gained) {
+    int left = BlindTargets.NO_BUFFER;
+    int count = 0;
+    for (int slot : moved) {
+      if (!gained.contains(slot)) {
+        left = slot;
+        count++;
+      }
+    }
+    return count == 1 ? left : moved.contains(buffer) ? buffer : BlindTargets.NO_BUFFER;
+  }
+
+  /**
+   * The algorithms before this one that could not tell which piece they were shot from, now that it
+   * has been named. The first algorithm of a piece type is what needs this: breaking a cycle leaves
+   * two pieces it could have been shot from, and the one after it settles which — a buffer only
+   * stops being the buffer once something has brought it home.
+   */
+  private void nameWhatWaitedForIt(int shotFrom) {
+    for (int i = landings.size() - 2; i >= 0; i--) {
+      Landing landing = landings.get(i);
+      if (landing.after == null) {
+        continue; // nothing was shot here, so nothing here chose a buffer either
+      }
+      if (landing.buffer != BlindTargets.NO_BUFFER || !landing.pieces.contains(shotFrom)) {
+        return;
+      }
+      landing.buffer = shotFrom;
+      landing.name = targets.name(landing.before, landing.after, shotFrom, landing.pieces);
+    }
   }
 
   /**
@@ -217,8 +266,7 @@ public final class BlindStepDetector implements StepDetector {
           landings.remove(landings.size() - 1); // the halves are the one algorithm they compose
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
-        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned),
-            reported.turnedName(from, turned), from));
+        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from));
         return true;
       }
       int previous = landings.size() - 1 - joined;
@@ -234,7 +282,7 @@ public final class BlindStepDetector implements StepDetector {
     if (landings.isEmpty() || !steady.equals(landings.get(landings.size() - 1).before)) {
       return false;
     }
-    landings.add(new Landing(timestampMs, NO_GAIN, UNDO, UNDO, landed));
+    landings.add(new Landing(timestampMs, NO_GAIN, UNDO, landed));
     return true;
   }
 
@@ -447,19 +495,10 @@ public final class BlindStepDetector implements StepDetector {
     return run >= 0 && run < runs.size() ? runs.get(run).landings.size() : 0;
   }
 
-  /**
-   * An algorithm's name — spelled in the solver's grip while the frame holds up, and as the cube
-   * reports it once it has not. A shot starts at the buffer, so an algorithm that never moved the
-   * piece the frame calls the buffer says the frame is wrong, and every name read through it is a
-   * confident guess at the wrong piece: a target that is really the buffer gets named, a real target
-   * gets dropped as the buffer, and what is left reads like an algorithm nobody did.
-   *
-   * <p>One algorithm settles it for the whole solve, since the grip does not change inside one.
-   */
+  /** An algorithm's name: the cycle it shot, spelled in the grip the solver held the cube in. */
   @Override
   public String subStepName(int step, int subStep) {
-    Landing landing = runs().get(step - 1).landings.get(subStep);
-    return framed ? landing.name : landing.unframed;
+    return runs().get(step - 1).landings.get(subStep).name;
   }
 
   @Override

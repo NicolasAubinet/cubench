@@ -32,6 +32,9 @@ public class BlindStepDetectorTest {
   private static final String EDGE_CYCLE_A = "R2 U R U R' U' R' U' R' U R'";
   private static final String EDGE_CYCLE_B = "F2 R2 U R U R' U' R' U' R' U R' F2";
 
+  /** The same U-perm mirrored onto the D layer: three edges the U one does not share. */
+  private static final String EDGE_CYCLE_D = "R2 D' R' D' R D R D R D' R";
+
   /** Corner three-cycles: an A-perm, and the same one set up elsewhere. No edge moves. */
   private static final String CORNER_CYCLE_A = "R' F R' B2 R F' R' B2 R2";
   private static final String CORNER_CYCLE_B = "U2 R' F R' B2 R F' R' B2 R2 U2";
@@ -112,6 +115,21 @@ public class BlindStepDetectorTest {
     assertTrue(detector.getStepTimestampMs(1) < detector.getStepTimestampMs(2));
     assertTrue(detector.isComplete());
     assertTrue(detector.matchesMethod());
+  }
+
+  /**
+   * A solver may float their buffer, starting each cycle from whichever piece they please, so which
+   * piece an algorithm was shot from is read off the cycle rather than configured. Here the two edge
+   * cycles share no piece at all: no one buffer could name both, and each is said from its own.
+   */
+  @Test
+  public void namesEachCycleFromThePieceItWasShotFrom() {
+    String[] solve = {EDGE_CYCLE_A, EDGE_CYCLE_D, CORNER_CYCLE_A, CORNER_CYCLE_B};
+    startFrom(solve);
+    play(solve);
+
+    assertEquals("UR-UF-UL", detector.subStepName(1, 0));
+    assertEquals("DR-DF-DL", detector.subStepName(1, 1));
   }
 
   @Test
