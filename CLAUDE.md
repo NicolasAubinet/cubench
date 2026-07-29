@@ -152,6 +152,12 @@ Several subsystems are present but inactive — don't extend them without checki
 ## Conventions
 
 - Indentation is **2 spaces**. Match the surrounding file's style.
+- **Keep comments short** — one line, two at most. Skip them entirely when the
+  code already says it; comment the *why*, never the *what*. Exception: Javadoc
+  on a public API may be as long as it needs to be — there the comment is the
+  documentation.
+- **Keep commit messages short.** A concise subject line; a body only when the
+  change genuinely needs one.
 - Singletons are commonly modeled as `enum X { INSTANCE }`.
 - Keep DB work behind `Service`; don't query SQLite directly from the GUI.
 - When adding a puzzle or scramble type, touch `CubeType`/`ScrambleTypes`
