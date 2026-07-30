@@ -117,6 +117,7 @@ public final class BlindStepDetector implements StepDetector {
 
   private BlindTargets targets = new BlindTargets(BlindTargets.UNKNOWN_FRAME);
   private int buffer; // the piece the solve is shooting from, for as long as it stays out
+  private int lastBuffer; // and the last one it shot from, kept after that one came home
   private String landed; // the state at the last landing, with the drift taken out
   private Long memoMs;
   private Long solvedMs;
@@ -152,6 +153,7 @@ public final class BlindStepDetector implements StepDetector {
     solvedMs = null;
     parityFound = false;
     buffer = BlindTargets.NO_BUFFER;
+    lastBuffer = BlindTargets.NO_BUFFER;
     lastTimestampMs = startTimestampMs;
     landed = startState.getFacelets();
     parity = Cubies.isOddPermutation(landed);
@@ -205,6 +207,7 @@ public final class BlindStepDetector implements StepDetector {
         nameWhatWaitedForIt(shotFrom);
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
         buffer = all.contains(shotFrom) ? BlindTargets.NO_BUFFER : shotFrom;
+        lastBuffer = shotFrom;
       }
     }
     landed = steady;
@@ -214,13 +217,21 @@ public final class BlindStepDetector implements StepDetector {
    * Which piece an algorithm was shot from, told by the cube rather than configured, since a solver
    * who floats their buffer has no fixed piece to be told about.
    *
-   * <p><b>A shot leaves the buffer holding a piece that is not its own</b>, so a cycle that put all
-   * but one of its pieces home was shot from the one it left out. That is every clean algorithm; a
-   * cycle break leaves two pieces out and a closing cycle none, and those say nothing on their own.
-   * There it is <b>whatever the solve was already shooting from</b> — a buffer stays the buffer
-   * until an algorithm brings it home.
+   * <p><b>A buffer stays the buffer until an algorithm brings it home</b>, so one that moves the
+   * piece the solve is already shooting from was shot from it. Failing that, <b>a shot leaves the
+   * buffer holding a piece that is not its own</b>: a cycle that put all but one of its pieces home
+   * was shot from the one it left out. And failing that too — a closing cycle leaves none out, a
+   * break-in two — it is the piece the solve was shooting from before.
+   *
+   * <p>Both fallbacks were a real solve's doing. Left-out ahead of continuity named an algorithm
+   * that breaks into a new cycle and closes the old one after its <em>target</em>, printing the
+   * cycle rotated by one; with neither, the cycle cannot be walked at all and the pieces are said
+   * in the order the cube stores them, which reads as the buffer landing anywhere in the name.
    */
   private int bufferOf(List<Integer> moved, List<Integer> gained) {
+    if (moved.contains(buffer)) {
+      return buffer;
+    }
     int left = BlindTargets.NO_BUFFER;
     int count = 0;
     for (int slot : moved) {
@@ -229,7 +240,8 @@ public final class BlindStepDetector implements StepDetector {
         count++;
       }
     }
-    return count == 1 ? left : moved.contains(buffer) ? buffer : BlindTargets.NO_BUFFER;
+    // A buffer of another type says nothing here: an algorithm moves pieces of one type only.
+    return count == 1 ? left : moved.contains(lastBuffer) ? lastBuffer : BlindTargets.NO_BUFFER;
   }
 
   /**

@@ -35,6 +35,11 @@ public class BlindStepDetectorTest {
   /** The same U-perm mirrored onto the D layer: three edges the U one does not share. */
   private static final String EDGE_CYCLE_D = "R2 D' R' D' R D R D R D' R";
 
+  /** The U-perm set up to three more threes, each of them through UF, so all four share a buffer. */
+  private static final String EDGE_CYCLE_UL_DR = "R2 " + EDGE_CYCLE_A + " R2";
+  private static final String EDGE_CYCLE_DR_DL = "R2 L2 " + EDGE_CYCLE_A + " L2 R2";
+  private static final String EDGE_CYCLE_DL_UR = "L2 " + EDGE_CYCLE_A + " L2";
+
   /** Corner three-cycles: an A-perm, and the same one set up elsewhere. No edge moves. */
   private static final String CORNER_CYCLE_A = "R' F R' B2 R F' R' B2 R2";
   private static final String CORNER_CYCLE_B = "U2 R' F R' B2 R F' R' B2 R2 U2";
@@ -130,6 +135,28 @@ public class BlindStepDetectorTest {
 
     assertEquals("UR-UF-UL", detector.subStepName(1, 0));
     assertEquals("DR-DF-DL", detector.subStepName(1, 1));
+  }
+
+  /**
+   * A cycle that closes on the buffer leaves no piece out, and the break-in after it leaves two, so
+   * neither says which piece it was shot from. What says it is the algorithm before them: a buffer
+   * stays the buffer until something brings it home, and the piece the last cycle was shot from is
+   * the one the next is broken in from.
+   *
+   * <p>Without it the pieces are said in the order the cube stores them, which is where the buffer
+   * turns up at the end of a name: the third algorithm here read {@code DL-UR-UF}, and the fourth
+   * then inherited {@code DL} as though the buffer had moved.
+   */
+  @Test
+  public void keepsShootingFromTheBufferWhereTheAlgorithmCannotSayWhichPieceItWas() {
+    String[] solve = {EDGE_CYCLE_UL_DR, EDGE_CYCLE_DR_DL, EDGE_CYCLE_DL_UR, EDGE_CYCLE_D,
+        CORNER_CYCLE_A, CORNER_CYCLE_B};
+    startFrom(solve);
+    play(solve);
+
+    assertEquals("UF-UL-DR", detector.subStepName(1, 0));
+    assertEquals("UF-DL-DR", detector.subStepName(1, 1));
+    assertEquals("UF-DL-UR", detector.subStepName(1, 2));
   }
 
   @Test
