@@ -42,6 +42,16 @@ public interface StepDetector {
   /** Cube-clock time the sub-step was reached, or null while its step is still pending. */
   Long getSubStepTimestampMs(int step, int subStep);
 
+  /**
+   * Whether a step of a single part keeps it rather than collapsing into it. A method whose parts
+   * are only a finer reading of the step drops it — a one-look OLL is the OLL, and splitting it
+   * invents a structure the solve did not have. A blind step's parts are its algorithms, each named
+   * for the pieces it shot, and a step of one — a parity — is exactly where that name is wanted.
+   */
+  default boolean keepsLonePart() {
+    return false;
+  }
+
   boolean isComplete();
 
   /**

@@ -110,8 +110,9 @@ public class RecordedBlindSolveTest {
     assertEquals(4, detector.stepCount());
     assertEquals("parity", detector.stepName(3));
     assertEquals(1, detector.subStepCount(3));
-    // The one algorithm that puts back two of each, which is all a parity ever is.
-    assertEquals("UF-UR-UFR-DFL", detector.subStepName(3, 0));
+    // The one algorithm that puts back two of each, which is all a parity ever is — and it is said
+    // as the two swaps it made rather than as one four-piece cycle, because that is what it was.
+    assertEquals("UFR-DFL + UF-UR", detector.subStepName(3, 0));
 
     List<String> edges = new ArrayList<String>();
     for (int part = 0; part < detector.subStepCount(1); part++) {
@@ -259,7 +260,7 @@ public class RecordedBlindSolveTest {
     for (String[] solve : RecordedBlindSolve.ALL) {
       for (String name : algorithmsOf(solve[0], solve[1])) {
         String[] pieces = name.split("-");
-        if (name.equals("undo") || name.contains(":") || pieces.length == 4) {
+        if (name.equals("undo") || name.contains(":") || name.contains(" + ")) {
           continue; // a flip, a twist and a parity are none of them a cycle shot from anywhere
         }
         assertEquals("a cycle is said as all three of its pieces: " + name, 3, pieces.length);

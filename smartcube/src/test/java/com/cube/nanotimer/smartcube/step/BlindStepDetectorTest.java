@@ -10,6 +10,7 @@ import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -49,6 +50,8 @@ public class BlindStepDetectorTest {
 
   private final CubieCube cube = new CubieCube();
   private final BlindStepDetector detector = new BlindStepDetector();
+  /** The solve is fed through the analyzer, which is how the app feeds it: it only forwards. */
+  private final SolveAnalyzer analyzer = new SolveAnalyzer(detector);
 
   private long timestampMs = 1_000;
 
@@ -186,10 +189,31 @@ public class BlindStepDetectorTest {
     assertEquals("edges", detector.stepName(1));
     assertEquals("corners", detector.stepName(2));
     assertEquals("parity", detector.stepName(3));
+    // Said as the two swaps it made, and not as one cycle: a parity shoots nothing anywhere.
+    assertEquals(1, detector.subStepCount(3));
+    assertEquals("UFR-UBR + UR-UL", detector.subStepName(3, 0));
     // The two blocks of cycles kept the times they finished at, through the algorithm that followed.
     assertTrue(detector.getStepTimestampMs(1) < detector.getStepTimestampMs(2));
     assertTrue(detector.getStepTimestampMs(2) < detector.getStepTimestampMs(3));
     assertTrue(detector.matchesMethod());
+  }
+
+  /**
+   * A step of one part normally collapses into itself — a one-look OLL is the OLL, and splitting it
+   * would invent a structure the solve did not have. A parity is a step of one and must not: the
+   * pieces it swapped are written on the part, and the algorithms a solve took are counted there.
+   */
+  @Test
+  public void keepsTheParityAsAPartOfItsOwnSoItIsCountedAndNamed() {
+    String[] solve = {EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B, T_PERM};
+    startFrom(solve);
+    play(solve);
+
+    List<StepTime> steps = analyzer.getStepTimes();
+    assertEquals(4, steps.size());
+    assertEquals("parity", steps.get(3).getStepName());
+    assertEquals(1, steps.get(3).getSubSteps().size());
+    assertEquals("UFR-UBR + UR-UL", steps.get(3).getSubSteps().get(0).getStepName());
   }
 
   @Test
@@ -255,8 +279,8 @@ public class BlindStepDetectorTest {
   /** Start the solve, then let the given memorisation pass before any move. Returns the start. */
   private long start(long memoMs) {
     long startMs = timestampMs;
-    detector.reset(state(), startMs);
-    detector.onState(state(), null); // the cube reports its state; no move has been made
+    analyzer.start(state(), startMs);
+    analyzer.onState(state()); // the cube reports its state; no move has been made
     timestampMs += memoMs;
     return startMs;
   }
@@ -267,7 +291,8 @@ public class BlindStepDetectorTest {
       boolean prime = token.endsWith("'");
       for (int i = 0; i < (token.endsWith("2") ? 2 : 1); i++) {
         cube.applyMove(face, prime);
-        detector.onState(state(), new CubeMove(face, prime, timestampMs));
+        analyzer.onMove(new CubeMove(face, prime, timestampMs));
+        analyzer.onState(state());
         timestampMs += 100; // the first turn lands exactly where the memorisation ended
       }
     }

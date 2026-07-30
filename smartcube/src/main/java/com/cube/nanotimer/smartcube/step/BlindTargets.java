@@ -77,6 +77,14 @@ final class BlindTargets {
   }
 
   /**
+   * The name of a parity: the two corners it swapped and then the two edges. Nothing was shot
+   * anywhere, and two swaps rather than one four-piece cycle is what the solver memorised.
+   */
+  String swapName(List<Integer> corners, List<Integer> edges) {
+    return join(spellAll(corners)) + " + " + join(spellAll(edges));
+  }
+
+  /**
    * The name of one algorithm, from the drift-free states either side of it, the piece it was shot
    * from and the pieces it moved. Where nothing says which piece it was shot from — a parity, or a
    * cycle the solve has not settled the buffer of — the pieces are named as they stand instead.

@@ -169,8 +169,12 @@ public final class SolveAnalyzer {
   }
 
   /** Only one part actually done — a one-look OLL or PLL, or a step the scramble half-gave: the
-   * step is the part, and splitting it would invent a structure the solve did not have. */
-  private static boolean worthSplitting(List<StepTime> subSteps) {
+   * step is the part, and splitting it would invent a structure the solve did not have. Unless the
+   * method names its parts something its steps do not, and then the one part is the whole point. */
+  private boolean worthSplitting(List<StepTime> subSteps) {
+    if (detector.keepsLonePart()) {
+      return true;
+    }
     int done = 0;
     for (StepTime subStep : subSteps) {
       if (subStep.getTotalMs() > 0) {

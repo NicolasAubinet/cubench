@@ -200,9 +200,11 @@ public final class BlindStepDetector implements StepDetector {
       // A cycle is said as all three of its pieces; anything else, as what it put home.
       List<Integer> named = shot || all.isEmpty() ? moved : all;
       int shotFrom = shot ? bufferOf(moved, all) : BlindTargets.NO_BUFFER;
-      landings.add(new Landing(timestampMs, typeOf(gained, parityLanding),
-          targets.name(landed, steady, shotFrom, named), landed, shot ? steady : null, named,
-          shotFrom));
+      String name = parityLanding
+          ? targets.swapName(gained[CORNERS], gained[EDGES])
+          : targets.name(landed, steady, shotFrom, named);
+      landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed,
+          shot ? steady : null, named, shotFrom));
       if (shot && shotFrom != BlindTargets.NO_BUFFER) {
         nameWhatWaitedForIt(shotFrom);
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
@@ -511,6 +513,13 @@ public final class BlindStepDetector implements StepDetector {
   @Override
   public String subStepName(int step, int subStep) {
     return runs().get(step - 1).landings.get(subStep).name;
+  }
+
+  /** A parity is one algorithm and a step of its own: collapsed, it loses both its name and its
+   * place in the count. */
+  @Override
+  public boolean keepsLonePart() {
+    return true;
   }
 
   @Override
