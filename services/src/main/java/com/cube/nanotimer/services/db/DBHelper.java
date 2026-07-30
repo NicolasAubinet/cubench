@@ -46,6 +46,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_SOLVETYPE_POSITION + " INTEGER DEFAULT 0, " +
         DB.COL_SOLVETYPE_BLIND + " INTEGER DEFAULT 0, " +
         DB.COL_SOLVETYPE_INSPECTION + " INTEGER DEFAULT 1, " +
+        DB.COL_SOLVETYPE_METHOD + " TEXT, " +
         DB.COL_SOLVETYPE_SCRAMBLE_TYPE + " TEXT, " +
         DB.COL_SOLVETYPE_QUICK_ACTION + " INTEGER DEFAULT " + TimerQuickAction.SCRAMBLE_VIEW.getId() + ", " +
         DB.COL_SOLVETYPE_CUBETYPE_ID + " INTEGER, " +
@@ -267,6 +268,13 @@ public class DBHelper extends SQLiteOpenHelper {
       db.execSQL("UPDATE " + DB.TABLE_SOLVETYPE
           + " SET " + DB.COL_SOLVETYPE_INSPECTION + " = 0"
           + " WHERE " + DB.COL_SOLVETYPE_BLIND + " = 1");
+    }
+
+    if (oldVersion < 23) {
+      // Which method a smart cube reads these solves as. Left null for existing types: nothing was
+      // ever asked, and no method is the answer that reads the solve rather than presuming it.
+      db.execSQL("ALTER TABLE " + DB.TABLE_SOLVETYPE + " ADD COLUMN "
+          + DB.COL_SOLVETYPE_METHOD + " TEXT");
     }
 
 //    progressDialog.hide();

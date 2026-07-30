@@ -28,6 +28,7 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveHistory;
@@ -144,7 +145,8 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
       SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position,
-          solveTypeName, solveType.isBlind(), solveType.hasInspection(), scrambleTypeName, solveType.getQuickAction());
+          solveTypeName, solveType.isBlind(), solveType.hasInspection(), scrambleTypeName,
+          solveType.getQuickAction(), solveType.getMethod());
       DialogUtils.showFragment(this, editDialog);
     } else if (menuItem.getItemId() == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
@@ -256,6 +258,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     SolveType updatedSolveType = new SolveType(oldSolveType.getId(), name, blindMode, scrambleType, oldSolveType.getCubeTypeId());
     updatedSolveType.setSteps(oldSolveType.getSteps());
     updatedSolveType.setInspection(parseInspection(props));
+    updatedSolveType.setMethod(parseMethod(props));
     updatedSolveType.setQuickAction(parseQuickAction(props, blindMode));
     liSolveTypes.set(index, updatedSolveType);
 
@@ -289,6 +292,11 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     return Boolean.valueOf(props.getProperty(SolveTypeAddDialog.KEY_INSPECTION, String.valueOf(true)));
   }
 
+  // Which method a smart cube reads these solves as (null for none, which reads it off the solve).
+  private CubeMethod parseMethod(Properties props) {
+    return CubeMethod.fromCode(props.getProperty(SolveTypeAddDialog.KEY_METHOD, ""));
+  }
+
   // Which timer menu action the solve type puts in the action bar (KEY_QUICK_ACTION is its stored id).
   private TimerQuickAction parseQuickAction(Properties props, boolean blind) {
     String id = props.getProperty(SolveTypeAddDialog.KEY_QUICK_ACTION);
@@ -305,6 +313,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     ScrambleType scrambleType = parseScrambleType(props);
     SolveType st = new SolveType(name, blindMode, scrambleType, curCubeType.getId());
     st.setInspection(parseInspection(props));
+    st.setMethod(parseMethod(props));
     st.setQuickAction(parseQuickAction(props, blindMode));
 
     liSolveTypes.add(st);

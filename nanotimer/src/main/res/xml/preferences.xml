@@ -138,6 +138,20 @@
   </PreferenceCategory>
 
   <PreferenceCategory
+     android:title="@string/smart_cube_title">
+
+    <ListPreference
+       android:key="smart_cube_method"
+       android:title="@string/preferred_method"
+       android:summary="@string/preferred_method_summary"
+       android:entries="@array/entries_cube_method"
+       android:entryValues="@array/entryvalues_cube_method"
+       android:dialogTitle="@string/preferred_method"
+       android:defaultValue="CFOP"/>
+
+  </PreferenceCategory>
+
+  <PreferenceCategory
      android:title="@string/scrambles">
 
     <ListPreference

@@ -687,6 +687,17 @@
   <string name="smart_cube_failed_title">Connexion impossible</string>
   <string name="smart_cube_scan_again">Rechercher à nouveau</string>
 
+  <!-- Cube connecté : la méthode de résolution utilisée pour lire un solve -->
+  <string name="method">Méthode</string>
+  <string name="method_cfop">CFOP</string>
+  <string name="method_roux">Roux</string>
+  <string name="method_blind">En aveugle</string>
+  <string name="method_info">À propos de la méthode</string>
+  <string name="method_info_message">Sert à reconstruire vos résolutions lorsqu\'un cube connecté est utilisé : elle indique à l\'application en quelles étapes découper une résolution. Indiquez la méthode que vous utilisez réellement pour ce type de résolution.</string>
+  <string name="preferred_method">Méthode préférée</string>
+  <string name="preferred_method_summary">La méthode des nouveaux types de solve</string>
+  <string name="preferred_method_prompt">Quelle méthode utilisez-vous ? Elle sert à découper vos solves en étapes, et vous pouvez la changer à tout moment dans les paramètres.</string>
+
   <string name="quick_action">Action rapide</string>
   <string name="quick_action_none">Aucune</string>
   <string name="discard_solve_title">Supprimer ce temps ?</string>

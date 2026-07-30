@@ -113,6 +113,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private CubeMethod lastSolveMethod; // the method its milestones fitted, null when they fitted none
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
+  private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -679,10 +680,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         R.string.discard_solve, R.string.keep_solve, new YesNoListener() {
           @Override
           public void onYes() {
-            if (lastSolveTime != null) {
+            if (lastSolveTime != null && !recordPending) {
               deleteLastSolve();
             } else {
-              discardWhenSaved = true; // it is still being written; drop it the moment it lands
+              // Not written yet — and while a record is pending, lastSolveTime is still the solve
+              // before it, which must not be the one discarded. Drop this one when it lands.
+              discardWhenSaved = true;
             }
           }
         });
@@ -1079,15 +1082,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       return;
     }
     lastTimerStopTs = curTime;
-    long time = (curTime - timerStartTs);
+    final long solveDuration = (curTime - timerStartTs);
     timerState = TimerState.STOPPED;
-    solveController.onTimerStopped();
     if (timer != null) {
       timer.cancel();
       timer.purge();
     }
     timerStopped();
-    showStepBreakdown(time);
+    long time = solveDuration;
     if (oversteppedInspection) {
       time += SolveTime.PLUS_TWO_PENALTY_MS; // started the solve after inspection ran out (official inspection mode)
       oversteppedInspection = false;
@@ -1096,8 +1098,25 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // (as all ms do not necessarily appear when timing, some are skipped due to refresh interval)
     updateTimerText(time);
     playSolveCompletionFlourish(time);
+    // The time is shown the instant the solve ends; what the cube read of it can land a moment
+    // later, since a slice ending the solve is only confirmed once the gyro has settled past it.
+    final long timeToSave = time;
+    recordPending = true;
+    solveController.onTimerStopped(() -> recordStoppedSolve(solveDuration, timeToSave, save));
+  }
+
+  /**
+   * The half of a stop that needs the cube's reading of the solve, so it can run a moment late.
+   * The new scramble is generated here too: applying it resets the trackers this reads.
+   *
+   * @param solveDurationMs what the timer measured, before any penalty
+   * @param timeToSave what gets stored, penalty included
+   */
+  private void recordStoppedSolve(long solveDurationMs, long timeToSave, boolean save) {
+    recordPending = false;
+    showStepBreakdown(solveDurationMs);
     if (save) {
-      saveTime(time);
+      saveTime(timeToSave);
     }
     generateScramble();
   }
@@ -1412,7 +1431,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         public void run() {
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
-          solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind());
+          solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
+              solveType.getMethod());
         }
       });
       foundScramble = true;

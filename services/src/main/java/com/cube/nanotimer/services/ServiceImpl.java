@@ -3,6 +3,7 @@ package com.cube.nanotimer.services;
 import android.content.Context;
 import com.cube.nanotimer.services.db.DBHelper;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
@@ -226,6 +227,19 @@ public class ServiceImpl extends DBHelper implements Service {
       @Override
       public void run() {
         provider.updateSolveType(solveType, recalculateAverages);
+        if (callback != null) {
+          callback.onData(null);
+        }
+      }
+    });
+  }
+
+  @Override
+  public void setMethodWhereUnset(final CubeMethod method, final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.setMethodWhereUnset(method);
         if (callback != null) {
           callback.onData(null);
         }
