@@ -284,6 +284,28 @@ public class RotationTrackerTest {
     assertEquals(null, anchoredAt(REST).getPickupRotation(noPairs()));
   }
 
+  /**
+   * A reading of its own is what the pick-up is really read from — one taken before the solve's
+   * first move, where no slice has carried the core round yet. Read at a move instead, a solve
+   * opening on a slice is a quarter turn out however far past the pair it waits, since the frame
+   * every later move is in has that slice in it.
+   */
+  @Test
+  public void aReadingOfItsOwnIsReadAsTheFrameItWasTakenIn() {
+    CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1000); // the solve's first move, on a slice
+
+    assertEquals("x", tracker.getPickupRotation(noPairs()).getNotation());
+    assertEquals("y", tracker.frameOf(turnedFrom(grip, aboutCubeU(-90))).getNotation());
+  }
+
+  @Test
+  public void withoutAReferenceOrAReadingThereIsNoFrameToRead() {
+    assertEquals(null, anchoredAt(REST).frameOf(null));
+    assertEquals(null, new RotationTracker().frameOf(AFTER_Y));
+  }
+
   @Test
   public void resetDropsTheReferenceAndTheFrames() {
     RotationTracker tracker = anchoredAt(REST);

@@ -4,6 +4,7 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
@@ -65,6 +66,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private Phase phase = Phase.INACTIVE;
   private boolean sawUnsolved;
   private boolean analyzing;
+  private CubeRotation pickup; // the grip the running solve was picked up in, once it is known
+  private boolean pickupRead; // whether the reading before its first move has been asked for
   private long lastFollowMoveWallMs; // 0 until the first followed move of the current scramble
   private long timerStartMs; // when the tap started the solve, on the cube's (host-fitted) clock
 
@@ -117,6 +120,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     if (cubeDriven && SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.RUNNING;
       sawUnsolved = false;
+      pickup = null; // this solve reads its own grip, at its own first move
+      pickupRead = false;
       if (blind) {
         beginAnalysis(timerStartMs); // the memo starts here, with the cube untouched
       }
@@ -229,6 +234,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     analyzing = false;
     rotationTracker.reset(); // a new scramble re-anchors at its own first move
     sliceSpins.reset();
+    pickup = null;
+    pickupRead = false;
     lastFollowMoveWallMs = 0;
     if (!followable || scramble == null || !SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.INACTIVE;
@@ -328,10 +335,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         break;
       case RUNNING:
         trackOrientation(move);
-        // The opening is where the pick-up shows: the scramble was turned green in front and this is
-        // the grip the solver memorised in, which is what their targets are named by. Asked again at
-        // every move, since a first move taken inside a slice pair is answered only by a later one.
-        analyzers.setPickupRotation(rotationTracker.getPickupRotation(sliceSpins.possiblePairs()));
+        readPickup(move);
         if (analyzing) {
           analyzers.onMove(move);
         } else if (!blind) {
@@ -343,6 +347,29 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       default:
         break;
     }
+  }
+
+  /**
+   * The grip the solve was picked up in, which is what a blind solver's targets are named by, taken
+   * from the settled reading <b>before</b> its first move and then left alone.
+   *
+   * <p>Every reading at a move has the solve's own slices in it — a slice carries the core, and the
+   * gyro and the face labels with it — while the names are spelled off states carried back to the
+   * frame the solve started in. So a solve opening on a slice spelled every target a quarter turn
+   * out, and re-asking each move moved the spelling mid-solve. Falls back on the old reading where
+   * the gyro said nothing before the solve began.
+   */
+  private void readPickup(CubeMove move) {
+    if (pickup != null) {
+      return;
+    }
+    if (!pickupRead) {
+      pickupRead = true;
+      pickup = rotationTracker.frameOf(SmartCubeManager.INSTANCE.getOrientationAt(
+          move.getCubeTimestampMs() - SliceSpinDetector.SETTLE_MS));
+    }
+    analyzers.setPickupRotation(pickup != null ? pickup
+        : rotationTracker.getPickupRotation(sliceSpins.possiblePairs()));
   }
 
   /** Both readers of the gyro: the frame the solve is turned in, and the slices it is turned with. */

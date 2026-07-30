@@ -48,6 +48,15 @@ public final class RotationTracker {
   }
 
   /**
+   * The frame a reading of its own was taken in — one from before the solve's first move, which is
+   * the last moment no slice has carried the core round yet. Null with no reference or no reading.
+   */
+  public CubeRotation frameOf(CubeOrientation reading) {
+    return reference == null || reading == null ? null
+        : CubeRotation.closest(reference.deltaTo(CubeRotation.upright(reading)));
+  }
+
+  /**
    * The frame the solve was picked up in — the rotation the solver made taking the cube up, since
    * the scramble is turned green in front and the solve in whatever grip they prefer. Null until a
    * move has been sampled, or when there is no gyro to sample.
