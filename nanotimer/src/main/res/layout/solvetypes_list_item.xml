@@ -1,45 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-   android:orientation="vertical"
+<!-- One solve type. The icon says what kind it is at a glance; the chips under the name carry the
+     details that change how the timer behaves. The outer frame only supplies the gap between cards,
+     since a ListView ignores margins on the row itself. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
-   android:layout_height="wrap_content">
+   android:layout_height="wrap_content"
+   android:paddingBottom="@dimen/space_s">
 
-  <RelativeLayout
+  <LinearLayout
      android:layout_width="match_parent"
-     android:layout_height="match_parent"
-     android:padding="6dp">
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:background="@drawable/solvetype_card"
+     android:minHeight="68dp"
+     android:paddingLeft="14dp"
+     android:paddingRight="10dp"
+     android:paddingTop="12dp"
+     android:paddingBottom="12dp">
 
-    <TextView
-       android:id="@+id/tvSolveType"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_toLeftOf="@+id/tvAdditionalInfo"
-       android:layout_centerVertical="true"
-       android:layout_alignParentLeft="true"
-       android:maxLines="1"
-       style="@style/SimpleTextField"/>
+    <ImageView
+       android:id="@+id/imgSolveType"
+       android:layout_width="24dp"
+       android:layout_height="24dp"
+       android:layout_marginEnd="14dp"
+       android:layout_marginRight="14dp"
+       android:tint="@color/lightblue"
+       android:contentDescription="@null"/>
 
-    <TextView
-       android:id="@+id/tvAdditionalInfo"
-       android:layout_width="wrap_content"
+    <LinearLayout
+       android:layout_width="0dp"
        android:layout_height="wrap_content"
-       android:layout_toLeftOf="@+id/imgMove"
-       android:layout_centerVertical="true"
-       android:maxLines="1"
-       android:layout_marginLeft="6dp"
-       android:layout_marginRight="6dp"
-       style="@style/SmallTextField"/>
+       android:layout_weight="1"
+       android:orientation="vertical">
+
+      <TextView
+         android:id="@+id/tvSolveType"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:singleLine="true"
+         android:ellipsize="end"
+         android:textColor="@color/white"
+         android:textStyle="bold"
+         android:textSize="17sp"/>
+
+      <LinearLayout
+         android:id="@+id/chipRow"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="6dp"
+         android:orientation="horizontal">
+
+        <!-- Trailing rather than leading gaps, so hiding a chip never leaves the row indented. -->
+        <TextView android:id="@+id/tvChipBlind"
+           android:layout_marginEnd="6dp" android:layout_marginRight="6dp"
+           style="@style/RowChipAccent"/>
+        <TextView android:id="@+id/tvChipSteps"
+           android:layout_marginEnd="6dp" android:layout_marginRight="6dp"
+           style="@style/RowChip"/>
+        <TextView android:id="@+id/tvChipScramble"
+           android:layout_marginEnd="6dp" android:layout_marginRight="6dp"
+           style="@style/RowChip"/>
+        <TextView android:id="@+id/tvChipInspection"
+           android:layout_marginEnd="6dp" android:layout_marginRight="6dp"
+           style="@style/RowChip"/>
+
+      </LinearLayout>
+
+    </LinearLayout>
 
     <ImageView
        android:id="@+id/imgMove"
-       android:src="@drawable/listmove"
-       android:layout_width="30dp"
-       android:layout_height="30dp"
-       android:layout_centerVertical="true"
-       android:layout_alignParentRight="true"
-       android:focusable="false"/>
+       android:layout_width="34dp"
+       android:layout_height="34dp"
+       android:layout_marginStart="8dp"
+       android:layout_marginLeft="8dp"
+       android:padding="5dp"
+       android:src="@drawable/ic_drag_handle"
+       android:tint="@color/secondary_text"
+       android:alpha="0.7"
+       android:focusable="false"
+       android:contentDescription="@null"/>
 
-  </RelativeLayout>
+  </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>

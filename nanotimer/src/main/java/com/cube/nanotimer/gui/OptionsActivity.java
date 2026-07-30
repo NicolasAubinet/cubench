@@ -2,10 +2,12 @@ package com.cube.nanotimer.gui;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -58,6 +60,19 @@ public class OptionsActivity extends NanoTimerActivity {
     public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       addPreferencesFromResource(R.xml.preferences);
+
+      // Null when the reflection-based PreferenceFragment could not build its manager, which it
+      // swallows rather than crashing on.
+      Preference editSolveTypes = findPreference("edit_solve_types");
+      if (editSolveTypes != null) {
+        editSolveTypes.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+          @Override
+          public boolean onPreferenceClick(Preference preference) {
+            startActivity(new Intent(getActivity(), SolveTypesActivity.class));
+            return true;
+          }
+        });
+      }
 
       prefChangedListener = new OnSharedPreferenceChangeListener() {
         @Override

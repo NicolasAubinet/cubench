@@ -144,6 +144,11 @@
   <string name="solve_types">Solve types</string>
   <string name="edit_solve_types">Edit solve types</string>
   <string name="edit_solve_types_summary">Edit, create and delete solve types</string>
+  <string name="solvetypes_hint">Tap a solve type to edit it, or drag it by the grip to reorder.</string>
+  <string name="solvetypes_steps_count">%1$d steps</string>
+  <string name="solvetypes_no_inspection">No inspection</string>
+  <string name="solvetypes_empty_title">No solve types</string>
+  <string name="solvetypes_empty_summary">Tap + to create one and keep a separate history for this puzzle.</string>
   <string name="clear_all_history">Delete all the times</string>
   <string name="yes">Yes</string>
   <string name="no">No</string>

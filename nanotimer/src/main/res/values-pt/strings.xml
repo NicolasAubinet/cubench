@@ -140,6 +140,11 @@
   <string name="solve_types">Tipos de resolução</string>
   <string name="edit_solve_types">Editar os tipos de resolução</string>
   <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>
+  <string name="solvetypes_hint">Toque num tipo de resolução para editá-lo, ou arraste-o pela pega para reordená-lo.</string>
+  <string name="solvetypes_steps_count">%1$d etapas</string>
+  <string name="solvetypes_no_inspection">Sem inspeção</string>
+  <string name="solvetypes_empty_title">Nenhum tipo de resolução</string>
+  <string name="solvetypes_empty_summary">Toque em + para criar um e manter um histórico separado para este quebra-cabeça.</string>
   <string name="clear_all_history">Excluir todos os tempos</string>
   <string name="yes">Sim</string>
   <string name="no">Não</string>

@@ -140,6 +140,11 @@
   <string name="solve_types">Métodos</string>
   <string name="edit_solve_types">Editar métodos</string>
   <string name="edit_solve_types_summary">Editar, crear y eliminar métodos</string>
+  <string name="solvetypes_hint">Toca un método para editarlo, o arrástralo por el asa para reordenarlo.</string>
+  <string name="solvetypes_steps_count">%1$d pasos</string>
+  <string name="solvetypes_no_inspection">Sin inspección</string>
+  <string name="solvetypes_empty_title">Sin métodos</string>
+  <string name="solvetypes_empty_summary">Toca + para crear uno y tener un historial separado para este puzle.</string>
   <string name="clear_all_history">Eliminar todos los tiempos</string>
   <string name="yes">Sí</string>
   <string name="no">No</string>

@@ -120,14 +120,12 @@
   <PreferenceCategory
      android:title="@string/solve_types">
 
+    <!-- Started from code: an <intent> here would have to name the package, and the debug build's
+         is suffixed. -->
     <Preference
+       android:key="edit_solve_types"
        android:title="@string/edit_solve_types"
-       android:summary="@string/edit_solve_types_summary">
-
-      <intent android:targetPackage="com.cube.nanotimer"
-         android:targetClass="com.cube.nanotimer.gui.SolveTypesActivity"/>
-
-    </Preference>
+       android:summary="@string/edit_solve_types_summary"/>
 
     <CheckBoxPreference
        android:key="solve_types_shortcut"

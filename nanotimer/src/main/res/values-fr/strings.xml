@@ -140,6 +140,11 @@
   <string name="solve_types">Types de résolution</string>
   <string name="edit_solve_types">Éditer les types de résolutions</string>
   <string name="edit_solve_types_summary">Éditer, ajouter et supprimer des types de résolution</string>
+  <string name="solvetypes_hint">Touchez un type de résolution pour l\'éditer, ou glissez-le par la poignée pour le déplacer.</string>
+  <string name="solvetypes_steps_count">%1$d étapes</string>
+  <string name="solvetypes_no_inspection">Sans inspection</string>
+  <string name="solvetypes_empty_title">Aucun type de résolution</string>
+  <string name="solvetypes_empty_summary">Touchez + pour en créer un et garder un historique séparé pour ce casse-tête.</string>
   <string name="clear_all_history">Supprimer tous les temps</string>
   <string name="yes">Oui</string>
   <string name="no">Non</string>

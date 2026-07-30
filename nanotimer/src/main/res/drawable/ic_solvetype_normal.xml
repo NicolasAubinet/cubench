@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A plain timed solve type: a stopwatch. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M4.5,13.5 a7.5,7.5 0 1,0 15,0 a7.5,7.5 0 1,0 -15,0
+                        M12,9.5 V13.5 H15
+                        M9.5,3 H14.5 M12,3 V6"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.8"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>

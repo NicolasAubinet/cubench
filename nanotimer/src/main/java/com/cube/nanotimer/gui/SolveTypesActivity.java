@@ -1,19 +1,22 @@
 package com.cube.nanotimer.gui;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.AddStepsDialog;
@@ -47,8 +50,11 @@ import java.util.Properties;
 public class SolveTypesActivity extends NanoTimerActivity implements SelectionHandler, FieldEditor, FieldCreator, StepsCreator {
 
   private DragSortListView lvSolveTypes;
+  private View emptyView;
+  private View listHint;
   private SolveTypeListAdapter adapter;
   private List<SolveType> liSolveTypes = new ArrayList<SolveType>();
+  private boolean solveTypesLoaded;
 
   private List<CubeType> cubeTypes;
   private CubeType curCubeType;
@@ -61,8 +67,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.solvetypes_screen);
-    getSupportActionBar().setTitle("");
-
     initViews();
 
     CubeType cubeType = (CubeType) getIntent().getSerializableExtra("cubeType");
@@ -90,6 +94,8 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
 
   private void initViews() {
     lvSolveTypes = (DragSortListView) findViewById(R.id.lvSolveTypes);
+    emptyView = findViewById(R.id.emptyView);
+    listHint = findViewById(R.id.tvListHint);
     adapter = new SolveTypeListAdapter(this, R.id.lvSolveTypes, liSolveTypes);
     lvSolveTypes.setDropListener(new DropListener() {
       @Override
@@ -107,21 +113,26 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
 
     DragSortController controller = new DragSortController(lvSolveTypes);
     controller.setDragHandleId(R.id.imgMove);
+    // The dragged row is a rounded card, so its float view must not sit on the default black slab.
+    controller.setBackgroundColor(Color.TRANSPARENT);
     lvSolveTypes.setFloatViewManager(controller);
     lvSolveTypes.setOnTouchListener(controller);
 
     lvSolveTypes.setOnItemClickListener(new OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        registerForContextMenu(lvSolveTypes);
-        openContextMenu(view);
-        unregisterForContextMenu(lvSolveTypes);
+        showActionsDialog(i);
       }
     });
 
-    if (curCubeType != null) {
-      getSupportActionBar().setTitle(curCubeType.getName());
-    }
+    setTitles();
+    refreshList();
+  }
+
+  // The screen is one puzzle's list, so the puzzle names the bar and the screen explains itself under it.
+  private void setTitles() {
+    getSupportActionBar().setTitle(curCubeType != null ? curCubeType.getName() : "");
+    getSupportActionBar().setSubtitle(curCubeType != null ? getString(R.string.solve_types) : null);
   }
 
   @Override
@@ -137,10 +148,32 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     DialogUtils.showFragment(this, dialog);
   }
 
-  @Override
-  public boolean onContextItemSelected(MenuItem menuItem) {
-    final int position = ((AdapterContextMenuInfo) menuItem.getMenuInfo()).position;
-    if (menuItem.getItemId() == ACTION_EDIT) {
+  // A row's actions, headed by the solve type they act on so the list says what is about to change.
+  private void showActionsDialog(final int position) {
+    if (position < 0 || position >= liSolveTypes.size()) {
+      return;
+    }
+    SolveType solveType = liSolveTypes.get(position);
+    final List<SolveTypeAction> actions = new ArrayList<SolveTypeAction>();
+    actions.add(new SolveTypeAction(ACTION_EDIT, R.string.edit, R.drawable.ic_action_edit, false));
+    if (!solveType.hasSteps()) {
+      actions.add(new SolveTypeAction(ACTION_CREATESTEPS, R.string.add_steps, R.drawable.ic_solvetype_steps, false));
+    }
+    actions.add(new SolveTypeAction(ACTION_DELETE, R.string.delete, R.drawable.ic_menu_delete, true));
+
+    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
+        .setTitle(Utils.toSolveTypeLocalizedName(this, solveType.getName()))
+        .setAdapter(new ActionListAdapter(this, actions), new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            actionSelected(actions.get(which).id, position);
+          }
+        })
+        .show();
+  }
+
+  private void actionSelected(int action, final int position) {
+    if (action == ACTION_EDIT) {
       SolveType solveType = liSolveTypes.get(position);
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
@@ -148,7 +181,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
           solveTypeName, solveType.isBlind(), solveType.hasInspection(), scrambleTypeName,
           solveType.getQuickAction(), solveType.getMethod());
       DialogUtils.showFragment(this, editDialog);
-    } else if (menuItem.getItemId() == ACTION_DELETE) {
+    } else if (action == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
       DialogUtils.showYesNoConfirmation(this, getString(R.string.delete_solve_type_confirmation, solveTypeName),
           new YesNoListener() {
@@ -163,7 +196,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
               });
             }
           });
-    } else if (menuItem.getItemId() == ACTION_CREATESTEPS) {
+    } else if (action == ACTION_CREATESTEPS) {
       App.INSTANCE.getService().getPagedHistory(liSolveTypes.get(position), TimesSort.TIMESTAMP, new DataCallback<SolveHistory>() {
         @Override
         public void onData(final SolveHistory data) {
@@ -184,21 +217,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
           });
         }
       });
-    }
-    return super.onContextItemSelected(menuItem);
-  }
-
-  @Override
-  public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-    super.onCreateContextMenu(menu, v, menuInfo);
-    if (v.getId() == R.id.lvSolveTypes) {
-      int position = ((AdapterContextMenuInfo) menuInfo).position;
-      menu.setHeaderTitle(R.string.action);
-      menu.add(v.getId(), ACTION_EDIT, 0, R.string.edit);
-      menu.add(v.getId(), ACTION_DELETE, 0, R.string.delete);
-      if (position >= 0 && position < liSolveTypes.size() && !liSolveTypes.get(position).hasSteps()) {
-        menu.add(v.getId(), ACTION_CREATESTEPS, 0, R.string.add_steps);
-      }
     }
   }
 
@@ -234,12 +252,11 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       public void onData(List<SolveType> data) {
         liSolveTypes.clear();
         liSolveTypes.addAll(data);
+        solveTypesLoaded = true;
         refreshList();
       }
     });
-    if (curCubeType != null) {
-      getSupportActionBar().setTitle(curCubeType.getName());
-    }
+    setTitles();
   }
 
   @Override
@@ -388,8 +405,55 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       @Override
       public void run() {
         adapter.notifyDataSetChanged();
+        if (!solveTypesLoaded) {
+          return; // an empty list before the first load is "not read yet", not "none"
+        }
+        // The hint only makes sense next to rows, so it goes with the list.
+        boolean empty = liSolveTypes.isEmpty();
+        emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
+        listHint.setVisibility(empty ? View.GONE : View.VISIBLE);
+        lvSolveTypes.setVisibility(empty ? View.GONE : View.VISIBLE);
       }
     });
+  }
+
+  private static class SolveTypeAction {
+    private final int id;
+    private final int labelId;
+    private final int iconId;
+    private final boolean danger;
+
+    private SolveTypeAction(int id, int labelId, int iconId, boolean danger) {
+      this.id = id;
+      this.labelId = labelId;
+      this.iconId = iconId;
+      this.danger = danger;
+    }
+  }
+
+  private static class ActionListAdapter extends ArrayAdapter<SolveTypeAction> {
+
+    private ActionListAdapter(Context context, List<SolveTypeAction> actions) {
+      super(context, R.layout.solvetype_action_item, actions);
+    }
+
+    public View getView(int position, View convertView, ViewGroup parent) {
+      View view = convertView;
+      if (view == null) {
+        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        view = inflater.inflate(R.layout.solvetype_action_item, parent, false);
+      }
+
+      SolveTypeAction action = getItem(position);
+      int color = ContextCompat.getColor(getContext(), action.danger ? R.color.danger_text : R.color.white);
+      ImageView icon = (ImageView) view.findViewById(R.id.imgIcon);
+      icon.setImageResource(action.iconId);
+      icon.setColorFilter(color);
+      TextView label = (TextView) view.findViewById(R.id.tvText);
+      label.setText(action.labelId);
+      label.setTextColor(color);
+      return view;
+    }
   }
 
   private class SolveTypeListAdapter extends ArrayAdapter<SolveType> {
@@ -412,19 +476,44 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
           String solveTypeName = Utils.toSolveTypeLocalizedName(getContext(), solveType.getName());
           tvName.setText(solveTypeName);
 
-          TextView tvAdditionalInfo = (TextView) view.findViewById(R.id.tvAdditionalInfo);
-          if (solveType.hasSteps()) {
-            StringBuilder stepsCount = new StringBuilder();
-            stepsCount.append("(").append(solveType.getSteps().length).append(" ").append(getString(R.string.steps)).append(")");
-            tvAdditionalInfo.setText(stepsCount.toString());
-          } else if (solveType.isBlind()) {
-            tvAdditionalInfo.setText(R.string.blind);
-          } else {
-            tvAdditionalInfo.setText("");
-          }
+          ((ImageView) view.findViewById(R.id.imgSolveType)).setImageResource(getTypeIcon(solveType));
+
+          boolean anyChip = setChip(view, R.id.tvChipBlind, solveType.isBlind() ? getString(R.string.blind) : null);
+          anyChip |= setChip(view, R.id.tvChipSteps,
+              solveType.hasSteps() ? getString(R.string.solvetypes_steps_count, solveType.getSteps().length) : null);
+          anyChip |= setChip(view, R.id.tvChipScramble, getScrambleTypeChip(solveType, solveTypeName));
+          // Blind types never inspect, and the blind chip already says so.
+          anyChip |= setChip(view, R.id.tvChipInspection,
+              (!solveType.isBlind() && !solveType.hasInspection()) ? getString(R.string.solvetypes_no_inspection) : null);
+          view.findViewById(R.id.chipRow).setVisibility(anyChip ? View.VISIBLE : View.GONE);
         }
       }
       return view;
+    }
+
+    private int getTypeIcon(SolveType solveType) {
+      if (solveType.isBlind()) {
+        return R.drawable.ic_solvetype_blind;
+      }
+      return solveType.hasSteps() ? R.drawable.ic_solvetype_steps : R.drawable.ic_solvetype_normal;
+    }
+
+    // The add dialog names a new type after its scramble type, so skip the chip when it would just
+    // repeat the name.
+    private String getScrambleTypeChip(SolveType solveType, String solveTypeName) {
+      ScrambleType scrambleType = solveType.getScrambleType();
+      if (scrambleType == null || scrambleType.isDefault()) {
+        return null;
+      }
+      String name = Utils.toScrambleTypeLocalizedName(getContext(), scrambleType);
+      return name.equals(solveTypeName) ? null : name;
+    }
+
+    private boolean setChip(View row, int chipId, String text) {
+      TextView chip = (TextView) row.findViewById(chipId);
+      chip.setText(text);
+      chip.setVisibility(text != null ? View.VISIBLE : View.GONE);
+      return text != null;
     }
   }
 
