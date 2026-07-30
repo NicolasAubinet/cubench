@@ -1,0 +1,87 @@
+package com.cube.nanotimer.cube;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import com.cube.nanotimer.vo.CubeMethod;
+import org.junit.Test;
+
+/**
+ * Reading a stored solve's breakdown again from its scramble and its moves — the same 68-second Roux
+ * solve {@link RecordedSolveReplayTest} holds the database form of.
+ *
+ * <p>That fixture is the point rather than a convenience: it was stored with a wrong frame, every
+ * slice recorded on the wrong axis. The detectors read <em>states</em> and never move letters, so a
+ * breakdown re-read from it comes out right regardless — which is exactly why re-interpretation is
+ * safe to do on history that was recorded by an older pipeline.
+ */
+public class StoredSolveReplayTest {
+
+  private static final String SCRAMBLE = RecordedSolveReplayTest.SCRAMBLE;
+  private static final String MOVES = RecordedSolveReplayTest.MOVES;
+
+  @Test
+  public void readsAStoredRouxSolveAsRoux() {
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.ROUX);
+
+    assertNotNull(result);
+    assertEquals(CubeMethod.ROUX, result.getMethod());
+    assertEquals(4, result.getSteps().size());
+    assertEquals("fb", result.getSteps().get(0).getName());
+    assertEquals("sb", result.getSteps().get(1).getName());
+    assertEquals("cmll", result.getSteps().get(2).getName());
+    assertEquals("lse", result.getSteps().get(3).getName());
+    assertNull("the cube saw this solve finish", result.getStoppedStep());
+  }
+
+  /** The steps are the solve's own, not a fresh reading of a solve that never happened. */
+  @Test
+  public void theStepsRunInOrderAndCoverTheSolve() {
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.ROUX);
+
+    long total = 0;
+    for (int i = 0; i < result.getSteps().size(); i++) {
+      long step = result.getSteps().get(i).getTotalMs();
+      assertTrue("step " + i + " lasted " + step, step > 0);
+      total += step;
+    }
+    // The stream's last move is at 68764 ms; the steps account for the solve up to its last milestone.
+    assertTrue("steps totalled " + total, total > 60_000 && total <= 68_764);
+  }
+
+  /**
+   * A blind solve is named in the grip it was memorised in, and no grip is stored, so it is left
+   * with the breakdown it was recorded with rather than re-read into a different one.
+   */
+  @Test
+  public void doesNotRereadABlindSolve() {
+    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.BLIND));
+  }
+
+  @Test
+  public void hasNothingToSayAboutASolveWithNoMoves() {
+    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, null, CubeMethod.CFOP));
+    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, "", CubeMethod.CFOP));
+    assertNull(StoredSolveReplay.reinterpret(null, MOVES, CubeMethod.CFOP));
+  }
+
+  /** A scramble in another puzzle's notation must fall back, not bring the detail dialog down. */
+  @Test
+  public void fallsBackRatherThanThrowingOnAScrambleItCannotRead() {
+    assertNull(StoredSolveReplay.reinterpret("R++ D-- U'", MOVES, CubeMethod.CFOP));
+  }
+
+  /**
+   * The walk starts from the scramble, which is only where the cube really was if the scramble was
+   * performed. Started anywhere else, these same moves cannot end solved — so a reading that claims
+   * the solve finished is proof the start was wrong, and the stored breakdown is kept instead.
+   */
+  @Test
+  public void refusesAReadingThatFinishesOnACubeThatIsNotSolved() {
+    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE + " R", MOVES, CubeMethod.ROUX));
+  }
+}

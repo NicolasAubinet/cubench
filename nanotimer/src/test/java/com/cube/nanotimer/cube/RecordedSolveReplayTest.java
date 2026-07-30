@@ -16,10 +16,10 @@ import org.junit.Test;
  */
 public class RecordedSolveReplayTest {
 
-  private static final String SCRAMBLE =
+  static final String SCRAMBLE =
       "R2 F2 L2 B2 U B2 L2 U L2 D' R2 D2 L' D' L2 D F R2 U2 L' D'";
 
-  private static final String MOVES =
+  static final String MOVES =
       "y@0 x2@0 B'@0 U'@304 U'@486 F'@2222 F'@2542 L@5415 R@10945 B'@11206 L'@12128 R@13185 "
       + "L'@13187 x'@13188 y@13495 D@13495 D@13691 R@14080 F'@15656 R@16243 L'@16313 x'@16314 "
       + "R'@17607 U@17796 L@21303 R'@23676 D@23873 R@24099 x@24416 F@24416 L'@24961 L'@25742 "

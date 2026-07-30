@@ -31,6 +31,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
+import com.cube.nanotimer.cube.StoredSolveReplay;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
@@ -131,13 +132,21 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     // split is the one it is read through; the method's steps are still recorded either way.
     long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
     if (!buildManualSteps(v, solveTime, durationMs)) {
+      // Read the breakdown off the scramble and the moves rather than off what was stored beside
+      // them, so a solve type whose method changed shows its whole history under the method it now
+      // names. Falls back to what was recorded whenever the solve cannot be read again.
+      StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solveTime.getScramble(),
+          solveTime.getSmartcubeMoves(), solveTime.getSolveType().getMethod());
+      CubeMethod method = reread == null ? solveTime.getSmartcubeMethod() : reread.getMethod();
+      List<SolveStep> read = reread == null ? solveTime.getSmartcubeSteps() : reread.getSteps();
+      Integer stoppedStep =
+          reread == null ? solveTime.getSmartcubeStoppedStep() : reread.getStoppedStep();
       // The tail is derived rather than stored, so it is added back here, before anything reads the
       // breakdown: the solution splits its moves by the same step windows the bar draws.
-      List<SolveStep> steps = SolveBreakdown.withTail(solveTime.getSmartcubeSteps(),
-          solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves(),
-          solveTime.getSmartcubeMethod());
+      List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs,
+          solveTime.getSmartcubeMoves(), method);
       buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
-          getString(R.string.breakdown), null, solveTime.getSmartcubeMethod());
+          getString(R.string.breakdown), null, method);
     }
 
     final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
