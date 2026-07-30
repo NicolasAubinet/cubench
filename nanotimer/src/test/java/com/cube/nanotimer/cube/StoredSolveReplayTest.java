@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.vo.CubeMethod;
 import org.junit.Test;
@@ -45,11 +46,11 @@ public class StoredSolveReplayTest {
     long total = 0;
     for (int i = 0; i < result.getSteps().size(); i++) {
       long step = result.getSteps().get(i).getTotalMs();
-      org.junit.Assert.assertTrue("step " + i + " lasted " + step, step > 0);
+      assertTrue("step " + i + " lasted " + step, step > 0);
       total += step;
     }
     // The stream's last move is at 68764 ms; the steps account for the solve up to its last milestone.
-    org.junit.Assert.assertTrue("steps totalled " + total, total > 60_000 && total <= 68_764);
+    assertTrue("steps totalled " + total, total > 60_000 && total <= 68_764);
   }
 
   /**
@@ -72,5 +73,15 @@ public class StoredSolveReplayTest {
   @Test
   public void fallsBackRatherThanThrowingOnAScrambleItCannotRead() {
     assertNull(StoredSolveReplay.reinterpret("R++ D-- U'", MOVES, CubeMethod.CFOP));
+  }
+
+  /**
+   * The walk starts from the scramble, which is only where the cube really was if the scramble was
+   * performed. Started anywhere else, these same moves cannot end solved — so a reading that claims
+   * the solve finished is proof the start was wrong, and the stored breakdown is kept instead.
+   */
+  @Test
+  public void refusesAReadingThatFinishesOnACubeThatIsNotSolved() {
+    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE + " R", MOVES, CubeMethod.ROUX));
   }
 }

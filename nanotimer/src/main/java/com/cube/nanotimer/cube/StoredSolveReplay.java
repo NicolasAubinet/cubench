@@ -22,6 +22,13 @@ import java.util.List;
  * gyro when the solve was recorded, and no gyro reading is kept. A fix to how rotations are
  * <em>derived</em> is therefore invisible here — only what is read <em>from</em> the stored stream
  * changes. Detectors read states and never move letters, so they are unaffected by this either way.
+ *
+ * <p><b>The one assumption it makes that the live reading does not.</b> Live, the analysis starts
+ * from the state the cube reports; here it starts from the scramble applied to a solved cube. Those
+ * agree only if the scramble was really performed — guaranteed for a followed scramble, which is
+ * checked to completion before the timer arms, but not for a solve type whose scramble cannot be
+ * followed. A walk from the wrong state almost always fits no method and falls back on its own; the
+ * solved-cube check below catches the rest, so a wrong reading is never preferred to the stored one.
  */
 public final class StoredSolveReplay {
 
@@ -91,8 +98,14 @@ public final class StoredSolveReplay {
         return null; // the moves fit no method we know: keep what was recorded rather than empty it
       }
       SolveAnalyzer analyzer = analyzers.get(method);
+      Integer stoppedStep = analyzer.getStoppedStep();
+      // A reading that says the solve ran to the end has to end on a solved cube. Where it does not,
+      // the walk started somewhere the solve did not — see the start-state note on the class.
+      if (stoppedStep == null && !cube.isSolved()) {
+        return null;
+      }
       return new Result(method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
-          analyzer.getStoppedStep());
+          stoppedStep);
     } catch (RuntimeException e) {
       return null; // a scramble in another puzzle's notation, a truncated stream: fall back
     }
