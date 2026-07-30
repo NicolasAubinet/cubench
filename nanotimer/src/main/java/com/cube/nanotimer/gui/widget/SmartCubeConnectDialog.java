@@ -367,9 +367,13 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     for (int i = 0; i < METHOD_CHOICES.length; i++) {
       labels[i] = getString(methodLabel(METHOD_CHOICES[i]));
     }
+    // A dialog shows its message or its list, never both, so the prompt goes in the heading. As a
+    // message it took the list's place and left the dialog with nothing on it to press.
+    View heading = getLayoutInflater().inflate(R.layout.dialog_title_prompt, null);
+    ((TextView) heading.findViewById(R.id.tvDialogTitle)).setText(R.string.preferred_method);
+    ((TextView) heading.findViewById(R.id.tvDialogPrompt)).setText(R.string.preferred_method_prompt);
     new AlertDialog.Builder(requireContext(), R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.preferred_method)
-        .setMessage(R.string.preferred_method_prompt)
+        .setCustomTitle(heading)
         .setCancelable(false)
         .setItems(labels, (d, which) -> choosePreferredMethod(METHOD_CHOICES[which]))
         .show();
