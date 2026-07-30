@@ -699,8 +699,8 @@
   <string name="method_info">Acerca del método</string>
   <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un cubo inteligente conectado: le dice a la aplicación en qué pasos dividir una resolución. Indica el método que realmente usas para este método de resolución.</string>
   <string name="preferred_method">Método preferido</string>
-  <string name="preferred_method_summary">El método de los nuevos tipos de solve</string>
-  <string name="preferred_method_prompt">¿Con qué método resuelves? Se usa para dividir tus solves en pasos, y puedes cambiarlo cuando quieras en los ajustes.</string>
+  <string name="preferred_method_summary">El método inicial de los nuevos tipos de solve, ajustable en cada uno</string>
+  <string name="preferred_method_prompt">¿Con qué método resuelves? Se usa para dividir tus solves en pasos. Este es el predeterminado: cada tipo de solve puede tener el suyo.</string>
 
   <string name="quick_action">Acción rápida</string>
   <string name="quick_action_none">Ninguna</string>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One method to pick from: what it is called, and the steps it reads a solve into. Those steps
+     are what the method is, to anyone who solves with one, so there is no prose saying it again. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:background="@drawable/choice_card"
+   android:padding="14dp">
+
+  <ImageView
+     android:id="@+id/imgMethod"
+     android:layout_width="26dp"
+     android:layout_height="26dp"
+     android:layout_marginTop="2dp"
+     android:layout_marginEnd="14dp"
+     android:layout_marginRight="14dp"
+     android:tint="@color/lightblue"
+     android:contentDescription="@null"/>
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical">
+
+    <TextView
+       android:id="@+id/tvMethodName"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:textColor="@color/white"
+       android:textSize="16sp"
+       android:textStyle="bold"/>
+
+    <!-- The step names the breakdown will use, so the choice shows what it buys. -->
+    <LinearLayout
+       android:id="@+id/methodSteps"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="8dp"
+       android:orientation="horizontal"/>
+
+  </LinearLayout>
+
+</LinearLayout>

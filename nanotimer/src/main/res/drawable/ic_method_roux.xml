@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Roux: the same cube square as ic_method_cfop, with the two side blocks standing out of it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M3,3 H21 V8.33 H3 Z"
+      android:fillColor="#FFFFFFFF"
+      android:fillAlpha="0.4" />
+  <path
+      android:pathData="M9.33,9.33 H14.67 V21 H9.33 Z"
+      android:fillColor="#FFFFFFFF"
+      android:fillAlpha="0.4" />
+  <path
+      android:pathData="M3,9.33 H8.33 V21 H3 Z"
+      android:fillColor="#FFFFFFFF" />
+  <path
+      android:pathData="M15.67,9.33 H21 V21 H15.67 Z"
+      android:fillColor="#FFFFFFFF" />
+</vector>

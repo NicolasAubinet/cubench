@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Asked once, when a cube first connects: which method the app should read solves as. The
+     choices are the body of the dialog rather than a list under it, so each can show its steps. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="20dp"
+   android:paddingRight="20dp"
+   android:paddingTop="22dp"
+   android:paddingBottom="18dp">
+
+  <ImageView
+     android:layout_width="34dp"
+     android:layout_height="34dp"
+     android:layout_gravity="center_horizontal"
+     android:src="@drawable/ic_intro_breakdown"
+     android:tint="@color/lightblue"
+     android:contentDescription="@null"/>
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:gravity="center"
+     android:text="@string/preferred_method"
+     android:textColor="@color/white"
+     android:textSize="19sp"
+     android:textStyle="bold"/>
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="6dp"
+     android:gravity="center"
+     android:text="@string/preferred_method_prompt"
+     android:textColor="@color/secondary_text"
+     android:textSize="13sp"/>
+
+  <!-- One preferred_method_item per method, added in code. -->
+  <LinearLayout
+     android:id="@+id/methodChoices"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="18dp"
+     android:orientation="vertical"/>
+
+</LinearLayout>

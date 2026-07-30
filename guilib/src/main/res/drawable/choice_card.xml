@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One option in a dialog that asks the user to pick: a tappable card, since tapping it answers. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+   android:color="@color/lightblue">
+  <item android:id="@android:id/mask">
+    <shape android:shape="rectangle">
+      <solid android:color="@color/white"/>
+      <corners android:radius="@dimen/card_corner"/>
+    </shape>
+  </item>
+  <item>
+    <shape android:shape="rectangle">
+      <solid android:color="@color/timercardbg"/>
+      <corners android:radius="@dimen/card_corner"/>
+    </shape>
+  </item>
+</ripple>

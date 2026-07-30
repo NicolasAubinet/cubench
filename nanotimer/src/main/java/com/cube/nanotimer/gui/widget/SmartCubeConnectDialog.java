@@ -363,20 +363,53 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     if (!isAdded() || Options.INSTANCE.isPreferredMethodAsked()) {
       return;
     }
-    CharSequence[] labels = new CharSequence[METHOD_CHOICES.length];
-    for (int i = 0; i < METHOD_CHOICES.length; i++) {
-      labels[i] = getString(methodLabel(METHOD_CHOICES[i]));
-    }
-    // A dialog shows its message or its list, never both, so the prompt goes in the heading. As a
-    // message it took the list's place and left the dialog with nothing on it to press.
-    View heading = getLayoutInflater().inflate(R.layout.dialog_title_prompt, null);
-    ((TextView) heading.findViewById(R.id.tvDialogTitle)).setText(R.string.preferred_method);
-    ((TextView) heading.findViewById(R.id.tvDialogPrompt)).setText(R.string.preferred_method_prompt);
-    new AlertDialog.Builder(requireContext(), R.style.NanoTimerDialogTheme)
-        .setCustomTitle(heading)
+    View content = getLayoutInflater().inflate(R.layout.preferred_method_dialog, null);
+    LinearLayout choices = content.findViewById(R.id.methodChoices);
+    AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.NanoTimerDialogTheme)
+        .setView(content)
         .setCancelable(false)
-        .setItems(labels, (d, which) -> choosePreferredMethod(METHOD_CHOICES[which]))
-        .show();
+        .create();
+    for (CubeMethod method : METHOD_CHOICES) {
+      choices.addView(methodCard(method, choices, dialog));
+    }
+    dialog.show();
+  }
+
+  /** A method as a card: what it is called, and the steps it will be read as. */
+  private View methodCard(CubeMethod method, LinearLayout parent, AlertDialog dialog) {
+    View card = getLayoutInflater().inflate(R.layout.preferred_method_item, parent, false);
+    ((ImageView) card.findViewById(R.id.imgMethod)).setImageResource(methodIcon(method));
+    ((TextView) card.findViewById(R.id.tvMethodName)).setText(methodLabel(method));
+
+    LinearLayout steps = card.findViewById(R.id.methodSteps);
+    for (int step : methodSteps(method)) {
+      TextView chip = (TextView) getLayoutInflater().inflate(R.layout.method_step_chip, steps, false);
+      chip.setText(step);
+      steps.addView(chip);
+    }
+
+    if (parent.getChildCount() > 0) {
+      ((LinearLayout.LayoutParams) card.getLayoutParams()).topMargin =
+          getResources().getDimensionPixelSize(R.dimen.smart_cube_row_gap);
+    }
+    card.setOnClickListener(view -> {
+      choosePreferredMethod(method);
+      dialog.dismiss();
+    });
+    return card;
+  }
+
+  /** The step names the breakdown uses, so the card shows what picking the method buys. */
+  private static int[] methodSteps(CubeMethod method) {
+    return method == CubeMethod.ROUX
+        ? new int[] {R.string.smartcube_step_fb, R.string.smartcube_step_sb,
+            R.string.smartcube_step_cmll, R.string.smartcube_step_lse}
+        : new int[] {R.string.smartcube_step_cross, R.string.smartcube_step_f2l,
+            R.string.smartcube_step_oll, R.string.smartcube_step_pll};
+  }
+
+  private static int methodIcon(CubeMethod method) {
+    return method == CubeMethod.ROUX ? R.drawable.ic_method_roux : R.drawable.ic_method_cfop;
   }
 
   private void choosePreferredMethod(CubeMethod method) {
