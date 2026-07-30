@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Marks a view ScalingLinearLayout has already scaled, so scaling it again is a no-op. -->
+  <item name="tag_scaled" type="id"/>
+</resources>

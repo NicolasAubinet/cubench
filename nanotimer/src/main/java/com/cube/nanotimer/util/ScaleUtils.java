@@ -48,6 +48,11 @@ public class ScaleUtils {
     return xScale;
   }
 
+  /** The factor the px-authored layouts are drawn at on this screen. */
+  public static float getScale(Context c) {
+    return Math.min(getXScale(c), getYScale(c));
+  }
+
   public static float getYScale(Context c) {
     init(c);
     float yScale;

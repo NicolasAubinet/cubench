@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.ScaleUtils;
 
 public class ScalingLinearLayout extends LinearLayout {
@@ -37,22 +38,33 @@ public class ScalingLinearLayout extends LinearLayout {
     }
 
     if (screenWidth != previousWidth || screenHeight != previousHeight) {
-      float xScale = ScaleUtils.getXScale(getContext());
-      float yScale = ScaleUtils.getYScale(getContext());
-      float scale = Math.min(xScale, yScale);
-      scaleViewAndChildren(this, scale, 0);
+      // the root is left alone, to avoid scaling manual padding (from status bar and navigation bar)
+      scaleChildren(this, ScaleUtils.getScale(getContext()));
 
       previousWidth = screenWidth;
       previousHeight = screenHeight;
     }
   }
 
-  // Scale the given view, its contents, and all of its children by the given factor.
-  private void scaleViewAndChildren(View root, float scale, int canary) {
-    if (root != this) { // don't scale root, to avoid scaling manual padding (from status bar and navigation bar)
-      // Retrieve the view's layout information
-      ViewGroup.LayoutParams layoutParams = root.getLayoutParams();
+  /**
+   * Scales a subtree inflated after the pass above has already run. That pass runs once per layout,
+   * so a view added later keeps the raw px sizes the layouts are authored in and draws at a fraction
+   * of its size. Calling this before the pass is equally fine: a view is only ever scaled once.
+   */
+  public static void scaleLateSubtree(View root, float scale) {
+    scaleViewAndChildren(root, scale);
+  }
 
+  // Scale the given view, its contents, and all of its children by the given factor.
+  private static void scaleViewAndChildren(View root, float scale) {
+    if (Boolean.TRUE.equals(root.getTag(R.id.tag_scaled))) { // scaling twice would compound
+      return;
+    }
+    root.setTag(R.id.tag_scaled, Boolean.TRUE);
+
+    // Retrieve the view's layout information
+    ViewGroup.LayoutParams layoutParams = root.getLayoutParams();
+    if (layoutParams != null) {
       // Scale the View itself
       if (layoutParams.width != ViewGroup.LayoutParams.MATCH_PARENT && layoutParams.width != ViewGroup.LayoutParams.WRAP_CONTENT) {
         layoutParams.width *= scale;
@@ -70,27 +82,31 @@ public class ScalingLinearLayout extends LinearLayout {
         marginParams.bottomMargin *= scale;
       }
       root.setLayoutParams(layoutParams);
-
-      // Same treatment for padding
-      root.setPadding(
-        (int) (root.getPaddingLeft() * scale),
-        (int) (root.getPaddingTop() * scale),
-        (int) (root.getPaddingRight() * scale),
-        (int) (root.getPaddingBottom() * scale)
-      );
-
-      // If it's a TextView, scale the font size
-      if (root instanceof TextView) {
-        TextView tv = (TextView) root;
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, tv.getTextSize() * scale);
-      }
     }
 
-    // If it's a ViewGroup, recurse!
+    // Same treatment for padding
+    root.setPadding(
+      (int) (root.getPaddingLeft() * scale),
+      (int) (root.getPaddingTop() * scale),
+      (int) (root.getPaddingRight() * scale),
+      (int) (root.getPaddingBottom() * scale)
+    );
+
+    // If it's a TextView, scale the font size
+    if (root instanceof TextView) {
+      TextView tv = (TextView) root;
+      tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, tv.getTextSize() * scale);
+    }
+
+    scaleChildren(root, scale);
+  }
+
+  // If it's a ViewGroup, recurse!
+  private static void scaleChildren(View root, float scale) {
     if (root instanceof ViewGroup) {
-      ViewGroup vg = (ViewGroup)root;
+      ViewGroup vg = (ViewGroup) root;
       for (int i = 0; i < vg.getChildCount(); i++) {
-        scaleViewAndChildren(vg.getChildAt(i), scale, canary + 1);
+        scaleViewAndChildren(vg.getChildAt(i), scale);
       }
     }
   }

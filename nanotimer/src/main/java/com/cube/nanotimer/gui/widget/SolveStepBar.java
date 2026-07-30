@@ -13,7 +13,9 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.ScaleUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.ScalingLinearLayout;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
@@ -96,6 +98,10 @@ public class SolveStepBar extends LinearLayout {
    * One cell per step, in rows of at most four: how many steps there are is the method's business
    * (or the user's), so the legend is built to the count rather than the count fitted to a layout.
    * Rebuilt only when the count changes, which for a given solve type is next to never.
+   *
+   * <p>A rebuild after a solve comes long after the timer layout scaled itself, so each cell is
+   * scaled as it is inflated — otherwise it would draw at the raw px sizes the styles are authored
+   * in, a fraction of the size of the legend it replaces.
    */
   private void buildLegend(int stepCount) {
     if (cells.size() == stepCount) {
@@ -103,6 +109,7 @@ public class SolveStepBar extends LinearLayout {
     }
     cells.clear();
     legend.removeAllViews();
+    float scale = ScaleUtils.getScale(getContext());
     LayoutInflater inflater = LayoutInflater.from(getContext());
     int rows = (stepCount + MAX_CELLS_PER_ROW - 1) / MAX_CELLS_PER_ROW;
     int perRow = rows > 1 ? MAX_CELLS_PER_ROW : stepCount;
@@ -112,6 +119,7 @@ public class SolveStepBar extends LinearLayout {
       legend.addView(rowLayout, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
       for (int i = 0; i < perRow; i++) {
         View cell = inflater.inflate(R.layout.solve_step_legend_cell, rowLayout, false);
+        ScalingLinearLayout.scaleLateSubtree(cell, scale);
         rowLayout.addView(cell);
         if (cells.size() < stepCount) {
           cells.add(cell);
