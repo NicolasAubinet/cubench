@@ -696,10 +696,11 @@
   <string name="method_cfop">CFOP</string>
   <string name="method_roux">Roux</string>
   <string name="method_blind">A ciegas</string>
+  <string name="method_default">Predeterminado (%1$s)</string>
   <string name="method_info">Acerca del método</string>
-  <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un cubo inteligente conectado: le dice a la aplicación en qué pasos dividir una resolución. Indica el método que realmente usas para este método de resolución.</string>
+  <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un cubo inteligente conectado: le dice a la aplicación en qué pasos dividir una resolución. Déjalo en el valor predeterminado para seguir el método preferido de los ajustes, o indica el método que realmente usas para este tipo de solve.</string>
   <string name="preferred_method">Método preferido</string>
-  <string name="preferred_method_summary">El método inicial de los nuevos tipos de solve, ajustable en cada uno</string>
+  <string name="preferred_method_summary">El método con el que se leen los tipos de solve, salvo que tengan el suyo</string>
   <string name="preferred_method_prompt">¿Con qué método resuelves? Se usa para dividir tus solves en pasos. Este es el predeterminado: cada tipo de solve puede tener el suyo.</string>
 
   <string name="quick_action">Acción rápida</string>

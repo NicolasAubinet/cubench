@@ -702,10 +702,11 @@
   <string name="method_cfop">CFOP</string>
   <string name="method_roux">Roux</string>
   <string name="method_blind">Blindfolded</string>
+  <string name="method_default">Default (%1$s)</string>
   <string name="method_info">About the method</string>
-  <string name="method_info_message">Used to reconstruct your solves when a smart cube is connected: it tells the app which steps to break a solve into. Set it to the method you actually use for this solve type.</string>
+  <string name="method_info_message">Used to reconstruct your solves when a smart cube is connected: it tells the app which steps to break a solve into. Leave it on the default to follow the preferred method from the settings, or set it to the method you actually use for this solve type.</string>
   <string name="preferred_method">Preferred method</string>
-  <string name="preferred_method_summary">The method new solve types start with, changeable per solve type</string>
+  <string name="preferred_method_summary">The method solve types are read as, unless they set their own</string>
   <string name="preferred_method_prompt">Which method do you solve with? It is used to break your solves down into steps. This is the default, and each solve type can be set on its own.</string>
 
   <string name="quick_action">Quick action</string>

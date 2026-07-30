@@ -1,6 +1,5 @@
 package com.cube.nanotimer.services;
 
-import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
@@ -46,6 +45,5 @@ public interface ServiceProvider {
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);
   void updateSolveType(SolveType solveType, boolean recalculateAverages);
-  void setMethodWhereUnset(CubeMethod method);
   void deleteSolveType(SolveType solveType);
 }

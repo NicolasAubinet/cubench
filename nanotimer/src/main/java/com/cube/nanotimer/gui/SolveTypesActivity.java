@@ -179,7 +179,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
       SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position,
           solveTypeName, solveType.isBlind(), solveType.hasInspection(), scrambleTypeName,
-          solveType.getQuickAction(), solveType.getMethod());
+          solveType.getQuickAction(), solveType.getMethodOverride());
       DialogUtils.showFragment(this, editDialog);
     } else if (action == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
@@ -309,7 +309,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     return Boolean.valueOf(props.getProperty(SolveTypeAddDialog.KEY_INSPECTION, String.valueOf(true)));
   }
 
-  // Which method a smart cube reads these solves as (null for none, which reads it off the solve).
+  // The method this solve type overrides the preferred one with (null to follow it).
   private CubeMethod parseMethod(Properties props) {
     return CubeMethod.fromCode(props.getProperty(SolveTypeAddDialog.KEY_METHOD, ""));
   }

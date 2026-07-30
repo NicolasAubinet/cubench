@@ -892,7 +892,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_CUBETYPE_ID, solveType.getCubeTypeId());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
-    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethod()));
+    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethodOverride()));
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
     values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
     int id = (int) db.insert(DB.TABLE_SOLVETYPE, null, values);
@@ -904,22 +904,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     return id;
   }
 
-  /** Null for no method chosen, which the column holds as NULL rather than as a code of its own. */
+  /** Null for a type that follows the preferred method, which the column holds as NULL. */
   private static String toMethodCode(CubeMethod method) {
     return method == null ? null : method.getCode();
-  }
-
-  /**
-   * Gives the method to the solve types that have none: the ones that existed before there was such
-   * a thing to give. A type that already names one is left alone, that answer being the user's.
-   * Blind types are skipped — they answer for themselves, whatever the column holds.
-   */
-  @Override
-  public void setMethodWhereUnset(CubeMethod method) {
-    ContentValues values = new ContentValues();
-    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(method));
-    db.update(DB.TABLE_SOLVETYPE, values,
-        DB.COL_SOLVETYPE_METHOD + " IS NULL AND " + DB.COL_SOLVETYPE_BLIND + " = 0", null);
   }
 
   @Override
@@ -946,7 +933,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_NAME, solveType.getName());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
-    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethod()));
+    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethodOverride()));
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
     values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
     db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));

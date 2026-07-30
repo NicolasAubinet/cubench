@@ -42,6 +42,7 @@ import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.SolveStepConverter;
+import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.InAppReviewManager;
 import com.cube.nanotimer.gui.widget.ResultListener;
@@ -1432,7 +1433,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
-              solveType.getMethod());
+              SolveTypeMethod.of(solveType));
         }
       });
       foundScramble = true;

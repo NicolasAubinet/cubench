@@ -100,8 +100,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    * @param followable true when the scramble can be followed + auto-started (3x3 full scramble)
    * @param blind true when the solve type is a blindfolded one, which turns both automatic ends of
    *     the solve off (see {@link #onTimerStarted()})
-   * @param expectedMethod the method the solve type is solved with, or null when it names none. It
-   *     only settles a solve that fits several: a method the solve does not fit is never imposed.
+   * @param expectedMethod the method the solve type is read as, already resolved against the
+   *     preferred one, or null for no expectation. It only settles a solve that fits several: a
+   *     method the solve does not fit is never imposed.
    */
   public void setScramble(String[] scramble, boolean cubeDriven, boolean followable, boolean blind,
       CubeMethod expectedMethod) {

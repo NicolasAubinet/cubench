@@ -39,7 +39,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   public static final String KEY_INSPECTION = "key_inspection";
   public static final String KEY_SCRAMBLE_TYPE = "key_scrambleType";
   public static final String KEY_QUICK_ACTION = "key_quickAction";
-  /** The chosen method's code. A blind type's is its own: the blind flag settles that, not this. */
+  /** The chosen method's code, empty to follow the preferred method. A blind type always follows. */
   public static final String KEY_METHOD = "key_method";
 
   private static final String ARG_FIELD_CREATOR = "fieldCreator";
@@ -53,8 +53,11 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   private static final String ARG_EDIT_QUICK_ACTION = "editQuickAction";
   private static final String ARG_EDIT_METHOD = "editMethod";
 
-  /** The sighted methods a solve can be broken down into, in order of how common they are. */
-  private static final CubeMethod[] METHODS = {CubeMethod.CFOP, CubeMethod.ROUX};
+  /**
+   * The spinner's choices: following the preferred method first, then each sighted method that can
+   * override it, in order of how common they are. Null is the follower, and the one stored as NULL.
+   */
+  private static final CubeMethod[] METHODS = {null, CubeMethod.CFOP, CubeMethod.ROUX};
 
   // Offered in the order the timer menu lists them, with the opt-out last.
   private static final TimerQuickAction[] QUICK_ACTIONS = {
@@ -202,7 +205,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       selectMethod(CubeMethod.fromCode(getArguments().getString(ARG_EDIT_METHOD, "")));
     } else {
       selectQuickAction(TimerQuickAction.getDefault(false));
-      selectMethod(Options.INSTANCE.getPreferredMethod()); // a new type solves the way the user does
+      selectMethod(null); // a new type follows the preferred method rather than freezing a copy of it
     }
     refreshInspectionEnabled();
     refreshMethodEnabled();
@@ -281,7 +284,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     spMethod = (Spinner) view.findViewById(R.id.spMethod);
     List<CharSequence> names = new ArrayList<>();
     for (CubeMethod method : METHODS) {
-      names.add(getString(getMethodLabel(method)));
+      names.add(getMethodName(method));
     }
     ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, names);
     adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
@@ -299,15 +302,24 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     return method == CubeMethod.ROUX ? R.string.method_roux : R.string.method_cfop;
   }
 
+  /** The follower names the method it currently stands for, that choice being invisible otherwise. */
+  private CharSequence getMethodName(CubeMethod method) {
+    if (method != null) {
+      return getString(getMethodLabel(method));
+    }
+    return getString(R.string.method_default,
+        getString(getMethodLabel(Options.INSTANCE.getPreferredMethod())));
+  }
+
+  /** Null when the type follows the preferred method rather than overriding it. */
   private CubeMethod getSelectedMethod() {
     int position = spMethod.getSelectedItemPosition();
     return (position >= 0 && position < METHODS.length) ? METHODS[position] : METHODS[0];
   }
 
-  /** Falls back to the user's own method for a type that names none, and for a blind one. */
+  /** A blind type follows too: its method is settled by the blind flag, and its spinner is hidden. */
   private void selectMethod(CubeMethod method) {
-    CubeMethod wanted = (method == null || method == CubeMethod.BLIND)
-        ? Options.INSTANCE.getPreferredMethod() : method;
+    CubeMethod wanted = (method == CubeMethod.BLIND) ? null : method;
     for (int i = 0; i < METHODS.length; i++) {
       if (METHODS[i] == wanted) {
         spMethod.setSelection(i);
@@ -417,7 +429,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     }
     props.put(KEY_SCRAMBLE_TYPE, String.valueOf(scrambleTypeItemPosition));
     props.put(KEY_QUICK_ACTION, String.valueOf(getSelectedQuickAction().getId()));
-    props.put(KEY_METHOD, getSelectedMethod().getCode());
+    CubeMethod method = getSelectedMethod();
+    props.put(KEY_METHOD, method == null ? "" : method.getCode());
 
     boolean confirmed;
     if (isEditMode()) {

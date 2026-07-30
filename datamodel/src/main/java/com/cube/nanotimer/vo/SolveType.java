@@ -12,7 +12,7 @@ public class SolveType implements Serializable, NameHolder {
   private ScrambleType scrambleType;
   private boolean blind = false;
   private boolean inspection = true;
-  private CubeMethod method; // null to read the method off the solve instead of being told it
+  private CubeMethod method; // null to follow the preferred method rather than name one here
   private TimerQuickAction quickAction;
 
   public SolveType(String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
@@ -68,14 +68,15 @@ public class SolveType implements Serializable, NameHolder {
   }
 
   /**
-   * The method these solves are solved with, which a smart cube reads them as. Null means none was
-   * chosen, and the solve is left to say which method it fitted.
+   * The method this solve type overrides the preferred one with, or null to follow it. Null is the
+   * normal answer: the preference is the one place the method is kept, and a type only names its own
+   * when it is solved differently from the rest.
    *
-   * <p>A blind solve type answers {@link CubeMethod#BLIND} whatever is stored: it memorises first,
-   * which is a different thing from any sighted method, and the blind flag already settles that.
+   * <p>This is the stored answer, not the method the solves are read as — that one is never null and
+   * has to account for the preference and for the blind flag, which no module below the app can see.
    */
-  public CubeMethod getMethod() {
-    return blind ? CubeMethod.BLIND : method;
+  public CubeMethod getMethodOverride() {
+    return method;
   }
 
   public void setMethod(CubeMethod method) {

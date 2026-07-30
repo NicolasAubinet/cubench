@@ -23,7 +23,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
-import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.ConnectCallback;
@@ -352,9 +351,9 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
    * Asks, once, which method the solver uses. It is put at the first connection because that is the
    * moment the answer starts to matter — before a cube, nothing reads a solve's steps.
    *
-   * <p>The answer is given to the solve types that predate the question as well as to the ones made
-   * after it, so an existing history is read the same way a new one would be. Only the types that
-   * name no method are touched: a type that names one was told so by the user.
+   * <p>The answer is kept in the one place rather than copied onto the solve types, so it holds for
+   * the types that predate the question as well as the ones made after it, and changing it later
+   * re-reads every type that did not override it.
    *
    * <p>It is not dismissible, and there is no "work it out yourself" option: reading the method off
    * the solve is a guess, and a wrong guess breaks a solve down into steps it never had.
@@ -415,7 +414,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private void choosePreferredMethod(CubeMethod method) {
     Options.INSTANCE.setPreferredMethodAsked(true);
     Options.INSTANCE.setPreferredMethod(method);
-    App.INSTANCE.getService().setMethodWhereUnset(method, null);
   }
 
   private static int methodLabel(CubeMethod method) {
