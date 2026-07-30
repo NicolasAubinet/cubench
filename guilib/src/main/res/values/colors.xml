@@ -81,6 +81,13 @@
   <color name="pill_live_bg">#2643A047</color>
   <color name="pill_live_text">#7BD983</color>
 
+  <!-- Small pills carrying a row's secondary facts: a wash of the surface, or of the accent. -->
+  <color name="chip_bg">#1FFFFFFF</color>
+  <color name="chip_bg_accent">#266CCCEC</color>
+
+  <!-- Destructive action as text: pure red glares against the dark dialogs. -->
+  <color name="danger_text">#EF5350</color>
+
   <color name="history_marker">@color/iceblue</color>
 
   <color name="dialog_surface">#23272B</color>

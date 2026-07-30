@@ -29,6 +29,27 @@
     <item name="android:textColor">@color/lightblue</item>
   </style>
 
+  <!-- Small rounded pill carrying one secondary fact about the row it sits under. -->
+  <style name="RowChip">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:background">@drawable/row_chip</item>
+    <item name="android:paddingLeft">8dp</item>
+    <item name="android:paddingRight">8dp</item>
+    <item name="android:paddingTop">2dp</item>
+    <item name="android:paddingBottom">2dp</item>
+    <item name="android:textSize">11sp</item>
+    <item name="android:textColor">@color/secondary_text</item>
+    <item name="android:letterSpacing">0.02</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:ellipsize">end</item>
+  </style>
+
+  <style name="RowChipAccent" parent="RowChip">
+    <item name="android:background">@drawable/row_chip_accent</item>
+    <item name="android:textColor">@color/lightblue</item>
+  </style>
+
   <style name="SmallTextFieldPx">
     <item name="android:textSize">21px</item>
     <item name="android:ellipsize">end</item>

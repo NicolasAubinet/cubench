@@ -1,27 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:dslv="http://schemas.android.com/apk/lib/com.mobeta.android.dslv"
-   android:orientation="vertical"
    android:fitsSystemWindows="true"
+   android:background="@color/graybg"
    android:layout_width="match_parent"
    android:layout_height="match_parent">
 
-  <com.mobeta.android.dslv.DragSortListView
-     android:id="@+id/lvSolveTypes"
+  <LinearLayout
+     android:orientation="vertical"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent">
+
+    <!-- The drag grip is the only cue that the order is editable, so say so once. -->
+    <TextView
+       android:id="@+id/tvListHint"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginLeft="@dimen/space_m"
+       android:layout_marginRight="@dimen/space_m"
+       android:layout_marginTop="@dimen/space_m"
+       android:layout_marginBottom="@dimen/space_s"
+       android:text="@string/solvetypes_hint"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+
+    <com.mobeta.android.dslv.DragSortListView
+       android:id="@+id/lvSolveTypes"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:longClickable="true"
+       android:divider="@null"
+       android:dividerHeight="0dp"
+       android:listSelector="@color/transparent"
+       android:scrollbarStyle="outsideOverlay"
+       android:clipToPadding="false"
+       android:paddingLeft="@dimen/space_m"
+       android:paddingRight="@dimen/space_m"
+       android:paddingBottom="@dimen/space_m"
+       dslv:drag_handle_id="@id/imgMove"
+       dslv:drag_enabled="true"
+       dslv:drag_start_mode="onMove"
+       dslv:max_drag_scroll_speed="0.5"
+       dslv:remove_enabled="true"
+       dslv:sort_enabled="true"
+       dslv:track_drag_sort="false"
+       dslv:use_default_controller="true"/>
+
+  </LinearLayout>
+
+  <!-- Shown instead of the list when a puzzle has no solve types left. -->
+  <LinearLayout
+     android:id="@+id/emptyView"
      android:layout_width="match_parent"
      android:layout_height="match_parent"
-     android:longClickable="true"
-     android:layout_marginTop="4dp"
-     android:layout_marginLeft="6dp"
-     android:layout_marginRight="6dp"
-     dslv:drag_handle_id="@id/imgMove"
-     dslv:drag_enabled="true"
-     dslv:drag_start_mode="onMove"
-     dslv:max_drag_scroll_speed="0.5"
-     dslv:remove_enabled="true"
-     dslv:sort_enabled="true"
-     dslv:track_drag_sort="false"
-     dslv:use_default_controller="true"/>
+     android:orientation="vertical"
+     android:gravity="center"
+     android:visibility="gone"
+     android:paddingLeft="40dp"
+     android:paddingRight="40dp"
+     android:paddingBottom="60dp">
 
-</LinearLayout>
+    <ImageView
+       android:layout_width="56dp"
+       android:layout_height="56dp"
+       android:src="@drawable/ic_solvetype_normal"
+       android:tint="@color/gray700"
+       android:contentDescription="@null"/>
+
+    <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_l"
+       android:text="@string/solvetypes_empty_title"
+       android:textColor="@color/white"
+       android:textStyle="bold"
+       android:textSize="17sp"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_s"
+       android:gravity="center"
+       android:text="@string/solvetypes_empty_summary"
+       android:textColor="@color/secondary_text"
+       android:lineSpacingExtra="3dp"
+       android:textSize="14sp"/>
+
+  </LinearLayout>
+
+</FrameLayout>
