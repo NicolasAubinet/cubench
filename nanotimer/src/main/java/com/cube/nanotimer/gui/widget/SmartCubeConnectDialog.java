@@ -1,6 +1,7 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,6 +23,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
+import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.ConnectCallback;
@@ -31,6 +33,7 @@ import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
+import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,6 +63,9 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private View resyncBlock;
   private Button btnResync;
   private Button btnDisconnect;
+
+  /** The sighted methods a solve can be broken down into, in order of how common they are. */
+  private static final CubeMethod[] METHOD_CHOICES = {CubeMethod.CFOP, CubeMethod.ROUX};
 
   private final List<DiscoveredCube> discovered = new ArrayList<>();
   private boolean scanning;
@@ -329,6 +335,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onConnected() {
         updateUi();
+        askPreferredMethod();
       }
 
       @Override
@@ -339,6 +346,43 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
         showConnectFailed(e);
       }
     });
+  }
+
+  /**
+   * Asks, once, which method the solver uses. It is put at the first connection because that is the
+   * moment the answer starts to matter — before a cube, nothing reads a solve's steps.
+   *
+   * <p>The answer is given to the solve types that predate the question as well as to the ones made
+   * after it, so an existing history is read the same way a new one would be. Only the types that
+   * name no method are touched: a type that names one was told so by the user.
+   *
+   * <p>It is not dismissible, and there is no "work it out yourself" option: reading the method off
+   * the solve is a guess, and a wrong guess breaks a solve down into steps it never had.
+   */
+  private void askPreferredMethod() {
+    if (!isAdded() || Options.INSTANCE.isPreferredMethodAsked()) {
+      return;
+    }
+    CharSequence[] labels = new CharSequence[METHOD_CHOICES.length];
+    for (int i = 0; i < METHOD_CHOICES.length; i++) {
+      labels[i] = getString(methodLabel(METHOD_CHOICES[i]));
+    }
+    new AlertDialog.Builder(requireContext(), R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.preferred_method)
+        .setMessage(R.string.preferred_method_prompt)
+        .setCancelable(false)
+        .setItems(labels, (d, which) -> choosePreferredMethod(METHOD_CHOICES[which]))
+        .show();
+  }
+
+  private void choosePreferredMethod(CubeMethod method) {
+    Options.INSTANCE.setPreferredMethodAsked(true);
+    Options.INSTANCE.setPreferredMethod(method);
+    App.INSTANCE.getService().setMethodWhereUnset(method, null);
+  }
+
+  private static int methodLabel(CubeMethod method) {
+    return method == CubeMethod.ROUX ? R.string.method_roux : R.string.method_cfop;
   }
 
   /** Re-renders whichever state the sheet is in. Connection callbacks can land at any moment. */

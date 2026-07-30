@@ -191,6 +191,74 @@
 
       </LinearLayout>
 
+      <!-- After the blind switch, which answers this for a blindfolded type. -->
+      <LinearLayout
+         android:orientation="vertical"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="16dp">
+
+        <LinearLayout
+           android:orientation="horizontal"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:gravity="center_vertical"
+           android:layout_marginBottom="6dp">
+
+          <TextView
+             android:id="@+id/tvMethodLabel"
+             android:text="@string/method"
+             style="@style/DialogSectionLabel"/>
+
+          <!-- The field means nothing without a smart cube, so it says what it is for on demand. -->
+          <ImageButton
+             android:id="@+id/buMethodInfo"
+             android:layout_width="26dp"
+             android:layout_height="26dp"
+             android:layout_marginLeft="2dp"
+             android:scaleType="fitCenter"
+             android:padding="5dp"
+             android:background="?android:attr/selectableItemBackgroundBorderless"
+             android:src="@drawable/ic_help_outline"
+             android:contentDescription="@string/method_info"/>
+
+        </LinearLayout>
+
+        <FrameLayout
+           android:id="@+id/methodFieldBox"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:background="@drawable/dialog_time_field"
+           android:paddingLeft="8dp"
+           android:paddingRight="8dp"
+           android:paddingTop="4dp"
+           android:paddingBottom="4dp">
+
+          <Spinner
+             android:id="@+id/spMethod"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:gravity="start"
+             style="@style/CustomSpinner"/>
+
+          <!-- Stands in for the spinner while blind mode owns the answer, saying what it is. -->
+          <TextView
+             android:id="@+id/tvMethodBlind"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_vertical"
+             android:paddingLeft="4dp"
+             android:paddingTop="8dp"
+             android:paddingBottom="8dp"
+             android:text="@string/method_blind"
+             android:textColor="@color/secondary_text"
+             android:textSize="16sp"
+             android:visibility="gone"/>
+
+        </FrameLayout>
+
+      </LinearLayout>
+
       <LinearLayout
          android:orientation="vertical"
          android:layout_width="match_parent"

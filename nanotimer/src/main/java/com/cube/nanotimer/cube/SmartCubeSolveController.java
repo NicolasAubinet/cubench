@@ -45,9 +45,6 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   /** A follow pause longer than this means the cube was set down, not a slow scramble. */
   private static final long FOLLOW_RESUME_GAP_MS = 60_000;
 
-  /** What the solve was expected to be: nothing, until solve types carry a method of their own. */
-  private static final CubeMethod EXPECTED_METHOD = null;
-
   /** How far past the last move the moves wait for the gyro: a settled reading, plus a sample period
    * for it to arrive. A solve ending on a slice has none yet when the cube reports it solved. */
   private static final long GYRO_CATCHUP_MS = SliceSpinDetector.SETTLE_MS + 50;
@@ -62,6 +59,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
   private CubeMethod method; // which one the solve just finished fitted, null for none
+  private CubeMethod expectedMethod; // what the solve type says it is, null when it says nothing
   private Integer stoppedStep;
   private String solveMoves = "";
   private String[] scramble;
@@ -99,11 +97,15 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    * @param followable true when the scramble can be followed + auto-started (3x3 full scramble)
    * @param blind true when the solve type is a blindfolded one, which turns both automatic ends of
    *     the solve off (see {@link #onTimerStarted()})
+   * @param expectedMethod the method the solve type is solved with, or null when it names none. It
+   *     only settles a solve that fits several: a method the solve does not fit is never imposed.
    */
-  public void setScramble(String[] scramble, boolean cubeDriven, boolean followable, boolean blind) {
+  public void setScramble(String[] scramble, boolean cubeDriven, boolean followable, boolean blind,
+      CubeMethod expectedMethod) {
     this.scramble = scramble;
     this.cubeDriven = cubeDriven;
     this.followable = followable;
+    this.expectedMethod = expectedMethod;
     if (blind != this.blind) {
       this.blind = blind;
       analyzers = new MethodAnalyzers(blind); // a different solve type is read by different detectors
@@ -147,7 +149,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     // reached solved — a botched PLL is exactly the solve worth looking at. What still earns none is
     // a method the milestones never fitted, or a prefix too short to tell the methods apart.
     boolean cubeDrove = analyzing;
-    method = cubeDrove ? analyzers.resolve(EXPECTED_METHOD) : null;
+    method = cubeDrove ? analyzers.resolve(expectedMethod) : null;
     SolveAnalyzer analyzer = method == null ? null : analyzers.get(method);
     stepTimes = analyzer == null ? Collections.<StepTime>emptyList() : analyzer.getStepTimes();
     stoppedStep = analyzer == null ? null : analyzer.getStoppedStep();

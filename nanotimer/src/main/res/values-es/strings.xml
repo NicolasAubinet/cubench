@@ -686,6 +686,17 @@
   <string name="smart_cube_failed_title">No se pudo conectar</string>
   <string name="smart_cube_scan_again">Buscar de nuevo</string>
 
+  <!-- Cubo inteligente: el método de resolución con el que se lee un solve -->
+  <string name="method">Método</string>
+  <string name="method_cfop">CFOP</string>
+  <string name="method_roux">Roux</string>
+  <string name="method_blind">A ciegas</string>
+  <string name="method_info">Acerca del método</string>
+  <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un cubo inteligente conectado: le dice a la aplicación en qué pasos dividir una resolución. Indica el método que realmente usas para este método de resolución.</string>
+  <string name="preferred_method">Método preferido</string>
+  <string name="preferred_method_summary">El método de los nuevos tipos de solve</string>
+  <string name="preferred_method_prompt">¿Con qué método resuelves? Se usa para dividir tus solves en pasos, y puedes cambiarlo cuando quieras en los ajustes.</string>
+
   <string name="quick_action">Acción rápida</string>
   <string name="quick_action_none">Ninguna</string>
   <string name="discard_solve_title">¿Descartar este tiempo?</string>

@@ -1431,7 +1431,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         public void run() {
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
-          solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind());
+          solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
+              solveType.getMethod());
         }
       });
       foundScramble = true;

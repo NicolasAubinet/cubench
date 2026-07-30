@@ -21,7 +21,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import androidx.appcompat.widget.SwitchCompat;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.Options;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.TimerQuickAction;
@@ -36,6 +39,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   public static final String KEY_INSPECTION = "key_inspection";
   public static final String KEY_SCRAMBLE_TYPE = "key_scrambleType";
   public static final String KEY_QUICK_ACTION = "key_quickAction";
+  /** The chosen method's code. A blind type's is its own: the blind flag settles that, not this. */
+  public static final String KEY_METHOD = "key_method";
 
   private static final String ARG_FIELD_CREATOR = "fieldCreator";
   private static final String ARG_CUBE_TYPE = "cubeType";
@@ -46,6 +51,10 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   private static final String ARG_EDIT_INSPECTION = "editInspection";
   private static final String ARG_EDIT_SCRAMBLE_NAME = "editScrambleName";
   private static final String ARG_EDIT_QUICK_ACTION = "editQuickAction";
+  private static final String ARG_EDIT_METHOD = "editMethod";
+
+  /** The sighted methods a solve can be broken down into, in order of how common they are. */
+  private static final CubeMethod[] METHODS = {CubeMethod.CFOP, CubeMethod.ROUX};
 
   // Offered in the order the timer menu lists them, with the opt-out last.
   private static final TimerQuickAction[] QUICK_ACTIONS = {
@@ -57,6 +66,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   private LinearLayout scrambleTypeLayout;
   private Spinner spScrambleType;
   private Spinner spQuickAction;
+  private Spinner spMethod;
   private SwitchCompat swBlind;
   private SwitchCompat swInspection;
   // What the inspection switch held before blind mode forced it off, to give back when blind is unticked.
@@ -82,7 +92,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   // scrambleTypeName is the name of the solve type's scramble type, or null for the default scramble.
   public static <T extends FieldCreator & FieldEditor> SolveTypeAddDialog newInstanceForEdit(
       T fieldEditor, CubeType cubeType, int position, String name, boolean blind, boolean inspection,
-      String scrambleTypeName, TimerQuickAction quickAction) {
+      String scrambleTypeName, TimerQuickAction quickAction, CubeMethod method) {
     SolveTypeAddDialog frag = new SolveTypeAddDialog();
     Bundle args = new Bundle();
     args.putSerializable(ARG_FIELD_CREATOR, fieldEditor);
@@ -94,6 +104,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     args.putBoolean(ARG_EDIT_INSPECTION, inspection);
     args.putString(ARG_EDIT_SCRAMBLE_NAME, scrambleTypeName);
     args.putInt(ARG_EDIT_QUICK_ACTION, quickAction.getId());
+    args.putString(ARG_EDIT_METHOD, method == null ? "" : method.getCode());
     frag.setArguments(args);
     return frag;
   }
@@ -170,6 +181,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       }
     });
     initQuickActionSpinner(cubeType);
+    initMethodSpinner();
 
     ((TextView) view.findViewById(R.id.tvCubeType)).setText(cubeType.getName());
     ((TextView) view.findViewById(R.id.tvDialogTitle)).setText(
@@ -187,10 +199,13 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       swInspection.setChecked(getArguments().getBoolean(ARG_EDIT_INSPECTION, true));
       selectQuickAction(TimerQuickAction.fromId(
           getArguments().getInt(ARG_EDIT_QUICK_ACTION, TimerQuickAction.SCRAMBLE_VIEW.getId())));
+      selectMethod(CubeMethod.fromCode(getArguments().getString(ARG_EDIT_METHOD, "")));
     } else {
       selectQuickAction(TimerQuickAction.getDefault(false));
+      selectMethod(Options.INSTANCE.getPreferredMethod()); // a new type solves the way the user does
     }
     refreshInspectionEnabled();
+    refreshMethodEnabled();
 
     // Only attached once the values above are in place, so pre-filling does not trip it.
     swBlind.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -207,6 +222,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
         }
         swInspection.setChecked(!isChecked && inspectionBeforeBlind);
         refreshInspectionEnabled();
+        refreshMethodEnabled();
       }
     });
 
@@ -247,6 +263,58 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     view.findViewById(R.id.tvInspectionTitle).setAlpha(enabled ? 1f : 0.5f);
     ((TextView) view.findViewById(R.id.tvInspectionSummary)).setText(
         enabled ? R.string.inspection_summary : R.string.inspection_summary_blind);
+  }
+
+  /**
+   * A blindfolded solve is not a sighted method read through a blindfold — it is memorised first and
+   * its steps are the piece types — so the blind switch answers this and the spinner gives way to
+   * what it answered, rather than sitting there greyed out over a choice that no longer applies.
+   */
+  private void refreshMethodEnabled() {
+    boolean sighted = !swBlind.isChecked();
+    spMethod.setVisibility(sighted ? View.VISIBLE : View.GONE);
+    view.findViewById(R.id.tvMethodBlind).setVisibility(sighted ? View.GONE : View.VISIBLE);
+    view.findViewById(R.id.tvMethodLabel).setAlpha(sighted ? 1f : 0.5f);
+  }
+
+  private void initMethodSpinner() {
+    spMethod = (Spinner) view.findViewById(R.id.spMethod);
+    List<CharSequence> names = new ArrayList<>();
+    for (CubeMethod method : METHODS) {
+      names.add(getString(getMethodLabel(method)));
+    }
+    ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, names);
+    adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+    spMethod.setAdapter(adapter);
+
+    view.findViewById(R.id.buMethodInfo).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        DialogUtils.showOkDialog(getActivity(), R.string.method, R.string.method_info_message);
+      }
+    });
+  }
+
+  private static int getMethodLabel(CubeMethod method) {
+    return method == CubeMethod.ROUX ? R.string.method_roux : R.string.method_cfop;
+  }
+
+  private CubeMethod getSelectedMethod() {
+    int position = spMethod.getSelectedItemPosition();
+    return (position >= 0 && position < METHODS.length) ? METHODS[position] : METHODS[0];
+  }
+
+  /** Falls back to the user's own method for a type that names none, and for a blind one. */
+  private void selectMethod(CubeMethod method) {
+    CubeMethod wanted = (method == null || method == CubeMethod.BLIND)
+        ? Options.INSTANCE.getPreferredMethod() : method;
+    for (int i = 0; i < METHODS.length; i++) {
+      if (METHODS[i] == wanted) {
+        spMethod.setSelection(i);
+        return;
+      }
+    }
+    spMethod.setSelection(0);
   }
 
   private void initQuickActionSpinner(CubeType cubeType) {
@@ -349,6 +417,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     }
     props.put(KEY_SCRAMBLE_TYPE, String.valueOf(scrambleTypeItemPosition));
     props.put(KEY_QUICK_ACTION, String.valueOf(getSelectedQuickAction().getId()));
+    props.put(KEY_METHOD, getSelectedMethod().getCode());
 
     boolean confirmed;
     if (isEditMode()) {

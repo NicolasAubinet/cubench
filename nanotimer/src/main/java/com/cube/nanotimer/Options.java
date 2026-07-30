@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 import com.cube.nanotimer.util.view.TimerFont;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.ScramblesQuality;
 
 public enum Options {
@@ -43,6 +44,8 @@ public enum Options {
   public static final String CROSS_FACE_KEY = "cross_face";
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
+  public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
+  public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
 
   public static final String RANDOMSTATE_SCRAMBLES_KEY = "randomstate_scrambles";
   public static final String SCRAMBLES_QUALITY_KEY = "scrambles_quality";
@@ -266,6 +269,26 @@ public enum Options {
 
   public void setSmartCubeIntroSeen(boolean seen) {
     sharedPreferences.edit().putBoolean(SMART_CUBE_INTRO_SEEN_KEY, seen).apply();
+  }
+
+  // The method new solve types are created with, stored as its code. Defaults to the most common
+  // one rather than to nothing: reading the method off the solve is not reliable enough to offer.
+  public CubeMethod getPreferredMethod() {
+    CubeMethod method = CubeMethod.fromCode(sharedPreferences.getString(SMART_CUBE_METHOD_KEY, ""));
+    return method == null ? CubeMethod.CFOP : method;
+  }
+
+  public void setPreferredMethod(CubeMethod method) {
+    sharedPreferences.edit().putString(SMART_CUBE_METHOD_KEY, method.getCode()).apply();
+  }
+
+  // Tracked apart from the value itself, which has a default and so cannot say whether it was set.
+  public boolean isPreferredMethodAsked() {
+    return sharedPreferences.getBoolean(SMART_CUBE_METHOD_ASKED_KEY, false);
+  }
+
+  public void setPreferredMethodAsked(boolean asked) {
+    sharedPreferences.edit().putBoolean(SMART_CUBE_METHOD_ASKED_KEY, asked).apply();
   }
 
   public boolean isRandomStateScrambles() {

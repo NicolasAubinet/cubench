@@ -102,6 +102,15 @@
     <item>2</item>
     <item>3</item>
   </string-array>
+  <!-- Values are CubeMethod codes. -->
+  <string-array name="entries_cube_method">
+    <item>@string/method_cfop</item>
+    <item>@string/method_roux</item>
+  </string-array>
+  <string-array name="entryvalues_cube_method">
+    <item>CFOP</item>
+    <item>Roux</item>
+  </string-array>
   <string-array name="graph_periods">
     <item>@string/day</item>
     <item>@string/week</item>

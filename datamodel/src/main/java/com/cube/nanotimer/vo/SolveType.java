@@ -12,6 +12,7 @@ public class SolveType implements Serializable, NameHolder {
   private ScrambleType scrambleType;
   private boolean blind = false;
   private boolean inspection = true;
+  private CubeMethod method; // null to read the method off the solve instead of being told it
   private TimerQuickAction quickAction;
 
   public SolveType(String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
@@ -66,6 +67,21 @@ public class SolveType implements Serializable, NameHolder {
     this.inspection = inspection;
   }
 
+  /**
+   * The method these solves are solved with, which a smart cube reads them as. Null means none was
+   * chosen, and the solve is left to say which method it fitted.
+   *
+   * <p>A blind solve type answers {@link CubeMethod#BLIND} whatever is stored: it memorises first,
+   * which is a different thing from any sighted method, and the blind flag already settles that.
+   */
+  public CubeMethod getMethod() {
+    return blind ? CubeMethod.BLIND : method;
+  }
+
+  public void setMethod(CubeMethod method) {
+    this.method = method;
+  }
+
   public TimerQuickAction getQuickAction() {
     return quickAction;
   }
@@ -97,6 +113,7 @@ public class SolveType implements Serializable, NameHolder {
     if (cubeTypeId != solveType.cubeTypeId) return false;
     if (blind != solveType.blind) return false;
     if (inspection != solveType.inspection) return false;
+    if (method != solveType.method) return false;
     if (!name.equals(solveType.name)) return false;
     if (quickAction != solveType.quickAction) return false;
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
@@ -113,6 +130,7 @@ public class SolveType implements Serializable, NameHolder {
     result = 31 * result + (scrambleType != null ? scrambleType.hashCode() : 0);
     result = 31 * result + (blind ? 1 : 0);
     result = 31 * result + (inspection ? 1 : 0);
+    result = 31 * result + (method != null ? method.hashCode() : 0);
     result = 31 * result + (quickAction != null ? quickAction.hashCode() : 0);
     return result;
   }
