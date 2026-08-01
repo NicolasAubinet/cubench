@@ -18,6 +18,20 @@ public class ThreeCubeState implements CubeState {
     System.arraycopy(cubeState.edgeOrientations, 0, this.edgeOrientations, 0, 12);
   }
 
+  public boolean isSolved() {
+    for (int i = 0; i < cornerPermutations.length; i++) {
+      if (cornerPermutations[i] != i || cornerOrientations[i] != 0) {
+        return false;
+      }
+    }
+    for (int i = 0; i < edgePermutations.length; i++) {
+      if (edgePermutations[i] != i || edgeOrientations[i] != 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("Corner permutations: ").append(Arrays.toString(cornerPermutations)).append("\n");

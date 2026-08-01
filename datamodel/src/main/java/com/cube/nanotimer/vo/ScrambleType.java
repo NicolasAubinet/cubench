@@ -27,7 +27,8 @@ public abstract class ScrambleType implements Serializable, NameHolder {
       cubeState.cornerOrientations = getRandomOrientation(getFixedCornerOrientationIndices(), 8, 3);
       cubeState.edgeOrientations = getRandomOrientation(getFixedEdgeOrientationIndices(), 12, 2);
     } while (hasParity(cubeState.cornerPermutations) != hasParity(cubeState.edgePermutations)
-        || (mustHaveParity() && !hasParity(cubeState.cornerPermutations)));
+        || (mustHaveParity() && !hasParity(cubeState.cornerPermutations))
+        || cubeState.isSolved()); // a solved state would give an empty scramble (skip cases)
 
     return cubeState;
   }
