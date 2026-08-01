@@ -303,6 +303,31 @@ public class RecordedBlindSolveTest {
     }
   }
 
+  /**
+   * Solve 195 fixes the parity between the corner commutators and the corner twist that closed the
+   * solve, so its corners stand either side of it. The parity is not a piece type and divides
+   * nothing: read as one it left the solve fitting no method at all, and a reading right about every
+   * algorithm was thrown away for it.
+   *
+   * <p>It also swapped a corner into a slot it was still twisted in — the last algorithm is what
+   * untwisted it — so that corner was never <em>solved</em> by the parity. Named by what it put home
+   * the swap loses half of itself; a parity swaps two corners and two edges, always.
+   */
+  @Test
+  public void readsAParityDoneInTheMiddleOfTheCorners() {
+    replay(RecordedBlindSolve.SCRAMBLE_195, RecordedBlindSolve.MOVES_195, Long.MAX_VALUE);
+
+    assertTrue(detector.isComplete());
+    assertTrue(detector.matchesMethod());
+    assertEquals(5, detector.stepCount());
+    assertEquals("edges", detector.stepName(1));
+    assertEquals("corners", detector.stepName(2));
+    assertEquals("parity", detector.stepName(3));
+    assertEquals("corners", detector.stepName(4)); // the twist, done after the parity
+    assertEquals("UFR-DFR + UF-UR", detector.subStepName(3, 0));
+    assertEquals("twist:FUR-BDL", detector.subStepName(4, 0));
+  }
+
   private static List<String> namesOf(BlindStepDetector detector) {
     List<String> names = new ArrayList<String>();
     for (int step = 1; step < detector.stepCount(); step++) {

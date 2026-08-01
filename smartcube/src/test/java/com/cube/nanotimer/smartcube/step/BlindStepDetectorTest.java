@@ -229,6 +229,22 @@ public class BlindStepDetectorTest {
     assertTrue(detector.matchesMethod());
   }
 
+  /**
+   * What the stretch rule is really for: a type taken up again after another one was finished. The
+   * parity splitting a type is the shape it must <em>not</em> refuse, and a recorded solve pins that
+   * one — clean three-cycles cannot be arranged into it, since an algorithm whose pieces a later one
+   * moves again lands having gained nothing at all.
+   */
+  @Test
+  public void doesNotMatchASolveThatWentBackToAPieceTypeItHadLeft() {
+    String[] solve = {EDGE_CYCLE_A, CORNER_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_B};
+    startFrom(solve);
+    play(solve);
+
+    assertTrue(detector.isComplete());
+    assertFalse(detector.matchesMethod());
+  }
+
   @Test
   public void doesNotMatchASolveThatFinishedBothTypesTogether() {
     // A scramble undone by its own inverse: the cube falls solved all at once, so neither piece type

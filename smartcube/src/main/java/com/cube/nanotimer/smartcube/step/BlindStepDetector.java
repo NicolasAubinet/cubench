@@ -200,8 +200,10 @@ public final class BlindStepDetector implements StepDetector {
       // A cycle is said as all three of its pieces; anything else, as what it put home.
       List<Integer> named = shot || all.isEmpty() ? moved : all;
       int shotFrom = shot ? bufferOf(moved, all) : BlindTargets.NO_BUFFER;
+      // A parity is said as the pieces it swapped, not the ones it solved: a corner it swaps into a
+      // slot it is still twisted in was swapped all the same, and is half of what was memorised.
       String name = parityLanding
-          ? targets.swapName(gained[CORNERS], gained[EDGES])
+          ? targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES))
           : targets.name(landed, steady, shotFrom, named);
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed,
           shot ? steady : null, named, shotFrom));
@@ -327,6 +329,17 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     return moved;
+  }
+
+  /** The edges among some pieces, or the corners: {@code type} is {@link #EDGES} or {@link #CORNERS}. */
+  private static List<Integer> ofType(List<Integer> slots, int type) {
+    List<Integer> ofType = new ArrayList<>();
+    for (int slot : slots) {
+      if ((Cubies.isEdge(slot) ? EDGES : CORNERS) == type) {
+        ofType.add(slot);
+      }
+    }
+    return ofType;
   }
 
   private static int typeOf(List<Integer>[] gained, boolean parityLanding) {
@@ -539,8 +552,9 @@ public final class BlindStepDetector implements StepDetector {
 
   /**
    * The cube was memorised before it was turned, and it was executed as algorithms, one piece type
-   * at a time: the stretches read as one type and then the other, with at most a parity between or
-   * after them.
+   * at a time: the stretches read as one type and then the other, with at most a parity anywhere
+   * among them — including in the middle of a type's own work, which is where a solver who fixes the
+   * parity before their last twists puts it.
    *
    * <p>A solve that never came out is not asked to prove it — a prefix in order is a legitimate
    * partial match. One that did, and whose turning read as no algorithm at all, is refused: the cube
@@ -555,15 +569,21 @@ public final class BlindStepDetector implements StepDetector {
     if (solvedMs == null) {
       return true;
     }
+    // One stretch per type, and no type coming back after another has started: interleaving them is
+    // not how a blind solve is executed, and is how a sighted one looks. The parity divides nothing
+    // — it stands wherever it was done, so a type resumed after it is the stretch it was already in.
     List<String> types = new ArrayList<>();
+    String current = null;
     for (Run run : runs()) {
-      if (!PARITY.equals(run.name) && !types.contains(run.name)) {
-        types.add(run.name);
+      if (PARITY.equals(run.name) || run.name.equals(current)) {
+        continue;
       }
+      if (types.contains(run.name)) {
+        return false;
+      }
+      types.add(run.name);
+      current = run.name;
     }
-    // One stretch per type, and no type coming back after the other has started: interleaving them
-    // is not how a blind solve is executed, and is how a sighted one looks.
-    int stretches = runs().size() - (parityFound ? 1 : 0);
-    return !types.isEmpty() && types.size() == stretches;
+    return !types.isEmpty();
   }
 }

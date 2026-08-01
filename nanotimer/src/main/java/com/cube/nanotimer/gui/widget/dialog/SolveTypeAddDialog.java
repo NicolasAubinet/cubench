@@ -429,7 +429,9 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     }
     props.put(KEY_SCRAMBLE_TYPE, String.valueOf(scrambleTypeItemPosition));
     props.put(KEY_QUICK_ACTION, String.valueOf(getSelectedQuickAction().getId()));
-    CubeMethod method = getSelectedMethod();
+    // A blind type is read as blind whatever the spinner still holds, so it stores no sighted
+    // override: a type ticked blind would otherwise keep one nothing can act on.
+    CubeMethod method = swBlind.isChecked() ? null : getSelectedMethod();
     props.put(KEY_METHOD, method == null ? "" : method.getCode());
 
     boolean confirmed;
