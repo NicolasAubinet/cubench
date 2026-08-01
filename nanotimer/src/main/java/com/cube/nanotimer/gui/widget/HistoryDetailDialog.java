@@ -328,12 +328,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     buReplay.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        // A +2 is added into the recorded time but was never time the hands spent, and a DNF has
-        // no time at all — neither is a length the replay can be measured against.
-        long timedMs = solveTime.isDNF() ? 0
-            : solveTime.getTime() - (solveTime.isPlusTwo() ? SolveTime.PLUS_TWO_PENALTY_MS : 0);
+        // The same length the breakdown steps were measured against, so the bar the replay
+        // scrubs and the replay itself cannot disagree about how long the solve was.
         DialogUtils.showFragment(getActivity(), SolveReplayDialog.newInstance(
-            puzzleId, cubingScramble, solveTime.getSmartcubeMoves(), timedMs));
+            puzzleId, cubingScramble, solveTime.getSmartcubeMoves(),
+            SolveBreakdown.solvingDurationMs(solveTime), breakdownSteps));
       }
     });
   }
@@ -392,6 +391,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       return;
     }
     boolean split = userSteps == null;
+    breakdownSteps = new ArrayList<SolveStep>(steps);
     int[] colors = getStepColors();
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
@@ -453,6 +453,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
+  private ArrayList<SolveStep> breakdownSteps; // what the bar in the sheet draws, and the replay scrubs
   private boolean showMoves;
 
   /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */

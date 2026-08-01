@@ -9,9 +9,11 @@
 
   Java -> JS surface:
     ntReplayLoad(puzzle, setupAlg, moves, solveMs)
-        moves  = [{m:"R'", t:180}, ...], t = ms from solve start
-        solveMs = the length the position should be reported against (see displayMs)
-    ntReplayPlay()  ntReplayPause()  ntReplaySeek(ms)  ntReplaySpeed(x)
+        moves   = [{m:"R'", t:180}, ...], t = ms from solve start
+        solveMs = the length the position is reported against (see displayMs)
+    ntReplayPlay()  ntReplayPause()  ntReplaySpeed(x)
+    ntReplaySeek(ms)  ms is a moment of the SOLVE, as onState reports it, never the
+                      replay's own clock: the two are not the same scale
 
   JS -> Java, both optional (the app has a timeout as a safety net):
     NTBridge.onReady()            the cube is drawn
@@ -28,12 +30,10 @@
   position ourselves: `indexToMoveStartTimestamp(i)` says where each node sits on that
   timeline, and we map our own clock onto it.
 
-  That clock is the solve's real offsets with two bounds applied (see the constants).
-  A replay is watched to be understood, so a turn too fast to see is stretched and one
-  the solver thought long before is not drawn in slow motion — the cube holds still
-  instead, which is what actually happened. That makes the replay a fraction longer
-  than the solve, so the position is reported scaled back onto the solve's own length
-  — a replay of a 28.79 must read 28.79, not 29.47.
+  A turn ENDS on its timestamp — see layOut, it is the thing most easily got wrong here.
+  Turns are floored and capped so none is too quick to see or drawn in slow motion, which
+  makes the replay a shade longer than the solve, so the position is reported back in the
+  solve's own time: a replay of a 28.79 must read 28.79.
 -->
 <html lang="en">
 <head>
@@ -53,24 +53,29 @@
 <div id="host"></div>
 <script>
 (function () {
-  // No turn is drawn slower than this, however long the solver thought before it.
-  var MAX_TURN_MS = 250;
+  // No turn is drawn slower than this, however long the solver thought before it. A turn ends on
+  // its timestamp, so this is also how much of the preceding recognition it occupies: too generous
+  // a cap and a short recognition shows no pause at all. Real quarter turns land near 150 ms.
+  var MAX_TURN_MS = 160;
   // ...and none faster than this, however quickly it was really made: a turn given 20 ms is a
   // flicker nobody can read.
   var MIN_TURN_MS = 90;
   // A whole-cube rotation moves every piece at once and needs longer to read than a face turn.
-  // It is also the case that most needs a floor: a rotation is recorded hard against the move it
-  // precedes, so by its raw offsets it would get almost no time at all and simply snap.
-  var MIN_ROTATION_MS = 200;
-  // The last node has no next one to take a duration from.
+  // It is also the case that most needs the room: a rotation is recorded hard against the move it
+  // precedes, so by its raw offsets it would get almost none and simply snap.
+  var MIN_ROTATION_MS = 170;
+  // A rotation is a bigger motion and is allowed a little longer than a face turn.
+  var MAX_ROTATION_MS = 220;
+  // A beat on the solved cube at the end, so the last turn is not the final frame.
   var TAIL_MS = MAX_TURN_MS;
 
   var player = null;
-  var starts = [];     // where each alg node begins on the replay's own clock
-  var anims = [];      // how long each node spends turning (the rest of its slot it holds still)
+  var realAt = [];     // when each alg node was really turned, ms from the first turn
+  var doneAt = [];     // and where that turn finishes on the replay's own clock
+  var anims = [];      // how long each turn takes, ending on its doneAt
   var tlStarts = [];   // where each alg node sits on the player's timeline
   var tlEnd = 0;
-  var totalMs = 0;      // the replay's own length, floors included
+  var totalMs = 0;       // the replay's own length, floors included
   var reportedTotal = 0; // the length the app shows, which is the solve's
   var clockMs = 0;
   var lastFrameMs = 0;
@@ -93,22 +98,33 @@
     return axis === "x" || axis === "y" || axis === "z";
   }
 
+  function clamped() {
+    return Math.max(0, Math.min(clockMs, totalMs));
+  }
+
+  /** The first node whose turn has not finished by `ms`. */
+  function pending(ms) {
+    var k = 0;
+    while (k < doneAt.length && doneAt[k] <= ms) { k++; }
+    return k;
+  }
+
   /** Where to put the player's timeline so the cube shows what the hands were doing at `ms`. */
   function timelineAt(ms) {
-    if (!starts.length) {
+    if (!doneAt.length) {
       return 0;
     }
-    var k = 0;
-    while (k + 1 < starts.length && starts[k + 1] <= ms) { k++; }
+    var k = pending(ms);
+    if (k >= doneAt.length) {
+      return tlEnd;
+    }
+    var from = tlStarts[k];                                   // k turns made, k not yet begun
     var to = k + 1 < tlStarts.length ? tlStarts[k + 1] : tlEnd;
-    var elapsed = ms - starts[k];
-    if (elapsed <= 0) {
-      return tlStarts[k];
+    var began = doneAt[k] - anims[k];
+    if (ms <= began) {
+      return from; // between turns: the cube is being looked at, not moved
     }
-    if (elapsed >= anims[k]) {
-      return to; // the turn is finished; the cube holds here for the rest of its slot
-    }
-    return tlStarts[k] + (elapsed / anims[k]) * (to - tlStarts[k]);
+    return from + Math.min(1, (ms - began) / anims[k]) * (to - from);
   }
 
   function draw() {
@@ -118,13 +134,53 @@
   }
 
   /**
-   * The position as the app should show it. The floors make the replay a fraction longer than the
-   * solve, which would read as a replay of the wrong solve, so the clock is reported against the
-   * solve's own length. Only the label is scaled — every turn still animates for the time it was
-   * laid out with.
+   * The moment of the solve the cube is currently showing. Every node knows both when it was
+   * really turned and where that lands on the replay's clock, so this walks back through that
+   * pairing. Scaling the whole clock by one ratio instead agrees at both ends and drifts
+   * everywhere between, because the floors add time at particular turns rather than evenly.
    */
   function displayMs() {
-    return totalMs > 0 ? Math.round(clockMs * reportedTotal / totalMs) : 0;
+    var ms = clamped();
+    if (!doneAt.length) {
+      return 0;
+    }
+    var k = pending(ms);
+    if (k === 0) {
+      return 0; // the first turn has not landed yet
+    }
+    var last = k >= doneAt.length;
+    var fromReal = realAt[k - 1];
+    var fromClock = doneAt[k - 1];
+    var toReal = last ? reportedTotal : realAt[k];
+    var toClock = last ? totalMs : doneAt[k];
+    if (toClock <= fromClock) {
+      return Math.round(fromReal);
+    }
+    var f = Math.max(0, Math.min(1, (ms - fromClock) / (toClock - fromClock)));
+    return Math.round(fromReal + f * (toReal - fromReal));
+  }
+
+  /** The inverse of displayMs: the replay clock showing a given moment of the solve. */
+  function clockAt(wanted) {
+    if (!doneAt.length) {
+      return 0;
+    }
+    var k = 0;
+    while (k < realAt.length && realAt[k] <= wanted) { k++; }
+    if (k === 0) {
+      return 0;
+    }
+    var last = k >= realAt.length;
+    var fromReal = realAt[k - 1];
+    var fromClock = doneAt[k - 1];
+    var toReal = last ? reportedTotal : realAt[k];
+    var toClock = last ? totalMs : doneAt[k];
+    if (toReal <= fromReal) {
+      // No real time between the two, as when the solve is measured only to its last turn.
+      return wanted >= fromReal ? toClock : fromClock;
+    }
+    var f = Math.max(0, Math.min(1, (wanted - fromReal) / (toReal - fromReal)));
+    return fromClock + f * (toClock - fromClock);
   }
 
   /** Rate-limited: the animation runs at frame rate, the app only needs a readable clock. */
@@ -161,19 +217,23 @@
   }
 
   /**
-   * Lays the solve out on the replay clock: every node keeps its real moment where it can, and is
-   * guaranteed enough room to be seen. It turns for the first part of its slot and holds still for
-   * the rest, which is how a pause reads as a pause.
+   * Lays the solve out on the replay clock.
    *
-   * <p>A node short of room is started <em>earlier</em> before the replay is allowed to run long,
-   * and for a rotation that is the truthful placement rather than a concession: a rotation is
-   * recorded against the move it precedes, so its stored gap is near zero, but the solver actually
-   * turned the cube during the pause before that move. Taking the time from there puts it back
-   * where it happened. Only when there is no slack left to borrow does the timeline stretch.</p>
+   * A TURN ENDS ON ITS TIMESTAMP. The cube reports a move once the turn has been made, so drawing
+   * it forward from that moment shows every turn late: at a step boundary the last turn of the step
+   * then finishes inside the next step's recognition, and the bar says thinking while the cube is
+   * still moving. Running each turn up TO its timestamp puts the movement where the bar puts it,
+   * and the stillness before it is the recognition it really was.
+   *
+   * Each turn is guaranteed room to be seen, taken from the slack before it — which for a rotation
+   * is also the truthful placement, since it is recorded against the move it precedes but was made
+   * during the pause before that move. Only when there is no slack left to take does the replay run
+   * longer than the solve.
    */
   function layOut(tokens, realMs) {
     var n = tokens.length;
-    starts = [];
+    realAt = [];
+    doneAt = [];
     anims = [];
     if (!n) {
       totalMs = 0;
@@ -182,22 +242,22 @@
     var floors = [];
     for (var i = 0; i < n; i++) {
       floors.push(isRotation(tokens[i]) ? MIN_ROTATION_MS : MIN_TURN_MS);
+      realAt.push(realMs[i] - realMs[0]);
     }
-    var at = realMs.slice();
-    for (var b = n - 2; b >= 0; b--) {         // take the room from the slack before it
-      at[b] = Math.min(at[b], at[b + 1] - floors[b]);
+    var at = realAt.slice();
+    for (var b = n - 1; b >= 1; b--) { // node b needs room before it: start the one before earlier
+      at[b - 1] = Math.min(at[b - 1], at[b] - floors[b]);
     }
-    for (var f = 1; f < n; f++) {              // where there was none to take, the replay runs long
-      at[f] = Math.max(at[f], at[f - 1] + floors[f - 1]);
+    for (var f = 1; f < n; f++) {      // where there was none to take, the replay runs long
+      at[f] = Math.max(at[f], at[f - 1] + floors[f]);
     }
+    var lead = floors[0]; // the first turn needs room of its own to run into
     for (var k = 0; k < n; k++) {
-      starts.push(at[k] - at[0]);
+      doneAt.push(at[k] - at[0] + lead);
+      var cap = isRotation(tokens[k]) ? MAX_ROTATION_MS : MAX_TURN_MS;
+      anims.push(Math.min(k === 0 ? lead : at[k] - at[k - 1], cap));
     }
-    for (var m = 0; m < n; m++) {
-      var slot = m + 1 < n ? starts[m + 1] - starts[m] : TAIL_MS;
-      anims.push(Math.min(slot, MAX_TURN_MS));
-    }
-    totalMs = starts[n - 1] + TAIL_MS;
+    totalMs = doneAt[n - 1] + TAIL_MS;
   }
 
   var readyNotified = false;
@@ -216,17 +276,17 @@
 
     // One alg node per token: a reorientation can be recorded as a pair ("y x'") under a single
     // timestamp, and the timeline indexes nodes, not our moves. The pair's two halves then sit at
-    // the same instant, and each still gets its own slot from the floor above.
+    // the same instant, and each still gets its own room from the floors above.
     var tokens = [];
-    var realMs = [];
+    var stamps = [];
     for (var i = 0; i < list.length; i++) {
       var parts = String(list[i].m).split(/\s+/);
       for (var j = 0; j < parts.length; j++) {
-        if (parts[j]) { tokens.push(parts[j]); realMs.push(list[i].t); }
+        if (parts[j]) { tokens.push(parts[j]); stamps.push(list[i].t); }
       }
     }
-    layOut(tokens, realMs);
-    reportedTotal = solveMs > 0 ? solveMs : totalMs;
+    layOut(tokens, stamps);
+    reportedTotal = solveMs > 0 ? solveMs : (realAt.length ? realAt[realAt.length - 1] : 0);
     clockMs = 0;
     reportedMs = -1;
 
@@ -257,7 +317,7 @@
   };
 
   window.ntReplayPlay = function () {
-    if (playing || !starts.length) { return; }
+    if (playing || !doneAt.length) { return; }
     if (clockMs >= totalMs) { clockMs = 0; }
     playing = true;
     lastFrameMs = Date.now();
@@ -269,10 +329,11 @@
     pause();
   };
 
+  /** @param ms a moment of the solve, in the same units the position is reported in. */
   window.ntReplaySeek = function (ms) {
     var wasPlaying = playing;
     pause();
-    clockMs = Math.max(0, Math.min(ms, totalMs));
+    clockMs = Math.max(0, Math.min(clockAt(ms), totalMs));
     draw();
     if (wasPlaying) {
       window.ntReplayPlay();

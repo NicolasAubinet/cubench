@@ -36,6 +36,17 @@
         android:visibility="gone"/>
   </FrameLayout>
 
+  <!-- The solve as a bar, doubling as the scrubber: it already says which step is which, so it is
+       also where you say which one to watch. -->
+  <com.cube.nanotimer.util.view.SolveStepBarView
+      android:id="@+id/replayBar"
+      android:layout_width="match_parent"
+      android:layout_height="22dp"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      android:layout_marginTop="6dp"
+      android:visibility="gone"/>
+
   <!-- Transport: play/pause, the position within the solve, and the speed cycle. -->
   <LinearLayout
       android:id="@+id/replayControls"

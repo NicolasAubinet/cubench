@@ -12,6 +12,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.content.res.TypedArray;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -24,11 +25,14 @@ import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.vo.SolveStep;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,6 +54,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private static final String ARG_SCRAMBLE = "scramble";
   private static final String ARG_MOVES = "moves";
   private static final String ARG_TIMED_MS = "timedMs";
+  private static final String ARG_STEPS = "steps";
 
   private static final String BASE_URL =
       "https://appassets.androidplatform.net/assets/scramble/replay.html";
@@ -74,7 +79,11 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private TextView fallbackView;
   private String fallbackText;
 
+  private SolveStepBarView bar;
   private long solveMs;     // what the replay must read as, floors or not
+  private long startOffsetMs; // where the first turn sits in the solve: the bar draws the whole of
+                              // it, but a replay starts here (on a blind solve, past the memo)
+  private long barTotalMs;
   private String totalText; // invariant for the dialog: formatted once, not on every state update
   private boolean playing;
   private boolean transportPainted;
@@ -103,15 +112,17 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
    * @param timedMs   what the clock actually measured, penalties removed — the replay reads as
    *                  this so it agrees with the time above it. 0 when there is none (a DNF), and
    *                  then the moves' own span stands in.
+   * @param steps     the solve's steps, drawn as the scrubber; null or empty for no scrubber.
    */
   public static SolveReplayDialog newInstance(String puzzleId, String scramble, String moves,
-      long timedMs) {
+      long timedMs, ArrayList<SolveStep> steps) {
     SolveReplayDialog frag = new SolveReplayDialog();
     Bundle args = new Bundle();
     args.putString(ARG_PUZZLE, puzzleId);
     args.putString(ARG_SCRAMBLE, scramble);
     args.putString(ARG_MOVES, moves);
     args.putLong(ARG_TIMED_MS, timedMs);
+    args.putSerializable(ARG_STEPS, steps);
     frag.setArguments(args);
     return frag;
   }
@@ -129,6 +140,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     speedLabel = view.findViewById(R.id.buReplaySpeed);
     controlsRow = view.findViewById(R.id.replayControls);
     fallbackView = view.findViewById(R.id.tvReplayFallback);
+    bar = view.findViewById(R.id.replayBar);
     fallbackText = getString(R.string.solve_replay_unavailable);
 
     List<SolveMovesFormat.Move> moves =
@@ -136,6 +148,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     // Seeded here so the label reads sensibly even if the page never signals ready; the page owns
     // the timeline and overrides it in onReady. Measured from the first turn, as the page does —
     // a blind solve's memorisation is not part of what gets replayed.
+    startOffsetMs = moves.isEmpty() ? 0 : moves.get(0).getOffsetMs();
     solveMs = coveredMs(moves, getArguments().getLong(ARG_TIMED_MS));
     totalText = FormatterService.INSTANCE.formatSolveTime(solveMs);
 
@@ -169,7 +182,52 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     return timedMs > last ? timedMs - first : last - first;
   }
 
+  /** The bar draws the whole solve; the replay only covers what follows the first turn. */
+  @SuppressWarnings("unchecked")
+  private void setUpBar() {
+    ArrayList<SolveStep> steps = (ArrayList<SolveStep>) getArguments().getSerializable(ARG_STEPS);
+    if (steps == null || steps.isEmpty()) {
+      return;
+    }
+    barTotalMs = 0;
+    for (SolveStep step : steps) {
+      barTotalMs += step.getTotalMs();
+    }
+    if (barTotalMs <= 0) {
+      return;
+    }
+    TypedArray palette = getResources().obtainTypedArray(R.array.solve_step_colors);
+    int[] colors = new int[palette.length()];
+    for (int i = 0; i < colors.length; i++) {
+      colors[i] = palette.getColor(i, 0);
+    }
+    palette.recycle();
+
+    bar.setSteps(steps, colors);
+    bar.setVisibility(View.VISIBLE);
+    bar.setOnSeekListener(new SolveStepBarView.OnSeekListener() {
+      @Override
+      public void onSeek(float fraction) {
+        if (webView == null) {
+          return;
+        }
+        // The bar is in the solve's own time; the replay clock starts at the first turn.
+        long into = Math.max(0, Math.round(fraction * barTotalMs) - startOffsetMs);
+        webView.removeCallbacks(autoPlayRunnable); // a deliberate jump beats the pending auto-start
+        evaluate("window.ntReplaySeek(" + Math.min(into, solveMs) + ");");
+      }
+    });
+    updateBar(0);
+  }
+
+  private void updateBar(long positionMs) {
+    if (bar != null && barTotalMs > 0) {
+      bar.setPlayhead((startOffsetMs + positionMs) / (float) barTotalMs);
+    }
+  }
+
   private void setUpControls() {
+    setUpBar();
     updateTransport(false);
     updateSpeed();
     playButton.setOnClickListener(new View.OnClickListener() {
@@ -301,6 +359,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
         @Override
         public void run() {
           updatePosition(ms);
+          updateBar(ms);
           updateTransport(isPlaying);
         }
       });
@@ -371,6 +430,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     speedLabel = null;
     controlsRow = null;
     fallbackView = null;
+    bar = null;
     super.onDestroyView();
   }
 }
