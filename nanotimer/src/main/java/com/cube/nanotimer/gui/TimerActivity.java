@@ -466,8 +466,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     sessionTimesLayout.setVisibility(steps ? View.GONE : View.VISIBLE);
     findViewById(R.id.statTilesLayout).setVisibility(steps ? View.GONE : View.VISIBLE);
     findViewById(R.id.stepSplitsLayout).setVisibility(steps ? View.VISIBLE : View.GONE);
-    // A stepped solve type reads its lifetime average as splits, so the footer cell would repeat it.
-    findViewById(R.id.footerAvgCell).setVisibility(steps ? View.INVISIBLE : View.VISIBLE);
+    // A stepped solve type reads its averages as splits, which is the whole footer said better.
+    findViewById(R.id.statFooterRow).setVisibility(steps ? View.GONE : View.VISIBLE);
 
     // The first cell counts a blind attempt in threes, and everything else in fives.
     findViewById(R.id.tvAvgOfFive).setVisibility(blind ? View.GONE : View.VISIBLE);
@@ -1612,8 +1612,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf100()));
       ((TextView) findViewById(R.id.tvAvgOfLife)).setText(
       FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOfLifetime()));
-      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0, true));
     } else if (solveType.isBlind()) {
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
       RecordInfo bestMo3 = refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),

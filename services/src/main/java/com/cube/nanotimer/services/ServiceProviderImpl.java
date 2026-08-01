@@ -392,8 +392,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     SolveAverages solveAverages = new SolveAverages();
     if (solveType.hasSteps()) {
       setStepsAverages(solveAverages, solveType);
-      // A solve timed in steps still has a best single, and the timer screen now shows it.
-      solveAverages.setBestOfLifetime(cachedLifetimeBest);
     } else if (solveType.isBlind()) {
       solveAverages.setMeanOf3(getLastMean(3));
       solveAverages.setBestOf3(cachedBestAverages.get(5)); // DB column avg5 contains the mean of 3 for blind

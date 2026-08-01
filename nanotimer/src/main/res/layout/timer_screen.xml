@@ -364,6 +364,7 @@
 
         <!-- The two values that barely move: stated once, not tracked. -->
         <LinearLayout
+           android:id="@+id/statFooterRow"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:orientation="horizontal"
