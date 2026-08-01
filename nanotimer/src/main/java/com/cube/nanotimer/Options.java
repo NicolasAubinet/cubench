@@ -206,7 +206,7 @@ public enum Options {
       case 3:
         return RecordNotificationMode.NEVER;
       default:
-        return RecordNotificationMode.ANY;
+        return RecordNotificationMode.PB_ONLY;
     }
   }
 
