@@ -115,6 +115,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
+  private boolean skipRecordPanel; // the stop came from the cross, which usually means discard
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -669,9 +670,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (solveType.hasSteps()) {
       nextSolveStep(); // the tap closes the last step, exactly as it would anywhere else on screen
     }
+    // Don't show the record panel for a solve that will probably get canceled
+    skipRecordPanel = true;
     stopTimer(true);
     if (timerState == TimerState.STOPPED) { // a stop too soon after the start is ignored
       confirmDiscardSolve();
+    } else {
+      skipRecordPanel = false; // nothing was stopped, so no solve is coming to suppress
     }
   }
 
@@ -1922,7 +1927,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               deleteLastSolve();
             }
           }
-          refreshAvgFields(true);
+          boolean showNotifications = !skipRecordPanel;
+          skipRecordPanel = false;
+          refreshAvgFields(showNotifications);
         }
       });
     }
