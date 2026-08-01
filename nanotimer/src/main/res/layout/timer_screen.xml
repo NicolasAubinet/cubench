@@ -16,14 +16,16 @@
        android:id="@+id/centerLayout"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
-       android:layout_above="@+id/averagesCardView"
        android:clipChildren="false"
        android:clipToPadding="false"
        android:orientation="vertical">
+
+      <!-- The timer and its scramble take every pixel the statistics below do not need, so a
+           short 3x3 scramble is not charged for the ten lines a 7x7 one costs. -->
       <LinearLayout
          android:id="@+id/timerLayout"
          android:layout_width="match_parent"
-         android:layout_height="wrap_content"
+         android:layout_height="0px"
          android:layout_weight="1"
          android:gravity="center"
          android:clipChildren="false"
@@ -31,12 +33,12 @@
          android:paddingLeft="2px"
          android:paddingRight="2px"
          android:orientation="vertical">
-        <!-- This spacer and the step bar's band below share the free space. The lighter spacer
-             lifts the timer off the action bar; the bar stays midway whatever the ratio. -->
+        <!-- This spacer and the step bar's band below share the free space evenly, so the timer
+             and its scramble sit centred whatever the scramble costs. -->
         <Space
            android:layout_width="match_parent"
            android:layout_height="0px"
-           android:layout_weight="0.4"/>
+           android:layout_weight="1"/>
         <TableLayout
            android:id="@+id/timerStepsLayout"
            android:layout_width="match_parent"
@@ -149,296 +151,267 @@
         </FrameLayout>
       </LinearLayout>
 
+      <!-- Statistics. A stack of optional blocks: every solve type uses the same surfaces and
+           only chooses which of them it needs, and what the second value in a cell means. -->
       <LinearLayout
          android:id="@+id/sessionLayout"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:orientation="vertical"
-         android:layout_weight="1"
-         android:gravity="top"
          android:clipChildren="false"
          android:clipToPadding="false"
-         android:padding="1px">
+         android:paddingLeft="@dimen/grid_margin_px"
+         android:paddingRight="@dimen/grid_margin_px"
+         android:paddingBottom="@dimen/grid_margin_px">
 
-        <!--<TextView style="@style/DividerRow"-->
-           <!--android:layout_marginLeft="3px"/>-->
-
-        <!-- The session grid and the record panel share a frame so the panel can float over the
-             grid. Elevation lifts the whole frame above the stats below, so a tall multi-record
-             panel draws down over the grid (and stats) instead of pushing content around. -->
-        <FrameLayout
+        <LinearLayout
+           android:id="@+id/sessionHeader"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:elevation="12dp"
-           android:clipChildren="false"
-           android:clipToPadding="false">
+           android:orientation="horizontal"
+           android:paddingLeft="4px"
+           android:paddingRight="4px"
+           android:paddingBottom="5px">
+          <TextView
+             android:layout_width="0px"
+             android:layout_weight="1"
+             android:text="@string/timer_session"
+             style="@style/SessionHeaderPx"/>
+          <TextView
+             android:id="@+id/tvSolvesCount"
+             android:layout_width="wrap_content"
+             style="@style/SessionHeaderPx"/>
+        </LinearLayout>
 
-          <androidx.cardview.widget.CardView
-             android:layout_width="match_parent"
+        <TableLayout
+           android:id="@+id/sessionTimesLayout"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content">
+          <TableRow>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+          </TableRow>
+          <TableRow>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+          </TableRow>
+          <TableRow>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+          </TableRow>
+        </TableLayout>
+
+        <!-- Records land here, in the flow, so the scramble is never covered and the next solve
+             can start before this clears. -->
+        <LinearLayout
+           android:id="@+id/recordBar"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:gravity="center_vertical"
+           android:background="@drawable/record_bar"
+           android:layout_marginTop="4px"
+           android:paddingLeft="14px"
+           android:paddingRight="12px"
+           android:paddingTop="6px"
+           android:paddingBottom="6px"
+           android:clickable="false"
+           android:focusable="false"
+           android:visibility="gone">
+          <TextView
+             android:id="@+id/tvRecordBarLabel"
+             android:layout_width="wrap_content"
              android:layout_height="wrap_content"
-             style="@style/TableCardViewPx">
-
-            <TableLayout
-               android:id="@+id/sessionTimesLayout"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content">
-              <TableRow>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-              </TableRow>
-              <TableRow>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-              </TableRow>
-              <TableRow>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-                <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-              </TableRow>
-            </TableLayout>
-
-          </androidx.cardview.widget.CardView>
-
-          <!-- Overlay wrapper: the huge negative bottom margin keeps the panel from expanding the
-               frame, so the grid and stats keep their positions while the panel floats on top. Its
-               elevation must clear the session grid's own cardElevation (2dp) so it draws in front.
-               The card's negative top margin starts it in the gap below the scramble; extra record
-               rows then grow down over the grid. -->
-          <FrameLayout
-             android:layout_width="match_parent"
+             android:textSize="20px"
+             android:textStyle="bold"
+             android:singleLine="true"
+             android:textColor="@color/new_record"/>
+          <TextView
+             android:id="@+id/tvRecordBarValue"
+             android:layout_width="0px"
              android:layout_height="wrap_content"
-             android:layout_marginBottom="-3000px"
-             android:elevation="12dp"
-             android:clipChildren="false"
-             android:clipToPadding="false">
-            <androidx.cardview.widget.CardView
-               android:id="@+id/recordOverlayCard"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:layout_gravity="top|center_horizontal"
-               android:layout_marginTop="-30px"
-               android:clickable="false"
-               android:focusable="false"
-               android:visibility="gone"
-               style="@style/TableCardViewPx">
-              <LinearLayout
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:orientation="horizontal">
-                <View
-                   android:layout_width="4px"
-                   android:layout_height="match_parent"
-                   android:background="@color/new_record"/>
-                <LinearLayout
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:orientation="vertical"
-                   android:paddingLeft="16px"
-                   android:paddingRight="18px"
-                   android:paddingTop="11px"
-                   android:paddingBottom="11px">
-                  <TextView android:id="@+id/tvRecordOverlayHeader" style="@style/RecordOverlayHeaderPx"/>
-                  <TableLayout
-                     android:id="@+id/recordOverlayTable"
-                     android:layout_width="wrap_content"
-                     android:layout_height="wrap_content">
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                    <TableRow android:visibility="gone">
-                      <TextView style="@style/RecordOverlayLabelPx"/>
-                      <TextView style="@style/RecordOverlayMarginPx"/>
-                      <TextView style="@style/RecordOverlayPrevPx"/>
-                    </TableRow>
-                  </TableLayout>
-                </LinearLayout>
-              </LinearLayout>
-            </androidx.cardview.widget.CardView>
-          </FrameLayout>
+             android:layout_weight="1"
+             android:layout_marginLeft="10px"
+             android:textSize="20px"
+             android:textStyle="bold"
+             android:singleLine="true"
+             android:fontFeatureSettings="tnum"
+             android:textColor="@color/new_record"/>
+          <TextView
+             android:id="@+id/tvRecordBarPrev"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:textSize="17px"
+             android:singleLine="true"
+             android:fontFeatureSettings="tnum"
+             android:textColor="@color/secondary_text"/>
+        </LinearLayout>
 
-        </FrameLayout>
+        <!-- Four windows, four cells. The second line of a cell is "best" normally, and the
+             success rate for a blind solve type. -->
+        <LinearLayout
+           android:id="@+id/statTilesLayout"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:layout_marginTop="4px">
 
-        <!--<TextView style="@style/DividerRow"-->
-           <!--android:layout_marginLeft="3px"/>-->
+          <LinearLayout
+             android:id="@+id/statTileOne"
+             android:layout_width="0px"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:layout_marginRight="3px"
+             android:orientation="vertical"
+             android:background="@drawable/stat_tile"
+             android:paddingTop="6px"
+             android:paddingBottom="6px">
+            <TextView android:id="@+id/tvStatKeyOne" style="@style/StatTileKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfFive" style="@style/StatTileValuePx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvMeanOfThree" style="@style/StatTileValuePx" android:visibility="gone"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfFive" style="@style/StatTileSubPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestMeanOfThree" style="@style/StatTileSubPx" android:visibility="gone"/>
+          </LinearLayout>
 
+          <LinearLayout
+             android:id="@+id/statTileTwo"
+             android:layout_width="0px"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:layout_marginLeft="3px"
+             android:layout_marginRight="3px"
+             android:orientation="vertical"
+             android:background="@drawable/stat_tile"
+             android:paddingTop="6px"
+             android:paddingBottom="6px">
+            <TextView android:id="@+id/tvStatKeyTwo" style="@style/StatTileKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfTwelve" style="@style/StatTileValuePx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfTwelve" style="@style/StatTileSubPx"/>
+          </LinearLayout>
+
+          <LinearLayout
+             android:id="@+id/statTileThree"
+             android:layout_width="0px"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:layout_marginLeft="3px"
+             android:layout_marginRight="3px"
+             android:orientation="vertical"
+             android:background="@drawable/stat_tile"
+             android:paddingTop="6px"
+             android:paddingBottom="6px">
+            <TextView android:id="@+id/tvStatKeyThree" style="@style/StatTileKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfFifty" style="@style/StatTileValuePx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfFifty" style="@style/StatTileSubPx"/>
+          </LinearLayout>
+
+          <LinearLayout
+             android:id="@+id/statTileFour"
+             android:layout_width="0px"
+             android:layout_height="wrap_content"
+             android:layout_weight="1"
+             android:layout_marginLeft="3px"
+             android:orientation="vertical"
+             android:background="@drawable/stat_tile"
+             android:paddingTop="6px"
+             android:paddingBottom="6px">
+            <TextView android:id="@+id/tvStatKeyFour" style="@style/StatTileKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfHundred" style="@style/StatTileValuePx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfHundred" style="@style/StatTileSubPx"/>
+          </LinearLayout>
+        </LinearLayout>
+
+        <!-- A solve type timed in steps reads its averages as splits, so it takes this block
+             instead of the cells above. -->
+        <LinearLayout
+           android:id="@+id/stepSplitsLayout"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           android:background="@drawable/stat_tile"
+           android:paddingLeft="12px"
+           android:paddingRight="12px"
+           android:paddingTop="4px"
+           android:paddingBottom="4px"
+           android:visibility="gone">
+          <LinearLayout style="@style/SplitRow">
+            <TextView android:text="5" style="@style/SplitRowKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfFive" style="@style/SplitRowValuePx"/>
+          </LinearLayout>
+          <LinearLayout style="@style/SplitRow">
+            <TextView android:text="12" style="@style/SplitRowKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfTwelve" style="@style/SplitRowValuePx"/>
+          </LinearLayout>
+          <LinearLayout style="@style/SplitRow">
+            <TextView android:text="50" style="@style/SplitRowKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfFifty" style="@style/SplitRowValuePx"/>
+          </LinearLayout>
+          <LinearLayout style="@style/SplitRow">
+            <TextView android:text="100" style="@style/SplitRowKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfHundred" style="@style/SplitRowValuePx"/>
+          </LinearLayout>
+          <LinearLayout style="@style/SplitRow">
+            <TextView android:text="@string/life" style="@style/SplitRowKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfLife" style="@style/SplitRowValuePx"/>
+          </LinearLayout>
+        </LinearLayout>
+
+        <!-- The two values that barely move: stated once, not tracked. -->
         <LinearLayout
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:orientation="horizontal"
-           android:layout_marginLeft="6px"
-           android:layout_marginRight="6px">
-          <TableLayout
-             android:layout_width="match_parent"
+           android:layout_marginTop="6px">
+          <LinearLayout
+             android:id="@+id/footerPbCell"
+             android:layout_width="0px"
              android:layout_height="wrap_content"
-             android:layout_marginTop="1px"
-             android:layout_weight="1">
-            <TableRow android:layout_marginTop="1px">
-              <TextView
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:text="@string/solves_count"
-                 style="@style/SmallTextFieldPx"/>
-              <TextView
-                 android:id="@+id/tvSolvesCount"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginLeft="5px"
-                 android:textColor="@color/white"
-                 android:textStyle="bold"
-                 style="@style/SmallTextFieldPx"/>
-            </TableRow>
-            <TableRow android:layout_marginTop="2px">
-              <TextView
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:text="@string/last_mean_of_three"
-                 style="@style/SmallTextFieldPx"/>
-              <TextView
-                 android:id="@+id/tvMeanOfThree"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginLeft="5px"
-                 android:textColor="@color/white"
-                 android:textStyle="bold"
-                 style="@style/SmallTextFieldPx"/>
-            </TableRow>
-            <TableRow android:id="@+id/trBestMeanOfThree" android:layout_marginTop="2px" android:visibility="gone">
-              <TextView
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:text="@string/best_mean_of_three"
-                 style="@style/SmallTextFieldPx"/>
-              <TextView
-                 android:id="@+id/tvBestMeanOfThree"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginLeft="5px"
-                 android:textColor="@color/white"
-                 android:textStyle="bold"
-                 style="@style/SmallTextFieldPx"/>
-            </TableRow>
-          </TableLayout>
-          <TableLayout
-             android:layout_width="match_parent"
+             android:layout_weight="1"
+             android:layout_marginRight="3px"
+             android:orientation="horizontal"
+             android:gravity="center_vertical"
+             android:background="@drawable/stat_tile"
+             android:paddingLeft="12px"
+             android:paddingRight="12px"
+             android:paddingTop="5px"
+             android:paddingBottom="5px">
+            <TextView
+               android:layout_width="0px"
+               android:layout_weight="1"
+               android:text="@string/timer_personal_best"
+               style="@style/StatFooterKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvLifetimeBest" style="@style/StatFooterValuePx"/>
+          </LinearLayout>
+          <LinearLayout
+             android:id="@+id/footerAvgCell"
+             android:layout_width="0px"
              android:layout_height="wrap_content"
-             android:layout_marginTop="1px"
-             android:layout_weight="1">
-            <TableRow android:layout_marginTop="1px">
-              <TextView
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:text="@string/lifetime_best"
-                 style="@style/SmallTextFieldPx"/>
-              <TextView
-                 android:id="@+id/tvLifetimeBest"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginLeft="5px"
-                 android:textColor="@color/white"
-                 android:textStyle="bold"
-                 style="@style/SmallTextFieldPx"/>
-            </TableRow>
-            <TableRow android:layout_marginTop="2px">
-              <TextView
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:text="@string/lifetime_avg"
-                 style="@style/SmallTextFieldPx"/>
-              <TextView
-                 android:id="@+id/tvLifetimeAvg"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginLeft="5px"
-                 android:textColor="@color/white"
-                 android:textStyle="bold"
-                 style="@style/SmallTextFieldPx"/>
-            </TableRow>
-            <TableRow android:id="@+id/trLifetimeAccuracy" android:layout_marginTop="2px" android:visibility="gone">
-              <TextView
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:text="@string/lifetime_accuracy"
-                 style="@style/SmallTextFieldPx"/>
-              <TextView
-                 android:id="@+id/tvLifetimeAccuracy"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginLeft="5px"
-                 android:textColor="@color/white"
-                 android:textStyle="bold"
-                 style="@style/SmallTextFieldPx"/>
-            </TableRow>
-          </TableLayout>
+             android:layout_weight="1"
+             android:layout_marginLeft="3px"
+             android:orientation="horizontal"
+             android:gravity="center_vertical"
+             android:background="@drawable/stat_tile"
+             android:paddingLeft="12px"
+             android:paddingRight="12px"
+             android:paddingTop="5px"
+             android:paddingBottom="5px">
+            <TextView
+               android:layout_width="0px"
+               android:layout_weight="1"
+               android:text="@string/timer_avg_1000"
+               style="@style/StatFooterKeyPx"/>
+            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvLifetimeAvg" style="@style/StatFooterValuePx"/>
+          </LinearLayout>
         </LinearLayout>
+
       </LinearLayout>
     </LinearLayout>
-
-    <androidx.cardview.widget.CardView
-       android:id="@+id/averagesCardView"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_alignParentBottom="true"
-       android:gravity="bottom"
-       android:layout_marginBottom="@dimen/grid_margin_px"
-       style="@style/TableCardViewPx">
-      <TableLayout
-         android:id="@+id/averagesLayout"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content">
-        <TableRow>
-          <TextView android:textSize="21px" android:textStyle="bold" android:layout_width="60px"/>
-          <TextView android:id="@+id/tvAvgOf" android:text="@string/last_avg_of" style="@style/AverageTableHeaderFieldPx"/>
-          <TextView android:id="@+id/tvBestOf" android:text="@string/best_avg_of" style="@style/AverageTableHeaderFieldPx"/>
-        </TableRow>
-        <TableRow android:id="@+id/trAvgOfFive" android:background="@color/transparent">
-          <TextView android:text="5" style="@style/AverageTableFirstFieldPx" android:layout_weight="0"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfFive" style="@style/TableCellPx"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfFive" style="@style/TableCellPx"/>
-        </TableRow>
-        <TableRow android:id="@+id/trAvgOfTwelve" android:background="@color/grid_background_1">
-          <TextView android:text="12" style="@style/AverageTableFirstFieldPx" android:layout_weight="0"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfTwelve" style="@style/TableCellPx"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfTwelve" style="@style/TableCellPx"/>
-        </TableRow>
-        <TableRow android:id="@+id/trAvgOfFifty" android:background="@color/transparent">
-          <TextView android:text="50" style="@style/AverageTableFirstFieldPx" android:layout_weight="0"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfFifty" style="@style/TableCellPx"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfFifty" style="@style/TableCellPx"/>
-        </TableRow>
-        <TableRow android:id="@+id/trAvgOfHundred" android:background="@color/grid_background_1">
-          <TextView android:text="100" style="@style/AverageTableFirstFieldPx" android:layout_weight="0"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfHundred" style="@style/TableCellPx"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvBestOfHundred" style="@style/TableCellPx"/>
-        </TableRow>
-        <TableRow android:id="@+id/trAvgOfLife" android:visibility="gone" android:background="@color/transparent">
-          <TextView android:text="@string/life" style="@style/AverageTableFirstFieldPx" android:layout_weight="0"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfLife" style="@style/TableCellPx"/>
-          <com.cube.nanotimer.util.view.FontFitTextView style="@style/TableCellPx"/>
-        </TableRow>
-      </TableLayout>
-    </androidx.cardview.widget.CardView>
 
   </RelativeLayout>
 

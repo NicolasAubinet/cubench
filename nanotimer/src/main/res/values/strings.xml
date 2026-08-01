@@ -717,4 +717,13 @@
   <string name="discard_solve_confirmation">The timer stopped and the time was saved. Discarding removes it.</string>
   <string name="discard_solve">Discard</string>
   <string name="keep_solve">Keep</string>
+  <string name="timer_session">Session</string>
+  <string name="timer_personal_best">Personal best</string>
+  <string name="timer_avg_1000">Avg of 1000</string>
+  <string name="timer_best_value">best %1$s</string>
+  <string name="ao5_label">Ao5</string>
+  <string name="ao12_label">Ao12</string>
+  <string name="ao50_label">Ao50</string>
+  <string name="ao100_label">Ao100</string>
+  <string name="mo3_label">Mo3</string>
 </resources>

@@ -88,6 +88,11 @@
   <!-- Destructive action as text: pure red glares against the dark dialogs. -->
   <color name="danger_text">#EF5350</color>
 
+  <!-- A statistics cell tinted by the record colour it is announcing -->
+  <color name="record_tile_bg">#26FFDD00</color>
+  <!-- The same tint, flattened: the record bar paints it over its own edge, so it cannot be translucent -->
+  <color name="record_bar_bg">#3C3A29</color>
+
   <color name="history_marker">@color/iceblue</color>
 
   <color name="dialog_surface">#23272B</color>

@@ -57,6 +57,97 @@
     <item name="android:textColor">@color/secondary_text</item> <!-- muted stat labels; values override to white -->
   </style>
 
+  <!-- Timer statistics cells. Every cell reads the same way: what it is, the value, and one
+       secondary value under it whose meaning is set by the solve type (best, or accuracy). -->
+  <style name="StatTileKeyPx">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">16px</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:letterSpacing">0.09</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textColor">@color/secondary_text</item>
+  </style>
+  <style name="StatTileValuePx">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">30px</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+    <item name="android:textColor">@color/white</item>
+  </style>
+  <style name="StatTileSubPx">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">15px</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+    <item name="android:textColor">@color/gray600</item>
+  </style>
+
+  <!-- The two values under the tiles: they barely move, so they are stated rather than tracked. -->
+  <style name="StatFooterKeyPx">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">14px</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:letterSpacing">0.09</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textColor">@color/secondary_text</item>
+  </style>
+  <style name="StatFooterValuePx">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">24px</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+    <item name="android:textColor">@color/white</item>
+  </style>
+
+  <style name="SessionHeaderPx">
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">16px</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:letterSpacing">0.09</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textColor">@color/secondary_text</item>
+  </style>
+
+  <!-- Step splits, one row per average window, for solve types timed in steps. -->
+  <style name="SplitRow">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:orientation">horizontal</item>
+    <item name="android:gravity">center_vertical</item>
+    <item name="android:paddingTop">3px</item>
+    <item name="android:paddingBottom">3px</item>
+  </style>
+  <style name="SplitRowKeyPx">
+    <item name="android:layout_width">70px</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">18px</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:letterSpacing">0.06</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textColor">@color/secondary_text</item>
+  </style>
+  <style name="SplitRowValuePx">
+    <item name="android:layout_width">0px</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textSize">20px</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:gravity">right</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+    <item name="android:textColor">@color/white</item>
+  </style>
+
   <!-- New-record overlay (timer screen) -->
   <style name="RecordOverlayHeaderPx">
     <item name="android:layout_width">wrap_content</item>
