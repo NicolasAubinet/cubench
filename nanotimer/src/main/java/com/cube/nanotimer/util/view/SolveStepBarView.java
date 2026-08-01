@@ -95,7 +95,7 @@ public class SolveStepBarView extends View {
         || action == android.view.MotionEvent.ACTION_MOVE) {
       // The bar lives in a scrolling sheet, which would otherwise steal the drag off it.
       getParent().requestDisallowInterceptTouchEvent(true);
-      seekListener.onSeek(Math.max(0f, Math.min(1f, event.getX() / Math.max(1, getWidth()))));
+      seekListener.onSeek(fractionAt(event.getX()));
       return true;
     }
     if (action == android.view.MotionEvent.ACTION_UP
@@ -122,14 +122,7 @@ public class SolveStepBarView extends View {
 
   @Override
   protected void onDraw(Canvas canvas) {
-    long totalMs = 0;
-    int drawnSteps = 0;
-    for (SolveStep step : steps) {
-      totalMs += step.getTotalMs();
-      if (step.getTotalMs() > 0) { // a skipped step takes no width, and no gap either
-        drawnSteps++;
-      }
-    }
+    long totalMs = totalMs(steps);
     if (totalMs <= 0) {
       return;
     }
@@ -143,8 +136,9 @@ public class SolveStepBarView extends View {
     float stepGap = height * STEP_GAP_RATIO;
     float partGap = Math.max(1f, height * PART_GAP_RATIO);
     float corner = height * CORNER_RATIO;
-    float width = getWidth() - stepGap * Math.max(0, drawnSteps - 1);
+    float width = getWidth() - stepGap * Math.max(0, drawnSteps(steps) - 1);
 
+    // Kept in step with xAt/fractionAt, which lay the same segments out for the playhead and a seek.
     float left = 0;
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
@@ -165,10 +159,96 @@ public class SolveStepBarView extends View {
       return;
     }
     float w = Math.max(2f, height * PLAYHEAD_WIDTH_RATIO);
-    float x = getWidth() * Math.max(0f, Math.min(1f, playhead));
+    float x = xAt(Math.max(0f, Math.min(1f, playhead)));
     paint.setColor(Color.WHITE);
     paint.setAlpha(255);
     canvas.drawRect(Math.min(x, getWidth() - w), 0, Math.min(x + w, getWidth()), height, paint);
+  }
+
+  private float xAt(float fraction) {
+    return xAt(steps, getWidth(), getHeight(), fraction);
+  }
+
+  private float fractionAt(float x) {
+    return fractionAt(steps, getWidth(), getHeight(), x);
+  }
+
+  /**
+   * Where a moment of the solve falls across the bar. The gaps between the steps come out of the
+   * width before the segments are shared out and go back one step at a time, so a share of the
+   * solve is not a share of the view: reading the playhead off {@code getWidth()} instead ran it a
+   * step's worth of gap ahead of the segments inside a step and behind them in the next.
+   *
+   * <p>Static so a plain unit test can pin it, which one cannot do through a view.
+   */
+  static float xAt(List<SolveStep> steps, float viewWidth, float viewHeight, float fraction) {
+    long totalMs = totalMs(steps);
+    float stepGap = viewHeight * STEP_GAP_RATIO;
+    float width = viewWidth - stepGap * Math.max(0, drawnSteps(steps) - 1);
+    if (totalMs <= 0 || width <= 0) {
+      return 0;
+    }
+    float wanted = fraction * totalMs;
+    float left = 0;
+    long at = 0;
+    for (SolveStep step : steps) {
+      if (step.getTotalMs() <= 0) {
+        continue;
+      }
+      float stepWidth = width * step.getTotalMs() / totalMs;
+      if (wanted <= at + step.getTotalMs()) {
+        return left + stepWidth * Math.max(0, wanted - at) / step.getTotalMs();
+      }
+      left += stepWidth + stepGap;
+      at += step.getTotalMs();
+    }
+    return viewWidth;
+  }
+
+  /** The inverse of {@link #xAt}; a touch landing in a gap belongs to the boundary it draws. */
+  static float fractionAt(List<SolveStep> steps, float viewWidth, float viewHeight, float x) {
+    long totalMs = totalMs(steps);
+    float stepGap = viewHeight * STEP_GAP_RATIO;
+    float width = viewWidth - stepGap * Math.max(0, drawnSteps(steps) - 1);
+    if (totalMs <= 0 || width <= 0) {
+      return 0;
+    }
+    float left = 0;
+    long at = 0;
+    for (SolveStep step : steps) {
+      if (step.getTotalMs() <= 0) {
+        continue;
+      }
+      float stepWidth = width * step.getTotalMs() / totalMs;
+      if (x < left + stepWidth) {
+        return Math.max(0f, at + step.getTotalMs() * (x - left) / stepWidth) / totalMs;
+      }
+      left += stepWidth + stepGap;
+      at += step.getTotalMs();
+      if (x < left) {
+        return at / (float) totalMs;
+      }
+    }
+    return 1f;
+  }
+
+  private static long totalMs(List<SolveStep> steps) {
+    long totalMs = 0;
+    for (SolveStep step : steps) {
+      totalMs += step.getTotalMs();
+    }
+    return totalMs;
+  }
+
+  /** A skipped step takes no width, and no gap either. */
+  private static int drawnSteps(List<SolveStep> steps) {
+    int drawn = 0;
+    for (SolveStep step : steps) {
+      if (step.getTotalMs() > 0) {
+        drawn++;
+      }
+    }
+    return drawn;
   }
 
   private void drawStep(Canvas canvas, SolveStep step, int color, float left, float stepWidth,
