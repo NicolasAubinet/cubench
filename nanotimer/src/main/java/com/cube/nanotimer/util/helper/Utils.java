@@ -206,18 +206,21 @@ public class Utils {
    */
   public static String toSmartCubeStepDisplayName(Context context, SolveStep step, int position) {
     String name = toSmartCubeStepLocalizedName(context, step.getName(), position);
-    String lastLayerCase = toSmartCubeCaseName(context, step.getName());
-    if (lastLayerCase != null) {
-      name = context.getString(R.string.smartcube_step_case, name, lastLayerCase);
+    String caseLabel = toSmartCubeCaseLabel(context, step.getName());
+    if (caseLabel != null) {
+      name = name + " " + caseLabel;
     }
     return step.isComplete() ? name : context.getString(R.string.smartcube_step_partial, name);
   }
 
   /**
-   * The last layer case a step's code carries, as a speedcuber writes it ("Jb", "21"), or null for a
-   * step that carries none — including every solve recorded before the cases were read.
+   * How the last layer case a step's code carries is shown beside its name ("(case Ub)", "(case 8)"),
+   * or null for a step that carries none — including every solve recorded before the cases were read.
+   *
+   * <p>Said as a case rather than as the bare name a speedcuber writes: "Ub" is plain enough to
+   * someone who knows the case, and an OLL's number is a number on its own, which reads as anything.
    */
-  private static String toSmartCubeCaseName(Context context, String code) {
+  public static String toSmartCubeCaseLabel(Context context, String code) {
     if (code == null) {
       return null;
     }
@@ -229,7 +232,8 @@ public class Utils {
       if (SKIPPED_CASE.equals(name)) {
         return context.getString(R.string.smartcube_case_skip);
       }
-      return name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1);
+      return context.getString(R.string.smartcube_step_case,
+          name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1));
     }
     return null;
   }
