@@ -1,6 +1,8 @@
 package com.cube.nanotimer.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import com.cube.nanotimer.Options.ClockNotation;
@@ -83,5 +85,32 @@ public class ScrambleViewNotationTest {
   public void emptyAndNullScrambleGiveEmptyString() {
     assertEquals("", convert(new String[0], CubeType.THREE_BY_THREE));
     assertEquals("", convert(null, CubeType.THREE_BY_THREE));
+  }
+
+  /**
+   * The two ids are different namespaces and are easy to swap by accident: a {@code twisty-player}
+   * handed the render key {@code 333} fails outright with "Invalid puzzle ID".
+   */
+  @Test
+  public void puzzleIdIsNotTheRenderKey() {
+    // The NxN puzzles are the trap: a twisty-player handed the render key "333" fails outright
+    // with "Invalid puzzle ID". Some of the others (skewb, clock, fto) do coincide.
+    assertEquals("3x3x3", ScrambleViewNotation.getPuzzleId(CubeType.THREE_BY_THREE));
+    assertEquals("333", ScrambleViewNotation.getRenderKey(CubeType.THREE_BY_THREE));
+    assertNotEquals(ScrambleViewNotation.getRenderKey(CubeType.TWO_BY_TWO),
+        ScrambleViewNotation.getPuzzleId(CubeType.TWO_BY_TWO));
+    assertEquals("megaminx", ScrambleViewNotation.getPuzzleId(CubeType.MEGAMINX));
+    assertEquals("pyraminx", ScrambleViewNotation.getPuzzleId(CubeType.PYRAMINX));
+    assertEquals("square1", ScrambleViewNotation.getPuzzleId(CubeType.SQUARE1));
+  }
+
+  /** Anything the app can draw a diagram for should also name a puzzle a player can be given. */
+  @Test
+  public void everyDrawablePuzzleHasAPuzzleId() {
+    for (CubeType cubeType : CubeType.values()) {
+      if (ScrambleViewNotation.getRenderKey(cubeType) != null) {
+        assertNotNull(cubeType.name(), ScrambleViewNotation.getPuzzleId(cubeType));
+      }
+    }
   }
 }
