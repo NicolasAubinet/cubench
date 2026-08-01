@@ -383,7 +383,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   /** A user step goes by the name it was given, or by its position when the steps changed since. */
   private CharSequence stepName(SolveStep step, int index, SolveTypeStep[] userSteps) {
     if (userSteps == null) {
-      return Utils.toSmartCubeStepDisplayName(getActivity(), step, index);
+      return withCaseColor(step, index);
     }
     if (index < userSteps.length && userSteps[index].getName() != null) {
       return userSteps[index].getName();
@@ -581,6 +581,24 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
     row.addView(cell(R.style.BreakdownSubCell, moveCount));
     return row;
+  }
+
+  /**
+   * A last layer step is shown with the case it was left with, in the colour the table gives its
+   * lesser figures rather than the step's own: which case it was is a detail of the step, and the
+   * name is what the eye is running down the column for.
+   */
+  private CharSequence withCaseColor(SolveStep step, int index) {
+    String name = Utils.toSmartCubeStepDisplayName(getActivity(), step, index);
+    String caseLabel = Utils.toSmartCubeCaseLabel(getActivity(), step.getName());
+    int at = caseLabel == null ? -1 : name.indexOf(caseLabel);
+    if (at < 0) {
+      return name;
+    }
+    SpannableStringBuilder text = new SpannableStringBuilder(name);
+    text.setSpan(new ForegroundColorSpan(color(R.color.secondary_text)), at,
+        at + caseLabel.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    return text;
   }
 
   /**
