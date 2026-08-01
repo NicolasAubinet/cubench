@@ -1497,13 +1497,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    */
   private void showManualStepBreakdown(long solveDurationMs) {
     List<SolveStep> steps = SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0]));
-    if (lastSolveMoves.isEmpty() || steps.isEmpty()) { // no cube drove it, or it ended before a tap
+    if (steps.isEmpty()) { // the solve ended before a step was taken
       hideStepBreakdown();
       return;
     }
     solveStepBar.setSteps(steps, stepNames());
     solveStepBar.setVisibility(View.VISIBLE);
     solveStepBar.animateIn();
+    // The bar carries the same step times the running list above does, and carries them better, so
+    // that list stands down until the next solve starts filling it again.
+    timerStepsLayout.setVisibility(View.GONE);
+    // The steps were timed by tapping, so there are only moves to count when a cube drove them too;
+    // with none, this hides itself and the bar stands alone.
     showSolveStats(SolveSolution.from(lastSolveMoves, steps));
   }
 
@@ -1542,6 +1547,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void hideStepBreakdown() {
     int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
     solveStepBar.setVisibility(visibility);
+    if (solveType.hasSteps()) { // the running list takes the screen back from the bar
+      timerStepsLayout.setVisibility(View.VISIBLE);
+    }
     if (tvSolveStats != null) {
       tvSolveStats.animate().cancel();
       if (visibility == View.INVISIBLE && tvSolveStats.length() == 0) {
