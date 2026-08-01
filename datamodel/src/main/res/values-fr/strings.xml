@@ -19,7 +19,7 @@
   <string name="one_handed">À une main</string>
   <string name="blindfolded">À l\'aveugle</string>
   <string name="CFOP_steps">Étapes CFOP</string>
-  <string name="last_layer">Dernière tranche</string>
+  <string name="last_layer">Dernière couche</string>
 
   <string name="updating_database">Mise à jour de la base de données, merci de patienter.</string>
 </resources>

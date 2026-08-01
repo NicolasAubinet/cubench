@@ -694,17 +694,17 @@
   <string name="smart_cube_failed_title">Não foi possível conectar</string>
   <string name="smart_cube_scan_again">Procurar de novo</string>
 
-  <!-- Cubo inteligente: o método de resolução com que um solve é lido -->
+  <!-- Cubo inteligente: o método de resolução com que uma resolução é lida -->
   <string name="method">Método</string>
   <string name="method_cfop">CFOP</string>
   <string name="method_roux">Roux</string>
   <string name="method_blind">Às cegas</string>
   <string name="method_default">Padrão (%1$s)</string>
   <string name="method_info">Sobre o método</string>
-  <string name="method_info_message">Usado para reconstruir suas resoluções quando há um cubo inteligente conectado: diz ao aplicativo em quais etapas dividir uma resolução. Deixe no padrão para seguir o método preferido das configurações, ou indique o método que você realmente usa para este tipo de solve.</string>
+  <string name="method_info_message">Usado para reconstruir suas resoluções quando há um cubo inteligente conectado: diz ao aplicativo em quais etapas dividir uma resolução. Deixe no padrão para seguir o método preferido das configurações, ou indique o método que você realmente usa para este tipo de resolução.</string>
   <string name="preferred_method">Método preferido</string>
-  <string name="preferred_method_summary">O método com que os tipos de solve são lidos, a menos que tenham o seu</string>
-  <string name="preferred_method_prompt">Com qual método você resolve? Ele é usado para dividir seus solves em etapas. Este é o padrão: cada tipo de solve pode ter o seu.</string>
+  <string name="preferred_method_summary">O método com que os tipos de resolução são lidos, a menos que tenham o seu</string>
+  <string name="preferred_method_prompt">Com qual método você resolve? Ele é usado para dividir suas resoluções em etapas. Este é o padrão: cada tipo de resolução pode ter o seu.</string>
 
   <string name="quick_action">Ação rápida</string>
   <string name="quick_action_none">Nenhuma</string>

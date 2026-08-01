@@ -667,7 +667,7 @@
   <string name="smart_cube_intro_timing_body">Il démarre au premier mouvement et s\'arrête dès que le cube est résolu. Sans toucher l\'écran, sans départ manqué.</string>
   <string name="smart_cube_intro_scramble_title">Des mélanges à suivre</string>
   <string name="smart_cube_intro_scramble_body">Cubench vous regarde appliquer le mélange, coche chaque mouvement au passage et vous dit quand vous êtes prêt.</string>
-  <string name="smart_cube_intro_breakdown_title">Chaque solve, détaillé</string>
+  <string name="smart_cube_intro_breakdown_title">Chaque résolution, détaillée</string>
   <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL et PLL sont chronométrés séparément, avec le nombre de mouvements, la vitesse et la reconstruction complète.</string>
   <string name="smart_cube_intro_continue">Appairer mon cube</string>
   <string name="smart_cube_help">Ce que fait un smart cube</string>
@@ -692,7 +692,7 @@
   <string name="smart_cube_failed_title">Connexion impossible</string>
   <string name="smart_cube_scan_again">Rechercher à nouveau</string>
 
-  <!-- Cube connecté : la méthode de résolution utilisée pour lire un solve -->
+  <!-- Cube connecté : la méthode de résolution utilisée pour lire une résolution -->
   <string name="method">Méthode</string>
   <string name="method_cfop">CFOP</string>
   <string name="method_roux">Roux</string>
@@ -701,8 +701,8 @@
   <string name="method_info">À propos de la méthode</string>
   <string name="method_info_message">Sert à reconstruire vos résolutions lorsqu\'un cube connecté est utilisé : elle indique à l\'application en quelles étapes découper une résolution. Laissez la valeur par défaut pour suivre la méthode préférée des paramètres, ou indiquez la méthode que vous utilisez réellement pour ce type de résolution.</string>
   <string name="preferred_method">Méthode préférée</string>
-  <string name="preferred_method_summary">La méthode avec laquelle les types de solve sont lus, sauf s\'ils ont la leur</string>
-  <string name="preferred_method_prompt">Quelle méthode utilisez-vous ? Elle sert à découper vos solves en étapes. C\'est la méthode par défaut : chaque type de solve peut avoir la sienne.</string>
+  <string name="preferred_method_summary">La méthode avec laquelle les types de résolution sont lus, sauf s\'ils ont la leur</string>
+  <string name="preferred_method_prompt">Quelle méthode utilisez-vous ? Elle sert à découper vos résolutions en étapes. C\'est la méthode par défaut : chaque type de résolution peut avoir la sienne.</string>
 
   <string name="quick_action">Action rapide</string>
   <string name="quick_action_none">Aucune</string>
