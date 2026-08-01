@@ -78,6 +78,7 @@ public final class CFOPStepDetector implements StepDetector {
 
   private final Long[][] times = new Long[6][STEP_NAMES.length]; // [cross face][step]
   private final Long[][] subGoalTimes = new Long[6][SUB_GOAL_COUNT]; // [cross face][sub-goal]
+  private final String[][] states = new String[6][STEP_NAMES.length]; // [cross face][step]
   private final Long[] reported = new Long[STEP_NAMES.length];
 
   private Integer crossFace; // provisional until F2L confirms it
@@ -90,6 +91,7 @@ public final class CFOPStepDetector implements StepDetector {
     for (int face = 0; face < 6; face++) {
       Arrays.fill(times[face], null);
       Arrays.fill(subGoalTimes[face], null);
+      Arrays.fill(states[face], null);
     }
     Arrays.fill(reported, null);
     crossFace = null;
@@ -140,10 +142,10 @@ public final class CFOPStepDetector implements StepDetector {
         markSubGoal(face, 5, cornersOriented, timestampMs);
       }
 
-      markStep(face, CROSS, cross, timestampMs);
-      markStep(face, F2L, f2l, timestampMs);
-      markStep(face, OLL, oll, timestampMs);
-      markStep(face, PLL, solved, timestampMs);
+      markStep(face, CROSS, cross, facelets, timestampMs);
+      markStep(face, F2L, f2l, facelets, timestampMs);
+      markStep(face, OLL, oll, facelets, timestampMs);
+      markStep(face, PLL, solved, facelets, timestampMs);
     }
     updateCrossFace();
   }
@@ -155,9 +157,11 @@ public final class CFOPStepDetector implements StepDetector {
     }
   }
 
-  private void markStep(int face, int step, boolean done, long timestampMs) {
+  /** The state is kept with the time: it is what the step after this one has to solve. */
+  private void markStep(int face, int step, boolean done, String facelets, long timestampMs) {
     if (done && times[face][step] == null) {
       times[face][step] = timestampMs;
+      states[face][step] = facelets;
     }
   }
 
@@ -263,9 +267,30 @@ public final class CFOPStepDetector implements StepDetector {
     return STEP_NAMES.length;
   }
 
+  /**
+   * The step's code, carrying which case it was — {@code "pll_jb"}, {@code "oll_21"} — the way an F2L
+   * pair carries its slot. A case is named by the state the step <em>started</em> from, so it is the
+   * milestone before it that says which one it was: F2L hands over an OLL, OLL hands over a PLL.
+   *
+   * <p>Plain {@code "oll"} or {@code "pll"} when there is no case to name yet, or none to name at all:
+   * the step has not been reached, or the solve was not one whose last layer can be read.
+   */
   @Override
   public String stepName(int index) {
+    if (crossFace == null) {
+      return STEP_NAMES[index];
+    }
+    if (index == OLL) {
+      return named(OLL, LastLayerCases.orientation(states[crossFace][F2L], crossFace));
+    }
+    if (index == PLL) {
+      return named(PLL, LastLayerCases.permutation(states[crossFace][OLL], crossFace));
+    }
     return STEP_NAMES[index];
+  }
+
+  private static String named(int step, String lastLayerCase) {
+    return lastLayerCase == null ? STEP_NAMES[step] : STEP_NAMES[step] + "_" + lastLayerCase;
   }
 
   @Override

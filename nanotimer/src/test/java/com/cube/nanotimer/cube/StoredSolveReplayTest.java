@@ -62,6 +62,38 @@ public class StoredSolveReplayTest {
     assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.BLIND));
   }
 
+  /**
+   * The last layer cases come back with the breakdown, so a solve stored before they were read shows
+   * them the next time it is opened.
+   */
+  @Test
+  public void readsTheLastLayerCasesOfACfopSolve() {
+    String tPerm = "R U R' U' R' F R R U' R' U' R U R' F'"; // its own inverse, so it is the scramble
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(tPerm, played(tPerm), CubeMethod.CFOP);
+
+    assertNotNull(result);
+    assertEquals(CubeMethod.CFOP, result.getMethod());
+    assertEquals("cross", result.getSteps().get(0).getName());
+    assertEquals("f2l", result.getSteps().get(1).getName());
+    assertEquals("oll_skip", result.getSteps().get(2).getName());
+    assertEquals("pll_t", result.getSteps().get(3).getName());
+  }
+
+  /** The algorithm as a stored move stream, a fifth of a second per turn. */
+  private static String played(String alg) {
+    StringBuilder sb = new StringBuilder();
+    int offsetMs = 0;
+    for (String token : alg.split(" ")) {
+      if (sb.length() > 0) {
+        sb.append(' ');
+      }
+      sb.append(token).append('@').append(offsetMs);
+      offsetMs += 200;
+    }
+    return sb.toString();
+  }
+
   @Test
   public void hasNothingToSayAboutASolveWithNoMoves() {
     assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, null, CubeMethod.CFOP));
