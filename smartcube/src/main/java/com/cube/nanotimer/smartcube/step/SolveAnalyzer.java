@@ -18,6 +18,13 @@ import java.util.List;
  */
 public final class SolveAnalyzer {
 
+  /**
+   * A gap this long after a move means the solver stopped rather than turned on. Execution runs at
+   * 150-250 ms a move even for a modest solver, so this is well clear of turning; it is meant to
+   * catch a deliberate second look, not the rhythm of an algorithm.
+   */
+  private static final long LOOKAHEAD_PAUSE_MS = 400;
+
   private final StepDetector detector;
   private final List<CubeMove> moves = new ArrayList<>();
 
@@ -186,12 +193,14 @@ public final class SolveAnalyzer {
 
   /**
    * The move a step's execution starts on: the first one after the step before it, skipping any AUF
-   * the solver made to read the case — that alignment is part of recognising it. A step made only of
-   * alignment moves (a skip left with just an AUF) still starts on the first of them.
+   * the solver made to read the case, or any turn they made and then stopped to look again — both
+   * are part of recognising it. A step made only of such moves (a skip left with just an AUF) still
+   * starts on the first of them.
    */
   private Long firstMoveIn(int step, long previousCompleteMs, long completeMs, boolean includeStart) {
     CubeMove first = null;
-    for (CubeMove move : moves) {
+    for (int i = 0; i < moves.size(); i++) {
+      CubeMove move = moves.get(i);
       long timestampMs = move.getCubeTimestampMs();
       boolean withinStep = timestampMs > previousCompleteMs
           || (includeStart && timestampMs == previousCompleteMs);
@@ -201,11 +210,23 @@ public final class SolveAnalyzer {
       if (first == null) {
         first = move;
       }
-      if (!detector.isAlignmentMove(step, move)) {
+      if (!detector.isAlignmentMove(step, move, pausedAfter(i))) {
         return move.getCubeTimestampMs();
       }
     }
     return first == null ? null : first.getCubeTimestampMs();
+  }
+
+  /**
+   * Whether the solver stopped after the move at {@code index} rather than turning straight on —
+   * what tells a look-around turn from the opening of an algorithm. Measured against the next move
+   * of the solve rather than of the step, so a turn that ends one step and one that is followed by
+   * the next step's thinking read alike. A last move is a stop: nothing followed it.
+   */
+  private boolean pausedAfter(int index) {
+    return index + 1 >= moves.size()
+        || moves.get(index + 1).getCubeTimestampMs() - moves.get(index).getCubeTimestampMs()
+            > LOOKAHEAD_PAUSE_MS;
   }
 
   public boolean isComplete() {

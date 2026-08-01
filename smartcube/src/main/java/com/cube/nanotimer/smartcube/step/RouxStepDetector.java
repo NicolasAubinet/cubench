@@ -395,7 +395,7 @@ public final class RouxStepDetector implements StepDetector {
    * built from, so there the turn does belong to the step.
    */
   @Override
-  public boolean isAlignmentMove(int step, CubeMove move) {
+  public boolean isAlignmentMove(int step, CubeMove move, boolean pausedAfter) {
     if (orientation == null || step != CMLL) {
       return false;
     }

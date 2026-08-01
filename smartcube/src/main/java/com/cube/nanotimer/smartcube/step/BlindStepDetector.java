@@ -510,7 +510,7 @@ public final class BlindStepDetector implements StepDetector {
 
   /** A blind solver has no case to square up: every turn they make is one they memorised. */
   @Override
-  public boolean isAlignmentMove(int step, CubeMove move) {
+  public boolean isAlignmentMove(int step, CubeMove move, boolean pausedAfter) {
     return false;
   }
 
