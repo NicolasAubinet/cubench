@@ -52,7 +52,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
-  private MethodAnalyzers analyzers = new MethodAnalyzers(false);
+  private MethodAnalyzers analyzers = new MethodAnalyzers(CubeMethod.CFOP); // replaced by the solve type's own at the first setScramble
   private final RotationTracker rotationTracker = new RotationTracker();
   private final SliceSpinDetector sliceSpins = new SliceSpinDetector();
   private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -60,7 +60,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private CubeConnection connection;
   private List<StepTime> stepTimes = Collections.emptyList();
   private CubeMethod method; // which one the solve just finished fitted, null for none
-  private CubeMethod expectedMethod; // what the solve type says it is, null when it says nothing
+  private CubeMethod expectedMethod; // what the solve type says its solves are, and the only one read
   private Integer stoppedStep;
   private String solveMoves = "";
   private String[] scramble;
@@ -73,6 +73,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private boolean analyzing;
   private CubeRotation pickup; // the grip the running solve was picked up in, once it is known
   private boolean pickupRead; // whether the reading before its first move has been asked for
+  private CubeRotation usedPickup; // the grip the analysis actually ran on, settled reading or fallback
   private long lastFollowMoveWallMs; // 0 until the first followed move of the current scramble
   private long timerStartMs; // when the tap started the solve, on the cube's (host-fitted) clock
   private long lastSolveMoveHostMs; // host clock at the solve's latest move, 0 before the first
@@ -101,18 +102,18 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    * @param blind true when the solve type is a blindfolded one, which turns both automatic ends of
    *     the solve off (see {@link #onTimerStarted()})
    * @param expectedMethod the method the solve type is read as, already resolved against the
-   *     preferred one, or null for no expectation. It only settles a solve that fits several: a
-   *     method the solve does not fit is never imposed.
+   *     preferred one. The solve is read as that method or as none: it is what the type says its
+   *     solves are, not a guess to be overruled by whatever else the moves happen to fit.
    */
   public void setScramble(String[] scramble, boolean cubeDriven, boolean followable, boolean blind,
       CubeMethod expectedMethod) {
     this.scramble = scramble;
     this.cubeDriven = cubeDriven;
     this.followable = followable;
-    this.expectedMethod = expectedMethod;
-    if (blind != this.blind) {
-      this.blind = blind;
-      analyzers = new MethodAnalyzers(blind); // a different solve type is read by different detectors
+    this.blind = blind;
+    if (expectedMethod != this.expectedMethod) {
+      this.expectedMethod = expectedMethod;
+      analyzers = new MethodAnalyzers(expectedMethod); // another method is read by another detector
     }
     applyScramble();
   }
@@ -130,6 +131,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    */
   public void onTimerStarted() {
     timerStartMs = System.currentTimeMillis(); // the cube's stamps are fitted to this same clock
+    usedPickup = null; // whatever the last solve was read through is not this one's
     recordMoves(); // this solve's moves would land in the trackers the previous one still reads
     if (cubeDriven && SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.RUNNING;
@@ -155,7 +157,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     // reached solved — a botched PLL is exactly the solve worth looking at. What still earns none is
     // a method the milestones never fitted, or a prefix too short to tell the methods apart.
     boolean cubeDrove = analyzing;
-    method = cubeDrove ? analyzers.resolve(expectedMethod) : null;
+    method = cubeDrove ? analyzers.resolve() : null;
     SolveAnalyzer analyzer = method == null ? null : analyzers.get(method);
     stepTimes = analyzer == null ? Collections.<StepTime>emptyList() : analyzer.getStepTimes();
     stoppedStep = analyzer == null ? null : analyzer.getStoppedStep();
@@ -186,7 +188,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     solveMoves = SolveMovesFormat.format(analyzers.moves().getMoves(),
         rotationTracker.getRotations(
             sliceSpins.coreSpins(SmartCubeManager.INSTANCE::getOrientationAt)),
-        analyzers.moves().getSolveStartMs());
+        analyzers.moves().getSolveStartMs(),
+        usedPickup == null ? null : usedPickup.getNotation());
     onRecorded.run();
   }
 
@@ -410,8 +413,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       pickup = rotationTracker.frameOf(SmartCubeManager.INSTANCE.getOrientationAt(
           move.getCubeTimestampMs() - SliceSpinDetector.SETTLE_MS));
     }
-    analyzers.setPickupRotation(pickup != null ? pickup
-        : rotationTracker.getPickupRotation(sliceSpins.possiblePairs()));
+    // Kept as the grip the analysis actually ran on, fallback included, since that is the one the
+    // stored moves have to be read back through for the names to come out the same.
+    usedPickup = pickup != null ? pickup
+        : rotationTracker.getPickupRotation(sliceSpins.possiblePairs());
+    analyzers.setPickupRotation(usedPickup);
   }
 
   /** Both readers of the gyro: the frame the solve is turned in, and the slices it is turned with. */

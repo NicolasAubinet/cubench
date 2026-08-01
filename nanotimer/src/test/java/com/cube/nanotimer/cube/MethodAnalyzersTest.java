@@ -14,9 +14,10 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * Which method a solve is read as. The solves are the detectors' own: a CFOP one, a Roux one built
- * backwards so its milestones are in Roux order by construction, a last-layer drill that contradicts
- * neither method, and a scramble undone by its own inverse, which fits neither.
+ * Whether a solve bears out the method its solve type is read as. The solves are the detectors'
+ * own: a CFOP one, a Roux one built backwards so its milestones are in Roux order by construction,
+ * a last-layer drill that contradicts neither method, and a scramble undone by its own inverse,
+ * which fits neither.
  */
 public class MethodAnalyzersTest {
 
@@ -31,58 +32,66 @@ public class MethodAnalyzersTest {
   };
 
   private final CubieCube cube = new CubieCube();
-  private final MethodAnalyzers analyzers = new MethodAnalyzers(false);
+  private MethodAnalyzers analyzers = new MethodAnalyzers(CubeMethod.CFOP);
 
   /** Quarter turns of drift the slices have put between the solver's frame and the cube's. */
   private int drift;
   private long timestampMs;
 
   @Test
-  public void readsACfopSolveAsCfop() {
+  public void readsACfopSolveOnACfopSolveTypeAsCfop() {
     scramble(T_PERM, SUNE, "R U' R'", "F'");
     play("F", "R U R'", ANTI_SUNE, T_PERM);
 
-    assertEquals(CubeMethod.CFOP, analyzers.resolve(null));
-    // An expectation settles ties; it never overrules a solve that fits one method and not another.
-    assertEquals(CubeMethod.CFOP, analyzers.resolve(CubeMethod.ROUX));
+    assertEquals(CubeMethod.CFOP, analyzers.resolve());
   }
 
   @Test
-  public void readsARouxSolveAsRoux() {
+  public void readsARouxSolveOnARouxSolveTypeAsRoux() {
+    analyzers = new MethodAnalyzers(CubeMethod.ROUX);
     scramble(invert(join(ROUX_SOLVE)));
     play(ROUX_SOLVE);
 
-    assertEquals(CubeMethod.ROUX, analyzers.resolve(null));
-    assertEquals(CubeMethod.ROUX, analyzers.resolve(CubeMethod.CFOP));
-    // And the breakdown handed over is that method's own, not the other's.
+    assertEquals(CubeMethod.ROUX, analyzers.resolve());
     assertEquals(4, analyzers.get(CubeMethod.ROUX).getStepTimes().size());
     assertEquals("fb", analyzers.get(CubeMethod.ROUX).getStepTimes().get(0).getStepName());
-    assertFalse(analyzers.get(CubeMethod.CFOP).matchesMethod());
   }
 
+  /**
+   * A Roux solve on a CFOP solve type is not a Roux solve to be filed as one — it is a solve on the
+   * wrong solve type, and it earns no breakdown. What the type says its solves are is not a guess
+   * for the moves to overrule.
+   */
   @Test
-  public void settlesASolveThatFitsBothMethodsOnTheNarrowerFit() {
-    scramble(T_PERM, SUNE); // last-layer algs: everything below is left standing
+  public void givesNoMethodToASolveDoneWithAnotherMethodThanItsSolveTypes() {
+    scramble(invert(join(ROUX_SOLVE)));
+    play(ROUX_SOLVE);
+
+    assertFalse(analyzers.get(CubeMethod.CFOP).matchesMethod());
+    assertNull(analyzers.resolve());
+  }
+
+  /**
+   * A last-layer drill builds nothing, so it contradicts neither method and would once have been a
+   * tie to break. There is nothing to break now: it is read as its solve type's method, and the
+   * same solve on a Roux type is read as Roux.
+   */
+  @Test
+  public void asksOnlyWhetherTheSolveFitsItsOwnSolveTypesMethod() {
+    scramble(T_PERM, SUNE);
     play(ANTI_SUNE, T_PERM);
 
-    // A drill on the last layer builds nothing, so it contradicts neither method. With nothing
-    // expected the narrower fit takes it; an expectation the solve does fit beats that.
-    assertEquals(CubeMethod.ROUX, analyzers.resolve(null));
-    assertEquals(CubeMethod.CFOP, analyzers.resolve(CubeMethod.CFOP));
+    assertEquals(CubeMethod.CFOP, analyzers.resolve());
   }
 
   @Test
   public void givesNoMethodToASolveThatFitsNone() {
     // A scramble undone by its own inverse: nothing is built in any order, and the cube falls
-    // solved at the end all at once. Neither method's milestones fit, so neither is stored — the
-    // default is for telling apart the solves that fit several, never for inventing one.
+    // solved at the end all at once. Its own method's milestones do not fit, so none is stored.
     scramble(SCRAMBLE);
     play(invert(SCRAMBLE));
 
-    assertNull(analyzers.resolve(null));
-    // Nor does expecting one help: an expectation the solve does not fit proves nothing.
-    assertNull(analyzers.resolve(CubeMethod.CFOP));
-    assertNull(analyzers.resolve(CubeMethod.ROUX));
+    assertNull(analyzers.resolve());
   }
 
   @Test
@@ -92,7 +101,7 @@ public class MethodAnalyzersTest {
 
     // The controller stores the moves whether or not a method was read: an unrecognised solve still
     // has a solution worth keeping.
-    assertNull(analyzers.resolve(null));
+    assertNull(analyzers.resolve());
     assertEquals(13, analyzers.moves().getMoves().size()); // quarter turns, doubles as two
   }
 

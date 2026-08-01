@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -21,6 +22,15 @@ public class StoredSolveReplayTest {
 
   private static final String SCRAMBLE = RecordedSolveReplayTest.SCRAMBLE;
   private static final String MOVES = RecordedSolveReplayTest.MOVES;
+
+  /** Two edge three-cycles and then two corner ones: a blind solve's shape, in face turns. */
+  private static final String BLIND_SOLVE = "R2 U R U R' U' R' U' R' U R'"
+      + " F2 R2 U R U R' U' R' U' R' U R' F2"
+      + " R' F R' B2 R F' R' B2 R2"
+      + " U2 R' F R' B2 R F' R' B2 R2 U2";
+  private static final String BLIND_SCRAMBLE = inverted(BLIND_SOLVE);
+  /** Memorised for nine seconds, which is the offset the first turn carries. */
+  private static final String BLIND_MOVES = played(BLIND_SOLVE, 9_000);
 
   @Test
   public void readsAStoredRouxSolveAsRoux() {
@@ -54,12 +64,53 @@ public class StoredSolveReplayTest {
   }
 
   /**
-   * A blind solve is named in the grip it was memorised in, and no grip is stored, so it is left
-   * with the breakdown it was recorded with rather than re-read into a different one.
+   * A blind solve is named in the grip it was memorised in. Written in front of its moves, it is
+   * read again like any other solve; recorded before the grip was kept, it keeps the breakdown it
+   * was recorded with rather than one spelled through a grip nobody knows.
    */
   @Test
-  public void doesNotRereadABlindSolve() {
-    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.BLIND));
+  public void doesNotRereadABlindSolveRecordedWithoutItsGrip() {
+    assertNull(StoredSolveReplay.reinterpret(BLIND_SCRAMBLE, BLIND_MOVES, CubeMethod.BLIND));
+  }
+
+  @Test
+  public void readsAStoredBlindSolveThroughTheGripItWasMemorisedIn() {
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND);
+
+    assertNotNull(result);
+    assertEquals(CubeMethod.BLIND, result.getMethod());
+    assertEquals(3, result.getSteps().size());
+    assertEquals("memo", result.getSteps().get(0).getName());
+    assertEquals("edges", result.getSteps().get(1).getName());
+    assertEquals("corners", result.getSteps().get(2).getName());
+    assertNull("the cube saw this solve finish", result.getStoppedStep());
+  }
+
+  /**
+   * The grip is the whole reason it is kept: read through a different one, the same solve is the
+   * same algorithms spelled at different pieces. Which is also why it is never guessed at.
+   */
+  @Test
+  public void spellsTheTargetsThroughTheStoredGripAndNotAnother() {
+    String held = firstAlgorithm(StoredSolveReplay.reinterpret(
+        BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND));
+    String askew = firstAlgorithm(StoredSolveReplay.reinterpret(
+        BLIND_SCRAMBLE, heldIn("x", BLIND_MOVES), CubeMethod.BLIND));
+
+    assertNotNull(held);
+    assertEquals(3, held.split("-").length); // a cycle either way: only the letters move
+    assertEquals(3, askew.split("-").length);
+    assertNotEquals(held, askew);
+  }
+
+  private static String firstAlgorithm(StoredSolveReplay.Result result) {
+    return result.getSteps().get(1).getSubSteps().get(0).getName();
+  }
+
+  /** The stored stream as the recorder writes it for a solve picked up in a given grip. */
+  private static String heldIn(String pickup, String moves) {
+    return "[" + pickup + "] " + moves;
   }
 
   /**
@@ -82,14 +133,33 @@ public class StoredSolveReplayTest {
 
   /** The algorithm as a stored move stream, a fifth of a second per turn. */
   private static String played(String alg) {
+    return played(alg, 0);
+  }
+
+  private static String played(String alg, int firstOffsetMs) {
     StringBuilder sb = new StringBuilder();
-    int offsetMs = 0;
+    int offsetMs = firstOffsetMs;
     for (String token : alg.split(" ")) {
       if (sb.length() > 0) {
         sb.append(' ');
       }
       sb.append(token).append('@').append(offsetMs);
       offsetMs += 200;
+    }
+    return sb.toString();
+  }
+
+  /** The scramble that leaves a cube needing exactly these moves: the solve, taken backwards. */
+  private static String inverted(String moves) {
+    String[] tokens = moves.split(" ");
+    StringBuilder sb = new StringBuilder();
+    for (int i = tokens.length - 1; i >= 0; i--) {
+      String token = tokens[i];
+      if (sb.length() > 0) {
+        sb.append(' ');
+      }
+      sb.append(token.endsWith("2") ? token
+          : token.endsWith("'") ? token.substring(0, 1) : token + "'");
     }
     return sb.toString();
   }

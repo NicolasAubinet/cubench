@@ -10,10 +10,20 @@ import java.util.List;
  * {@code "D'@0 R@180 F'@410"}. Self-describing on purpose, so a database dump and the CSV export
  * both read as the solution they are. Which step a move belongs to is not stored: walking the
  * step durations against these offsets rebuilds the split exactly.
+ *
+ * <p>The solve's <b>pick-up grip</b> stands in front of the moves in brackets, as in
+ * {@code "[y] D'@0 R@180"} — the grip a blind solve's targets are spelled through. It goes here
+ * rather than in a column of its own because it belongs to this stream, and because the stream
+ * already travels: the CSV export and the share text carry it whole, so it survives a round trip
+ * without either of them learning a new field. Having no offset, it is not a move, and
+ * {@link #parse} drops it the way it drops anything else it cannot read as one — so every reader
+ * of a solution ignores it without being told to.
  */
 public final class SolveMovesFormat {
 
   private static final char OFFSET_SEPARATOR = '@';
+  private static final char PICKUP_OPEN = '[';
+  private static final char PICKUP_CLOSE = ']';
 
   private SolveMovesFormat() {
   }
@@ -29,7 +39,19 @@ public final class SolveMovesFormat {
    */
   public static String format(List<CubeMove> moves, List<RotationTracker.Rotation> rotations,
       long solveStartMs) {
+    return format(moves, rotations, solveStartMs, null);
+  }
+
+  /**
+   * @param pickup the grip the solve was picked up in, written ahead of the moves, or null for a
+   *     solve whose cube had no gyro to give one.
+   */
+  public static String format(List<CubeMove> moves, List<RotationTracker.Rotation> rotations,
+      long solveStartMs, String pickup) {
     StringBuilder sb = new StringBuilder();
+    if (pickup != null && !pickup.isEmpty()) {
+      sb.append(PICKUP_OPEN).append(pickup).append(PICKUP_CLOSE);
+    }
     int next = 0;
     for (CubeMove move : moves) {
       long moveOffset = move.getCubeTimestampMs() - solveStartMs;
@@ -65,6 +87,18 @@ public final class SolveMovesFormat {
     }
     char axis = notation.charAt(0);
     return axis == 'x' || axis == 'y' || axis == 'z';
+  }
+
+  /**
+   * The grip the solve was picked up in, or null where the stream carries none — every solve
+   * recorded before it was kept, and any cube with no gyro to read it from.
+   */
+  public static String pickupOf(String stored) {
+    if (stored == null || stored.isEmpty() || stored.charAt(0) != PICKUP_OPEN) {
+      return null;
+    }
+    int close = stored.indexOf(PICKUP_CLOSE);
+    return close <= 1 ? null : stored.substring(1, close);
   }
 
   /** Parses the stored form back. Skips anything malformed rather than losing the whole solution. */
