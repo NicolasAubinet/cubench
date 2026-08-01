@@ -480,16 +480,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     ((TextView) findViewById(R.id.tvStatKeyThree)).setText(R.string.ao50_label);
     ((TextView) findViewById(R.id.tvStatKeyFour)).setText(R.string.ao100_label);
 
+    // The bar below the scramble reads the steps now, from the first one taken to the finished
+    // solve, so the list that used to sit above the timer is not shown at all.
+    timerStepsLayout.setVisibility(View.GONE);
     if (steps) {
-      timerStepsLayout.setVisibility(View.VISIBLE);
       if (solveType.getSteps().length <= 4) {
         timerStepsLayout.setColumnCollapsed(2, true);
         timerStepsLayout.setColumnCollapsed(3, true);
       }
       hideUnneededStepFields();
       solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
-    } else {
-      timerStepsLayout.setVisibility(View.GONE);
     }
   }
 
@@ -1204,8 +1204,19 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       long time = ts - stepStartTs;
       stepsTimes.add(time);
       updateStepTimeText(stepsTimes.size() - 1, FormatterService.INSTANCE.formatSolveTime(time));
+      showStepsSoFar();
     }
     stepStartTs = ts;
+  }
+
+  /**
+   * Fills the bar as the solve goes, one segment per step taken. The same bar then stays for the
+   * finished solve, so the steps are read the same way throughout rather than in a list that gives
+   * way to something else at the end.
+   */
+  private void showStepsSoFar() {
+    solveStepBar.setSteps(SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0])), stepNames());
+    solveStepBar.setVisibility(View.VISIBLE);
   }
 
   private void resetTimer() {
@@ -1504,9 +1515,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveStepBar.setSteps(steps, stepNames());
     solveStepBar.setVisibility(View.VISIBLE);
     solveStepBar.animateIn();
-    // The bar carries the same step times the running list above does, and carries them better, so
-    // that list stands down until the next solve starts filling it again.
-    timerStepsLayout.setVisibility(View.GONE);
     // The steps were timed by tapping, so there are only moves to count when a cube drove them too;
     // with none, this hides itself and the bar stands alone.
     showSolveStats(SolveSolution.from(lastSolveMoves, steps));
@@ -1547,9 +1555,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void hideStepBreakdown() {
     int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
     solveStepBar.setVisibility(visibility);
-    if (solveType.hasSteps()) { // the running list takes the screen back from the bar
-      timerStepsLayout.setVisibility(View.VISIBLE);
-    }
     if (tvSolveStats != null) {
       tvSolveStats.animate().cancel();
       if (visibility == View.INVISIBLE && tvSolveStats.length() == 0) {
