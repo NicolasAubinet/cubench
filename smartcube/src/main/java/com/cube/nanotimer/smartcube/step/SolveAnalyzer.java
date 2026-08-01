@@ -210,11 +210,35 @@ public final class SolveAnalyzer {
       if (first == null) {
         first = move;
       }
-      if (!detector.isAlignmentMove(step, move, pausedAfter(i))) {
+      if (!isAlignment(step, i, completeMs)) {
         return move.getCubeTimestampMs();
       }
     }
     return first == null ? null : first.getCubeTimestampMs();
+  }
+
+  /**
+   * Whether the move at {@code index} only put the last layer where the solver could read it. A turn
+   * stopped after was looking, and so is one turned straight into another such turn that was: the
+   * whole run was made before the same pause, and a solver hunting a pair turns two or three times
+   * as readily as once. So the run counts as looking as far back as its last stop.
+   *
+   * <p>Asking the detector with {@code pausedAfter} true is asking whether the move could be an AUF
+   * at all: a step that can tell one by the move alone ignores the flag, and one that cannot needs
+   * the stop, so the permissive answer is the run this walks.
+   */
+  private boolean isAlignment(int step, int index, long completeMs) {
+    for (int i = index; i < moves.size(); i++) {
+      CubeMove move = moves.get(i);
+      if (move.getCubeTimestampMs() > completeMs
+          || !detector.isAlignmentMove(step, move, true)) {
+        return false; // the run reached the step's own turning without the solver ever stopping
+      }
+      if (detector.isAlignmentMove(step, move, pausedAfter(i))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
