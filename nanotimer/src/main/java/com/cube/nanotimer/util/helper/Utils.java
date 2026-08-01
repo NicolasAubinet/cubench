@@ -28,6 +28,9 @@ public class Utils {
   public static final char[] FORBIDDEN_NAME_CHARACTERS = new char[] { '"', ',', ';', '|', '=' };
 
   private static final String PAIR_CODE_PREFIX = "pair_";
+  /** The steps whose code carries the last-layer case they were left with ("pll_jb", "oll_21"). */
+  private static final String[] CASE_CODE_PREFIXES = { "oll_", "pll_" };
+  private static final String SKIPPED_CASE = "skip";
   private static final String FLIP_CODE_PREFIX = "flip:", TWIST_CODE_PREFIX = "twist:";
 
   public static final String LANGUAGE_PREFS_NAME = "language";
@@ -176,18 +179,59 @@ public class Utils {
     return null;
   }
 
-  /** An F2L pair is stored per slot ("pair_rf"); they all share the one "pair" name. */
+  /**
+   * An F2L pair is stored per slot ("pair_rf") and a last layer step per case ("pll_jb"); both go by
+   * the name of the step itself, with what they carry shown beside it.
+   */
   private static String toSmartCubeStepBaseCode(String code) {
-    return code != null && code.startsWith(PAIR_CODE_PREFIX) ? "pair" : code;
+    if (code == null) {
+      return null;
+    }
+    if (code.startsWith(PAIR_CODE_PREFIX)) {
+      return "pair";
+    }
+    for (String prefix : CASE_CODE_PREFIXES) {
+      if (code.startsWith(prefix)) {
+        return prefix.substring(0, prefix.length() - 1);
+      }
+    }
+    return code;
   }
 
   /**
-   * The name a breakdown step is shown under: a step the solve stopped inside says so, since it holds
-   * only the parts that were finished and would otherwise read as a step that was seen through.
+   * The name a breakdown step is shown under. A last layer step is shown with the case it was left
+   * with ("PLL (Jb)"), which is what says whether the algorithm that followed was the right one. A
+   * step the solve stopped inside says so, since it holds only the parts that were finished and would
+   * otherwise read as a step that was seen through.
    */
   public static String toSmartCubeStepDisplayName(Context context, SolveStep step, int position) {
     String name = toSmartCubeStepLocalizedName(context, step.getName(), position);
+    String lastLayerCase = toSmartCubeCaseName(context, step.getName());
+    if (lastLayerCase != null) {
+      name = context.getString(R.string.smartcube_step_case, name, lastLayerCase);
+    }
     return step.isComplete() ? name : context.getString(R.string.smartcube_step_partial, name);
+  }
+
+  /**
+   * The last layer case a step's code carries, as a speedcuber writes it ("Jb", "21"), or null for a
+   * step that carries none — including every solve recorded before the cases were read.
+   */
+  private static String toSmartCubeCaseName(Context context, String code) {
+    if (code == null) {
+      return null;
+    }
+    for (String prefix : CASE_CODE_PREFIXES) {
+      if (!code.startsWith(prefix)) {
+        continue;
+      }
+      String name = code.substring(prefix.length());
+      if (SKIPPED_CASE.equals(name)) {
+        return context.getString(R.string.smartcube_case_skip);
+      }
+      return name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1);
+    }
+    return null;
   }
 
   /** A tail segment: the time after the last milestone, on a solve the cube never saw finish or on a

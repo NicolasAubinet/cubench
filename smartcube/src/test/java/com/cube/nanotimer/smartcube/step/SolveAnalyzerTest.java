@@ -78,8 +78,8 @@ public class SolveAnalyzerTest {
     assertEquals(4, steps.size());
     assertStep(steps.get(0), "cross", 0, 600);
     assertStep(steps.get(1), "f2l", 500, 200);
-    assertStep(steps.get(2), "oll", 800, 700);
-    assertStep(steps.get(3), "pll", 400, 1400);
+    assertStep(steps.get(2), "oll_26", 800, 700); // the steps carry the case they were left with
+    assertStep(steps.get(3), "pll_t", 400, 1400);
     assertTrue(analyzer.isComplete());
 
     long total = 0;
@@ -315,7 +315,7 @@ public class SolveAnalyzerTest {
     assertEquals(4, steps.size());
     assertStep(steps.get(0), "cross", 0, 0);
     assertStep(steps.get(1), "f2l", 0, 0);
-    assertStep(steps.get(2), "oll", 0, 0);
-    assertStep(steps.get(3), "pll", 900, 1400);
+    assertStep(steps.get(2), "oll_skip", 0, 0);
+    assertStep(steps.get(3), "pll_t", 900, 1400);
   }
 }

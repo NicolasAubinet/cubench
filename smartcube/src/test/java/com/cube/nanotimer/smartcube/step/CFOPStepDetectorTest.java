@@ -136,6 +136,32 @@ public class CFOPStepDetectorTest {
   }
 
   @Test
+  public void namesTheLastLayerCasesTheSolveWasLeftWith() {
+    startFrom(T_PERM, SUNE, "R U' R'", "F'");
+    assertEquals("oll", detector.stepName(CFOPStepDetector.OLL)); // nothing reached yet
+
+    play("F", "R U R'");
+    assertEquals("oll_26", detector.stepName(CFOPStepDetector.OLL)); // the anti-sune that follows
+    assertEquals("pll", detector.stepName(CFOPStepDetector.PLL));
+
+    play(ANTI_SUNE);
+    assertEquals("pll_t", detector.stepName(CFOPStepDetector.PLL));
+    assertEquals("cross", detector.stepName(CFOPStepDetector.CROSS)); // the other steps are plain
+
+    play(T_PERM);
+    assertEquals("oll_26", detector.stepName(CFOPStepDetector.OLL)); // and neither is revised after
+    assertEquals("pll_t", detector.stepName(CFOPStepDetector.PLL));
+  }
+
+  @Test
+  public void namesASkippedLastLayerStepAsTheSkipItWas() {
+    startFrom(T_PERM); // the orientation is already done: an OLL skip
+    play(T_PERM);
+    assertEquals("oll_skip", detector.stepName(CFOPStepDetector.OLL));
+    assertEquals("pll_t", detector.stepName(CFOPStepDetector.PLL));
+  }
+
+  @Test
   public void detectsTheCrossFaceTheSolveWasBuiltOn() {
     startFrom("D"); // breaks the D cross, leaves the whole U side of the cube in place
     assertEquals(Face.U, detector.getCrossFace());
