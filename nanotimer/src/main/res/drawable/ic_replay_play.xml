@@ -1,0 +1,12 @@
+<!-- Transport "play" for the solve replay. Tinted with the dialog's secondary text
+     colour so it sits with the position label beside it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/secondary_text">
+  <path
+      android:fillColor="#FFFFFFFF"
+      android:pathData="M8,5 L19,12 L8,19 Z"/>
+</vector>

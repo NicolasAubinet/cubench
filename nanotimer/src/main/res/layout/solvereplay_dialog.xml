@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Host for the 3D solve replay. Same shape as scrambleview_dialog: a transparent
+     WebView blending onto the card, a spinner until the cube is drawn, and a text
+     fallback when rendering is unavailable. Under it, the transport row. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+  <FrameLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+
+    <WebView
+        android:id="@+id/wvReplay"
+        android:layout_width="match_parent"
+        android:layout_height="260dp"
+        android:background="@android:color/transparent"/>
+
+    <ProgressBar
+        android:id="@+id/pbReplay"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/tvReplayFallback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textSize="15sp"
+        android:textColor="@color/secondary_text"
+        android:visibility="gone"/>
+  </FrameLayout>
+
+  <!-- Transport: play/pause, the position within the solve, and the speed cycle. -->
+  <LinearLayout
+      android:id="@+id/replayControls"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingLeft="8dp"
+      android:paddingRight="8dp"
+      android:paddingTop="4dp">
+
+    <ImageButton
+        android:id="@+id/buReplayPlay"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:scaleType="fitCenter"
+        android:padding="8dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_replay_play"
+        android:contentDescription="@string/replay_play"/>
+
+    <TextView
+        android:id="@+id/tvReplayPosition"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginLeft="8dp"
+        style="@style/BreakdownMeta"/>
+
+    <TextView
+        android:id="@+id/buReplaySpeed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="48dp"
+        android:gravity="center"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        style="@style/BreakdownMeta"/>
+  </LinearLayout>
+
+</LinearLayout>

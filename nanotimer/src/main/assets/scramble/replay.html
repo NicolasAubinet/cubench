@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<!--
+  Host page for NanoTimer's 3D solve replay.
+
+  Same arrangement as scramble.html — loaded into an on-demand WebView via
+  WebViewAssetLoader (https://appassets.androidplatform.net/..., NOT file://) and
+  sharing the same vendored bundle.js. The difference is that this page renders in
+  3D; scramble.html forces visualization="2D" for its diagrams.
+
+  Java -> JS surface:
+    ntReplayLoad(puzzle, setupAlg, moves, solveMs)
+        moves  = [{m:"R'", t:180}, ...], t = ms from solve start
+        solveMs = the length the position should be reported against (see displayMs)
+    ntReplayPlay()  ntReplayPause()  ntReplaySeek(ms)  ntReplaySpeed(x)
+
+  JS -> Java, both optional (the app has a timeout as a safety net):
+    NTBridge.onReady()            the cube is drawn
+    NTBridge.onState(ms, playing) playback position, ~10/s while playing, and once when it stops
+
+  HOW PLAYBACK WORKS, and why it is not experimentalAddMove.
+
+  The player animates an alg on its own clock at a fixed ~1000 ms per move (1500 for a
+  half turn — the spacing is not even uniform). Feeding it moves one at a time as they
+  fell due therefore truncated every one of them: a solve turns at 4-8 moves a second,
+  so each move was cut off a fraction into its turn and the replay was unreadable.
+
+  So the whole solution is handed over as one alg and we drive the player's timeline
+  position ourselves: `indexToMoveStartTimestamp(i)` says where each node sits on that
+  timeline, and we map our own clock onto it.
+
+  That clock is the solve's real offsets with two bounds applied (see the constants).
+  A replay is watched to be understood, so a turn too fast to see is stretched and one
+  the solver thought long before is not drawn in slow motion — the cube holds still
+  instead, which is what actually happened. That makes the replay a fraction longer
+  than the solve, so the position is reported scaled back onto the solve's own length
+  — a replay of a 28.79 must read 28.79, not 29.47.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: transparent; overflow: hidden;
+  }
+  #host { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  twisty-player { width: 100%; height: 100%; --controls-height: 0; }
+</style>
+<script src="bundle.js"></script>
+</head>
+<body>
+<div id="host"></div>
+<script>
+(function () {
+  // No turn is drawn slower than this, however long the solver thought before it.
+  var MAX_TURN_MS = 250;
+  // ...and none faster than this, however quickly it was really made: a turn given 20 ms is a
+  // flicker nobody can read.
+  var MIN_TURN_MS = 90;
+  // A whole-cube rotation moves every piece at once and needs longer to read than a face turn.
+  // It is also the case that most needs a floor: a rotation is recorded hard against the move it
+  // precedes, so by its raw offsets it would get almost no time at all and simply snap.
+  var MIN_ROTATION_MS = 200;
+  // The last node has no next one to take a duration from.
+  var TAIL_MS = MAX_TURN_MS;
+
+  var player = null;
+  var starts = [];     // where each alg node begins on the replay's own clock
+  var anims = [];      // how long each node spends turning (the rest of its slot it holds still)
+  var tlStarts = [];   // where each alg node sits on the player's timeline
+  var tlEnd = 0;
+  var totalMs = 0;      // the replay's own length, floors included
+  var reportedTotal = 0; // the length the app shows, which is the solve's
+  var clockMs = 0;
+  var lastFrameMs = 0;
+  var reportedMs = -1;
+  var playing = false;
+  var raf = null;
+  var speed = 1;
+
+  // Passes exactly the arguments given: the Java bridge resolves by arity, so a trailing
+  // undefined matches no method and the call is silently lost.
+  function bridge(name) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (window.NTBridge && window.NTBridge[name]) {
+      try { window.NTBridge[name].apply(window.NTBridge, args); } catch (e) {}
+    }
+  }
+
+  function isRotation(token) {
+    var axis = token.charAt(0);
+    return axis === "x" || axis === "y" || axis === "z";
+  }
+
+  /** Where to put the player's timeline so the cube shows what the hands were doing at `ms`. */
+  function timelineAt(ms) {
+    if (!starts.length) {
+      return 0;
+    }
+    var k = 0;
+    while (k + 1 < starts.length && starts[k + 1] <= ms) { k++; }
+    var to = k + 1 < tlStarts.length ? tlStarts[k + 1] : tlEnd;
+    var elapsed = ms - starts[k];
+    if (elapsed <= 0) {
+      return tlStarts[k];
+    }
+    if (elapsed >= anims[k]) {
+      return to; // the turn is finished; the cube holds here for the rest of its slot
+    }
+    return tlStarts[k] + (elapsed / anims[k]) * (to - tlStarts[k]);
+  }
+
+  function draw() {
+    if (player) {
+      player.experimentalModel.timestampRequest.set(timelineAt(clockMs));
+    }
+  }
+
+  /**
+   * The position as the app should show it. The floors make the replay a fraction longer than the
+   * solve, which would read as a replay of the wrong solve, so the clock is reported against the
+   * solve's own length. Only the label is scaled — every turn still animates for the time it was
+   * laid out with.
+   */
+  function displayMs() {
+    return totalMs > 0 ? Math.round(clockMs * reportedTotal / totalMs) : 0;
+  }
+
+  /** Rate-limited: the animation runs at frame rate, the app only needs a readable clock. */
+  function report(force) {
+    var ms = displayMs();
+    if (force || Math.abs(ms - reportedMs) >= 100) {
+      reportedMs = ms;
+      bridge("onState", ms, playing);
+    }
+  }
+
+  function frame() {
+    var now = Date.now();
+    // Clamp: a suspended WebView can resume with a delta of the whole background period, which
+    // would otherwise jump the replay to the end.
+    clockMs += Math.min(now - lastFrameMs, 200) * speed;
+    lastFrameMs = now;
+
+    if (clockMs >= totalMs) {
+      clockMs = totalMs;
+      draw();
+      pause();
+      return;
+    }
+    draw();
+    report(false);
+    raf = requestAnimationFrame(frame);
+  }
+
+  function pause() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    playing = false;
+    report(true);
+  }
+
+  /**
+   * Lays the solve out on the replay clock: every node keeps its real moment where it can, and is
+   * guaranteed enough room to be seen. It turns for the first part of its slot and holds still for
+   * the rest, which is how a pause reads as a pause.
+   *
+   * <p>A node short of room is started <em>earlier</em> before the replay is allowed to run long,
+   * and for a rotation that is the truthful placement rather than a concession: a rotation is
+   * recorded against the move it precedes, so its stored gap is near zero, but the solver actually
+   * turned the cube during the pause before that move. Taking the time from there puts it back
+   * where it happened. Only when there is no slack left to borrow does the timeline stretch.</p>
+   */
+  function layOut(tokens, realMs) {
+    var n = tokens.length;
+    starts = [];
+    anims = [];
+    if (!n) {
+      totalMs = 0;
+      return;
+    }
+    var floors = [];
+    for (var i = 0; i < n; i++) {
+      floors.push(isRotation(tokens[i]) ? MIN_ROTATION_MS : MIN_TURN_MS);
+    }
+    var at = realMs.slice();
+    for (var b = n - 2; b >= 0; b--) {         // take the room from the slack before it
+      at[b] = Math.min(at[b], at[b + 1] - floors[b]);
+    }
+    for (var f = 1; f < n; f++) {              // where there was none to take, the replay runs long
+      at[f] = Math.max(at[f], at[f - 1] + floors[f - 1]);
+    }
+    for (var k = 0; k < n; k++) {
+      starts.push(at[k] - at[0]);
+    }
+    for (var m = 0; m < n; m++) {
+      var slot = m + 1 < n ? starts[m + 1] - starts[m] : TAIL_MS;
+      anims.push(Math.min(slot, MAX_TURN_MS));
+    }
+    totalMs = starts[n - 1] + TAIL_MS;
+  }
+
+  var readyNotified = false;
+
+  function notifyReady() {
+    if (!readyNotified) {
+      readyNotified = true;
+      bridge("onReady");
+    }
+  }
+
+  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs) {
+    pause();
+    readyNotified = false;
+    var list = moveList || [];
+
+    // One alg node per token: a reorientation can be recorded as a pair ("y x'") under a single
+    // timestamp, and the timeline indexes nodes, not our moves. The pair's two halves then sit at
+    // the same instant, and each still gets its own slot from the floor above.
+    var tokens = [];
+    var realMs = [];
+    for (var i = 0; i < list.length; i++) {
+      var parts = String(list[i].m).split(/\s+/);
+      for (var j = 0; j < parts.length; j++) {
+        if (parts[j]) { tokens.push(parts[j]); realMs.push(list[i].t); }
+      }
+    }
+    layOut(tokens, realMs);
+    reportedTotal = solveMs > 0 ? solveMs : totalMs;
+    clockMs = 0;
+    reportedMs = -1;
+
+    if (!player) {
+      player = document.createElement("twisty-player");
+      player.puzzle = puzzle || "3x3x3";
+      player.visualization = "3D";
+      player.background = "none";
+      player.controlPanel = "none";
+      player.hintFacelets = "none";
+      document.getElementById("host").appendChild(player);
+    }
+    player.experimentalSetupAlg = setup || "";
+    player.alg = tokens.join(" ");
+
+    player.experimentalModel.indexer.get().then(function (indexer) {
+      tlStarts = [];
+      for (var i = 0; i < tokens.length; i++) {
+        tlStarts.push(indexer.indexToMoveStartTimestamp(i));
+      }
+      tlEnd = indexer.algDuration();
+      draw();
+      // Prefer signalling after a paint, but never depend on it: a WebView that is not drawing
+      // starves requestAnimationFrame, and the app would hold its spinner until the timeout.
+      requestAnimationFrame(function () { requestAnimationFrame(notifyReady); });
+      setTimeout(notifyReady, 300);
+    }).catch(notifyReady);
+  };
+
+  window.ntReplayPlay = function () {
+    if (playing || !starts.length) { return; }
+    if (clockMs >= totalMs) { clockMs = 0; }
+    playing = true;
+    lastFrameMs = Date.now();
+    report(true);
+    raf = requestAnimationFrame(frame);
+  };
+
+  window.ntReplayPause = function () {
+    pause();
+  };
+
+  window.ntReplaySeek = function (ms) {
+    var wasPlaying = playing;
+    pause();
+    clockMs = Math.max(0, Math.min(ms, totalMs));
+    draw();
+    if (wasPlaying) {
+      window.ntReplayPlay();
+    } else {
+      report(true);
+    }
+  };
+
+  window.ntReplaySpeed = function (x) {
+    speed = x;
+  };
+})();
+</script>
+</body>
+</html>
