@@ -120,7 +120,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
-  private boolean skipRecordPanel; // the stop came from the cross, which usually means discard
+  private boolean skipRecordPanel; // suppress the record panel on the next refresh (a discard-bound stop, or a delete)
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -697,6 +697,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
       return;
     }
+    forgetRecordsOfDeletedSolve();
     App.INSTANCE.getService().deleteTime(lastSolveTime, solveAverageCallback);
     cubeSession.deleteLast();
     historySolvesCount--;
@@ -830,6 +831,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        forgetRecordsOfDeletedSolve();
         cubeSession.deleteLast();
         historySolvesCount--;
         setSolvesCount(solvesCount - 1);
@@ -1511,6 +1513,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return solveController.isCubeDriven();
   }
 
+  /**
+   * A deleted solve takes its records with it: the panel goes and the cells it lit go back to
+   * their normal colour. The refresh the deletion triggers is not allowed to announce a record
+   * either, since dropping a bad solve can leave an average better than it was.
+   */
+  private void forgetRecordsOfDeletedSolve() {
+    dismissRecordOverlay();
+    skipRecordPanel = true;
+  }
+
   private void dismissRecordOverlay() {
     overlayHandler.removeCallbacks(hideRecordBar);
     if (recordBar != null) {
@@ -1918,6 +1930,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         public void run() {
           prevSolveAverages = solveAverages;
           solveAverages = data;
+          // Read before the discard below, which sets the flag again for the refresh its own delete triggers.
+          boolean showNotifications = !skipRecordPanel;
+          skipRecordPanel = false;
           if (data.getSolveTime() != null) { // a plain averages refresh carries no solve; keep the one we have
             setLastSolveTime(data.getSolveTime());
             if (discardWhenSaved) { // the solve the user already chose to discard has now been saved
@@ -1925,8 +1940,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               deleteLastSolve();
             }
           }
-          boolean showNotifications = !skipRecordPanel;
-          skipRecordPanel = false;
           refreshAvgFields(showNotifications);
         }
       });
