@@ -98,7 +98,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private TextView tvTitle;
   private ViewGroup layout;
   private TableLayout sessionTimesLayout;
-  private TableLayout timerStepsLayout;
   private View recordBar;
   private TextView tvRecordBarLabel;
   private TextView tvRecordBarValue;
@@ -419,7 +418,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
     tvTitle = (TextView) findViewById(R.id.tvTitle);
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
-    timerStepsLayout = (TableLayout) findViewById(R.id.timerStepsLayout);
     recordBar = findViewById(R.id.recordBar);
     tvRecordBarLabel = (TextView) findViewById(R.id.tvRecordBarLabel);
     tvRecordBarValue = (TextView) findViewById(R.id.tvRecordBarValue);
@@ -480,15 +478,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     ((TextView) findViewById(R.id.tvStatKeyThree)).setText(R.string.ao50_label);
     ((TextView) findViewById(R.id.tvStatKeyFour)).setText(R.string.ao100_label);
 
-    // The bar below the scramble reads the steps now, from the first one taken to the finished
-    // solve, so the list that used to sit above the timer is not shown at all.
-    timerStepsLayout.setVisibility(View.GONE);
     if (steps) {
-      if (solveType.getSteps().length <= 4) {
-        timerStepsLayout.setColumnCollapsed(2, true);
-        timerStepsLayout.setColumnCollapsed(3, true);
-      }
-      hideUnneededStepFields();
       solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
     }
   }
@@ -875,16 +865,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       currentOrientation = newConfig.orientation;
       String timerText = tvTimer.getText().toString();
 
-      List<String> stepsText = new ArrayList<String>();
-      if (solveType.hasSteps()) {
-        for (int i = 0; i < timerStepsLayout.getChildCount(); i++) {
-          TableRow tr = (TableRow) timerStepsLayout.getChildAt(i);
-          for (int j = 0; j < tr.getChildCount(); j++) {
-            stepsText.add(((TextView) tr.getChildAt(j)).getText().toString());
-          }
-        }
-      }
-
       setContentView(R.layout.timer_screen);
       initViews();
 
@@ -897,16 +877,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       refreshSessionFields();
       if (solveAverages != null) {
         refreshAvgFields(false);
-      }
-
-      if (solveType.hasSteps()) {
-        Iterator<String> it = stepsText.iterator();
-        for (int i = 0; i < timerStepsLayout.getChildCount(); i++) {
-          TableRow tr = (TableRow) timerStepsLayout.getChildAt(i);
-          for (int j = 0; j < tr.getChildCount(); j++) {
-            ((TextView) tr.getChildAt(j)).setText(it.next());
-          }
-        }
       }
     }
   }
@@ -1203,7 +1173,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (stepsTimes.size() < solveType.getSteps().length) {
       long time = ts - stepStartTs;
       stepsTimes.add(time);
-      updateStepTimeText(stepsTimes.size() - 1, FormatterService.INSTANCE.formatSolveTime(time));
       showStepsSoFar();
     }
     stepStartTs = ts;
@@ -1239,30 +1208,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     String defaultText = FormatterService.INSTANCE.formatSolveTime(0L);
     tvTimer.setText(defaultText);
     setTimerTextColor(0L);
-    if (solveType.hasSteps()) {
-      for (int i = 0; i < Options.INSTANCE.getMaxStepsCount(); i++) {
-        int rowInd = i % 4;
-        int colInd = (i < 4) ? 0 : 2;
-        if (i < solveType.getSteps().length) {
-          SolveTypeStep sts = solveType.getSteps()[i];
-          ((TextView) ((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd)).setText(sts.getName() + ":");
-          updateStepTimeText(i, defaultText);
-        }
-      }
-    }
   }
 
-  private void hideUnneededStepFields() {
-    // hide fields to center steps vertically
-    if (solveType.getSteps().length < 4) {
-      for (int i = solveType.getSteps().length; i < Options.INSTANCE.getMaxStepsCount(); i++) {
-        int rowInd = i % 4;
-        int colInd = (i < 4) ? 0 : 2;
-        (((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd)).setVisibility(View.GONE);
-        (((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd + 1)).setVisibility(View.GONE);
-      }
-    }
-  }
 
   private void saveTime(long time) {
     SolveTime solveTime = new SolveTime();
@@ -1310,13 +1257,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  private void updateStepTimeText(int id, String time) {
-    if (id >= 0 && id < solveType.getSteps().length) {
-      int rowInd = id % 4;
-      int colInd = (id < 4) ? 1 : 3;
-      ((TextView) ((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd)).setText(time);
-    }
-  }
 
   // Keeps the timer text grayed out for a DNF (time == -1), matching how DNFs are
   // shown everywhere else; any other value uses the default timer color.
@@ -1331,10 +1271,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private synchronized void updateTimerText(long curTime) {
     tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(curTime));
     setTimerTextColor(curTime);
-    if (solveType.hasSteps()) {
-      updateStepTimeText(stepsTimes.size(),
-        FormatterService.INSTANCE.formatSolveTime(System.currentTimeMillis() - stepStartTs));
-    }
   }
 
   private synchronized void updateInspectionTimerText() {
