@@ -40,7 +40,7 @@ public final class SolveSolution {
    * fall outside every window.
    */
   public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps) {
-    List<Move> moves = inSolversFrame(SolveMovesFormat.parse(storedMoves));
+    List<Move> moves = timedSolution(storedMoves);
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
       return new SolveSolution(new ArrayList<Step>(), 0, 0, 0);
     }
@@ -69,6 +69,18 @@ public final class SolveSolution {
       taken = end;
     }
     return new SolveSolution(steps, total, parts, turningMs);
+  }
+
+  /**
+   * The stored stream in the solver's frame with its timing intact — what an animated replay plays.
+   *
+   * <p>Quarter turns are left unfolded here, unlike the displayed reconstruction: the cube reports a
+   * half turn as two, and replaying them at the offsets they arrived at renders one flick as a flick
+   * and two deliberate turns as two. Folding first would throw away the timing that tells them
+   * apart. Rotation tokens are kept, since the whole point of a replay is to turn with the solver.
+   */
+  public static List<Move> timedSolution(String storedMoves) {
+    return inSolversFrame(SolveMovesFormat.parse(storedMoves));
   }
 
   /**
