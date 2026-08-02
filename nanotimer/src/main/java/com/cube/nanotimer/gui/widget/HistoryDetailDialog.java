@@ -186,6 +186,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * the same views are handed the next solve when the sheet is swiped along the list.
    */
   private void bindSolve(final View v) {
+    if (getActivity() == null) {
+      return; // dismissed while a swipe was still animating the next solve in
+    }
     resetBinding(v);
     final SolveTime solveTime = this.solveTime;
     final CubeType cubeType = this.cubeType;
@@ -383,6 +386,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     ((SwipeSwitchLayout) v).setOnSwitch(new SwipeSwitchLayout.OnSwitch() {
       @Override
       public boolean onSwitch(int direction) {
+        if (getActivity() == null) {
+          return false; // the throw outlived the sheet, so there is nothing to hand anything to
+        }
         SolveTime neighbour = navigator.getNeighbourSolve(solveTime, direction);
         if (neighbour == null) {
           return false;
