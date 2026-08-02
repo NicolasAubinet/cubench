@@ -88,6 +88,10 @@
        which the accent wash alone is too quiet to do. -->
   <color name="chip_bg_selected">#596CCCEC</color>
 
+  <!-- A piece a blind algorithm put home, marked in its name. Lifted well clear of the grey the
+       rest of the name is set in; the cube green is too dark to carry small text on the dialog. -->
+  <color name="piece_home">#7BD983</color>
+
   <!-- Destructive action as text: pure red glares against the dark dialogs. -->
   <color name="danger_text">#EF5350</color>
 

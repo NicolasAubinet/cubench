@@ -620,8 +620,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private TableRow subStepRow(SolveStep part, int position, String moveCount) {
     TableRow row = new TableRow(getActivity());
-    row.addView(cell(R.style.BreakdownSubName, withPairColors(part.getName(),
-        Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position))));
+    row.addView(cell(R.style.BreakdownSubName, withSolvedPieces(part, withPairColors(part.getName(),
+        Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)))));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
@@ -644,6 +644,40 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     SpannableStringBuilder text = new SpannableStringBuilder(name);
     text.setSpan(new ForegroundColorSpan(color(R.color.secondary_text)), at,
         at + caseLabel.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    return text;
+  }
+
+  /**
+   * Greens each piece a blind algorithm put home, which is what tells its shape apart at a glance: a
+   * commutator lands both the targets it was shot at, one that breaks into a new cycle lands only
+   * one of them, and a misfire lands none.
+   *
+   * <p><b>The buffer of a solve with a parity is never green</b> — it holds a foreign piece until the
+   * parity puts it right. Correct, and it reads as a bug the first time.
+   *
+   * <p>The pieces are found in the label rather than spelled into it: a translation wraps its own
+   * words around the code's own pieces, so walking the label forward marks them wherever they fell.
+   */
+  private CharSequence withSolvedPieces(SolveStep part, CharSequence label) {
+    List<Boolean> solved = part.getSolvedPieces();
+    if (solved.isEmpty()) {
+      return label;
+    }
+    String[] pieces = Utils.getSmartCubeNamedPieces(part.getName());
+    SpannableStringBuilder text = new SpannableStringBuilder(label);
+    String plain = label.toString();
+    int from = 0;
+    for (int i = 0; i < pieces.length && i < solved.size(); i++) {
+      int at = plain.indexOf(pieces[i], from);
+      if (at < 0) {
+        break; // the label does not spell the name the code does: nothing to mark it on
+      }
+      if (solved.get(i)) {
+        text.setSpan(new ForegroundColorSpan(color(R.color.piece_home)), at,
+            at + pieces[i].length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      }
+      from = at + pieces[i].length();
+    }
     return text;
   }
 

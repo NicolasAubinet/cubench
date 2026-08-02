@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.Arrays;
@@ -125,6 +126,14 @@ public class StoredSolveReplayTest {
     assertEquals(Arrays.asList(false, true, false), edges.get(0).getSolvedPieces());
     assertEquals("UF-UB-DL", edges.get(1).getName());
     assertEquals(Arrays.asList(true, true, true), edges.get(1).getSolvedPieces());
+
+    // And there is one mark per piece the name says, which is what the sheet colours them by.
+    for (int step = 1; step < result.getSteps().size(); step++) {
+      for (SolveStep part : result.getSteps().get(step).getSubSteps()) {
+        assertEquals(part.getName(), Utils.getSmartCubeNamedPieces(part.getName()).length,
+            part.getSolvedPieces().size());
+      }
+    }
   }
 
   private static String firstAlgorithm(StoredSolveReplay.Result result) {

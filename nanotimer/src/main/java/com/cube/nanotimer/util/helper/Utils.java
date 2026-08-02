@@ -257,6 +257,18 @@ public class Utils {
     return faces.length() == 2 ? faces.toCharArray() : null;
   }
 
+  /**
+   * The pieces a blind algorithm's code names, in the order they are said — the mark saying what was
+   * done to them taken off, and the rest split on everything a name joins pieces with. A code that
+   * names none comes back as itself, and nothing marks one: it carries no marks either.
+   */
+  public static String[] getSmartCubeNamedPieces(String code) {
+    if (code == null) {
+      return new String[0];
+    }
+    return code.substring(code.indexOf(':') + 1).split("-| \\+ ");
+  }
+
   /** Standard WCA face colors. Decorative: the app never relies on them to identify a face. */
   public static int getFaceColorRes(char face) {
     switch (face) {
