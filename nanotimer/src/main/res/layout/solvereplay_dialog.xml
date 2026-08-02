@@ -7,9 +7,42 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+  <!-- Hero, in the solve detail sheet's idiom: the solve's time is what says which solve this is,
+       so it carries the header rather than a dialog title bar over the top of it. -->
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center_horizontal"
+      android:paddingTop="2dp"
+      android:paddingBottom="10dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/solve_replay"
+        style="@style/DialogSectionLabel"/>
+
+    <TextView
+        android:id="@+id/tvReplayHeroTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:textSize="32sp"
+        android:fontFeatureSettings="tnum"/>
+  </LinearLayout>
+
+  <!-- The cube sits in a well rather than on the card: 3D on a flat surface needs something under
+       it or it reads as floating. -->
   <FrameLayout
       android:layout_width="match_parent"
-      android:layout_height="wrap_content">
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      android:layout_marginTop="4dp"
+      android:background="@drawable/cube_stage">
 
     <WebView
         android:id="@+id/wvReplay"
@@ -42,9 +75,9 @@
       android:id="@+id/replayBar"
       android:layout_width="match_parent"
       android:layout_height="22dp"
-      android:layout_marginLeft="8dp"
-      android:layout_marginRight="8dp"
-      android:layout_marginTop="6dp"
+      android:layout_marginLeft="10dp"
+      android:layout_marginRight="10dp"
+      android:layout_marginTop="10dp"
       android:visibility="gone"/>
 
   <!-- Transport: play/pause, the position within the solve, and the speed cycle. -->
@@ -54,9 +87,9 @@
       android:layout_height="wrap_content"
       android:orientation="horizontal"
       android:gravity="center_vertical"
-      android:paddingLeft="8dp"
+      android:paddingLeft="6dp"
       android:paddingRight="8dp"
-      android:paddingTop="4dp">
+      android:paddingTop="6dp">
 
     <ImageButton
         android:id="@+id/buReplayPlay"
@@ -68,31 +101,16 @@
         android:src="@drawable/ic_replay_play"
         android:contentDescription="@string/replay_play"/>
 
-    <!-- The position reads as one figure with its total beside it, so the moving part carries the
-         weight and the fixed part stays quiet. -->
-    <LinearLayout
+    <!-- Only the moving figure: the total is in the hero above, and saying it twice is noise. -->
+    <TextView
+        android:id="@+id/tvReplayPosition"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginLeft="6dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-      <TextView
-          android:id="@+id/tvReplayPosition"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:textColor="@color/white"
-          android:textSize="15sp"
-          android:fontFeatureSettings="tnum"/>
-
-      <TextView
-          android:id="@+id/tvReplayTotal"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginLeft="5dp"
-          style="@style/BreakdownMeta"/>
-    </LinearLayout>
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:fontFeatureSettings="tnum"/>
 
     <!-- Every speed side by side: one tap reaches any of them, where a cycle needed up to three. -->
     <LinearLayout

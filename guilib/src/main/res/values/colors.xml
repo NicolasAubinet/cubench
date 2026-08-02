@@ -84,6 +84,9 @@
   <!-- Small pills carrying a row's secondary facts: a wash of the surface, or of the accent. -->
   <color name="chip_bg">#1FFFFFFF</color>
   <color name="chip_bg_accent">#266CCCEC</color>
+  <!-- The chosen option of a segmented control: a chip has to say "this one" across a whole row,
+       which the accent wash alone is too quiet to do. -->
+  <color name="chip_bg_selected">#596CCCEC</color>
 
   <!-- Destructive action as text: pure red glares against the dark dialogs. -->
   <color name="danger_text">#EF5350</color>
@@ -91,6 +94,9 @@
   <color name="history_marker">@color/iceblue</color>
 
   <color name="dialog_surface">#23272B</color>
+  <!-- Recessed well for a 3D cube to sit in: a shade under the dialog surface, so the cube reads as
+       being on something rather than floating on the card. -->
+  <color name="cube_stage">#1A1D21</color>
   <color name="dialog_divider">#1FFFFFFF</color>
 
   <color name="graybg">#323232</color>

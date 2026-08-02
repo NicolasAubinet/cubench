@@ -332,7 +332,6 @@
   <string name="solve_replay_unavailable">Esta resolução não tem movimentos gravados para repetir.</string>
   <string name="replay_play">Reproduzir</string>
   <string name="replay_pause">Pausa</string>
-  <string name="replay_total">/ %1$s</string>
   <string name="replay_speed">%1$sx</string>
   <string name="replay_gyro">Gyro</string>
   <string name="replay_gyro_summary">Mostrar como o cubo era segurado</string>

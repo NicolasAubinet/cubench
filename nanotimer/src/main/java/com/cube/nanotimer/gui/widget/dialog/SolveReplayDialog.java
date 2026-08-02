@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -25,6 +26,7 @@ import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
 import com.cube.nanotimer.App;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.GyroTrackFormat;
 import com.cube.nanotimer.cube.SolveMovesFormat;
@@ -80,14 +82,17 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private static final String[] SPEEDS = {"0.25", "0.5", "1", "2"};
   private static final int[] SPEED_IDS = {
       R.id.buReplaySpeed0, R.id.buReplaySpeed1, R.id.buReplaySpeed2, R.id.buReplaySpeed3};
-  // A replay opens at the speed it happened.
+  // A replay opens at the speed it happened, and 1x is also the one reached for most, so it is
+  // set a little larger than its siblings.
   private static final int DEFAULT_SPEED = 2;
+  private static final float SPEED_SP = 12;
+  private static final float DEFAULT_SPEED_SP = 14;
 
   private WebView webView;
   private ProgressBar progressBar;
   private ImageButton playButton;
   private TextView positionLabel;
-  private TextView totalLabel;
+  private TextView heroTime;
   private final TextView[] speedChips = new TextView[SPEEDS.length];
   private View gyroRow;
   private SwitchCompat gyroSwitch;
@@ -104,7 +109,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private boolean playing;
   private boolean transportPainted;
   private int speedIndex = DEFAULT_SPEED;
-  private boolean gyroShown; // the track is off until asked for: the square cube is the honest default
+  private boolean gyroShown; // remembered across replays, see Options.isReplayShowGyro
   private boolean pageReady;  // the page has defined its functions; before that, evaluate() is lost
   private String pendingGyroJs; // the track, waiting for the page if it got here first
 
@@ -159,7 +164,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     progressBar = view.findViewById(R.id.pbReplay);
     playButton = view.findViewById(R.id.buReplayPlay);
     positionLabel = view.findViewById(R.id.tvReplayPosition);
-    totalLabel = view.findViewById(R.id.tvReplayTotal);
+    heroTime = view.findViewById(R.id.tvReplayHeroTime);
     for (int i = 0; i < SPEEDS.length; i++) {
       speedChips[i] = view.findViewById(SPEED_IDS[i]);
     }
@@ -178,6 +183,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     startOffsetMs = moves.isEmpty() ? 0 : moves.get(0).getOffsetMs();
     solveMs = coveredMs(moves, getArguments().getLong(ARG_TIMED_MS));
     totalText = FormatterService.INSTANCE.formatSolveTime(solveMs);
+    heroTime.setText(totalText); // the header, and it stands whether or not the cube can be drawn
 
     if (scramble == null || scramble.isEmpty() || moves.isEmpty()
         || !setupWebView(puzzleId, scramble, moves)) {
@@ -186,8 +192,8 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
       setUpControls();
     }
 
+    // No title: the hero at the top of the layout is the header, as on the solve detail sheet.
     return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.solve_replay)
         .setView(view)
         .setPositiveButton(R.string.close, null)
         .create();
@@ -255,7 +261,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
 
   private void setUpControls() {
     setUpBar();
-    totalLabel.setText(getString(R.string.replay_total, totalText)); // invariant: set once, not per tick
+    gyroShown = Options.INSTANCE.isReplayShowGyro();
     updateTransport(false);
     updateSpeed();
     playButton.setOnClickListener(new View.OnClickListener() {
@@ -285,6 +291,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
       @Override
       public void onClick(View v) {
         gyroShown = !gyroShown;
+        Options.INSTANCE.setReplayShowGyro(gyroShown); // the next replay opens the way this one left it
         evaluate("window.ntReplayGyroShow(" + gyroShown + ");");
         updateGyro();
       }
@@ -457,16 +464,17 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     playButton.setContentDescription(getString(playing ? R.string.replay_pause : R.string.replay_play));
   }
 
-  /** The chosen speed carries the accent pill; the rest stay the quiet one. */
+  /** The chosen speed is filled and outlined in the accent; the rest stay the quiet pill. */
   private void updateSpeed() {
     for (int i = 0; i < speedChips.length; i++) {
       boolean chosen = i == speedIndex;
       speedChips[i].setText(getString(R.string.replay_speed, SPEEDS[i]));
       speedChips[i].setBackgroundResource(
-          chosen ? R.drawable.row_chip_accent : R.drawable.row_chip);
+          chosen ? R.drawable.row_chip_selected : R.drawable.row_chip);
       speedChips[i].setTextColor(getResources().getColor(
-          chosen ? R.color.lightblue : R.color.secondary_text));
-      speedChips[i].setSelected(chosen);
+          chosen ? R.color.white : R.color.secondary_text));
+      speedChips[i].setTextSize(TypedValue.COMPLEX_UNIT_SP,
+          i == DEFAULT_SPEED ? DEFAULT_SPEED_SP : SPEED_SP);
     }
   }
 
@@ -572,7 +580,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     progressBar = null;
     playButton = null;
     positionLabel = null;
-    totalLabel = null;
+    heroTime = null;
     gyroRow = null;
     gyroSwitch = null;
     controlsRow = null;

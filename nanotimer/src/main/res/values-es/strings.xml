@@ -330,7 +330,6 @@
   <string name="solve_replay_unavailable">Este resuelto no tiene movimientos grabados para repetir.</string>
   <string name="replay_play">Reproducir</string>
   <string name="replay_pause">Pausa</string>
-  <string name="replay_total">/ %1$s</string>
   <string name="replay_speed">%1$sx</string>
   <string name="replay_gyro">Gyro</string>
   <string name="replay_gyro_summary">Mostrar cómo se sujetaba el cubo</string>

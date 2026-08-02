@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The well a 3D cube is drawn in. Not tappable and not a card: it exists to give the cube a
+     surface, so it is a shade under the dialog rather than raised above it. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/cube_stage"/>
+  <corners android:radius="@dimen/card_corner"/>
+</shape>

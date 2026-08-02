@@ -330,7 +330,6 @@
   <string name="solve_replay_unavailable">Aucun mouvement enregistré pour ce résolu.</string>
   <string name="replay_play">Lecture</string>
   <string name="replay_pause">Pause</string>
-  <string name="replay_total">/ %1$s</string>
   <string name="replay_speed">%1$sx</string>
   <string name="replay_gyro">Gyro</string>
   <string name="replay_gyro_summary">Montrer comment le cube était tenu</string>
