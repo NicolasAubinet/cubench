@@ -3,7 +3,10 @@
 <!-- Landscape puts the card and the history side by side rather than stacked: laid out as in
      portrait the card alone is taller than the screen, and the list would have no room at all.
      Every id here also exists in layout/mainscreen_screen.xml, since the activity finds them by
-     id whichever way the phone is held. -->
+     id whichever way the phone is held.
+
+     Its spacing is tighter than portrait's throughout, because even side by side the card came to
+     about 30dp more than the screen is tall and Start, being last, fell below the fold. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto"
    android:id="@+id/mainLayout"
@@ -51,8 +54,8 @@
            android:id="@+id/heroCard"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:layout_marginTop="@dimen/space_s"
-           android:layout_marginBottom="@dimen/space_s"
+           android:layout_marginTop="@dimen/space_xs"
+           android:layout_marginBottom="@dimen/space_xs"
            android:layout_marginLeft="@dimen/space_m"
            android:layout_marginRight="@dimen/space_s"
            app:cardBackgroundColor="@color/hero_card"
@@ -176,7 +179,7 @@
                android:id="@+id/sparklineBlock"
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
-               android:layout_marginTop="@dimen/space_s"
+               android:layout_marginTop="@dimen/space_xs"
                android:paddingLeft="@dimen/space_xs"
                android:paddingRight="@dimen/space_xs"
                android:background="@drawable/hero_sparkline"
@@ -186,7 +189,7 @@
               <com.cube.nanotimer.util.view.SparklineView
                  android:id="@+id/sparkline"
                  android:layout_width="match_parent"
-                 android:layout_height="46dp"/>
+                 android:layout_height="34dp"/>
             </FrameLayout>
 
             <!-- Three windows, three cells. The third is the personal best, the success rate for a
@@ -196,7 +199,7 @@
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
                android:orientation="horizontal"
-               android:layout_marginTop="@dimen/space_s">
+               android:layout_marginTop="@dimen/space_xs">
 
               <LinearLayout
                  android:id="@+id/statCellOne"
@@ -206,8 +209,8 @@
                  android:layout_marginRight="3dp"
                  android:orientation="vertical"
                  android:background="@drawable/hero_stat_cell"
-                 android:paddingTop="7dp"
-                 android:paddingBottom="7dp">
+                 android:paddingTop="5dp"
+                 android:paddingBottom="5dp">
                 <TextView android:id="@+id/tvStatKeyOne" style="@style/HeroStatKey"/>
                 <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueOne" style="@style/HeroStatValue"/>
               </LinearLayout>
@@ -221,8 +224,8 @@
                  android:layout_marginRight="3dp"
                  android:orientation="vertical"
                  android:background="@drawable/hero_stat_cell"
-                 android:paddingTop="7dp"
-                 android:paddingBottom="7dp">
+                 android:paddingTop="5dp"
+                 android:paddingBottom="5dp">
                 <TextView android:id="@+id/tvStatKeyTwo" style="@style/HeroStatKey"/>
                 <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueTwo" style="@style/HeroStatValue"/>
               </LinearLayout>
@@ -235,17 +238,19 @@
                  android:layout_marginLeft="3dp"
                  android:orientation="vertical"
                  android:background="@drawable/hero_stat_cell"
-                 android:paddingTop="7dp"
-                 android:paddingBottom="7dp">
+                 android:paddingTop="5dp"
+                 android:paddingBottom="5dp">
                 <TextView android:id="@+id/tvStatKeyThree" style="@style/HeroStatKey"/>
                 <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueThree" style="@style/HeroStatValue"/>
               </LinearLayout>
             </LinearLayout>
 
+            <!-- Shorter than the style's 54dp: the one place landscape cannot afford it. -->
             <androidx.appcompat.widget.AppCompatButton
                android:id="@+id/buStart"
                android:text="@string/start"
-               android:layout_marginTop="@dimen/space_s"
+               android:layout_height="48dp"
+               android:layout_marginTop="@dimen/space_xs"
                style="@style/HeroStartButton"/>
 
           </LinearLayout>
