@@ -162,6 +162,14 @@ public enum FormatterService {
     return sdf.format(new Date(ms));
   }
 
+  /** The time of day alone, for a row whose date is already carried by its day heading. */
+  public String formatTimeOfDay(Long ms) {
+    if (ms == null) {
+      return "";
+    }
+    return new SimpleDateFormat("HH:mm:ss", Locale.ENGLISH).format(new Date(ms));
+  }
+
   public String formatDate(Long ms) {
     if (ms == null) {
       return "";

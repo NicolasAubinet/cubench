@@ -70,6 +70,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -104,6 +105,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private boolean refreshingHistory;
 
   private final List<SolveTime> liHistory = new ArrayList<>();
+  // Position of the first solve of each day, to its heading. Rebuilt whenever the list changes,
+  // so binding a row stays a lookup.
+  private final Map<Integer, String> dayHeaders = new HashMap<>();
   private HistoryListAdapter historyListAdapter;
   private MenuListAdapter menuListAdapter;
   private SmartCubeChip smartCubeChip;
@@ -114,6 +118,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   // per data load over the last N solves (N = Options.getColorSampleSize()). Disabled
   // (and the scale left neutral) when Options.isColorHistoryTimes() is off.
   private TimeColorScale timeColorScale;
+  private int recordColor;
 
   private Toast quitMessage;
   private boolean inQuitMode;
@@ -177,6 +182,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   protected void initViews() {
     super.initViews();
     timeColorScale = new TimeColorScale(this);
+    recordColor = ContextCompat.getColor(this, R.color.new_record);
 
     tvCubeType = (TextView) findViewById(R.id.tvCubeType);
     tvSolveType = (TextView) findViewById(R.id.tvSolveType);
@@ -687,8 +693,55 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   }
 
   private void onHistoryChanged() {
+    rebuildDayHeaders();
     historyListAdapter.notifyDataSetChanged();
     tvNoSolves.setVisibility(liHistory.isEmpty() ? View.VISIBLE : View.GONE);
+  }
+
+  /**
+   * Marks the first row of each day with its heading, so the list carries the dates the rows no
+   * longer repeat. Sorted by time there are no days to group, and the one heading names the sort.
+   */
+  private void rebuildDayHeaders() {
+    dayHeaders.clear();
+    if (liHistory.isEmpty()) {
+      return;
+    }
+    if (timesSort != TimesSort.TIMESTAMP) {
+      dayHeaders.put(0, getString(R.string.best_times));
+      return;
+    }
+    Calendar calendar = Calendar.getInstance();
+    long today = dayStart(calendar, System.currentTimeMillis());
+    calendar.add(Calendar.DAY_OF_YEAR, -1); // not today minus 24h: a day is not always that long
+    long yesterday = calendar.getTimeInMillis();
+    long previousDay = -1;
+    for (int i = 0; i < liHistory.size(); i++) {
+      long day = dayStart(calendar, liHistory.get(i).getTimestamp());
+      if (day != previousDay) {
+        dayHeaders.put(i, dayLabel(day, today, yesterday));
+        previousDay = day;
+      }
+    }
+  }
+
+  private String dayLabel(long day, long today, long yesterday) {
+    if (day == today) {
+      return getString(R.string.today);
+    }
+    if (day == yesterday) {
+      return getString(R.string.yesterday);
+    }
+    return FormatterService.INSTANCE.formatDate(day);
+  }
+
+  private static long dayStart(Calendar calendar, long timestamp) {
+    calendar.setTimeInMillis(timestamp);
+    calendar.set(Calendar.HOUR_OF_DAY, 0);
+    calendar.set(Calendar.MINUTE, 0);
+    calendar.set(Calendar.SECOND, 0);
+    calendar.set(Calendar.MILLISECOND, 0);
+    return calendar.getTimeInMillis();
   }
 
   @Override
@@ -998,39 +1051,38 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       }
 
       if (position >= 0 && position < liHistory.size()) {
+        String dayHeader = dayHeaders.get(position);
+        View header = view.findViewById(R.id.dayHeader);
+        if (dayHeader != null) {
+          ((TextView) view.findViewById(R.id.tvDayLabel)).setText(dayHeader);
+          header.setVisibility(View.VISIBLE);
+        } else {
+          header.setVisibility(View.GONE);
+        }
+        // A heading already separates its day from the one above, and nothing sits above the first
+        // row, so those two rows draw no line of their own.
+        view.findViewById(R.id.rowDivider)
+          .setVisibility(dayHeader != null || position == 0 ? View.INVISIBLE : View.VISIBLE);
+
         SolveTime st = liHistory.get(position);
         if (st != null) {
-          ((TextView) view.findViewById(R.id.tvDate)).setText(FormatterService.INSTANCE.formatDateTime(st.getTimestamp()));
+          // Grouped by day the date is overhead, so the row states only which solve of that day
+          // it was; sorted by time there are no days, so it states the whole timestamp.
+          ((TextView) view.findViewById(R.id.tvDate)).setText(timesSort == TimesSort.TIMESTAMP
+            ? FormatterService.INSTANCE.formatTimeOfDay(st.getTimestamp())
+            : FormatterService.INSTANCE.formatDateTime(st.getTimestamp()));
+
           TextView tvTime = (TextView) view.findViewById(R.id.tvTime);
           tvTime.setText(FormatterService.INSTANCE.formatSolveTime(st.getTime()));
-          // Color the time on the green→white→red gradient (fast→median→slow); DNFs stay
-          // gray. Set on every bind so recycled rows never keep a stale color.
-          tvTime.setTextColor(timeColorScale.colorFor(st));
+          // A record wears the record colour, which the gradient never produces; everything else
+          // is colored green→white→red (fast→median→slow), and DNFs stay gray. Set on every bind
+          // so recycled rows never keep a stale color.
+          tvTime.setTextColor(st.isPb() ? recordColor : timeColorScale.colorFor(st));
+          view.findViewById(R.id.tvPbChip).setVisibility(st.isPb() ? View.VISIBLE : View.GONE);
 
-          boolean fromCube = st.getSmartcubeMoves() != null;
-          view.findViewById(R.id.imgSmartCube).setVisibility(fromCube ? View.VISIBLE : View.GONE);
-          view.findViewById(R.id.imgCircle).setVisibility(fromCube ? View.GONE : View.VISIBLE);
-
-          if (st.isPb()) {
-            view.findViewById(R.id.imgPb).setVisibility(View.VISIBLE);
-          } else {
-            view.findViewById(R.id.imgPb).setVisibility(View.GONE);
-          }
-
-          if (st.getComment() != null && !st.getComment().trim().equals("")) {
-            view.findViewById(R.id.imgComment).setVisibility(View.VISIBLE);
-          } else {
-            view.findViewById(R.id.imgComment).setVisibility(View.GONE);
-          }
+          boolean commented = st.getComment() != null && !st.getComment().trim().isEmpty();
+          view.findViewById(R.id.imgComment).setVisibility(commented ? View.VISIBLE : View.GONE);
         }
-
-        int backgroundResourceId;
-        if (position % 2 == 0) {
-          backgroundResourceId = R.drawable.listview_item_alternate_1;
-        } else {
-          backgroundResourceId = R.drawable.listview_item_alternate_2;
-        }
-        view.setBackgroundResource(backgroundResourceId);
       }
       return view;
     }

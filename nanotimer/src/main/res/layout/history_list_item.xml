@@ -1,88 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- One solve. The time is why the row is read, so it leads; the timestamp only says which solve
+     it was. The day heading above it belongs to the first row of each day, which keeps the list
+     one row per solve and the paging indexes honest. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
-   android:minHeight="48dp"
-   android:paddingLeft="@dimen/space_m"
-   android:paddingRight="@dimen/space_m"
-   android:paddingTop="@dimen/space_s"
-   android:paddingBottom="@dimen/space_s">
+   android:orientation="vertical">
 
-  <!-- Muted timestamp (leading) -->
-  <TextView
-     android:id="@+id/tvDate"
-     android:layout_width="wrap_content"
+  <LinearLayout
+     android:id="@+id/dayHeader"
+     android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_alignParentLeft="true"
-     android:layout_alignParentStart="true"
-     android:layout_centerVertical="true"
-     android:textColor="@color/secondary_text"
-     android:textSize="15sp"
-     android:singleLine="true"/>
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:paddingLeft="@dimen/space_xs"
+     android:paddingRight="@dimen/space_xs"
+     android:paddingTop="@dimen/space_m"
+     android:paddingBottom="@dimen/space_xs"
+     android:visibility="gone">
 
-  <!-- Strong solve result (trailing), tabular digits so the column aligns -->
-  <TextView
-     android:id="@+id/tvTime"
-     android:layout_width="wrap_content"
+    <TextView
+       android:id="@+id/tvDayLabel"
+       style="@style/HistoryGroupLabel"/>
+  </LinearLayout>
+
+  <View
+     android:id="@+id/rowDivider"
+     android:layout_width="match_parent"
+     android:layout_height="1dp"
+     android:background="@color/hero_divider"/>
+
+  <!-- The press lands on the solve, not on the day heading above it, so the ripple is on this
+       row and it takes the item's pressed state rather than the whole cell's. -->
+  <LinearLayout
+     android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_alignParentRight="true"
-     android:layout_alignParentEnd="true"
-     android:layout_centerVertical="true"
-     android:textStyle="bold"
-     android:textSize="17sp"
-     android:fontFeatureSettings="tnum"
-     android:singleLine="true"/>
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:minHeight="46dp"
+     android:background="@drawable/history_row"
+     android:duplicateParentState="true"
+     android:paddingLeft="@dimen/space_xs"
+     android:paddingRight="@dimen/space_xs"
+     android:paddingTop="@dimen/space_s"
+     android:paddingBottom="@dimen/space_s">
 
-  <!-- Status icon cluster, right-to-left: where the solve came from, PB trophy, comment -->
+    <!-- Tabular digits and a floor on the width, so the timestamps line up into a column. -->
+    <TextView
+       android:id="@+id/tvTime"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:minWidth="76dp"
+       android:textStyle="bold"
+       android:textSize="19sp"
+       android:fontFeatureSettings="tnum"
+       android:singleLine="true"/>
 
-  <!-- One slot, one mark: the circle for a solve timed by hand, the cube for one the cube timed
-       itself. Wrapped so the icons after it keep their anchor whichever of the two is showing,
-       and sized by that mark so a manual solve's row is spaced exactly as it was. -->
-  <FrameLayout
-     android:id="@+id/solveSourceMarker"
-     android:layout_width="wrap_content"
-     android:layout_height="wrap_content"
-     android:layout_centerVertical="true"
-     android:layout_toLeftOf="@+id/tvTime"
-     android:layout_toStartOf="@+id/tvTime"
-     android:layout_marginRight="@dimen/space_s"
-     android:layout_marginEnd="@dimen/space_s">
-    <ImageView
-       android:id="@+id/imgCircle"
-       android:layout_width="7dp"
-       android:layout_height="7dp"
-       android:layout_gravity="center"
-       android:src="@drawable/history_circle"/>
-    <ImageView
-       android:id="@+id/imgSmartCube"
-       android:layout_width="14dp"
-       android:layout_height="14dp"
-       android:layout_gravity="center"
+    <TextView
+       android:id="@+id/tvPbChip"
+       android:text="@string/record_label_lifetime"
+       android:layout_marginLeft="@dimen/space_s"
+       android:layout_marginStart="@dimen/space_s"
+       android:textColor="@color/new_record"
+       android:background="@drawable/pb_chip"
        android:visibility="gone"
-       android:src="@drawable/ic_smartcube_solve"/>
-  </FrameLayout>
+       style="@style/RowChip"/>
 
-  <ImageView
-     android:id="@+id/imgPb"
-     android:layout_width="16dp"
-     android:layout_height="16dp"
-     android:layout_centerVertical="true"
-     android:layout_toLeftOf="@+id/solveSourceMarker"
-     android:layout_toStartOf="@+id/solveSourceMarker"
-     android:layout_marginRight="@dimen/space_s"
-     android:layout_marginEnd="@dimen/space_s"
-     android:src="@drawable/trophy"/>
+    <ImageView
+       android:id="@+id/imgComment"
+       android:layout_width="15dp"
+       android:layout_height="15dp"
+       android:layout_marginLeft="@dimen/space_s"
+       android:layout_marginStart="@dimen/space_s"
+       android:alpha="0.75"
+       android:src="@drawable/comment"
+       android:contentDescription="@null"/>
 
-  <ImageView
-     android:id="@+id/imgComment"
-     android:layout_width="16dp"
-     android:layout_height="16dp"
-     android:layout_centerVertical="true"
-     android:layout_toLeftOf="@+id/imgPb"
-     android:layout_toStartOf="@+id/imgPb"
-     android:layout_marginRight="@dimen/space_s"
-     android:layout_marginEnd="@dimen/space_s"
-     android:src="@drawable/comment"/>
+    <!-- Held to the far edge, so the row is anchored at both ends however few marks it carries. -->
+    <TextView
+       android:id="@+id/tvDate"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:layout_marginLeft="@dimen/space_s"
+       android:layout_marginStart="@dimen/space_s"
+       android:gravity="end"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"
+       android:fontFeatureSettings="tnum"
+       android:singleLine="true"
+       android:ellipsize="end"/>
 
-</RelativeLayout>
+  </LinearLayout>
+
+</LinearLayout>
