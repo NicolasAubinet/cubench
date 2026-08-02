@@ -23,7 +23,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -47,6 +46,7 @@ import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.FontFitTextView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.util.view.SwipeSwitchLayout;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -68,9 +68,23 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private static final String ARG_CUBETYPE = "cubetype";
 
   private TimeChangedHandler handler;
+  private SolveNavigator navigator;
+
+  private SolveTime solveTime; // the solve on show, which a swipe moves along the list
+  private CubeType cubeType;
+  private View view;
+  private BottomSheetDialog dialog;
+
   public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType, TimeChangedHandler handler) {
+    return newInstance(solveTime, cubeType, handler, null);
+  }
+
+  /** With a navigator the sheet can be swiped along the list the solve was opened from. */
+  public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType,
+      TimeChangedHandler handler, SolveNavigator navigator) {
     HistoryDetailDialog hd = new HistoryDetailDialog();
     hd.handler = handler;
+    hd.navigator = navigator;
 
     Bundle bundle = new Bundle();
     bundle.putSerializable(ARG_SOLVETIME, solveTime);
@@ -81,11 +95,30 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
-    final View v = getActivity().getLayoutInflater().inflate(R.layout.historydetail_dialog, null);
+    view = getActivity().getLayoutInflater().inflate(R.layout.historydetail_dialog, null);
 
     Bundle args = getArguments();
-    final SolveTime solveTime = (SolveTime) args.getSerializable(ARG_SOLVETIME);
-    final CubeType cubeType = (CubeType) args.getSerializable(ARG_CUBETYPE);
+    solveTime = (SolveTime) args.getSerializable(ARG_SOLVETIME);
+    cubeType = (CubeType) args.getSerializable(ARG_CUBETYPE);
+
+    dialog = new BottomSheetDialog(getActivity(), getTheme());
+    dialog.setContentView(view);
+    dialog.setCanceledOnTouchOutside(true);
+
+    setUpActions(view);
+    setUpSwipe(view);
+    bindSolve(view);
+    return dialog;
+  }
+
+  /**
+   * Puts the solve on show. Everything it touches is put back to how the layout has it first, since
+   * the same views are handed the next solve when the sheet is swiped along the list.
+   */
+  private void bindSolve(final View v) {
+    resetBinding(v);
+    final SolveTime solveTime = this.solveTime;
+    final CubeType cubeType = this.cubeType;
 
     final boolean stepped = solveTime.hasSteps();
     final boolean blind = solveTime.getSolveType().isBlind();
@@ -110,6 +143,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         activity.runOnUiThread(new Runnable() {
           @Override
           public void run() {
+            if (solveTime != HistoryDetailDialog.this.solveTime) {
+              return; // swiped on while this was being read: it belongs to a solve no longer shown
+            }
             if (!stepped) { // a stepped solve shows its splits instead, and they are already set
               if (blind) {
                 ((TextView) v.findViewById(R.id.tvMeanOfThree)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5())); // avg5 contains mean of 3 for blind type (same DB column)
@@ -148,25 +184,13 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
           getString(R.string.breakdown), null, method);
     }
 
-    final TextView tvDate = (TextView) v.findViewById(R.id.tvDate);
-    final TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
+    TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
     FontFitTextView tvScramble = (FontFitTextView) v.findViewById(R.id.tvScramble);
-    Button buPlusTwo = (Button) v.findViewById(R.id.buPlusTwo);
-    Button buDNF = (Button) v.findViewById(R.id.buDNF);
-    Button buDelete = (Button) v.findViewById(R.id.buDelete);
-    ImageButton buShareTime = (ImageButton) v.findViewById(R.id.buShareTime);
-    ImageButton buComment = (ImageButton) v.findViewById(R.id.buComment);
-    ImageView imgPb = (ImageView) v.findViewById(R.id.imgPb);
 
-    if (solveTime.isDNF()) {
-      buPlusTwo.setEnabled(false);
-    }
-    buDNF.setText(solveTime.canUndoDNF() ? R.string.undo_dnf : R.string.DNF);
-    if (solveTime.isPb()) {
-      imgPb.setVisibility(View.VISIBLE);
-    } else {
-      imgPb.setVisibility(View.GONE);
-    }
+    v.findViewById(R.id.buPlusTwo).setEnabled(!solveTime.isDNF());
+    ((Button) v.findViewById(R.id.buDNF))
+        .setText(solveTime.canUndoDNF() ? R.string.undo_dnf : R.string.DNF);
+    v.findViewById(R.id.imgPb).setVisibility(solveTime.isPb() ? View.VISIBLE : View.GONE);
 
     final View scrambleCard = v.findViewById(R.id.scrambleCard);
     if (solveTime.getScramble() != null) {
@@ -185,17 +209,45 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     setUpScrambleTools(v, solveTime, cubeType);
     setUpReplay(v, solveTime, cubeType);
-    tvDate.setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
+    ((TextView) v.findViewById(R.id.tvDate))
+        .setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
     tvTime.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
-    if (solveTime.isDNF()) {
-      tvTime.setTextColor(getResources().getColor(R.color.dnf_time));
-    }
+    tvTime.setTextColor(color(solveTime.isDNF() ? R.color.dnf_time : R.color.white));
+  }
 
-    final BottomSheetDialog dialog = new BottomSheetDialog(getActivity(), getTheme());
-    dialog.setContentView(v);
-    dialog.setCanceledOnTouchOutside(true);
+  /**
+   * Puts every view a binding touches back to its layout default, so nothing of the solve leaving
+   * the sheet is left showing under the one arriving.
+   */
+  private void resetBinding(View v) {
+    v.findViewById(R.id.detailScroll).scrollTo(0, 0); // a solve arrives read from the top
+    v.findViewById(R.id.averagesTable).setVisibility(View.VISIBLE);
+    v.findViewById(R.id.trSteps).setVisibility(View.GONE);
+    v.findViewById(R.id.trMeanOfThree).setVisibility(View.GONE);
+    v.findViewById(R.id.tvVerdict).setVisibility(View.GONE);
+    v.findViewById(R.id.scrambleHeader).setVisibility(View.VISIBLE);
+    v.findViewById(R.id.breakdownSection).setVisibility(View.GONE);
+    v.findViewById(R.id.breakdownCard).setVisibility(View.VISIBLE);
+    v.findViewById(R.id.breakdownTotals).setVisibility(View.GONE);
+    v.findViewById(R.id.movesSwitchLabel).setVisibility(View.VISIBLE);
+    SwitchCompat moves = (SwitchCompat) v.findViewById(R.id.swMoves);
+    moves.setVisibility(View.VISIBLE);
+    moves.setOnCheckedChangeListener(null); // the next binding sets it, and would trip this one
+    v.findViewById(R.id.buReplay).setVisibility(View.GONE);
+    ((TableLayout) v.findViewById(R.id.breakdownTable)).removeAllViews();
+    breakdownRows.clear();
+    breakdownSteps = null;
 
-    buPlusTwo.setOnClickListener(new OnClickListener() {
+    View scrambleCard = v.findViewById(R.id.scrambleCard);
+    scrambleCard.setClickable(true);
+    TypedValue background = new TypedValue();
+    getActivity().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, background, true);
+    scrambleCard.setForeground(ContextCompat.getDrawable(getActivity(), background.resourceId));
+  }
+
+  /** The actions on the solve, wired once: each reads whichever solve the sheet is showing. */
+  private void setUpActions(View v) {
+    v.findViewById(R.id.buPlusTwo).setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
         if (!solveTime.isDNF()) {
@@ -206,7 +258,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       }
     });
 
-    buDNF.setOnClickListener(new OnClickListener() {
+    v.findViewById(R.id.buDNF).setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
         if (solveTime.canUndoDNF()) {
@@ -220,33 +272,54 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       }
     });
 
-    buDelete.setOnClickListener(new OnClickListener() {
+    v.findViewById(R.id.buDelete).setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        App.INSTANCE.getService().deleteTime(solveTime, new DataCallback<SolveAverages>() {
+        final SolveTime deleted = solveTime;
+        App.INSTANCE.getService().deleteTime(deleted, new DataCallback<SolveAverages>() {
           public void onData(SolveAverages data) {
-            handler.onTimeDeleted(solveTime); // once deleted, so a handler may safely re-read the averages
+            handler.onTimeDeleted(deleted); // once deleted, so a handler may safely re-read the averages
           }
         });
         dialog.dismiss();
       }
     });
 
-    buShareTime.setOnClickListener(new OnClickListener() {
+    v.findViewById(R.id.buShareTime).setOnClickListener(new OnClickListener() {
       @Override
-      public void onClick(View v) {
+      public void onClick(View view) {
         DialogUtils.shareTime(getActivity(), solveTime, cubeType);
       }
     });
 
-    buComment.setOnClickListener(new OnClickListener() {
+    v.findViewById(R.id.buComment).setOnClickListener(new OnClickListener() {
       @Override
-      public void onClick(View v) {
+      public void onClick(View view) {
         DialogUtils.showFragment(getActivity(), CommentSolveDialog.newInstance(solveTime, handler));
       }
     });
+  }
 
-    return dialog;
+  /**
+   * Hands the sheet along the list it was opened from. A swipe with nothing beyond it springs back,
+   * which is how the ends of the list are felt rather than announced.
+   */
+  private void setUpSwipe(View v) {
+    if (navigator == null) { // opened from somewhere with no list to walk, the timer among them
+      return;
+    }
+    ((SwipeSwitchLayout) v).setOnSwitch(new SwipeSwitchLayout.OnSwitch() {
+      @Override
+      public boolean onSwitch(int direction) {
+        SolveTime neighbour = navigator.getNeighbourSolve(solveTime, direction);
+        if (neighbour == null) {
+          return false;
+        }
+        solveTime = neighbour;
+        bindSolve(view);
+        return true;
+      }
+    });
   }
 
   /** A rank is worth naming when it is in the all-time top ten, and in the top quarter of them. */

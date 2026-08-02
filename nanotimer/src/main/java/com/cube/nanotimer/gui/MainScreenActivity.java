@@ -47,6 +47,7 @@ import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
 import com.cube.nanotimer.gui.widget.SelectorListDialog;
+import com.cube.nanotimer.gui.widget.SolveNavigator;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
@@ -81,7 +82,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class MainScreenActivity extends DrawerLayoutActivity implements SelectionHandler, ResultListener, TimeChangedHandler {
+public class MainScreenActivity extends DrawerLayoutActivity implements SelectionHandler, ResultListener, TimeChangedHandler, SolveNavigator {
 
   private ListView lvHistory;
   private TextView tvCubeType;
@@ -343,8 +344,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     lvHistory.setOnItemClickListener(new OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        DialogUtils.showFragment(MainScreenActivity.this,
-          HistoryDetailDialog.newInstance(liHistory.get(i), curCubeType, MainScreenActivity.this));
+        DialogUtils.showFragment(MainScreenActivity.this, HistoryDetailDialog.newInstance(
+          liHistory.get(i), curCubeType, MainScreenActivity.this, MainScreenActivity.this));
       }
     });
     lvHistory.setOnScrollListener(new OnScrollListener() {
@@ -967,6 +968,18 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private void setCurSolveType(SolveType solveType) {
     this.curSolveType = solveType;
     Utils.setCurrentSolveType(this, solveType);
+  }
+
+  /** Found by id rather than by position, so a solve deleted meanwhile cannot hand back its seat. */
+  @Override
+  public SolveTime getNeighbourSolve(SolveTime solveTime, int direction) {
+    for (int i = 0; i < liHistory.size(); i++) {
+      if (liHistory.get(i).getId() == solveTime.getId()) {
+        int neighbour = i + direction;
+        return neighbour >= 0 && neighbour < liHistory.size() ? liHistory.get(neighbour) : null;
+      }
+    }
+    return null;
   }
 
   @Override

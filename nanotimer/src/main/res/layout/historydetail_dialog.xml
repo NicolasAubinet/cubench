@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- A swipe layout rather than a plain one: the sheet is handed along the history list sideways. -->
+<com.cube.nanotimer.util.view.SwipeSwitchLayout
+   xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:custom="http://schemas.android.com/apk/res-auto"
    android:orientation="vertical"
    android:layout_width="match_parent"
@@ -96,6 +98,7 @@
        pushing them out of the window when the breakdown is long. Nested rather than plain, so the
        sheet lets it scroll back up instead of reading the drag as a pull on itself. -->
   <androidx.core.widget.NestedScrollView
+     android:id="@+id/detailScroll"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
@@ -364,4 +367,4 @@
        style="@style/DialogActionButton"/>
   </LinearLayout>
 
-</LinearLayout>
+</com.cube.nanotimer.util.view.SwipeSwitchLayout>
