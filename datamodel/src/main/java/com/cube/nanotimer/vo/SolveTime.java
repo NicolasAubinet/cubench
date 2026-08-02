@@ -24,6 +24,7 @@ public class SolveTime implements Serializable {
   private CubeMethod smartcubeMethod;
   private List<SolveStep> smartcubeSteps;
   private String smartcubeMoves;
+  private String smartcubeGyroTrack;
   private Integer smartcubeStoppedStep;
 
   public SolveTime() {
@@ -184,6 +185,19 @@ public class SolveTime implements Serializable {
 
   public void setSmartcubeMoves(String smartcubeMoves) {
     this.smartcubeMoves = smartcubeMoves;
+  }
+
+  /**
+   * The small physical rotations the solve was turned with, encoded, or null where there are none.
+   * Not loaded with the solve: it is a kilobyte or so per solve and only the one being looked at
+   * ever needs it, so it is fetched on its own.
+   */
+  public String getSmartcubeGyroTrack() {
+    return smartcubeGyroTrack;
+  }
+
+  public void setSmartcubeGyroTrack(String smartcubeGyroTrack) {
+    this.smartcubeGyroTrack = smartcubeGyroTrack;
   }
 
   /**

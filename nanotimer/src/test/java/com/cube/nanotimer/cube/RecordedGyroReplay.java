@@ -31,7 +31,8 @@ final class RecordedGyroReplay {
   private String storedMoves;
 
   RecordedGyroReplay(String fixture) {
-    RotationTracker tracker = new RotationTracker();
+    GyroReference reference = new GyroReference();
+    RotationTracker tracker = new RotationTracker(reference);
     SliceSpinDetector sliceSpins = new SliceSpinDetector();
     List<CubeMove> moves = new ArrayList<CubeMove>();
     for (String line : lines(fixture)) {
@@ -39,7 +40,7 @@ final class RecordedGyroReplay {
       if (parts[0].equals("scramble")) {
         scramble = line.substring("scramble ".length());
       } else if (parts[0].equals("reference")) {
-        tracker.anchor(orientation(parts, 1));
+        reference.anchor(orientation(parts, 1));
       } else if (parts[0].equals("move")) {
         long timestampMs = Long.parseLong(parts[1]);
         CubeMove move = new CubeMove(Face.valueOf(parts[2].substring(0, 1)),

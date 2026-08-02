@@ -111,6 +111,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private SolveTime lastSolveTime;
   private List<SolveStep> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
   private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
+  private String lastSolveGyroTrack; // the small rotations it was turned with, null without a gyro
   private CubeMethod lastSolveMethod; // the method its milestones fitted, null when they fitted none
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
@@ -914,6 +915,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       public void run() {
         lastSolveSteps = Collections.emptyList(); // a hand-entered time is now the last solve, and no cube saw it
         lastSolveMoves = "";
+        lastSolveGyroTrack = null;
         lastSolveMethod = null;
         lastSolveStoppedStep = null;
         addTimeToUI(solveAverages.getSolveTime().getTime());
@@ -1212,6 +1214,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       setLastSolveTime(null);
       lastSolveSteps = Collections.emptyList();
       lastSolveMoves = "";
+      lastSolveGyroTrack = null;
       lastSolveMethod = null;
       lastSolveStoppedStep = null;
       timerStartTs = 0;
@@ -1273,6 +1276,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
       if (!lastSolveMoves.isEmpty()) { // the cube timed it, whether or not a method matched
         solveTime.setSmartcubeMoves(lastSolveMoves);
+        solveTime.setSmartcubeGyroTrack(lastSolveGyroTrack); // null unless the cube has a gyro
       }
     }
 
@@ -1459,6 +1463,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastSolveMethod = solveController.getMethod();
     lastSolveStoppedStep = solveController.getStoppedStep();
     lastSolveMoves = solveController.getSolveMoves(); // captured before the early return: a solve with no breakdown still has moves
+    lastSolveGyroTrack = solveController.getGyroTrack();
     if (!scramblesTheWholeCube()) {
       // A partial scramble leaves most milestones already reached, so every method fits it and none
       // is told apart. The moves are still worth keeping; the breakdown would be invented.

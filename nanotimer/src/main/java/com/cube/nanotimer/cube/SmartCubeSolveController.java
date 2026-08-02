@@ -53,7 +53,9 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
   private MethodAnalyzers analyzers = new MethodAnalyzers(CubeMethod.CFOP); // replaced by the solve type's own at the first setScramble
-  private final RotationTracker rotationTracker = new RotationTracker();
+  // One reference for every reader of the gyro: the frames, the pick-up grip and the stored track.
+  private final GyroReference gyroReference = new GyroReference();
+  private final RotationTracker rotationTracker = new RotationTracker(gyroReference);
   private final SliceSpinDetector sliceSpins = new SliceSpinDetector();
   private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -63,6 +65,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private CubeMethod expectedMethod; // what the solve type says its solves are, and the only one read
   private Integer stoppedStep;
   private String solveMoves = "";
+  private String gyroTrack; // the solve's small physical rotations, null without a gyro to read them
   private String[] scramble;
   private boolean cubeDriven; // auto-stop applies (3x3 + connected)
   private boolean followable; // scramble-follow + auto-start apply (3x3 default scramble)
@@ -165,6 +168,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
     if (!cubeDrove) {
       solveMoves = "";
+      gyroTrack = null;
       onRecorded.run();
       return;
     }
@@ -184,12 +188,19 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     }
     Runnable onRecorded = pendingRecord;
     pendingRecord = null;
+    long solveStartMs = analyzers.moves().getSolveStartMs();
     // The moves need no method: an unrecognised solve still has a solution worth keeping.
     solveMoves = SolveMovesFormat.format(analyzers.moves().getMoves(),
         rotationTracker.getRotations(
             sliceSpins.coreSpins(SmartCubeManager.INSTANCE::getOrientationAt)),
-        analyzers.moves().getSolveStartMs(),
+        solveStartMs,
         usedPickup == null ? null : usedPickup.getNotation());
+    // The same window the moves cover, read off the buffer the gyro has been filling all along —
+    // no sampling of our own during the solve, so recording costs nothing until it is over.
+    gyroTrack = GyroTrackFormat.format(
+        SmartCubeManager.INSTANCE.getOrientationsBetween(
+            solveStartMs, lastSolveMoveHostMs + GYRO_CATCHUP_MS),
+        gyroReference.get(), solveStartMs);
     onRecorded.run();
   }
 
@@ -212,6 +223,15 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   /** The moves of the solve just finished, stored form. Empty unless the cube drove it. */
   public String getSolveMoves() {
     return solveMoves;
+  }
+
+  /**
+   * The gyro track of the solve just finished, stored form, or null where there is none — a cube
+   * with no gyro (every GAN Gen3, and not every other GAN has one), or a solve the cube did not
+   * drive. The moves stand without it: it is what the discrete rotation tokens leave out.
+   */
+  public String getGyroTrack() {
+    return gyroTrack;
   }
 
   /** True when a solve now would be broken down into steps: a 3x3 with a cube connected. */
@@ -276,7 +296,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     recordMoves(); // the resets below are what a solve still waiting on the gyro reads
     follower = null;
     analyzing = false;
-    rotationTracker.reset(); // a new scramble re-anchors at its own first move
+    rotationTracker.reset();
+    gyroReference.restart(); // a new scramble re-anchors at its own first move
     sliceSpins.reset();
     pickup = null;
     pickupRead = false;
@@ -352,10 +373,10 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
             && followMoveWallMs - lastFollowMoveWallMs > FOLLOW_RESUME_GAP_MS) {
           // A long pause mid-follow means the cube was set down, and it can be picked back up any
           // way up: the reference restarts at the move that resumes the scramble.
-          rotationTracker.restartAnchor();
+          gyroReference.restart();
         }
         lastFollowMoveWallMs = followMoveWallMs;
-        rotationTracker.anchor(SmartCubeManager.INSTANCE.getOrientation());
+        gyroReference.anchor(SmartCubeManager.INSTANCE.getOrientation());
         boolean changed = follower.onMove(move);
         if (follower.isComplete()) {
           phase = Phase.ARMED;
@@ -410,7 +431,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     }
     if (!pickupRead) {
       pickupRead = true;
-      pickup = rotationTracker.frameOf(SmartCubeManager.INSTANCE.getOrientationAt(
+      pickup = gyroReference.frameOf(SmartCubeManager.INSTANCE.getOrientationAt(
           move.getCubeTimestampMs() - SliceSpinDetector.SETTLE_MS));
     }
     // Kept as the grip the analysis actually ran on, fallback included, since that is the one the

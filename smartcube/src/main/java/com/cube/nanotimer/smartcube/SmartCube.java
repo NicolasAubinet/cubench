@@ -8,6 +8,8 @@ import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
+import com.cube.nanotimer.smartcube.model.OrientationHistory;
+import java.util.List;
 
 /**
  * A connected smart cube. Brand-agnostic: consumers register listeners and never touch
@@ -49,6 +51,13 @@ public interface SmartCube {
    * side of the turn.
    */
   CubeOrientation getOrientationAt(long timestampMs);
+
+  /**
+   * Every reading taken between two moments (wall clock), oldest first. Empty where the cube has no
+   * gyro, and where the window has already fallen out of the buffer — which holds about two and a
+   * half minutes, longer than the solve it is ever read within.
+   */
+  List<OrientationHistory.Sample> getOrientationsBetween(long fromMs, long toMs);
 
   /** Pull a fresh full state from the cube to re-anchor after packet loss. */
   void requestState();

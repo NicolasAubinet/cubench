@@ -1,7 +1,9 @@
 package com.cube.nanotimer.smartcube.model;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
 /**
  * A bounded history of the ~20 Hz orientation stream, so a reading can be taken at a moment that
@@ -45,7 +47,22 @@ public final class OrientationHistory {
         : null;
   }
 
-  private static final class Sample {
+  /**
+   * Every reading taken between two moments, oldest first — the raw stream a solve's gyro track is
+   * keyframed out of. Empty for a cube with no gyro, and for a window older than the buffer holds.
+   */
+  public synchronized List<Sample> between(long fromMs, long toMs) {
+    List<Sample> window = new ArrayList<Sample>();
+    for (Sample sample : samples) {
+      if (sample.timestampMs >= fromMs && sample.timestampMs <= toMs) {
+        window.add(sample);
+      }
+    }
+    return window;
+  }
+
+  /** One reading, and the host moment it arrived. */
+  public static final class Sample {
 
     private final CubeOrientation orientation;
     private final long timestampMs;
@@ -53,6 +70,14 @@ public final class OrientationHistory {
     private Sample(CubeOrientation orientation, long timestampMs) {
       this.orientation = orientation;
       this.timestampMs = timestampMs;
+    }
+
+    public CubeOrientation getOrientation() {
+      return orientation;
+    }
+
+    public long getTimestampMs() {
+      return timestampMs;
     }
 
     private long distanceTo(long otherMs) {

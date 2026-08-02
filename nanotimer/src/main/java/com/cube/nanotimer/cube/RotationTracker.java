@@ -12,10 +12,9 @@ import java.util.List;
  * frame is right for 78% of the moves of seven captured solves, against 55% for the still-window
  * grip tracking it replaced.
  *
- * <p><strong>The reference is the reading at the first scramble move</strong>, uprighted — the one
- * grip whose label can be known, because it is the one the solver can be asked for. The end of a
- * scramble cannot: cubers turn the cube mid-scramble to make a {@code B} easier and put it back only
- * sometimes.
+ * <p><strong>The frames are measured from {@link GyroReference}</strong>, the reading at the first
+ * scramble move — held there rather than here because the stored gyro track is written against the
+ * same reference and a reset has to reach both.
  *
  * <p>Slices are {@link SliceSpinDetector}'s, since the core rocks over ~150 ms and every reading
  * taken at a move inside an LSE is mid-rock. Its spins are folded in here, and no frame is read at
@@ -24,36 +23,19 @@ import java.util.List;
 public final class RotationTracker {
 
   private final List<Frame> frames = new ArrayList<Frame>();
-  private CubeOrientation reference; // the grip the scramble was begun in, its tilt taken out
+  private final GyroReference reference;
 
-  /** Feed the reading at every followed scramble move: the first one is the reference. */
-  public void anchor(CubeOrientation reading) {
-    if (reference == null && reading != null) {
-      reference = CubeRotation.upright(reading);
-    }
-  }
-
-  /** Forget the reference: the cube was set down mid-scramble and may be picked up any way up. */
-  public void restartAnchor() {
-    reference = null;
+  public RotationTracker(GyroReference reference) {
+    this.reference = reference;
   }
 
   /** Sample the reading at a solve move: the frame it was made in is the delta from the reference. */
   public void onMove(CubeOrientation reading, long moveTimestampMs) {
-    if (reference == null || reading == null) {
+    CubeRotation frame = reference.frameOf(reading);
+    if (frame == null) {
       return; // no reference yet, or no gyro: the move stands in whatever frame the last one set
     }
-    CubeOrientation delta = reference.deltaTo(CubeRotation.upright(reading));
-    frames.add(new Frame(CubeRotation.closest(delta), moveTimestampMs));
-  }
-
-  /**
-   * The frame a reading of its own was taken in — one from before the solve's first move, which is
-   * the last moment no slice has carried the core round yet. Null with no reference or no reading.
-   */
-  public CubeRotation frameOf(CubeOrientation reading) {
-    return reference == null || reading == null ? null
-        : CubeRotation.closest(reference.deltaTo(CubeRotation.upright(reading)));
+    frames.add(new Frame(frame, moveTimestampMs));
   }
 
   /**
@@ -131,9 +113,9 @@ public final class RotationTracker {
         && coreSpins.get(nextSpin).getPairFromMs() <= moveTimestampMs;
   }
 
+  /** Forget the solve's frames. The reference is the caller's to restart: it outlives a tracker. */
   public void reset() {
     frames.clear();
-    reference = null;
   }
 
   /** The frame one move was made in, as the gyro read it, and the moment the cube dates that move. */

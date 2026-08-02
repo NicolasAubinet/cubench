@@ -347,6 +347,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
     if (solveTime.hasSmartcubeMoves()) { // kept even when no method matched: the breakdown is optional, the solution is not
       values.put(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES, solveTime.getSmartcubeMoves());
+      values.put(DB.COL_TIMEHISTORY_SMARTCUBE_GYRO, solveTime.getSmartcubeGyroTrack()); // null unless the cube had a gyro
     }
     // Only alongside a breakdown: on its own there are no steps for it to point into.
     if (solveTime.hasSmartcubeBreakdown() && solveTime.getSmartcubeStoppedStep() != null) {
@@ -1145,6 +1146,25 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     return results;
+  }
+
+  /**
+   * The solve's gyro track, or null where it has none — every solve recorded before the track was
+   * kept, every cube with no gyro, and every solve no cube drove. Fetched on its own rather than
+   * with the solve: it is about a kilobyte, and only the solve being looked at ever wants it.
+   */
+  public String getGyroTrack(int solveTimeId) {
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_TIMEHISTORY_SMARTCUBE_GYRO
+        + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_ID + " = ?", getStringArray(solveTimeId));
+    String track = null;
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        track = cursor.getString(0);
+      }
+      cursor.close();
+    }
+    return track;
   }
 
   public SolveTime getSolveTime(int solveTimeId) {

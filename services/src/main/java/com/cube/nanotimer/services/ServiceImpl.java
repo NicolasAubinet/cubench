@@ -333,6 +333,16 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getGyroTrack(final int solveTimeId, final DataCallback<String> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getGyroTrack(solveTimeId));
+      }
+    });
+  }
+
+  @Override
   public void getFrequencyData(final SolveType solveType, final long from, final DataCallback<List<FrequencyData>> callback) {
     run(new Runnable() {
       @Override
