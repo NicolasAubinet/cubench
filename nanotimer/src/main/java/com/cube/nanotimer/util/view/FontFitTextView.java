@@ -113,6 +113,22 @@ public class FontFitTextView extends AppCompatTextView {
       refitText(getText().toString(), widthSize);
     }
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    // Shrinking the text must not shrink the box holding it. The cell around this view is sized to
+    // its tallest child, so a long value that scaled itself down was pulling the tile down with it
+    // and leaving it shorter than the one beside it.
+    if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.EXACTLY) {
+      setMeasuredDimension(getMeasuredWidth(),
+          Math.max(getMeasuredHeight(), unshrunkHeight()));
+    }
+  }
+
+  /** The height this would measure with its text at full size, however far it has been scaled. */
+  private int unshrunkHeight() {
+    mTestPaint.set(getPaint());
+    mTestPaint.setTextSize(initialTextSize);
+    Paint.FontMetricsInt metrics = mTestPaint.getFontMetricsInt();
+    int lines = Math.max(1, getLineCount());
+    return getPaddingTop() + getPaddingBottom() + lines * (metrics.bottom - metrics.top);
   }
 
   @Override
