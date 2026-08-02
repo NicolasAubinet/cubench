@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One row of the cube type / solve type picker. The list keeps the order the user set, so the
+     row's job is to say what it is and what is in it: the best single it has produced, and how
+     much practice that came out of. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:gravity="center_vertical"
+   android:minHeight="52dp"
+   android:paddingRight="@dimen/space_m"
+   android:paddingEnd="@dimen/space_m">
+
+  <!-- Holds the bar's width whether or not it shows, so the names never shift between rows. -->
+  <View
+     android:id="@+id/selectionBar"
+     android:layout_width="3dp"
+     android:layout_height="26dp"
+     android:layout_marginLeft="6dp"
+     android:layout_marginStart="6dp"
+     android:background="@drawable/selector_bar"/>
+
+  <FrameLayout
+     android:id="@+id/iconTile"
+     android:layout_width="32dp"
+     android:layout_height="32dp"
+     android:layout_marginLeft="10dp"
+     android:layout_marginStart="10dp"
+     android:background="@drawable/hero_glyph">
+
+    <ImageView
+       android:id="@+id/imgIcon"
+       android:layout_width="19dp"
+       android:layout_height="19dp"
+       android:layout_gravity="center"
+       android:tint="@color/lightblue"
+       android:contentDescription="@null"/>
+  </FrameLayout>
+
+  <TextView
+     android:id="@+id/tvName"
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginLeft="12dp"
+     android:layout_marginStart="12dp"
+     android:textSize="17sp"
+     android:textColor="@color/white"
+     android:singleLine="true"
+     android:ellipsize="end"/>
+
+  <!-- The best single, wearing the record colour it wears everywhere else. -->
+  <TextView
+     android:id="@+id/tvFigure"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginLeft="10dp"
+     android:layout_marginStart="10dp"
+     android:textSize="14sp"
+     android:textStyle="bold"
+     android:textColor="@color/new_record"
+     android:fontFeatureSettings="tnum"
+     android:singleLine="true"/>
+
+  <TextView
+     android:id="@+id/tvCount"
+     android:layout_marginLeft="8dp"
+     android:layout_marginStart="8dp"
+     android:fontFeatureSettings="tnum"
+     style="@style/RowChip"/>
+
+</LinearLayout>

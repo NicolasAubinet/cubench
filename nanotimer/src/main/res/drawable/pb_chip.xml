@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The record pill on a history row: a wash of the colour the time itself is wearing. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/record_tile_bg"/>
+  <corners android:radius="20dp"/>
+</shape>

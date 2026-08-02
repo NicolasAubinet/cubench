@@ -88,6 +88,11 @@
   <!-- Destructive action as text: pure red glares against the dark dialogs. -->
   <color name="danger_text">#EF5350</color>
 
+  <!-- A statistics cell tinted by the record colour it is announcing -->
+  <color name="record_tile_bg">#26FFDD00</color>
+  <!-- The same tint, flattened: the record bar paints it over its own edge, so it cannot be translucent -->
+  <color name="record_bar_bg">#3C3A29</color>
+
   <color name="history_marker">@color/iceblue</color>
 
   <color name="dialog_surface">#23272B</color>
@@ -110,6 +115,35 @@
   <color name="button_disabled">@color/gray850</color>
 
   <color name="mainscreen_top_card">@color/gray800</color>
+
+  <!-- History screen hero: a card a shade cooler than the ground, with its controls and
+       statistics inset a shade darker so they read as recessed into it. -->
+  <color name="hero_card">#3E444A</color>
+  <color name="hero_inset">#343A3F</color>
+  <color name="hero_divider">#1AFFFFFF</color>
+  <!-- Ink for text sitting on the accent itself, where white would not hold. -->
+  <color name="on_accent">#12181C</color>
+
+  <!-- One hue per puzzle, walked round the wheel at a fixed chroma so twelve of them read as a
+       set rather than as a scatter: the cubes climb from cyan into violet as they grow, and the
+       rest take the warm half. 3x3 keeps the app's own accent. -->
+  <color name="puzzle_2x2">#6ED9C4</color>
+  <color name="puzzle_3x3">@color/lightblue</color>
+  <color name="puzzle_4x4">#7FB6F2</color>
+  <color name="puzzle_5x5">#9C9AF0</color>
+  <color name="puzzle_6x6">#C193EC</color>
+  <color name="puzzle_7x7">#EC8FDC</color>
+  <color name="puzzle_megaminx">#F08FB4</color>
+  <color name="puzzle_fto">#F5A18C</color>
+  <color name="puzzle_pyraminx">#F0B570</color>
+  <color name="puzzle_skewb">#E8CB6A</color>
+  <color name="puzzle_square1">#C7DB74</color>
+  <color name="puzzle_clock">#8FD98F</color>
+
+  <!-- A solve type has no colour of its own, so it takes one from what kind it is. -->
+  <color name="solvetype_plain">@color/lightblue</color>
+  <color name="solvetype_blind">#B49BE8</color>
+  <color name="solvetype_steps">#7FD98A</color>
 
   <color name="card_divider">@color/iceblue</color>
   <!--<color name="listview_background">@color/main_element</color>-->

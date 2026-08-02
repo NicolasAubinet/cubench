@@ -712,4 +712,17 @@
   <string name="discard_solve_confirmation">Le chronomètre s\'est arrêté et le temps a été enregistré. Le supprimer l\'effacera.</string>
   <string name="discard_solve">Supprimer</string>
   <string name="keep_solve">Garder</string>
+  <string name="timer_session">Session</string>
+  <string name="timer_personal_best">Record perso</string>
+  <string name="timer_avg_1000">Moy. de 1000</string>
+  <string name="timer_best_value">record %1$s</string>
+
+  <!-- History screen -->
+  <string name="history_empty">Aucune résolution. Appuyez sur Démarrer pour en chronométrer une.</string>
+  <string name="sparkline_window">%1$d dernières</string>
+  <string name="today">Aujourd\'hui</string>
+  <string name="yesterday">Hier</string>
+  <string name="acc_label">Préc</string>
+  <string name="time_just_now">à l\'instant</string>
+  <string name="time_minutes_ago">il y a %1$d min</string>
 </resources>

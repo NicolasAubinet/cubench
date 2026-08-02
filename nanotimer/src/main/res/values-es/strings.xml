@@ -711,4 +711,17 @@
   <string name="discard_solve_confirmation">El temporizador se detuvo y el tiempo se guardó. Descartarlo lo elimina.</string>
   <string name="discard_solve">Descartar</string>
   <string name="keep_solve">Conservar</string>
+  <string name="timer_session">Sesión</string>
+  <string name="timer_personal_best">Récord personal</string>
+  <string name="timer_avg_1000">Media de 1000</string>
+  <string name="timer_best_value">mejor %1$s</string>
+
+  <!-- History screen -->
+  <string name="history_empty">Aún no hay resoluciones. Pulsa Iniciar para cronometrar una.</string>
+  <string name="sparkline_window">últimas %1$d</string>
+  <string name="today">Hoy</string>
+  <string name="yesterday">Ayer</string>
+  <string name="acc_label">Prec</string>
+  <string name="time_just_now">ahora mismo</string>
+  <string name="time_minutes_ago">hace %1$d min</string>
 </resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Megaminx: a pentagon face, cut into a centre, edges and corners. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M12,3.2 L20.75,9.56 L17.41,19.84 L6.59,19.84 L3.25,9.56 Z M12,8.9 L15.33,11.32 L14.06,15.23 L9.94,15.23 L8.67,11.32 Z M12,8.9 L16.37,6.38 M15.33,11.32 L19.08,14.7 M14.06,15.23 L12,19.84 M9.94,15.23 L4.92,14.7 M8.67,11.32 L7.63,6.38"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.5"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>

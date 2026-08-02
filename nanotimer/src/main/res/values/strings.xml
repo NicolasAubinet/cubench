@@ -717,4 +717,22 @@
   <string name="discard_solve_confirmation">The timer stopped and the time was saved. Discarding removes it.</string>
   <string name="discard_solve">Discard</string>
   <string name="keep_solve">Keep</string>
+  <string name="timer_session">Session</string>
+  <string name="timer_personal_best">Personal best</string>
+  <string name="timer_avg_1000">Avg of 1000</string>
+  <string name="timer_best_value">best %1$s</string>
+  <string name="ao5_label">Ao5</string>
+  <string name="ao12_label">Ao12</string>
+  <string name="ao50_label">Ao50</string>
+  <string name="ao100_label">Ao100</string>
+  <string name="mo3_label">Mo3</string>
+
+  <!-- History screen -->
+  <string name="history_empty">No solves yet. Press Start to time one.</string>
+  <string name="sparkline_window">last %1$d</string>
+  <string name="today">Today</string>
+  <string name="yesterday">Yesterday</string>
+  <string name="acc_label">Acc</string>
+  <string name="time_just_now">just now</string>
+  <string name="time_minutes_ago">%1$d min ago</string>
 </resources>

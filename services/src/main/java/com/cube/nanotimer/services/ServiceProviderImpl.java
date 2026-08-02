@@ -87,6 +87,46 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
+  public Map<Integer, Integer> getSolvesCountPerCubeType() {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_CUBETYPE_ID);
+    q.append("     , COUNT(*)");
+    q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
+    q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
+    q.append("   ON ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_ID);
+    q.append("    = ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
+    q.append(" GROUP BY ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_CUBETYPE_ID);
+    return getCountsPerId(q.toString(), null);
+  }
+
+  @Override
+  public Map<Integer, Integer> getSolvesCountPerSolveType(CubeType cubeType) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
+    q.append("     , COUNT(*)");
+    q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
+    q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
+    q.append("   ON ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_ID);
+    q.append("    = ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
+    q.append(" WHERE ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_CUBETYPE_ID).append(" = ?");
+    q.append(" GROUP BY ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
+    return getCountsPerId(q.toString(), cubeType == null ? null : getStringArray(cubeType.getId()));
+  }
+
+  /** Runs a "SELECT id, COUNT(*) ... GROUP BY id" query into a map. Ids with no rows are absent. */
+  private Map<Integer, Integer> getCountsPerId(String query, String[] params) {
+    Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
+    Cursor cursor = db.rawQuery(query, params);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        counts.put(cursor.getInt(0), cursor.getInt(1));
+      }
+      cursor.close();
+    }
+    return counts;
+  }
+
+  @Override
   public List<SolveType> getSolveTypes(CubeType cubeType) {
     List<SolveType> solveTypes = new ArrayList<SolveType>();
     StringBuilder q = new StringBuilder();
@@ -392,6 +432,11 @@ public class ServiceProviderImpl implements ServiceProvider {
     SolveAverages solveAverages = new SolveAverages();
     if (solveType.hasSteps()) {
       setStepsAverages(solveAverages, solveType);
+      // The splits are what the timer screen reads, but the solve still has a total, and the
+      // history screen states it.
+      solveAverages.setAvgOf5(getLastAvg(5));
+      solveAverages.setAvgOf12(getLastAvg(12));
+      solveAverages.setAvgOf50(getLastAvg(50));
     } else if (solveType.isBlind()) {
       solveAverages.setMeanOf3(getLastMean(3));
       solveAverages.setBestOf3(cachedBestAverages.get(5)); // DB column avg5 contains the mean of 3 for blind

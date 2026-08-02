@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Landscape puts the card and the history side by side rather than stacked: laid out as in
+     portrait the card alone is taller than the screen, and the list would have no room at all.
+     Every id here also exists in layout/mainscreen_screen.xml, since the activity finds them by
+     id whichever way the phone is held. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:id="@+id/mainLayout"
+   android:fitsSystemWindows="true"
+   android:layout_height="match_parent"
+   android:layout_width="match_parent"
+   android:orientation="vertical">
+
+  <androidx.drawerlayout.widget.DrawerLayout
+     android:id="@+id/drawerLayout"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:orientation="vertical"
+       android:background="@color/graybg">
+
+      <com.google.android.material.appbar.AppBarLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"> <!-- for the elevation shadow -->
+        <androidx.appcompat.widget.Toolbar
+           android:id="@+id/toolbar"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:background="@color/color_primary"
+           app:titleTextAppearance="@style/Toolbar.CustomTitleText"/>
+      </com.google.android.material.appbar.AppBarLayout>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="0dp"
+         android:layout_weight="1"
+         android:orientation="horizontal">
+
+        <ScrollView
+           android:layout_width="0dp"
+           android:layout_height="match_parent"
+           android:layout_weight="1"
+           android:clipToPadding="false"
+           android:scrollbars="none">
+
+        <androidx.cardview.widget.CardView
+           android:id="@+id/heroCard"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="@dimen/space_s"
+           android:layout_marginBottom="@dimen/space_s"
+           android:layout_marginLeft="@dimen/space_m"
+           android:layout_marginRight="@dimen/space_s"
+           app:cardBackgroundColor="@color/hero_card"
+           app:cardElevation="@dimen/mainscreen_card_elevation"
+           app:cardCornerRadius="@dimen/card_corner">
+
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical"
+             android:padding="@dimen/space_s">
+
+            <!-- The cube type is the title of the card, and its own tap target. -->
+            <LinearLayout
+               android:id="@+id/cubeTypeRow"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:orientation="horizontal"
+               android:gravity="center_vertical"
+               android:minHeight="46dp"
+               android:paddingLeft="@dimen/space_xs"
+               android:paddingRight="@dimen/space_s"
+               android:background="@drawable/hero_selector_row"
+               android:clickable="true"
+               android:focusable="true">
+
+              <FrameLayout
+                 android:id="@+id/heroGlyphTile"
+                 android:layout_width="34dp"
+                 android:layout_height="34dp"
+                 android:background="@drawable/hero_glyph">
+                <ImageView
+                   android:id="@+id/imgCubeType"
+                   android:layout_width="20dp"
+                   android:layout_height="20dp"
+                   android:layout_gravity="center"
+                   android:src="@drawable/ic_puzzle_3x3"
+                   android:tint="@color/lightblue"
+                   android:contentDescription="@null"/>
+              </FrameLayout>
+
+              <TextView
+                 android:id="@+id/tvCubeType"
+                 android:layout_width="0dp"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:layout_marginLeft="@dimen/space_m"
+                 android:layout_marginStart="@dimen/space_m"
+                 android:textSize="21sp"
+                 android:textStyle="bold"
+                 android:letterSpacing="-0.01"
+                 android:textColor="@color/white"
+                 android:singleLine="true"
+                 android:ellipsize="end"/>
+
+              <ImageView
+                 android:layout_width="18dp"
+                 android:layout_height="18dp"
+                 android:src="@drawable/ic_chevron_down"
+                 android:contentDescription="@null"/>
+            </LinearLayout>
+
+            <!-- The solve type, with the solves it holds: the count belongs to this pair, not to the
+                 puzzle above it. -->
+            <LinearLayout
+               android:id="@+id/solveTypeRow"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:orientation="horizontal"
+               android:gravity="center_vertical"
+               android:minHeight="44dp"
+               android:layout_marginTop="@dimen/space_xs"
+               android:paddingLeft="@dimen/space_m"
+               android:paddingRight="@dimen/space_m"
+               android:background="@drawable/hero_selector_pill"
+               android:clickable="true"
+               android:focusable="true">
+
+              <ImageView
+                 android:id="@+id/imgSolveTypeKind"
+                 android:layout_width="17dp"
+                 android:layout_height="17dp"
+                 android:layout_marginRight="@dimen/space_s"
+                 android:layout_marginEnd="@dimen/space_s"
+                 android:tint="@color/lightblue"
+                 android:contentDescription="@null"/>
+
+              <TextView
+                 android:id="@+id/tvSolveType"
+                 android:layout_width="0dp"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:textSize="16sp"
+                 android:textStyle="bold"
+                 android:textColor="@color/white"
+                 android:singleLine="true"
+                 android:ellipsize="end"/>
+
+              <TextView
+                 android:id="@+id/tvSolvesCount"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginLeft="@dimen/space_s"
+                 android:layout_marginStart="@dimen/space_s"
+                 android:textSize="13sp"
+                 android:textColor="@color/secondary_text"
+                 android:fontFeatureSettings="tnum"
+                 android:singleLine="true"/>
+
+              <ImageView
+                 android:layout_width="18dp"
+                 android:layout_height="18dp"
+                 android:layout_marginLeft="@dimen/space_s"
+                 android:layout_marginStart="@dimen/space_s"
+                 android:src="@drawable/ic_chevron_down"
+                 android:contentDescription="@null"/>
+            </LinearLayout>
+
+            <!-- The shape of the last 50 solves. Tapping it opens the graph it previews. -->
+            <FrameLayout
+               android:id="@+id/sparklineBlock"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="@dimen/space_s"
+               android:paddingLeft="@dimen/space_xs"
+               android:paddingRight="@dimen/space_xs"
+               android:background="@drawable/hero_sparkline"
+               android:clickable="true"
+               android:focusable="true">
+
+              <com.cube.nanotimer.util.view.SparklineView
+                 android:id="@+id/sparkline"
+                 android:layout_width="match_parent"
+                 android:layout_height="46dp"/>
+            </FrameLayout>
+
+            <!-- Three windows, three cells. The third is the personal best, the success rate for a
+                 blind solve type, and an average of 50 for one timed in steps. -->
+            <LinearLayout
+               android:id="@+id/heroStatsRow"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:orientation="horizontal"
+               android:layout_marginTop="@dimen/space_s">
+
+              <LinearLayout
+                 android:id="@+id/statCellOne"
+                 android:layout_width="0dp"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:layout_marginRight="3dp"
+                 android:orientation="vertical"
+                 android:background="@drawable/hero_stat_cell"
+                 android:paddingTop="7dp"
+                 android:paddingBottom="7dp">
+                <TextView android:id="@+id/tvStatKeyOne" style="@style/HeroStatKey"/>
+                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueOne" style="@style/HeroStatValue"/>
+              </LinearLayout>
+
+              <LinearLayout
+                 android:id="@+id/statCellTwo"
+                 android:layout_width="0dp"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:layout_marginLeft="3dp"
+                 android:layout_marginRight="3dp"
+                 android:orientation="vertical"
+                 android:background="@drawable/hero_stat_cell"
+                 android:paddingTop="7dp"
+                 android:paddingBottom="7dp">
+                <TextView android:id="@+id/tvStatKeyTwo" style="@style/HeroStatKey"/>
+                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueTwo" style="@style/HeroStatValue"/>
+              </LinearLayout>
+
+              <LinearLayout
+                 android:id="@+id/statCellThree"
+                 android:layout_width="0dp"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+                 android:layout_marginLeft="3dp"
+                 android:orientation="vertical"
+                 android:background="@drawable/hero_stat_cell"
+                 android:paddingTop="7dp"
+                 android:paddingBottom="7dp">
+                <TextView android:id="@+id/tvStatKeyThree" style="@style/HeroStatKey"/>
+                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueThree" style="@style/HeroStatValue"/>
+              </LinearLayout>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+               android:id="@+id/buStart"
+               android:text="@string/start"
+               android:layout_marginTop="@dimen/space_s"
+               style="@style/HeroStartButton"/>
+
+          </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        </ScrollView>
+
+        <FrameLayout
+           android:layout_width="0dp"
+           android:layout_height="match_parent"
+           android:layout_weight="1">
+
+          <ListView
+             android:id="@+id/lvHistory"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:paddingLeft="@dimen/space_s"
+             android:paddingRight="@dimen/space_m"
+             android:clipToPadding="false"
+             android:scrollbarStyle="outsideOverlay"
+             android:alwaysDrawnWithCache="false"
+             android:divider="@null"
+             android:dividerHeight="0dp"
+             android:requiresFadingEdge="vertical"
+             android:fadingEdgeLength="20dp"/>
+
+          <TextView
+             android:id="@+id/tvNoSolves"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_horizontal|top"
+             android:layout_marginTop="@dimen/space_l"
+             android:paddingLeft="@dimen/space_l"
+             android:paddingRight="@dimen/space_l"
+             android:gravity="center"
+             android:text="@string/history_empty"
+             android:textSize="15sp"
+             android:textColor="@color/secondary_text"
+             android:visibility="gone"/>
+
+        </FrameLayout>
+
+      </LinearLayout>
+
+    </LinearLayout>
+
+    <com.google.android.material.navigation.NavigationView
+       android:id="@+id/navigationView"
+       android:layout_width="wrap_content"
+       android:layout_height="match_parent"
+       android:layout_gravity="start">
+
+      <include layout="@layout/mainscreen_drawer_menu"/>
+    </com.google.android.material.navigation.NavigationView>
+
+  </androidx.drawerlayout.widget.DrawerLayout>
+
+</LinearLayout>

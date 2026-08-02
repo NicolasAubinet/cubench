@@ -78,12 +78,10 @@ import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
-import com.cube.nanotimer.vo.SolveTypeStep;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -95,15 +93,20 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private TextView tvTimer;
   private TextView tvScramble;
   private TextView tvSolvesCount;
-  private TextView tvAccuracy;
   private TextView tvTitle;
   private ViewGroup layout;
   private TableLayout sessionTimesLayout;
-  private TableLayout timerStepsLayout;
-  private View recordOverlayCard;
-  private TextView tvRecordOverlayHeader;
-  private TableLayout recordOverlayTable;
+  private View recordBar;
+  private TextView tvRecordBarLabel;
+  private TextView tvRecordBarValue;
+  private TextView tvRecordBarPrev;
   private final Handler overlayHandler = new Handler();
+
+  /** The statistics cell each record belongs to, by {@link RecordInfo#priority}. */
+  private static final int[] RECORD_TILE_BY_PRIORITY = {
+    R.id.footerPbCell, R.id.statTileOne, R.id.statTileOne,
+    R.id.statTileTwo, R.id.statTileThree, R.id.statTileFour,
+  };
 
   private CubeType cubeType;
   private SolveType solveType;
@@ -113,9 +116,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
   private CubeMethod lastSolveMethod; // the method its milestones fitted, null when they fitted none
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
+  // What the step bar and the line under it are showing, kept so a rotation can draw them again:
+  // the views are rebuilt from scratch, and the solve they described is not re-read from anywhere.
+  private List<SolveStep> shownSteps = Collections.emptyList();
+  private String[] shownStepNames;
+  private CharSequence shownStats;
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
-  private boolean skipRecordPanel; // the stop came from the cross, which usually means discard
+  private boolean skipRecordPanel; // suppress the record panel on the next refresh (a discard-bound stop, or a delete)
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -129,6 +137,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private int solvesCount; // session solves count (or history solves count if no session exists)
   private int historySolvesCount;
   private ColorStateList defaultTextColor;
+  private ColorStateList secondaryTextColor;
   private ColorStateList defaultTimerTextColor;
   private static final int MIN_TIMES_FOR_RECORD_NOTIFICATION = 12;
 
@@ -213,7 +222,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     particleView = new ParticleView(this);
     addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
-    defaultTextColor = tvSolvesCount.getTextColors();
+    // Sampled from a statistics value, which is the colour a plain (non-record) one is drawn in.
+    defaultTextColor = ((TextView) findViewById(R.id.tvAvgOfFive)).getTextColors();
+    secondaryTextColor = ((TextView) findViewById(R.id.tvBestOfFive)).getTextColors();
     defaultTimerTextColor = tvTimer.getTextColors();
     resetTimer();
     setDefaultBannerText();
@@ -408,14 +419,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvTimer = (TextView) findViewById(R.id.tvTimer);
     tvScramble = (TextView) findViewById(R.id.tvScramble);
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
-    tvAccuracy = (TextView) findViewById(R.id.tvLifetimeAccuracy);
     tvTitle = (TextView) findViewById(R.id.tvTitle);
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
-    TableLayout averagesLayout = (TableLayout) findViewById(R.id.averagesLayout);
-    timerStepsLayout = (TableLayout) findViewById(R.id.timerStepsLayout);
-    recordOverlayCard = findViewById(R.id.recordOverlayCard);
-    tvRecordOverlayHeader = (TextView) findViewById(R.id.tvRecordOverlayHeader);
-    recordOverlayTable = (TableLayout) findViewById(R.id.recordOverlayTable);
+    recordBar = findViewById(R.id.recordBar);
+    tvRecordBarLabel = (TextView) findViewById(R.id.tvRecordBarLabel);
+    tvRecordBarValue = (TextView) findViewById(R.id.tvRecordBarValue);
+    tvRecordBarPrev = (TextView) findViewById(R.id.tvRecordBarPrev);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
     tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
     scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
@@ -431,29 +440,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
 
 
-    if (solveType.hasSteps()) {
-      findViewById(R.id.sessionLayout).setVisibility(View.GONE);
-      averagesLayout.setColumnCollapsed(2, true);
-      timerStepsLayout.setVisibility(View.VISIBLE);
-      if (solveType.getSteps().length <= 4) {
-        timerStepsLayout.setColumnCollapsed(2, true);
-        timerStepsLayout.setColumnCollapsed(3, true);
-      }
-      findViewById(R.id.trAvgOfLife).setVisibility(View.VISIBLE);
-      hideUnneededStepFields();
-      solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
-    } else if (solveType.isBlind()) {
-      findViewById(R.id.trAvgOfFive).setVisibility(View.GONE);
-      findViewById(R.id.trLifetimeAccuracy).setVisibility(View.VISIBLE);
-      findViewById(R.id.trBestMeanOfThree).setVisibility(View.VISIBLE);
-      ((TextView) findViewById(R.id.tvAvgOf)).setText(R.string.success_avg);
-      ((TextView) findViewById(R.id.tvBestOf)).setText(R.string.accuracy);
-    } else {
-      timerStepsLayout.setVisibility(View.GONE);
-      findViewById(R.id.trAvgOfLife).setVisibility(View.GONE);
-    }
-
-    updateAveragesTableBackgroundColors();
+    setUpStatisticsBlocks();
 
     View actionBarLayout = findViewById(R.id.actionbarLayout);
     actionBarLayout.setOnTouchListener(layoutTouchListener);
@@ -467,24 +454,35 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  private void updateAveragesTableBackgroundColors() {
-    TableLayout averagesTable = (TableLayout) findViewById(R.id.averagesLayout);
+  /**
+   * Picks which statistics blocks this solve type uses, and what each cell is called. Every
+   * variant draws the same surfaces: a cell always holds a window, its value, and one secondary
+   * value whose meaning the solve type sets (the best normally, the success rate when blind).
+   */
+  private void setUpStatisticsBlocks() {
+    boolean steps = solveType.hasSteps();
+    boolean blind = solveType.isBlind();
 
-    int visibleTableRowsCount = 0;
-    for (int i = 1; i < averagesTable.getChildCount(); i++) {
-      View child = averagesTable.getChildAt(i);
-      if (!(child instanceof TableRow)) {
-        continue; // skip non-row children (e.g. the header divider)
-      }
-      TableRow tableRow = (TableRow) child;
+    findViewById(R.id.sessionHeader).setVisibility(steps ? View.GONE : View.VISIBLE);
+    sessionTimesLayout.setVisibility(steps ? View.GONE : View.VISIBLE);
+    findViewById(R.id.statTilesLayout).setVisibility(steps ? View.GONE : View.VISIBLE);
+    findViewById(R.id.stepSplitsLayout).setVisibility(steps ? View.VISIBLE : View.GONE);
+    // A stepped solve type reads its averages as splits, which is the whole footer said better.
+    findViewById(R.id.statFooterRow).setVisibility(steps ? View.GONE : View.VISIBLE);
 
-      if (tableRow.getVisibility() == View.VISIBLE) {
-        // Softened alternation: transparent / faint, instead of the cyan zebra.
-        int backgroundColorId = (visibleTableRowsCount % 2 == 0) ? R.color.transparent : R.color.grid_background_1;
-        tableRow.setBackgroundResource(backgroundColorId);
+    // The first cell counts a blind attempt in threes, and everything else in fives.
+    findViewById(R.id.tvAvgOfFive).setVisibility(blind ? View.GONE : View.VISIBLE);
+    findViewById(R.id.tvBestOfFive).setVisibility(blind ? View.GONE : View.VISIBLE);
+    findViewById(R.id.tvMeanOfThree).setVisibility(blind ? View.VISIBLE : View.GONE);
+    findViewById(R.id.tvBestMeanOfThree).setVisibility(blind ? View.VISIBLE : View.GONE);
 
-        visibleTableRowsCount++;
-      }
+    ((TextView) findViewById(R.id.tvStatKeyOne)).setText(blind ? R.string.mo3_label : R.string.ao5_label);
+    ((TextView) findViewById(R.id.tvStatKeyTwo)).setText(R.string.ao12_label);
+    ((TextView) findViewById(R.id.tvStatKeyThree)).setText(R.string.ao50_label);
+    ((TextView) findViewById(R.id.tvStatKeyFour)).setText(R.string.ao100_label);
+
+    if (steps) {
+      solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
     }
   }
 
@@ -702,6 +700,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
       return;
     }
+    forgetRecordsOfDeletedSolve();
     App.INSTANCE.getService().deleteTime(lastSolveTime, solveAverageCallback);
     cubeSession.deleteLast();
     historySolvesCount--;
@@ -835,6 +834,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        forgetRecordsOfDeletedSolve();
         cubeSession.deleteLast();
         historySolvesCount--;
         setSolvesCount(solvesCount - 1);
@@ -870,16 +870,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       currentOrientation = newConfig.orientation;
       String timerText = tvTimer.getText().toString();
 
-      List<String> stepsText = new ArrayList<String>();
-      if (solveType.hasSteps()) {
-        for (int i = 0; i < timerStepsLayout.getChildCount(); i++) {
-          TableRow tr = (TableRow) timerStepsLayout.getChildAt(i);
-          for (int j = 0; j < tr.getChildCount(); j++) {
-            stepsText.add(((TextView) tr.getChildAt(j)).getText().toString());
-          }
-        }
-      }
-
       setContentView(R.layout.timer_screen);
       initViews();
 
@@ -887,21 +877,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         tvTimer.setText(timerText);
       }
       renderScramble();
-      tvSolvesCount.setText(String.valueOf(solvesCount));
+      setSolvesCount(solvesCount);
+      restoreStepBreakdown();
 
       refreshSessionFields();
       if (solveAverages != null) {
         refreshAvgFields(false);
-      }
-
-      if (solveType.hasSteps()) {
-        Iterator<String> it = stepsText.iterator();
-        for (int i = 0; i < timerStepsLayout.getChildCount(); i++) {
-          TableRow tr = (TableRow) timerStepsLayout.getChildAt(i);
-          for (int j = 0; j < tr.getChildCount(); j++) {
-            ((TextView) tr.getChildAt(j)).setText(it.next());
-          }
-        }
       }
     }
   }
@@ -1198,9 +1179,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (stepsTimes.size() < solveType.getSteps().length) {
       long time = ts - stepStartTs;
       stepsTimes.add(time);
-      updateStepTimeText(stepsTimes.size() - 1, FormatterService.INSTANCE.formatSolveTime(time));
+      showStepsSoFar();
     }
     stepStartTs = ts;
+  }
+
+  /**
+   * Fills the bar as the solve goes, one segment per step taken. The same bar then stays for the
+   * finished solve, so the steps are read the same way throughout rather than in a list that gives
+   * way to something else at the end.
+   */
+  private void showStepsSoFar() {
+    drawStepBar(SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0])), stepNames());
   }
 
   private void resetTimer() {
@@ -1223,30 +1213,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     String defaultText = FormatterService.INSTANCE.formatSolveTime(0L);
     tvTimer.setText(defaultText);
     setTimerTextColor(0L);
-    if (solveType.hasSteps()) {
-      for (int i = 0; i < Options.INSTANCE.getMaxStepsCount(); i++) {
-        int rowInd = i % 4;
-        int colInd = (i < 4) ? 0 : 2;
-        if (i < solveType.getSteps().length) {
-          SolveTypeStep sts = solveType.getSteps()[i];
-          ((TextView) ((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd)).setText(sts.getName() + ":");
-          updateStepTimeText(i, defaultText);
-        }
-      }
-    }
   }
 
-  private void hideUnneededStepFields() {
-    // hide fields to center steps vertically
-    if (solveType.getSteps().length < 4) {
-      for (int i = solveType.getSteps().length; i < Options.INSTANCE.getMaxStepsCount(); i++) {
-        int rowInd = i % 4;
-        int colInd = (i < 4) ? 0 : 2;
-        (((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd)).setVisibility(View.GONE);
-        (((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd + 1)).setVisibility(View.GONE);
-      }
-    }
-  }
 
   private void saveTime(long time) {
     SolveTime solveTime = new SolveTime();
@@ -1294,13 +1262,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  private void updateStepTimeText(int id, String time) {
-    if (id >= 0 && id < solveType.getSteps().length) {
-      int rowInd = id % 4;
-      int colInd = (id < 4) ? 1 : 3;
-      ((TextView) ((TableRow) timerStepsLayout.getChildAt(rowInd)).getChildAt(colInd)).setText(time);
-    }
-  }
 
   // Keeps the timer text grayed out for a DNF (time == -1), matching how DNFs are
   // shown everywhere else; any other value uses the default timer color.
@@ -1315,10 +1276,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private synchronized void updateTimerText(long curTime) {
     tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(curTime));
     setTimerTextColor(curTime);
-    if (solveType.hasSteps()) {
-      updateStepTimeText(stepsTimes.size(),
-        FormatterService.INSTANCE.formatSolveTime(System.currentTimeMillis() - stepStartTs));
-    }
   }
 
   private synchronized void updateInspectionTimerText() {
@@ -1477,8 +1434,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The tail is drawn but never stored, so lastSolveSteps stays the form that gets saved.
     List<SolveStep> barSteps = SolveBreakdown.withTail(lastSolveSteps, lastSolveStoppedStep,
         solveDurationMs, lastSolveMoves, lastSolveMethod);
-    solveStepBar.setSteps(SolveBreakdown.withoutGap(barSteps));
-    solveStepBar.setVisibility(View.VISIBLE);
+    drawStepBar(SolveBreakdown.withoutGap(barSteps), null);
     solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
     // The stats read the whole thing, gap included, so the move count is the same number the detail
     // sheet shows — only the bar leaves it out.
@@ -1492,13 +1448,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    */
   private void showManualStepBreakdown(long solveDurationMs) {
     List<SolveStep> steps = SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0]));
-    if (lastSolveMoves.isEmpty() || steps.isEmpty()) { // no cube drove it, or it ended before a tap
+    if (steps.isEmpty()) { // the solve ended before a step was taken
       hideStepBreakdown();
       return;
     }
-    solveStepBar.setSteps(steps, stepNames());
-    solveStepBar.setVisibility(View.VISIBLE);
+    drawStepBar(steps, stepNames());
     solveStepBar.animateIn();
+    // The steps were timed by tapping, so there are only moves to count when a cube drove them too;
+    // with none, this hides itself and the bar stands alone.
     showSolveStats(SolveSolution.from(lastSolveMoves, steps));
   }
 
@@ -1511,14 +1468,24 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   // Reveals the solve's move count and turn rate under the bar; hidden when the solve carries no moves.
+  // Read even in landscape, where there is no line to show it in, so rotating into portrait finds
+  // this solve's stats there rather than the last portrait one's.
   private void showSolveStats(SolveSolution solution) {
+    shownStats = solution.isEmpty() ? null : solveStats(solution);
     if (tvSolveStats == null) {
       return;
     }
-    if (solution.isEmpty()) {
+    if (shownStats == null) {
       tvSolveStats.setVisibility(View.INVISIBLE);
       return;
     }
+    tvSolveStats.setText(shownStats);
+    tvSolveStats.setAlpha(0f);
+    tvSolveStats.setVisibility(View.VISIBLE);
+    tvSolveStats.animate().alpha(1f).setDuration(250);
+  }
+
+  private CharSequence solveStats(SolveSolution solution) {
     StringBuilder stats = new StringBuilder()
         .append(getString(R.string.breakdown_moves_count, solution.getMoveCount())).append(" · ")
         .append(getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
@@ -1528,13 +1495,38 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (lastSolveMethod == CubeMethod.BLIND && solution.getPartCount() > 0) {
       stats.append(" · ").append(getString(R.string.breakdown_algs, solution.getPartCount()));
     }
-    tvSolveStats.setText(stats);
-    tvSolveStats.setAlpha(0f);
-    tvSolveStats.setVisibility(View.VISIBLE);
-    tvSolveStats.animate().alpha(1f).setDuration(250);
+    return stats;
+  }
+
+  /** Draws the bar, and remembers what it drew so a rotation can put the same thing back. */
+  private void drawStepBar(List<SolveStep> steps, String[] stepNames) {
+    shownSteps = steps;
+    shownStepNames = stepNames;
+    solveStepBar.setSteps(steps, stepNames);
+    solveStepBar.setVisibility(View.VISIBLE);
+  }
+
+  /**
+   * Puts the breakdown back after the layout was rebuilt for a new orientation. Without this a
+   * rotation mid-solve or after one leaves an empty legend where the solve's steps were.
+   */
+  private void restoreStepBreakdown() {
+    if (shownSteps.isEmpty()) {
+      reserveStepBreakdownSpace();
+      return;
+    }
+    solveStepBar.setSteps(shownSteps, shownStepNames);
+    solveStepBar.setVisibility(View.VISIBLE);
+    if (tvSolveStats != null && shownStats != null) { // absent in landscape
+      tvSolveStats.setText(shownStats);
+      tvSolveStats.setVisibility(View.VISIBLE);
+    }
   }
 
   private void hideStepBreakdown() {
+    shownSteps = Collections.emptyList();
+    shownStepNames = null;
+    shownStats = null;
     int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
     solveStepBar.setVisibility(visibility);
     if (tvSolveStats != null) {
@@ -1557,12 +1549,23 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return solveController.isCubeDriven();
   }
 
+  /**
+   * A deleted solve takes its records with it: the panel goes and the cells it lit go back to
+   * their normal colour. The refresh the deletion triggers is not allowed to announce a record
+   * either, since dropping a bad solve can leave an average better than it was.
+   */
+  private void forgetRecordsOfDeletedSolve() {
+    dismissRecordOverlay();
+    skipRecordPanel = true;
+  }
+
   private void dismissRecordOverlay() {
-    overlayHandler.removeCallbacks(hideRecordOverlay);
-    if (recordOverlayCard != null) {
-      recordOverlayCard.animate().cancel();
-      recordOverlayCard.setVisibility(View.GONE);
+    overlayHandler.removeCallbacks(hideRecordBar);
+    if (recordBar != null) {
+      recordBar.animate().cancel();
+      recordBar.setVisibility(View.GONE);
     }
+    clearRecordCells();
   }
 
   private void timerStopped() {
@@ -1576,7 +1579,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private void setSolvesCount(int solvesCount) {
     this.solvesCount = Math.max(0, solvesCount);
-    tvSolvesCount.setText(String.valueOf(solvesCount));
+    tvSolvesCount.setText(this.solvesCount + " " + getString(R.string.solves));
   }
 
   private void refreshAvgFields(boolean showNotifications) {
@@ -1588,21 +1591,22 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     final List<RecordInfo> records = new ArrayList<RecordInfo>();
 
     if (solveType.hasSteps()) {
-      ((TextView) findViewById(R.id.tvAvgOfFive)).setText(
+      ((TextView) findViewById(R.id.tvSplitsOfFive)).setText(
       FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf5()));
-      ((TextView) findViewById(R.id.tvAvgOfTwelve)).setText(
+      ((TextView) findViewById(R.id.tvSplitsOfTwelve)).setText(
       FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf12()));
-      ((TextView) findViewById(R.id.tvAvgOfFifty)).setText(
+      ((TextView) findViewById(R.id.tvSplitsOfFifty)).setText(
       FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf50()));
-      ((TextView) findViewById(R.id.tvAvgOfHundred)).setText(
+      ((TextView) findViewById(R.id.tvSplitsOfHundred)).setText(
       FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf100()));
       ((TextView) findViewById(R.id.tvAvgOfLife)).setText(
       FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOfLifetime()));
     } else if (solveType.isBlind()) {
-      tvAccuracy.setText(FormatterService.INSTANCE.formatPercentage(solveAverages.getLifetimeAccuracy()));
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
-      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf3() : null), getString(R.string.NA), showNotifications, "Mo3", 1, false));
+      RecordInfo bestMo3 = refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf3() : null), getString(R.string.NA), showNotifications, "Mo3", 1, false);
+      collectRecord(records, bestMo3);
+      labelAsBest(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(), bestMo3 == null);
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
           (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0, true));
 
@@ -1622,18 +1626,27 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       refreshAvgField(R.id.tvAvgOfFifty, solveAverages.getAvgOf50(), "-");
       refreshAvgField(R.id.tvAvgOfHundred, solveAverages.getAvgOf100(), "-");
       refreshAvgField(R.id.tvLifetimeAvg, solveAverages.getAvgOfLifetime(), getString(R.string.NA));
-      refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
 
-      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfFive, solveAverages.getBestOf5(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf5() : null), "-", showNotifications, "Ao5", 2, false));
-      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfTwelve, solveAverages.getBestOf12(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf12() : null), "-", showNotifications, "Ao12", 3, false));
-      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfFifty, solveAverages.getBestOf50(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf50() : null), "-", showNotifications, "Ao50", 4, false));
-      collectRecord(records, refreshAvgFieldWithRecord(R.id.tvBestOfHundred, solveAverages.getBestOf100(),
-          (prevSolveAverages != null ? prevSolveAverages.getBestOf100() : null), "-", showNotifications, "Ao100", 5, false));
+      RecordInfo best5 = refreshAvgFieldWithRecord(R.id.tvBestOfFive, solveAverages.getBestOf5(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf5() : null), "-", showNotifications, "Ao5", 2, false);
+      RecordInfo best12 = refreshAvgFieldWithRecord(R.id.tvBestOfTwelve, solveAverages.getBestOf12(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf12() : null), "-", showNotifications, "Ao12", 3, false);
+      RecordInfo best50 = refreshAvgFieldWithRecord(R.id.tvBestOfFifty, solveAverages.getBestOf50(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf50() : null), "-", showNotifications, "Ao50", 4, false);
+      RecordInfo best100 = refreshAvgFieldWithRecord(R.id.tvBestOfHundred, solveAverages.getBestOf100(),
+          (prevSolveAverages != null ? prevSolveAverages.getBestOf100() : null), "-", showNotifications, "Ao100", 5, false);
+      collectRecord(records, best5);
+      collectRecord(records, best12);
+      collectRecord(records, best50);
+      collectRecord(records, best100);
       collectRecord(records, refreshAvgFieldWithRecord(R.id.tvLifetimeBest, solveAverages.getBestOfLifetime(),
           (prevSolveAverages != null ? prevSolveAverages.getBestOfLifetime() : null), getString(R.string.NA), showNotifications, getString(R.string.record_label_lifetime), 0, true));
+
+      // The secondary line of a cell says what it is, since on its own a bare time reads as another average.
+      labelAsBest(R.id.tvBestOfFive, solveAverages.getBestOf5(), best5 == null);
+      labelAsBest(R.id.tvBestOfTwelve, solveAverages.getBestOf12(), best12 == null);
+      labelAsBest(R.id.tvBestOfFifty, solveAverages.getBestOf50(), best50 == null);
+      labelAsBest(R.id.tvBestOfHundred, solveAverages.getBestOf100(), best100 == null);
     }
 
     if (showNotifications) {
@@ -1678,6 +1691,22 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private String formatAvgField(Long f, String defaultValue) {
     return FormatterService.INSTANCE.formatSolveTime(f, defaultValue);
+  }
+
+  /**
+   * Names a cell's secondary value as the best one, leaving an absent value as its placeholder.
+   *
+   * @param plain false while this value is being shown as a new record, which owns its styling
+   */
+  private void labelAsBest(int fieldId, Long value, boolean plain) {
+    TextView tv = (TextView) findViewById(fieldId);
+    if (value != null && value > 0) {
+      tv.setText(getString(R.string.timer_best_value, FormatterService.INSTANCE.formatSolveTime(value)));
+    }
+    if (plain) {
+      tv.setTextColor(secondaryTextColor);
+      tv.setTypeface(null, Typeface.NORMAL);
+    }
   }
 
   private void refreshAvgField(int fieldId, Long value, String defaultValue) {
@@ -1756,10 +1785,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  // Fills the record overlay (header + one aligned row per record: label, margin, prev best)
-  // and animates it in. Rows live in the layout and are shown/hidden so scaling still applies.
+  /**
+   * Announces the records a solve set: the best of them on the bar, and every one of them by
+   * lighting the cell that holds it. The bar sits in the flow above the cells, so it never covers
+   * the scramble and the next solve can start before it clears.
+   */
   private void showRecordsSummary(List<RecordInfo> records) {
-    if (records.isEmpty() || recordOverlayCard == null || recordOverlayTable == null) {
+    if (records.isEmpty() || recordBar == null) {
       return;
     }
     Collections.sort(records, new Comparator<RecordInfo>() {
@@ -1768,48 +1800,62 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         return Integer.compare(a.priority, b.priority);
       }
     });
-    tvRecordOverlayHeader.setText("🏆 " + getString(
-        records.size() == 1 ? R.string.new_record : R.string.record_toast_header));
-    for (int i = 0; i < recordOverlayTable.getChildCount(); i++) {
-      TableRow row = (TableRow) recordOverlayTable.getChildAt(i);
-      if (i < records.size()) {
-        RecordInfo r = records.get(i);
-        ((TextView) row.getChildAt(0)).setText(r.label);
-        ((TextView) row.getChildAt(1)).setText(
-            FormatterService.INSTANCE.formatSolveTimeDifference(r.previous - r.value));
-        ((TextView) row.getChildAt(2)).setText(
-            getString(R.string.record_overlay_prev, FormatterService.INSTANCE.formatSolveTime(r.previous)));
-        row.setVisibility(View.VISIBLE);
-      } else {
-        row.setVisibility(View.GONE);
+    for (RecordInfo r : records) {
+      highlightRecordCell(r.priority);
+    }
+
+    // The bar names the best of them; the rest are already lit in the cells that hold them.
+    RecordInfo best = records.get(0);
+    tvRecordBarLabel.setText(records.size() == 1 ? R.string.new_record : R.string.record_toast_header);
+    tvRecordBarValue.setText(best.label + " "
+        + FormatterService.INSTANCE.formatSolveTimeDifference(best.previous - best.value));
+    tvRecordBarPrev.setText(getString(R.string.record_overlay_prev,
+        FormatterService.INSTANCE.formatSolveTime(best.previous)));
+    showRecordBar();
+  }
+
+  private void highlightRecordCell(int priority) {
+    if (priority < 0 || priority >= RECORD_TILE_BY_PRIORITY.length) {
+      return;
+    }
+    View cell = findViewById(RECORD_TILE_BY_PRIORITY[priority]);
+    if (cell != null) {
+      cell.setBackgroundResource(R.drawable.stat_tile_record);
+    }
+  }
+
+  private void clearRecordCells() {
+    for (int cellId : RECORD_TILE_BY_PRIORITY) {
+      View cell = findViewById(cellId);
+      if (cell != null) {
+        cell.setBackgroundResource(R.drawable.stat_tile);
       }
     }
-    showRecordOverlay();
   }
 
   // In-screen replacement for a toast (system toasts are capped at 2 lines on Android 12+).
-  private void showRecordOverlay() {
-    if (recordOverlayCard == null) {
+  private void showRecordBar() {
+    if (recordBar == null) {
       return;
     }
-    overlayHandler.removeCallbacks(hideRecordOverlay);
-    recordOverlayCard.animate().cancel();
-    recordOverlayCard.setAlpha(0f);
-    recordOverlayCard.setVisibility(View.VISIBLE);
-    recordOverlayCard.animate().alpha(1f).setDuration(250);
-    overlayHandler.postDelayed(hideRecordOverlay, 4000);
+    overlayHandler.removeCallbacks(hideRecordBar);
+    recordBar.animate().cancel();
+    recordBar.setAlpha(0f);
+    recordBar.setVisibility(View.VISIBLE);
+    recordBar.animate().alpha(1f).setDuration(250);
+    overlayHandler.postDelayed(hideRecordBar, 6000);
   }
 
-  private final Runnable hideRecordOverlay = new Runnable() {
+  private final Runnable hideRecordBar = new Runnable() {
     @Override
     public void run() {
-      if (recordOverlayCard == null) {
+      if (recordBar == null) {
         return;
       }
-      recordOverlayCard.animate().alpha(0f).setDuration(400).withEndAction(new Runnable() {
+      recordBar.animate().alpha(0f).setDuration(400).withEndAction(new Runnable() {
         @Override
         public void run() {
-          recordOverlayCard.setVisibility(View.GONE);
+          recordBar.setVisibility(View.GONE);
         }
       });
     }
@@ -1920,6 +1966,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         public void run() {
           prevSolveAverages = solveAverages;
           solveAverages = data;
+          // Read before the discard below, which sets the flag again for the refresh its own delete triggers.
+          boolean showNotifications = !skipRecordPanel;
+          skipRecordPanel = false;
           if (data.getSolveTime() != null) { // a plain averages refresh carries no solve; keep the one we have
             setLastSolveTime(data.getSolveTime());
             if (discardWhenSaved) { // the solve the user already chose to discard has now been saved
@@ -1927,8 +1976,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               deleteLastSolve();
             }
           }
-          boolean showNotifications = !skipRecordPanel;
-          skipRecordPanel = false;
           refreshAvgFields(showNotifications);
         }
       });

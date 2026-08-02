@@ -59,6 +59,26 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getSolvesCountPerCubeType(final DataCallback<Map<Integer, Integer>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getSolvesCountPerCubeType());
+      }
+    });
+  }
+
+  @Override
+  public void getSolvesCountPerSolveType(final CubeType cubeType, final DataCallback<Map<Integer, Integer>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getSolvesCountPerSolveType(cubeType));
+      }
+    });
+  }
+
+  @Override
   public void getSolveTypes(final CubeType cubeType, final DataCallback<List<SolveType>> callback) {
     run(new Runnable() {
       @Override

@@ -80,6 +80,10 @@ public class DrawerLayoutActivity extends NanoTimerActivity {
         return onOptionsItemSelected(item);
       }
     });
+
+    // Draws the indicator on the toolbar this toggle was just given, which matters when the
+    // layout is re-inflated for a new orientation and there is no onPostCreate to do it.
+    drawerToggle.syncState();
   }
 
   protected void showDrawerMenuIcon(boolean show) {

@@ -3,8 +3,10 @@ package com.cube.nanotimer.gui;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,6 +32,7 @@ import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -62,6 +65,14 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   private static final int ACTION_EDIT = 0;
   private static final int ACTION_DELETE = 1;
   private static final int ACTION_CREATESTEPS = 2;
+
+  /**
+   * How much of a kind's colour the tile behind its mark, and the chip that names it, carry. Higher
+   * than the picker's, because a row here is a raised card rather than a dark sheet: the same wash
+   * on the lighter surface all but disappears.
+   */
+  private static final int TILE_ALPHA = 0x45;
+  private static final int CHIP_ALPHA = 0x38;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -476,11 +487,20 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
           String solveTypeName = Utils.toSolveTypeLocalizedName(getContext(), solveType.getName());
           tvName.setText(solveTypeName);
 
-          ((ImageView) view.findViewById(R.id.imgSolveType)).setImageResource(getTypeIcon(solveType));
+          int color = ContextCompat.getColor(getContext(), SolveTypeIcons.colorForSolveType(solveType));
+          ImageView icon = (ImageView) view.findViewById(R.id.imgSolveType);
+          icon.setImageResource(SolveTypeIcons.forSolveType(solveType));
+          icon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+          view.findViewById(R.id.solveTypeTile)
+              .setBackgroundTintList(ColorStateList.valueOf(withAlpha(color, TILE_ALPHA)));
 
+          // The chip that names the kind wears the kind's colour; the rest stay neutral, since what
+          // they say is not what the mark beside them is about.
           boolean anyChip = setChip(view, R.id.tvChipBlind, solveType.isBlind() ? getString(R.string.blind) : null);
           anyChip |= setChip(view, R.id.tvChipSteps,
               solveType.hasSteps() ? getString(R.string.solvetypes_steps_count, solveType.getSteps().length) : null);
+          tintChip(view, R.id.tvChipBlind, color);
+          tintChip(view, R.id.tvChipSteps, color);
           anyChip |= setChip(view, R.id.tvChipScramble, getScrambleTypeChip(solveType, solveTypeName));
           // Blind types never inspect, and the blind chip already says so.
           anyChip |= setChip(view, R.id.tvChipInspection,
@@ -489,13 +509,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
         }
       }
       return view;
-    }
-
-    private int getTypeIcon(SolveType solveType) {
-      if (solveType.isBlind()) {
-        return R.drawable.ic_solvetype_blind;
-      }
-      return solveType.hasSteps() ? R.drawable.ic_solvetype_steps : R.drawable.ic_solvetype_normal;
     }
 
     // The add dialog names a new type after its scramble type, so skip the chip when it would just
@@ -514,6 +527,16 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       chip.setText(text);
       chip.setVisibility(text != null ? View.VISIBLE : View.GONE);
       return text != null;
+    }
+
+    private void tintChip(View row, int chipId, int color) {
+      TextView chip = (TextView) row.findViewById(chipId);
+      chip.setBackgroundTintList(ColorStateList.valueOf(withAlpha(color, CHIP_ALPHA)));
+      chip.setTextColor(color);
+    }
+
+    private int withAlpha(int color, int alpha) {
+      return (color & 0x00FFFFFF) | (alpha << 24);
     }
   }
 
