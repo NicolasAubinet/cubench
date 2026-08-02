@@ -269,6 +269,25 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     return phase == Phase.ARMED;
   }
 
+  /**
+   * Whether the cube is carrying an attempt: from the <b>first scramble move applied to it</b> until
+   * the solve ends. Through that window what the cube shows <em>is</em> the attempt — the scramble
+   * being built, then the solve coming apart — which is why a blind solve type hides the live mirror
+   * on it. Deliberately not the whole of {@code FOLLOWING}: that begins with the cube still solved,
+   * and there is nothing to give away yet.
+   */
+  public boolean isAttemptUnderway() {
+    switch (phase) {
+      case FOLLOWING:
+        return follower != null && follower.getDoneCount() > 0;
+      case ARMED:
+      case RUNNING:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /** Notation to execute to undo the wrong moves, e.g. "U' R2". Empty when on track. */
   public String getReverseMoves() {
     return follower == null ? "" : follower.getReverseMoves();

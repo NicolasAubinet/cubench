@@ -19,19 +19,30 @@
        android:layout_width="0px"
        android:layout_height="match_parent"
        android:orientation="vertical"
-       android:gravity="center_vertical"
        android:layout_marginLeft="3px"
        android:clipChildren="false"
        android:clipToPadding="false"
        android:layout_weight="1">
-      <!-- The live cube, when one is connected. Shorter than portrait's: the column it shares is
-           half a landscape screen, and the timer stays the hero. -->
+      <!-- The live cube, when one is connected. As in portrait it takes the spacer's own weight
+           rather than a height of its own, so connecting a cube does not shift the timer. Its width
+           is pinned near the height that weight gives it: this column is far wider than the cube is
+           tall, and a match_parent surface would render four times the pixels the cube draws into. -->
       <ViewStub
          android:id="@+id/stubLiveCube"
          android:layout="@layout/timer_live_cube"
+         android:layout_width="130px"
+         android:layout_height="0px"
+         android:layout_weight="1"
+         android:layout_gravity="center_horizontal"/>
+
+      <!-- This spacer and the one at the foot share the free space evenly, so the timer sits
+           centred; the cube replaces this one (LiveCubeView owns that), never both. Together they
+           do what gravity="center_vertical" used to, which could not give the cube a share. -->
+      <Space
+         android:id="@+id/timerTopSpace"
          android:layout_width="match_parent"
-         android:layout_height="130px"
-         android:layout_marginBottom="8px"/>
+         android:layout_height="0px"
+         android:layout_weight="1"/>
 
       <com.cube.nanotimer.util.view.DigitalTextView
          android:id="@+id/tvTimer"
@@ -100,6 +111,11 @@
          android:textColor="@color/secondary_text"
          android:textSize="19px"
          android:visibility="gone"/>
+
+      <Space
+         android:layout_width="match_parent"
+         android:layout_height="0px"
+         android:layout_weight="1"/>
 
     </LinearLayout>
 

@@ -143,13 +143,32 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   }
 
   /**
+   * Points the cube at a freshly laid-out screen. Safe to call again, and must be: the timer takes
+   * its own configuration changes ({@code configChanges="orientation|screenSize"}) and rebuilds its
+   * content view by hand, so a rotation hands over an entirely new stub.
+   *
+   * <p>⚠️ Whatever was inflated into the <em>old</em> layout is torn down here. It is off the window
+   * the moment {@code setContentView} runs, but it is not dead: it holds a WebGL context and its
+   * page goes on polling the bridge for the life of the activity. Left in place it also blocks
+   * {@link #inflate}, so the cube never comes back and {@link #refresh} drives the orphan while
+   * hiding the new spacer — a gap on screen where the cube should be. Nothing is lost by rebuilding:
+   * Java holds the whole state and the page is reloaded from it.
+   *
    * @param stub the placeholder to inflate the cube into, or null where the layout has none
-   * @param topSpacer the gap the cube stands in for, hidden while it is up. Null where the layout
-   *     keeps no such gap (landscape, which gives the cube a fixed height instead).
+   * @param topSpacer the gap the cube stands in for, hidden while it is up, or null where the
+   *     layout keeps no such gap
    */
   public void bind(ViewStub stub, View topSpacer) {
+    boolean relaidOut = webView != null;
+    if (relaidOut) {
+      destroy();
+    }
     this.stub = stub;
     this.topSpacer = topSpacer;
+    if (relaidOut && SmartCubeManager.INSTANCE.isConnected()) {
+      inflate();
+      refresh();
+    }
   }
 
   public void start() {
@@ -167,6 +186,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     SmartCubeManager.INSTANCE.removeMoveListener(this);
     SmartCubeManager.INSTANCE.removeStateListener(this);
     if (webView != null) {
+      webView.removeCallbacks(anchorWhenStill); // nothing to anchor for off screen
       evaluate("window.ntLiveGyro(false);"); // stop the render loop, not just the readings
       webView.onPause(); // twisty-player keeps a WebGL context drawing otherwise
     }
@@ -183,6 +203,10 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
       webView.destroy();
       webView = null;
     }
+    // The page went with it, so nothing may be evaluated and nothing has been drawn. Left true,
+    // a rebuild would think the new page was already up and send it nothing.
+    pageLoaded = false;
+    pageReady = false;
     cubeLayout = null;
     stub = null;
   }
@@ -246,6 +270,11 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
 
   /** Points the cube on screen at solved, which is where the physical one is. */
   private void seed() {
+    // Already showing exactly this, with nothing turned since: handing the page the same alg again
+    // only makes the player rebuild for nothing, and a rebuild is what the pose write has to
+    // survive (see poseStale in live.html). The reference is still re-taken — a cube back at solved
+    // is being held some new way, and that is what the anchor is for.
+    boolean alreadyShown = seeded && inSync && baseAlg.isEmpty() && movesSinceSeed.isEmpty();
     twin.fromFacelet(CubieCube.SOLVED_FACELET);
     baseAlg = "";
     movesSinceSeed.clear();
@@ -254,8 +283,10 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     anchor();
     inSync = true;
     seeded = true;
-    load();
-    refresh();
+    if (!alreadyShown) {
+      load();
+      refresh();
+    }
   }
 
   /**
@@ -393,7 +424,10 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
       // e.g. no WebView implementation installed. Said out loud: swallowed, this is a feature that
       // simply never appears and gives nobody a thread to pull.
       Log.w("LiveCube", "could not inflate the live cube", t);
+      // Both, not just the WebView: a layout left behind here is never drawn into, but refresh
+      // would still reserve its space and hide the spacer — a gap with nothing in it, for good.
       webView = null;
+      cubeLayout = null;
     }
   }
 
