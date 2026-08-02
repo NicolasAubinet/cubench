@@ -602,9 +602,12 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   }
 
   /**
-   * The three cells, whose third one the solve type decides: the personal best normally, the
-   * success rate for a blind solve type, and an average of 50 for one timed in steps, which has
-   * no best single worth stating beside its splits.
+   * The three cells. The third is the personal best, except for a solve type timed in steps, which
+   * has no best single worth stating beside its splits and gives an average of 50 instead.
+   *
+   * <p>A blind solve type spends its first two on an average of 12 and its success rate, the rate
+   * being over the last 50 solves: the same window as the sparkline above it, and near enough to
+   * recent form to move when the solver does. A lifetime rate barely moves at all.
    */
   private void refreshStatCells() {
     if (curSolveType == null) {
@@ -621,17 +624,20 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
               return; // the user moved on while this was loading
             }
             boolean blind = solveType.isBlind();
-            setStatCell(R.id.tvStatKeyOne, R.id.tvStatValueOne,
-              getString(blind ? R.string.mo3_label : R.string.ao5_label),
-              formatTime(blind ? averages.getMeanOf3() : averages.getAvgOf5()));
-            setStatCell(R.id.tvStatKeyTwo, R.id.tvStatValueTwo,
-              getString(R.string.ao12_label), formatTime(averages.getAvgOf12()));
-
             if (blind) {
-              Integer accuracy = averages.getLifetimeAccuracy();
-              setStatCell(R.id.tvStatKeyThree, R.id.tvStatValueThree, getString(R.string.acc_label),
+              Integer accuracy = averages.getAccuracyOf50();
+              setStatCell(R.id.tvStatKeyOne, R.id.tvStatValueOne,
+                getString(R.string.ao12_label), formatTime(averages.getAvgOf12()));
+              setStatCell(R.id.tvStatKeyTwo, R.id.tvStatValueTwo, getString(R.string.acc_label),
                 accuracy == null ? getString(R.string.NA) : accuracy + "%");
-            } else if (solveType.hasSteps()) {
+            } else {
+              setStatCell(R.id.tvStatKeyOne, R.id.tvStatValueOne,
+                getString(R.string.ao5_label), formatTime(averages.getAvgOf5()));
+              setStatCell(R.id.tvStatKeyTwo, R.id.tvStatValueTwo,
+                getString(R.string.ao12_label), formatTime(averages.getAvgOf12()));
+            }
+
+            if (!blind && solveType.hasSteps()) {
               setStatCell(R.id.tvStatKeyThree, R.id.tvStatValueThree,
                 getString(R.string.ao50_label), formatTime(averages.getAvgOf50()));
             } else {
