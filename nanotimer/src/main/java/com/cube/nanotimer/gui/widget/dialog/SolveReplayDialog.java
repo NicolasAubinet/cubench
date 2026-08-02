@@ -20,6 +20,7 @@ import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
@@ -74,16 +75,22 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   // gives no chance to take in the state they are being made from.
   private static final long LEAD_IN_MS = 800;
 
-  // Cycled by tapping the speed label. 1x first so a replay opens at the speed it happened. These
-  // double as JS number literals, so the label and ntReplaySpeed() can never disagree.
-  private static final String[] SPEEDS = {"1", "0.5", "0.25", "2"};
+  // Shown side by side, slowest first, so any of them is one tap away. These double as JS number
+  // literals, so the chip and ntReplaySpeed() can never disagree.
+  private static final String[] SPEEDS = {"0.25", "0.5", "1", "2"};
+  private static final int[] SPEED_IDS = {
+      R.id.buReplaySpeed0, R.id.buReplaySpeed1, R.id.buReplaySpeed2, R.id.buReplaySpeed3};
+  // A replay opens at the speed it happened.
+  private static final int DEFAULT_SPEED = 2;
 
   private WebView webView;
   private ProgressBar progressBar;
   private ImageButton playButton;
   private TextView positionLabel;
-  private TextView speedLabel;
-  private TextView gyroLabel;
+  private TextView totalLabel;
+  private final TextView[] speedChips = new TextView[SPEEDS.length];
+  private View gyroRow;
+  private SwitchCompat gyroSwitch;
   private View controlsRow;
   private TextView fallbackView;
   private String fallbackText;
@@ -96,7 +103,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private String totalText; // invariant for the dialog: formatted once, not on every state update
   private boolean playing;
   private boolean transportPainted;
-  private int speedIndex;
+  private int speedIndex = DEFAULT_SPEED;
   private boolean gyroShown; // the track is off until asked for: the square cube is the honest default
   private boolean pageReady;  // the page has defined its functions; before that, evaluate() is lost
   private String pendingGyroJs; // the track, waiting for the page if it got here first
@@ -152,8 +159,12 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     progressBar = view.findViewById(R.id.pbReplay);
     playButton = view.findViewById(R.id.buReplayPlay);
     positionLabel = view.findViewById(R.id.tvReplayPosition);
-    speedLabel = view.findViewById(R.id.buReplaySpeed);
-    gyroLabel = view.findViewById(R.id.buReplayGyro);
+    totalLabel = view.findViewById(R.id.tvReplayTotal);
+    for (int i = 0; i < SPEEDS.length; i++) {
+      speedChips[i] = view.findViewById(SPEED_IDS[i]);
+    }
+    gyroRow = view.findViewById(R.id.rowReplayGyro);
+    gyroSwitch = view.findViewById(R.id.swReplayGyro);
     controlsRow = view.findViewById(R.id.replayControls);
     fallbackView = view.findViewById(R.id.tvReplayFallback);
     bar = view.findViewById(R.id.replayBar);
@@ -244,6 +255,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
 
   private void setUpControls() {
     setUpBar();
+    totalLabel.setText(getString(R.string.replay_total, totalText)); // invariant: set once, not per tick
     updateTransport(false);
     updateSpeed();
     playButton.setOnClickListener(new View.OnClickListener() {
@@ -253,15 +265,23 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
         evaluate(playing ? "window.ntReplayPause();" : "window.ntReplayPlay();");
       }
     });
-    speedLabel.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        speedIndex = (speedIndex + 1) % SPEEDS.length;
-        evaluate("window.ntReplaySpeed(" + SPEEDS[speedIndex] + ");");
-        updateSpeed();
-      }
-    });
-    gyroLabel.setOnClickListener(new View.OnClickListener() {
+    for (int i = 0; i < speedChips.length; i++) {
+      final int index = i;
+      speedChips[i].setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          if (index == speedIndex) {
+            return;
+          }
+          speedIndex = index;
+          evaluate("window.ntReplaySpeed(" + SPEEDS[speedIndex] + ");");
+          updateSpeed();
+        }
+      });
+    }
+    // The whole row is the target, and the switch itself is not clickable — the solve type
+    // dialog's idiom, so a tap anywhere on the row reads the same way there as here.
+    gyroRow.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         gyroShown = !gyroShown;
@@ -299,7 +319,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   }
 
   private void showGyroTrack(String track) {
-    if (webView == null || gyroLabel == null) {
+    if (webView == null || gyroRow == null) {
       return; // the dialog went away while the track was being read
     }
     // The reconstruction's own frame, cancelled out of the pose: the replay already animates the
@@ -329,13 +349,13 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   }
 
   private void sendGyroTrack() {
-    if (!pageReady || pendingGyroJs == null || gyroLabel == null) {
+    if (!pageReady || pendingGyroJs == null || gyroRow == null) {
       return;
     }
     evaluate(pendingGyroJs);
     pendingGyroJs = null;
     evaluate("window.ntReplayGyroShow(" + gyroShown + ");"); // the page starts square; keep it in step
-    gyroLabel.setVisibility(View.VISIBLE);
+    gyroRow.setVisibility(View.VISIBLE);
     updateGyro();
   }
 
@@ -422,8 +442,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
 
   private void updatePosition(long ms) {
     if (positionLabel != null) {
-      positionLabel.setText(getString(R.string.replay_position,
-          FormatterService.INSTANCE.formatSolveTime(ms), totalText));
+      positionLabel.setText(FormatterService.INSTANCE.formatSolveTime(ms));
     }
   }
 
@@ -438,16 +457,22 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     playButton.setContentDescription(getString(playing ? R.string.replay_pause : R.string.replay_play));
   }
 
+  /** The chosen speed carries the accent pill; the rest stay the quiet one. */
   private void updateSpeed() {
-    speedLabel.setText(getString(R.string.replay_speed, SPEEDS[speedIndex]));
+    for (int i = 0; i < speedChips.length; i++) {
+      boolean chosen = i == speedIndex;
+      speedChips[i].setText(getString(R.string.replay_speed, SPEEDS[i]));
+      speedChips[i].setBackgroundResource(
+          chosen ? R.drawable.row_chip_accent : R.drawable.row_chip);
+      speedChips[i].setTextColor(getResources().getColor(
+          chosen ? R.color.lightblue : R.color.secondary_text));
+      speedChips[i].setSelected(chosen);
+    }
   }
 
-  /** Dimmed when off, so the control says which state it is in without a second label. */
   private void updateGyro() {
-    if (gyroLabel != null) {
-      gyroLabel.setAlpha(gyroShown ? 1f : 0.4f);
-      gyroLabel.setContentDescription(
-          getString(gyroShown ? R.string.replay_gyro_off : R.string.replay_gyro_on));
+    if (gyroSwitch != null) {
+      gyroSwitch.setChecked(gyroShown);
     }
   }
 
@@ -547,8 +572,9 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     progressBar = null;
     playButton = null;
     positionLabel = null;
-    speedLabel = null;
-    gyroLabel = null;
+    totalLabel = null;
+    gyroRow = null;
+    gyroSwitch = null;
     controlsRow = null;
     fallbackView = null;
     bar = null;

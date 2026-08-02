@@ -68,39 +68,102 @@
         android:src="@drawable/ic_replay_play"
         android:contentDescription="@string/replay_play"/>
 
-    <TextView
-        android:id="@+id/tvReplayPosition"
+    <!-- The position reads as one figure with its total beside it, so the moving part carries the
+         weight and the fixed part stays quiet. -->
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginLeft="8dp"
-        style="@style/BreakdownMeta"/>
+        android:layout_marginLeft="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <!-- Shown only for a solve that has a gyro track. Dimmed when off. -->
-    <TextView
-        android:id="@+id/buReplayGyro"
+      <TextView
+          android:id="@+id/tvReplayPosition"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:textColor="@color/white"
+          android:textSize="15sp"
+          android:fontFeatureSettings="tnum"/>
+
+      <TextView
+          android:id="@+id/tvReplayTotal"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginLeft="5dp"
+          style="@style/BreakdownMeta"/>
+    </LinearLayout>
+
+    <!-- Every speed side by side: one tap reaches any of them, where a cycle needed up to three. -->
+    <LinearLayout
+        android:id="@+id/replaySpeeds"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:padding="8dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:text="@string/replay_gyro"
-        android:visibility="gone"
-        style="@style/BreakdownMeta"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/buReplaySpeed"
-        android:layout_width="wrap_content"
+      <TextView android:id="@+id/buReplaySpeed0" style="@style/SegmentChip"/>
+      <TextView android:id="@+id/buReplaySpeed1" style="@style/SegmentChip"/>
+      <TextView android:id="@+id/buReplaySpeed2" style="@style/SegmentChip"/>
+      <TextView android:id="@+id/buReplaySpeed3" style="@style/SegmentChip"/>
+    </LinearLayout>
+  </LinearLayout>
+
+  <!-- The gyro track is a property of the view, not a transport control, so it sits in a row of its
+       own in the switch idiom the solve type dialog uses. Shown only for a solve that has one. -->
+  <LinearLayout
+      android:id="@+id/rowReplayGyro"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:visibility="gone">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="14dp"
+        android:layout_marginRight="14dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/gray700"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minWidth="48dp"
-        android:gravity="center"
-        android:padding="8dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        style="@style/BreakdownMeta"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="14dp"
+        android:background="?android:attr/selectableItemBackground">
+
+      <LinearLayout
+          android:orientation="vertical"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginRight="12dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/replay_gyro"
+            android:textColor="@color/white"
+            android:textSize="16sp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:text="@string/replay_gyro_summary"
+            android:textColor="@color/secondary_text"
+            android:textSize="13sp"/>
+      </LinearLayout>
+
+      <androidx.appcompat.widget.SwitchCompat
+          android:id="@+id/swReplayGyro"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:clickable="false"
+          android:focusable="false"
+          android:contentDescription="@string/replay_gyro"/>
+
+    </LinearLayout>
   </LinearLayout>
 
 </LinearLayout>
