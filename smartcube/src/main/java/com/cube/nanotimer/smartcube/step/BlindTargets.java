@@ -79,9 +79,26 @@ final class BlindTargets {
   /**
    * The name of a parity: the two corners it swapped and then the two edges. Nothing was shot
    * anywhere, and two swaps rather than one four-piece cycle is what the solver memorised.
+   *
+   * <p>Each pair opens on the buffer of its type, the way every other algorithm's name does. A
+   * parity swaps the buffer with one other piece, so the buffer is the piece the pair is read from
+   * even though nothing was shot at it; said in slot order instead, half of them came out backwards.
    */
-  String swapName(List<Integer> corners, List<Integer> edges) {
-    return join(spellAll(corners)) + " + " + join(spellAll(edges));
+  String swapName(List<Integer> corners, List<Integer> edges, int cornerBuffer, int edgeBuffer) {
+    return join(spellAll(bufferFirst(corners, cornerBuffer))) + " + "
+        + join(spellAll(bufferFirst(edges, edgeBuffer)));
+  }
+
+  /** The pair with its buffer at the front, or untouched where the buffer is not one of them. */
+  private static List<Integer> bufferFirst(List<Integer> pieces, int buffer) {
+    if (buffer == NO_BUFFER || pieces.size() < 2 || pieces.get(0) == buffer
+        || !pieces.contains(buffer)) {
+      return pieces;
+    }
+    List<Integer> ordered = new ArrayList<Integer>(pieces);
+    ordered.remove(Integer.valueOf(buffer));
+    ordered.add(0, buffer);
+    return ordered;
   }
 
   /**

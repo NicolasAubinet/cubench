@@ -188,6 +188,8 @@ public class RecordedBlindSolveTest {
 
     assertEquals(4, detector.stepCount()); // memo, edges, corners, parity
     assertEquals("flip:UF-FL", detector.subStepName(1, 5));
+    // Both pairs of the parity open on the buffer of their type, as every other name does.
+    assertEquals("UFR-UBL + UF-UR", detector.subStepName(3, 0));
     // Both pieces, always: an orientation turns a pair, and naming one of them names nothing.
     for (int step = 1; step < detector.stepCount(); step++) {
       for (int part = 0; part < detector.subStepCount(step); part++) {

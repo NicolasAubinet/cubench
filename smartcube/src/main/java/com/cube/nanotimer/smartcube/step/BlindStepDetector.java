@@ -118,6 +118,9 @@ public final class BlindStepDetector implements StepDetector {
   private BlindTargets targets = new BlindTargets(BlindTargets.UNKNOWN_FRAME);
   private int buffer; // the piece the solve is shooting from, for as long as it stays out
   private int lastBuffer; // and the last one it shot from, kept after that one came home
+  // The last piece each type was shot from. A parity swaps a pair of each and is said from both, so
+  // one running buffer is not enough: by then it holds whichever type was solved last.
+  private final int[] typeBuffer = new int[] {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
   private String landed; // the state at the last landing, with the drift taken out
   private Long memoMs;
   private Long solvedMs;
@@ -154,6 +157,8 @@ public final class BlindStepDetector implements StepDetector {
     parityFound = false;
     buffer = BlindTargets.NO_BUFFER;
     lastBuffer = BlindTargets.NO_BUFFER;
+    typeBuffer[EDGES] = BlindTargets.NO_BUFFER;
+    typeBuffer[CORNERS] = BlindTargets.NO_BUFFER;
     lastTimestampMs = startTimestampMs;
     landed = startState.getFacelets();
     parity = Cubies.isOddPermutation(landed);
@@ -206,7 +211,8 @@ public final class BlindStepDetector implements StepDetector {
       // A parity is said as the pieces it swapped, not the ones it solved: a corner it swaps into a
       // slot it is still twisted in was swapped all the same, and is half of what was memorised.
       String name = parityLanding
-          ? targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES))
+          ? targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES),
+              typeBuffer[CORNERS], typeBuffer[EDGES])
           : targets.name(landed, steady, shotFrom, named);
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed,
           shot ? steady : null, named, shotFrom));
@@ -215,6 +221,7 @@ public final class BlindStepDetector implements StepDetector {
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
         buffer = all.contains(shotFrom) ? BlindTargets.NO_BUFFER : shotFrom;
         lastBuffer = shotFrom;
+        typeBuffer[Cubies.isEdge(shotFrom) ? EDGES : CORNERS] = shotFrom;
       }
     }
     landed = steady;
