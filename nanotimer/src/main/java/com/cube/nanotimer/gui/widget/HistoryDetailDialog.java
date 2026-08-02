@@ -11,6 +11,7 @@ import android.os.Bundle;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
 import android.text.SpannableString;
@@ -304,8 +305,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     moves.setOnCheckedChangeListener(null); // the next binding sets it, and would trip this one
     v.findViewById(R.id.buReplay).setVisibility(View.GONE);
     ((TableLayout) v.findViewById(R.id.breakdownTable)).removeAllViews();
+    ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setHighlightedStep(-1);
     breakdownRows.clear();
     breakdownSteps = null;
+    pickedStep = -1;
 
     View scrambleCard = v.findViewById(R.id.scrambleCard);
     scrambleCard.setClickable(true);
@@ -639,6 +642,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       table.addView(row);
 
       StepRows stepRows = new StepRows(name);
+      stepRows.row = row;
+      stepRows.color = colors[i % colors.length];
       stepRows.moves = movesRow(table, R.style.BreakdownMoves, movesOf(solution, i));
       List<SolveStep> parts = step.getSubSteps();
       for (int j = 0; j < parts.size(); j++) {
@@ -648,13 +653,106 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         stepRows.partMoves.add(movesRow(table, R.style.BreakdownSubMoves, partMovesOf(solution, i, j)));
       }
       breakdownRows.add(stepRows);
+      makePickable(v, row, i);
       if (!stepRows.partRows.isEmpty()) {
-        makeExpandable(row, stepRows);
+        setChevron(name, stepRows.expanded);
       }
     }
+    setUpBarPicking(v);
     buildMovesSwitch(v, solution, label, method);
     applyRowVisibility();
     v.findViewById(R.id.breakdownSection).setVisibility(View.VISIBLE);
+  }
+
+  /** The step the bar has been asked about, or -1 while it is describing the whole solve. */
+  private int pickedStep = -1;
+
+  /**
+   * The bar as a way into the table rather than a picture beside it: touching a segment picks that
+   * step out, and dragging along the bar walks the pick with the finger.
+   */
+  private void setUpBarPicking(final View v) {
+    final SolveStepBarView bar = (SolveStepBarView) v.findViewById(R.id.breakdownBar);
+    bar.setOnSeekListener(new SolveStepBarView.OnSeekListener() {
+      @Override
+      public void onSeek(float fraction) {
+        pickStep(v, bar.stepAt(fraction), false);
+      }
+    });
+  }
+
+  /** A row is the other end of the same handle, and the one that can put the pick back. */
+  private void makePickable(final View v, TableRow row, final int index) {
+    row.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View clicked) {
+        pickStep(v, index, true);
+      }
+    });
+  }
+
+  /**
+   * Picks one step out of the solve: the bar keeps that segment lit and fades the rest, the step's
+   * row is washed in its own colour and is the only one showing its parts, and the table is scrolled
+   * far enough to hold it. Picking the same step from the table again puts the whole solve back.
+   *
+   * @param toggle true when the pick came from the row it would pick, which is how it is undone
+   */
+  private void pickStep(View v, int index, boolean toggle) {
+    if (index < 0 || index >= breakdownRows.size()) {
+      return;
+    }
+    int picked = toggle && index == pickedStep ? -1 : index;
+    if (picked == pickedStep) {
+      return;
+    }
+    pickedStep = picked;
+    ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setHighlightedStep(picked);
+    for (int i = 0; i < breakdownRows.size(); i++) {
+      StepRows step = breakdownRows.get(i);
+      step.expanded = picked < 0 || i == picked;
+      paintRowBackground(step.row, i == picked ? step.color : 0);
+      if (!step.partRows.isEmpty()) {
+        setChevron(step.name, step.expanded);
+      }
+    }
+    applyRowVisibility();
+    if (picked >= 0) {
+      scrollRowIntoView(v, breakdownRows.get(picked).row);
+    }
+  }
+
+  /** A wash of the step's own colour while it is picked, and the row's own ripple the rest of the
+   * time: every row is a target now, and has to keep saying so. */
+  private void paintRowBackground(TableRow row, int color) {
+    if (color != 0) {
+      row.setBackgroundColor(ColorUtils.setAlphaComponent(color, 0x24));
+      return;
+    }
+    TypedValue background = new TypedValue();
+    getActivity().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, background, true);
+    row.setBackgroundResource(background.resourceId);
+  }
+
+  /** Posted rather than run: the parts opening and closing move the row this is measuring. */
+  private void scrollRowIntoView(View v, final View row) {
+    final NestedScrollView scroll = (NestedScrollView) v.findViewById(R.id.detailScroll);
+    scroll.post(new Runnable() {
+      @Override
+      public void run() {
+        int[] rowAt = new int[2];
+        int[] scrollAt = new int[2];
+        row.getLocationInWindow(rowAt);
+        scroll.getLocationInWindow(scrollAt);
+        int top = rowAt[1] - scrollAt[1];
+        int bottom = top + row.getHeight();
+        if (top < 0) {
+          scroll.smoothScrollBy(0, top - dp(8));
+        } else if (bottom > scroll.getHeight()) {
+          scroll.smoothScrollBy(0, bottom - scroll.getHeight() + dp(8));
+        }
+      }
+    });
   }
 
   /** A user step goes by the name it was given, or by its position when the steps changed since. */
@@ -676,6 +774,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     private final TextView name;
     private final List<TableRow> partRows = new ArrayList<TableRow>();
     private final List<TextView> partMoves = new ArrayList<TextView>();
+    private TableRow row;
+    private int color;
     private TextView moves;
     private boolean expanded = true; // folding is for skimming; a solve opens fully told
 
@@ -794,21 +894,6 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private String partMoveCountOf(SolveSolution solution, int stepIndex, int part) {
     return stepIndex < solution.getSteps().size()
         ? String.valueOf(solution.getSteps().get(stepIndex).getPartMoveCount(part)) : "";
-  }
-
-  private void makeExpandable(TableRow row, final StepRows stepRows) {
-    setChevron(stepRows.name, stepRows.expanded);
-    TypedValue background = new TypedValue();
-    getActivity().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, background, true);
-    row.setBackgroundResource(background.resourceId);
-    row.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        stepRows.expanded = !stepRows.expanded;
-        setChevron(stepRows.name, stepRows.expanded);
-        applyRowVisibility();
-      }
-    });
   }
 
   private void setChevron(TextView name, boolean expanded) {

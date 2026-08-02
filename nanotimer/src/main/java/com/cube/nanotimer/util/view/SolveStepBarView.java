@@ -41,10 +41,13 @@ public class SolveStepBarView extends View {
 
   private static final float PLAYHEAD_WIDTH_RATIO = 0.12f;
 
+  private static final float DIMMED = 0.3f; // what the steps beside the picked one fade to
+
   private List<SolveStep> steps = Collections.emptyList();
   private int[] colors = new int[0];
   private float progress = 1f; // left-to-right reveal fraction; 1 = fully drawn
   private float playhead = -1f; // where a replay has got to, or < 0 for a bar nothing is playing
+  private int highlighted = -1; // the step picked out of the bar, or < 0 for a bar with none
   private OnSeekListener seekListener;
 
   public SolveStepBarView(Context context) {
@@ -83,6 +86,34 @@ public class SolveStepBarView extends View {
   public void setPlayhead(float fraction) {
     this.playhead = fraction;
     invalidate();
+  }
+
+  /**
+   * Picks one step out of the bar: the rest fade back so the one asked for is the bar. Negative
+   * puts them all back. The bar says which step it is; what that means is the caller's to show.
+   */
+  public void setHighlightedStep(int index) {
+    if (highlighted != index) {
+      highlighted = index;
+      invalidate();
+    }
+  }
+
+  /** Which step a point along the solve falls in, or -1 when there are no steps to fall in. */
+  public int stepAt(float fraction) {
+    long totalMs = totalMs(steps);
+    if (totalMs <= 0) {
+      return -1;
+    }
+    float wanted = fraction * totalMs;
+    long at = 0;
+    for (int i = 0; i < steps.size(); i++) {
+      at += steps.get(i).getTotalMs();
+      if (wanted <= at) {
+        return i;
+      }
+    }
+    return steps.size() - 1;
   }
 
   @Override
@@ -146,7 +177,8 @@ public class SolveStepBarView extends View {
         continue;
       }
       float stepWidth = width * step.getTotalMs() / totalMs;
-      drawStep(canvas, step, colorOf(i), left, stepWidth, height, corner, partGap);
+      float alphaScale = highlighted < 0 || highlighted == i ? 1f : DIMMED;
+      drawStep(canvas, step, colorOf(i), left, stepWidth, height, corner, partGap, alphaScale);
       left += stepWidth + stepGap;
     }
     canvas.restore(); // the playhead marks a moment in the solve, it is not part of the reveal
@@ -252,7 +284,7 @@ public class SolveStepBarView extends View {
   }
 
   private void drawStep(Canvas canvas, SolveStep step, int color, float left, float stepWidth,
-      float height, float corner, float partGap) {
+      float height, float corner, float partGap, float alphaScale) {
     canvas.save();
     corners.reset();
     bounds.set(left, 0, left + stepWidth, height);
@@ -271,8 +303,9 @@ public class SolveStepBarView extends View {
       float partRight = partLeft + partWidth - (last ? 0 : partGap); // the gap separates the parts
       float split = partLeft + partWidth * part.getRecognitionMs() / Math.max(1, part.getTotalMs());
 
-      fill(canvas, color, RECOGNITION_ALPHA, partLeft, Math.min(split, partRight), height);
-      fill(canvas, color, Color.alpha(color), split, partRight, height);
+      fill(canvas, color, (int) (RECOGNITION_ALPHA * alphaScale),
+          partLeft, Math.min(split, partRight), height);
+      fill(canvas, color, (int) (Color.alpha(color) * alphaScale), split, partRight, height);
       partLeft += partWidth;
     }
     canvas.restore();
