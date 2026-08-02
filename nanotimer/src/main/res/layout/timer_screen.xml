@@ -351,11 +351,20 @@
              android:paddingTop="5px"
              android:paddingBottom="5px">
             <TextView
-               android:layout_width="0px"
-               android:layout_weight="1"
                android:text="@string/timer_personal_best"
                style="@style/StatFooterKeyPx"/>
-            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvLifetimeBest" style="@style/StatFooterValuePx"/>
+            <!-- The value carries the weight, not the label: the label is fixed text while
+                 the time is what varies, and FontFitTextView only shrinks into a width it
+                 has been given. Weighted the other way a 7x7 PB took the cell and clipped
+                 the label. -->
+            <com.cube.nanotimer.util.view.FontFitTextView
+               android:id="@+id/tvLifetimeBest"
+               android:layout_width="0px"
+               android:layout_weight="1"
+               android:layout_marginLeft="6px"
+               android:layout_marginStart="6px"
+               android:gravity="right"
+               style="@style/StatFooterValuePx"/>
           </LinearLayout>
           <LinearLayout
              android:id="@+id/footerAvgCell"
@@ -371,11 +380,20 @@
              android:paddingTop="5px"
              android:paddingBottom="5px">
             <TextView
-               android:layout_width="0px"
-               android:layout_weight="1"
                android:text="@string/timer_avg_1000"
                style="@style/StatFooterKeyPx"/>
-            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvLifetimeAvg" style="@style/StatFooterValuePx"/>
+            <!-- The value carries the weight, not the label: the label is fixed text while
+                 the time is what varies, and FontFitTextView only shrinks into a width it
+                 has been given. Weighted the other way a 7x7 PB took the cell and clipped
+                 the label. -->
+            <com.cube.nanotimer.util.view.FontFitTextView
+               android:id="@+id/tvLifetimeAvg"
+               android:layout_width="0px"
+               android:layout_weight="1"
+               android:layout_marginLeft="6px"
+               android:layout_marginStart="6px"
+               android:gravity="right"
+               style="@style/StatFooterValuePx"/>
           </LinearLayout>
         </LinearLayout>
 
