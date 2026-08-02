@@ -264,6 +264,14 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     return follower != null && follower.isWrong();
   }
 
+  /**
+   * The grip a solve's frames are measured from, shared so the live mirror can measure from it too
+   * rather than inventing one of its own — the same reference the replay draws its poses against.
+   */
+  public GyroReference getGyroReference() {
+    return gyroReference;
+  }
+
   /** True once the whole scramble has been followed and the timer is armed. */
   public boolean isReadyToSolve() {
     return phase == Phase.ARMED;

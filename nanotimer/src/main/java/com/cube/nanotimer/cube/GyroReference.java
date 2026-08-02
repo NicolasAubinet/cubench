@@ -23,7 +23,9 @@ import java.util.Map;
  */
 public final class GyroReference {
 
-  private CubeOrientation reference;
+  // Volatile because the live mirror's page polls it from the WebView's own thread, while the
+  // controller anchors it on the main one.
+  private volatile CubeOrientation reference;
 
   /** Feed the reading at every followed scramble move: the first one is the reference. */
   public void anchor(CubeOrientation reading) {

@@ -115,13 +115,29 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   private boolean seeded;
 
   /**
-   * The grip the cube was in when it was last seeded: that is what square means on screen, and
-   * every pose is measured from it.
+   * The solve's own reference, shared rather than copied: the uprighted reading at the first
+   * followed scramble move, which is the one grip whose label is genuinely known.
    *
-   * <p>Its own rather than the solve's shared {@link GyroReference} (§6.5), because it answers a
-   * different question — the solve's reference names the grip a scramble was followed in and must
-   * not move, while this one re-anchors every time the cube comes back to solved. Volatile because
-   * the page polls it from its own thread.
+   * <p>⚠️ <b>This replaced a reference of this view's own, re-taken at every seed, and the reason
+   * is worth keeping.</b> Re-anchoring redefines "however you are holding it right now" as square,
+   * so the moment a solve finished the cube on screen snapped to white-top-green-front whatever was
+   * really in the hand — right for the whole solve, wrong from the instant it was solved. The
+   * replay, measuring from this reference, was right the whole time.
+   */
+  private GyroReference solveReference;
+
+  /**
+   * The last grip the solve's reference named, kept because it clears at every new scramble and is
+   * not set again until the first move is followed. Absolute either way — yaw drift is hundredths
+   * of a degree a minute — so holding the previous one across the gap beats jumping to a guess.
+   */
+  private volatile CubeOrientation lastKnownReference;
+
+  /**
+   * Where the pose is measured from before any scramble has been followed: this view's own, taken
+   * once and never re-taken. Uprighted, unlike the anchor this replaced — gravity knows which face
+   * is up, so only yaw is left arbitrary, and the tilt of the grip belongs on screen because it is
+   * really there. Volatile because the page polls it from its own thread.
    */
   private volatile CubeOrientation reference;
 
@@ -158,6 +174,29 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
    * @param topSpacer the gap the cube stands in for, hidden while it is up, or null where the
    *     layout keeps no such gap
    */
+  /** The solve's reference, to measure poses from in preference to one of this view's own. */
+  public void setSolveReference(GyroReference solveReference) {
+    this.solveReference = solveReference;
+  }
+
+  /**
+   * The grip the pose is measured from: the solve's where a scramble has been followed, the last
+   * one it named while it waits for the next, and this view's own only until there has been one.
+   *
+   * <p>Called from the page's thread as well as the main one, so it touches nothing that is not
+   * volatile.
+   */
+  private CubeOrientation referenceNow() {
+    GyroReference solve = solveReference;
+    CubeOrientation named = solve == null ? null : solve.get();
+    if (named != null) {
+      lastKnownReference = named;
+      return named;
+    }
+    CubeOrientation last = lastKnownReference;
+    return last != null ? last : reference;
+  }
+
   public void bind(ViewStub stub, View topSpacer) {
     boolean relaidOut = webView != null;
     if (relaidOut) {
@@ -245,9 +284,10 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     twin.applyMove(move.getFace(), move.isPrime());
     movesSinceSeed.add(move.getNotation());
     evaluate("window.ntLiveMove(" + JSONObject.quote(move.getNotation()) + ");");
-    if (reference == null) {
-      // The seed found no reading — the first ones can arrive after the connection. Take the grip
-      // the cube is being turned in now instead, rather than never following it at all.
+    if (referenceNow() == null) {
+      // Nothing known to measure from yet — no scramble followed, and the seed found no reading
+      // (the first ones can arrive after the connection). Fall back to the grip it is being turned
+      // in now, rather than not following it at all.
       anchor();
     }
   }
@@ -272,14 +312,16 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   private void seed() {
     // Already showing exactly this, with nothing turned since: handing the page the same alg again
     // only makes the player rebuild for nothing, and a rebuild is what the pose write has to
-    // survive (see poseStale in live.html). The reference is still re-taken — a cube back at solved
-    // is being held some new way, and that is what the anchor is for.
+    // survive (see poseStale in live.html).
     boolean alreadyShown = seeded && inSync && baseAlg.isEmpty() && movesSinceSeed.isEmpty();
     twin.fromFacelet(CubieCube.SOLVED_FACELET);
     baseAlg = "";
     movesSinceSeed.clear();
-    // ⚠️ The old reference stands until anchorWhenStill has a still one: clearing it here left the
-    // cube dead square in the hand for the whole of the wait.
+    // ⚠️ Seeding the STATE does not re-take the reference, and must not. Re-anchoring here is what
+    // made the cube snap to white-top-green-front the instant a solve finished, whatever was really
+    // in the hand: the orientation was right for the whole solve and wrong from the moment it ended.
+    // anchor() no-ops once anything is known to measure from; it is here only for the cube that
+    // connects before its first reading arrives.
     anchor();
     inSync = true;
     seeded = true;
@@ -305,6 +347,9 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
    * "now" is often the middle of a turn.
    */
   private void anchor() {
+    if (referenceNow() != null) {
+      return; // already measuring from a known grip, and re-taking one is what broke this
+    }
     CubeOrientation reading = SmartCubeManager.INSTANCE.getOrientation();
     if (reading == null) {
       return; // no gyro on this cube, or nothing read yet: the cube on screen simply stays square
@@ -358,7 +403,10 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   };
 
   private void setReference(CubeOrientation reading) {
-    reference = reading;
+    // Uprighted, as the solve's own reference is: gravity knows which face is up, so squaring the
+    // reading up leaves only yaw arbitrary — and leaves the grip's real tilt on screen, where it
+    // belongs, because a mirror is asked to show the cube as it is and not as square.
+    reference = CubeRotation.upright(reading);
     if (!gyroOn) {
       gyroOn = true;
       evaluate("window.ntLiveGyro(true);");
@@ -403,7 +451,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     }
     // A cube with no gyro must not leave the page's render loop running for a pose that never
     // changes: nothing to follow, nothing to draw.
-    gyroOn = reference != null;
+    gyroOn = referenceNow() != null;
     evaluate("window.ntLiveGyro(" + gyroOn + ");");
   }
 
@@ -572,7 +620,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     @JavascriptInterface
     public String orientation() {
       CubeOrientation pose =
-          CubeRotation.continuousFrame(reference, SmartCubeManager.INSTANCE.getOrientation());
+          CubeRotation.continuousFrame(referenceNow(), SmartCubeManager.INSTANCE.getOrientation());
       return pose == null ? ""
           : pose.getW() + "," + pose.getX() + "," + pose.getY() + "," + pose.getZ();
     }
