@@ -78,12 +78,10 @@ import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
-import com.cube.nanotimer.vo.SolveTypeStep;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -118,6 +116,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
   private CubeMethod lastSolveMethod; // the method its milestones fitted, null when they fitted none
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
+  // What the step bar and the line under it are showing, kept so a rotation can draw them again:
+  // the views are rebuilt from scratch, and the solve they described is not re-read from anywhere.
+  private List<SolveStep> shownSteps = Collections.emptyList();
+  private String[] shownStepNames;
+  private CharSequence shownStats;
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
   private boolean skipRecordPanel; // suppress the record panel on the next refresh (a discard-bound stop, or a delete)
@@ -874,7 +877,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         tvTimer.setText(timerText);
       }
       renderScramble();
-      tvSolvesCount.setText(String.valueOf(solvesCount));
+      setSolvesCount(solvesCount);
+      restoreStepBreakdown();
 
       refreshSessionFields();
       if (solveAverages != null) {
@@ -1186,8 +1190,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * way to something else at the end.
    */
   private void showStepsSoFar() {
-    solveStepBar.setSteps(SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0])), stepNames());
-    solveStepBar.setVisibility(View.VISIBLE);
+    drawStepBar(SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0])), stepNames());
   }
 
   private void resetTimer() {
@@ -1431,8 +1434,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The tail is drawn but never stored, so lastSolveSteps stays the form that gets saved.
     List<SolveStep> barSteps = SolveBreakdown.withTail(lastSolveSteps, lastSolveStoppedStep,
         solveDurationMs, lastSolveMoves, lastSolveMethod);
-    solveStepBar.setSteps(SolveBreakdown.withoutGap(barSteps));
-    solveStepBar.setVisibility(View.VISIBLE);
+    drawStepBar(SolveBreakdown.withoutGap(barSteps), null);
     solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
     // The stats read the whole thing, gap included, so the move count is the same number the detail
     // sheet shows — only the bar leaves it out.
@@ -1450,8 +1452,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       hideStepBreakdown();
       return;
     }
-    solveStepBar.setSteps(steps, stepNames());
-    solveStepBar.setVisibility(View.VISIBLE);
+    drawStepBar(steps, stepNames());
     solveStepBar.animateIn();
     // The steps were timed by tapping, so there are only moves to count when a cube drove them too;
     // with none, this hides itself and the bar stands alone.
@@ -1467,14 +1468,24 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   // Reveals the solve's move count and turn rate under the bar; hidden when the solve carries no moves.
+  // Read even in landscape, where there is no line to show it in, so rotating into portrait finds
+  // this solve's stats there rather than the last portrait one's.
   private void showSolveStats(SolveSolution solution) {
+    shownStats = solution.isEmpty() ? null : solveStats(solution);
     if (tvSolveStats == null) {
       return;
     }
-    if (solution.isEmpty()) {
+    if (shownStats == null) {
       tvSolveStats.setVisibility(View.INVISIBLE);
       return;
     }
+    tvSolveStats.setText(shownStats);
+    tvSolveStats.setAlpha(0f);
+    tvSolveStats.setVisibility(View.VISIBLE);
+    tvSolveStats.animate().alpha(1f).setDuration(250);
+  }
+
+  private CharSequence solveStats(SolveSolution solution) {
     StringBuilder stats = new StringBuilder()
         .append(getString(R.string.breakdown_moves_count, solution.getMoveCount())).append(" · ")
         .append(getString(R.string.breakdown_tps, FormatterService.INSTANCE.formatTps(solution.getTps())));
@@ -1484,13 +1495,38 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (lastSolveMethod == CubeMethod.BLIND && solution.getPartCount() > 0) {
       stats.append(" · ").append(getString(R.string.breakdown_algs, solution.getPartCount()));
     }
-    tvSolveStats.setText(stats);
-    tvSolveStats.setAlpha(0f);
-    tvSolveStats.setVisibility(View.VISIBLE);
-    tvSolveStats.animate().alpha(1f).setDuration(250);
+    return stats;
+  }
+
+  /** Draws the bar, and remembers what it drew so a rotation can put the same thing back. */
+  private void drawStepBar(List<SolveStep> steps, String[] stepNames) {
+    shownSteps = steps;
+    shownStepNames = stepNames;
+    solveStepBar.setSteps(steps, stepNames);
+    solveStepBar.setVisibility(View.VISIBLE);
+  }
+
+  /**
+   * Puts the breakdown back after the layout was rebuilt for a new orientation. Without this a
+   * rotation mid-solve or after one leaves an empty legend where the solve's steps were.
+   */
+  private void restoreStepBreakdown() {
+    if (shownSteps.isEmpty()) {
+      reserveStepBreakdownSpace();
+      return;
+    }
+    solveStepBar.setSteps(shownSteps, shownStepNames);
+    solveStepBar.setVisibility(View.VISIBLE);
+    if (tvSolveStats != null && shownStats != null) { // absent in landscape
+      tvSolveStats.setText(shownStats);
+      tvSolveStats.setVisibility(View.VISIBLE);
+    }
   }
 
   private void hideStepBreakdown() {
+    shownSteps = Collections.emptyList();
+    shownStepNames = null;
+    shownStats = null;
     int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
     solveStepBar.setVisibility(visibility);
     if (tvSolveStats != null) {
