@@ -22,8 +22,10 @@ import java.util.List;
 
 /**
  * The shape of the last solves, drawn small: the only place in the app that shows a trend without
- * opening the graph screen. Faster is higher, DNFs are skipped rather than drawn as a gap, and the
- * best solve in the window carries a record-coloured dot, which is usually not the lifetime best.
+ * opening the graph screen. Time is the axis, so a faster solve sits lower, the way it does on the
+ * graph this is a preview of. DNFs are skipped rather than drawn as a gap, and the best solve in
+ * the window carries a record-coloured dot at the bottom of the line, which is usually not the
+ * lifetime best.
  *
  * <p>Feed it {@link #setTimes} with the times newest first, as the service returns them.
  */
@@ -161,7 +163,7 @@ public class SparklineView extends View {
     pointsY = new float[values.size()];
     for (int i = 0; i < values.size(); i++) {
       pointsX[i] = recordRadius + i * step;
-      pointsY[i] = verticalPadding + (values.get(i) - min) / span * usable;
+      pointsY[i] = verticalPadding + (max - values.get(i)) / span * usable;
       if (i == 0) {
         linePath.moveTo(pointsX[i], pointsY[i]);
         fillPath.moveTo(pointsX[i], height);
