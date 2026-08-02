@@ -193,7 +193,10 @@ public final class BlindStepDetector implements StepDetector {
     List<Integer> all = new ArrayList<>(gained[EDGES]);
     all.addAll(gained[CORNERS]);
     String steady = withoutDrift(facelets, frame);
-    if (!readOrientation(steady, timestampMs) && !readUndo(steady, timestampMs)) {
+    // Undo first: it is the stricter claim of the two, the cube standing exactly where the previous
+    // algorithm found it. A misfire taken straight back leaves pieces turned where they stand and
+    // would otherwise read as the flip it undid.
+    if (!readUndo(steady, timestampMs) && !readOrientation(steady, timestampMs)) {
       // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
       boolean shot = touched == CYCLE;
       List<Integer> moved = moved(landed, steady);
@@ -289,6 +292,11 @@ public final class BlindStepDetector implements StepDetector {
       if (previous < 0 || landings.get(previous).type != NO_GAIN) {
         return false; // one that put something home is an algorithm of its own, never half a turn
       }
+      if (UNDO.equals(landings.get(previous).name)) {
+        // A mistake taken back is a finished statement, not half a turn: joining across one read a
+        // misfire and the shot that replaced it as a single flip of the pair they both aimed at.
+        return false;
+      }
       from = landings.get(previous).before;
     }
   }
@@ -303,13 +311,19 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * The pieces the two states differ in, when every one of them sits in the slot it belongs to on
-   * both sides — turned where it stands rather than cycled anywhere. Null if any of them moved.
+   * The pieces the two states differ in, when every one of them is still the same piece afterwards
+   * — turned where it stands rather than cycled anywhere. Null if any of them moved.
+   *
+   * <p>Same piece, <b>not</b> piece at home. Requiring home was the rule until a solve with a parity
+   * flipped its buffer: on an odd solve the buffer holds a foreign piece right up until the parity,
+   * so a flip of the buffer and one other edge had one slot away from home and read as no flip at
+   * all. It was then named for the single piece it happened to solve, and a flip of one piece is not
+   * a thing that exists.
    */
   private static List<Integer> turnedInPlace(String before, String after) {
     List<Integer> turned = new ArrayList<>();
     for (int slot : moved(before, after)) {
-      if (Cubies.homeSlotOf(before, slot) != slot || Cubies.homeSlotOf(after, slot) != slot) {
+      if (Cubies.homeSlotOf(before, slot) != Cubies.homeSlotOf(after, slot)) {
         return null;
       }
       turned.add(slot);

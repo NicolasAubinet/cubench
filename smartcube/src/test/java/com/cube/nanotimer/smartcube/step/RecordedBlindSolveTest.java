@@ -173,6 +173,31 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * Solve 211 is the first captured with a parity, and the one that says an orientation is pieces
+   * <b>turned where they stand</b>, not pieces turned <b>at home</b>. Its edges end on a flip of the
+   * buffer and {@code FL} — and on an odd solve the buffer holds a foreign piece right up until the
+   * parity puts it right, so one of the two was nowhere near home.
+   *
+   * <p>Read as pieces-at-home it was no flip at all, and fell through to being named for the single
+   * piece it happened to solve: {@code FL}, on its own. A flip of one piece does not exist, which is
+   * how the owner spotted it.
+   */
+  @Test
+  public void readsAFlipOfTheBufferOnASolveWhoseBufferIsNotHomeYet() {
+    replay(RecordedBlindSolve.SCRAMBLE_211, RecordedBlindSolve.MOVES_211, Long.MAX_VALUE);
+
+    assertEquals(4, detector.stepCount()); // memo, edges, corners, parity
+    assertEquals("flip:UF-FL", detector.subStepName(1, 5));
+    // Both pieces, always: an orientation turns a pair, and naming one of them names nothing.
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        String name = detector.subStepName(step, part);
+        assertTrue("no algorithm is one piece: " + name, name.equals("undo") || name.contains("-"));
+      }
+    }
+  }
+
+  /**
    * Solve 185 is the one that says an orientation cannot be recognised by how many pieces it moves.
    * The owner's account of it: the edges end on two flips, UF/UL and DL/DR, and the corners on three
    * corners twisted the same way — not one of them the buffer, which is the rare case.
@@ -382,6 +407,16 @@ public class RecordedBlindSolveTest {
     }
     boolean turned = false;
     for (String token : moves.trim().split("\\s+")) {
+      // The stored grip, where the solve has one: it stands in brackets ahead of the moves and is
+      // the pick-up itself, rather than the frame at the first move that the tokens give.
+      if (token.startsWith("[")) {
+        if (frame == null) {
+          detector.setPickupRotation(
+              CubeRotation.byNotation(token.substring(1, token.indexOf(']'))));
+        }
+        turned = true;
+        break;
+      }
       String notation = token.substring(0, token.indexOf('@'));
       if ("xyz".indexOf(notation.charAt(0)) < 0) {
         break; // the first face turn: any rotation after this one is the solve's, not the pick-up
@@ -397,6 +432,9 @@ public class RecordedBlindSolveTest {
     }
     detector.reset(new CubeState(cube.toFaceCube()), 0);
     for (String token : moves.trim().split("\\s+")) {
+      if (token.startsWith("[")) {
+        continue; // the grip, already read above: it has no offset, so it is not a move
+      }
       String notation = token.substring(0, token.indexOf('@'));
       long offsetMs = Long.parseLong(token.substring(token.indexOf('@') + 1));
       if (offsetMs > lastOffsetMs) {
