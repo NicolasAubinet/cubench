@@ -20,6 +20,7 @@ public final class StepTime {
   private final long executionMs;
   private final boolean complete;
   private final List<StepTime> subSteps;
+  private final List<Boolean> solvedPieces;
 
   public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
       List<StepTime> subSteps) {
@@ -28,12 +29,19 @@ public final class StepTime {
 
   public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
       List<StepTime> subSteps, boolean complete) {
+    this(stepIndex, stepName, recognitionMs, executionMs, subSteps, complete,
+        Collections.<Boolean>emptyList());
+  }
+
+  public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
+      List<StepTime> subSteps, boolean complete, List<Boolean> solvedPieces) {
     this.stepIndex = stepIndex;
     this.stepName = stepName;
     this.recognitionMs = recognitionMs;
     this.executionMs = executionMs;
     this.complete = complete;
     this.subSteps = Collections.unmodifiableList(subSteps);
+    this.solvedPieces = Collections.unmodifiableList(solvedPieces);
   }
 
   public int getStepIndex() {
@@ -66,6 +74,11 @@ public final class StepTime {
   /** The parts this step was built in, oldest first. Empty when it has none. */
   public List<StepTime> getSubSteps() {
     return subSteps;
+  }
+
+  /** Of the pieces this step's name is made of, which it put home. Empty for a name without any. */
+  public List<Boolean> getSolvedPieces() {
+    return solvedPieces;
   }
 
   @Override

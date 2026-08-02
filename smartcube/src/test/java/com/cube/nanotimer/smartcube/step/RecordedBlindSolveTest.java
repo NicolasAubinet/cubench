@@ -202,8 +202,10 @@ public class RecordedBlindSolveTest {
 
   /**
    * Which of an algorithm's pieces it put home, on the solve that has one of everything. A normal
-   * commutator lands both its targets; a <b>cycle break</b> lands only the second, the first taking
-   * the buffer's piece, which does not belong there; and the parity lands all four of its own.
+   * commutator lands both the targets it was shot at, and only they. One that <b>breaks into a new
+   * cycle</b> lands one of the two: the break-in target takes a piece that belongs elsewhere, and
+   * which of them it is says where the break fell — the second where the algorithm closed the old
+   * cycle before breaking in, the first where the buffer was shot straight into the new one.
    *
    * <p><b>The buffer is never home before the parity</b> — it holds a foreign piece until the parity
    * puts it right — so no algorithm of this solve lands the piece it was shot from, the flip that
@@ -215,9 +217,9 @@ public class RecordedBlindSolveTest {
 
     assertEquals("UF-DB-BR", detector.subStepName(1, 0));
     assertEquals(home(false, true, true), detector.subStepSolvedPieces(1, 0));
-    assertEquals("UF-UB-RU", detector.subStepName(1, 4)); // a cycle break: RU takes the buffer's
+    assertEquals("UF-UB-RU", detector.subStepName(1, 4)); // closed at UB and broke in at RU
     assertEquals(home(false, true, false), detector.subStepSolvedPieces(1, 4));
-    assertEquals("UFR-UBR-LUB", detector.subStepName(2, 1)); // and one on the corners
+    assertEquals("UFR-UBR-LUB", detector.subStepName(2, 1)); // and the same on the corners
     assertEquals(home(false, true, false), detector.subStepSolvedPieces(2, 1));
     assertEquals("flip:UF-FL", detector.subStepName(1, 5));
     assertEquals(home(false, true), detector.subStepSolvedPieces(1, 5));
@@ -230,6 +232,9 @@ public class RecordedBlindSolveTest {
    * cycle twice, first to {@code RF} where it wanted {@code FR}, and only the second is worth
    * anything. An undo is not made of pieces at all, so it has none to mark.
    *
+   * <p>The shot that replaced it broke into its cycle, this solve having none open yet: its first
+   * target takes the buffer's piece, which does not belong there, and only its second lands.
+   *
    * <p>A solve without a parity brings its buffer home, and then the piece it was shot from is
    * marked like any other — the closing cycle of solve 163 lands all three.
    */
@@ -237,8 +242,10 @@ public class RecordedBlindSolveTest {
   public void marksNothingOnAnAlgorithmThatPutNothingHome() {
     replay(RecordedBlindSolve.SCRAMBLE_184, RecordedBlindSolve.MOVES_184, Long.MAX_VALUE);
 
+    assertEquals("UF-UR-RF", detector.subStepName(1, 0));
     assertEquals(home(false, false, false), detector.subStepSolvedPieces(1, 0));
     assertTrue(detector.subStepSolvedPieces(1, 1).isEmpty()); // the undo
+    assertEquals("UF-UR-FR", detector.subStepName(1, 2));
     assertEquals(home(false, false, true), detector.subStepSolvedPieces(1, 2));
 
     RecordedBlindSolveTest even = new RecordedBlindSolveTest();

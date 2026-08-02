@@ -25,6 +25,7 @@ public final class SolveStepConverter {
       subSteps.add(toSolveStep(subStep));
     }
     return new SolveStep(step.getStepIndex(), step.getStepName(),
-        step.getRecognitionMs(), step.getExecutionMs(), subSteps, step.isComplete());
+        step.getRecognitionMs(), step.getExecutionMs(), subSteps, step.isComplete(),
+        step.getSolvedPieces());
   }
 }

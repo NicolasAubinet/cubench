@@ -7,6 +7,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.vo.CubeMethod;
+import com.cube.nanotimer.vo.SolveStep;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -102,6 +105,26 @@ public class StoredSolveReplayTest {
     assertEquals(3, held.split("-").length); // a cycle either way: only the letters move
     assertEquals(3, askew.split("-").length);
     assertNotEquals(held, askew);
+  }
+
+  /**
+   * The pieces an algorithm put home travel with it out of the re-read: nothing about them is
+   * stored, so the sheet either reads them off the solve or shows none at all.
+   *
+   * <p>Each piece type here is a five-cycle done in two algorithms. The first closes on a break-in,
+   * landing its first target and leaving its second holding a piece that belongs elsewhere; the
+   * second closes the cycle and lands all three, the buffer included.
+   */
+  @Test
+  public void carriesThePiecesEachAlgorithmPutHomeOutOfTheReRead() {
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND);
+
+    List<SolveStep> edges = result.getSteps().get(1).getSubSteps();
+    assertEquals("UF-UL-UB", edges.get(0).getName());
+    assertEquals(Arrays.asList(false, true, false), edges.get(0).getSolvedPieces());
+    assertEquals("UF-UB-DL", edges.get(1).getName());
+    assertEquals(Arrays.asList(true, true, true), edges.get(1).getSolvedPieces());
   }
 
   private static String firstAlgorithm(StoredSolveReplay.Result result) {

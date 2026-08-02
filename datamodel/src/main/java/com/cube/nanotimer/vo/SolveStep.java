@@ -18,6 +18,9 @@ public class SolveStep implements Serializable {
   private final long executionMs;
   private final boolean complete;
   private final List<SolveStep> subSteps;
+  // Which of the pieces the name is made of the step put home. Read from the solve rather than
+  // stored with it, so a solve that cannot be read back simply has none.
+  private final List<Boolean> solvedPieces;
 
   public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
       List<SolveStep> subSteps) {
@@ -26,12 +29,19 @@ public class SolveStep implements Serializable {
 
   public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
       List<SolveStep> subSteps, boolean complete) {
+    this(stepIndex, name, recognitionMs, executionMs, subSteps, complete,
+        Collections.<Boolean>emptyList());
+  }
+
+  public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
+      List<SolveStep> subSteps, boolean complete, List<Boolean> solvedPieces) {
     this.stepIndex = stepIndex;
     this.name = name;
     this.recognitionMs = recognitionMs;
     this.executionMs = executionMs;
     this.complete = complete;
     this.subSteps = Collections.unmodifiableList(subSteps);
+    this.solvedPieces = Collections.unmodifiableList(solvedPieces);
   }
 
   public int getStepIndex() {
@@ -63,5 +73,13 @@ public class SolveStep implements Serializable {
   /** The parts this step was built in, oldest first. Empty when it has none. */
   public List<SolveStep> getSubSteps() {
     return subSteps;
+  }
+
+  /**
+   * Of the pieces this step's name is made of, which of them it put home — right slot and right way
+   * round — in the order they are said. A blind algorithm's, and empty for every other name.
+   */
+  public List<Boolean> getSolvedPieces() {
+    return solvedPieces;
   }
 }
