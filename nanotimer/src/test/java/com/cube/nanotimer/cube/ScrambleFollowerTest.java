@@ -131,6 +131,33 @@ public class ScrambleFollowerTest {
     assertTrue(follower.isComplete());
   }
 
+  /**
+   * Doing the first move of the undo must leave the rest of it standing. A face spun all the way
+   * round changes nothing on the cube, so it must not sit in the middle of the deviation either.
+   */
+  @Test
+  public void undoShrinksAsEachOfItsMovesIsDone() {
+    String[] scramble = {"R", "U'", "F2"};
+    ScrambleFollower follower = new ScrambleFollower(scramble);
+    CubieCube mirror = new CubieCube();
+
+    turn(follower, mirror, Face.R, false);
+
+    turn(follower, mirror, Face.B, true); // off the path
+    turn(follower, mirror, Face.F, false);
+    for (int i = 0; i < 4; i++) { // and a whole turn of a face, which leaves the cube where it was
+      turn(follower, mirror, Face.L, false);
+    }
+    assertEquals("F' B", follower.getReverseMoves());
+
+    turn(follower, mirror, Face.F, true); // the first move it asked for
+    assertEquals("B", follower.getReverseMoves());
+
+    turn(follower, mirror, Face.B, false);
+    assertFalse(follower.isWrong());
+    assertEquals(1, follower.getDoneCount());
+  }
+
   @Test
   public void stepsBackWhenAMoveIsUndone() {
     String[] scramble = {"R", "U", "F"};

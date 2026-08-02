@@ -29,13 +29,14 @@ public class ScrambleFollower {
     }
   }
 
-  private static final class Turn {
+  /** A face the user turned off the path, and by how many quarter turns clockwise (1, 2 or 3). */
+  private static final class Deviation {
     final Face face;
-    final boolean prime;
+    final int quarters;
 
-    Turn(Face face, boolean prime) {
+    Deviation(Face face, int quarters) {
       this.face = face;
-      this.prime = prime;
+      this.quarters = quarters;
     }
   }
 
@@ -43,7 +44,7 @@ public class ScrambleFollower {
   private final Map<String, Integer> fullStates = new HashMap<>(); // facelets -> tokens complete
   private final Map<String, Integer> halfStates = new HashMap<>(); // mid of a half turn -> token index
   private final CubieCube tracked = new CubieCube();
-  private final Deque<Turn> wrongMoves = new ArrayDeque<>(); // deviating quarter turns to undo
+  private final Deque<Deviation> wrongMoves = new ArrayDeque<>(); // newest first: undo order
 
   private int doneCount;
   private boolean lost;
@@ -130,7 +131,7 @@ public class ScrambleFollower {
   /** Feed one quarter turn from the cube; returns true if the display should refresh. */
   public boolean onMove(CubeMove move) {
     tracked.applyMove(move.getFace(), move.isPrime());
-    return apply(tracked.toFaceCube(), new Turn(move.getFace(), move.isPrime()));
+    return apply(tracked.toFaceCube(), move);
   }
 
   /** Reconcile against an absolute state; only re-anchors when the move stream desynced. */
@@ -143,7 +144,7 @@ public class ScrambleFollower {
     return apply(facelets, null);
   }
 
-  private boolean apply(String facelets, Turn move) {
+  private boolean apply(String facelets, CubeMove move) {
     int prevDone = doneCount;
     String prevReverse = getReverseMoves();
     boolean prevLost = lost;
@@ -158,11 +159,7 @@ public class ScrambleFollower {
       wrongMoves.clear();
       lost = false;
     } else if (move != null) {
-      if (!wrongMoves.isEmpty() && isInverse(wrongMoves.peek(), move)) {
-        wrongMoves.pop();
-      } else {
-        wrongMoves.push(move);
-      }
+      addWrongMove(move.getFace(), move.isPrime());
     } else {
       // The cube jumped somewhere the moves cannot account for, so the follow is worthless: the
       // wrong moves are unknown, and doneCount is a memory of a cube that is no longer this one.
@@ -173,8 +170,22 @@ public class ScrambleFollower {
     return doneCount != prevDone || lost != prevLost || !getReverseMoves().equals(prevReverse);
   }
 
-  private static boolean isInverse(Turn a, Turn b) {
-    return a.face == b.face && a.prime != b.prime;
+  /**
+   * Folds a deviating turn into the newest deviation on the same face, and drops that face once it
+   * has come full circle. A face back where it started must leave nothing behind: kept, it would sit
+   * between two turns of a face still to undo and split them, and the undo is printed off these one
+   * for one, so its first move would no longer be the one that answers the user's next turn.
+   */
+  private void addWrongMove(Face face, boolean prime) {
+    Deviation newest = wrongMoves.peek();
+    int quarters = prime ? 3 : 1;
+    if (newest != null && newest.face == face) {
+      wrongMoves.pop();
+      quarters = (newest.quarters + quarters) % 4;
+    }
+    if (quarters != 0) {
+      wrongMoves.push(new Deviation(face, quarters));
+    }
   }
 
   public void reset() {
@@ -199,34 +210,16 @@ public class ScrambleFollower {
 
   /** The moves the user must execute to undo their wrong moves, e.g. "U' R2". Empty when on track. */
   public String getReverseMoves() {
-    List<Turn> undo = new ArrayList<>();
-    for (Turn t : wrongMoves) { // iterates most-recent first: exactly undo order
-      undo.add(new Turn(t.face, !t.prime));
-    }
-    return mergeNotation(undo);
-  }
-
-  private static String mergeNotation(List<Turn> turns) {
     StringBuilder sb = new StringBuilder();
-    int i = 0;
-    while (i < turns.size()) {
-      Face face = turns.get(i).face;
-      int net = 0;
-      while (i < turns.size() && turns.get(i).face == face) {
-        net += turns.get(i).prime ? -1 : 1;
-        i++;
-      }
-      net = ((net % 4) + 4) % 4;
-      if (net == 0) {
-        continue;
-      }
+    for (Deviation deviation : wrongMoves) { // iterates newest first: exactly undo order
       if (sb.length() > 0) {
         sb.append(' ');
       }
-      sb.append(face.name());
-      if (net == 2) {
+      sb.append(deviation.face.name());
+      int undo = 4 - deviation.quarters;
+      if (undo == 2) {
         sb.append('2');
-      } else if (net == 3) {
+      } else if (undo == 3) {
         sb.append('\'');
       }
     }
