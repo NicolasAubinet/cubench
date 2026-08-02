@@ -14,6 +14,12 @@ public class GyroTrackFormatTest {
 
   private static final CubeOrientation REST = new CubeOrientation(1, 0, 0, 0);
 
+  // The cube's own axes, the frame a pose is expressed in: R = +X, U = +Y, F = +Z.
+  private static final double[] R = {1, 0, 0};
+  private static final double[] L = {-1, 0, 0};
+  private static final double[] U = {0, 1, 0};
+  private static final double[] F = {0, 0, 1};
+
   @Test
   public void aTrackRoundTripsThroughItsStoredForm() {
     OrientationHistory history = new OrientationHistory();
@@ -115,6 +121,62 @@ public class GyroTrackFormatTest {
     String stored = GyroTrackFormat.format(history.between(0, 1), REST, 0);
     assertNull(GyroTrackFormat.parse(stored.substring(0, stored.length() - 3))); // truncated
     assertNull(GyroTrackFormat.parse("B" + stored.substring(1))); // another version's byte
+  }
+
+  /**
+   * The poses handed to the renderer are in the cube's own axes, so a reading exactly one {@code y}
+   * from the reference must come back as the {@code y} of the lattice. Verified against the real
+   * bundle in a browser: this pose carries F to the L position, R to F and leaves U alone, which is
+   * what a {@code y} does, and it is applied to three.js with no inversion.
+   */
+  @Test
+  public void aPoseIsTheContinuousFrameInTheCubesOwnAxes() {
+    CubeOrientation reference = REST;
+    OrientationHistory history = new OrientationHistory();
+    history.onSample(reference, 0);
+    history.onSample(turnedBy(reference, aboutGyroU(-90)), 500);
+    List<GyroTrackFormat.Keyframe> poses =
+        GyroTrackFormat.posesOf(GyroTrackFormat.format(history.between(0, 999), reference, 0));
+
+    assertEquals(2, poses.size());
+    assertCarries(poses.get(0).getOrientation(), F, F); // the reference itself is square
+    assertCarries(poses.get(1).getOrientation(), F, L); // a y sends the front face to the left,
+    assertCarries(poses.get(1).getOrientation(), R, F); // brings the right one to the front,
+    assertCarries(poses.get(1).getOrientation(), U, U); // and leaves up alone
+  }
+
+  /** With no reference stored, the track's own first pose stands in, so it still starts square. */
+  @Test
+  public void aTrackWithNoReferenceIsReadFromItsOwnFirstPose() {
+    CubeOrientation odd = aboutU(37.4); // wherever the cube happened to be
+    OrientationHistory history = new OrientationHistory();
+    history.onSample(odd, 0);
+    history.onSample(turnedBy(odd, aboutGyroU(-90)), 500);
+    List<GyroTrackFormat.Keyframe> poses =
+        GyroTrackFormat.posesOf(GyroTrackFormat.format(history.between(0, 999), null, 0));
+
+    assertCarries(poses.get(0).getOrientation(), F, F);
+    assertCarries(poses.get(1).getOrientation(), F, L);
+  }
+
+  /** Where a pose carries a cube axis: q·v·q⁻¹, the same check the browser made on three.js. */
+  private static void assertCarries(CubeOrientation pose, double[] from, double[] to) {
+    CubeOrientation v = new CubeOrientation(0, from[0], from[1], from[2]);
+    CubeOrientation r = pose.multiply(v).multiply(pose.inverse());
+    assertEquals(to[0], r.getX(), 1e-2);
+    assertEquals(to[1], r.getY(), 1e-2);
+    assertEquals(to[2], r.getZ(), 1e-2);
+  }
+
+  /** The gyro's zero multiplies on the left and a delta on the right. */
+  private static CubeOrientation turnedBy(CubeOrientation from, CubeOrientation gyroDelta) {
+    return from.multiply(gyroDelta);
+  }
+
+  /** A rotation about the gyro's up axis, which its frame calls +Z. */
+  private static CubeOrientation aboutGyroU(double degrees) {
+    double half = Math.toRadians(degrees) / 2;
+    return new CubeOrientation(Math.cos(half), 0, 0, Math.sin(half));
   }
 
   private static int keyframesTurning(double stepDegrees, double totalDegrees) {

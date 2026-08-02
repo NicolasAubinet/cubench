@@ -14,6 +14,11 @@
     ntReplayPlay()  ntReplayPause()  ntReplaySpeed(x)
     ntReplaySeek(ms)  ms is a moment of the SOLVE, as onState reports it, never the
                       replay's own clock: the two are not the same scale
+    ntReplayGyro(poses)   poses = [{t:ms, q:[w,x,y,z]}, ...], t = ms from solve start,
+                          q already in the cube's own axes with the reference applied
+                          (Java does that: see GyroTrackFormat.posesOf). [] or null
+                          drops the track. Passing it does NOT turn it on.
+    ntReplayGyroShow(on)  show the physical orientation, or keep the cube square
 
   JS -> Java, both optional (the app has a timeout as a safety net):
     NTBridge.onReady()            the cube is drawn
@@ -127,10 +132,158 @@
     return from + Math.min(1, (ms - began) / anims[k]) * (to - from);
   }
 
-  function draw() {
-    if (player) {
-      player.experimentalModel.timestampRequest.set(timelineAt(clockMs));
+  // ---- the gyro track: how the cube was physically held, between the named rotations ----------
+  //
+  // Poses arrive already in the cube's own axes with the reference applied, so nothing here knows
+  // anything about gyro frames — it interpolates and hands the result to three.js.
+  //
+  // The pose is applied from experimentalCurrentThreeJSPuzzleObject's per-render callback, which
+  // is the hook the player provides for it. Measured on the device, the player does NOT then
+  // reassert its own orientation — the concern that shaped this was unfounded. What it does do is
+  // render only when its timeline moves, which is the real problem: see draw().
+
+  var poses = [];       // [{t, q:[w,x,y,z]}] ordered by t
+  var gyroOn = false;
+  var puzzleObject = null;
+  var poseHooked = false;
+  var poseRaf = null;
+
+  /** Nearest-preceding index for a moment of the SOLVE, since poses are dated in the solve's time. */
+  function poseIndex(realMs) {
+    var lo = 0;
+    var hi = poses.length - 1;
+    while (lo < hi) {
+      var mid = (lo + hi + 1) >> 1;
+      if (poses[mid].t <= realMs) { lo = mid; } else { hi = mid - 1; }
     }
+    return lo;
+  }
+
+  /** The pose at a moment of the solve, SLERPed between the two keyframes bracketing it. */
+  function poseAt(realMs) {
+    if (!poses.length) {
+      return null;
+    }
+    var i = poseIndex(realMs);
+    if (i >= poses.length - 1) {
+      return poses[poses.length - 1].q;
+    }
+    var a = poses[i];
+    var b = poses[i + 1];
+    var span = b.t - a.t;
+    return span <= 0 ? a.q : slerp(a.q, b.q, Math.max(0, Math.min(1, (realMs - a.t) / span)));
+  }
+
+  /** q and -q are the same rotation, so take the short way round or the cube spins the long way. */
+  function slerp(a, b, f) {
+    var dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+    var sign = dot < 0 ? -1 : 1;
+    dot = Math.abs(dot);
+    var wa, wb;
+    if (dot > 0.9995) {
+      wa = 1 - f; // too close to interpolate by angle: lerp and renormalise
+      wb = f;
+    } else {
+      var theta = Math.acos(dot);
+      var sin = Math.sin(theta);
+      wa = Math.sin((1 - f) * theta) / sin;
+      wb = Math.sin(f * theta) / sin;
+    }
+    var out = [];
+    var norm = 0;
+    for (var k = 0; k < 4; k++) {
+      out[k] = wa * a[k] + wb * sign * b[k];
+      norm += out[k] * out[k];
+    }
+    norm = Math.sqrt(norm) || 1;
+    for (var j = 0; j < 4; j++) { out[j] /= norm; }
+    return out;
+  }
+
+  var lastApplied = null;
+
+  /**
+   * three.js orders a quaternion (x, y, z, w); ours are (w, x, y, z).
+   *
+   * Writes only on a real change: this runs inside the render callback, so a redundant write there
+   * dirties the scene again for nothing.
+   */
+  function applyPose(object) {
+    if (!object) {
+      return;
+    }
+    var q = (!gyroOn || !poses.length) ? [1, 0, 0, 0] : poseAt(displayMs());
+    if (lastApplied
+        && Math.abs(q[0] - lastApplied[0]) < 1e-4 && Math.abs(q[1] - lastApplied[1]) < 1e-4
+        && Math.abs(q[2] - lastApplied[2]) < 1e-4 && Math.abs(q[3] - lastApplied[3]) < 1e-4) {
+      return;
+    }
+    lastApplied = q;
+    object.quaternion.set(q[1], q[2], q[3], q[0]);
+  }
+
+  /**
+   * Takes the puzzle object and keeps it, re-applying on every render the player schedules. Asked
+   * for once: the callback is the hook the player provides for exactly this.
+   */
+  function hookPose() {
+    if (poseHooked || !player) {
+      return;
+    }
+    if (!player.experimentalCurrentThreeJSPuzzleObject) {
+      return; // an older bundle: the replay simply stays square
+    }
+    poseHooked = true;
+    try {
+      // ⚠️ The per-render callback does NOT pass the puzzle object: measured on the device, it
+      // fires with nothing. Assigning what it hands over therefore wiped the object the promise
+      // had already resolved, and every later pose was dropped on a null. It is a "you are about
+      // to render" signal and no more; the object comes from the promise and is kept.
+      player.experimentalCurrentThreeJSPuzzleObject(function (object) {
+        if (object) {
+          puzzleObject = object;
+        }
+        applyPose(puzzleObject);
+      }).then(function (object) {
+        puzzleObject = object;
+        applyPose(object);
+      }).catch(function () {});
+    } catch (e) {
+      poseHooked = false; // an older bundle without the hook: the replay simply stays square
+    }
+  }
+
+  var nudge = 0;
+
+  /**
+   * ⚠️ The player renders only when its own timeline moves, and during a recognition pause it does
+   * not move — timelineAt deliberately holds it still between turns. So a pose set there was never
+   * painted, and the cube stood frozen for exactly the seconds the solver spent turning it over
+   * looking for pieces, which is the one thing the gyro track exists to show. A sub-millisecond
+   * alternation forces the render; it is a thousandth of a frame of the animation and cannot be
+   * seen. Only while the track is being shown, so nothing else pays for the extra renders.
+   */
+  function draw() {
+    if (!player) {
+      return;
+    }
+    var timeline = timelineAt(clockMs);
+    if (gyroOn && poses.length) {
+      nudge = nudge ? 0 : 0.001;
+      timeline += nudge;
+    }
+    player.experimentalModel.timestampRequest.set(timeline);
+    applyPose(puzzleObject); // the callback covers the player's own renders, this covers a seek
+  }
+
+  /** While the track is shown the pose must keep being painted, even with the transport paused. */
+  function poseLoop() {
+    if (!gyroOn || !poses.length || playing) {
+      poseRaf = null;
+      return;
+    }
+    draw();
+    poseRaf = requestAnimationFrame(poseLoop);
   }
 
   /**
@@ -214,6 +367,7 @@
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     playing = false;
     report(true);
+    if (gyroOn && poses.length && !poseRaf) { poseRaf = requestAnimationFrame(poseLoop); }
   }
 
   /**
@@ -272,6 +426,8 @@
   window.ntReplayLoad = function (puzzle, setup, moveList, solveMs) {
     pause();
     readyNotified = false;
+    poses = []; // the previous solve's, if the dialog is reused; the new one's arrive separately
+    lastApplied = null;
     var list = moveList || [];
 
     // One alg node per token: a reorientation can be recorded as a pair ("y x'") under a single
@@ -344,6 +500,27 @@
 
   window.ntReplaySpeed = function (x) {
     speed = x;
+  };
+
+  /** @param list poses in the SOLVE's time, already in cube axes. Does not turn the track on. */
+  window.ntReplayGyro = function (list) {
+    poses = [];
+    var given = list || [];
+    for (var i = 0; i < given.length; i++) {
+      if (given[i] && given[i].q && given[i].q.length === 4) {
+        poses.push({ t: given[i].t, q: given[i].q });
+      }
+    }
+    hookPose();
+    draw();
+  };
+
+  window.ntReplayGyroShow = function (on) {
+    gyroOn = !!on;
+    if (poseRaf) { cancelAnimationFrame(poseRaf); poseRaf = null; }
+    if (gyroOn) { poseRaf = requestAnimationFrame(poseLoop); }
+    hookPose();
+    draw();
   };
 })();
 </script>

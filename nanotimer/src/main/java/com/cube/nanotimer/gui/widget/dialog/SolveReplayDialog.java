@@ -2,12 +2,15 @@ package com.cube.nanotimer.gui.widget.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -20,10 +23,14 @@ import android.widget.TextView;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
+import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.GyroTrackFormat;
 import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
+import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.vo.SolveStep;
@@ -55,6 +62,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private static final String ARG_MOVES = "moves";
   private static final String ARG_TIMED_MS = "timedMs";
   private static final String ARG_STEPS = "steps";
+  private static final String ARG_SOLVE_ID = "solveId";
 
   private static final String BASE_URL =
       "https://appassets.androidplatform.net/assets/scramble/replay.html";
@@ -75,6 +83,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private ImageButton playButton;
   private TextView positionLabel;
   private TextView speedLabel;
+  private TextView gyroLabel;
   private View controlsRow;
   private TextView fallbackView;
   private String fallbackText;
@@ -88,6 +97,9 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private boolean playing;
   private boolean transportPainted;
   private int speedIndex;
+  private boolean gyroShown; // the track is off until asked for: the square cube is the honest default
+  private boolean pageReady;  // the page has defined its functions; before that, evaluate() is lost
+  private String pendingGyroJs; // the track, waiting for the page if it got here first
 
   private final Runnable hideProgressRunnable = new Runnable() {
     @Override
@@ -113,9 +125,11 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
    *                  this so it agrees with the time above it. 0 when there is none (a DNF), and
    *                  then the moves' own span stands in.
    * @param steps     the solve's steps, drawn as the scrubber; null or empty for no scrubber.
+   * @param solveId   the solve's id, which the gyro track is fetched by. The track is not carried
+   *                  in with the solve: it is kilobytes, and only a replay ever wants it.
    */
   public static SolveReplayDialog newInstance(String puzzleId, String scramble, String moves,
-      long timedMs, ArrayList<SolveStep> steps) {
+      long timedMs, ArrayList<SolveStep> steps, int solveId) {
     SolveReplayDialog frag = new SolveReplayDialog();
     Bundle args = new Bundle();
     args.putString(ARG_PUZZLE, puzzleId);
@@ -123,6 +137,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     args.putString(ARG_MOVES, moves);
     args.putLong(ARG_TIMED_MS, timedMs);
     args.putSerializable(ARG_STEPS, steps);
+    args.putInt(ARG_SOLVE_ID, solveId);
     frag.setArguments(args);
     return frag;
   }
@@ -138,6 +153,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     playButton = view.findViewById(R.id.buReplayPlay);
     positionLabel = view.findViewById(R.id.tvReplayPosition);
     speedLabel = view.findViewById(R.id.buReplaySpeed);
+    gyroLabel = view.findViewById(R.id.buReplayGyro);
     controlsRow = view.findViewById(R.id.replayControls);
     fallbackView = view.findViewById(R.id.tvReplayFallback);
     bar = view.findViewById(R.id.replayBar);
@@ -245,6 +261,82 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
         updateSpeed();
       }
     });
+    gyroLabel.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        gyroShown = !gyroShown;
+        evaluate("window.ntReplayGyroShow(" + gyroShown + ");");
+        updateGyro();
+      }
+    });
+    loadGyroTrack();
+  }
+
+  /**
+   * Fetches the solve's gyro track and hands it over, revealing the toggle if there is one. Async
+   * and entirely optional: a solve without a track (recorded before it was kept, or on a cube with
+   * no gyro) simply never shows the control, and everything else about the replay is unaffected.
+   */
+  private void loadGyroTrack() {
+    final int solveId = getArguments().getInt(ARG_SOLVE_ID);
+    if (solveId <= 0) {
+      return;
+    }
+    App.INSTANCE.getService().getGyroTrack(solveId, new DataCallback<String>() {
+      @Override
+      public void onData(final String track) {
+        if (webView == null) {
+          return;
+        }
+        webView.post(new Runnable() {
+          @Override
+          public void run() {
+            showGyroTrack(track);
+          }
+        });
+      }
+    });
+  }
+
+  private void showGyroTrack(String track) {
+    if (webView == null || gyroLabel == null) {
+      return; // the dialog went away while the track was being read
+    }
+    // The reconstruction's own frame, cancelled out of the pose: the replay already animates the
+    // solver's rotations, so the raw pose would turn the cube a second time.
+    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.posesOf(track,
+        SolveSolution.framesOf(getArguments().getString(ARG_MOVES)));
+    if (poses.isEmpty()) {
+      return;
+    }
+    JSONArray arr = new JSONArray();
+    try {
+      for (GyroTrackFormat.Keyframe pose : poses) {
+        CubeOrientation q = pose.getOrientation();
+        JSONObject o = new JSONObject();
+        o.put("t", pose.getOffsetMs() - startOffsetMs); // the page dates everything from the first turn
+        o.put("q", new JSONArray(new double[] {q.getW(), q.getX(), q.getY(), q.getZ()}));
+        arr.put(o);
+      }
+    } catch (JSONException e) {
+      return; // the replay stands without it
+    }
+    // The database beats the page: a track read in a few milliseconds would otherwise be handed to
+    // a page that has not defined ntReplayGyro yet, and evaluate() drops it without a word. Held
+    // until onReady, which is the only moment the page is known to be listening.
+    pendingGyroJs = "window.ntReplayGyro(" + arr + ");";
+    sendGyroTrack();
+  }
+
+  private void sendGyroTrack() {
+    if (!pageReady || pendingGyroJs == null || gyroLabel == null) {
+      return;
+    }
+    evaluate(pendingGyroJs);
+    pendingGyroJs = null;
+    evaluate("window.ntReplayGyroShow(" + gyroShown + ");"); // the page starts square; keep it in step
+    gyroLabel.setVisibility(View.VISIBLE);
+    updateGyro();
   }
 
   private boolean setupWebView(final String puzzleId, final String scramble,
@@ -259,6 +351,18 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
       webView.setBackgroundColor(Color.TRANSPARENT);
 
       webView.addJavascriptInterface(new Bridge(), "NTBridge");
+      if (isDebuggable()) {
+        // The page's own console, in logcat. The replay is the one screen whose faults are all on
+        // the JS side, and it has no other way of saying so.
+        WebView.setWebContentsDebuggingEnabled(true);
+        webView.setWebChromeClient(new WebChromeClient() {
+          @Override
+          public boolean onConsoleMessage(android.webkit.ConsoleMessage message) {
+            Log.d("SolveReplay", message.message() + " (line " + message.lineNumber() + ")");
+            return true;
+          }
+        });
+      }
 
       webView.setWebViewClient(new WebViewClientCompat() {
         @Override
@@ -305,6 +409,11 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
         + "," + arr + "," + solveMs + ");");
   }
 
+  /** BuildConfig is not generated for this module, and the manifest flag says the same thing. */
+  private boolean isDebuggable() {
+    return (getActivity().getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+  }
+
   private void evaluate(String js) {
     if (webView != null) {
       webView.evaluateJavascript(js, null);
@@ -333,6 +442,15 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     speedLabel.setText(getString(R.string.replay_speed, SPEEDS[speedIndex]));
   }
 
+  /** Dimmed when off, so the control says which state it is in without a second label. */
+  private void updateGyro() {
+    if (gyroLabel != null) {
+      gyroLabel.setAlpha(gyroShown ? 1f : 0.4f);
+      gyroLabel.setContentDescription(
+          getString(gyroShown ? R.string.replay_gyro_off : R.string.replay_gyro_on));
+    }
+  }
+
   /** Called from the page thread; every method hops to the UI thread before touching a view. */
   private final class Bridge {
 
@@ -347,6 +465,8 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
           webView.removeCallbacks(hideProgressRunnable);
           hideProgress();
           updatePosition(0);
+          pageReady = true;
+          sendGyroTrack(); // held here if the track was read before the page was up
           // A replay opened is a replay meant to be watched, but not from the very first frame.
           webView.postDelayed(autoPlayRunnable, LEAD_IN_MS);
         }
@@ -428,6 +548,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     playButton = null;
     positionLabel = null;
     speedLabel = null;
+    gyroLabel = null;
     controlsRow = null;
     fallbackView = null;
     bar = null;

@@ -332,6 +332,9 @@
   <string name="replay_pause">Pausa</string>
   <string name="replay_position">%1$s / %2$s</string>
   <string name="replay_speed">%1$sx</string>
+  <string name="replay_gyro">Gyro</string>
+  <string name="replay_gyro_on">Mostrar cómo se sujetaba el cubo</string>
+  <string name="replay_gyro_off">Mantener el cubo alineado</string>
   <string name="breakdown_moves_count">%d movimientos</string>
   <string name="breakdown_tps">%s TPS</string>
   <string name="breakdown_algs">%d algos</string>

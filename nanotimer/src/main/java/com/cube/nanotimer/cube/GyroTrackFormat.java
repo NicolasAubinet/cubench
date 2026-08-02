@@ -1,8 +1,10 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.OrientationHistory;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -89,6 +91,64 @@ public final class GyroTrackFormat {
       at += RECORD_BYTES;
     }
     return base64(bytes);
+  }
+
+  /**
+   * The track as the orientations a 3D cube should be drawn at — the reference applied, so the
+   * poses are in the cube's own axes and a renderer can use them directly. Empty for anything that
+   * is not a readable track.
+   *
+   * <p>Where the track carries no reference — a solve whose scramble was never followed, so no grip
+   * could be labelled — <b>its own first pose stands in</b>. The cube then starts square and shows
+   * every turn the solver made relative to that, which is the whole point of the track; only the
+   * absolute grip is lost, and it was never known for those solves anyway.
+   */
+  public static List<Keyframe> posesOf(String stored) {
+    return posesOf(stored, Collections.<SolveSolution.FrameAt>emptyList());
+  }
+
+  /**
+   * As above, but as the <b>residual</b> left once the frame the reconstruction already has the
+   * cube in is taken back out.
+   *
+   * <p>⚠️ <b>Without this the cube is turned twice.</b> A replay animates the solver's rotations, so
+   * the cube on screen is already reoriented; the gyro track measures that same physical turning
+   * from the scramble reference. Rotating the puzzle object by the whole pose on top of that turns
+   * it a second time and the last layer comes up under the wrong face. What the renderer wants is
+   * only the part the reconstruction does not already express: the tilts and peeks, which is the
+   * whole reason the track is kept.
+   *
+   * <p>⚠️ <b>And the frame is NOT the emitted rotation tokens.</b> A slice rocks the core, turning
+   * the frame while emitting no token, so re-deriving the frame from the tokens under-counts it —
+   * measured on the Roux capture, the residual then still swings a full 180°. It comes from
+   * {@link SolveSolution#framesOf}, which is the reconstruction's own accumulated frame.
+   *
+   * <p>Both are world-frame rotations from the same reference, so the wobble the eye should see is
+   * {@code D = P·F⁻¹}, and the renderer draws {@code D·F} — the cube at its reconstructed frame,
+   * perturbed by exactly how far the real one sat from it.
+   *
+   * @param frames the reconstruction's frame over time ({@link SolveSolution#framesOf})
+   */
+  public static List<Keyframe> posesOf(String stored, List<SolveSolution.FrameAt> frames) {
+    GyroTrack track = parse(stored);
+    if (track == null) {
+      return new ArrayList<Keyframe>();
+    }
+    CubeOrientation reference = track.getReference() != null ? track.getReference()
+        : track.getKeyframes().get(0).getOrientation();
+    List<Keyframe> poses = new ArrayList<Keyframe>();
+    CubeRotation frame = CubeRotation.byNotation("");
+    int next = 0;
+    for (Keyframe keyframe : track.getKeyframes()) {
+      while (next < frames.size() && frames.get(next).getOffsetMs() <= keyframe.getOffsetMs()) {
+        frame = frames.get(next++).getFrame();
+      }
+      CubeOrientation physical =
+          CubeRotation.continuousFrame(reference, keyframe.getOrientation());
+      poses.add(new Keyframe(keyframe.getOffsetMs(),
+          physical.multiply(frame.quaternion().inverse())));
+    }
+    return poses;
   }
 
   /** Reads a stored track back, or null for anything it cannot read as one. */

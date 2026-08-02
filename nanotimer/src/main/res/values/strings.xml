@@ -336,6 +336,9 @@
   <string name="replay_pause">Pause</string>
   <string name="replay_position">%1$s / %2$s</string>
   <string name="replay_speed">%1$sx</string>
+  <string name="replay_gyro">Gyro</string>
+  <string name="replay_gyro_on">Show how the cube was held</string>
+  <string name="replay_gyro_off">Keep the cube square</string>
   <string name="breakdown_moves_count">%d moves</string>
   <string name="breakdown_tps">%s TPS</string>
   <string name="breakdown_algs">%d algs</string>

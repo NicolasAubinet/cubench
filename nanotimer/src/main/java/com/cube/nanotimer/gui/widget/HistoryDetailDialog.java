@@ -332,7 +332,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         // scrubs and the replay itself cannot disagree about how long the solve was.
         DialogUtils.showFragment(getActivity(), SolveReplayDialog.newInstance(
             puzzleId, cubingScramble, solveTime.getSmartcubeMoves(),
-            SolveBreakdown.solvingDurationMs(solveTime), breakdownSteps));
+            SolveBreakdown.solvingDurationMs(solveTime), breakdownSteps, solveTime.getId()));
       }
     });
   }

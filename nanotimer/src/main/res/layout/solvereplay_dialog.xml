@@ -76,6 +76,20 @@
         android:layout_marginLeft="8dp"
         style="@style/BreakdownMeta"/>
 
+    <!-- Shown only for a solve that has a gyro track. Dimmed when off. -->
+    <TextView
+        android:id="@+id/buReplayGyro"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:text="@string/replay_gyro"
+        android:visibility="gone"
+        style="@style/BreakdownMeta"/>
+
     <TextView
         android:id="@+id/buReplaySpeed"
         android:layout_width="wrap_content"

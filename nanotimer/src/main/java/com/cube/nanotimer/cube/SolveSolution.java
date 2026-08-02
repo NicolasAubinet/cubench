@@ -80,7 +80,42 @@ public final class SolveSolution {
    * apart. Rotation tokens are kept, since the whole point of a replay is to turn with the solver.
    */
   public static List<Move> timedSolution(String storedMoves) {
-    return inSolversFrame(SolveMovesFormat.parse(storedMoves));
+    return inSolversFrame(SolveMovesFormat.parse(storedMoves), null);
+  }
+
+  /**
+   * Every moment the reconstruction's frame changed, and what it changed to.
+   *
+   * <p>⚠️ <b>This is not the same as walking the rotation tokens of {@link #timedSolution}.</b> A
+   * slice rocks the core, which turns the frame, but emits no rotation token — the spin is the same
+   * physical event as the slice and showing it would be wrong. So the emitted tokens under-count
+   * the frame, badly on a Roux solve where the M slices never stop. Anything that has to line a
+   * gyro reading up against what the reconstruction believes must read the frame from here.
+   */
+  public static List<FrameAt> framesOf(String storedMoves) {
+    List<FrameAt> frames = new ArrayList<FrameAt>();
+    inSolversFrame(SolveMovesFormat.parse(storedMoves), frames);
+    return frames;
+  }
+
+  /** The frame the reconstruction has the cube in from {@code offsetMs} until the next entry. */
+  public static final class FrameAt {
+
+    private final long offsetMs;
+    private final CubeRotation frame;
+
+    private FrameAt(long offsetMs, CubeRotation frame) {
+      this.offsetMs = offsetMs;
+      this.frame = frame;
+    }
+
+    public long getOffsetMs() {
+      return offsetMs;
+    }
+
+    public CubeRotation getFrame() {
+      return frame;
+    }
   }
 
   /**
@@ -95,7 +130,7 @@ public final class SolveSolution {
    * <p>The stored stream stays raw for exactly this reason: the frame is rebuilt on the way out, so
    * a correction here fixes solves already recorded.
    */
-  private static List<Move> inSolversFrame(List<Move> stored) {
+  private static List<Move> inSolversFrame(List<Move> stored, List<FrameAt> framesOut) {
     CubeRotation frame = CubeRotation.byNotation("");
     List<Move> rewritten = new ArrayList<Move>(stored.size());
     for (int i = 0; i < stored.size(); i++) {
@@ -116,6 +151,7 @@ public final class SolveSolution {
         CubeRotation seen = rotation.seenFrom(frame);
         rewritten.add(new Move(seen.getNotation(), move.getOffsetMs()));
         frame = frame.then(seen); // the solver-frame rotation: then() composes in that frame
+        record(framesOut, move.getOffsetMs(), frame);
       } else {
         Move spin = sliceCoreSpin(stored, i);
         if (spin != null) {
@@ -128,6 +164,7 @@ public final class SolveSolution {
               relabelFace(frame, notation), relabelFace(frame, next.getNotation()));
           rewritten.add(new Move(slice[0], move.getOffsetMs()));
           frame = frame.then(CubeRotation.byNotation(spin.getNotation()).seenFrom(frame));
+          record(framesOut, move.getOffsetMs(), frame);
           i += 2;
         } else {
           rewritten.add(new Move(frame.mapFace(notation.charAt(0)) + notation.substring(1),
@@ -136,6 +173,12 @@ public final class SolveSolution {
       }
     }
     return rewritten;
+  }
+
+  private static void record(List<FrameAt> framesOut, long offsetMs, CubeRotation frame) {
+    if (framesOut != null) {
+      framesOut.add(new FrameAt(offsetMs, frame));
+    }
   }
 
   /**
