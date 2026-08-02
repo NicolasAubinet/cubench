@@ -1,0 +1,8 @@
+<!-- Entry point for the 3D solve replay, on the breakdown line of the solve detail sheet.
+     Deliberately the scramble-view icon with a play badge on it: the two sit together
+     and share the cube-face motif, so the face is drawn once and stays in step if it
+     is ever restyled. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:drawable="@drawable/ic_scramble_view"/>
+  <item android:drawable="@drawable/ic_replay_badge"/>
+</layer-list>

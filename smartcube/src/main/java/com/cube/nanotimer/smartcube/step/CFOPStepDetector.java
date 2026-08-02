@@ -300,11 +300,22 @@ public final class CFOPStepDetector implements StepDetector {
 
   /**
    * A last-layer turn opening OLL or PLL is an AUF: the solver is squaring the case up to read it,
-   * not solving it yet. Cross and F2L have no such move — their last-layer turns do build the step.
+   * not solving it yet.
+   *
+   * <p>During F2L the same turn is usually the pair going in — {@code U R U' R'} opens on one — so
+   * the face alone proves nothing there and it only counts as looking when the solver stopped again
+   * after it. That is the difference the solve actually shows: a U turned straight out of was the
+   * insertion starting, a U sat on was the solver still hunting the pair.
+   *
+   * <p>The cross is left out. Its edges start in the last layer too, but it is entered from
+   * inspection rather than from reading a case, so the same reasoning does not carry over.
    */
   @Override
-  public boolean isAlignmentMove(int step, CubeMove move) {
-    if (crossFace == null || (step != OLL && step != PLL)) {
+  public boolean isAlignmentMove(int step, CubeMove move, boolean pausedAfter) {
+    if (crossFace == null || (step != F2L && step != OLL && step != PLL)) {
+      return false;
+    }
+    if (step == F2L && !pausedAfter) {
       return false;
     }
     return move.getFace() == Cubies.faceAt(Cubies.opposite(crossFace));

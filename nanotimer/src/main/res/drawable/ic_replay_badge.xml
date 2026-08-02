@@ -1,0 +1,10 @@
+<!-- The play badge overlaid on the cube face by ic_solve_replay: a scrim so the
+     triangle reads over any sticker colour, and the triangle itself. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path android:fillColor="#CC1B2126" android:pathData="M12,6 A6,6 0 0 1 12,18 A6,6 0 0 1 12,6 Z" />
+  <path android:fillColor="#FFFFFFFF" android:pathData="M10.2,8.8 L15.6,12 L10.2,15.2 Z" />
+</vector>

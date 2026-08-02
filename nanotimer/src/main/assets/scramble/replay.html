@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<!--
+  Host page for NanoTimer's 3D solve replay.
+
+  Same arrangement as scramble.html — loaded into an on-demand WebView via
+  WebViewAssetLoader (https://appassets.androidplatform.net/..., NOT file://) and
+  sharing the same vendored bundle.js. The difference is that this page renders in
+  3D; scramble.html forces visualization="2D" for its diagrams.
+
+  Java -> JS surface:
+    ntReplayLoad(puzzle, setupAlg, moves, solveMs)
+        moves   = [{m:"R'", t:180}, ...], t = ms from solve start
+        solveMs = the length the position is reported against (see displayMs)
+    ntReplayPlay()  ntReplayPause()  ntReplaySpeed(x)
+    ntReplaySeek(ms)  ms is a moment of the SOLVE, as onState reports it, never the
+                      replay's own clock: the two are not the same scale
+    ntReplayGyro(poses)   poses = [{t:ms, q:[w,x,y,z]}, ...], t = ms from solve start,
+                          q already in the cube's own axes with the reference applied
+                          (Java does that: see GyroTrackFormat.posesOf). [] or null
+                          drops the track. Passing it does NOT turn it on.
+    ntReplayGyroShow(on)  show the physical orientation, or keep the cube square
+
+  JS -> Java, both optional (the app has a timeout as a safety net):
+    NTBridge.onReady()            the cube is drawn
+    NTBridge.onState(ms, playing) playback position, ~10/s while playing, and once when it stops
+
+  HOW PLAYBACK WORKS, and why it is not experimentalAddMove.
+
+  The player animates an alg on its own clock at a fixed ~1000 ms per move (1500 for a
+  half turn — the spacing is not even uniform). Feeding it moves one at a time as they
+  fell due therefore truncated every one of them: a solve turns at 4-8 moves a second,
+  so each move was cut off a fraction into its turn and the replay was unreadable.
+
+  So the whole solution is handed over as one alg and we drive the player's timeline
+  position ourselves: `indexToMoveStartTimestamp(i)` says where each node sits on that
+  timeline, and we map our own clock onto it.
+
+  A turn ENDS on its timestamp — see layOut, it is the thing most easily got wrong here.
+  Turns are floored and capped so none is too quick to see or drawn in slow motion, which
+  makes the replay a shade longer than the solve, so the position is reported back in the
+  solve's own time: a replay of a 28.79 must read 28.79.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: transparent; overflow: hidden;
+  }
+  #host { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  twisty-player { width: 100%; height: 100%; --controls-height: 0; }
+</style>
+<script src="bundle.js"></script>
+</head>
+<body>
+<div id="host"></div>
+<script>
+(function () {
+  // No turn is drawn slower than this, however long the solver thought before it. A turn ends on
+  // its timestamp, so this is also how much of the preceding recognition it occupies: too generous
+  // a cap and a short recognition shows no pause at all. Real quarter turns land near 150 ms.
+  var MAX_TURN_MS = 160;
+  // ...and none faster than this, however quickly it was really made: a turn given 20 ms is a
+  // flicker nobody can read.
+  var MIN_TURN_MS = 90;
+  // A whole-cube rotation moves every piece at once and needs longer to read than a face turn.
+  // It is also the case that most needs the room: a rotation is recorded hard against the move it
+  // precedes, so by its raw offsets it would get almost none and simply snap.
+  var MIN_ROTATION_MS = 170;
+  // A rotation is a bigger motion and is allowed a little longer than a face turn.
+  var MAX_ROTATION_MS = 220;
+  // A beat on the solved cube at the end, so the last turn is not the final frame.
+  var TAIL_MS = MAX_TURN_MS;
+
+  var player = null;
+  var realAt = [];     // when each alg node was really turned, ms from the first turn
+  var doneAt = [];     // and where that turn finishes on the replay's own clock
+  var anims = [];      // how long each turn takes, ending on its doneAt
+  var tlStarts = [];   // where each alg node sits on the player's timeline
+  var tlEnd = 0;
+  var totalMs = 0;       // the replay's own length, floors included
+  var reportedTotal = 0; // the length the app shows, which is the solve's
+  var clockMs = 0;
+  var lastFrameMs = 0;
+  var reportedMs = -1;
+  var playing = false;
+  var raf = null;
+  var speed = 1;
+
+  // Passes exactly the arguments given: the Java bridge resolves by arity, so a trailing
+  // undefined matches no method and the call is silently lost.
+  function bridge(name) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (window.NTBridge && window.NTBridge[name]) {
+      try { window.NTBridge[name].apply(window.NTBridge, args); } catch (e) {}
+    }
+  }
+
+  function isRotation(token) {
+    var axis = token.charAt(0);
+    return axis === "x" || axis === "y" || axis === "z";
+  }
+
+  function clamped() {
+    return Math.max(0, Math.min(clockMs, totalMs));
+  }
+
+  /** The first node whose turn has not finished by `ms`. */
+  function pending(ms) {
+    var k = 0;
+    while (k < doneAt.length && doneAt[k] <= ms) { k++; }
+    return k;
+  }
+
+  /** Where to put the player's timeline so the cube shows what the hands were doing at `ms`. */
+  function timelineAt(ms) {
+    if (!doneAt.length) {
+      return 0;
+    }
+    var k = pending(ms);
+    if (k >= doneAt.length) {
+      return tlEnd;
+    }
+    var from = tlStarts[k];                                   // k turns made, k not yet begun
+    var to = k + 1 < tlStarts.length ? tlStarts[k + 1] : tlEnd;
+    var began = doneAt[k] - anims[k];
+    if (ms <= began) {
+      return from; // between turns: the cube is being looked at, not moved
+    }
+    return from + Math.min(1, (ms - began) / anims[k]) * (to - from);
+  }
+
+  // ---- the gyro track: how the cube was physically held, between the named rotations ----------
+  //
+  // Poses arrive already in the cube's own axes with the reference applied, so nothing here knows
+  // anything about gyro frames — it interpolates and hands the result to three.js.
+  //
+  // The pose is applied from experimentalCurrentThreeJSPuzzleObject's per-render callback, which
+  // is the hook the player provides for it. Measured on the device, the player does NOT then
+  // reassert its own orientation — the concern that shaped this was unfounded. What it does do is
+  // render only when its timeline moves, which is the real problem: see draw().
+
+  var poses = [];       // [{t, q:[w,x,y,z]}] ordered by t
+  var gyroOn = false;
+  var puzzleObject = null;
+  var poseHooked = false;
+  var poseRaf = null;
+
+  /** Nearest-preceding index for a moment of the SOLVE, since poses are dated in the solve's time. */
+  function poseIndex(realMs) {
+    var lo = 0;
+    var hi = poses.length - 1;
+    while (lo < hi) {
+      var mid = (lo + hi + 1) >> 1;
+      if (poses[mid].t <= realMs) { lo = mid; } else { hi = mid - 1; }
+    }
+    return lo;
+  }
+
+  /** The pose at a moment of the solve, SLERPed between the two keyframes bracketing it. */
+  function poseAt(realMs) {
+    if (!poses.length) {
+      return null;
+    }
+    var i = poseIndex(realMs);
+    if (i >= poses.length - 1) {
+      return poses[poses.length - 1].q;
+    }
+    var a = poses[i];
+    var b = poses[i + 1];
+    var span = b.t - a.t;
+    return span <= 0 ? a.q : slerp(a.q, b.q, Math.max(0, Math.min(1, (realMs - a.t) / span)));
+  }
+
+  /** q and -q are the same rotation, so take the short way round or the cube spins the long way. */
+  function slerp(a, b, f) {
+    var dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+    var sign = dot < 0 ? -1 : 1;
+    dot = Math.abs(dot);
+    var wa, wb;
+    if (dot > 0.9995) {
+      wa = 1 - f; // too close to interpolate by angle: lerp and renormalise
+      wb = f;
+    } else {
+      var theta = Math.acos(dot);
+      var sin = Math.sin(theta);
+      wa = Math.sin((1 - f) * theta) / sin;
+      wb = Math.sin(f * theta) / sin;
+    }
+    var out = [];
+    var norm = 0;
+    for (var k = 0; k < 4; k++) {
+      out[k] = wa * a[k] + wb * sign * b[k];
+      norm += out[k] * out[k];
+    }
+    norm = Math.sqrt(norm) || 1;
+    for (var j = 0; j < 4; j++) { out[j] /= norm; }
+    return out;
+  }
+
+  var lastApplied = null;
+
+  /**
+   * three.js orders a quaternion (x, y, z, w); ours are (w, x, y, z).
+   *
+   * Writes only on a real change: this runs inside the render callback, so a redundant write there
+   * dirties the scene again for nothing.
+   */
+  function applyPose(object) {
+    if (!object) {
+      return;
+    }
+    var q = (!gyroOn || !poses.length) ? [1, 0, 0, 0] : poseAt(displayMs());
+    if (lastApplied
+        && Math.abs(q[0] - lastApplied[0]) < 1e-4 && Math.abs(q[1] - lastApplied[1]) < 1e-4
+        && Math.abs(q[2] - lastApplied[2]) < 1e-4 && Math.abs(q[3] - lastApplied[3]) < 1e-4) {
+      return;
+    }
+    lastApplied = q;
+    object.quaternion.set(q[1], q[2], q[3], q[0]);
+  }
+
+  /**
+   * Takes the puzzle object and keeps it, re-applying on every render the player schedules. Asked
+   * for once: the callback is the hook the player provides for exactly this.
+   */
+  function hookPose() {
+    if (poseHooked || !player) {
+      return;
+    }
+    if (!player.experimentalCurrentThreeJSPuzzleObject) {
+      return; // an older bundle: the replay simply stays square
+    }
+    poseHooked = true;
+    try {
+      // ⚠️ The per-render callback does NOT pass the puzzle object: measured on the device, it
+      // fires with nothing. Assigning what it hands over therefore wiped the object the promise
+      // had already resolved, and every later pose was dropped on a null. It is a "you are about
+      // to render" signal and no more; the object comes from the promise and is kept.
+      player.experimentalCurrentThreeJSPuzzleObject(function (object) {
+        if (object) {
+          puzzleObject = object;
+        }
+        applyPose(puzzleObject);
+      }).then(function (object) {
+        puzzleObject = object;
+        applyPose(object);
+      }).catch(function () {});
+    } catch (e) {
+      poseHooked = false; // an older bundle without the hook: the replay simply stays square
+    }
+  }
+
+  var nudge = 0;
+
+  /**
+   * ⚠️ The player renders only when its own timeline moves, and during a recognition pause it does
+   * not move — timelineAt deliberately holds it still between turns. So a pose set there was never
+   * painted, and the cube stood frozen for exactly the seconds the solver spent turning it over
+   * looking for pieces, which is the one thing the gyro track exists to show. A sub-millisecond
+   * alternation forces the render; it is a thousandth of a frame of the animation and cannot be
+   * seen. Only while the track is being shown, so nothing else pays for the extra renders.
+   */
+  function draw() {
+    if (!player) {
+      return;
+    }
+    var timeline = timelineAt(clockMs);
+    if (gyroOn && poses.length) {
+      nudge = nudge ? 0 : 0.001;
+      timeline += nudge;
+    }
+    player.experimentalModel.timestampRequest.set(timeline);
+    applyPose(puzzleObject); // the callback covers the player's own renders, this covers a seek
+  }
+
+  /** While the track is shown the pose must keep being painted, even with the transport paused. */
+  function poseLoop() {
+    if (!gyroOn || !poses.length || playing) {
+      poseRaf = null;
+      return;
+    }
+    draw();
+    poseRaf = requestAnimationFrame(poseLoop);
+  }
+
+  /**
+   * The moment of the solve the cube is currently showing. Every node knows both when it was
+   * really turned and where that lands on the replay's clock, so this walks back through that
+   * pairing. Scaling the whole clock by one ratio instead agrees at both ends and drifts
+   * everywhere between, because the floors add time at particular turns rather than evenly.
+   */
+  function displayMs() {
+    var ms = clamped();
+    if (!doneAt.length) {
+      return 0;
+    }
+    var k = pending(ms);
+    if (k === 0) {
+      return 0; // the first turn has not landed yet
+    }
+    var last = k >= doneAt.length;
+    var fromReal = realAt[k - 1];
+    var fromClock = doneAt[k - 1];
+    var toReal = last ? reportedTotal : realAt[k];
+    var toClock = last ? totalMs : doneAt[k];
+    if (toClock <= fromClock) {
+      return Math.round(fromReal);
+    }
+    var f = Math.max(0, Math.min(1, (ms - fromClock) / (toClock - fromClock)));
+    return Math.round(fromReal + f * (toReal - fromReal));
+  }
+
+  /** The inverse of displayMs: the replay clock showing a given moment of the solve. */
+  function clockAt(wanted) {
+    if (!doneAt.length) {
+      return 0;
+    }
+    var k = 0;
+    while (k < realAt.length && realAt[k] <= wanted) { k++; }
+    if (k === 0) {
+      return 0;
+    }
+    var last = k >= realAt.length;
+    var fromReal = realAt[k - 1];
+    var fromClock = doneAt[k - 1];
+    var toReal = last ? reportedTotal : realAt[k];
+    var toClock = last ? totalMs : doneAt[k];
+    if (toReal <= fromReal) {
+      // No real time between the two, as when the solve is measured only to its last turn.
+      return wanted >= fromReal ? toClock : fromClock;
+    }
+    var f = Math.max(0, Math.min(1, (wanted - fromReal) / (toReal - fromReal)));
+    return fromClock + f * (toClock - fromClock);
+  }
+
+  /** Rate-limited: the animation runs at frame rate, the app only needs a readable clock. */
+  function report(force) {
+    var ms = displayMs();
+    if (force || Math.abs(ms - reportedMs) >= 100) {
+      reportedMs = ms;
+      bridge("onState", ms, playing);
+    }
+  }
+
+  function frame() {
+    var now = Date.now();
+    // Clamp: a suspended WebView can resume with a delta of the whole background period, which
+    // would otherwise jump the replay to the end.
+    clockMs += Math.min(now - lastFrameMs, 200) * speed;
+    lastFrameMs = now;
+
+    if (clockMs >= totalMs) {
+      clockMs = totalMs;
+      draw();
+      pause();
+      return;
+    }
+    draw();
+    report(false);
+    raf = requestAnimationFrame(frame);
+  }
+
+  function pause() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    playing = false;
+    report(true);
+    if (gyroOn && poses.length && !poseRaf) { poseRaf = requestAnimationFrame(poseLoop); }
+  }
+
+  /**
+   * Lays the solve out on the replay clock.
+   *
+   * A TURN ENDS ON ITS TIMESTAMP. The cube reports a move once the turn has been made, so drawing
+   * it forward from that moment shows every turn late: at a step boundary the last turn of the step
+   * then finishes inside the next step's recognition, and the bar says thinking while the cube is
+   * still moving. Running each turn up TO its timestamp puts the movement where the bar puts it,
+   * and the stillness before it is the recognition it really was.
+   *
+   * Each turn is guaranteed room to be seen, taken from the slack before it — which for a rotation
+   * is also the truthful placement, since it is recorded against the move it precedes but was made
+   * during the pause before that move. Only when there is no slack left to take does the replay run
+   * longer than the solve.
+   */
+  function layOut(tokens, realMs) {
+    var n = tokens.length;
+    realAt = [];
+    doneAt = [];
+    anims = [];
+    if (!n) {
+      totalMs = 0;
+      return;
+    }
+    var floors = [];
+    for (var i = 0; i < n; i++) {
+      floors.push(isRotation(tokens[i]) ? MIN_ROTATION_MS : MIN_TURN_MS);
+      realAt.push(realMs[i] - realMs[0]);
+    }
+    var at = realAt.slice();
+    for (var b = n - 1; b >= 1; b--) { // node b needs room before it: start the one before earlier
+      at[b - 1] = Math.min(at[b - 1], at[b] - floors[b]);
+    }
+    for (var f = 1; f < n; f++) {      // where there was none to take, the replay runs long
+      at[f] = Math.max(at[f], at[f - 1] + floors[f]);
+    }
+    var lead = floors[0]; // the first turn needs room of its own to run into
+    for (var k = 0; k < n; k++) {
+      doneAt.push(at[k] - at[0] + lead);
+      var cap = isRotation(tokens[k]) ? MAX_ROTATION_MS : MAX_TURN_MS;
+      anims.push(Math.min(k === 0 ? lead : at[k] - at[k - 1], cap));
+    }
+    totalMs = doneAt[n - 1] + TAIL_MS;
+  }
+
+  var readyNotified = false;
+
+  function notifyReady() {
+    if (!readyNotified) {
+      readyNotified = true;
+      bridge("onReady");
+    }
+  }
+
+  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs) {
+    pause();
+    readyNotified = false;
+    poses = []; // the previous solve's, if the dialog is reused; the new one's arrive separately
+    lastApplied = null;
+    var list = moveList || [];
+
+    // One alg node per token: a reorientation can be recorded as a pair ("y x'") under a single
+    // timestamp, and the timeline indexes nodes, not our moves. The pair's two halves then sit at
+    // the same instant, and each still gets its own room from the floors above.
+    var tokens = [];
+    var stamps = [];
+    for (var i = 0; i < list.length; i++) {
+      var parts = String(list[i].m).split(/\s+/);
+      for (var j = 0; j < parts.length; j++) {
+        if (parts[j]) { tokens.push(parts[j]); stamps.push(list[i].t); }
+      }
+    }
+    layOut(tokens, stamps);
+    reportedTotal = solveMs > 0 ? solveMs : (realAt.length ? realAt[realAt.length - 1] : 0);
+    clockMs = 0;
+    reportedMs = -1;
+
+    if (!player) {
+      player = document.createElement("twisty-player");
+      player.puzzle = puzzle || "3x3x3";
+      player.visualization = "3D";
+      player.background = "none";
+      player.controlPanel = "none";
+      player.hintFacelets = "none";
+      document.getElementById("host").appendChild(player);
+    }
+    player.experimentalSetupAlg = setup || "";
+    player.alg = tokens.join(" ");
+
+    player.experimentalModel.indexer.get().then(function (indexer) {
+      tlStarts = [];
+      for (var i = 0; i < tokens.length; i++) {
+        tlStarts.push(indexer.indexToMoveStartTimestamp(i));
+      }
+      tlEnd = indexer.algDuration();
+      draw();
+      // Prefer signalling after a paint, but never depend on it: a WebView that is not drawing
+      // starves requestAnimationFrame, and the app would hold its spinner until the timeout.
+      requestAnimationFrame(function () { requestAnimationFrame(notifyReady); });
+      setTimeout(notifyReady, 300);
+    }).catch(notifyReady);
+  };
+
+  window.ntReplayPlay = function () {
+    if (playing || !doneAt.length) { return; }
+    if (clockMs >= totalMs) { clockMs = 0; }
+    playing = true;
+    lastFrameMs = Date.now();
+    report(true);
+    raf = requestAnimationFrame(frame);
+  };
+
+  window.ntReplayPause = function () {
+    pause();
+  };
+
+  /** @param ms a moment of the solve, in the same units the position is reported in. */
+  window.ntReplaySeek = function (ms) {
+    var wasPlaying = playing;
+    pause();
+    clockMs = Math.max(0, Math.min(clockAt(ms), totalMs));
+    draw();
+    if (wasPlaying) {
+      window.ntReplayPlay();
+    } else {
+      report(true);
+    }
+  };
+
+  window.ntReplaySpeed = function (x) {
+    speed = x;
+  };
+
+  /** @param list poses in the SOLVE's time, already in cube axes. Does not turn the track on. */
+  window.ntReplayGyro = function (list) {
+    poses = [];
+    var given = list || [];
+    for (var i = 0; i < given.length; i++) {
+      if (given[i] && given[i].q && given[i].q.length === 4) {
+        poses.push({ t: given[i].t, q: given[i].q });
+      }
+    }
+    hookPose();
+    draw();
+  };
+
+  window.ntReplayGyroShow = function (on) {
+    gyroOn = !!on;
+    if (poseRaf) { cancelAnimationFrame(poseRaf); poseRaf = null; }
+    if (gyroOn) { poseRaf = requestAnimationFrame(poseLoop); }
+    hookPose();
+    draw();
+  };
+})();
+</script>
+</body>
+</html>

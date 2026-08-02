@@ -69,6 +69,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_TIMEHISTORY_PB + " INTEGER DEFAULT 0, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " TEXT, " +
+        DB.COL_TIMEHISTORY_SMARTCUBE_GYRO + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " INTEGER, " +
         DB.COL_TIMEHISTORY_SOLVETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_TIMEHISTORY_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
@@ -275,6 +276,14 @@ public class DBHelper extends SQLiteOpenHelper {
       // ever asked, and no method is the answer that reads the solve rather than presuming it.
       db.execSQL("ALTER TABLE " + DB.TABLE_SOLVETYPE + " ADD COLUMN "
           + DB.COL_SOLVETYPE_METHOD + " TEXT");
+    }
+
+    if (oldVersion < 24) {
+      // The gyro track of a smart cube solve: the small physical rotations the discrete x/y/z
+      // tokens leave out. Solves recorded before this have none and never will — the readings they
+      // were reconstructed from were not kept.
+      db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN "
+          + DB.COL_TIMEHISTORY_SMARTCUBE_GYRO + " TEXT");
     }
 
 //    progressDialog.hide();

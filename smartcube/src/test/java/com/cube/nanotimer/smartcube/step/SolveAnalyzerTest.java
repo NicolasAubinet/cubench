@@ -171,6 +171,58 @@ public class SolveAnalyzerTest {
   }
 
   @Test
+  public void countsALookaheadTurnDuringF2lAsRecognition() {
+    // The pair goes in with "U R U' R'", but here the solver turns the U while still hunting for it
+    // and only then finds the case. Both thinks are recognition: the U was looking, not inserting.
+    startFrom(T_PERM, SUNE, "R U R' U'", "R' F'");
+
+    play("F R", 0, 600); // cross
+    play("U", 700, 100); // turned to see the pair round...
+    play("R U' R'", 500, 100); // ...then read, then inserted
+
+    assertStep(stepTimes().get(1), "f2l", 700 + 500, 200);
+  }
+
+  @Test
+  public void countsATurnThePairGoesInOnAsExecution() {
+    // The same pair and the same opening U, but turned straight into the insertion: a U flowed out
+    // of is the algorithm starting, and only the think before it is recognition.
+    startFrom(T_PERM, SUNE, "R U R' U'", "R' F'");
+
+    play("F R", 0, 600);
+    play("U R U' R'", 700, 100);
+
+    assertStep(stepTimes().get(1), "f2l", 700, 300);
+  }
+
+  @Test
+  public void countsABurstOfLookaheadTurnsDuringF2lAsRecognition() {
+    // Three turns of the layer in quick succession and only then a think: a solver hunting a pair
+    // turns two or three times as readily as once, and the whole run was made before the same stop.
+    startFrom(T_PERM, SUNE, "R U R' U'", "R' F'");
+
+    play("F R", 0, 600); // cross
+    play("U", 700, 100); // spun the layer round to see the slots, without stopping between...
+    play("U'", 100, 100);
+    play("U", 100, 100);
+    play("R U' R'", 500, 100); // ...then read the case, then inserted
+
+    assertStep(stepTimes().get(1), "f2l", 700 + 100 + 100 + 500, 200);
+  }
+
+  @Test
+  public void stillCountsTheTurnAPairGoesInOnAsExecution() {
+    // The run reaching the insertion with no stop anywhere in it is the algorithm starting, however
+    // long it is: the U2 opening "U2 R U R'" is two turns of the layer and belongs to the pair.
+    startFrom(T_PERM, SUNE, "R U' R' U2", "R' F'");
+
+    play("F R", 0, 600);
+    play("U2 R U R'", 700, 100);
+
+    assertStep(stepTimes().get(1), "f2l", 700, 400);
+  }
+
+  @Test
   public void countsAnAufBeforeAnAlgorithmAsRecognition() {
     // The last layer needs squaring up before the PLL can be read: that U is part of recognising it.
     startFrom(T_PERM, "U'");

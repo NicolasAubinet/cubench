@@ -16,8 +16,11 @@ import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
+import com.cube.nanotimer.smartcube.model.OrientationHistory;
 import com.cube.nanotimer.smartcube.scanner.CubeScanner;
 import com.cube.nanotimer.smartcube.scanner.CubeScannerFactory;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -151,6 +154,13 @@ public enum SmartCubeManager {
   public CubeOrientation getOrientationAt(long timestampMs) {
     SmartCube connected = cube;
     return connected == null ? null : connected.getOrientationAt(timestampMs);
+  }
+
+  /** Every reading taken across a window already past, oldest first; empty with no cube or no gyro. */
+  public List<OrientationHistory.Sample> getOrientationsBetween(long fromMs, long toMs) {
+    SmartCube connected = cube;
+    return connected == null ? Collections.<OrientationHistory.Sample>emptyList()
+        : connected.getOrientationsBetween(fromMs, toMs);
   }
 
   public DiscoveredCube getConnectedDevice() {

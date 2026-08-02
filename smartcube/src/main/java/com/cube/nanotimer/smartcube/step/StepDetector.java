@@ -24,10 +24,16 @@ public interface StepDetector {
   Long getStepTimestampMs(int index);
 
   /**
-   * True when the move only realigns the last layer to read a case (an AUF), rather than building
-   * the step. Such moves opening a step count as recognition, not execution.
+   * True when the move only put the last layer where the solver could read it, rather than building
+   * the step — an AUF, or a turn made while still looking. Such moves opening a step count as
+   * recognition, not execution.
+   *
+   * @param pausedAfter whether the solver stopped after this move instead of turning straight on.
+   *     A step whose own moves include last-layer turns cannot tell an AUF from the opening of an
+   *     algorithm by the move alone; that the solver kept looking afterwards is what tells them
+   *     apart. A step where the two never overlap ignores it.
    */
-  boolean isAlignmentMove(int step, CubeMove move);
+  boolean isAlignmentMove(int step, CubeMove move, boolean pausedAfter);
 
   /** The parts a step is built in, if any: they complete in whatever order the solver works in. */
   int subStepCount(int step);

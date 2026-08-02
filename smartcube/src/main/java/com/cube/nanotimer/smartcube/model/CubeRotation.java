@@ -69,6 +69,14 @@ public final class CubeRotation {
     return notation.isEmpty();
   }
 
+  /**
+   * This rotation as a quaternion in the cube's own axes — the same space
+   * {@link #continuousFrame} returns, so a lattice rotation and a continuous pose can be composed.
+   */
+  public CubeOrientation quaternion() {
+    return quaternion;
+  }
+
   /** True for the nine 180° cells ({@code y2}, {@code x2}, the edge flips and their kin). */
   public boolean isHalfTurn() {
     return Math.abs(quaternion.getW()) < 0.26; // |w| is 0 at 180°, 0.5 at the 120° corners
@@ -160,6 +168,20 @@ public final class CubeRotation {
    */
   public static CubeRotation closest(CubeOrientation delta) {
     return ofQuaternion(toCubeFrame(delta));
+  }
+
+  /**
+   * The orientation a reading stands in relative to {@code reference}, in the cube's own axes and
+   * <strong>not snapped to any of the 24</strong> — the continuous pose a 3D cube is drawn at.
+   *
+   * <p>Deliberately does not {@link #upright} the reading, which {@link #closest} and its callers
+   * do: uprighting exists to make a grip <em>nameable</em> by squaring it up, and squaring up is
+   * precisely the tilt this wants to keep. The reference is uprighted, so what comes back is the
+   * turning from a squared-up start to however the cube was really being held.
+   */
+  public static CubeOrientation continuousFrame(CubeOrientation reference, CubeOrientation reading) {
+    return reference == null || reading == null ? null
+        : toCubeFrame(reference.deltaTo(reading));
   }
 
   /**

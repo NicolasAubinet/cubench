@@ -43,6 +43,7 @@ public enum Options {
   public static final String CROSS_NEUTRALITY_KEY = "cross_neutrality";
   public static final String CROSS_FACE_KEY = "cross_face";
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
+  public static final String REPLAY_SHOW_GYRO_KEY = "replay_show_gyro";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
@@ -259,6 +260,18 @@ public enum Options {
 
   public void setBreakdownShowMoves(boolean showMoves) {
     sharedPreferences.edit().putBoolean(BREAKDOWN_SHOW_MOVES_KEY, showMoves).apply();
+  }
+
+  /**
+   * Whether a replay shows how the cube was physically held. Off by default: the square cube is
+   * what the stored rotations say, and a solve without a gyro track can only be shown that way.
+   */
+  public boolean isReplayShowGyro() {
+    return sharedPreferences.getBoolean(REPLAY_SHOW_GYRO_KEY, false);
+  }
+
+  public void setReplayShowGyro(boolean showGyro) {
+    sharedPreferences.edit().putBoolean(REPLAY_SHOW_GYRO_KEY, showGyro).apply();
   }
 
   // Whether the smart-cube sheet has already explained itself. It leads with the explanation until

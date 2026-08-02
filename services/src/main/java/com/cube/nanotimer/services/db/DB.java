@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 23;
+  public static final int DB_VERSION = 24;
 
   public static final String COL_ID = "id";
 
@@ -35,6 +35,9 @@ public class DB {
   public static final String COL_TIMEHISTORY_PB = "pb";
   public static final String COL_TIMEHISTORY_SMARTCUBE_METHOD = "smartcube_method"; // method code of the solve's step breakdown, null when there is no breakdown (manual solve, or cube solve that matched no method)
   public static final String COL_TIMEHISTORY_SMARTCUBE_MOVES = "smartcube_moves"; // the solve's moves with their offsets (ex: "R@0 U'@180"), null unless a cube drove it, finished or not
+  // Several kilobytes on a long solve, so NEVER select it in a query over many rows: only the one
+  // solve being looked at ever wants it, and the history list needs no more than moves != null.
+  public static final String COL_TIMEHISTORY_SMARTCUBE_GYRO = "smartcube_gyro"; // keyframed orientations, see GyroTrackFormat
   public static final String COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP = "smartcube_stopped_step"; // index of the step the solve stopped in, null when it ran to the end
   public static final String COL_TIMEHISTORY_SOLVETYPE_ID = "solvetype_id";
 

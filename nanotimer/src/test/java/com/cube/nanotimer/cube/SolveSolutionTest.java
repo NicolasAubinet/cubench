@@ -301,4 +301,39 @@ public class SolveSolutionTest {
     assertEquals(1.0, solution.getTps(), 1e-9);
   }
 
+  /**
+   * What a replay plays is not what the breakdown prints. The displayed reconstruction folds a
+   * sensed pair into a half turn; the replay must not, because the offsets of the two turns are
+   * what tell one flick apart from two deliberate moves.
+   */
+  @Test
+  public void keepsQuarterTurnsAndTheirOffsetsForReplay() {
+    List<SolveMovesFormat.Move> replayed = SolveSolution.timedSolution(moves("R@0", "R@40", "U@500"));
+
+    assertEquals(3, replayed.size());
+    assertEquals("R", replayed.get(0).getNotation());
+    assertEquals(0, replayed.get(0).getOffsetMs());
+    assertEquals("R", replayed.get(1).getNotation());
+    assertEquals(40, replayed.get(1).getOffsetMs());
+    assertEquals("U", replayed.get(2).getNotation());
+    assertEquals(500, replayed.get(2).getOffsetMs());
+
+    // The same stream shown as a reconstruction does fold them.
+    assertEquals("R2 U", SolveSolution.from(moves("R@0", "R@40", "U@500"),
+        Arrays.asList(step("cross", 0, 1000))).getSteps().get(0).getPartMoves(0));
+  }
+
+  /**
+   * A replay turns the cube with the solver, so rotations stay in the stream — and the faces after
+   * one are named in the frame it left, not the frame the cube reports in.
+   */
+  @Test
+  public void keepsRotationsAndRelabelsWhatFollowsThem() {
+    List<SolveMovesFormat.Move> replayed = SolveSolution.timedSolution(moves("y@0", "B@100"));
+
+    assertEquals(2, replayed.size());
+    assertEquals("y", replayed.get(0).getNotation());
+    assertEquals("R", replayed.get(1).getNotation()); // the cube's B is on the solver's right after a y
+  }
+
 }

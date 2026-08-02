@@ -36,6 +36,7 @@ import com.cube.nanotimer.cube.StoredSolveReplay;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
+import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
@@ -186,6 +187,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       scrambleCard.setForeground(null);
     }
     setUpScrambleTools(v, solveTime, cubeType);
+    setUpReplay(v, solveTime, cubeType);
     tvDate.setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
     tvTime.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
     if (solveTime.isDNF()) {
@@ -293,6 +295,48 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
   }
 
+  /**
+   * The replay button, on the breakdown line. Called after the breakdown is built, because a solve
+   * can carry a move stream the analyzers could not read into steps — an early DNF, a method that
+   * matched nothing. {@code buildBreakdown} leaves the whole section hidden for those, and they are
+   * the solves a replay explains best, so the section is opened for the button alone and the table
+   * card stays hidden. Without this the button would be silently unreachable exactly there.
+   */
+  private void setUpReplay(View v, final SolveTime solveTime, final CubeType cubeType) {
+    ImageButton buReplay = (ImageButton) v.findViewById(R.id.buReplay);
+    View section = v.findViewById(R.id.breakdownSection);
+    final String puzzleId = ScrambleViewNotation.getPuzzleId(cubeType);
+    final String cubingScramble = solveTime.getScramble() == null ? null
+        : ScrambleViewNotation.toCubingNotation(ScrambleFormatterService.INSTANCE
+            .parseStringScrambleToArray(solveTime.getScramble(), cubeType), cubeType);
+
+    if (!solveTime.hasSmartcubeMoves() || puzzleId == null
+        || cubingScramble == null || cubingScramble.isEmpty()) {
+      buReplay.setVisibility(View.GONE);
+      return;
+    }
+    buReplay.setVisibility(View.VISIBLE);
+    if (section.getVisibility() != View.VISIBLE) {
+      // Opened for the button alone: there is no table, and buildMovesSwitch never ran, so the
+      // switch it would have hidden is still showing its layout default with nothing to toggle.
+      section.setVisibility(View.VISIBLE);
+      v.findViewById(R.id.breakdownCard).setVisibility(View.GONE);
+      v.findViewById(R.id.movesSwitchLabel).setVisibility(View.GONE);
+      v.findViewById(R.id.swMoves).setVisibility(View.GONE);
+      ((TextView) v.findViewById(R.id.breakdownLabel)).setText(R.string.breakdown);
+    }
+    buReplay.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        // The same length the breakdown steps were measured against, so the bar the replay
+        // scrubs and the replay itself cannot disagree about how long the solve was.
+        DialogUtils.showFragment(getActivity(), SolveReplayDialog.newInstance(
+            puzzleId, cubingScramble, solveTime.getSmartcubeMoves(),
+            SolveBreakdown.solvingDurationMs(solveTime), breakdownSteps, solveTime.getId()));
+      }
+    });
+  }
+
   private void openScrambleView(CubeType cubeType, String[] scramble) {
     String key = ScrambleViewNotation.getRenderKey(cubeType);
     String moves = ScrambleViewNotation.toCubingNotation(scramble, cubeType);
@@ -347,6 +391,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       return;
     }
     boolean split = userSteps == null;
+    breakdownSteps = new ArrayList<SolveStep>(steps);
     int[] colors = getStepColors();
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
@@ -408,6 +453,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
+  private ArrayList<SolveStep> breakdownSteps; // what the bar in the sheet draws, and the replay scrubs
   private boolean showMoves;
 
   /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */

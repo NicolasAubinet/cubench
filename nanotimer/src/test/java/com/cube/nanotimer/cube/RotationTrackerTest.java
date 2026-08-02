@@ -37,14 +37,19 @@ public class RotationTrackerTest {
 
   /** A tracker whose reference is {@code grip}: the cube read that way at the first scramble move. */
   private static RotationTracker anchoredAt(CubeOrientation grip) {
-    RotationTracker tracker = new RotationTracker();
-    tracker.anchor(grip);
-    return tracker;
+    GyroReference reference = new GyroReference();
+    reference.anchor(grip);
+    return new RotationTracker(reference);
+  }
+
+  /** A tracker sharing {@code reference}, as the controller wires them. */
+  private static RotationTracker tracking(GyroReference reference) {
+    return new RotationTracker(reference);
   }
 
   @Test
   public void withoutAReferenceNothingIsRecorded() {
-    RotationTracker tracker = new RotationTracker();
+    RotationTracker tracker = tracking(new GyroReference());
     tracker.onMove(AFTER_Y, 100);
     assertTrue(tracker.getRotations().isEmpty());
   }
@@ -73,8 +78,10 @@ public class RotationTrackerTest {
    */
   @Test
   public void theReferenceIsTheFirstScrambleMoveAndNotTheLast() {
-    RotationTracker tracker = anchoredAt(REST);
-    tracker.anchor(AFTER_Y); // the cube turned partway through the scramble and stayed there
+    GyroReference reference = new GyroReference();
+    reference.anchor(REST);
+    reference.anchor(AFTER_Y); // the cube turned partway through the scramble and stayed there
+    RotationTracker tracker = tracking(reference);
     tracker.onMove(AFTER_Y, 100);
     assertEquals(1, tracker.getRotations().size());
     assertEquals("y", tracker.getRotations().get(0).getNotation());
@@ -83,9 +90,11 @@ public class RotationTrackerTest {
   /** After a mid-scramble break the cube can come back any way up: the reference restarts. */
   @Test
   public void restartAnchorRepinsOnTheNextScrambleMove() {
-    RotationTracker tracker = anchoredAt(REST);
-    tracker.restartAnchor();
-    tracker.anchor(AFTER_Y); // the grip the scramble was picked back up in
+    GyroReference reference = new GyroReference();
+    reference.anchor(REST);
+    reference.restart();
+    reference.anchor(AFTER_Y); // the grip the scramble was picked back up in
+    RotationTracker tracker = tracking(reference);
     tracker.onMove(AFTER_Y, 100);
     assertTrue(tracker.getRotations().isEmpty());
   }
@@ -293,27 +302,26 @@ public class RotationTrackerTest {
   @Test
   public void aReadingOfItsOwnIsReadAsTheFrameItWasTakenIn() {
     CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
-    RotationTracker tracker = anchoredAt(grip);
+    GyroReference reference = new GyroReference();
+    reference.anchor(grip);
+    RotationTracker tracker = tracking(reference);
     tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1000); // the solve's first move, on a slice
 
     assertEquals("x", tracker.getPickupRotation(noPairs()).getNotation());
-    assertEquals("y", tracker.frameOf(turnedFrom(grip, aboutCubeU(-90))).getNotation());
+    assertEquals("y", reference.frameOf(turnedFrom(grip, aboutCubeU(-90))).getNotation());
   }
 
+  /** The reference outlives a tracker: only the solve's frames are the tracker's to forget. */
   @Test
-  public void withoutAReferenceOrAReadingThereIsNoFrameToRead() {
-    assertEquals(null, anchoredAt(REST).frameOf(null));
-    assertEquals(null, new RotationTracker().frameOf(AFTER_Y));
-  }
-
-  @Test
-  public void resetDropsTheReferenceAndTheFrames() {
-    RotationTracker tracker = anchoredAt(REST);
+  public void resetDropsTheFramesAndKeepsTheReference() {
+    GyroReference reference = new GyroReference();
+    reference.anchor(REST);
+    RotationTracker tracker = tracking(reference);
     tracker.onMove(AFTER_Y, 100);
     tracker.reset();
     assertTrue(tracker.getRotations().isEmpty());
-    tracker.onMove(AFTER_Y, 200); // and with no reference nothing is read until one is anchored
-    assertTrue(tracker.getRotations().isEmpty());
+    tracker.onMove(AFTER_Y, 200);
+    assertEquals(1, tracker.getRotations().size());
   }
 
   private static List<RotationTracker.Rotation> noPairs() {

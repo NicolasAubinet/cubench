@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Host for the 3D solve replay. Same shape as scrambleview_dialog: a transparent
+     WebView blending onto the card, a spinner until the cube is drawn, and a text
+     fallback when rendering is unavailable. Under it, the transport row. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+  <!-- Hero, in the solve detail sheet's idiom: the solve's time is what says which solve this is,
+       so it carries the header rather than a dialog title bar over the top of it. -->
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:gravity="center_horizontal"
+      android:paddingTop="2dp"
+      android:paddingBottom="10dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/solve_replay"
+        style="@style/DialogSectionLabel"/>
+
+    <TextView
+        android:id="@+id/tvReplayHeroTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:textSize="32sp"
+        android:fontFeatureSettings="tnum"/>
+  </LinearLayout>
+
+  <!-- The cube sits in a well rather than on the card: 3D on a flat surface needs something under
+       it or it reads as floating. -->
+  <FrameLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      android:layout_marginTop="4dp"
+      android:background="@drawable/cube_stage">
+
+    <WebView
+        android:id="@+id/wvReplay"
+        android:layout_width="match_parent"
+        android:layout_height="260dp"
+        android:background="@android:color/transparent"/>
+
+    <ProgressBar
+        android:id="@+id/pbReplay"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/tvReplayFallback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textSize="15sp"
+        android:textColor="@color/secondary_text"
+        android:visibility="gone"/>
+  </FrameLayout>
+
+  <!-- The solve as a bar, doubling as the scrubber: it already says which step is which, so it is
+       also where you say which one to watch. -->
+  <com.cube.nanotimer.util.view.SolveStepBarView
+      android:id="@+id/replayBar"
+      android:layout_width="match_parent"
+      android:layout_height="22dp"
+      android:layout_marginLeft="10dp"
+      android:layout_marginRight="10dp"
+      android:layout_marginTop="10dp"
+      android:visibility="gone"/>
+
+  <!-- Transport: play/pause, the position within the solve, and the speed cycle. -->
+  <LinearLayout
+      android:id="@+id/replayControls"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical"
+      android:paddingLeft="6dp"
+      android:paddingRight="8dp"
+      android:paddingTop="6dp">
+
+    <ImageButton
+        android:id="@+id/buReplayPlay"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:scaleType="fitCenter"
+        android:padding="8dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_replay_play"
+        android:contentDescription="@string/replay_play"/>
+
+    <!-- Only the moving figure: the total is in the hero above, and saying it twice is noise. -->
+    <TextView
+        android:id="@+id/tvReplayPosition"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginLeft="6dp"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:fontFeatureSettings="tnum"/>
+
+    <!-- Every speed side by side: one tap reaches any of them, where a cycle needed up to three. -->
+    <LinearLayout
+        android:id="@+id/replaySpeeds"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+      <TextView android:id="@+id/buReplaySpeed0" style="@style/SegmentChip"/>
+      <TextView android:id="@+id/buReplaySpeed1" style="@style/SegmentChip"/>
+      <TextView android:id="@+id/buReplaySpeed2" style="@style/SegmentChip"/>
+      <TextView android:id="@+id/buReplaySpeed3" style="@style/SegmentChip"/>
+    </LinearLayout>
+  </LinearLayout>
+
+  <!-- The gyro track is a property of the view, not a transport control, so it sits in a row of its
+       own in the switch idiom the solve type dialog uses. Shown only for a solve that has one. -->
+  <LinearLayout
+      android:id="@+id/rowReplayGyro"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:visibility="gone">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="14dp"
+        android:layout_marginRight="14dp"
+        android:layout_marginTop="4dp"
+        android:background="@color/gray700"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="14dp"
+        android:background="?android:attr/selectableItemBackground">
+
+      <LinearLayout
+          android:orientation="vertical"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginRight="12dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/replay_gyro"
+            android:textColor="@color/white"
+            android:textSize="16sp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:text="@string/replay_gyro_summary"
+            android:textColor="@color/secondary_text"
+            android:textSize="13sp"/>
+      </LinearLayout>
+
+      <androidx.appcompat.widget.SwitchCompat
+          android:id="@+id/swReplayGyro"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:clickable="false"
+          android:focusable="false"
+          android:contentDescription="@string/replay_gyro"/>
+
+    </LinearLayout>
+  </LinearLayout>
+
+</LinearLayout>

@@ -266,6 +266,11 @@ final class MoyuV10Cube implements SmartCube {
     return history.at(timestampMs);
   }
 
+  @Override
+  public List<OrientationHistory.Sample> getOrientationsBetween(long fromMs, long toMs) {
+    return history.between(fromMs, toMs);
+  }
+
   private static void logOrientation(String kind, CubeOrientation q) {
     if (CAPTURE && q != null) {
       capture(kind + " " + System.currentTimeMillis() + " "

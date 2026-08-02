@@ -1,6 +1,10 @@
 package com.cube.nanotimer.util.exportimport.csvexport;
 
+import com.cube.nanotimer.cube.GyroTrackFormat;
+import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveStepsFormat;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.OrientationHistory;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.exportimport.csvimport.workers.CSVLineGrouper;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -147,6 +151,23 @@ public class ExportResultConverterTest {
     result.setSmartcubeMoves(MOVES);
     result.setSmartcubeSteps(SolveStepsFormat.parse(STEPS));
     result.setSmartcubeStoppedStep(2);
+    return result;
+  }
+
+  /** A real track out of the real encoder, so these carry what an export really would. */
+  private static String gyroTrack() {
+    CubeOrientation rest = new CubeOrientation(1, 0, 0, 0);
+    OrientationHistory history = new OrientationHistory();
+    for (int at = 0; at <= 2000; at += 50) {
+      double radians = Math.toRadians(at / 20.0) / 2;
+      history.onSample(new CubeOrientation(Math.cos(radians), 0, Math.sin(radians), 0), at);
+    }
+    return GyroTrackFormat.format(history.between(0, 3000), rest, 0);
+  }
+
+  private static ExportResult cubeResultWithGyro(String comment) {
+    ExportResult result = cubeResult(comment);
+    result.setSmartcubeGyroTrack(gyroTrack());
     return result;
   }
 
@@ -379,6 +400,93 @@ public class ExportResultConverterTest {
       Assert.fail("Expected the legacy format to refuse smart cube data");
     } catch (IllegalArgumentException expected) {
     }
+  }
+
+  // ---- The gyro track ------------------------------------------------------------------------
+  // It rides at the end of the moves field rather than in a column of its own, so no header changes.
+
+  // The layout is the contract, and adding the track must not move a single field.
+  @Test
+  public void testTheGyroTrackRidesInTheMovesFieldAndMovesNothing() {
+    String track = gyroTrack();
+    String csvLine = ExportResultConverter.toCSVLine(cubeResultWithGyro("a comment"), true);
+    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(csvLine, ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT);
+    Assert.assertEquals(ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT, fields.size());
+    Assert.assertEquals("CFOP", fields.get(9));
+    Assert.assertEquals(MOVES + " gyro:" + track, fields.get(10));
+    Assert.assertEquals(STEPS, fields.get(11));
+    Assert.assertEquals("2", fields.get(12));
+    Assert.assertEquals("", fields.get(13));
+    Assert.assertEquals("a comment", fields.get(14));
+  }
+
+  // The point of the work: a track lost in a round trip cannot be recorded again after the fact.
+  @Test
+  public void testTheGyroTrackSurvivesAFullRoundTrip() throws Exception {
+    ExportResult original = cubeResultWithGyro("full, record");
+    ExportResult imported = ExportResultConverter.fromCSVLine(null,
+        ExportResultConverter.toCSVLine(original, true), ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT);
+    Assert.assertEquals(MOVES, imported.getSmartcubeMoves());
+    Assert.assertEquals(original.getSmartcubeGyroTrack(), imported.getSmartcubeGyroTrack());
+    Assert.assertEquals(CubeMethod.CFOP, imported.getSmartcubeMethod());
+    Assert.assertEquals(STEPS, SolveStepsFormat.format(imported.getSmartcubeSteps()));
+    Assert.assertEquals("full, record", imported.getComment());
+  }
+
+  // What lets the track share the field: a reader that knows nothing of it still sees the same moves.
+  @Test
+  public void testTheTrackIsInvisibleToTheMovesParser() {
+    String packed = ExportResultConverter.packMoves("[y] " + MOVES, gyroTrack());
+    Assert.assertEquals(SolveMovesFormat.parse(MOVES).size(), SolveMovesFormat.parse(packed).size());
+    Assert.assertEquals("y", SolveMovesFormat.pickupOf(packed)); // and the grip still reads
+  }
+
+  // A track is smart-cube data: it picks the layout on its own, and the short one must refuse it.
+  @Test
+  public void testAGyroTrackIsSmartcubeDataForTheFormatChoice() {
+    Assert.assertEquals(ExportCSVGenerator.SMARTCUBE_CSV_HEADER_LINE,
+        new ExportCSVGenerator(Arrays.asList(cubeResultWithGyro(null))).getHeaderLine());
+    try {
+      ExportResultConverter.toCSVLine(cubeResultWithGyro("x"), false);
+      Assert.fail("Expected the legacy format to refuse a gyro track");
+    } catch (IllegalArgumentException expected) {
+    }
+  }
+
+  // Base64 has no comma and no quote, so the packed field cannot desync the splitter or the grouper.
+  @Test
+  public void testThePackedMovesFieldRespectsTheCsvInvariants() {
+    String csvLine = ExportResultConverter.toCSVLine(cubeResultWithGyro("multi\nline, \" comment"), true);
+    List<String> fields = ExportResultConverter.getFieldsFromCSVLine(csvLine, ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT);
+    Assert.assertEquals(ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT, fields.size());
+    Assert.assertEquals(-1, gyroTrack().indexOf(','));
+    Assert.assertEquals(-1, gyroTrack().indexOf('"'));
+  }
+
+  // A bare moves field is every file written before the track, and imports as a solve without one.
+  @Test
+  public void testFilesPredatingTheTrackImportWithNone() {
+    ExportResult result = new ExportResult("3x3x3", "Default", 5000, 1700000000000L, false, false, null, null, null);
+    ExportResultConverter.applySmartcubeFields(result, "CFOP", MOVES, STEPS, "2");
+    Assert.assertEquals(MOVES, result.getSmartcubeMoves());
+    Assert.assertNull(result.getSmartcubeGyroTrack());
+  }
+
+  // Half a record is rejected whole, as everywhere else in this converter.
+  @Test
+  public void testCorruptGyroTracksAreRejected() {
+    assertSmartcubeRejected("CFOP", MOVES + " gyro:not a track", STEPS, "");        // unreadable
+    assertSmartcubeRejected("CFOP", MOVES + " gyro:" + gyroTrack().substring(0, 8), STEPS, ""); // truncated
+    assertSmartcubeRejected("", "gyro:" + gyroTrack(), "", "");                     // no solution to describe
+    assertSmartcubeRejected("CFOP", MOVES + " gyro:", STEPS, "");                   // the marker alone
+  }
+
+  // A marker glued to a move is the one shape that could pass: the lenient parser still finds real
+  // moves, so without this the track would be stored as part of the solution.
+  @Test
+  public void testAGyroTrackNotWrittenAsItsOwnTokenIsRejected() {
+    assertSmartcubeRejected("CFOP", MOVES + "gyro:" + gyroTrack(), STEPS, "");
+    assertSmartcubeRejected("CFOP", MOVES.replace(" y@8778", "gyro:" + gyroTrack() + " y@8778"), STEPS, "");
   }
 
   // ---- Importing the older formats through the new parser ------------------------------------

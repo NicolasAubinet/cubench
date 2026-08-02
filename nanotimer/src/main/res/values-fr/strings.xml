@@ -326,6 +326,13 @@
   <string name="breakdown_execution">Exéc.</string>
   <string name="breakdown_total">Total</string>
   <string name="breakdown_moves">Mvts</string>
+  <string name="solve_replay">Rejouer</string>
+  <string name="solve_replay_unavailable">Aucun mouvement enregistré pour ce résolu.</string>
+  <string name="replay_play">Lecture</string>
+  <string name="replay_pause">Pause</string>
+  <string name="replay_speed">%1$sx</string>
+  <string name="replay_gyro">Gyro</string>
+  <string name="replay_gyro_summary">Montrer comment le cube était tenu</string>
   <string name="breakdown_moves_count">%d mouvements</string>
   <string name="breakdown_tps">%s TPS</string>
   <string name="breakdown_algs">%d algos</string>

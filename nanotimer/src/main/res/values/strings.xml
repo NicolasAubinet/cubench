@@ -330,6 +330,13 @@
   <string name="breakdown_execution">Exec</string>
   <string name="breakdown_total">Total</string>
   <string name="breakdown_moves">Moves</string>
+  <string name="solve_replay">Replay</string>
+  <string name="solve_replay_unavailable">This solve has no recorded moves to replay.</string>
+  <string name="replay_play">Play</string>
+  <string name="replay_pause">Pause</string>
+  <string name="replay_speed">%1$sx</string>
+  <string name="replay_gyro">Gyro</string>
+  <string name="replay_gyro_summary">Show how the cube was held</string>
   <string name="breakdown_moves_count">%d moves</string>
   <string name="breakdown_tps">%s TPS</string>
   <string name="breakdown_algs">%d algs</string>

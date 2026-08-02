@@ -387,6 +387,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
     if (solveTime.hasSmartcubeMoves()) { // kept even when no method matched: the breakdown is optional, the solution is not
       values.put(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES, solveTime.getSmartcubeMoves());
+      values.put(DB.COL_TIMEHISTORY_SMARTCUBE_GYRO, solveTime.getSmartcubeGyroTrack()); // null unless the cube had a gyro
     }
     // Only alongside a breakdown: on its own there are no steps for it to point into.
     if (solveTime.hasSmartcubeBreakdown() && solveTime.getSmartcubeStoppedStep() != null) {
@@ -1139,6 +1140,8 @@ public class ServiceProviderImpl implements ServiceProvider {
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
+      // Kilobytes a row, but an export is the one reader that wants every solve's (see getGyroTrack).
+      q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_GYRO);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
       q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
       q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
@@ -1165,7 +1168,8 @@ public class ServiceProviderImpl implements ServiceProvider {
           result.setSmartcubeMethod(CubeMethod.fromCode(cursor.getString(12)));
           result.setSmartcubeMoves(cursor.getString(13));
           result.setSmartcubeStoppedStep(cursor.isNull(14) ? null : cursor.getInt(14));
-          result.setTimeBeforeDnf(getCursorLong(cursor, 15));
+          result.setSmartcubeGyroTrack(cursor.getString(15));
+          result.setTimeBeforeDnf(getCursorLong(cursor, 16));
           curResults.add(result);
         }
         cursor.close();
@@ -1190,6 +1194,25 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     return results;
+  }
+
+  /**
+   * The solve's gyro track, or null where it has none — every solve recorded before the track was
+   * kept, every cube with no gyro, and every solve no cube drove. Fetched on its own rather than
+   * with the solve: it is about a kilobyte, and only the solve being looked at ever wants it.
+   */
+  public String getGyroTrack(int solveTimeId) {
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_TIMEHISTORY_SMARTCUBE_GYRO
+        + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_ID + " = ?", getStringArray(solveTimeId));
+    String track = null;
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        track = cursor.getString(0);
+      }
+      cursor.close();
+    }
+    return track;
   }
 
   public SolveTime getSolveTime(int solveTimeId) {

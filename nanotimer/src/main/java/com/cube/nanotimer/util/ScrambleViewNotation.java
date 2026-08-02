@@ -60,6 +60,37 @@ public final class ScrambleViewNotation {
   }
 
   /**
+   * The cubing.js <em>puzzle</em> id, for a {@code twisty-player}'s {@code puzzle} attribute.
+   *
+   * <p><strong>Not the same namespace as {@link #getRenderKey}</strong>, which returns a
+   * {@code scramble-display} <em>event</em> id ({@code 333}, {@code minx}). A player asked for
+   * {@code 333} fails with "Invalid puzzle ID". The two only coincide for FTO, which is why
+   * {@code scramble.html} draws that one through a player and the rest through a display.</p>
+   *
+   * @return the puzzle id, or {@code null} if cubing.js has no puzzle for this cube type.
+   */
+  public static String getPuzzleId(CubeType cubeType) {
+    if (cubeType == null) {
+      return null;
+    }
+    switch (cubeType) {
+      case TWO_BY_TWO:    return "2x2x2";
+      case THREE_BY_THREE:return "3x3x3";
+      case FOUR_BY_FOUR:  return "4x4x4";
+      case FIVE_BY_FIVE:  return "5x5x5";
+      case SIX_BY_SIX:    return "6x6x6";
+      case SEVEN_BY_SEVEN:return "7x7x7";
+      case MEGAMINX:      return "megaminx";
+      case PYRAMINX:      return "pyraminx";
+      case SKEWB:         return "skewb";
+      case SQUARE1:       return "square1";
+      case CLOCK:         return "clock";
+      case FTO:           return "fto";
+      default:            return null;
+    }
+  }
+
+  /**
    * Reformat a NanoTimer scramble (one move per array element) into the single-line
    * notation string cubing.js parses for the given puzzle.
    *

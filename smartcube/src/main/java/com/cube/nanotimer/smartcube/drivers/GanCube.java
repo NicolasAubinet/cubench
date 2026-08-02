@@ -270,6 +270,11 @@ final class GanCube implements SmartCube {
   }
 
   @Override
+  public List<OrientationHistory.Sample> getOrientationsBetween(long fromMs, long toMs) {
+    return history.between(fromMs, toMs);
+  }
+
+  @Override
   public void requestState() {
     request(GanRequest.FACELETS);
   }
