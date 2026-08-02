@@ -718,4 +718,10 @@
   <string name="timer_personal_best">Recorde pessoal</string>
   <string name="timer_avg_1000">Méd. de 1000</string>
   <string name="timer_best_value">melhor %1$s</string>
+
+  <!-- History screen -->
+  <string name="history_empty">Ainda não há resoluções. Toque em Iniciar para cronometrar uma.</string>
+  <string name="today">Hoje</string>
+  <string name="yesterday">Ontem</string>
+  <string name="acc_label">Prec</string>
 </resources>

@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build.VERSION;
@@ -27,12 +28,10 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.cube.nanotimer.App;
@@ -45,6 +44,7 @@ import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
+import com.cube.nanotimer.gui.widget.SelectorListDialog;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
@@ -54,8 +54,11 @@ import com.cube.nanotimer.util.exportimport.csvimport.CSVImporter;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.EnterAnimation;
+import com.cube.nanotimer.util.view.PuzzleIcons;
+import com.cube.nanotimer.util.view.SparklineView;
 import com.cube.nanotimer.vo.CubeType;
-import com.cube.nanotimer.vo.NameHolder;
+import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
@@ -67,27 +70,36 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class MainScreenActivity extends DrawerLayoutActivity implements SelectionHandler, ResultListener, TimeChangedHandler {
 
-  private Spinner spCubeType;
-  private Spinner spSolveType;
   private ListView lvHistory;
+  private TextView tvCubeType;
+  private TextView tvSolveType;
   private TextView tvSolvesCount;
-  private TextView tvHistory;
+  private ImageView imgCubeType;
+  private ImageView imgSolveTypeKind;
+  private SparklineView sparkline;
+  private View sparklineBlock;
+  private View heroStatsRow;
+  private View tvNoSolves;
   private Button buStart;
 
   private CubeType curCubeType;
   private SolveType curSolveType;
   private final List<CubeType> cubeTypes = new ArrayList<>();
   private final List<SolveType> solveTypes = new ArrayList<>();
-  private final List<String> spinnerSolveTypeNames = new ArrayList<>();
-  private NameHolderSpinnerAdapter cubeTypesSpinnerAdapter;
-  private ArrayAdapter<String> solveTypesSpinnerAdapter;
+
+  // Lifetime solve counts, kept fresh so a picker opens with its figures already in hand.
+  private final Map<Integer, Integer> cubeTypeCounts = new HashMap<>();
+  private final Map<Integer, Integer> solveTypeCounts = new HashMap<>();
 
   private int solvesCount;
+  private int currentOrientation;
   private TimesSort timesSort = TimesSort.TIMESTAMP;
   private boolean refreshingHistory;
 
@@ -116,6 +128,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private static final int REQUEST_READ_PERMISSIONS_CODE = 10;
 
+  /** How many recent solves the sparkline draws, whatever the color sample size is set to. */
+  private static final int TREND_SIZE = 50;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -123,6 +138,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     Utils.updateContextWithPrefsLocale(this); // because ad provider somehow re-initializes the context
 
     setContentView(R.layout.mainscreen_screen);
+    currentOrientation = getResources().getConfiguration().orientation;
 
     setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
@@ -161,38 +177,35 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   protected void initViews() {
     super.initViews();
     timeColorScale = new TimeColorScale(this);
-    spCubeType = (Spinner) findViewById(R.id.spCubeType);
-    cubeTypesSpinnerAdapter = new NameHolderSpinnerAdapter(this, R.id.spCubeType, cubeTypes);
-    cubeTypesSpinnerAdapter.setDropDownViewResource(R.layout.spinner_item);
-    spCubeType.setAdapter(cubeTypesSpinnerAdapter);
-    spCubeType.setOnItemSelectedListener(new OnItemSelectedListener() {
-      @Override
-      public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        itemSelected(ID_CUBETYPE, i);
-      }
 
-      @Override
-      public void onNothingSelected(AdapterView<?> adapterView) {
-      }
-    });
-
-    spSolveType = (Spinner) findViewById(R.id.spSolveType);
-    solveTypesSpinnerAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, spinnerSolveTypeNames);
-    solveTypesSpinnerAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
-    spSolveType.setAdapter(solveTypesSpinnerAdapter);
-    spSolveType.setOnItemSelectedListener(new OnItemSelectedListener() {
-      @Override
-      public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        itemSelected(ID_SOLVETYPE, i);
-      }
-
-      @Override
-      public void onNothingSelected(AdapterView<?> adapterView) {
-      }
-    });
-
+    tvCubeType = (TextView) findViewById(R.id.tvCubeType);
+    tvSolveType = (TextView) findViewById(R.id.tvSolveType);
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
-    tvHistory = (TextView) findViewById(R.id.tvHistory);
+    imgCubeType = (ImageView) findViewById(R.id.imgCubeType);
+    imgSolveTypeKind = (ImageView) findViewById(R.id.imgSolveTypeKind);
+    sparkline = (SparklineView) findViewById(R.id.sparkline);
+    sparklineBlock = findViewById(R.id.sparklineBlock);
+    heroStatsRow = findViewById(R.id.heroStatsRow);
+    tvNoSolves = findViewById(R.id.tvNoSolves);
+
+    findViewById(R.id.cubeTypeRow).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        openCubeTypePicker();
+      }
+    });
+    findViewById(R.id.solveTypeRow).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        openSolveTypePicker();
+      }
+    });
+    sparklineBlock.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        openGraph();
+      }
+    });
 
     initHistoryList();
 
@@ -249,6 +262,57 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     DialogUtils.showFragment(this, new SmartCubeConnectDialog());
   }
 
+  private void openCubeTypePicker() {
+    ArrayList<String> names = new ArrayList<>();
+    ArrayList<String> figures = new ArrayList<>();
+    ArrayList<Integer> icons = new ArrayList<>();
+    for (CubeType cubeType : cubeTypes) {
+      names.add(cubeType.getName());
+      figures.add(formatCount(cubeTypeCounts.get(cubeType.getId())));
+      icons.add(PuzzleIcons.forCubeType(cubeType));
+    }
+    DialogUtils.showFragment(this, SelectorListDialog.newInstance(ID_CUBETYPE, getString(R.string.cube_type),
+      names, figures, icons, cubeTypes.indexOf(curCubeType), null, 0, this));
+  }
+
+  private void openSolveTypePicker() {
+    ArrayList<String> names = new ArrayList<>();
+    ArrayList<String> figures = new ArrayList<>();
+    ArrayList<Integer> icons = new ArrayList<>();
+    int selectedIndex = -1;
+    for (int i = 0; i < solveTypes.size(); i++) {
+      SolveType solveType = solveTypes.get(i);
+      names.add(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
+      figures.add(formatCount(solveTypeCounts.get(solveType.getId())));
+      icons.add(solveTypeIcon(solveType));
+      if (curSolveType != null && curSolveType.getId() == solveType.getId()) {
+        selectedIndex = i;
+      }
+    }
+    DialogUtils.showFragment(this, SelectorListDialog.newInstance(ID_SOLVETYPE, getString(R.string.solve_type),
+      names, figures, icons, selectedIndex, getString(R.string.edit_solve_types_dots),
+      R.drawable.ic_action_edit, this));
+  }
+
+  /** The mark that says what kind of solve type it is, the same one the solve types screen uses. */
+  private static int solveTypeIcon(SolveType solveType) {
+    if (solveType.isBlind()) {
+      return R.drawable.ic_solvetype_blind;
+    }
+    return solveType.hasSteps() ? R.drawable.ic_solvetype_steps : R.drawable.ic_solvetype_normal;
+  }
+
+  private String formatCount(Integer count) {
+    return (count == null || count == 0) ? "" : count + " " + getString(R.string.solves);
+  }
+
+  private void openGraph() {
+    Intent i = new Intent(this, GraphActivity.class);
+    i.putExtra("cubeType", curCubeType);
+    i.putExtra("solveType", curSolveType);
+    startActivity(i);
+  }
+
   private void initHistoryList() {
     historyListAdapter = new HistoryListAdapter(this, R.id.lvHistory, liHistory);
     lvHistory = (ListView) findViewById(R.id.lvHistory);
@@ -285,7 +349,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
                   public void run() {
                     setSolvesCount(data.getSolvesCount());
                     liHistory.addAll(data.getSolveTimes());
-                    historyListAdapter.notifyDataSetChanged();
+                    onHistoryChanged();
                   }
                 });
               }
@@ -309,10 +373,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         }
         break;
       case 2:
-        Intent i = new Intent(this, GraphActivity.class);
-        i.putExtra("cubeType", curCubeType);
-        i.putExtra("solveType", curSolveType);
-        startActivity(i);
+        openGraph();
         break;
       case 3:
         ArrayList<String> items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.import_export)));
@@ -369,13 +430,25 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     smartCubeChip.stop();
   }
 
-  private void refreshDataSet(final ArrayAdapter arrayAdapter) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        arrayAdapter.notifyDataSetChanged();
-      }
-    });
+  /**
+   * The activity keeps itself across a rotation, so the layout for the new orientation has to be
+   * put up by hand: laid out as in portrait, the card alone is taller than a landscape screen.
+   */
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    if (newConfig.orientation == currentOrientation) {
+      return;
+    }
+    currentOrientation = newConfig.orientation;
+    smartCubeChip.stop();
+
+    setContentView(R.layout.mainscreen_screen);
+    initViews();
+    invalidateOptionsMenu(); // the toolbar is a new one, so its items are rebuilt onto it
+
+    smartCubeChip.start();
+    refreshCubeTypes();
   }
 
   private void refreshCubeTypes() {
@@ -398,36 +471,36 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             }
           }
 
-          final CubeType newCurCubeType = newCubeType != null ? newCubeType : defaultCubeType != null ? defaultCubeType : cubeTypes.get(0);
-          setCurCubeType(newCurCubeType);
-
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              refreshDataSet(cubeTypesSpinnerAdapter);
-              int selectedIndex = cubeTypes.indexOf(newCurCubeType);
-              if (selectedIndex >= 0 && selectedIndex < spCubeType.getCount()) {
-                spCubeType.setSelection(selectedIndex);
-              }
-            }
-          });
+          setCurCubeType(newCubeType != null ? newCubeType : defaultCubeType != null ? defaultCubeType : cubeTypes.get(0));
         } else {
           setCurCubeType(null);
         }
-        refreshDataSet(cubeTypesSpinnerAdapter);
         refreshSolveTypes();
+      }
+    });
+    App.INSTANCE.getService().getSolvesCountPerCubeType(new DataCallback<Map<Integer, Integer>>() {
+      @Override
+      public void onData(Map<Integer, Integer> counts) {
+        cubeTypeCounts.clear();
+        cubeTypeCounts.putAll(counts);
       }
     });
   }
 
   private void refreshSolveTypes() {
     if (curCubeType != null) {
+      App.INSTANCE.getService().getSolvesCountPerSolveType(curCubeType, new DataCallback<Map<Integer, Integer>>() {
+        @Override
+        public void onData(Map<Integer, Integer> counts) {
+          solveTypeCounts.clear();
+          solveTypeCounts.putAll(counts);
+        }
+      });
       App.INSTANCE.getService().getSolveTypes(curCubeType, new DataCallback<List<SolveType>>() {
         @Override
         public void onData(List<SolveType> data) {
           solveTypes.clear();
           solveTypes.addAll(data);
-          refreshSpinnerSolveTypeNames();
           SolveType newCurSolveType = null;
 
           if (!solveTypes.isEmpty()) {
@@ -443,48 +516,98 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             if (!foundType) {
               newCurSolveType = solveTypes.get(0);
             }
-
-            setCurSolveType(newCurSolveType);
-            final SolveType finalCurSolveType = newCurSolveType;
-
-            runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                refreshDataSet(solveTypesSpinnerAdapter);
-                int selectedIndex = solveTypes.indexOf(finalCurSolveType);
-                if (selectedIndex >= 0 && selectedIndex < spSolveType.getCount()) {
-                  spSolveType.setSelection(selectedIndex);
-                }
-              }
-            });
-          } else {
-            setCurSolveType(null);
-            refreshDataSet(solveTypesSpinnerAdapter);
           }
+          setCurSolveType(newCurSolveType);
+          refreshHero();
           refreshHistory();
         }
       });
     } else {
-      setCurSolveType(null);
       solveTypes.clear();
-      refreshSpinnerSolveTypeNames();
-      refreshDataSet(solveTypesSpinnerAdapter);
+      solveTypeCounts.clear();
+      setCurSolveType(null);
+      refreshHero();
       refreshHistory();
     }
   }
 
-  private void refreshSpinnerSolveTypeNames() {
-    spinnerSolveTypeNames.clear();
-    for (SolveType solveType : solveTypes) {
-      String name = solveType.getName();
-      spinnerSolveTypeNames.add(Utils.toSolveTypeLocalizedName(this, name));
+  /** Names what is selected, then asks for the numbers that describe it. */
+  private void refreshHero() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        tvCubeType.setText(curCubeType != null ? curCubeType.getName() : "");
+        imgCubeType.setImageResource(PuzzleIcons.forCubeType(curCubeType));
+        if (curSolveType != null) {
+          tvSolveType.setText(Utils.toSolveTypeLocalizedName(MainScreenActivity.this, curSolveType.getName()));
+          imgSolveTypeKind.setImageResource(solveTypeIcon(curSolveType));
+          imgSolveTypeKind.setVisibility(View.VISIBLE);
+        } else {
+          tvSolveType.setText(R.string.NA);
+          imgSolveTypeKind.setVisibility(View.GONE);
+        }
+      }
+    });
+    refreshStatCells();
+  }
+
+  /**
+   * The three cells, whose third one the solve type decides: the personal best normally, the
+   * success rate for a blind solve type, and an average of 50 for one timed in steps, which has
+   * no best single worth stating beside its splits.
+   */
+  private void refreshStatCells() {
+    if (curSolveType == null) {
+      return;
     }
-    spinnerSolveTypeNames.add(getString(R.string.edit_solve_types_dots));
+    final SolveType solveType = curSolveType;
+    App.INSTANCE.getService().getSolveAverages(solveType, new DataCallback<SolveAverages>() {
+      @Override
+      public void onData(final SolveAverages averages) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
+              return; // the user moved on while this was loading
+            }
+            boolean blind = solveType.isBlind();
+            setStatCell(R.id.tvStatKeyOne, R.id.tvStatValueOne,
+              getString(blind ? R.string.mo3_label : R.string.ao5_label),
+              formatTime(blind ? averages.getMeanOf3() : averages.getAvgOf5()));
+            setStatCell(R.id.tvStatKeyTwo, R.id.tvStatValueTwo,
+              getString(R.string.ao12_label), formatTime(averages.getAvgOf12()));
+
+            if (blind) {
+              Integer accuracy = averages.getLifetimeAccuracy();
+              setStatCell(R.id.tvStatKeyThree, R.id.tvStatValueThree, getString(R.string.acc_label),
+                accuracy == null ? getString(R.string.NA) : accuracy + "%");
+            } else if (solveType.hasSteps()) {
+              setStatCell(R.id.tvStatKeyThree, R.id.tvStatValueThree,
+                getString(R.string.ao50_label), formatTime(averages.getAvgOf50()));
+            } else {
+              setStatCell(R.id.tvStatKeyThree, R.id.tvStatValueThree,
+                getString(R.string.record_label_lifetime), formatTime(averages.getBestOfLifetime()));
+            }
+            EnterAnimation.stagger(findViewById(R.id.statCellOne),
+              findViewById(R.id.statCellTwo), findViewById(R.id.statCellThree));
+          }
+        });
+      }
+    });
+  }
+
+  private void setStatCell(int keyViewId, int valueViewId, String key, String value) {
+    ((TextView) findViewById(keyViewId)).setText(key);
+    ((TextView) findViewById(valueViewId)).setText(value);
+  }
+
+  private String formatTime(Long time) {
+    return FormatterService.INSTANCE.formatSolveTime(time, getString(R.string.NA));
   }
 
   public void refreshHistory() {
     previousLastItem = 0;
-    refreshTimeColorAnchors();
+    refreshRecentTimes();
     if (curSolveType != null) {
       refreshingHistory = true;
       App.INSTANCE.getService().getPagedHistory(curSolveType, timesSort, new DataCallback<SolveHistory>() {
@@ -496,7 +619,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
               setSolvesCount(data.getSolvesCount());
               liHistory.clear();
               liHistory.addAll(data.getSolveTimes());
-              historyListAdapter.notifyDataSetChanged();
+              onHistoryChanged();
               lvHistory.setSelection(0);
               refreshingHistory = false;
             }
@@ -507,30 +630,46 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
+          setSolvesCount(0);
           liHistory.clear();
-          historyListAdapter.notifyDataSetChanged();
+          onHistoryChanged();
         }
       });
     }
   }
 
   /**
-   * Recomputes the gradient scale over the last getColorSampleSize() solves. Runs once per
-   * data load so getView() coloring stays cheap while scrolling. When history coloring is
-   * disabled the scale is left neutral, so times render in the default (uncolored) text color.
+   * One load of recent times feeds two things: the gradient the rows are colored on, over the
+   * last getColorSampleSize() solves, and the sparkline, over the last {@link #TREND_SIZE}. The
+   * scale only ever sees the sample size the user set, however many the sparkline asked for.
    */
-  private void refreshTimeColorAnchors() {
-    if (curSolveType == null || !Options.INSTANCE.isColorHistoryTimes()) {
+  private void refreshRecentTimes() {
+    if (curSolveType == null) {
       timeColorScale.setTimes(null);
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          sparkline.setTimes(null, false);
+          refreshTrendVisibility();
+        }
+      });
       return;
     }
-    App.INSTANCE.getService().getLastSolveTimes(curSolveType, Options.INSTANCE.getColorSampleSize(), new DataCallback<List<Long>>() {
+    final int sampleSize = Options.INSTANCE.getColorSampleSize();
+    final boolean colorTimes = Options.INSTANCE.isColorHistoryTimes();
+    final SolveType solveType = curSolveType;
+    App.INSTANCE.getService().getLastSolveTimes(solveType, Math.max(TREND_SIZE, sampleSize), new DataCallback<List<Long>>() {
       @Override
       public void onData(final List<Long> times) {
         runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            timeColorScale.setTimes(times);
+            if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
+              return; // the user moved on while this was loading
+            }
+            timeColorScale.setTimes(colorTimes ? times.subList(0, Math.min(sampleSize, times.size())) : null);
+            sparkline.setTimes(times, true);
+            refreshTrendVisibility();
             if (historyListAdapter != null) {
               historyListAdapter.notifyDataSetChanged();
             }
@@ -540,6 +679,18 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     });
   }
 
+  /** Below a handful of solves there is no trend and no average worth a cell, so both go. */
+  private void refreshTrendVisibility() {
+    boolean hasTrend = sparkline.hasEnoughTimes();
+    sparklineBlock.setVisibility(hasTrend ? View.VISIBLE : View.GONE);
+    heroStatsRow.setVisibility(hasTrend ? View.VISIBLE : View.GONE);
+  }
+
+  private void onHistoryChanged() {
+    historyListAdapter.notifyDataSetChanged();
+    tvNoSolves.setVisibility(liHistory.isEmpty() ? View.VISIBLE : View.GONE);
+  }
+
   @Override
   public void onResult(Object... params) {
     refreshHistory();
@@ -547,11 +698,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   }
 
   private void setSortMode(TimesSort timesSort) {
-    if (timesSort == TimesSort.TIMESTAMP) {
-      tvHistory.setText(R.string.history);
-    } else {
-      tvHistory.setText(R.string.best_times);
-    }
     menuListAdapter.notifyDataSetChanged();
 
     if (this.timesSort != timesSort) {
@@ -564,11 +710,14 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   public void itemSelected(int id, int position) {
     if (position >= 0) {
       if (id == ID_CUBETYPE) {
-        setCurCubeType(cubeTypes.get(position));
-        refreshSolveTypes();
+        if (position < cubeTypes.size() && !cubeTypes.get(position).equals(curCubeType)) {
+          setCurCubeType(cubeTypes.get(position));
+          refreshSolveTypes();
+        }
       } else if (id == ID_SOLVETYPE) {
-        if (position >= 0 && position < solveTypes.size()) {
+        if (position < solveTypes.size()) {
           setCurSolveType(solveTypes.get(position));
+          refreshHero();
           refreshHistory();
         } else {
           // solve types shortcut
@@ -703,7 +852,10 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private void setSolvesCount(int solvesCount) {
     this.solvesCount = solvesCount;
-    tvSolvesCount.setText(String.valueOf(solvesCount) + " " + getString(R.string.solves));
+    tvSolvesCount.setText(formatCount(solvesCount)); // nothing rather than "0 solves": the list says that
+    if (curSolveType != null) {
+      solveTypeCounts.put(curSolveType.getId(), solvesCount);
+    }
   }
 
   private void setCurCubeType(CubeType cubeType) {
@@ -735,8 +887,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           SolveTime st = it.next();
           if (st.getId() == solveTime.getId()) {
             it.remove();
-            historyListAdapter.notifyDataSetChanged();
+            onHistoryChanged();
             setSolvesCount(solvesCount - 1);
+            // The deleted solve may have been the record, or in the window the trend is drawn on.
+            refreshHero();
+            refreshRecentTimes();
             break;
           }
         }
@@ -755,6 +910,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             solveTime.setPb(data.isPb());
             solveTime.setTimeBeforeDnf(data.getTimeBeforeDnf()); // or reopening the sheet offers to undo a DNF that is gone
             historyListAdapter.notifyDataSetChanged();
+            refreshHero();
+            refreshRecentTimes();
           }
         });
       }
@@ -875,40 +1032,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         }
         view.setBackgroundResource(backgroundResourceId);
       }
-      return view;
-    }
-  }
-
-  private class NameHolderSpinnerAdapter<T extends NameHolder> extends ArrayAdapter<T> {
-    private LayoutInflater inflater;
-    private List<T> nameHolders;
-
-    public NameHolderSpinnerAdapter(Context context, int resource, List<T> objects) {
-      super(context, resource, objects);
-      this.inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      this.nameHolders = objects;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      return getView(R.layout.spinner_item, position, convertView, parent);
-    }
-
-    @Override
-    public View getDropDownView(int position, View convertView, ViewGroup parent) {
-      return getView(R.layout.spinner_dropdown_item, position, convertView, parent);
-    }
-
-    private View getView(int itemResourceId, int position, View convertView, ViewGroup parent) {
-      TextView view = (TextView) convertView;
-      if (view == null) {
-        view = (TextView) inflater.inflate(itemResourceId, parent, false);
-      }
-
-      T nameHolder = nameHolders.get(position);
-      String name = nameHolder.getName();
-      view.setText(name);
-
       return view;
     }
   }

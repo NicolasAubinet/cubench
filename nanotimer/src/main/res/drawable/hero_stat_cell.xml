@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One statistics cell of the hero card, inset into it the way the timer's cells are. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/hero_inset"/>
+  <corners android:radius="10dp"/>
+</shape>

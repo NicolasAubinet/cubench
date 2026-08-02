@@ -19,6 +19,8 @@ import java.util.Map;
 public interface ServiceProvider {
   List<CubeType> getCubeTypes(boolean getEmpty);
   List<SolveType> getSolveTypes(CubeType cubeType);
+  Map<Integer, Integer> getSolvesCountPerCubeType();
+  Map<Integer, Integer> getSolvesCountPerSolveType(CubeType cubeType);
   SolveAverages saveTime(SolveTime solveTime);
   SolveAverages saveTimes(List<SolveTime> solveTimes, ProgressListener progressListener);
   SolveAverages getSolveAverages(SolveType solveType);

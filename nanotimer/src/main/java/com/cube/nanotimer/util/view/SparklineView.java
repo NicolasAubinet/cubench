@@ -1,0 +1,238 @@
+package com.cube.nanotimer.util.view;
+
+import android.animation.ValueAnimator;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PathMeasure;
+import android.graphics.Shader;
+import android.provider.Settings;
+import android.util.AttributeSet;
+import android.view.View;
+import android.view.animation.DecelerateInterpolator;
+
+import androidx.core.content.ContextCompat;
+
+import com.cube.nanotimer.R;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * The shape of the last solves, drawn small: the only place in the app that shows a trend without
+ * opening the graph screen. Faster is higher, DNFs are skipped rather than drawn as a gap, and the
+ * best solve in the window carries a record-coloured dot, which is usually not the lifetime best.
+ *
+ * <p>Feed it {@link #setTimes} with the times newest first, as the service returns them.
+ */
+public class SparklineView extends View {
+
+  /** Below this there is no trend to read, and the caller is expected to hide the view. */
+  public static final int MIN_TIMES = 5;
+
+  private static final int MAX_POINTS = 50;
+  private static final float DRAW_MS = 520f;
+
+  private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+  private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+  private final Paint dotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+  private final Paint recordPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+  private final Path linePath = new Path();
+  private final Path fillPath = new Path();
+  private final Path drawnPath = new Path();
+  private final PathMeasure pathMeasure = new PathMeasure();
+
+  private final List<Long> values = new ArrayList<>();
+  private float[] pointsX = new float[0];
+  private float[] pointsY = new float[0];
+  private int bestIndex = -1;
+
+  private float progress = 1f;
+  private ValueAnimator animator;
+
+  private final int accentColor;
+  private final float dotRadius;
+  private final float recordRadius;
+  private final float verticalPadding;
+
+  public SparklineView(Context context) {
+    this(context, null);
+  }
+
+  public SparklineView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+    float density = getResources().getDisplayMetrics().density;
+    dotRadius = 2.5f * density;
+    recordRadius = 3.5f * density;
+    verticalPadding = 5f * density;
+
+    accentColor = ContextCompat.getColor(context, R.color.lightblue);
+    linePaint.setStyle(Paint.Style.STROKE);
+    linePaint.setStrokeWidth(2f * density);
+    linePaint.setStrokeCap(Paint.Cap.ROUND);
+    linePaint.setStrokeJoin(Paint.Join.ROUND);
+    linePaint.setColor(accentColor);
+
+    fillPaint.setStyle(Paint.Style.FILL);
+
+    dotPaint.setStyle(Paint.Style.FILL);
+    dotPaint.setColor(accentColor);
+
+    recordPaint.setStyle(Paint.Style.FILL);
+    recordPaint.setColor(ContextCompat.getColor(context, R.color.new_record));
+  }
+
+  /**
+   * @param times solve times newest first; DNFs (negative) are dropped, and only the most recent
+   *              {@link #MAX_POINTS} are drawn
+   * @param animate replay the draw, for a switch the user just made
+   */
+  public void setTimes(List<Long> times, boolean animate) {
+    values.clear();
+    if (times != null) {
+      for (int i = Math.min(times.size(), MAX_POINTS) - 1; i >= 0; i--) { // oldest first
+        Long time = times.get(i);
+        if (time != null && time > 0) {
+          values.add(time);
+        }
+      }
+    }
+    bestIndex = -1;
+    for (int i = 0; i < values.size(); i++) {
+      if (bestIndex < 0 || values.get(i) < values.get(bestIndex)) {
+        bestIndex = i;
+      }
+    }
+    buildPaths();
+    if (animate && hasEnoughTimes() && animationsEnabled()) {
+      startDrawAnimation();
+    } else {
+      cancelAnimation();
+      progress = 1f;
+      invalidate();
+    }
+  }
+
+  /** True when there are enough solves left, after DNFs, for the line to mean anything. */
+  public boolean hasEnoughTimes() {
+    return values.size() >= MIN_TIMES;
+  }
+
+  @Override
+  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    super.onSizeChanged(w, h, oldw, oldh);
+    // The fill fades out downward rather than sitting as a slab under the line.
+    fillPaint.setShader(new LinearGradient(0, 0, 0, h,
+      (0x40 << 24) | (accentColor & 0xFFFFFF), accentColor & 0xFFFFFF, Shader.TileMode.CLAMP));
+    buildPaths();
+  }
+
+  @Override
+  protected void onDetachedFromWindow() {
+    cancelAnimation();
+    super.onDetachedFromWindow();
+  }
+
+  private void buildPaths() {
+    linePath.reset();
+    fillPath.reset();
+    pointsX = new float[0];
+    pointsY = new float[0];
+    int width = getWidth();
+    int height = getHeight();
+    if (width <= 0 || height <= 0 || values.size() < 2) {
+      return;
+    }
+
+    long min = values.get(0);
+    long max = values.get(0);
+    for (Long value : values) {
+      min = Math.min(min, value);
+      max = Math.max(max, value);
+    }
+    float span = Math.max(1, max - min);
+    float usable = height - 2 * verticalPadding;
+    float step = (float) (width - 2 * recordRadius) / (values.size() - 1);
+
+    pointsX = new float[values.size()];
+    pointsY = new float[values.size()];
+    for (int i = 0; i < values.size(); i++) {
+      pointsX[i] = recordRadius + i * step;
+      pointsY[i] = verticalPadding + (values.get(i) - min) / span * usable;
+      if (i == 0) {
+        linePath.moveTo(pointsX[i], pointsY[i]);
+        fillPath.moveTo(pointsX[i], height);
+        fillPath.lineTo(pointsX[i], pointsY[i]);
+      } else {
+        linePath.lineTo(pointsX[i], pointsY[i]);
+        fillPath.lineTo(pointsX[i], pointsY[i]);
+      }
+    }
+    fillPath.lineTo(pointsX[values.size() - 1], height);
+    fillPath.close();
+  }
+
+  private void startDrawAnimation() {
+    cancelAnimation();
+    animator = ValueAnimator.ofFloat(0f, 1f);
+    animator.setDuration((long) DRAW_MS);
+    animator.setInterpolator(new DecelerateInterpolator());
+    animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+      @Override
+      public void onAnimationUpdate(ValueAnimator animation) {
+        progress = (float) animation.getAnimatedValue();
+        invalidate();
+      }
+    });
+    progress = 0f;
+    animator.start();
+  }
+
+  private void cancelAnimation() {
+    if (animator != null) {
+      animator.cancel();
+      animator = null;
+    }
+  }
+
+  private boolean animationsEnabled() {
+    return Settings.Global.getFloat(getContext().getContentResolver(),
+      Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f;
+  }
+
+  @Override
+  protected void onDraw(Canvas canvas) {
+    if (values.size() < 2 || linePath.isEmpty()) {
+      return;
+    }
+
+    fillPaint.setAlpha((int) (255 * progress));
+    canvas.drawPath(fillPath, fillPaint);
+
+    if (progress >= 1f) {
+      canvas.drawPath(linePath, linePaint);
+    } else {
+      pathMeasure.setPath(linePath, false);
+      drawnPath.reset();
+      pathMeasure.getSegment(0f, pathMeasure.getLength() * progress, drawnPath, true);
+      canvas.drawPath(drawnPath, linePaint);
+    }
+
+    // The dots land once the line has reached them, so nothing floats ahead of the draw.
+    drawDotAt(canvas, values.size() - 1, dotPaint, dotRadius);
+    if (bestIndex >= 0) {
+      drawDotAt(canvas, bestIndex, recordPaint, recordRadius);
+    }
+  }
+
+  private void drawDotAt(Canvas canvas, int index, Paint paint, float radius) {
+    if (index >= pointsX.length || (float) index / (values.size() - 1) > progress) {
+      return;
+    }
+    canvas.drawCircle(pointsX[index], pointsY[index], radius, paint);
+  }
+
+}

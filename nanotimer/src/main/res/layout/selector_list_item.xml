@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One row of the cube type / solve type picker. The list keeps the order the user set, so the
+     row's job is only to say what it is and how much of it there is. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:gravity="center_vertical"
+   android:minHeight="52dp"
+   android:paddingRight="@dimen/space_m"
+   android:paddingEnd="@dimen/space_m">
+
+  <!-- Holds the bar's width whether or not it shows, so the names never shift between rows. -->
+  <View
+     android:id="@+id/selectionBar"
+     android:layout_width="3dp"
+     android:layout_height="24dp"
+     android:layout_marginLeft="6dp"
+     android:layout_marginStart="6dp"
+     android:background="@drawable/selector_bar"/>
+
+  <ImageView
+     android:id="@+id/imgIcon"
+     android:layout_width="21dp"
+     android:layout_height="21dp"
+     android:layout_marginLeft="12dp"
+     android:layout_marginStart="12dp"
+     android:tint="@color/lightblue"
+     android:contentDescription="@null"/>
+
+  <TextView
+     android:id="@+id/tvName"
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginLeft="12dp"
+     android:layout_marginStart="12dp"
+     android:textSize="17sp"
+     android:textColor="@color/white"
+     android:singleLine="true"
+     android:ellipsize="end"/>
+
+  <TextView
+     android:id="@+id/tvFigure"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginLeft="10dp"
+     android:layout_marginStart="10dp"
+     android:textSize="13sp"
+     android:textColor="@color/secondary_text"
+     android:fontFeatureSettings="tnum"
+     android:singleLine="true"/>
+
+</LinearLayout>

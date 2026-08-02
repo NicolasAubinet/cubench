@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A 4x4 cube, seen face on: the outline and its cuts. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M3.4,3.4 H20.6 V20.6 H3.4 Z"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.7"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+  <path
+      android:pathData="M7.7,3.4 V20.6 M3.4,7.7 H20.6 M12,3.4 V20.6 M3.4,12 H20.6 M16.3,3.4 V20.6 M3.4,16.3 H20.6"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.25"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>

@@ -726,4 +726,10 @@
   <string name="ao50_label">Ao50</string>
   <string name="ao100_label">Ao100</string>
   <string name="mo3_label">Mo3</string>
+
+  <!-- History screen -->
+  <string name="history_empty">No solves yet. Press Start to time one.</string>
+  <string name="today">Today</string>
+  <string name="yesterday">Yesterday</string>
+  <string name="acc_label">Acc</string>
 </resources>

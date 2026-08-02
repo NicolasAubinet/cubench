@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Square-1: a layer seen from above, cut into corners and edges. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M3.4,3.4 H20.6 V20.6 H3.4 Z"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.7"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+  <path
+      android:pathData="M14.13,12.57 L20.6,14.3 M12.57,14.13 L14.3,20.6 M11.43,14.13 L9.7,20.6 M9.87,12.57 L3.4,14.3 M9.87,11.43 L3.4,9.7 M11.43,9.87 L9.7,3.4 M12.57,9.87 L14.3,3.4 M14.13,11.43 L20.6,9.7"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.2"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>

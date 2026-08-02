@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tile the puzzle mark sits in: a wash of the accent, the same one the pickers use. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/chip_bg_accent"/>
+  <corners android:radius="10dp"/>
+</shape>

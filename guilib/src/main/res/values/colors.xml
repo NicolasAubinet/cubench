@@ -116,6 +116,14 @@
 
   <color name="mainscreen_top_card">@color/gray800</color>
 
+  <!-- History screen hero: a card a shade cooler than the ground, with its controls and
+       statistics inset a shade darker so they read as recessed into it. -->
+  <color name="hero_card">#3E444A</color>
+  <color name="hero_inset">#343A3F</color>
+  <color name="hero_divider">#1AFFFFFF</color>
+  <!-- Ink for text sitting on the accent itself, where white would not hold. -->
+  <color name="on_accent">#12181C</color>
+
   <color name="card_divider">@color/iceblue</color>
   <!--<color name="listview_background">@color/main_element</color>-->
   <color name="listview_divider">@color/gray800</color>
