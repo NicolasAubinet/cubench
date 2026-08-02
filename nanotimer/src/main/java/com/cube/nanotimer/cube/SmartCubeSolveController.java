@@ -401,7 +401,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         break;
       case RUNNING:
         trackOrientation(move);
-        readPickup(move);
+        readPickup();
         if (analyzing) {
           analyzers.onMove(move);
         } else if (!blind) {
@@ -416,23 +416,32 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   }
 
   /**
-   * The grip the solve was picked up in, which is what a blind solver's targets are named by, taken
-   * from the settled reading <b>before</b> its first move and then left alone.
+   * The grip the solve was picked up in, which is what a blind solver's targets are named by, read
+   * across everything <b>before</b> its first move and then left alone.
    *
    * <p>Every reading at a move has the solve's own slices in it — a slice carries the core, and the
    * gyro and the face labels with it — while the names are spelled off states carried back to the
    * frame the solve started in. So a solve opening on a slice spelled every target a quarter turn
-   * out, and re-asking each move moved the spelling mid-solve. Falls back on the old reading where
-   * the gyro said nothing before the solve began.
+   * out, and re-asking each move moved the spelling mid-solve. Before the first move nothing has
+   * turned, so the core has not spun and the whole stretch is of one grip.
+   *
+   * <p>Read from all of it rather than from one reading in it: a blind memorisation is half a minute
+   * of holding the cube and peeking at it, and the instant before the first move is the worst of it,
+   * with the hands settling back onto the cube. One reading there named a whole solve through the
+   * scramble's grip. Falls back on the frame at the first move where the gyro said nothing earlier.
    */
-  private void readPickup(CubeMove move) {
+  private void readPickup() {
     if (pickup != null) {
       return;
     }
     if (!pickupRead) {
       pickupRead = true;
-      pickup = gyroReference.frameOf(SmartCubeManager.INSTANCE.getOrientationAt(
-          move.getCubeTimestampMs() - SliceSpinDetector.SETTLE_MS));
+      // Both bounds on the host clock, the one the readings are filed under. The move's own is the
+      // cube's, fitted to host time only within a couple of seconds, so asking the history with it
+      // silently answers from the wrong moment rather than not at all.
+      pickup = gyroReference.frameOver(
+          SmartCubeManager.INSTANCE.getOrientationsBetween(timerStartMs, lastSolveMoveHostMs),
+          lastSolveMoveHostMs);
     }
     // Kept as the grip the analysis actually ran on, fallback included, since that is the one the
     // stored moves have to be read back through for the names to come out the same.
