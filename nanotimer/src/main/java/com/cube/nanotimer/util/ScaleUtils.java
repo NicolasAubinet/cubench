@@ -10,34 +10,30 @@ public class ScaleUtils {
   private static final int LAYOUT_WIDTH = 480;
   private static final int LAYOUT_HEIGHT = 762;
 
-  private static WindowManager windowManager;
-
-  private static void init(Context c) {
-    if (windowManager == null) {
-      windowManager = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
-    }
+  // Asked of the caller's own context every time. Held on to, it would outlive the activity it came
+  // from and keep reporting the bounds that activity was destroyed at -- so leaving a screen in
+  // landscape would scale every screen opened after it as though the phone were still sideways.
+  private static WindowManager windowManager(Context c) {
+    return (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
   }
 
   public static int getScreenHeight(Context c) {
-    init(c);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      return windowManager.getCurrentWindowMetrics().getBounds().height();
+      return windowManager(c).getCurrentWindowMetrics().getBounds().height();
     } else {
-      return windowManager.getDefaultDisplay().getHeight();
+      return windowManager(c).getDefaultDisplay().getHeight();
     }
   }
 
   public static int getScreenWidth(Context c) {
-    init(c);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      return windowManager.getCurrentWindowMetrics().getBounds().width();
+      return windowManager(c).getCurrentWindowMetrics().getBounds().width();
     } else {
-      return windowManager.getDefaultDisplay().getWidth();
+      return windowManager(c).getDefaultDisplay().getWidth();
     }
   }
 
   public static float getXScale(Context c) {
-    init(c);
     float xScale;
     int orientation = c.getResources().getConfiguration().orientation;
     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -54,7 +50,6 @@ public class ScaleUtils {
   }
 
   public static float getYScale(Context c) {
-    init(c);
     float yScale;
     int orientation = c.getResources().getConfiguration().orientation;
     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
