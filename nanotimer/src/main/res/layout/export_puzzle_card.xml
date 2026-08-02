@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One puzzle that holds solves. The head takes or drops everything under it at once and says how
+     much of it is taken; the pills below are the solve types, each with the solves it holds. -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:layout_marginBottom="@dimen/space_s"
+   app:cardBackgroundColor="@color/hero_card"
+   app:cardElevation="@dimen/mainscreen_card_elevation"
+   app:cardCornerRadius="@dimen/card_corner">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:padding="@dimen/space_s">
+
+    <LinearLayout
+       android:id="@+id/puzzleHeadRow"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="horizontal"
+       android:gravity="center_vertical"
+       android:minHeight="48dp"
+       android:paddingLeft="@dimen/space_s"
+       android:paddingRight="@dimen/space_s"
+       android:background="@drawable/hero_selector_row"
+       android:clickable="true"
+       android:focusable="true">
+
+      <ImageView
+         android:id="@+id/imgSelectionBox"
+         android:layout_width="22dp"
+         android:layout_height="22dp"
+         android:padding="1dp"
+         android:contentDescription="@null"/>
+
+      <FrameLayout
+         android:id="@+id/puzzleGlyphTile"
+         android:layout_width="32dp"
+         android:layout_height="32dp"
+         android:layout_marginLeft="@dimen/space_m"
+         android:layout_marginStart="@dimen/space_m"
+         android:background="@drawable/hero_glyph">
+        <ImageView
+           android:id="@+id/imgPuzzle"
+           android:layout_width="19dp"
+           android:layout_height="19dp"
+           android:layout_gravity="center"
+           android:contentDescription="@null"/>
+      </FrameLayout>
+
+      <TextView
+         android:id="@+id/tvPuzzleName"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:layout_marginLeft="@dimen/space_m"
+         android:layout_marginStart="@dimen/space_m"
+         android:textSize="18sp"
+         android:textStyle="bold"
+         android:textColor="@color/white"
+         android:singleLine="true"
+         android:ellipsize="end"/>
+
+      <TextView
+         android:id="@+id/tvPuzzleCount"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="@dimen/space_s"
+         android:layout_marginStart="@dimen/space_s"
+         android:textSize="13sp"
+         android:textColor="@color/secondary_text"
+         android:fontFeatureSettings="tnum"
+         android:singleLine="true"/>
+    </LinearLayout>
+
+    <com.cube.nanotimer.util.view.FlowLayout
+       android:id="@+id/solveTypePills"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_xs"
+       android:paddingLeft="@dimen/space_s"
+       android:paddingRight="@dimen/space_s"
+       android:paddingBottom="@dimen/space_xs"/>
+
+  </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -23,6 +23,8 @@ public interface Service {
   void getSolvesCountPerCubeType(DataCallback<Map<Integer, Integer>> callback);
   /** Lifetime solve count per solve type id of one cube type, for the solve type picker. */
   void getSolvesCountPerSolveType(CubeType cubeType, DataCallback<Map<Integer, Integer>> callback);
+  /** The same, for every solve type at once, for screens that show them all. */
+  void getSolvesCountPerSolveType(DataCallback<Map<Integer, Integer>> callback);
   void saveTime(SolveTime solveTime, DataCallback<SolveAverages> callback);
   void deleteTime(SolveTime solveTime, DataCallback<SolveAverages> callback);
   void getSolveAverages(SolveType solveType, DataCallback<SolveAverages> callback);

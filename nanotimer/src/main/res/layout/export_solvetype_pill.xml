@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One solve type under its puzzle, with the solves it holds. Tappable on its own; dimmed when it
+     is not being exported. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:gravity="center_vertical"
+   android:minHeight="34dp"
+   android:paddingLeft="@dimen/space_m"
+   android:paddingRight="@dimen/space_m"
+   android:clickable="true"
+   android:focusable="true">
+
+  <ImageView
+     android:id="@+id/imgSolveTypeKind"
+     android:layout_width="14dp"
+     android:layout_height="14dp"
+     android:layout_marginRight="6dp"
+     android:layout_marginEnd="6dp"
+     android:contentDescription="@null"/>
+
+  <TextView
+     android:id="@+id/tvSolveTypeName"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:textSize="14sp"
+     android:textColor="@color/white"
+     android:singleLine="true"/>
+
+  <TextView
+     android:id="@+id/tvSolveTypeCount"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginLeft="7dp"
+     android:layout_marginStart="7dp"
+     android:textSize="13sp"
+     android:textColor="@color/secondary_text"
+     android:fontFeatureSettings="tnum"
+     android:singleLine="true"/>
+
+</LinearLayout>

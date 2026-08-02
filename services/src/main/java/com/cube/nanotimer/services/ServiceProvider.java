@@ -21,6 +21,7 @@ public interface ServiceProvider {
   List<SolveType> getSolveTypes(CubeType cubeType);
   Map<Integer, Integer> getSolvesCountPerCubeType();
   Map<Integer, Integer> getSolvesCountPerSolveType(CubeType cubeType);
+  Map<Integer, Integer> getSolvesCountPerSolveType();
   SolveAverages saveTime(SolveTime solveTime);
   SolveAverages saveTimes(List<SolveTime> solveTimes, ProgressListener progressListener);
   SolveAverages getSolveAverages(SolveType solveType);

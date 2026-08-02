@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Side by side: stacked, the two buttons take a third of a landscape screen and leave barely a
+     card to choose from. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:paddingLeft="@dimen/space_m"
+   android:paddingRight="@dimen/space_m"
+   android:paddingBottom="@dimen/space_s">
+
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buSaveToFile"
+     android:text="@string/export_save_to_file"
+     android:layout_width="0dp"
+     android:layout_weight="1"
+     android:layout_height="54dp"
+     android:layout_marginRight="@dimen/space_s"
+     android:layout_marginEnd="@dimen/space_s"
+     style="@style/BigButton"/>
+
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buExport"
+     android:text="@string/export_share"
+     android:layout_width="0dp"
+     android:layout_weight="1"
+     android:layout_height="54dp"
+     style="@style/PrimaryButton"/>
+
+</LinearLayout>
