@@ -312,10 +312,11 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     App.INSTANCE.getService().getGyroTrack(solveId, new DataCallback<String>() {
       @Override
       public void onData(final String track) {
-        if (webView == null) {
+        final WebView view = webView; // read once: this is the DB thread, onDestroyView nulls it
+        if (view == null) {
           return;
         }
-        webView.post(new Runnable() {
+        view.post(new Runnable() {
           @Override
           public void run() {
             showGyroTrack(track);
@@ -519,8 +520,9 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     }
 
     private void post(Runnable r) {
-      if (webView != null) {
-        webView.post(r);
+      WebView view = webView; // read once: this is the JS thread, onDestroyView nulls it
+      if (view != null) {
+        view.post(r);
       }
     }
   }
@@ -532,6 +534,9 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     }
     if (controlsRow != null) {
       controlsRow.setVisibility(View.GONE);
+    }
+    if (bar != null) {
+      bar.setVisibility(View.GONE); // a late error leaves it seekable over a dead page otherwise
     }
     if (fallbackView == null) {
       return; // a load error arriving after the dialog was torn down

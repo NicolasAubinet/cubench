@@ -478,6 +478,15 @@ public class ExportResultConverterTest {
     assertSmartcubeRejected("CFOP", MOVES + " gyro:not a track", STEPS, "");        // unreadable
     assertSmartcubeRejected("CFOP", MOVES + " gyro:" + gyroTrack().substring(0, 8), STEPS, ""); // truncated
     assertSmartcubeRejected("", "gyro:" + gyroTrack(), "", "");                     // no solution to describe
+    assertSmartcubeRejected("CFOP", MOVES + " gyro:", STEPS, "");                   // the marker alone
+  }
+
+  // A marker glued to a move is the one shape that could pass: the lenient parser still finds real
+  // moves, so without this the track would be stored as part of the solution.
+  @Test
+  public void testAGyroTrackNotWrittenAsItsOwnTokenIsRejected() {
+    assertSmartcubeRejected("CFOP", MOVES + "gyro:" + gyroTrack(), STEPS, "");
+    assertSmartcubeRejected("CFOP", MOVES.replace(" y@8778", "gyro:" + gyroTrack() + " y@8778"), STEPS, "");
   }
 
   // ---- Importing the older formats through the new parser ------------------------------------

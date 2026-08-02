@@ -283,6 +283,11 @@ public class ExportResultConverter {
       }
       result.setSmartcubeMoves(moves);
     }
+    if (gyroTrack.isEmpty() && movesField.contains(GYRO_MARKER)) {
+      // Marked but not as a token of its own, so the track would be absorbed into the moves and
+      // stored as part of the solution. Only a hand-edited field gets here.
+      throw new IllegalArgumentException("A gyro track that is not a token of its own");
+    }
     if (!gyroTrack.isEmpty()) {
       if (moves.isEmpty()) { // the persistence layer keeps a track only alongside its solution
         throw new IllegalArgumentException("A gyro track with no moves to go with");
