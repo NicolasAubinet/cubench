@@ -151,11 +151,9 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
         }
       }
     });
-    // A long list opens on the row you are on rather than at the top.
-    if (selectedIndex > 0) {
-      lvItems.setSelection(selectedIndex);
-    }
-
+    // Always opens at the top, never scrolled to the row you are on: the list is read from the
+    // start, and landing part way down it hides the entries above without saying so. The row you
+    // are on is marked, which is what tells you where you are.
     return dialog;
   }
 
