@@ -66,6 +66,14 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   private static final int ACTION_DELETE = 1;
   private static final int ACTION_CREATESTEPS = 2;
 
+  /**
+   * How much of a kind's colour the tile behind its mark, and the chip that names it, carry. Higher
+   * than the picker's, because a row here is a raised card rather than a dark sheet: the same wash
+   * on the lighter surface all but disappears.
+   */
+  private static final int TILE_ALPHA = 0x45;
+  private static final int CHIP_ALPHA = 0x38;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -458,14 +466,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       return view;
     }
   }
-
-  /**
-   * How much of a kind's colour the tile behind its mark, and the chip that names it, carry. Higher
-   * than the picker's, because a row here is a raised card rather than a dark sheet: the same wash
-   * on the lighter surface all but disappears.
-   */
-  private static final int TILE_ALPHA = 0x45;
-  private static final int CHIP_ALPHA = 0x38;
 
   private class SolveTypeListAdapter extends ArrayAdapter<SolveType> {
 
