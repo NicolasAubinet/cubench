@@ -4,6 +4,7 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,23 +80,38 @@ public final class BlindStepDetector implements StepDetector {
     final String before;
     final String after; // where it landed, kept only for a cycle that may still be renamed
     final List<Integer> pieces;
-    String name;
+    final List<Integer> gained; // what it put home, which says which of its name's pieces are solved
+    BlindTargets.Named named;
     int buffer;
 
     /** An algorithm with nothing left to settle: an undo, or a flip or a twist. */
-    Landing(long timestampMs, int type, String name, String before) {
-      this(timestampMs, type, name, before, null, null, BlindTargets.NO_BUFFER);
+    Landing(long timestampMs, int type, BlindTargets.Named named, String before,
+        List<Integer> gained) {
+      this(timestampMs, type, named, before, null, null, BlindTargets.NO_BUFFER, gained);
     }
 
-    Landing(long timestampMs, int type, String name, String before, String after,
-        List<Integer> pieces, int buffer) {
+    Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
+        List<Integer> pieces, int buffer, List<Integer> gained) {
       this.timestampMs = timestampMs;
       this.type = type;
-      this.name = name;
+      this.named = named;
       this.before = before;
       this.after = after;
       this.pieces = pieces;
       this.buffer = buffer;
+      this.gained = gained;
+    }
+
+    /**
+     * Which of the pieces this algorithm's name says it put home — in position and orientation —
+     * in the order they are said. A piece it only moved on the way is not one of them.
+     */
+    List<Boolean> solvedPieces() {
+      List<Boolean> solved = new ArrayList<>(named.slots.size());
+      for (int slot : named.slots) {
+        solved.add(gained.contains(slot));
+      }
+      return solved;
     }
   }
 
@@ -201,7 +217,7 @@ public final class BlindStepDetector implements StepDetector {
     // Undo first: it is the stricter claim of the two, the cube standing exactly where the previous
     // algorithm found it. A misfire taken straight back leaves pieces turned where they stand and
     // would otherwise read as the flip it undid.
-    if (!readUndo(steady, timestampMs) && !readOrientation(steady, timestampMs)) {
+    if (!readUndo(steady, timestampMs, all) && !readOrientation(steady, timestampMs, all)) {
       // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
       boolean shot = touched == CYCLE;
       List<Integer> moved = moved(landed, steady);
@@ -210,12 +226,12 @@ public final class BlindStepDetector implements StepDetector {
       int shotFrom = shot ? bufferOf(moved, all) : BlindTargets.NO_BUFFER;
       // A parity is said as the pieces it swapped, not the ones it solved: a corner it swaps into a
       // slot it is still twisted in was swapped all the same, and is half of what was memorised.
-      String name = parityLanding
+      BlindTargets.Named name = parityLanding
           ? targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES),
               typeBuffer[CORNERS], typeBuffer[EDGES])
           : targets.name(landed, steady, shotFrom, named);
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed,
-          shot ? steady : null, named, shotFrom));
+          shot ? steady : null, named, shotFrom, all));
       if (shot && shotFrom != BlindTargets.NO_BUFFER) {
         nameWhatWaitedForIt(shotFrom);
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
@@ -274,7 +290,7 @@ public final class BlindStepDetector implements StepDetector {
         return;
       }
       landing.buffer = shotFrom;
-      landing.name = targets.name(landing.before, landing.after, shotFrom, landing.pieces);
+      landing.named = targets.name(landing.before, landing.after, shotFrom, landing.pieces);
     }
   }
 
@@ -282,8 +298,11 @@ public final class BlindStepDetector implements StepDetector {
    * A flip or a twist, if that is what landed here — on its own, or together with the algorithms
    * before it that gained nothing, which is how a flip done as two commutators reads: each half
    * takes its pieces apart, and only the pair puts them back turned.
+   *
+   * <p>What it put home is still the last landing's gain even where halves are joined: the halves
+   * gained nothing, so a piece the pair turned is home now exactly when this landing gained it.
    */
-  private boolean readOrientation(String steady, long timestampMs) {
+  private boolean readOrientation(String steady, long timestampMs, List<Integer> gained) {
     String from = landed;
     for (int joined = 0; ; joined++) {
       List<Integer> turned = turnedInPlace(from, steady);
@@ -292,14 +311,14 @@ public final class BlindStepDetector implements StepDetector {
           landings.remove(landings.size() - 1); // the halves are the one algorithm they compose
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
-        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from));
+        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from, gained));
         return true;
       }
       int previous = landings.size() - 1 - joined;
       if (previous < 0 || landings.get(previous).type != NO_GAIN) {
         return false; // one that put something home is an algorithm of its own, never half a turn
       }
-      if (UNDO.equals(landings.get(previous).name)) {
+      if (UNDO.equals(landings.get(previous).named.name)) {
         // A mistake taken back is a finished statement, not half a turn: joining across one read a
         // misfire and the shot that replaced it as a single flip of the pair they both aimed at.
         return false;
@@ -309,11 +328,12 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /** An algorithm that puts the cube back where the one before it found it: a mistake taken back. */
-  private boolean readUndo(String steady, long timestampMs) {
+  private boolean readUndo(String steady, long timestampMs, List<Integer> gained) {
     if (landings.isEmpty() || !steady.equals(landings.get(landings.size() - 1).before)) {
       return false;
     }
-    landings.add(new Landing(timestampMs, NO_GAIN, UNDO, landed));
+    landings.add(new Landing(timestampMs, NO_GAIN,
+        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, gained));
     return true;
   }
 
@@ -546,7 +566,14 @@ public final class BlindStepDetector implements StepDetector {
   /** An algorithm's name: the cycle it shot, spelled in the grip the solver held the cube in. */
   @Override
   public String subStepName(int step, int subStep) {
-    return runs().get(step - 1).landings.get(subStep).name;
+    return runs().get(step - 1).landings.get(subStep).named.name;
+  }
+
+  /** Of the pieces an algorithm names, the ones it put home: what says a cycle break from a
+   * commutator, and either from a misfire. */
+  @Override
+  public List<Boolean> subStepSolvedPieces(int step, int subStep) {
+    return runs().get(step - 1).landings.get(subStep).solvedPieces();
   }
 
   /** A parity is one algorithm and a step of its own: collapsed, it loses both its name and its

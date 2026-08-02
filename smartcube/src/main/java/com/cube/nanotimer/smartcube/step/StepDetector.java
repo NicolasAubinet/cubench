@@ -2,6 +2,7 @@ package com.cube.nanotimer.smartcube.step;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -44,6 +45,15 @@ public interface StepDetector {
    * them all alike and lets the display number them by their completed order (the sub-step's rank).
    */
   String subStepName(int step, int subStep);
+
+  /**
+   * Which of the pieces the sub-step's name is made of it actually put home — right slot and right
+   * way round — in the order they are said. Empty for a name that is not made of pieces, which is
+   * every method whose parts are cases and slots rather than the pieces a blind solver shoots at.
+   */
+  default List<Boolean> subStepSolvedPieces(int step, int subStep) {
+    return Collections.emptyList();
+  }
 
   /** Cube-clock time the sub-step was reached, or null while its step is still pending. */
   Long getSubStepTimestampMs(int step, int subStep);

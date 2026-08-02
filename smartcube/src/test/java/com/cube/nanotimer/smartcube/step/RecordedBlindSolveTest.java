@@ -10,6 +10,7 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
@@ -197,6 +198,57 @@ public class RecordedBlindSolveTest {
         assertTrue("no algorithm is one piece: " + name, name.equals("undo") || name.contains("-"));
       }
     }
+  }
+
+  /**
+   * Which of an algorithm's pieces it put home, on the solve that has one of everything. A normal
+   * commutator lands both its targets; a <b>cycle break</b> lands only the second, the first taking
+   * the buffer's piece, which does not belong there; and the parity lands all four of its own.
+   *
+   * <p><b>The buffer is never home before the parity</b> — it holds a foreign piece until the parity
+   * puts it right — so no algorithm of this solve lands the piece it was shot from, the flip that
+   * turns the buffer included. Correct, and the thing that reads as a bug first time.
+   */
+  @Test
+  public void saysWhichOfAnAlgorithmsPiecesItPutHome() {
+    replay(RecordedBlindSolve.SCRAMBLE_211, RecordedBlindSolve.MOVES_211, Long.MAX_VALUE);
+
+    assertEquals("UF-DB-BR", detector.subStepName(1, 0));
+    assertEquals(home(false, true, true), detector.subStepSolvedPieces(1, 0));
+    assertEquals("UF-UB-RU", detector.subStepName(1, 4)); // a cycle break: RU takes the buffer's
+    assertEquals(home(false, true, false), detector.subStepSolvedPieces(1, 4));
+    assertEquals("UFR-UBR-LUB", detector.subStepName(2, 1)); // and one on the corners
+    assertEquals(home(false, true, false), detector.subStepSolvedPieces(2, 1));
+    assertEquals("flip:UF-FL", detector.subStepName(1, 5));
+    assertEquals(home(false, true), detector.subStepSolvedPieces(1, 5));
+    assertEquals("UFR-UBL + UF-UR", detector.subStepName(3, 0));
+    assertEquals(home(true, true, true, true), detector.subStepSolvedPieces(3, 0));
+  }
+
+  /**
+   * A misfire puts nothing home, which is the whole of what it did wrong: solve 184 shoots the same
+   * cycle twice, first to {@code RF} where it wanted {@code FR}, and only the second is worth
+   * anything. An undo is not made of pieces at all, so it has none to mark.
+   *
+   * <p>A solve without a parity brings its buffer home, and then the piece it was shot from is
+   * marked like any other — the closing cycle of solve 163 lands all three.
+   */
+  @Test
+  public void marksNothingOnAnAlgorithmThatPutNothingHome() {
+    replay(RecordedBlindSolve.SCRAMBLE_184, RecordedBlindSolve.MOVES_184, Long.MAX_VALUE);
+
+    assertEquals(home(false, false, false), detector.subStepSolvedPieces(1, 0));
+    assertTrue(detector.subStepSolvedPieces(1, 1).isEmpty()); // the undo
+    assertEquals(home(false, false, true), detector.subStepSolvedPieces(1, 2));
+
+    RecordedBlindSolveTest even = new RecordedBlindSolveTest();
+    even.replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
+    assertEquals("UF-UB-UR", even.detector.subStepName(1, 5));
+    assertEquals(home(true, true, true), even.detector.subStepSolvedPieces(1, 5));
+  }
+
+  private static List<Boolean> home(Boolean... pieces) {
+    return Arrays.asList(pieces);
   }
 
   /**

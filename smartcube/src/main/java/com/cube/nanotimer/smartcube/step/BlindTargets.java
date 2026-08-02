@@ -36,6 +36,22 @@ final class BlindTargets {
   private final int holding; // the frame, or nothing carried anywhere when none is known
   private final int reading; // the frame taken back off, to read a reported facelet as a held one
 
+  /**
+   * A name and the slot each of its parts stands for, in the order they are said. The slots are what
+   * lets a display say which of the pieces an algorithm named it actually put home: the parts are
+   * spelled as stickers in the solver's frame, so nothing downstream can work back from the text.
+   */
+  static final class Named {
+
+    final String name;
+    final List<Integer> slots;
+
+    Named(String name, List<Integer> slots) {
+      this.name = name;
+      this.slots = slots;
+    }
+  }
+
   BlindTargets(int frame) {
     this.holding = frame == UNKNOWN_FRAME ? FaceletRotations.IDENTITY : frame;
     this.reading = FaceletRotations.inverse(holding);
@@ -51,13 +67,13 @@ final class BlindTargets {
    * turned onto its left reads {@code LUB}. A flip has no direction to tell, so an edge is said as
    * it stands.
    */
-  String turnedName(String before, List<Integer> turned) {
+  Named turnedName(String before, List<Integer> turned) {
     boolean edges = Cubies.isEdge(turned.get(0));
     List<String> names = new ArrayList<String>(turned.size());
     for (int slot : turned) {
       names.add(edges ? spell(slot) : spellFrom(twistedOnto(before, slot)));
     }
-    return (edges ? FLIP : TWIST) + join(names);
+    return new Named((edges ? FLIP : TWIST) + join(names), new ArrayList<Integer>(turned));
   }
 
   /** The facelet a twisted piece's U or D sticker is sitting on, which is what says which way. */
@@ -84,9 +100,12 @@ final class BlindTargets {
    * parity swaps the buffer with one other piece, so the buffer is the piece the pair is read from
    * even though nothing was shot at it; said in slot order instead, half of them came out backwards.
    */
-  String swapName(List<Integer> corners, List<Integer> edges, int cornerBuffer, int edgeBuffer) {
-    return join(spellAll(bufferFirst(corners, cornerBuffer))) + " + "
-        + join(spellAll(bufferFirst(edges, edgeBuffer)));
+  Named swapName(List<Integer> corners, List<Integer> edges, int cornerBuffer, int edgeBuffer) {
+    List<Integer> saidCorners = bufferFirst(corners, cornerBuffer);
+    List<Integer> saidEdges = bufferFirst(edges, edgeBuffer);
+    List<Integer> slots = new ArrayList<Integer>(saidCorners);
+    slots.addAll(saidEdges);
+    return new Named(join(spellAll(saidCorners)) + " + " + join(spellAll(saidEdges)), slots);
   }
 
   /** The pair with its buffer at the front, or untouched where the buffer is not one of them. */
@@ -106,9 +125,10 @@ final class BlindTargets {
    * from and the pieces it moved. Where nothing says which piece it was shot from — a parity, or a
    * cycle the solve has not settled the buffer of — the pieces are named as they stand instead.
    */
-  String name(String before, String after, int buffer, List<Integer> pieces) {
-    List<String> shot = buffer == NO_BUFFER ? null : shotNames(before, after, buffer, pieces.size());
-    return join(shot == null ? spellAll(pieces) : shot);
+  Named name(String before, String after, int buffer, List<Integer> pieces) {
+    Named shot = buffer == NO_BUFFER ? null : shotNames(before, after, buffer, pieces.size());
+    return shot != null ? shot
+        : new Named(join(spellAll(pieces)), new ArrayList<Integer>(pieces));
   }
 
   /**
@@ -116,9 +136,11 @@ final class BlindTargets {
    * the sticker the piece before it landed on. Null unless the shot comes back round to the buffer,
    * which is the one thing a cycle does.
    */
-  private List<String> shotNames(String before, String after, int buffer, int length) {
+  private Named shotNames(String before, String after, int buffer, int length) {
     List<String> names = new ArrayList<String>(length);
+    List<Integer> slots = new ArrayList<Integer>(length);
     names.add(spell(buffer));
+    slots.add(buffer);
     int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);
     int facelet = start;
     for (int i = 1; i < length; i++) {
@@ -127,8 +149,9 @@ final class BlindTargets {
         return null;
       }
       names.add(spellFrom(facelet));
+      slots.add(Cubies.slotOf(facelet));
     }
-    return sentTo(before, after, facelet) == start ? names : null;
+    return sentTo(before, after, facelet) == start ? new Named(join(names), slots) : null;
   }
 
   /** Where the sticker on this facelet ended up: a piece by its colours, a sticker by its own. */
