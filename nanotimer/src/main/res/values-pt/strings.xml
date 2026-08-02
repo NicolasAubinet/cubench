@@ -721,6 +721,7 @@
 
   <!-- History screen -->
   <string name="history_empty">Ainda não há resoluções. Toque em Iniciar para cronometrar uma.</string>
+  <string name="sparkline_window">últimas %1$d</string>
   <string name="today">Hoje</string>
   <string name="yesterday">Ontem</string>
   <string name="acc_label">Prec</string>

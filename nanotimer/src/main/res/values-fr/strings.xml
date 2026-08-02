@@ -719,6 +719,7 @@
 
   <!-- History screen -->
   <string name="history_empty">Aucune résolution. Appuyez sur Démarrer pour en chronométrer une.</string>
+  <string name="sparkline_window">%1$d dernières</string>
   <string name="today">Aujourd\'hui</string>
   <string name="yesterday">Hier</string>
   <string name="acc_label">Préc</string>

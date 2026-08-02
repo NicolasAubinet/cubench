@@ -729,6 +729,7 @@
 
   <!-- History screen -->
   <string name="history_empty">No solves yet. Press Start to time one.</string>
+  <string name="sparkline_window">last %1$d</string>
   <string name="today">Today</string>
   <string name="yesterday">Yesterday</string>
   <string name="acc_label">Acc</string>

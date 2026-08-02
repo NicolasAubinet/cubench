@@ -27,6 +27,9 @@ import java.util.List;
  * the window carries a record-coloured dot at the bottom of the line, which is usually not the
  * lifetime best.
  *
+ * <p>The line carries a faded caption naming the window it covers, since a normalized shape says
+ * nothing about its own scale. It sits in whichever top corner the line leaves free.
+ *
  * <p>Feed it {@link #setTimes} with the times newest first, as the service returns them.
  */
 public class SparklineView extends View {
@@ -37,10 +40,14 @@ public class SparklineView extends View {
   private static final int MAX_POINTS = 50;
   private static final float DRAW_MS = 520f;
 
+  /** Quiet enough to be read only when looked for. */
+  private static final int CAPTION_ALPHA = 140;
+
   private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint dotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint recordPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+  private final Paint captionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
   private final Path linePath = new Path();
   private final Path fillPath = new Path();
@@ -51,6 +58,10 @@ public class SparklineView extends View {
   private float[] pointsX = new float[0];
   private float[] pointsY = new float[0];
   private int bestIndex = -1;
+
+  private String caption;
+  private float captionX;
+  private float captionY;
 
   private float progress = 1f;
   private ValueAnimator animator;
@@ -85,6 +96,9 @@ public class SparklineView extends View {
 
     recordPaint.setStyle(Paint.Style.FILL);
     recordPaint.setColor(ContextCompat.getColor(context, R.color.new_record));
+
+    captionPaint.setColor(ContextCompat.getColor(context, R.color.secondary_text));
+    captionPaint.setTextSize(10f * getResources().getDisplayMetrics().scaledDensity);
   }
 
   /**
@@ -94,12 +108,11 @@ public class SparklineView extends View {
    */
   public void setTimes(List<Long> times, boolean animate) {
     values.clear();
-    if (times != null) {
-      for (int i = Math.min(times.size(), MAX_POINTS) - 1; i >= 0; i--) { // oldest first
-        Long time = times.get(i);
-        if (time != null && time > 0) {
-          values.add(time);
-        }
+    int window = times == null ? 0 : Math.min(times.size(), MAX_POINTS);
+    for (int i = window - 1; i >= 0; i--) { // oldest first
+      Long time = times.get(i);
+      if (time != null && time > 0) {
+        values.add(time);
       }
     }
     bestIndex = -1;
@@ -108,6 +121,9 @@ public class SparklineView extends View {
         bestIndex = i;
       }
     }
+    // The window the line covers, not the points left in it: a DNF is still one of your last 50.
+    caption = hasEnoughTimes() ? getResources().getString(R.string.sparkline_window, window) : null;
+    setContentDescription(caption);
     buildPaths();
     if (animate && hasEnoughTimes() && animationsEnabled()) {
       startDrawAnimation();
@@ -175,6 +191,33 @@ public class SparklineView extends View {
     }
     fillPath.lineTo(pointsX[values.size() - 1], height);
     fillPath.close();
+    placeCaption(width);
+  }
+
+  /**
+   * Some point always touches the top, since the line is normalized, so a fixed corner would sit on
+   * it half the time. The caption takes the corner the line stays further below.
+   */
+  private void placeCaption(int width) {
+    if (caption == null) {
+      return;
+    }
+    float textWidth = captionPaint.measureText(caption);
+    float left = recordRadius;
+    float right = width - recordRadius - textWidth;
+    captionX = headroomIn(right, width) >= headroomIn(0, left + textWidth) ? right : left;
+    captionY = verticalPadding - captionPaint.getFontMetrics().top;
+  }
+
+  /** How far the line stays below the top of a horizontal band. Larger is more room. */
+  private float headroomIn(float fromX, float toX) {
+    float headroom = Float.MAX_VALUE;
+    for (int i = 0; i < pointsX.length; i++) {
+      if (pointsX[i] >= fromX && pointsX[i] <= toX) {
+        headroom = Math.min(headroom, pointsY[i]);
+      }
+    }
+    return headroom;
   }
 
   private void startDrawAnimation() {
@@ -227,6 +270,11 @@ public class SparklineView extends View {
     drawDotAt(canvas, values.size() - 1, dotPaint, dotRadius);
     if (bestIndex >= 0) {
       drawDotAt(canvas, bestIndex, recordPaint, recordRadius);
+    }
+
+    if (caption != null) {
+      captionPaint.setAlpha((int) (CAPTION_ALPHA * progress));
+      canvas.drawText(caption, captionX, captionY, captionPaint);
     }
   }
 
