@@ -669,7 +669,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   /**
    * The bar as a way into the table rather than a picture beside it: touching a segment picks that
-   * step out, and dragging along the bar walks the pick with the finger.
+   * step out, dragging along the bar walks the pick with the finger, and tapping the picked segment
+   * again hands the solve back whole.
    */
   private void setUpBarPicking(final View v) {
     final SolveStepBarView bar = (SolveStepBarView) v.findViewById(R.id.breakdownBar);
@@ -677,6 +678,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onSeek(float fraction) {
         pickStep(v, bar.stepAt(fraction), false);
+      }
+
+      @Override
+      public void onUnpick() {
+        pickStep(v, pickedStep, true);
       }
     });
   }

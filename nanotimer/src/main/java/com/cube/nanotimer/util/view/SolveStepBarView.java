@@ -8,6 +8,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewConfiguration;
 import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.helper.Utils;
@@ -49,6 +50,9 @@ public class SolveStepBarView extends View {
   private float playhead = -1f; // where a replay has got to, or < 0 for a bar nothing is playing
   private int highlighted = -1; // the step picked out of the bar, or < 0 for a bar with none
   private OnSeekListener seekListener;
+  private float downX;
+  private boolean dragged;
+  private int litAtDown = -1; // which step was picked when the touch landed, to tell a re-tap apart
 
   public SolveStepBarView(Context context) {
     super(context);
@@ -71,6 +75,9 @@ public class SolveStepBarView extends View {
   public interface OnSeekListener {
     /** @param fraction where along the solve the bar was touched, 0 to 1 */
     void onSeek(float fraction);
+
+    /** The lit segment tapped again: the bar asked to stop singling that step out. */
+    default void onUnpick() { }
   }
 
   /**
@@ -122,10 +129,20 @@ public class SolveStepBarView extends View {
       return super.onTouchEvent(event);
     }
     int action = event.getActionMasked();
-    if (action == android.view.MotionEvent.ACTION_DOWN
-        || action == android.view.MotionEvent.ACTION_MOVE) {
+    if (action == android.view.MotionEvent.ACTION_DOWN) {
       // The bar lives in a scrolling sheet, which would otherwise steal the drag off it.
       getParent().requestDisallowInterceptTouchEvent(true);
+      downX = event.getX();
+      dragged = false;
+      litAtDown = highlighted;
+      seekListener.onSeek(fractionAt(downX));
+      return true;
+    }
+    if (action == android.view.MotionEvent.ACTION_MOVE) {
+      getParent().requestDisallowInterceptTouchEvent(true);
+      if (Math.abs(event.getX() - downX) > ViewConfiguration.get(getContext()).getScaledTouchSlop()) {
+        dragged = true; // past a wobble, so the touch is a scrub and not a tap that can undo
+      }
       seekListener.onSeek(fractionAt(event.getX()));
       return true;
     }
@@ -133,6 +150,9 @@ public class SolveStepBarView extends View {
         || action == android.view.MotionEvent.ACTION_CANCEL) {
       getParent().requestDisallowInterceptTouchEvent(false);
       if (action == android.view.MotionEvent.ACTION_UP) {
+        if (!dragged && litAtDown >= 0 && stepAt(fractionAt(event.getX())) == litAtDown) {
+          seekListener.onUnpick(); // the same segment asked twice, which is how the pick is undone
+        }
         performClick();
       }
       return true;
