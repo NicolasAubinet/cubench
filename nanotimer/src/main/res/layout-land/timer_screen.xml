@@ -24,6 +24,15 @@
        android:clipChildren="false"
        android:clipToPadding="false"
        android:layout_weight="1">
+      <!-- The live cube, when one is connected. Shorter than portrait's: the column it shares is
+           half a landscape screen, and the timer stays the hero. -->
+      <ViewStub
+         android:id="@+id/stubLiveCube"
+         android:layout="@layout/timer_live_cube"
+         android:layout_width="match_parent"
+         android:layout_height="130px"
+         android:layout_marginBottom="8px"/>
+
       <com.cube.nanotimer.util.view.DigitalTextView
          android:id="@+id/tvTimer"
          android:layout_width="wrap_content"

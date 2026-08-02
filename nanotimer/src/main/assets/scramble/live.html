@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!--
+  Host page for NanoTimer's live cube: the connected smart cube, mirrored on screen as it is
+  turned.
+
+  Same arrangement as replay.html and scramble.html — loaded into a WebView through
+  WebViewAssetLoader (https://appassets.androidplatform.net/..., NOT file://) and sharing the
+  same vendored bundle.js.
+
+  Java -> JS surface:
+    ntLiveReset(setupAlg)   the state the cube is in now, as an alg from solved. Clears
+                            everything animated so far; the cube does not move if the alg
+                            says what is already on screen.
+    ntLiveMove(notation)    one quarter turn, just made
+    ntLiveGyro(on)          follow the cube's physical orientation, or keep it square
+
+  JS -> Java:
+    NTBridge.onReady()      the cube is drawn
+    NTBridge.orientation()  "w,x,y,z" — how the cube is held, in its own axes, or "" for no
+                            reading. POLLED from the render loop, never pushed: the gyro runs
+                            at ~20 Hz, faster than any consumer needs, and this is the idiom
+                            SmartCube.getOrientation() is documented with.
+
+  WHY THIS USES experimentalAddMove AND replay.html MUST NOT.
+
+  The player animates an alg on its own clock at ~1000 ms per move, which is why the replay
+  drives the timeline itself (see replay.html). Live wants the opposite thing, and the API
+  gives it: experimentalAddMove sets the timeline to "end" and hands the move to the player's
+  catch-up animator, so the state jumps to correct AT ONCE and only the newest turn is drawn
+  turning. A burst of six turns therefore snaps to the state those six made and animates the
+  sixth. A mirror must never fall behind the hands, and this is what stops it.
+
+  The catch-up runs over catchUpMs / tempoScale, and catchUpMs is 500 inside the bundle, so
+  tempoScale is how the turn duration is set.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: transparent; overflow: hidden;
+  }
+  #host { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  /* The player draws the cube a few percent above the middle of its canvas — it is looked at from
+     above, so the top face pushes the silhouette up. Measured at ~5% of the box on the phone. */
+  twisty-player { width: 100%; height: 100%; --controls-height: 0; transform: translateY(5%); }
+</style>
+<script src="bundle.js"></script>
+</head>
+<body>
+<div id="host"></div>
+<script>
+(function () {
+  // The bundle's own catch-up length, which tempoScale divides. Not settable, so it is written
+  // down here rather than read: tempoScale = CATCH_UP_MS / wanted turn.
+  var CATCH_UP_MS = 500;
+  // A turn is over this quickly, so the mirror is never seen lagging a fast solver.
+  var DEFAULT_TURN_MS = 110;
+  // Square on to the cube, so a cube held white-up green-front is drawn white-up green-front. The
+  // player's own default is 30° round to the right, which reads as the cube sitting askew — and
+  // the whole point of the anchor is that it should look square at the moment it is taken. Tilted
+  // down far enough to see the top face, and no further.
+  var CAMERA_LATITUDE = 26;
+  var CAMERA_LONGITUDE = 0;
+  var CAMERA_DISTANCE = 6;
+
+  var player = null;
+  var readyNotified = false;
+
+  function bridge(name) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (window.NTBridge && window.NTBridge[name]) {
+      try { return window.NTBridge[name].apply(window.NTBridge, args); } catch (e) {}
+    }
+    return null;
+  }
+
+  function notifyReady() {
+    if (!readyNotified) {
+      readyNotified = true;
+      bridge("onReady");
+    }
+  }
+
+  // ---- the physical orientation ----------------------------------------------------------
+  //
+  // The same hook the replay uses (§4b / §6.7): the pose is written onto the three.js puzzle
+  // object from experimentalCurrentThreeJSPuzzleObject's per-render callback, because the
+  // player re-renders on its own schedule. Java hands over poses already in the cube's own
+  // axes with its reference applied — nothing here knows what a gyro reference is.
+
+  // How far the drawn pose closes on the reported one each frame. The gyro reports at ~20 Hz and
+  // the screen draws at 60, so following the readings exactly means holding still for two frames
+  // and jumping on the third — which is what "not very smooth" looks like. Closing a third of the
+  // remaining angle per frame lands within a couple of degrees in ~4 frames, so the lag is well
+  // under a tenth of a second and the motion is continuous.
+  var POSE_FOLLOW = 0.34;
+
+  var gyroOn = false;
+  var puzzleObject = null;
+  var poseHooked = false;
+  var poseRaf = null;
+  var target = [1, 0, 0, 0]; // the newest reading
+  var pose = [1, 0, 0, 0];   // what is drawn, chasing it
+  var lastApplied = null;
+
+  /** q and -q are the same rotation, so take the short way round or the cube spins the long way. */
+  function slerp(a, b, f) {
+    var dot = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+    var sign = dot < 0 ? -1 : 1;
+    dot = Math.abs(dot);
+    var wa, wb;
+    if (dot > 0.9995) {
+      wa = 1 - f; // too close to interpolate by angle: lerp and renormalise
+      wb = f;
+    } else {
+      var theta = Math.acos(dot);
+      var sin = Math.sin(theta);
+      wa = Math.sin((1 - f) * theta) / sin;
+      wb = Math.sin(f * theta) / sin;
+    }
+    var out = [];
+    var norm = 0;
+    for (var k = 0; k < 4; k++) {
+      out[k] = wa * a[k] + wb * sign * b[k];
+      norm += out[k] * out[k];
+    }
+    norm = Math.sqrt(norm) || 1;
+    for (var j = 0; j < 4; j++) {
+      out[j] /= norm;
+    }
+    return out;
+  }
+
+  /** Whether the pose has moved. Only used before there is a puzzle object to ask instead. */
+  function poseMoved() {
+    return !lastApplied
+        || Math.abs(pose[0] - lastApplied[0]) >= 1e-4 || Math.abs(pose[1] - lastApplied[1]) >= 1e-4
+        || Math.abs(pose[2] - lastApplied[2]) >= 1e-4 || Math.abs(pose[3] - lastApplied[3]) >= 1e-4;
+  }
+
+  /**
+   * Whether the scene is not already showing `pose`.
+   *
+   * ⚠️ Asks the object, never a record of what was last written to it. The player hands out a
+   * fresh puzzle object whenever it rebuilds the cube, and a fresh one is square — so a
+   * "has the pose changed since I wrote it" guard writes nothing to the new object for as long
+   * as the hand holds still, and the cube snaps upright. Asking the scene cannot go stale, and
+   * an identical write is still skipped, so this cannot start a render loop either.
+   */
+  function poseStale(object) {
+    if (!object) {
+      return false;
+    }
+    var q = object.quaternion;
+    return Math.abs(q.w - pose[0]) >= 1e-4 || Math.abs(q.x - pose[1]) >= 1e-4
+        || Math.abs(q.y - pose[2]) >= 1e-4 || Math.abs(q.z - pose[3]) >= 1e-4;
+  }
+
+  /** three.js orders a quaternion (x, y, z, w); ours are (w, x, y, z). */
+  function applyPose(object) {
+    if (!object) {
+      return;
+    }
+    lastApplied = pose;
+    if (poseStale(object)) {
+      object.quaternion.set(pose[1], pose[2], pose[3], pose[0]);
+    }
+  }
+
+  function hookPose() {
+    if (poseHooked || !player || !player.experimentalCurrentThreeJSPuzzleObject) {
+      return; // an older bundle without the hook: the cube simply stays square
+    }
+    poseHooked = true;
+    try {
+      // The per-render callback passes nothing — it is a "you are about to render" signal, and
+      // the object comes from the promise (measured on the device, see replay.html).
+      player.experimentalCurrentThreeJSPuzzleObject(function (object) {
+        if (object) {
+          puzzleObject = object;
+        }
+        applyPose(puzzleObject);
+      }).then(function (object) {
+        puzzleObject = object;
+        applyPose(object);
+      }).catch(function () {});
+    } catch (e) {
+      poseHooked = false;
+    }
+  }
+
+  var nudge = 0;
+  var orbit = null;
+  var frames = 0;
+
+  /**
+   * ⚠️ The player renders only when something it owns changes, and standing still between
+   * turns it owns nothing that does — so a pose written there would never be painted, and the
+   * cube would sit frozen for exactly the seconds it is being turned over in the hands, which
+   * is the one thing following the gyro is for.
+   *
+   * The camera is what forces it: `orbitCoordinates` has a listener that calls the renderer's
+   * `scheduleRender`, so half a thousandth of a degree of longitude, alternating, is a render
+   * a frame and is invisible. Deliberately NOT the timeline (which is what replay.html nudges):
+   * a live cube's timeline is where the catch-up animation lives, and moving it under a turn in
+   * flight would cut the turn short.
+   */
+  function poseLoop() {
+    if (!gyroOn || !player) {
+      poseRaf = null;
+      return;
+    }
+    // ⚠️ The chain is re-armed in the finally, WHATEVER happens above. A throw in here used to end
+    // the loop for good: the drawn pose froze at the last frame it managed, so the cube sat a
+    // quarter turn from where the hands held it, no amount of moving it did anything (nothing was
+    // reading the gyro any more), and only the next seed's ntLiveGyro(true) started it again —
+    // which is exactly "a fast slice leaves it sideways until you re-solve". The nudge below is
+    // the unguarded call that can do it: setCamera wraps the identical set() and this did not.
+    try {
+      poseStep();
+    } catch (e) {
+      console.error("live pose loop: " + e); // named, so the next one does not have to be guessed
+    } finally {
+      poseRaf = requestAnimationFrame(poseLoop);
+    }
+  }
+
+  function poseStep() {
+    // Every other frame: the gyro reports at ~20 Hz, so asking 60 times a second fetches the same
+    // reading three times over — and every ask crosses into Java, which is the one thing in this
+    // loop that is not free.
+    frames++;
+    if (frames % 2 === 0) {
+      var reading = bridge("orientation");
+      if (reading) {
+        var parts = String(reading).split(",");
+        if (parts.length === 4) {
+          target = [+parts[0], +parts[1], +parts[2], +parts[3]];
+        }
+      }
+    }
+    pose = slerp(pose, target, POSE_FOLLOW);
+    // ⚠️ Nudge whenever the scene is not showing the pose, and never merely because a turn is not
+    // animating. Skipping it during moves was tried and is a trap: through a fast slice the moves
+    // never stop arriving, so the nudge stays suppressed, the player renders only for its own
+    // catch-up, and the pose written after that last render is never painted — the cube is left
+    // showing an orientation from the middle of the turn. Asking the scene paints exactly when
+    // there is something new to paint, which is also cheaper while the cube is held still, and
+    // unlike "has the pose moved" it still fires for a puzzle object the player has just replaced.
+    if (orbit && (puzzleObject ? poseStale(puzzleObject) : poseMoved())) {
+      nudge = nudge ? 0 : 0.0005;
+      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(
+          { latitude: orbit.latitude, longitude: orbit.longitude + nudge, distance: orbit.distance });
+    }
+    applyPose(puzzleObject);
+  }
+
+  /** Points the camera square at the cube, and keeps that as the base the nudge above varies. */
+  function setCamera() {
+    if (orbit || !player) {
+      return;
+    }
+    orbit = { latitude: CAMERA_LATITUDE, longitude: CAMERA_LONGITUDE, distance: CAMERA_DISTANCE };
+    try {
+      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(orbit);
+    } catch (e) {
+      orbit = null; // an older bundle: the default view stands, and the pose loop skips its nudge
+    }
+  }
+
+  window.ntLiveReset = function (setupAlg) {
+    if (!player) {
+      player = document.createElement("twisty-player");
+      player.puzzle = "3x3x3";
+      player.visualization = "3D";
+      player.background = "none";
+      player.controlPanel = "none";
+      player.hintFacelets = "none";
+      player.tempoScale = CATCH_UP_MS / DEFAULT_TURN_MS;
+      document.getElementById("host").appendChild(player);
+    }
+    player.experimentalSetupAlg = setupAlg || "";
+    player.alg = "";
+    hookPose();
+    setCamera();
+    // Prefer signalling after a paint, but never depend on it: a WebView that is not drawing
+    // starves requestAnimationFrame and the app would hold its spinner until the timeout.
+    requestAnimationFrame(function () { requestAnimationFrame(notifyReady); });
+    setTimeout(notifyReady, 300);
+  };
+
+  window.ntLiveMove = function (notation) {
+    if (!player || !notation) {
+      return;
+    }
+    try {
+      player.experimentalAddMove(notation);
+    } catch (e) {} // an unparseable move is not worth losing the mirror over
+  };
+
+  window.ntLiveGyro = function (on) {
+    gyroOn = !!on;
+    hookPose();
+    setCamera();
+    if (poseRaf) {
+      cancelAnimationFrame(poseRaf);
+      poseRaf = null;
+    }
+    if (gyroOn) {
+      poseRaf = requestAnimationFrame(poseLoop);
+    } else {
+      target = [1, 0, 0, 0];
+      pose = target;
+      applyPose(puzzleObject); // back to square, and paint it
+    }
+  };
+})();
+</script>
+</body>
+</html>

@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewStub;
 import android.view.animation.Animation;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.Transformation;
@@ -36,6 +37,7 @@ import com.cube.nanotimer.Options.BigCubesNotation;
 import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
+import com.cube.nanotimer.cube.LiveCubeView;
 import com.cube.nanotimer.cube.ScrambleFollower;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SolveBreakdown;
@@ -154,6 +156,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private volatile TimerState timerState = TimerState.STOPPED;
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
+  private LiveCubeView liveCube;
   private ImageView imgCancelSolve; // discards the running solve, overlaid on the action bar
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
@@ -209,6 +212,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
     solveController = new SmartCubeSolveController(new SolveControllerListener());
+    liveCube = new LiveCubeView(this, layoutTouchListener);
     initActionBar();
 
     inspectionTime = Options.INSTANCE.getInspectionTime();
@@ -286,6 +290,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     App.INSTANCE.setContext(this);
     smartCubeChip.start();
     solveController.start();
+    liveCube.start();
     refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
   }
 
@@ -294,6 +299,15 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     super.onPause();
     smartCubeChip.stop();
     solveController.stop();
+    liveCube.stop();
+  }
+
+  @Override
+  protected void onDestroy() {
+    if (liveCube != null) { // onCreate finishes early without a solve type, and never builds one
+      liveCube.destroy();
+    }
+    super.onDestroy();
   }
 
   private class SolveControllerListener implements SmartCubeSolveController.Listener {
@@ -448,6 +462,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     layout = (ViewGroup) findViewById(R.id.mainLayout);
     layout.setOnTouchListener(layoutTouchListener);
+
+    // The cube takes the same listener the action bar does, so it is not a dead zone either.
+    liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube), findViewById(R.id.timerTopSpace));
     if (timerState == TimerState.STOPPED) {
       setKeepScreenOn(keepScreenOnWhenTimerOff);
     } else {

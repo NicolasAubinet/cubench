@@ -33,9 +33,21 @@
          android:paddingLeft="2px"
          android:paddingRight="2px"
          android:orientation="vertical">
+        <!-- The live cube, when one is connected. It takes the spacer's own weight rather than a
+             height of its own — a fixed one left the cube stranded at the top with the spacer's
+             gap still under it. The spacer goes while the cube is up (LiveCubeView owns that), so
+             the screen without a cube is exactly the screen that was there before it. -->
+        <ViewStub
+           android:id="@+id/stubLiveCube"
+           android:layout="@layout/timer_live_cube"
+           android:layout_width="match_parent"
+           android:layout_height="0px"
+           android:layout_weight="1"/>
+
         <!-- This spacer and the step bar's band below share the free space evenly, so the timer
              and its scramble sit centred whatever the scramble costs. -->
         <Space
+           android:id="@+id/timerTopSpace"
            android:layout_width="match_parent"
            android:layout_height="0px"
            android:layout_weight="1"/>
