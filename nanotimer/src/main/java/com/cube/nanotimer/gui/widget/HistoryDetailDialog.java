@@ -512,8 +512,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   /**
    * The breakdown drawn from the user's own steps, with the recorded moves split at the taps that
-   * ended them. Built only when a cube recorded the solve: without moves the table would say no more
-   * than the times line above.
+   * ended them. A solve no cube saw is drawn just the same, without the moves: the bar and the table
+   * say the shape of it, which the slash-separated line of times never did.
    *
    * <p>The split is approximate where the method breakdown is exact — a tap lands a moment after the
    * move it follows, and is timed on the phone's clock rather than the cube's. That is also why these
@@ -522,15 +522,14 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * @return true when these steps take the section over, so the method's breakdown is not drawn
    */
   private boolean buildManualSteps(View v, SolveTime solveTime, long durationMs) {
-    String moves = solveTime.getSmartcubeMoves();
-    if (!solveTime.hasSteps() || moves == null || moves.isEmpty()) {
+    if (!solveTime.hasSteps()) {
       return false;
     }
     List<SolveStep> steps = SolveBreakdown.fromStepTimes(solveTime.getStepsTimes());
-    SolveSolution solution = SolveSolution.from(moves, steps);
-    if (solution.isEmpty()) {
+    if (steps.isEmpty()) {
       return false;
     }
+    SolveSolution solution = SolveSolution.from(solveTime.getSmartcubeMoves(), steps);
     v.findViewById(R.id.trSteps).setVisibility(View.GONE); // the table tells it, and the moves with it
     SolveTypeStep[] names = solveTime.getSolveType().hasSteps()
         ? solveTime.getSolveType().getSteps() : new SolveTypeStep[0];
@@ -552,19 +551,20 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       return;
     }
     boolean split = userSteps == null;
+    boolean moves = !solution.isEmpty(); // a solve no cube saw has a column's worth of nothing to say
     breakdownSteps = new ArrayList<SolveStep>(steps);
     int[] colors = getStepColors();
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
     TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
-    table.addView(headerRow(split));
+    table.addView(headerRow(split, moves));
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       TextView name = cell(R.style.BreakdownStepName, stepName(step, i, userSteps));
       name.setTextColor(Utils.isTailSegment(step.getName())
           ? ContextCompat.getColor(getActivity(), R.color.gray600)
           : colors[i % colors.length]);
-      TableRow row = stepRow(step, name, moveCountOf(solution, i), split);
+      TableRow row = stepRow(step, name, moves ? moveCountOf(solution, i) : null, split);
       table.addView(row);
 
       StepRows stepRows = new StepRows(name);
@@ -755,7 +755,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     return colors;
   }
 
-  private TableRow headerRow(boolean split) {
+  private TableRow headerRow(boolean split, boolean moves) {
     TableRow row = new TableRow(getActivity());
     row.addView(cell(R.style.BreakdownHeaderName, getString(R.string.breakdown_step)));
     if (split) {
@@ -763,10 +763,13 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_execution)));
     }
     row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_total)));
-    row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_moves)));
+    if (moves) {
+      row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_moves)));
+    }
     return row;
   }
 
+  /** @param moveCount null on a solve with no moves, which drops the column rather than empty it */
   private TableRow stepRow(SolveStep step, TextView name, String moveCount, boolean split) {
     TableRow row = new TableRow(getActivity());
     row.addView(name);
@@ -775,7 +778,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       row.addView(cell(R.style.BreakdownCell, formatTime(step.getExecutionMs())));
     }
     row.addView(cell(R.style.BreakdownCell, formatTime(step.getTotalMs())));
-    row.addView(cell(R.style.BreakdownRecognitionCell, moveCount));
+    if (moveCount != null) {
+      row.addView(cell(R.style.BreakdownRecognitionCell, moveCount));
+    }
     return row;
   }
 
