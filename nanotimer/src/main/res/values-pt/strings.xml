@@ -766,7 +766,6 @@
     <item>9.º melhor tempo</item>
     <item>10.º melhor tempo</item>
   </string-array>
-  <string name="breakdown_vs">vs %1$d</string>
   <string name="verdict_faster">%1$s mais rápido que a sua %2$s</string>
   <string name="verdict_slower">%1$s mais lento que a sua %2$s</string>
 </resources>

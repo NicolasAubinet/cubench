@@ -1095,47 +1095,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
   }
 
-  /**
-   * What each step of a solve type has been taking lately: the mean of that step over the solve
-   * type's last finished solves, by step code.
-   *
-   * <p>A step is stored under a code carrying the case it turned out to be ("oll_21"), and an
-   * average per case would be taken over a handful of solves at best, so the codes are folded to the
-   * family before the underscore, which is what a reader means by "your cross" or "your OLL".
-   * A step seen fewer than {@code minSolves} times is left out rather than averaged from nothing.
-   */
-  @Override
-  public Map<String, Long> getStepAverages(SolveType solveType, int lastSolves, int minSolves) {
-    Map<String, Long> averages = new HashMap<String, Long>();
-    String name = "s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME;
-    String family = "CASE WHEN instr(" + name + ", '_') > 0"
-        + " THEN substr(" + name + ", 1, instr(" + name + ", '_') - 1) ELSE " + name + " END";
-    StringBuilder q = new StringBuilder();
-    q.append("SELECT ").append(family).append(" AS family");
-    q.append("     , AVG(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    q.append(" FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
-    q.append(" WHERE s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NULL");
-    q.append("   AND s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID).append(" IN (");
-    q.append("     SELECT ").append(DB.COL_ID).append(" FROM ").append(DB.TABLE_TIMEHISTORY);
-    q.append("      WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
-    q.append("        AND ").append(DB.COL_TIMEHISTORY_TIME).append(" > 0");
-    // The window and the threshold are written into the query rather than bound: a bound value
-    // arrives as text, and neither LIMIT nor a COUNT(*) comparison has a column's affinity to turn
-    // it back into a number, so "COUNT(*) >= '5'" is false for every count there is.
-    q.append("      ORDER BY ").append(DB.COL_TIMEHISTORY_TIMESTAMP);
-    q.append(" DESC LIMIT ").append(lastSolves).append(")");
-    q.append(" GROUP BY family");
-    q.append(" HAVING COUNT(*) >= ").append(minSolves);
-    Cursor cursor = db.rawQuery(q.toString(), getStringArray(solveType.getId()));
-    if (cursor != null) {
-      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        averages.put(cursor.getString(0), cursor.getLong(1));
-      }
-      cursor.close();
-    }
-    return averages;
-  }
-
   /** The best time of a solve type other than the given solve's, null when it has no rival. */
   private Long getBestTimeExcluding(SolveTimeAverages sta) {
     Long best = null;

@@ -61,9 +61,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
@@ -110,75 +108,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
     setUpActions(view);
     setUpSwipe(view);
-    loadStepAverages();
     bindSolve(view);
     return dialog;
-  }
-
-  /** The window a step is held against, and the solves it takes before an average is worth one. */
-  private static final int STEP_WINDOW = 50;
-  private static final int MIN_STEP_SOLVES = 5;
-
-  private Map<String, Long> stepAverages;
-  private List<Long> userStepAverages;
-
-  /**
-   * What each step of this solve type has been taking lately, read once for the sheet rather than
-   * per solve: a swipe moves along one solve type's list, so the averages behind it do not change.
-   * The breakdown is drawn again when they land, since they arrive after the first solve is up.
-   *
-   * <p>The user's own steps are held against the Ao50 the timer screen shows for them; the method's
-   * are held against the mean of the same window, which is the only average kept for them.
-   */
-  private void loadStepAverages() {
-    final SolveType solveType = solveTime.getSolveType();
-    App.INSTANCE.getService().getStepAverages(solveType, STEP_WINDOW, MIN_STEP_SOLVES,
-        new DataCallback<Map<String, Long>>() {
-          @Override
-          public void onData(final Map<String, Long> data) {
-            if (data == null || data.isEmpty()) {
-              return; // nothing to add, so the breakdown already on screen is the finished one
-            }
-            redrawWith(new Runnable() {
-              @Override
-              public void run() {
-                stepAverages = data;
-              }
-            });
-          }
-        });
-    if (solveType.hasSteps()) {
-      App.INSTANCE.getService().getSolveAverages(solveType, new DataCallback<SolveAverages>() {
-        @Override
-        public void onData(final SolveAverages data) {
-          if (data == null || data.getStepsAvgOf50() == null) {
-            return;
-          }
-          redrawWith(new Runnable() {
-            @Override
-            public void run() {
-              userStepAverages = data.getStepsAvgOf50();
-            }
-          });
-        }
-      });
-    }
-  }
-
-  private void redrawWith(final Runnable assign) {
-    Activity activity = getActivity();
-    if (activity == null) {
-      return;
-    }
-    activity.runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        assign.run();
-        if (view != null) {
-          bindSolve(view);
-        }
-      }
-    });
   }
 
   /**
@@ -630,21 +561,19 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     boolean split = userSteps == null;
     boolean moves = !solution.isEmpty(); // a solve no cube saw has a column's worth of nothing to say
-    boolean deltas = hasAnyAverage(steps, userSteps);
     breakdownSteps = new ArrayList<SolveStep>(steps);
     int[] colors = getStepColors();
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
     TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
-    table.addView(headerRow(split, moves, deltas));
+    table.addView(headerRow(split, moves));
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       TextView name = cell(R.style.BreakdownStepName, stepName(step, i, userSteps));
       name.setTextColor(Utils.isTailSegment(step.getName())
           ? ContextCompat.getColor(getActivity(), R.color.gray600)
           : colors[i % colors.length]);
-      TextView delta = deltas ? deltaCell(step, averageFor(step, i, userSteps)) : null;
-      TableRow row = stepRow(step, name, moves ? moveCountOf(solution, i) : null, split, delta);
+      TableRow row = stepRow(step, name, moves ? moveCountOf(solution, i) : null, split);
       table.addView(row);
 
       StepRows stepRows = new StepRows(name);
@@ -653,7 +582,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       stepRows.moves = movesRow(table, R.style.BreakdownMoves, movesOf(solution, i));
       List<SolveStep> parts = step.getSubSteps();
       for (int j = 0; j < parts.size(); j++) {
-        TableRow partRow = subStepRow(parts.get(j), j, partMoveCountOf(solution, i, j), deltas);
+        TableRow partRow = subStepRow(parts.get(j), j, partMoveCountOf(solution, i, j));
         table.addView(partRow);
         stepRows.partRows.add(partRow);
         stepRows.partMoves.add(movesRow(table, R.style.BreakdownSubMoves, partMovesOf(solution, i, j)));
@@ -923,7 +852,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     return colors;
   }
 
-  private TableRow headerRow(boolean split, boolean moves, boolean deltas) {
+  private TableRow headerRow(boolean split, boolean moves) {
     TableRow row = new TableRow(getActivity());
     row.addView(cell(R.style.BreakdownHeaderName, getString(R.string.breakdown_step)));
     if (split) {
@@ -931,21 +860,14 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_execution)));
     }
     row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_total)));
-    if (deltas) {
-      row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_vs, STEP_WINDOW)));
-    }
     if (moves) {
       row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_moves)));
     }
     return row;
   }
 
-  /**
-   * @param moveCount null on a solve with no moves, which drops the column rather than empty it
-   * @param delta the step against its own average, or null when no step on the table has one
-   */
-  private TableRow stepRow(SolveStep step, TextView name, String moveCount, boolean split,
-      TextView delta) {
+  /** @param moveCount null on a solve with no moves, which drops the column rather than empty it */
+  private TableRow stepRow(SolveStep step, TextView name, String moveCount, boolean split) {
     TableRow row = new TableRow(getActivity());
     row.addView(name);
     if (split) {
@@ -953,66 +875,21 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       row.addView(cell(R.style.BreakdownCell, formatTime(step.getExecutionMs())));
     }
     row.addView(cell(R.style.BreakdownCell, formatTime(step.getTotalMs())));
-    if (delta != null) {
-      row.addView(delta);
-    }
     if (moveCount != null) {
       row.addView(cell(R.style.BreakdownRecognitionCell, moveCount));
     }
     return row;
   }
 
-  /** A part holds a blank where its step carries a delta: only whole steps are held to an average. */
-  private TableRow subStepRow(SolveStep part, int position, String moveCount, boolean deltas) {
+  private TableRow subStepRow(SolveStep part, int position, String moveCount) {
     TableRow row = new TableRow(getActivity());
     row.addView(cell(R.style.BreakdownSubName, withSolvedPieces(part, withPairColors(part.getName(),
         Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)))));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
-    if (deltas) {
-      row.addView(cell(R.style.BreakdownSubCell, ""));
-    }
     row.addView(cell(R.style.BreakdownSubCell, moveCount));
     return row;
-  }
-
-  /**
-   * A step against what it has been taking: signed, green when it beat that and red when it did not.
-   * A step with no average of its own holds a blank, so the columns beside it stay in line.
-   */
-  private TextView deltaCell(SolveStep step, Long average) {
-    if (average == null || average <= 0 || Utils.isTailSegment(step.getName())) {
-      return cell(R.style.BreakdownDeltaCell, "");
-    }
-    long delta = step.getTotalMs() - average;
-    String sign = delta > 0 ? "+" : delta < 0 ? "-" : ""; // a step bang on its average signs nothing
-    TextView view = cell(R.style.BreakdownDeltaCell, sign + formatTime(Math.abs(delta)));
-    view.setTextColor(color(delta > 0 ? R.color.cube_red : R.color.green));
-    return view;
-  }
-
-  /**
-   * What this step usually takes. The user's own steps are averaged by position, as the timer shows
-   * them; the method's own by what the step is, so an OLL is held against your OLLs.
-   */
-  private Long averageFor(SolveStep step, int index, SolveTypeStep[] userSteps) {
-    if (userSteps != null) {
-      return userStepAverages != null && index < userStepAverages.size()
-          ? userStepAverages.get(index) : null;
-    }
-    return stepAverages == null ? null : stepAverages.get(Utils.toStepFamily(step.getName()));
-  }
-
-  /** The column is there for the whole table or not at all, rather than appearing on some rows. */
-  private boolean hasAnyAverage(List<SolveStep> steps, SolveTypeStep[] userSteps) {
-    for (int i = 0; i < steps.size(); i++) {
-      Long average = averageFor(steps.get(i), i, userSteps);
-      if (average != null && average > 0 && !Utils.isTailSegment(steps.get(i).getName())) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

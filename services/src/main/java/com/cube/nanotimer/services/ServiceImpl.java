@@ -303,17 +303,6 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
-  public void getStepAverages(final SolveType solveType, final int lastSolves, final int minSolves,
-      final DataCallback<Map<String, Long>> callback) {
-    run(new Runnable() {
-      @Override
-      public void run() {
-        callback.onData(provider.getStepAverages(solveType, lastSolves, minSolves));
-      }
-    });
-  }
-
-  @Override
   public void getSessionDetails(final SolveType solveType, final DataCallback<SessionDetails> callback) {
     run(new Runnable() {
       @Override

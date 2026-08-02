@@ -246,22 +246,6 @@ public class Utils {
   }
 
   /**
-   * The step a code belongs to, with whatever it turned out to be dropped: "oll_21" and a plain
-   * "oll" are both an OLL, and "pair_gb" is a pair. What a step has been taking lately is averaged
-   * per family, since a per-case average would be taken over a handful of solves at best.
-   *
-   * <p>The same fold is done in SQL by {@code ServiceProviderImpl.getStepAverages}, so a step drawn
-   * here finds the average stored for it.
-   */
-  public static String toStepFamily(String code) {
-    if (code == null) {
-      return null;
-    }
-    int at = code.indexOf('_');
-    return at > 0 ? code.substring(0, at) : code;
-  }
-
-  /**
    * The two faces an F2L pair sits between, from its slot code, or null for any other step (and for
    * the pairs of solves recorded before the slot was stored).
    */

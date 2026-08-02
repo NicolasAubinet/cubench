@@ -39,7 +39,6 @@ public interface Service {
   void getSessionStart(SolveType solveType, DataCallback<Long> callback);
   void saveSolveTypesOrder(List<SolveType> solveTypes, DataCallback<Void> callback);
   void getSolveTimeAverages(SolveTime solveTime, DataCallback<SolveTimeAverages> callback);
-  void getStepAverages(SolveType solveType, int lastSolves, int minSolves, DataCallback<Map<String, Long>> callback);
   void getSessionDetails(SolveType solveType, DataCallback<SessionDetails> callback);
   void getSessionDetails(SolveType solveType, long from, long to, DataCallback<SessionDetails> callback);
   void getSessionStarts(SolveType solveType, DataCallback<List<Long>> callback);
