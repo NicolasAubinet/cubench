@@ -774,6 +774,9 @@
     <item>9th best ever</item>
     <item>10th best ever</item>
   </string-array>
+  <!-- Column header over each step against its own recent average. Untranslated on purpose: it is
+       "vs" and a number in all four locales, and a column header has no room for more. -->
+  <string name="breakdown_vs">vs %1$d</string>
   <string name="verdict_faster">%1$s faster than your %2$s</string>
   <string name="verdict_slower">%1$s slower than your %2$s</string>
 </resources>

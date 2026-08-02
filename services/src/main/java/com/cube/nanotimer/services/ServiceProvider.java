@@ -37,6 +37,7 @@ public interface ServiceProvider {
   long getSessionStart(SolveType solveType);
   void saveSolveTypesOrder(List<SolveType> solveTypes);
   SolveTimeAverages getSolveTimeAverages(SolveTime solveTime);
+  Map<String, Long> getStepAverages(SolveType solveType, int lastSolves, int minSolves);
   SessionDetails getSessionDetails(SolveType solveType, Long from, Long to);
   List<Long> getSessionStarts(SolveType solveType);
   int getSolvesCount(SolveType solveType);
