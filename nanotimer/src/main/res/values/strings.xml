@@ -732,4 +732,6 @@
   <string name="today">Today</string>
   <string name="yesterday">Yesterday</string>
   <string name="acc_label">Acc</string>
+  <string name="time_just_now">just now</string>
+  <string name="time_minutes_ago">%1$d min ago</string>
 </resources>

@@ -721,4 +721,6 @@
   <string name="today">Hoy</string>
   <string name="yesterday">Ayer</string>
   <string name="acc_label">Prec</string>
+  <string name="time_just_now">ahora mismo</string>
+  <string name="time_minutes_ago">hace %1$d min</string>
 </resources>

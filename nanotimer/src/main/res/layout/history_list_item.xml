@@ -38,22 +38,22 @@
      android:layout_height="wrap_content"
      android:orientation="horizontal"
      android:gravity="center_vertical"
-     android:minHeight="46dp"
+     android:minHeight="52dp"
      android:background="@drawable/history_row"
      android:duplicateParentState="true"
      android:paddingLeft="@dimen/space_xs"
      android:paddingRight="@dimen/space_xs"
-     android:paddingTop="@dimen/space_s"
-     android:paddingBottom="@dimen/space_s">
+     android:paddingTop="10dp"
+     android:paddingBottom="10dp">
 
     <!-- Tabular digits and a floor on the width, so the timestamps line up into a column. -->
     <TextView
        android:id="@+id/tvTime"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
-       android:minWidth="76dp"
+       android:minWidth="94dp"
        android:textStyle="bold"
-       android:textSize="19sp"
+       android:textSize="24sp"
        android:fontFeatureSettings="tnum"
        android:singleLine="true"/>
 
@@ -97,7 +97,7 @@
        android:layout_marginStart="@dimen/space_s"
        android:gravity="end"
        android:textColor="@color/secondary_text"
-       android:textSize="13sp"
+       android:textSize="13.5sp"
        android:fontFeatureSettings="tnum"
        android:singleLine="true"
        android:ellipsize="end"/>

@@ -115,6 +115,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   // Position of the first solve of each day, to its heading. Rebuilt whenever the list changes,
   // so binding a row stays a lookup.
   private final Map<Integer, String> dayHeaders = new HashMap<>();
+  private final Handler timeAgoHandler = new Handler();
   private HistoryListAdapter historyListAdapter;
   private MenuListAdapter menuListAdapter;
   private SmartCubeChip smartCubeChip;
@@ -143,6 +144,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   /** How many recent solves the sparkline draws, whatever the color sample size is set to. */
   private static final int TREND_SIZE = 50;
+
+  /** How often today's rows re-state how long ago they were, while the screen is just sitting there. */
+  private static final long TIME_AGO_TICK_MS = 30000;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -442,12 +446,32 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     refreshCubeTypes();
 
     setSortMode(TimesSort.TIMESTAMP);
+    startTimeAgoTicks();
   }
 
   @Override
   protected void onPause() {
     super.onPause();
     smartCubeChip.stop();
+    timeAgoHandler.removeCallbacksAndMessages(null);
+  }
+
+  /**
+   * Today's rows say how long ago they were, so they go stale just by being looked at. Re-stating
+   * them on a beat also picks up the day rolling over, which moves the headings as well.
+   */
+  private void startTimeAgoTicks() {
+    timeAgoHandler.removeCallbacksAndMessages(null);
+    timeAgoHandler.postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        if (timesSort == TimesSort.TIMESTAMP && !liHistory.isEmpty()) {
+          rebuildDayHeaders();
+          historyListAdapter.notifyDataSetChanged();
+        }
+        timeAgoHandler.postDelayed(this, TIME_AGO_TICK_MS);
+      }
+    }, TIME_AGO_TICK_MS);
   }
 
   /**
@@ -1085,11 +1109,12 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
         SolveTime st = liHistory.get(position);
         if (st != null) {
-          // Grouped by day the date is overhead, so the row states only which solve of that day
-          // it was; sorted by time there are no days, so it states the whole timestamp.
-          ((TextView) view.findViewById(R.id.tvDate)).setText(timesSort == TimesSort.TIMESTAMP
-            ? FormatterService.INSTANCE.formatTimeOfDay(st.getTimestamp())
-            : FormatterService.INSTANCE.formatDateTime(st.getTimestamp()));
+          // A day already has its date in its heading, so the row need only say when in the day it
+          // was, and for a recent one how long ago. Sorted by time there are no days to group, so
+          // the row states the whole timestamp.
+          ((TextView) view.findViewById(R.id.tvDate)).setText(
+            timesSort != TimesSort.TIMESTAMP ? FormatterService.INSTANCE.formatDateTime(st.getTimestamp())
+              : FormatterService.INSTANCE.formatSolveMoment(st.getTimestamp(), System.currentTimeMillis()));
 
           TextView tvTime = (TextView) view.findViewById(R.id.tvTime);
           tvTime.setText(FormatterService.INSTANCE.formatSolveTime(st.getTime()));

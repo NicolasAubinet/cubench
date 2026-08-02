@@ -15,6 +15,9 @@ public enum FormatterService {
 
   private static final String EXPORT_DATE_FORMAT = "MMM d yyyy - HH:mm:ss";
 
+  private static final long MINUTE_MS = 60000;
+  private static final long HOUR_MS = 60 * MINUTE_MS;
+
   public String formatSolveTime(Long solveTime) {
     return formatSolveTime(solveTime, null);
   }
@@ -160,6 +163,26 @@ public enum FormatterService {
     }
     SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy · HH:mm:ss", Locale.ENGLISH);
     return sdf.format(new Date(ms));
+  }
+
+  /**
+   * When a solve happened, as a history row says it: how long ago for one within the hour, which is
+   * what you are reading a running session for, and the time of day for anything older. Past an
+   * hour the relative figure stops telling one row from another, and a whole sitting would read
+   * "2 h ago" all the way down. The solve's own screen always states the moment itself.
+   */
+  public String formatSolveMoment(Long timestamp, long now) {
+    if (timestamp == null) {
+      return "";
+    }
+    long elapsed = now - timestamp;
+    if (elapsed < 0 || elapsed >= HOUR_MS) {
+      return formatTimeOfDay(timestamp);
+    }
+    if (elapsed < MINUTE_MS) {
+      return App.INSTANCE.getContext().getString(R.string.time_just_now);
+    }
+    return App.INSTANCE.getContext().getString(R.string.time_minutes_ago, elapsed / MINUTE_MS);
   }
 
   /** The time of day alone, for a row whose date is already carried by its day heading. */
