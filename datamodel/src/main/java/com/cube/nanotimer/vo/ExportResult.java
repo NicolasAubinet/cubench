@@ -24,6 +24,7 @@ public class ExportResult {
   // The smart-cube record of the solve, all null unless a cube drove it (see SolveTime).
   private CubeMethod smartcubeMethod;
   private String smartcubeMoves;
+  private String smartcubeGyroTrack;
   private List<SolveStep> smartcubeSteps;
   private Integer smartcubeStoppedStep;
 
@@ -187,6 +188,15 @@ public class ExportResult {
 
   public void setSmartcubeMoves(String smartcubeMoves) {
     this.smartcubeMoves = smartcubeMoves;
+  }
+
+  /** The solve's gyro track, null unless the cube had a gyro (see SolveTime). */
+  public String getSmartcubeGyroTrack() {
+    return smartcubeGyroTrack;
+  }
+
+  public void setSmartcubeGyroTrack(String smartcubeGyroTrack) {
+    this.smartcubeGyroTrack = smartcubeGyroTrack;
   }
 
   public List<SolveStep> getSmartcubeSteps() {

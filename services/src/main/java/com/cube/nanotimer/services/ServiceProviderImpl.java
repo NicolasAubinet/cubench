@@ -1095,6 +1095,8 @@ public class ServiceProviderImpl implements ServiceProvider {
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
+      // Kilobytes a row, but an export is the one reader that wants every solve's (see getGyroTrack).
+      q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SMARTCUBE_GYRO);
       q.append("     , ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
       q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
       q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
@@ -1121,7 +1123,8 @@ public class ServiceProviderImpl implements ServiceProvider {
           result.setSmartcubeMethod(CubeMethod.fromCode(cursor.getString(12)));
           result.setSmartcubeMoves(cursor.getString(13));
           result.setSmartcubeStoppedStep(cursor.isNull(14) ? null : cursor.getInt(14));
-          result.setTimeBeforeDnf(getCursorLong(cursor, 15));
+          result.setSmartcubeGyroTrack(cursor.getString(15));
+          result.setTimeBeforeDnf(getCursorLong(cursor, 16));
           curResults.add(result);
         }
         cursor.close();

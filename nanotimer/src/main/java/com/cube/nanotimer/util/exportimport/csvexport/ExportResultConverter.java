@@ -2,6 +2,7 @@ package com.cube.nanotimer.util.exportimport.csvexport;
 
 import android.content.Context;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.GyroTrackFormat;
 import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveStepsFormat;
 import com.cube.nanotimer.util.FormatterService;
@@ -15,6 +16,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ExportResultConverter {
+
+  // The gyro track rides at the end of the moves field, as "R@0 U'@180 gyro:AbCd", so the file
+  // needs no new column and every layout already written stays importable. Carrying no '@' it is
+  // not a move, so SolveMovesFormat.parse drops it as it drops the pick-up grip.
+  // ⚠️ The file's packing alone: in the DB the track has its own column, because smartcube_moves
+  // is read for every history row just as a "replayable" flag and a CSV field has no such reader.
+  private static final String GYRO_MARKER = "gyro:";
 
   static String encodeComment(String comment) {
     return comment
@@ -48,7 +56,8 @@ public class ExportResultConverter {
    */
   public static String toCSVLine(ExportResult result, boolean withSmartcubeFields) {
     if (!withSmartcubeFields
-        && (result.getSmartcubeMoves() != null || result.hasSmartcubeBreakdown())) {
+        && (result.getSmartcubeMoves() != null || result.getSmartcubeGyroTrack() != null
+            || result.hasSmartcubeBreakdown())) {
       // Writing this solve without its smart-cube columns would silently drop recorded data.
       throw new IllegalArgumentException("Solve carries smart cube data the format cannot hold");
     }
@@ -82,9 +91,7 @@ public class ExportResultConverter {
         sb.append(result.getSmartcubeMethod().getCode());
       }
       sb.append(",");
-      if (result.getSmartcubeMoves() != null) {
-        sb.append(result.getSmartcubeMoves());
-      }
+      sb.append(packMoves(result.getSmartcubeMoves(), result.getSmartcubeGyroTrack()));
       sb.append(",");
       if (result.hasSmartcubeBreakdown()) {
         sb.append(SolveStepsFormat.format(result.getSmartcubeSteps()));
@@ -215,16 +222,52 @@ public class ExportResultConverter {
     result.setTimeBeforeDnf(time);
   }
 
+  /** The moves field as it is written: the solution, then the gyro track if the solve has one. */
+  static String packMoves(String moves, String gyroTrack) {
+    StringBuilder sb = new StringBuilder();
+    if (moves != null) {
+      sb.append(moves);
+    }
+    if (gyroTrack != null && !gyroTrack.isEmpty()) {
+      if (sb.length() > 0) {
+        sb.append(' ');
+      }
+      sb.append(GYRO_MARKER).append(gyroTrack);
+    }
+    return sb.toString();
+  }
+
+  /** The solution out of a moves field, without the gyro track riding at the end of it. */
+  static String movesIn(String movesField) {
+    int at = gyroTrackAt(movesField);
+    return (at < 0 ? movesField : movesField.substring(0, at)).trim();
+  }
+
+  /** The gyro track out of a moves field, empty where it carries none. */
+  static String gyroTrackIn(String movesField) {
+    int at = gyroTrackAt(movesField);
+    return at < 0 ? "" : movesField.substring(at + GYRO_MARKER.length()).trim();
+  }
+
+  /** Only a token of its own is the marker: a hand-edited field could hold the text anywhere. */
+  private static int gyroTrackAt(String movesField) {
+    int at = movesField.lastIndexOf(GYRO_MARKER);
+    return at > 0 && movesField.charAt(at - 1) != ' ' ? -1 : at;
+  }
+
   /**
    * Applies a new-format line's smart-cube fields, validating them as one record: the fields
-   * reference each other (steps need their method, the stopped step points into the steps), so a
-   * half-valid set is rejected whole rather than half-imported. Empty fields mean a solve no cube
-   * drove and stay null.
+   * reference each other (steps need their method, the stopped step points into the steps, a gyro
+   * track describes a solution), so a half-valid set is rejected whole rather than half-imported.
+   * Empty fields mean a solve no cube drove and stay null.
+   *
+   * @param movesField the solution, and the gyro track at the end of it (see GYRO_MARKER)
    */
-  static void applySmartcubeFields(ExportResult result, String method, String moves, String steps,
-      String stoppedStep) {
+  static void applySmartcubeFields(ExportResult result, String method, String movesField,
+      String steps, String stoppedStep) {
     method = method.trim(); // tolerate hand-edited whitespace, in every field
-    moves = moves.trim();
+    String moves = movesIn(movesField);
+    String gyroTrack = gyroTrackIn(movesField);
     steps = steps.trim();
     stoppedStep = stoppedStep.trim();
     if (!method.isEmpty()) {
@@ -239,6 +282,15 @@ public class ExportResultConverter {
         throw new IllegalArgumentException("Unreadable moves: \"" + moves + "\"");
       }
       result.setSmartcubeMoves(moves);
+    }
+    if (!gyroTrack.isEmpty()) {
+      if (moves.isEmpty()) { // the persistence layer keeps a track only alongside its solution
+        throw new IllegalArgumentException("A gyro track with no moves to go with");
+      }
+      if (GyroTrackFormat.parse(gyroTrack) == null) {
+        throw new IllegalArgumentException("Unreadable gyro track");
+      }
+      result.setSmartcubeGyroTrack(gyroTrack);
     }
     List<SolveStep> parsedSteps = SolveStepsFormat.parse(steps);
     if (!parsedSteps.isEmpty()) {

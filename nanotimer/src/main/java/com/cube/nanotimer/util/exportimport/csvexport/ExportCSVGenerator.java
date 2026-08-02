@@ -74,7 +74,8 @@ public class ExportCSVGenerator implements CSVGenerator {
     boolean hasSmartcubeData = false;
     for (ExportResult result : results) {
       hasSmartcubeData = hasSmartcubeData
-          || result.getSmartcubeMoves() != null || result.hasSmartcubeBreakdown();
+          || result.getSmartcubeMoves() != null || result.getSmartcubeGyroTrack() != null
+          || result.hasSmartcubeBreakdown();
     }
     this.smartcubeFormat = hasSmartcubeData;
   }
