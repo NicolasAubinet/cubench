@@ -78,14 +78,16 @@ public final class SolveBreakdown {
   }
 
   /**
-   * The same breakdown without the stopping time — for the timer screen, where the legend is a
-   * share of the screen and that segment is not something the solver acts on. It is still real, and
-   * the detail sheet still shows it; here it would cost a cell to say the cube was put down.
+   * The same breakdown without either derived tail — for the timer screen, where the legend is a
+   * share of the screen and neither segment is something the solver acts on. Both are still real,
+   * and the detail sheet shows them; here they cost a cell to say the cube was put down, or that the
+   * turning after the last milestone reached no other. A fourth cell also wraps the legend onto a
+   * second line, which is how the tail came to be noticed at all.
    */
-  public static List<SolveStep> withoutGap(List<SolveStep> steps) {
+  public static List<SolveStep> withoutTail(List<SolveStep> steps) {
     List<SolveStep> result = new ArrayList<SolveStep>();
     for (SolveStep step : steps) {
-      if (!GAP_STEP.equals(step.getName())) {
+      if (!GAP_STEP.equals(step.getName()) && !UNFINISHED_STEP.equals(step.getName())) {
         result.add(step);
       }
     }
