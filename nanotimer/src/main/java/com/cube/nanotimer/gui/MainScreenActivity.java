@@ -56,10 +56,13 @@ import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.EnterAnimation;
 import com.cube.nanotimer.util.view.PuzzleIcons;
+import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.SparklineView;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.TimesSort;
@@ -119,6 +122,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   // (and the scale left neutral) when Options.isColorHistoryTimes() is off.
   private TimeColorScale timeColorScale;
   private int recordColor;
+  private int[] stepColors;
 
   private Toast quitMessage;
   private boolean inQuitMode;
@@ -183,6 +187,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     super.initViews();
     timeColorScale = new TimeColorScale(this);
     recordColor = ContextCompat.getColor(this, R.color.new_record);
+    stepColors = SolveStepBars.stepColors(this);
 
     tvCubeType = (TextView) findViewById(R.id.tvCubeType);
     tvSolveType = (TextView) findViewById(R.id.tvSolveType);
@@ -1082,6 +1087,14 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
           boolean commented = st.getComment() != null && !st.getComment().trim().isEmpty();
           view.findViewById(R.id.imgComment).setVisibility(commented ? View.VISIBLE : View.GONE);
+
+          // A solve that was broken down draws its shape beside its time.
+          List<SolveStep> rowSteps = SolveStepBars.forRow(st);
+          SolveStepBarView stepBar = (SolveStepBarView) view.findViewById(R.id.rowStepBar);
+          stepBar.setVisibility(rowSteps.isEmpty() ? View.GONE : View.VISIBLE);
+          if (!rowSteps.isEmpty()) {
+            stepBar.setSteps(rowSteps, stepColors);
+          }
         }
       }
       return view;

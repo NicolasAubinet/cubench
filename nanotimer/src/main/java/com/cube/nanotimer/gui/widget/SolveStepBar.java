@@ -2,7 +2,6 @@ package com.cube.nanotimer.gui.widget;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -17,6 +16,7 @@ import com.cube.nanotimer.util.ScaleUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.ScalingLinearLayout;
 import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,12 +42,7 @@ public class SolveStepBar extends LinearLayout {
     setOrientation(VERTICAL);
     LayoutInflater.from(context).inflate(R.layout.solve_step_bar, this);
 
-    TypedArray stepColors = getResources().obtainTypedArray(R.array.solve_step_colors);
-    colors = new int[stepColors.length()];
-    for (int i = 0; i < colors.length; i++) {
-      colors[i] = stepColors.getColor(i, 0);
-    }
-    stepColors.recycle();
+    colors = SolveStepBars.stepColors(context);
 
     bar = findViewById(R.id.solveStepBarView);
     legend = findViewById(R.id.stepLegend);

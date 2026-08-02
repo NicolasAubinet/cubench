@@ -57,6 +57,16 @@
        android:fontFeatureSettings="tnum"
        android:singleLine="true"/>
 
+    <!-- The shape of the solve, at row scale: the same bar the timer draws, stripped to the
+         colours. Only for a solve there is a breakdown for, by a cube or by hand. -->
+    <com.cube.nanotimer.util.view.SolveStepBarView
+       android:id="@+id/rowStepBar"
+       android:layout_width="46dp"
+       android:layout_height="9dp"
+       android:layout_marginLeft="@dimen/space_m"
+       android:layout_marginStart="@dimen/space_m"
+       android:visibility="gone"/>
+
     <TextView
        android:id="@+id/tvPbChip"
        android:text="@string/record_label_lifetime"
