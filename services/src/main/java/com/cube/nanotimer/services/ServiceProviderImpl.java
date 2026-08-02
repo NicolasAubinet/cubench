@@ -108,9 +108,16 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append(" JOIN ").append(DB.TABLE_SOLVETYPE);
     q.append("   ON ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_ID);
     q.append("    = ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
-    q.append(" WHERE ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_CUBETYPE_ID).append(" = ?");
+    if (cubeType != null) {
+      q.append(" WHERE ").append(DB.TABLE_SOLVETYPE).append(".").append(DB.COL_SOLVETYPE_CUBETYPE_ID).append(" = ?");
+    }
     q.append(" GROUP BY ").append(DB.TABLE_TIMEHISTORY).append(".").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
     return getCountsPerId(q.toString(), cubeType == null ? null : getStringArray(cubeType.getId()));
+  }
+
+  @Override
+  public Map<Integer, Integer> getSolvesCountPerSolveType() {
+    return getSolvesCountPerSolveType(null);
   }
 
   /** Runs a "SELECT id, COUNT(*) ... GROUP BY id" query into a map. Ids with no rows are absent. */

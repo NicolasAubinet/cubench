@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Where the selection goes. Stacked in portrait, with the primary action under the thumb. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="@dimen/space_m"
+   android:paddingRight="@dimen/space_m"
+   android:paddingBottom="@dimen/space_s">
+
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buSaveToFile"
+     android:text="@string/export_save_to_file"
+     android:layout_marginBottom="@dimen/space_s"
+     style="@style/BigButton"/>
+
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buExport"
+     android:text="@string/export_share"
+     style="@style/PrimaryButton"/>
+
+</LinearLayout>

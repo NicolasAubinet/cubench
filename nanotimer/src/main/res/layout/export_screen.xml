@@ -1,71 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- What is about to leave the app, said once at the top, then one card per puzzle that holds
+     solves. The cards below are what you change; the line above is what you get. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:fitsSystemWindows="true"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
-   android:padding="3dp">
-
-  <ListView
-     android:id="@+id/lvItems"
-     android:layout_width="match_parent"
-     android:layout_height="match_parent"
-     android:layout_above="@+id/separator"
-     android:layout_marginBottom="3dp"
-     android:scrollingCache="false"
-     android:animationCache="false"/>
-
-  <View
-     android:id="@+id/separator"
-     android:layout_width="match_parent"
-     android:layout_height="2dp"
-     android:layout_above="@+id/limitLayout"
-     android:layout_marginBottom="2dp"
-     style="@style/DividerRow"/>
+   android:orientation="vertical"
+   android:background="@color/graybg">
 
   <LinearLayout
-     android:id="@+id/limitLayout"
-     android:orientation="horizontal"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_marginBottom="3dp"
-     android:layout_above="@+id/buSaveToFile">
-    <CheckBox
-       android:id="@+id/cbLimit"
-       android:text="@string/times_limit"
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:paddingLeft="@dimen/space_l"
+     android:paddingRight="@dimen/space_s"
+     android:paddingTop="@dimen/space_s">
+
+    <LinearLayout
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:orientation="vertical">
+
+      <TextView
+         android:text="@string/export_selected"
+         style="@style/DialogSectionLabel"/>
+
+      <!-- Shrinks rather than truncates: a running total cut off mid-figure says nothing. -->
+      <com.cube.nanotimer.util.view.FontFitTextView
+         android:id="@+id/tvSelection"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="1dp"
+         android:textSize="17sp"
+         android:textStyle="bold"
+         android:textColor="@color/white"
+         android:fontFeatureSettings="tnum"
+         android:singleLine="true"/>
+    </LinearLayout>
+
+    <TextView
+       android:id="@+id/tvSelectAll"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
-       android:textSize="18sp"
-       android:checked="false"/>
-    <EditText
-       android:id="@+id/tfLimit"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginLeft="5dp"
-       android:layout_marginStart="5dp"
-       android:text="@string/no_limit"
-       android:textSize="18sp"
-       android:inputType="number"
-       android:enabled="false"/>
+       android:minHeight="44dp"
+       android:gravity="center"
+       android:paddingLeft="@dimen/space_m"
+       android:paddingRight="@dimen/space_m"
+       android:textSize="14sp"
+       android:textStyle="bold"
+       android:textColor="@color/lightblue"
+       android:singleLine="true"
+       android:background="@drawable/hero_selector_row"
+       android:clickable="true"
+       android:focusable="true"/>
   </LinearLayout>
 
-  <androidx.appcompat.widget.AppCompatButton
-     android:id="@+id/buSaveToFile"
-     android:text="@string/export_save_to_file"
-     android:layout_above="@+id/buExport"
-     android:layout_marginLeft="@dimen/space_m"
-     android:layout_marginRight="@dimen/space_m"
-     android:layout_marginBottom="@dimen/space_s"
-     style="@style/BigButton"/>
+  <ScrollView
+     android:id="@+id/scrollView"
+     android:layout_width="match_parent"
+     android:layout_height="0dp"
+     android:layout_weight="1"
+     android:paddingLeft="@dimen/space_m"
+     android:paddingRight="@dimen/space_m"
+     android:clipToPadding="false"
+     android:requiresFadingEdge="vertical"
+     android:fadingEdgeLength="16dp">
 
-  <androidx.appcompat.widget.AppCompatButton
-     android:id="@+id/buExport"
-     android:text="@string/export_share"
-     android:layout_alignParentBottom="true"
-     android:layout_marginLeft="@dimen/space_m"
-     android:layout_marginRight="@dimen/space_m"
-     android:layout_marginTop="@dimen/space_s"
-     android:layout_marginBottom="@dimen/space_s"
-     style="@style/PrimaryButton"/>
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:paddingTop="@dimen/space_s"
+       android:paddingBottom="@dimen/space_m">
 
-</RelativeLayout>
+      <LinearLayout
+         android:id="@+id/puzzleCards"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"/>
+
+      <!-- Puzzles you have never timed are still worth being able to look for, and worth nothing
+           in an export, so they fold away behind one line. -->
+      <TextView
+         android:id="@+id/tvEmptyPuzzles"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:minHeight="40dp"
+         android:gravity="center"
+         android:textSize="13sp"
+         android:textColor="@color/lightblue"
+         android:background="@drawable/hero_selector_row"
+         android:clickable="true"
+         android:focusable="true"
+         android:visibility="gone"/>
+
+      <com.cube.nanotimer.util.view.FlowLayout
+         android:id="@+id/emptyPuzzlePills"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:paddingTop="@dimen/space_xs"
+         android:paddingLeft="@dimen/space_xs"
+         android:paddingRight="@dimen/space_xs"
+         android:visibility="gone"/>
+
+    </LinearLayout>
+  </ScrollView>
+
+  <include layout="@layout/export_actions"/>
+
+</LinearLayout>

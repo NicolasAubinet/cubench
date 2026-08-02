@@ -242,8 +242,24 @@
   <string name="export_times">Export</string>
   <string name="export_summary">Export times history</string>
   <string name="select_all">Select all</string>
-  <string name="times_limit">Times limit:</string>
-  <string name="no_limit">&lt;No Limit&gt;</string>
+  <string name="export_selected">Selected</string>
+  <string name="export_nothing_selected">Nothing selected</string>
+  <plurals name="export_solves_count">
+    <item quantity="one">%d solve</item>
+    <item quantity="other">%d solves</item>
+  </plurals>
+  <plurals name="export_types_count">
+    <item quantity="one">%d type</item>
+    <item quantity="other">%d types</item>
+  </plurals>
+  <string name="export_selection">%1$s · %2$s</string>
+  <string name="export_clear">Clear</string>
+  <string name="export_partial_count">%1$d of %2$d</string>
+  <plurals name="export_show_empty_puzzles">
+    <item quantity="one">Show %d puzzle with no solves</item>
+    <item quantity="other">Show %d puzzles with no solves</item>
+  </plurals>
+  <string name="export_hide_empty_puzzles">Hide puzzles with no solves</string>
   <string name="export_mail_subject">Cubench history export</string>
   <string name="export_mail_body">History export from %1$s</string>
   <string name="send_via">Send via:</string>

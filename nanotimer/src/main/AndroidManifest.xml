@@ -51,7 +51,6 @@
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
        android:exported="false"/>
     <activity android:name=".gui.ExportActivity"
-       android:windowSoftInputMode="stateAlwaysHidden"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden">
     </activity>
     <activity android:name=".gui.ImportActivity"
