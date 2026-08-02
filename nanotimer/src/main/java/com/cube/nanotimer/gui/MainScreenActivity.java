@@ -65,7 +65,6 @@ import com.cube.nanotimer.util.view.SparklineView;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
-import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.TimesSort;
@@ -1127,13 +1126,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           boolean commented = st.getComment() != null && !st.getComment().trim().isEmpty();
           view.findViewById(R.id.imgComment).setVisibility(commented ? View.VISIBLE : View.GONE);
 
-          // A solve that was broken down draws its shape beside its time.
-          List<SolveStep> rowSteps = SolveStepBars.forRow(st);
+          // A solve that was broken down draws its shape beside its time; one the cube read but
+          // could not break down draws a plain block, which still marks it as the cube's.
           SolveStepBarView stepBar = (SolveStepBarView) view.findViewById(R.id.rowStepBar);
-          stepBar.setVisibility(rowSteps.isEmpty() ? View.GONE : View.VISIBLE);
-          if (!rowSteps.isEmpty()) {
-            stepBar.setSteps(rowSteps, stepColors);
-          }
+          boolean painted = SolveStepBars.paintRow(stepBar, st, stepColors);
+          stepBar.setVisibility(painted ? View.VISIBLE : View.GONE);
         }
       }
       return view;

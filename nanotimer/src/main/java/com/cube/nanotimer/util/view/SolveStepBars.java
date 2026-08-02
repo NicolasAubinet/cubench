@@ -3,7 +3,10 @@ package com.cube.nanotimer.util.view;
 import android.content.Context;
 import android.content.res.TypedArray;
 
+import androidx.core.content.ContextCompat;
+
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -36,6 +39,27 @@ public final class SolveStepBars {
   }
 
   /**
+   * Draws a history row's bar for this solve, and says whether there was anything to draw.
+   *
+   * <p>A solve broken down into steps gets those steps in the step colours. A cube-driven solve
+   * whose milestones fitted no method has no steps to draw but is still a solve the cube read, so it
+   * gets one neutral block: it stays told apart from a tap-timed solve without claiming a breakdown
+   * it hasn't got. The block is the colour the bar already paints time that belongs to no step.
+   */
+  public static boolean paintRow(SolveStepBarView bar, SolveTime solveTime, int[] stepColors) {
+    List<SolveStep> steps = forRow(solveTime);
+    if (!steps.isEmpty()) {
+      bar.setSteps(steps, stepColors);
+      return true;
+    }
+    if (solveTime.getSmartcubeMoves() != null) {
+      bar.setSteps(wholeSolve(solveTime), neutralColors(bar.getContext()));
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * The steps of a solve as a history row draws them, from whichever breakdown it has: the one a
    * smart cube read, or the one the user timed by hand. Empty when it has neither.
    */
@@ -44,7 +68,7 @@ public final class SolveStepBars {
       return flatten(solveTime.getSmartcubeSteps());
     }
     if (solveTime.hasSteps()) {
-      return fromStepTimes(solveTime.getStepsTimes());
+      return SolveBreakdown.fromStepTimes(solveTime.getStepsTimes());
     }
     return Collections.emptyList();
   }
@@ -59,13 +83,14 @@ public final class SolveStepBars {
     return flat;
   }
 
-  /** The steps of a solve type timed by hand, which have a duration and nothing else. */
-  private static List<SolveStep> fromStepTimes(Long[] stepTimes) {
-    List<SolveStep> steps = new ArrayList<>(stepTimes.length);
-    for (int i = 0; i < stepTimes.length; i++) {
-      long time = stepTimes[i] == null ? 0 : stepTimes[i];
-      steps.add(new SolveStep(i, null, 0, Math.max(0, time), Collections.<SolveStep>emptyList()));
-    }
-    return steps;
+  /** The solve as one undivided block, for a bar with no steps to show. */
+  private static List<SolveStep> wholeSolve(SolveTime solveTime) {
+    long time = Math.max(1, solveTime.getTime()); // a DNF's time is negative, which would draw nothing
+    return Collections.singletonList(
+      new SolveStep(0, null, 0, time, Collections.<SolveStep>emptyList()));
+  }
+
+  private static int[] neutralColors(Context context) {
+    return new int[] { ContextCompat.getColor(context, R.color.gray600) };
   }
 }
