@@ -124,6 +124,27 @@
   <!-- Ink for text sitting on the accent itself, where white would not hold. -->
   <color name="on_accent">#12181C</color>
 
+  <!-- One hue per puzzle, walked round the wheel at a fixed chroma so twelve of them read as a
+       set rather than as a scatter: the cubes climb from cyan into violet as they grow, and the
+       rest take the warm half. 3x3 keeps the app's own accent. -->
+  <color name="puzzle_2x2">#6ED9C4</color>
+  <color name="puzzle_3x3">@color/lightblue</color>
+  <color name="puzzle_4x4">#7FB6F2</color>
+  <color name="puzzle_5x5">#9C9AF0</color>
+  <color name="puzzle_6x6">#C193EC</color>
+  <color name="puzzle_7x7">#EC8FDC</color>
+  <color name="puzzle_megaminx">#F08FB4</color>
+  <color name="puzzle_fto">#F5A18C</color>
+  <color name="puzzle_pyraminx">#F0B570</color>
+  <color name="puzzle_skewb">#E8CB6A</color>
+  <color name="puzzle_square1">#C7DB74</color>
+  <color name="puzzle_clock">#8FD98F</color>
+
+  <!-- A solve type has no colour of its own, so it takes one from what kind it is. -->
+  <color name="solvetype_plain">@color/lightblue</color>
+  <color name="solvetype_blind">#B49BE8</color>
+  <color name="solvetype_steps">#7FD98A</color>
+
   <color name="card_divider">@color/iceblue</color>
   <!--<color name="listview_background">@color/main_element</color>-->
   <color name="listview_divider">@color/gray800</color>

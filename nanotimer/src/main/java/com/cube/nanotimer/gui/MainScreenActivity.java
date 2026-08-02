@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build.VERSION;
@@ -86,6 +88,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private TextView tvSolveType;
   private TextView tvSolvesCount;
   private ImageView imgCubeType;
+  private View heroGlyphTile;
   private ImageView imgSolveTypeKind;
   private SparklineView sparkline;
   private View sparklineBlock;
@@ -193,6 +196,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     tvSolveType = (TextView) findViewById(R.id.tvSolveType);
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
     imgCubeType = (ImageView) findViewById(R.id.imgCubeType);
+    heroGlyphTile = findViewById(R.id.heroGlyphTile);
     imgSolveTypeKind = (ImageView) findViewById(R.id.imgSolveTypeKind);
     sparkline = (SparklineView) findViewById(R.id.sparkline);
     sparklineBlock = findViewById(R.id.sparklineBlock);
@@ -275,34 +279,42 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private void openCubeTypePicker() {
     ArrayList<String> names = new ArrayList<>();
-    ArrayList<String> figures = new ArrayList<>();
+    ArrayList<String> counts = new ArrayList<>();
     ArrayList<Integer> icons = new ArrayList<>();
+    ArrayList<Integer> colors = new ArrayList<>();
     for (CubeType cubeType : cubeTypes) {
       names.add(cubeType.getName());
-      figures.add(formatCount(cubeTypeCounts.get(cubeType.getId())));
+      counts.add(formatCount(cubeTypeCounts.get(cubeType.getId())));
       icons.add(PuzzleIcons.forCubeType(cubeType));
+      colors.add(PuzzleIcons.colorForCubeType(cubeType));
     }
-    DialogUtils.showFragment(this, SelectorListDialog.newInstance(ID_CUBETYPE, getString(R.string.cube_type),
-      names, figures, icons, cubeTypes.indexOf(curCubeType), null, 0, this));
+    DialogUtils.showFragment(this, SelectorListDialog
+      .newInstance(ID_CUBETYPE, names, counts, icons, colors, cubeTypes.indexOf(curCubeType), null, 0, this)
+      .setHeader(getString(R.string.cube_type), currentPuzzleName(),
+        PuzzleIcons.forCubeType(curCubeType), PuzzleIcons.colorForCubeType(curCubeType)));
   }
 
   private void openSolveTypePicker() {
     ArrayList<String> names = new ArrayList<>();
-    ArrayList<String> figures = new ArrayList<>();
+    ArrayList<String> counts = new ArrayList<>();
     ArrayList<Integer> icons = new ArrayList<>();
+    ArrayList<Integer> colors = new ArrayList<>();
     int selectedIndex = -1;
     for (int i = 0; i < solveTypes.size(); i++) {
       SolveType solveType = solveTypes.get(i);
       names.add(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
-      figures.add(formatCount(solveTypeCounts.get(solveType.getId())));
+      counts.add(formatCount(solveTypeCounts.get(solveType.getId())));
       icons.add(solveTypeIcon(solveType));
+      colors.add(solveTypeColor(solveType));
       if (curSolveType != null && curSolveType.getId() == solveType.getId()) {
         selectedIndex = i;
       }
     }
-    DialogUtils.showFragment(this, SelectorListDialog.newInstance(ID_SOLVETYPE, getString(R.string.solve_type),
-      names, figures, icons, selectedIndex, getString(R.string.edit_solve_types_dots),
-      R.drawable.ic_action_edit, this));
+    DialogUtils.showFragment(this, SelectorListDialog
+      .newInstance(ID_SOLVETYPE, names, counts, icons, colors, selectedIndex,
+        getString(R.string.edit_solve_types_dots), R.drawable.ic_action_edit, this)
+      .setHeader(getString(R.string.solve_type), currentPuzzleName(),
+        PuzzleIcons.forCubeType(curCubeType), PuzzleIcons.colorForCubeType(curCubeType)));
   }
 
   /** The mark that says what kind of solve type it is, the same one the solve types screen uses. */
@@ -313,8 +325,20 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     return solveType.hasSteps() ? R.drawable.ic_solvetype_steps : R.drawable.ic_solvetype_normal;
   }
 
+  private String currentPuzzleName() {
+    return curCubeType == null ? "" : curCubeType.getName();
+  }
+
+  /** A solve type has no colour of its own, so it takes the one for what kind it is. */
+  private static int solveTypeColor(SolveType solveType) {
+    if (solveType.isBlind()) {
+      return R.color.solvetype_blind;
+    }
+    return solveType.hasSteps() ? R.color.solvetype_steps : R.color.solvetype_plain;
+  }
+
   private String formatCount(Integer count) {
-    return (count == null || count == 0) ? "" : count + " " + getString(R.string.solves);
+    return (count == null || count == 0) ? "" : String.valueOf(count);
   }
 
   private void openGraph() {
@@ -548,7 +572,12 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       @Override
       public void run() {
         tvCubeType.setText(curCubeType != null ? curCubeType.getName() : "");
+        // The puzzle wears its own colour here too, so the card and its picker are the same object.
+        int puzzleColor = ContextCompat.getColor(MainScreenActivity.this,
+          PuzzleIcons.colorForCubeType(curCubeType));
         imgCubeType.setImageResource(PuzzleIcons.forCubeType(curCubeType));
+        imgCubeType.setColorFilter(puzzleColor, PorterDuff.Mode.SRC_IN);
+        heroGlyphTile.setBackgroundTintList(ColorStateList.valueOf((puzzleColor & 0x00FFFFFF) | 0x2E000000));
         if (curSolveType != null) {
           tvSolveType.setText(Utils.toSolveTypeLocalizedName(MainScreenActivity.this, curSolveType.getName()));
           imgSolveTypeKind.setImageResource(solveTypeIcon(curSolveType));
@@ -910,10 +939,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private void setSolvesCount(int solvesCount) {
     this.solvesCount = solvesCount;
-    tvSolvesCount.setText(formatCount(solvesCount)); // nothing rather than "0 solves": the list says that
-    if (curSolveType != null) {
-      solveTypeCounts.put(curSolveType.getId(), solvesCount);
-    }
+    // Nothing rather than "0 solves": the line under the card already says that.
+    tvSolvesCount.setText(solvesCount == 0 ? "" : solvesCount + " " + getString(R.string.solves));
   }
 
   private void setCurCubeType(CubeType cubeType) {
