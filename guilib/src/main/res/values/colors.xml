@@ -1,45 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Two layers. The palette below is the only place a colour is written as a value; everything under
+  it is a role, and a role is an alias. A screen names the role, never the value, so a hue can be
+  retuned in one line and nothing goes hunting.
+-->
 <resources>
-  <!-- Blue -->
-  <!--<color name="color_primary">#2196f3</color>-->
-  <!--<color name="color_primary_dark">#0d47a1</color>-->
-  <!--<color name="color_accent">#90caf9</color>-->
-  <!--<color name="color_background">#e3f2fd</color>-->
-  <!-- Purple -->
-  <!--<color name="color_primary">#673ab7</color>-->
-  <!--<color name="color_primary_dark">#5e35b1</color>-->
-  <!--<color name="color_accent">#FFFFFF</color>-->
-  <!--<color name="color_accent">#ede7f6</color>-->
-  <!--<color name="color_accent">#f5f5f5</color>-->
-  <!--<color name="secondary_text">@color/gray400</color>-->
-  <!-- Indigo light theme-->
-  <!--<color name="color_primary">@color/main</color>-->
-  <!--<color name="color_primary_dark">@color/main</color>-->
-  <!--<color name="color_accent">#e8eaf6</color>-->
-  <!--<color name="main">#285393</color>-->
 
-  <!-- Indigo dark theme -->
-  <!--<color name="color_primary">#424242</color>-->
-  <!--<color name="color_primary_dark">#222222</color>-->
-  <color name="color_accent">@color/lightblue</color>
-  <color name="color_primary">@color/darkblue</color>
-  <color name="color_primary_dark">#2A363E</color>
-  <!--<color name="color_primary">#515151</color>-->
-  <!--<color name="color_primary_dark">#414141</color>-->
-  <color name="spinner_background">#505050</color>
+  <!-- ============================ Palette ============================ -->
 
-  <color name="secondary_text">#AAAAAA</color>
+  <color name="lightblue">#FF6CCCEC</color>
+  <color name="iceblue">#FF0883AC</color>
+  <color name="darkblue">#36454F</color>
 
-  <color name="timercardbg">#33383B</color>
-  <color name="scramblealternate">#FFC0B9F9</color>
   <color name="white">#FFFFFFFF</color>
   <color name="black">#FF000000</color>
-  <color name="red">#FFFF0000</color>
-  <color name="darkred">#FF881111</color>
-  <color name="green">#FF00CC00</color>
-  <color name="new_record">#FFEEDD00</color>
-  <color name="warning">#FFFFAA00</color>
-  <color name="dnf_time">@color/gray600</color>
+  <color name="transparent">#00000000</color>
 
   <color name="gray200">#FFEEEEEE</color>
   <color name="gray400">#FFBDBDBD</color>
@@ -48,91 +23,67 @@
   <color name="gray800">#FF424242</color>
   <color name="gray850">#FF323232</color>
   <color name="gray900">#FF212121</color>
-  <color name="gray950">#FF101010</color>
-  <color name="darkgray">#FF333333</color>
-  <!--<color name="verylightblue">#FF7FC5D8</color>-->
-  <!--<color name="verylightblue">#99CDFF</color>-->
-  <color name="lightblue">#FF6CCCEC</color>
-  <color name="iceblue">#FF0883AC</color>
-  <color name="darkblue">#36454F</color>
-  <color name="table_header">#346CCCEC</color>
-  <!--<color name="darkblue">#003466</color>-->
 
-  <!-- 3x3 cross solver: standard WCA face colors, tuned for the dark dialog -->
-  <color name="cube_white">#ECEFF1</color>
-  <color name="cube_yellow">#FFD600</color>
-  <color name="cube_red">#E53935</color>
-  <color name="cube_orange">#FB8C00</color>
-  <color name="cube_green">#43A047</color>
-  <color name="cube_blue">#1E88E5</color>
+  <color name="red">#FFFF0000</color>
+  <color name="darkred">#FF881111</color>
+  <color name="green">#FF00CC00</color>
+  <!-- Lifted well clear of the cube green, which is too dark to carry small text on the dialog. -->
+  <color name="green_soft">#7BD983</color>
 
-  <!-- Smart-cube solve steps, in solve order: cross, F2L, then the warm last-layer pair -->
-  <color name="step_cross">@color/lightblue</color>
-  <color name="step_f2l">@color/cube_green</color>
-  <color name="step_oll">@color/cube_yellow</color>
-  <color name="step_pll">@color/cube_orange</color>
+  <!-- Washes: the accent and white laid over a dark ground, named by how much of them lands.
+       A fill that is "the accent, quietly" belongs here rather than written out again per screen. -->
+  <color name="accent_wash_08">#146CCCEC</color>
+  <color name="accent_wash_15">#266CCCEC</color>
+  <color name="accent_wash_20">#336CCCEC</color>
+  <color name="accent_wash_30">#4D6CCCEC</color>
+  <color name="accent_wash_35">#596CCCEC</color>
+  <color name="white_wash_10">#1AFFFFFF</color>
+  <color name="white_wash_12">#1FFFFFFF</color>
 
-  <!-- Signal-strength bars on a discovered cube -->
-  <color name="signal_on">@color/cube_green</color>
-  <color name="signal_off">@color/gray700</color>
+  <!-- ============================= Theme ============================= -->
 
-  <!-- Smart-cube connect sheet status pill: a washed fill with the matching text on top -->
-  <color name="pill_scan_bg">#266CCCEC</color>
-  <color name="pill_live_bg">#2643A047</color>
-  <color name="pill_live_text">#7BD983</color>
+  <color name="color_accent">@color/lightblue</color>
+  <color name="color_primary">@color/darkblue</color>
+  <color name="color_primary_dark">#2A363E</color>
+  <!-- Ink for text sitting on the accent itself, where white would not hold. -->
+  <color name="on_accent">#12181C</color>
+  <color name="secondary_text">#AAAAAA</color>
 
-  <!-- Small pills carrying a row's secondary facts: a wash of the surface, or of the accent. -->
-  <color name="chip_bg">#1FFFFFFF</color>
-  <color name="chip_bg_accent">#266CCCEC</color>
-  <!-- The chosen option of a segmented control: a chip has to say "this one" across a whole row,
-       which the accent wash alone is too quiet to do. -->
-  <color name="chip_bg_selected">#596CCCEC</color>
+  <!-- ======================== Status and marks ======================= -->
 
-  <!-- A piece a blind algorithm put home, marked in its name. Lifted well clear of the grey the
-       rest of the name is set in; the cube green is too dark to carry small text on the dialog. -->
-  <color name="piece_home">#7BD983</color>
-
+  <color name="new_record">#FFEEDD00</color>
+  <color name="warning">#FFFFAA00</color>
+  <color name="dnf_time">@color/gray600</color>
   <!-- Destructive action as text: pure red glares against the dark dialogs. -->
   <color name="danger_text">#EF5350</color>
+  <!-- A piece a blind algorithm put home, marked in its name. -->
+  <color name="piece_home">@color/green_soft</color>
 
-  <!-- A statistics cell tinted by the record colour it is announcing -->
-  <color name="record_tile_bg">#26FFDD00</color>
-  <!-- The same tint, flattened: the record bar paints it over its own edge, so it cannot be translucent -->
-  <color name="record_bar_bg">#3C3A29</color>
+  <!-- ============================ Surfaces =========================== -->
 
-  <color name="history_marker">@color/iceblue</color>
+  <color name="graybg">@color/gray850</color>
+  <color name="pushedbg">#454545</color>
+  <color name="spinner_background">#505050</color>
+  <color name="timercardbg">#33383B</color>
+  <color name="mainscreen_top_card">@color/gray800</color>
+  <color name="listview_divider">@color/gray800</color>
 
   <color name="dialog_surface">#23272B</color>
+  <color name="dialog_divider">@color/white_wash_12</color>
   <!-- Recessed well for a 3D cube to sit in: a shade under the dialog surface, so the cube reads as
        being on something rather than floating on the card. -->
   <color name="cube_stage">#1A1D21</color>
-  <color name="dialog_divider">#1FFFFFFF</color>
-
-  <color name="graybg">#323232</color>
-  <!--<color name="graybg">#FF1C1E20</color>-->
-  <color name="pushedbg">#454545</color>
-  <color name="transparent">#00000000</color>
-
-  <color name="history_item_background_1">#2F2F2F</color>
-  <color name="history_item_background_2">#282828</color>
-  <color name="history_item_pressed_background">#4B4B4B</color>
-  <!--<color name="history_item_background_1">#FF25252A</color>-->
-  <!--<color name="history_item_background_2">#FF26262F</color>-->
-
-  <color name="button_color">#3E5259</color>
-
-  <color name="button_pressed">#FF1976D2</color>
-  <color name="button_disabled">@color/gray850</color>
-
-  <color name="mainscreen_top_card">@color/gray800</color>
 
   <!-- History screen hero: a card a shade cooler than the ground, with its controls and
        statistics inset a shade darker so they read as recessed into it. -->
   <color name="hero_card">#3E444A</color>
   <color name="hero_inset">#343A3F</color>
-  <color name="hero_divider">#1AFFFFFF</color>
-  <!-- Ink for text sitting on the accent itself, where white would not hold. -->
-  <color name="on_accent">#12181C</color>
+  <color name="hero_divider">@color/white_wash_10</color>
+
+  <color name="button_color">#3E5259</color>
+  <color name="button_disabled">@color/gray850</color>
+
+  <!-- ======================== Puzzle identity ======================== -->
 
   <!-- One hue per puzzle, walked round the wheel at a fixed chroma so twelve of them read as a
        set rather than as a scatter: the cubes climb from cyan into violet as they grow, and the
@@ -155,11 +106,49 @@
   <color name="solvetype_blind">#B49BE8</color>
   <color name="solvetype_steps">#7FD98A</color>
 
-  <color name="card_divider">@color/iceblue</color>
-  <!--<color name="listview_background">@color/main_element</color>-->
-  <color name="listview_divider">@color/gray800</color>
-  <!--<color name="button_color">@color/darkblue</color>-->
-  <color name="grid_background_1">#146CCCEC</color>
-  <color name="grid_background_2">#336CCCEC</color>
-  <color name="grid_divider">@color/gray600</color>
+  <!-- ========================= Cube and solve ======================== -->
+
+  <!-- 3x3 cross solver: standard WCA face colors, tuned for the dark dialog -->
+  <color name="cube_white">#ECEFF1</color>
+  <color name="cube_yellow">#FFD600</color>
+  <color name="cube_red">#E53935</color>
+  <color name="cube_orange">#FB8C00</color>
+  <color name="cube_green">#43A047</color>
+  <color name="cube_blue">#1E88E5</color>
+
+  <!-- Smart-cube solve steps, in solve order: cross, F2L, then the warm last-layer pair -->
+  <color name="step_cross">@color/lightblue</color>
+  <color name="step_f2l">@color/cube_green</color>
+  <color name="step_oll">@color/cube_yellow</color>
+  <color name="step_pll">@color/cube_orange</color>
+
+  <!-- =========================== Components ========================= -->
+
+  <!-- Small pills carrying a row's secondary facts: a wash of the surface, or of the accent. -->
+  <color name="chip_bg">@color/white_wash_12</color>
+  <color name="chip_bg_accent">@color/accent_wash_15</color>
+  <!-- The chosen option of a segmented control: a chip has to say "this one" across a whole row,
+       which the accent wash alone is too quiet to do. -->
+  <color name="chip_bg_selected">@color/accent_wash_35</color>
+
+  <!-- Signal-strength bars on a discovered cube -->
+  <color name="signal_on">@color/cube_green</color>
+  <color name="signal_off">@color/gray700</color>
+
+  <!-- Smart-cube connect sheet status pill: a washed fill with the matching text on top -->
+  <color name="pill_scan_bg">@color/accent_wash_15</color>
+  <color name="pill_live_bg">#2643A047</color>
+  <color name="pill_live_text">@color/green_soft</color>
+
+  <!-- A statistics cell tinted by the record colour it is announcing -->
+  <color name="record_tile_bg">#26FFDD00</color>
+  <!-- The same tint, flattened: the record bar paints it over its own edge, so it cannot be translucent -->
+  <color name="record_bar_bg">#3C3A29</color>
+
+  <!-- A hair off accent_wash_20, and almost certainly meant to be it. Left alone rather than
+       nudged, since nothing here is worth a colour moving on its own. -->
+  <color name="table_header">#346CCCEC</color>
+  <color name="grid_background_1">@color/accent_wash_08</color>
+  <color name="grid_background_2">@color/accent_wash_20</color>
+
 </resources>

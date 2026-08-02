@@ -2,6 +2,6 @@
 <!-- The tile on the row you are already on: the same shape over a wash of its own, or it would
      disappear into the wash the selected row is wearing. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-  <solid android:color="#4D6CCCEC"/>
+  <solid android:color="@color/accent_wash_30"/>
   <corners android:radius="10dp"/>
 </shape>
