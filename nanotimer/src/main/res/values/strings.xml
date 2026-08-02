@@ -758,4 +758,22 @@
   <string name="acc_label">Acc</string>
   <string name="time_just_now">just now</string>
   <string name="time_minutes_ago">%1$d min ago</string>
+
+  <!-- Solve detail: what the solve was worth. The ranks run from second to tenth, since the best
+       ever has a line of its own, so the array is read at rank - 2. -->
+  <string name="verdict_best_ever">Best ever</string>
+  <string name="verdict_best_ever_by">Best ever, by %1$s</string>
+  <string-array name="verdict_ranks">
+    <item>2nd best ever</item>
+    <item>3rd best ever</item>
+    <item>4th best ever</item>
+    <item>5th best ever</item>
+    <item>6th best ever</item>
+    <item>7th best ever</item>
+    <item>8th best ever</item>
+    <item>9th best ever</item>
+    <item>10th best ever</item>
+  </string-array>
+  <string name="verdict_faster">%1$s faster than your %2$s</string>
+  <string name="verdict_slower">%1$s slower than your %2$s</string>
 </resources>

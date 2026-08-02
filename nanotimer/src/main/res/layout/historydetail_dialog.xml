@@ -68,7 +68,21 @@
        android:contentDescription="@string/share_time"/>
   </LinearLayout>
 
-  <!-- Date subtitle -->
+  <!-- What the solve was worth, tinted in code by which of the things it says. Absent whenever
+       there is nothing true to say: a DNF, or too few solves to stand a time against. -->
+  <TextView
+     android:id="@+id/tvVerdict"
+     android:layout_gravity="center_horizontal"
+     android:layout_marginTop="3dp"
+     android:paddingLeft="9dp"
+     android:paddingRight="9dp"
+     android:paddingTop="1dp"
+     android:paddingBottom="1dp"
+     android:textSize="12sp"
+     android:visibility="gone"
+     style="@style/RowChip"/>
+
+  <!-- Date subtitle: the quietest line of the three, and the one that gives up size to the chip. -->
   <TextView
      android:id="@+id/tvDate"
      android:layout_width="match_parent"
@@ -76,7 +90,7 @@
      android:layout_marginTop="2dp"
      android:gravity="center"
      android:textColor="@color/secondary_text"
-     android:textSize="14sp"/>
+     android:textSize="13sp"/>
 
   <!-- The only child that may shrink: it gives up its height to the actions below rather than
        pushing them out of the window when the breakdown is long. Nested rather than plain, so the

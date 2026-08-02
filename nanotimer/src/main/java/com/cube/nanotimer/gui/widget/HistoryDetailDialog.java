@@ -5,10 +5,12 @@ import android.app.Dialog;
 import android.content.res.TypedArray;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
 import android.text.SpannableString;
@@ -85,49 +87,44 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     final SolveTime solveTime = (SolveTime) args.getSerializable(ARG_SOLVETIME);
     final CubeType cubeType = (CubeType) args.getSerializable(ARG_CUBETYPE);
 
-    if (solveTime.hasSteps()) {
+    final boolean stepped = solveTime.hasSteps();
+    final boolean blind = solveTime.getSolveType().isBlind();
+    if (stepped) {
       v.findViewById(R.id.averagesTable).setVisibility(View.GONE);
       v.findViewById(R.id.trSteps).setVisibility(View.VISIBLE);
       ((TextView) v.findViewById(R.id.tvSteps)).setText(
       FormatterService.INSTANCE.formatStepsTimes(Arrays.asList(solveTime.getStepsTimes())));
-    } else if (solveTime.getSolveType().isBlind()) {
+    } else if (blind) {
       v.findViewById(R.id.averagesTable).setVisibility(View.GONE);
       v.findViewById(R.id.trMeanOfThree).setVisibility(View.VISIBLE);
-      App.INSTANCE.getService().getSolveTimeAverages(solveTime, new DataCallback<SolveTimeAverages>() {
-        @Override
-        public void onData(final SolveTimeAverages data) {
-          Activity activity = getActivity();
-          if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                ((TextView) v.findViewById(R.id.tvMeanOfThree)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5())); // avg5 contains mean of 3 for blind type (same DB column)
-              }
-            });
-          }
-        }
-      });
-    } else {
-      App.INSTANCE.getService().getSolveTimeAverages(solveTime, new DataCallback<SolveTimeAverages>() {
-        @Override
-        public void onData(final SolveTimeAverages data) {
-          Activity activity = getActivity();
-          if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                if (data != null) {
-                  ((TextView) v.findViewById(R.id.tvAvgOfFive)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5(), "-"));
-                  ((TextView) v.findViewById(R.id.tvAvgOfTwelve)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf12(), "-"));
-                  ((TextView) v.findViewById(R.id.tvAvgOfFifty)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf50(), "-"));
-                  ((TextView) v.findViewById(R.id.tvAvgOfHundred)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf100(), "-"));
-                }
-              }
-            });
-          }
-        }
-      });
     }
+    // Read for every solve rather than only for the ones showing an averages row: the verdict under
+    // the time is taken from the same record, and a stepped solve has one too.
+    App.INSTANCE.getService().getSolveTimeAverages(solveTime, new DataCallback<SolveTimeAverages>() {
+      @Override
+      public void onData(final SolveTimeAverages data) {
+        Activity activity = getActivity();
+        if (activity == null || data == null) {
+          return;
+        }
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (!stepped) { // a stepped solve shows its splits instead, and they are already set
+              if (blind) {
+                ((TextView) v.findViewById(R.id.tvMeanOfThree)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5())); // avg5 contains mean of 3 for blind type (same DB column)
+              } else {
+                ((TextView) v.findViewById(R.id.tvAvgOfFive)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5(), "-"));
+                ((TextView) v.findViewById(R.id.tvAvgOfTwelve)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf12(), "-"));
+                ((TextView) v.findViewById(R.id.tvAvgOfFifty)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf50(), "-"));
+                ((TextView) v.findViewById(R.id.tvAvgOfHundred)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf100(), "-"));
+              }
+            }
+            showVerdict(v, data, blind);
+          }
+        });
+      }
+    });
 
     // The sheet shows one breakdown, measured against the turning time rather than the recorded one,
     // so a DNF still has a breakdown and a turn rate. On a solve type with its own steps the user's
@@ -250,6 +247,97 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     });
 
     return dialog;
+  }
+
+  /** A rank is worth naming when it is in the all-time top ten, and in the top quarter of them. */
+  private static final int TOP_RANK = 10;
+  private static final int TOP_PART = 4;
+  /** The fraction of the average a solve has to be off by before it is worth a word: a twentieth. */
+  private static final int NOTABLE_PART = 20;
+
+  /**
+   * The one line that says what the solve was worth, in the order the reasons outrank each other: a
+   * record first, then a place in the all-time top ten, and failing both, the solve against the form
+   * you were in. Whichever it lands on, the chip takes that reason's colour.
+   *
+   * <p>Nothing is shown when there is nothing true to say. A DNF has no standing, and a young solve
+   * type has no ranking worth quoting, so the chip stays away rather than reaching for filler.
+   */
+  private void showVerdict(View v, SolveTimeAverages data, boolean blind) {
+    CharSequence text = null;
+    int color = 0;
+    if (data.getRank() == 1) {
+      // A tie for the record leaves no margin to quote, so the record is left to say it alone.
+      long margin = data.getRunnerUp() == null ? 0 : data.getRunnerUp() - data.getTime();
+      text = margin > 0 ? getString(R.string.verdict_best_ever_by, formatTime(margin))
+          : getString(R.string.verdict_best_ever);
+      color = color(R.color.new_record);
+    } else if (data.getRank() > 1 && data.getRank() <= TOP_RANK
+        && data.getRank() * TOP_PART <= data.getRankedCount()) {
+      text = getResources().getStringArray(R.array.verdict_ranks)[data.getRank() - 2];
+      color = color(R.color.lightblue);
+    } else if (data.getRank() > 0) {
+      Form form = verdictForm(data, blind);
+      long diff = form == null ? 0 : form.average - data.getTime();
+      if (form != null && Math.abs(diff) * NOTABLE_PART >= form.average) {
+        boolean faster = diff > 0;
+        text = getString(faster ? R.string.verdict_faster : R.string.verdict_slower,
+            formatTime(Math.abs(diff)), getString(form.label));
+        // Only the good half is coloured: being off your average is the ordinary case, and a red
+        // chip under half of all solves would say nothing except that solves vary.
+        color = faster ? color(R.color.green) : color(R.color.secondary_text);
+      }
+    }
+    if (text == null) {
+      return;
+    }
+    TextView chip = (TextView) v.findViewById(R.id.tvVerdict);
+    chip.setText(text);
+    chip.setTextColor(color);
+    chip.setBackground(verdictChipBackground(color));
+    chip.setVisibility(View.VISIBLE);
+  }
+
+  /** The form a solve is held against: an average, and the name to quote it by. */
+  private static final class Form {
+    private final long average;
+    private final int label;
+
+    private Form(long average, int label) {
+      this.average = average;
+      this.label = label;
+    }
+  }
+
+  /**
+   * The form the solve is held against: the Ao12 around it, and the mean of 3 for a blind solve, the
+   * only average its screen quotes. A window a DNF took out is skipped along with one that never
+   * filled, which is why the Ao5 stands in. Null when even that is missing.
+   *
+   * <p>The rank above is lifetime, this is deliberately not. A wider window is steadier but it is
+   * also older, and a year of getting faster leaves it saying an ordinary solve beat your average.
+   */
+  private Form verdictForm(SolveTimeAverages data, boolean blind) {
+    if (blind) {
+      return isSet(data.getAvgOf5()) ? new Form(data.getAvgOf5(), R.string.mo3_label) : null;
+    }
+    if (isSet(data.getAvgOf12())) {
+      return new Form(data.getAvgOf12(), R.string.ao12_label);
+    }
+    return isSet(data.getAvgOf5()) ? new Form(data.getAvgOf5(), R.string.ao5_label) : null;
+  }
+
+  /** An average is there to be compared against only when it is a time: -1 is a DNF, null unfilled. */
+  private boolean isSet(Long average) {
+    return average != null && average > 0;
+  }
+
+  /** The chip's own colour, washed down to a background the text can still be read against. */
+  private Drawable verdictChipBackground(int color) {
+    GradientDrawable background = new GradientDrawable();
+    background.setCornerRadius(dp(20));
+    background.setColor(ColorUtils.setAlphaComponent(color, 0x26));
+    return background;
   }
 
   /**

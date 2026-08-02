@@ -747,4 +747,22 @@
   <string name="acc_label">Prec</string>
   <string name="time_just_now">ahora mismo</string>
   <string name="time_minutes_ago">hace %1$d min</string>
+
+  <!-- Solve detail: what the solve was worth. The ranks run from second to tenth, since the best
+       ever has a line of its own, so the array is read at rank - 2. -->
+  <string name="verdict_best_ever">Mejor tiempo</string>
+  <string name="verdict_best_ever_by">Mejor tiempo, %1$s de ventaja</string>
+  <string-array name="verdict_ranks">
+    <item>2.º mejor tiempo</item>
+    <item>3.º mejor tiempo</item>
+    <item>4.º mejor tiempo</item>
+    <item>5.º mejor tiempo</item>
+    <item>6.º mejor tiempo</item>
+    <item>7.º mejor tiempo</item>
+    <item>8.º mejor tiempo</item>
+    <item>9.º mejor tiempo</item>
+    <item>10.º mejor tiempo</item>
+  </string-array>
+  <string name="verdict_faster">%1$s más rápido que tu %2$s</string>
+  <string name="verdict_slower">%1$s más lento que tu %2$s</string>
 </resources>

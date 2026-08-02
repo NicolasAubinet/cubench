@@ -1061,7 +1061,58 @@ public class ServiceProviderImpl implements ServiceProvider {
       }
       cursor.close();
     }
+    if (sta != null) {
+      fillRank(sta);
+    }
     return sta;
+  }
+
+  /**
+   * The solve's lifetime standing among its solve type's finished solves. DNFs are left out on both
+   * sides: they have no standing themselves, and they are not something a time can be ranked past.
+   */
+  private void fillRank(SolveTimeAverages sta) {
+    if (sta.isDNF() || sta.getSolveType() == null) {
+      return;
+    }
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT COUNT(*)");
+    q.append("     , SUM(CASE WHEN ").append(DB.COL_TIMEHISTORY_TIME).append(" < ? THEN 1 ELSE 0 END)");
+    q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
+    q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
+    q.append("   AND ").append(DB.COL_TIMEHISTORY_TIME).append(" > 0");
+    Cursor cursor = db.rawQuery(q.toString(),
+        getStringArray(sta.getTime(), sta.getSolveType().getId()));
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        sta.setRankedCount(cursor.getInt(0));
+        sta.setRank(cursor.getInt(1) + 1); // the solves that beat it, and then itself
+      }
+      cursor.close();
+    }
+    if (sta.getRank() == 1) {
+      sta.setRunnerUp(getBestTimeExcluding(sta));
+    }
+  }
+
+  /** The best time of a solve type other than the given solve's, null when it has no rival. */
+  private Long getBestTimeExcluding(SolveTimeAverages sta) {
+    Long best = null;
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT MIN(").append(DB.COL_TIMEHISTORY_TIME).append(")");
+    q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
+    q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
+    q.append("   AND ").append(DB.COL_TIMEHISTORY_TIME).append(" > 0");
+    q.append("   AND ").append(DB.COL_ID).append(" <> ?");
+    Cursor cursor = db.rawQuery(q.toString(),
+        getStringArray(sta.getSolveType().getId(), sta.getId()));
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        best = getCursorLong(cursor, 0);
+      }
+      cursor.close();
+    }
+    return best;
   }
 
   /**
