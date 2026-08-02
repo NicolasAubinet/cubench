@@ -253,7 +253,9 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
 
       ImageView icon = (ImageView) view.findViewById(R.id.imgIcon);
       View tile = view.findViewById(R.id.iconTile);
-      Integer iconId = isFooter ? footerIcon : iconIds == null ? null : iconIds.get(position);
+      // Boxed on both branches: mixing int and Integer here would unbox the null one instead.
+      Integer iconId = isFooter ? Integer.valueOf(footerIcon)
+        : (iconIds == null ? null : iconIds.get(position));
       if (iconId != null && iconId != 0) {
         icon.setImageResource(iconId);
         icon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
