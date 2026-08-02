@@ -58,6 +58,7 @@ import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.EnterAnimation;
 import com.cube.nanotimer.util.view.PuzzleIcons;
+import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.SparklineView;
@@ -304,8 +305,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       SolveType solveType = solveTypes.get(i);
       names.add(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
       counts.add(formatCount(solveTypeCounts.get(solveType.getId())));
-      icons.add(solveTypeIcon(solveType));
-      colors.add(solveTypeColor(solveType));
+      icons.add(SolveTypeIcons.forSolveType(solveType));
+      colors.add(SolveTypeIcons.colorForSolveType(solveType));
       if (curSolveType != null && curSolveType.getId() == solveType.getId()) {
         selectedIndex = i;
       }
@@ -317,24 +318,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         PuzzleIcons.forCubeType(curCubeType), PuzzleIcons.colorForCubeType(curCubeType)));
   }
 
-  /** The mark that says what kind of solve type it is, the same one the solve types screen uses. */
-  private static int solveTypeIcon(SolveType solveType) {
-    if (solveType.isBlind()) {
-      return R.drawable.ic_solvetype_blind;
-    }
-    return solveType.hasSteps() ? R.drawable.ic_solvetype_steps : R.drawable.ic_solvetype_normal;
-  }
-
   private String currentPuzzleName() {
     return curCubeType == null ? "" : curCubeType.getName();
-  }
-
-  /** A solve type has no colour of its own, so it takes the one for what kind it is. */
-  private static int solveTypeColor(SolveType solveType) {
-    if (solveType.isBlind()) {
-      return R.color.solvetype_blind;
-    }
-    return solveType.hasSteps() ? R.color.solvetype_steps : R.color.solvetype_plain;
   }
 
   private String formatCount(Integer count) {
@@ -580,7 +565,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         heroGlyphTile.setBackgroundTintList(ColorStateList.valueOf((puzzleColor & 0x00FFFFFF) | 0x2E000000));
         if (curSolveType != null) {
           tvSolveType.setText(Utils.toSolveTypeLocalizedName(MainScreenActivity.this, curSolveType.getName()));
-          imgSolveTypeKind.setImageResource(solveTypeIcon(curSolveType));
+          imgSolveTypeKind.setImageResource(SolveTypeIcons.forSolveType(curSolveType));
+          imgSolveTypeKind.setColorFilter(ContextCompat.getColor(MainScreenActivity.this,
+            SolveTypeIcons.colorForSolveType(curSolveType)), PorterDuff.Mode.SRC_IN);
           imgSolveTypeKind.setVisibility(View.VISIBLE);
         } else {
           tvSolveType.setText(R.string.NA);

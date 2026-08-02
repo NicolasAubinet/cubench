@@ -19,14 +19,22 @@
      android:paddingTop="12dp"
      android:paddingBottom="12dp">
 
-    <ImageView
-       android:id="@+id/imgSolveType"
-       android:layout_width="24dp"
-       android:layout_height="24dp"
+    <!-- The mark sits on a tile of its own colour, as it does in the picker this screen edits. -->
+    <FrameLayout
+       android:id="@+id/solveTypeTile"
+       android:layout_width="38dp"
+       android:layout_height="38dp"
        android:layout_marginEnd="14dp"
        android:layout_marginRight="14dp"
-       android:tint="@color/lightblue"
-       android:contentDescription="@null"/>
+       android:background="@drawable/hero_glyph">
+
+      <ImageView
+         android:id="@+id/imgSolveType"
+         android:layout_width="22dp"
+         android:layout_height="22dp"
+         android:layout_gravity="center"
+         android:contentDescription="@null"/>
+    </FrameLayout>
 
     <LinearLayout
        android:layout_width="0dp"
