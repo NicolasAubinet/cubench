@@ -63,6 +63,9 @@
 
   <color name="graybg">@color/gray850</color>
   <color name="pushedbg">#454545</color>
+  <!-- The timer's ground while a solve runs: a shade under the resting one, so the screen is
+       visibly standing down rather than merely emptying. -->
+  <color name="timer_focus_bg">@color/gray900</color>
   <color name="spinner_background">#505050</color>
   <color name="timercardbg">#33383B</color>
   <color name="mainscreen_top_card">@color/gray800</color>

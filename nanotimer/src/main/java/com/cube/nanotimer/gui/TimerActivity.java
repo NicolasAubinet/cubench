@@ -72,7 +72,10 @@ import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
 import com.cube.nanotimer.util.view.ParticleView;
+import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
+import com.cube.nanotimer.util.view.SolveTypeIcons;
+import com.cube.nanotimer.util.view.TimerGlow;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -97,6 +100,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private TextView tvSolvesCount;
   private TextView tvTitle;
   private ViewGroup layout;
+  private View scrambleBox;
+  private View sessionLayout;
+  private TimerGlow timerGlow;
   private TableLayout sessionTimesLayout;
   private View recordBar;
   private TextView tvRecordBarLabel;
@@ -177,7 +183,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean soundsEnabled;
   private boolean keepScreenOnWhenTimerOff;
 
-  private int defaultBackgroundColor = R.color.graybg;
+  private int groundColor = R.color.graybg; // the ground at rest; a running solve drops it a shade
   private int pushedBackgroundColor = R.color.pushedbg;
 
   private RandomStateGenListener randomStateGenListener = new RandomStateGenListener() {
@@ -306,6 +312,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   protected void onDestroy() {
     if (liveCube != null) { // onCreate finishes early without a solve type, and never builds one
       liveCube.destroy();
+    }
+    if (timerGlow != null) {
+      timerGlow.hide();
     }
     super.onDestroy();
   }
@@ -436,6 +445,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvScramble = (TextView) findViewById(R.id.tvScramble);
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
     tvTitle = (TextView) findViewById(R.id.tvTitle);
+    scrambleBox = findViewById(R.id.scrambleBox);
+    sessionLayout = findViewById(R.id.sessionLayout);
+    if (timerGlow != null) { // a rotation leaves the old one animating views that are gone
+      timerGlow.hide();
+    }
+    timerGlow = new TimerGlow(findViewById(R.id.timerBox), findViewById(R.id.focusDot));
+    timerGlow.setColor(getResources().getColor(identityColor()));
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
     recordBar = findViewById(R.id.recordBar);
     tvRecordBarLabel = (TextView) findViewById(R.id.tvRecordBarLabel);
@@ -471,6 +487,43 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     } else {
       setKeepScreenOn(true);
     }
+    // A rotation mid solve rebuilds the screen in its resting state, so put the focus back.
+    applyFocus(timerState != TimerState.STOPPED, standsInForDigits());
+  }
+
+  /**
+   * A solve is the one thing this screen exists for, so while one runs it is all that is on screen:
+   * the digits, the cross that abandons them, and nothing else. Hidden rather than removed — the
+   * block below carries the layout's weight, and taking it out would slide the time down mid solve.
+   *
+   * @param standIn draw the breathing dot instead of the digits, for a solve timed without them
+   */
+  private void applyFocus(boolean on, boolean standIn) {
+    int hidden = on ? View.INVISIBLE : View.VISIBLE;
+    scrambleBox.setVisibility(hidden);
+    sessionLayout.setVisibility(hidden);
+    tvTimer.setVisibility(on && standIn ? View.INVISIBLE : View.VISIBLE);
+    groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
+    layout.setBackgroundResource(groundColor);
+    if (on) {
+      timerGlow.show(standIn);
+    } else {
+      timerGlow.hide();
+    }
+  }
+
+  /** True while a solve is being timed with the time itself kept back. */
+  private boolean standsInForDigits() {
+    return timerState == TimerState.RUNNING && !Options.INSTANCE.isShowTimeWhenRunning();
+  }
+
+  /**
+   * The hue this screen wears. A plain solve type takes the app accent, which says nothing about
+   * what is being timed, so under one the puzzle lends its own.
+   */
+  private int identityColor() {
+    int color = SolveTypeIcons.colorForSolveType(solveType);
+    return color == R.color.solvetype_plain ? PuzzleIcons.colorForCubeType(cubeType) : color;
   }
 
   /**
@@ -1074,6 +1127,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       stepsTimes.clear();
       stepStartTs = timerStartTs;
     }
+    timerState = TimerState.RUNNING; // set before the screen stands down: the focus state reads it
     timerStarted();
     timer = new Timer();
     if (Options.INSTANCE.isShowTimeWhenRunning()) {
@@ -1091,10 +1145,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         }
       };
       timer.schedule(timerTask, 1, REFRESH_INTERVAL);
-    } else {
-      tvTimer.setText("--:--");
     }
-    timerState = TimerState.RUNNING;
     solveController.onTimerStarted();
   }
 
@@ -1171,9 +1222,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     timerStartTs = curTime;
     oversteppedInspection = false;
     enableScreenRotationChanges(false);
+    timerState = TimerState.INSPECTING; // set before the screen stands down: the focus state reads it
     timerStarted();
     resetTimerText();
-    timerState = TimerState.INSPECTING;
     setTitle(R.string.inspection);
     clearAvgRecordStyle();
     timer = new Timer();
@@ -1360,8 +1411,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
 
     if (mustDnfTime) {
-      stopInspectionTimer();
-      layout.setBackgroundResource(defaultBackgroundColor);
+      stopInspectionTimer(); // which puts the ground back, even with the finger still down
       if (inspectionMode == InspectionMode.OFFICIAL) {
         synchronized (holdToStartTimerSync) {
           stopHoldToStartTimer();
@@ -1445,6 +1495,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     showMenuButton(false);
     dismissRecordOverlay();
     hideStepBreakdown();
+    applyFocus(true, standsInForDigits());
   }
 
   /** @param solveDurationMs what the timer measured, before any penalty: a +2 is not solving time */
@@ -1609,6 +1660,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void timerStopped() {
     setKeepScreenOn(keepScreenOnWhenTimerOff);
     showMenuButton(true);
+    applyFocus(false, false);
   }
 
   private void setKeepScreenOn(boolean keepOn) {
@@ -1929,7 +1981,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         return false; // to avoid receiving the ACTION_UP
       }
     } else if (parMotionEventAction == MotionEvent.ACTION_UP) {
-      layout.setBackgroundResource(defaultBackgroundColor);
+      layout.setBackgroundResource(groundColor);
       if (ignoreActionUp) {
         ignoreActionUp = false;
         return true;

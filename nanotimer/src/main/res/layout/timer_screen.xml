@@ -51,17 +51,32 @@
            android:layout_width="match_parent"
            android:layout_height="0px"
            android:layout_weight="1"/>
-        <com.cube.nanotimer.util.view.DigitalTextView
-           android:id="@+id/tvTimer"
-           android:layout_width="wrap_content"
+        <!-- The band the digits sit in. It carries the focus glow as its background, so the pool
+             costs no height of its own and cannot move the time. -->
+        <FrameLayout
+           android:id="@+id/timerBox"
+           android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:layout_marginTop="20px"
-           android:textSize="85px"
-           android:layout_gravity="center"
-           android:textColor="@color/white"
-           android:gravity="left"/>
+           android:layout_marginTop="20px">
+          <com.cube.nanotimer.util.view.DigitalTextView
+             android:id="@+id/tvTimer"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:textSize="85px"
+             android:layout_gravity="center"
+             android:textColor="@color/white"
+             android:gravity="left"/>
+          <!-- Stands in for the digits during a solve timed without them. -->
+          <View
+             android:id="@+id/focusDot"
+             android:layout_width="22px"
+             android:layout_height="22px"
+             android:layout_gravity="center"
+             android:visibility="gone"/>
+        </FrameLayout>
 
         <FrameLayout
+           android:id="@+id/scrambleBox"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:layout_marginTop="7px"
