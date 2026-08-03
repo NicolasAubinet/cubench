@@ -169,21 +169,21 @@
            android:layout_height="wrap_content">
           <TableRow>
             <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
             <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
-          </TableRow>
-          <TableRow>
-            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
             <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
             <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
           </TableRow>
           <TableRow>
             <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
             <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
-            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_2"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+          </TableRow>
+          <TableRow>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
+            <TextView style="@style/GridCellPx" android:background="@drawable/session_chip_1"/>
           </TableRow>
         </TableLayout>
 
