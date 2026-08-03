@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- What is being timed, and the screen's banner: while a hold is being counted down it says that
+     instead, which is the feedback the action bar title used to carry. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/identityStrip"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:paddingLeft="16px"
+   android:paddingRight="16px"
+   android:paddingTop="9px"
+   android:paddingBottom="9px">
+
+  <LinearLayout
+     android:id="@+id/identityRow"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:gravity="center_vertical">
+
+    <ImageView
+       android:id="@+id/imgIdentityPuzzle"
+       android:layout_width="26px"
+       android:layout_height="26px"
+       android:contentDescription="@null"/>
+
+    <TextView
+       android:id="@+id/tvIdentityPuzzle"
+       android:layout_width="0px"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:layout_marginLeft="11px"
+       android:layout_marginStart="11px"
+       android:textSize="27px"
+       android:textStyle="bold"
+       android:textColor="@color/white"
+       android:singleLine="true"
+       android:ellipsize="end"/>
+
+    <TextView
+       android:id="@+id/tvIdentitySolveType"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginLeft="10px"
+       android:layout_marginStart="10px"
+       android:background="@drawable/identity_pill"
+       android:paddingLeft="15px"
+       android:paddingRight="15px"
+       android:paddingTop="4px"
+       android:paddingBottom="5px"
+       android:textSize="20px"
+       android:singleLine="true"
+       android:ellipsize="end"
+       android:fontFeatureSettings="tnum"/>
+  </LinearLayout>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvBanner"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_gravity="center_vertical"
+     android:gravity="center"
+     android:maxLines="1"
+     android:textSize="29px"
+     android:textStyle="bold"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/white"
+     android:visibility="invisible"/>
+
+</FrameLayout>

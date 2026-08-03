@@ -9,9 +9,9 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -100,7 +100,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private TextView tvTimer;
   private TextView tvScramble;
   private TextView tvSolvesCount;
-  private TextView tvTitle;
+  private TextView tvBanner;
+  private View identityRow;
+  private View identityStrip;
   private ViewGroup layout;
   private View scrambleBox;
   private View sessionLayout;
@@ -167,7 +169,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
   private LiveCubeView liveCube;
-  private ImageView imgCancelSolve; // discards the running solve, overlaid on the action bar
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
@@ -396,37 +397,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
+  /**
+   * The bar carries nothing but its buttons: the strip below it names the screen. Its empty space
+   * still starts and stops the timer, so the bar is not a dead zone the way a plain toolbar is.
+   */
   private void initActionBar() {
-    ActionBar actionBar = getSupportActionBar();
-    actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-    View customView = getLayoutInflater().inflate(R.layout.textcentered_actionbar, null);
-    actionBar.setCustomView(customView,
-        new ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.MATCH_PARENT));
-    actionBar.setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setTitle("");
 
-    // Drop the default inset between the nav button and the custom view so the title and the
-    // cube chip get the full width (otherwise the title is clipped).
     Toolbar decorToolbar = findToolbar(getWindow().getDecorView());
     if (decorToolbar != null) {
-      decorToolbar.setContentInsetStartWithNavigation(0);
-      decorToolbar.setContentInsetsAbsolute(0, decorToolbar.getContentInsetEnd());
+      decorToolbar.setOnTouchListener(layoutTouchListener);
     }
-
-    smartCubeChip.bind(customView.findViewById(R.id.smartCubeChip));
-    smartCubeChip.setHideWhenDisconnected(true); // on the timer, only show when a cube is connected
-
-    imgCancelSolve = (ImageView) customView.findViewById(R.id.imgCancelSolve);
-    imgCancelSolve.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        if (timerState == TimerState.RUNNING) {
-          cancelPressed();
-        } else if (timerState == TimerState.INSPECTING) {
-          stopInspectionTimer();
-          resetTimer();
-        }
-      }
-    });
   }
 
   private Toolbar findToolbar(View view) {
@@ -449,7 +431,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvTimer = (TextView) findViewById(R.id.tvTimer);
     tvScramble = (TextView) findViewById(R.id.tvScramble);
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
-    tvTitle = (TextView) findViewById(R.id.tvTitle);
+    tvBanner = (TextView) findViewById(R.id.tvBanner);
+    identityRow = findViewById(R.id.identityRow);
+    identityStrip = findViewById(R.id.identityStrip);
     scrambleBox = findViewById(R.id.scrambleBox);
     sessionLayout = findViewById(R.id.sessionLayout);
     if (timerGlow != null) { // a rotation leaves the old one animating views that are gone
@@ -480,9 +464,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
 
     setUpStatisticsBlocks();
-
-    View actionBarLayout = findViewById(R.id.actionbarLayout);
-    actionBarLayout.setOnTouchListener(layoutTouchListener);
+    fillIdentityStrip();
 
     layout = (ViewGroup) findViewById(R.id.mainLayout);
     layout.setOnTouchListener(layoutTouchListener);
@@ -507,6 +489,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    */
   private void applyFocus(boolean on, boolean standIn) {
     int hidden = on ? View.INVISIBLE : View.VISIBLE;
+    identityStrip.setVisibility(hidden);
     scrambleBox.setVisibility(hidden);
     sessionLayout.setVisibility(hidden);
     tvTimer.setVisibility(on && standIn ? View.INVISIBLE : View.VISIBLE);
@@ -617,33 +600,47 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return size;
   }
 
+  /** Names the puzzle and the solve type, each in its own colour, as the rest of the app does. */
+  private void fillIdentityStrip() {
+    ImageView mark = (ImageView) findViewById(R.id.imgIdentityPuzzle);
+    mark.setImageResource(PuzzleIcons.forCubeType(cubeType));
+    mark.setColorFilter(getResources().getColor(PuzzleIcons.colorForCubeType(cubeType)));
+
+    ((TextView) findViewById(R.id.tvIdentityPuzzle)).setText(cubeType.getName());
+
+    int solveTypeColor = getResources().getColor(SolveTypeIcons.colorForSolveType(solveType));
+    TextView pill = (TextView) findViewById(R.id.tvIdentitySolveType);
+    pill.setTextColor(solveTypeColor);
+    pill.setBackgroundTintList(ColorStateList.valueOf(washOf(solveTypeColor)));
+    refreshIdentityPill();
+  }
+
+  private void refreshIdentityPill() {
+    ((TextView) findViewById(R.id.tvIdentitySolveType)).setText(
+        Utils.toSolveTypeLocalizedName(this, solveType.getName()) + " · " + historySolvesCount);
+  }
+
+  /** The same hue, quiet enough to sit behind text of it. */
+  private static int washOf(int color) {
+    return (0x2E << 24) | (color & 0xFFFFFF);
+  }
+
+  /**
+   * The strip is the screen's banner. At rest it names what is being timed; while a hold is being
+   * counted down it says that instead, which is the feedback the action bar title used to carry.
+   */
+  private void showBanner(CharSequence text, int textColor) {
+    tvBanner.setText(text);
+    tvBanner.setTextColor(textColor);
+    tvBanner.setVisibility(View.VISIBLE);
+    identityRow.setVisibility(View.INVISIBLE);
+    identityStrip.setVisibility(View.VISIBLE); // even mid inspection: a hold has nowhere else to speak
+  }
+
   private void setDefaultBannerText() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(cubeType.getName());
-
-    if (!Utils.isDefaultSolveTypeName(solveType.getName())) {
-      String localizedSolveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
-      sb.append(" (").append(localizedSolveTypeName).append(")");
-    }
-    setTitle(sb.toString(), defaultTextColor.getDefaultColor());
-  }
-
-  public void setTitle(String s) {
-    tvTitle.setText(s);
-  }
-
-  public void setTitle(int res) {
-    tvTitle.setText(res);
-  }
-
-  public synchronized void setTitle(String s, int textColor) {
-    setTitle(s);
-    setTitleColor(textColor);
-  }
-
-  @Override
-  public void setTitleColor(int textColor) {
-    tvTitle.setTextColor(textColor);
+    tvBanner.setVisibility(View.INVISIBLE);
+    identityRow.setVisibility(View.VISIBLE);
+    identityStrip.setVisibility(timerState == TimerState.STOPPED ? View.VISIBLE : View.INVISIBLE);
   }
 
   @Override
@@ -684,6 +681,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       menu.findItem(R.id.itAddTime).setVisible(false);
     }
     setUpQuickAction(menu);
+    // The chip sits with the other items now, greyed until a cube is paired, as on the history
+    // screen. The loop above is what takes it away during a run, so the bar stays a tap target.
+    MenuItem smartCubeItem = menu.findItem(R.id.itSmartCube);
+    smartCubeChip.bind(smartCubeItem != null ? smartCubeItem.getActionView() : null);
     return true;
   }
 
@@ -734,13 +735,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       this.showMenu = show;
       supportInvalidateOptionsMenu();
 
-      getSupportActionBar().setDisplayHomeAsUpEnabled(show);
+      // The navigation slot stays live through a run, as a cross: phones without a back button
+      // still need a way to abandon a solve.
+      getSupportActionBar().setHomeAsUpIndicator(
+          show ? null : ContextCompat.getDrawable(this, R.drawable.ic_cancel_solve));
 
-      // The cross stands in for the back arrow, which phones without a back button do not have.
-      imgCancelSolve.setVisibility(show ? View.GONE : View.VISIBLE);
-
-      // Hide the cube chip while the timer runs so the whole action bar stays a tap target
-      // (no dead zone); it reappears when the timer stops (if a cube is connected).
+      // The menu items go with it (the loop in onCreateOptionsMenu), so the rest of the bar is
+      // empty during a run and stays a tap target rather than a row of dead controls.
       smartCubeChip.setSuppressed(!show);
       refreshLiveCubeSuppression();
     }
@@ -814,6 +815,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == android.R.id.home && timerState != TimerState.STOPPED) {
+      // The cross: a stop tap like any other, which then asks whether to keep the time.
+      if (timerState == TimerState.RUNNING) {
+        cancelPressed();
+      } else {
+        stopInspectionTimer();
+        resetTimer();
+      }
+      return true;
+    }
     if (timerState == TimerState.STOPPED) {
       switch (item.getItemId()) {
         case R.id.itPlusTwo:
@@ -1259,7 +1270,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     timerState = TimerState.INSPECTING; // set before the screen stands down: the focus state reads it
     timerStarted();
     resetTimerText();
-    setTitle(R.string.inspection);
     clearAvgRecordStyle();
     timer = new Timer();
     TimerTask timerTask = new TimerTask() {
@@ -1472,10 +1482,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
             synchronized (holdToStartTimerSync) {
               if (holdToStartTs > 0) {
                 long remainingHoldTime = Math.max(0, HOLD_TO_START_MIN_DURATION - (System.currentTimeMillis() - holdToStartTs));
-                setTitle(String.format("%.1f", ((float) remainingHoldTime / 1000)));
+                showBanner(String.format("%.1f", ((float) remainingHoldTime / 1000)),
+                    getResources().getColor(R.color.white));
                 if (remainingHoldTime == 0) {
                   stopHoldToStartTimer();
-                  setTitle(getString(R.string.ready), getResources().getColor(R.color.green));
+                  showBanner(getString(R.string.ready), getResources().getColor(R.color.green));
                 }
               }
             }
@@ -1704,6 +1715,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void setSolvesCount(int solvesCount) {
     this.solvesCount = Math.max(0, solvesCount);
     refreshSolvesCountLabel();
+    refreshIdentityPill(); // the history count beside it moves with every solve and deletion
   }
 
   /**
@@ -2084,11 +2096,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               startTimer();
               setDefaultBannerText();
             } else {
-              if (inspectionTime > 0) {
-                setTitle(R.string.inspection);
-              } else {
-                setDefaultBannerText();
-              }
+              setDefaultBannerText(); // still inspecting, and the ring is what says so
             }
             holdToStartTs = 0;
           }

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <!-- First on the right, as on the history screen. It hides itself when no cube is connected. -->
+  <item android:id="@+id/itSmartCube"
+     android:title="@string/smart_cube_title"
+     app:actionLayout="@layout/smart_cube_chip"
+     app:showAsAction="always"/>
 
   <!-- No showAsAction here: the solve type picks which item goes to the action bar, and
        TimerActivity promotes it (and swaps this one's icon when it is the chosen one). -->

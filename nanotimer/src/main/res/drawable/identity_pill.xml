@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The solve type's pill on the timer strip. The fill is tinted with the solve type's own colour
+     at the call site, so the shape carries no hue of its own. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/white_wash_12"/>
+  <corners android:radius="20dp"/>
+</shape>
