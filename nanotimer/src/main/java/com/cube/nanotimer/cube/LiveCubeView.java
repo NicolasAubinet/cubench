@@ -3,7 +3,6 @@ package com.cube.nanotimer.cube;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Color;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -60,7 +59,8 @@ import java.util.List;
  * whole state after every turn) and the cube on screen dims rather than lying, until the next
  * solved state re-seeds it.
  */
-public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, CubeStateListener {
+public class LiveCubeView
+    implements CubeConnectionListener, CubeMoveListener, CubeStateListener, GyroReferenceListener {
 
   private static final String BASE_URL =
       "https://appassets.androidplatform.net/assets/scramble/live.html";
@@ -73,15 +73,6 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
 
   /** Show the cube anyway if the page's "ready" never arrives, rather than hide it for good. */
   private static final long READY_TIMEOUT_MS = 6000;
-
-  /** Two gyro periods, so each tick of {@link #anchorWhenStill} sees a genuinely new reading. */
-  private static final long STILL_POLL_MS = 100;
-
-  /** How far the cube may drift between two ticks and still count as held still. */
-  private static final double STILL_DEGREES = 8.0;
-
-  /** Long enough for a slice to finish, short enough not to leave a fresh cube unanchored. */
-  private static final long STILL_TIMEOUT_MS = 2000;
 
   private final Context context;
   private final View.OnTouchListener touchListener;
@@ -115,38 +106,19 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   private boolean seeded;
 
   /**
-   * The solve's own reference, shared rather than copied: the uprighted reading at the first
-   * followed scramble move, which is the one grip whose label is genuinely known.
+   * The grip the pose is measured from: the session's, taken once by {@link SmartCubeManager} and
+   * shared with the frames the replay is spelled in, so the two never disagree.
    *
-   * <p>⚠️ <b>This replaced a reference of this view's own, re-taken at every seed, and the reason
-   * is worth keeping.</b> Re-anchoring redefines "however you are holding it right now" as square,
-   * so the moment a solve finished the cube on screen snapped to white-top-green-front whatever was
-   * really in the hand — right for the whole solve, wrong from the instant it was solved. The
-   * replay, measuring from this reference, was right the whole time.
+   * <p>⚠️ <b>This view must not take a reference of its own, and nothing here may re-take this
+   * one.</b> Both were tried. Re-anchoring redefines "however you are holding it right now" as
+   * square, so the cube on screen snapped to white-top-green-front whatever was really in the hand —
+   * once at every seed, and later once at every scramble's first move. The whole point of a mirror
+   * is that it does not do that. Volatile inside, because the page polls it from its own thread.
    */
-  private GyroReference solveReference;
-
-  /**
-   * The last grip the solve's reference named, kept because it clears at every new scramble and is
-   * not set again until the first move is followed. Absolute either way — yaw drift is hundredths
-   * of a degree a minute — so holding the previous one across the gap beats jumping to a guess.
-   */
-  private volatile CubeOrientation lastKnownReference;
-
-  /**
-   * Where the pose is measured from before any scramble has been followed: this view's own, taken
-   * once and never re-taken. Uprighted, unlike the anchor this replaced — gravity knows which face
-   * is up, so only yaw is left arbitrary, and the tilt of the grip belongs on screen because it is
-   * really there. Volatile because the page polls it from its own thread.
-   */
-  private volatile CubeOrientation reference;
+  private final GyroReference gyroReference = SmartCubeManager.INSTANCE.getGyroReference();
 
   /** Whether the page is following the orientation, which it only does with a reference to follow. */
   private boolean gyroOn;
-
-  /** The previous tick's reading, and when the wait began: see {@link #anchorWhenStill}. */
-  private CubeOrientation stillCandidate;
-  private long stillSince;
 
   /**
    * @param touchListener the timer screen's own, forwarded so the cube is not a dead zone —
@@ -174,29 +146,6 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
    * @param topSpacer the gap the cube stands in for, hidden while it is up, or null where the
    *     layout keeps no such gap
    */
-  /** The solve's reference, to measure poses from in preference to one of this view's own. */
-  public void setSolveReference(GyroReference solveReference) {
-    this.solveReference = solveReference;
-  }
-
-  /**
-   * The grip the pose is measured from: the solve's where a scramble has been followed, the last
-   * one it named while it waits for the next, and this view's own only until there has been one.
-   *
-   * <p>Called from the page's thread as well as the main one, so it touches nothing that is not
-   * volatile.
-   */
-  private CubeOrientation referenceNow() {
-    GyroReference solve = solveReference;
-    CubeOrientation named = solve == null ? null : solve.get();
-    if (named != null) {
-      lastKnownReference = named;
-      return named;
-    }
-    CubeOrientation last = lastKnownReference;
-    return last != null ? last : reference;
-  }
-
   public void bind(ViewStub stub, View topSpacer) {
     boolean relaidOut = webView != null;
     if (relaidOut) {
@@ -214,8 +163,11 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
     SmartCubeManager.INSTANCE.addMoveListener(this);
     SmartCubeManager.INSTANCE.addStateListener(this); // and the current state, which seeds it
+    SmartCubeManager.INSTANCE.addGyroReferenceListener(this);
     if (webView != null) {
       webView.onResume();
+      // Read afresh: the reference can have been taken, re-taken or lost while the screen was away.
+      gyroOn = gyroReference.isSet();
       evaluate("window.ntLiveGyro(" + gyroOn + ");");
     }
   }
@@ -224,8 +176,8 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     SmartCubeManager.INSTANCE.removeConnectionListener(this);
     SmartCubeManager.INSTANCE.removeMoveListener(this);
     SmartCubeManager.INSTANCE.removeStateListener(this);
+    SmartCubeManager.INSTANCE.removeGyroReferenceListener(this);
     if (webView != null) {
-      webView.removeCallbacks(anchorWhenStill); // nothing to anchor for off screen
       evaluate("window.ntLiveGyro(false);"); // stop the render loop, not just the readings
       webView.onPause(); // twisty-player keeps a WebGL context drawing otherwise
     }
@@ -234,7 +186,6 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   public void destroy() {
     if (webView != null) {
       webView.removeCallbacks(readyTimeout);
-      webView.removeCallbacks(anchorWhenStill);
       ViewGroup parent = (ViewGroup) webView.getParent();
       if (parent != null) {
         parent.removeView(webView); // detach first: destroying in place can strand the renderer
@@ -265,15 +216,12 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
       seeded = false;
     } else {
       inflate();
-      // A cube that connects already solved never reports a change, so seed off what it holds.
+      // A cube that connects already solved never reports a change, so seed off what it holds. A
+      // state that is not solved cannot be pointed at, so the stickers wait for one that is; the
+      // pose does not wait, since the connection anchors the reference either way.
       CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
       if (state != null && state.isSolved()) {
         seed();
-      } else {
-        // Not a state the cube can be pointed at, so the stickers must wait for a solved one — but
-        // the pose need not. Anchored here, the cube follows the hands from the moment it appears
-        // rather than sitting dim and dead until the first turn or the resync button.
-        anchor();
       }
     }
     refresh();
@@ -284,12 +232,12 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     twin.applyMove(move.getFace(), move.isPrime());
     movesSinceSeed.add(move.getNotation());
     evaluate("window.ntLiveMove(" + JSONObject.quote(move.getNotation()) + ");");
-    if (referenceNow() == null) {
-      // Nothing known to measure from yet — no scramble followed, and the seed found no reading
-      // (the first ones can arrive after the connection). Fall back to the grip it is being turned
-      // in now, rather than not following it at all.
-      anchor();
-    }
+  }
+
+  /** The reference arrived, was re-taken, or went with the cube: the page follows it or stops. */
+  @Override
+  public void onGyroReferenceChanged() {
+    refreshGyro();
   }
 
   @Override
@@ -320,9 +268,6 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     // ⚠️ Seeding the STATE does not re-take the reference, and must not. Re-anchoring here is what
     // made the cube snap to white-top-green-front the instant a solve finished, whatever was really
     // in the hand: the orientation was right for the whole solve and wrong from the moment it ended.
-    // anchor() no-ops once anything is known to measure from; it is here only for the cube that
-    // connects before its first reading arrives.
-    anchor();
     inSync = true;
     seeded = true;
     if (!alreadyShown) {
@@ -332,84 +277,16 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   }
 
   /**
-   * However the cube is being held now is what square means from here on, so a peek reads as a peek
-   * rather than as the grip the last solve happened to end in.
+   * Starts or stops the page's render loop as the reference comes and goes.
    *
-   * <p>⚠️ <b>Deliberately NOT uprighted</b>, unlike every other anchor in the app — and this is the
-   * one place that is right. Uprighting squares a reading up to the nearest of the 24 so the grip
-   * can be <em>named</em>; the tilt it removes is then shown as the pose, which is what a replay
-   * wants (§6.7). A mirror has no name to spell: it is asked to match a cube in the hand right now,
-   * so the anchor must read as exactly square at the moment it is taken. Uprighted, pressing "my
-   * cube is solved" left the cube on screen sitting a few degrees off — the tilt of the grip it was
-   * anchored in.
-   *
-   * <p>Which grip that is, though, is decided by {@link #anchorWhenStill} rather than read here:
-   * "now" is often the middle of a turn.
+   * <p>A cube with no gyro must not leave the loop running for a pose that never changes: nothing
+   * to follow, nothing to draw.
    */
-  private void anchor() {
-    if (referenceNow() != null) {
-      return; // already measuring from a known grip, and re-taking one is what broke this
-    }
-    CubeOrientation reading = SmartCubeManager.INSTANCE.getOrientation();
-    if (reading == null) {
-      return; // no gyro on this cube, or nothing read yet: the cube on screen simply stays square
-    }
-    if (webView == null) {
-      setReference(reading); // nothing to poll on, and nothing on screen to be wrong
-      return;
-    }
-    stillCandidate = null;
-    stillSince = SystemClock.uptimeMillis();
-    webView.removeCallbacks(anchorWhenStill);
-    webView.post(anchorWhenStill);
-  }
-
-  /**
-   * Takes the reference off the first reading with the cube <em>at rest</em>, not off whatever it
-   * reads right now.
-   *
-   * <p>⚠️ <b>This is the whole of the fast-slice bug.</b> A seed fires on the state packet, and the
-   * cube calls a turn done the moment it registers the last quarter turn — measured on hardware,
-   * with 25° to 110° of core rotation still to come. Anchoring there pins the frame to a spinning
-   * core, and since a reference stands until the next seed, the cube stays that far out for good:
-   * moving it does nothing (the frame is wrong, not the reading), and only re-solving it fixes it,
-   * and then only if that seed happens to land on a still cube.
-   *
-   * <p>Polled at 100 ms, which is two gyro periods, so every tick is a genuinely new sample rather
-   * than the same one read twice — that would read as perfectly still and is the trap this is
-   * shaped around. A hand turning the cube over moves it well under {@code STILL_DEGREES} in that
-   * time; a core mid-slice moves an order of magnitude more.
-   */
-  private final Runnable anchorWhenStill = new Runnable() {
-    @Override
-    public void run() {
-      CubeOrientation reading = SmartCubeManager.INSTANCE.getOrientation();
-      if (reading == null || webView == null) {
-        return;
-      }
-      boolean still =
-          stillCandidate != null && stillCandidate.angleToDegrees(reading) < STILL_DEGREES;
-      stillCandidate = reading;
-      if (still) {
-        setReference(reading);
-      } else if (SystemClock.uptimeMillis() - stillSince < STILL_TIMEOUT_MS) {
-        webView.postDelayed(this, STILL_POLL_MS);
-      } else if (reference == null) {
-        // Never installed over a reference that already works: a cube that is simply never held
-        // still is better followed from a stale frame than from a knowingly mid-turn one.
-        setReference(reading);
-      }
-    }
-  };
-
-  private void setReference(CubeOrientation reading) {
-    // Uprighted, as the solve's own reference is: gravity knows which face is up, so squaring the
-    // reading up leaves only yaw arbitrary — and leaves the grip's real tilt on screen, where it
-    // belongs, because a mirror is asked to show the cube as it is and not as square.
-    reference = CubeRotation.upright(reading);
-    if (!gyroOn) {
-      gyroOn = true;
-      evaluate("window.ntLiveGyro(true);");
+  private void refreshGyro() {
+    boolean on = gyroReference.isSet();
+    if (on != gyroOn) {
+      gyroOn = on;
+      evaluate("window.ntLiveGyro(" + gyroOn + ");");
     }
   }
 
@@ -449,9 +326,8 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     for (String move : movesSinceSeed) {
       evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
     }
-    // A cube with no gyro must not leave the page's render loop running for a pose that never
-    // changes: nothing to follow, nothing to draw.
-    gyroOn = referenceNow() != null;
+    // Pushed rather than compared: the page is fresh and knows nothing of what was on before it.
+    gyroOn = gyroReference.isSet();
     evaluate("window.ntLiveGyro(" + gyroOn + ");");
   }
 
@@ -619,8 +495,8 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
      */
     @JavascriptInterface
     public String orientation() {
-      CubeOrientation pose =
-          CubeRotation.continuousFrame(referenceNow(), SmartCubeManager.INSTANCE.getOrientation());
+      CubeOrientation pose = CubeRotation.continuousFrame(
+          gyroReference.get(), SmartCubeManager.INSTANCE.getOrientation());
       return pose == null ? ""
           : pose.getW() + "," + pose.getX() + "," + pose.getY() + "," + pose.getZ();
     }

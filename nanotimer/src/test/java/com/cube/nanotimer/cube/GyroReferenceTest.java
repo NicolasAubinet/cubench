@@ -23,23 +23,32 @@ public class GyroReferenceTest {
     assertNull(anchoredAt(REST).frameOf(null)); // anchored, but the cube has no gyro
   }
 
-  /** The first reading wins: the one grip whose label can be asked of the solver. */
+  /**
+   * The latest reading wins. Anchoring is asked for at moments that mean it — a fresh connection, or
+   * the solver saying how they are holding it — so the newest answer is the one to keep.
+   */
   @Test
-  public void theFirstReadingIsTheReferenceAndLaterOnesDoNotMoveIt() {
+  public void anchoringAgainMovesTheReference() {
     GyroReference reference = anchoredAt(REST);
     reference.anchor(aboutU(90));
-    assertEquals("y", reference.frameOf(aboutU(90)).getNotation());
+    assertEquals("", reference.frameOf(aboutU(90)).getNotation());
+    assertEquals("y'", reference.frameOf(REST).getNotation());
   }
 
+  /** A reading that is not there anchors nothing, and leaves whatever stood before it standing. */
   @Test
   public void nothingIsAnchoredByAReadingThatIsNotThere() {
     GyroReference reference = new GyroReference();
     reference.anchor(null);
     assertFalse(reference.isSet());
     assertNull(reference.get());
+
+    GyroReference anchored = anchoredAt(REST);
+    anchored.anchor(null);
+    assertEquals("", anchored.frameOf(REST).getNotation());
   }
 
-  /** A cube set down mid-scramble may be picked back up any way up. */
+  /** The gyro zero it was measured against went with the connection. */
   @Test
   public void restartingForgetsIt() {
     GyroReference reference = anchoredAt(REST);

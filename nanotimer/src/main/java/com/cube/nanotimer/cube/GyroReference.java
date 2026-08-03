@@ -8,33 +8,43 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The grip every frame of a solve is measured from: the reading at the first followed scramble
- * move, uprighted. That is the one grip whose label can be known, because it is the one the solver
- * can be asked for — the end of a scramble cannot be, since cubers turn the cube mid-scramble to
- * make a {@code B} easier and put it back only sometimes.
+ * The grip every frame of a solve is measured from, and every pose the live mirror is drawn at:
+ * one uprighted reading, taken once per gyro session and held for the whole of it.
  *
- * <p>Owned by {@link SmartCubeSolveController} and shared by everything that reads the gyro:
- * {@link RotationTracker} resolves its frames against it, and the stored gyro track is written
- * beside it. One holder rather than one per reader, so a future "reset gyro" has a single home.
+ * <p>Owned by {@link SmartCubeManager}, which takes it, and shared by everything that reads the
+ * gyro: {@link RotationTracker} resolves its frames against it, the live mirror draws against it,
+ * and the stored gyro track is written beside it. One holder rather than one per reader.
  *
- * <p>The anchor fixes the initial <em>offset</em> — where front is. It does not fix drift: yaw
- * wanders over a solve and one anchor at the start cannot correct that. Which is why the track is
- * stored raw beside the reference rather than composed with it — see {@link GyroTrackFormat}.
+ * <p>⚠️ <b>It used to be re-taken at the first move of every scramble, and that is the fault this
+ * replaced.</b> Uprighting already settles the up face from gravity, so a fresh reading adds
+ * nothing but the yaw — and yaw wanders by hundredths of a degree a minute, so one datum outlives a
+ * whole session of solving. What re-taking it did add was a jump: the grip you finish a solve in is
+ * not the grip you start scrambling in, and at that first move the cube on screen swung by the
+ * difference. Taken once, there is nothing to swing.
+ *
+ * <p>The anchor fixes the <em>offset</em> — where front is. It does not fix drift, which is why the
+ * track is stored raw beside the reference rather than composed with it — see
+ * {@link GyroTrackFormat}.
  */
 public final class GyroReference {
 
   // Volatile because the live mirror's page polls it from the WebView's own thread, while the
-  // controller anchors it on the main one.
+  // manager anchors it on the main one.
   private volatile CubeOrientation reference;
 
-  /** Feed the reading at every followed scramble move: the first one is the reference. */
+  /**
+   * The grip to measure from, replacing whatever stood before. Deliberately overwrites: it is taken
+   * at moments that mean it — a fresh connection, or the solver saying so — rather than fed
+   * speculatively, so the newest answer is the right one. A reading that is not there anchors
+   * nothing, and leaves the previous grip standing.
+   */
   public void anchor(CubeOrientation reading) {
-    if (reference == null && reading != null) {
+    if (reading != null) {
       reference = CubeRotation.upright(reading);
     }
   }
 
-  /** Forget it: the cube was set down mid-scramble and may be picked back up any way up. */
+  /** Forget it: the gyro zero it was measured against went with the connection. */
   public void restart() {
     reference = null;
   }
@@ -43,7 +53,7 @@ public final class GyroReference {
     return reference != null;
   }
 
-  /** The reference itself, for storing beside a track. Null until a scramble has been followed. */
+  /** The reference itself, for storing beside a track. Null until a session has anchored one. */
   public CubeOrientation get() {
     return reference;
   }

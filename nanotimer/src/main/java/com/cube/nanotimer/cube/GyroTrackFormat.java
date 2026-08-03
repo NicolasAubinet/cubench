@@ -70,7 +70,7 @@ public final class GyroTrackFormat {
    *     other directly. Samples are filed under the host clock and moves under the cube's own,
    *     fitted to it — the same near-identity the slice and pick-up reads already rely on.
    * @param reference the grip the solve's frames are measured from
-   *     ({@link GyroReference#get()}), or null where no scramble was followed to anchor one
+   *     ({@link GyroReference#get()}), or null where the session never anchored one
    */
   public static String format(List<OrientationHistory.Sample> samples, CubeOrientation reference,
       long solveStartMs) {

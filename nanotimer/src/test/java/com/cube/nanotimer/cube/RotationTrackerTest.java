@@ -72,31 +72,17 @@ public class RotationTrackerTest {
   }
 
   /**
-   * The first scramble move is the only grip whose label can be known, because it is the one the
-   * solver can be asked for. Turned two moves in and left there, the solve is a {@code y} away from
-   * where it started, and that is what has to be recorded.
+   * A cube turned away from the anchored grip and left there is a {@code y} from where the session
+   * was anchored, and that is what has to be recorded — the reference is not re-taken to follow it.
    */
   @Test
-  public void theReferenceIsTheFirstScrambleMoveAndNotTheLast() {
+  public void aGripTurnedAwayFromTheReferenceIsRecordedAgainstIt() {
     GyroReference reference = new GyroReference();
     reference.anchor(REST);
-    reference.anchor(AFTER_Y); // the cube turned partway through the scramble and stayed there
     RotationTracker tracker = tracking(reference);
     tracker.onMove(AFTER_Y, 100);
     assertEquals(1, tracker.getRotations().size());
     assertEquals("y", tracker.getRotations().get(0).getNotation());
-  }
-
-  /** After a mid-scramble break the cube can come back any way up: the reference restarts. */
-  @Test
-  public void restartAnchorRepinsOnTheNextScrambleMove() {
-    GyroReference reference = new GyroReference();
-    reference.anchor(REST);
-    reference.restart();
-    reference.anchor(AFTER_Y); // the grip the scramble was picked back up in
-    RotationTracker tracker = tracking(reference);
-    tracker.onMove(AFTER_Y, 100);
-    assertTrue(tracker.getRotations().isEmpty());
   }
 
   /** The "y R y R" pattern: a rotation before every single move, each one recorded. */

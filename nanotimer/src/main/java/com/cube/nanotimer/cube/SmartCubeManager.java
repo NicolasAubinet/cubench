@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import com.cube.nanotimer.smartcube.SmartCube;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
@@ -30,9 +31,23 @@ import java.util.concurrent.Executors;
  * register with the manager (not the cube), so listeners persist across reconnections; the
  * manager re-wires each new {@link SmartCube} internally. Blocking BLE work runs off-thread
  * and every listener callback is marshalled to the main thread.
+ *
+ * <p>It also owns the {@link GyroReference}: the grip everything measuring the gyro measures from.
+ * It lives here because it is worth exactly one gyro session — the cube's own fusion establishes
+ * its yaw zero at power-up, so a reference outliving the connection measures against a zero that no
+ * longer exists.
  */
 public enum SmartCubeManager {
   INSTANCE;
+
+  /** Two gyro periods, so each tick of {@link #anchorWhenStill} sees a genuinely new reading. */
+  private static final long STILL_POLL_MS = 100;
+
+  /** How far the cube may drift between two ticks and still count as held still. */
+  private static final double STILL_DEGREES = 8.0;
+
+  /** Long enough for a slice to finish, short enough not to leave a fresh cube unanchored. */
+  private static final long STILL_TIMEOUT_MS = 2000;
 
   private Context context;
   private CubeScanner scanner;
@@ -45,7 +60,14 @@ public enum SmartCubeManager {
   private volatile Integer battery;
   private volatile CubeState currentState;
 
+  // One reference for every reader of the gyro: the frames, the live mirror and the stored track.
+  private final GyroReference gyroReference = new GyroReference();
+  private CubeOrientation stillCandidate; // main thread only, like the two below
+  private long stillSince;
+  private boolean anchoring;
+
   private final CopyOnWriteArrayList<CubeConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
+  private final CopyOnWriteArrayList<GyroReferenceListener> gyroReferenceListeners = new CopyOnWriteArrayList<>();
   private final CopyOnWriteArrayList<CubeBatteryListener> batteryListeners = new CopyOnWriteArrayList<>();
   private final CopyOnWriteArrayList<CubeStateListener> stateListeners = new CopyOnWriteArrayList<>();
   private final CopyOnWriteArrayList<CubeMoveListener> moveListeners = new CopyOnWriteArrayList<>();
@@ -124,7 +146,111 @@ public enum SmartCubeManager {
   public void syncSolved() {
     SmartCube current = cube;
     if (current != null) {
+      // "My cube is solved" says how the cube is held as much as how it is turned: the grip at the
+      // press is the one to square the mirror to and to measure every later frame from.
+      reanchorGyro();
       bleExecutor.execute(() -> current.syncState(new CubeState(CubeState.SOLVED_FACELETS)));
+    }
+  }
+
+  /** The grip every reader of the gyro measures from. Never null, though it may hold nothing yet. */
+  public GyroReference getGyroReference() {
+    return gyroReference;
+  }
+
+  /**
+   * Take the grip again, whatever stands now: the cube is being held the way it should be measured
+   * from. The old one stays up until the new one is ready, so nothing on screen goes blank while the
+   * cube settles.
+   */
+  public void reanchorGyro() {
+    mainHandler.post(() -> anchorGyro(true));
+  }
+
+  /**
+   * Take one only if the session never got one — for callers noticing there is nothing to measure
+   * from. Safe to call as often as it is noticed: it stands aside for a grip and for a wait already
+   * under way, so it cannot keep restarting the wait it is asking for.
+   */
+  public void anchorGyroIfUnset() {
+    mainHandler.post(() -> anchorGyro(false));
+  }
+
+  public void addGyroReferenceListener(GyroReferenceListener listener) {
+    gyroReferenceListeners.add(listener);
+  }
+
+  public void removeGyroReferenceListener(GyroReferenceListener listener) {
+    gyroReferenceListeners.remove(listener);
+  }
+
+  /** @param force take one even where a grip already stands; otherwise only fill an empty one */
+  private void anchorGyro(boolean force) {
+    if (!force && (anchoring || gyroReference.isSet())) {
+      return;
+    }
+    // Forced, this restarts a wait already under way rather than being swallowed by it: the solver
+    // pressing the button a second after connecting means the grip they are in now, not that one.
+    mainHandler.removeCallbacks(anchorWhenStill);
+    anchoring = true;
+    stillCandidate = null;
+    stillSince = SystemClock.uptimeMillis();
+    mainHandler.postDelayed(anchorWhenStill, STILL_POLL_MS);
+  }
+
+  /**
+   * Takes the reference off the first reading with the cube <em>at rest</em>, not off whatever it
+   * reads right now.
+   *
+   * <p>⚠️ <b>This is the whole of the fast-slice bug.</b> A cube calls a turn done the moment it
+   * registers the last quarter turn — measured on hardware, with 25° to 110° of core rotation still
+   * to come. Anchoring there pins the frame to a spinning core, and since the reference stands for
+   * the session, the cube stays that far out until something re-takes it.
+   *
+   * <p>Polled at 100 ms, which is two gyro periods, so every tick is a genuinely new sample rather
+   * than the same one read twice — that would read as perfectly still and is the trap this is shaped
+   * around. A hand turning the cube over moves it well under {@link #STILL_DEGREES} in that time; a
+   * core mid-slice moves an order of magnitude more.
+   *
+   * <p>Keeps polling through readings that are not there: a cube's gyro stream can start well after
+   * its connection is ready. Past the timeout it settles for whatever it can get, since a cube that
+   * is simply never held still is better followed from a mid-turn frame than from none at all.
+   */
+  private final Runnable anchorWhenStill = new Runnable() {
+    @Override
+    public void run() {
+      CubeOrientation reading = getOrientation();
+      boolean timedOut = SystemClock.uptimeMillis() - stillSince >= STILL_TIMEOUT_MS;
+      if (reading != null) {
+        boolean still =
+            stillCandidate != null && stillCandidate.angleToDegrees(reading) < STILL_DEGREES;
+        stillCandidate = reading;
+        if (still || timedOut) {
+          anchoring = false;
+          gyroReference.anchor(reading);
+          notifyGyroReferenceChanged();
+          return;
+        }
+      } else if (timedOut) {
+        anchoring = false;
+        return; // no gyro on this cube, or its stream never started: nothing to measure from
+      }
+      mainHandler.postDelayed(this, STILL_POLL_MS);
+    }
+  };
+
+  private void forgetGyroReference() {
+    mainHandler.removeCallbacks(anchorWhenStill);
+    anchoring = false;
+    if (gyroReference.isSet()) {
+      gyroReference.restart();
+      notifyGyroReferenceChanged();
+    }
+  }
+
+  private void notifyGyroReferenceChanged() {
+    for (GyroReferenceListener listener : gyroReferenceListeners) {
+      listener.onGyroReferenceChanged();
     }
   }
 
@@ -276,6 +402,13 @@ public enum SmartCubeManager {
   private void updateConnection(CubeConnection newConnection) {
     connection = newConnection;
     mainHandler.post(() -> {
+      if (newConnection == CubeConnection.READY) {
+        // A fresh gyro session, with a yaw zero of its own: take the grip it opens in. Not forced,
+        // so a cube merely re-reporting ready does not re-square what the solver already squared.
+        anchorGyro(false);
+      } else if (newConnection != CubeConnection.CONNECTING) {
+        forgetGyroReference(); // the zero it was measured against went with the connection
+      }
       for (CubeConnectionListener listener : connectionListeners) {
         listener.onConnection(newConnection);
       }

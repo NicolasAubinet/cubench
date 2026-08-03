@@ -12,9 +12,9 @@ import java.util.List;
  * frame is right for 78% of the moves of seven captured solves, against 55% for the still-window
  * grip tracking it replaced.
  *
- * <p><strong>The frames are measured from {@link GyroReference}</strong>, the reading at the first
- * scramble move — held there rather than here because the stored gyro track is written against the
- * same reference and a reset has to reach both.
+ * <p><strong>The frames are measured from {@link GyroReference}</strong>, the grip the gyro session
+ * was anchored in — held there rather than here because the stored gyro track and the live mirror
+ * are written against the same reference and a re-anchor has to reach all three.
  *
  * <p>Slices are {@link SliceSpinDetector}'s, since the core rocks over ~150 ms and every reading
  * taken at a move inside an LSE is mid-rock. Its spins are folded in here, and no frame is read at

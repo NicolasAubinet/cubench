@@ -43,9 +43,6 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   private enum Phase { INACTIVE, NEEDS_SOLVE, FOLLOWING, ARMED, RUNNING }
 
-  /** A follow pause longer than this means the cube was set down, not a slow scramble. */
-  private static final long FOLLOW_RESUME_GAP_MS = 60_000;
-
   /** How far past the last move the moves wait for the gyro: a settled reading, plus a sample period
    * for it to arrive. A solve ending on a slice has none yet when the cube reports it solved. */
   private static final long GYRO_CATCHUP_MS = SliceSpinDetector.SETTLE_MS + 50;
@@ -53,8 +50,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
   private MethodAnalyzers analyzers = new MethodAnalyzers(CubeMethod.CFOP); // replaced by the solve type's own at the first setScramble
-  // One reference for every reader of the gyro: the frames, the pick-up grip and the stored track.
-  private final GyroReference gyroReference = new GyroReference();
+  // Taken once per gyro session and owned by the manager, so a solve does not re-take it.
+  private final GyroReference gyroReference = SmartCubeManager.INSTANCE.getGyroReference();
   private final RotationTracker rotationTracker = new RotationTracker(gyroReference);
   private final SliceSpinDetector sliceSpins = new SliceSpinDetector();
   private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -77,7 +74,6 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private CubeRotation pickup; // the grip the running solve was picked up in, once it is known
   private boolean pickupRead; // whether the reading before its first move has been asked for
   private CubeRotation usedPickup; // the grip the analysis actually ran on, settled reading or fallback
-  private long lastFollowMoveWallMs; // 0 until the first followed move of the current scramble
   private long timerStartMs; // when the tap started the solve, on the cube's (host-fitted) clock
   private long lastSolveMoveHostMs; // host clock at the solve's latest move, 0 before the first
   private Runnable pendingRecord; // set while the moves are waiting on the gyro
@@ -264,14 +260,6 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     return follower != null && follower.isWrong();
   }
 
-  /**
-   * The grip a solve's frames are measured from, shared so the live mirror can measure from it too
-   * rather than inventing one of its own — the same reference the replay draws its poses against.
-   */
-  public GyroReference getGyroReference() {
-    return gyroReference;
-  }
-
   /** True once the whole scramble has been followed and the timer is armed. */
   public boolean isReadyToSolve() {
     return phase == Phase.ARMED;
@@ -324,11 +312,13 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     follower = null;
     analyzing = false;
     rotationTracker.reset();
-    gyroReference.restart(); // a new scramble re-anchors at its own first move
+    // ⚠️ The reference is deliberately NOT restarted here. A new scramble used to re-anchor at its
+    // own first move, which swung the cube on screen by however differently it was being held from
+    // the grip the last solve ended in. Uprighting settles the up face from gravity anyway, so a
+    // fresh reading only re-picks the yaw — and yaw holds for a whole session.
     sliceSpins.reset();
     pickup = null;
     pickupRead = false;
-    lastFollowMoveWallMs = 0;
     lastSolveMoveHostMs = 0;
     if (!followable || scramble == null || !SmartCubeManager.INSTANCE.isConnected()) {
       phase = Phase.INACTIVE;
@@ -391,19 +381,13 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   @Override
   public void onMove(CubeMove move) {
+    if (!gyroReference.isSet()) {
+      // The connection takes the reference, but a cube's gyro stream can start later than the two
+      // seconds it waits. Turning one proves there is a cube in a hand, so ask again.
+      SmartCubeManager.INSTANCE.anchorGyroIfUnset();
+    }
     switch (phase) {
       case FOLLOWING:
-        // The first followed move is the one moment the cube is known to be held the way the
-        // scramble reads, so its reading is the reference every later frame is measured from.
-        long followMoveWallMs = System.currentTimeMillis();
-        if (lastFollowMoveWallMs != 0
-            && followMoveWallMs - lastFollowMoveWallMs > FOLLOW_RESUME_GAP_MS) {
-          // A long pause mid-follow means the cube was set down, and it can be picked back up any
-          // way up: the reference restarts at the move that resumes the scramble.
-          gyroReference.restart();
-        }
-        lastFollowMoveWallMs = followMoveWallMs;
-        gyroReference.anchor(SmartCubeManager.INSTANCE.getOrientation());
         boolean changed = follower.onMove(move);
         if (follower.isComplete()) {
           phase = Phase.ARMED;
