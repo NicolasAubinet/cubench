@@ -1267,18 +1267,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (solveType.hasSteps()) {
       solveTime.setStepsTimes(stepsTimes.toArray(new Long[0]));
     }
-    // A DNF keeps what the cube saw: a blind attempt that came out wrong still memorised and still
-    // executed, and a solve marked DNF afterwards keeps its breakdown regardless.
-    // A solve type with its own steps is read through those alone, so the method's are not
-    // recorded: nothing would ever show them, and stored is worth keeping equal to shown.
-    if (!lastSolveSteps.isEmpty() && !solveType.hasSteps()) {
-      solveTime.setSmartcubeMethod(lastSolveMethod);
-      solveTime.setSmartcubeSteps(lastSolveSteps);
-      solveTime.setSmartcubeStoppedStep(lastSolveStoppedStep); // null unless it stopped short
-    }
-    if (!lastSolveMoves.isEmpty()) { // the cube timed it, whether or not a method matched
-      solveTime.setSmartcubeMoves(lastSolveMoves);
-      solveTime.setSmartcubeGyroTrack(lastSolveGyroTrack); // null unless the cube has a gyro
+    if (!solveTime.isDNF()) {
+      // A solve type with its own steps is read through those alone, so the method's are not
+      // recorded: nothing would ever show them, and stored is worth keeping equal to shown.
+      if (!lastSolveSteps.isEmpty() && !solveType.hasSteps()) {
+        solveTime.setSmartcubeMethod(lastSolveMethod);
+        solveTime.setSmartcubeSteps(lastSolveSteps);
+        solveTime.setSmartcubeStoppedStep(lastSolveStoppedStep); // null unless it stopped short
+      }
+      if (!lastSolveMoves.isEmpty()) { // the cube timed it, whether or not a method matched
+        solveTime.setSmartcubeMoves(lastSolveMoves);
+        solveTime.setSmartcubeGyroTrack(lastSolveGyroTrack); // null unless the cube has a gyro
+      }
     }
 
     addTimeToUI(time);
