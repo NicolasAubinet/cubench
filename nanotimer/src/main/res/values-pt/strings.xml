@@ -210,10 +210,13 @@
   <string name="generating_scramble">Gerando scramble %1$d de %2$d</string>
   <string name="generating_cube_scramble">Gerando scrambles %1$s&#8230;\n%2$d de %3$d</string>
   <string name="stopping_generation">Parando a geração&#8230;</string>
-  <string name="new_record">Novo recorde!</string>
-  <string name="record_toast_header">Novos recordes!</string>
-  <string name="record_overlay_prev">(ant. %1$s)</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="verdict_personal_best">Recorde pessoal, %1$s a menos que %2$s</string>
+  <string name="verdict_record">Melhor %1$s, %2$s a menos que %3$s</string>
+  <string name="verdict_session_best">Melhor da sessão</string>
+  <string name="verdict_session_worst">Pior da sessão</string>
+  <string name="verdict_under_average">%1$s abaixo do seu Ao12</string>
+  <string name="verdict_over_average">%1$s acima do seu Ao12</string>
 
   <string name="record_notification_mode">Painel de recorde</string>
   <string name="record_notification_mode_summary">Escolha quando mostrar o painel de novo recorde</string>

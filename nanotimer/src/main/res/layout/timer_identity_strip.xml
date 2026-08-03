@@ -43,7 +43,7 @@
        android:layout_height="wrap_content"
        android:layout_marginLeft="10px"
        android:layout_marginStart="10px"
-       android:background="@drawable/identity_pill"
+       android:background="@drawable/tinted_pill"
        android:paddingLeft="15px"
        android:paddingRight="15px"
        android:paddingTop="4px"

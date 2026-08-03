@@ -110,11 +110,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private TableLayout sessionTimesLayout;
   private SessionBarsView sessionBars;
   private int sessionTimeColor; // the grid's own text colour, which an uncoloured bar takes too
-  private View recordBar;
-  private TextView tvRecordBarLabel;
-  private TextView tvRecordBarValue;
-  private TextView tvRecordBarPrev;
-  private final Handler overlayHandler = new Handler();
+  private TextView tvVerdictChip;
 
   /** The statistics cell each record belongs to, by {@link RecordInfo#priority}. */
   private static final int[] RECORD_TILE_BY_PRIORITY = {
@@ -444,10 +440,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
     sessionBars = (SessionBarsView) findViewById(R.id.sessionBars);
     sessionTimeColor = getSessionTextView(0).getCurrentTextColor(); // read before any is recoloured
-    recordBar = findViewById(R.id.recordBar);
-    tvRecordBarLabel = (TextView) findViewById(R.id.tvRecordBarLabel);
-    tvRecordBarValue = (TextView) findViewById(R.id.tvRecordBarValue);
-    tvRecordBarPrev = (TextView) findViewById(R.id.tvRecordBarPrev);
+    tvVerdictChip = (TextView) findViewById(R.id.tvVerdictChip);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
     tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
     scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
@@ -998,7 +991,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
       refreshSessionFields();
       if (solveAverages != null) {
-        refreshAvgFields(false);
+        refreshAvgFields(false, false);
       }
     }
   }
@@ -1541,7 +1534,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void timerStarted() {
     setKeepScreenOn(true);
     showMenuButton(false);
-    dismissRecordOverlay();
+    clearVerdict();
     hideStepBreakdown();
     applyFocus(true, standsInForDigits());
   }
@@ -1692,16 +1685,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * either, since dropping a bad solve can leave an average better than it was.
    */
   private void forgetRecordsOfDeletedSolve() {
-    dismissRecordOverlay();
+    clearVerdict();
     skipRecordPanel = true;
   }
 
-  private void dismissRecordOverlay() {
-    overlayHandler.removeCallbacks(hideRecordBar);
-    if (recordBar != null) {
-      recordBar.animate().cancel();
-      recordBar.setVisibility(View.GONE);
-    }
+  private void clearVerdict() {
+    tvVerdictChip.setVisibility(View.INVISIBLE);
     clearRecordCells();
   }
 
@@ -1734,7 +1723,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  private void refreshAvgFields(boolean showNotifications) {
+  /**
+   * @param showNotifications false while a deletion or a discard is settling, so nothing is announced
+   * @param forNewSolve true only when a solve has just landed, which is when the verdict speaks
+   */
+  private void refreshAvgFields(boolean showNotifications, boolean forNewSolve) {
     for (Animation a : animations) {
       a.cancel();
     }
@@ -1804,9 +1797,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The bars are measured against the same Ao12 the cell beside them shows.
     sessionBars.setAverage(solveType.hasSteps() ? null : solveAverages.getAvgOf12());
 
-    if (showNotifications) {
+    if (showNotifications && forNewSolve) {
       List<RecordInfo> toNotify = filterRecordsForNotification(records);
-      showRecordsSummary(toNotify);
+      showVerdict(toNotify);
       celebratePbIfAny(toNotify);
     }
   }
@@ -1941,14 +1934,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * Announces the records a solve set: the best of them on the bar, and every one of them by
-   * lighting the cell that holds it. The bar sits in the flow above the cells, so it never covers
-   * the scramble and the next solve can start before it clears.
+   * What the solve was worth, said once and only when there is something to say: a record, a
+   * session best or worst, or a DNF. A delta on every solve would be noise whatever the number,
+   * and the bars below already carry the "beat your recent times" job.
+   *
+   * <p>Records also light the cell that holds them, which is how the other three are announced.
    */
-  private void showRecordsSummary(List<RecordInfo> records) {
-    if (records.isEmpty() || recordBar == null) {
-      return;
-    }
+  private void showVerdict(List<RecordInfo> records) {
     Collections.sort(records, new Comparator<RecordInfo>() {
       @Override
       public int compare(RecordInfo a, RecordInfo b) {
@@ -1958,15 +1950,64 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     for (RecordInfo r : records) {
       highlightRecordCell(r.priority);
     }
+    if (!records.isEmpty()) {
+      RecordInfo best = records.get(0);
+      String beat = FormatterService.INSTANCE.formatSolveTime(best.previous - best.value);
+      String previous = FormatterService.INSTANCE.formatSolveTime(best.previous);
+      if (best.isPB) { // gold is for a lifetime best alone, or it stops meaning anything
+        showVerdictChip(getString(R.string.verdict_personal_best, beat, previous), R.color.new_record);
+        tvTimer.setTextColor(getResources().getColor(R.color.new_record));
+      } else {
+        showVerdictChip(getString(R.string.verdict_record, best.label, beat, previous), R.color.green_soft);
+      }
+      return;
+    }
+    if (lastSolveTime != null && lastSolveTime.isDNF()) {
+      showVerdictChip(getString(R.string.DNF), R.color.dnf_time);
+      return;
+    }
+    if (isSessionExtreme(true)) {
+      showVerdictChip(getString(R.string.verdict_session_best) + againstAverage(), R.color.green_soft);
+      return;
+    }
+    if (isSessionExtreme(false)) {
+      showVerdictChip(getString(R.string.verdict_session_worst) + againstAverage(), R.color.danger_text);
+      return;
+    }
+    tvVerdictChip.setVisibility(View.INVISIBLE);
+  }
 
-    // The bar names the best of them; the rest are already lit in the cells that hold them.
-    RecordInfo best = records.get(0);
-    tvRecordBarLabel.setText(records.size() == 1 ? R.string.new_record : R.string.record_toast_header);
-    tvRecordBarValue.setText(best.label + " "
-        + FormatterService.INSTANCE.formatSolveTimeDifference(best.previous - best.value));
-    tvRecordBarPrev.setText(getString(R.string.record_overlay_prev,
-        FormatterService.INSTANCE.formatSolveTime(best.previous)));
-    showRecordBar();
+  /**
+   * Whether the solve just finished is the best of the session, or the worst of it. A session of
+   * one or two is asked nothing: everything in it is both. Nor is a solve type timed in steps,
+   * whose session is never loaded, so what it holds is only this sitting.
+   */
+  private boolean isSessionExtreme(boolean best) {
+    if (cubeSession == null || solveType.hasSteps() || cubeSession.getTimes().size() < 3) {
+      return false;
+    }
+    boolean blind = solveType.isBlind();
+    return (best ? cubeSession.getBestTimeInd(blind) : cubeSession.getWorstTimeInd(blind)) == 0;
+  }
+
+  /** How the solve sat against the Ao12, which is the line the bars below draw. */
+  private String againstAverage() {
+    Long average = (solveAverages == null) ? null : solveAverages.getAvgOf12();
+    if (average == null || average <= 0 || lastSolveTime == null || lastSolveTime.getTime() <= 0) {
+      return "";
+    }
+    long delta = lastSolveTime.getTime() - average;
+    String amount = FormatterService.INSTANCE.formatSolveTime(Math.abs(delta));
+    return " · " + getString(
+        delta < 0 ? R.string.verdict_under_average : R.string.verdict_over_average, amount);
+  }
+
+  private void showVerdictChip(CharSequence text, int colorRes) {
+    int color = getResources().getColor(colorRes);
+    tvVerdictChip.setText(text);
+    tvVerdictChip.setTextColor(color);
+    tvVerdictChip.setBackgroundTintList(ColorStateList.valueOf(washOf(color)));
+    tvVerdictChip.setVisibility(View.VISIBLE);
   }
 
   private void highlightRecordCell(int priority) {
@@ -1987,34 +2028,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
     }
   }
-
-  // In-screen replacement for a toast (system toasts are capped at 2 lines on Android 12+).
-  private void showRecordBar() {
-    if (recordBar == null) {
-      return;
-    }
-    overlayHandler.removeCallbacks(hideRecordBar);
-    recordBar.animate().cancel();
-    recordBar.setAlpha(0f);
-    recordBar.setVisibility(View.VISIBLE);
-    recordBar.animate().alpha(1f).setDuration(250);
-    overlayHandler.postDelayed(hideRecordBar, 6000);
-  }
-
-  private final Runnable hideRecordBar = new Runnable() {
-    @Override
-    public void run() {
-      if (recordBar == null) {
-        return;
-      }
-      recordBar.animate().alpha(0f).setDuration(400).withEndAction(new Runnable() {
-        @Override
-        public void run() {
-          recordBar.setVisibility(View.GONE);
-        }
-      });
-    }
-  };
 
   private static class RecordInfo {
     final String label;
@@ -2127,7 +2140,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               deleteLastSolve();
             }
           }
-          refreshAvgFields(showNotifications);
+          refreshAvgFields(showNotifications, data.getSolveTime() != null);
         }
       });
     }

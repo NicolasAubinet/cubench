@@ -214,10 +214,13 @@
   <string name="generating_scramble">Generating scramble %1$d of %2$d</string>
   <string name="generating_cube_scramble">%1$s scrambles generating&#8230;\n%2$d of %3$d</string>
   <string name="stopping_generation">Stopping generation&#8230;</string>
-  <string name="new_record">New record!</string>
-  <string name="record_toast_header">New records!</string>
-  <string name="record_overlay_prev">(prev %1$s)</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="verdict_personal_best">Personal best, %1$s under %2$s</string>
+  <string name="verdict_record">Best %1$s, %2$s under %3$s</string>
+  <string name="verdict_session_best">Session best</string>
+  <string name="verdict_session_worst">Session worst</string>
+  <string name="verdict_under_average">%1$s under your Ao12</string>
+  <string name="verdict_over_average">%1$s over your Ao12</string>
   <string name="record_notification_mode">New record panel</string>
   <string name="record_notification_mode_summary">Choose when to show the new record panel</string>
   <string name="record_notif_any">For any record</string>
