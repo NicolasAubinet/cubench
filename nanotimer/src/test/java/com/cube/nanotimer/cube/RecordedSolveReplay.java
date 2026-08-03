@@ -63,9 +63,18 @@ final class RecordedSolveReplay {
    * rotation surfaces here as a face letter, or a slice, named on the wrong axis.
    */
   String display() {
+    return wholeSolve().getMoves();
+  }
+
+  /** The same sequence, with the moves that undid each other fenced off. */
+  String marked() {
+    return MarkedMoves.of(wholeSolve());
+  }
+
+  private SolveSolution.Step wholeSolve() {
     return SolveSolution.from(storedMoves,
         Arrays.asList(new SolveStep(0, "all", 0, 600_000, Collections.<SolveStep>emptyList())))
-        .getSteps().get(0).getMoves();
+        .getSteps().get(0);
   }
 
   /**

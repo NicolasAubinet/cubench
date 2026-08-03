@@ -431,6 +431,68 @@ public class SolveSolutionTest {
     assertEquals(100, replayed.get(0).getOffsetMs()); // dated at the face, not at the spin
   }
 
+  @Test
+  public void cancelsAPairTurnedAndUndone() {
+    assertEquals("~R~ ~R'~", marked(moves("R@0", "R'@100")));
+  }
+
+  /** The stack needs no case for nesting: the inner pair goes first and hands over the outer one. */
+  @Test
+  public void cancelsANestedRunFromTheInsideOut() {
+    assertEquals("~R~ ~U~ ~F~ ~F'~ ~U'~ ~R'~",
+        marked(moves("R@0", "U@100", "F@200", "F'@300", "U'@400", "R'@500")));
+  }
+
+  /** Four of the same face are two half turns that undo each other, and the drill turns nothing. */
+  @Test
+  public void cancelsAHalfTurnAgainstAnother() {
+    assertEquals("~R2~ ~R2~", marked(moves("R@0", "R@100", "R@200", "R@300")));
+  }
+
+  @Test
+  public void cancelsARotationAgainstItsOwnInverse() {
+    assertEquals("~y~ ~y'~", marked(moves("y@0", "y'@100")));
+  }
+
+  /**
+   * The R' after a y is a different piece of plastic from the R before it, so the two are not a
+   * pair however alike they read. A rotation on the stack is what keeps the faces apart.
+   */
+  @Test
+  public void doesNotCancelAcrossARotation() {
+    assertEquals("R y R' y'", marked(moves("R@0", "y@100", "B'@200", "y'@300")));
+  }
+
+  /** Half of a move is not something that can be crossed out: R R R' is shown as it folded. */
+  @Test
+  public void leavesAPartialCancellationStanding() {
+    assertEquals("R2 R'", marked(moves("R@0", "R@100", "R'@200")));
+  }
+
+  /** A milestone is not a barrier: the pair undid each other whichever steps they landed in. */
+  @Test
+  public void cancelsAcrossAStepBoundary() {
+    SolveSolution solution = SolveSolution.from(moves("R@50", "R'@200"),
+        Arrays.asList(step("cross", 0, 100), step("f2l", 0, 900)));
+
+    assertEquals("~R~", MarkedMoves.of(solution.getSteps().get(0)));
+    assertEquals("~R'~", MarkedMoves.of(solution.getSteps().get(1)));
+  }
+
+  /** Counting them is the point: they were turned, so they cost time like any other move. */
+  @Test
+  public void keepsCountingTheMovesThatCancelled() {
+    SolveSolution solution =
+        SolveSolution.from(moves("R@0", "R'@100"), Arrays.asList(step("f2l", 0, 1000)));
+
+    assertEquals(2, solution.getMoveCount());
+  }
+
+  private static String marked(String stored) {
+    return MarkedMoves.of(
+        SolveSolution.from(stored, Arrays.asList(step("f2l", 0, 1000))).getSteps().get(0));
+  }
+
   private static String wideFrom(String spin, String face) {
     return displayed(moves(spin, face));
   }

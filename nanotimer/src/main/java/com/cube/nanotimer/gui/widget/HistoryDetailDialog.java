@@ -14,11 +14,11 @@ import androidx.core.graphics.ColorUtils;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
+import android.text.style.StrikethroughSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -61,6 +61,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
@@ -579,13 +580,14 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       StepRows stepRows = new StepRows(name);
       stepRows.row = row;
       stepRows.color = colors[i % colors.length];
-      stepRows.moves = movesRow(table, R.style.BreakdownMoves, movesOf(solution, i));
+      stepRows.moves = movesRow(table, R.style.BreakdownMoves, dim(groupsOf(solution, i)));
       List<SolveStep> parts = step.getSubSteps();
       for (int j = 0; j < parts.size(); j++) {
         TableRow partRow = subStepRow(parts.get(j), j, partMoveCountOf(solution, i, j));
         table.addView(partRow);
         stepRows.partRows.add(partRow);
-        stepRows.partMoves.add(movesRow(table, R.style.BreakdownSubMoves, partMovesOf(solution, i, j)));
+        stepRows.partMoves.add(
+            movesRow(table, R.style.BreakdownSubMoves, dim(partGroupOf(solution, i, j))));
       }
       breakdownRows.add(stepRows);
       makePickable(v, row, i);
@@ -787,11 +789,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * The moves go straight into the table rather than into a row of it, so they run its whole width
    * instead of being squeezed into the name column. A step that turned nothing has no row at all.
    */
-  private TextView movesRow(TableLayout table, int style, String moves) {
-    if (moves == null || moves.isEmpty()) {
+  private TextView movesRow(TableLayout table, int style, CharSequence moves) {
+    if (moves.length() == 0) {
       return null;
     }
-    TextView view = cell(style, dimRotations(moves));
+    TextView view = cell(style, moves);
     table.addView(view);
     return view;
   }
@@ -800,31 +802,53 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * Greys the whole-cube rotations so the turns stand out from them. They are not moves and are
    * not counted, and setting them apart also makes a habit visible at a glance — more than one
    * rotation inside a single F2L pair, say.
+   *
+   * <p>Moves that undid each other are greyed too and struck through on top of it: they were
+   * turned and they cost time, so they are shown, but the alg is what is left standing.
    */
-  private CharSequence dimRotations(String moves) {
-    SpannableString text = new SpannableString(moves);
+  private CharSequence dim(List<List<SolveSolution.Token>> groups) {
+    SpannableStringBuilder text = new SpannableStringBuilder();
     int color = ContextCompat.getColor(getActivity(), R.color.gray600);
-    for (int start = 0; start < moves.length(); ) {
-      int end = moves.indexOf(' ', start);
-      if (end < 0) {
-        end = moves.length();
+    for (List<SolveSolution.Token> group : groups) {
+      if (group.isEmpty()) { // a part built with no move of its own would show as a stray separator
+        continue;
       }
-      if (SolveMovesFormat.isRotation(moves.substring(start, end))) {
-        text.setSpan(new ForegroundColorSpan(color), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      if (text.length() > 0) {
+        text.append(SolveSolution.GROUP_SEPARATOR);
       }
-      start = end + 1;
+      for (int i = 0; i < group.size(); i++) {
+        SolveSolution.Token token = group.get(i);
+        if (i > 0) {
+          text.append(' ');
+        }
+        int start = text.length();
+        text.append(token.getNotation());
+        if (token.isCancelled()) {
+          text.setSpan(new StrikethroughSpan(), start, text.length(),
+              Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        if (token.isCancelled() || SolveMovesFormat.isRotation(token.getNotation())) {
+          text.setSpan(new ForegroundColorSpan(color), start, text.length(),
+              Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+      }
     }
     return text;
   }
 
-  private String movesOf(SolveSolution solution, int stepIndex) {
+  private List<List<SolveSolution.Token>> groupsOf(SolveSolution solution, int stepIndex) {
     return stepIndex < solution.getSteps().size()
-        ? solution.getSteps().get(stepIndex).getMoves() : "";
+        ? solution.getSteps().get(stepIndex).getGroups()
+        : Collections.<List<SolveSolution.Token>>emptyList();
   }
 
-  private String partMovesOf(SolveSolution solution, int stepIndex, int part) {
-    return stepIndex < solution.getSteps().size()
-        ? solution.getSteps().get(stepIndex).getPartMoves(part) : "";
+  /** One part on its own, in the shape {@link #dim} takes, so both rows are built the one way. */
+  private List<List<SolveSolution.Token>> partGroupOf(SolveSolution solution, int stepIndex,
+      int part) {
+    List<List<SolveSolution.Token>> groups = groupsOf(solution, stepIndex);
+    return part < groups.size()
+        ? Collections.singletonList(groups.get(part))
+        : Collections.<List<SolveSolution.Token>>emptyList();
   }
 
   private String moveCountOf(SolveSolution solution, int stepIndex) {

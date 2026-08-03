@@ -68,6 +68,15 @@ public class WideCaptureTest {
     assertTrue(shown, DisplayedSolutionReplay.solves("U U'", shown));
   }
 
+  /** A sequence that turns nothing is every move cancelled, which is the whole drill struck out. */
+  @Test
+  public void theWholeDrillReadsAsCancelled() {
+    String marked = new RecordedSolveReplay(SCRAMBLE_224, MOVES_224).marked();
+
+    assertEquals("~u~ ~u'~ ~d~ ~d'~ ~r~ ~r'~ ~l~ ~l'~ ~f~ ~f'~ ~b~ ~b'~ ~r2~ ~r2~ ~u2~ ~u2~ ~D~ ~D'~",
+        marked);
+  }
+
   @Test
   public void theWidesTheSolverMadeAreTheWidesItShows() {
     String shown = new RecordedSolveReplay(SCRAMBLE_222, MOVES_222).display();
@@ -76,6 +85,15 @@ public class WideCaptureTest {
     assertTrue(shown, shown.contains("u u'"));
     assertTrue(shown, shown.contains("f f'"));
     assertEquals(shown, 9, count(shown));
+  }
+
+  /** Those same wides were undone on the spot, so the solve shows them struck out. */
+  @Test
+  public void theWidesUndoneOnTheSpotReadAsCancelled() {
+    String marked = new RecordedSolveReplay(SCRAMBLE_222, MOVES_222).marked();
+
+    assertTrue(marked, marked.contains("~u~ ~u'~"));
+    assertTrue(marked, marked.contains("~f~ ~f'~"));
   }
 
   /** The whole point: a reconstruction with wides in it still solves when followed literally. */
