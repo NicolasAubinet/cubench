@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The same hairline, standing, between two cells of a row. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/hero_divider"/>
+  <size android:width="1dp"/>
+</shape>

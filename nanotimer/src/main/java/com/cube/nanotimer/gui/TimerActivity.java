@@ -531,6 +531,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     findViewById(R.id.stepSplitsLayout).setVisibility(steps ? View.VISIBLE : View.GONE);
     // A stepped solve type reads its averages as splits, which is the whole footer said better.
     findViewById(R.id.statFooterRow).setVisibility(steps ? View.GONE : View.VISIBLE);
+    // A hairline only earns its place between two blocks that are both there.
+    findViewById(R.id.statTilesRule).setVisibility(steps ? View.GONE : View.VISIBLE);
+    findViewById(R.id.statFooterRule).setVisibility(steps ? View.GONE : View.VISIBLE);
 
     // The first cell counts a blind attempt in threes, and everything else in fives.
     findViewById(R.id.tvAvgOfFive).setVisibility(blind ? View.GONE : View.VISIBLE);
@@ -1980,7 +1983,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     for (int cellId : RECORD_TILE_BY_PRIORITY) {
       View cell = findViewById(cellId);
       if (cell != null) {
-        cell.setBackgroundResource(R.drawable.stat_tile);
+        cell.setBackgroundResource(0); // back to the card's own surface
       }
     }
   }

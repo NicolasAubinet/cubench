@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- One cell of the timer's statistics row. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-  <solid android:color="@color/timercardbg"/>
-  <corners android:radius="8dp"/>
-</shape>
