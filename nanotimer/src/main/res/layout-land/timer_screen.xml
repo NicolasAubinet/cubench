@@ -53,8 +53,7 @@
            android:layout_height="0px"
            android:layout_weight="1"/>
 
-        <!-- The band the digits sit in. It carries the focus glow as its background, so the pool
-             costs no height of its own and cannot move the time. -->
+        <!-- The band the digits sit in, shared with the dot that stands in for them. -->
         <FrameLayout
            android:id="@+id/timerBox"
            android:layout_width="match_parent"

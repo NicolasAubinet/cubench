@@ -72,13 +72,13 @@ import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
+import com.cube.nanotimer.util.view.FocusDot;
 import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
 import com.cube.nanotimer.util.view.SessionBarsView;
 import com.cube.nanotimer.util.view.SolveTypeIcons;
-import com.cube.nanotimer.util.view.TimerGlow;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -107,7 +107,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private ViewGroup layout;
   private View scrambleBox;
   private View sessionLayout;
-  private TimerGlow timerGlow;
+  private FocusDot focusDot;
   private TableLayout sessionTimesLayout;
   private SessionBarsView sessionBars;
   private int sessionTimeColor; // the grid's own text colour, which an uncoloured bar takes too
@@ -314,8 +314,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (liveCube != null) { // onCreate finishes early without a solve type, and never builds one
       liveCube.destroy();
     }
-    if (timerGlow != null) {
-      timerGlow.hide();
+    if (focusDot != null) {
+      focusDot.hide();
     }
     super.onDestroy();
   }
@@ -443,11 +443,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     identityStrip = findViewById(R.id.identityStrip);
     scrambleBox = findViewById(R.id.scrambleBox);
     sessionLayout = findViewById(R.id.sessionLayout);
-    if (timerGlow != null) { // a rotation leaves the old one animating views that are gone
-      timerGlow.hide();
+    if (focusDot != null) { // a rotation leaves the old one animating a view that is gone
+      focusDot.hide();
     }
-    timerGlow = new TimerGlow(findViewById(R.id.timerBox), findViewById(R.id.focusDot));
-    timerGlow.setColor(getResources().getColor(identityColor()));
+    focusDot = new FocusDot(findViewById(R.id.focusDot));
+    focusDot.setColor(getResources().getColor(identityColor()));
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
     sessionBars = (SessionBarsView) findViewById(R.id.sessionBars);
     sessionTimeColor = getSessionTextView(0).getCurrentTextColor(); // read before any is recoloured
@@ -501,10 +501,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
     groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
     layout.setBackgroundResource(groundColor);
-    if (on && !inspecting) { // inspection is the ring alone: two pools of light would be two centres
-      timerGlow.show(standIn);
+    if (on && standIn) {
+      focusDot.show();
     } else {
-      timerGlow.hide();
+      focusDot.hide();
     }
     if (inspecting) {
       inspectionRing.start(inspectionTime);
