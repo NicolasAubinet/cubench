@@ -2,7 +2,7 @@
 <resources>
   <declare-styleable name="FontFitTextView">
     <attr name="myfont">
-      <enum name="MONOSPACE" value="0"/>
+      <enum name="SCRAMBLE" value="0"/>
     </attr>
   </declare-styleable>
   <declare-styleable name="NumberLimit">

@@ -29,13 +29,26 @@ used for the timer display and the scramble text.
    - Licensed: Apache License 2.0.
 
 --------------------------------------------------------------------------
-3. Digital_dream_Fat_Skew_Narrow.ttf
+3. JetBrainsMono-Medium.ttf
+--------------------------------------------------------------------------
+   - JetBrains Mono, https://github.com/JetBrains/JetBrainsMono
+   - Copyright 2020 The JetBrains Mono Project Authors.
+   - Licensed: SIL Open Font License, Version 1.1. The same licence text is
+     reproduced below.
+   - Unmodified static build.
+
+   The face the scramble is set in. It has to be monospaced: the formatter
+   pads every move out to the width of the longest one to build the columns.
+
+--------------------------------------------------------------------------
+4. Digital_dream_Fat_Skew_Narrow.ttf
 --------------------------------------------------------------------------
    - "Digital dream" by Jakob Fischer (pizzadude.dk).
    - See the foundry's terms for redistribution conditions.
 
 --------------------------------------------------------------------------
-Roboto — SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+(applies to Roboto and to JetBrains Mono)
 --------------------------------------------------------------------------
 
 PREAMBLE

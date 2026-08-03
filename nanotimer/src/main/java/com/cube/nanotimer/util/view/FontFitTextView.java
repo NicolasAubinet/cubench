@@ -15,8 +15,13 @@ public class FontFitTextView extends AppCompatTextView {
   private float initialTextSize;
   private int textSizeUnit = TypedValue.COMPLEX_UNIT_PX;
 
+  /**
+   * The face a scramble is set in. It has to be monospaced: {@code formatScramble} pads every move
+   * out to the longest one to build the columns, and a proportional font throws that alignment
+   * away.
+   */
   enum Font {
-    MONOSPACE(0, "fonts/DroidSansMono.ttf");
+    SCRAMBLE(0, "fonts/JetBrainsMono-Medium.ttf");
 
     private int id;
     private String fontName;

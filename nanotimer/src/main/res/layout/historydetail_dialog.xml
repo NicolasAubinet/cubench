@@ -213,7 +213,7 @@
            android:layout_height="wrap_content"
            android:padding="12dp"
            android:textSize="15sp"
-           custom:myfont="MONOSPACE"/>
+           custom:myfont="SCRAMBLE"/>
       </androidx.cardview.widget.CardView>
 
       <!-- Solve breakdown (smart-cube solves only): the step bar, then the step times -->
