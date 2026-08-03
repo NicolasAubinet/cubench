@@ -139,16 +139,6 @@ public class GUIUtils {
     setHtmlColoredTime(tv, FormatterService.INSTANCE.formatSolveTime(time), color);
   }
 
-  /** Renders a session time with no coloring, except DNFs which stay grayed out for consistency. */
-  public static void setSessionTimeCellPlain(TextView tv, long time) {
-    String strTime = FormatterService.INSTANCE.formatSolveTime(time);
-    if (time < 0) { // DNF: always grayed out
-      setHtmlColoredTime(tv, strTime, tv.getContext().getResources().getColor(R.color.dnf_time));
-    } else {
-      tv.setText(strTime);
-    }
-  }
-
   private static void setHtmlColoredTime(TextView tv, String strTime, int color) {
     tv.setText(Html.fromHtml("<font color='" + color + "'>" + strTime + "</font>"));
   }

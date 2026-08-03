@@ -137,6 +137,10 @@
   <string name="session_coloring_all_displayed">Relativo aos 12 últimos</string>
   <string name="session_coloring_match_history">Como o histórico</string>
   <string name="session_coloring_none">Nenhuma</string>
+  <string name="session_times_display">Mostrar os últimos tempos como</string>
+  <string name="session_times_display_summary">Barras ou tempos, para os 12 últimos na tela do cronômetro</string>
+  <string name="session_display_bars">Barras</string>
+  <string name="session_display_times">Tempos</string>
   <string name="solve_types">Tipos de resolução</string>
   <string name="edit_solve_types">Editar os tipos de resolução</string>
   <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>
@@ -738,6 +742,7 @@
   <string name="discard_solve">Descartar</string>
   <string name="keep_solve">Manter</string>
   <string name="timer_session">Sessão</string>
+  <string name="timer_session_window">últimas %1$d de %2$d</string>
   <string name="timer_personal_best">Recorde pessoal</string>
   <string name="timer_avg_1000">Méd. de 1000</string>
   <string name="timer_best_value">melhor %1$s</string>

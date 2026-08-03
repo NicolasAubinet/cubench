@@ -19,6 +19,7 @@ public enum Options {
   public enum RecordNotificationMode { ANY, PB_ONLY, NEVER }
   public enum CrossNeutrality { SPECIFIC, DUAL, FULL }
   public enum SessionTimesColoring { BEST_WORST, ALL_DISPLAYED, MATCH_HISTORY, NONE }
+  public enum SessionTimesDisplay { BARS, TIMES }
   public enum TimerFontSize { SMALL, MEDIUM, LARGE }
 
   private Context context;
@@ -36,6 +37,7 @@ public enum Options {
   public static final String COLOR_HISTORY_TIMES_KEY = "color_history_times";
   public static final String COLOR_SAMPLE_SIZE_KEY = "color_sample_size";
   public static final String SESSION_TIMES_COLORING_KEY = "session_times_coloring";
+  public static final String SESSION_TIMES_DISPLAY_KEY = "session_times_display";
   public static final String BIG_CUBES_NOTATION_KEY = "big_cubes_notation";
   public static final String CLOCK_NOTATION_SYSTEM_KEY = "clock_notation";
   public static final String SOLVE_TYPES_SHORTCUT_KEY = "solve_types_shortcut";
@@ -183,6 +185,11 @@ public enum Options {
       default:
         return SessionTimesColoring.ALL_DISPLAYED;
     }
+  }
+
+  public SessionTimesDisplay getSessionTimesDisplay() {
+    int mode = Integer.parseInt(sharedPreferences.getString(SESSION_TIMES_DISPLAY_KEY, "-1"));
+    return mode == 2 ? SessionTimesDisplay.TIMES : SessionTimesDisplay.BARS;
   }
 
   public BigCubesNotation getBigCubesNotation() {

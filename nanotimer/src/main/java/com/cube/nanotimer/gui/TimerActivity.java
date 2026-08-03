@@ -35,6 +35,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.Options.BigCubesNotation;
 import com.cube.nanotimer.Options.InspectionMode;
+import com.cube.nanotimer.Options.SessionTimesDisplay;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.LiveCubeView;
@@ -74,6 +75,7 @@ import com.cube.nanotimer.util.view.DigitalTextView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
+import com.cube.nanotimer.util.view.SessionBarsView;
 import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.util.view.TimerGlow;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -104,6 +106,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private View sessionLayout;
   private TimerGlow timerGlow;
   private TableLayout sessionTimesLayout;
+  private SessionBarsView sessionBars;
+  private int sessionTimeColor; // the grid's own text colour, which an uncoloured bar takes too
   private View recordBar;
   private TextView tvRecordBarLabel;
   private TextView tvRecordBarValue;
@@ -297,7 +301,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     smartCubeChip.start();
     solveController.start();
     liveCube.start();
-    refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
+    applySessionStripChoice(); // both this and the coloring below may have changed in the settings
+    refreshSessionFields();
   }
 
   @Override
@@ -453,6 +458,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     timerGlow = new TimerGlow(findViewById(R.id.timerBox), findViewById(R.id.focusDot));
     timerGlow.setColor(getResources().getColor(identityColor()));
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
+    sessionBars = (SessionBarsView) findViewById(R.id.sessionBars);
+    sessionTimeColor = getSessionTextView(0).getCurrentTextColor(); // read before any is recoloured
     recordBar = findViewById(R.id.recordBar);
     tvRecordBarLabel = (TextView) findViewById(R.id.tvRecordBarLabel);
     tvRecordBarValue = (TextView) findViewById(R.id.tvRecordBarValue);
@@ -536,7 +543,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     boolean blind = solveType.isBlind();
 
     findViewById(R.id.sessionHeader).setVisibility(steps ? View.GONE : View.VISIBLE);
-    sessionTimesLayout.setVisibility(steps ? View.GONE : View.VISIBLE);
+    applySessionStripChoice();
     findViewById(R.id.statTilesLayout).setVisibility(steps ? View.GONE : View.VISIBLE);
     findViewById(R.id.stepSplitsLayout).setVisibility(steps ? View.VISIBLE : View.GONE);
     // A stepped solve type reads its averages as splits, which is the whole footer said better.
@@ -556,6 +563,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (steps) {
       solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
     }
+  }
+
+  /** Which of the two session strips is on. A solve type with steps takes neither. */
+  private void applySessionStripChoice() {
+    boolean steps = solveType.hasSteps();
+    boolean bars = Options.INSTANCE.getSessionTimesDisplay() == SessionTimesDisplay.BARS;
+    sessionTimesLayout.setVisibility(!steps && !bars ? View.VISIBLE : View.GONE);
+    sessionBars.setVisibility(!steps && bars ? View.VISIBLE : View.GONE);
   }
 
   private Float getCubeTypeScrambleTextSize() {
@@ -1015,60 +1030,78 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       @Override
       public void run() {
         clearSessionTextViews();
-        if (cubeSession == null) {
-          return;
-        }
-        List<Long> sessionTimes = cubeSession.getTimes();
+        refreshSolvesCountLabel();
+        List<Long> sessionTimes = (cubeSession == null) ? Collections.<Long>emptyList() : cubeSession.getTimes();
         if (sessionTimes.isEmpty()) {
+          sessionBars.setTimes(sessionTimes, new int[0]);
           return;
         }
         switch (Options.INSTANCE.getSessionTimesColoring()) {
           case BEST_WORST:
-            colorSessionBestWorst(sessionTimes);
+            showSessionTimes(sessionTimes, bestWorstColors(sessionTimes));
             break;
-          case ALL_DISPLAYED:
-            colorSessionWithinDisplayed(sessionTimes);
+          case ALL_DISPLAYED: {
+            // Each of the 12 ranked among the 12.
+            TimeColorScale scale = new TimeColorScale(TimerActivity.this);
+            scale.setTimes(sessionTimes, false);
+            showSessionTimes(sessionTimes, scaleColors(sessionTimes, scale));
             break;
+          }
           case MATCH_HISTORY:
             colorSessionMatchHistory();
             break;
           case NONE:
-            colorSessionPlain(sessionTimes);
+            showSessionTimes(sessionTimes, plainColors(sessionTimes));
             break;
         }
       }
     });
   }
 
+  /** The two strips draw the same times in the same colours; only ever one of them is on. */
+  private void showSessionTimes(List<Long> sessionTimes, int[] colors) {
+    for (int i = 0; i < sessionTimes.size(); i++) {
+      GUIUtils.setSessionTimeCellColor(getSessionTextView(i), sessionTimes.get(i), colors[i]);
+    }
+    sessionBars.setTimes(sessionTimes, colors);
+  }
+
   // Classic coloring: only the best (green) and worst (red) of the session stand out.
-  private void colorSessionBestWorst(List<Long> sessionTimes) {
+  private int[] bestWorstColors(List<Long> sessionTimes) {
     int bestInd = cubeSession.getBestTimeInd(solveType.isBlind());
     int worstInd = cubeSession.getWorstTimeInd(solveType.isBlind());
-    for (int i = 0; i < sessionTimes.size(); i++) {
-      GUIUtils.setSessionTimeCellText(getSessionTextView(i), sessionTimes.get(i), i, bestInd, worstInd);
+    int[] colors = new int[sessionTimes.size()];
+    for (int i = 0; i < colors.length; i++) {
+      if (sessionTimes.get(i) < 0) {
+        colors[i] = getResources().getColor(R.color.dnf_time);
+      } else if (i == bestInd) {
+        colors[i] = getResources().getColor(R.color.green);
+      } else if (i == worstInd) {
+        colors[i] = getResources().getColor(R.color.red);
+      } else {
+        colors[i] = sessionTimeColor;
+      }
     }
+    return colors;
   }
 
-  // Gradient coloring relative to the displayed times only (each of the 12 ranked among the 12).
-  private void colorSessionWithinDisplayed(List<Long> sessionTimes) {
-    TimeColorScale scale = new TimeColorScale(this);
-    scale.setTimes(sessionTimes, false);
-    colorSessionWithScale(sessionTimes, scale);
-  }
-
-  // No coloring: every time in the default text color.
-  private void colorSessionPlain(List<Long> sessionTimes) {
-    for (int i = 0; i < sessionTimes.size(); i++) {
-      GUIUtils.setSessionTimeCellPlain(getSessionTextView(i), sessionTimes.get(i));
+  // No coloring: every time in the default color, except a DNF, grayed out as it is everywhere.
+  private int[] plainColors(List<Long> sessionTimes) {
+    int[] colors = new int[sessionTimes.size()];
+    for (int i = 0; i < colors.length; i++) {
+      colors[i] = sessionTimes.get(i) < 0 ? getResources().getColor(R.color.dnf_time) : sessionTimeColor;
     }
+    return colors;
   }
 
   // Gradient coloring (green=fast → white=median → red=slow) against the given scale.
-  private void colorSessionWithScale(List<Long> sessionTimes, TimeColorScale scale) {
-    for (int i = 0; i < sessionTimes.size(); i++) {
+  private int[] scaleColors(List<Long> sessionTimes, TimeColorScale scale) {
+    int[] colors = new int[sessionTimes.size()];
+    for (int i = 0; i < colors.length; i++) {
       long time = sessionTimes.get(i);
-      GUIUtils.setSessionTimeCellColor(getSessionTextView(i), time, scale.colorFor(time, time < 0));
+      colors[i] = scale.colorFor(time, time < 0);
     }
+    return colors;
   }
 
   // Builds the gradient from the same recent-solves window the history screen uses, then
@@ -1085,7 +1118,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
             }
             TimeColorScale scale = new TimeColorScale(TimerActivity.this);
             scale.setTimes(historyTimes);
-            colorSessionWithScale(cubeSession.getTimes(), scale);
+            List<Long> sessionTimes = cubeSession.getTimes();
+            showSessionTimes(sessionTimes, scaleColors(sessionTimes, scale));
           }
         });
       }
@@ -1669,7 +1703,20 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private void setSolvesCount(int solvesCount) {
     this.solvesCount = Math.max(0, solvesCount);
-    tvSolvesCount.setText(this.solvesCount + " " + getString(R.string.solves));
+    refreshSolvesCountLabel();
+  }
+
+  /**
+   * The bars carry no numbers, so beside them the header has to name the window they are rather
+   * than the session's own size: they are the last twelve of a longer sitting.
+   */
+  private void refreshSolvesCountLabel() {
+    int shown = (cubeSession == null) ? 0 : cubeSession.getTimes().size();
+    if (sessionBars.getVisibility() == View.VISIBLE && shown > 0 && solvesCount > shown) {
+      tvSolvesCount.setText(getString(R.string.timer_session_window, shown, solvesCount));
+    } else {
+      tvSolvesCount.setText(solvesCount + " " + getString(R.string.solves));
+    }
   }
 
   private void refreshAvgFields(boolean showNotifications) {
@@ -1738,6 +1785,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       labelAsBest(R.id.tvBestOfFifty, solveAverages.getBestOf50(), best50 == null);
       labelAsBest(R.id.tvBestOfHundred, solveAverages.getBestOf100(), best100 == null);
     }
+
+    // The bars are measured against the same Ao12 the cell beside them shows.
+    sessionBars.setAverage(solveType.hasSteps() ? null : solveAverages.getAvgOf12());
 
     if (showNotifications) {
       List<RecordInfo> toNotify = filterRecordsForNotification(records);

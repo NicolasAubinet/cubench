@@ -141,6 +141,10 @@
   <string name="session_coloring_all_displayed">Relative to last 12</string>
   <string name="session_coloring_match_history">Match history colors</string>
   <string name="session_coloring_none">None</string>
+  <string name="session_times_display">Show last solves as</string>
+  <string name="session_times_display_summary">Bars or times, for the last 12 on the timer screen</string>
+  <string name="session_display_bars">Bars</string>
+  <string name="session_display_times">Times</string>
   <string name="solve_types">Solve types</string>
   <string name="edit_solve_types">Edit solve types</string>
   <string name="edit_solve_types_summary">Edit, create and delete solve types</string>
@@ -741,6 +745,7 @@
   <string name="discard_solve">Discard</string>
   <string name="keep_solve">Keep</string>
   <string name="timer_session">Session</string>
+  <string name="timer_session_window">last %1$d of %2$d</string>
   <string name="timer_personal_best">Personal best</string>
   <string name="timer_avg_1000">Avg of 1000</string>
   <string name="timer_best_value">best %1$s</string>

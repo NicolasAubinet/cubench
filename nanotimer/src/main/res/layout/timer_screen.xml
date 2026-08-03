@@ -202,6 +202,17 @@
           </TableRow>
         </TableLayout>
 
+        <!-- The same twelve solves as the grid above, as bars: which one is out of place, at a
+             glance, without reading a number. One or the other is on, never both. -->
+        <com.cube.nanotimer.util.view.SessionBarsView
+           android:id="@+id/sessionBars"
+           android:layout_width="match_parent"
+           android:layout_height="58px"
+           android:layout_marginLeft="3px"
+           android:layout_marginRight="3px"
+           android:layout_marginBottom="4px"
+           android:visibility="gone"/>
+
         <!-- Records land here, in the flow, so the scramble is never covered and the next solve
              can start before this clears. -->
         <LinearLayout

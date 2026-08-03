@@ -137,6 +137,10 @@
   <string name="session_coloring_all_displayed">Relativo a los últimos 12</string>
   <string name="session_coloring_match_history">Como el historial</string>
   <string name="session_coloring_none">Ninguno</string>
+  <string name="session_times_display">Mostrar últimos tiempos como</string>
+  <string name="session_times_display_summary">Barras o tiempos, para los últimos 12 en la pantalla del temporizador</string>
+  <string name="session_display_bars">Barras</string>
+  <string name="session_display_times">Tiempos</string>
   <string name="solve_types">Tipos de resolución</string>
   <string name="edit_solve_types">Editar los tipos de resolución</string>
   <string name="edit_solve_types_summary">Editar, crear y eliminar tipos de resolución</string>
@@ -735,6 +739,7 @@
   <string name="discard_solve">Descartar</string>
   <string name="keep_solve">Conservar</string>
   <string name="timer_session">Sesión</string>
+  <string name="timer_session_window">últimas %1$d de %2$d</string>
   <string name="timer_personal_best">Récord personal</string>
   <string name="timer_avg_1000">Media de 1000</string>
   <string name="timer_best_value">mejor %1$s</string>
