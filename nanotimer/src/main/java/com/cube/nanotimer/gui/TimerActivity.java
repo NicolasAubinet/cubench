@@ -72,6 +72,7 @@ import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
+import com.cube.nanotimer.util.view.EnterAnimation;
 import com.cube.nanotimer.util.view.FocusDot;
 import com.cube.nanotimer.util.view.FocusTransition;
 import com.cube.nanotimer.util.view.InspectionRingView;
@@ -501,10 +502,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    */
   private void applyFocus(boolean on, boolean standIn) {
     boolean inspecting = (timerState == TimerState.INSPECTING);
-    int hidden = on ? View.INVISIBLE : View.VISIBLE;
-    identityStrip.setVisibility(hidden);
-    scrambleBox.setVisibility(hidden);
-    sessionLayout.setVisibility(hidden);
+    if (on) {
+      focusTransition.panelsOut(identityStrip, scrambleBox, sessionLayout);
+    } else {
+      focusTransition.panelsIn(identityStrip, scrambleBox, sessionLayout);
+    }
     // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
     tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
     groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
@@ -515,8 +517,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       focusDot.hide();
     }
     if (inspecting) {
+      inspectionRing.start(inspectionTime); // told what it counts before it is opened out
       focusTransition.ringIn();
-      inspectionRing.start(inspectionTime);
     } else {
       focusTransition.ringOut();
     }
@@ -538,37 +540,46 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    */
   private void centreOnSurface(boolean on) {
     if (!on) {
-      timerBox.setTranslationX(0f);
-      timerBox.setTranslationY(0f);
-      return; // the ring keeps its centre until it has finished leaving, which it owns
+      // Back to where the layout keeps them. The ring holds its own centre until it has finished
+      // leaving, which it owns.
+      focusTransition.digitsTo(timerBox, 0f, 0f);
+      return;
     }
     if (layout.getWidth() > 0) {
-      centreNow(); // in this frame, so the digits are never drawn where the layout left them
+      centreNow(false); // in this frame, so the digits are never drawn where the layout left them
       return;
     }
     layout.post(new Runnable() { // nothing is measured yet: the first layout, or after a rotation
       @Override
       public void run() {
         if (timerState != TimerState.STOPPED) { // the solve ended before the layout settled
-          centreNow();
+          centreNow(true); // a screen being rebuilt has no movement to make
         }
       }
     });
   }
 
-  /** Puts the digits and the ring on the middle of the surface, from wherever they are sitting. */
-  private void centreNow() {
+  /**
+   * Puts the digits and the ring on the middle of the surface. Sideways the timer has only half
+   * the screen, and in a solve the other half is empty, so the box moves across as well as down.
+   */
+  private void centreNow(boolean settle) {
     int[] at = new int[2];
     layout.getLocationInWindow(at);
     float centreX = at[0] + layout.getWidth() / 2f;
     float centreY = at[1] + layout.getHeight() / 2f;
     timerBox.getLocationInWindow(at);
-    // Sideways the timer has only half the screen, and in a solve the other half is empty. Added
-    // to where the box already is, so the translation never has to be blanked first and read back.
-    timerBox.setTranslationX(
-      timerBox.getTranslationX() + centreX - (at[0] + timerBox.getWidth() / 2f));
-    timerBox.setTranslationY(
-      timerBox.getTranslationY() + centreY - (at[1] + timerBox.getHeight() / 2f));
+    // The box may be part way through a move of its own, so take its translation back out: what is
+    // wanted is where it has to end up, not a step on from wherever it happens to be.
+    float restX = at[0] - timerBox.getTranslationX();
+    float restY = at[1] - timerBox.getTranslationY();
+    float toX = centreX - (restX + timerBox.getWidth() / 2f);
+    float toY = centreY - (restY + timerBox.getHeight() / 2f);
+    if (settle) {
+      focusTransition.digitsAt(timerBox, toX, toY);
+    } else {
+      focusTransition.digitsTo(timerBox, toX, toY);
+    }
     inspectionRing.getLocationInWindow(at);
     inspectionRing.setCenterY(centreY - at[1]);
   }
@@ -703,7 +714,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvBanner.setTextColor(textColor);
     tvBanner.setVisibility(View.VISIBLE);
     identityRow.setVisibility(View.INVISIBLE);
-    identityStrip.setVisibility(View.VISIBLE); // even mid inspection: a hold has nowhere else to speak
+    // Even mid inspection: a hold has nowhere else to speak. Whole, too, since the strip may be
+    // part way through standing down for the solve.
+    identityStrip.animate().cancel();
+    identityStrip.setAlpha(1f);
+    identityStrip.setVisibility(View.VISIBLE);
   }
 
   private void setDefaultBannerText() {
@@ -2086,6 +2101,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvVerdictChip.setTextColor(color);
     tvVerdictChip.setBackgroundTintList(ColorStateList.valueOf(washOf(color)));
     tvVerdictChip.setVisibility(View.VISIBLE);
+    EnterAnimation.stagger(tvVerdictChip); // it arrives with the screen rather than appearing in it
   }
 
   private void highlightRecordCell(int priority) {
