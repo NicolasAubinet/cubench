@@ -105,6 +105,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private View identityRow;
   private View identityStrip;
   private ViewGroup layout;
+  private View timerBox;
   private View scrambleBox;
   private View sessionLayout;
   private FocusDot focusDot;
@@ -441,6 +442,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvBanner = (TextView) findViewById(R.id.tvBanner);
     identityRow = findViewById(R.id.identityRow);
     identityStrip = findViewById(R.id.identityStrip);
+    timerBox = findViewById(R.id.timerBox);
     scrambleBox = findViewById(R.id.scrambleBox);
     sessionLayout = findViewById(R.id.sessionLayout);
     if (focusDot != null) { // a rotation leaves the old one animating a view that is gone
@@ -511,6 +513,41 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     } else {
       inspectionRing.stop();
     }
+    centreOnSurface(on);
+  }
+
+  /**
+   * The digits sit at the centre of the band the layout leaves them, which is above the middle of
+   * the screen once the block below is only holding its place. While the screen is stripped down
+   * they take the middle of the timer's own surface instead, and the ring takes the same point, so
+   * a solve and the inspection before it do not sit in different places. A translation rather than
+   * a layout change: nothing below is measured again, so the digits still cannot drift mid solve.
+   */
+  private void centreOnSurface(boolean on) {
+    timerBox.setTranslationX(0f);
+    timerBox.setTranslationY(0f);
+    inspectionRing.setCenterY(null);
+    if (!on) {
+      return;
+    }
+    layout.post(new Runnable() {
+      @Override
+      public void run() {
+        if (timerState == TimerState.STOPPED) {
+          return; // the solve ended before the layout settled
+        }
+        int[] at = new int[2];
+        layout.getLocationInWindow(at);
+        float centreX = at[0] + layout.getWidth() / 2f;
+        float centreY = at[1] + layout.getHeight() / 2f;
+        timerBox.getLocationInWindow(at);
+        // Sideways the timer has only half the screen, and in a solve the other half is empty.
+        timerBox.setTranslationX(centreX - (at[0] + timerBox.getWidth() / 2f));
+        timerBox.setTranslationY(centreY - (at[1] + timerBox.getHeight() / 2f));
+        inspectionRing.getLocationInWindow(at);
+        inspectionRing.setCenterY(centreY - at[1]);
+      }
+    });
   }
 
   /** True while a solve is being timed with the time itself kept back. */

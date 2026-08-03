@@ -54,6 +54,7 @@ public class InspectionRingView extends View {
   private boolean marksPenalties;
   private long elapsedMs;
   private CharSequence label; // overrides the count, for the official mode's "+2"
+  private Float centerY; // set by the screen, so the ring and the digits share a centre
 
   public InspectionRingView(Context context) {
     this(context, null);
@@ -99,6 +100,12 @@ public class InspectionRingView extends View {
     invalidate();
   }
 
+  /** Where the ring sits, in this view's own coordinates. Null centres it on the view. */
+  public void setCenterY(Float centerY) {
+    this.centerY = centerY;
+    invalidate();
+  }
+
   public void stop() {
     inspecting = false;
     invalidate();
@@ -117,7 +124,7 @@ public class InspectionRingView extends View {
     float radius = Math.min(getWidth(), getHeight()) * RADIUS_FRACTION;
     float stroke = radius * STROKE_FRACTION;
     float centerX = getWidth() / 2f;
-    float centerY = getHeight() / 2f;
+    float centerY = (this.centerY != null) ? this.centerY : getHeight() / 2f;
     trackPaint.setStrokeWidth(stroke);
     arcPaint.setStrokeWidth(stroke);
     arcPaint.setColor(currentColor());

@@ -13,15 +13,21 @@
      android:layout_width="match_parent"
      android:layout_height="match_parent"
      android:baselineAligned="false"
+     android:clipChildren="false"
+     android:clipToPadding="false"
      android:orientation="vertical">
 
     <include layout="@layout/timer_identity_strip"/>
 
+    <!-- Not clipping: a running solve moves the digits to the middle of the whole screen, which
+         is outside the column they are laid out in. -->
     <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="0px"
        android:layout_weight="1"
        android:baselineAligned="false"
+       android:clipChildren="false"
+       android:clipToPadding="false"
        android:orientation="horizontal">
 
       <LinearLayout
