@@ -106,33 +106,15 @@
            android:clipChildren="false"
            android:clipToPadding="false">
 
-          <androidx.cardview.widget.CardView
+          <com.cube.nanotimer.util.view.FontFitTextView
+             android:id="@+id/tvScramble"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:layout_gravity="center_horizontal"
-             style="@style/TableCardViewPx">
-
-            <LinearLayout
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:orientation="vertical"
-               android:paddingLeft="6px"
-               android:paddingRight="6px"
-               android:paddingTop="6px"
-               android:paddingBottom="8px">
-
-              <com.cube.nanotimer.util.view.FontFitTextView
-                 android:id="@+id/tvScramble"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:paddingLeft="4px"
-                 android:paddingRight="4px"
-                 app:myfont="MONOSPACE"
-                 style="@style/ScrambleTextFieldPx"/>
-
-            </LinearLayout>
-
-          </androidx.cardview.widget.CardView>
+             android:paddingLeft="10px"
+             android:paddingRight="10px"
+             app:myfont="MONOSPACE"
+             style="@style/ScrambleTextFieldPx"/>
 
         </FrameLayout>
 
