@@ -1,6 +1,8 @@
 package com.cube.nanotimer.services;
 
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
@@ -47,6 +49,9 @@ public interface Service {
   void getSolveTime(int solveTimeId, DataCallback<SolveTime> callback);
   void getGyroTrack(int solveTimeId, DataCallback<String> callback);
   void getFrequencyData(SolveType solveType, long from, DataCallback<List<FrequencyData>> callback);
+  /** What each step and case of a solve type's method has cost over its last {@code lastSolves} solves. */
+  void getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves,
+      DataCallback<MethodStatistics> callback);
   void getAllUsedScrambleTypes(DataCallback<Map<CubeType, List<ScrambleType>>> callback);
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);

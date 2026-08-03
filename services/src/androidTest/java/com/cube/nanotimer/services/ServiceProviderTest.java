@@ -5,8 +5,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.test.AndroidTestCase;
 import org.junit.After;
 import org.junit.Before;
+import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.FrequencyData;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
@@ -1061,6 +1064,125 @@ public class ServiceProviderTest extends AndroidTestCase {
     st.undoDNF();
     provider.saveTime(st);
     assertEquals(meanWithTheSolve, provider.getSolveAverages(solveType1).getMeanOf3());
+  }
+
+  @Test
+  public void testMethodStatisticsGroupsStepsByTheirCase() {
+    provider.deleteHistory();
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 1000, 400), step("pll_gb", 3000, 1000));
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 600), step("pll_t", 1000, 400));
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 3000, 800), step("pll_t", 2000, 600));
+
+    MethodStatistics stats = provider.getMethodStatistics(solveType1, CubeMethod.CFOP, 50);
+    assertEquals(3, stats.getSolveCount());
+    assertEquals(3, stats.getFamily("cross").getCount());
+    assertEquals(2000, stats.getFamily("cross").getMeanMs());
+    assertEquals(600, stats.getFamily("cross").getMeanRecognitionMs());
+    assertEquals(2000, stats.getFamily("pll").getMeanMs());
+    assertEquals(2, stats.getCases("pll").size());
+    assertEquals("pll_gb", stats.getCases("pll").get(0).getCode()); // the slowest of them
+    assertEquals(1000, stats.getFamily("cross").getBestMs());
+  }
+
+  // Another method's solves are not this method's steps, and a DNF has no time to average.
+  @Test
+  public void testMethodStatisticsLeavesOutWhatItCannotAverage() {
+    provider.deleteHistory();
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500));
+    saveCubeSolve(CubeMethod.ROUX, null, step("cross", 9000, 500));
+    saveDnfCubeSolve(CubeMethod.CFOP, step("cross", 9000, 500));
+
+    MethodStatistics stats = provider.getMethodStatistics(solveType1, CubeMethod.CFOP, 50);
+    assertEquals(1, stats.getFamily("cross").getCount());
+    assertEquals(2000, stats.getFamily("cross").getMeanMs());
+  }
+
+  // A stopped solve keeps its finished steps: only the one it was inside was cut short.
+  @Test
+  public void testMethodStatisticsDropsOnlyTheStepASolveStoppedIn() {
+    provider.deleteHistory();
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), step("oll_21", 2000, 500));
+    saveCubeSolve(CubeMethod.CFOP, 2, step("cross", 2000, 500), step("oll_21", 200, 100));
+
+    MethodStatistics stats = provider.getMethodStatistics(solveType1, CubeMethod.CFOP, 50);
+    assertEquals(2, stats.getFamily("cross").getCount()); // the finished step of the stopped solve
+    assertEquals(1, stats.getFamily("oll").getCount());   // but not the one it stopped in
+    assertEquals(2000, stats.getFamily("oll").getMeanMs());
+  }
+
+  @Test
+  public void testMethodStatisticsReadsOnlyTheLastSolvesOfTheWindow() {
+    provider.deleteHistory();
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 5000, 500));
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 1000, 500));
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 3000, 500));
+
+    MethodStatistics stats = provider.getMethodStatistics(solveType1, CubeMethod.CFOP, 2);
+    assertEquals(2, stats.getSolveCount());
+    assertEquals(2, stats.getFamily("cross").getCount());
+    assertEquals(2000, stats.getFamily("cross").getMeanMs()); // the two most recent, not the 5000
+  }
+
+  @Test
+  public void testMethodStatisticsCountsThePartsOfAStepToo() {
+    provider.deleteHistory();
+    SolveStep f2l = new SolveStep(1, "f2l", 1000, 7000,
+        Arrays.asList(subStep(0, "pair_rf", 2000, 500), subStep(1, "pair_lb", 6000, 500)));
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), f2l);
+
+    MethodStatistics stats = provider.getMethodStatistics(solveType1, CubeMethod.CFOP, 50);
+    assertEquals(8000, stats.getFamily("f2l").getMeanMs());
+    assertEquals(2, stats.getFamily("pair").getCount());
+    assertEquals(4000, stats.getFamily("pair").getMeanMs());
+    assertEquals("pair_lb", stats.getCases("pair").get(0).getCode()); // the slower slot
+  }
+
+  /** @param stoppedStep the step the timer was stopped inside, null when the solve ran to the end */
+  private SolveTime saveCubeSolve(CubeMethod method, Integer stoppedStep, SolveStep... steps) {
+    long time = 0;
+    for (SolveStep step : steps) {
+      time += step.getTotalMs();
+    }
+    return saveCubeSolve(method, stoppedStep, time, steps);
+  }
+
+  private SolveTime saveDnfCubeSolve(CubeMethod method, SolveStep... steps) {
+    return saveCubeSolve(method, null, -1, steps);
+  }
+
+  private SolveTime saveCubeSolve(CubeMethod method, Integer stoppedStep, long time,
+      SolveStep... steps) {
+    SolveTime st = new SolveTime();
+    st.setScramble(SCRAMBLE);
+    st.setTimestamp(100 + (timeCpt++));
+    st.setSolveType(solveType1);
+    st.setTime(time);
+    st.setSmartcubeMethod(method);
+    st.setSmartcubeSteps(Arrays.asList(steps));
+    st.setSmartcubeStoppedStep(stoppedStep);
+    return provider.saveTime(st).getSolveTime();
+  }
+
+  private SolveStep step(String name, long totalMs, long recognitionMs) {
+    return new SolveStep(stepIndexOf(name), name, recognitionMs, totalMs - recognitionMs,
+        new ArrayList<SolveStep>());
+  }
+
+  private SolveStep subStep(int index, String name, long totalMs, long recognitionMs) {
+    return new SolveStep(index, name, recognitionMs, totalMs - recognitionMs,
+        new ArrayList<SolveStep>());
+  }
+
+  /** Where CFOP's steps sit, so a step reads back under the index the detector would have given it. */
+  private int stepIndexOf(String name) {
+    if (name.startsWith("f2l")) {
+      return 1;
+    } else if (name.startsWith("oll")) {
+      return 2;
+    } else if (name.startsWith("pll")) {
+      return 3;
+    }
+    return 0;
   }
 
   private SolveAverages saveTimes(long time, int count) {

@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.cube.nanotimer.services.db.DB;
+import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -19,6 +20,7 @@ import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
+import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimerQuickAction;
 import com.cube.nanotimer.vo.TimesSort;
 
@@ -1093,6 +1095,81 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (sta.getRank() == 1) {
       sta.setRunnerUp(getBestTimeExcluding(sta));
     }
+  }
+
+  /**
+   * What each step of a solve type's method has been costing over its last solves: one tally per step
+   * code, so a case ("pll_gb") is counted apart and still adds up into the step it belongs to. The
+   * parts of a step (an F2L pair) are tallied alongside them, under codes that cannot collide.
+   *
+   * <p>Two kinds of row would time something other than what their code says, and are left out: a
+   * DNF's, which has no time to average, and the one step a solve stopped inside, which was stored
+   * short of its own milestone while the steps before it were not.
+   *
+   * @param lastSolves how many of the solve type's most recent solves to read, 0 for none
+   */
+  @Override
+  public MethodStatistics getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves) {
+    int windowSize = Math.max(0, lastSolves); // a negative LIMIT is SQLite for "all of them"
+    // The window is written into the query rather than bound: a bound value arrives as text, and
+    // LIMIT has no column affinity to turn it back into a number.
+    String window = "SELECT " + DB.COL_ID + ", " + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
+        + "   AND " + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
+        + " ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC LIMIT " + windowSize;
+
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
+    q.append("     , COUNT(*)");
+    q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
+    q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION).append(")");
+    q.append("     , MIN(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
+    q.append("     , SUM(1.0 * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
+    q.append("            * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
+    q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
+    q.append("  JOIN (").append(window).append(") h");
+    q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
+    q.append(" WHERE s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NOT NULL");
+    q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP).append(" IS NULL");
+    q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
+    q.append("    <> s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
+    q.append(" GROUP BY s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
+    q.append(" ORDER BY MIN(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX).append(")");
+    q.append("     , MIN(COALESCE(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(", -1))");
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
+
+    List<StepStats> steps = new ArrayList<StepStats>();
+    String[] args = new String[] { String.valueOf(solveType.getId()), method.getCode() };
+    Cursor cursor = db.rawQuery(q.toString(), args);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        steps.add(new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
+            cursor.getLong(3), cursor.getLong(4), cursor.getDouble(5)));
+      }
+      cursor.close();
+    }
+    return new MethodStatistics(steps, getMethodSolvesCount(solveType, method, windowSize));
+  }
+
+  /** How many solves the step tallies were read from, which is the window or all there is of it. */
+  private int getMethodSolvesCount(SolveType solveType, CubeMethod method, int lastSolves) {
+    int count = 0;
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT COUNT(*) FROM ").append(DB.TABLE_TIMEHISTORY);
+    q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
+    q.append("   AND ").append(DB.COL_TIMEHISTORY_TIME).append(" > 0");
+    q.append("   AND ").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD).append(" = ?");
+    Cursor cursor = db.rawQuery(q.toString(),
+        new String[] { String.valueOf(solveType.getId()), method.getCode() });
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        count = cursor.getInt(0);
+      }
+      cursor.close();
+    }
+    return Math.min(count, lastSolves);
   }
 
   /** The best time of a solve type other than the given solve's, null when it has no rival. */

@@ -1,5 +1,7 @@
 package com.cube.nanotimer.services;
 
+import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
@@ -44,6 +46,7 @@ public interface ServiceProvider {
   SolveTime getSolveTime(int solveTimeId);
   String getGyroTrack(int solveTimeId);
   List<FrequencyData> getFrequencyData(SolveType solveType, Long from);
+  MethodStatistics getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves);
   Map<CubeType, List<ScrambleType>> getAllUsedScrambleTypes();
 
   int addSolveType(SolveType solveType);
