@@ -155,7 +155,10 @@ Several subsystems are present but inactive — don't extend them without checki
 - **Keep comments short** — one line, two at most. Skip them entirely when the
   code already says it; comment the *why*, never the *what*. Exception: Javadoc
   on a public API may be as long as it needs to be — there the comment is the
-  documentation.
+  documentation. The exception is *only* that: a private method, a private field
+  and a test method all get the one or two lines, however interesting the
+  reasoning behind them was. Put a measurement or a design decision worth keeping
+  in the class-level Javadoc once, not on every member that touches it.
 - **Keep commit messages short.** A concise subject line; a body only when the
   change genuinely needs one.
 - Singletons are commonly modeled as `enum X { INSTANCE }`.
