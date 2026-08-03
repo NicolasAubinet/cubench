@@ -160,6 +160,15 @@
     <item name="android:textColor">@color/secondary_text</item>
   </style>
 
+  <!-- The window the session strip covers. Read once and known after that, so it is the quietest
+       thing on the card rather than a second header. -->
+  <style name="SessionWindowPx">
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">12px</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textColor">@color/gray600</item>
+  </style>
+
   <style name="SessionHeaderPx">
     <item name="android:layout_height">wrap_content</item>
     <item name="android:textSize">16px</item>

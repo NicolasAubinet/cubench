@@ -1735,13 +1735,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * The bars carry no numbers, so beside them the header has to name the window they are rather
-   * than the session's own size: they are the last twelve of a longer sitting.
+   * The bars carry no numbers, so beside them the header names the window they are rather than the
+   * session's own size. Said once quietly: it is read on the first session and known after that.
    */
   private void refreshSolvesCountLabel() {
     int shown = (cubeSession == null) ? 0 : cubeSession.getTimes().size();
-    if (sessionBars.getVisibility() == View.VISIBLE && shown > 0 && solvesCount > shown) {
-      tvSolvesCount.setText(getString(R.string.timer_session_window, shown, solvesCount));
+    if (sessionBars.getVisibility() == View.VISIBLE && shown > 0) {
+      tvSolvesCount.setText(getString(R.string.window_last_n, shown));
     } else {
       tvSolvesCount.setText(solvesCount + " " + getString(R.string.solves));
     }

@@ -745,14 +745,13 @@
   <string name="discard_solve">Descartar</string>
   <string name="keep_solve">Manter</string>
   <string name="timer_session">Sessão</string>
-  <string name="timer_session_window">últimas %1$d de %2$d</string>
   <string name="timer_personal_best">Recorde pessoal</string>
   <string name="timer_avg_1000">Méd. de 1000</string>
   <string name="timer_best_value">melhor %1$s</string>
 
   <!-- History screen -->
   <string name="history_empty">Ainda não há resoluções. Toque em Iniciar para cronometrar uma.</string>
-  <string name="sparkline_window">últimas %1$d</string>
+  <string name="window_last_n">últimas %1$d</string>
   <string name="today">Hoje</string>
   <string name="yesterday">Ontem</string>
   <string name="acc_label">Prec</string>

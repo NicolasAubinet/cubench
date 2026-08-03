@@ -748,7 +748,6 @@
   <string name="discard_solve">Discard</string>
   <string name="keep_solve">Keep</string>
   <string name="timer_session">Session</string>
-  <string name="timer_session_window">last %1$d of %2$d</string>
   <string name="timer_personal_best">Personal best</string>
   <string name="timer_avg_1000">Avg of 1000</string>
   <string name="timer_best_value">best %1$s</string>
@@ -760,7 +759,7 @@
 
   <!-- History screen -->
   <string name="history_empty">No solves yet. Press Start to time one.</string>
-  <string name="sparkline_window">last %1$d</string>
+  <string name="window_last_n">last %1$d</string>
   <string name="today">Today</string>
   <string name="yesterday">Yesterday</string>
   <string name="acc_label">Acc</string>
