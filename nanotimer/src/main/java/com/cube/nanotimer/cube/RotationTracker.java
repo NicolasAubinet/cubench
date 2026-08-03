@@ -85,9 +85,13 @@ public final class RotationTracker {
       while (nextSpin < coreSpins.size()
           && coreSpins.get(nextSpin).getTimestampMs() <= frame.timestampMs) {
         Rotation spin = coreSpins.get(nextSpin++);
-        rotations.add(spin);
         CubeRotation spun = CubeRotation.byNotation(spin.getNotation());
-        written = written.then(spun.seenFrom(written)); // a rock turns the frame the last one left
+        CubeRotation after = written.then(spun.seenFrom(written)); // a rock turns the frame the last one left
+        if (spin.isWide() && !after.getNotation().equals(frame.rotation.getNotation())) {
+          continue; // the swing is not the whole of this move's turning: see isWide
+        }
+        rotations.add(spin);
+        written = after;
       }
       if (frame.rotation.getNotation().equals(written.getNotation())
           || insideSlicePair(coreSpins, nextSpin, frame.timestampMs)) {
@@ -97,7 +101,9 @@ public final class RotationTracker {
       written = frame.rotation;
     }
     for (; nextSpin < coreSpins.size(); nextSpin++) {
-      rotations.add(coreSpins.get(nextSpin)); // a solve ending on a slice: its rock has no move after
+      if (!coreSpins.get(nextSpin).isWide()) {
+        rotations.add(coreSpins.get(nextSpin)); // a solve ending on a slice: its rock has no move after
+      }
     }
     return rotations;
   }
@@ -136,6 +142,7 @@ public final class RotationTracker {
     private final String notation;
     private final long timestampMs;
     private final long pairFromMs;
+    private final boolean wide;
 
     Rotation(String notation, long timestampMs) {
       this(notation, timestampMs, Long.MAX_VALUE);
@@ -143,9 +150,14 @@ public final class RotationTracker {
 
     /** A core spin, which also knows where the pair it was measured across began. */
     Rotation(String notation, long timestampMs, long pairFromMs) {
+      this(notation, timestampMs, pairFromMs, false);
+    }
+
+    Rotation(String notation, long timestampMs, long pairFromMs, boolean wide) {
       this.notation = notation;
       this.timestampMs = timestampMs;
       this.pairFromMs = pairFromMs;
+      this.wide = wide;
     }
 
     /** One or two tokens, e.g. {@code "y"} or {@code "y x'"}. */
@@ -160,6 +172,16 @@ public final class RotationTracker {
     /** The first face of the pair this spin was measured across; never set on a regrip. */
     long getPairFromMs() {
       return pairFromMs;
+    }
+
+    /**
+     * A wide's core swing, claimed only when it is the <em>whole</em> frame change at its move. A
+     * wide has one face, so its ±200 ms reading also catches a reorientation through the same axis
+     * or a regrip begun just after the turn; a leftover means the reorientation is what this was.
+     * On solve 140 that drops two swings the frame denies and stops two reorientations being split.
+     */
+    boolean isWide() {
+      return wide;
     }
   }
 }

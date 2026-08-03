@@ -336,4 +336,108 @@ public class SolveSolutionTest {
     assertEquals("R", replayed.get(1).getNotation()); // the cube's B is on the solver's right after a y
   }
 
+  /** Stored as the far face plus the core's spin a millisecond ahead; folded, it is one move. */
+  @Test
+  public void foldsAFaceAndItsCoreSpinIntoAWide() {
+    // The R after it is on the wide's own axis, which the spin leaves put: this reads the fold alone.
+    SolveSolution solution =
+        SolveSolution.from(moves("x@99", "L@100", "R@400"), Arrays.asList(step("f2l", 0, 1000)));
+
+    assertEquals("r R", solution.getSteps().get(0).getMoves());
+    assertEquals(2, solution.getMoveCount()); // the wide is one move; the spin is not a move at all
+  }
+
+  /** All twelve, so a sign error cannot hide behind whichever axis the test happened to pick. */
+  @Test
+  public void foldsEveryWide() {
+    assertEquals("u", wideFrom("y@99", "D@100"));
+    assertEquals("u'", wideFrom("y'@99", "D'@100"));
+    assertEquals("d", wideFrom("y'@99", "U@100"));
+    assertEquals("d'", wideFrom("y@99", "U'@100"));
+    assertEquals("r", wideFrom("x@99", "L@100"));
+    assertEquals("r'", wideFrom("x'@99", "L'@100"));
+    assertEquals("l", wideFrom("x'@99", "R@100"));
+    assertEquals("l'", wideFrom("x@99", "R'@100"));
+    assertEquals("f", wideFrom("z@99", "B@100"));
+    assertEquals("f'", wideFrom("z'@99", "B'@100"));
+    assertEquals("b", wideFrom("z'@99", "F@100"));
+    assertEquals("b'", wideFrom("z@99", "F'@100"));
+  }
+
+  /**
+   * A wide's spin undercuts its face by a millisecond; a regrip shares the offset of the move that
+   * revealed it. Sharing it must stay two moves, or every stored {@code y D} becomes a {@code u}.
+   */
+  @Test
+  public void leavesARegripAndAFaceTurnAsTheTwoMovesTheyAre() {
+    SolveSolution solution =
+        SolveSolution.from(moves("y@100", "D@100", "U@400"), Arrays.asList(step("f2l", 0, 1000)));
+
+    assertEquals("y D U", solution.getSteps().get(0).getMoves());
+  }
+
+  /** Further out than the millisecond is not the signature either, whichever way it falls. */
+  @Test
+  public void leavesASpinThatDoesNotSitOnTheFaceAlone() {
+    assertEquals("x L", displayed(moves("x@50", "L@100")));
+    assertEquals("x L", displayed(moves("x@98", "L@100")));
+    assertEquals("L x", displayed(moves("L@100", "x@101")));
+  }
+
+  /** No gyro means no spin, so the far face stands: not the move made, but still what solves. */
+  @Test
+  public void leavesTheLoneFaceAloneWithoutAGyro() {
+    SolveSolution solution =
+        SolveSolution.from(moves("L@100", "U@400"), Arrays.asList(step("f2l", 0, 1000)));
+
+    assertEquals("L U", solution.getSteps().get(0).getMoves());
+  }
+
+  /** The spin turns the frame, because the core really swung: what follows is named from there. */
+  @Test
+  public void aWideCarriesTheFrameOnTheWayASliceDoes() {
+    SolveSolution solution =
+        SolveSolution.from(moves("y@99", "D@100", "B@400"), Arrays.asList(step("f2l", 0, 1000)));
+
+    // After the u the cube's B face is on the solver's right, exactly as after a bare y.
+    assertEquals("u R", solution.getSteps().get(0).getMoves());
+  }
+
+  @Test
+  public void aWideIsNamedInTheSolversFrame() {
+    SolveSolution solution = SolveSolution.from(moves("y@0", "x@99", "L@100"),
+        Arrays.asList(step("f2l", 0, 1000)));
+
+    // After a y the cube's x axis points where the solver's z does, so its r is their f.
+    assertEquals("y f", solution.getSteps().get(0).getMoves());
+  }
+
+  /** Two of the same wide in a row are one half turn, the way two of the same face are. */
+  @Test
+  public void foldsTwoOfTheSameWideIntoAHalfTurn() {
+    SolveSolution solution = SolveSolution.from(moves("x@99", "L@100", "x@199", "L@200"),
+        Arrays.asList(step("f2l", 0, 1000)));
+
+    assertEquals("r2", solution.getSteps().get(0).getMoves());
+  }
+
+  /** A replay turns with the solver, so it gets the wide too rather than the raw face and spin. */
+  @Test
+  public void keepsWidesForReplay() {
+    List<SolveMovesFormat.Move> replayed = SolveSolution.timedSolution(moves("x@99", "L@100"));
+
+    assertEquals(1, replayed.size());
+    assertEquals("r", replayed.get(0).getNotation());
+    assertEquals(100, replayed.get(0).getOffsetMs()); // dated at the face, not at the spin
+  }
+
+  private static String wideFrom(String spin, String face) {
+    return displayed(moves(spin, face));
+  }
+
+  private static String displayed(String stored) {
+    return SolveSolution.from(stored, Arrays.asList(step("f2l", 0, 1000)))
+        .getSteps().get(0).getMoves();
+  }
+
 }

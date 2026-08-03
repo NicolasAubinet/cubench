@@ -87,10 +87,10 @@ public final class SolveSolution {
    * Every moment the reconstruction's frame changed, and what it changed to.
    *
    * <p>⚠️ <b>This is not the same as walking the rotation tokens of {@link #timedSolution}.</b> A
-   * slice rocks the core, which turns the frame, but emits no rotation token — the spin is the same
-   * physical event as the slice and showing it would be wrong. So the emitted tokens under-count
-   * the frame, badly on a Roux solve where the M slices never stop. Anything that has to line a
-   * gyro reading up against what the reconstruction believes must read the frame from here.
+   * slice or a wide rocks the core, which turns the frame, but emits no rotation token — the spin is
+   * the same physical event as the move and showing it would be wrong. So the emitted tokens
+   * under-count the frame, badly on a Roux solve where the M slices never stop. Anything that has to
+   * line a gyro reading up against what the reconstruction believes must read the frame from here.
    */
   public static List<FrameAt> framesOf(String storedMoves) {
     List<FrameAt> frames = new ArrayList<FrameAt>();
@@ -137,6 +137,21 @@ public final class SolveSolution {
       Move move = stored.get(i);
       String notation = move.getNotation();
       if (SolveMovesFormat.isRotation(notation)) {
+        Move face = wideFace(stored, i);
+        if (face != null) {
+          // The solver did one wide move, named in their frame. As with a slice the spin is the
+          // move itself rather than a grip change: not shown, but it still turns the frame.
+          CubeRotation spin = CubeRotation.byNotation(notation).seenFrom(frame);
+          String wide = Wides.forFaceAndSpin(relabelFace(frame, face.getNotation()),
+              spin.getNotation());
+          if (wide != null) {
+            rewritten.add(new Move(wide, face.getOffsetMs()));
+            frame = frame.then(spin);
+            record(framesOut, face.getOffsetMs(), frame);
+            i++; // the face is spoken for: it is half of the move just written
+            continue;
+          }
+        }
         // One reorientation is stored as tokens sharing an offset; relabelled one at a time its
         // spelling would be misread as being about moved axes, so it is reassembled first.
         StringBuilder composite = new StringBuilder(notation);
@@ -204,6 +219,25 @@ public final class SolveSolution {
         || !SolveMovesFormat.isRotation(stored.get(i + 3).getNotation())
         || stored.get(i + 3).getOffsetMs() != spin.getOffsetMs();
     return lone ? spin : null; // part of a bigger reorientation: leave it to the rotation path
+  }
+
+  /**
+   * The face a wide's core spin belongs to, when {@code stored[i]} is one. The signature is the
+   * offset: a wide's spin undercuts its face by a millisecond, where a regrip before the same face
+   * shares its offset. No gyro means no spin, so nothing folds and the lone far face stands.
+   *
+   * <p>Solves recorded before wides were read keep the long spelling: the readings that tell a wide
+   * from a regrip are not stored, so only the dating carries the answer forward.
+   */
+  private static Move wideFace(List<Move> stored, int i) {
+    if (i + 1 >= stored.size()) {
+      return null;
+    }
+    Move face = stored.get(i + 1);
+    return !SolveMovesFormat.isRotation(face.getNotation())
+        && face.getOffsetMs() == stored.get(i).getOffsetMs() + 1
+        ? face
+        : null;
   }
 
   /** The slice and spin for two moves close enough together to be one, or null. */

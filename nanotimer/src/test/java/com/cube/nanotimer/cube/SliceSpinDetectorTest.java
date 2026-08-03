@@ -104,12 +104,13 @@ public class SliceSpinDetectorTest {
 
   @Test
   public void leavesFacesTurnedTooFarApartAlone() {
-    // Beyond the slice window the two turns are a deliberate pair, however the core moved.
+    // Beyond the slice window the two turns are a deliberate pair, however the core moved — here
+    // it moved between them, which is a solver reorienting mid-pair and is neither face's wide.
     SliceSpinDetector detector = new SliceSpinDetector();
     detector.onMove(move("L", 1000));
     detector.onMove(move("R'", 1500));
 
-    assertEquals(0, detector.coreSpins(rockedAt(1700, BEFORE_M_PRIME, AFTER_M_PRIME)).size());
+    assertEquals(0, detector.coreSpins(rockedAt(1250, BEFORE_M_PRIME, AFTER_M_PRIME)).size());
   }
 
   @Test
@@ -201,6 +202,97 @@ public class SliceSpinDetectorTest {
     SliceSpinDetector detector = new SliceSpinDetector();
     detector.onMove(move("L", 1000));
     detector.onMove(move("R'", 1030));
+
+    SliceSpinDetector.Orientations none = timestampMs -> null;
+    assertEquals(0, detector.coreSpins(none).size());
+  }
+
+  /** Same measured rock as the {@code M'} above: only the missing second face says which it was. */
+  @Test
+  public void readsALoneFaceWithACoreRockAsAWide() {
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("U", 1600));
+
+    List<RotationTracker.Rotation> spins =
+        detector.coreSpins(rockedAt(1050, BEFORE_M_PRIME, AFTER_M_PRIME));
+
+    assertEquals(1, spins.size());
+    assertEquals("x", spins.get(0).getNotation()); // L with a core x is the wide r
+    assertEquals(999, spins.get(0).getTimestampMs()); // a millisecond ahead, where the fold looks
+  }
+
+  @Test
+  public void leavesALoneFaceAloneWhenTheCoreDidNotMove() {
+    // An ordinary L: the core never swung, so there is no wide here and nothing to fold.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("U", 1600));
+
+    assertEquals(0, detector.coreSpins(rockedAt(1050, BEFORE_TWO_HANDED, AFTER_TWO_HANDED)).size());
+  }
+
+  @Test
+  public void ignoresALoneFaceWhoseCoreSwungTheOtherWay() {
+    // L is a wide only with an x. This core swung x', which is the wide of the opposite face —
+    // so this is an honest L that happened to land beside a reorientation.
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("U", 1600));
+
+    assertEquals(0, detector.coreSpins(rockedAt(1050, AFTER_M_PRIME, AFTER_M)).size());
+  }
+
+  /** The core had arrived before the turn: a reorientation then a face, which is two moves. */
+  @Test
+  public void ignoresACoreThatHadFinishedSwingingBeforeTheTurn() {
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("U", 1600));
+
+    // Settled into the new frame well before the window opens at 800 ms.
+    assertEquals(0, detector.coreSpins(rockedAt(700, BEFORE_M_PRIME, AFTER_M_PRIME)).size());
+  }
+
+  /** A slice's two faces are spoken for: neither may also be read as a wide of its own. */
+  @Test
+  public void doesNotAlsoReadASlicesFacesAsWides() {
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("R'", 1030));
+    detector.onMove(move("U", 1400));
+
+    List<RotationTracker.Rotation> spins =
+        detector.coreSpins(rockedAt(1230, BEFORE_M_PRIME, AFTER_M_PRIME));
+
+    assertEquals(1, spins.size()); // the slice, and not a wide for either of its faces
+    assertEquals(1031, spins.get(0).getTimestampMs());
+  }
+
+  /** The contract with the display: a millisecond ahead of the face, or the fold cannot see it. */
+  @Test
+  public void theWideSpinLandsWhereTheDisplayFoldLooksForIt() {
+    List<CubeMove> moves = Arrays.asList(move("L", 1000), move("U", 1600));
+    SliceSpinDetector detector = new SliceSpinDetector();
+    for (CubeMove move : moves) {
+      detector.onMove(move);
+    }
+
+    String stored = SolveMovesFormat.format(moves,
+        detector.coreSpins(rockedAt(1050, BEFORE_M_PRIME, AFTER_M_PRIME)), 900);
+    SolveSolution solution = SolveSolution.from(stored,
+        Arrays.asList(new SolveStep(0, "f2l", 0, 1000, new ArrayList<SolveStep>())));
+
+    assertEquals("x@99 L@100 U@700", stored);
+    assertEquals(2, solution.getMoveCount()); // the wide and the U; the spin is not a move
+    assertEquals("r", solution.getSteps().get(0).getMoves().split(" ")[0]);
+  }
+
+  @Test
+  public void findsNoWideWithoutAGyro() {
+    SliceSpinDetector detector = new SliceSpinDetector();
+    detector.onMove(move("L", 1000));
+    detector.onMove(move("U", 1600));
 
     SliceSpinDetector.Orientations none = timestampMs -> null;
     assertEquals(0, detector.coreSpins(none).size());
