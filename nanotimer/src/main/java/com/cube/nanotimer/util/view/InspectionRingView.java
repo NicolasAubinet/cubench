@@ -38,6 +38,7 @@ public class InspectionRingView extends View {
   private static final float STROKE_FRACTION = 0.13f; // of the radius
   private static final int WASH_ALPHA_START = 4; // of 255, over the dropped ground
   private static final int WASH_ALPHA_END = 20;
+  private static final float EXIT_SHRINK = 0.8f; // of the radius, by the time it has gone
 
   private final Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint arcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -48,8 +49,10 @@ public class InspectionRingView extends View {
   private final int accentColor;
   private final int amberColor;
   private final int redColor;
+  private final int trackAlpha;
 
   private boolean inspecting;
+  private float exit; // how far through leaving the ring is: 0 while it is up, 1 once it is gone
   private int totalSeconds;
   private boolean marksPenalties;
   private long elapsedMs;
@@ -71,6 +74,7 @@ public class InspectionRingView extends View {
 
     trackPaint.setStyle(Paint.Style.STROKE);
     trackPaint.setColor(ContextCompat.getColor(context, R.color.white_wash_10));
+    trackAlpha = trackPaint.getAlpha(); // the track is already faint: it fades from there, not 255
     arcPaint.setStyle(Paint.Style.STROKE);
     arcPaint.setStrokeCap(Paint.Cap.ROUND);
     labelPaint.setTextAlign(Paint.Align.CENTER);
@@ -85,6 +89,7 @@ public class InspectionRingView extends View {
     this.marksPenalties = (totalSeconds >= MIN_MARKED_SECONDS);
     this.elapsedMs = 0;
     this.label = null;
+    this.exit = 0f;
     this.inspecting = true;
     invalidate();
   }
@@ -106,8 +111,24 @@ public class InspectionRingView extends View {
     invalidate();
   }
 
+  /**
+   * How far the ring is through leaving, 0 while it is up and 1 once it has gone: it shrinks back
+   * towards its own centre and fades, and its wash over the screen goes with it. The shrinking is
+   * what keeps it out of the digits arriving at the same point, which a plain fade would sit under.
+   */
+  public void setExit(float exit) {
+    this.exit = Math.max(0f, Math.min(1f, exit));
+    invalidate();
+  }
+
+  /** True while there is a ring on screen, and so something to take away. */
+  public boolean isUp() {
+    return inspecting;
+  }
+
   public void stop() {
     inspecting = false;
+    exit = 0f;
     invalidate();
   }
 
@@ -116,12 +137,13 @@ public class InspectionRingView extends View {
     if (!inspecting || getWidth() <= 0) {
       return;
     }
+    float here = 1f - exit; // how much of the ring is still there
     washPaint.setColor(currentColor());
-    washPaint.setAlpha(WASH_ALPHA_START
-      + Math.round((WASH_ALPHA_END - WASH_ALPHA_START) * (1f - fractionLeft())));
+    washPaint.setAlpha(Math.round(here * (WASH_ALPHA_START
+      + Math.round((WASH_ALPHA_END - WASH_ALPHA_START) * (1f - fractionLeft())))));
     canvas.drawPaint(washPaint);
 
-    float radius = Math.min(getWidth(), getHeight()) * RADIUS_FRACTION;
+    float radius = Math.min(getWidth(), getHeight()) * RADIUS_FRACTION * (1f - EXIT_SHRINK * exit);
     float stroke = radius * STROKE_FRACTION;
     float centerX = getWidth() / 2f;
     float centerY = (this.centerY != null) ? this.centerY : getHeight() / 2f;
@@ -130,6 +152,9 @@ public class InspectionRingView extends View {
     arcPaint.setColor(currentColor());
     labelPaint.setColor(currentColor());
     labelPaint.setTextSize(radius * 0.95f);
+    trackPaint.setAlpha(Math.round(trackAlpha * here)); // after the colours, which carry their own
+    arcPaint.setAlpha(Math.round(255 * here));
+    labelPaint.setAlpha(Math.round(255 * here));
 
     canvas.drawCircle(centerX, centerY, radius, trackPaint);
     if (totalSeconds > 0) {

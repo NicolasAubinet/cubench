@@ -73,6 +73,7 @@ import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
 import com.cube.nanotimer.util.view.FocusDot;
+import com.cube.nanotimer.util.view.FocusTransition;
 import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
@@ -172,6 +173,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
   private ParticleView particleView; // full-screen confetti overlay, fired on a personal best
   private InspectionRingView inspectionRing; // full-screen overlay, drawn only while inspecting
+  private FocusTransition focusTransition; // the ring leaving and the digits arriving, as one move
   private ScrambleFollowAnimator scrambleAnimator; // subtle per-move zoom during a cube follow
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
@@ -318,6 +320,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (focusDot != null) {
       focusDot.hide();
     }
+    if (focusTransition != null) { // nothing left to fade on a screen that is going
+      focusTransition.ringGone();
+    }
     super.onDestroy();
   }
 
@@ -433,6 +438,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     inspectionRing = new InspectionRingView(this);
     addContentView(inspectionRing, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    focusTransition = new FocusTransition(inspectionRing); // a rotation brings a new ring with it
   }
 
   private void initViews() {
@@ -509,9 +515,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       focusDot.hide();
     }
     if (inspecting) {
+      focusTransition.ringIn();
       inspectionRing.start(inspectionTime);
     } else {
-      inspectionRing.stop();
+      focusTransition.ringOut();
+    }
+    // The digits arrive as the ring leaves; a solve ending wants them as they are, at once.
+    if (on && tvTimer.getVisibility() == View.VISIBLE) {
+      focusTransition.digitsIn(tvTimer);
+    } else {
+      focusTransition.digitsRest(tvTimer);
     }
     centreOnSurface(on);
   }
@@ -524,30 +537,40 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * a layout change: nothing below is measured again, so the digits still cannot drift mid solve.
    */
   private void centreOnSurface(boolean on) {
-    timerBox.setTranslationX(0f);
-    timerBox.setTranslationY(0f);
-    inspectionRing.setCenterY(null);
     if (!on) {
+      timerBox.setTranslationX(0f);
+      timerBox.setTranslationY(0f);
+      return; // the ring keeps its centre until it has finished leaving, which it owns
+    }
+    if (layout.getWidth() > 0) {
+      centreNow(); // in this frame, so the digits are never drawn where the layout left them
       return;
     }
-    layout.post(new Runnable() {
+    layout.post(new Runnable() { // nothing is measured yet: the first layout, or after a rotation
       @Override
       public void run() {
-        if (timerState == TimerState.STOPPED) {
-          return; // the solve ended before the layout settled
+        if (timerState != TimerState.STOPPED) { // the solve ended before the layout settled
+          centreNow();
         }
-        int[] at = new int[2];
-        layout.getLocationInWindow(at);
-        float centreX = at[0] + layout.getWidth() / 2f;
-        float centreY = at[1] + layout.getHeight() / 2f;
-        timerBox.getLocationInWindow(at);
-        // Sideways the timer has only half the screen, and in a solve the other half is empty.
-        timerBox.setTranslationX(centreX - (at[0] + timerBox.getWidth() / 2f));
-        timerBox.setTranslationY(centreY - (at[1] + timerBox.getHeight() / 2f));
-        inspectionRing.getLocationInWindow(at);
-        inspectionRing.setCenterY(centreY - at[1]);
       }
     });
+  }
+
+  /** Puts the digits and the ring on the middle of the surface, from wherever they are sitting. */
+  private void centreNow() {
+    int[] at = new int[2];
+    layout.getLocationInWindow(at);
+    float centreX = at[0] + layout.getWidth() / 2f;
+    float centreY = at[1] + layout.getHeight() / 2f;
+    timerBox.getLocationInWindow(at);
+    // Sideways the timer has only half the screen, and in a solve the other half is empty. Added
+    // to where the box already is, so the translation never has to be blanked first and read back.
+    timerBox.setTranslationX(
+      timerBox.getTranslationX() + centreX - (at[0] + timerBox.getWidth() / 2f));
+    timerBox.setTranslationY(
+      timerBox.getTranslationY() + centreY - (at[1] + timerBox.getHeight() / 2f));
+    inspectionRing.getLocationInWindow(at);
+    inspectionRing.setCenterY(centreY - at[1]);
   }
 
   /** True while a solve is being timed with the time itself kept back. */
