@@ -12,9 +12,9 @@ import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.R;
 
 /**
- * Inspection, drawn as a ring that drains clockwise from the top, the way a timer's ring does
- * everywhere else. The seconds sit inside it, so the screen says how long is left without a number
- * to compare against, and the ring turns amber and then red as the end comes up.
+ * Inspection, drawn as a ring that drains from the top: the arc keeps its head at twelve and its
+ * tail unwinds back towards it. The seconds sit inside it, so the screen says how long is left
+ * without a number to compare against, and the ring turns amber and then red as the end comes up.
  *
  * <p>The thresholds are counted back from the end rather than forward from the start, so they mean
  * the same thing at any inspection time: at 15 seconds they land on 8 and 12, which is where the
@@ -133,10 +133,11 @@ public class InspectionRingView extends View {
 
     canvas.drawCircle(centerX, centerY, radius, trackPaint);
     if (totalSeconds > 0) {
-      // The gap opens at twelve and grows clockwise, so the edge sweeps the way a hand does.
+      // The arc keeps its head at twelve and its tail retreats towards it, so what is left of the
+      // inspection is what is left of the ring, read from the top.
       float left = fractionLeft();
       bounds.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-      canvas.drawArc(bounds, -90f + 360f * (1f - left), 360f * left, false, arcPaint);
+      canvas.drawArc(bounds, -90f, 360f * left, false, arcPaint);
     }
 
     CharSequence text = (label != null) ? label : String.valueOf(elapsedMs / 1000);
