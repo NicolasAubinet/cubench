@@ -229,7 +229,7 @@
             <com.cube.nanotimer.util.view.SessionBarsView
                android:id="@+id/sessionBars"
                android:layout_width="match_parent"
-               android:layout_height="76px"
+               android:layout_height="66px"
                android:layout_marginLeft="3px"
                android:layout_marginRight="3px"
                android:layout_marginBottom="4px"
