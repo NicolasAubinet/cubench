@@ -72,6 +72,7 @@ import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
+import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
@@ -169,6 +170,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private SolveStepBar solveStepBar;
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
   private ParticleView particleView; // full-screen confetti overlay, fired on a personal best
+  private InspectionRingView inspectionRing; // full-screen overlay, drawn only while inspecting
   private ScrambleFollowAnimator scrambleAnimator; // subtle per-move zoom during a cube follow
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
@@ -180,6 +182,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private final long STOP_START_DELAY = 500; // to avoid starting timer too quickly after a stop
 
   private int inspectionTime;
+  private int lastInspectionSecond = -1; // the ring is redrawn far oftener than the count changes
   private InspectionMode inspectionMode;
   private boolean soundsEnabled;
   private boolean keepScreenOnWhenTimerOff;
@@ -227,12 +230,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     soundsEnabled = Options.INSTANCE.isInspectionSoundsEnabled();
     keepScreenOnWhenTimerOff = Options.INSTANCE.isKeepTimerScreenOnWhenTimerOff();
 
+    addOverlays();
     initViews();
-
-    // A pass-through overlay for the personal-best confetti: non-clickable, so the whole timer
-    // stays a tap target; idle (drawing nothing) until a PB fires it.
-    particleView = new ParticleView(this);
-    addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
     // Sampled from a statistics value, which is the colour a plain (non-record) one is drawn in.
     defaultTextColor = ((TextView) findViewById(R.id.tvAvgOfFive)).getTextColors();
@@ -423,6 +422,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return null;
   }
 
+  /**
+   * The two things drawn over the whole screen rather than in it. Both are non-clickable, so the
+   * timer stays one tap target, and both idle drawing nothing. {@code setContentView} empties the
+   * content parent, so a rotation has to put them back.
+   */
+  private void addOverlays() {
+    particleView = new ParticleView(this); // the personal-best confetti
+    addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    inspectionRing = new InspectionRingView(this);
+    addContentView(inspectionRing, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+  }
+
   private void initViews() {
     tvTimer = (TextView) findViewById(R.id.tvTimer);
     tvScramble = (TextView) findViewById(R.id.tvScramble);
@@ -481,17 +492,24 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * @param standIn draw the breathing dot instead of the digits, for a solve timed without them
    */
   private void applyFocus(boolean on, boolean standIn) {
+    boolean inspecting = (timerState == TimerState.INSPECTING);
     int hidden = on ? View.INVISIBLE : View.VISIBLE;
     identityStrip.setVisibility(hidden);
     scrambleBox.setVisibility(hidden);
     sessionLayout.setVisibility(hidden);
-    tvTimer.setVisibility(on && standIn ? View.INVISIBLE : View.VISIBLE);
+    // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
+    tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
     groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
     layout.setBackgroundResource(groundColor);
-    if (on) {
+    if (on && !inspecting) { // inspection is the ring alone: two pools of light would be two centres
       timerGlow.show(standIn);
     } else {
       timerGlow.hide();
+    }
+    if (inspecting) {
+      inspectionRing.start(inspectionTime);
+    } else {
+      inspectionRing.stop();
     }
   }
 
@@ -980,6 +998,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       String timerText = tvTimer.getText().toString();
 
       setContentView(R.layout.timer_screen);
+      addOverlays();
       initViews();
 
       if (timerState == TimerState.STOPPED) {
@@ -1272,12 +1291,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       public void run() {
         timerHandler.post(new Runnable() {
           public void run() {
-            updateInspectionTimerText();
+            updateInspection();
           }
         });
       }
     };
-    timer.schedule(timerTask, 1, 1000);
+    lastInspectionSecond = -1;
+    timer.schedule(timerTask, 1, REFRESH_INTERVAL); // the ring sweeps; the second below still steps
   }
 
   private void stopInspectionTimer() {
@@ -1406,11 +1426,15 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     setTimerTextColor(curTime);
   }
 
-  private synchronized void updateInspectionTimerText() {
+  private synchronized void updateInspection() {
     long curTime = System.currentTimeMillis() - timerStartTs;
     final int officialInspectionDnfTime = 2;
+    inspectionRing.setElapsed(curTime);
     int seconds = (int) (curTime / 1000);
-    tvTimer.setText(String.valueOf(seconds));
+    if (seconds == lastInspectionSecond) {
+      return; // everything below happens once a second, whatever the ring is drawn at
+    }
+    lastInspectionSecond = seconds;
     boolean automaticMode = (inspectionMode == InspectionMode.AUTOMATIC);
     SoundManager soundManager = App.INSTANCE.getSoundManager();
 
@@ -1440,7 +1464,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         if (seconds == inspectionTime + officialInspectionDnfTime) {
           mustDnfTime = true;
         } else if (seconds >= inspectionTime) {
-          tvTimer.setText(R.string.plus_two);
+          inspectionRing.setLabel(getString(R.string.plus_two));
           oversteppedInspection = true;
         }
       } else {
@@ -2054,7 +2078,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // change bg color
     if (parMotionEventAction == MotionEvent.ACTION_DOWN) {
       if (System.currentTimeMillis() - lastTimerStopTs >= STOP_START_DELAY) {
-        layout.setBackgroundResource(pushedBackgroundColor);
+        if (timerState != TimerState.INSPECTING) { // the dropped ground is the ring's stage
+          layout.setBackgroundResource(pushedBackgroundColor);
+        }
       } else {
         return false; // to avoid receiving the ACTION_UP
       }
