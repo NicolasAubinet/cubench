@@ -192,7 +192,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean keepScreenOnWhenTimerOff;
 
   private int groundColor = R.color.graybg; // the ground at rest; a running solve drops it a shade
-  private int pushedBackgroundColor = R.color.pushedbg;
+  private int pushedGroundColor = R.color.pushedbg; // the same ground with a finger on it
+  private boolean surfacePressed; // and whether there is one on it
 
   private RandomStateGenListener randomStateGenListener = new RandomStateGenListener() {
     @Override
@@ -510,7 +511,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
     tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
     groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
-    layout.setBackgroundResource(groundColor);
+    pushedGroundColor = on ? R.color.timer_focus_pushedbg : R.color.pushedbg;
+    applyGround();
     if (on && standIn) {
       focusDot.show();
     } else {
@@ -582,6 +584,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     inspectionRing.getLocationInWindow(at);
     inspectionRing.setCenterY(centreY - at[1]);
+  }
+
+  // Held as state rather than only reacted to: the ground changes under a finger that never moved,
+  // since in the hold and release mode the whole inspection is one press.
+  private void applyGround() {
+    layout.setBackgroundResource(surfacePressed ? pushedGroundColor : groundColor);
   }
 
   /** True while a solve is being timed with the time itself kept back. */
@@ -2148,14 +2156,17 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // change bg color
     if (parMotionEventAction == MotionEvent.ACTION_DOWN) {
       if (System.currentTimeMillis() - lastTimerStopTs >= STOP_START_DELAY) {
-        if (timerState != TimerState.INSPECTING) { // the dropped ground is the ring's stage
-          layout.setBackgroundResource(pushedBackgroundColor);
-        }
+        surfacePressed = true;
+        applyGround();
       } else {
         return false; // to avoid receiving the ACTION_UP
       }
+    } else if (parMotionEventAction == MotionEvent.ACTION_CANCEL) {
+      surfacePressed = false; // taken away rather than lifted, and no stop follows it
+      applyGround();
     } else if (parMotionEventAction == MotionEvent.ACTION_UP) {
-      layout.setBackgroundResource(groundColor);
+      surfacePressed = false;
+      applyGround();
       if (ignoreActionUp) {
         ignoreActionUp = false;
         return true;

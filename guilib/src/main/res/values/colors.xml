@@ -66,6 +66,9 @@
   <!-- The timer's ground while a solve runs: a shade under the resting one, so the screen is
        visibly standing down rather than merely emptying. -->
   <color name="timer_focus_bg">@color/gray900</color>
+  <!-- Pressed, over that ground. A smaller step up than the resting one takes, so a press still
+       reads while the ring keeps the dark stage it is drawn on. -->
+  <color name="timer_focus_pushedbg">#2E2E2E</color>
   <color name="spinner_background">#505050</color>
   <color name="timercardbg">#33383B</color>
   <color name="mainscreen_top_card">@color/gray800</color>
