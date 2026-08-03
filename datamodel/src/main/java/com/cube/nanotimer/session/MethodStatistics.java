@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * What a solve type's method has been costing over a stretch of solves, read from the step codes the
@@ -34,14 +36,26 @@ public class MethodStatistics implements Serializable {
   private final Map<String, StepStats> families = new LinkedHashMap<String, StepStats>();
   private final Map<String, List<StepStats>> cases = new LinkedHashMap<String, List<StepStats>>();
   private final Map<String, StepStats> skips = new LinkedHashMap<String, StepStats>();
+  private final Set<String> partFamilies = new LinkedHashSet<String>();
+
+  public MethodStatistics(List<StepStats> steps, int solveCount) {
+    this(steps, Collections.<StepStats>emptyList(), solveCount);
+  }
 
   /**
    * @param steps one tally per step code, in the order the steps are solved in
+   * @param parts the same for the codes a step was built in parts under, which are not steps of the
+   *     method themselves: an F2L slot, or the two looks of a 2-look OLL
    * @param solveCount how many solves those tallies were read from
    */
-  public MethodStatistics(List<StepStats> steps, int solveCount) {
+  public MethodStatistics(List<StepStats> steps, List<StepStats> parts, int solveCount) {
     this.solveCount = solveCount;
-    for (StepStats step : steps) {
+    for (StepStats part : parts) {
+      partFamilies.add(familyOf(part.getCode()));
+    }
+    List<StepStats> all = new ArrayList<StepStats>(steps);
+    all.addAll(parts);
+    for (StepStats step : all) {
       String family = familyOf(step.getCode());
       String caseName = caseOf(step.getCode());
       if (SKIP.equals(caseName)) {
@@ -77,9 +91,29 @@ public class MethodStatistics implements Serializable {
     return solveCount;
   }
 
-  /** Each family the window holds, in solving order, skips left out of the figures. */
+  /** The method's own steps, in solving order, skips left out of the figures. */
   public List<StepStats> getFamilies() {
-    return new ArrayList<StepStats>(families.values());
+    List<StepStats> steps = new ArrayList<StepStats>();
+    for (StepStats family : families.values()) {
+      if (!partFamilies.contains(family.getCode())) {
+        steps.add(family);
+      }
+    }
+    return steps;
+  }
+
+  /**
+   * The codes a step was built in parts under, which are not steps in their own right: an average
+   * F2L pair is worth having, but it does not sit in a solve beside the F2L it is part of.
+   */
+  public List<StepStats> getParts() {
+    List<StepStats> parts = new ArrayList<StepStats>();
+    for (String family : partFamilies) {
+      if (families.containsKey(family)) {
+        parts.add(families.get(family));
+      }
+    }
+    return parts;
   }
 
   /** One family's figures, or null when the window holds none of it. */
@@ -134,8 +168,7 @@ public class MethodStatistics implements Serializable {
 
   /**
    * The cases of a family that cost it the most time, worst first: seen at least {@code minCount}
-   * times, clear of its mean by {@link #MIN_MARGIN}, and ranked by what that costs rather than by
-   * how slow.
+   * times, a tenth clear of its mean, and ranked by what that costs rather than by how slow.
    */
   public List<StepStats> getWorstCases(String family, int minCount) {
     StepStats familyStats = families.get(family);

@@ -145,6 +145,35 @@ public class MethodStatisticsTest {
     Assert.assertEquals(0.0, stats.getSkipRate("oll"), 0.001);
   }
 
+  // An average F2L pair is worth having, but it is not a phase of the solve: listing it beside the
+  // F2L it is part of would double-count the solve and read as a step of the method.
+  @Test
+  public void testThePartsOfAStepAreNotStepsThemselves() {
+    List<StepStats> steps = new ArrayList<StepStats>();
+    steps.add(tally("cross", 1, 2000));
+    steps.add(tally("f2l", 1, 8000));
+    steps.add(tally("oll_21", 1, 2000));
+    List<StepStats> parts = new ArrayList<StepStats>();
+    parts.add(tally("pair_rf", 4, 8000));
+    parts.add(tally("corners", 1, 1000));
+    MethodStatistics stats = new MethodStatistics(steps, parts, 1);
+
+    List<StepStats> families = stats.getFamilies();
+    Assert.assertEquals(3, families.size());
+    Assert.assertEquals("cross", families.get(0).getCode());
+    Assert.assertEquals("f2l", families.get(1).getCode());
+    Assert.assertEquals("oll", families.get(2).getCode());
+
+    List<StepStats> shownParts = stats.getParts();
+    Assert.assertEquals(2, shownParts.size());
+    Assert.assertEquals("pair", shownParts.get(0).getCode());
+    Assert.assertEquals("corners", shownParts.get(1).getCode());
+
+    // still reachable by name, and still splits into its cases
+    Assert.assertEquals(2000, stats.getFamily("pair").getMeanMs());
+    Assert.assertEquals("pair_rf", stats.getCases("pair").get(0).getCode());
+  }
+
   @Test
   public void testFamiliesKeepTheOrderTheyAreGivenIn() {
     List<StepStats> steps = new ArrayList<StepStats>();

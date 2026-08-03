@@ -1100,7 +1100,8 @@ public class ServiceProviderImpl implements ServiceProvider {
   /**
    * What each step of a solve type's method has been costing over its last solves: one tally per step
    * code, so a case ("pll_gb") is counted apart and still adds up into the step it belongs to. The
-   * parts of a step (an F2L pair) are tallied alongside them, under codes that cannot collide.
+   * parts a step was built in (an F2L slot) are tallied too, kept apart from the steps themselves so
+   * that nothing reads an average pair as a phase of the solve.
    *
    * <p>Two kinds of row would time something other than what their code says, and are left out: a
    * DNF's, which has no time to average, and the one step a solve stopped inside, which was stored
@@ -1128,6 +1129,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , MIN(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
     q.append("     , SUM(1.0 * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
     q.append("            * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
+    // Whether the code is a step of the method or one of the parts a step was built in.
+    q.append("     , MAX(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NULL)");
     q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
     q.append("  JOIN (").append(window).append(") h");
     q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
@@ -1141,16 +1144,18 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
 
     List<StepStats> steps = new ArrayList<StepStats>();
+    List<StepStats> parts = new ArrayList<StepStats>();
     String[] args = new String[] { String.valueOf(solveType.getId()), method.getCode() };
     Cursor cursor = db.rawQuery(q.toString(), args);
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        steps.add(new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
-            cursor.getLong(3), cursor.getLong(4), cursor.getDouble(5)));
+        StepStats stats = new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
+            cursor.getLong(3), cursor.getLong(4), cursor.getDouble(5));
+        (cursor.getInt(6) == 1 ? steps : parts).add(stats);
       }
       cursor.close();
     }
-    return new MethodStatistics(steps, getMethodSolvesCount(solveType, method, windowSize));
+    return new MethodStatistics(steps, parts, getMethodSolvesCount(solveType, method, windowSize));
   }
 
   /** How many solves the step tallies were read from, which is the window or all there is of it. */

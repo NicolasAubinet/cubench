@@ -1135,6 +1135,13 @@ public class ServiceProviderTest extends AndroidTestCase {
     assertEquals(2, stats.getFamily("pair").getCount());
     assertEquals(4000, stats.getFamily("pair").getMeanMs());
     assertEquals("pair_lb", stats.getCases("pair").get(0).getCode()); // the slower slot
+
+    // the slots are parts of the F2L step, not steps sitting beside it
+    assertEquals(2, stats.getFamilies().size());
+    assertEquals("cross", stats.getFamilies().get(0).getCode());
+    assertEquals("f2l", stats.getFamilies().get(1).getCode());
+    assertEquals(1, stats.getParts().size());
+    assertEquals("pair", stats.getParts().get(0).getCode());
   }
 
   /** @param stoppedStep the step the timer was stopped inside, null when the solve ran to the end */
