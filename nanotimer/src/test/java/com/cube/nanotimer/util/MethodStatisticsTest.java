@@ -92,6 +92,22 @@ public class MethodStatisticsTest {
     Assert.assertEquals("pll_gb", seenEnough.get(0).getCode());
   }
 
+  // Measured on real solves: an F2L slot 0.11s over a 3.74s family, seen 93 times, outranked slots
+  // 2s over seen 6 times. A case has to be clear of its family before its count can speak for it.
+  @Test
+  public void testACaseBarelyOverItsFamilyIsNotWorthNaming() {
+    List<StepStats> steps = new ArrayList<StepStats>();
+    steps.add(tally("pair_fl", 93, 93 * 3470L));
+    steps.add(tally("pair_lb", 93, 93 * 3850L)); // 0.11s over the family, but seen every solve
+    steps.add(tally("pair_rb", 6, 6 * 5890L));   // 2.15s over, and seen a handful of times
+    MethodStatistics stats = new MethodStatistics(steps, 93);
+
+    Assert.assertTrue(stats.getTimeLostMs("pair_lb") > 0); // the arithmetic still says it costs time
+    List<StepStats> worst = stats.getWorstCases("pair", 5);
+    Assert.assertEquals(1, worst.size());
+    Assert.assertEquals("pair_rb", worst.get(0).getCode());
+  }
+
   @Test
   public void testCasesAreSortedSlowestFirst() {
     List<StepStats> steps = new ArrayList<StepStats>();

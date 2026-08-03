@@ -67,7 +67,11 @@ public class StepStats implements Serializable {
     return bestMs;
   }
 
-  /** How much of the step is spent finding the answer rather than turning, from 0 to 1. */
+  /**
+   * How much of the step is spent finding the answer rather than turning, from 0 to 1. A step timed
+   * from its own first move has nowhere to put recognition and reads 0, which means unmeasured
+   * rather than instant: CFOP's cross is the case, since the solve starts when it does.
+   */
   public double getRecognitionShare() {
     return totalMs == 0 ? 0 : (double) recognitionMs / totalMs;
   }

@@ -24,6 +24,12 @@ public class MethodStatistics implements Serializable {
   /** The case a step is under when the step was already solved on arrival. */
   public static final String SKIP = "skip";
 
+  /**
+   * How far over its family a case must run before it counts as costing anything. Time lost is a
+   * margin times a count, so a case seen every solve reaches a large total on a margin of noise.
+   */
+  private static final double MIN_MARGIN = 0.1;
+
   private final int solveCount;
   private final Map<String, StepStats> families = new LinkedHashMap<String, StepStats>();
   private final Map<String, List<StepStats>> cases = new LinkedHashMap<String, List<StepStats>>();
@@ -128,12 +134,19 @@ public class MethodStatistics implements Serializable {
 
   /**
    * The cases of a family that cost it the most time, worst first: seen at least {@code minCount}
-   * times, slower than the family's mean, and ranked by what that costs rather than by how slow.
+   * times, clear of its mean by {@link #MIN_MARGIN}, and ranked by what that costs rather than by
+   * how slow.
    */
   public List<StepStats> getWorstCases(String family, int minCount) {
+    StepStats familyStats = families.get(family);
+    if (familyStats == null) {
+      return new ArrayList<StepStats>();
+    }
+    long margin = (long) (familyStats.getMeanMs() * MIN_MARGIN);
     List<StepStats> worst = new ArrayList<StepStats>();
     for (StepStats stepCase : getCases(family)) {
-      if (stepCase.getCount() >= minCount && getTimeLostMs(stepCase.getCode()) > 0) {
+      if (stepCase.getCount() >= minCount
+          && stepCase.getMeanMs() - familyStats.getMeanMs() > margin) {
         worst.add(stepCase);
       }
     }
