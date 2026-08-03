@@ -50,8 +50,7 @@
        android:paddingBottom="5px"
        android:textSize="20px"
        android:singleLine="true"
-       android:ellipsize="end"
-       android:fontFeatureSettings="tnum"/>
+       android:ellipsize="end"/>
   </LinearLayout>
 
   <com.cube.nanotimer.util.view.FontFitTextView

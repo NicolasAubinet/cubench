@@ -663,12 +663,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     TextView pill = (TextView) findViewById(R.id.tvIdentitySolveType);
     pill.setTextColor(solveTypeColor);
     pill.setBackgroundTintList(ColorStateList.valueOf(washOf(solveTypeColor)));
-    refreshIdentityPill();
-  }
-
-  private void refreshIdentityPill() {
-    ((TextView) findViewById(R.id.tvIdentitySolveType)).setText(
-        Utils.toSolveTypeLocalizedName(this, solveType.getName()) + " · " + historySolvesCount);
+    pill.setText(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
   }
 
   /** The same hue, quiet enough to sit behind text of it. */
@@ -1768,7 +1763,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void setSolvesCount(int solvesCount) {
     this.solvesCount = Math.max(0, solvesCount);
     refreshSolvesCountLabel();
-    refreshIdentityPill(); // the history count beside it moves with every solve and deletion
   }
 
   /**
