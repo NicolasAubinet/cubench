@@ -4,14 +4,18 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
- * Finds the slices a solve was turned with, by asking the gyro whether the core rocked.
+ * Finds the slices and wide moves a solve was turned with, by asking the gyro whether the core
+ * rocked.
  *
- * <p>A slice reaches the move stream as two opposite faces at once, exactly like a two-handed turn
- * of the same faces; only the core tells them apart, since the slice carries it and the gyro round.
- * Runs after the solve because the reading proving the rock settles only once the turn is over.
+ * <p>A slice reaches the move stream as two opposite faces at once, a wide as the single opposite
+ * face, and each is indistinguishable from ordinary turns of the same faces. Only the core tells
+ * them apart, and it is asked the same question both times — did it swing the one quarter turn this
+ * move would have swung it? Runs after the solve: the reading proving the rock settles late.
  *
  * <p>{@link RotationTracker} cannot answer this: it samples the gyro <em>at</em> a move, and inside
  * an LSE every such reading is mid-rock. It folds the spins found here into its own frame instead.
@@ -54,11 +58,12 @@ public final class SliceSpinDetector {
   }
 
   /**
-   * Every slice the core is confirmed to have rocked through, in the order they were turned. Each
-   * spin is dated one millisecond behind its pair, since the stored form writes a rotation ahead of
-   * the move it precedes and the display fold looks for it behind the pair, not inside it.
+   * Every core spin the solve is confirmed to have made, slices and wides alike, in turn order. A
+   * slice's spin is dated a millisecond <em>behind</em> its pair and a wide's a millisecond
+   * <em>ahead</em> of its face, which is what the display fold keys on.
    */
   public List<RotationTracker.Rotation> coreSpins(Orientations orientations) {
+    boolean[] claimed = new boolean[turns.size()];
     List<RotationTracker.Rotation> spins = new ArrayList<RotationTracker.Rotation>();
     for (int i = 0; i + 1 < turns.size(); i++) {
       String[] slice = Slices.forPair(turns.get(i).notation, turns.get(i + 1).notation);
@@ -69,6 +74,7 @@ public final class SliceSpinDetector {
       if (isDoubleSlice(i, slice, orientations)) {
         spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1, pairFromMs));
         spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 3).atMs + 1, pairFromMs));
+        claim(claimed, i, i + 3);
         i += 3;
         continue;
       }
@@ -76,9 +82,51 @@ public final class SliceSpinDetector {
         continue;
       }
       spins.add(new RotationTracker.Rotation(slice[1], turns.get(i + 1).atMs + 1, pairFromMs));
+      claim(claimed, i, i + 1);
       i++; // both faces are spoken for: the second cannot also open a pair
     }
+    return merged(spins, wideSpins(claimed, orientations));
+  }
+
+  /**
+   * Every wide move: a lone face whose core swung the quarter turn that would make it wide, read
+   * {@link #SETTLE_MS} either side of the turn. A solver who reorients and turns the opposite face
+   * inside that window has done something physically identical to a wide; <b>this calls it a
+   * wide</b>, and {@link RotationTracker.Rotation#isWide} does the rest of the judging.
+   *
+   * <p>Dated a millisecond ahead of the face, where a slice's is dated behind its pair: the cube
+   * reports a turn once it is done, so this spin would otherwise be minted as an ordinary regrip on
+   * the face's own timestamp, and nothing else is ever dated off a move.
+   */
+  private List<RotationTracker.Rotation> wideSpins(boolean[] claimed, Orientations orientations) {
+    List<RotationTracker.Rotation> spins = new ArrayList<RotationTracker.Rotation>();
+    for (int i = 0; i < turns.size(); i++) {
+      Turn turn = turns.get(i);
+      String spin = claimed[i] ? null : Wides.spinFor(turn.notation);
+      if (spin != null && rocked(turn, turn, spin, orientations)) {
+        spins.add(new RotationTracker.Rotation(spin, turn.atMs - 1, turn.atMs - 1, true));
+      }
+    }
     return spins;
+  }
+
+  private static void claim(boolean[] claimed, int from, int to) {
+    for (int i = from; i <= to; i++) {
+      claimed[i] = true;
+    }
+  }
+
+  /** The two sorted runs as one, since {@link RotationTracker} folds them in by time. */
+  private static List<RotationTracker.Rotation> merged(List<RotationTracker.Rotation> slices,
+      List<RotationTracker.Rotation> wides) {
+    if (wides.isEmpty()) {
+      return slices;
+    }
+    List<RotationTracker.Rotation> all = new ArrayList<RotationTracker.Rotation>(slices);
+    all.addAll(wides);
+    // Stable, so a slice keeps the claim where the two land on the same millisecond.
+    Collections.sort(all, Comparator.comparingLong(RotationTracker.Rotation::getTimestampMs));
+    return all;
   }
 
   /**
@@ -124,7 +172,7 @@ public final class SliceSpinDetector {
     return quarter.then(quarter).getNotation();
   }
 
-  /** Whether the core turned by {@code spin} across these two turns. */
+  /** Whether the core turned by {@code spin} across these two turns; one turn twice for a wide. */
   private boolean rocked(Turn from, Turn to, String spin, Orientations orientations) {
     CubeOrientation before = orientations.at(from.atMs - SETTLE_MS);
     CubeOrientation after = orientations.at(to.atMs + SETTLE_MS);

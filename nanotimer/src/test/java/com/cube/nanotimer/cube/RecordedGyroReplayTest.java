@@ -18,15 +18,21 @@ public class RecordedGyroReplayTest {
   /**
    * The 68-second Roux solve {@link RecordedSolveReplayTest} holds the stored form of. Its first
    * block is turned every which way, which is where the old pipeline lost the axis for good.
+   *
+   * <p>Seven spins are dated a millisecond ahead of their face — 14079, 24098, 27559, 32637, 34134,
+   * 38979, 39865 — which is how a wide is written down. Those offsets, and the {@code x@28111} that
+   * corrects the one at 27559 back, are the only part the Python model did not produce; the rest
+   * still stands as it computed it. That 27559 is most likely not a wide at all: the core swung and
+   * came back, which no reading either side of a single face can tell from a wide that was undone.
    */
   private static final String ROUX_140 =
       "y@0 x2@0 B'@0 U'@304 U'@486 z@2222 F'@2222 F'@2542 y2@5415 x'@5415 L@5415 y'@10945 x'@10945 R@10945 "
-      + "B'@11206 L'@12128 R@13185 L'@13187 x'@13188 D@13495 D@13691 x'@14080 R@14080 x'@15656 F'@15656 "
+      + "B'@11206 L'@12128 R@13185 L'@13187 x'@13188 D@13495 D@13691 x'@14079 R@14080 x'@15656 F'@15656 "
       + "R@16243 L'@16313 x'@16314 x@17607 R'@17607 U@17796 y@21303 z@21303 L@21303 y@23676 x@23676 R'@23676 "
-      + "D@23873 x'@24099 R@24099 F@24416 L'@24961 L'@25742 F'@27012 L'@27560 F@27700 L@27960 L@28111 "
-      + "F'@28260 x'@29327 L'@29327 x2@30306 L'@30306 F'@30885 L@31175 x'@32220 F@32220 x@32638 R'@32638 "
-      + "x'@34135 R@34135 L'@35138 F'@35627 L@36149 R'@36227 x@36228 D@36945 D@37105 x'@37625 L@37625 "
-      + "x@38380 D'@38380 D'@38789 R'@38980 x@39346 B'@39346 x'@39866 R@39866 D'@40695 L@40946 D'@41094 "
+      + "D@23873 x'@24098 R@24099 F@24416 L'@24961 L'@25742 F'@27012 x'@27559 L'@27560 F@27700 L@27960 x@28111 L@28111 "
+      + "F'@28260 x'@29327 L'@29327 x2@30306 L'@30306 F'@30885 L@31175 x'@32220 F@32220 x@32637 R'@32638 "
+      + "x'@34134 R@34135 L'@35138 F'@35627 L@36149 R'@36227 x@36228 D@36945 D@37105 x'@37625 L@37625 "
+      + "x@38380 D'@38380 D'@38789 x@38979 R'@38980 B'@39346 x'@39865 R@39866 D'@40695 L@40946 D'@41094 "
       + "D'@41179 L'@41300 L'@41390 D'@41525 L@41652 L@41735 D'@41835 L'@42000 L'@42076 D'@42165 D'@42276 "
       + "L@42674 L@44815 D@44945 L'@45060 D'@45219 L'@45426 F@45521 L@45596 L@45677 D'@45751 L'@45874 "
       + "D'@46060 L@46143 D@46264 L'@46382 F'@46684 L'@48617 R@48620 x'@48621 F@48820 L'@49155 R@49157 "
@@ -87,6 +93,53 @@ public class RecordedGyroReplayTest {
     }
     // and the frame stays right to the end: the last layer reads as the T perm it was
     assertTrue(replay.display(), replay.display().contains("R U R' U' R' F R2 U' R' U' R U R'"));
+  }
+
+  /** The wides a Roux second block is built out of; they printed as far face plus rotation. */
+  @Test
+  public void theRouxCaptureReadsItsSecondBlockWides() {
+    String shown = new RecordedGyroReplay("roux140.txt").display();
+
+    assertEquals(shown, "r r l' r' r r' r", wides(shown));
+  }
+
+  /**
+   * What wides are worth here, measured rather than assumed: five rotations the solver never made
+   * are gone. The move count rises by one against the 92 this reads without the wide pass, which is
+   * the cost of the {@code l'} above being a swing that came back rather than a wide — the rotation
+   * correcting it lands between two {@code L}s and stops them reading as one {@code L2}.
+   */
+  @Test
+  public void theRouxCaptureLosesRotationsAndBarelyMovesTheCount() {
+    String shown = new RecordedGyroReplay("roux140.txt").display();
+    int rotations = count(shown, "x") + count(shown, "y") + count(shown, "z");
+
+    assertEquals(shown, 19, rotations); // 24 before the wides were read
+    assertEquals(shown, 93, shown.split(" ").length - rotations);
+  }
+
+  /**
+   * The property the whole fold exists for: what the screen prints, followed exactly, solves. A
+   * wrong sign in either table shows up here and nowhere else.
+   */
+  @Test
+  public void whatIsShownSolvesTheCube() {
+    for (String fixture : new String[] {"roux140.txt", "cfop159.txt"}) {
+      RecordedGyroReplay replay = new RecordedGyroReplay(fixture);
+      assertTrue(fixture + ": " + replay.display(),
+          DisplayedSolutionReplay.solves(replay.getScramble(), replay.display()));
+    }
+  }
+
+  /** Every wide in the reconstruction, in order, whatever letter the frame names it with. */
+  private static String wides(String shown) {
+    StringBuilder found = new StringBuilder();
+    for (String token : shown.split(" ")) {
+      if ("udlrfb".indexOf(token.charAt(0)) >= 0) {
+        found.append(found.length() > 0 ? " " : "").append(token);
+      }
+    }
+    return found.toString();
   }
 
   private static int count(String moves, String prefix) {
