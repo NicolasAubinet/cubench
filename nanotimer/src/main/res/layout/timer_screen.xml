@@ -375,7 +375,6 @@
                android:layout_weight="1"
                android:layout_marginLeft="6px"
                android:layout_marginStart="6px"
-               android:gravity="right"
                style="@style/StatFooterValuePx"/>
           </LinearLayout>
           <LinearLayout
@@ -404,7 +403,6 @@
                android:layout_weight="1"
                android:layout_marginLeft="6px"
                android:layout_marginStart="6px"
-               android:gravity="right"
                style="@style/StatFooterValuePx"/>
           </LinearLayout>
         </LinearLayout>
