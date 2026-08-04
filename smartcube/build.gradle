@@ -31,4 +31,5 @@ dependencies {
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
 
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20231013' // android.jar's org.json is a stub in unit tests
 }
