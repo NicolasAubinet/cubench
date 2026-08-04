@@ -704,13 +704,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     int solveTypeColor = getResources().getColor(SolveTypeIcons.colorForSolveType(solveType));
     TextView pill = (TextView) findViewById(R.id.tvIdentitySolveType);
     pill.setTextColor(solveTypeColor);
-    pill.setBackgroundTintList(ColorStateList.valueOf(washOf(solveTypeColor)));
+    pill.setBackgroundTintList(ColorStateList.valueOf(solveTypeColor));
     pill.setText(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
-  }
-
-  /** The same hue, quiet enough to sit behind text of it. */
-  private static int washOf(int color) {
-    return (0x2E << 24) | (color & 0xFFFFFF);
   }
 
   /**
@@ -2107,7 +2102,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     int color = getResources().getColor(colorRes);
     tvVerdictChip.setText(text);
     tvVerdictChip.setTextColor(color);
-    tvVerdictChip.setBackgroundTintList(ColorStateList.valueOf(washOf(color)));
+    tvVerdictChip.setBackgroundTintList(ColorStateList.valueOf(color));
     tvVerdictChip.setVisibility(View.VISIBLE);
     EnterAnimation.stagger(tvVerdictChip); // it arrives with the screen rather than appearing in it
   }
