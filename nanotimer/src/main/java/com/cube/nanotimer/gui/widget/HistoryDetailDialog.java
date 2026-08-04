@@ -47,6 +47,7 @@ import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.FontFitTextView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.SwipeSwitchLayout;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -557,6 +558,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     boolean moves = !solution.isEmpty(); // a solve no cube saw has a column's worth of nothing to say
     breakdownSteps = new ArrayList<SolveStep>(steps);
     int[] colors = getStepColors();
+    // The rows stand in the order the solve was executed, names repeating where it came back to a
+    // step; the colour is what says two of them are the same work.
+    int[] slots = SolveStepBars.colorSlots(steps);
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
     TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
@@ -566,13 +570,13 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       TextView name = cell(R.style.BreakdownStepName, stepName(step, i, userSteps));
       name.setTextColor(Utils.isTailSegment(step.getName())
           ? ContextCompat.getColor(getActivity(), R.color.gray600)
-          : colors[i % colors.length]);
+          : colors[slots[i] % colors.length]);
       TableRow row = stepRow(step, name, moves ? moveCountOf(solution, i) : null, split);
       table.addView(row);
 
       StepRows stepRows = new StepRows(name);
       stepRows.row = row;
-      stepRows.color = colors[i % colors.length];
+      stepRows.color = colors[slots[i] % colors.length];
       stepRows.moves = movesRow(table, R.style.BreakdownMoves, movesOf(solution, i));
       List<SolveStep> parts = step.getSubSteps();
       for (int j = 0; j < parts.size(); j++) {

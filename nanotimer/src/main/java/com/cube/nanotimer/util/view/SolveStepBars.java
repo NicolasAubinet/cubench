@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -25,6 +26,94 @@ import java.util.List;
 public final class SolveStepBars {
 
   private SolveStepBars() {
+  }
+
+  /**
+   * Which colour of the palette each step is drawn from, as an index into {@link #stepColors}:
+   * <b>by name</b>, in order of first appearance, so every stretch of a piece type is drawn as that
+   * type however often the solve comes back to it. A blind solver who leaves a pair behind and
+   * remembers it later gets one colour for their edges, not one per stretch.
+   *
+   * <p>A step with no name to be grouped by takes a slot of its own — the user's own steps are all
+   * unnamed, and collapsing those would paint a whole solve one colour. So does the tail, which is
+   * drawn in its own colour anyway; every caller decides that for itself, and this only says which
+   * steps belong together.
+   *
+   * <p>A method whose steps are all named differently is unaffected: each takes the next slot, which
+   * is what indexing by step position did.
+   */
+  public static int[] colorSlots(List<SolveStep> steps) {
+    int[] slots = new int[steps.size()];
+    List<String> named = new ArrayList<>();
+    for (int i = 0; i < steps.size(); i++) {
+      String name = steps.get(i).getName();
+      boolean groupable = name != null && !name.isEmpty() && !Utils.isTailSegment(name);
+      int slot = groupable ? named.indexOf(name) : -1;
+      if (slot < 0) {
+        slot = named.size();
+        named.add(groupable ? name : null); // a null never matches, so it is a slot of its own
+      }
+      slots[i] = slot;
+    }
+    return slots;
+  }
+
+  /** One entry of a bar's legend: the step it is named after, its colour, and what it cost. */
+  public static final class LegendEntry {
+    private final int stepIndex;
+    private final int colorSlot;
+    private final long totalMs;
+
+    LegendEntry(int stepIndex, int colorSlot, long totalMs) {
+      this.stepIndex = stepIndex;
+      this.colorSlot = colorSlot;
+      this.totalMs = totalMs;
+    }
+
+    /** The step this entry takes its name from: the first the solve drew in this colour. */
+    public int getStepIndex() {
+      return stepIndex;
+    }
+
+    public int getColorSlot() {
+      return colorSlot;
+    }
+
+    /** Every stretch drawn in this colour, added up. */
+    public long getTotalMs() {
+      return totalMs;
+    }
+  }
+
+  /**
+   * A solve's legend: one entry per colour rather than per step, so a step the solve came back to is
+   * said once and carries all of it — three stretches of edges of two seconds each are one "edges
+   * 6s". The bar still draws all three; the legend says what the step cost, not when it was paid.
+   *
+   * <p>Which also keeps the legend to the number of steps the method has, however often the solver
+   * went back to one. Built to the stretches it would grow a row per four of them, and a solve that
+   * interleaved freely would move the timer screen under the solver.
+   */
+  public static List<LegendEntry> legend(List<SolveStep> steps) {
+    int[] slots = colorSlots(steps);
+    List<LegendEntry> legend = new ArrayList<>();
+    for (int i = 0; i < steps.size(); i++) {
+      int at = -1;
+      for (int cell = 0; cell < legend.size(); cell++) {
+        if (legend.get(cell).colorSlot == slots[i]) {
+          at = cell;
+          break;
+        }
+      }
+      if (at < 0) {
+        legend.add(new LegendEntry(i, slots[i], steps.get(i).getTotalMs()));
+      } else {
+        LegendEntry entry = legend.get(at);
+        legend.set(at, new LegendEntry(entry.stepIndex, entry.colorSlot,
+            entry.totalMs + steps.get(i).getTotalMs()));
+      }
+    }
+    return legend;
   }
 
   /** One colour per step, in step order, shared by every bar in the app. */
