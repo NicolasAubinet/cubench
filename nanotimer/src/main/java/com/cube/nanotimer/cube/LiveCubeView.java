@@ -208,9 +208,18 @@ public class LiveCubeView
    * <p>Taking it off screen instead was what this used to do, and it cost the timer its layout —
    * the spacer came back, everything below it moved, and the screen shifted twice per blind
    * attempt. A cover also answers the question the empty space raised, which is why the cube went.
+   *
+   * <p>The cube under the cover is drawn solved and stays there: the cover is nearly opaque but not
+   * quite, and a scrambled silhouette showing through it is both a hint of the state and, at one
+   * quarter turn in, simply a broken-looking cube. What the cube really holds is caught up with
+   * when the cover comes off.
    */
   public void setObscured(boolean obscured) {
+    if (this.obscured == obscured) {
+      return;
+    }
     this.obscured = obscured;
+    load(); // solved while it is covered, the real state again once it is not
     refresh();
   }
 
@@ -238,7 +247,9 @@ public class LiveCubeView
   public void onMove(CubeMove move) {
     twin.applyMove(move.getFace(), move.isPrime());
     movesSinceSeed.add(move.getNotation());
-    evaluate("window.ntLiveMove(" + JSONObject.quote(move.getNotation()) + ");");
+    if (!obscured) { // held back rather than dropped: load() replays them when the cover comes off
+      evaluate("window.ntLiveMove(" + JSONObject.quote(move.getNotation()) + ");");
+    }
   }
 
   /** The reference arrived, was re-taken, or went with the cube: the page follows it or stops. */
@@ -329,9 +340,11 @@ public class LiveCubeView
     }
     // ⚠️ Quoted, never concatenated into a JS string literal: a prime move is spelled U', and the
     // apostrophe closes the literal and makes a syntax error of the whole call.
-    evaluate("window.ntLiveReset(" + JSONObject.quote(baseAlg) + ");");
-    for (String move : movesSinceSeed) {
-      evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
+    evaluate("window.ntLiveReset(" + JSONObject.quote(obscured ? "" : baseAlg) + ");");
+    if (!obscured) {
+      for (String move : movesSinceSeed) {
+        evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
+      }
     }
     // Pushed rather than compared: the page is fresh and knows nothing of what was on before it.
     gyroOn = gyroReference.isSet();
@@ -352,6 +365,8 @@ public class LiveCubeView
       webView = cubeLayout.findViewById(R.id.wvLiveCube);
       veil = cubeLayout.findViewById(R.id.liveCubeVeil);
       staleMark = cubeLayout.findViewById(R.id.tvLiveCubeStale);
+      keepUnscaled(veil);
+      keepUnscaled(staleMark);
       setUpWebView();
     } catch (Throwable t) {
       // e.g. no WebView implementation installed. Said out loud: swallowed, this is a feature that
@@ -363,6 +378,22 @@ public class LiveCubeView
       cubeLayout = null;
       veil = null;
       staleMark = null;
+    }
+  }
+
+  /**
+   * Keeps what is drawn over the cube out of the timer layout's scaling pass.
+   *
+   * <p>That pass runs on the screen's first measure and scales the px the layouts are authored in;
+   * these two are authored in dp and need none of it. Whether it reached them came down to whether
+   * the cube inflated before that measure or after — it inflates during {@code initViews} after a
+   * rotation and on the connection event otherwise — so the same label was drawn at two sizes
+   * depending on how the screen had been arrived at. Marking the parent is enough: the pass does
+   * not descend into a view it has already done.
+   */
+  private static void keepUnscaled(View view) {
+    if (view != null) {
+      view.setTag(R.id.tag_scaled, Boolean.TRUE);
     }
   }
 

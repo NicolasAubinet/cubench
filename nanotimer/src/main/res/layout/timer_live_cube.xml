@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!-- The connected cube, mirrored. Inflated from a stub only when one is connected, and given the
-     stub's own layout params, so the timer screen is untouched for everyone else. -->
+     stub's own layout params, so the timer screen is untouched for everyone else.
+
+     Everything over the cube is authored in dp, and LiveCubeView marks it so the timer's px scaling
+     pass leaves it alone — reached or not depending on whether the cube inflated before the screen's
+     first measure, it was drawing the same label at two different sizes. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:id="@+id/liveCubeLayout"
    android:layout_width="match_parent"
@@ -13,9 +17,9 @@
      android:layout_width="match_parent"
      android:layout_height="match_parent"/>
 
-  <!-- What a blind attempt sees instead of the cube. Nothing in here takes a touch: the timer
-       screen has no dead zones, so a press lands on the WebView underneath exactly as it would
-       anywhere else (see CLAUDE.md). -->
+  <!-- What a blind attempt sees instead of the cube: the mark alone, centred on the cube's space.
+       Nothing in here takes a touch — the timer screen has no dead zones, so a press lands on the
+       WebView underneath exactly as it would anywhere else (see CLAUDE.md). -->
   <FrameLayout
      android:id="@+id/liveCubeVeil"
      android:layout_width="match_parent"
@@ -23,30 +27,13 @@
      android:background="@color/live_cube_veil"
      android:visibility="gone">
 
-    <LinearLayout
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
+    <ImageView
+       android:id="@+id/imgLiveCubeHidden"
+       android:layout_width="52dp"
+       android:layout_height="52dp"
        android:layout_gravity="center"
-       android:gravity="center_horizontal"
-       android:orientation="vertical">
-
-      <ImageView
-         android:id="@+id/imgLiveCubeHidden"
-         android:layout_width="28dp"
-         android:layout_height="28dp"
-         android:src="@drawable/ic_eye_off"
-         android:tint="@color/secondary_text"
-         android:contentDescription="@null"/> <!-- the line below says it -->
-
-      <TextView
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="6dp"
-         android:text="@string/live_cube_hidden_blind"
-         android:textColor="@color/secondary_text"
-         android:textSize="12sp"/>
-
-    </LinearLayout>
+       android:src="@drawable/ic_live_cube_hidden"
+       android:contentDescription="@null"/>
 
   </FrameLayout>
 
@@ -58,14 +45,15 @@
      android:layout_width="wrap_content"
      android:layout_height="wrap_content"
      android:layout_gravity="top|center_horizontal"
-     android:background="@drawable/smart_cube_pill"
-     android:paddingLeft="9dp"
-     android:paddingRight="9dp"
+     android:layout_marginTop="4dp"
+     android:background="@drawable/live_cube_stale_pill"
+     android:paddingLeft="8dp"
+     android:paddingRight="8dp"
      android:paddingTop="2dp"
      android:paddingBottom="2dp"
      android:text="@string/live_cube_out_of_sync"
      android:textColor="@color/warning"
-     android:textSize="11sp"
+     android:textSize="10sp"
      android:visibility="gone"/>
 
 </FrameLayout>
