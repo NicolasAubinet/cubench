@@ -62,24 +62,6 @@
     <item>2</item>
     <item>3</item>
   </string-array>
-  <string-array name="entries_scrambles_quality">
-    <item>@string/normal_quality</item>
-    <item>@string/low_quality</item>
-  </string-array>
-  <string-array name="entryvalues_scrambles_quality">
-    <item>1</item>
-    <item>2</item>
-  </string-array>
-  <string-array name="entries_scramble_notification">
-    <item>@string/when_generating</item>
-    <item>@string/when_generating_manually</item>
-    <item>@string/never_show_notif</item>
-  </string-array>
-  <string-array name="entryvalues_scramble_notification">
-    <item>1</item>
-    <item>2</item>
-    <item>3</item>
-  </string-array>
   <string-array name="entries_record_notification">
     <item>@string/record_notif_any</item>
     <item>@string/record_notif_pb_only</item>

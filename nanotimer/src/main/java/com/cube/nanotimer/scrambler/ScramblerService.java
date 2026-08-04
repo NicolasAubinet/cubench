@@ -2,7 +2,6 @@ package com.cube.nanotimer.scrambler;
 
 import android.content.Context;
 import android.util.Log;
-import com.cube.nanotimer.Options;
 import com.cube.nanotimer.scrambler.randomstate.AlreadyGeneratingException;
 import com.cube.nanotimer.scrambler.randomstate.RSScrambler;
 import com.cube.nanotimer.scrambler.randomstate.RSThreeScrambler;
@@ -21,7 +20,6 @@ import com.cube.nanotimer.util.helper.CpuUtils;
 import com.cube.nanotimer.util.helper.FileUtils;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
-import com.cube.nanotimer.vo.ScramblesQuality;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +35,10 @@ public enum ScramblerService {
   INSTANCE;
 
   public static final int MAX_SCRAMBLES_IN_MEMORY = 500;
+
+  /** Refill once a cache falls below this, and stop once it holds this many. */
+  private static final int MIN_CACHE_SIZE = 25;
+  private static final int MAX_CACHE_SIZE = 50;
 
   private Context context;
   private final Map<ScrambleCacheKey, LinkedList<String[]>> cachedScrambles = new HashMap<ScrambleCacheKey, LinkedList<String[]>>();
@@ -58,16 +60,6 @@ public enum ScramblerService {
     checkCache(getRandomStateCubeTypes().get(0));
   }
 
-  private void stopRandomState() {
-    stopGeneration();
-
-    if (!Options.INSTANCE.isRandomStateScrambles()) {
-      synchronized (cachedScrambles) {
-        cachedScrambles.clear();
-      }
-    }
-  }
-
   private void checkCache(CubeType cubeType) {
     try {
       generateAndAddToCache(cubeType, -1, GenerationLaunch.AUTO);
@@ -76,21 +68,12 @@ public enum ScramblerService {
     }
   }
 
-  private int loadCacheAndGetToGenCount(CubeType cubeType, ScrambleType scrambleType, boolean isFromPhonePlugged) {
-    int minCacheSize = Options.INSTANCE.getScramblesMinCacheSize();
-//    if (isFromPhonePlugged) {
-//      minCacheSize = Options.INSTANCE.getPluggedInScramblesGenerateCount();
-//    }
-
+  private int loadCacheAndGetToGenCount(CubeType cubeType, ScrambleType scrambleType) {
     Queue<String[]> scramblesCache = getCache(cubeType, scrambleType);
-    if (scramblesCache.size() < minCacheSize) {
+    if (scramblesCache.size() < MIN_CACHE_SIZE) {
       loadCacheFromFile(cubeType, scrambleType); // see if there are some more scrambles in the file
-      if (scramblesCache.size() < minCacheSize) {
-        int maxCacheSize = Options.INSTANCE.getScramblesMaxCacheSize();
-//        if (isFromPhonePlugged) {
-//          maxCacheSize = Options.INSTANCE.getPluggedInScramblesGenerateCount();
-//        }
-        return Math.max(maxCacheSize - scramblesCache.size(), 0);
+      if (scramblesCache.size() < MIN_CACHE_SIZE) {
+        return Math.max(MAX_CACHE_SIZE - scramblesCache.size(), 0);
       }
     }
     return 0;
@@ -110,16 +93,14 @@ public enum ScramblerService {
     return new Thread() {
       @Override
       public void run() {
-        if (Options.INSTANCE.isRandomStateScrambles()) {
-          generateScrambles(cubeType, null, scramblesCount);
+        generateScrambles(cubeType, null, scramblesCount);
 
-          for (CubeType rsCubeType : getRandomStateCubeTypes()) {
-            generateScrambles(rsCubeType, null, -1);
+        for (CubeType rsCubeType : getRandomStateCubeTypes()) {
+          generateScrambles(rsCubeType, null, -1);
 
-            for (ScrambleType scrambleType : rsCubeType.getUsedScrambledTypes()) {
-              if (!scrambleType.isDefault()) {
-                generateScrambles(rsCubeType, scrambleType, -1);
-              }
+          for (ScrambleType scrambleType : rsCubeType.getUsedScrambledTypes()) {
+            if (!scrambleType.isDefault()) {
+              generateScrambles(rsCubeType, scrambleType, -1);
             }
           }
         }
@@ -135,19 +116,19 @@ public enum ScramblerService {
 
       private void generateScrambles(final CubeType cubeType, final ScrambleType scrambleType, int scramblesCount) {
         RSScrambler rsScrambler = getNewRandomStateScrambler(cubeType);
-        if (generationThread != Thread.currentThread() || rsScrambler == null || (!Options.INSTANCE.isRandomStateScrambles() && (scrambleType == null || scrambleType.isDefault()))) {
+        if (generationThread != Thread.currentThread() || rsScrambler == null) {
           return;
         }
         int n;
         if (scramblesCount > 0) {
           n = scramblesCount;
         } else {
-          n = loadCacheAndGetToGenCount(cubeType, scrambleType, (generationLaunch == GenerationLaunch.PLUGGED));
+          n = loadCacheAndGetToGenCount(cubeType, scrambleType);
         }
         if (n == 0) {
           return;
         }
-        int maxScrambleLength = getRSScrambleLength(cubeType, scrambleType, Options.INSTANCE.getScramblesQuality());
+        int maxScrambleLength = getRSScrambleLength(cubeType);
 
         sendGenStateToListeners(new RandomStateGenEvent(RandomStateGenEvent.State.PREPARING, cubeType, scrambleType, generationLaunch, 0, n));
         rsScrambler.prepareGenTables(context);
@@ -229,44 +210,18 @@ public enum ScramblerService {
         }
       }
 
-      public int getRSScrambleLength(CubeType cubeType, ScrambleType scrambleType, ScramblesQuality scramblesQuality) {
-        int maxScrambleLength = 0;
-
-        if (scrambleType != null) {
-          maxScrambleLength = scrambleType.getRSScrambleLengthFromQuality(scramblesQuality);
+      /** The longest a generated scramble may be, or 0 where the solver decides for itself. */
+      public int getRSScrambleLength(CubeType cubeType) {
+        switch (cubeType) {
+          case TWO_BY_TWO:
+            return 11;
+          case THREE_BY_THREE:
+            return 21;
+          case PYRAMINX:
+            return 11;
+          default:
+            return 0;
         }
-
-        if (maxScrambleLength == 0) {
-          switch (cubeType) {
-            case TWO_BY_TWO:
-              switch (scramblesQuality) {
-                case NORMAL:
-                  maxScrambleLength = 11;
-                  break;
-                case LOW:
-                  maxScrambleLength = 12;
-                  break;
-              }
-              break;
-            case THREE_BY_THREE:
-              switch (scramblesQuality) {
-                case NORMAL:
-                  maxScrambleLength = 21;
-                  break;
-                case LOW:
-                  maxScrambleLength = 23;
-                  break;
-              }
-              break;
-            case PYRAMINX:
-              maxScrambleLength = 11;
-              break;
-            case SQUARE1:
-              break;
-          }
-        }
-
-        return maxScrambleLength;
       }
 
 //      private void checkPluggedIn() {
@@ -341,7 +296,7 @@ public enum ScramblerService {
   }
 
   public String[] getScramble(final CubeType cubeType, final ScrambleType scrambleType) {
-    if (getRandomStateCubeTypes().contains(cubeType) && (Options.INSTANCE.isRandomStateScrambles() || (scrambleType != null && !scrambleType.isDefault()))) {
+    if (getRandomStateCubeTypes().contains(cubeType)) {
       String[] scramble = null;
       boolean foundScrambleInCache = false;
 
@@ -380,12 +335,6 @@ public enum ScramblerService {
     return scramblesCount;
   }
 
-  public void preGenerate(CubeType cubeType, int nScrambles) throws AlreadyGeneratingException {
-    if (getRandomStateCubeTypes().contains(cubeType)) {
-      generateAndAddToCache(cubeType, nScrambles, GenerationLaunch.MANUAL);
-    }
-  }
-
   public void stopGeneration() {
     synchronized (genThreadHelper) {
       if (generationThread != null) {
@@ -399,37 +348,6 @@ public enum ScramblerService {
       }
       scramblers.clear();
     }
-  }
-
-  public void deleteCaches() {
-    for (CubeType cubeType : getRandomStateCubeTypes()) {
-      synchronized (cacheFileHelper) {
-        FileUtils.deleteFile(context, getFileName(cubeType, null));
-        for (ScrambleType usedScrambleType : cubeType.getUsedScrambledTypes()) {
-          FileUtils.deleteFile(context, getFileName(cubeType, usedScrambleType));
-        }
-      }
-
-      synchronized (cacheMemHelper) {
-        getCache(cubeType, null).clear();
-        for (ScrambleType usedScrambleType : cubeType.getUsedScrambledTypes()) {
-          getCache(cubeType, usedScrambleType).clear();
-        }
-      }
-    }
-  }
-
-  public void activateRandomStateScrambles(final boolean activate) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        if (activate) {
-          checkScrambleCaches();
-        } else {
-          stopRandomState();
-        }
-      }
-    }).start();
   }
 
   public void addRandomStateGenListener(RandomStateGenListener listener) {

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <integer name="inspection_time">15</integer>
-  <integer name="gen_scrambles_count">200</integer>
   <bool name="inspection_sounds">true</bool>
   <bool name="show_time_when_running">true</bool>
   <bool name="keep_timer_screen_on">true</bool>
@@ -9,15 +8,10 @@
   <integer name="color_sample_size">200</integer>
   <!--<string name="ads_style_resource">3</string>-->
   <bool name="solve_types_shortcut">true</bool>
-  <bool name="randomstate_scrambles">true</bool>
   <integer name="big_cubes_notation">1</integer>
   <!-- 3 = URx_DRx_DLx (modern WCA notation): the standard, and the only one the
        scramble diagram can render. See ScrambleViewNotation. -->
   <integer name="clock_notation">3</integer>
-  <integer name="scrambles_quality">1</integer>
-  <integer name="scramble_notification_mode">1</integer>
   <!-- 2 = PB only: a panel for every average record is too much. -->
   <integer name="record_notification_mode">2</integer>
-  <integer name="min_scramble_cache_size">25</integer>
-  <integer name="max_scramble_cache_size">50</integer>
 </resources>
