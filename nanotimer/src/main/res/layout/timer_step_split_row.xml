@@ -1,52 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- One average window: what it is called, each step's average in its own colour, what they add up
-     to, and the same steps drawn as a bar underneath. The numbers say what a bar cannot; the bar is
-     a share of the slowest window's, which is what the numbers alone cannot say. -->
+<!-- One average window: what it is called, each step's average in its own colour under the legend
+     cell that names it, and what they add up to. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    style="@style/SplitRow">
 
+  <TextView
+     android:id="@+id/tvSplitKey"
+     style="@style/SplitRowKeyPx"/>
+
+  <!-- One cell per step, filled by StepSplitsView: how many there are is the solve type's
+       business, the same as the legend above. -->
   <LinearLayout
-     android:layout_width="match_parent"
+     android:id="@+id/splitValues"
+     android:layout_width="0px"
      android:layout_height="wrap_content"
-     android:orientation="horizontal"
-     android:gravity="center_vertical">
+     android:layout_weight="1"
+     android:orientation="horizontal"/>
 
-    <TextView
-       android:id="@+id/tvSplitKey"
-       style="@style/SplitRowKeyPx"/>
-
-    <!-- One cell per step, filled by StepSplitsView: how many there are is the solve type's
-         business, the same as the legend above. -->
-    <LinearLayout
-       android:id="@+id/splitValues"
-       android:layout_width="0px"
-       android:layout_height="wrap_content"
-       android:layout_weight="1"
-       android:orientation="horizontal"/>
-
-    <com.cube.nanotimer.util.view.FontFitTextView
-       android:id="@+id/tvSplitTotal"
-       style="@style/SplitRowValuePx"/>
-
-  </LinearLayout>
-
-  <!-- Inset to the columns above, so a segment lies under the numbers it is made of. The bar takes
-       a share of that track and no more, which is what makes the rows comparable. -->
-  <LinearLayout
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:layout_marginLeft="70px"
-     android:layout_marginRight="96px"
-     android:layout_marginTop="1px"
-     android:orientation="horizontal"
-     android:weightSum="1">
-
-    <com.cube.nanotimer.util.view.SolveStepBarView
-       android:id="@+id/splitBar"
-       android:layout_width="0px"
-       android:layout_height="7px"/>
-
-  </LinearLayout>
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvSplitTotal"
+     style="@style/SplitRowValuePx"/>
 
 </LinearLayout>

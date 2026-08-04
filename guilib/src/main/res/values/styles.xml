@@ -174,11 +174,11 @@
   </style>
 
   <!-- Step splits, one row per average window, for solve types timed in steps. -->
-  <!-- Two lines: the window's step averages, and under them the same steps as a bar. -->
   <style name="SplitRow">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:orientation">vertical</item>
+    <item name="android:orientation">horizontal</item>
+    <item name="android:gravity">center_vertical</item>
     <item name="android:paddingTop">3px</item>
     <item name="android:paddingBottom">3px</item>
   </style>
