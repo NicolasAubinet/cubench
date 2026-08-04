@@ -145,10 +145,30 @@
            android:textSize="19px"
            android:visibility="gone"/>
 
-        <Space
+        <!-- Where the state preview draws: the same gap under the scramble portrait puts it in.
+             The weights here are the ones for a diagram, 1:3:2 across the head, this and the foot,
+             which centres the block. With nothing to draw ScrambleStatePreview.balance takes this
+             gap's share away and halves what is left between the two spacers, which is the column
+             as it was before any of this. -->
+        <FrameLayout
+           android:id="@+id/statePreviewSlot"
            android:layout_width="match_parent"
            android:layout_height="0px"
-           android:layout_weight="1"/>
+           android:layout_weight="3">
+          <ViewStub
+             android:id="@+id/stubStatePreview"
+             android:layout="@layout/timer_state_preview"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"/>
+        </FrameLayout>
+
+        <!-- The foot of the column. Heavier than the spacer at its head, because the digits carry
+             their own leading above the glyphs: with the two gaps equal the block reads low. -->
+        <Space
+           android:id="@+id/statePreviewFoot"
+           android:layout_width="match_parent"
+           android:layout_height="0px"
+           android:layout_weight="2"/>
 
       </LinearLayout>
 

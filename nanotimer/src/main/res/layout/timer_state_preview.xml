@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- The scramble drawn as the state it leaves the puzzle in. Inflated from a stub only for a
+     puzzle that can be drawn and a solve type that is allowed one, and given the stub's own layout
+     params, so the timer screen is untouched for everyone else. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/statePreviewLayout"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:alpha="0"
+   android:visibility="invisible">
+
+  <WebView
+     android:id="@+id/wvStatePreview"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"/>
+
+</FrameLayout>

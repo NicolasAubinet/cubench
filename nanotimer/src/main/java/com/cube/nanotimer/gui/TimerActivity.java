@@ -79,6 +79,7 @@ import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
+import com.cube.nanotimer.util.view.ScrambleStatePreview;
 import com.cube.nanotimer.util.view.SessionBarsView;
 import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -170,6 +171,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
   private LiveCubeView liveCube;
+  private ScrambleStatePreview statePreview; // the scramble's own state, in the gap under it
+  private boolean timerFocused; // the screen has stood down for a solve, so the preview has too
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
@@ -232,6 +235,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     smartCubeChip.setHideWhenDisconnected(true);
     solveController = new SmartCubeSolveController(new SolveControllerListener());
     liveCube = new LiveCubeView(this, layoutTouchListener);
+    statePreview = new ScrambleStatePreview(this, layoutTouchListener);
     initActionBar();
 
     inspectionTime = Options.INSTANCE.getInspectionTime();
@@ -306,6 +310,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     smartCubeChip.start();
     solveController.start();
     liveCube.start();
+    statePreview.start();
     applySessionStripChoice(); // both this and the coloring below may have changed in the settings
     refreshSessionFields();
   }
@@ -316,12 +321,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     smartCubeChip.stop();
     solveController.stop();
     liveCube.stop();
+    statePreview.stop();
   }
 
   @Override
   protected void onDestroy() {
     if (liveCube != null) { // onCreate finishes early without a solve type, and never builds one
       liveCube.destroy();
+    }
+    if (statePreview != null) {
+      statePreview.destroy();
     }
     if (focusDot != null) {
       focusDot.hide();
@@ -489,6 +498,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     // The cube takes the same listener the action bar does, so it is not a dead zone either.
     liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube), findViewById(R.id.timerTopSpace));
+    statePreview.bind((ViewStub) findViewById(R.id.stubStatePreview),
+        findViewById(R.id.statePreviewSlot), findViewById(R.id.statePreviewFoot));
+    renderStatePreview(); // a rotation arrives with a scramble already in hand
     if (timerState == TimerState.STOPPED) {
       setKeepScreenOn(keepScreenOnWhenTimerOff);
     } else {
@@ -513,6 +525,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       focusTransition.panelsIn(identityStrip, scrambleBox, sessionLayout);
     }
     // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
+    timerFocused = on;
+    refreshStatePreviewSuppression(); // a panel like the rest, and it stands down with them
     tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
     groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
     pushedGroundColor = on ? R.color.timer_focus_pushedbg : R.color.pushedbg;
@@ -1626,11 +1640,30 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
               SolveTypeMethod.of(solveType));
+          renderStatePreview();
         }
       });
       foundScramble = true;
     }
     return foundScramble;
+  }
+
+  /**
+   * The scramble drawn as the state it leaves the puzzle in. Kept out of {@link #renderScramble},
+   * which a cube follow calls once per move: the diagram is the scramble's, not the progress's, and
+   * redrawing it per move would be a page rebuild per turn.
+   */
+  private void renderStatePreview() {
+    statePreview.show(cubeType, currentScramble, solveType.isBlind());
+  }
+
+  /**
+   * The diagram draws in the gap under the scramble, which the step bar rides in the middle of, so
+   * the two want the same space. The bar wins: it is about the solve just finished, and it is only
+   * up between one solve and the next.
+   */
+  private void refreshStatePreviewSuppression() {
+    statePreview.setSuppressed(timerFocused || solveStepBar.getVisibility() == View.VISIBLE);
   }
 
   private void timerStarted() {
@@ -1736,6 +1769,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     shownStepNames = stepNames;
     solveStepBar.setSteps(steps, stepNames);
     solveStepBar.setVisibility(View.VISIBLE);
+    refreshStatePreviewSuppression();
   }
 
   /**
@@ -1749,6 +1783,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     solveStepBar.setSteps(shownSteps, shownStepNames);
     solveStepBar.setVisibility(View.VISIBLE);
+    refreshStatePreviewSuppression();
     if (tvSolveStats != null && shownStats != null) { // absent in landscape
       tvSolveStats.setText(shownStats);
       tvSolveStats.setVisibility(View.VISIBLE);
@@ -1768,6 +1803,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
       tvSolveStats.setVisibility(visibility);
     }
+    refreshStatePreviewSuppression();
   }
 
   /** Keep the bar's height reserved while a cube is connected, so a solve never shifts the layout. */
