@@ -3,7 +3,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-  <!-- First on the right, as on the history screen. It hides itself when no cube is connected. -->
+  <!-- First on the right, as on the history screen. SmartCubeChip takes this item away entirely
+       when no cube is connected: here it would only be a way in to pairing one mid solve. -->
   <item android:id="@+id/itSmartCube"
      android:title="@string/smart_cube_title"
      app:actionLayout="@layout/smart_cube_chip"

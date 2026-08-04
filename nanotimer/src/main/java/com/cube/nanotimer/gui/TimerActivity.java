@@ -227,6 +227,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
 
     smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
+    // On the timer the chip is only worth a place in the bar when there is a cube behind it. The
+    // history screen keeps it greyed instead, as the way in to pairing one.
+    smartCubeChip.setHideWhenDisconnected(true);
     solveController = new SmartCubeSolveController(new SolveControllerListener());
     liveCube = new LiveCubeView(this, layoutTouchListener);
     initActionBar();
@@ -769,10 +772,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       menu.findItem(R.id.itAddTime).setVisible(false);
     }
     setUpQuickAction(menu);
-    // The chip sits with the other items now, greyed until a cube is paired, as on the history
-    // screen. The loop above is what takes it away during a run, so the bar stays a tap target.
+    // The chip sits with the other items now, and takes its item with it when it goes: without a
+    // cube there is a gap in the bar otherwise. The loop above is what takes it away during a run,
+    // so the bar stays a tap target.
     MenuItem smartCubeItem = menu.findItem(R.id.itSmartCube);
-    smartCubeChip.bind(smartCubeItem != null ? smartCubeItem.getActionView() : null);
+    smartCubeChip.bind(smartCubeItem, smartCubeItem != null ? smartCubeItem.getActionView() : null);
     return true;
   }
 
