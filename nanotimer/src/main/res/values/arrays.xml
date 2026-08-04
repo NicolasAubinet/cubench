@@ -92,6 +92,7 @@
   <string-array name="graph_types">
     <item>@string/chart_type_progression</item>
     <item>@string/chart_type_frequency</item>
+    <item>@string/chart_type_distribution</item>
   </string-array>
   <string-array name="import_export">
     <item>@string/import_times</item>

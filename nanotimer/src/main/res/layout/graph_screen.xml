@@ -96,6 +96,14 @@
        android:layout_height="match_parent"
        android:padding="@dimen/space_s"/>
 
+    <!-- The distribution graph counts solves per time bucket, so it draws bars, not a line. -->
+    <com.github.mikephil.charting.charts.BarChart
+       android:id="@+id/barChart"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:visibility="gone"
+       android:padding="@dimen/space_s"/>
+
   </androidx.cardview.widget.CardView>
 
 </LinearLayout>

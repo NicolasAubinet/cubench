@@ -270,6 +270,7 @@
   <string name="ao12">Ao12</string>
   <string name="chart_type_progression">Progresión</string>
   <string name="chart_type_frequency">Frecuencia</string>
+  <string name="chart_type_distribution">Distribución</string>
 
   <string name="show_best_times">Mostrar mejores tiempos</string>
   <string name="show_history">Mostrar historial</string>
