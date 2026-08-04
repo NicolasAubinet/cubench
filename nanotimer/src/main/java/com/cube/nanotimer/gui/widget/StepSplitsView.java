@@ -1,0 +1,131 @@
+package com.cube.nanotimer.gui.widget;
+
+import android.content.Context;
+import android.util.AttributeSet;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SolveBreakdown;
+import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.ScaleUtils;
+import com.cube.nanotimer.util.view.ScalingLinearLayout;
+import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.util.view.SolveStepBars;
+import com.cube.nanotimer.vo.SolveAverages;
+import com.cube.nanotimer.vo.SolveStep;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * How a solve type timed in steps reads its averages: a row per window, each one the same step bar
+ * the rest of the app draws a solve with, and the total beside it.
+ *
+ * <p>The five bars share one length scale, so the slowest window fills the width and the others are
+ * read against it — which is the comparison the block exists for, and the reason each row still
+ * prints its total: a bar that is a share of another row no longer states a time of its own.
+ *
+ * <p>A row is an average of each step taken separately, not a solve that ever happened. The legend
+ * names the steps and the key names the window, so the bar is read as the shape of an average
+ * rather than as one more solve.
+ */
+public class StepSplitsView extends LinearLayout {
+
+  private static final int[] WINDOWS = {
+      R.string.ao5_label, R.string.ao12_label, R.string.ao50_label, R.string.ao100_label,
+      R.string.life };
+
+  private final int[] colors;
+  private final LinearLayout legend;
+  private final List<View> rows = new ArrayList<View>();
+
+  public StepSplitsView(Context context, AttributeSet attributes) {
+    super(context, attributes);
+    setOrientation(VERTICAL);
+    colors = SolveStepBars.stepColors(context);
+
+    LayoutInflater inflater = LayoutInflater.from(context);
+    inflater.inflate(R.layout.timer_step_splits, this);
+    legend = (LinearLayout) findViewById(R.id.splitsLegend);
+    for (int window : WINDOWS) {
+      View row = inflater.inflate(R.layout.timer_step_split_row, this, false);
+      ((TextView) row.findViewById(R.id.tvSplitKey)).setText(window);
+      addView(row);
+      rows.add(row);
+    }
+  }
+
+  /** @param stepNames the steps of the solve type, in order, as the user named them */
+  public void setStepNames(String[] stepNames) {
+    legend.removeAllViews();
+    float scale = ScaleUtils.getScale(getContext());
+    for (int i = 0; i < stepNames.length; i++) {
+      TextView cell = new TextView(getContext(), null, 0, R.style.SplitLegendCellPx);
+      cell.setLayoutParams(new LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f));
+      cell.setText(stepNames[i]);
+      cell.setTextColor(colors[i % colors.length]);
+      // Built after the timer layout scaled itself, so it would otherwise draw at the raw px size.
+      ScalingLinearLayout.scaleLateSubtree(cell, scale);
+      legend.addView(cell);
+    }
+  }
+
+  /** Draws every window against the slowest of them. A window with too few solves shows no bar. */
+  public void setAverages(SolveAverages averages) {
+    List<List<Long>> windows = Arrays.asList(
+        averages.getStepsAvgOf5(), averages.getStepsAvgOf12(), averages.getStepsAvgOf50(),
+        averages.getStepsAvgOf100(), averages.getStepsAvgOfLifetime());
+    long[] totals = new long[windows.size()];
+    long longest = 0;
+    for (int i = 0; i < windows.size(); i++) {
+      totals[i] = total(windows.get(i));
+      longest = Math.max(longest, totals[i]);
+    }
+    for (int i = 0; i < rows.size(); i++) {
+      bindRow(rows.get(i), windows.get(i), totals[i], longest);
+    }
+  }
+
+  private void bindRow(View row, List<Long> steps, long total, long longest) {
+    SolveStepBarView bar = (SolveStepBarView) row.findViewById(R.id.splitBar);
+    bar.setSteps(total > 0 ? SolveBreakdown.fromStepTimes(asStepTimes(steps))
+        : Collections.<SolveStep>emptyList(), colors);
+    setBarShare(bar, longest > 0 ? total / (float) longest : 0f);
+    ((TextView) row.findViewById(R.id.tvSplitTotal))
+        .setText(total > 0 ? FormatterService.INSTANCE.formatSolveTime(total) : "-");
+  }
+
+  private void setBarShare(SolveStepBarView bar, float share) {
+    LayoutParams params = (LayoutParams) bar.getLayoutParams();
+    if (params.weight != share) {
+      params.weight = share;
+      bar.setLayoutParams(params);
+    }
+  }
+
+  /** Null for a window that has not filled yet; a step with no average counts as nothing. */
+  private static long total(List<Long> steps) {
+    long total = 0;
+    if (steps != null) {
+      for (Long step : steps) {
+        total += positive(step);
+      }
+    }
+    return total;
+  }
+
+  private static Long[] asStepTimes(List<Long> steps) {
+    Long[] times = new Long[steps.size()];
+    for (int i = 0; i < times.length; i++) {
+      times[i] = positive(steps.get(i));
+    }
+    return times;
+  }
+
+  private static long positive(Long time) {
+    return time == null || time < 0 ? 0 : time;
+  }
+}

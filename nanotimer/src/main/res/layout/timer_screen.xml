@@ -309,38 +309,16 @@
 
         <!-- A solve type timed in steps reads its averages as splits, so it takes this block
              instead of the cells above. -->
-        <LinearLayout
-           android:id="@+id/stepSplitsLayout"
+        <com.cube.nanotimer.gui.widget.StepSplitsView
+           android:id="@+id/stepSplits"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:orientation="vertical"
            android:background="@drawable/stat_tile"
            android:paddingLeft="12px"
            android:paddingRight="12px"
-           android:paddingTop="4px"
-           android:paddingBottom="4px"
-           android:visibility="gone">
-          <LinearLayout style="@style/SplitRow">
-            <TextView android:text="5" style="@style/SplitRowKeyPx"/>
-            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfFive" style="@style/SplitRowValuePx"/>
-          </LinearLayout>
-          <LinearLayout style="@style/SplitRow">
-            <TextView android:text="12" style="@style/SplitRowKeyPx"/>
-            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfTwelve" style="@style/SplitRowValuePx"/>
-          </LinearLayout>
-          <LinearLayout style="@style/SplitRow">
-            <TextView android:text="50" style="@style/SplitRowKeyPx"/>
-            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfFifty" style="@style/SplitRowValuePx"/>
-          </LinearLayout>
-          <LinearLayout style="@style/SplitRow">
-            <TextView android:text="100" style="@style/SplitRowKeyPx"/>
-            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfHundred" style="@style/SplitRowValuePx"/>
-          </LinearLayout>
-          <LinearLayout style="@style/SplitRow">
-            <TextView android:text="@string/life" style="@style/SplitRowKeyPx"/>
-            <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfLife" style="@style/SplitRowValuePx"/>
-          </LinearLayout>
-        </LinearLayout>
+           android:paddingTop="6px"
+           android:paddingBottom="6px"
+           android:visibility="gone"/>
 
         <!-- The two values that barely move: stated once, not tracked. -->
         <LinearLayout

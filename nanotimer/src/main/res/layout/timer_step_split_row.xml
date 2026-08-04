@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- One average window: what it is called, its steps drawn as a bar, and what they add up to. The
+     bar sits in a track of its own so a share of the window's total is a share of the same width on
+     every row; the weight it takes of that track is set in code. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   style="@style/SplitRow">
+
+  <TextView
+     android:id="@+id/tvSplitKey"
+     style="@style/SplitRowKeyPx"/>
+
+  <LinearLayout
+     android:layout_width="0px"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:orientation="horizontal"
+     android:weightSum="1">
+    <com.cube.nanotimer.util.view.SolveStepBarView
+       android:id="@+id/splitBar"
+       android:layout_width="0px"
+       android:layout_height="11px"/>
+  </LinearLayout>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvSplitTotal"
+     style="@style/SplitRowValuePx"/>
+
+</LinearLayout>

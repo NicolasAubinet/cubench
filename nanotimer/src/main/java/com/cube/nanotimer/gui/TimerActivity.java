@@ -51,6 +51,7 @@ import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SessionDetailDialog;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.SolveStepBar;
+import com.cube.nanotimer.gui.widget.StepSplitsView;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
@@ -160,6 +161,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private ImageView imgCancelSolve; // discards the running solve, overlaid on the action bar
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
+  private StepSplitsView stepSplits; // the averages block of a solve type timed in steps
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
   private ParticleView particleView; // full-screen confetti overlay, fired on a personal best
   private ScrambleFollowAnimator scrambleAnimator; // subtle per-move zoom during a cube follow
@@ -442,6 +444,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvRecordBarValue = (TextView) findViewById(R.id.tvRecordBarValue);
     tvRecordBarPrev = (TextView) findViewById(R.id.tvRecordBarPrev);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
+    stepSplits = (StepSplitsView) findViewById(R.id.stepSplits);
     tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
     scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
 
@@ -485,7 +488,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     findViewById(R.id.sessionHeader).setVisibility(steps ? View.GONE : View.VISIBLE);
     sessionTimesLayout.setVisibility(steps ? View.GONE : View.VISIBLE);
     findViewById(R.id.statTilesLayout).setVisibility(steps ? View.GONE : View.VISIBLE);
-    findViewById(R.id.stepSplitsLayout).setVisibility(steps ? View.VISIBLE : View.GONE);
+    stepSplits.setVisibility(steps ? View.VISIBLE : View.GONE);
     // A stepped solve type reads its averages as splits, which is the whole footer said better.
     findViewById(R.id.statFooterRow).setVisibility(steps ? View.GONE : View.VISIBLE);
 
@@ -502,6 +505,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     if (steps) {
       solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
+      stepSplits.setStepNames(stepNames());
     }
   }
 
@@ -1571,16 +1575,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     final List<RecordInfo> records = new ArrayList<RecordInfo>();
 
     if (solveType.hasSteps()) {
-      ((TextView) findViewById(R.id.tvSplitsOfFive)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf5()));
-      ((TextView) findViewById(R.id.tvSplitsOfTwelve)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf12()));
-      ((TextView) findViewById(R.id.tvSplitsOfFifty)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf50()));
-      ((TextView) findViewById(R.id.tvSplitsOfHundred)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf100()));
-      ((TextView) findViewById(R.id.tvAvgOfLife)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOfLifetime()));
+      stepSplits.setAverages(solveAverages);
     } else if (solveType.isBlind()) {
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
       RecordInfo bestMo3 = refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),
