@@ -599,15 +599,18 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * The cube was memorised before it was turned, and it was executed as algorithms, one piece type
-   * at a time: the stretches read as one type and then the other, with at most a parity anywhere
-   * among them — including in the middle of a type's own work, which is where a solver who fixes the
-   * parity before their last twists puts it.
+   * The cube was memorised before it was turned, and the turning read as algorithms: a stretch of
+   * them put pieces of one type home, and that is the whole of what is asked.
    *
-   * <p>A solve that never came out is not asked to prove it — a prefix in order is a legitimate
-   * partial match. One that did, and whose turning read as no algorithm at all, is refused: the cube
-   * falling solved all at once is what a sighted solve done on a blind solve type looks like, and it
-   * has no algorithms to show for itself.
+   * <p><b>The order the types were solved in is not.</b> It used to be — one stretch per type, no
+   * type coming back after another had started — on the grounds that interleaving is what a sighted
+   * solve done on a blind solve type looks like. It is not what that looks like: a sighted solve
+   * lands nothing this detector can read, so it arrives here with no stretches at all and is refused
+   * on that. What the order rule actually caught was blind solves that were read correctly and then
+   * thrown away for having done a flip late, and a solver owes their memo no particular order.
+   *
+   * <p>A solve that never came out is not asked to prove any of it — whatever was read of it is a
+   * legitimate partial match.
    */
   @Override
   public boolean matchesMethod() {
@@ -617,21 +620,13 @@ public final class BlindStepDetector implements StepDetector {
     if (solvedMs == null) {
       return true;
     }
-    // One stretch per type, and no type coming back after another has started: interleaving them is
-    // not how a blind solve is executed, and is how a sighted one looks. The parity divides nothing
-    // — it stands wherever it was done, so a type resumed after it is the stretch it was already in.
-    List<String> types = new ArrayList<>();
-    String current = null;
+    // Turning that put nothing home is not an algorithm, and a solve made only of it has nothing to
+    // show for itself: the cube falling solved all at once is what a sighted solve looks like here.
     for (Run run : runs()) {
-      if (PARITY.equals(run.name) || run.name.equals(current)) {
-        continue;
+      if (!EXECUTION.equals(run.name)) {
+        return true;
       }
-      if (types.contains(run.name)) {
-        return false;
-      }
-      types.add(run.name);
-      current = run.name;
     }
-    return !types.isEmpty();
+    return false;
   }
 }

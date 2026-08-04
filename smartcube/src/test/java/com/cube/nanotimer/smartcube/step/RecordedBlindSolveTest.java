@@ -414,6 +414,31 @@ public class RecordedBlindSolveTest {
     assertEquals("twist:FUR-BDL", detector.subStepName(4, 0));
   }
 
+  /**
+   * Solve 227 remembered an edge flip after its corners had begun, so its piece types interleave:
+   * edges, corners, that one flip, corners. A complete reading ending on a solved cube, and it used
+   * to be thrown away whole — one stretch per type refused a type coming back, and what came back
+   * was a flip. The solver's order is edges, edge flips, corners, corner twists, so a flip landing
+   * late is the tail of the edges arriving out of order, not the edges being left unfinished.
+   *
+   * <p>It stands as a stretch of its own rather than joining the corners it interrupted: the flip is
+   * edge work, and filing it under the corners would hand them four seconds they never spent.
+   */
+  @Test
+  public void readsAFlipRememberedAfterTheCornersHadBegun() {
+    replay(RecordedBlindSolve.SCRAMBLE_227, RecordedBlindSolve.MOVES_227, Long.MAX_VALUE);
+
+    assertTrue(detector.isComplete());
+    assertTrue(detector.matchesMethod());
+    assertEquals(5, detector.stepCount()); // memo, edges, corners, the flip, and the corners resumed
+    assertEquals("edges", detector.stepName(1));
+    assertEquals("corners", detector.stepName(2));
+    assertEquals("edges", detector.stepName(3));
+    assertEquals("corners", detector.stepName(4));
+    assertEquals(1, detector.subStepCount(3));
+    assertEquals("flip:UF-DF", detector.subStepName(3, 0));
+  }
+
   private static List<String> namesOf(BlindStepDetector detector) {
     List<String> names = new ArrayList<String>();
     for (int step = 1; step < detector.stepCount(); step++) {

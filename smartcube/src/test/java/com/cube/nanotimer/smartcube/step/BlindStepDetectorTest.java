@@ -230,19 +230,53 @@ public class BlindStepDetectorTest {
   }
 
   /**
-   * What the stretch rule is really for: a type taken up again after another one was finished. The
-   * parity splitting a type is the shape it must <em>not</em> refuse, and a recorded solve pins that
-   * one — clean three-cycles cannot be arranged into it, since an algorithm whose pieces a later one
-   * moves again lands having gained nothing at all.
+   * A solver who goes back to a type they had left is read, and read as what they did: the stretches
+   * stand in the order they were executed, however many times a type comes round.
+   *
+   * <p>This was refused until a recorded solve showed what refusing costs. The order was held to be
+   * what tells a blind solve from a sighted one done on a blind solve type — but a sighted solve is
+   * caught long before the order is looked at, having landed no algorithm this detector can read at
+   * all. All the rule ever rejected was blind solves it had already read correctly.
    */
   @Test
-  public void doesNotMatchASolveThatWentBackToAPieceTypeItHadLeft() {
+  public void readsASolveThatWentBackToAPieceTypeItHadLeft() {
     String[] solve = {EDGE_CYCLE_A, CORNER_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_B};
     startFrom(solve);
     play(solve);
 
     assertTrue(detector.isComplete());
-    assertFalse(detector.matchesMethod());
+    assertTrue(detector.matchesMethod());
+    assertEquals(5, detector.stepCount());
+    assertEquals("edges", detector.stepName(1));
+    assertEquals("corners", detector.stepName(2));
+    assertEquals("edges", detector.stepName(3));
+    assertEquals("corners", detector.stepName(4));
+  }
+
+  /**
+   * However often a type comes round, and whichever type opened: a solver who left a pair behind and
+   * remembered it later did it when they remembered it, and that is what the breakdown says. The
+   * stretches account for the whole solve, so nothing is lost between two of them.
+   */
+  @Test
+  public void readsAPieceTypeTakenUpAgainHoweverOftenItComesRound() {
+    String[] solve = {CORNER_CYCLE_A, EDGE_CYCLE_A, CORNER_CYCLE_B, EDGE_CYCLE_D};
+    long startMs = startFrom(solve);
+    play(solve);
+
+    assertTrue(detector.matchesMethod());
+    List<StepTime> steps = analyzer.getStepTimes();
+    assertEquals(5, steps.size());
+    assertEquals("corners", steps.get(1).getStepName());
+    assertEquals("edges", steps.get(2).getStepName());
+    assertEquals("corners", steps.get(3).getStepName());
+    assertEquals("edges", steps.get(4).getStepName());
+
+    long accounted = 0;
+    for (StepTime step : steps) {
+      accounted += step.getTotalMs();
+    }
+    assertEquals(detector.getStepTimestampMs(steps.size() - 1) - startMs, accounted);
   }
 
   @Test

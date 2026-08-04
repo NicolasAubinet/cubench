@@ -73,7 +73,8 @@ public interface StepDetector {
   /**
    * Whether the observed milestones are consistent with this method having been used — reached in
    * the method's order, each before the solve finished, with any step skipped still counting. A
-   * solve that does not match (a different method, or freestyle) gets no breakdown, only its total.
+   * method whose steps have no order to be done in asks only that they were reached at all. A solve
+   * that does not match (a different method, or freestyle) gets no breakdown, only its total.
    *
    * <p>Also meaningful on a solve that stopped early: a prefix of the milestones, in order, is a
    * legitimate partial match. It is never relaxed into "store something anyway" — a prefix too short
