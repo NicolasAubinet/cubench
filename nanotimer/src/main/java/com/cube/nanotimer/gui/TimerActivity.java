@@ -957,6 +957,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return super.onKeyUp(keyCode, event);
   }
 
+  // The last twelve, each ranked among the twelve: green fastest, white the middle, red slowest.
+  // Relative to what is on screen rather than to the wider history, so the grid reads as a session.
   private void refreshSessionFields() {
     runOnUiThread(new Runnable() {
       @Override
@@ -969,72 +971,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         if (sessionTimes.isEmpty()) {
           return;
         }
-        switch (Options.INSTANCE.getSessionTimesColoring()) {
-          case BEST_WORST:
-            colorSessionBestWorst(sessionTimes);
-            break;
-          case ALL_DISPLAYED:
-            colorSessionWithinDisplayed(sessionTimes);
-            break;
-          case MATCH_HISTORY:
-            colorSessionMatchHistory();
-            break;
-          case NONE:
-            colorSessionPlain(sessionTimes);
-            break;
+        TimeColorScale scale = new TimeColorScale(TimerActivity.this);
+        scale.setTimes(sessionTimes, false);
+        for (int i = 0; i < sessionTimes.size(); i++) {
+          long time = sessionTimes.get(i);
+          GUIUtils.setSessionTimeCellColor(getSessionTextView(i), time, scale.colorFor(time, time < 0));
         }
-      }
-    });
-  }
-
-  // Classic coloring: only the best (green) and worst (red) of the session stand out.
-  private void colorSessionBestWorst(List<Long> sessionTimes) {
-    int bestInd = cubeSession.getBestTimeInd(solveType.isBlind());
-    int worstInd = cubeSession.getWorstTimeInd(solveType.isBlind());
-    for (int i = 0; i < sessionTimes.size(); i++) {
-      GUIUtils.setSessionTimeCellText(getSessionTextView(i), sessionTimes.get(i), i, bestInd, worstInd);
-    }
-  }
-
-  // Gradient coloring relative to the displayed times only (each of the 12 ranked among the 12).
-  private void colorSessionWithinDisplayed(List<Long> sessionTimes) {
-    TimeColorScale scale = new TimeColorScale(this);
-    scale.setTimes(sessionTimes, false);
-    colorSessionWithScale(sessionTimes, scale);
-  }
-
-  // No coloring: every time in the default text color.
-  private void colorSessionPlain(List<Long> sessionTimes) {
-    for (int i = 0; i < sessionTimes.size(); i++) {
-      GUIUtils.setSessionTimeCellPlain(getSessionTextView(i), sessionTimes.get(i));
-    }
-  }
-
-  // Gradient coloring (green=fast → white=median → red=slow) against the given scale.
-  private void colorSessionWithScale(List<Long> sessionTimes, TimeColorScale scale) {
-    for (int i = 0; i < sessionTimes.size(); i++) {
-      long time = sessionTimes.get(i);
-      GUIUtils.setSessionTimeCellColor(getSessionTextView(i), time, scale.colorFor(time, time < 0));
-    }
-  }
-
-  // Builds the gradient from the same recent-solves window the history screen uses, then
-  // colors the displayed session times against it (async DB fetch).
-  private void colorSessionMatchHistory() {
-    App.INSTANCE.getService().getLastSolveTimes(solveType, Options.INSTANCE.getColorSampleSize(), new DataCallback<List<Long>>() {
-      @Override
-      public void onData(final List<Long> historyTimes) {
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            if (cubeSession == null) {
-              return;
-            }
-            TimeColorScale scale = new TimeColorScale(TimerActivity.this);
-            scale.setTimes(historyTimes);
-            colorSessionWithScale(cubeSession.getTimes(), scale);
-          }
-        });
       }
     });
   }

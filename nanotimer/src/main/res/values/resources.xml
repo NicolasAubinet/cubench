@@ -6,7 +6,6 @@
   <bool name="show_time_when_running">true</bool>
   <bool name="keep_timer_screen_on">true</bool>
   <bool name="high_precision_timer">false</bool>
-  <bool name="color_history_times">true</bool>
   <integer name="color_sample_size">200</integer>
   <!--<string name="ads_style_resource">3</string>-->
   <bool name="solve_types_shortcut">true</bool>

@@ -115,8 +115,6 @@
   <string name="keep_screen_on_summary">Cuando el temporizador no está contando</string>
   <string name="high_precision_timer">Alto precisión temporizador</string>
   <string name="high_precision_timer_summary">Fijar milisegundo</string>
-  <string name="color_history_times">Colorear tiempos del historial</string>
-  <string name="color_history_times_summary">Teñir los tiempos de verde (rápido) a rojo (lento)</string>
   <string name="color_sample_size">Tamaño de muestra de color</string>
   <string name="color_sample_size_summary">Cuántas resoluciones recientes se comparan para los colores</string>
   <string name="timer_font">Fuente del temporizador</string>
@@ -131,12 +129,6 @@
   <string name="timer_font_size_small">Pequeño</string>
   <string name="timer_font_size_medium">Mediano</string>
   <string name="timer_font_size_big">Grande</string>
-  <string name="session_times_coloring">Colorear últimos tiempos</string>
-  <string name="session_times_coloring_summary">Cómo colorear los últimos 12 tiempos en la pantalla del temporizador</string>
-  <string name="session_coloring_best_worst">Solo mejor y peor</string>
-  <string name="session_coloring_all_displayed">Relativo a los últimos 12</string>
-  <string name="session_coloring_match_history">Como el historial</string>
-  <string name="session_coloring_none">Ninguno</string>
   <string name="solve_types">Tipos de resolución</string>
   <string name="edit_solve_types">Editar los tipos de resolución</string>
   <string name="edit_solve_types_summary">Editar, crear y eliminar tipos de resolución</string>

@@ -123,8 +123,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private int previousLastItem = 0;
 
   // History time color gradient (green=fast → white=median → red=slow), recomputed once
-  // per data load over the last N solves (N = Options.getColorSampleSize()). Disabled
-  // (and the scale left neutral) when Options.isColorHistoryTimes() is off.
+  // per data load over the last N solves (N = Options.getColorSampleSize()).
   private TimeColorScale timeColorScale;
   private int recordColor;
   private int[] stepColors;
@@ -725,7 +724,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       return;
     }
     final int sampleSize = Options.INSTANCE.getColorSampleSize();
-    final boolean colorTimes = Options.INSTANCE.isColorHistoryTimes();
     final SolveType solveType = curSolveType;
     App.INSTANCE.getService().getLastSolveTimes(solveType, Math.max(TREND_SIZE, sampleSize), new DataCallback<List<Long>>() {
       @Override
@@ -736,7 +734,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
               return; // the user moved on while this was loading
             }
-            timeColorScale.setTimes(colorTimes ? times.subList(0, Math.min(sampleSize, times.size())) : null);
+            timeColorScale.setTimes(times.subList(0, Math.min(sampleSize, times.size())));
             sparkline.setTimes(times, true);
             refreshTrendVisibility();
             if (historyListAdapter != null) {

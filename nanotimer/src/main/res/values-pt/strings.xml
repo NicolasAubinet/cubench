@@ -115,8 +115,6 @@
   <string name="keep_screen_on_summary">Quando o cronômetro não está rodando</string>
   <string name="high_precision_timer">Cronômetro de alta precisão</string>
   <string name="high_precision_timer_summary">Mostrar os milissegundos</string>
-  <string name="color_history_times">Colorir os tempos do histórico</string>
-  <string name="color_history_times_summary">Tingir os tempos do verde (rápido) ao vermelho (lento)</string>
   <string name="color_sample_size">Amostra de cores</string>
   <string name="color_sample_size_summary">Número de resoluções recentes com as quais as cores se comparam</string>
   <string name="timer_font">Fonte do cronômetro</string>
@@ -131,12 +129,6 @@
   <string name="timer_font_size_small">Pequeno</string>
   <string name="timer_font_size_medium">Médio</string>
   <string name="timer_font_size_big">Grande</string>
-  <string name="session_times_coloring">Colorir os últimos tempos</string>
-  <string name="session_times_coloring_summary">Como colorir os 12 últimos tempos na tela do cronômetro</string>
-  <string name="session_coloring_best_worst">Apenas melhor e pior</string>
-  <string name="session_coloring_all_displayed">Relativo aos 12 últimos</string>
-  <string name="session_coloring_match_history">Como o histórico</string>
-  <string name="session_coloring_none">Nenhuma</string>
   <string name="solve_types">Tipos de resolução</string>
   <string name="edit_solve_types">Editar os tipos de resolução</string>
   <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>

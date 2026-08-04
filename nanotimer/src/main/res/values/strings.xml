@@ -119,8 +119,6 @@
   <string name="keep_screen_on_summary">When timer is not running</string>
   <string name="high_precision_timer">Use high precision timer</string>
   <string name="high_precision_timer_summary">Show milliseconds</string>
-  <string name="color_history_times">Color history times</string>
-  <string name="color_history_times_summary">Tint times from green (fast) to red (slow)</string>
   <string name="color_sample_size">Color sample size</string>
   <string name="color_sample_size_summary">How many recent solves the colors compare against</string>
   <string name="timer_font">Timer font</string>
@@ -135,12 +133,6 @@
   <string name="timer_font_size_small">Small</string>
   <string name="timer_font_size_medium">Medium</string>
   <string name="timer_font_size_big">Big</string>
-  <string name="session_times_coloring">Color last solves</string>
-  <string name="session_times_coloring_summary">How to color the last 12 solves on the timer screen</string>
-  <string name="session_coloring_best_worst">Best and worst only</string>
-  <string name="session_coloring_all_displayed">Relative to last 12</string>
-  <string name="session_coloring_match_history">Match history colors</string>
-  <string name="session_coloring_none">None</string>
   <string name="solve_types">Solve types</string>
   <string name="edit_solve_types">Edit solve types</string>
   <string name="edit_solve_types_summary">Edit, create and delete solve types</string>
