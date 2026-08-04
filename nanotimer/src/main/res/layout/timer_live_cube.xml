@@ -13,4 +13,42 @@
      android:layout_width="match_parent"
      android:layout_height="match_parent"/>
 
+  <!-- What a blind attempt sees instead of the cube. Nothing in here takes a touch: the timer
+       screen has no dead zones, so a press lands on the WebView underneath exactly as it would
+       anywhere else (see CLAUDE.md). -->
+  <FrameLayout
+     android:id="@+id/liveCubeVeil"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:background="@color/live_cube_veil"
+     android:visibility="gone">
+
+    <LinearLayout
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_gravity="center"
+       android:gravity="center_horizontal"
+       android:orientation="vertical">
+
+      <ImageView
+         android:id="@+id/imgLiveCubeHidden"
+         android:layout_width="28dp"
+         android:layout_height="28dp"
+         android:src="@drawable/ic_eye_off"
+         android:tint="@color/secondary_text"
+         android:contentDescription="@null"/> <!-- the line below says it -->
+
+
+      <TextView
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="6dp"
+         android:text="@string/live_cube_hidden_blind"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"/>
+
+    </LinearLayout>
+
+  </FrameLayout>
+
 </FrameLayout>

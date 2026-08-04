@@ -340,7 +340,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     public void onScrambleFollowChanged() {
       renderScramble();
       reserveStepBreakdownSpace();
-      refreshLiveCubeSuppression(); // fires on the first followed move, which is when it must go
+      refreshLiveCubeVeil(); // fires on the first followed move, which is when it must go up
     }
   }
 
@@ -674,21 +674,21 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       // Hide the cube chip while the timer runs so the whole action bar stays a tap target
       // (no dead zone); it reappears when the timer stops (if a cube is connected).
       smartCubeChip.setSuppressed(!show);
-      refreshLiveCubeSuppression();
+      refreshLiveCubeVeil();
     }
   }
 
   /**
-   * A blind attempt is not to be watched, so the live cube goes for the whole of one: from the
-   * first scramble move applied to the cube, through the memorisation and the execution, until the
-   * solve ends. The scramble is the part that matters most — what the mirror would otherwise show
-   * is the case the solver is about to memorise.
+   * A blind attempt is not to be watched, so the live cube is covered for the whole of one: from
+   * the first scramble move applied to the cube, through the memorisation and the execution, until
+   * the solve ends. The scramble is the part that matters most — what the mirror would otherwise
+   * show is the case the solver is about to memorise.
    *
-   * <p>Between attempts it comes back, which is where a mirror earns its keep: checking the cube is
-   * where the app thinks it is. Nothing is hidden for a sighted solve type.
+   * <p>Between attempts the cover comes off, which is where a mirror earns its keep: checking the
+   * cube is where the app thinks it is. Nothing is covered for a sighted solve type.
    */
-  private void refreshLiveCubeSuppression() {
-    liveCube.setSuppressed(
+  private void refreshLiveCubeVeil() {
+    liveCube.setObscured(
         solveType.isBlind() && (!showMenu || solveController.isAttemptUnderway()));
   }
 

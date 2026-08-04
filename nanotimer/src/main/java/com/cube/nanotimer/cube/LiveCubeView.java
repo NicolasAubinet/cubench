@@ -80,12 +80,13 @@ public class LiveCubeView
   private ViewStub stub;
   private View topSpacer;
   private View cubeLayout;
+  private View veil;
   private WebView webView;
   /** The document has run, so {@code window.ntLive*} exist and may be called. */
   private boolean pageLoaded;
   /** The page says it has drawn a cube, which is when there is any point showing it. */
   private boolean pageReady;
-  private boolean suppressed;
+  private boolean obscured;
 
   /** What the cube on screen is showing: the setup it was seeded with, plus the moves since. */
   private String baseAlg = "";
@@ -198,12 +199,19 @@ public class LiveCubeView
     pageLoaded = false;
     pageReady = false;
     cubeLayout = null;
+    veil = null;
     stub = null;
   }
 
-  /** Force-hide the cube regardless of the connection. */
-  public void setSuppressed(boolean suppressed) {
-    this.suppressed = suppressed;
+  /**
+   * Veils the cube: it keeps its place on screen, under a cover that says why it cannot be read.
+   *
+   * <p>Taking it off screen instead was what this used to do, and it cost the timer its layout —
+   * the spacer came back, everything below it moved, and the screen shifted twice per blind
+   * attempt. A cover also answers the question the empty space raised, which is why the cube went.
+   */
+  public void setObscured(boolean obscured) {
+    this.obscured = obscured;
     refresh();
   }
 
@@ -343,6 +351,7 @@ public class LiveCubeView
       cubeLayout = stub.inflate();
       stub = null;
       webView = cubeLayout.findViewById(R.id.wvLiveCube);
+      veil = cubeLayout.findViewById(R.id.liveCubeVeil);
       setUpWebView();
     } catch (Throwable t) {
       // e.g. no WebView implementation installed. Said out loud: swallowed, this is a feature that
@@ -352,6 +361,7 @@ public class LiveCubeView
       // would still reserve its space and hide the spacer — a gap with nothing in it, for good.
       webView = null;
       cubeLayout = null;
+      veil = null;
     }
   }
 
@@ -428,9 +438,14 @@ public class LiveCubeView
     if (cubeLayout == null) {
       return;
     }
-    boolean connected = !suppressed && SmartCubeManager.INSTANCE.isConnected();
-    boolean visible = connected && pageReady && seeded;
+    boolean connected = SmartCubeManager.INSTANCE.isConnected();
+    // Veiled counts as shown: the cover is what the space is for, and it is over the cube whether
+    // or not there is yet a cube under it.
+    boolean visible = connected && (obscured || (pageReady && seeded));
     cubeLayout.setVisibility(visible ? View.VISIBLE : (connected ? View.INVISIBLE : View.GONE));
+    if (veil != null) {
+      veil.setVisibility(obscured ? View.VISIBLE : View.GONE);
+    }
     if (topSpacer != null) {
       // The cube stands in the gap rather than above it: both weighted the same, so showing both
       // pushed the timer down and left the cube marooned at the top of the screen.
