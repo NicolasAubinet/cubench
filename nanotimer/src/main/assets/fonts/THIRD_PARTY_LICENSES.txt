@@ -1,20 +1,22 @@
 THIRD-PARTY LICENSES — bundled fonts
 ====================================
 
-The .ttf files in this directory are vendored (committed) third-party fonts
-used for the timer display and the scramble text.
+This file covers every third-party font vendored (committed) in the app.
+The faces asked for by name in code live in this directory; the ones asked
+for as resources live in guilib/src/main/res/font/.
 
 --------------------------------------------------------------------------
-1. Roboto-Bold.ttf, Roboto-Light.ttf, RobotoCondensed-Bold.ttf
+1. Roboto: roboto_bold.ttf, roboto_light.ttf, roboto_condensed_bold.ttf
+   (in guilib/src/main/res/font/)
 --------------------------------------------------------------------------
    - https://github.com/googlefonts/roboto-classic
    - Copyright 2011 The Roboto Project Authors.
    - Licensed: SIL Open Font License, Version 1.1. Full text reproduced
      below as required by clause 2.
-   - Unmodified static builds, obtained from
-     https://fonts.google.com/specimen/Roboto
-     (RobotoCondensed-Bold.ttf is that download's Roboto_Condensed-Bold.ttf,
-     renamed only.)
+   - Unmodified static builds (version 3.015), obtained from
+     https://fonts.google.com/specimen/Roboto and renamed to the lower case
+     a resource name requires: Roboto-Bold.ttf, Roboto-Light.ttf and
+     Roboto_Condensed-Bold.ttf of that download.
 
    Bundled rather than resolved from the system "sans-serif",
    "sans-serif-light" and "sans-serif-condensed" families: OEM ROMs
