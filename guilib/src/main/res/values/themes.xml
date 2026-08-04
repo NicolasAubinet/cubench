@@ -9,6 +9,12 @@
     <item name="colorAccent">@color/color_accent</item>
     <item name="actionBarStyle">@style/NanoTimerActionBar</item>
 
+    <!-- Every theme names the face, since a dialog theme does not inherit from the activity's, and
+         names it twice: AppCompat reads its own attribute and prefers it, the framework reads the
+         platform one. -->
+    <item name="android:fontFamily">@font/roboto</item>
+    <item name="fontFamily">@font/roboto</item>
+
     <!-- Catches dialogs the framework builds for us (preference dialogs), which take no theme argument. -->
     <item name="android:alertDialogTheme">@style/NanoTimerDialogTheme</item>
 
@@ -23,7 +29,10 @@
     <!--<item name="android:windowBackground">@color/graybg</item>-->
   </style>
 
+  <!-- Named here as well as on the theme: a title appearance is applied with setTextAppearance,
+       which reads the appearance and not the theme, so the toolbar would keep the ROM's face. -->
   <style name="Toolbar.CustomTitleText" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+    <item name="android:fontFamily">@font/roboto</item>
     <item name="android:textSize">20sp</item>
     <item name="android:textStyle">bold</item>
     <item name="android:textColor">@color/white</item>
@@ -41,6 +50,8 @@
     <item name="colorPrimary">@color/color_primary</item>
     <item name="colorPrimaryDark">@color/color_primary_dark</item>
     <item name="colorAccent">@color/color_accent</item>
+    <item name="android:fontFamily">@font/roboto</item>
+    <item name="fontFamily">@font/roboto</item>
 
     <item name="android:alertDialogTheme">@style/NanoTimerDialogTheme</item>
     <item name="android:listViewStyle">@style/NanoTimerListView</item>
@@ -64,6 +75,8 @@
 
   <!-- Modern dark rounded frame for app dialogs (Add time, session details, …). -->
   <style name="NanoTimerDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+    <item name="android:fontFamily">@font/roboto</item>
+    <item name="fontFamily">@font/roboto</item>
     <item name="android:windowBackground">@drawable/dialog_window_bg</item>
     <item name="colorAccent">@color/lightblue</item>
     <item name="android:textColorPrimary">@color/white</item>
@@ -76,6 +89,8 @@
        Theme.Design rather than the MaterialComponents overlay: the host activities are AppCompat
        themed and do not carry the Material attributes that overlay expects. -->
   <style name="NanoTimerBottomSheetTheme" parent="Theme.Design.BottomSheetDialog">
+    <item name="android:fontFamily">@font/roboto</item>
+    <item name="fontFamily">@font/roboto</item>
     <item name="bottomSheetStyle">@style/NanoTimerBottomSheet</item>
     <item name="colorAccent">@color/lightblue</item>
     <item name="android:textColorPrimary">@color/white</item>

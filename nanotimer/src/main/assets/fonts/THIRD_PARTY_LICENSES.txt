@@ -6,7 +6,8 @@ The faces asked for by name in code live in this directory; the ones asked
 for as resources live in guilib/src/main/res/font/.
 
 --------------------------------------------------------------------------
-1. Roboto: roboto_bold.ttf, roboto_light.ttf, roboto_condensed_bold.ttf
+1. Roboto: roboto_regular.ttf, roboto_medium.ttf, roboto_bold.ttf,
+   roboto_light.ttf, roboto_condensed_bold.ttf
    (in guilib/src/main/res/font/)
 --------------------------------------------------------------------------
    - https://github.com/googlefonts/roboto-classic
@@ -15,13 +16,20 @@ for as resources live in guilib/src/main/res/font/.
      below as required by clause 2.
    - Unmodified static builds (version 3.015), obtained from
      https://fonts.google.com/specimen/Roboto and renamed to the lower case
-     a resource name requires: Roboto-Bold.ttf, Roboto-Light.ttf and
-     Roboto_Condensed-Bold.ttf of that download.
+     a resource name requires: Roboto-Regular.ttf, Roboto-Medium.ttf,
+     Roboto-Bold.ttf, Roboto-Light.ttf and Roboto_Condensed-Bold.ttf of
+     that download.
+
+   Regular, Medium and Bold are the face the whole app is set in, declared
+   as the roboto.xml family and named on the themes. Light and Condensed
+   Bold are two of the choices for the timer display.
 
    Bundled rather than resolved from the system "sans-serif",
-   "sans-serif-light" and "sans-serif-condensed" families: OEM ROMs
-   substitute their own font there, and a proportional substitute makes the
-   running timer's digits jitter. All three have equal-width digits.
+   "sans-serif-medium", "sans-serif-light" and "sans-serif-condensed"
+   families: OEM ROMs substitute their own font there, so the app would be
+   set in a different face on every phone, and a proportional substitute
+   makes the running timer's digits jitter. All of them have equal-width
+   digits.
 
 --------------------------------------------------------------------------
 2. DroidSansMono.ttf

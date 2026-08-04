@@ -368,7 +368,11 @@
     <item name="android:ellipsize">marquee</item>
   </style>
 
+  <!-- A button is set one step heavier than the body text, as it was when the platform's
+       "sans-serif-medium" stood in for it. -->
   <style name="CustomButton">
+    <item name="fontFamily">@font/roboto_medium</item>
+    <item name="android:fontFamily">@font/roboto_medium</item>
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:textSize">14sp</item>
@@ -389,6 +393,9 @@
   <!-- Primary call-to-action (Start, Export, dialog Close): taller, more rounded,
        bolder than the generic BigButton. -->
   <style name="PrimaryButton" parent="BigButton">
+    <!-- Back to the family, so bold below picks the bold face rather than thickening the medium. -->
+    <item name="fontFamily">@font/roboto</item>
+    <item name="android:fontFamily">@font/roboto</item>
     <item name="android:layout_height">60dp</item>
     <item name="android:textSize">19sp</item>
     <item name="android:textStyle">bold</item>
