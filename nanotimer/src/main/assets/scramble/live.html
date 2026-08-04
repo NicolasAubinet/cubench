@@ -65,6 +65,12 @@
   var CAMERA_LATITUDE = 26;
   var CAMERA_LONGITUDE = 0;
   var CAMERA_DISTANCE = 6;
+  // The scene model is not always up the instant the player is appended, and until the camera has
+  // been asked for the cube is drawn at the player's own default distance — a visibly larger cube,
+  // held still, because the pose loop skips its nudge with no camera to nudge. Keep asking rather
+  // than wait for the next seed to ask again, which is what used to shrink the cube mid-session.
+  var CAMERA_RETRY_MS = 120;
+  var CAMERA_TRIES = 25;
 
   var player = null;
   var readyNotified = false;
@@ -258,16 +264,24 @@
     applyPose(puzzleObject);
   }
 
+  var cameraTries = 0;
+
   /** Points the camera square at the cube, and keeps that as the base the nudge above varies. */
   function setCamera() {
     if (orbit || !player) {
       return;
     }
-    orbit = { latitude: CAMERA_LATITUDE, longitude: CAMERA_LONGITUDE, distance: CAMERA_DISTANCE };
+    var wanted = { latitude: CAMERA_LATITUDE, longitude: CAMERA_LONGITUDE, distance: CAMERA_DISTANCE };
     try {
-      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(orbit);
+      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(wanted);
+      orbit = wanted;
     } catch (e) {
-      orbit = null; // an older bundle: the default view stands, and the pose loop skips its nudge
+      // Not necessarily an older bundle without the model — far more often one that has simply not
+      // built it yet, a few frames after the element was appended. Ask again for a couple of
+      // seconds before letting the default view stand.
+      if (cameraTries++ < CAMERA_TRIES) {
+        setTimeout(setCamera, CAMERA_RETRY_MS);
+      }
     }
   }
 
