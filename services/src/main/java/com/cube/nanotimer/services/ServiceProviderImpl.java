@@ -16,6 +16,7 @@ import com.cube.nanotimer.vo.SessionDetails;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveStep;
+import com.cube.nanotimer.vo.SessionTimes;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
@@ -847,7 +848,7 @@ public class ServiceProviderImpl implements ServiceProvider {
    * @return the list of most recent solve times
    */
   @Override
-  public List<Long> getSessionTimes(SolveType solveType) {
+  public SessionTimes getSessionTimes(SolveType solveType) {
     return getSessionTimes(solveType, null, null, SESSION_TIMES_COUNT);
   }
 
@@ -860,16 +861,18 @@ public class ServiceProviderImpl implements ServiceProvider {
    */
   @Override
   public List<Long> getLastSolveTimes(SolveType solveType, int count) {
-    return getSessionTimes(solveType, 0L, null, count);
+    return getSessionTimes(solveType, 0L, null, count).getTimes();
   }
 
-  public List<Long> getSessionTimes(SolveType solveType, Long from, Long to, Integer limit) {
+  public SessionTimes getSessionTimes(SolveType solveType, Long from, Long to, Integer limit) {
     if (from == null) {
       from = getSessionStart(solveType);
     }
     List<Long> sessionTimes = new ArrayList<Long>();
+    List<Long> dnfTimes = new ArrayList<Long>();
     StringBuilder q = new StringBuilder();
     q.append("SELECT ").append(DB.COL_TIMEHISTORY_TIME);
+    q.append(", ").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
     q.append("   AND ").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" >= ?");
@@ -890,10 +893,12 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         sessionTimes.add(cursor.getLong(0));
+        // Null for anything that is not a DNF, and for a DNF recorded before the column existed.
+        dnfTimes.add(cursor.isNull(1) ? null : cursor.getLong(1));
       }
       cursor.close();
     }
-    return sessionTimes;
+    return new SessionTimes(sessionTimes, dnfTimes);
   }
 
   @Override
@@ -1213,7 +1218,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     long sessionStart = getSessionStart(solveType);
     sessionDetails.setSessionStart(sessionStart);
     if (sessionStart > 0) { // if a new session was created
-      sessionDetails.setSessionTimes(getSessionTimes(solveType, from, to, null));
+      sessionDetails.setSessionTimes(getSessionTimes(solveType, from, to, null).getTimes());
     }
     return sessionDetails;
   }

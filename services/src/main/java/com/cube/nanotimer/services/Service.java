@@ -8,6 +8,7 @@ import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SessionDetails;
+import com.cube.nanotimer.vo.SessionTimes;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
@@ -35,7 +36,7 @@ public interface Service {
   void getHistory(SolveType solveType, long from, DataCallback<SolveHistory> callback);
   void deleteHistory(DataCallback<Void> callback);
   void deleteHistory(SolveType solveType, DataCallback<Void> callback);
-  void getSessionTimes(SolveType solveType, DataCallback<List<Long>> callback);
+  void getSessionTimes(SolveType solveType, DataCallback<SessionTimes> callback);
   void getLastSolveTimes(SolveType solveType, int count, DataCallback<List<Long>> callback);
   void startNewSession(SolveType solveType, long startTs, DataCallback<Void> callback);
   void getSessionStart(SolveType solveType, DataCallback<Long> callback);

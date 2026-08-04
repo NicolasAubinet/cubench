@@ -84,6 +84,7 @@ import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
+import com.cube.nanotimer.vo.SessionTimes;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -246,10 +247,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     setDefaultBannerText();
 
     if (!solveType.hasSteps()) {
-      App.INSTANCE.getService().getSessionTimes(solveType, new DataCallback<List<Long>>() {
+      App.INSTANCE.getService().getSessionTimes(solveType, new DataCallback<SessionTimes>() {
         @Override
-        public void onData(List<Long> data) {
-          cubeSession = new CubeSession(data);
+        public void onData(SessionTimes data) {
+          cubeSession = new CubeSession(data.getTimes(), data.getDnfTimes());
           refreshSessionFields();
         }
       });
@@ -1000,7 +1001,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void toggleLastSolveDNF() {
     if (lastSolveTime.canUndoDNF()) {
       lastSolveTime.undoDNF();
-      cubeSession.setLastTime(lastSolveTime.getTime());
+      cubeSession.setLastTime(lastSolveTime.getTime(), lastSolveTime.getTimeBeforeDnf());
     } else if (!lastSolveTime.isDNF()) {
       lastSolveTime.setDNF();
       cubeSession.setLastAsDNF();
@@ -1022,7 +1023,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         setLastSolveTime(solveTime);
         tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
         setTimerTextColor(solveTime.getTime());
-        cubeSession.setLastTime(solveTime.getTime());
+        cubeSession.setLastTime(solveTime.getTime(), solveTime.getTimeBeforeDnf());
         refreshSessionFields();
         App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
       }
@@ -1132,7 +1133,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         refreshSolvesCountLabel();
         List<Long> sessionTimes = (cubeSession == null) ? Collections.<Long>emptyList() : cubeSession.getTimes();
         if (sessionTimes.isEmpty()) {
-          sessionBars.setTimes(sessionTimes, new int[0]);
+          sessionBars.setTimes(sessionTimes, new int[0], null);
           return;
         }
         switch (Options.INSTANCE.getSessionTimesColoring()) {
@@ -1162,7 +1163,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     for (int i = 0; i < sessionTimes.size(); i++) {
       GUIUtils.setSessionTimeCellColor(getSessionTextView(i), sessionTimes.get(i), colors[i]);
     }
-    sessionBars.setTimes(sessionTimes, colors);
+    sessionBars.setTimes(sessionTimes, colors, cubeSession.getDnfTimes());
   }
 
   // Classic coloring: only the best (green) and worst (red) of the session stand out.

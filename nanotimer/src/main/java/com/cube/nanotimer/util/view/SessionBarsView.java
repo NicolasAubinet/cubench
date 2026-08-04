@@ -17,10 +17,11 @@ import java.util.List;
 /**
  * The last solves of the session as bars, oldest to newest, with a hairline at the average they
  * are being measured against: beating your recent times is beating the line, without reading a
- * number. A DNF has no duration to draw, so it takes a hollow full height bar rather than a gap
- * (which would read as no solve) or a stub (which would read as very fast). The newest solve is
- * underlined in the accent colour rather than recoloured, since a bar's own colour is already
- * saying something.
+ * number. A DNF is hollow rather than filled, and is drawn at the height of the time it replaced,
+ * so a DNF that was on for a good solve says so. One with nothing to restore — every DNF recorded
+ * before that was kept — has no duration to draw and takes the full height instead, which reads as
+ * no solve rather than as a very fast one. The newest solve is underlined in the accent colour
+ * rather than recoloured, since a bar's own colour is already saying something.
  *
  * <p>The colours are the ones the session coloring option already decides, handed in alongside the
  * times; nothing here picks one.
@@ -53,6 +54,7 @@ public class SessionBarsView extends View {
   private final Paint rulePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
   private final List<Long> times = new ArrayList<>(); // oldest first, as drawn
+  private final List<Long> dnfTimes = new ArrayList<>(); // aligned with times, mostly nulls
   private int[] colors = new int[0];
   private Long average;
 
@@ -85,13 +87,17 @@ public class SessionBarsView extends View {
   /**
    * @param sessionTimes the session's last solves, newest first as the session holds them
    * @param barColors one colour per time, in the same order
+   * @param sessionDnfTimes the time each DNF replaced, in the same order, or null for none known
    */
-  public void setTimes(List<Long> sessionTimes, int[] barColors) {
+  public void setTimes(List<Long> sessionTimes, int[] barColors, List<Long> sessionDnfTimes) {
     times.clear();
+    dnfTimes.clear();
     colors = new int[sessionTimes == null ? 0 : sessionTimes.size()];
     if (sessionTimes != null) {
       for (int i = sessionTimes.size() - 1; i >= 0; i--) { // oldest first, as the sparkline reads
         times.add(sessionTimes.get(i));
+        dnfTimes.add((sessionDnfTimes != null && i < sessionDnfTimes.size())
+          ? sessionDnfTimes.get(i) : null);
         colors[times.size() - 1] = barColors[i];
       }
     }
@@ -145,9 +151,13 @@ public class SessionBarsView extends View {
       float left = i * slot + (slot - barWidth) / 2f;
       float right = left + barWidth;
       boolean dnf = (time == null || time <= 0);
+      // A DNF is drawn at the time it replaced; with none to draw it takes the whole height. The
+      // range above is the successes' own, so a DNF slower than all of them is clamped to the top
+      // rather than flattening every real solve to fit it in.
+      Long height = dnf ? dnfTimes.get(i) : time;
       // Only the newest bar's foot lifts, to sit clear of its own rule; the rest keep the floor.
       float foot = newest ? floor - footLift : floor;
-      float top = foot * (1f - (dnf ? 1f : fraction(time, low, high, scaled)));
+      float top = foot * (1f - (height == null ? 1f : fraction(height, low, high, scaled)));
       if (dnf) {
         float inset = hollowPaint.getStrokeWidth() / 2f;
         canvas.drawRoundRect(left + inset, top + inset, right - inset, foot - inset,
@@ -204,7 +214,7 @@ public class SessionBarsView extends View {
     if (!scaled) {
       return (FLOOR + CEILING) / 2f;
     }
-    return FLOOR + (CEILING - FLOOR) * (time - low) / (float) (high - low);
+    return clamp(FLOOR + (CEILING - FLOOR) * (time - low) / (float) (high - low), FLOOR, 1f);
   }
 
 }
