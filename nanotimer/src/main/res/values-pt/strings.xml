@@ -66,7 +66,6 @@
   <string name="time">Tempo:</string>
   <string name="averages">Médias</string>
   <string name="steps">Etapas</string>
-  <string name="stepsC">Etapas:</string>
   <string name="NA">N/A</string>
   <string name="no_scramble">Sem scramble\n(o tempo foi adicionado manualmente)</string>
 
@@ -115,8 +114,6 @@
   <string name="keep_screen_on_summary">Quando o cronômetro não está rodando</string>
   <string name="high_precision_timer">Cronômetro de alta precisão</string>
   <string name="high_precision_timer_summary">Mostrar os milissegundos</string>
-  <string name="color_history_times">Colorir os tempos do histórico</string>
-  <string name="color_history_times_summary">Tingir os tempos do verde (rápido) ao vermelho (lento)</string>
   <string name="color_sample_size">Amostra de cores</string>
   <string name="color_sample_size_summary">Número de resoluções recentes com as quais as cores se comparam</string>
   <string name="timer_font">Fonte do cronômetro</string>
@@ -158,14 +155,6 @@
   <string name="big_cubes_notation_summary">Escolher o sistema de notação dos cubos grandes</string>
   <string name="clock_notation">Notação do Clock</string>
   <string name="clock_notation_summary">Escolha o sistema de notação do Clock</string>
-  <string name="use_modern_scrambles">Usar scrambles de estado aleatório</string>
-  <string name="use_modern_scrambles_summary">Usar scrambles de alta qualidade para os cubos compatíveis (recomendado).</string>
-  <string name="scrambles_quality">Qualidade dos scrambles</string>
-  <string name="scrambles_quality_summary">Selecionar a qualidade dos scrambles</string>
-  <string name="normal_quality">Normal</string>
-  <string name="low_quality">Baixa (mais movimentos, mais rápida de gerar)</string>
-  <string name="pregen_scrambles">Gerar scrambles manualmente</string>
-  <string name="pregen_scrambles_summary">Gerar manualmente scrambles de estado aleatório</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -177,30 +166,7 @@
   <string name="banner">Banner</string>
   <string name="interstitial">Intersticial</string>
   <string name="mixed">Misto</string>
-  <string name="want_to_clear_scramble_cache">Deseja limpar o cache de scrambles?</string>
-  <string name="modern_scrambles_settings">Configurações dos scrambles de estado aleatório</string>
-  <string name="modern_scrambles_settings_summary">Escolher quando / como os scrambles são gerados</string>
-  <string name="notification_mode">Modo de notificação</string>
-  <string name="notification_mode_summary">Escolher quando exibir a notificação de geração</string>
-  <string name="when_generating">Sempre ao gerar</string>
-  <string name="when_generating_manually">Apenas em gerações manuais</string>
-  <string name="never_show_notif">Nunca (não recomendado)</string>
-  <string name="generate_when_plugged_in">Gerar quando conectado</string>
-  <string name="generate_when_plugged_in_summary">Gerar scrambles automaticamente quando conectado à energia</string>
-  <string name="gen_count_when_plugged_in">Quantidade de scrambles ao carregar</string>
-  <string name="gen_count_when_plugged_in_summary">Quantidade de scrambles a gerar ao carregar o dispositivo</string>
-  <string name="min_cache_size">Tamanho mínimo do cache</string>
-  <string name="min_cache_size_summary">Iniciar a geração automática quando atingido</string>
-  <string name="max_cache_size">Tamanho máximo do cache</string>
-  <string name="max_cache_size_summary">Parar a geração automática quando atingido</string>
-  <string name="min_scramble_cache_bigger_than_max">O tamanho mínimo do cache é maior que o máximo. O mínimo será definido como %1$d</string>
-  <string name="min_scramble_cache_too_close_to_max">O tamanho mínimo do cache está muito próximo do máximo. O mínimo será definido como %1$d</string>
-  <string name="max_scramble_cache_smaller_than_min">O tamanho máximo do cache é menor que o mínimo. O máximo será definido como %1$d</string>
-  <string name="max_scramble_cache_too_close_to_min">O tamanho máximo do cache está muito próximo do mínimo. O máximo será definido como %1$d</string>
 
-  <string name="total_scrambles_count">Total de scrambles gerados: %1$d</string>
-  <string name="scrambles_already_generating">Scrambles já estão sendo gerados.</string>
-  <string name="scrambles_count_not_valid">O número de scrambles não é válido.</string>
   <string name="scrambles_count">Número de scrambles:</string>
   <string name="scrambles_count_label">Número de scrambles</string>
   <string name="generate">Gerar</string>
@@ -314,12 +280,14 @@
   <string name="week">Semana</string>
   <string name="month">Mês</string>
   <string name="year">Ano</string>
+  <string name="graph_period_last_50">Últimas 50</string>
   <string name="all">Tudo</string>
   <string name="no_data_found">Nenhum dado encontrado</string>
   <string name="ao5">Ao5</string>
   <string name="ao12">Ao12</string>
   <string name="chart_type_progression">Progressão</string>
   <string name="chart_type_frequency">Frequência</string>
+  <string name="chart_type_distribution">Distribuição</string>
 
   <string name="show_best_times">Ordenar por melhores tempos</string>
   <string name="show_history">Ordenar por data</string>
@@ -690,6 +658,7 @@
   <string name="smart_cube_resync">Meu cubo está resolvido</string>
   <string name="smart_cube_resync_hint">Se o aplicativo acha que seu cubo está embaralhado quando não está, o cubo se perdeu. Resolva-o e toque abaixo.</string>
   <string name="smart_cube_resynced">Estado do cubo realinhado</string>
+  <string name="live_cube_out_of_sync">Cubo dessincronizado</string>
   <string name="smart_cube_solve_first">Resolva seu cubo para começar</string>
   <string name="smart_cube_ready_to_solve">Pronto para resolver</string>
   <string name="smart_cube_solving">Resolução em andamento</string>

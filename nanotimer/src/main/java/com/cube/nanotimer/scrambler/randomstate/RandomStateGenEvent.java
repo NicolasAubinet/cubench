@@ -6,7 +6,7 @@ import com.cube.nanotimer.vo.ScrambleType;
 public class RandomStateGenEvent {
 
   public enum State { PREPARING, GENERATING, IDLE, STOPPING, GENERATED }
-  public enum GenerationLaunch { AUTO, MANUAL, PLUGGED }
+  public enum GenerationLaunch { AUTO, PLUGGED }
 
   private State state;
   private CubeType cubeType;

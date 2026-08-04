@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- The step names, in the colours the times below carry. Inset by the key and total columns so each
+     name sits over its own column of times. The rows themselves are added by StepSplitsView, which
+     knows how many windows there are; how many steps there are is the solve type's business, so the
+     legend is filled in the same place. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <LinearLayout
+     android:id="@+id/splitsLegend"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginLeft="70px"
+     android:layout_marginRight="96px"
+     android:orientation="horizontal"
+     android:layout_marginBottom="2px"/>
+
+</merge>

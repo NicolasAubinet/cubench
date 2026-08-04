@@ -22,6 +22,13 @@ import java.util.List;
  */
 public final class RotationTracker {
 
+  /**
+   * How many moves the gyro is given to report a wide's swing before a disagreeing frame is read as
+   * a regrip instead. The reading at a move can predate the turning that move did, and on a scripted
+   * solve demanding it by the very next move threw away eleven of twenty wides the solver had made.
+   */
+  private static final int GYRO_LAG_FRAMES = 2;
+
   private final List<Frame> frames = new ArrayList<Frame>();
   private final GyroReference reference;
 
@@ -81,23 +88,41 @@ public final class RotationTracker {
     List<Rotation> rotations = new ArrayList<Rotation>();
     CubeRotation written = CubeRotation.byNotation(""); // what the tokens so far add up to
     int nextSpin = 0;
-    for (Frame frame : frames) {
+    int lagging = 0; // frames still owed to a wide whose swing the gyro has not reported yet
+    for (int f = 0; f < frames.size(); f++) {
+      Frame frame = frames.get(f);
+      boolean stale = false; // this move's reading predates its own turning: see isWide
       while (nextSpin < coreSpins.size()
           && coreSpins.get(nextSpin).getTimestampMs() <= frame.timestampMs) {
         Rotation spin = coreSpins.get(nextSpin++);
-        rotations.add(spin);
         CubeRotation spun = CubeRotation.byNotation(spin.getNotation());
-        written = written.then(spun.seenFrom(written)); // a rock turns the frame the last one left
+        CubeRotation after = written.then(spun.seenFrom(written)); // a rock turns the frame the last one left
+        if (spin.isWide()) {
+          boolean behind = frame.rotation.getNotation().equals(written.getNotation());
+          if (!behind && !frame.rotation.getNotation().equals(after.getNotation())) {
+            continue; // the frame is off doing something else: see isWide
+          }
+          stale = behind; // its reading predates the swing, so nothing here is a regrip
+          lagging = behind ? GYRO_LAG_FRAMES : 0;
+        }
+        rotations.add(spin);
+        written = after;
       }
-      if (frame.rotation.getNotation().equals(written.getNotation())
+      if (stale || frame.rotation.getNotation().equals(written.getNotation())
           || insideSlicePair(coreSpins, nextSpin, frame.timestampMs)) {
         continue;
+      }
+      if (lagging > 0) {
+        lagging--;
+        continue; // still owed a wide's swing: this reading is behind it, not a regrip
       }
       rotations.add(new Rotation(written.to(frame.rotation).getNotation(), frame.timestampMs));
       written = frame.rotation;
     }
     for (; nextSpin < coreSpins.size(); nextSpin++) {
-      rotations.add(coreSpins.get(nextSpin)); // a solve ending on a slice: its rock has no move after
+      if (!coreSpins.get(nextSpin).isWide()) {
+        rotations.add(coreSpins.get(nextSpin)); // a solve ending on a slice: its rock has no move after
+      }
     }
     return rotations;
   }
@@ -136,6 +161,7 @@ public final class RotationTracker {
     private final String notation;
     private final long timestampMs;
     private final long pairFromMs;
+    private final boolean wide;
 
     Rotation(String notation, long timestampMs) {
       this(notation, timestampMs, Long.MAX_VALUE);
@@ -143,9 +169,14 @@ public final class RotationTracker {
 
     /** A core spin, which also knows where the pair it was measured across began. */
     Rotation(String notation, long timestampMs, long pairFromMs) {
+      this(notation, timestampMs, pairFromMs, false);
+    }
+
+    Rotation(String notation, long timestampMs, long pairFromMs, boolean wide) {
       this.notation = notation;
       this.timestampMs = timestampMs;
       this.pairFromMs = pairFromMs;
+      this.wide = wide;
     }
 
     /** One or two tokens, e.g. {@code "y"} or {@code "y x'"}. */
@@ -160,6 +191,19 @@ public final class RotationTracker {
     /** The first face of the pair this spin was measured across; never set on a regrip. */
     long getPairFromMs() {
       return pairFromMs;
+    }
+
+    /**
+     * A wide's core swing, which the frames may lag behind rather than confirm. The cube reports a
+     * turn the moment it is done and the sample behind it is up to a frame older, so at a wide's own
+     * move the frame usually has not caught up — measured on a scripted solve, demanding that it had
+     * threw away eleven of twenty wides the solver had actually made. A frame that has not moved is
+     * therefore taken as lagging and its reading ignored, exactly as one inside a slice pair is; only
+     * a frame that has moved somewhere else denies the swing, which is what keeps a wide from taking
+     * a bite out of a real reorientation.
+     */
+    boolean isWide() {
+      return wide;
     }
   }
 }

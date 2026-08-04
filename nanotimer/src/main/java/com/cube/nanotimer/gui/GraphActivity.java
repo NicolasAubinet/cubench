@@ -23,16 +23,21 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.chart.ChartData;
 import com.cube.nanotimer.util.chart.ChartLineData;
 import com.cube.nanotimer.util.chart.ChartUtils;
+import com.cube.nanotimer.util.chart.TimeDistribution;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.FrequencyData;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
+import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -50,8 +55,10 @@ public class GraphActivity extends NanoTimerActivity {
   private SolveType solveType;
   private List<ChartLineData> chartData = new ArrayList<>();
   private List<Long> pointTimestamps = new ArrayList<>();
+  private List<String> bucketLabels = new ArrayList<>();
 
   private LineChart chart;
+  private BarChart barChart;
   private Spinner spPeriod;
   private Spinner spGraphType;
   private CheckBox cbSmooth;
@@ -59,16 +66,44 @@ public class GraphActivity extends NanoTimerActivity {
 
   private int defaultColor = R.color.iceblue;
 
+  /**
+   * How much of the history the graph draws. A stretch of time, or — for the one that mirrors the
+   * history screen's trend line — a count of solves.
+   *
+   * <p>Order matters: these line up with {@code @array/graph_periods}, and the choice is
+   * remembered by position. New entries go on the end, or every user's saved period shifts.
+   */
   enum Period {
     DAY(1),
     WEEK(7),
     MONTH(31),
     YEAR(365),
-    ALL(0);
-    private int days;
+    ALL(0),
+    /**
+     * The window the history screen draws its trend over, with the detail a graph can add. The
+     * count is named in {@code @string/graph_period_last_50}, so the two move together.
+     */
+    LAST_SOLVES(0, MainScreenActivity.TREND_SIZE);
+
+    private final int days;
+    private final int solves; // 0 for a period measured in days
 
     Period(int days) {
+      this(days, 0);
+    }
+
+    Period(int days, int solves) {
       this.days = days;
+      this.solves = solves;
+    }
+
+    /** Whether this period counts solves rather than days. */
+    private boolean isBySolves() {
+      return solves > 0;
+    }
+
+    private int getSolves() {
+      return solves;
     }
 
     private long getPeriodStart() {
@@ -86,6 +121,10 @@ public class GraphActivity extends NanoTimerActivity {
     }
   }
 
+  /**
+   * What the graph draws. Like {@link Period}, these line up with {@code @array/graph_types} and the
+   * choice is remembered by position, so new entries go on the end.
+   */
   enum GraphType {
     PROGRESSION {
       @Override
@@ -98,11 +137,13 @@ public class GraphActivity extends NanoTimerActivity {
       public String formatValue(float value) {
         return FormatterService.INSTANCE.formatFloat(value, 2);
       }
-//    DEVIATION {
-//      @Override
-//      public String formatValue(float value) {
-//        return FormatterService.INSTANCE.formatSolveTime(Math.round((double) value));
-//      }
+    },
+    /** Its values are counts of solves, not times. */
+    DISTRIBUTION {
+      @Override
+      public String formatValue(float value) {
+        return String.valueOf(Math.round(value));
+      }
     };
 
     public abstract String formatValue(float value);
@@ -112,6 +153,14 @@ public class GraphActivity extends NanoTimerActivity {
     @Override
     public String getFormattedValue(float value) {
       return getSelectedGraphType().formatValue(value);
+    }
+  };
+
+  /** Counts written over the bars, empty buckets left bare rather than labelled with a zero. */
+  ValueFormatter barValueFormatter = new ValueFormatter() {
+    @Override
+    public String getFormattedValue(float value) {
+      return value <= 0 ? "" : String.valueOf(Math.round(value));
     }
   };
 
@@ -142,11 +191,6 @@ public class GraphActivity extends NanoTimerActivity {
         }
       }
     });
-
-    spPeriod = (Spinner) findViewById(R.id.spPeriod);
-    configureSpinner(spPeriod, R.array.graph_periods, "period");
-    spGraphType = (Spinner) findViewById(R.id.spGraphType);
-    configureSpinner(spGraphType, R.array.graph_types, "graph_type");
 
     chart = (LineChart) findViewById(R.id.chart);
     chart.getDescription().setEnabled(false);
@@ -199,6 +243,68 @@ public class GraphActivity extends NanoTimerActivity {
     yAxis.setValueFormatter(yValueFormatter);
 
     chart.getAxisRight().setEnabled(false);
+
+    barChart = (BarChart) findViewById(R.id.barChart);
+    setupBarChart();
+
+    // Last: picking a spinner value loads the data, which needs both charts to already be there.
+    spPeriod = (Spinner) findViewById(R.id.spPeriod);
+    configureSpinner(spPeriod, R.array.graph_periods, "period");
+    // Opened on a period of its own (the history screen's trend leads here), rather than on the
+    // one last picked. It is then remembered like any other choice.
+    Period requested = (Period) getIntent().getSerializableExtra("period");
+    if (requested != null) {
+      spPeriod.setSelection(requested.ordinal());
+    }
+    spGraphType = (Spinner) findViewById(R.id.spGraphType);
+    configureSpinner(spGraphType, R.array.graph_types, "graph_type");
+  }
+
+  /** The distribution graph's chart, styled to match the line one. */
+  private void setupBarChart() {
+    barChart.getDescription().setEnabled(false);
+    barChart.getLegend().setEnabled(false); // a single series, already named by the graph type
+    barChart.setBackgroundColor(getResourceColor(R.color.mainscreen_top_card));
+    barChart.setDrawGridBackground(false);
+    barChart.setNoDataText("");
+    barChart.setNoDataTextColor(getResourceColor(R.color.secondary_text));
+    barChart.setExtraTopOffset(5f);
+    barChart.setScaleEnabled(false); // every bucket already fits on screen
+    barChart.setPinchZoom(false);
+    barChart.setDoubleTapToZoomEnabled(false);
+
+    Paint noDataPaint = barChart.getPaint(Chart.PAINT_INFO);
+    if (noDataPaint != null) {
+      noDataPaint.setTextSize(TypedValue.applyDimension(
+         TypedValue.COMPLEX_UNIT_SP, 16, getResources().getDisplayMetrics()));
+    }
+
+    XAxis xAxis = barChart.getXAxis();
+    xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+    xAxis.setTextColor(getResourceColor(R.color.white));
+    xAxis.setTextSize(12);
+    xAxis.setDrawAxisLine(false);
+    xAxis.setDrawGridLines(false);
+    xAxis.setGranularity(1f); // one label per bucket at most, never a repeated bound
+    xAxis.setValueFormatter(new ValueFormatter() {
+      @Override
+      public String getFormattedValue(float value) {
+        int i = Math.round(value);
+        return (i >= 0 && i < bucketLabels.size()) ? bucketLabels.get(i) : "";
+      }
+    });
+
+    YAxis yAxis = barChart.getAxisLeft();
+    yAxis.setTextColor(getResourceColor(R.color.white));
+    yAxis.setTextSize(12);
+    yAxis.setDrawAxisLine(false);
+    yAxis.setGridColor(getResourceColor(R.color.gray600));
+    yAxis.setGridLineWidth(0.5f);
+    yAxis.setAxisMinimum(0f);
+    yAxis.setGranularity(1f); // counts are whole solves
+    yAxis.setValueFormatter(yValueFormatter);
+
+    barChart.getAxisRight().setEnabled(false);
   }
 
   private Spinner configureSpinner(Spinner spinner, int dataArray, final String prefsKey) {
@@ -224,15 +330,25 @@ public class GraphActivity extends NanoTimerActivity {
 
   private void getData() {
     GraphType selectedGraphType = getSelectedGraphType();
+
+    boolean bars = (selectedGraphType == GraphType.DISTRIBUTION);
+    chart.setVisibility(bars ? View.GONE : View.VISIBLE);
+    barChart.setVisibility(bars ? View.VISIBLE : View.GONE);
+    cbSmooth.setEnabled(!bars); // there is nothing to smooth in a histogram
+    cbSmooth.setAlpha(bars ? 0.4f : 1f);
+
     if (selectedGraphType == GraphType.PROGRESSION) {
       getProgressionData();
     } else if (selectedGraphType == GraphType.FREQUENCY) {
       getFrequencyData();
+    } else if (selectedGraphType == GraphType.DISTRIBUTION) {
+      getDistributionData();
     }
   }
 
   private void getProgressionData() {
-    App.INSTANCE.getService().getHistory(solveType, getSelectedPeriod().getPeriodStart(), new DataCallback<SolveHistory>() {
+    Period period = getSelectedPeriod();
+    DataCallback<SolveHistory> callback = new DataCallback<SolveHistory>() {
       @Override
       public void onData(final SolveHistory data) {
         runOnUiThread(new Runnable() {
@@ -267,9 +383,16 @@ public class GraphActivity extends NanoTimerActivity {
           }
         });
       }
-    });
+    };
+    if (period.isBySolves()) {
+      App.INSTANCE.getService().getLastSolves(solveType, period.getSolves(), callback);
+    } else {
+      App.INSTANCE.getService().getHistory(solveType, period.getPeriodStart(), callback);
+    }
   }
 
+  // A count of solves says nothing about how many were done on a day, so the frequency graph reads
+  // a by-solves period as the whole history, which is what its zero period start already means.
   private void getFrequencyData() {
     App.INSTANCE.getService().getFrequencyData(solveType, getSelectedPeriod().getPeriodStart(), new DataCallback<List<FrequencyData>>() {
       @Override
@@ -284,6 +407,61 @@ public class GraphActivity extends NanoTimerActivity {
         });
       }
     });
+  }
+
+  // Reads the same solves the progression graph does, a count of solves included: how many solves
+  // landed in a bucket is a fair question of the last 50 as much as of a stretch of time.
+  private void getDistributionData() {
+    Period period = getSelectedPeriod();
+    DataCallback<SolveHistory> callback = new DataCallback<SolveHistory>() {
+      @Override
+      public void onData(final SolveHistory data) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            List<Long> times = new ArrayList<>();
+            for (SolveTime solveTime : data.getSolveTimes()) {
+              times.add(solveTime.getTime()); // DNFs carry -1 and are dropped by the bucketing
+            }
+            refreshDistributionData(TimeDistribution.of(times));
+          }
+        });
+      }
+    };
+    if (period.isBySolves()) {
+      App.INSTANCE.getService().getLastSolves(solveType, period.getSolves(), callback);
+    } else {
+      App.INSTANCE.getService().getHistory(solveType, period.getPeriodStart(), callback);
+    }
+  }
+
+  private void refreshDistributionData(TimeDistribution distribution) {
+    barChart.setNoDataText(getString(R.string.no_data_found));
+    barChart.clear();
+    bucketLabels.clear();
+
+    if (distribution.getBuckets().isEmpty()) {
+      return;
+    }
+
+    List<BarEntry> entries = new ArrayList<>();
+    for (TimeDistribution.Bucket bucket : distribution.getBuckets()) {
+      entries.add(new BarEntry(entries.size(), bucket.getCount()));
+      bucketLabels.add(bucket.getLabel());
+    }
+
+    BarDataSet dataSet = new BarDataSet(entries, getString(R.string.solves));
+    dataSet.setColor(getResourceColor(defaultColor));
+    dataSet.setHighlightEnabled(false);
+    dataSet.setValueTextColor(getResourceColor(R.color.white));
+    dataSet.setValueTextSize(10f);
+    dataSet.setValueFormatter(barValueFormatter);
+
+    BarData barData = new BarData(dataSet);
+    barData.setBarWidth(0.9f);
+    barChart.setData(barData);
+    barChart.setFitBars(true); // keep the first and last bars whole
+    barChart.invalidate();
   }
 
   private List<ChartData> parseData(List<ChartData> chartData) {

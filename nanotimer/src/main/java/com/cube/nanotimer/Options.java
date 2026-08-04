@@ -2,11 +2,9 @@ package com.cube.nanotimer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.preference.PreferenceManager;
 import com.cube.nanotimer.util.view.TimerFont;
 import com.cube.nanotimer.vo.CubeMethod;
-import com.cube.nanotimer.vo.ScramblesQuality;
 
 public enum Options {
   INSTANCE;
@@ -15,7 +13,6 @@ public enum Options {
   public enum InspectionSoundsType { CLASSIC, OFFICIAL }
   public enum BigCubesNotation { RUF, RWUWFW }
   public enum ClockNotation { UUdU_x_x, UUdd_ux_dx, URx_DRx_DLx }
-  public enum ScrambleNotificationMode { ALWAYS, MANUAL, NEVER }
   public enum RecordNotificationMode { ANY, PB_ONLY, NEVER }
   public enum CrossNeutrality { SPECIFIC, DUAL, FULL }
   public enum SessionTimesColoring { BEST_WORST, ALL_DISPLAYED, MATCH_HISTORY, NONE }
@@ -34,7 +31,6 @@ public enum Options {
   public static final String TIMER_FONT_SIZE_KEY = "timer_font_size";
   public static final String KEEP_TIMER_SCREEN_ON_KEY = "keep_timer_screen_on";
   public static final String HIGH_PRECISION_TIMER_KEY = "high_precision_timer";
-  public static final String COLOR_HISTORY_TIMES_KEY = "color_history_times";
   public static final String COLOR_SAMPLE_SIZE_KEY = "color_sample_size";
   public static final String SESSION_TIMES_COLORING_KEY = "session_times_coloring";
   public static final String SESSION_TIMES_DISPLAY_KEY = "session_times_display";
@@ -49,15 +45,6 @@ public enum Options {
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
-
-  public static final String RANDOMSTATE_SCRAMBLES_KEY = "randomstate_scrambles";
-  public static final String SCRAMBLES_QUALITY_KEY = "scrambles_quality";
-  public static final String SCRAMBLE_NOTIFICATION_MODE_KEY = "scramble_notification_mode";
-  //public static final String SCRAMBLES_GEN_WHEN_PLUGGED_IN_KEY = "scrambles_gen_when_plugged_in";
-  //public static final String SCRAMBLES_GEN_COUNT_WHEN_PLUGGED_IN_KEY = "scrambles_gen_count_when_plugged_in";
-  public static final String SCRAMBLES_MIN_CACHE_SIZE_KEY = "scrambles_min_cache_size";
-  public static final String SCRAMBLES_MAX_CACHE_SIZE_KEY = "scrambles_max_cache_size";
-  public static final String PREGEN_SCRAMBLES_KEY = "pregen_scrambles";
 
   private static final int MAX_STEPS_COUNT = 8;
 
@@ -80,7 +67,8 @@ public enum Options {
       case 3:
         return InspectionMode.OFFICIAL;
       default:
-        return InspectionMode.HOLD_AND_RELEASE;
+        // nothing stored: a new install, older ones were pinned to hold and release on upgrade
+        return InspectionMode.AUTOMATIC;
     }
   }
 
@@ -159,11 +147,6 @@ public enum Options {
   public boolean isUsingHighPrecisionTimer() {
     Boolean defaultValue = context.getResources().getBoolean(R.bool.high_precision_timer);
     return sharedPreferences.getBoolean(HIGH_PRECISION_TIMER_KEY, defaultValue);
-  }
-
-  public boolean isColorHistoryTimes() {
-    Boolean defaultValue = context.getResources().getBoolean(R.bool.color_history_times);
-    return sharedPreferences.getBoolean(COLOR_HISTORY_TIMES_KEY, defaultValue);
   }
 
   public int getColorSampleSize() {
@@ -309,54 +292,6 @@ public enum Options {
 
   public void setPreferredMethodAsked(boolean asked) {
     sharedPreferences.edit().putBoolean(SMART_CUBE_METHOD_ASKED_KEY, asked).apply();
-  }
-
-  public boolean isRandomStateScrambles() {
-    boolean isRandomStateScrambles = true;
-    if (context != null) {
-      Resources resources = context.getResources();
-      if (resources != null) {
-        Boolean defaultValue = resources.getBoolean(R.bool.randomstate_scrambles);
-        isRandomStateScrambles = sharedPreferences.getBoolean(RANDOMSTATE_SCRAMBLES_KEY, defaultValue);
-      }
-    }
-    return isRandomStateScrambles;
-  }
-
-  public ScramblesQuality getScramblesQuality() {
-    int quality = Integer.parseInt(sharedPreferences.getString(SCRAMBLES_QUALITY_KEY, "-1"));
-    switch (quality) {
-      case 1:
-        return ScramblesQuality.NORMAL;
-      case 3:
-        return ScramblesQuality.LOW;
-      default:
-        return ScramblesQuality.NORMAL;
-    }
-  }
-
-  public ScrambleNotificationMode getGenScrambleNotificationMode() {
-    int mode = Integer.parseInt(sharedPreferences.getString(SCRAMBLE_NOTIFICATION_MODE_KEY, "-1"));
-    switch (mode) {
-      case 1:
-        return ScrambleNotificationMode.ALWAYS;
-      case 2:
-        return ScrambleNotificationMode.MANUAL;
-      case 3:
-        return ScrambleNotificationMode.NEVER;
-      default:
-        return ScrambleNotificationMode.ALWAYS;
-    }
-  }
-
-  public int getScramblesMinCacheSize() {
-    Integer defaultValue = context.getResources().getInteger(R.integer.min_scramble_cache_size);
-    return sharedPreferences.getInt(SCRAMBLES_MIN_CACHE_SIZE_KEY, defaultValue);
-  }
-
-  public int getScramblesMaxCacheSize() {
-    Integer defaultValue = context.getResources().getInteger(R.integer.max_scramble_cache_size);
-    return sharedPreferences.getInt(SCRAMBLES_MAX_CACHE_SIZE_KEY, defaultValue);
   }
 
 }

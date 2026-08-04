@@ -52,6 +52,7 @@ import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SessionDetailDialog;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.SolveStepBar;
+import com.cube.nanotimer.gui.widget.StepSplitsView;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
@@ -175,6 +176,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean timerFocused; // the screen has stood down for a solve, so the preview has too
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
+  private StepSplitsView stepSplits; // the averages block of a solve type timed in steps
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
   private ParticleView particleView; // full-screen confetti overlay, fired on a personal best
   private InspectionRingView inspectionRing; // full-screen overlay, drawn only while inspecting
@@ -371,7 +373,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     public void onScrambleFollowChanged() {
       renderScramble();
       reserveStepBreakdownSpace();
-      refreshLiveCubeSuppression(); // fires on the first followed move, which is when it must go
+      refreshLiveCubeVeil(); // fires on the first followed move, which is when it must go up
     }
   }
 
@@ -476,6 +478,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     sessionTimeColor = getSessionTextView(0).getCurrentTextColor(); // read before any is recoloured
     tvVerdictChip = (TextView) findViewById(R.id.tvVerdictChip);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
+    stepSplits = (StepSplitsView) findViewById(R.id.stepSplits);
     tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
     scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
 
@@ -636,7 +639,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     findViewById(R.id.sessionHeader).setVisibility(steps ? View.GONE : View.VISIBLE);
     applySessionStripChoice();
     findViewById(R.id.statTilesLayout).setVisibility(steps ? View.GONE : View.VISIBLE);
-    findViewById(R.id.stepSplitsLayout).setVisibility(steps ? View.VISIBLE : View.GONE);
+    stepSplits.setVisibility(steps ? View.VISIBLE : View.GONE);
     // A stepped solve type reads its averages as splits, which is the whole footer said better.
     findViewById(R.id.statFooterRow).setVisibility(steps ? View.GONE : View.VISIBLE);
     // A hairline only earns its place between two blocks that are both there.
@@ -656,6 +659,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     if (steps) {
       solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
+      stepSplits.setStepNames(stepNames());
     }
   }
 
@@ -849,21 +853,21 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       // The menu items go with it (the loop in onCreateOptionsMenu), so the rest of the bar is
       // empty during a run and stays a tap target rather than a row of dead controls.
       smartCubeChip.setSuppressed(!show);
-      refreshLiveCubeSuppression();
+      refreshLiveCubeVeil();
     }
   }
 
   /**
-   * A blind attempt is not to be watched, so the live cube goes for the whole of one: from the
-   * first scramble move applied to the cube, through the memorisation and the execution, until the
-   * solve ends. The scramble is the part that matters most — what the mirror would otherwise show
-   * is the case the solver is about to memorise.
+   * A blind attempt is not to be watched, so the live cube is covered for the whole of one: from
+   * the first scramble move applied to the cube, through the memorisation and the execution, until
+   * the solve ends. The scramble is the part that matters most — what the mirror would otherwise
+   * show is the case the solver is about to memorise.
    *
-   * <p>Between attempts it comes back, which is where a mirror earns its keep: checking the cube is
-   * where the app thinks it is. Nothing is hidden for a sighted solve type.
+   * <p>Between attempts the cover comes off, which is where a mirror earns its keep: checking the
+   * cube is where the app thinks it is. Nothing is covered for a sighted solve type.
    */
-  private void refreshLiveCubeSuppression() {
-    liveCube.setSuppressed(
+  private void refreshLiveCubeVeil() {
+    liveCube.setObscured(
         solveType.isBlind() && (!showMenu || solveController.isAttemptUnderway()));
   }
 
@@ -1143,6 +1147,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return super.onKeyUp(keyCode, event);
   }
 
+  // The last twelve, each ranked among the twelve: green fastest, white the middle, red slowest.
+  // Relative to what is on screen rather than to the wider history, so the grid reads as a session.
   private void refreshSessionFields() {
     runOnUiThread(new Runnable() {
       @Override
@@ -1873,16 +1879,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     final List<RecordInfo> records = new ArrayList<RecordInfo>();
 
     if (solveType.hasSteps()) {
-      ((TextView) findViewById(R.id.tvSplitsOfFive)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf5()));
-      ((TextView) findViewById(R.id.tvSplitsOfTwelve)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf12()));
-      ((TextView) findViewById(R.id.tvSplitsOfFifty)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf50()));
-      ((TextView) findViewById(R.id.tvSplitsOfHundred)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOf100()));
-      ((TextView) findViewById(R.id.tvAvgOfLife)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(solveAverages.getStepsAvgOfLifetime()));
+      stepSplits.setAverages(solveAverages);
     } else if (solveType.isBlind()) {
       refreshAvgField(R.id.tvMeanOfThree, solveAverages.getMeanOf3(), getString(R.string.NA));
       RecordInfo bestMo3 = refreshAvgFieldWithRecord(R.id.tvBestMeanOfThree, solveAverages.getBestOf3(),

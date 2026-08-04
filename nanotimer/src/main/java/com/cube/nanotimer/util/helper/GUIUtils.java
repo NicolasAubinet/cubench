@@ -133,7 +133,7 @@ public class GUIUtils {
     }
   }
 
-  /** Renders a session time tinted with the given color (gradient coloring modes). */
+  /** Renders a session time tinted with the given color (gradient coloring). */
   public static void setSessionTimeCellColor(TextView tv, long time, int color) {
     setHtmlColoredTime(tv, FormatterService.INSTANCE.formatSolveTime(time), color);
   }

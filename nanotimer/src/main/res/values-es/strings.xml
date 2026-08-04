@@ -66,7 +66,6 @@
   <string name="time">Tiempo:</string>
   <string name="averages">Medias</string>
   <string name="steps">Pasos</string>
-  <string name="stepsC">Pasos:</string>
   <string name="NA">N/D</string>
   <string name="no_scramble">Sin mezcla\n(el tiempo fue insertado manualmente)</string>
 
@@ -115,8 +114,6 @@
   <string name="keep_screen_on_summary">Cuando el temporizador no está contando</string>
   <string name="high_precision_timer">Alto precisión temporizador</string>
   <string name="high_precision_timer_summary">Fijar milisegundo</string>
-  <string name="color_history_times">Colorear tiempos del historial</string>
-  <string name="color_history_times_summary">Teñir los tiempos de verde (rápido) a rojo (lento)</string>
   <string name="color_sample_size">Tamaño de muestra de color</string>
   <string name="color_sample_size_summary">Cuántas resoluciones recientes se comparan para los colores</string>
   <string name="timer_font">Fuente del temporizador</string>
@@ -158,14 +155,6 @@
   <string name="big_cubes_notation_summary">Elegir sistema de notación de cubos grandes</string>
   <string name="clock_notation">Notación de Clock</string>
   <string name="clock_notation_summary">Elegir sistema de notación de Clock</string>
-  <string name="use_modern_scrambles">Utilizar mezclas aleatorias</string>
-  <string name="use_modern_scrambles_summary">Usa mezclas de alta calidad para los puzzles compatibles (recomendado).</string>
-  <string name="scrambles_quality">Calidad de mezclas</string>
-  <string name="scrambles_quality_summary">Selecciona la calidad de las mezclas</string>
-  <string name="normal_quality">Normal</string>
-  <string name="low_quality">Baja (más movimientos, más rápida de generar)</string>
-  <string name="pregen_scrambles">Generar mezclas manualmente</string>
-  <string name="pregen_scrambles_summary">Genera mezclas aleatorias manualmente</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -177,30 +166,7 @@
   <string name="banner">Banner</string>
   <string name="interstitial">Intersticial</string>
   <string name="mixed">Mixto</string>
-  <string name="want_to_clear_scramble_cache">¿Quieres limpiar la cache de mezclas?</string>
-  <string name="modern_scrambles_settings">Ajustes de mezclas aleatorias</string>
-  <string name="modern_scrambles_settings_summary">Elige cuándo / cómo se generan las mezclas</string>
-  <string name="notification_mode">Modo de notificación</string>
-  <string name="notification_mode_summary">Elige cuándo mostrar la notificación de generación</string>
-  <string name="when_generating">Siempre</string>
-  <string name="when_generating_manually">Sólo en manual</string>
-  <string name="never_show_notif">Nunca (no recomendado)</string>
-  <string name="generate_when_plugged_in">Generar en carga</string>
-  <string name="generate_when_plugged_in_summary">Generar automáticamente en carga</string>
-  <string name="gen_count_when_plugged_in">Cuenta de mezclas en carga</string>
-  <string name="gen_count_when_plugged_in_summary">Número de mezclas a generar en carga</string>
-  <string name="min_cache_size">Tamaño de caché mínimo</string>
-  <string name="min_cache_size_summary">Comienza la generación automática cuando se alcance</string>
-  <string name="max_cache_size">Tamaño de caché máximo</string>
-  <string name="max_cache_size_summary">Para la generación automática cuando se alcance</string>
-  <string name="min_scramble_cache_bigger_than_max">El tamaño de caché mínimo es mayor que el máximo. Min se forzará a %1$d.</string>
-  <string name="min_scramble_cache_too_close_to_max">El tamaño de caché mínimo está próximo al máximo. Min se forzará a %1$d.</string>
-  <string name="max_scramble_cache_smaller_than_min">El tamaño de caché máximo es menor que el mínimo. Max se forzará a %1$d.</string>
-  <string name="max_scramble_cache_too_close_to_min">El tamaño de caché máximo está próximo al mínimo. Max se forzará a %1$d.</string>
 
-  <string name="total_scrambles_count">Total de mezclas generadas: %1$d</string>
-  <string name="scrambles_already_generating">Ya se están generando mezclas.</string>
-  <string name="scrambles_count_not_valid">La cuenta de mezclas no es válida.</string>
   <string name="scrambles_count">Cuenta de mezclas:</string>
   <string name="scrambles_count_label">Cuenta de mezclas</string>
   <string name="generate">Generar</string>
@@ -312,12 +278,14 @@
   <string name="week">Semana</string>
   <string name="month">Mes</string>
   <string name="year">Año</string>
+  <string name="graph_period_last_50">Últimas 50</string>
   <string name="all">Todo</string>
   <string name="no_data_found">Datos no encontrados</string>
   <string name="ao5">Ao5</string>
   <string name="ao12">Ao12</string>
   <string name="chart_type_progression">Progresión</string>
   <string name="chart_type_frequency">Frecuencia</string>
+  <string name="chart_type_distribution">Distribución</string>
 
   <string name="show_best_times">Mostrar mejores tiempos</string>
   <string name="show_history">Mostrar historial</string>
@@ -687,6 +655,7 @@
   <string name="smart_cube_resync">Mi cubo está resuelto</string>
   <string name="smart_cube_resync_hint">Si la aplicación cree que tu cubo está mezclado cuando no lo está, el cubo ha perdido la cuenta. Resuélvelo y pulsa abajo.</string>
   <string name="smart_cube_resynced">Estado del cubo realineado</string>
+  <string name="live_cube_out_of_sync">Cubo desincronizado</string>
   <string name="smart_cube_solve_first">Resuelve tu cubo para empezar</string>
   <string name="smart_cube_ready_to_solve">Listo para resolver</string>
   <string name="smart_cube_solving">Resolución en curso</string>

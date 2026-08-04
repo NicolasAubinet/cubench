@@ -123,8 +123,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private int previousLastItem = 0;
 
   // History time color gradient (green=fast → white=median → red=slow), recomputed once
-  // per data load over the last N solves (N = Options.getColorSampleSize()). Disabled
-  // (and the scale left neutral) when Options.isColorHistoryTimes() is off.
+  // per data load over the last N solves (N = Options.getColorSampleSize()).
   private TimeColorScale timeColorScale;
   private int recordColor;
   private int[] stepColors;
@@ -142,8 +141,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private static final int REQUEST_READ_PERMISSIONS_CODE = 10;
 
-  /** How many recent solves the sparkline draws, whatever the color sample size is set to. */
-  private static final int TREND_SIZE = 50;
+  /**
+   * How many recent solves the sparkline draws, whatever the color sample size is set to. Shared
+   * with the graph, whose last-solves period is the same window drawn in full.
+   */
+  static final int TREND_SIZE = 50;
 
   /** How often today's rows re-state how long ago they were, while the screen is just sitting there. */
   private static final long TIME_AGO_TICK_MS = 30000;
@@ -223,7 +225,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     sparklineBlock.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        openGraph();
+        // The graph opens on the same solves the line just drew: the trend, in full.
+        openGraph(GraphActivity.Period.LAST_SOLVES);
       }
     });
 
@@ -331,9 +334,17 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   }
 
   private void openGraph() {
+    openGraph(null);
+  }
+
+  /** @param period the period to open on, or null to open on whichever was last used */
+  private void openGraph(GraphActivity.Period period) {
     Intent i = new Intent(this, GraphActivity.class);
     i.putExtra("cubeType", curCubeType);
     i.putExtra("solveType", curSolveType);
+    if (period != null) {
+      i.putExtra("period", period);
+    }
     startActivity(i);
   }
 
@@ -713,7 +724,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       return;
     }
     final int sampleSize = Options.INSTANCE.getColorSampleSize();
-    final boolean colorTimes = Options.INSTANCE.isColorHistoryTimes();
     final SolveType solveType = curSolveType;
     App.INSTANCE.getService().getLastSolveTimes(solveType, Math.max(TREND_SIZE, sampleSize), new DataCallback<List<Long>>() {
       @Override
@@ -724,7 +734,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
               return; // the user moved on while this was loading
             }
-            timeColorScale.setTimes(colorTimes ? times.subList(0, Math.min(sampleSize, times.size())) : null);
+            timeColorScale.setTimes(times.subList(0, Math.min(sampleSize, times.size())));
             sparkline.setTimes(times, true);
             refreshTrendVisibility();
             if (historyListAdapter != null) {

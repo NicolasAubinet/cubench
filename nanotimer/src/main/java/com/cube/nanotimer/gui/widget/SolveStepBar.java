@@ -63,15 +63,24 @@ public class SolveStepBar extends LinearLayout {
   }
 
   /**
+   * A cell per colour rather than per step, so a step the solve came back to is one entry carrying
+   * all of it: three stretches of edges of two seconds each read as one "edges 6s". The bar still
+   * draws all three, in the one colour — the legend says what a piece type cost, the bar says when
+   * it was paid. Steps with nothing to group them, the user's own included, are one cell each as
+   * before.
+   *
    * @param stepNames the names to label the steps with, as the user wrote them; null to label them
    *     as the method step codes they are
    */
   public void setSteps(List<SolveStep> steps, String[] stepNames) {
     bar.setSteps(steps, colors);
-    buildLegend(steps.size());
-    for (int i = 0; i < steps.size(); i++) {
+    List<SolveStepBars.LegendEntry> legend = SolveStepBars.legend(steps);
+    buildLegend(legend.size());
+    for (int cell = 0; cell < legend.size(); cell++) {
+      SolveStepBars.LegendEntry entry = legend.get(cell);
+      int i = entry.getStepIndex();
       SolveStep step = steps.get(i);
-      TextView name = cells.get(i).findViewById(R.id.tvStepName);
+      TextView name = cells.get(cell).findViewById(R.id.tvStepName);
       if (stepNames != null) {
         // A name of the user's own can run long, and a cell is a share of the screen: bound it so it
         // is the name that gives way rather than the time being pushed out of the cell. A method's
@@ -83,9 +92,9 @@ public class SolveStepBar extends LinearLayout {
           : Utils.toSmartCubeStepLocalizedName(getContext(), step.getName(), i));
       name.setTextColor(Utils.isTailSegment(step.getName())
           ? ContextCompat.getColor(getContext(), R.color.gray600)
-          : colors[i % colors.length]);
-      ((TextView) cells.get(i).findViewById(R.id.tvStepTime))
-          .setText(FormatterService.INSTANCE.formatSolveTime(step.getTotalMs()));
+          : colors[entry.getColorSlot() % colors.length]);
+      ((TextView) cells.get(cell).findViewById(R.id.tvStepTime))
+          .setText(FormatterService.INSTANCE.formatSolveTime(entry.getTotalMs()));
     }
   }
 

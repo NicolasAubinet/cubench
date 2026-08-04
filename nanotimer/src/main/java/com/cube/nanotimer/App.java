@@ -1,13 +1,11 @@
 package com.cube.nanotimer;
 
 import android.content.Context;
-import com.cube.nanotimer.Options.ScrambleNotificationMode;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.MainScreenActivity;
 import com.cube.nanotimer.gui.widget.ReleaseNotes;
 import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent;
-import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent.GenerationLaunch;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent.State;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.Service;
@@ -97,20 +95,16 @@ public enum App {
       @Override
       public void onStateUpdate(RandomStateGenEvent event) {
         String title = context.getString(R.string.scrambles_being_generated, event.getCubeTypeName());
-        ScrambleNotificationMode scrambleNotificationMode = Options.INSTANCE.getGenScrambleNotificationMode();
-        boolean showNotif = (scrambleNotificationMode == ScrambleNotificationMode.ALWAYS ||
-            (scrambleNotificationMode == ScrambleNotificationMode.MANUAL &&
-                (event.getGenerationLaunch() == GenerationLaunch.MANUAL || event.getGenerationLaunch() == GenerationLaunch.PLUGGED)));
-        if (event.getState() == State.PREPARING && showNotif) {
+        if (event.getState() == State.PREPARING) {
           GUIUtils.showNotification(context, SCRAMBLE_NOTIF_ID, title, context.getString(R.string.preparing_generation), MainScreenActivity.class);
-        } else if (event.getState() == State.GENERATING && showNotif) {
+        } else if (event.getState() == State.GENERATING) {
           String text = context.getString(R.string.generating_scramble, event.getCurScramble(), event.getTotalToGenerate());
           ScrambleType scrambleType = event.getScrambleType();
           if (scrambleType != null && !event.getScrambleType().isDefault()) {
             text += " (" + Utils.toScrambleTypeLocalizedName(context, scrambleType) + ")";
           }
           GUIUtils.showNotification(context, SCRAMBLE_NOTIF_ID, title, text, MainScreenActivity.class);
-        } else if (event.getState() == State.IDLE || !showNotif) {
+        } else if (event.getState() == State.IDLE) {
           GUIUtils.hideNotification(context, SCRAMBLE_NOTIF_ID);
         }
       }

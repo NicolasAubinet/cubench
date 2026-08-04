@@ -66,7 +66,6 @@
   <string name="time">Temps:</string>
   <string name="averages">Moyennes</string>
   <string name="steps">Étapes</string>
-  <string name="stepsC">Étapes:</string>
   <string name="NA">N/A</string>
   <string name="no_scramble">Pas de mélange\n(le temps a été ajouté manuellement)</string>
 
@@ -115,8 +114,6 @@
   <string name="keep_screen_on_summary">Quand le chronomètre ne tourne pas</string>
   <string name="high_precision_timer">Chronomètre haute précision</string>
   <string name="high_precision_timer_summary">Afficher les millisecondes</string>
-  <string name="color_history_times">Colorer les temps de l\'historique</string>
-  <string name="color_history_times_summary">Teinter les temps du vert (rapide) au rouge (lent)</string>
   <string name="color_sample_size">Échantillon des couleurs</string>
   <string name="color_sample_size_summary">Nombre de résolutions récentes auxquelles les couleurs se comparent</string>
   <string name="timer_font">Police du chronomètre</string>
@@ -158,14 +155,6 @@
   <string name="big_cubes_notation_summary">Choisir le système de notation des gros cubes</string>
   <string name="clock_notation">Notation Clock</string>
   <string name="clock_notation_summary">Choisissez le système de notation pour le Clock</string>
-  <string name="use_modern_scrambles">Utiliser les mélanges d\'état aléatoire</string>
-  <string name="use_modern_scrambles_summary">Utiliser des mélanges de haute qualité pour les cubes pris en charge (recommandé).</string>
-  <string name="scrambles_quality">Qualité des mélanges</string>
-  <string name="scrambles_quality_summary">Sélectionner la qualité des mélanges</string>
-  <string name="normal_quality">Normale</string>
-  <string name="low_quality">Basse (plus de mouvements, plus rapide à générer)</string>
-  <string name="pregen_scrambles">Générer des mélanges manuellement</string>
-  <string name="pregen_scrambles_summary">Gérérer manuellement des mélanges d\'état aléatoire</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -177,30 +166,7 @@
   <string name="banner">Bannière</string>
   <string name="interstitial">Intersticial</string>
   <string name="mixed">Mixed</string>
-  <string name="want_to_clear_scramble_cache">Voulez-vous effacer le cache de mélanges?</string>
-  <string name="modern_scrambles_settings">Réglages des mélanges d\'état aléatoire</string>
-  <string name="modern_scrambles_settings_summary">Choisir quant / comment les mélanges sont générés</string>
-  <string name="notification_mode">Mode de notification</string>
-  <string name="notification_mode_summary">Choisir quand afficher la notification de génération</string>
-  <string name="when_generating">Toujours lors de la génération</string>
-  <string name="when_generating_manually">Seulement lors de générations manuelles</string>
-  <string name="never_show_notif">Jamais (pas recommandé)</string>
-  <string name="generate_when_plugged_in">Générer quand branché</string>
-  <string name="generate_when_plugged_in_summary">Automatiquement générer des mélanges quand branché</string>
-  <string name="gen_count_when_plugged_in">Quantité de mélanges en chargeant</string>
-  <string name="gen_count_when_plugged_in_summary">Quantity de mélanges à générer en chargeant le périphérique</string>
-  <string name="min_cache_size">Taille minimum du cache</string>
-  <string name="min_cache_size_summary">Lancer la génération automatique quand atteint</string>
-  <string name="max_cache_size">Taille maximum du cache</string>
-  <string name="max_cache_size_summary">Arrêter la génération automatique quand atteint</string>
-  <string name="min_scramble_cache_bigger_than_max">La taille minimum du cache est plus grande que le maximum. Le minimum sera mis à %1$d</string>
-  <string name="min_scramble_cache_too_close_to_max">La taille minimum du cache est trop proche du maximum. Le minimum sera mis à %1$d</string>
-  <string name="max_scramble_cache_smaller_than_min">Ta taille maximum du cache est plus petite que le minimum. Le maximum sera mis à %1$d</string>
-  <string name="max_scramble_cache_too_close_to_min">La taille maximum du cache est trop proche du minimum. Le maximum sera mis à %1$d</string>
 
-  <string name="total_scrambles_count">Total des mélanges générés: %1$d</string>
-  <string name="scrambles_already_generating">Des mélanges sont déjà en cours de génération.</string>
-  <string name="scrambles_count_not_valid">Le nombre de mélanges n\'est pas valide.</string>
   <string name="scrambles_count">Nombre de mélanges:</string>
   <string name="scrambles_count_label">Nombre de mélanges</string>
   <string name="generate">Générer</string>
@@ -312,12 +278,14 @@
   <string name="week">Semaine</string>
   <string name="month">Mois</string>
   <string name="year">Année</string>
+  <string name="graph_period_last_50">50 dernières</string>
   <string name="all">Tout</string>
   <string name="no_data_found">Pas de données trouvées</string>
   <string name="ao5">Ao5</string>
   <string name="ao12">Ao12</string>
   <string name="chart_type_progression">Progression</string>
   <string name="chart_type_frequency">Fréquence</string>
+  <string name="chart_type_distribution">Distribution</string>
 
   <string name="show_best_times">Trier par meilleurs temps</string>
   <string name="show_history">Trier par date</string>
@@ -688,6 +656,7 @@
   <string name="smart_cube_resync">Mon cube est résolu</string>
   <string name="smart_cube_resync_hint">Si l\'application croit que votre cube est mélangé alors qu\'il ne l\'est pas, c\'est que le cube s\'est perdu. Résolvez-le, puis touchez ci-dessous.</string>
   <string name="smart_cube_resynced">État du cube réaligné</string>
+  <string name="live_cube_out_of_sync">Cube désynchronisé</string>
   <string name="smart_cube_solve_first">Résolvez votre cube pour commencer</string>
   <string name="smart_cube_ready_to_solve">Prêt à résoudre</string>
   <string name="smart_cube_solving">Résolution en cours</string>

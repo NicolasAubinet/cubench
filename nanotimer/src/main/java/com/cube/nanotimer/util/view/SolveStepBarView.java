@@ -46,6 +46,7 @@ public class SolveStepBarView extends View {
 
   private List<SolveStep> steps = Collections.emptyList();
   private int[] colors = new int[0];
+  private int[] slots = new int[0]; // the palette slot each step draws from, grouped by name
   private float progress = 1f; // left-to-right reveal fraction; 1 = fully drawn
   private float playhead = -1f; // where a replay has got to, or < 0 for a bar nothing is playing
   private int highlighted = -1; // the step picked out of the bar, or < 0 for a bar with none
@@ -64,10 +65,11 @@ public class SolveStepBarView extends View {
     tailColor = ContextCompat.getColor(context, R.color.gray600);
   }
 
-  /** @param colors one per step, in step order */
+  /** @param colors the palette the steps are drawn from, which they take by name */
   public void setSteps(List<SolveStep> steps, int[] colors) {
     this.steps = new ArrayList<>(steps);
     this.colors = colors;
+    this.slots = SolveStepBars.colorSlots(this.steps);
     invalidate();
   }
 
@@ -346,6 +348,6 @@ public class SolveStepBarView extends View {
     if (Utils.isTailSegment(steps.get(step).getName())) {
       return tailColor;
     }
-    return colors.length == 0 ? Color.WHITE : colors[step % colors.length];
+    return colors.length == 0 ? Color.WHITE : colors[slots[step] % colors.length];
   }
 }

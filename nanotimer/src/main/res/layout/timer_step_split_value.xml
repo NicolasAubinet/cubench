@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- One step's average in a splits row. A layout rather than a constructor call, because
+     FontFitTextView has no style-taking constructor and these cells get narrow enough to need the
+     shrinking: four of them share what is left of the row after the key and the total. -->
+<com.cube.nanotimer.util.view.FontFitTextView
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   style="@style/SplitStepValuePx"/>

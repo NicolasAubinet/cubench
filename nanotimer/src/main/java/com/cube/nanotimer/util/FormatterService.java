@@ -7,7 +7,6 @@ import com.cube.nanotimer.R;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 public enum FormatterService {
@@ -241,26 +240,6 @@ public enum FormatterService {
     value = value * multiplicator;
     long rounded = Math.round(value); // to avoid things like "2.9999"
     return String.valueOf(((float) rounded) / multiplicator);
-  }
-
-  /**
-   * Format the times of different steps to a String
-   * @param times a list of times in ms
-   * @return the formatted steps times
-   */
-  public String formatStepsTimes(List<Long> times) {
-    StringBuilder sb = new StringBuilder();
-    if (times != null) {
-      for (int i = 0; i < times.size(); i++) {
-        sb.append(formatSolveTime(times.get(i)));
-        if (i < times.size() - 1) {
-          sb.append(" / ");
-        }
-      }
-    } else {
-      sb.append("-");
-    }
-    return sb.toString();
   }
 
 }

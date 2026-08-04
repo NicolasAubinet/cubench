@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,11 +28,11 @@ final class RecordedGyroReplay {
 
   private final List<Long> sampleTimes = new ArrayList<Long>();
   private final List<CubeOrientation> samples = new ArrayList<CubeOrientation>();
+  private final GyroReference reference = new GyroReference();
   private String scramble;
   private String storedMoves;
 
   RecordedGyroReplay(String fixture) {
-    GyroReference reference = new GyroReference();
     RotationTracker tracker = new RotationTracker(reference);
     SliceSpinDetector sliceSpins = new SliceSpinDetector();
     List<CubeMove> moves = new ArrayList<CubeMove>();
@@ -74,6 +75,11 @@ final class RecordedGyroReplay {
   /** The frame the step detector reads the solve in, off the states alone — no gyro in it. */
   String detectedFrame() {
     return new RecordedSolveReplay(scramble, storedMoves).detectedFrame();
+  }
+
+  /** The frame the gyro was in at a moment, snapped as the tracker snaps it; null where nothing read. */
+  CubeRotation frameAt(long timestampMs) {
+    return reference.frameOf(sampleAt(timestampMs));
   }
 
   private CubeOrientation sampleAt(long timestampMs) {

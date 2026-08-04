@@ -1,8 +1,11 @@
 package com.cube.nanotimer.services.db;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.vo.SolveTime;
@@ -51,6 +54,18 @@ public class DBUpgradeScripts {
           db.update(DB.TABLE_TIMEHISTORY, values, DB.COL_ID + " = ?", new String[] { String.valueOf(st.getId()) });
         }
       }
+    }
+  }
+
+  /**
+   * Writes "hold and release" as the inspection mode of an install that never chose one, so that
+   * an upgrade does not move it onto the automatic mode new installs now start on.
+   * The key is spelled out rather than read from Options, which this module cannot reach.
+   */
+  public static void keepInspectionModeOfExistingInstall(Context context) {
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    if (!preferences.contains("inspection_mode")) {
+      preferences.edit().putString("inspection_mode", "1").commit();
     }
   }
 

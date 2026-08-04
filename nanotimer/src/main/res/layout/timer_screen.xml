@@ -328,38 +328,17 @@
             </LinearLayout>
 
             <!-- A solve type timed in steps reads its averages as splits, so it takes this block
-                 instead of the cells above. -->
-            <LinearLayout
-               android:id="@+id/stepSplitsLayout"
+                 instead of the cells above. It draws its own rows, so it carries no background of
+                 its own: the card around it is the surface. -->
+            <com.cube.nanotimer.gui.widget.StepSplitsView
+               android:id="@+id/stepSplits"
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
-               android:orientation="vertical"
                android:paddingLeft="8px"
                android:paddingRight="8px"
                android:paddingTop="2px"
                android:paddingBottom="2px"
-               android:visibility="gone">
-              <LinearLayout style="@style/SplitRow">
-                <TextView android:text="5" style="@style/SplitRowKeyPx"/>
-                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfFive" style="@style/SplitRowValuePx"/>
-              </LinearLayout>
-              <LinearLayout style="@style/SplitRow">
-                <TextView android:text="12" style="@style/SplitRowKeyPx"/>
-                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfTwelve" style="@style/SplitRowValuePx"/>
-              </LinearLayout>
-              <LinearLayout style="@style/SplitRow">
-                <TextView android:text="50" style="@style/SplitRowKeyPx"/>
-                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfFifty" style="@style/SplitRowValuePx"/>
-              </LinearLayout>
-              <LinearLayout style="@style/SplitRow">
-                <TextView android:text="100" style="@style/SplitRowKeyPx"/>
-                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvSplitsOfHundred" style="@style/SplitRowValuePx"/>
-              </LinearLayout>
-              <LinearLayout style="@style/SplitRow">
-                <TextView android:text="@string/life" style="@style/SplitRowKeyPx"/>
-                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvAvgOfLife" style="@style/SplitRowValuePx"/>
-              </LinearLayout>
-            </LinearLayout>
+               android:visibility="gone"/>
 
             <View
                android:id="@+id/statFooterRule"
