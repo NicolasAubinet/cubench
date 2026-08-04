@@ -2030,9 +2030,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * What the solve was worth, said once and only when there is something to say: a record, a
-   * session best or worst, or a DNF. A delta on every solve would be noise whatever the number,
-   * and the bars below already carry the "beat your recent times" job.
+   * What the solve was worth, said once and only when there is something to say: a record, or a
+   * session best or worst. A delta on every solve would be noise whatever the number, and the bars
+   * below already carry the "beat your recent times" job.
    *
    * <p>Records also light the cell that holds them, which is how the other three are announced.
    */
@@ -2058,8 +2058,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
       return;
     }
+    // The timer itself reads DNF, so a chip saying it again is the same word twice. It returns
+    // rather than falling through: a DNF is the session's worst, and that is not the news.
     if (lastSolveTime != null && lastSolveTime.isDNF()) {
-      showVerdictChip(getString(R.string.DNF), R.color.dnf_time);
+      tvVerdictChip.setVisibility(View.INVISIBLE);
       return;
     }
     if (isSessionExtreme(true)) {
