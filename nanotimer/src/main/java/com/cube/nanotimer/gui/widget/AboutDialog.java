@@ -2,6 +2,7 @@ package com.cube.nanotimer.gui.widget;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
@@ -13,6 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 
 public class AboutDialog extends NanoTimerDialogFragment {
@@ -56,6 +58,7 @@ public class AboutDialog extends NanoTimerDialogFragment {
     img.setImageResource(R.drawable.icon);
 
     TextView tvTitle = new TextView(getActivity());
+    GUIUtils.setWeight(tvTitle, Typeface.BOLD);
     tvTitle.setPadding(30, 0, 0, 0);
     tvTitle.setText(R.string.app_name);
     tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25);

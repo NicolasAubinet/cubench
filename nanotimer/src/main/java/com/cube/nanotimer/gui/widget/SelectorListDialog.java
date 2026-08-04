@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.helper.GUIUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -268,7 +269,7 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
       tvName.setText(getItem(position));
       tvName.setTextColor(isSelected || isFooter
         ? color : ContextCompat.getColor(getContext(), R.color.white));
-      tvName.setTypeface(null, isSelected ? Typeface.BOLD : Typeface.NORMAL);
+      GUIUtils.setWeight(tvName, isSelected ? Typeface.BOLD : Typeface.NORMAL);
 
       TextView tvCount = (TextView) view.findViewById(R.id.tvCount);
       String count = (isFooter || counts == null) ? "" : counts.get(position);

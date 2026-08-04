@@ -3,6 +3,7 @@ package com.cube.nanotimer.gui.widget;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.res.TypedArray;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -40,6 +41,7 @@ import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
@@ -984,6 +986,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private TextView cell(int style, CharSequence text) {
     TextView cell = new TextView(getActivity(), null, 0, style);
+    // The face has to be put on by hand here, and the weight is the style's to give.
+    GUIUtils.setWeight(cell, cell.getTypeface() == null ? Typeface.NORMAL : cell.getTypeface().getStyle());
     cell.setText(text);
     return cell;
   }

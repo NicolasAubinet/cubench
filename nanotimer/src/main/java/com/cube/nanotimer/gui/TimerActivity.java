@@ -1954,7 +1954,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     if (plain) {
       tv.setTextColor(secondaryTextColor);
-      tv.setTypeface(null, Typeface.NORMAL);
+      GUIUtils.setWeight(tv, Typeface.NORMAL);
     }
   }
 
@@ -1962,7 +1962,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     TextView tv = (TextView) findViewById(fieldId);
     tv.setText(formatAvgField(value, defaultValue));
     tv.setTextColor(defaultTextColor);
-    tv.setTypeface(null, Typeface.BOLD);
+    GUIUtils.setWeight(tv, Typeface.BOLD);
   }
 
   private void clearAvgRecordStyle() {
@@ -1975,7 +1975,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvs.add((TextView) findViewById(R.id.tvLifetimeBest));
     for (TextView tv : tvs) {
       tv.setTextColor(defaultTextColor);
-      tv.setTypeface(null, Typeface.BOLD);
+      GUIUtils.setWeight(tv, Typeface.BOLD);
     }
     if (animations != null) {
       for (Animation a : animations) {
@@ -1993,7 +1993,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (historySolvesCount > MIN_TIMES_FOR_RECORD_NOTIFICATION && previousValue != null && value != null && value < previousValue && !solveType.hasSteps()) {
       final int recordColor = getResources().getColor(R.color.new_record);
       final TextView tv = (TextView) findViewById(fieldId);
-      tv.setTypeface(null, Typeface.BOLD);
+      GUIUtils.setWeight(tv, Typeface.BOLD);
 
       if (showNotifications) {
         final int defaultColor = defaultTextColor.getDefaultColor();
