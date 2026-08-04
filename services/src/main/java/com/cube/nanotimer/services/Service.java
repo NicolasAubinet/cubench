@@ -33,6 +33,7 @@ public interface Service {
   void getPagedHistory(SolveType solveType, TimesSort timesSort, DataCallback<SolveHistory> callback);
   void getPagedHistory(SolveType solveType, long from, TimesSort timesSort, DataCallback<SolveHistory> callback);
   void getHistory(SolveType solveType, long from, DataCallback<SolveHistory> callback);
+  void getLastSolves(SolveType solveType, int count, DataCallback<SolveHistory> callback);
   void deleteHistory(DataCallback<Void> callback);
   void deleteHistory(SolveType solveType, DataCallback<Void> callback);
   void getSessionTimes(SolveType solveType, DataCallback<List<Long>> callback);

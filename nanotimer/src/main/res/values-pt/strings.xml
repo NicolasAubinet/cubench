@@ -307,6 +307,7 @@
   <string name="week">Semana</string>
   <string name="month">Mês</string>
   <string name="year">Ano</string>
+  <string name="graph_period_last_50">Últimas 50</string>
   <string name="all">Tudo</string>
   <string name="no_data_found">Nenhum dado encontrado</string>
   <string name="ao5">Ao5</string>

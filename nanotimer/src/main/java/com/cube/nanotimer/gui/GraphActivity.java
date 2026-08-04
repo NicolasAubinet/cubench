@@ -59,16 +59,44 @@ public class GraphActivity extends NanoTimerActivity {
 
   private int defaultColor = R.color.iceblue;
 
+  /**
+   * How much of the history the graph draws. A stretch of time, or — for the one that mirrors the
+   * history screen's trend line — a count of solves.
+   *
+   * <p>Order matters: these line up with {@code @array/graph_periods}, and the choice is
+   * remembered by position. New entries go on the end, or every user's saved period shifts.
+   */
   enum Period {
     DAY(1),
     WEEK(7),
     MONTH(31),
     YEAR(365),
-    ALL(0);
-    private int days;
+    ALL(0),
+    /**
+     * The window the history screen draws its trend over, with the detail a graph can add. The
+     * count is named in {@code @string/graph_period_last_50}, so the two move together.
+     */
+    LAST_SOLVES(0, MainScreenActivity.TREND_SIZE);
+
+    private final int days;
+    private final int solves; // 0 for a period measured in days
 
     Period(int days) {
+      this(days, 0);
+    }
+
+    Period(int days, int solves) {
       this.days = days;
+      this.solves = solves;
+    }
+
+    /** Whether this period counts solves rather than days. */
+    private boolean isBySolves() {
+      return solves > 0;
+    }
+
+    private int getSolves() {
+      return solves;
     }
 
     private long getPeriodStart() {
@@ -145,6 +173,12 @@ public class GraphActivity extends NanoTimerActivity {
 
     spPeriod = (Spinner) findViewById(R.id.spPeriod);
     configureSpinner(spPeriod, R.array.graph_periods, "period");
+    // Opened on a period of its own (the history screen's trend leads here), rather than on the
+    // one last picked. It is then remembered like any other choice.
+    Period requested = (Period) getIntent().getSerializableExtra("period");
+    if (requested != null) {
+      spPeriod.setSelection(requested.ordinal());
+    }
     spGraphType = (Spinner) findViewById(R.id.spGraphType);
     configureSpinner(spGraphType, R.array.graph_types, "graph_type");
 
@@ -232,7 +266,8 @@ public class GraphActivity extends NanoTimerActivity {
   }
 
   private void getProgressionData() {
-    App.INSTANCE.getService().getHistory(solveType, getSelectedPeriod().getPeriodStart(), new DataCallback<SolveHistory>() {
+    Period period = getSelectedPeriod();
+    DataCallback<SolveHistory> callback = new DataCallback<SolveHistory>() {
       @Override
       public void onData(final SolveHistory data) {
         runOnUiThread(new Runnable() {
@@ -267,9 +302,16 @@ public class GraphActivity extends NanoTimerActivity {
           }
         });
       }
-    });
+    };
+    if (period.isBySolves()) {
+      App.INSTANCE.getService().getLastSolves(solveType, period.getSolves(), callback);
+    } else {
+      App.INSTANCE.getService().getHistory(solveType, period.getPeriodStart(), callback);
+    }
   }
 
+  // A count of solves says nothing about how many were done on a day, so the frequency graph reads
+  // a by-solves period as the whole history, which is what its zero period start already means.
   private void getFrequencyData() {
     App.INSTANCE.getService().getFrequencyData(solveType, getSelectedPeriod().getPeriodStart(), new DataCallback<List<FrequencyData>>() {
       @Override

@@ -631,6 +631,14 @@ public class ServiceProviderImpl implements ServiceProvider {
     return solveHistory;
   }
 
+  @Override
+  public SolveHistory getLastSolves(SolveType solveType, int count) {
+    SolveHistory solveHistory = new SolveHistory();
+    solveHistory.setSolveTimes(getHistoryTimes(solveType, null, true, count, TimesSort.TIMESTAMP));
+    solveHistory.setSolvesCount(getHistorySolvesCount(solveType));
+    return solveHistory;
+  }
+
   public List<SolveTime> getHistoryTimes(SolveType solveType, Long from, boolean searchInPast, Integer pageSize, TimesSort timesSort) {
     List<SolveTime> history = new ArrayList<SolveTime>();
     StringBuilder q = new StringBuilder();
@@ -668,7 +676,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
     q.append(" ORDER BY ").append(sortColumn).append(sortOrder);
     if (pageSize != null) {
-      q.append(" LIMIT ").append(HISTORY_PAGE_SIZE);
+      q.append(" LIMIT ").append(pageSize);
     }
     String[] params = (from == null) ? getStringArray(solveType.getId()) : getStringArray(solveType.getId(), from);
     Cursor cursor = db.rawQuery(q.toString(), params);

@@ -117,6 +117,7 @@
     <item>@string/month</item>
     <item>@string/year</item>
     <item>@string/all</item>
+    <item>@string/graph_period_last_50</item>
   </string-array>
   <string-array name="graph_types">
     <item>@string/chart_type_progression</item>

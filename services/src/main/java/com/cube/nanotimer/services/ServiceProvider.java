@@ -31,6 +31,7 @@ public interface ServiceProvider {
   SolveHistory getPagedHistory(SolveType solveType, TimesSort timesSort);
   SolveHistory getPagedHistory(SolveType solveType, Long from, TimesSort timesSort);
   SolveHistory getHistory(SolveType solveType, Long from);
+  SolveHistory getLastSolves(SolveType solveType, int count);
   void deleteHistory();
   void deleteHistory(SolveType solveType);
   List<Long> getSessionTimes(SolveType solveType);
