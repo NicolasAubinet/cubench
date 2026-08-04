@@ -27,8 +27,13 @@
      android:theme="@style/NanoTimerTheme"
      android:allowBackup="true">
 
+    <!-- "user", not the default: with no orientation of its own it inherits the one the activity
+         above it asked for, so coming back from the landscape-locked graph left the history screen
+         sideways on a phone held upright. "user" is the sensor when auto-rotate is on and the
+         user's own rotation when it is off, which is what the screen did before the graph opened. -->
     <activity
        android:name=".gui.MainScreenActivity"
+       android:screenOrientation="user"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
        android:theme="@style/NanoTimerThemeNoActionBar"
        android:launchMode="singleTask"

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -108,6 +109,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private int solvesCount;
   private int currentOrientation;
+  /** The way round this screen was when the graph opened over it, until it has been put back. */
+  private Integer orientationBeforeGraph;
   private TimesSort timesSort = TimesSort.TIMESTAMP;
   private boolean refreshingHistory;
 
@@ -339,6 +342,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   /** @param period the period to open on, or null to open on whichever was last used */
   private void openGraph(GraphActivity.Period period) {
+    orientationBeforeGraph = getResources().getConfiguration().orientation;
     Intent i = new Intent(this, GraphActivity.class);
     i.putExtra("cubeType", curCubeType);
     i.putExtra("solveType", curSolveType);
@@ -458,6 +462,28 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
     setSortMode(TimesSort.TIMESTAMP);
     startTimeAgoTicks();
+    restoreOrientationAfterGraph();
+  }
+
+  /**
+   * Puts the screen back the way round it was before the landscape-locked graph opened over it.
+   *
+   * <p>Asking for "user" is enough while the phone is being held: the sensor says which way up it
+   * is and it turns back on its own. Lying flat there is nothing to say, so the sensor keeps
+   * reporting whatever it last read — the graph's landscape — and the history screen stays sideways
+   * for a screen the user never turned. So the orientation is asked for outright, and given back to
+   * the sensor as soon as it has been granted, which is the config change below.
+   */
+  private void restoreOrientationAfterGraph() {
+    if (orientationBeforeGraph == null) {
+      return;
+    }
+    if (getResources().getConfiguration().orientation == orientationBeforeGraph) {
+      orientationBeforeGraph = null;
+      return;
+    }
+    setRequestedOrientation(orientationBeforeGraph == Configuration.ORIENTATION_LANDSCAPE
+        ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
   }
 
   @Override
@@ -492,6 +518,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   @Override
   public void onConfigurationChanged(Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
+    if (orientationBeforeGraph != null && newConfig.orientation == orientationBeforeGraph) {
+      // Granted: hand the screen back to the sensor, or it would be locked this way round for good.
+      orientationBeforeGraph = null;
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+    }
     if (newConfig.orientation == currentOrientation) {
       return;
     }
