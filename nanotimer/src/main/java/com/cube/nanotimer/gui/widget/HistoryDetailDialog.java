@@ -60,7 +60,6 @@ import com.cube.nanotimer.vo.SolveTypeStep;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
@@ -127,10 +126,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     final boolean stepped = solveTime.hasSteps();
     final boolean blind = solveTime.getSolveType().isBlind();
     if (stepped) {
-      v.findViewById(R.id.averagesTable).setVisibility(View.GONE);
-      v.findViewById(R.id.trSteps).setVisibility(View.VISIBLE);
-      ((TextView) v.findViewById(R.id.tvSteps)).setText(
-      FormatterService.INSTANCE.formatStepsTimes(Arrays.asList(solveTime.getStepsTimes())));
+      v.findViewById(R.id.averagesTable).setVisibility(View.GONE); // the breakdown below says it better
     } else if (blind) {
       v.findViewById(R.id.averagesTable).setVisibility(View.GONE);
       v.findViewById(R.id.trMeanOfThree).setVisibility(View.VISIBLE);
@@ -226,7 +222,6 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private void resetBinding(View v) {
     v.findViewById(R.id.detailScroll).scrollTo(0, 0); // a solve arrives read from the top
     v.findViewById(R.id.averagesTable).setVisibility(View.VISIBLE);
-    v.findViewById(R.id.trSteps).setVisibility(View.GONE);
     v.findViewById(R.id.trMeanOfThree).setVisibility(View.GONE);
     v.findViewById(R.id.tvVerdict).setVisibility(View.GONE);
     v.findViewById(R.id.scrambleHeader).setVisibility(View.VISIBLE);
@@ -522,7 +517,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   /**
    * The breakdown drawn from the user's own steps, with the recorded moves split at the taps that
    * ended them. A solve no cube saw is drawn just the same, without the moves: the bar and the table
-   * say the shape of it, which the slash-separated line of times never did.
+   * say the shape of it, which a line of times separated by slashes never did.
    *
    * <p>The split is approximate where the method breakdown is exact — a tap lands a moment after the
    * move it follows, and is timed on the phone's clock rather than the cube's. That is also why these
@@ -539,7 +534,6 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       return false;
     }
     SolveSolution solution = SolveSolution.from(solveTime.getSmartcubeMoves(), steps);
-    v.findViewById(R.id.trSteps).setVisibility(View.GONE); // the table tells it, and the moves with it
     SolveTypeStep[] names = solveTime.getSolveType().hasSteps()
         ? solveTime.getSolveType().getSteps() : new SolveTypeStep[0];
     buildBreakdown(v, steps, solution, getString(R.string.steps), names, null);

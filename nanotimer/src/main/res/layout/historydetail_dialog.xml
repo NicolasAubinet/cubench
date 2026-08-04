@@ -109,31 +109,6 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content">
 
-      <!-- Steps (multi-step solves) -->
-      <LinearLayout
-         android:id="@+id/trSteps"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:orientation="horizontal"
-         android:gravity="center"
-         android:layout_marginBottom="4dp"
-         android:visibility="gone">
-        <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/stepsC"
-           android:textColor="@color/secondary_text"
-           android:textSize="15sp"/>
-        <TextView
-           android:id="@+id/tvSteps"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginLeft="8dp"
-           android:textColor="@color/white"
-           android:textStyle="bold"
-           android:textSize="15sp"/>
-      </LinearLayout>
-
       <!-- Mean of 3 (blind solves) -->
       <LinearLayout
          android:id="@+id/trMeanOfThree"
