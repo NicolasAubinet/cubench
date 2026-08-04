@@ -174,11 +174,11 @@
   </style>
 
   <!-- Step splits, one row per average window, for solve types timed in steps. -->
+  <!-- Two lines: the window's step averages, and under them the same steps as a bar. -->
   <style name="SplitRow">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:orientation">horizontal</item>
-    <item name="android:gravity">center_vertical</item>
+    <item name="android:orientation">vertical</item>
     <item name="android:paddingTop">3px</item>
     <item name="android:paddingBottom">3px</item>
   </style>
@@ -209,6 +209,18 @@
     <item name="android:gravity">center</item>
     <item name="android:singleLine">true</item>
     <item name="android:ellipsize">end</item>
+    <item name="android:paddingLeft">2px</item>
+    <item name="android:paddingRight">2px</item>
+  </style>
+  <!-- One step's average, in the column the legend cell above it names and in the same colour. -->
+  <style name="SplitStepValuePx">
+    <item name="android:layout_width">0px</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:textSize">17px</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:fontFeatureSettings">tnum</item>
     <item name="android:paddingLeft">2px</item>
     <item name="android:paddingRight">2px</item>
   </style>
