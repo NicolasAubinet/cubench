@@ -58,7 +58,7 @@
        android:entries="@array/entries_inspection_modes"
        android:entryValues="@array/entryvalues_inspection_modes"
        android:dialogTitle="@string/inspection_mode"
-       android:defaultValue="1"/>
+       android:defaultValue="2"/>
 
     <com.cube.nanotimer.gui.widget.preferences.WheelViewDialog
        android:key="inspection_time"

@@ -286,6 +286,12 @@ public class DBHelper extends SQLiteOpenHelper {
           + DB.COL_TIMEHISTORY_SMARTCUBE_GYRO + " TEXT");
     }
 
+    if (oldVersion < 25) {
+      // New installs inspect in automatic mode from here on. An install that is already going
+      // keeps hold and release, a timer starting on another gesture being no small surprise.
+      DBUpgradeScripts.keepInspectionModeOfExistingInstall(context);
+    }
+
 //    progressDialog.hide();
   }
 

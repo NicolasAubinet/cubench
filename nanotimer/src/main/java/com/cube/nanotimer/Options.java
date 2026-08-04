@@ -63,7 +63,8 @@ public enum Options {
       case 3:
         return InspectionMode.OFFICIAL;
       default:
-        return InspectionMode.HOLD_AND_RELEASE;
+        // nothing stored: a new install, older ones were pinned to hold and release on upgrade
+        return InspectionMode.AUTOMATIC;
     }
   }
 
