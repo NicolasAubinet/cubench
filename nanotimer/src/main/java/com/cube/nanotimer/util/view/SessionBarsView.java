@@ -29,7 +29,7 @@ public class SessionBarsView extends View {
 
   private static final float FLOOR = 0.20f; // the fastest solve still gets a bar to see
   private static final float CEILING = 0.90f; // leaves the DNF's full height bar its own reading
-  private static final float BAR_GAP_FRACTION = 0.42f; // of a bar's slot
+  private static final float BAR_GAP_FRACTION = 0.28f; // of a bar's slot
   private static final float RULE_STROKE_DP = 2f; // the rule under the newest solve
   private static final float RULE_GAP_DP = 1.5f; // between the newest bar's foot and that rule
 
@@ -67,7 +67,7 @@ public class SessionBarsView extends View {
   public SessionBarsView(Context context, AttributeSet attrs) {
     super(context, attrs);
     float density = getResources().getDisplayMetrics().density;
-    cornerRadius = 1.5f * density;
+    cornerRadius = 2f * density;
     ruleStroke = RULE_STROKE_DP * density;
     footLift = ruleStroke + RULE_GAP_DP * density;
 
