@@ -98,7 +98,10 @@ public class SessionBarsView extends View {
     invalidate();
   }
 
-  /** The average the bars are measured against, or null while there is not one yet. */
+  /**
+   * The average the bars are measured against. Null until there are twelve solves for one, and the
+   * window's own mean stands in until then, so the line is there from the second solve on.
+   */
   public void setAverage(Long average) {
     this.average = (average != null && average > 0) ? average : null;
     invalidate();
@@ -114,6 +117,8 @@ public class SessionBarsView extends View {
     float slot = getWidth() / (float) Math.max(count, WINDOW);
     float barWidth = slot * (1f - BAR_GAP_FRACTION);
 
+    Long line = (average != null) ? average : meanOfWindow();
+
     long low = Long.MAX_VALUE;
     long high = Long.MIN_VALUE;
     for (Long time : times) {
@@ -122,15 +127,15 @@ public class SessionBarsView extends View {
         high = Math.max(high, time);
       }
     }
-    if (average != null) { // the line is part of the range, so it always lands inside the bars
-      low = Math.min(low, average);
-      high = Math.max(high, average);
+    if (line != null) { // the line is part of the range, so it always lands inside the bars
+      low = Math.min(low, line);
+      high = Math.max(high, line);
     }
     boolean scaled = low < high;
 
     // Behind the bars, so a bar that beats the average is one that stands above the line.
-    if (average != null && scaled) {
-      float y = floor * (1f - fraction(average, low, high, true));
+    if (line != null && scaled) {
+      float y = floor * (1f - fraction(line, low, high, true));
       canvas.drawLine(0, y, getWidth(), y, linePaint);
     }
 
@@ -156,6 +161,23 @@ public class SessionBarsView extends View {
           ruleStroke / 2f, ruleStroke / 2f, rulePaint);
       }
     }
+  }
+
+  /**
+   * What the bars are measured against before there is an average of 12 to measure them against:
+   * the mean of the solves in the window. A plain mean, not a trimmed one, since it stands in for
+   * an average rather than claiming to be it.
+   */
+  private Long meanOfWindow() {
+    long total = 0;
+    int counted = 0;
+    for (Long time : times) {
+      if (time != null && time > 0) {
+        total += time;
+        counted++;
+      }
+    }
+    return counted < 2 ? null : total / counted; // one solve has nothing to be measured against
   }
 
   /**
