@@ -56,8 +56,8 @@ import java.util.List;
  * arbitrary state: it seeds whenever the cube reports itself <em>solved</em> and rides the move
  * stream from there. That is no restriction in practice, because the timer already refuses to arm
  * until the cube is solved. Should a move be missed, the twin below notices (the cube sends its
- * whole state after every turn) and the cube on screen dims rather than lying, until the next
- * solved state re-seeds it.
+ * whole state after every turn) and the cube on screen is marked as stale rather than left to
+ * lie, until the next solved state re-seeds it.
  */
 public class LiveCubeView
     implements CubeConnectionListener, CubeMoveListener, CubeStateListener, GyroReferenceListener {
@@ -67,9 +67,6 @@ public class LiveCubeView
 
   /** Beyond this many moves since the seed, the alg is folded back into the setup (see compact). */
   private static final int COMPACT_AFTER_MOVES = 60;
-
-  /** How wrong the mirror looks when it knows it is wrong. */
-  private static final float DESYNCED_ALPHA = 0.3f;
 
   /** Show the cube anyway if the page's "ready" never arrives, rather than hide it for good. */
   private static final long READY_TIMEOUT_MS = 6000;
@@ -81,6 +78,7 @@ public class LiveCubeView
   private View topSpacer;
   private View cubeLayout;
   private View veil;
+  private View staleMark;
   private WebView webView;
   /** The document has run, so {@code window.ntLive*} exist and may be called. */
   private boolean pageLoaded;
@@ -99,10 +97,10 @@ public class LiveCubeView
   /**
    * Whether the cube on screen has ever been pointed at a state the physical one was really in.
    *
-   * <p>Until it has, there is nothing to show and nothing to dim: entering the timer with a
-   * scrambled cube used to draw a solved one at a third brightness, which is honest but reads as a
-   * grey film over the whole thing and lasts until the next solve. Showing nothing says the same
-   * thing without saying it in grey.
+   * <p>Until it has, there is nothing to show: entering the timer with a scrambled cube used to
+   * draw a solved one, which is a lie, and later drew it at a third brightness, which is honest but
+   * reads as a grey film over the whole thing and lasts until the next solve. Showing nothing says
+   * the same thing without saying it in grey.
    */
   private boolean seeded;
 
@@ -200,6 +198,7 @@ public class LiveCubeView
     pageReady = false;
     cubeLayout = null;
     veil = null;
+    staleMark = null;
     stub = null;
   }
 
@@ -352,6 +351,7 @@ public class LiveCubeView
       stub = null;
       webView = cubeLayout.findViewById(R.id.wvLiveCube);
       veil = cubeLayout.findViewById(R.id.liveCubeVeil);
+      staleMark = cubeLayout.findViewById(R.id.tvLiveCubeStale);
       setUpWebView();
     } catch (Throwable t) {
       // e.g. no WebView implementation installed. Said out loud: swallowed, this is a feature that
@@ -362,6 +362,7 @@ public class LiveCubeView
       webView = null;
       cubeLayout = null;
       veil = null;
+      staleMark = null;
     }
   }
 
@@ -427,7 +428,7 @@ public class LiveCubeView
   }
 
   /**
-   * Shown only with a cube connected, and dimmed when it knows it is wrong.
+   * Shown only with a cube connected, and marked rather than dimmed when it knows it is wrong.
    *
    * <p>⚠️ <b>INVISIBLE while the page comes up, never GONE.</b> A GONE WebView is never laid out,
    * so the player would be built into a 0×0 viewport and stay that size once shown — space on
@@ -446,13 +447,14 @@ public class LiveCubeView
     if (veil != null) {
       veil.setVisibility(obscured ? View.VISIBLE : View.GONE);
     }
+    if (staleMark != null) {
+      // Nothing to warn about behind the cover, which is already saying the cube cannot be read.
+      staleMark.setVisibility(!inSync && seeded && !obscured ? View.VISIBLE : View.GONE);
+    }
     if (topSpacer != null) {
       // The cube stands in the gap rather than above it: both weighted the same, so showing both
       // pushed the timer down and left the cube marooned at the top of the screen.
       topSpacer.setVisibility(connected ? View.GONE : View.VISIBLE);
-    }
-    if (webView != null) {
-      webView.setAlpha(inSync ? 1f : DESYNCED_ALPHA);
     }
   }
 

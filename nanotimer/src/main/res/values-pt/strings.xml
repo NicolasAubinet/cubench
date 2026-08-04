@@ -644,6 +644,7 @@
   <string name="smart_cube_resync_hint">Se o aplicativo acha que seu cubo está embaralhado quando não está, o cubo se perdeu. Resolva-o e toque abaixo.</string>
   <string name="smart_cube_resynced">Estado do cubo realinhado</string>
   <string name="live_cube_hidden_blind">Oculto para uma resolução às cegas</string>
+  <string name="live_cube_out_of_sync">Cubo dessincronizado</string>
   <string name="smart_cube_solve_first">Resolva seu cubo para começar</string>
   <string name="smart_cube_ready_to_solve">Pronto para resolver</string>
   <string name="smart_cube_solving">Resolução em andamento</string>

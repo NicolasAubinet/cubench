@@ -38,7 +38,6 @@
          android:tint="@color/secondary_text"
          android:contentDescription="@null"/> <!-- the line below says it -->
 
-
       <TextView
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
@@ -50,5 +49,23 @@
     </LinearLayout>
 
   </FrameLayout>
+
+  <!-- Said out loud when the mirror knows it is wrong, in place of the cube fading to a third of
+       its brightness: a cube nobody can read is worse than a cube with a note on it. Not clickable,
+       for the same reason as the cover above. -->
+  <TextView
+     android:id="@+id/tvLiveCubeStale"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_gravity="top|center_horizontal"
+     android:background="@drawable/smart_cube_pill"
+     android:paddingLeft="9dp"
+     android:paddingRight="9dp"
+     android:paddingTop="2dp"
+     android:paddingBottom="2dp"
+     android:text="@string/live_cube_out_of_sync"
+     android:textColor="@color/warning"
+     android:textSize="11sp"
+     android:visibility="gone"/>
 
 </FrameLayout>
