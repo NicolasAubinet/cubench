@@ -15,7 +15,6 @@ public enum Options {
   public enum ClockNotation { UUdU_x_x, UUdd_ux_dx, URx_DRx_DLx }
   public enum RecordNotificationMode { ANY, PB_ONLY, NEVER }
   public enum CrossNeutrality { SPECIFIC, DUAL, FULL }
-  public enum SessionTimesColoring { BEST_WORST, ALL_DISPLAYED, MATCH_HISTORY, NONE }
   public enum SessionTimesDisplay { BARS, TIMES }
   public enum TimerFontSize { SMALL, MEDIUM, LARGE }
 
@@ -32,7 +31,6 @@ public enum Options {
   public static final String KEEP_TIMER_SCREEN_ON_KEY = "keep_timer_screen_on";
   public static final String HIGH_PRECISION_TIMER_KEY = "high_precision_timer";
   public static final String COLOR_SAMPLE_SIZE_KEY = "color_sample_size";
-  public static final String SESSION_TIMES_COLORING_KEY = "session_times_coloring";
   public static final String SESSION_TIMES_DISPLAY_KEY = "session_times_display";
   public static final String BIG_CUBES_NOTATION_KEY = "big_cubes_notation";
   public static final String CLOCK_NOTATION_SYSTEM_KEY = "clock_notation";
@@ -152,22 +150,6 @@ public enum Options {
   public int getColorSampleSize() {
     Integer defaultValue = context.getResources().getInteger(R.integer.color_sample_size);
     return sharedPreferences.getInt(COLOR_SAMPLE_SIZE_KEY, defaultValue);
-  }
-
-  public SessionTimesColoring getSessionTimesColoring() {
-    int mode = Integer.parseInt(sharedPreferences.getString(SESSION_TIMES_COLORING_KEY, "-1"));
-    switch (mode) {
-      case 1:
-        return SessionTimesColoring.BEST_WORST;
-      case 2:
-        return SessionTimesColoring.ALL_DISPLAYED;
-      case 3:
-        return SessionTimesColoring.MATCH_HISTORY;
-      case 4:
-        return SessionTimesColoring.NONE;
-      default:
-        return SessionTimesColoring.ALL_DISPLAYED;
-    }
   }
 
   public SessionTimesDisplay getSessionTimesDisplay() {

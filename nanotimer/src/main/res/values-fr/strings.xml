@@ -128,12 +128,6 @@
   <string name="timer_font_size_small">Petite</string>
   <string name="timer_font_size_medium">Moyenne</string>
   <string name="timer_font_size_big">Grande</string>
-  <string name="session_times_coloring">Colorer les derniers temps</string>
-  <string name="session_times_coloring_summary">Comment colorer les 12 derniers temps sur l\'écran du chronomètre</string>
-  <string name="session_coloring_best_worst">Meilleur et pire seulement</string>
-  <string name="session_coloring_all_displayed">Relatif aux 12 derniers</string>
-  <string name="session_coloring_match_history">Comme l\'historique</string>
-  <string name="session_coloring_none">Aucune</string>
   <string name="session_times_display">Afficher les derniers temps en</string>
   <string name="session_times_display_summary">Barres ou temps, pour les 12 derniers sur l\'écran du chronomètre</string>
   <string name="session_display_bars">Barres</string>

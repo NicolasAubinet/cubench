@@ -132,12 +132,6 @@
   <string name="timer_font_size_small">Small</string>
   <string name="timer_font_size_medium">Medium</string>
   <string name="timer_font_size_big">Big</string>
-  <string name="session_times_coloring">Color last solves</string>
-  <string name="session_times_coloring_summary">How to color the last 12 solves on the timer screen</string>
-  <string name="session_coloring_best_worst">Best and worst only</string>
-  <string name="session_coloring_all_displayed">Relative to last 12</string>
-  <string name="session_coloring_match_history">Match history colors</string>
-  <string name="session_coloring_none">None</string>
   <string name="session_times_display">Show last solves as</string>
   <string name="session_times_display_summary">Bars or times, for the last 12 on the timer screen</string>
   <string name="session_display_bars">Bars</string>

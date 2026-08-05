@@ -128,12 +128,6 @@
   <string name="timer_font_size_small">Pequeño</string>
   <string name="timer_font_size_medium">Mediano</string>
   <string name="timer_font_size_big">Grande</string>
-  <string name="session_times_coloring">Colorear últimos tiempos</string>
-  <string name="session_times_coloring_summary">Cómo colorear los últimos 12 tiempos en la pantalla del temporizador</string>
-  <string name="session_coloring_best_worst">Solo mejor y peor</string>
-  <string name="session_coloring_all_displayed">Relativo a los últimos 12</string>
-  <string name="session_coloring_match_history">Como el historial</string>
-  <string name="session_coloring_none">Ninguno</string>
   <string name="session_times_display">Mostrar últimos tiempos como</string>
   <string name="session_times_display_summary">Barras o tiempos, para los últimos 12 en la pantalla del temporizador</string>
   <string name="session_display_bars">Barras</string>

@@ -118,7 +118,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private FocusDot focusDot;
   private TableLayout sessionTimesLayout;
   private SessionBarsView sessionBars;
-  private int sessionTimeColor; // the grid's own text colour, which an uncoloured bar takes too
   private TextView tvVerdictChip;
 
   /** The statistics cell each record belongs to, by {@link RecordInfo#priority}. */
@@ -483,7 +482,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     focusDot.setColor(getResources().getColor(identityColor()));
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
     sessionBars = (SessionBarsView) findViewById(R.id.sessionBars);
-    sessionTimeColor = getSessionTextView(0).getCurrentTextColor(); // read before any is recoloured
     tvVerdictChip = (TextView) findViewById(R.id.tvVerdictChip);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
     stepBreakdown = findViewById(R.id.stepBreakdown);
@@ -1210,24 +1208,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           sessionBars.setTimes(sessionTimes, new int[0], null);
           return;
         }
-        switch (Options.INSTANCE.getSessionTimesColoring()) {
-          case BEST_WORST:
-            showSessionTimes(sessionTimes, bestWorstColors(sessionTimes));
-            break;
-          case ALL_DISPLAYED: {
-            // Each of the 12 ranked among the 12.
-            TimeColorScale scale = new TimeColorScale(TimerActivity.this);
-            scale.setTimes(sessionTimes, false);
-            showSessionTimes(sessionTimes, scaleColors(sessionTimes, scale));
-            break;
-          }
-          case MATCH_HISTORY:
-            colorSessionMatchHistory();
-            break;
-          case NONE:
-            showSessionTimes(sessionTimes, plainColors(sessionTimes));
-            break;
-        }
+        TimeColorScale scale = new TimeColorScale(TimerActivity.this);
+        scale.setTimes(sessionTimes, false);
+        showSessionTimes(sessionTimes, scaleColors(sessionTimes, scale));
       }
     });
   }
@@ -1240,34 +1223,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     sessionBars.setTimes(sessionTimes, colors, cubeSession.getDnfTimes());
   }
 
-  // Classic coloring: only the best (green) and worst (red) of the session stand out.
-  private int[] bestWorstColors(List<Long> sessionTimes) {
-    int bestInd = cubeSession.getBestTimeInd(solveType.isBlind());
-    int worstInd = cubeSession.getWorstTimeInd(solveType.isBlind());
-    int[] colors = new int[sessionTimes.size()];
-    for (int i = 0; i < colors.length; i++) {
-      if (sessionTimes.get(i) < 0) {
-        colors[i] = getResources().getColor(R.color.dnf_time);
-      } else if (i == bestInd) {
-        colors[i] = getResources().getColor(R.color.green);
-      } else if (i == worstInd) {
-        colors[i] = getResources().getColor(R.color.red);
-      } else {
-        colors[i] = sessionTimeColor;
-      }
-    }
-    return colors;
-  }
-
-  // No coloring: every time in the default color, except a DNF, grayed out as it is everywhere.
-  private int[] plainColors(List<Long> sessionTimes) {
-    int[] colors = new int[sessionTimes.size()];
-    for (int i = 0; i < colors.length; i++) {
-      colors[i] = sessionTimes.get(i) < 0 ? getResources().getColor(R.color.dnf_time) : sessionTimeColor;
-    }
-    return colors;
-  }
-
   // Gradient coloring (green=fast → white=median → red=slow) against the given scale.
   private int[] scaleColors(List<Long> sessionTimes, TimeColorScale scale) {
     int[] colors = new int[sessionTimes.size()];
@@ -1276,28 +1231,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       colors[i] = scale.colorFor(time, time < 0);
     }
     return colors;
-  }
-
-  // Builds the gradient from the same recent-solves window the history screen uses, then
-  // colors the displayed session times against it (async DB fetch).
-  private void colorSessionMatchHistory() {
-    App.INSTANCE.getService().getLastSolveTimes(solveType, Options.INSTANCE.getColorSampleSize(), new DataCallback<List<Long>>() {
-      @Override
-      public void onData(final List<Long> historyTimes) {
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            if (cubeSession == null) {
-              return;
-            }
-            TimeColorScale scale = new TimeColorScale(TimerActivity.this);
-            scale.setTimes(historyTimes);
-            List<Long> sessionTimes = cubeSession.getTimes();
-            showSessionTimes(sessionTimes, scaleColors(sessionTimes, scale));
-          }
-        });
-      }
-    });
   }
 
   private void clearSessionTextViews() {

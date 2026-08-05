@@ -55,15 +55,6 @@
        android:dialogTitle="@string/session_times_display"
        android:defaultValue="1"/>
 
-    <ListPreference
-       android:key="session_times_coloring"
-       android:title="@string/session_times_coloring"
-       android:summary="@string/session_times_coloring_summary"
-       android:entries="@array/entries_session_times_coloring"
-       android:entryValues="@array/entryvalues_session_times_coloring"
-       android:dialogTitle="@string/session_times_coloring"
-       android:defaultValue="2"/>
-
   </PreferenceCategory>
 
   <PreferenceCategory

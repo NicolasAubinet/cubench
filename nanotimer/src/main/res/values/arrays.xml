@@ -44,18 +44,6 @@
     <item>2</item>
     <item>3</item>
   </string-array>
-  <string-array name="entries_session_times_coloring">
-    <item>@string/session_coloring_best_worst</item>
-    <item>@string/session_coloring_all_displayed</item>
-    <item>@string/session_coloring_match_history</item>
-    <item>@string/session_coloring_none</item>
-  </string-array>
-  <string-array name="entryvalues_session_times_coloring">
-    <item>1</item>
-    <item>2</item>
-    <item>3</item>
-    <item>4</item>
-  </string-array>
   <string-array name="entries_session_times_display">
     <item>@string/session_display_bars</item>
     <item>@string/session_display_times</item>
