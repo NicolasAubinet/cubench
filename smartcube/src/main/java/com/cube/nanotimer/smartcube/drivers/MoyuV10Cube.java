@@ -303,6 +303,16 @@ final class MoyuV10Cube implements SmartCube {
     notifyState(state); // the screens track the cube by its state stream, so the realignment must show
   }
 
+  /**
+   * The V10 keeps its own state and no reset opcode is known for it: the ported csTimer spec has
+   * only info, status and power. {@link #syncState} therefore moves this model alone, and the cube
+   * hands its own state back on the next connect.
+   */
+  @Override
+  public boolean supportsStateReset() {
+    return false;
+  }
+
   @Override
   public void resetGyro() {
     // The V10 gyro/orientation-reset opcode is not yet reverse-engineered. No-op for now.

@@ -68,6 +68,13 @@ public interface SmartCube {
   /** Tell the tracker the cube is now in {@code state} (e.g. solved by hand). */
   void syncState(CubeState state);
 
+  /**
+   * Whether {@link #syncState} reaches the cube itself rather than only this app's model of it. A
+   * cube that cannot be told keeps its own idea of where it is and hands it back on every connect,
+   * so a drift there has to be corrected on this side instead.
+   */
+  boolean supportsStateReset();
+
   /** Re-zero the gyroscope orientation reference (where supported). */
   void resetGyro();
 

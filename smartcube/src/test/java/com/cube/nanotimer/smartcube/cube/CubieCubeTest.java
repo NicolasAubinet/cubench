@@ -142,6 +142,41 @@ public class CubieCubeTest {
   }
 
   @Test
+  public void inverseUndoesTheStateItCameFrom() {
+    for (String seq : VECTORS.keySet()) {
+      CubieCube c = scramble(seq);
+      assertTrue("scramble \"" + seq + "\"", c.inverse().multiply(c).isSolved());
+      assertTrue("scramble \"" + seq + "\"", c.multiply(c.inverse()).isSolved());
+    }
+  }
+
+  @Test
+  public void inverseOfAnInverseIsTheOriginal() {
+    CubieCube c = scramble("R U2 F' L D B2 R' U L2 F");
+    assertEquals(c, c.inverse().inverse());
+  }
+
+  @Test
+  public void multiplyByASingleMoveMatchesApplyingIt() {
+    CubieCube moved = scramble("R U2 F'");
+    moved.applyMove(Face.L, false);
+    assertEquals(moved, scramble("R U2 F'").multiply(scramble("L")));
+  }
+
+  /** The whole of the drift correction: a common suffix of turns cancels out of {@code a · b⁻¹}. */
+  @Test
+  public void differenceBetweenTwoStatesSurvivesTheSameTurnsOnBoth() {
+    CubieCube real = scramble("U R2 F");
+    CubieCube reported = scramble("B L' D2");
+    CubieCube difference = real.multiply(reported.inverse());
+    for (String mv : "R U2 F' L D B2 R' U L2 F".split(" ")) {
+      real = real.multiply(scramble(mv));
+      reported = reported.multiply(scramble(mv));
+      assertEquals("after " + mv, difference, real.multiply(reported.inverse()));
+    }
+  }
+
+  @Test
   public void moveIndexMapsFacesToUrfdlbOrderedTable() {
     assertEquals(0, CubieCube.moveIndex(Face.U, false));
     assertEquals(2, CubieCube.moveIndex(Face.U, true));

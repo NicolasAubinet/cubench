@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.smartcube.SmartCube;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
@@ -59,6 +60,7 @@ public enum SmartCubeManager {
   private volatile CubeConnection connection = CubeConnection.DISCONNECTED;
   private volatile Integer battery;
   private volatile CubeState currentState;
+  private volatile CubeStateCorrection correction = CubeStateCorrection.none();
 
   // One reference for every reader of the gyro: the frames, the live mirror and the stored track.
   private final GyroReference gyroReference = new GyroReference();
@@ -145,11 +147,32 @@ public enum SmartCubeManager {
    */
   public void syncSolved() {
     SmartCube current = cube;
-    if (current != null) {
-      // "My cube is solved" says how the cube is held as much as how it is turned: the grip at the
-      // press is the one to square the mirror to and to measure every later frame from.
-      reanchorGyro();
+    if (current == null) {
+      return;
+    }
+    // "My cube is solved" says how the cube is held as much as how it is turned: the grip at the
+    // press is the one to square the mirror to and to measure every later frame from.
+    reanchorGyro();
+    if (current.supportsStateReset()) {
+      setCorrection(CubeStateCorrection.none()); // the cube can be told, so nothing is left to correct
       bleExecutor.execute(() -> current.syncState(new CubeState(CubeState.SOLVED_FACELETS)));
+      return;
+    }
+    // Nothing to tell the cube, so measure how far out it is and correct it from here instead.
+    // Deliberately not realigning the cube's own model as well: it would then no longer be reporting
+    // from its own anchor, and the correction measured against that anchor would land twice.
+    CubeState reported = current.getCurrentState();
+    setCorrection(CubeStateCorrection.capturedFrom(reported));
+    publishState(correction.apply(reported));
+  }
+
+  private void setCorrection(CubeStateCorrection newCorrection) {
+    correction = newCorrection;
+    DiscoveredCube device = connectedDevice;
+    // A cube reached without its MAC (a manual pairing that never learnt one) still gets corrected
+    // for as long as it stays connected; there is just no key to store the correction under.
+    if (device != null && device.getMacAddress() != null) {
+      Options.INSTANCE.setSmartCubeStateOffset(device.getMacAddress(), newCorrection.getFacelets());
     }
   }
 
@@ -341,7 +364,9 @@ public enum SmartCubeManager {
   private void wireCube(DiscoveredCube device, SmartCube connected) {
     cube = connected;
     connectedDevice = device;
-    currentState = connected.getCurrentState();
+    correction = device.getMacAddress() == null ? CubeStateCorrection.none()
+        : CubeStateCorrection.stored(Options.INSTANCE.getSmartCubeStateOffset(device.getMacAddress()));
+    currentState = correction.apply(connected.getCurrentState());
     battery = connected.getBatteryLevel();
     connected.addConnectionListener(this::onCubeConnection);
     connected.addBatteryListener(this::onCubeBattery);
@@ -357,6 +382,7 @@ public enum SmartCubeManager {
     connectedDevice = null;
     battery = null;
     currentState = null;
+    correction = CubeStateCorrection.none();
     if (toDisconnect != null) {
       try {
         toDisconnect.disconnect();
@@ -382,7 +408,12 @@ public enum SmartCubeManager {
     });
   }
 
+  /** Every state a cube reports passes through the correction, so no consumer has to know of one. */
   private void onCubeState(CubeState state) {
+    publishState(correction.apply(state));
+  }
+
+  private void publishState(CubeState state) {
     currentState = state;
     mainHandler.post(() -> {
       for (CubeStateListener listener : stateListeners) {

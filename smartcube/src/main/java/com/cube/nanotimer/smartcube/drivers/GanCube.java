@@ -297,6 +297,12 @@ final class GanCube implements SmartCube {
     notifyState(state); // the screens track the cube by its state stream, so the realignment must show
   }
 
+  /** Every GAN generation takes the reset opcode. */
+  @Override
+  public boolean supportsStateReset() {
+    return true;
+  }
+
   @Override
   public void resetGyro() {
     // No GAN generation exposes a gyro-reset opcode. No-op.

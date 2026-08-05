@@ -197,6 +197,28 @@ public final class CubieCube {
     }
   }
 
+  /**
+   * This state applied on top of {@code other}: where {@code other} puts a piece in a slot, the
+   * result puts the piece this one has in that slot, twists added.
+   */
+  public CubieCube multiply(CubieCube other) {
+    CubieCube product = new CubieCube();
+    cubeMult(this, other, product);
+    return product;
+  }
+
+  /** The state that undoes this one: {@code inverse().multiply(this)} is solved. */
+  public CubieCube inverse() {
+    CubieCube inverted = new CubieCube();
+    for (int corner = 0; corner < 8; corner++) {
+      inverted.ca[ca[corner] & 7] = corner | (((3 - (ca[corner] >> 3)) % 3) << 3);
+    }
+    for (int edge = 0; edge < 12; edge++) {
+      inverted.ea[ea[edge] >> 1] = (edge << 1) | (ea[edge] & 1);
+    }
+    return inverted;
+  }
+
   /** Apply a single quarter turn in place. */
   public void applyMove(Face face, boolean prime) {
     CubieCube tmp = new CubieCube();
