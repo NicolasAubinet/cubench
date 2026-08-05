@@ -3,6 +3,7 @@ package com.cube.nanotimer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import com.cube.nanotimer.util.view.HeroStat;
 import com.cube.nanotimer.util.view.TimerFont;
 import com.cube.nanotimer.vo.CubeMethod;
 
@@ -39,6 +40,7 @@ public enum Options {
   public static final String CROSS_NEUTRALITY_KEY = "cross_neutrality";
   public static final String CROSS_FACE_KEY = "cross_face";
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
+  public static final String HERO_STAT_KEY_PREFIX = "hero_stat_";
   public static final String REPLAY_SHOW_GYRO_KEY = "replay_show_gyro";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
@@ -222,6 +224,33 @@ public enum Options {
 
   public void setCrossFaceIndex(int faceIndex) {
     sharedPreferences.edit().putInt(CROSS_FACE_KEY, faceIndex).apply();
+  }
+
+  /**
+   * Which statistic one of the history card's three cells shows. Set by tapping the cell rather
+   * than from the preference screen, and kept per kind of solve type: a blind card wants its
+   * success rate where a sighted one wants an average, and neither should follow the other.
+   *
+   * @param cell 0, 1 or 2, left to right
+   */
+  public HeroStat getHeroStat(int cell, boolean blind) {
+    String stored = sharedPreferences.getString(heroStatKey(cell, blind), null);
+    if (stored != null) {
+      try {
+        return HeroStat.valueOf(stored);
+      } catch (IllegalArgumentException e) {
+        // A statistic that no longer exists: fall through to the default rather than crash.
+      }
+    }
+    return HeroStat.defaultFor(cell, blind);
+  }
+
+  public void setHeroStat(int cell, boolean blind, HeroStat stat) {
+    sharedPreferences.edit().putString(heroStatKey(cell, blind), stat.name()).apply();
+  }
+
+  private String heroStatKey(int cell, boolean blind) {
+    return HERO_STAT_KEY_PREFIX + (blind ? "blind_" : "") + cell;
   }
 
   // Whether the solve breakdown shows the moves of each step. Not a preference screen entry: it is

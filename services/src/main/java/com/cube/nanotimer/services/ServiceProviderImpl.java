@@ -441,14 +441,7 @@ public class ServiceProviderImpl implements ServiceProvider {
   public SolveAverages getSolveAverages(SolveType solveType) {
     syncCaches(solveType);
     SolveAverages solveAverages = new SolveAverages();
-    if (solveType.hasSteps()) {
-      setStepsAverages(solveAverages, solveType);
-      // The splits are what the timer screen reads, but the solve still has a total, and the
-      // history screen states it.
-      solveAverages.setAvgOf5(getLastAvg(5));
-      solveAverages.setAvgOf12(getLastAvg(12));
-      solveAverages.setAvgOf50(getLastAvg(50));
-    } else if (solveType.isBlind()) {
+    if (solveType.isBlind()) {
       solveAverages.setMeanOf3(getLastMean(3));
       solveAverages.setBestOf3(cachedBestAverages.get(5)); // DB column avg5 contains the mean of 3 for blind
       Long[] averages = getSuccessAverages(new int[] { 12, 50, 100 });
@@ -473,6 +466,11 @@ public class ServiceProviderImpl implements ServiceProvider {
       solveAverages.setBestOf50(cachedBestAverages.get(50));
       solveAverages.setBestOf100(cachedBestAverages.get(100));
       solveAverages.setBestOfLifetime(cachedLifetimeBest);
+    }
+    // The splits are what the timer screen reads of a solve type timed in steps, but the solve
+    // still has a total, and the history screen states it, so the totals above are filled either way.
+    if (solveType.hasSteps()) {
+      setStepsAverages(solveAverages, solveType);
     }
     return solveAverages;
   }

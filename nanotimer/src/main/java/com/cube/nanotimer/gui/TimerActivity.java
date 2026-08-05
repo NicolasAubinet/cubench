@@ -78,6 +78,7 @@ import com.cube.nanotimer.util.view.DigitalTextView;
 import com.cube.nanotimer.util.view.EnterAnimation;
 import com.cube.nanotimer.util.view.FocusDot;
 import com.cube.nanotimer.util.view.FocusTransition;
+import com.cube.nanotimer.util.view.HeroStat;
 import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
@@ -702,14 +703,23 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     findViewById(R.id.tvBestMeanOfThree).setVisibility(blind ? View.VISIBLE : View.GONE);
 
     ((TextView) findViewById(R.id.tvStatKeyOne)).setText(blind ? R.string.mo3_label : R.string.ao5_label);
-    ((TextView) findViewById(R.id.tvStatKeyTwo)).setText(R.string.ao12_label);
-    ((TextView) findViewById(R.id.tvStatKeyThree)).setText(R.string.ao50_label);
-    ((TextView) findViewById(R.id.tvStatKeyFour)).setText(R.string.ao100_label);
+    ((TextView) findViewById(R.id.tvStatKeyTwo)).setText(avgKey(R.string.ao12_label, blind));
+    ((TextView) findViewById(R.id.tvStatKeyThree)).setText(avgKey(R.string.ao50_label, blind));
+    ((TextView) findViewById(R.id.tvStatKeyFour)).setText(avgKey(R.string.ao100_label, blind));
 
     if (steps) {
       solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
       stepSplits.setStepNames(stepNames());
     }
+  }
+
+  /**
+   * A blind average is taken over the solver's successes, a sighted one over the last N solves
+   * whatever they were. They are not the same statistic, so the blind one is marked; the Mo3 beside
+   * it is not, since one DNF still makes it a DNF.
+   */
+  private String avgKey(int labelRes, boolean blind) {
+    return getString(labelRes) + (blind ? HeroStat.SUCCESSES_MARK : "");
   }
 
   /** Which of the two session strips is on. A solve type with steps takes neither. */

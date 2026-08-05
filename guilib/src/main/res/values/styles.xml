@@ -129,7 +129,7 @@
   </style>
 
   <!-- History screen hero card. Same rule as the timer's cells, in dp: what it is, then the
-       value, with the meaning of the third cell set by the solve type. -->
+       value, with each cell set to whichever statistic the user picked for it. -->
   <style name="HeroStatKey">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>

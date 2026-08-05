@@ -61,6 +61,19 @@
 
   </LinearLayout>
 
+  <!-- Whatever has to be said about the whole list rather than about one row of it. -->
+  <TextView
+     android:id="@+id/tvHeaderNote"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:paddingLeft="18dp"
+     android:paddingRight="18dp"
+     android:paddingBottom="14dp"
+     android:textSize="12sp"
+     android:lineSpacingExtra="2dp"
+     android:textColor="@color/secondary_text"
+     android:visibility="gone"/>
+
   <View
      android:layout_width="match_parent"
      android:layout_height="1dp"

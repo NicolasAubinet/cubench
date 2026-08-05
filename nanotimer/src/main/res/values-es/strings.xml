@@ -715,6 +715,12 @@
   <string name="today">Hoy</string>
   <string name="yesterday">Ayer</string>
   <string name="acc_label">Prec</string>
+  <string name="acc12_label">Prec12</string>
+  <string name="acc50_label">Prec50</string>
+  <string name="acc100_label">Prec100</string>
+  <string name="mean_label">Media</string>
+  <string name="stat_to_show">Estadística</string>
+  <string name="blind_averages_note">Aquí una media solo cuenta los éxitos: un DNF se deja fuera en vez de contar en su contra. La precisión es la que refleja los fallos.</string>
   <string name="time_just_now">ahora mismo</string>
   <string name="time_minutes_ago">hace %1$d min</string>
 
