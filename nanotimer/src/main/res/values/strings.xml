@@ -719,14 +719,14 @@
   <string name="ao50_label">Ao50</string>
   <string name="ao100_label">Ao100</string>
   <string name="mo3_label">Mo3</string>
-  <string name="mean_label">Mean</string>
+  <string name="mean_label">Mean all</string>
 
   <!-- History screen -->
   <string name="history_empty">No solves yet. Press Start to time one.</string>
   <string name="window_last_n">last %1$d</string>
   <string name="today">Today</string>
   <string name="yesterday">Yesterday</string>
-  <string name="acc_label">Acc</string>
+  <string name="acc_label">Acc all</string>
   <string name="acc12_label">Acc12</string>
   <string name="acc50_label">Acc50</string>
   <string name="acc100_label">Acc100</string>
