@@ -63,6 +63,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
@@ -802,11 +803,14 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * rotation inside a single F2L pair, say.
    *
    * <p>Moves that undid each other are greyed too and struck through on top of it: they were
-   * turned and they cost time, so they are shown, but the alg is what is left standing.
+   * turned and they cost time, so they are shown, but the alg is what is left standing. A pair is
+   * struck only where this row holds both halves of it, so what is crossed out here always reads as
+   * one run — see {@link SolveSolution#cancelledIn}.
    */
   private CharSequence dim(List<List<SolveSolution.Token>> groups) {
     SpannableStringBuilder text = new SpannableStringBuilder();
     int color = ContextCompat.getColor(getActivity(), R.color.gray600);
+    Set<SolveSolution.Token> cancelled = SolveSolution.cancelledIn(groups);
     for (List<SolveSolution.Token> group : groups) {
       if (group.isEmpty()) { // a part built with no move of its own would show as a stray separator
         continue;
@@ -821,11 +825,12 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         }
         int start = text.length();
         text.append(token.getNotation());
-        if (token.isCancelled()) {
+        boolean struck = cancelled.contains(token);
+        if (struck) {
           text.setSpan(new StrikethroughSpan(), start, text.length(),
               Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        if (token.isCancelled() || SolveMovesFormat.isRotation(token.getNotation())) {
+        if (struck || SolveMovesFormat.isRotation(token.getNotation())) {
           text.setSpan(new ForegroundColorSpan(color), start, text.length(),
               Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }

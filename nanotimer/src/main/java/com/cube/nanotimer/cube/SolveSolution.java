@@ -5,7 +5,9 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * What the solver actually did, rebuilt from the stored moves and the step durations: the moves of
@@ -20,7 +22,8 @@ import java.util.List;
  * shows them spent instead of pretending they never happened. The marking runs on the displayed
  * tokens, after the slices, the wides and the half turns have been folded, so {@code M M'} and
  * {@code r r'} fall out of it for free. Only whole cancellations count: {@code R2 R'} is left
- * standing, since half of a move is not something that can be crossed out.
+ * standing, since half of a move is not something that can be crossed out. Which of them a given
+ * row may draw is {@link #cancelledIn}'s business.
  */
 public final class SolveSolution {
 
@@ -312,7 +315,7 @@ public final class SolveSolution {
   public static final class Token {
 
     private final String notation;
-    private boolean cancelled;
+    private Token partner;
 
     private Token(String notation) {
       this.notation = notation;
@@ -321,20 +324,37 @@ public final class SolveSolution {
     public String getNotation() {
       return notation;
     }
-
-    /** Whether this move and one other undid each other, leaving the cube where they found it. */
-    public boolean isCancelled() {
-      return cancelled;
-    }
   }
 
   /**
-   * Marks the moves that undid each other, over the whole solution at once.
+   * The moves to strike out of {@code groups}: the cancelled ones whose partner is shown beside
+   * them. A strike says these moves and the ones between them came to nothing, so a pair split
+   * between two rows must not be drawn — the half in each row would be claiming that of moves it
+   * never touched. The pair is still struck wherever both halves are shown together, which for two
+   * parts of a step is the step's own row.
+   */
+  public static Set<Token> cancelledIn(List<List<Token>> groups) {
+    Set<Token> shown = new HashSet<Token>();
+    for (List<Token> group : groups) {
+      shown.addAll(group);
+    }
+    Set<Token> cancelled = new HashSet<Token>();
+    for (Token token : shown) {
+      if (token.partner != null && shown.contains(token.partner)) {
+        cancelled.add(token);
+      }
+    }
+    return cancelled;
+  }
+
+  /**
+   * Pairs the moves that undid each other, over the whole solution at once.
    *
-   * <p>Push each token; when it inverts the one on top, the pair is spent, so both are marked and
-   * the one below comes back into reach. Nesting needs no case of its own: {@code R U F F' U' R'}
+   * <p>Push each token; when it inverts the one on top, the pair is spent, so the two are married
+   * and the one below comes back into reach. Nesting needs no case of its own: {@code R U F F' U' R'}
    * collapses from the inside out. Nothing is moved or removed, which is what lets this run across
-   * the step and part boundaries the moves were already split at.
+   * the step and part boundaries the moves were already split at — where a pair lands only decides
+   * which rows can draw it, not whether it happened.
    */
   private static void markCancelled(List<Step> steps) {
     List<Token> stack = new ArrayList<Token>();
@@ -343,8 +363,8 @@ public final class SolveSolution {
         for (Token token : group) {
           int top = stack.size() - 1;
           if (top >= 0 && inverts(stack.get(top).getNotation(), token.getNotation())) {
-            stack.remove(top).cancelled = true;
-            token.cancelled = true;
+            token.partner = stack.remove(top);
+            token.partner.partner = token;
           } else {
             stack.add(token);
           }

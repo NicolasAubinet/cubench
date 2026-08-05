@@ -469,14 +469,33 @@ public class SolveSolutionTest {
     assertEquals("R2 R'", marked(moves("R@0", "R@100", "R'@200")));
   }
 
-  /** A milestone is not a barrier: the pair undid each other whichever steps they landed in. */
+  /**
+   * A pair split between two rows is left standing in both. Neither row can show it come to
+   * nothing, and a lone strike at the edge of one reads as being about the moves beside it — which
+   * is how a comm ends up looking cancelled by its neighbours' setups.
+   */
   @Test
-  public void cancelsAcrossAStepBoundary() {
+  public void leavesAPairSplitBetweenTwoRowsStanding() {
     SolveSolution solution = SolveSolution.from(moves("R@50", "R'@200"),
         Arrays.asList(step("cross", 0, 100), step("f2l", 0, 900)));
 
-    assertEquals("~R~", MarkedMoves.of(solution.getSteps().get(0)));
-    assertEquals("~R'~", MarkedMoves.of(solution.getSteps().get(1)));
+    assertEquals("R", MarkedMoves.of(solution.getSteps().get(0)));
+    assertEquals("R'", MarkedMoves.of(solution.getSteps().get(1)));
+  }
+
+  /**
+   * The same pair split between two <em>parts</em>: struck on the step's own row, which holds both
+   * halves, and left standing on each part's row, which holds one.
+   */
+  @Test
+  public void strikesAPairSplitBetweenTwoPartsOnTheirStepsRow() {
+    SolveSolution solution = SolveSolution.from(moves("U@50", "U'@200"),
+        Arrays.asList(step("edges", 0, 1000, step("UF-UB-DL", 0, 100), step("UF-LB-BU", 0, 900))));
+    SolveSolution.Step step = solution.getSteps().get(0);
+
+    assertEquals("~U~ ~U'~", MarkedMoves.of(step));
+    assertEquals("U", MarkedMoves.ofPart(step, 0));
+    assertEquals("U'", MarkedMoves.ofPart(step, 1));
   }
 
   /** Counting them is the point: they were turned, so they cost time like any other move. */
