@@ -720,7 +720,7 @@
   <string name="acc100_label">Prec100</string>
   <string name="mean_label">Media</string>
   <string name="stat_to_show">Estadística</string>
-  <string name="blind_averages_note">Aquí una media solo cuenta los éxitos: un DNF se deja fuera en vez de contar en su contra. La precisión es la que refleja los fallos.</string>
+  <string name="blind_averages_note">Aquí una media solo cuenta los éxitos: un DNF se deja fuera en vez de contar en su contra.</string>
   <string name="time_just_now">ahora mismo</string>
   <string name="time_minutes_ago">hace %1$d min</string>
 

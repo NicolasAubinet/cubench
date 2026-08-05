@@ -721,7 +721,7 @@
   <string name="acc100_label">Préc100</string>
   <string name="mean_label">Moy</string>
   <string name="stat_to_show">Statistique</string>
-  <string name="blind_averages_note">Une moyenne ne compte ici que les réussites : un DNF est écarté plutôt que compté contre elle. Ce sont les précisions qui rendent compte des échecs.</string>
+  <string name="blind_averages_note">Une moyenne ne compte ici que les réussites : un DNF est écarté plutôt que compté contre elle.</string>
   <string name="time_just_now">à l\'instant</string>
   <string name="time_minutes_ago">il y a %1$d min</string>
 

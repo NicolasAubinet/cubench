@@ -731,7 +731,7 @@
   <string name="acc50_label">Acc50</string>
   <string name="acc100_label">Acc100</string>
   <string name="stat_to_show">Statistic</string>
-  <string name="blind_averages_note">An average here counts your successes only: a DNF is left out rather than counted against it. The accuracy is where the misses show.</string>
+  <string name="blind_averages_note">An average here counts your successes only: a DNF is left out rather than counted against it.</string>
   <string name="time_just_now">just now</string>
   <string name="time_minutes_ago">%1$d min ago</string>
 

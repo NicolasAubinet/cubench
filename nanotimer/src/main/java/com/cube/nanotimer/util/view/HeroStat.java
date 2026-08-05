@@ -30,13 +30,6 @@ public enum HeroStat {
   ACC100(R.string.acc100_label),
   ACC_ALL(R.string.acc_label);
 
-  /**
-   * What marks an average a blind solve type takes over its successes only. A sighted average is
-   * over the last N solves whatever they were, so the two are not the same statistic and must not
-   * wear the same label.
-   */
-  public static final String SUCCESSES_MARK = "*";
-
   private final int labelRes;
 
   HeroStat(int labelRes) {
@@ -85,10 +78,9 @@ public enum HeroStat {
     }
   }
 
-  /** The cell's key, marked where the average is over successes only. */
-  public String label(Context context, SolveType solveType) {
-    String label = context.getString(labelRes);
-    return solveType.isBlind() && overSuccessesOnly() ? label + SUCCESSES_MARK : label;
+  /** The cell's key. */
+  public String label(Context context) {
+    return context.getString(labelRes);
   }
 
   /** The cell's value, or N/A where there are not enough solves for it yet. */
@@ -128,10 +120,5 @@ public enum HeroStat {
       default:
         return averages.getBestOfLifetime();
     }
-  }
-
-  // The Mo3 is not one of these: a single DNF makes it a DNF, the way a blind mean is meant to work.
-  private boolean overSuccessesOnly() {
-    return this == AO12 || this == AO50 || this == AO100;
   }
 }

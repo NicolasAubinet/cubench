@@ -670,7 +670,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     boolean blind = curSolveType.isBlind();
     for (int cell = 0; cell < STAT_CELL_IDS.length; cell++) {
       HeroStat stat = Options.INSTANCE.getHeroStat(cell, blind);
-      ((TextView) findViewById(STAT_KEY_IDS[cell])).setText(stat.label(this, curSolveType));
+      ((TextView) findViewById(STAT_KEY_IDS[cell])).setText(stat.label(this));
       ((TextView) findViewById(STAT_VALUE_IDS[cell])).setText(stat.value(this, shownAverages));
     }
   }
@@ -690,7 +690,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     ArrayList<Integer> icons = new ArrayList<>();
     ArrayList<Integer> colors = new ArrayList<>();
     for (HeroStat stat : options) {
-      names.add(stat.label(this, curSolveType));
+      names.add(stat.label(this));
       values.add(stat.value(this, shownAverages));
       icons.add(0);
       colors.add(SolveTypeIcons.colorForSolveType(curSolveType));
