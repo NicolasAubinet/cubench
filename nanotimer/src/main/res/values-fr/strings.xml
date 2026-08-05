@@ -754,13 +754,13 @@
   <string name="drill_title">Entraînement</string>
   <string name="drill_grip_hint">Tenez votre cube blanc en haut, vert devant</string>
   <string name="drill_progress">Essai %1$d sur %2$d</string>
+  <string name="drill_reset">Recommencer</string>
   <string name="drill_skip">Passer</string>
   <string name="drill_done">Terminé</string>
   <string name="drill_finished">Entraînement terminé</string>
   <string name="drill_recognition">reconnaissance</string>
   <string name="drill_execution">exécution</string>
   <string name="drill_rep_split">%1$s  (%2$s + %3$s)</string>
-  <string name="drill_rep_execution_only">%1$s d\'exécution</string>
   <string name="drill_rep_skipped">Passé</string>
   <string name="drill_summary_reps">%1$d essais sur %2$d</string>
   <string name="drill_summary_mean">%1$s de moyenne en %2$s</string>

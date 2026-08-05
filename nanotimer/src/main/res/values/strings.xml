@@ -772,13 +772,13 @@
   <string name="drill_title">Drill</string>
   <string name="drill_grip_hint">Hold your cube white up, green in front</string>
   <string name="drill_progress">Rep %1$d of %2$d</string>
+  <string name="drill_reset">Reset</string>
   <string name="drill_skip">Skip</string>
   <string name="drill_done">Done</string>
   <string name="drill_finished">Drill finished</string>
   <string name="drill_recognition">recognition</string>
   <string name="drill_execution">execution</string>
   <string name="drill_rep_split">%1$s  (%2$s + %3$s)</string>
-  <string name="drill_rep_execution_only">%1$s turning</string>
   <string name="drill_rep_skipped">Skipped</string>
   <string name="drill_summary_reps">%1$d of %2$d reps</string>
   <string name="drill_summary_mean">%1$s mean %2$s</string>

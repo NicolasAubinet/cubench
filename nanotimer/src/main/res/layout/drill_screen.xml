@@ -56,6 +56,15 @@
          android:layout_height="wrap_content"
          android:layout_gravity="center"/>
 
+      <!-- The beat a solved case gets. Not clickable, and gone between reps so it can never sit
+           over a case the user is trying to read. -->
+      <View
+         android:id="@+id/drillRepWash"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:background="@color/green_soft"
+         android:visibility="gone"/>
+
       <TextView
          android:id="@+id/tvDrillFallback"
          android:layout_width="match_parent"
@@ -68,11 +77,17 @@
          android:visibility="gone"/>
     </FrameLayout>
 
+    <!-- ⚠️ The case that was just FINISHED, never the one on screen. Naming the case in front of
+         the user hands them the answer, and a recognition drill would then be timing reading. It
+         is named the moment its rep ends, which is when being told what it was is worth something,
+         and stays named while the next one is worked so that no pause is needed to read it.
+         Empty until the first rep ends; the floor keeps that from moving the cube. -->
     <TextView
        android:id="@+id/tvDrillCase"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_marginTop="12dp"
+       android:minHeight="40dp"
        android:gravity="center"
        android:textColor="@color/white"
        android:textSize="30sp"
@@ -105,6 +120,15 @@
          android:textColor="@color/secondary_text"
          android:textSize="14sp"
          android:fontFeatureSettings="tnum"/>
+
+      <!-- Deals the same case again for a slip, and costs no rep. Neither of these two is a start
+           or stop control: the cube still reports both ends of a rep. -->
+      <Button
+         android:id="@+id/btDrillReset"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginRight="6dp"
+         android:text="@string/drill_reset"/>
 
       <!-- Skipping spends the rep rather than escaping it: a case you could not do is a result. -->
       <Button

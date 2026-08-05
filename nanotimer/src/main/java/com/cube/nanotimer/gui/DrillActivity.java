@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
+
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.DrillCubeView;
 import com.cube.nanotimer.cube.GyroReferenceListener;
@@ -21,6 +23,7 @@ import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.DrillRepFlourish;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,11 +35,12 @@ import java.util.List;
  * <p><b>There is no control that starts or stops a rep, and none may be added.</b> The cube reports
  * both ends of one: a rep begins when the case is put up and ends the moment
  * {@code CubieCube.isSolved} comes back true. Case after case with nothing to press is most of what
- * makes this feel unlike a scramble list. The one button spends a rep rather than escaping it.
+ * makes this feel unlike a scramble list. Neither button is an exception: one spends the rep in
+ * front of the user, the other deals it again.
  *
- * <p><b>The next case goes up the instant the last one is solved</b>, with no pause to watch the
- * cube finish. Recognition is measured from the previous rep's last move, so any delay put in for
- * the sake of an animation would be added to every recognition figure the drill reports.
+ * <p><b>The case on screen is never named.</b> Naming it would hand over the answer, and a
+ * recognition drill would be timing reading instead. A case is named once its rep is over, and that
+ * name stands while the next one is worked, which is how it can be read without stopping for it.
  */
 public class DrillActivity extends NanoTimerActivity implements CubeMoveListener,
     CubeConnectionListener, GyroReferenceListener, DrillCubeView.ReadyListener {
@@ -45,6 +49,13 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   public static final String EXTRA_SPEC = "drillSpec";
 
   private static final int DEFAULT_REPS = 20;
+
+  /**
+   * How long the solved cube stays up before the next case replaces it. Zero: the green wash is
+   * what says the case was finished, and it reads as an ending without stopping for one. The
+   * timing does not care either way, since recognition runs from the case being shown.
+   */
+  private static final long REP_HOLD_MS = 0;
 
   private DrillSession session;
   private DrillCubeView cubeView;
@@ -58,6 +69,7 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   private TextView tvProgress;
   private Button btSkip;
   private WebView webView;
+  private View repWash;
 
   /** The page has drawn the case, which is when a turn can be counted against it. */
   private boolean cubeReady;
@@ -77,14 +89,23 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
     tvLastRep = findViewById(R.id.tvDrillLastRep);
     tvProgress = findViewById(R.id.tvDrillProgress);
     btSkip = findViewById(R.id.btDrillSkip);
+    repWash = findViewById(R.id.drillRepWash);
 
     btSkip.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         DrillRep rep = session == null ? null : session.abandon();
         if (rep != null) {
-          onRepFinished(rep);
+          // No wash and no hold: nothing was solved to dwell on, and the user asked to move on.
+          showLastRep(rep);
+          nextRep();
         }
+      }
+    });
+    findViewById(R.id.btDrillReset).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        resetRep();
       }
     });
     findViewById(R.id.btDrillDone).setOnClickListener(new View.OnClickListener() {
@@ -96,6 +117,20 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
 
     // Hands stay on the cube for a whole drill, so nothing here ever touches the screen.
     runningLayout.setKeepScreenOn(true);
+
+    // Back stops the drill rather than throwing it away: a drill ended at rep 6 of 20 is a result,
+    // and the reps up to there are what the user came for. A second press then leaves.
+    getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+      @Override
+      public void handleOnBackPressed() {
+        if (session == null || finished) {
+          setEnabled(false);
+          DrillActivity.this.getOnBackPressedDispatcher().onBackPressed();
+        } else {
+          showSummary();
+        }
+      }
+    });
 
     String json = getIntent().getStringExtra(EXTRA_SPEC);
     DrillSpec spec;
@@ -161,17 +196,20 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   @Override
   protected void onDestroy() {
     super.onDestroy();
+    tvLastRep.removeCallbacks(showNextCase);
+    DrillRepFlourish.cancel(repWash, tvLastRep);
     if (cubeView != null) {
       cubeView.destroy();
     }
   }
 
-  /** The case is on screen, so it can be shown and turns can start counting against it. */
+  /** The case is on screen, which is where the first rep's recognition runs from. */
   @Override
   public void onCubeReady() {
     pbCube.setVisibility(View.GONE);
     webView.setVisibility(View.VISIBLE);
     cubeReady = true;
+    session.markCaseShown(System.currentTimeMillis());
   }
 
   /**
@@ -216,9 +254,41 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
     }
   }
 
+  /**
+   * Holds the solved cube for a beat before the next case goes up.
+   *
+   * <p>Not decoration. A case that was replaced the instant it was solved read as though the user
+   * had done something wrong, because the only thing they saw was the cube changing under them. The
+   * beat costs them nothing: recognition runs from when the next case is <em>shown</em>, so the
+   * hold is charged to nobody.
+   */
   private void onRepFinished(DrillRep rep) {
     showLastRep(rep);
-    nextRep();
+    DrillRepFlourish.play(repWash, tvLastRep);
+    tvLastRep.removeCallbacks(showNextCase);
+    tvLastRep.postDelayed(showNextCase, REP_HOLD_MS);
+  }
+
+  private final Runnable showNextCase = new Runnable() {
+    @Override
+    public void run() {
+      nextRep();
+    }
+  };
+
+  /**
+   * Deals the same case again, for one botched by a slip rather than by not knowing it. Spends no
+   * rep, and there is no hold: the user is waiting on the case they asked to have back.
+   */
+  private void resetRep() {
+    if (session.getCurrentCase() == null) {
+      return; // between reps, with the finished cube still up
+    }
+    session.resetRep();
+    cubeView.show(session.getCurrentScramble());
+    if (cubeReady) {
+      session.markCaseShown(System.currentTimeMillis());
+    }
   }
 
   private void nextRep() {
@@ -227,24 +297,25 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
       return;
     }
     cubeView.show(session.getCurrentScramble());
-    tvCase.setText(Utils.toSmartCubeCaseHeadline(this, session.getCurrentCase()));
+    // ⚠️ The case now on screen is deliberately not named anywhere. Only the cube says what it is.
     tvProgress.setText(getString(R.string.drill_progress,
         session.getReps().size() + 1, session.getSpec().getReps()));
+    // Only once the case is really up: before the page has drawn, the first one is not yet in
+    // front of anybody, and onCubeReady is what says it is.
+    if (cubeReady) {
+      session.markCaseShown(System.currentTimeMillis());
+    }
   }
 
   private void showLastRep(DrillRep rep) {
+    // The one moment naming it helps: the case is over, so it can only say what was just done, or
+    // for a skipped one, what it was the user could not place. It stands until the next rep ends.
+    tvCase.setText(Utils.toSmartCubeCaseHeadline(this, rep.getCaseCode()));
     if (rep.isAbandoned()) {
       tvLastRep.setText(R.string.drill_rep_skipped);
       return;
     }
     String total = FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs());
-    if (!rep.isRecognitionMeasured()) {
-      // The first rep of a drill has no previous rep to measure the looking from, and says so
-      // rather than calling it zero.
-      tvLastRep.setText(getString(R.string.drill_rep_execution_only,
-          FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs())));
-      return;
-    }
     tvLastRep.setText(getString(R.string.drill_rep_split, total,
         FormatterService.INSTANCE.formatSolveTime(rep.getRecognitionMs()),
         FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs())));
