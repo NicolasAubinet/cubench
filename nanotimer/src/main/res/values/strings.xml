@@ -651,7 +651,6 @@
   <string name="smart_cube_resync">My cube is solved</string>
   <string name="smart_cube_resync_hint">If the app thinks your cube is scrambled when it is not, the cube has lost track of itself. Solve it, then tap below.</string>
   <string name="smart_cube_resynced">Cube state realigned</string>
-  <string name="live_cube_out_of_sync">Cube out of sync</string>
   <string name="smart_cube_solve_first">Solve your cube to begin</string>
   <string name="smart_cube_ready_to_solve">Ready to solve</string>
   <string name="smart_cube_solving">Solve in progress</string>

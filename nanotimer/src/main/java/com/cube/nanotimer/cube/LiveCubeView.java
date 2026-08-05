@@ -28,6 +28,7 @@ import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
+import com.cube.nanotimer.util.view.CubeNetView;
 
 import org.json.JSONObject;
 
@@ -54,10 +55,11 @@ import java.util.List;
  *
  * <p><b>The player takes an alg, never facelets</b>, so the mirror cannot be pointed at an
  * arbitrary state: it seeds whenever the cube reports itself <em>solved</em> and rides the move
- * stream from there. That is no restriction in practice, because the timer already refuses to arm
- * until the cube is solved. Should a move be missed, the twin below notices (the cube sends its
- * whole state after every turn) and the cube on screen is marked as stale rather than left to
- * lie, until the next solved state re-seeds it.
+ * stream from there. Where it cannot follow — a cube already scrambled when it was connected, or a
+ * move gone missing, which the twin below catches because the cube sends its whole state after every
+ * turn — the flat net ({@link CubeNetView}) takes its place, drawn from the facelets, which are
+ * always to hand. The slot therefore always holds the truth: the mirror while the mirror is the
+ * truth, and the reported state whenever it is not.
  */
 public class LiveCubeView
     implements CubeConnectionListener, CubeMoveListener, CubeStateListener, GyroReferenceListener {
@@ -78,7 +80,7 @@ public class LiveCubeView
   private View topSpacer;
   private View cubeLayout;
   private View veil;
-  private View staleMark;
+  private CubeNetView net;
   private WebView webView;
   /** The document has run, so {@code window.ntLive*} exist and may be called. */
   private boolean pageLoaded;
@@ -97,12 +99,15 @@ public class LiveCubeView
   /**
    * Whether the cube on screen has ever been pointed at a state the physical one was really in.
    *
-   * <p>Until it has, there is nothing to show: entering the timer with a scrambled cube used to
-   * draw a solved one, which is a lie, and later drew it at a third brightness, which is honest but
-   * reads as a grey film over the whole thing and lasts until the next solve. Showing nothing says
-   * the same thing without saying it in grey.
+   * <p>Until it has, the mirror is not drawn: entering the timer with a scrambled cube used to draw
+   * a solved one, which is a lie, and later drew it at a third brightness, which is honest but reads
+   * as a grey film over the whole thing. The net stands in for it instead — the state is known, it
+   * is only the way it was reached that is not.
    */
   private boolean seeded;
+
+  /** The stickers the cube last reported, which the net is drawn from. Null before the first state. */
+  private String facelets;
 
   /**
    * The grip the pose is measured from: the session's, taken once by {@link SmartCubeManager} and
@@ -198,7 +203,7 @@ public class LiveCubeView
     pageReady = false;
     cubeLayout = null;
     veil = null;
-    staleMark = null;
+    net = null;
     stub = null;
   }
 
@@ -230,14 +235,19 @@ public class LiveCubeView
       // was last seen in. Forgetting it is what stops the next connection opening on a confident
       // full-brightness cube that happens to be a solve out of date.
       seeded = false;
+      facelets = null;
     } else {
       inflate();
       // A cube that connects already solved never reports a change, so seed off what it holds. A
-      // state that is not solved cannot be pointed at, so the stickers wait for one that is; the
-      // pose does not wait, since the connection anchors the reference either way.
+      // state that is not solved cannot be pointed at, so the mirror waits for one that is and the
+      // net draws this one; the pose does not wait, since the connection anchors the reference
+      // either way.
       CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
-      if (state != null && state.isSolved()) {
-        seed();
+      if (state != null) {
+        facelets = state.getFacelets();
+        if (state.isSolved()) {
+          seed();
+        }
       }
     }
     refresh();
@@ -260,15 +270,13 @@ public class LiveCubeView
 
   @Override
   public void onState(CubeState state) {
+    facelets = state.getFacelets();
     if (state.isSolved()) {
       seed(); // the one state the player can be pointed at, and the natural moment to compact
       return;
     }
-    boolean agrees = !seeded || twin.toFaceCube().equals(state.getFacelets());
-    if (agrees != inSync) {
-      inSync = agrees;
-      refresh();
-    }
+    inSync = !seeded || twin.toFaceCube().equals(state.getFacelets());
+    refresh(); // the net is drawn from this state, so every one of them is news to it
     if (inSync && movesSinceSeed.size() >= COMPACT_AFTER_MOVES) {
       compact();
     }
@@ -364,9 +372,9 @@ public class LiveCubeView
       stub = null;
       webView = cubeLayout.findViewById(R.id.wvLiveCube);
       veil = cubeLayout.findViewById(R.id.liveCubeVeil);
-      staleMark = cubeLayout.findViewById(R.id.tvLiveCubeStale);
+      net = cubeLayout.findViewById(R.id.liveCubeNet);
       keepUnscaled(veil);
-      keepUnscaled(staleMark);
+      keepUnscaled(net);
       setUpWebView();
     } catch (Throwable t) {
       // e.g. no WebView implementation installed. Said out loud: swallowed, this is a feature that
@@ -377,7 +385,7 @@ public class LiveCubeView
       webView = null;
       cubeLayout = null;
       veil = null;
-      staleMark = null;
+      net = null;
     }
   }
 
@@ -459,7 +467,7 @@ public class LiveCubeView
   }
 
   /**
-   * Shown only with a cube connected, and marked rather than dimmed when it knows it is wrong.
+   * Shares the slot out: the mirror while it is the truth, the net whenever it is not.
    *
    * <p>⚠️ <b>INVISIBLE while the page comes up, never GONE.</b> A GONE WebView is never laid out,
    * so the player would be built into a 0×0 viewport and stay that size once shown — space on
@@ -471,16 +479,24 @@ public class LiveCubeView
       return;
     }
     boolean connected = SmartCubeManager.INSTANCE.isConnected();
+    // The mirror is either not pointed at anything yet or knows it is wrong, and there is a state
+    // to draw instead. Never under the cover, which is up precisely so the state cannot be read.
+    boolean netUp = connected && !obscured && facelets != null && (!seeded || !inSync);
     // Veiled counts as shown: the cover is what the space is for, and it is over the cube whether
     // or not there is yet a cube under it.
-    boolean visible = connected && (obscured || (pageReady && seeded));
+    boolean visible = connected && (obscured || netUp || (pageReady && seeded));
     cubeLayout.setVisibility(visible ? View.VISIBLE : (connected ? View.INVISIBLE : View.GONE));
     if (veil != null) {
       veil.setVisibility(obscured ? View.VISIBLE : View.GONE);
     }
-    if (staleMark != null) {
-      // Nothing to warn about behind the cover, which is already saying the cube cannot be read.
-      staleMark.setVisibility(!inSync && seeded && !obscured ? View.VISIBLE : View.GONE);
+    if (net != null) {
+      net.setFacelets(netUp ? facelets : null);
+      net.setVisibility(netUp ? View.VISIBLE : View.GONE);
+    }
+    if (webView != null) {
+      // Hidden under the net rather than left drawing through the gaps between its stickers. Still
+      // INVISIBLE, for the reason above, and still laid out, so it is ready the moment it is right.
+      webView.setVisibility(netUp ? View.INVISIBLE : View.VISIBLE);
     }
     if (topSpacer != null) {
       // The cube stands in the gap rather than above it: both weighted the same, so showing both

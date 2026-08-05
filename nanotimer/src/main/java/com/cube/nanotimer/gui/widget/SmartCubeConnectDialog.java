@@ -29,8 +29,11 @@ import com.cube.nanotimer.cube.ConnectCallback;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
+import com.cube.nanotimer.smartcube.model.CubeState;
+import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.CubeNetView;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
@@ -60,6 +63,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private TextView tvListLabel;
   private LinearLayout cubeList;
   private View resyncBlock;
+  private CubeNetView stateNet;
   private Button btnResync;
   private Button btnDisconnect;
 
@@ -76,6 +80,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
 
   private final CubeConnectionListener connectionListener = connection -> updateUi();
   private final CubeBatteryListener batteryListener = level -> updateUi();
+  private final CubeStateListener stateListener = state -> showState();
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -120,6 +125,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     tvListLabel = v.findViewById(R.id.tvSmartCubeListLabel);
     cubeList = v.findViewById(R.id.smartCubeList);
     resyncBlock = v.findViewById(R.id.smartCubeResyncBlock);
+    stateNet = v.findViewById(R.id.smartCubeStateNet);
     btnResync = v.findViewById(R.id.btnSmartCubeResync);
     btnDisconnect = v.findViewById(R.id.btnSmartCubeDisconnect);
 
@@ -145,6 +151,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     super.onStart();
     SmartCubeManager.INSTANCE.addConnectionListener(connectionListener);
     SmartCubeManager.INSTANCE.addBatteryListener(batteryListener);
+    SmartCubeManager.INSTANCE.addStateListener(stateListener); // replays the state it holds
     // A cube already connected is the answer to "what is this", so the pitch is skipped for it.
     if (!Options.INSTANCE.isSmartCubeIntroSeen() && !SmartCubeManager.INSTANCE.isConnected()) {
       showIntro();
@@ -158,6 +165,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     super.onStop();
     SmartCubeManager.INSTANCE.removeConnectionListener(connectionListener);
     SmartCubeManager.INSTANCE.removeBatteryListener(batteryListener);
+    SmartCubeManager.INSTANCE.removeStateListener(stateListener);
     stopScan();
   }
 
@@ -457,7 +465,14 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     tvListLabel.setVisibility(View.GONE);
     cubeList.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.VISIBLE);
+    showState();
     btnDisconnect.setVisibility(View.VISIBLE);
+  }
+
+  /** What the app reads off the cube, drawn beside the offer to realign it. */
+  private void showState() {
+    CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
+    stateNet.setFacelets(state == null ? null : state.getFacelets());
   }
 
   private void showSearching() {

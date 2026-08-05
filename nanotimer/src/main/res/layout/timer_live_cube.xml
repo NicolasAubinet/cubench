@@ -5,7 +5,7 @@
 
      Everything over the cube is authored in dp, and LiveCubeView marks it so the timer's px scaling
      pass leaves it alone — reached or not depending on whether the cube inflated before the screen's
-     first measure, it was drawing the same label at two different sizes. -->
+     first measure, that pass was drawing the same thing at two different sizes. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:id="@+id/liveCubeLayout"
    android:layout_width="match_parent"
@@ -16,6 +16,15 @@
      android:id="@+id/wvLiveCube"
      android:layout_width="match_parent"
      android:layout_height="match_parent"/>
+
+  <!-- What the cube reports, when that is more than the mirror can draw: a state nobody knows the
+       moves to. Takes the mirror's place rather than sitting beside it — one slot, one cube. Not
+       clickable, so a press falls through to the timer exactly as it does anywhere else. -->
+  <com.cube.nanotimer.util.view.CubeNetView
+     android:id="@+id/liveCubeNet"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:visibility="gone"/>
 
   <!-- What a blind attempt sees instead of the cube: the mark alone, centred on the cube's space.
        Nothing in here takes a touch — the timer screen has no dead zones, so a press lands on the
@@ -36,24 +45,5 @@
        android:contentDescription="@null"/>
 
   </FrameLayout>
-
-  <!-- Said out loud when the mirror knows it is wrong, in place of the cube fading to a third of
-       its brightness: a cube nobody can read is worse than a cube with a note on it. Not clickable,
-       for the same reason as the cover above. -->
-  <TextView
-     android:id="@+id/tvLiveCubeStale"
-     android:layout_width="wrap_content"
-     android:layout_height="wrap_content"
-     android:layout_gravity="top|center_horizontal"
-     android:layout_marginTop="4dp"
-     android:background="@drawable/live_cube_stale_pill"
-     android:paddingLeft="8dp"
-     android:paddingRight="8dp"
-     android:paddingTop="2dp"
-     android:paddingBottom="2dp"
-     android:text="@string/live_cube_out_of_sync"
-     android:textColor="@color/warning"
-     android:textSize="10sp"
-     android:visibility="gone"/>
 
 </FrameLayout>

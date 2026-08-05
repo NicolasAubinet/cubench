@@ -136,6 +136,13 @@
            android:background="@drawable/cross_section_card"
            android:padding="12dp"
            android:visibility="gone">
+          <!-- The state the app currently reads off the cube, so "the app thinks your cube is
+               scrambled" is something to check rather than something to guess at. -->
+          <com.cube.nanotimer.util.view.CubeNetView
+             android:id="@+id/smartCubeStateNet"
+             android:layout_width="match_parent"
+             android:layout_height="96dp"
+             android:layout_marginBottom="12dp"/>
           <TextView
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
