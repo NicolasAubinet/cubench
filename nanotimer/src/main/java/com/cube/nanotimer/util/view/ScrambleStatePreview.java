@@ -258,8 +258,16 @@ public class ScrambleStatePreview {
 
   /**
    * Whether the screen can pay for the picture, read off the two spacers plus whatever the box is
-   * already holding — a sum that does not change with how it is split, so asking for the box and
-   * asking again cannot chase each other round.
+   * already holding.
+   *
+   * <p>⚠️ <b>Room once given is never taken back</b> until {@link #bind} or a new puzzle asks the
+   * question again. The sum of the three was meant to hold whatever the box takes out of the
+   * spacers, so that granting the box could not change the answer to the question that granted it.
+   * It does not: the band holds the step bar too, and a connected cube fills it, so the sum falls
+   * between one pass and the next (measured: 617px, then 454px, on the pass after the box was
+   * given its height). The second answer then took back what the first gave, the box collapsed to
+   * nothing, and the mirror in it had nowhere to draw. Growing into room is still allowed, since
+   * that cannot chase itself.
    *
    * @return whether the answer changed
    */
@@ -267,12 +275,19 @@ public class ScrambleStatePreview {
     if (cell == null || head == null || foot == null) {
       return false;
     }
+    if (measured && roomEnough) {
+      return false;
+    }
     int spare = head.getHeight() + foot.getHeight() + cell.getHeight();
     if (spare == 0) {
       return false; // not laid out yet, and reading that as an answer would settle for nothing
     }
-    boolean room = spare >= picturePx() + (int) (MIN_AIR_PX * ScaleUtils.getScale(context))
-        && picturePx() >= minPicture();
+    // The mirror is asked for on its own terms: it is a cube on a transparent page, carrying its
+    // own margin, where the net is drawn edge to edge and needs air held back for it. Its legibility
+    // floor is the net's too and never binds, a cube only ever drawing for the 3x3 it is turning.
+    boolean room = replaced ? spare >= picturePx()
+        : spare >= picturePx() + (int) (MIN_AIR_PX * ScaleUtils.getScale(context))
+            && picturePx() >= minPicture();
     if (measured && room == roomEnough) {
       return false;
     }
@@ -326,14 +341,13 @@ public class ScrambleStatePreview {
     }
     key = renderKey;
     moves = notation;
-    int needed = (int) (netRows(cubeType) * MIN_ROW_DP
+    minPicturePx = (int) (netRows(cubeType) * MIN_ROW_DP
         * context.getResources().getDisplayMetrics().density);
-    if (needed != minPicturePx) {
-      minPicturePx = needed;
-      measured = false; // the box was weighed against another puzzle's net
-      roomEnough = true;
-      measureRoom();
-    }
+    // Asked afresh for every scramble, which is what bounds how long an answer stands: room is not
+    // taken back within one (see measureRoom), and a solve type whose card grew is a new one.
+    measured = false;
+    roomEnough = true;
+    measureRoom();
     fit();
     build();
     refresh();
@@ -358,6 +372,11 @@ public class ScrambleStatePreview {
       return;
     }
     this.replaced = replaced;
+    // The box is asked for on different terms by the two of them (see measureRoom), so whichever is
+    // taking it over puts the question again rather than inheriting the other's answer.
+    measured = false;
+    roomEnough = true;
+    measureRoom();
     fit();
     build(); // a cube that connected first is what leaves the page unbuilt; this is where it is built
     refresh();
