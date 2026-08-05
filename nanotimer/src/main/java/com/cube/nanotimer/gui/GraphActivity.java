@@ -17,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.GraphHelpDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.util.FormatterService;
@@ -24,6 +25,7 @@ import com.cube.nanotimer.util.chart.ChartData;
 import com.cube.nanotimer.util.chart.ChartLineData;
 import com.cube.nanotimer.util.chart.ChartUtils;
 import com.cube.nanotimer.util.chart.TimeDistribution;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.FrequencyData;
@@ -246,6 +248,13 @@ public class GraphActivity extends NanoTimerActivity {
 
     barChart = (BarChart) findViewById(R.id.barChart);
     setupBarChart();
+
+    findViewById(R.id.buGraphHelp).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        DialogUtils.showFragment(GraphActivity.this, new GraphHelpDialog());
+      }
+    });
 
     // Last: picking a spinner value loads the data, which needs both charts to already be there.
     spPeriod = (Spinner) findViewById(R.id.spPeriod);

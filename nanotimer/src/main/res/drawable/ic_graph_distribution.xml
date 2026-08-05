@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Graph help row: bars piled around a middle, the shape a histogram of times takes. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+   android:width="24dp"
+   android:height="24dp"
+   android:viewportWidth="24"
+   android:viewportHeight="24"
+   android:tint="@color/lightblue">
+  <path
+     android:strokeColor="#FFFFFF"
+     android:strokeWidth="1.8"
+     android:strokeLineCap="round"
+     android:pathData="M4,20 L20,20"/>
+  <path
+     android:fillColor="#FFFFFF"
+     android:pathData="M5,15 h3 v3.2 h-3 z M9,11 h3 v7.2 h-3 z M13,7.5 h3 v10.7 h-3 z M17,13 h3 v5.2 h-3 z"/>
+</vector>

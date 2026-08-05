@@ -73,6 +73,18 @@
          android:gravity="center"
          style="@style/CustomSpinner"/>
 
+      <!-- G5: what each graph draws, next to the picker that chooses between them. -->
+      <ImageButton
+         android:id="@+id/buGraphHelp"
+         android:layout_width="34dp"
+         android:layout_height="34dp"
+         android:layout_marginStart="@dimen/space_xs"
+         android:scaleType="fitCenter"
+         android:padding="6dp"
+         android:background="?android:attr/selectableItemBackgroundBorderless"
+         android:src="@drawable/ic_help_outline"
+         android:contentDescription="@string/graph_help_title"/>
+
     </LinearLayout>
 
   </androidx.cardview.widget.CardView>

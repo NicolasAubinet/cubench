@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Graph help row: a line falling over time, for the times a solver watches come down. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+   android:width="24dp"
+   android:height="24dp"
+   android:viewportWidth="24"
+   android:viewportHeight="24"
+   android:tint="@color/lightblue">
+  <path
+     android:strokeColor="#FFFFFF"
+     android:strokeWidth="1.8"
+     android:strokeLineCap="round"
+     android:strokeLineJoin="round"
+     android:pathData="M4,4 L4,20 L20,20"/>
+  <path
+     android:strokeColor="#FFFFFF"
+     android:strokeWidth="1.8"
+     android:strokeLineCap="round"
+     android:strokeLineJoin="round"
+     android:pathData="M7,9 L11,13 L14,10 L19,15"/>
+</vector>

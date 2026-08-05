@@ -275,6 +275,11 @@
   <string name="chart_type_progression">Progression</string>
   <string name="chart_type_frequency">Frequency</string>
   <string name="chart_type_distribution">Distribution</string>
+  <string name="graph_help_title">What these graphs show</string>
+  <string name="graph_help_body">Three ways of reading the same history. The picker chooses between them, the one beside it chooses how far back they go.</string>
+  <string name="graph_help_progression">Every solve in order, with the Ao5 and Ao12 running through them. The line to watch is the average, not the spikes.</string>
+  <string name="graph_help_frequency">How many solves you did on each day, for the practice behind the times.</string>
+  <string name="graph_help_distribution">How many solves landed in each time range. The bars say where your times really sit, which an average alone cannot: two humps mean two kinds of solve.</string>
 
   <string name="show_best_times">Sort by best times</string>
   <string name="show_history">Sort by date</string>

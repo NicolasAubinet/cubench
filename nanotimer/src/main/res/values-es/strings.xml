@@ -271,6 +271,11 @@
   <string name="chart_type_progression">Progresión</string>
   <string name="chart_type_frequency">Frecuencia</string>
   <string name="chart_type_distribution">Distribución</string>
+  <string name="graph_help_title">Qué muestran estos gráficos</string>
+  <string name="graph_help_body">Tres maneras de leer el mismo historial. El selector elige entre ellas, el de al lado elige hasta dónde llegan.</string>
+  <string name="graph_help_progression">Cada tiempo en orden, con los Ao5 y Ao12 que los recorren. Lo que hay que seguir es la media, no los picos.</string>
+  <string name="graph_help_frequency">Cuántas resoluciones hiciste cada día, para ver la práctica detrás de los tiempos.</string>
+  <string name="graph_help_distribution">Cuántas resoluciones cayeron en cada rango de tiempo. Las barras dicen dónde están de verdad tus tiempos, algo que una media sola no dice: dos jorobas, dos clases de resolución.</string>
 
   <string name="show_best_times">Mostrar mejores tiempos</string>
   <string name="show_history">Mostrar historial</string>
