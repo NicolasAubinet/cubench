@@ -77,32 +77,23 @@
          android:visibility="gone"/>
     </FrameLayout>
 
-    <!-- ⚠️ The case that was just FINISHED, never the one on screen. Naming the case in front of
-         the user hands them the answer, and a recognition drill would then be timing reading. It
-         is named the moment its rep ends, which is when being told what it was is worth something,
-         and stays named while the next one is worked so that no pause is needed to read it.
-         Empty until the first rep ends; the floor keeps that from moving the cube. -->
-    <TextView
-       android:id="@+id/tvDrillCase"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="12dp"
-       android:minHeight="40dp"
-       android:gravity="center"
-       android:textColor="@color/white"
-       android:textSize="30sp"
-       android:textStyle="bold"/>
+    <!-- ⚠️ The rep just FINISHED: its case, then its time. Both belong to the case that is over,
+         never to the one on screen, which is deliberately not named anywhere — naming it would
+         hand the user the answer, and a recognition drill would be timing reading. The name sits
+         with the time rather than under the cube, where at headline size it read as a caption for
+         the cube and so as the name of the case being looked at.
 
-    <!-- The rep just finished, which is the only clock a drill shows. A running one would have to
-         start somewhere, and recognition starts at the end of the rep before, not at a paint. -->
+         This is also the only clock a drill shows. A running one would have to start somewhere,
+         and a rep starts when its case is drawn, not when a frame is painted. -->
     <TextView
        android:id="@+id/tvDrillLastRep"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="4dp"
+       android:layout_marginTop="14dp"
+       android:minHeight="26dp"
        android:gravity="center"
-       android:textColor="@color/secondary_text"
-       android:textSize="14sp"
+       android:textColor="@color/white"
+       android:textSize="17sp"
        android:fontFeatureSettings="tnum"/>
 
     <LinearLayout

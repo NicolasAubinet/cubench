@@ -45,8 +45,10 @@ import java.util.List;
  * front of the user, the other deals it again.
  *
  * <p><b>The case on screen is never named.</b> Naming it would hand over the answer, and a
- * recognition drill would be timing reading instead. A case is named once its rep is over, and that
- * name stands while the next one is worked, which is how it can be read without stopping for it.
+ * recognition drill would be timing reading instead. A case is named once its rep is over, beside
+ * that rep's time, and stands there while the next one is worked so it can be read without the
+ * screen stopping to show it. It belongs beside the time and nowhere else: set under the cube at
+ * headline size it read as a caption for the cube, and so as the name of the case being looked at.
  */
 public class DrillActivity extends NanoTimerActivity implements CubeMoveListener,
     CubeConnectionListener, GyroReferenceListener, VirtualCube.ReadyListener {
@@ -70,7 +72,6 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   private View summaryLayout;
   private TextView tvUnavailable;
   private ProgressBar pbCube;
-  private TextView tvCase;
   private TextView tvLastRep;
   private TextView tvProgress;
   private Button btSkip;
@@ -95,7 +96,6 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
     summaryLayout = findViewById(R.id.drillSummary);
     tvUnavailable = findViewById(R.id.tvDrillUnavailable);
     pbCube = findViewById(R.id.pbDrillCube);
-    tvCase = findViewById(R.id.tvDrillCase);
     tvLastRep = findViewById(R.id.tvDrillLastRep);
     tvProgress = findViewById(R.id.tvDrillProgress);
     btSkip = findViewById(R.id.btDrillSkip);
@@ -337,18 +337,22 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
     }
   }
 
+  /**
+   * The rep that has just ended, named and timed together. Naming it is only safe here: the case is
+   * over, so it can say what was done, or for a skipped one what it was the user could not place.
+   */
   private void showLastRep(DrillRep rep) {
-    // The one moment naming it helps: the case is over, so it can only say what was just done, or
-    // for a skipped one, what it was the user could not place. It stands until the next rep ends.
-    tvCase.setText(Utils.toSmartCubeCaseHeadline(this, rep.getCaseCode()));
+    String result;
     if (rep.isAbandoned()) {
-      tvLastRep.setText(R.string.drill_rep_skipped);
-      return;
+      result = getString(R.string.drill_rep_skipped);
+    } else {
+      result = getString(R.string.drill_rep_split,
+          FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs()),
+          FormatterService.INSTANCE.formatSolveTime(rep.getRecognitionMs()),
+          FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs()));
     }
-    String total = FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs());
-    tvLastRep.setText(getString(R.string.drill_rep_split, total,
-        FormatterService.INSTANCE.formatSolveTime(rep.getRecognitionMs()),
-        FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs())));
+    tvLastRep.setText(getString(R.string.drill_rep_line,
+        Utils.toSmartCubeCaseHeadline(this, rep.getCaseCode()), result));
   }
 
   private void showSummary() {

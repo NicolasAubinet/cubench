@@ -778,6 +778,7 @@
   <string name="drill_finished">Drill finished</string>
   <string name="drill_recognition">recognition</string>
   <string name="drill_execution">execution</string>
+  <string name="drill_rep_line">%1$s   %2$s</string>
   <string name="drill_rep_split">%1$s  (%2$s + %3$s)</string>
   <string name="drill_rep_skipped">Skipped</string>
   <string name="drill_summary_reps">%1$d of %2$d reps</string>
