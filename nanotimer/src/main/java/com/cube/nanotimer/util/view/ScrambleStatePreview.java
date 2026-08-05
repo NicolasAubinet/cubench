@@ -78,6 +78,7 @@ public class ScrambleStatePreview {
 
   private ViewStub stub;
   private View slot;
+  private View cell;
   private View foot;
   private View previewLayout;
   private WebView webView;
@@ -88,6 +89,8 @@ public class ScrambleStatePreview {
   private boolean suppressed;
   /** A live cube holds the gap, so nothing is drawn here and nothing is ever built. */
   private boolean replaced;
+  /** The step breakdown rides at the foot of the same gap, so the gap has two tenants to fit. */
+  private boolean shared;
   /** The gap has been through a layout, so its height is an answer rather than a zero. */
   private boolean measured;
   /** The gap is deep enough to draw in. Assumed until measured: it has to be given a size first. */
@@ -118,24 +121,28 @@ public class ScrambleStatePreview {
    * over an entirely new stub. Whatever was inflated into the old layout is torn down here; nothing
    * is lost, since what to draw is held in Java and the page is reloaded from it.
    *
-   * @param slot the gap the diagram draws in, watched for how much of it there is. A gap that
-   *     collapses, or that is taken away entirely, reads here as no room and nothing is built.
-   * @param foot the spacer under that gap, whose weight answers the slot's: see {@link #balance}
+   * @param slot the gap in the screen, whose weight this class sets: see {@link #balance}
+   * @param cell the part of that gap the diagram draws in, which is the gap itself less whatever
+   *     shares it, and is watched for how much of it there is. A cell that collapses, or that is
+   *     taken away entirely, reads here as no room and nothing is built. Null where the layout
+   *     keeps no separate cell, which says the gap is the diagram's alone.
+   * @param foot the spacer under the gap, whose weight answers the slot's
    */
-  public void bind(ViewStub stub, View slot, View foot) {
+  public void bind(ViewStub stub, View slot, View cell, View foot) {
     boolean relaidOut = (webView != null);
     if (relaidOut) {
       destroy();
-    } else if (this.slot != null) {
-      this.slot.removeOnLayoutChangeListener(slotLayout); // rotated before anything was built
+    } else if (this.cell != null) {
+      this.cell.removeOnLayoutChangeListener(slotLayout); // rotated before anything was built
     }
     this.stub = stub;
     this.slot = slot;
+    this.cell = (cell != null) ? cell : slot;
     this.foot = foot;
     measured = false;
     roomEnough = true;
-    if (slot != null) {
-      slot.addOnLayoutChangeListener(slotLayout);
+    if (this.cell != null) {
+      this.cell.addOnLayoutChangeListener(slotLayout);
       measureSlot(); // a rotation arrives with the new gap already laid out
     }
     balance();
@@ -157,20 +164,20 @@ public class ScrambleStatePreview {
    * <p>It is settled before the diagram is drawn and not touched again, so nothing here can move
    * the digits during a solve. Standing down for a run is a visibility, never a weight.
    *
-   * <p>The live cube takes nearly all of it instead, 1:8:1, because it does not have the gap to
-   * itself: the step bar and its legend ride at the foot of the same gap, and a solve's breakdown is
-   * a third of what a diagram's share would be. Split 1:3:2 the cube came out smaller than it had
-   * been before there was ever a diagram to share with, which is the whole complaint this answers.
+   * <p>A gap with two tenants takes most of it instead, 1:6:2: the step bar and its legend ride at
+   * the foot of it, and a solve's breakdown is a third of what a diagram's share would be. Split
+   * 1:3:2 with the bar in it, the cube came out smaller than it had been before there was ever a
+   * diagram to share with, and a diagram was left too small a picture to read. The foot keeps its
+   * lead over the head either way, and for the same reason: what shows above the digits is this
+   * spacer plus the leading the glyphs carry inside their own box, and the two gaps only read as
+   * equal when the one below is the larger by that much.
    */
   private void balance() {
-    if (replaced) {
-      setWeight(slot, 8f);
-      setWeight(foot, 1f);
-      return;
-    }
     boolean drawing = (key != null) && roomEnough;
-    setWeight(slot, drawing ? 3f : 0f);
-    setWeight(foot, drawing ? 2f : 1f);
+    boolean occupied = replaced || drawing || shared;
+    boolean crowded = replaced || (shared && drawing); // both tenants, so both need the room
+    setWeight(slot, occupied ? (crowded ? 6f : 3f) : 0f);
+    setWeight(foot, occupied ? 2f : 1f);
   }
 
   private static void setWeight(View view, float weight) {
@@ -210,8 +217,8 @@ public class ScrambleStatePreview {
 
   /** @return whether the answer changed */
   private boolean measureSlot() {
-    // A gap that is not on screen is not a gap: a GONE slot measures zero and nothing is built.
-    int height = (slot == null || slot.getVisibility() != View.VISIBLE) ? 0 : slot.getHeight();
+    // A gap that is not on screen is not a gap: a GONE cell measures zero and nothing is built.
+    int height = (cell == null || cell.getVisibility() != View.VISIBLE) ? 0 : cell.getHeight();
     if (height == 0) {
       // Not laid out, or laid out with no share to measure because there is nothing to draw. Either
       // way it is not an answer, and reading it as one would take the gap away for good.
@@ -308,6 +315,21 @@ public class ScrambleStatePreview {
     refresh();
   }
 
+  /**
+   * Says that the step breakdown rides at the foot of the same gap, which is what the gap is sized
+   * for: see {@link #balance}. A property of the solve type rather than of the bar being up at this
+   * moment, so a finished solve cannot change the weights and move the digits under it.
+   */
+  public void setShared(boolean shared) {
+    if (this.shared == shared) {
+      return;
+    }
+    this.shared = shared;
+    balance();
+    build();
+    refresh();
+  }
+
   public void start() {
     if (webView != null) {
       webView.onResume();
@@ -321,10 +343,11 @@ public class ScrambleStatePreview {
   }
 
   public void destroy() {
-    if (slot != null) {
-      slot.removeOnLayoutChangeListener(slotLayout);
-      slot = null;
+    if (cell != null) {
+      cell.removeOnLayoutChangeListener(slotLayout);
+      cell = null;
     }
+    slot = null;
     foot = null;
     if (webView != null) {
       webView.removeCallbacks(renderTimeout);

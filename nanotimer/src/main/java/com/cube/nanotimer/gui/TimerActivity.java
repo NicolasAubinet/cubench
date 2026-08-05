@@ -511,7 +511,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The cube takes the same listener the action bar does, so it is not a dead zone either.
     liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube));
     statePreview.bind((ViewStub) findViewById(R.id.stubStatePreview),
-        findViewById(R.id.statePreviewSlot), findViewById(R.id.statePreviewFoot));
+        findViewById(R.id.statePreviewSlot), findViewById(R.id.statePreviewCell),
+        findViewById(R.id.statePreviewFoot));
     refreshStatePreviewOwner(); // a rotation is a new gap, and it may already be the cube's
     renderStatePreview(); // a rotation arrives with a scramble already in hand
     if (timerState == TimerState.STOPPED) {
@@ -1714,12 +1715,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * The diagram draws in the gap under the scramble, which the step bar rides in the middle of, so
-   * the two want the same space. The bar wins: it is about the solve just finished, and it is only
-   * up between one solve and the next.
+   * The diagram stands down for a solve, with the panels around it. Not for the step bar any more:
+   * the two are stacked in the gap rather than laid over each other, so a finished solve's
+   * breakdown no longer costs the next scramble its picture.
    */
   private void refreshStatePreviewSuppression() {
-    statePreview.setSuppressed(timerFocused || solveStepBar.getVisibility() == View.VISIBLE);
+    statePreview.setSuppressed(timerFocused);
   }
 
   /**
@@ -1733,6 +1734,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void refreshStatePreviewOwner() {
     boolean cubeHasGap = solveController.isCubeDriven();
     statePreview.setReplaced(cubeHasGap);
+    statePreview.setShared(breakdownRidesInGap()); // the bar's own share comes out of the same gap
     // The cube stands down for a solve like the panels around it, and whenever the gap is not its.
     liveCube.setSuppressed(timerFocused || !cubeHasGap);
   }
@@ -1840,7 +1842,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     shownStepNames = stepNames;
     solveStepBar.setSteps(steps, stepNames);
     solveStepBar.setVisibility(View.VISIBLE);
-    refreshStatePreviewSuppression();
     // A step taken mid solve grows the block, so where it is parked has to be read again.
     stepBreakdown.post(parkBreakdown);
   }
@@ -1863,7 +1864,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     solveStepBar.setSteps(shownSteps, shownStepNames);
     solveStepBar.setVisibility(View.VISIBLE);
-    refreshStatePreviewSuppression();
     if (tvSolveStats != null && shownStats != null) { // absent in landscape
       tvSolveStats.setText(shownStats);
       tvSolveStats.setVisibility(View.VISIBLE);
@@ -1874,19 +1874,20 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     shownSteps = Collections.emptyList();
     shownStepNames = null;
     shownStats = null;
-    int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
-    solveStepBar.setVisibility(visibility);
+    solveStepBar.setVisibility(breakdownRidesInGap() ? View.INVISIBLE : View.GONE);
     if (tvSolveStats != null) {
       tvSolveStats.animate().cancel();
+      // Only a cube ever fills this line, so only a cube's solve type keeps room for it: a solve
+      // type timed by tapping would hold a blank line out of the diagram's share for nothing.
+      int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
       if (visibility == View.INVISIBLE && tvSolveStats.length() == 0) {
         tvSolveStats.setText(" "); // reserve one line so a finished solve never nudges the bar
       }
       tvSolveStats.setVisibility(visibility);
     }
-    refreshStatePreviewSuppression();
   }
 
-  /** Keep the bar's height reserved while a cube is connected, so a solve never shifts the layout. */
+  /** Keep the bar's height reserved where it rides in the gap, so a solve never shifts the layout. */
   private void reserveStepBreakdownSpace() {
     if (solveStepBar.getVisibility() != View.VISIBLE) { // never hide the solve just finished
       hideStepBreakdown();
@@ -1895,6 +1896,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private boolean canBreakDownSolves() {
     return solveController.isCubeDriven();
+  }
+
+  /**
+   * Whether this solve type puts a breakdown in the gap under the scramble at all: a cube counting
+   * the steps, or the user tapping them. The bar then holds its place whether or not there is a
+   * solve behind it, so the picture above it is drawn at one size and a finished solve moves
+   * nothing.
+   */
+  private boolean breakdownRidesInGap() {
+    return canBreakDownSolves() || solveType.hasSteps();
   }
 
   /**

@@ -110,38 +110,39 @@
 
         </FrameLayout>
 
-        <!-- The band holds the gap under the scramble, and the bar rides in the middle of it. The
-             state preview draws in the same gap, behind the bar and standing down when there is
-             one. The weight here is the one for a diagram; see the spacer above. -->
+        <!-- The band holds the gap under the scramble. Everything in it is stacked, never laid over
+             anything else: the picture (a diagram or the live cube) takes what the bar below it
+             leaves. The weight here is the one for a diagram alone; see the spacer above. -->
         <FrameLayout
            android:id="@+id/statePreviewSlot"
            android:layout_width="match_parent"
            android:layout_height="0px"
            android:layout_weight="3">
-          <ViewStub
-             android:id="@+id/stubStatePreview"
-             android:layout="@layout/timer_state_preview"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"/>
-          <!-- The cube and the bar share the gap in a column rather than over each other. Without a
-               cube the stub is gone and the gravity centres the bar in the gap, exactly as it sat
-               when it was the only thing here. -->
           <LinearLayout
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             android:gravity="center_vertical"
              android:orientation="vertical">
 
-            <!-- The connected cube, in the gap the diagram would have drawn in: it is one or the
-                 other, never both (TimerActivity.refreshStatePreviewOwner). It takes what the bar
-                 leaves rather than a height of its own, and the stub is gone until a cube connects,
-                 so the screen without one is exactly the screen that was there before it. -->
-            <ViewStub
-               android:id="@+id/stubLiveCube"
-               android:layout="@layout/timer_live_cube"
+            <!-- What is drawn in the gap: the scramble's state, or the connected cube in its place
+                 (TimerActivity.refreshStatePreviewOwner). One or the other, never both, and both
+                 take what the bar leaves rather than a height of their own. Two stubs, so a user
+                 with no cube pays nothing for one and a puzzle with no diagram nothing for that. -->
+            <FrameLayout
+               android:id="@+id/statePreviewCell"
                android:layout_width="match_parent"
                android:layout_height="0px"
-               android:layout_weight="1"/>
+               android:layout_weight="1">
+              <ViewStub
+                 android:id="@+id/stubStatePreview"
+                 android:layout="@layout/timer_state_preview"
+                 android:layout_width="match_parent"
+                 android:layout_height="match_parent"/>
+              <ViewStub
+                 android:id="@+id/stubLiveCube"
+                 android:layout="@layout/timer_live_cube"
+                 android:layout_width="match_parent"
+                 android:layout_height="match_parent"/>
+            </FrameLayout>
 
             <!-- The bar and what it counted, as one block: a running solve moves it under the
                  digits, and the two travel together. -->
