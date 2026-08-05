@@ -1,6 +1,8 @@
 package com.cube.nanotimer.gui;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
@@ -12,7 +14,9 @@ import androidx.activity.OnBackPressedCallback;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.DrillCubeView;
 import com.cube.nanotimer.cube.GyroReferenceListener;
+import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
+import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
@@ -22,6 +26,7 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
 
@@ -71,6 +76,8 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   private WebView webView;
   private View repWash;
 
+  private SmartCubeChip smartCubeChip;
+
   /** The page has drawn the case, which is when a turn can be counted against it. */
   private boolean cubeReady;
   /** The drill is over, by its last rep or by the cube going away, and takes no more turns. */
@@ -80,6 +87,8 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.drill_screen);
+
+    smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
 
     runningLayout = findViewById(R.id.drillRunning);
     summaryLayout = findViewById(R.id.drillSummary);
@@ -171,8 +180,21 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   }
 
   @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.drill_menu, menu);
+    MenuItem item = menu.findItem(R.id.itSmartCube);
+    smartCubeChip.bind(item != null ? item.getActionView() : null);
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  private void openSmartCubeConnect() {
+    DialogUtils.showFragment(this, new SmartCubeConnectDialog());
+  }
+
+  @Override
   protected void onResume() {
     super.onResume();
+    smartCubeChip.start();
     if (cubeView != null) {
       cubeView.onResume();
       SmartCubeManager.INSTANCE.addMoveListener(this);
@@ -185,6 +207,7 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   @Override
   protected void onPause() {
     super.onPause();
+    smartCubeChip.stop();
     SmartCubeManager.INSTANCE.removeMoveListener(this);
     SmartCubeManager.INSTANCE.removeConnectionListener(this);
     SmartCubeManager.INSTANCE.removeGyroReferenceListener(this);

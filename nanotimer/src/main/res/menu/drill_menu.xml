@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The same cube chip the other screens carry. A drill is the one screen that cannot run without
+     a connected cube, so reaching the battery, a resync or a reconnect matters most here. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <item android:id="@+id/itSmartCube"
+     android:title="@string/smart_cube_title"
+     app:actionLayout="@layout/smart_cube_chip"
+     app:showAsAction="always"/>
+
+</menu>
