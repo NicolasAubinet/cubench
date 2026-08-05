@@ -137,12 +137,17 @@
            android:padding="12dp"
            android:visibility="gone">
           <!-- The state the app currently reads off the cube, so "the app thinks your cube is
-               scrambled" is something to check rather than something to guess at. -->
-          <com.cube.nanotimer.util.view.CubeNetView
-             android:id="@+id/smartCubeStateNet"
+               scrambled" is something to check rather than something to guess at. It follows the
+               cube's own orientation, so it can be held up against the one in the hand.
+
+               Kept deliberately short: the well sits at the bottom of a sheet that also carries the
+               radar, the title and two rows of buttons, and every dp here is one the "My cube is
+               solved" button below can be pushed off the screen by. -->
+          <WebView
+             android:id="@+id/wvSmartCubeState"
              android:layout_width="match_parent"
              android:layout_height="96dp"
-             android:layout_marginBottom="12dp"/>
+             android:layout_marginBottom="6dp"/>
           <TextView
              android:layout_width="match_parent"
              android:layout_height="wrap_content"

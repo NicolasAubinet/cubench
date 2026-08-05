@@ -13,6 +13,7 @@ import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -26,14 +27,15 @@ import androidx.core.view.ViewCompat;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.ConnectCallback;
+import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.SmartCubeManager;
+import com.cube.nanotimer.cube.VirtualCube;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
-import com.cube.nanotimer.util.view.CubeNetView;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
@@ -63,7 +65,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private TextView tvListLabel;
   private LinearLayout cubeList;
   private View resyncBlock;
-  private CubeNetView stateNet;
+  private VirtualCube stateCube;
   private Button btnResync;
   private Button btnDisconnect;
 
@@ -125,7 +127,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     tvListLabel = v.findViewById(R.id.tvSmartCubeListLabel);
     cubeList = v.findViewById(R.id.smartCubeList);
     resyncBlock = v.findViewById(R.id.smartCubeResyncBlock);
-    stateNet = v.findViewById(R.id.smartCubeStateNet);
     btnResync = v.findViewById(R.id.btnSmartCubeResync);
     btnDisconnect = v.findViewById(R.id.btnSmartCubeDisconnect);
 
@@ -167,6 +168,15 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     SmartCubeManager.INSTANCE.removeBatteryListener(batteryListener);
     SmartCubeManager.INSTANCE.removeStateListener(stateListener);
     stopScan();
+  }
+
+  @Override
+  public void onDestroyView() {
+    if (stateCube != null) {
+      stateCube.destroy(); // a WebGL context outlives the sheet unless it is told not to
+      stateCube = null;
+    }
+    super.onDestroyView();
   }
 
   /** The explanation. Nothing scans behind it: a permission prompt over the pitch reads as a trap. */
@@ -469,10 +479,29 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     btnDisconnect.setVisibility(View.VISIBLE);
   }
 
-  /** What the app reads off the cube, drawn beside the offer to realign it. */
+  /**
+   * What the app reads off the cube, drawn beside the offer to realign it.
+   *
+   * <p>The same cube the timer mirrors, pointed at the reported state: "the app thinks your cube is
+   * scrambled when it is not" is then something to look at rather than take on trust. Built on
+   * first use, so a sheet opened to pair a cube never pays for the page.
+   */
   private void showState() {
     CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
-    stateNet.setFacelets(state == null ? null : state.getFacelets());
+    // ⚠️ Never built while the well is hidden. A GONE WebView is never laid out, so the player
+    // would be built into a 0×0 viewport and stay that size once the well opened.
+    if (state == null || resyncBlock.getVisibility() != View.VISIBLE) {
+      return;
+    }
+    if (stateCube == null) {
+      WebView webView = getView() == null ? null : getView().findViewById(R.id.wvSmartCubeState);
+      if (webView == null) {
+        return;
+      }
+      stateCube = new VirtualCube(webView, null, () -> { });
+      stateCube.setGyroFollowing(true);
+    }
+    stateCube.setState(CubePatternFormat.format(state.getFacelets()));
   }
 
   private void showSearching() {

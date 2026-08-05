@@ -17,15 +17,6 @@
      android:layout_width="match_parent"
      android:layout_height="match_parent"/>
 
-  <!-- What the cube reports, when that is more than the mirror can draw: a state nobody knows the
-       moves to. Takes the mirror's place rather than sitting beside it — one slot, one cube. Not
-       clickable, so a press falls through to the timer exactly as it does anywhere else. -->
-  <com.cube.nanotimer.util.view.CubeNetView
-     android:id="@+id/liveCubeNet"
-     android:layout_width="match_parent"
-     android:layout_height="match_parent"
-     android:visibility="gone"/>
-
   <!-- What a blind attempt sees instead of the cube: the mark alone, centred on the cube's space.
        Nothing in here takes a touch — the timer screen has no dead zones, so a press lands on the
        WebView underneath exactly as it would anywhere else (see CLAUDE.md). -->

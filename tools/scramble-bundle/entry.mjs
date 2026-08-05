@@ -14,3 +14,13 @@
 
 import "scramble-display";
 import "cubing/twisty";
+
+// The one thing the pages need a handle on rather than an element attribute: a state the player
+// can be pointed at. <twisty-player> takes an alg, and an alg is a route, so the live cube could
+// only ever be shown a state somebody knew the moves to. A KTransformation is the state itself,
+// and setting it as the player's setup anchor is what lets a cube that was scrambled off-camera
+// be drawn at all (see live.html's ntLiveState). Already in the bundle by way of cubing/twisty,
+// so exporting it costs nothing.
+import { KTransformation } from "cubing/kpuzzle";
+
+globalThis.NTCubing = { KTransformation };

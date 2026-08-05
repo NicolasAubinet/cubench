@@ -1,22 +1,9 @@
 package com.cube.nanotimer.cube;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.graphics.Color;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewStub;
-import android.webkit.JavascriptInterface;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
-
-import androidx.webkit.WebViewAssetLoader;
-import androidx.webkit.WebViewClientCompat;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
@@ -24,16 +11,8 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
-import com.cube.nanotimer.smartcube.model.CubeOrientation;
-import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
-import com.cube.nanotimer.util.view.CubeNetView;
-
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The connected smart cube, mirrored on screen as it is turned: a 3D cube in a WebView, fed the
@@ -53,84 +32,52 @@ import java.util.List;
  * residual against 92.8° uncorrected), which would only pair with a shell-frame state, which this
  * is not.
  *
- * <p><b>The player takes an alg, never facelets</b>, so the mirror cannot be pointed at an
- * arbitrary state: it seeds whenever the cube reports itself <em>solved</em> and rides the move
- * stream from there. Where it cannot follow — a cube already scrambled when it was connected, or a
- * move gone missing, which the twin below catches because the cube sends its whole state after every
- * turn — the flat net ({@link CubeNetView}) takes its place, drawn from the facelets, which are
- * always to hand. The slot therefore always holds the truth: the mirror while the mirror is the
- * truth, and the reported state whenever it is not.
+ * <p><b>The cube on screen is pointed at states, not walked to them</b> ({@link VirtualCube}), so
+ * there is no state it cannot show: a cube scrambled before it was connected is drawn where it
+ * really is, and a turn gone missing is corrected on the next state the cube reports rather than
+ * marked as out of sync and left wrong until the next solve. The twin below is what notices, since
+ * the cube sends its whole state after every turn.
  */
-public class LiveCubeView
-    implements CubeConnectionListener, CubeMoveListener, CubeStateListener, GyroReferenceListener {
+public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, CubeStateListener,
+    VirtualCube.ReadyListener {
 
-  private static final String BASE_URL =
-      "https://appassets.androidplatform.net/assets/scramble/live.html";
+  /**
+   * Past this many turns since the last state, the cube is pointed at the twin's state again.
+   *
+   * <p>The animated alg grows for as long as the cube goes unsolved, and everything the player
+   * derives is derived over the whole of it, so a session spent turning without ever solving would
+   * grow it without bound. Nothing moves on screen: the state either side of the re-point is the
+   * same state.
+   */
+  private static final int RESEED_AFTER_MOVES = 60;
 
-  /** Beyond this many moves since the seed, the alg is folded back into the setup (see compact). */
-  private static final int COMPACT_AFTER_MOVES = 60;
-
-  /** Show the cube anyway if the page's "ready" never arrives, rather than hide it for good. */
-  private static final long READY_TIMEOUT_MS = 6000;
-
-  private final Context context;
   private final View.OnTouchListener touchListener;
 
   private ViewStub stub;
   private View topSpacer;
   private View cubeLayout;
   private View veil;
-  private CubeNetView net;
-  private WebView webView;
-  /** The document has run, so {@code window.ntLive*} exist and may be called. */
-  private boolean pageLoaded;
-  /** The page says it has drawn a cube, which is when there is any point showing it. */
-  private boolean pageReady;
+  private VirtualCube cube;
   private boolean obscured;
 
-  /** What the cube on screen is showing: the setup it was seeded with, plus the moves since. */
-  private String baseAlg = "";
-  private final List<String> movesSinceSeed = new ArrayList<String>();
-
-  /** The same cube, turned in Java, so a lost move can be seen rather than silently drawn wrong. */
+  /** The same cube, turned in Java: what the page is showing, and what a lost move is caught by. */
   private final CubieCube twin = new CubieCube();
-  private boolean inSync;
+  private int movesSinceState;
 
   /**
    * Whether the cube on screen has ever been pointed at a state the physical one was really in.
    *
-   * <p>Until it has, the mirror is not drawn: entering the timer with a scrambled cube used to draw
-   * a solved one, which is a lie, and later drew it at a third brightness, which is honest but reads
-   * as a grey film over the whole thing. The net stands in for it instead — the state is known, it
-   * is only the way it was reached that is not.
+   * <p>Until it has there is nothing to draw, so the mirror stays off the screen rather than
+   * showing a solved cube that nobody solved.
    */
   private boolean seeded;
-
-  /** The stickers the cube last reported, which the net is drawn from. Null before the first state. */
-  private String facelets;
-
-  /**
-   * The grip the pose is measured from: the session's, taken once by {@link SmartCubeManager} and
-   * shared with the frames the replay is spelled in, so the two never disagree.
-   *
-   * <p>⚠️ <b>This view must not take a reference of its own, and nothing here may re-take this
-   * one.</b> Both were tried. Re-anchoring redefines "however you are holding it right now" as
-   * square, so the cube on screen snapped to white-top-green-front whatever was really in the hand —
-   * once at every seed, and later once at every scramble's first move. The whole point of a mirror
-   * is that it does not do that. Volatile inside, because the page polls it from its own thread.
-   */
-  private final GyroReference gyroReference = SmartCubeManager.INSTANCE.getGyroReference();
-
-  /** Whether the page is following the orientation, which it only does with a reference to follow. */
-  private boolean gyroOn;
 
   /**
    * @param touchListener the timer screen's own, forwarded so the cube is not a dead zone —
    *     {@code CLAUDE.md} requires a tap anywhere in the timer to start or stop it, and a WebView
    *     swallows presses. May be null outside the timer.
    */
-  public LiveCubeView(Context context, View.OnTouchListener touchListener) {
-    this.context = context;
+  public LiveCubeView(View.OnTouchListener touchListener) {
     this.touchListener = touchListener;
   }
 
@@ -144,14 +91,14 @@ public class LiveCubeView
    * page goes on polling the bridge for the life of the activity. Left in place it also blocks
    * {@link #inflate}, so the cube never comes back and {@link #refresh} drives the orphan while
    * hiding the new spacer — a gap on screen where the cube should be. Nothing is lost by rebuilding:
-   * Java holds the whole state and the page is reloaded from it.
+   * Java holds the whole state and the page is pointed at it again.
    *
    * @param stub the placeholder to inflate the cube into, or null where the layout has none
    * @param topSpacer the gap the cube stands in for, hidden while it is up, or null where the
    *     layout keeps no such gap
    */
   public void bind(ViewStub stub, View topSpacer) {
-    boolean relaidOut = webView != null;
+    boolean relaidOut = cube != null;
     if (relaidOut) {
       destroy();
     }
@@ -167,12 +114,8 @@ public class LiveCubeView
     SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
     SmartCubeManager.INSTANCE.addMoveListener(this);
     SmartCubeManager.INSTANCE.addStateListener(this); // and the current state, which seeds it
-    SmartCubeManager.INSTANCE.addGyroReferenceListener(this);
-    if (webView != null) {
-      webView.onResume();
-      // Read afresh: the reference can have been taken, re-taken or lost while the screen was away.
-      gyroOn = gyroReference.isSet();
-      evaluate("window.ntLiveGyro(" + gyroOn + ");");
+    if (cube != null) {
+      cube.onResume();
     }
   }
 
@@ -180,30 +123,18 @@ public class LiveCubeView
     SmartCubeManager.INSTANCE.removeConnectionListener(this);
     SmartCubeManager.INSTANCE.removeMoveListener(this);
     SmartCubeManager.INSTANCE.removeStateListener(this);
-    SmartCubeManager.INSTANCE.removeGyroReferenceListener(this);
-    if (webView != null) {
-      evaluate("window.ntLiveGyro(false);"); // stop the render loop, not just the readings
-      webView.onPause(); // twisty-player keeps a WebGL context drawing otherwise
+    if (cube != null) {
+      cube.onPause();
     }
   }
 
   public void destroy() {
-    if (webView != null) {
-      webView.removeCallbacks(readyTimeout);
-      ViewGroup parent = (ViewGroup) webView.getParent();
-      if (parent != null) {
-        parent.removeView(webView); // detach first: destroying in place can strand the renderer
-      }
-      webView.destroy();
-      webView = null;
+    if (cube != null) {
+      cube.destroy();
+      cube = null;
     }
-    // The page went with it, so nothing may be evaluated and nothing has been drawn. Left true,
-    // a rebuild would think the new page was already up and send it nothing.
-    pageLoaded = false;
-    pageReady = false;
     cubeLayout = null;
     veil = null;
-    net = null;
     stub = null;
   }
 
@@ -224,7 +155,7 @@ public class LiveCubeView
       return;
     }
     this.obscured = obscured;
-    load(); // solved while it is covered, the real state again once it is not
+    point(); // solved while it is covered, the real state again once it is not
     refresh();
   }
 
@@ -233,22 +164,12 @@ public class LiveCubeView
     if (!SmartCubeManager.INSTANCE.isConnected()) {
       // The cube was turned freely while it was away, so what is held here is only the state it
       // was last seen in. Forgetting it is what stops the next connection opening on a confident
-      // full-brightness cube that happens to be a solve out of date.
+      // cube that happens to be a solve out of date.
       seeded = false;
-      facelets = null;
     } else {
       inflate();
-      // A cube that connects already solved never reports a change, so seed off what it holds. A
-      // state that is not solved cannot be pointed at, so the mirror waits for one that is and the
-      // net draws this one; the pose does not wait, since the connection anchors the reference
-      // either way.
-      CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
-      if (state != null) {
-        facelets = state.getFacelets();
-        if (state.isSolved()) {
-          seed();
-        }
-      }
+      // A cube that connects without turning never reports a state change, so take what it holds.
+      seed(SmartCubeManager.INSTANCE.getCurrentState());
     }
     refresh();
   }
@@ -256,111 +177,50 @@ public class LiveCubeView
   @Override
   public void onMove(CubeMove move) {
     twin.applyMove(move.getFace(), move.isPrime());
-    movesSinceSeed.add(move.getNotation());
-    if (!obscured) { // held back rather than dropped: load() replays them when the cover comes off
-      evaluate("window.ntLiveMove(" + JSONObject.quote(move.getNotation()) + ");");
+    movesSinceState++;
+    if (!obscured && cube != null) { // held back rather than dropped: point() catches up after
+      cube.addMove(move.getNotation());
     }
-  }
-
-  /** The reference arrived, was re-taken, or went with the cube: the page follows it or stops. */
-  @Override
-  public void onGyroReferenceChanged() {
-    refreshGyro();
   }
 
   @Override
   public void onState(CubeState state) {
-    facelets = state.getFacelets();
-    if (state.isSolved()) {
-      seed(); // the one state the player can be pointed at, and the natural moment to compact
-      return;
-    }
-    inSync = !seeded || twin.toFaceCube().equals(state.getFacelets());
-    refresh(); // the net is drawn from this state, so every one of them is news to it
-    if (inSync && movesSinceSeed.size() >= COMPACT_AFTER_MOVES) {
-      compact();
-    }
-  }
-
-  /** Points the cube on screen at solved, which is where the physical one is. */
-  private void seed() {
-    // Already showing exactly this, with nothing turned since: handing the page the same alg again
-    // only makes the player rebuild for nothing, and a rebuild is what the pose write has to
-    // survive (see poseStale in live.html).
-    boolean alreadyShown = seeded && inSync && baseAlg.isEmpty() && movesSinceSeed.isEmpty();
-    twin.fromFacelet(CubieCube.SOLVED_FACELET);
-    baseAlg = "";
-    movesSinceSeed.clear();
-    // ⚠️ Seeding the STATE does not re-take the reference, and must not. Re-anchoring here is what
-    // made the cube snap to white-top-green-front the instant a solve finished, whatever was really
-    // in the hand: the orientation was right for the whole solve and wrong from the moment it ended.
-    inSync = true;
-    seeded = true;
-    if (!alreadyShown) {
-      load();
+    // The cube's own state is the truth, and the twin is only what has been drawn from the moves:
+    // where they differ a move was missed, and pointing the cube at the state again is the whole
+    // repair. Re-pointed on a long run of turns too, so the animated alg stays short.
+    if (!seeded || movesSinceState >= RESEED_AFTER_MOVES
+        || !twin.toFaceCube().equals(state.getFacelets())) {
+      seed(state);
       refresh();
     }
   }
 
-  /**
-   * Starts or stops the page's render loop as the reference comes and goes.
-   *
-   * <p>A cube with no gyro must not leave the loop running for a pose that never changes: nothing
-   * to follow, nothing to draw.
-   */
-  private void refreshGyro() {
-    boolean on = gyroReference.isSet();
-    if (on != gyroOn) {
-      gyroOn = on;
-      evaluate("window.ntLiveGyro(" + gyroOn + ");");
-    }
+  @Override
+  public void onCubeDrawn() {
+    refresh();
   }
 
-  /**
-   * Folds the moves so far into the setup alg. The animated alg grows for as long as the cube goes
-   * unsolved, and everything the player derives is derived over the whole of it; a session spent
-   * turning without ever solving would otherwise grow without bound. Nothing moves on screen: the
-   * state either side of a compaction is the same state.
-   */
-  private void compact() {
-    StringBuilder sb = new StringBuilder(baseAlg);
-    for (String move : movesSinceSeed) {
-      if (sb.length() > 0) {
-        sb.append(' ');
-      }
-      sb.append(move);
+  /** Points both the twin and the cube on screen at a state the physical cube is really in. */
+  private void seed(CubeState state) {
+    if (state == null || !twin.fromFacelet(state.getFacelets())) {
+      return;
     }
-    baseAlg = sb.toString();
-    movesSinceSeed.clear();
-    load();
+    seeded = true;
+    point();
   }
 
-  /**
-   * Hands the whole state over: the setup alg, then whatever has been turned since.
-   *
-   * <p>⚠️ Gated on the document having run, <b>never</b> on the page having signalled ready. The
-   * page only signals once it has been given a cube to draw, so waiting for that here is a deadlock:
-   * this is the call that would have caused it.
-   */
-  private void load() {
-    if (!pageLoaded) {
-      return; // onPageFinished sends it instead — Java holds the whole state, so nothing is lost
+  /** Hands the page the state the twin holds, or a solved one while the cover is up. */
+  private void point() {
+    if (cube == null || !seeded) {
+      return;
     }
-    // ⚠️ Quoted, never concatenated into a JS string literal: a prime move is spelled U', and the
-    // apostrophe closes the literal and makes a syntax error of the whole call.
-    evaluate("window.ntLiveReset(" + JSONObject.quote(obscured ? "" : baseAlg) + ");");
-    if (!obscured) {
-      for (String move : movesSinceSeed) {
-        evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
-      }
-    }
-    // Pushed rather than compared: the page is fresh and knows nothing of what was on before it.
-    gyroOn = gyroReference.isSet();
-    evaluate("window.ntLiveGyro(" + gyroOn + ");");
+    movesSinceState = 0;
+    cube.setState(CubePatternFormat.format(
+        obscured ? CubieCube.SOLVED_FACELET : twin.toFaceCube()));
   }
 
   private void inflate() {
-    if (webView != null || stub == null) {
+    if (cube != null || stub == null) {
       return;
     }
     try {
@@ -370,22 +230,20 @@ public class LiveCubeView
       // Scaling again would square the factor — 200px becomes a whole screen on a 1080 phone.
       cubeLayout = stub.inflate();
       stub = null;
-      webView = cubeLayout.findViewById(R.id.wvLiveCube);
       veil = cubeLayout.findViewById(R.id.liveCubeVeil);
-      net = cubeLayout.findViewById(R.id.liveCubeNet);
       keepUnscaled(veil);
-      keepUnscaled(net);
-      setUpWebView();
+      cube = new VirtualCube((WebView) cubeLayout.findViewById(R.id.wvLiveCube), touchListener, this);
+      cube.setGyroFollowing(true);
+      point(); // a state taken before the cube existed still has to reach it
     } catch (Throwable t) {
       // e.g. no WebView implementation installed. Said out loud: swallowed, this is a feature that
       // simply never appears and gives nobody a thread to pull.
       Log.w("LiveCube", "could not inflate the live cube", t);
-      // Both, not just the WebView: a layout left behind here is never drawn into, but refresh
-      // would still reserve its space and hide the spacer — a gap with nothing in it, for good.
-      webView = null;
+      // Both, not just the cube: a layout left behind here is never drawn into, but refresh would
+      // still reserve its space and hide the spacer — a gap with nothing in it, for good.
+      cube = null;
       cubeLayout = null;
       veil = null;
-      net = null;
     }
   }
 
@@ -393,9 +251,9 @@ public class LiveCubeView
    * Keeps what is drawn over the cube out of the timer layout's scaling pass.
    *
    * <p>That pass runs on the screen's first measure and scales the px the layouts are authored in;
-   * these two are authored in dp and need none of it. Whether it reached them came down to whether
+   * the cover is authored in dp and needs none of it. Whether it reached it came down to whether
    * the cube inflated before that measure or after — it inflates during {@code initViews} after a
-   * rotation and on the connection event otherwise — so the same label was drawn at two sizes
+   * rotation and on the connection event otherwise — so the same thing was drawn at two sizes
    * depending on how the screen had been arrived at. Marking the parent is enough: the pass does
    * not descend into a view it has already done.
    */
@@ -405,69 +263,8 @@ public class LiveCubeView
     }
   }
 
-  private void setUpWebView() {
-    final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
-        .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(context))
-        .build();
-
-    WebSettings settings = webView.getSettings();
-    settings.setJavaScriptEnabled(true);
-    webView.setBackgroundColor(Color.TRANSPARENT);
-    // The timer screen has no dead zones: a press goes where a press anywhere else would go, and
-    // true stops the WebView's own gesture handling from swallowing the rest of the gesture.
-    if (touchListener != null) {
-      webView.setOnTouchListener(new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View view, MotionEvent event) {
-          touchListener.onTouch(view, event);
-          return true;
-        }
-      });
-    }
-    webView.setFocusable(false); // the space bar starts the timer; focus here would eat it
-    webView.setFocusableInTouchMode(false);
-
-    webView.addJavascriptInterface(new Bridge(), "NTBridge");
-    if (isDebuggable()) {
-      WebView.setWebContentsDebuggingEnabled(true);
-      webView.setWebChromeClient(new WebChromeClient() {
-        @Override
-        public boolean onConsoleMessage(android.webkit.ConsoleMessage message) {
-          Log.d("LiveCube", message.message() + " (line " + message.lineNumber() + ")");
-          return true;
-        }
-      });
-    }
-
-    webView.setWebViewClient(new WebViewClientCompat() {
-      @Override
-      public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest request) {
-        return assetLoader.shouldInterceptRequest(request.getUrl());
-      }
-
-      @Override
-      public void onPageFinished(WebView v, String url) {
-        pageLoaded = true;
-        load(); // the page starts empty; this is what puts a cube in it
-        v.postDelayed(readyTimeout, READY_TIMEOUT_MS);
-      }
-
-      @Override
-      public void onReceivedError(WebView v, WebResourceRequest request,
-          androidx.webkit.WebResourceErrorCompat error) {
-        if (request.isForMainFrame()) {
-          pageLoaded = false;
-          pageReady = false;
-          refresh(); // nothing can be drawn: take the space back rather than leave a hole
-        }
-      }
-    });
-
-    webView.loadUrl(BASE_URL);
-  }
-
   /**
-   * Shares the slot out: the mirror while it is the truth, the net whenever it is not.
+   * Shown only with a cube connected, and only once there is a state to draw.
    *
    * <p>⚠️ <b>INVISIBLE while the page comes up, never GONE.</b> A GONE WebView is never laid out,
    * so the player would be built into a 0×0 viewport and stay that size once shown — space on
@@ -479,90 +276,17 @@ public class LiveCubeView
       return;
     }
     boolean connected = SmartCubeManager.INSTANCE.isConnected();
-    // The mirror is either not pointed at anything yet or knows it is wrong, and there is a state
-    // to draw instead. Never under the cover, which is up precisely so the state cannot be read.
-    boolean netUp = connected && !obscured && facelets != null && (!seeded || !inSync);
     // Veiled counts as shown: the cover is what the space is for, and it is over the cube whether
     // or not there is yet a cube under it.
-    boolean visible = connected && (obscured || netUp || (pageReady && seeded));
+    boolean visible = connected && (obscured || (cube != null && cube.isDrawn() && seeded));
     cubeLayout.setVisibility(visible ? View.VISIBLE : (connected ? View.INVISIBLE : View.GONE));
     if (veil != null) {
       veil.setVisibility(obscured ? View.VISIBLE : View.GONE);
-    }
-    if (net != null) {
-      net.setFacelets(netUp ? facelets : null);
-      net.setVisibility(netUp ? View.VISIBLE : View.GONE);
-    }
-    if (webView != null) {
-      // Hidden under the net rather than left drawing through the gaps between its stickers. Still
-      // INVISIBLE, for the reason above, and still laid out, so it is ready the moment it is right.
-      webView.setVisibility(netUp ? View.INVISIBLE : View.VISIBLE);
     }
     if (topSpacer != null) {
       // The cube stands in the gap rather than above it: both weighted the same, so showing both
       // pushed the timer down and left the cube marooned at the top of the screen.
       topSpacer.setVisibility(connected ? View.GONE : View.VISIBLE);
-    }
-  }
-
-  /** BuildConfig is not generated for this module, and the manifest flag says the same thing. */
-  private boolean isDebuggable() {
-    return (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-  }
-
-  private void evaluate(String js) {
-    if (webView != null && pageLoaded) {
-      webView.evaluateJavascript(js, null);
-    }
-  }
-
-  /** The page never said it had drawn. Show it regardless: an empty one is transparent anyway. */
-  private final Runnable readyTimeout = new Runnable() {
-    @Override
-    public void run() {
-      if (!pageReady) {
-        pageReady = true;
-        refresh();
-      }
-    }
-  };
-
-  /** Called from the page's own thread. */
-  private final class Bridge {
-
-    @JavascriptInterface
-    public void onReady() {
-      WebView view = webView; // read once: this is the JS thread, destroy() nulls it
-      if (view == null) {
-        return;
-      }
-      view.post(new Runnable() {
-        @Override
-        public void run() {
-          if (webView == null) {
-            return;
-          }
-          webView.removeCallbacks(readyTimeout);
-          pageReady = true;
-          refresh();
-        }
-      });
-    }
-
-    /**
-     * How the cube is held, in its own axes, as {@code "w,x,y,z"} — or empty for a cube with no
-     * gyro, no reading yet, or no reference to measure from.
-     *
-     * <p>Polled from the page's render loop rather than pushed, which is what
-     * {@code SmartCube.getOrientation()} is documented for: the gyro runs at ~20 Hz, faster than
-     * any consumer needs. Runs on the JS thread, and touches only volatile state.
-     */
-    @JavascriptInterface
-    public String orientation() {
-      CubeOrientation pose = CubeRotation.continuousFrame(
-          gyroReference.get(), SmartCubeManager.INSTANCE.getOrientation());
-      return pose == null ? ""
-          : pose.getW() + "," + pose.getX() + "," + pose.getY() + "," + pose.getZ();
     }
   }
 }

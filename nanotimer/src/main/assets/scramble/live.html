@@ -8,11 +8,20 @@
   same vendored bundle.js.
 
   Java -> JS surface:
-    ntLiveReset(setupAlg)   the state the cube is in now, as an alg from solved. Clears
-                            everything animated so far; the cube does not move if the alg
-                            says what is already on screen.
+    ntLiveState(pattern)    the state the cube is in now, as a KTransformation's data (see
+                            CubePatternFormat). Clears everything animated so far.
     ntLiveMove(notation)    one quarter turn, just made
     ntLiveGyro(on)          follow the cube's physical orientation, or keep it square
+
+  WHY A STATE AND NOT A SETUP ALG.
+
+  The player takes an alg, and an alg is a route: pointed at it, the mirror could only ever
+  show a state somebody knew the moves to, so a cube scrambled before it was connected had
+  nothing to show at all, and a missed move left the drawing wrong until the next solve. The
+  setup ANCHOR also takes a KTransformation, which is the state itself and needs no route to
+  it (AnchorTransformationProp returns setupTransformation outright when one is set, and
+  currentPattern is that anchor with the animated alg applied over it). So the cube is seeded
+  wherever it really is, and the turns since ride on top exactly as before.
 
   JS -> Java:
     NTBridge.onReady()      the cube is drawn
@@ -285,7 +294,11 @@
     }
   }
 
-  window.ntLiveReset = function (setupAlg) {
+  // Which state is the newest: the puzzle is fetched through a promise, so a state that arrives
+  // while an older one is still waiting for it must not be overwritten when that one lands.
+  var stateSeq = 0;
+
+  function ensurePlayer() {
     if (!player) {
       player = document.createElement("twisty-player");
       player.puzzle = "3x3x3";
@@ -296,8 +309,30 @@
       player.tempoScale = CATCH_UP_MS / DEFAULT_TURN_MS;
       document.getElementById("host").appendChild(player);
     }
-    player.experimentalSetupAlg = setupAlg || "";
+  }
+
+  window.ntLiveState = function (pattern) {
+    ensurePlayer();
+    var seq = ++stateSeq;
+    // Cleared here rather than after the await: a turn made in between belongs to the new state,
+    // and clearing it late would throw that turn away.
     player.alg = "";
+    var data;
+    try {
+      data = JSON.parse(pattern);
+    } catch (e) {
+      data = null;
+    }
+    if (data && window.NTCubing) {
+      player.experimentalModel.kpuzzle.get().then(function (kpuzzle) {
+        if (seq === stateSeq) {
+          player.experimentalModel.setupTransformation.set(
+              new window.NTCubing.KTransformation(kpuzzle, data));
+        }
+      }).catch(function (e) {
+        console.error("live state: " + e);
+      });
+    }
     hookPose();
     setCamera();
     // Prefer signalling after a paint, but never depend on it: a WebView that is not drawing

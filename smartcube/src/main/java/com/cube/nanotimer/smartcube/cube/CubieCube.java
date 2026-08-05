@@ -182,6 +182,21 @@ public final class CubieCube {
     return true;
   }
 
+  /**
+   * Reads the state back out in the same terms {@link #fromPermutation} takes it, filling the four
+   * arrays in place: which piece sits in each slot, and how it is twisted or flipped.
+   */
+  public void toPermutation(int[] cp, int[] co, int[] ep, int[] eo) {
+    for (int i = 0; i < 8; i++) {
+      cp[i] = ca[i] & 7;
+      co[i] = ca[i] >> 3;
+    }
+    for (int i = 0; i < 12; i++) {
+      ep[i] = ea[i] >> 1;
+      eo[i] = ea[i] & 1;
+    }
+  }
+
   /** Apply a single quarter turn in place. */
   public void applyMove(Face face, boolean prime) {
     CubieCube tmp = new CubieCube();

@@ -214,7 +214,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
     solveController = new SmartCubeSolveController(new SolveControllerListener());
-    liveCube = new LiveCubeView(this, layoutTouchListener);
+    liveCube = new LiveCubeView(layoutTouchListener);
     initActionBar();
 
     inspectionTime = Options.INSTANCE.getInspectionTime();
