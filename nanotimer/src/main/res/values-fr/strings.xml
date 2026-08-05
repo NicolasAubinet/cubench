@@ -749,4 +749,26 @@
   </string-array>
   <string name="verdict_faster">%1$s plus rapide que votre %2$s</string>
   <string name="verdict_slower">%1$s plus lent que votre %2$s</string>
+
+  <string name="smartcube_case_headline">%1$s %2$s</string>
+  <string name="drill_title">Entraînement</string>
+  <string name="drill_grip_hint">Tenez votre cube blanc en haut, vert devant</string>
+  <string name="drill_progress">Essai %1$d sur %2$d</string>
+  <string name="drill_skip">Passer</string>
+  <string name="drill_done">Terminé</string>
+  <string name="drill_finished">Entraînement terminé</string>
+  <string name="drill_recognition">reconnaissance</string>
+  <string name="drill_execution">exécution</string>
+  <string name="drill_rep_split">%1$s  (%2$s + %3$s)</string>
+  <string name="drill_rep_execution_only">%1$s d\'exécution</string>
+  <string name="drill_rep_skipped">Passé</string>
+  <string name="drill_summary_reps">%1$d essais sur %2$d</string>
+  <string name="drill_summary_mean">%1$s de moyenne en %2$s</string>
+  <string name="drill_summary_best">Meilleur %1$s</string>
+  <string name="drill_summary_nothing_timed">Rien n\'a été chronométré</string>
+  <string name="drill_cube_left_scrambled">Votre cube n\'est plus résolu, c\'est normal. Résolvez-le avant de chronométrer quoi que ce soit.</string>
+  <string name="drill_needs_cube">Connectez votre cube connecté pour lancer un entraînement.</string>
+  <string name="drill_no_known_cases">Aucun cas de cet entraînement ne peut être mélangé par l\'application.</string>
+  <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un entraînement.</string>
+  <string name="drill_spec_unreadable">Cette version de l\'application ne peut pas lire cet entraînement.</string>
 </resources>

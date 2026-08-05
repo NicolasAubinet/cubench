@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A drill: the case stands on the screen's cube and the smart cube is only the input, so the
+     physical cube's own state never matters and there is nothing here to press to start or stop a
+     rep. The cube reports both ends of one. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent">
+
+  <LinearLayout
+     android:id="@+id/drillRunning"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:orientation="vertical"
+     android:padding="12dp">
+
+    <!-- Only for a cube whose grip cannot be read (no gyro, or no reference yet). Where it can,
+         the cube on screen turns with theirs and there is nothing to tell them. -->
+    <TextView
+       android:id="@+id/tvDrillGrip"
+       android:visibility="gone"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_gravity="center_horizontal"
+       android:background="@drawable/smart_cube_pill"
+       android:backgroundTint="@color/white_wash_10"
+       android:paddingLeft="12dp"
+       android:paddingRight="12dp"
+       android:paddingTop="4dp"
+       android:paddingBottom="4dp"
+       android:text="@string/drill_grip_hint"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+
+    <!-- The cube sits in a well rather than on the background: 3D on a flat surface needs
+         something under it or it reads as floating. -->
+    <FrameLayout
+       android:layout_width="match_parent"
+       android:layout_height="0dp"
+       android:layout_weight="1"
+       android:layout_marginTop="10dp"
+       android:background="@drawable/cube_stage">
+
+      <!-- ⚠️ INVISIBLE until the page has drawn, never GONE: a GONE WebView is not laid out, so
+           the player would build into a 0x0 viewport and stay that size once shown. -->
+      <WebView
+         android:id="@+id/wvDrillCube"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:background="@android:color/transparent"
+         android:visibility="invisible"/>
+
+      <ProgressBar
+         android:id="@+id/pbDrillCube"
+         style="?android:attr/progressBarStyle"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center"/>
+
+      <TextView
+         android:id="@+id/tvDrillFallback"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center"
+         android:gravity="center"
+         android:padding="16dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="15sp"
+         android:visibility="gone"/>
+    </FrameLayout>
+
+    <TextView
+       android:id="@+id/tvDrillCase"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="12dp"
+       android:gravity="center"
+       android:textColor="@color/white"
+       android:textSize="30sp"
+       android:textStyle="bold"/>
+
+    <!-- The rep just finished, which is the only clock a drill shows. A running one would have to
+         start somewhere, and recognition starts at the end of the rep before, not at a paint. -->
+    <TextView
+       android:id="@+id/tvDrillLastRep"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="4dp"
+       android:gravity="center"
+       android:textColor="@color/secondary_text"
+       android:textSize="14sp"
+       android:fontFeatureSettings="tnum"/>
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="14dp"
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvDrillProgress"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:textColor="@color/secondary_text"
+         android:textSize="14sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <!-- Skipping spends the rep rather than escaping it: a case you could not do is a result. -->
+      <Button
+         android:id="@+id/btDrillSkip"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="@string/drill_skip"/>
+    </LinearLayout>
+
+  </LinearLayout>
+
+  <!-- What the drill leaves behind, which is a scrambled cube and needs one line, not a dialog. -->
+  <ScrollView
+     android:id="@+id/drillSummary"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:background="@color/color_primary"
+     android:visibility="gone">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:gravity="center_horizontal"
+       android:padding="24dp">
+
+      <TextView
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="@string/drill_finished"
+         android:textColor="@color/white"
+         android:textSize="24sp"
+         android:textStyle="bold"/>
+
+      <TextView
+         android:id="@+id/tvDrillSummaryReps"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="16dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="15sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <TextView
+         android:id="@+id/tvDrillSummaryMean"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="6dp"
+         android:textColor="@color/white"
+         android:textSize="20sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <TextView
+         android:id="@+id/tvDrillSummaryBest"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="4dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="15sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="24dp"
+         android:gravity="center"
+         android:text="@string/drill_cube_left_scrambled"
+         android:textColor="@color/secondary_text"
+         android:textSize="14sp"/>
+
+      <Button
+         android:id="@+id/btDrillDone"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="24dp"
+         android:text="@string/drill_done"/>
+
+    </LinearLayout>
+  </ScrollView>
+
+  <!-- Nothing to drill with. Said in place of the drill rather than over it. -->
+  <TextView
+     android:id="@+id/tvDrillUnavailable"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:background="@color/color_primary"
+     android:gravity="center"
+     android:padding="32dp"
+     android:textColor="@color/secondary_text"
+     android:textSize="16sp"
+     android:visibility="gone"/>
+
+</FrameLayout>

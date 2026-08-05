@@ -302,6 +302,15 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     return super.onCreateOptionsMenu(menu);
   }
 
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.itDrill) {
+      startActivity(new Intent(this, DrillActivity.class));
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
   private void openSmartCubeConnect() {
     DialogUtils.showFragment(this, new SmartCubeConnectDialog());
   }

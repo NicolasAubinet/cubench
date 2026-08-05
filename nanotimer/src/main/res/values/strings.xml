@@ -765,4 +765,28 @@
        locales, since a column header has no room for more than "vs" and a number. -->
   <string name="verdict_faster">%1$s faster than your %2$s</string>
   <string name="verdict_slower">%1$s slower than your %2$s</string>
+
+  <!-- Drills. Case names ("Ga", "21") stay in English everywhere: they are the vocabulary a
+       speedcuber already reads, the same rule the Roux step names follow. -->
+  <string name="smartcube_case_headline">%1$s %2$s</string>
+  <string name="drill_title">Drill</string>
+  <string name="drill_grip_hint">Hold your cube white up, green in front</string>
+  <string name="drill_progress">Rep %1$d of %2$d</string>
+  <string name="drill_skip">Skip</string>
+  <string name="drill_done">Done</string>
+  <string name="drill_finished">Drill finished</string>
+  <string name="drill_recognition">recognition</string>
+  <string name="drill_execution">execution</string>
+  <string name="drill_rep_split">%1$s  (%2$s + %3$s)</string>
+  <string name="drill_rep_execution_only">%1$s turning</string>
+  <string name="drill_rep_skipped">Skipped</string>
+  <string name="drill_summary_reps">%1$d of %2$d reps</string>
+  <string name="drill_summary_mean">%1$s mean %2$s</string>
+  <string name="drill_summary_best">Best %1$s</string>
+  <string name="drill_summary_nothing_timed">Nothing was timed</string>
+  <string name="drill_cube_left_scrambled">Your cube is scrambled now, which is expected. Solve it before timing anything.</string>
+  <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>
+  <string name="drill_no_known_cases">This drill has no case this app knows how to scramble.</string>
+  <string name="drill_no_cube_view">This device cannot draw the cube a drill is run on.</string>
+  <string name="drill_spec_unreadable">This version of the app cannot read that drill.</string>
 </resources>

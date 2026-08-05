@@ -7,6 +7,11 @@
      app:actionLayout="@layout/smart_cube_chip"
      app:showAsAction="always"/>
 
+  <item android:id="@+id/itDrill"
+     android:title="@string/drill_title"
+     android:icon="@drawable/ic_menu_drill"
+     app:showAsAction="always"/>
+
   <item android:id="@+id/itAppIcon"
      android:title="@string/app_name"
      android:icon="@drawable/app_icon_cube"

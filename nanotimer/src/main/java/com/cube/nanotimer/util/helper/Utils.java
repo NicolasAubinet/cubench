@@ -239,6 +239,22 @@ public class Utils {
     return null;
   }
 
+  /**
+   * A case as a headline, "PLL Ga" or "OLL 21", for a screen whose whole subject is the case.
+   * {@link #toSmartCubeCaseLabel} is parenthetical because it hangs off a step name in a breakdown;
+   * here there is no step name for it to hang off.
+   */
+  public static String toSmartCubeCaseHeadline(Context context, String code) {
+    if (code == null) {
+      return null;
+    }
+    int split = code.indexOf('_');
+    String name = split < 0 ? code : code.substring(split + 1);
+    return context.getString(R.string.smartcube_case_headline,
+        toSmartCubeStepLocalizedName(context, code, 0),
+        name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1));
+  }
+
   /** A tail segment: the time after the last milestone, on a solve the cube never saw finish or on a
    * blind one nothing stopped. It belongs to no step, so it is drawn apart from them rather than in
    * the step colours. */

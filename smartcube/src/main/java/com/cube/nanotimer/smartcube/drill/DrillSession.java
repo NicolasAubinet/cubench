@@ -24,9 +24,10 @@ import java.util.Random;
  * comes into it. What the frame is needed for is naming <em>where</em> in a solve something happened,
  * and a drill never asks.
  *
- * <p>What that does leave is the user's grip: the case is shown on a cube standing a particular way,
- * and a user holding theirs differently turns the face they meant on a face the drill did not. That
- * is a matter of saying which way up to hold it, not of sensing it.
+ * <p>What that does leave is the user's grip, and it is a matter of what is <em>shown</em>, never of
+ * what is checked here: a case drawn on a cube standing square while the user holds theirs some
+ * other way has them turning the face they meant on a face they cannot see. The screen answers it by
+ * following the grip off the gyro; nothing in this class needs to know either way.
  */
 public final class DrillSession {
 

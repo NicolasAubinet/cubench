@@ -751,4 +751,26 @@
   </string-array>
   <string name="verdict_faster">%1$s mais rápido que a sua %2$s</string>
   <string name="verdict_slower">%1$s mais lento que a sua %2$s</string>
+
+  <string name="smartcube_case_headline">%1$s %2$s</string>
+  <string name="drill_title">Treino</string>
+  <string name="drill_grip_hint">Segure o seu cubo com o branco em cima e o verde à frente</string>
+  <string name="drill_progress">Repetição %1$d de %2$d</string>
+  <string name="drill_skip">Saltar</string>
+  <string name="drill_done">Concluído</string>
+  <string name="drill_finished">Treino terminado</string>
+  <string name="drill_recognition">reconhecimento</string>
+  <string name="drill_execution">execução</string>
+  <string name="drill_rep_split">%1$s  (%2$s + %3$s)</string>
+  <string name="drill_rep_execution_only">%1$s de execução</string>
+  <string name="drill_rep_skipped">Saltada</string>
+  <string name="drill_summary_reps">%1$d de %2$d repetições</string>
+  <string name="drill_summary_mean">%1$s de média em %2$s</string>
+  <string name="drill_summary_best">Melhor %1$s</string>
+  <string name="drill_summary_nothing_timed">Nada foi cronometrado</string>
+  <string name="drill_cube_left_scrambled">O seu cubo já não está resolvido, o que é normal. Resolva-o antes de cronometrar seja o que for.</string>
+  <string name="drill_needs_cube">Ligue o seu cubo inteligente para fazer um treino.</string>
+  <string name="drill_no_known_cases">A aplicação não sabe gerar nenhum dos casos deste treino.</string>
+  <string name="drill_no_cube_view">Este dispositivo não consegue desenhar o cubo de um treino.</string>
+  <string name="drill_spec_unreadable">Esta versão da aplicação não consegue ler esse treino.</string>
 </resources>

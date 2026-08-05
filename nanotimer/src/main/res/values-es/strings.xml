@@ -748,4 +748,26 @@
   </string-array>
   <string name="verdict_faster">%1$s más rápido que tu %2$s</string>
   <string name="verdict_slower">%1$s más lento que tu %2$s</string>
+
+  <string name="smartcube_case_headline">%1$s %2$s</string>
+  <string name="drill_title">Entrenamiento</string>
+  <string name="drill_grip_hint">Sujeta tu cubo con el blanco arriba y el verde al frente</string>
+  <string name="drill_progress">Repetición %1$d de %2$d</string>
+  <string name="drill_skip">Saltar</string>
+  <string name="drill_done">Listo</string>
+  <string name="drill_finished">Entrenamiento terminado</string>
+  <string name="drill_recognition">reconocimiento</string>
+  <string name="drill_execution">ejecución</string>
+  <string name="drill_rep_split">%1$s  (%2$s + %3$s)</string>
+  <string name="drill_rep_execution_only">%1$s de ejecución</string>
+  <string name="drill_rep_skipped">Saltada</string>
+  <string name="drill_summary_reps">%1$d de %2$d repeticiones</string>
+  <string name="drill_summary_mean">%1$s de media en %2$s</string>
+  <string name="drill_summary_best">Mejor %1$s</string>
+  <string name="drill_summary_nothing_timed">No se cronometró nada</string>
+  <string name="drill_cube_left_scrambled">Tu cubo ya no está resuelto, es lo esperado. Resuélvelo antes de cronometrar nada.</string>
+  <string name="drill_needs_cube">Conecta tu cubo inteligente para hacer un entrenamiento.</string>
+  <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este entrenamiento.</string>
+  <string name="drill_no_cube_view">Este dispositivo no puede dibujar el cubo de un entrenamiento.</string>
+  <string name="drill_spec_unreadable">Esta versión de la aplicación no puede leer ese entrenamiento.</string>
 </resources>

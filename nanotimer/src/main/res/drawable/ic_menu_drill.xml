@@ -1,0 +1,17 @@
+<!-- A target: a drill is practice aimed at one case rather than at solving. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M12,3 A9,9 0 1,1 11.99,3 Z M12,7.5 A4.5,4.5 0 1,1 11.99,7.5 Z"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+  <path
+      android:pathData="M12,10.75 A1.25,1.25 0 1,1 11.99,10.75 Z"
+      android:fillColor="#FFFFFFFF" />
+</vector>
