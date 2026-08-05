@@ -31,7 +31,7 @@ import java.util.Random;
  */
 public final class DrillSession {
 
-  private static final long NOT_MEASURED = -1;
+  private static final long NOT_SHOWN = -1;
 
   private final DrillSpec spec;
   private final Random random;
@@ -47,7 +47,8 @@ public final class DrillSession {
   private int moveCount;
   private long firstMoveMs;
   private long lastMoveMs;
-  private long previousRepEndMs = NOT_MEASURED;
+  private long caseShownAtMs = NOT_SHOWN;
+  private int resetCount;
 
   public DrillSession(DrillSpec spec, Random random) {
     this(spec, random, null);
@@ -82,9 +83,9 @@ public final class DrillSession {
   }
 
   /**
-   * Puts the next case on the virtual cube, or returns false when the drill is over. The clock is
-   * not touched: the gap to the user's next move is their recognition, and it runs from the last
-   * move of the rep before.
+   * Puts the next case on the virtual cube, or returns false when the drill is over. The rep does
+   * not start here: it starts when the case reaches the user's eyes, which only the caller knows
+   * and says with {@link #markCaseShown}.
    */
   public boolean nextRep() {
     if (isFinished()) {
@@ -98,16 +99,60 @@ public final class DrillSession {
     moveCount = 0;
     firstMoveMs = 0;
     lastMoveMs = 0;
+    caseShownAtMs = NOT_SHOWN;
+    resetCount = 0;
     return true;
   }
 
   /**
-   * Feeds one turn to the virtual cube.
+   * The case is now in front of the user, as of a host timestamp on the same clock the moves carry.
+   * This is where recognition runs from, and until it is called the rep has not begun and turns are
+   * not counted against it.
+   *
+   * <p>Set apart from {@link #nextRep} because the two are not the same moment. A case is chosen
+   * before it can be drawn, and a screen may hold the one just finished for a beat so that solving
+   * it reads as an ending rather than as a jump; measuring from the previous rep's last move, which
+   * is what this used to do, charged every one of those beats to the user's recognition.
+   */
+  public void markCaseShown(long hostMs) {
+    caseShownAtMs = hostMs;
+  }
+
+  /**
+   * Puts the case back as it was and starts the rep over, for one botched by a slip rather than by
+   * not knowing it. Costs no rep: the case comes round again here and now, where skipping it would
+   * spend it and move on.
+   *
+   * <p>The same scramble, not another of the same case: a redo is of the position that went wrong,
+   * and a fresh alignment would be a different one to look at. The rep it eventually finishes
+   * carries how many times it was restarted, so a time reached on the third go is not read as a
+   * clean one.
+   *
+   * <p>Like a case just dealt, the rep is not running until {@link #markCaseShown} says the user can
+   * see it again.
+   */
+  public void resetRep() {
+    if (currentCase == null) {
+      return;
+    }
+    cube = new CubieCube();
+    applyScramble(cube, currentScramble);
+    moveCount = 0;
+    firstMoveMs = 0;
+    lastMoveMs = 0;
+    caseShownAtMs = NOT_SHOWN;
+    resetCount++;
+  }
+
+  /**
+   * Feeds one turn to the virtual cube. Turns made before the case was shown are dropped rather
+   * than queued: the cube on screen missed them too, so the two stay in step, and a rep cannot be
+   * timed against a case the user could not yet see.
    *
    * @return the finished rep if that turn solved the case, null while it is still going
    */
   public DrillRep onMove(CubeMove move) {
-    if (currentCase == null) {
+    if (currentCase == null || caseShownAtMs == NOT_SHOWN) {
       return null;
     }
     long at = move.getCubeTimestampMs();
@@ -126,16 +171,13 @@ public final class DrillSession {
   }
 
   private DrillRep complete(boolean abandoned) {
-    boolean measured = previousRepEndMs != NOT_MEASURED && moveCount > 0;
-    long recognition = measured ? Math.max(0, firstMoveMs - previousRepEndMs) : 0;
+    long recognition = moveCount > 0 ? Math.max(0, firstMoveMs - caseShownAtMs) : 0;
     long execution = moveCount > 0 ? Math.max(0, lastMoveMs - firstMoveMs) : 0;
     DrillRep rep = new DrillRep(currentCase, currentScramble, recognition, execution, moveCount,
-        measured, abandoned);
+        resetCount, abandoned);
     reps.add(rep);
-    if (moveCount > 0) {
-      previousRepEndMs = lastMoveMs;
-    }
     currentCase = null;
+    caseShownAtMs = NOT_SHOWN;
     return rep;
   }
 

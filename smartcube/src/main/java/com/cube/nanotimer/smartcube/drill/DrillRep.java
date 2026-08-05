@@ -5,10 +5,9 @@ package com.cube.nanotimer.smartcube.drill;
  * moves it cost. Split the same way a solve's steps are, so a drill and a solve can be read against
  * each other.
  *
- * <p>Recognition is the gap from the end of the previous rep to the first move of this one, which
- * leaves the first rep of a drill with nothing to measure from. That rep reports zero and says so
- * through {@link #isRecognitionMeasured}, the same distinction a solve's first step draws: zero
- * means unmeasured here, not instant.
+ * <p>Recognition is the gap from the case appearing on screen to the first move against it, so every
+ * rep has one, the first included. It used to run from the end of the previous rep instead, which
+ * left that first rep with nothing to measure from and charged any pause between reps to the user.
  */
 public final class DrillRep {
 
@@ -17,17 +16,17 @@ public final class DrillRep {
   private final long recognitionMs;
   private final long executionMs;
   private final int moveCount;
-  private final boolean recognitionMeasured;
+  private final int resetCount;
   private final boolean abandoned;
 
   DrillRep(String caseCode, String scramble, long recognitionMs, long executionMs, int moveCount,
-      boolean recognitionMeasured, boolean abandoned) {
+      int resetCount, boolean abandoned) {
     this.caseCode = caseCode;
     this.scramble = scramble;
     this.recognitionMs = recognitionMs;
     this.executionMs = executionMs;
     this.moveCount = moveCount;
-    this.recognitionMeasured = recognitionMeasured;
+    this.resetCount = resetCount;
     this.abandoned = abandoned;
   }
 
@@ -53,14 +52,18 @@ public final class DrillRep {
     return recognitionMs + executionMs;
   }
 
-  /** Whether the rep had a previous one to measure its recognition from. */
-  public boolean isRecognitionMeasured() {
-    return recognitionMeasured;
-  }
-
   /** Quarter turns, so a rep that took twice the moves reads as fumbled rather than slow. */
   public int getMoveCount() {
     return moveCount;
+  }
+
+  /**
+   * How many times the user put this case back to the start before finishing it. The times are the
+   * last attempt's, so this is what says whether they are a clean run or the one that finally came
+   * off, which a coach reading a fast time ought to know.
+   */
+  public int getResetCount() {
+    return resetCount;
   }
 
   /** Given up on rather than solved, so its times are what it had reached. */

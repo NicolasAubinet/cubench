@@ -3,6 +3,7 @@ package com.cube.nanotimer.smartcube.drill;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.model.CubeMove;
@@ -16,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import org.junit.Test;
 
 /**
@@ -44,8 +46,9 @@ public class DrillSessionTest {
   public void everyCaseIsFinishedByUndoingItsScramble() {
     for (String code : LastLayerScrambles.cases()) {
       DrillSession session = new DrillSession(spec(code, 1), new Random(7));
-      assertTrue(code, session.nextRep());
-      DrillRep rep = new Hand(session).execute(inverse(session.getCurrentScramble()));
+      Hand hand = new Hand(session);
+      assertTrue(code, hand.next());
+      DrillRep rep = hand.execute(inverse(session.getCurrentScramble()));
       assertNotNull(code, rep);
       assertEquals(code, rep.getCaseCode());
       assertTrue(code, session.isFinished());
@@ -86,23 +89,105 @@ public class DrillSessionTest {
     assertEquals("", notation(asReported("x' z2")));
   }
 
+  /** Including the first rep, which had nothing to measure from while this ran between reps. */
   @Test
-  public void recognitionRunsFromTheEndOfTheRepBefore() {
+  public void recognitionRunsFromWhenTheCaseAppeared() {
     DrillSession session = new DrillSession(spec("pll_t", 2), new Random(3));
     Hand hand = new Hand(session);
 
-    assertTrue(session.nextRep());
+    assertTrue(hand.next());
+    hand.pause(600);
     DrillRep first = hand.execute(inverse(session.getCurrentScramble()));
-    assertFalse("nothing to measure the first rep's recognition from",
-        first.isRecognitionMeasured());
-    assertEquals(0, first.getRecognitionMs());
+    assertEquals(600, first.getRecognitionMs());
     assertEquals((first.getMoveCount() - 1) * GAP_MS, first.getExecutionMs());
 
-    assertTrue(session.nextRep());
+    assertTrue(hand.next());
     hand.pause(1234);
     DrillRep second = hand.execute(inverse(session.getCurrentScramble()));
-    assertTrue(second.isRecognitionMeasured());
     assertEquals(1234, second.getRecognitionMs());
+  }
+
+  /**
+   * The point of measuring from the case rather than from the rep before: a screen that holds the
+   * solved cube for a beat must not bill that beat to the user's looking.
+   */
+  @Test
+  public void aPauseBetweenRepsIsNobodysRecognition() {
+    DrillSession session = new DrillSession(spec("pll_t", 2), new Random(3));
+    Hand hand = new Hand(session);
+
+    assertTrue(hand.next());
+    hand.execute(inverse(session.getCurrentScramble()));
+
+    hand.idle(5000); // the screen dwelling on the finish, nothing to do with the next case
+    assertTrue(hand.next());
+    hand.pause(300);
+    assertEquals(300, hand.execute(inverse(session.getCurrentScramble())).getRecognitionMs());
+  }
+
+  /** A turn made before the case was drawn belongs to no rep, and must not start one. */
+  @Test
+  public void turnsBeforeTheCaseIsShownAreDropped() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), new Random(3));
+    assertTrue(session.nextRep());
+    for (CubeMove move : asReported(inverse(session.getCurrentScramble()))) {
+      assertNull(session.onMove(new CubeMove(move.getFace(), move.isPrime(), 10_000)));
+    }
+    assertTrue("the case is still up, untouched", session.getReps().isEmpty());
+  }
+
+  /**
+   * The same case must not keep arriving the same way round, or the user learns the picture instead
+   * of the case and a recognition drill measures nothing. Every draw takes its own two alignment
+   * turns, so a Ja comes up facing all four ways.
+   */
+  @Test
+  public void oneCaseIsDealtInVaryingAlignments() {
+    DrillSession session = new DrillSession(spec("pll_ja", 24), new Random(3));
+    Hand hand = new Hand(session);
+    Set<String> positions = new HashSet<String>();
+    while (hand.next()) {
+      positions.add(session.getFacelets());
+      hand.execute(inverse(session.getCurrentScramble()));
+    }
+    assertTrue("a Ja always stood the same way up: " + positions.size(), positions.size() >= 4);
+  }
+
+  /** A slip is not the same as not knowing the case, so putting it back costs nothing but time. */
+  @Test
+  public void resettingDealsTheSamePositionAgainAndSpendsNoRep() {
+    DrillSession session = new DrillSession(spec("pll_t", 2), new Random(3));
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    String scramble = session.getCurrentScramble();
+
+    String position = session.getFacelets();
+
+    assertNull("this must not finish it", hand.execute("R U R'"));
+    hand.reset();
+    assertEquals("the same scramble, not another draw of the same case",
+        scramble, session.getCurrentScramble());
+    assertEquals("and so the same way round, which a redo has to be",
+        position, session.getFacelets());
+    assertTrue("no rep spent", session.getReps().isEmpty());
+
+    DrillRep rep = hand.execute(inverse(scramble));
+    assertNotNull("the case was really put back", rep);
+    assertEquals(1, rep.getResetCount());
+    assertEquals(1, session.getReps().size());
+  }
+
+  /** The redo is the rep that counts, so the abandoned attempt's looking is not charged to it. */
+  @Test
+  public void recognitionRunsFromTheResetNotFromTheFirstAttempt() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), new Random(3));
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    hand.pause(4000);
+    hand.execute("R U R'");
+    hand.reset();
+    hand.pause(250);
+    assertEquals(250, hand.execute(inverse(session.getCurrentScramble())).getRecognitionMs());
   }
 
   @Test
@@ -137,7 +222,7 @@ public class DrillSessionTest {
     DrillSession session = new DrillSession(spec, new Random(11));
     Hand hand = new Hand(session);
     List<String> seen = new ArrayList<String>();
-    while (session.nextRep()) {
+    while (hand.next()) {
       seen.add(session.getCurrentCase());
       assertNotNull(session.getCurrentCase(), hand.execute(inverse(session.getCurrentScramble())));
     }
@@ -157,7 +242,7 @@ public class DrillSessionTest {
     DrillSession session = new DrillSession(spec, new Random(13), weights);
     Hand hand = new Hand(session);
     int costly = 0;
-    while (session.nextRep()) {
+    while (hand.next()) {
       if ("pll_h".equals(session.getCurrentCase())) {
         costly++;
       }
@@ -181,8 +266,9 @@ public class DrillSessionTest {
 
   private static void assertFinishes(String code, String algorithm) {
     DrillSession session = new DrillSession(spec(code, 1), noAlignment());
-    assertTrue(code, session.nextRep());
-    DrillRep rep = new Hand(session).execute(algorithm);
+    Hand hand = new Hand(session);
+    assertTrue(code, hand.next());
+    DrillRep rep = hand.execute(algorithm);
     assertNotNull(code + " was not finished by " + algorithm, rep);
     assertEquals(code, rep.getCaseCode());
   }
@@ -207,22 +293,43 @@ public class DrillSessionTest {
 
     private final DrillSession session;
     private long clock = 10_000;
-    private long lastMoveMs = 10_000;
+    private long shownAtMs;
 
     Hand(DrillSession session) {
       this.session = session;
     }
 
-    /** Sit and look at the case for a while before the next rep's first turn. */
+    /** Take the next case and put it in front of the user, which is when its rep starts. */
+    boolean next() {
+      if (!session.nextRep()) {
+        return false;
+      }
+      shownAtMs = clock;
+      session.markCaseShown(shownAtMs);
+      return true;
+    }
+
+    /** Put the case back and look at it afresh, which is where its recognition now runs from. */
+    void reset() {
+      session.resetRep();
+      shownAtMs = clock;
+      session.markCaseShown(shownAtMs);
+    }
+
+    /** Time passing with no case up, which belongs to nobody's recognition. */
+    void idle(long ms) {
+      clock += ms;
+    }
+
+    /** Sit and look at the case for a while before the rep's first turn. */
     void pause(long ms) {
-      clock = lastMoveMs + ms;
+      clock = shownAtMs + ms;
     }
 
     /** Execute an algorithm, stopping the moment the rep is finished. */
     DrillRep execute(String algorithm) {
       for (CubeMove move : asReported(algorithm)) {
         CubeMove timed = new CubeMove(move.getFace(), move.isPrime(), clock);
-        lastMoveMs = clock;
         clock += GAP_MS;
         DrillRep rep = session.onMove(timed);
         if (rep != null) {
