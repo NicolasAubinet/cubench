@@ -20,6 +20,7 @@ import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.ScaleUtils;
 import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.vo.CubeType;
 
@@ -33,13 +34,13 @@ import org.json.JSONObject;
  * {@code ntRender(key, scramble)} call, and a new scramble is that call again rather than a new
  * page. Bind once, then {@link #show} whenever the scramble changes.
  *
- * <p>It draws in the gap under the scramble, next to the moves it is a picture of. The gap is a
- * share of what the scramble and the card leave, never a height of its own, so nothing here can
- * push the scramble into the card below it; and it only takes that share while there is something
- * to put in it, so a puzzle that cannot be drawn leaves exactly the screen that was there before.
- * See {@link #balance}.
+ * <p>It draws in the gap under the scramble, next to the moves it is a picture of, at one size on
+ * every screen of the app: a share of what was left over made it a different size under a solve
+ * type whose statistics card is shorter, which reads as a bug rather than as a screen fitting
+ * itself. The screen pays for that size out of the air around the block, and where there is not
+ * enough of it the picture is not drawn at all — see {@link #fit}.
  *
- * <p>That gap is shared with the live cube, which draws in it instead whenever one is connected:
+ * <p>The box is shared with the live cube, which draws in it instead whenever one is connected:
  * see {@link #setReplaced}.
  *
  * <p><b>Never for a blind solve type.</b> Not "not useful there": a picture of the scrambled state
@@ -58,15 +59,31 @@ public class ScrambleStatePreview {
   private static final long FADE_MS = 120;
 
   /**
+   * How tall the picture is, in the px the timer layouts are authored in (scaled to the screen like
+   * every other length there).
+   *
+   * <p>One height for every solve type and every puzzle, because the alternative was a share of
+   * what the rest of the screen left: the statistics card is shorter for a solve type timed in
+   * steps than for a plain one, so the same cube came out visibly larger under one than the other.
+   * Chosen as the largest that still fits the tightest screen that matters — a plain solve type
+   * with a cube connected, whose statistics card is the tallest and whose step bar is reserved
+   * under the picture — since a size that fits one solve type and not another is the cliff this is
+   * here to remove.
+   */
+  private static final int PICTURE_PX = 175;
+
+  /**
+   * What the two spacers must keep between them for the picture to be worth asking for, in the same
+   * px. Below this the block would sit against the scramble above it and the card below it.
+   */
+  private static final int MIN_AIR_PX = 40;
+
+  /**
    * The room one row of facelets needs before the diagram is worth drawing at all.
    *
-   * <p>The gap is whatever the scramble and the card leave, and what that is worth depends on the
-   * puzzle: a 3x3 net is nine rows of facelets and a 7x7 net is twenty one, in the same space and
-   * from a scramble three times as long. Measuring the gap in rows rather than in dp is what tells
-   * the two apart — a Pixel 9 Pro leaves a 3x3 about 207dp, which reads comfortably, and a 7x7
-   * around 70dp, which is a smudge with the same name. The cases with no gap at all fall out of the
-   * same rule: 360x640 leaves 38dp for a 3x3, and landscape 13dp, since the digits, the chip and a
-   * three line scramble fill that column on their own. Nothing drawn beats something illegible.
+   * <p>What a picture of a given height is worth depends on the puzzle: a 3x3 net is nine rows of
+   * facelets and a 7x7 net is twenty one, drawn in the same box. Nothing drawn beats something
+   * illegible.
    */
   private static final int MIN_ROW_DP = 5;
 
@@ -77,8 +94,8 @@ public class ScrambleStatePreview {
   private final View.OnTouchListener touchListener;
 
   private ViewStub stub;
-  private View slot;
   private View cell;
+  private View head;
   private View foot;
   private View previewLayout;
   private WebView webView;
@@ -89,14 +106,12 @@ public class ScrambleStatePreview {
   private boolean suppressed;
   /** A live cube holds the gap, so nothing is drawn here and nothing is ever built. */
   private boolean replaced;
-  /** The step breakdown rides at the foot of the same gap, so the gap has two tenants to fit. */
-  private boolean shared;
-  /** The gap has been through a layout, so its height is an answer rather than a zero. */
+  /** The screen has been through a layout, so what it holds is an answer rather than a zero. */
   private boolean measured;
-  /** The gap is deep enough to draw in. Assumed until measured: it has to be given a size first. */
+  /** The screen has room for the picture. Assumed until measured: it has to be asked for first. */
   private boolean roomEnough = true;
   /** What this puzzle's net needs, in pixels: see {@link #MIN_ROW_DP}. */
-  private int minSlotPx;
+  private int minPicturePx;
 
   /** What to draw: a cubing.js renderer key and the scramble in its notation, or null for neither. */
   private String key;
@@ -121,31 +136,34 @@ public class ScrambleStatePreview {
    * over an entirely new stub. Whatever was inflated into the old layout is torn down here; nothing
    * is lost, since what to draw is held in Java and the page is reloaded from it.
    *
-   * @param slot the gap in the screen, whose weight this class sets: see {@link #balance}
-   * @param cell the part of that gap the diagram draws in, which is the gap itself less whatever
-   *     shares it, and is watched for how much of it there is. A cell that collapses, or that is
-   *     taken away entirely, reads here as no room and nothing is built. Null where the layout
-   *     keeps no separate cell, which says the gap is the diagram's alone.
-   * @param foot the spacer under the gap, whose weight answers the slot's
+   * @param cell the box the picture is drawn in, whose height this class sets
+   * @param head the spacer above the digits, and @param foot the one under the block: what the two
+   *     of them hold is the air the picture is asked to be paid out of, so they are what says
+   *     whether there is room for one. The foot is also evened up with the head when there is
+   *     nothing in the gap at all: see {@link #fit}.
    */
-  public void bind(ViewStub stub, View slot, View cell, View foot) {
+  public void bind(ViewStub stub, View cell, View head, View foot) {
     boolean relaidOut = (webView != null);
     if (relaidOut) {
       destroy();
-    } else if (this.cell != null) {
-      this.cell.removeOnLayoutChangeListener(slotLayout); // rotated before anything was built
+    } else {
+      unwatch(this.cell); // rotated before anything was built
+      unwatch(this.head);
+      unwatch(this.foot);
     }
     this.stub = stub;
-    this.slot = slot;
-    this.cell = (cell != null) ? cell : slot;
+    this.cell = cell;
+    this.head = head;
     this.foot = foot;
     measured = false;
     roomEnough = true;
-    if (this.cell != null) {
-      this.cell.addOnLayoutChangeListener(slotLayout);
-      measureSlot(); // a rotation arrives with the new gap already laid out
-    }
-    balance();
+    // All three, because what says whether there is room is what the three of them hold between
+    // them, and any one of them can be the one that changes.
+    watch(cell);
+    watch(head);
+    watch(foot);
+    measureRoom(); // a rotation arrives with the new screen already laid out
+    fit();
     if (relaidOut) {
       build(); // the page loads itself and asks for the scramble in onPageFinished
     }
@@ -153,31 +171,39 @@ public class ScrambleStatePreview {
   }
 
   /**
-   * Gives the gap its share of the screen only while there is a diagram to put in it.
+   * Gives the picture its height, and the spacers what is left.
    *
-   * <p>The timer's free space is shared by three: the spacer above the digits, this gap, and the
-   * spacer under it. With a diagram the split is 1:3:2, which centres the block — the foot is the
-   * heavier of the two spacers because the digits carry their own leading above the glyphs, and
-   * with the gaps equal the block reads low. With nothing to draw the gap takes nothing and the
-   * two spacers halve the space between them, which is the screen as it was before any of this.
+   * <p>The height is {@link #PICTURE_PX} whenever there is something to put in the box and the
+   * screen can pay for it, and nothing at all otherwise, so the box is the same size under every
+   * solve type and the air around it is what varies instead. The step bar rides under the box in
+   * the same band and asks for its own height, so it is never laid over the picture and never
+   * takes room from it either.
    *
-   * <p>It is settled before the diagram is drawn and not touched again, so nothing here can move
-   * the digits during a solve. Standing down for a run is a visibility, never a weight.
+   * <p>With nothing in the band the foot is evened up with the head, which is the screen as it was
+   * before any of this. With something in it the foot stays the heavier of the two: what shows
+   * above the digits is the head spacer plus the leading the glyphs carry inside their own box, and
+   * the two gaps only read as equal when the one below is larger by that much.
    *
-   * <p>A gap with two tenants takes most of it instead, 1:6:2: the step bar and its legend ride at
-   * the foot of it, and a solve's breakdown is a third of what a diagram's share would be. Split
-   * 1:3:2 with the bar in it, the cube came out smaller than it had been before there was ever a
-   * diagram to share with, and a diagram was left too small a picture to read. The foot keeps its
-   * lead over the head either way, and for the same reason: what shows above the digits is this
-   * spacer plus the leading the glyphs carry inside their own box, and the two gaps only read as
-   * equal when the one below is the larger by that much.
+   * <p>It is settled before the picture is drawn and not touched again, so nothing here can move
+   * the digits during a solve. Standing down for a run is a visibility, never a height.
    */
-  private void balance() {
-    boolean drawing = (key != null) && roomEnough;
-    boolean occupied = replaced || drawing || shared;
-    boolean crowded = replaced || (shared && drawing); // both tenants, so both need the room
-    setWeight(slot, occupied ? (crowded ? 6f : 3f) : 0f);
-    setWeight(foot, occupied ? 2f : 1f);
+  private void fit() {
+    boolean showing = (replaced || key != null) && roomEnough;
+    setHeight(cell, showing ? picturePx() : 0);
+    setWeight(foot, showing ? 2f : 1f);
+  }
+
+  private int picturePx() {
+    return (int) (PICTURE_PX * ScaleUtils.getScale(context));
+  }
+
+  private static void setHeight(View view, int height) {
+    if (view == null || view.getLayoutParams() == null || view.getLayoutParams().height == height) {
+      return;
+    }
+    ViewGroup.LayoutParams params = view.getLayoutParams();
+    params.height = height;
+    view.setLayoutParams(params);
   }
 
   private static void setWeight(View view, float weight) {
@@ -191,40 +217,62 @@ public class ScrambleStatePreview {
     }
   }
 
+  private void watch(View view) {
+    if (view != null) {
+      view.addOnLayoutChangeListener(bandLayout);
+    }
+  }
+
+  private void unwatch(View view) {
+    if (view != null) {
+      view.removeOnLayoutChangeListener(bandLayout);
+    }
+  }
+
   /**
-   * ⚠️ The answer is acted on <b>after</b> the pass that gave it, never inside it. Inflating the
-   * stub adds a child to the very view being laid out, and the layout that asks for is dropped on
-   * the floor: the diagram is then attached, sized 0&times;0, and never measured, since a resting
+   * ⚠️ Read and acted on <b>after</b> the pass, never inside it, for two reasons. The spacers are
+   * laid out either side of the box, so inside the pass one of the three is still holding the
+   * height it had before it — which reads as a screen with no room on it. And inflating the stub
+   * adds a child to the very view being laid out, so the layout that asks for is dropped on the
+   * floor: the diagram is then attached, sized 0&times;0, and never measured, since a resting
    * screen has no further pass to catch it.
    */
-  private final View.OnLayoutChangeListener slotLayout = new View.OnLayoutChangeListener() {
+  private final View.OnLayoutChangeListener bandLayout = new View.OnLayoutChangeListener() {
     @Override
     public void onLayoutChange(View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) {
-      if (measureSlot()) {
-        v.post(buildOutOfLayout);
+      v.post(settle);
+    }
+  };
+
+  /** Cheap to run for nothing: it stops at the first read that says the answer has not changed. */
+  private final Runnable settle = new Runnable() {
+    @Override
+    public void run() {
+      if (measureRoom()) {
+        fit();
+        build();
+        refresh();
       }
     }
   };
 
-  private final Runnable buildOutOfLayout = new Runnable() {
-    @Override
-    public void run() {
-      balance();
-      build();
-      refresh();
-    }
-  };
-
-  /** @return whether the answer changed */
-  private boolean measureSlot() {
-    // A gap that is not on screen is not a gap: a GONE cell measures zero and nothing is built.
-    int height = (cell == null || cell.getVisibility() != View.VISIBLE) ? 0 : cell.getHeight();
-    if (height == 0) {
-      // Not laid out, or laid out with no share to measure because there is nothing to draw. Either
-      // way it is not an answer, and reading it as one would take the gap away for good.
+  /**
+   * Whether the screen can pay for the picture, read off the two spacers plus whatever the box is
+   * already holding — a sum that does not change with how it is split, so asking for the box and
+   * asking again cannot chase each other round.
+   *
+   * @return whether the answer changed
+   */
+  private boolean measureRoom() {
+    if (cell == null || head == null || foot == null) {
       return false;
     }
-    boolean room = height >= minSlot();
+    int spare = head.getHeight() + foot.getHeight() + cell.getHeight();
+    if (spare == 0) {
+      return false; // not laid out yet, and reading that as an answer would settle for nothing
+    }
+    boolean room = spare >= picturePx() + (int) (MIN_AIR_PX * ScaleUtils.getScale(context))
+        && picturePx() >= minPicture();
     if (measured && room == roomEnough) {
       return false;
     }
@@ -233,8 +281,8 @@ public class ScrambleStatePreview {
     return true;
   }
 
-  private int minSlot() {
-    return (minSlotPx > 0) ? minSlotPx
+  private int minPicture() {
+    return (minPicturePx > 0) ? minPicturePx
       : (int) (DEFAULT_NET_ROWS * MIN_ROW_DP * context.getResources().getDisplayMetrics().density);
   }
 
@@ -280,13 +328,13 @@ public class ScrambleStatePreview {
     moves = notation;
     int needed = (int) (netRows(cubeType) * MIN_ROW_DP
         * context.getResources().getDisplayMetrics().density);
-    if (needed != minSlotPx) {
-      minSlotPx = needed;
-      measured = false; // the gap was weighed against another puzzle's net
+    if (needed != minPicturePx) {
+      minPicturePx = needed;
+      measured = false; // the box was weighed against another puzzle's net
       roomEnough = true;
-      measureSlot();
+      measureRoom();
     }
-    balance();
+    fit();
     build();
     refresh();
   }
@@ -302,31 +350,16 @@ public class ScrambleStatePreview {
    * ever one of them is up. A cube enforces the scramble move by move, so the picture of it has
    * nothing left to say — and side by side neither was large enough to read.
    *
-   * <p>The gap keeps its share of the screen either way, so connecting a cube swaps what is in it
-   * without moving anything around it.
+   * <p>The box keeps its size either way, so connecting a cube swaps what is in it without moving
+   * anything around it.
    */
   public void setReplaced(boolean replaced) {
     if (this.replaced == replaced) {
       return;
     }
     this.replaced = replaced;
-    balance();
+    fit();
     build(); // a cube that connected first is what leaves the page unbuilt; this is where it is built
-    refresh();
-  }
-
-  /**
-   * Says that the step breakdown rides at the foot of the same gap, which is what the gap is sized
-   * for: see {@link #balance}. A property of the solve type rather than of the bar being up at this
-   * moment, so a finished solve cannot change the weights and move the digits under it.
-   */
-  public void setShared(boolean shared) {
-    if (this.shared == shared) {
-      return;
-    }
-    this.shared = shared;
-    balance();
-    build();
     refresh();
   }
 
@@ -343,11 +376,11 @@ public class ScrambleStatePreview {
   }
 
   public void destroy() {
-    if (cell != null) {
-      cell.removeOnLayoutChangeListener(slotLayout);
-      cell = null;
-    }
-    slot = null;
+    unwatch(cell);
+    unwatch(head);
+    unwatch(foot);
+    cell = null;
+    head = null;
     foot = null;
     if (webView != null) {
       webView.removeCallbacks(renderTimeout);

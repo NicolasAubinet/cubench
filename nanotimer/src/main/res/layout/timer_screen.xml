@@ -35,11 +35,12 @@
          android:paddingLeft="2px"
          android:paddingRight="2px"
          android:orientation="vertical">
-        <!-- This spacer, the band below and the one at the foot share the free space 1:3:2, which
-             centres the whole block when there is a diagram in the band. With nothing to draw,
-             ScrambleStatePreview.balance takes the band's share away and these two spacers halve
-             what is left, which is the screen as it was before any of this; with a live cube in the
-             band it gives it nearly everything, since the cube shares that band with the step bar. -->
+        <!-- This spacer and the one at the foot take whatever the block does not need, 1:2. The foot
+             is the heavier because the digits carry their own leading above the glyphs: with the two
+             equal, the air above the block reads larger than the air below it. With nothing in the
+             band ScrambleStatePreview evens them out, which is the screen as it was before any of
+             this. They are also what says whether there is room for a picture at all: what the two
+             of them hold is what is going spare. -->
         <Space
            android:id="@+id/timerTopSpace"
            android:layout_width="match_parent"
@@ -111,27 +112,29 @@
         </FrameLayout>
 
         <!-- The band holds the gap under the scramble. Everything in it is stacked, never laid over
-             anything else: the picture (a diagram or the live cube) takes what the bar below it
-             leaves. The weight here is the one for a diagram alone; see the spacer above. -->
+             anything else, and it asks for exactly the height its contents need: the picture's own
+             (given by ScrambleStatePreview, the same on every screen of the app) plus the bar's.
+             What is left over goes to the two spacers, so the solve type's statistics card, which
+             is taller for some than for others, changes the air around the block and never the
+             size of the picture in it. -->
         <FrameLayout
            android:id="@+id/statePreviewSlot"
            android:layout_width="match_parent"
-           android:layout_height="0px"
-           android:layout_weight="3">
+           android:layout_height="wrap_content">
           <LinearLayout
              android:layout_width="match_parent"
-             android:layout_height="match_parent"
+             android:layout_height="wrap_content"
              android:orientation="vertical">
 
             <!-- What is drawn in the gap: the scramble's state, or the connected cube in its place
-                 (TimerActivity.refreshStatePreviewOwner). One or the other, never both, and both
-                 take what the bar leaves rather than a height of their own. Two stubs, so a user
-                 with no cube pays nothing for one and a puzzle with no diagram nothing for that. -->
+                 (TimerActivity.refreshStatePreviewOwner). One or the other, never both. The height
+                 is set from code — see ScrambleStatePreview.PICTURE_PX — and left at nothing where
+                 the screen has no room for it. Two stubs, so a user with no cube pays nothing for
+                 one and a puzzle with no diagram nothing for that. -->
             <FrameLayout
                android:id="@+id/statePreviewCell"
                android:layout_width="match_parent"
-               android:layout_height="0px"
-               android:layout_weight="1">
+               android:layout_height="0px">
               <ViewStub
                  android:id="@+id/stubStatePreview"
                  android:layout="@layout/timer_state_preview"

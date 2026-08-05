@@ -511,7 +511,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The cube takes the same listener the action bar does, so it is not a dead zone either.
     liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube));
     statePreview.bind((ViewStub) findViewById(R.id.stubStatePreview),
-        findViewById(R.id.statePreviewSlot), findViewById(R.id.statePreviewCell),
+        findViewById(R.id.statePreviewCell), findViewById(R.id.timerTopSpace),
         findViewById(R.id.statePreviewFoot));
     refreshStatePreviewOwner(); // a rotation is a new gap, and it may already be the cube's
     renderStatePreview(); // a rotation arrives with a scramble already in hand
@@ -1734,7 +1734,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void refreshStatePreviewOwner() {
     boolean cubeHasGap = solveController.isCubeDriven();
     statePreview.setReplaced(cubeHasGap);
-    statePreview.setShared(breakdownRidesInGap()); // the bar's own share comes out of the same gap
     // The cube stands down for a solve like the panels around it, and whenever the gap is not its.
     liveCube.setSuppressed(timerFocused || !cubeHasGap);
   }
