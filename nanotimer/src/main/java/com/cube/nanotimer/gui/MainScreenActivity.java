@@ -58,6 +58,7 @@ import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.EnterAnimation;
+import com.cube.nanotimer.util.view.HeroStat;
 import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.util.view.SolveStepBarView;
@@ -106,6 +107,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private final Map<Integer, Integer> cubeTypeCounts = new HashMap<>();
   private final Map<Integer, Integer> solveTypeCounts = new HashMap<>();
 
+  // What the cells were last drawn from, so re-picking a statistic redraws them without a query.
+  private SolveAverages shownAverages;
+
   private int solvesCount;
   private int currentOrientation;
   private TimesSort timesSort = TimesSort.TIMESTAMP;
@@ -136,6 +140,13 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private static final int ID_SOLVETYPE = 2;
   private static final int ID_IMPORTEXPORT = 3;
   private static final int ID_LANGUAGE = 4;
+  /** One id per statistics cell, so a pick comes back knowing which cell asked. */
+  private static final int ID_STAT_CELL = 10;
+
+  private static final int[] STAT_CELL_IDS = { R.id.statCellOne, R.id.statCellTwo, R.id.statCellThree };
+  private static final int[] STAT_KEY_IDS = { R.id.tvStatKeyOne, R.id.tvStatKeyTwo, R.id.tvStatKeyThree };
+  private static final int[] STAT_VALUE_IDS =
+    { R.id.tvStatValueOne, R.id.tvStatValueTwo, R.id.tvStatValueThree };
 
   private static final int IMPORT_REQUEST_CODE = 1;
 
@@ -229,6 +240,15 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         openGraph(GraphActivity.Period.LAST_SOLVES);
       }
     });
+    for (int cell = 0; cell < STAT_CELL_IDS.length; cell++) {
+      final int cellIndex = cell;
+      findViewById(STAT_CELL_IDS[cell]).setOnClickListener(new OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          openStatPicker(cellIndex);
+        }
+      });
+    }
 
     initHistoryList();
 
@@ -614,12 +634,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   }
 
   /**
-   * The three cells. The third is the personal best, except for a solve type timed in steps, which
-   * has no best single worth stating beside its splits and gives an average of 50 instead.
-   *
-   * <p>A blind solve type spends its first two on an average of 12 and its success rate, the rate
-   * being over the last 50 solves: the same window as the sparkline above it, and near enough to
-   * recent form to move when the solver does. A lifetime rate barely moves at all.
+   * The three cells, each showing whichever statistic it was last set to. Which one that is belongs
+   * to the user: the windows worth watching are not the same for a solver chasing an Ao5 and one
+   * counting blind successes, and no default is right for both.
    */
   private void refreshStatCells() {
     if (curSolveType == null) {
@@ -635,42 +652,68 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
               return; // the user moved on while this was loading
             }
-            boolean blind = solveType.isBlind();
-            if (blind) {
-              Integer accuracy = averages.getAccuracyOf50();
-              setStatCell(R.id.tvStatKeyOne, R.id.tvStatValueOne,
-                getString(R.string.ao12_label), formatTime(averages.getAvgOf12()));
-              setStatCell(R.id.tvStatKeyTwo, R.id.tvStatValueTwo, getString(R.string.acc_label),
-                accuracy == null ? getString(R.string.NA) : accuracy + "%");
-            } else {
-              setStatCell(R.id.tvStatKeyOne, R.id.tvStatValueOne,
-                getString(R.string.ao5_label), formatTime(averages.getAvgOf5()));
-              setStatCell(R.id.tvStatKeyTwo, R.id.tvStatValueTwo,
-                getString(R.string.ao12_label), formatTime(averages.getAvgOf12()));
-            }
-
-            if (!blind && solveType.hasSteps()) {
-              setStatCell(R.id.tvStatKeyThree, R.id.tvStatValueThree,
-                getString(R.string.ao50_label), formatTime(averages.getAvgOf50()));
-            } else {
-              setStatCell(R.id.tvStatKeyThree, R.id.tvStatValueThree,
-                getString(R.string.record_label_lifetime), formatTime(averages.getBestOfLifetime()));
-            }
-            EnterAnimation.stagger(findViewById(R.id.statCellOne),
-              findViewById(R.id.statCellTwo), findViewById(R.id.statCellThree));
+            shownAverages = averages;
+            showStatCells();
+            EnterAnimation.stagger(findViewById(STAT_CELL_IDS[0]),
+              findViewById(STAT_CELL_IDS[1]), findViewById(STAT_CELL_IDS[2]));
           }
         });
       }
     });
   }
 
-  private void setStatCell(int keyViewId, int valueViewId, String key, String value) {
-    ((TextView) findViewById(keyViewId)).setText(key);
-    ((TextView) findViewById(valueViewId)).setText(value);
+  /** Draws the cells from the averages already loaded, so a re-pick lands without another query. */
+  private void showStatCells() {
+    if (curSolveType == null) {
+      return;
+    }
+    boolean blind = curSolveType.isBlind();
+    for (int cell = 0; cell < STAT_CELL_IDS.length; cell++) {
+      HeroStat stat = Options.INSTANCE.getHeroStat(cell, blind);
+      ((TextView) findViewById(STAT_KEY_IDS[cell])).setText(stat.label(this));
+      ((TextView) findViewById(STAT_VALUE_IDS[cell])).setText(stat.value(this, shownAverages));
+    }
   }
 
-  private String formatTime(Long time) {
-    return FormatterService.INSTANCE.formatSolveTime(time, getString(R.string.NA));
+  /**
+   * The statistics this solve type has to offer, each with what it currently stands at, so the
+   * picker is also the one place they can all be read at once.
+   */
+  private void openStatPicker(int cell) {
+    if (curSolveType == null) {
+      return;
+    }
+    boolean blind = curSolveType.isBlind();
+    List<HeroStat> options = HeroStat.optionsFor(curSolveType);
+    ArrayList<String> names = new ArrayList<>();
+    ArrayList<String> values = new ArrayList<>();
+    ArrayList<Integer> icons = new ArrayList<>();
+    ArrayList<Integer> colors = new ArrayList<>();
+    for (HeroStat stat : options) {
+      names.add(stat.label(this));
+      values.add(stat.value(this, shownAverages));
+      icons.add(0);
+      colors.add(SolveTypeIcons.colorForSolveType(curSolveType));
+    }
+    DialogUtils.showFragment(this, SelectorListDialog
+      .newInstance(ID_STAT_CELL + cell, names, values, icons, colors,
+        options.indexOf(Options.INSTANCE.getHeroStat(cell, blind)), null, 0, this)
+      .setHeader(getString(R.string.stat_to_show),
+        Utils.toSolveTypeLocalizedName(this, curSolveType.getName()),
+        SolveTypeIcons.forSolveType(curSolveType), SolveTypeIcons.colorForSolveType(curSolveType))
+      .setNote(blind ? getString(R.string.blind_averages_note) : null));
+  }
+
+  private void statPicked(int cell, int position) {
+    if (curSolveType == null) {
+      return;
+    }
+    List<HeroStat> options = HeroStat.optionsFor(curSolveType);
+    if (position < 0 || position >= options.size()) {
+      return; // dismissed without choosing
+    }
+    Options.INSTANCE.setHeroStat(cell, curSolveType.isBlind(), options.get(position));
+    showStatCells();
   }
 
   public void refreshHistory() {
@@ -839,6 +882,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           i.putExtra("cubeType", curCubeType);
           startActivity(i);
         }
+      } else if (id >= ID_STAT_CELL && id < ID_STAT_CELL + STAT_CELL_IDS.length) {
+        statPicked(id - ID_STAT_CELL, position);
       } else if (id == ID_IMPORTEXPORT) {
         if (position == 0) {
           tryLaunchImportActivity();

@@ -122,7 +122,7 @@ public class SparklineView extends View {
       }
     }
     // The window the line covers, not the points left in it: a DNF is still one of your last 50.
-    caption = hasEnoughTimes() ? getResources().getString(R.string.sparkline_window, window) : null;
+    caption = hasEnoughTimes() ? getResources().getString(R.string.window_last_n, window) : null;
     setContentDescription(caption);
     buildPaths();
     if (animate && hasEnoughTimes() && animationsEnabled()) {

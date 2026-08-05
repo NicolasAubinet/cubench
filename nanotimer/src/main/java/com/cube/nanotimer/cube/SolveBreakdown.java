@@ -114,6 +114,27 @@ public final class SolveBreakdown {
     return steps;
   }
 
+  /**
+   * The breakdown of a solve still running: the steps already tapped, followed by an empty slot for
+   * each one still to come. A slot is given what the steps before it averaged, so the bar is full
+   * width from the first tap and grows into the solve's true shape rather than snapping to it at
+   * the end; before any step is taken they are all the same width.
+   *
+   * @param totalSteps how many steps the solve type has, slots included
+   */
+  public static List<SolveStep> inProgress(Long[] stepTimes, int totalSteps) {
+    List<SolveStep> steps = fromStepTimes(stepTimes);
+    long taken = 0;
+    for (SolveStep step : steps) {
+      taken += step.getTotalMs();
+    }
+    long slotMs = steps.isEmpty() ? 1 : Math.max(1, taken / steps.size());
+    for (int i = steps.size(); i < totalSteps; i++) {
+      steps.add(new SolveStep(i, "", 0, slotMs, new ArrayList<SolveStep>()));
+    }
+    return steps;
+  }
+
   private static long lastMoveOffsetMs(String moves) {
     List<Move> parsed = SolveMovesFormat.parse(moves);
     return parsed.isEmpty() ? 0 : parsed.get(parsed.size() - 1).getOffsetMs();

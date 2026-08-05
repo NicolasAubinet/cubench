@@ -274,7 +274,7 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
     titleLayout.setGravity(Gravity.CENTER_VERTICAL);
     titleLayout.setBackgroundColor(getResources().getColor(R.color.graybg));
 
-    TextView tvStart = new TextView(getActivity());
+    TextView tvStart = GUIUtils.newTextView(getActivity());
     tvStart.setPadding(10, 0, 0, 0);
     tvStart.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
     tvStart.setText(R.string.session_start);

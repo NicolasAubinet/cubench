@@ -174,8 +174,8 @@
                android:layout_height="46dp"/>
           </FrameLayout>
 
-          <!-- Three windows, three cells. The third is the personal best, the success rate for a
-               blind solve type, and an average of 50 for one timed in steps. -->
+          <!-- Three windows, three cells, each showing the statistic it was last set to. Tapping
+               one opens the picker; the choice is kept per kind of solve type. -->
           <LinearLayout
              android:id="@+id/heroStatsRow"
              android:layout_width="match_parent"

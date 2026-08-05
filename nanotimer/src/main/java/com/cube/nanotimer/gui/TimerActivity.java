@@ -9,9 +9,9 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -35,11 +35,13 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.Options.BigCubesNotation;
 import com.cube.nanotimer.Options.InspectionMode;
+import com.cube.nanotimer.Options.SessionTimesDisplay;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.LiveCubeView;
 import com.cube.nanotimer.cube.ScrambleFollower;
 import com.cube.nanotimer.cube.SmartCubeChip;
+import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
 import com.cube.nanotimer.cube.SolveSolution;
@@ -62,6 +64,7 @@ import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent.State;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CubeSession;
+import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.ScrambleViewNotation;
@@ -72,11 +75,20 @@ import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DigitalTextView;
+import com.cube.nanotimer.util.view.EnterAnimation;
+import com.cube.nanotimer.util.view.FocusDot;
+import com.cube.nanotimer.util.view.FocusTransition;
+import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
+import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
+import com.cube.nanotimer.util.view.ScrambleStatePreview;
+import com.cube.nanotimer.util.view.SessionBarsView;
+import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
+import com.cube.nanotimer.vo.SessionTimes;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -96,14 +108,17 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private TextView tvTimer;
   private TextView tvScramble;
   private TextView tvSolvesCount;
-  private TextView tvTitle;
+  private TextView tvBanner;
+  private View identityRow;
+  private View identityStrip;
   private ViewGroup layout;
+  private View timerBox;
+  private View scrambleBox;
+  private View sessionLayout;
+  private FocusDot focusDot;
   private TableLayout sessionTimesLayout;
-  private View recordBar;
-  private TextView tvRecordBarLabel;
-  private TextView tvRecordBarValue;
-  private TextView tvRecordBarPrev;
-  private final Handler overlayHandler = new Handler();
+  private SessionBarsView sessionBars;
+  private TextView tvVerdictChip;
 
   /** The statistics cell each record belongs to, by {@link RecordInfo#priority}. */
   private static final int[] RECORD_TILE_BY_PRIORITY = {
@@ -124,6 +139,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   // the views are rebuilt from scratch, and the solve they described is not re-read from anywhere.
   private List<SolveStep> shownSteps = Collections.emptyList();
   private String[] shownStepNames;
+  private int shownDoneCount; // of the shown steps, how many are solved rather than still to come
   private CharSequence shownStats;
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
@@ -158,12 +174,19 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean showMenu = true;
   private SmartCubeChip smartCubeChip;
   private LiveCubeView liveCube;
-  private ImageView imgCancelSolve; // discards the running solve, overlaid on the action bar
+  private ScrambleStatePreview statePreview; // the scramble's own state, in the gap under it
+  // The gap changes hands as a cube comes and goes. Added in onResume, which replays the current
+  // connection at once, so the gap is settled before anything is drawn in it.
+  private final CubeConnectionListener statePreviewOwner = c -> refreshStatePreviewOwner();
+  private boolean timerFocused; // the screen has stood down for a solve, so the preview has too
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
+  private View stepBreakdown; // the bar and its stats as one block, so a solve can move both
   private StepSplitsView stepSplits; // the averages block of a solve type timed in steps
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
   private ParticleView particleView; // full-screen confetti overlay, fired on a personal best
+  private InspectionRingView inspectionRing; // full-screen overlay, drawn only while inspecting
+  private FocusTransition focusTransition; // the ring leaving and the digits arriving, as one move
   private ScrambleFollowAnimator scrambleAnimator; // subtle per-move zoom during a cube follow
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
@@ -175,12 +198,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private final long STOP_START_DELAY = 500; // to avoid starting timer too quickly after a stop
 
   private int inspectionTime;
+  private int lastInspectionSecond = -1; // the ring is redrawn far oftener than the count changes
   private InspectionMode inspectionMode;
   private boolean soundsEnabled;
   private boolean keepScreenOnWhenTimerOff;
 
-  private int defaultBackgroundColor = R.color.graybg;
-  private int pushedBackgroundColor = R.color.pushedbg;
+  private int groundColor = R.color.graybg; // the ground at rest; a running solve drops it a shade
+  private int pushedGroundColor = R.color.pushedbg; // the same ground with a finger on it
+  private boolean surfacePressed; // and whether there is one on it
 
   private RandomStateGenListener randomStateGenListener = new RandomStateGenListener() {
     @Override
@@ -213,8 +238,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
 
     smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
+    // On the timer the chip is only worth a place in the bar when there is a cube behind it. The
+    // history screen keeps it greyed instead, as the way in to pairing one.
+    smartCubeChip.setHideWhenDisconnected(true);
     solveController = new SmartCubeSolveController(new SolveControllerListener());
     liveCube = new LiveCubeView(layoutTouchListener);
+    statePreview = new ScrambleStatePreview(this, layoutTouchListener);
     initActionBar();
 
     inspectionTime = Options.INSTANCE.getInspectionTime();
@@ -222,12 +251,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     soundsEnabled = Options.INSTANCE.isInspectionSoundsEnabled();
     keepScreenOnWhenTimerOff = Options.INSTANCE.isKeepTimerScreenOnWhenTimerOff();
 
+    addOverlays();
     initViews();
-
-    // A pass-through overlay for the personal-best confetti: non-clickable, so the whole timer
-    // stays a tap target; idle (drawing nothing) until a PB fires it.
-    particleView = new ParticleView(this);
-    addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
     // Sampled from a statistics value, which is the colour a plain (non-record) one is drawn in.
     defaultTextColor = ((TextView) findViewById(R.id.tvAvgOfFive)).getTextColors();
@@ -237,10 +262,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     setDefaultBannerText();
 
     if (!solveType.hasSteps()) {
-      App.INSTANCE.getService().getSessionTimes(solveType, new DataCallback<List<Long>>() {
+      App.INSTANCE.getService().getSessionTimes(solveType, new DataCallback<SessionTimes>() {
         @Override
-        public void onData(List<Long> data) {
-          cubeSession = new CubeSession(data);
+        public void onData(SessionTimes data) {
+          cubeSession = new CubeSession(data.getTimes(), data.getDnfTimes());
           refreshSessionFields();
         }
       });
@@ -293,7 +318,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     smartCubeChip.start();
     solveController.start();
     liveCube.start();
-    refreshSessionFields(); // Repaint the session times in case the coloring option changed in the settings.
+    statePreview.start();
+    SmartCubeManager.INSTANCE.addConnectionListener(statePreviewOwner);
+    applySessionStripChoice(); // both this and the coloring below may have changed in the settings
+    refreshSessionFields();
   }
 
   @Override
@@ -302,12 +330,23 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     smartCubeChip.stop();
     solveController.stop();
     liveCube.stop();
+    statePreview.stop();
+    SmartCubeManager.INSTANCE.removeConnectionListener(statePreviewOwner);
   }
 
   @Override
   protected void onDestroy() {
     if (liveCube != null) { // onCreate finishes early without a solve type, and never builds one
       liveCube.destroy();
+    }
+    if (statePreview != null) {
+      statePreview.destroy();
+    }
+    if (focusDot != null) {
+      focusDot.hide();
+    }
+    if (focusTransition != null) { // nothing left to fade on a screen that is going
+      focusTransition.ringGone();
     }
     super.onDestroy();
   }
@@ -384,37 +423,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
+  /**
+   * The bar carries nothing but its buttons: the strip below it names the screen. Its empty space
+   * still starts and stops the timer, so the bar is not a dead zone the way a plain toolbar is.
+   */
   private void initActionBar() {
-    ActionBar actionBar = getSupportActionBar();
-    actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-    View customView = getLayoutInflater().inflate(R.layout.textcentered_actionbar, null);
-    actionBar.setCustomView(customView,
-        new ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.MATCH_PARENT));
-    actionBar.setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setTitle("");
 
-    // Drop the default inset between the nav button and the custom view so the title and the
-    // cube chip get the full width (otherwise the title is clipped).
     Toolbar decorToolbar = findToolbar(getWindow().getDecorView());
     if (decorToolbar != null) {
-      decorToolbar.setContentInsetStartWithNavigation(0);
-      decorToolbar.setContentInsetsAbsolute(0, decorToolbar.getContentInsetEnd());
+      decorToolbar.setOnTouchListener(layoutTouchListener);
     }
-
-    smartCubeChip.bind(customView.findViewById(R.id.smartCubeChip));
-    smartCubeChip.setHideWhenDisconnected(true); // on the timer, only show when a cube is connected
-
-    imgCancelSolve = (ImageView) customView.findViewById(R.id.imgCancelSolve);
-    imgCancelSolve.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        if (timerState == TimerState.RUNNING) {
-          cancelPressed();
-        } else if (timerState == TimerState.INSPECTING) {
-          stopInspectionTimer();
-          resetTimer();
-        }
-      }
-    });
   }
 
   private Toolbar findToolbar(View view) {
@@ -433,17 +453,39 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return null;
   }
 
+  /**
+   * The two things drawn over the whole screen rather than in it. Both are non-clickable, so the
+   * timer stays one tap target, and both idle drawing nothing. {@code setContentView} empties the
+   * content parent, so a rotation has to put them back.
+   */
+  private void addOverlays() {
+    particleView = new ParticleView(this); // the personal-best confetti
+    addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    inspectionRing = new InspectionRingView(this);
+    addContentView(inspectionRing, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    focusTransition = new FocusTransition(inspectionRing); // a rotation brings a new ring with it
+  }
+
   private void initViews() {
     tvTimer = (TextView) findViewById(R.id.tvTimer);
     tvScramble = (TextView) findViewById(R.id.tvScramble);
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
-    tvTitle = (TextView) findViewById(R.id.tvTitle);
+    tvBanner = (TextView) findViewById(R.id.tvBanner);
+    identityRow = findViewById(R.id.identityRow);
+    identityStrip = findViewById(R.id.identityStrip);
+    timerBox = findViewById(R.id.timerBox);
+    scrambleBox = findViewById(R.id.scrambleBox);
+    sessionLayout = findViewById(R.id.sessionLayout);
+    if (focusDot != null) { // a rotation leaves the old one animating a view that is gone
+      focusDot.hide();
+    }
+    focusDot = new FocusDot(findViewById(R.id.focusDot));
+    focusDot.setColor(getResources().getColor(identityColor()));
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
-    recordBar = findViewById(R.id.recordBar);
-    tvRecordBarLabel = (TextView) findViewById(R.id.tvRecordBarLabel);
-    tvRecordBarValue = (TextView) findViewById(R.id.tvRecordBarValue);
-    tvRecordBarPrev = (TextView) findViewById(R.id.tvRecordBarPrev);
+    sessionBars = (SessionBarsView) findViewById(R.id.sessionBars);
+    tvVerdictChip = (TextView) findViewById(R.id.tvVerdictChip);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
+    stepBreakdown = findViewById(R.id.stepBreakdown);
     stepSplits = (StepSplitsView) findViewById(R.id.stepSplits);
     tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
     scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
@@ -460,20 +502,178 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
 
     setUpStatisticsBlocks();
-
-    View actionBarLayout = findViewById(R.id.actionbarLayout);
-    actionBarLayout.setOnTouchListener(layoutTouchListener);
+    fillIdentityStrip();
 
     layout = (ViewGroup) findViewById(R.id.mainLayout);
     layout.setOnTouchListener(layoutTouchListener);
 
     // The cube takes the same listener the action bar does, so it is not a dead zone either.
-    liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube), findViewById(R.id.timerTopSpace));
+    liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube));
+    statePreview.bind((ViewStub) findViewById(R.id.stubStatePreview),
+        findViewById(R.id.statePreviewCell), findViewById(R.id.timerTopSpace),
+        findViewById(R.id.statePreviewFoot));
+    refreshStatePreviewOwner(); // a rotation is a new gap, and it may already be the cube's
+    renderStatePreview(); // a rotation arrives with a scramble already in hand
     if (timerState == TimerState.STOPPED) {
       setKeepScreenOn(keepScreenOnWhenTimerOff);
     } else {
       setKeepScreenOn(true);
     }
+    // A rotation mid solve rebuilds the screen in its resting state, so put the focus back.
+    applyFocus(timerState != TimerState.STOPPED, standsInForDigits());
+  }
+
+  /**
+   * A solve is the one thing this screen exists for, so while one runs it is all that is on screen:
+   * the digits, the cross that abandons them, and nothing else. Hidden rather than removed — the
+   * block below carries the layout's weight, and taking it out would slide the time down mid solve.
+   *
+   * @param standIn draw the breathing dot instead of the digits, for a solve timed without them
+   */
+  private void applyFocus(boolean on, boolean standIn) {
+    boolean inspecting = (timerState == TimerState.INSPECTING);
+    if (on) {
+      focusTransition.panelsOut(identityStrip, scrambleBox, sessionLayout);
+    } else {
+      focusTransition.panelsIn(identityStrip, scrambleBox, sessionLayout);
+    }
+    // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
+    timerFocused = on;
+    refreshStatePreviewSuppression(); // a panel like the rest, and it stands down with them
+    refreshStatePreviewOwner(); // and so does the cube, which draws in the same gap
+    tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
+    groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
+    pushedGroundColor = on ? R.color.timer_focus_pushedbg : R.color.pushedbg;
+    applyGround();
+    if (on && standIn) {
+      focusDot.show();
+    } else {
+      focusDot.hide();
+    }
+    if (inspecting) {
+      inspectionRing.start(inspectionTime); // told what it counts before it is opened out
+      focusTransition.ringIn();
+    } else {
+      focusTransition.ringOut();
+    }
+    // The digits arrive as the ring leaves; a solve ending wants them as they are, at once.
+    if (on && tvTimer.getVisibility() == View.VISIBLE) {
+      focusTransition.digitsIn(tvTimer);
+    } else {
+      focusTransition.digitsRest(tvTimer);
+    }
+    centreOnSurface(on);
+  }
+
+  /**
+   * The digits sit at the centre of the band the layout leaves them, which is above the middle of
+   * the screen once the block below is only holding its place. While the screen is stripped down
+   * they take the middle of the timer's own surface instead, and the ring takes the same point, so
+   * a solve and the inspection before it do not sit in different places. A translation rather than
+   * a layout change: nothing below is measured again, so the digits still cannot drift mid solve.
+   */
+  private void centreOnSurface(boolean on) {
+    if (!on) {
+      // Back to where the layout keeps them. The ring holds its own centre until it has finished
+      // leaving, which it owns.
+      focusTransition.digitsTo(timerBox, 0f, 0f);
+      parkStepBreakdown(); // back to the gap, before the finished solve is drawn in it
+      return;
+    }
+    if (layout.getWidth() > 0) {
+      centreNow(false); // in this frame, so the digits are never drawn where the layout left them
+      return;
+    }
+    layout.post(new Runnable() { // nothing is measured yet: the first layout, or after a rotation
+      @Override
+      public void run() {
+        if (timerState != TimerState.STOPPED) { // the solve ended before the layout settled
+          centreNow(true); // a screen being rebuilt has no movement to make
+        }
+      }
+    });
+  }
+
+  /**
+   * Puts the digits and the ring on the middle of the surface. Sideways the timer has only half
+   * the screen, and in a solve the other half is empty, so the box moves across as well as down.
+   */
+  private void centreNow(boolean settle) {
+    int[] at = new int[2];
+    layout.getLocationInWindow(at);
+    float centreX = at[0] + layout.getWidth() / 2f;
+    float centreY = at[1] + layout.getHeight() / 2f;
+    timerBox.getLocationInWindow(at);
+    // The box may be part way through a move of its own, so take its translation back out: what is
+    // wanted is where it has to end up, not a step on from wherever it happens to be.
+    float restX = at[0] - timerBox.getTranslationX();
+    float restY = at[1] - timerBox.getTranslationY();
+    float toX = centreX - (restX + timerBox.getWidth() / 2f);
+    float toY = centreY - (restY + timerBox.getHeight() / 2f);
+    if (settle) {
+      focusTransition.digitsAt(timerBox, toX, toY);
+    } else {
+      focusTransition.digitsTo(timerBox, toX, toY);
+    }
+    inspectionRing.getLocationInWindow(at);
+    inspectionRing.setCenterY(centreY - at[1]);
+    parkStepBreakdown();
+  }
+
+  /**
+   * Keeps the step breakdown under the digits while a solve runs, and hands it back to the gap when
+   * one ends.
+   *
+   * <p>A solve type timed in steps colours the bar in as it goes, and the bar lives in the gap under
+   * the scramble — which is where the digits move to when the screen strips down, so the bar was
+   * drawn straight across the time. Moved rather than hidden: which steps are done and which are
+   * left is the one thing besides the time worth reading mid solve.
+   *
+   * <p>Set rather than animated, and re-read whenever the block changes size — a rotation, or the
+   * finished solve replacing the running one. Sliding it into place would be movement for its own
+   * sake.
+   */
+  private void parkStepBreakdown() {
+    if (stepBreakdown == null) {
+      return;
+    }
+    if (!timerFocused || layout.getWidth() == 0) {
+      focusTransition.digitsAt(stepBreakdown, 0f, 0f);
+      return;
+    }
+    int[] at = new int[2];
+    layout.getLocationInWindow(at);
+    float centreX = at[0] + layout.getWidth() / 2f;
+    float centreY = at[1] + layout.getHeight() / 2f;
+    // Where the digits end up, not where they are: the move may still be running.
+    float digitsBottom = centreY + timerBox.getHeight() / 2f;
+    stepBreakdown.getLocationInWindow(at);
+    float restLeft = at[0] - stepBreakdown.getTranslationX();
+    float restTop = at[1] - stepBreakdown.getTranslationY();
+    // Across as well as down: sideways the digits cross into the half of the screen the statistics
+    // hold, and a bar left behind in the timer's own column would not be under them any more.
+    focusTransition.digitsAt(stepBreakdown,
+        centreX - (restLeft + stepBreakdown.getWidth() / 2f), digitsBottom - restTop);
+  }
+
+  // Held as state rather than only reacted to: the ground changes under a finger that never moved,
+  // since in the hold and release mode the whole inspection is one press.
+  private void applyGround() {
+    layout.setBackgroundResource(surfacePressed ? pushedGroundColor : groundColor);
+  }
+
+  /** True while a solve is being timed with the time itself kept back. */
+  private boolean standsInForDigits() {
+    return timerState == TimerState.RUNNING && !Options.INSTANCE.isShowTimeWhenRunning();
+  }
+
+  /**
+   * The hue this screen wears. A plain solve type takes the app accent, which says nothing about
+   * what is being timed, so under one the puzzle lends its own.
+   */
+  private int identityColor() {
+    int color = SolveTypeIcons.colorForSolveType(solveType);
+    return color == R.color.solvetype_plain ? PuzzleIcons.colorForCubeType(cubeType) : color;
   }
 
   /**
@@ -486,11 +686,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     boolean blind = solveType.isBlind();
 
     findViewById(R.id.sessionHeader).setVisibility(steps ? View.GONE : View.VISIBLE);
-    sessionTimesLayout.setVisibility(steps ? View.GONE : View.VISIBLE);
+    applySessionStripChoice();
     findViewById(R.id.statTilesLayout).setVisibility(steps ? View.GONE : View.VISIBLE);
     stepSplits.setVisibility(steps ? View.VISIBLE : View.GONE);
     // A stepped solve type reads its averages as splits, which is the whole footer said better.
     findViewById(R.id.statFooterRow).setVisibility(steps ? View.GONE : View.VISIBLE);
+    // A hairline only earns its place between two blocks that are both there.
+    findViewById(R.id.statTilesRule).setVisibility(steps ? View.GONE : View.VISIBLE);
+    findViewById(R.id.statFooterRule).setVisibility(steps ? View.GONE : View.VISIBLE);
 
     // The first cell counts a blind attempt in threes, and everything else in fives.
     findViewById(R.id.tvAvgOfFive).setVisibility(blind ? View.GONE : View.VISIBLE);
@@ -507,6 +710,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       solveStepBar.prepareLegend(solveType.getSteps().length); // the bar will draw these steps
       stepSplits.setStepNames(stepNames());
     }
+  }
+
+  /** Which of the two session strips is on. A solve type with steps takes neither. */
+  private void applySessionStripChoice() {
+    boolean steps = solveType.hasSteps();
+    boolean bars = Options.INSTANCE.getSessionTimesDisplay() == SessionTimesDisplay.BARS;
+    sessionTimesLayout.setVisibility(!steps && !bars ? View.VISIBLE : View.GONE);
+    sessionBars.setVisibility(!steps && bars ? View.VISIBLE : View.GONE);
   }
 
   private Float getCubeTypeScrambleTextSize() {
@@ -553,33 +764,41 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return size;
   }
 
+  /** Names the puzzle and the solve type, each in its own colour, as the rest of the app does. */
+  private void fillIdentityStrip() {
+    ImageView mark = (ImageView) findViewById(R.id.imgIdentityPuzzle);
+    mark.setImageResource(PuzzleIcons.forCubeType(cubeType));
+    mark.setColorFilter(getResources().getColor(PuzzleIcons.colorForCubeType(cubeType)));
+
+    ((TextView) findViewById(R.id.tvIdentityPuzzle)).setText(cubeType.getName());
+
+    int solveTypeColor = getResources().getColor(SolveTypeIcons.colorForSolveType(solveType));
+    TextView pill = (TextView) findViewById(R.id.tvIdentitySolveType);
+    pill.setTextColor(solveTypeColor);
+    pill.setBackgroundTintList(ColorStateList.valueOf(solveTypeColor));
+    pill.setText(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
+  }
+
+  /**
+   * The strip is the screen's banner. At rest it names what is being timed; while a hold is being
+   * counted down it says that instead, which is the feedback the action bar title used to carry.
+   */
+  private void showBanner(CharSequence text, int textColor) {
+    tvBanner.setText(text);
+    tvBanner.setTextColor(textColor);
+    tvBanner.setVisibility(View.VISIBLE);
+    identityRow.setVisibility(View.INVISIBLE);
+    // Even mid inspection: a hold has nowhere else to speak. Whole, too, since the strip may be
+    // part way through standing down for the solve.
+    identityStrip.animate().cancel();
+    identityStrip.setAlpha(1f);
+    identityStrip.setVisibility(View.VISIBLE);
+  }
+
   private void setDefaultBannerText() {
-    StringBuilder sb = new StringBuilder();
-    sb.append(cubeType.getName());
-
-    if (!Utils.isDefaultSolveTypeName(solveType.getName())) {
-      String localizedSolveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
-      sb.append(" (").append(localizedSolveTypeName).append(")");
-    }
-    setTitle(sb.toString(), defaultTextColor.getDefaultColor());
-  }
-
-  public void setTitle(String s) {
-    tvTitle.setText(s);
-  }
-
-  public void setTitle(int res) {
-    tvTitle.setText(res);
-  }
-
-  public synchronized void setTitle(String s, int textColor) {
-    setTitle(s);
-    setTitleColor(textColor);
-  }
-
-  @Override
-  public void setTitleColor(int textColor) {
-    tvTitle.setTextColor(textColor);
+    tvBanner.setVisibility(View.INVISIBLE);
+    identityRow.setVisibility(View.VISIBLE);
+    identityStrip.setVisibility(timerState == TimerState.STOPPED ? View.VISIBLE : View.INVISIBLE);
   }
 
   @Override
@@ -620,6 +839,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       menu.findItem(R.id.itAddTime).setVisible(false);
     }
     setUpQuickAction(menu);
+    // The chip sits with the other items now, and takes its item with it when it goes: without a
+    // cube there is a gap in the bar otherwise. The loop above is what takes it away during a run,
+    // so the bar stays a tap target.
+    MenuItem smartCubeItem = menu.findItem(R.id.itSmartCube);
+    smartCubeChip.bind(smartCubeItem, smartCubeItem != null ? smartCubeItem.getActionView() : null);
     return true;
   }
 
@@ -670,13 +894,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       this.showMenu = show;
       supportInvalidateOptionsMenu();
 
-      getSupportActionBar().setDisplayHomeAsUpEnabled(show);
+      // The navigation slot stays live through a run, as a cross: phones without a back button
+      // still need a way to abandon a solve.
+      getSupportActionBar().setHomeAsUpIndicator(
+          show ? null : ContextCompat.getDrawable(this, R.drawable.ic_cancel_solve));
 
-      // The cross stands in for the back arrow, which phones without a back button do not have.
-      imgCancelSolve.setVisibility(show ? View.GONE : View.VISIBLE);
-
-      // Hide the cube chip while the timer runs so the whole action bar stays a tap target
-      // (no dead zone); it reappears when the timer stops (if a cube is connected).
+      // The menu items go with it (the loop in onCreateOptionsMenu), so the rest of the bar is
+      // empty during a run and stays a tap target rather than a row of dead controls.
       smartCubeChip.setSuppressed(!show);
       refreshLiveCubeVeil();
     }
@@ -750,6 +974,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == android.R.id.home && timerState != TimerState.STOPPED) {
+      // The cross: a stop tap like any other, which then asks whether to keep the time.
+      if (timerState == TimerState.RUNNING) {
+        cancelPressed();
+      } else {
+        stopInspectionTimer();
+        resetTimer();
+      }
+      return true;
+    }
     if (timerState == TimerState.STOPPED) {
       switch (item.getItemId()) {
         case R.id.itPlusTwo:
@@ -838,7 +1072,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void toggleLastSolveDNF() {
     if (lastSolveTime.canUndoDNF()) {
       lastSolveTime.undoDNF();
-      cubeSession.setLastTime(lastSolveTime.getTime());
+      cubeSession.setLastTime(lastSolveTime.getTime(), lastSolveTime.getTimeBeforeDnf());
     } else if (!lastSolveTime.isDNF()) {
       lastSolveTime.setDNF();
       cubeSession.setLastAsDNF();
@@ -860,7 +1094,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         setLastSolveTime(solveTime);
         tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
         setTimerTextColor(solveTime.getTime());
-        cubeSession.setLastTime(solveTime.getTime());
+        cubeSession.setLastTime(solveTime.getTime(), solveTime.getTimeBeforeDnf());
         refreshSessionFields();
         App.INSTANCE.getService().getSolveAverages(solveType, solveAverageCallback);
       }
@@ -909,6 +1143,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       String timerText = tvTimer.getText().toString();
 
       setContentView(R.layout.timer_screen);
+      addOverlays();
       initViews();
 
       if (timerState == TimerState.STOPPED) {
@@ -920,7 +1155,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
       refreshSessionFields();
       if (solveAverages != null) {
-        refreshAvgFields(false);
+        refreshAvgFields(false, false);
       }
     }
   }
@@ -968,21 +1203,35 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       @Override
       public void run() {
         clearSessionTextViews();
-        if (cubeSession == null) {
-          return;
-        }
-        List<Long> sessionTimes = cubeSession.getTimes();
+        refreshSolvesCountLabel();
+        List<Long> sessionTimes = (cubeSession == null) ? Collections.<Long>emptyList() : cubeSession.getTimes();
         if (sessionTimes.isEmpty()) {
+          sessionBars.setTimes(sessionTimes, new int[0], null);
           return;
         }
         TimeColorScale scale = new TimeColorScale(TimerActivity.this);
         scale.setTimes(sessionTimes, false);
-        for (int i = 0; i < sessionTimes.size(); i++) {
-          long time = sessionTimes.get(i);
-          GUIUtils.setSessionTimeCellColor(getSessionTextView(i), time, scale.colorFor(time, time < 0));
-        }
+        showSessionTimes(sessionTimes, scaleColors(sessionTimes, scale));
       }
     });
+  }
+
+  /** The two strips draw the same times in the same colours; only ever one of them is on. */
+  private void showSessionTimes(List<Long> sessionTimes, int[] colors) {
+    for (int i = 0; i < sessionTimes.size(); i++) {
+      GUIUtils.setSessionTimeCellColor(getSessionTextView(i), sessionTimes.get(i), colors[i]);
+    }
+    sessionBars.setTimes(sessionTimes, colors, cubeSession.getDnfTimes());
+  }
+
+  // Gradient coloring (green=fast → white=median → red=slow) against the given scale.
+  private int[] scaleColors(List<Long> sessionTimes, TimeColorScale scale) {
+    int[] colors = new int[sessionTimes.size()];
+    for (int i = 0; i < colors.length; i++) {
+      long time = sessionTimes.get(i);
+      colors[i] = scale.colorFor(time, time < 0);
+    }
+    return colors;
   }
 
   private void clearSessionTextViews() {
@@ -1020,7 +1269,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       stepsTimes.clear();
       stepStartTs = timerStartTs;
     }
+    timerState = TimerState.RUNNING; // set before the screen stands down: the focus state reads it
     timerStarted();
+    if (solveType.hasSteps()) {
+      showStepsSoFar(); // after timerStarted, which clears the last solve's bar off the screen
+    }
     timer = new Timer();
     if (Options.INSTANCE.isShowTimeWhenRunning()) {
       TimerTask timerTask = new TimerTask() {
@@ -1037,10 +1290,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         }
       };
       timer.schedule(timerTask, 1, REFRESH_INTERVAL);
-    } else {
-      tvTimer.setText("--:--");
     }
-    timerState = TimerState.RUNNING;
     solveController.onTimerStarted();
   }
 
@@ -1117,22 +1367,22 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     timerStartTs = curTime;
     oversteppedInspection = false;
     enableScreenRotationChanges(false);
+    timerState = TimerState.INSPECTING; // set before the screen stands down: the focus state reads it
     timerStarted();
     resetTimerText();
-    timerState = TimerState.INSPECTING;
-    setTitle(R.string.inspection);
     clearAvgRecordStyle();
     timer = new Timer();
     TimerTask timerTask = new TimerTask() {
       public void run() {
         timerHandler.post(new Runnable() {
           public void run() {
-            updateInspectionTimerText();
+            updateInspection();
           }
         });
       }
     };
-    timer.schedule(timerTask, 1, 1000);
+    lastInspectionSecond = -1;
+    timer.schedule(timerTask, 1, REFRESH_INTERVAL); // the ring sweeps; the second below still steps
   }
 
   private void stopInspectionTimer() {
@@ -1166,12 +1416,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * Fills the bar as the solve goes, one segment per step taken. The same bar then stays for the
-   * finished solve, so the steps are read the same way throughout rather than in a list that gives
-   * way to something else at the end.
+   * Colours the bar in as the solve goes, one segment per step taken. Every step is drawn from the
+   * start, the ones still to come greyed out, so the bar says what is left as well as what is done.
+   * The same bar then stays for the finished solve, so the steps are read the same way throughout
+   * rather than in a list that gives way to something else at the end.
    */
   private void showStepsSoFar() {
-    drawStepBar(SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0])), stepNames());
+    drawStepBar(SolveBreakdown.inProgress(stepsTimes.toArray(new Long[0]), solveType.getSteps().length),
+        stepNames(), stepsTimes.size());
   }
 
   private void resetTimer() {
@@ -1261,11 +1513,15 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     setTimerTextColor(curTime);
   }
 
-  private synchronized void updateInspectionTimerText() {
+  private synchronized void updateInspection() {
     long curTime = System.currentTimeMillis() - timerStartTs;
     final int officialInspectionDnfTime = 2;
+    inspectionRing.setElapsed(curTime);
     int seconds = (int) (curTime / 1000);
-    tvTimer.setText(String.valueOf(seconds));
+    if (seconds == lastInspectionSecond) {
+      return; // everything below happens once a second, whatever the ring is drawn at
+    }
+    lastInspectionSecond = seconds;
     boolean automaticMode = (inspectionMode == InspectionMode.AUTOMATIC);
     SoundManager soundManager = App.INSTANCE.getSoundManager();
 
@@ -1295,7 +1551,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         if (seconds == inspectionTime + officialInspectionDnfTime) {
           mustDnfTime = true;
         } else if (seconds >= inspectionTime) {
-          tvTimer.setText(R.string.plus_two);
+          inspectionRing.setLabel(getString(R.string.plus_two));
           oversteppedInspection = true;
         }
       } else {
@@ -1306,8 +1562,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
 
     if (mustDnfTime) {
-      stopInspectionTimer();
-      layout.setBackgroundResource(defaultBackgroundColor);
+      stopInspectionTimer(); // which puts the ground back, even with the finger still down
       if (inspectionMode == InspectionMode.OFFICIAL) {
         synchronized (holdToStartTimerSync) {
           stopHoldToStartTimer();
@@ -1334,10 +1589,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
             synchronized (holdToStartTimerSync) {
               if (holdToStartTs > 0) {
                 long remainingHoldTime = Math.max(0, HOLD_TO_START_MIN_DURATION - (System.currentTimeMillis() - holdToStartTs));
-                setTitle(String.format("%.1f", ((float) remainingHoldTime / 1000)));
+                showBanner(String.format("%.1f", ((float) remainingHoldTime / 1000)),
+                    getResources().getColor(R.color.white));
                 if (remainingHoldTime == 0) {
                   stopHoldToStartTimer();
-                  setTitle(getString(R.string.ready), getResources().getColor(R.color.green));
+                  showBanner(getString(R.string.ready), getResources().getColor(R.color.green));
                 }
               }
             }
@@ -1379,6 +1635,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
               SolveTypeMethod.of(solveType));
+          refreshStatePreviewOwner(); // the puzzle it is for is what decides whose gap it is
+          renderStatePreview();
         }
       });
       foundScramble = true;
@@ -1386,11 +1644,45 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return foundScramble;
   }
 
+  /**
+   * The scramble drawn as the state it leaves the puzzle in. Kept out of {@link #renderScramble},
+   * which a cube follow calls once per move: the diagram is the scramble's, not the progress's, and
+   * redrawing it per move would be a page rebuild per turn.
+   */
+  private void renderStatePreview() {
+    statePreview.show(cubeType, currentScramble, solveType.isBlind());
+  }
+
+  /**
+   * The diagram stands down for a solve, with the panels around it. Not for the step bar any more:
+   * the two are stacked in the gap rather than laid over each other, so a finished solve's
+   * breakdown no longer costs the next scramble its picture.
+   */
+  private void refreshStatePreviewSuppression() {
+    statePreview.setSuppressed(timerFocused);
+  }
+
+  /**
+   * Who the gap under the scramble belongs to: the live cube while one is driving the solve, the
+   * diagram otherwise. Never both — side by side neither was large enough to read, and a cube that
+   * enforces the scramble move by move leaves the picture of it nothing to say.
+   *
+   * <p>Driving, not merely connected: on a puzzle the cube cannot follow, a mirror of a 3x3 is not
+   * a picture of anything on screen, and the diagram of the scramble in hand is worth more.
+   */
+  private void refreshStatePreviewOwner() {
+    boolean cubeHasGap = solveController.isCubeDriven();
+    statePreview.setReplaced(cubeHasGap);
+    // The cube stands down for a solve like the panels around it, and whenever the gap is not its.
+    liveCube.setSuppressed(timerFocused || !cubeHasGap);
+  }
+
   private void timerStarted() {
     setKeepScreenOn(true);
     showMenuButton(false);
-    dismissRecordOverlay();
+    clearVerdict();
     hideStepBreakdown();
+    applyFocus(true, standsInForDigits());
   }
 
   /** @param solveDurationMs what the timer measured, before any penalty: a +2 is not solving time */
@@ -1482,13 +1774,32 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return stats;
   }
 
-  /** Draws the bar, and remembers what it drew so a rotation can put the same thing back. */
   private void drawStepBar(List<SolveStep> steps, String[] stepNames) {
+    drawStepBar(steps, stepNames, steps.size());
+  }
+
+  /**
+   * Draws the bar, and remembers what it drew so a rotation can put the same thing back.
+   *
+   * @param doneCount how many of the steps are solved; the rest draw as the empty slots of a solve
+   *     still running
+   */
+  private void drawStepBar(List<SolveStep> steps, String[] stepNames, int doneCount) {
     shownSteps = steps;
     shownStepNames = stepNames;
-    solveStepBar.setSteps(steps, stepNames);
+    shownDoneCount = doneCount;
+    solveStepBar.setSteps(steps, stepNames, doneCount);
     solveStepBar.setVisibility(View.VISIBLE);
+    // The legend can wrap to another row, so where the block is parked has to be read again.
+    stepBreakdown.post(parkBreakdown);
   }
+
+  private final Runnable parkBreakdown = new Runnable() {
+    @Override
+    public void run() {
+      parkStepBreakdown();
+    }
+  };
 
   /**
    * Puts the breakdown back after the layout was rebuilt for a new orientation. Without this a
@@ -1499,7 +1810,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       reserveStepBreakdownSpace();
       return;
     }
-    solveStepBar.setSteps(shownSteps, shownStepNames);
+    solveStepBar.setSteps(shownSteps, shownStepNames, shownDoneCount);
     solveStepBar.setVisibility(View.VISIBLE);
     if (tvSolveStats != null && shownStats != null) { // absent in landscape
       tvSolveStats.setText(shownStats);
@@ -1511,10 +1822,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     shownSteps = Collections.emptyList();
     shownStepNames = null;
     shownStats = null;
-    int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
-    solveStepBar.setVisibility(visibility);
+    solveStepBar.setVisibility(breakdownRidesInGap() ? View.INVISIBLE : View.GONE);
     if (tvSolveStats != null) {
       tvSolveStats.animate().cancel();
+      // Only a cube ever fills this line, so only a cube's solve type keeps room for it: a solve
+      // type timed by tapping would hold a blank line out of the diagram's share for nothing.
+      int visibility = canBreakDownSolves() ? View.INVISIBLE : View.GONE;
       if (visibility == View.INVISIBLE && tvSolveStats.length() == 0) {
         tvSolveStats.setText(" "); // reserve one line so a finished solve never nudges the bar
       }
@@ -1522,7 +1835,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  /** Keep the bar's height reserved while a cube is connected, so a solve never shifts the layout. */
+  /** Keep the bar's height reserved where it rides in the gap, so a solve never shifts the layout. */
   private void reserveStepBreakdownSpace() {
     if (solveStepBar.getVisibility() != View.VISIBLE) { // never hide the solve just finished
       hideStepBreakdown();
@@ -1534,27 +1847,34 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
+   * Whether this solve type puts a breakdown in the gap under the scramble at all: a cube counting
+   * the steps, or the user tapping them. The bar then holds its place whether or not there is a
+   * solve behind it, so the picture above it is drawn at one size and a finished solve moves
+   * nothing.
+   */
+  private boolean breakdownRidesInGap() {
+    return canBreakDownSolves() || solveType.hasSteps();
+  }
+
+  /**
    * A deleted solve takes its records with it: the panel goes and the cells it lit go back to
    * their normal colour. The refresh the deletion triggers is not allowed to announce a record
    * either, since dropping a bad solve can leave an average better than it was.
    */
   private void forgetRecordsOfDeletedSolve() {
-    dismissRecordOverlay();
+    clearVerdict();
     skipRecordPanel = true;
   }
 
-  private void dismissRecordOverlay() {
-    overlayHandler.removeCallbacks(hideRecordBar);
-    if (recordBar != null) {
-      recordBar.animate().cancel();
-      recordBar.setVisibility(View.GONE);
-    }
+  private void clearVerdict() {
+    tvVerdictChip.setVisibility(View.INVISIBLE);
     clearRecordCells();
   }
 
   private void timerStopped() {
     setKeepScreenOn(keepScreenOnWhenTimerOff);
     showMenuButton(true);
+    applyFocus(false, false);
   }
 
   private void setKeepScreenOn(boolean keepOn) {
@@ -1563,10 +1883,27 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private void setSolvesCount(int solvesCount) {
     this.solvesCount = Math.max(0, solvesCount);
-    tvSolvesCount.setText(this.solvesCount + " " + getString(R.string.solves));
+    refreshSolvesCountLabel();
   }
 
-  private void refreshAvgFields(boolean showNotifications) {
+  /**
+   * The bars carry no numbers, so beside them the header names the window they are rather than the
+   * session's own size. Said once quietly: it is read on the first session and known after that.
+   */
+  private void refreshSolvesCountLabel() {
+    int shown = (cubeSession == null) ? 0 : cubeSession.getTimes().size();
+    if (sessionBars.getVisibility() == View.VISIBLE && shown > 0) {
+      tvSolvesCount.setText(getString(R.string.window_last_n, shown));
+    } else {
+      tvSolvesCount.setText(solvesCount + " " + getString(R.string.solves));
+    }
+  }
+
+  /**
+   * @param showNotifications false while a deletion or a discard is settling, so nothing is announced
+   * @param forNewSolve true only when a solve has just landed, which is when the verdict speaks
+   */
+  private void refreshAvgFields(boolean showNotifications, boolean forNewSolve) {
     for (Animation a : animations) {
       a.cancel();
     }
@@ -1624,9 +1961,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       labelAsBest(R.id.tvBestOfHundred, solveAverages.getBestOf100(), best100 == null);
     }
 
-    if (showNotifications) {
+    // The bars are measured against the same Ao12 the cell beside them shows.
+    sessionBars.setAverage(solveType.hasSteps() ? null : solveAverages.getAvgOf12());
+
+    if (showNotifications && forNewSolve) {
       List<RecordInfo> toNotify = filterRecordsForNotification(records);
-      showRecordsSummary(toNotify);
+      showVerdict(toNotify);
       celebratePbIfAny(toNotify);
     }
   }
@@ -1680,7 +2020,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     if (plain) {
       tv.setTextColor(secondaryTextColor);
-      tv.setTypeface(null, Typeface.NORMAL);
+      GUIUtils.setWeight(tv, Typeface.NORMAL);
     }
   }
 
@@ -1688,7 +2028,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     TextView tv = (TextView) findViewById(fieldId);
     tv.setText(formatAvgField(value, defaultValue));
     tv.setTextColor(defaultTextColor);
-    tv.setTypeface(null, Typeface.BOLD);
+    GUIUtils.setWeight(tv, Typeface.BOLD);
   }
 
   private void clearAvgRecordStyle() {
@@ -1701,7 +2041,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     tvs.add((TextView) findViewById(R.id.tvLifetimeBest));
     for (TextView tv : tvs) {
       tv.setTextColor(defaultTextColor);
-      tv.setTypeface(null, Typeface.BOLD);
+      GUIUtils.setWeight(tv, Typeface.BOLD);
     }
     if (animations != null) {
       for (Animation a : animations) {
@@ -1719,7 +2059,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (historySolvesCount > MIN_TIMES_FOR_RECORD_NOTIFICATION && previousValue != null && value != null && value < previousValue && !solveType.hasSteps()) {
       final int recordColor = getResources().getColor(R.color.new_record);
       final TextView tv = (TextView) findViewById(fieldId);
-      tv.setTypeface(null, Typeface.BOLD);
+      GUIUtils.setWeight(tv, Typeface.BOLD);
 
       if (showNotifications) {
         final int defaultColor = defaultTextColor.getDefaultColor();
@@ -1761,14 +2101,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * Announces the records a solve set: the best of them on the bar, and every one of them by
-   * lighting the cell that holds it. The bar sits in the flow above the cells, so it never covers
-   * the scramble and the next solve can start before it clears.
+   * What the solve was worth, said once and only when there is something to say: a record, or a
+   * session best or worst. A delta on every solve would be noise whatever the number, and the bars
+   * below already carry the "beat your recent times" job.
+   *
+   * <p>Records also light the cell that holds them, which is how the other three are announced.
    */
-  private void showRecordsSummary(List<RecordInfo> records) {
-    if (records.isEmpty() || recordBar == null) {
-      return;
-    }
+  private void showVerdict(List<RecordInfo> records) {
     Collections.sort(records, new Comparator<RecordInfo>() {
       @Override
       public int compare(RecordInfo a, RecordInfo b) {
@@ -1778,15 +2117,67 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     for (RecordInfo r : records) {
       highlightRecordCell(r.priority);
     }
+    if (!records.isEmpty()) {
+      RecordInfo best = records.get(0);
+      String beat = FormatterService.INSTANCE.formatSolveTime(best.previous - best.value);
+      String previous = FormatterService.INSTANCE.formatSolveTime(best.previous);
+      if (best.isPB) { // gold is for a lifetime best alone, or it stops meaning anything
+        showVerdictChip(getString(R.string.verdict_personal_best, beat, previous), R.color.new_record);
+        tvTimer.setTextColor(getResources().getColor(R.color.new_record));
+      } else {
+        showVerdictChip(getString(R.string.verdict_record, best.label, beat, previous), R.color.green_soft);
+      }
+      return;
+    }
+    // The timer itself reads DNF, so a chip saying it again is the same word twice. It returns
+    // rather than falling through: a DNF is the session's worst, and that is not the news.
+    if (lastSolveTime != null && lastSolveTime.isDNF()) {
+      tvVerdictChip.setVisibility(View.INVISIBLE);
+      return;
+    }
+    if (isSessionExtreme(true)) {
+      showVerdictChip(getString(R.string.verdict_session_best) + againstAverage(), R.color.green_soft);
+      return;
+    }
+    if (isSessionExtreme(false)) {
+      showVerdictChip(getString(R.string.verdict_session_worst) + againstAverage(), R.color.danger_text);
+      return;
+    }
+    tvVerdictChip.setVisibility(View.INVISIBLE);
+  }
 
-    // The bar names the best of them; the rest are already lit in the cells that hold them.
-    RecordInfo best = records.get(0);
-    tvRecordBarLabel.setText(records.size() == 1 ? R.string.new_record : R.string.record_toast_header);
-    tvRecordBarValue.setText(best.label + " "
-        + FormatterService.INSTANCE.formatSolveTimeDifference(best.previous - best.value));
-    tvRecordBarPrev.setText(getString(R.string.record_overlay_prev,
-        FormatterService.INSTANCE.formatSolveTime(best.previous)));
-    showRecordBar();
+  /**
+   * Whether the solve just finished is the best of the session, or the worst of it. A session of
+   * one or two is asked nothing: everything in it is both. Nor is a solve type timed in steps,
+   * whose session is never loaded, so what it holds is only this sitting.
+   */
+  private boolean isSessionExtreme(boolean best) {
+    if (cubeSession == null || solveType.hasSteps() || cubeSession.getTimes().size() < 3) {
+      return false;
+    }
+    boolean blind = solveType.isBlind();
+    return (best ? cubeSession.getBestTimeInd(blind) : cubeSession.getWorstTimeInd(blind)) == 0;
+  }
+
+  /** How the solve sat against the Ao12, which is the line the bars below draw. */
+  private String againstAverage() {
+    Long average = (solveAverages == null) ? null : solveAverages.getAvgOf12();
+    if (average == null || average <= 0 || lastSolveTime == null || lastSolveTime.getTime() <= 0) {
+      return "";
+    }
+    long delta = lastSolveTime.getTime() - average;
+    String amount = FormatterService.INSTANCE.formatSolveTime(Math.abs(delta));
+    return " · " + getString(
+        delta < 0 ? R.string.verdict_under_average : R.string.verdict_over_average, amount);
+  }
+
+  private void showVerdictChip(CharSequence text, int colorRes) {
+    int color = getResources().getColor(colorRes);
+    tvVerdictChip.setText(text);
+    tvVerdictChip.setTextColor(color);
+    tvVerdictChip.setBackgroundTintList(ColorStateList.valueOf(color));
+    tvVerdictChip.setVisibility(View.VISIBLE);
+    EnterAnimation.stagger(tvVerdictChip); // it arrives with the screen rather than appearing in it
   }
 
   private void highlightRecordCell(int priority) {
@@ -1803,38 +2194,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     for (int cellId : RECORD_TILE_BY_PRIORITY) {
       View cell = findViewById(cellId);
       if (cell != null) {
-        cell.setBackgroundResource(R.drawable.stat_tile);
+        cell.setBackgroundResource(0); // back to the card's own surface
       }
     }
   }
-
-  // In-screen replacement for a toast (system toasts are capped at 2 lines on Android 12+).
-  private void showRecordBar() {
-    if (recordBar == null) {
-      return;
-    }
-    overlayHandler.removeCallbacks(hideRecordBar);
-    recordBar.animate().cancel();
-    recordBar.setAlpha(0f);
-    recordBar.setVisibility(View.VISIBLE);
-    recordBar.animate().alpha(1f).setDuration(250);
-    overlayHandler.postDelayed(hideRecordBar, 6000);
-  }
-
-  private final Runnable hideRecordBar = new Runnable() {
-    @Override
-    public void run() {
-      if (recordBar == null) {
-        return;
-      }
-      recordBar.animate().alpha(0f).setDuration(400).withEndAction(new Runnable() {
-        @Override
-        public void run() {
-          recordBar.setVisibility(View.GONE);
-        }
-      });
-    }
-  };
 
   private static class RecordInfo {
     final String label;
@@ -1861,12 +2224,17 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // change bg color
     if (parMotionEventAction == MotionEvent.ACTION_DOWN) {
       if (System.currentTimeMillis() - lastTimerStopTs >= STOP_START_DELAY) {
-        layout.setBackgroundResource(pushedBackgroundColor);
+        surfacePressed = true;
+        applyGround();
       } else {
         return false; // to avoid receiving the ACTION_UP
       }
+    } else if (parMotionEventAction == MotionEvent.ACTION_CANCEL) {
+      surfacePressed = false; // taken away rather than lifted, and no stop follows it
+      applyGround();
     } else if (parMotionEventAction == MotionEvent.ACTION_UP) {
-      layout.setBackgroundResource(defaultBackgroundColor);
+      surfacePressed = false;
+      applyGround();
       if (ignoreActionUp) {
         ignoreActionUp = false;
         return true;
@@ -1919,11 +2287,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               startTimer();
               setDefaultBannerText();
             } else {
-              if (inspectionTime > 0) {
-                setTitle(R.string.inspection);
-              } else {
-                setDefaultBannerText();
-              }
+              setDefaultBannerText(); // still inspecting, and the ring is what says so
             }
             holdToStartTs = 0;
           }
@@ -1951,7 +2315,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               deleteLastSolve();
             }
           }
-          refreshAvgFields(showNotifications);
+          refreshAvgFields(showNotifications, data.getSolveTime() != null);
         }
       });
     }

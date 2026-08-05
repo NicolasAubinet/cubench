@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import android.content.Context;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import androidx.core.content.ContextCompat;
@@ -20,6 +21,7 @@ public class SmartCubeChip implements CubeConnectionListener, CubeBatteryListene
 
   private final Context context;
   private final Runnable onClick;
+  private MenuItem item;
   private View chip;
   private boolean hideWhenDisconnected;
   private boolean suppressed;
@@ -30,6 +32,20 @@ public class SmartCubeChip implements CubeConnectionListener, CubeBatteryListene
   }
 
   public void bind(View chip) {
+    bind(null, chip);
+  }
+
+  /**
+   * Binds the chip to a menu item, so hiding it takes the item with it.
+   *
+   * <p>An action view that is GONE still leaves its item in the bar, holding the width the bar
+   * gives every item. On the timer that is a gap where the chip was, which is the one place the
+   * chip is meant to disappear from entirely.
+   *
+   * @param item the item the chip is the action view of, or null outside a menu
+   */
+  public void bind(MenuItem item, View chip) {
+    this.item = item;
     this.chip = chip;
     if (chip != null) {
       chip.setOnClickListener(v -> onClick.run());
@@ -79,6 +95,9 @@ public class SmartCubeChip implements CubeConnectionListener, CubeBatteryListene
 
     boolean visible = !suppressed && (connected || !hideWhenDisconnected);
     chip.setVisibility(visible ? View.VISIBLE : View.GONE);
+    if (item != null) {
+      item.setVisible(visible);
+    }
 
     icon.setColorFilter(ContextCompat.getColor(context, connected ? R.color.lightblue : R.color.white));
     icon.setAlpha(connected ? 1f : 0.5f);

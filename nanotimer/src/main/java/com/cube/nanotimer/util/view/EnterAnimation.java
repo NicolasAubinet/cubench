@@ -21,6 +21,16 @@ public final class EnterAnimation {
 
   /** Fades the views in in order, each one a beat after the last. */
   public static void stagger(View... views) {
+    stagger(0, views);
+  }
+
+  /**
+   * The same arrival, held back until something else has had its moment: the timer screen lets the
+   * time land where it belongs before the screen assembles behind it.
+   *
+   * @param leadMs how long to wait before the first of them starts
+   */
+  public static void stagger(long leadMs, View... views) {
     if (views.length == 0 || !enabled(views[0].getContext())) {
       return;
     }
@@ -32,7 +42,7 @@ public final class EnterAnimation {
       view.animate()
         .alpha(1f)
         .translationY(0f)
-        .setStartDelay(i * STAGGER_MS)
+        .setStartDelay(leadMs + i * STAGGER_MS)
         .setDuration(DURATION_MS)
         .setInterpolator(new DecelerateInterpolator())
         .start();

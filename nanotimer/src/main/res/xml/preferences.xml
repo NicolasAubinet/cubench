@@ -46,6 +46,15 @@
        android:defaultValue="@integer/color_sample_size"
        custom:defaultVal="@integer/color_sample_size"/>
 
+    <ListPreference
+       android:key="session_times_display"
+       android:title="@string/session_times_display"
+       android:summary="@string/session_times_display_summary"
+       android:entries="@array/entries_session_times_display"
+       android:entryValues="@array/entryvalues_session_times_display"
+       android:dialogTitle="@string/session_times_display"
+       android:defaultValue="1"/>
+
   </PreferenceCategory>
 
   <PreferenceCategory

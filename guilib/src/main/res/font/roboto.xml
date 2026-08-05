@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The face the whole app is set in, named on the themes. Bundled rather than left to the
+     system "sans-serif", which is a different font on every ROM. Licence: see
+     nanotimer/src/main/assets/fonts/THIRD_PARTY_LICENSES.txt. -->
+<font-family xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <!-- Both namespaces on every entry: the framework reads android:, AppCompat reads app:. -->
+  <font
+      android:font="@font/roboto_regular"
+      android:fontStyle="normal"
+      android:fontWeight="400"
+      app:font="@font/roboto_regular"
+      app:fontStyle="normal"
+      app:fontWeight="400" />
+
+  <font
+      android:font="@font/roboto_medium"
+      android:fontStyle="normal"
+      android:fontWeight="500"
+      app:font="@font/roboto_medium"
+      app:fontStyle="normal"
+      app:fontWeight="500" />
+
+  <font
+      android:font="@font/roboto_bold"
+      android:fontStyle="normal"
+      android:fontWeight="700"
+      app:font="@font/roboto_bold"
+      app:fontStyle="normal"
+      app:fontWeight="700" />
+
+</font-family>

@@ -132,6 +132,10 @@
   <string name="timer_font_size_small">Small</string>
   <string name="timer_font_size_medium">Medium</string>
   <string name="timer_font_size_big">Big</string>
+  <string name="session_times_display">Show last solves as</string>
+  <string name="session_times_display_summary">Bars or times, for the last 12 on the timer screen</string>
+  <string name="session_display_bars">Bars</string>
+  <string name="session_display_times">Times</string>
   <string name="solve_types">Solve types</string>
   <string name="edit_solve_types">Edit solve types</string>
   <string name="edit_solve_types_summary">Edit, create and delete solve types</string>
@@ -168,10 +172,15 @@
   <string name="preparing_generation">Preparing generation&#8230;</string>
   <string name="scrambles_being_generated">%1$s scrambles generating</string>
   <string name="generating_scramble">Generating scramble %1$d of %2$d</string>
-  <string name="new_record">New record!</string>
-  <string name="record_toast_header">New records!</string>
-  <string name="record_overlay_prev">(prev %1$s)</string>
+  <string name="generating_cube_scramble">%1$s scrambles generating&#8230;\n%2$d of %3$d</string>
+  <string name="stopping_generation">Stopping generation&#8230;</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="verdict_personal_best">Personal best, %1$s under %2$s</string>
+  <string name="verdict_record">Best %1$s, %2$s under %3$s</string>
+  <string name="verdict_session_best">Session best</string>
+  <string name="verdict_session_worst">Session worst</string>
+  <string name="verdict_under_average">%1$s under your Ao12</string>
+  <string name="verdict_over_average">%1$s over your Ao12</string>
   <string name="record_notification_mode">New record panel</string>
   <string name="record_notification_mode_summary">Choose when to show the new record panel</string>
   <string name="record_notif_any">For any record</string>
@@ -714,13 +723,19 @@
   <string name="ao50_label">Ao50</string>
   <string name="ao100_label">Ao100</string>
   <string name="mo3_label">Mo3</string>
+  <string name="mean_label">Mean all</string>
 
   <!-- History screen -->
   <string name="history_empty">No solves yet. Press Start to time one.</string>
-  <string name="sparkline_window">last %1$d</string>
+  <string name="window_last_n">last %1$d</string>
   <string name="today">Today</string>
   <string name="yesterday">Yesterday</string>
-  <string name="acc_label">Acc</string>
+  <string name="acc_label">Acc all</string>
+  <string name="acc12_label">Acc12</string>
+  <string name="acc50_label">Acc50</string>
+  <string name="acc100_label">Acc100</string>
+  <string name="stat_to_show">Statistic</string>
+  <string name="blind_averages_note">An average here counts successes only: Ao12 is the average of your last twelve successful solves, reaching back past any DNF rather than counting it.</string>
   <string name="time_just_now">just now</string>
   <string name="time_minutes_ago">%1$d min ago</string>
 

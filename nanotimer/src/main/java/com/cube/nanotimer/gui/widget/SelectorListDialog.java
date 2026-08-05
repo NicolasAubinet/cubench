@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.helper.GUIUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,7 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
   private static final String ARG_ID = "id";
   private static final String ARG_EYEBROW = "eyebrow";
   private static final String ARG_TITLE = "title";
+  private static final String ARG_NOTE = "note";
   private static final String ARG_HEAD_ICON = "headIcon";
   private static final String ARG_HEAD_COLOR = "headColor";
   private static final String ARG_NAMES = "names";
@@ -114,6 +116,15 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
     return this;
   }
 
+  /**
+   * A line under the header for what is true of the whole list rather than of one row. Null, and
+   * the header is what it was.
+   */
+  public SelectorListDialog setNote(String note) {
+    getArguments().putString(ARG_NOTE, note);
+    return this;
+  }
+
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     density = getResources().getDisplayMetrics().density;
@@ -166,6 +177,13 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
     tvEyebrow.setText(args.getString(ARG_EYEBROW));
     tvEyebrow.setTextColor(color);
     ((TextView) header.findViewById(R.id.tvHeaderTitle)).setText(args.getString(ARG_TITLE));
+
+    String note = args.getString(ARG_NOTE);
+    if (note != null) {
+      TextView tvNote = (TextView) header.findViewById(R.id.tvHeaderNote);
+      tvNote.setText(note);
+      tvNote.setVisibility(View.VISIBLE);
+    }
 
     int iconRes = args.getInt(ARG_HEAD_ICON);
     if (iconRes != 0) {
@@ -268,7 +286,7 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
       tvName.setText(getItem(position));
       tvName.setTextColor(isSelected || isFooter
         ? color : ContextCompat.getColor(getContext(), R.color.white));
-      tvName.setTypeface(null, isSelected ? Typeface.BOLD : Typeface.NORMAL);
+      GUIUtils.setWeight(tvName, isSelected ? Typeface.BOLD : Typeface.NORMAL);
 
       TextView tvCount = (TextView) view.findViewById(R.id.tvCount);
       String count = (isFooter || counts == null) ? "" : counts.get(position);

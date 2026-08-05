@@ -10,6 +10,7 @@ import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SessionDetails;
+import com.cube.nanotimer.vo.SessionTimes;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
@@ -198,7 +199,7 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
-  public void getSessionTimes(final SolveType solveType, final DataCallback<List<Long>> callback) {
+  public void getSessionTimes(final SolveType solveType, final DataCallback<SessionTimes> callback) {
     run(new Runnable() {
       @Override
       public void run() {

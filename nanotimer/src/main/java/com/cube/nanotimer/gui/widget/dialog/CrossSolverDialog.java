@@ -21,6 +21,7 @@ import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.scrambler.cross.CrossFormatter;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers.FaceSolutions;
+import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 
 import java.util.ArrayList;
@@ -101,7 +102,7 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
         R.string.cross_neutrality_full };
     for (int i = 0; i < modes.length; i++) {
       final CrossNeutrality m = modes[i];
-      TextView seg = new TextView(getActivity());
+      TextView seg = GUIUtils.newTextView(getActivity());
       seg.setText(labels[i]);
       seg.setTextSize(14);
       seg.setGravity(Gravity.CENTER);
@@ -138,11 +139,11 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
       if (modes[i] == neutrality) {
         seg.setBackgroundResource(R.drawable.cross_segment_selected);
         seg.setTextColor(color(R.color.white));
-        seg.setTypeface(null, Typeface.BOLD);
+        GUIUtils.setWeight(seg, Typeface.BOLD);
       } else {
         seg.setBackground(null);
         seg.setTextColor(color(R.color.secondary_text));
-        seg.setTypeface(null, Typeface.NORMAL);
+        GUIUtils.setWeight(seg, Typeface.NORMAL);
       }
     }
   }
@@ -156,7 +157,7 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
       sw.setText(f.name());
       sw.setGravity(Gravity.CENTER);
       sw.setTextSize(15);
-      sw.setTypeface(null, Typeface.BOLD);
+      GUIUtils.setWeight(sw, Typeface.BOLD);
       LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(40), 1f);
       if (i > 0) {
         lp.leftMargin = dp(6);
@@ -295,11 +296,11 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
     TextView title = new TextView(getActivity());
     title.setText(getString(R.string.cross_section_title, fs.face.name(), fs.length));
     title.setTextColor(color(R.color.lightblue));
-    title.setTypeface(null, Typeface.BOLD);
+    GUIUtils.setWeight(title, Typeface.BOLD);
     title.setTextSize(16);
     titleBlock.addView(title);
 
-    TextView subtext = new TextView(getActivity());
+    TextView subtext = GUIUtils.newTextView(getActivity());
     subtext.setTextColor(color(R.color.secondary_text));
     subtext.setTextSize(13);
     subtext.setText(solved ? getString(R.string.cross_subtext_solved)
@@ -309,7 +310,7 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
     header.addView(titleBlock);
 
     if (best && !solved) {
-      TextView star = new TextView(getActivity());
+      TextView star = new TextView(getActivity()); // left on the platform face: Roboto has no star
       star.setText("★");
       star.setTextColor(color(R.color.new_record));
       star.setTextSize(16);
@@ -365,7 +366,7 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
     }
 
     if (total > INITIAL_SOLUTIONS_SHOWN) {
-      TextView toggle = new TextView(getActivity());
+      TextView toggle = GUIUtils.newTextView(getActivity());
       toggle.setTextColor(color(R.color.lightblue));
       toggle.setTextSize(14);
       toggle.setPadding(0, dp(6), 0, dp(2));
@@ -417,7 +418,7 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
   }
 
   private TextView makeChevron(boolean expanded) {
-    TextView tv = new TextView(getActivity());
+    TextView tv = new TextView(getActivity()); // left on the platform face: Roboto has no chevron
     tv.setText(expanded ? "▾" : "▸");
     tv.setTextColor(color(R.color.lightblue));
     tv.setTextSize(14);
@@ -436,7 +437,7 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
   }
 
   private TextView makeInfoLine(String text) {
-    TextView tv = new TextView(getActivity());
+    TextView tv = GUIUtils.newTextView(getActivity());
     tv.setText(text);
     tv.setTextColor(color(R.color.secondary_text));
     tv.setTextSize(15);

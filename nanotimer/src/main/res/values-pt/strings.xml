@@ -128,6 +128,10 @@
   <string name="timer_font_size_small">Pequeno</string>
   <string name="timer_font_size_medium">Médio</string>
   <string name="timer_font_size_big">Grande</string>
+  <string name="session_times_display">Mostrar os últimos tempos como</string>
+  <string name="session_times_display_summary">Barras ou tempos, para os 12 últimos na tela do cronômetro</string>
+  <string name="session_display_bars">Barras</string>
+  <string name="session_display_times">Tempos</string>
   <string name="solve_types">Tipos de resolução</string>
   <string name="edit_solve_types">Editar os tipos de resolução</string>
   <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>
@@ -164,10 +168,15 @@
   <string name="preparing_generation">Preparando a geração&#8230;</string>
   <string name="scrambles_being_generated">Gerando scrambles %1$s</string>
   <string name="generating_scramble">Gerando scramble %1$d de %2$d</string>
-  <string name="new_record">Novo recorde!</string>
-  <string name="record_toast_header">Novos recordes!</string>
-  <string name="record_overlay_prev">(ant. %1$s)</string>
+  <string name="generating_cube_scramble">Gerando scrambles %1$s&#8230;\n%2$d de %3$d</string>
+  <string name="stopping_generation">Parando a geração&#8230;</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="verdict_personal_best">Recorde pessoal, %1$s a menos que %2$s</string>
+  <string name="verdict_record">Melhor %1$s, %2$s a menos que %3$s</string>
+  <string name="verdict_session_best">Melhor da sessão</string>
+  <string name="verdict_session_worst">Pior da sessão</string>
+  <string name="verdict_under_average">%1$s abaixo do seu Ao12</string>
+  <string name="verdict_over_average">%1$s acima do seu Ao12</string>
 
   <string name="record_notification_mode">Painel de recorde</string>
   <string name="record_notification_mode_summary">Escolha quando mostrar o painel de novo recorde</string>
@@ -709,10 +718,16 @@
 
   <!-- History screen -->
   <string name="history_empty">Ainda não há resoluções. Toque em Iniciar para cronometrar uma.</string>
-  <string name="sparkline_window">últimas %1$d</string>
+  <string name="window_last_n">últimas %1$d</string>
   <string name="today">Hoje</string>
   <string name="yesterday">Ontem</string>
-  <string name="acc_label">Prec</string>
+  <string name="acc_label">Prec total</string>
+  <string name="acc12_label">Prec12</string>
+  <string name="acc50_label">Prec50</string>
+  <string name="acc100_label">Prec100</string>
+  <string name="mean_label">Média total</string>
+  <string name="stat_to_show">Estatística</string>
+  <string name="blind_averages_note">Aqui uma média conta apenas os sucessos: Ao12 é a média das suas últimas doze resoluções bem-sucedidas, recuando para além dos DNF em vez de contá-los.</string>
   <string name="time_just_now">agora mesmo</string>
   <string name="time_minutes_ago">há %1$d min</string>
 

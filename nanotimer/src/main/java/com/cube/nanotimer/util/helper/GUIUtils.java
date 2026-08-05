@@ -13,6 +13,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
+import androidx.core.content.res.ResourcesCompat;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -26,8 +27,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.FormatterService;
-
-import java.io.File;
 
 public class GUIUtils {
 
@@ -201,15 +200,33 @@ public class GUIUtils {
     notifManager.cancel(id);
   }
 
-  public static Typeface createFont(Context c, String font) {
-    Typeface typeface;
+  /**
+   * The face the whole app is set in, the one the themes name. The theme reaches every view
+   * inflated from a layout, but not one built in code, and {@code setTypeface(null, style)} throws
+   * it away for the platform default, which is a different font on every ROM: both come here.
+   */
+  public static Typeface appFont(Context c) {
     try {
-      typeface = Typeface.createFromAsset(c.getAssets(), "fonts" + File.separator + font);
+      Typeface font = ResourcesCompat.getFont(c, R.font.roboto);
+      if (font != null) {
+        return font;
+      }
     } catch (RuntimeException e) {
-      Log.e("NanoTimer", "Unable to create font: " + font, e);
-      typeface = Typeface.defaultFromStyle(Typeface.NORMAL);
+      Log.e("NanoTimer", "Unable to load the app font", e);
     }
-    return typeface;
+    return Typeface.defaultFromStyle(Typeface.NORMAL);
+  }
+
+  /** Sets a text view's weight without losing the face it is set in. */
+  public static void setWeight(TextView tv, int style) {
+    tv.setTypeface(appFont(tv.getContext()), style);
+  }
+
+  /** A text view built in code rather than inflated, so it has to be told the app's face. */
+  public static TextView newTextView(Context c) {
+    TextView tv = new TextView(c);
+    tv.setTypeface(appFont(c));
+    return tv;
   }
 
 }

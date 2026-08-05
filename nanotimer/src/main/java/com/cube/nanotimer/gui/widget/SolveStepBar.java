@@ -22,9 +22,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The breakdown of the solve just finished: the step bar, with each step's name and time beneath it.
- * The steps are a method's or the user's own, and how many there are is theirs to decide — the
- * legend is built to the count. Empty on a tap-timed solve, which no steps were seen for.
+ * The breakdown of a solve: the step bar, with each step's name and time beneath it. The steps are a
+ * method's or the user's own, and how many there are is theirs to decide — the legend is built to
+ * the count. Empty on a tap-timed solve, which no steps were seen for.
+ *
+ * <p>A solve still running shows the same thing part done: every step is there from the start, the
+ * ones still to come greyed out and untimed until they are reached.
  */
 public class SolveStepBar extends LinearLayout {
 
@@ -73,13 +76,22 @@ public class SolveStepBar extends LinearLayout {
    *     as the method step codes they are
    */
   public void setSteps(List<SolveStep> steps, String[] stepNames) {
-    bar.setSteps(steps, colors);
+    setSteps(steps, stepNames, steps.size());
+  }
+
+  /**
+   * @param doneCount how many of the steps have actually been solved; the rest are named in grey and
+   *     left without a time, which is the legend of a solve still running
+   */
+  public void setSteps(List<SolveStep> steps, String[] stepNames, int doneCount) {
+    bar.setSteps(steps, colors, doneCount);
     List<SolveStepBars.LegendEntry> legend = SolveStepBars.legend(steps);
     buildLegend(legend.size());
     for (int cell = 0; cell < legend.size(); cell++) {
       SolveStepBars.LegendEntry entry = legend.get(cell);
       int i = entry.getStepIndex();
       SolveStep step = steps.get(i);
+      boolean pending = i >= doneCount;
       TextView name = cells.get(cell).findViewById(R.id.tvStepName);
       if (stepNames != null) {
         // A name of the user's own can run long, and a cell is a share of the screen: bound it so it
@@ -90,11 +102,11 @@ public class SolveStepBar extends LinearLayout {
       }
       name.setText(stepNames != null && i < stepNames.length ? stepNames[i]
           : Utils.toSmartCubeStepLocalizedName(getContext(), step.getName(), i));
-      name.setTextColor(Utils.isTailSegment(step.getName())
+      name.setTextColor(pending || Utils.isTailSegment(step.getName())
           ? ContextCompat.getColor(getContext(), R.color.gray600)
           : colors[entry.getColorSlot() % colors.length]);
       ((TextView) cells.get(cell).findViewById(R.id.tvStepTime))
-          .setText(FormatterService.INSTANCE.formatSolveTime(entry.getTotalMs()));
+          .setText(pending ? "" : FormatterService.INSTANCE.formatSolveTime(entry.getTotalMs()));
     }
   }
 

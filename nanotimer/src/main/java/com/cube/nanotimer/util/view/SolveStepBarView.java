@@ -23,6 +23,9 @@ import java.util.List;
  * into a pale stretch of thinking and a solid one of turning — so the solve reads as think, turn,
  * think, turn.
  *
+ * <p>A bar can also be shown part done, the steps not reached yet greyed out: that is a solve still
+ * running, where what is left to do is as worth seeing as what is behind.
+ *
  * <p>Sizes are taken from the measured height so the view scales with the screen like the rest of
  * the timer layout, which {@link ScalingLinearLayout} cannot do for what a view paints itself.
  */
@@ -44,9 +47,13 @@ public class SolveStepBarView extends View {
 
   private static final float DIMMED = 0.3f; // what the steps beside the picked one fade to
 
+  // A step not reached yet, faint enough to read as an empty track on the timer's dark ground
+  private static final float PENDING = 0.35f;
+
   private List<SolveStep> steps = Collections.emptyList();
   private int[] colors = new int[0];
   private int[] slots = new int[0]; // the palette slot each step draws from, grouped by name
+  private int doneCount = Integer.MAX_VALUE; // steps past this are slots waiting for the solver
   private float progress = 1f; // left-to-right reveal fraction; 1 = fully drawn
   private float playhead = -1f; // where a replay has got to, or < 0 for a bar nothing is playing
   private int highlighted = -1; // the step picked out of the bar, or < 0 for a bar with none
@@ -67,9 +74,18 @@ public class SolveStepBarView extends View {
 
   /** @param colors the palette the steps are drawn from, which they take by name */
   public void setSteps(List<SolveStep> steps, int[] colors) {
+    setSteps(steps, colors, steps.size());
+  }
+
+  /**
+   * @param doneCount how many of the steps have actually been solved; the rest are drawn greyed out,
+   *     which is how a solve still running shows what is left to do
+   */
+  public void setSteps(List<SolveStep> steps, int[] colors, int doneCount) {
     this.steps = new ArrayList<>(steps);
     this.colors = colors;
     this.slots = SolveStepBars.colorSlots(this.steps);
+    this.doneCount = doneCount;
     invalidate();
   }
 
@@ -199,8 +215,10 @@ public class SolveStepBarView extends View {
         continue;
       }
       float stepWidth = width * step.getTotalMs() / totalMs;
-      float alphaScale = highlighted < 0 || highlighted == i ? 1f : DIMMED;
-      drawStep(canvas, step, colorOf(i), left, stepWidth, height, corner, partGap, alphaScale);
+      boolean pending = i >= doneCount;
+      float alphaScale = pending ? PENDING : (highlighted < 0 || highlighted == i ? 1f : DIMMED);
+      drawStep(canvas, step, pending ? tailColor : colorOf(i),
+          left, stepWidth, height, corner, partGap, alphaScale);
       left += stepWidth + stepGap;
     }
     canvas.restore(); // the playhead marks a moment in the solve, it is not part of the reveal

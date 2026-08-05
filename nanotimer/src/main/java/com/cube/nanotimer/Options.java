@@ -3,6 +3,7 @@ package com.cube.nanotimer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import com.cube.nanotimer.util.view.HeroStat;
 import com.cube.nanotimer.util.view.TimerFont;
 import com.cube.nanotimer.vo.CubeMethod;
 
@@ -15,6 +16,7 @@ public enum Options {
   public enum ClockNotation { UUdU_x_x, UUdd_ux_dx, URx_DRx_DLx }
   public enum RecordNotificationMode { ANY, PB_ONLY, NEVER }
   public enum CrossNeutrality { SPECIFIC, DUAL, FULL }
+  public enum SessionTimesDisplay { BARS, TIMES }
   public enum TimerFontSize { SMALL, MEDIUM, LARGE }
 
   private Context context;
@@ -30,6 +32,7 @@ public enum Options {
   public static final String KEEP_TIMER_SCREEN_ON_KEY = "keep_timer_screen_on";
   public static final String HIGH_PRECISION_TIMER_KEY = "high_precision_timer";
   public static final String COLOR_SAMPLE_SIZE_KEY = "color_sample_size";
+  public static final String SESSION_TIMES_DISPLAY_KEY = "session_times_display";
   public static final String BIG_CUBES_NOTATION_KEY = "big_cubes_notation";
   public static final String CLOCK_NOTATION_SYSTEM_KEY = "clock_notation";
   public static final String SOLVE_TYPES_SHORTCUT_KEY = "solve_types_shortcut";
@@ -37,6 +40,7 @@ public enum Options {
   public static final String CROSS_NEUTRALITY_KEY = "cross_neutrality";
   public static final String CROSS_FACE_KEY = "cross_face";
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
+  public static final String HERO_STAT_KEY_PREFIX = "hero_stat_";
   public static final String REPLAY_SHOW_GYRO_KEY = "replay_show_gyro";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
@@ -150,6 +154,11 @@ public enum Options {
     return sharedPreferences.getInt(COLOR_SAMPLE_SIZE_KEY, defaultValue);
   }
 
+  public SessionTimesDisplay getSessionTimesDisplay() {
+    int mode = Integer.parseInt(sharedPreferences.getString(SESSION_TIMES_DISPLAY_KEY, "-1"));
+    return mode == 2 ? SessionTimesDisplay.TIMES : SessionTimesDisplay.BARS;
+  }
+
   public BigCubesNotation getBigCubesNotation() {
     int notation = Integer.parseInt(sharedPreferences.getString(BIG_CUBES_NOTATION_KEY, "-1"));
     switch (notation) {
@@ -215,6 +224,33 @@ public enum Options {
 
   public void setCrossFaceIndex(int faceIndex) {
     sharedPreferences.edit().putInt(CROSS_FACE_KEY, faceIndex).apply();
+  }
+
+  /**
+   * Which statistic one of the history card's three cells shows. Set by tapping the cell rather
+   * than from the preference screen, and kept per kind of solve type: a blind card wants its
+   * success rate where a sighted one wants an average, and neither should follow the other.
+   *
+   * @param cell 0, 1 or 2, left to right
+   */
+  public HeroStat getHeroStat(int cell, boolean blind) {
+    String stored = sharedPreferences.getString(heroStatKey(cell, blind), null);
+    if (stored != null) {
+      try {
+        return HeroStat.valueOf(stored);
+      } catch (IllegalArgumentException e) {
+        // A statistic that no longer exists: fall through to the default rather than crash.
+      }
+    }
+    return HeroStat.defaultFor(cell, blind);
+  }
+
+  public void setHeroStat(int cell, boolean blind, HeroStat stat) {
+    sharedPreferences.edit().putString(heroStatKey(cell, blind), stat.name()).apply();
+  }
+
+  private String heroStatKey(int cell, boolean blind) {
+    return HERO_STAT_KEY_PREFIX + (blind ? "blind_" : "") + cell;
   }
 
   // Whether the solve breakdown shows the moves of each step. Not a preference screen entry: it is

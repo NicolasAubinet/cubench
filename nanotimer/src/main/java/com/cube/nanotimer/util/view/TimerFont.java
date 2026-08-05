@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.widget.TextView;
+import androidx.core.content.res.ResourcesCompat;
 import com.cube.nanotimer.R;
 
 import java.util.HashMap;
@@ -19,16 +20,16 @@ import java.util.Map;
  * value) and must stay stable across releases.
  */
 public enum TimerFont {
-  MODERN(1, R.string.timer_font_modern, "Roboto-Bold.ttf", null, Typeface.NORMAL, "tnum", 1.00f),
-  CLASSIC(2, R.string.timer_font_classic, "Digital_dream_Fat_Skew_Narrow.ttf", null, Typeface.NORMAL, null, 0.77f),
-  MONOSPACE(3, R.string.timer_font_mono, "DroidSansMono.ttf", null, Typeface.BOLD, "tnum", 0.99f),
-  LIGHT(4, R.string.timer_font_light, "Roboto-Light.ttf", null, Typeface.NORMAL, "tnum", 1.00f),
-  CONDENSED(5, R.string.timer_font_condensed, "RobotoCondensed-Bold.ttf", null, Typeface.NORMAL, "tnum", 1.00f);
+  MODERN(1, R.string.timer_font_modern, R.font.roboto_bold, null, Typeface.NORMAL, "tnum", 1.00f),
+  CLASSIC(2, R.string.timer_font_classic, 0, "Digital_dream_Fat_Skew_Narrow.ttf", Typeface.NORMAL, null, 0.77f),
+  MONOSPACE(3, R.string.timer_font_mono, 0, "DroidSansMono.ttf", Typeface.BOLD, "tnum", 0.99f),
+  LIGHT(4, R.string.timer_font_light, R.font.roboto_light, null, Typeface.NORMAL, "tnum", 1.00f),
+  CONDENSED(5, R.string.timer_font_condensed, R.font.roboto_condensed_bold, null, Typeface.NORMAL, "tnum", 1.00f);
 
   private final int id;
   private final int nameResId;
-  private final String assetFile;   // font file under assets/fonts/, or null to use a system family
-  private final String familyName;  // system font family, or null when loading from an asset
+  private final int fontResId;      // font resource, or 0 to load from assets/fonts/
+  private final String assetFile;   // font file under assets/fonts/, unused when fontResId is set
   private final int style;          // Typeface.NORMAL / BOLD / ...
   private final String fontFeature; // OpenType feature settings (e.g. "tnum"), or null
   private final float sizeScale;    // multiplier applied to the base text size to even out apparent size
@@ -36,11 +37,11 @@ public enum TimerFont {
   // Asset typefaces are expensive to create, so cache them across the app.
   private static final Map<String, Typeface> assetCache = new HashMap<>();
 
-  TimerFont(int id, int nameResId, String assetFile, String familyName, int style, String fontFeature, float sizeScale) {
+  TimerFont(int id, int nameResId, int fontResId, String assetFile, int style, String fontFeature, float sizeScale) {
     this.id = id;
     this.nameResId = nameResId;
+    this.fontResId = fontResId;
     this.assetFile = assetFile;
-    this.familyName = familyName;
     this.style = style;
     this.fontFeature = fontFeature;
     this.sizeScale = sizeScale;
@@ -78,20 +79,34 @@ public enum TimerFont {
   }
 
   private Typeface getTypeface(Context context) {
-    if (assetFile != null) {
-      Typeface base = assetCache.get(assetFile);
-      if (base == null) {
-        try {
-          base = Typeface.createFromAsset(context.getApplicationContext().getAssets(), "fonts/" + assetFile);
-        } catch (RuntimeException e) {
-          Log.e("NanoTimer", "Unable to load timer font: " + assetFile, e);
-          base = Typeface.defaultFromStyle(style);
-        }
-        assetCache.put(assetFile, base);
-      }
-      return (style == Typeface.NORMAL) ? base : Typeface.create(base, style);
+    Typeface base = (fontResId != 0) ? getFontResource(context) : getAssetFont(context);
+    return (style == Typeface.NORMAL) ? base : Typeface.create(base, style);
+  }
+
+  // ResourcesCompat keeps its own cache, so the faces shared with the rest of the app are only
+  // read once whichever screen asks for them first.
+  private Typeface getFontResource(Context context) {
+    Typeface font = null;
+    try {
+      font = ResourcesCompat.getFont(context.getApplicationContext(), fontResId);
+    } catch (RuntimeException e) {
+      Log.e("NanoTimer", "Unable to load timer font: " + name(), e);
     }
-    return Typeface.create(familyName, style);
+    return (font != null) ? font : Typeface.defaultFromStyle(style);
+  }
+
+  private Typeface getAssetFont(Context context) {
+    Typeface base = assetCache.get(assetFile);
+    if (base == null) {
+      try {
+        base = Typeface.createFromAsset(context.getApplicationContext().getAssets(), "fonts/" + assetFile);
+      } catch (RuntimeException e) {
+        Log.e("NanoTimer", "Unable to load timer font: " + assetFile, e);
+        base = Typeface.defaultFromStyle(style);
+      }
+      assetCache.put(assetFile, base);
+    }
+    return base;
   }
 
 }

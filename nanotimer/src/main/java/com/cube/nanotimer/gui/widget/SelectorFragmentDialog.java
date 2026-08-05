@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.helper.GUIUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +85,7 @@ public class SelectorFragmentDialog extends NanoTimerDialogFragment {
       tvTitle.setText(title);
       tvTitle.setTextColor(ContextCompat.getColor(getContext(), R.color.white));
       tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-      tvTitle.setTypeface(tvTitle.getTypeface(), Typeface.BOLD);
+      GUIUtils.setWeight(tvTitle, Typeface.BOLD);
       tvTitle.setLetterSpacing(0.02f);
       float density = getResources().getDisplayMetrics().density;
       tvTitle.setPadding((int) (16 * density), (int) (16 * density), (int) (16 * density), (int) (8 * density));
