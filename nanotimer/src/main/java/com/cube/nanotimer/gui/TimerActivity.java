@@ -139,6 +139,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   // the views are rebuilt from scratch, and the solve they described is not re-read from anywhere.
   private List<SolveStep> shownSteps = Collections.emptyList();
   private String[] shownStepNames;
+  private int shownDoneCount; // of the shown steps, how many are solved rather than still to come
   private CharSequence shownStats;
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
@@ -623,14 +624,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * Keeps the step breakdown under the digits while a solve runs, and hands it back to the gap when
    * one ends.
    *
-   * <p>A solve type timed in steps fills the bar as it goes, and the bar lives in the gap under the
-   * scramble — which is where the digits move to when the screen strips down, so the bar was drawn
-   * straight across the time. Moved rather than hidden: the steps taken so far are the one thing
-   * besides the time worth reading mid solve.
+   * <p>A solve type timed in steps colours the bar in as it goes, and the bar lives in the gap under
+   * the scramble — which is where the digits move to when the screen strips down, so the bar was
+   * drawn straight across the time. Moved rather than hidden: which steps are done and which are
+   * left is the one thing besides the time worth reading mid solve.
    *
-   * <p>Set rather than animated, and re-read whenever the block changes size: it is empty when a
-   * solve starts and grows a segment per step, so its resting top moves under it. Sliding it into
-   * place on every tap would be movement for its own sake.
+   * <p>Set rather than animated, and re-read whenever the block changes size — a rotation, or the
+   * finished solve replacing the running one. Sliding it into place would be movement for its own
+   * sake.
    */
   private void parkStepBreakdown() {
     if (stepBreakdown == null) {
@@ -1270,6 +1271,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     timerState = TimerState.RUNNING; // set before the screen stands down: the focus state reads it
     timerStarted();
+    if (solveType.hasSteps()) {
+      showStepsSoFar(); // after timerStarted, which clears the last solve's bar off the screen
+    }
     timer = new Timer();
     if (Options.INSTANCE.isShowTimeWhenRunning()) {
       TimerTask timerTask = new TimerTask() {
@@ -1412,12 +1416,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * Fills the bar as the solve goes, one segment per step taken. The same bar then stays for the
-   * finished solve, so the steps are read the same way throughout rather than in a list that gives
-   * way to something else at the end.
+   * Colours the bar in as the solve goes, one segment per step taken. Every step is drawn from the
+   * start, the ones still to come greyed out, so the bar says what is left as well as what is done.
+   * The same bar then stays for the finished solve, so the steps are read the same way throughout
+   * rather than in a list that gives way to something else at the end.
    */
   private void showStepsSoFar() {
-    drawStepBar(SolveBreakdown.fromStepTimes(stepsTimes.toArray(new Long[0])), stepNames());
+    drawStepBar(SolveBreakdown.inProgress(stepsTimes.toArray(new Long[0]), solveType.getSteps().length),
+        stepNames(), stepsTimes.size());
   }
 
   private void resetTimer() {
@@ -1768,13 +1774,23 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return stats;
   }
 
-  /** Draws the bar, and remembers what it drew so a rotation can put the same thing back. */
   private void drawStepBar(List<SolveStep> steps, String[] stepNames) {
+    drawStepBar(steps, stepNames, steps.size());
+  }
+
+  /**
+   * Draws the bar, and remembers what it drew so a rotation can put the same thing back.
+   *
+   * @param doneCount how many of the steps are solved; the rest draw as the empty slots of a solve
+   *     still running
+   */
+  private void drawStepBar(List<SolveStep> steps, String[] stepNames, int doneCount) {
     shownSteps = steps;
     shownStepNames = stepNames;
-    solveStepBar.setSteps(steps, stepNames);
+    shownDoneCount = doneCount;
+    solveStepBar.setSteps(steps, stepNames, doneCount);
     solveStepBar.setVisibility(View.VISIBLE);
-    // A step taken mid solve grows the block, so where it is parked has to be read again.
+    // The legend can wrap to another row, so where the block is parked has to be read again.
     stepBreakdown.post(parkBreakdown);
   }
 
@@ -1794,7 +1810,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       reserveStepBreakdownSpace();
       return;
     }
-    solveStepBar.setSteps(shownSteps, shownStepNames);
+    solveStepBar.setSteps(shownSteps, shownStepNames, shownDoneCount);
     solveStepBar.setVisibility(View.VISIBLE);
     if (tvSolveStats != null && shownStats != null) { // absent in landscape
       tvSolveStats.setText(shownStats);

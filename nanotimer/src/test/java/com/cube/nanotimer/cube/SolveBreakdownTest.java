@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
@@ -143,6 +144,27 @@ public class SolveBreakdownTest {
     SolveSolution solution = SolveSolution.from("R@0 U@4000 F@6000", steps);
     assertEquals("R U", solution.getSteps().get(0).getMoves());
     assertEquals("F", solution.getSteps().get(1).getMoves());
+  }
+
+  @Test
+  public void givesARunningSolveASlotForEveryStepStillToCome() {
+    List<SolveStep> steps = SolveBreakdown.inProgress(new Long[] {6000L, 2000L}, 4);
+
+    assertEquals(4, steps.size());
+    assertEquals(6000, steps.get(0).getTotalMs());
+    assertEquals(2000, steps.get(1).getTotalMs());
+    // A slot is worth what the steps before it averaged, so the bar stays full width throughout.
+    assertEquals(4000, steps.get(2).getTotalMs());
+    assertEquals(4000, steps.get(3).getTotalMs());
+  }
+
+  @Test
+  public void givesTheStepsOfAJustStartedSolveTheSameWidth() {
+    List<SolveStep> steps = SolveBreakdown.inProgress(new Long[0], 3);
+
+    assertEquals(3, steps.size());
+    assertEquals(steps.get(0).getTotalMs(), steps.get(2).getTotalMs());
+    assertTrue(steps.get(0).getTotalMs() > 0); // a step of no width is skipped by the bar
   }
 
   @Test
