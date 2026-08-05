@@ -43,6 +43,11 @@ import java.util.List;
  * Bind once, then {@link #start()} / {@link #stop()} from the activity's resume/pause and
  * {@link #destroy()} from its onDestroy.
  *
+ * <p>On the timer it draws in the gap under the scramble, in place of the scramble's state diagram:
+ * a cube that is following the scramble move by move needs no picture of it, and the two at once
+ * left both of them too small to read. The screen owns that swap, not this class — see
+ * {@code TimerActivity.refreshStatePreviewOwner}.
+ *
  * <p><b>⚠️ The pose is the RAW gyro reading, and a slice must not be taken out of it.</b> The cube
  * reports a slice as its two opposite faces and nothing else, so the state drawn here is the one the
  * core sees — and the core is where the gyro sits. Drawing a core-frame state at the core's own pose
@@ -71,11 +76,13 @@ public class LiveCubeView
   /** Show the cube anyway if the page's "ready" never arrives, rather than hide it for good. */
   private static final long READY_TIMEOUT_MS = 6000;
 
+  /** The panels around it fade over this when the screen stands down for a solve; this goes too. */
+  private static final long FADE_MS = 120;
+
   private final Context context;
   private final View.OnTouchListener touchListener;
 
   private ViewStub stub;
-  private View topSpacer;
   private View cubeLayout;
   private View veil;
   private View staleMark;
@@ -85,6 +92,7 @@ public class LiveCubeView
   /** The page says it has drawn a cube, which is when there is any point showing it. */
   private boolean pageReady;
   private boolean obscured;
+  private boolean suppressed;
 
   /** What the cube on screen is showing: the setup it was seeded with, plus the moves since. */
   private String baseAlg = "";
@@ -137,21 +145,18 @@ public class LiveCubeView
    * <p>⚠️ Whatever was inflated into the <em>old</em> layout is torn down here. It is off the window
    * the moment {@code setContentView} runs, but it is not dead: it holds a WebGL context and its
    * page goes on polling the bridge for the life of the activity. Left in place it also blocks
-   * {@link #inflate}, so the cube never comes back and {@link #refresh} drives the orphan while
-   * hiding the new spacer — a gap on screen where the cube should be. Nothing is lost by rebuilding:
-   * Java holds the whole state and the page is reloaded from it.
+   * {@link #inflate}, so the cube never comes back and {@link #refresh} drives the orphan — a gap on
+   * screen where the cube should be. Nothing is lost by rebuilding: Java holds the whole state and
+   * the page is reloaded from it.
    *
    * @param stub the placeholder to inflate the cube into, or null where the layout has none
-   * @param topSpacer the gap the cube stands in for, hidden while it is up, or null where the
-   *     layout keeps no such gap
    */
-  public void bind(ViewStub stub, View topSpacer) {
+  public void bind(ViewStub stub) {
     boolean relaidOut = webView != null;
     if (relaidOut) {
       destroy();
     }
     this.stub = stub;
-    this.topSpacer = topSpacer;
     if (relaidOut && SmartCubeManager.INSTANCE.isConnected()) {
       inflate();
       refresh();
@@ -220,6 +225,25 @@ public class LiveCubeView
     }
     this.obscured = obscured;
     load(); // solved while it is covered, the real state again once it is not
+    refresh();
+  }
+
+  /**
+   * Stands the cube down for a solve, with the rest of the screen's panels.
+   *
+   * <p>It draws in the gap under the scramble, and a running solve puts the digits and the
+   * inspection ring in the middle of the <em>screen</em> — which is that gap. The cube was drawn
+   * straight through them. Hidden rather than moved: while a solve runs the screen is the digits and
+   * nothing else, and nobody reads a mirror of the cube in their own hands.
+   *
+   * <p>⚠️ Its space is kept (INVISIBLE, see {@link #refresh}), so standing down cannot shift what is
+   * under it mid solve.
+   */
+  public void setSuppressed(boolean suppressed) {
+    if (this.suppressed == suppressed) {
+      return;
+    }
+    this.suppressed = suppressed;
     refresh();
   }
 
@@ -459,7 +483,8 @@ public class LiveCubeView
   }
 
   /**
-   * Shown only with a cube connected, and marked rather than dimmed when it knows it is wrong.
+   * Shown only with a cube connected and only while the screen is not standing down for a solve,
+   * and marked rather than dimmed when it knows it is wrong.
    *
    * <p>⚠️ <b>INVISIBLE while the page comes up, never GONE.</b> A GONE WebView is never laid out,
    * so the player would be built into a 0×0 viewport and stay that size once shown — space on
@@ -473,19 +498,33 @@ public class LiveCubeView
     boolean connected = SmartCubeManager.INSTANCE.isConnected();
     // Veiled counts as shown: the cover is what the space is for, and it is over the cube whether
     // or not there is yet a cube under it.
-    boolean visible = connected && (obscured || (pageReady && seeded));
-    cubeLayout.setVisibility(visible ? View.VISIBLE : (connected ? View.INVISIBLE : View.GONE));
+    boolean visible = connected && !suppressed && (obscured || (pageReady && seeded));
+    // Faded rather than switched, so standing down for a solve goes with the panels around it.
+    // Held in a local: destroy() can null the field before the fade below has ended.
+    final View layout = cubeLayout;
+    final int hidden = connected ? View.INVISIBLE : View.GONE;
+    layout.animate().cancel();
+    if (visible) {
+      layout.setVisibility(View.VISIBLE);
+      layout.animate().alpha(1f).setDuration(FADE_MS).start();
+    } else if (layout.getVisibility() != View.VISIBLE) {
+      layout.setAlpha(0f); // never shown yet, so there is nothing to fade
+      layout.setVisibility(hidden);
+    } else {
+      layout.animate().alpha(0f).setDuration(FADE_MS)
+          .withEndAction(new Runnable() {
+            @Override
+            public void run() {
+              layout.setVisibility(hidden);
+            }
+          }).start();
+    }
     if (veil != null) {
       veil.setVisibility(obscured ? View.VISIBLE : View.GONE);
     }
     if (staleMark != null) {
       // Nothing to warn about behind the cover, which is already saying the cube cannot be read.
       staleMark.setVisibility(!inSync && seeded && !obscured ? View.VISIBLE : View.GONE);
-    }
-    if (topSpacer != null) {
-      // The cube stands in the gap rather than above it: both weighted the same, so showing both
-      // pushed the timer down and left the cube marooned at the top of the screen.
-      topSpacer.setVisibility(connected ? View.GONE : View.VISIBLE);
     }
   }
 

@@ -35,21 +35,11 @@
          android:paddingLeft="2px"
          android:paddingRight="2px"
          android:orientation="vertical">
-        <!-- The live cube, when one is connected. It takes the spacer's own weight rather than a
-             height of its own — a fixed one left the cube stranded at the top with the spacer's
-             gap still under it. The spacer goes while the cube is up (LiveCubeView owns that), so
-             the screen without a cube is exactly the screen that was there before it. -->
-        <ViewStub
-           android:id="@+id/stubLiveCube"
-           android:layout="@layout/timer_live_cube"
-           android:layout_width="match_parent"
-           android:layout_height="0px"
-           android:layout_weight="1"/>
-
         <!-- This spacer, the band below and the one at the foot share the free space 1:3:2, which
              centres the whole block when there is a diagram in the band. With nothing to draw,
              ScrambleStatePreview.balance takes the band's share away and these two spacers halve
-             what is left, which is the screen as it was before any of this. -->
+             what is left, which is the screen as it was before any of this; with a live cube in the
+             band it gives it nearly everything, since the cube shares that band with the step bar. -->
         <Space
            android:id="@+id/timerTopSpace"
            android:layout_width="match_parent"
@@ -133,30 +123,50 @@
              android:layout="@layout/timer_state_preview"
              android:layout_width="match_parent"
              android:layout_height="match_parent"/>
+          <!-- The cube and the bar share the gap in a column rather than over each other. Without a
+               cube the stub is gone and the gravity centres the bar in the gap, exactly as it sat
+               when it was the only thing here. -->
           <LinearLayout
              android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_gravity="center_vertical"
+             android:layout_height="match_parent"
+             android:gravity="center_vertical"
              android:orientation="vertical">
-            <com.cube.nanotimer.gui.widget.SolveStepBar
-               android:id="@+id/solveStepBar"
+
+            <!-- The connected cube, in the gap the diagram would have drawn in: it is one or the
+                 other, never both (TimerActivity.refreshStatePreviewOwner). It takes what the bar
+                 leaves rather than a height of its own, and the stub is gone until a cube connects,
+                 so the screen without one is exactly the screen that was there before it. -->
+            <ViewStub
+               android:id="@+id/stubLiveCube"
+               android:layout="@layout/timer_live_cube"
+               android:layout_width="match_parent"
+               android:layout_height="0px"
+               android:layout_weight="1"/>
+
+            <LinearLayout
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
-               android:layout_marginLeft="8px"
-               android:layout_marginRight="8px"
-               android:visibility="gone"/>
-            <TextView
-               android:id="@+id/tvSolveStats"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:layout_gravity="center_horizontal"
-               android:layout_marginTop="4px"
-               android:clickable="false"
-               android:focusable="false"
-               android:fontFeatureSettings="tnum"
-               android:textColor="@color/secondary_text"
-               android:textSize="19px"
-               android:visibility="gone"/>
+               android:orientation="vertical">
+              <com.cube.nanotimer.gui.widget.SolveStepBar
+                 android:id="@+id/solveStepBar"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:layout_marginLeft="8px"
+                 android:layout_marginRight="8px"
+                 android:visibility="gone"/>
+              <TextView
+                 android:id="@+id/tvSolveStats"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_gravity="center_horizontal"
+                 android:layout_marginTop="4px"
+                 android:clickable="false"
+                 android:focusable="false"
+                 android:fontFeatureSettings="tnum"
+                 android:textColor="@color/secondary_text"
+                 android:textSize="19px"
+                 android:visibility="gone"/>
+            </LinearLayout>
           </LinearLayout>
         </FrameLayout>
 

@@ -39,6 +39,9 @@ import org.json.JSONObject;
  * to put in it, so a puzzle that cannot be drawn leaves exactly the screen that was there before.
  * See {@link #balance}.
  *
+ * <p>That gap is shared with the live cube, which draws in it instead whenever one is connected:
+ * see {@link #setReplaced}.
+ *
  * <p><b>Never for a blind solve type.</b> Not "not useful there": a picture of the scrambled state
  * is the memorisation, straight off the screen, without touching the cube. Hiding it is not enough,
  * so it is never inflated — see {@link #show}.
@@ -83,6 +86,8 @@ public class ScrambleStatePreview {
   /** The page says it has drawn, which is when there is any point showing it. */
   private boolean pageReady;
   private boolean suppressed;
+  /** A live cube holds the gap, so nothing is drawn here and nothing is ever built. */
+  private boolean replaced;
   /** The gap has been through a layout, so its height is an answer rather than a zero. */
   private boolean measured;
   /** The gap is deep enough to draw in. Assumed until measured: it has to be given a size first. */
@@ -151,8 +156,18 @@ public class ScrambleStatePreview {
    *
    * <p>It is settled before the diagram is drawn and not touched again, so nothing here can move
    * the digits during a solve. Standing down for a run is a visibility, never a weight.
+   *
+   * <p>The live cube takes nearly all of it instead, 1:8:1, because it does not have the gap to
+   * itself: the step bar and its legend ride at the foot of the same gap, and a solve's breakdown is
+   * a third of what a diagram's share would be. Split 1:3:2 the cube came out smaller than it had
+   * been before there was ever a diagram to share with, which is the whole complaint this answers.
    */
   private void balance() {
+    if (replaced) {
+      setWeight(slot, 8f);
+      setWeight(foot, 1f);
+      return;
+    }
     boolean drawing = (key != null) && roomEnough;
     setWeight(slot, drawing ? 3f : 0f);
     setWeight(foot, drawing ? 2f : 1f);
@@ -233,7 +248,7 @@ public class ScrambleStatePreview {
 
   /** Builds the page, once there is both something to draw and somewhere measured to draw it. */
   private void build() {
-    if (key == null || !measured || !roomEnough) {
+    if (key == null || replaced || !measured || !roomEnough) {
       return;
     }
     inflate();
@@ -272,6 +287,24 @@ public class ScrambleStatePreview {
   /** Force-hide the preview: the screen has stood down for a solve. */
   public void setSuppressed(boolean suppressed) {
     this.suppressed = suppressed;
+    refresh();
+  }
+
+  /**
+   * Hands the gap over to the live cube, or takes it back: the two draw in the same place and only
+   * ever one of them is up. A cube enforces the scramble move by move, so the picture of it has
+   * nothing left to say — and side by side neither was large enough to read.
+   *
+   * <p>The gap keeps its share of the screen either way, so connecting a cube swaps what is in it
+   * without moving anything around it.
+   */
+  public void setReplaced(boolean replaced) {
+    if (this.replaced == replaced) {
+      return;
+    }
+    this.replaced = replaced;
+    balance();
+    build(); // a cube that connected first is what leaves the page unbuilt; this is where it is built
     refresh();
   }
 
@@ -440,7 +473,7 @@ public class ScrambleStatePreview {
     if (previewLayout == null) {
       return;
     }
-    boolean visible = (key != null) && measured && roomEnough && !suppressed && pageReady;
+    boolean visible = (key != null) && !replaced && measured && roomEnough && !suppressed && pageReady;
     previewLayout.animate().cancel();
     if (visible) {
       previewLayout.setVisibility(View.VISIBLE);

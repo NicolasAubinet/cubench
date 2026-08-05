@@ -38,21 +38,9 @@
          android:clipChildren="false"
          android:clipToPadding="false"
          android:layout_weight="1">
-        <!-- The live cube, when one is connected. As in portrait it takes the spacer's own weight
-             rather than a height of its own, so connecting a cube does not shift the timer. Its width
-             is pinned near the height that weight gives it: this column is far wider than the cube is
-             tall, and a match_parent surface would render four times the pixels the cube draws into. -->
-        <ViewStub
-           android:id="@+id/stubLiveCube"
-           android:layout="@layout/timer_live_cube"
-           android:layout_width="130px"
-           android:layout_height="0px"
-           android:layout_weight="1"
-           android:layout_gravity="center_horizontal"/>
-
-        <!-- This spacer and the one at the foot share the free space evenly, so the timer sits
-             centred; the cube replaces this one (LiveCubeView owns that), never both. Together they
-             do what gravity="center_vertical" used to, which could not give the cube a share. -->
+        <!-- This spacer, the band below and the one at the foot share the free space, so the timer
+             sits centred whatever the scramble costs. Together they do what gravity="center_vertical"
+             used to, which could not give the band a share of its own. -->
         <Space
            android:id="@+id/timerTopSpace"
            android:layout_width="match_parent"
@@ -145,11 +133,12 @@
            android:textSize="19px"
            android:visibility="gone"/>
 
-        <!-- Where the state preview draws: the same gap under the scramble portrait puts it in.
-             The weights here are the ones for a diagram, 1:3:2 across the head, this and the foot,
-             which centres the block. With nothing to draw ScrambleStatePreview.balance takes this
-             gap's share away and halves what is left between the two spacers, which is the column
-             as it was before any of this. -->
+        <!-- Where the state preview draws, and where the live cube stands in its place: the same
+             gap under the scramble portrait puts them in, and it is one or the other, never both
+             (TimerActivity.refreshStatePreviewOwner). The weights here are the ones for a diagram,
+             1:3:2 across the head, this and the foot, which centres the block. With nothing to draw
+             ScrambleStatePreview.balance takes this gap's share away and halves what is left between
+             the two spacers, which is the column as it was before any of this. -->
         <FrameLayout
            android:id="@+id/statePreviewSlot"
            android:layout_width="match_parent"
@@ -160,6 +149,15 @@
              android:layout="@layout/timer_state_preview"
              android:layout_width="match_parent"
              android:layout_height="match_parent"/>
+          <!-- The cube's width is pinned near the height the gap gives it: this column is far wider
+               than the cube is tall, and a match_parent surface would render several times the
+               pixels the cube draws into. -->
+          <ViewStub
+             android:id="@+id/stubLiveCube"
+             android:layout="@layout/timer_live_cube"
+             android:layout_width="130px"
+             android:layout_height="match_parent"
+             android:layout_gravity="center_horizontal"/>
         </FrameLayout>
 
         <!-- The foot of the column. Heavier than the spacer at its head, because the digits carry

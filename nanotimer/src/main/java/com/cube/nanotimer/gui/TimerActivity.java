@@ -41,6 +41,7 @@ import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.LiveCubeView;
 import com.cube.nanotimer.cube.ScrambleFollower;
 import com.cube.nanotimer.cube.SmartCubeChip;
+import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SmartCubeSolveController;
 import com.cube.nanotimer.cube.SolveSolution;
@@ -63,6 +64,7 @@ import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent.State;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CubeSession;
+import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.ScrambleViewNotation;
@@ -173,6 +175,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private SmartCubeChip smartCubeChip;
   private LiveCubeView liveCube;
   private ScrambleStatePreview statePreview; // the scramble's own state, in the gap under it
+  // The gap changes hands as a cube comes and goes. Added in onResume, which replays the current
+  // connection at once, so the gap is settled before anything is drawn in it.
+  private final CubeConnectionListener statePreviewOwner = c -> refreshStatePreviewOwner();
   private boolean timerFocused; // the screen has stood down for a solve, so the preview has too
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
@@ -313,6 +318,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveController.start();
     liveCube.start();
     statePreview.start();
+    SmartCubeManager.INSTANCE.addConnectionListener(statePreviewOwner);
     applySessionStripChoice(); // both this and the coloring below may have changed in the settings
     refreshSessionFields();
   }
@@ -324,6 +330,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveController.stop();
     liveCube.stop();
     statePreview.stop();
+    SmartCubeManager.INSTANCE.removeConnectionListener(statePreviewOwner);
   }
 
   @Override
@@ -500,9 +507,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     layout.setOnTouchListener(layoutTouchListener);
 
     // The cube takes the same listener the action bar does, so it is not a dead zone either.
-    liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube), findViewById(R.id.timerTopSpace));
+    liveCube.bind((ViewStub) findViewById(R.id.stubLiveCube));
     statePreview.bind((ViewStub) findViewById(R.id.stubStatePreview),
         findViewById(R.id.statePreviewSlot), findViewById(R.id.statePreviewFoot));
+    refreshStatePreviewOwner(); // a rotation is a new gap, and it may already be the cube's
     renderStatePreview(); // a rotation arrives with a scramble already in hand
     if (timerState == TimerState.STOPPED) {
       setKeepScreenOn(keepScreenOnWhenTimerOff);
@@ -530,6 +538,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
     timerFocused = on;
     refreshStatePreviewSuppression(); // a panel like the rest, and it stands down with them
+    refreshStatePreviewOwner(); // and so does the cube, which draws in the same gap
     tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
     groundColor = on ? R.color.timer_focus_bg : R.color.graybg;
     pushedGroundColor = on ? R.color.timer_focus_pushedbg : R.color.pushedbg;
@@ -1646,6 +1655,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
               SolveTypeMethod.of(solveType));
+          refreshStatePreviewOwner(); // the puzzle it is for is what decides whose gap it is
           renderStatePreview();
         }
       });
@@ -1670,6 +1680,21 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    */
   private void refreshStatePreviewSuppression() {
     statePreview.setSuppressed(timerFocused || solveStepBar.getVisibility() == View.VISIBLE);
+  }
+
+  /**
+   * Who the gap under the scramble belongs to: the live cube while one is driving the solve, the
+   * diagram otherwise. Never both — side by side neither was large enough to read, and a cube that
+   * enforces the scramble move by move leaves the picture of it nothing to say.
+   *
+   * <p>Driving, not merely connected: on a puzzle the cube cannot follow, a mirror of a 3x3 is not
+   * a picture of anything on screen, and the diagram of the scramble in hand is worth more.
+   */
+  private void refreshStatePreviewOwner() {
+    boolean cubeHasGap = solveController.isCubeDriven();
+    statePreview.setReplaced(cubeHasGap);
+    // The cube stands down for a solve like the panels around it, and whenever the gap is not its.
+    liveCube.setSuppressed(timerFocused || !cubeHasGap);
   }
 
   private void timerStarted() {
