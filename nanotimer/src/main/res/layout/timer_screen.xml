@@ -143,7 +143,10 @@
                android:layout_height="0px"
                android:layout_weight="1"/>
 
+            <!-- The bar and what it counted, as one block: a running solve moves it under the
+                 digits, and the two travel together. -->
             <LinearLayout
+               android:id="@+id/stepBreakdown"
                android:layout_width="match_parent"
                android:layout_height="wrap_content"
                android:orientation="vertical">

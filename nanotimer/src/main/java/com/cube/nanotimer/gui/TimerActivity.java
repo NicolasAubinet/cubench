@@ -181,6 +181,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean timerFocused; // the screen has stood down for a solve, so the preview has too
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
+  private View stepBreakdown; // the bar and its stats as one block, so a solve can move both
   private StepSplitsView stepSplits; // the averages block of a solve type timed in steps
   private TextView tvSolveStats; // "N moves · X.X TPS" shown under the bar after a smart-cube solve
   private ParticleView particleView; // full-screen confetti overlay, fired on a personal best
@@ -485,6 +486,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     sessionTimeColor = getSessionTextView(0).getCurrentTextColor(); // read before any is recoloured
     tvVerdictChip = (TextView) findViewById(R.id.tvVerdictChip);
     solveStepBar = (SolveStepBar) findViewById(R.id.solveStepBar);
+    stepBreakdown = findViewById(R.id.stepBreakdown);
     stepSplits = (StepSplitsView) findViewById(R.id.stepSplits);
     tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
     scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
@@ -575,6 +577,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       // Back to where the layout keeps them. The ring holds its own centre until it has finished
       // leaving, which it owns.
       focusTransition.digitsTo(timerBox, 0f, 0f);
+      parkStepBreakdown(); // back to the gap, before the finished solve is drawn in it
       return;
     }
     if (layout.getWidth() > 0) {
@@ -614,6 +617,43 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     inspectionRing.getLocationInWindow(at);
     inspectionRing.setCenterY(centreY - at[1]);
+    parkStepBreakdown();
+  }
+
+  /**
+   * Keeps the step breakdown under the digits while a solve runs, and hands it back to the gap when
+   * one ends.
+   *
+   * <p>A solve type timed in steps fills the bar as it goes, and the bar lives in the gap under the
+   * scramble — which is where the digits move to when the screen strips down, so the bar was drawn
+   * straight across the time. Moved rather than hidden: the steps taken so far are the one thing
+   * besides the time worth reading mid solve.
+   *
+   * <p>Set rather than animated, and re-read whenever the block changes size: it is empty when a
+   * solve starts and grows a segment per step, so its resting top moves under it. Sliding it into
+   * place on every tap would be movement for its own sake.
+   */
+  private void parkStepBreakdown() {
+    if (stepBreakdown == null) {
+      return;
+    }
+    if (!timerFocused || layout.getWidth() == 0) {
+      focusTransition.digitsAt(stepBreakdown, 0f, 0f);
+      return;
+    }
+    int[] at = new int[2];
+    layout.getLocationInWindow(at);
+    float centreX = at[0] + layout.getWidth() / 2f;
+    float centreY = at[1] + layout.getHeight() / 2f;
+    // Where the digits end up, not where they are: the move may still be running.
+    float digitsBottom = centreY + timerBox.getHeight() / 2f;
+    stepBreakdown.getLocationInWindow(at);
+    float restLeft = at[0] - stepBreakdown.getTranslationX();
+    float restTop = at[1] - stepBreakdown.getTranslationY();
+    // Across as well as down: sideways the digits cross into the half of the screen the statistics
+    // hold, and a bar left behind in the timer's own column would not be under them any more.
+    focusTransition.digitsAt(stepBreakdown,
+        centreX - (restLeft + stepBreakdown.getWidth() / 2f), digitsBottom - restTop);
   }
 
   // Held as state rather than only reacted to: the ground changes under a finger that never moved,
@@ -1801,7 +1841,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveStepBar.setSteps(steps, stepNames);
     solveStepBar.setVisibility(View.VISIBLE);
     refreshStatePreviewSuppression();
+    // A step taken mid solve grows the block, so where it is parked has to be read again.
+    stepBreakdown.post(parkBreakdown);
   }
+
+  private final Runnable parkBreakdown = new Runnable() {
+    @Override
+    public void run() {
+      parkStepBreakdown();
+    }
+  };
 
   /**
    * Puts the breakdown back after the layout was rebuilt for a new orientation. Without this a
