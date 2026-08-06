@@ -278,7 +278,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
   /** Four edges and six centres, and nothing else readable, which is the case to be planned. */
   private void showScramble(String scramble) {
     cube.setState(CubePatternFormat.format(session.getFacelets()));
-    cube.setStickering(CubeStickering.crossAndCentres(session.getCrossSlots()));
+    cube.setStickering(CubeStickering.crossAndCentres(session.getCrossEdges()));
     tvProgress.setText(getString(R.string.drill_progress,
         session.getReps().size() + 1, session.getSpec().getReps()));
     solveInBackground(scramble, repSeq);

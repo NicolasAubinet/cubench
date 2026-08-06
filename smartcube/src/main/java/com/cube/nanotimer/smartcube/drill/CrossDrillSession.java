@@ -172,26 +172,16 @@ public final class CrossDrillSession {
   }
 
   /**
-   * Which slots the four cross edges are sitting in right now, for a screen that shows those four
-   * and greys the rest. Slots rather than pieces, because a sticker is drawn where it is.
+   * The four edges this cross is made of, by the slot each one belongs in, for a screen that shows
+   * those four and greys the rest.
+   *
+   * <p><b>The pieces, not where they are.</b> Which is a fact about the drawn cube rather than about
+   * this class: the player owns one object per piece and moves it to wherever the piece sits, so a
+   * mask names pieces and travels with them. Naming the occupied slots instead lights four
+   * arbitrary edges, and only looks right on a solved cube, where the two readings agree.
    */
-  public int[] getCrossSlots() {
-    int[] cp = new int[8];
-    int[] co = new int[8];
-    int[] ep = new int[12];
-    int[] eo = new int[12];
-    cube.toPermutation(cp, co, ep, eo);
-    int[] slots = new int[crossEdges.length];
-    int found = 0;
-    for (int slot = 0; slot < ep.length; slot++) {
-      for (int edge : crossEdges) {
-        if (ep[slot] == edge) {
-          slots[found++] = slot;
-          break;
-        }
-      }
-    }
-    return slots;
+  public int[] getCrossEdges() {
+    return crossEdges.clone();
   }
 
   private CrossDrillRep complete() {

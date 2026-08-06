@@ -13,8 +13,9 @@
     ntLiveMove(notation)    one quarter turn, just made
     ntLiveGyro(on)          follow the cube's physical orientation, or keep it square
     ntLiveStickering(mask)  which stickers keep their colour (see CubeStickering). A mask names
-                            SLOTS, not pieces: the state is drawn by colouring the stickers where
-                            they are, and this decides which of those keep the colour.
+                            PIECES, not the slots they are in: Cube3D holds one object per piece
+                            and moves it to wherever the piece sits, so the mask travels with the
+                            piece. The two readings agree on a solved cube and nowhere else.
 
   WHY A STATE AND NOT A SETUP ALG.
 

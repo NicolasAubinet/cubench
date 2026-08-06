@@ -3,9 +3,10 @@ package com.cube.nanotimer.cube;
 /**
  * Which stickers of the drawn cube keep their colour, in the form the twisty player takes.
  *
- * <p>A mask names <em>slots</em>, not pieces: the player draws the state by colouring the stickers
- * where they are, so hiding "the four cross edges" means hiding the four places those edges are
- * sitting in right now. That is why a cross mask is built from a state and not once per face.
+ * <p><b>A mask names pieces, not the slots they are in.</b> The player holds one object per piece
+ * and moves it to wherever that piece currently sits, so the mask rides along and a cross drawn on a
+ * scramble stays drawn on the same four edges as they are solved. The two readings agree on a solved
+ * cube and on nothing else, which is exactly the way round to get this wrong quietly.
  *
  * <p>Each piece carries a run of five values, one per orientation index, which is what the library's
  * own default mask does. Five covers every orbit on every puzzle it draws, and a piece whose entry
@@ -39,13 +40,13 @@ public final class CubeStickering {
    * <p>The centres are not decoration. With them grey there is nothing to say which face an edge
    * belongs to, so the case cannot be read at all.
    *
-   * @param edgeSlots the slots the cross edges are in, in {@link com.cube.nanotimer.smartcube.cube.CubieCube}'s
-   *     numbering
+   * @param crossEdges the four edges, by the slot each belongs in, in
+   *     {@link com.cube.nanotimer.smartcube.cube.CubieCube}'s numbering
    */
-  public static String crossAndCentres(int[] edgeSlots) {
+  public static String crossAndCentres(int[] crossEdges) {
     boolean[] edges = new boolean[EDGES];
-    for (int slot : edgeSlots) {
-      edges[CubePatternFormat.playerEdge(slot)] = true;
+    for (int edge : crossEdges) {
+      edges[CubePatternFormat.playerEdge(edge)] = true;
     }
     return mask(edges, all(CORNERS, false), all(CENTERS, true));
   }

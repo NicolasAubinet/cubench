@@ -30,8 +30,9 @@ public final class CubePatternFormat {
   }
 
   /**
-   * The player's number for one of our edge slots, for anything that has to name a slot to it rather
-   * than hand it a whole state. The table is its own inverse, so this reads both ways.
+   * The player's number for one of our edge slots, for anything that has to name one to it rather
+   * than hand it a whole state. An edge is named by the slot it belongs in, so this is equally the
+   * player's number for a piece. The table is its own inverse, so it reads both ways.
    */
   public static int playerEdge(int slot) {
     return EDGES[slot];

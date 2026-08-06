@@ -134,16 +134,18 @@ public class CrossDrillSessionTest {
     assertEquals(2, rep.getExtraMoves());
   }
 
-  /** The four edges are looked for wherever the scramble left them, not in their home slots. */
+  /**
+   * The four edges a cross is made of, which is the same four whatever the scramble did with them:
+   * the screen masks pieces, and the player carries a piece's stickers to wherever it sits.
+   */
   @Test
-  public void theCrossEdgesAreFoundWhereverTheyAre() {
+  public void aCrossIsTheSameFourEdgesWhereverTheyAre() {
     CrossDrillSession session = session("D", 1);
     assertTrue(session.nextRep(""));
-    assertArrayEquals("solved: the four D slots", new int[] {4, 5, 6, 7}, session.getCrossSlots());
+    assertArrayEquals(new int[] {4, 5, 6, 7}, session.getCrossEdges());
 
-    assertTrue(session.nextRep("R"));
-    // R takes DR out of the bottom layer and puts a non-cross edge in its place.
-    assertArrayEquals(new int[] {5, 6, 7, 8}, session.getCrossSlots());
+    assertTrue(session.nextRep("R U R' F2"));
+    assertArrayEquals(new int[] {4, 5, 6, 7}, session.getCrossEdges());
   }
 
   /** A turn made before the scramble was drawn belongs to no rep, and must not start one. */
