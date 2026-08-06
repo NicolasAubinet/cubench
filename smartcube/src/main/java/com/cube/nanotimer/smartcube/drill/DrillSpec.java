@@ -1,6 +1,7 @@
 package com.cube.nanotimer.smartcube.drill;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -9,7 +10,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * One drill: a set of cases, a way of putting them in front of the user, and something to beat.
+ * One drill: something to practise, a way of putting it in front of the user, and something to beat.
+ * For every type but the cross that something is a set of named cases; a cross is a whole scramble
+ * that no vocabulary names, so it carries a face instead of a list.
  *
  * <p>This is the contract between the app and whatever prescribes a drill, so it is written to be
  * read by an app that has never heard of the sender and by a sender that has never heard of this
@@ -30,14 +33,22 @@ import org.json.JSONObject;
 public final class DrillSpec {
 
   /** The newest spec this app can run. */
-  public static final int VERSION = 1;
+  public static final int VERSION = 2;
 
-  /** What a rep is timed and judged on. Both are the same reps; only the target moves. */
+  /**
+   * What a rep is timed and judged on. The two case types are the same reps and only move the
+   * target; the cross is a different question altogether, which is why it takes a version with it.
+   */
   public enum Type {
     /** The turning, from the first move of a rep to the last. */
     CASE_EXECUTION,
     /** The looking, from the case appearing to the first move. */
-    CASE_RECOGNITION;
+    CASE_RECOGNITION,
+    /**
+     * A whole scramble's cross on one face, judged on how many moves it took against the fewest
+     * there were. Named by no case, so it carries a face and a scramble rather than a case list.
+     */
+    CROSS;
 
     public String code() {
       return name().toLowerCase(Locale.ROOT);
@@ -69,6 +80,10 @@ public final class DrillSpec {
   private static final String DEFAULT_PUZZLE = "3x3";
   private static final String DEFAULT_METHOD = "cfop";
 
+  /** The faces a cross may be asked for, which are the letters every solver here already uses. */
+  private static final List<String> FACES =
+      Collections.unmodifiableList(Arrays.asList("U", "D", "R", "L", "F", "B"));
+
   private final int specVersion;
   private final String id;
   private final String puzzle;
@@ -80,22 +95,41 @@ public final class DrillSpec {
   private final int reps;
   private final long targetMs;
   private final String label;
+  private final String crossFace;
+  private final long planningMs;
   private final String source;
 
   /** A drill this app wrote itself, at the current version. */
   public DrillSpec(String id, Type type, Delivery delivery, List<String> cases,
       Selection selection, int reps, long targetMs, String label) {
     this(VERSION, id, DEFAULT_PUZZLE, DEFAULT_METHOD, type, delivery, cases, selection, reps,
-        targetMs, label, null);
+        targetMs, label, null, 0, null);
+  }
+
+  /**
+   * A cross drill this app wrote itself: a face to build the cross on, and how long the user may
+   * look at it before the cube goes grey. Zero for as long as they like.
+   */
+  public static DrillSpec cross(String id, String crossFace, int reps, long planningMs,
+      String label) {
+    return new DrillSpec(VERSION, id, DEFAULT_PUZZLE, DEFAULT_METHOD, Type.CROSS, Delivery.VIRTUAL,
+        Collections.<String>emptyList(), Selection.ROUND_ROBIN, reps, 0, label, crossFace,
+        planningMs, null);
   }
 
   private DrillSpec(int specVersion, String id, String puzzle, String method, Type type,
       Delivery delivery, List<String> cases, Selection selection, int reps, long targetMs,
-      String label, String source) {
+      String label, String crossFace, long planningMs, String source) {
     if (type == null || delivery == null || selection == null) {
       throw new IllegalArgumentException("A drill needs a type, a delivery and a selection");
     }
-    if (cases == null || cases.isEmpty()) {
+    // The face is to a cross drill what the case list is to every other type: without it there is
+    // nothing to practise, and it is the one thing a cross drill cannot take from a list of cases.
+    if (type == Type.CROSS) {
+      if (crossFace == null || FACES.indexOf(crossFace) < 0) {
+        throw new IllegalArgumentException("A cross drill needs a face, not " + crossFace);
+      }
+    } else if (cases == null || cases.isEmpty()) {
       throw new IllegalArgumentException("A drill needs at least one case");
     }
     if (reps <= 0) {
@@ -107,11 +141,14 @@ public final class DrillSpec {
     this.method = method;
     this.type = type;
     this.delivery = delivery;
-    this.cases = Collections.unmodifiableList(new ArrayList<String>(cases));
+    this.cases = Collections.unmodifiableList(
+        new ArrayList<String>(cases == null ? Collections.<String>emptyList() : cases));
     this.selection = selection;
     this.reps = reps;
     this.targetMs = targetMs;
     this.label = label;
+    this.crossFace = crossFace;
+    this.planningMs = planningMs;
     this.source = source;
   }
 
@@ -139,6 +176,8 @@ public final class DrillSpec {
           object.getInt("reps"),
           object.optLong("target_ms", 0),
           object.optString("label", null),
+          object.optString("cross_face", null),
+          object.optLong("planning_ms", 0),
           json);
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a drill spec: " + e.getMessage(), e);
@@ -167,6 +206,12 @@ public final class DrillSpec {
       object.put("cases", new JSONArray(cases));
       object.put("selection", selection.code());
       object.put("reps", reps);
+      if (crossFace != null) {
+        object.put("cross_face", crossFace);
+      }
+      if (planningMs > 0) {
+        object.put("planning_ms", planningMs);
+      }
       if (targetMs > 0) {
         object.put("target_ms", targetMs);
       }
@@ -179,11 +224,12 @@ public final class DrillSpec {
     }
   }
 
+  /** Empty rather than fatal when absent: whether a type may go without cases is the type's rule. */
   private static List<String> codes(JSONArray array) throws JSONException {
-    if (array == null) {
-      throw new JSONException("no cases");
-    }
     List<String> codes = new ArrayList<String>();
+    if (array == null) {
+      return codes;
+    }
     for (int i = 0; i < array.length(); i++) {
       codes.add(array.getString(i));
     }
@@ -248,5 +294,18 @@ public final class DrillSpec {
   /** A short name to show. Whoever wrote it is responsible for its language. */
   public String getLabel() {
     return label;
+  }
+
+  /** The face a cross drill's cross goes on, as its letter. Null for every other type. */
+  public String getCrossFace() {
+    return crossFace;
+  }
+
+  /**
+   * How long the user may look at a cross before the cube goes grey and they have to build it from
+   * what they read. 0 for as long as they like, which is how the full cross is learned.
+   */
+  public long getPlanningMs() {
+    return planningMs;
   }
 }

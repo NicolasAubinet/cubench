@@ -61,6 +61,9 @@ public final class DrillSession {
    *     still comes up, since nothing known about it is not a reason to never practise it.
    */
   public DrillSession(DrillSpec spec, Random random, Map<String, Long> weights) {
+    if (spec.getType() == DrillSpec.Type.CROSS) {
+      throw new IllegalArgumentException("A cross drill is run by CrossDrillSession");
+    }
     this.spec = spec;
     this.random = random;
     this.weights = weights;
@@ -97,7 +100,7 @@ public final class DrillSession {
     currentCase = pick();
     currentScramble = LastLayerScrambles.forCase(currentCase, random);
     cube = new CubieCube();
-    applyScramble(cube, currentScramble);
+    FaceTurns.apply(cube, currentScramble);
     moveCount = 0;
     firstMoveMs = 0;
     algStartMs = 0;
@@ -139,7 +142,7 @@ public final class DrillSession {
       return;
     }
     cube = new CubieCube();
-    applyScramble(cube, currentScramble);
+    FaceTurns.apply(cube, currentScramble);
     moveCount = 0;
     firstMoveMs = 0;
     algStartMs = 0;
@@ -224,21 +227,6 @@ public final class DrillSession {
   private long weightOf(String code) {
     Long weight = weights == null ? null : weights.get(code);
     return weight == null || weight <= 0 ? 1 : weight;
-  }
-
-  /** Face turns only, which is all {@link LastLayerScrambles} writes. */
-  private static void applyScramble(CubieCube cube, String scramble) {
-    for (String token : scramble.trim().split("\\s+")) {
-      if (token.isEmpty()) {
-        continue;
-      }
-      Face face = Face.valueOf(token.substring(0, 1));
-      boolean prime = token.endsWith("'");
-      int quarters = token.indexOf('2') >= 0 ? 2 : 1;
-      for (int quarter = 0; quarter < quarters; quarter++) {
-        cube.applyMove(face, prime);
-      }
-    }
   }
 
   /** The case in front of the user, or null between reps. */

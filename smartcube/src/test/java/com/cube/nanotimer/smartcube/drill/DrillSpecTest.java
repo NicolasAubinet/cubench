@@ -98,6 +98,39 @@ public class DrillSpecTest {
         + " \"cases\": [\"pll_t\"], \"reps\": 0}", "rep");
   }
 
+  /**
+   * The one type with no cases. A cross case is a whole scramble that no vocabulary names, so what
+   * would be a case list is a face and a looking limit instead, which is what moved the version.
+   */
+  @Test
+  public void readsACrossDrill() {
+    DrillSpec spec = DrillSpec.fromJson("{\"spec_version\": 2, \"id\": \"cross-01\","
+        + " \"type\": \"cross\", \"delivery\": \"virtual\", \"reps\": 12,"
+        + " \"cross_face\": \"D\", \"planning_ms\": 15000}");
+    assertEquals(DrillSpec.Type.CROSS, spec.getType());
+    assertEquals("D", spec.getCrossFace());
+    assertEquals(15000, spec.getPlanningMs());
+    assertTrue(spec.getCases().isEmpty());
+  }
+
+  @Test
+  public void writesACrossDrillItAuthoredItself() {
+    DrillSpec read = DrillSpec.fromJson(DrillSpec.cross("mine", "R", 8, 0, "Red cross").toJson());
+    assertEquals(DrillSpec.Type.CROSS, read.getType());
+    assertEquals("R", read.getCrossFace());
+    assertEquals(8, read.getReps());
+    assertEquals("no limit is no field", 0, read.getPlanningMs());
+    assertEquals("Red cross", read.getLabel());
+  }
+
+  @Test
+  public void refusesACrossDrillWithNoFace() {
+    refuses("{\"spec_version\": 2, \"type\": \"cross\", \"delivery\": \"virtual\","
+        + " \"reps\": 3}", "face");
+    refuses("{\"spec_version\": 2, \"type\": \"cross\", \"delivery\": \"virtual\","
+        + " \"reps\": 3, \"cross_face\": \"M\"}", "face");
+  }
+
   @Test
   public void refusesTextThatIsNotADrill() {
     refuses("not json at all", "");
