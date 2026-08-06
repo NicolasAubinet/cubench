@@ -67,15 +67,17 @@ public class ScrambleStatePreview {
    * steps than for a plain one, so the same cube came out visibly larger under one than the other.
    * Chosen as the largest that still fits the tightest screen that matters, since a size that fits
    * one solve type and not another is the cliff this is here to remove. That screen is a 7x7 on a
-   * 1080x2400 phone, whose ten line scramble leaves this gap barely wider than the picture in it.
+   * 1080x2400 480dpi phone, whose ten line scramble leaves this gap barely wider than the picture in
+   * it — and where the system bars, being dp, take 50px more than they do at 420dpi. Measure there,
+   * not on a 420dpi emulator, before believing a change to this fits.
    */
-  private static final int PICTURE_PX = 165;
+  private static final int PICTURE_PX = 158;
 
   /**
    * What the two spacers must keep between them for the picture to be worth asking for, in the same
    * px. Below this the block would sit against the scramble above it and the card below it.
    */
-  private static final int MIN_AIR_PX = 32;
+  private static final int MIN_AIR_PX = 26;
 
   /**
    * The room one row of facelets needs before the diagram is worth drawing at all.

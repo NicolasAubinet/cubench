@@ -74,8 +74,8 @@
              chip in it, so the scramble below never moves and is never covered. -->
         <FrameLayout
            android:layout_width="match_parent"
-           android:layout_height="36px"
-           android:layout_marginTop="6px">
+           android:layout_height="30px"
+           android:layout_marginTop="4px">
           <TextView
              android:id="@+id/tvVerdictChip"
              android:layout_width="wrap_content"
@@ -125,7 +125,7 @@
            android:id="@+id/scrambleBox"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:layout_marginTop="7px"
+           android:layout_marginTop="5px"
            android:clipChildren="false"
            android:clipToPadding="false">
 

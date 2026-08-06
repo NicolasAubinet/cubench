@@ -748,10 +748,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       // The two puzzles whose scramble is long enough to leave no room for the state preview: a
       // notch smaller here is what buys the diagram its band. See ScrambleStatePreview.
       case SIX_BY_SIX:
-        size = 16.5f;
+        size = 16f;
         break;
       case SEVEN_BY_SEVEN:
-        size = 14f;
+        size = 13.5f;
         break;
       default:
         size = null;
