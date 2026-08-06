@@ -36,6 +36,8 @@ public final class DrillSession {
   private final DrillSpec spec;
   private final Random random;
   private final Map<String, Long> weights;
+  /** The face the last layer is dealt onto, which is the colour the user solves it on. */
+  private final String layerFace;
   private final List<String> cases = new ArrayList<String>();
   private final List<String> unknownCases = new ArrayList<String>();
   private final List<DrillRep> reps = new ArrayList<DrillRep>();
@@ -53,20 +55,28 @@ public final class DrillSession {
   private int resetCount;
 
   public DrillSession(DrillSpec spec, Random random) {
-    this(spec, random, null);
+    this(spec, random, null, "U");
+  }
+
+  public DrillSession(DrillSpec spec, Random random, Map<String, Long> weights) {
+    this(spec, random, weights, "U");
   }
 
   /**
    * @param weights what each case is costing, for a spec drawing by weight. A case with no weight
    *     still comes up, since nothing known about it is not a reason to never practise it.
+   * @param layerFace the face to deal the last layer onto. Not the sender's business and not on the
+   *     spec: which colour a solver finishes on is theirs, and a drill prescribed from outside has
+   *     no way of knowing it.
    */
-  public DrillSession(DrillSpec spec, Random random, Map<String, Long> weights) {
+  public DrillSession(DrillSpec spec, Random random, Map<String, Long> weights, String layerFace) {
     if (spec.getType() == DrillSpec.Type.CROSS) {
       throw new IllegalArgumentException("A cross drill is run by CrossDrillSession");
     }
     this.spec = spec;
     this.random = random;
     this.weights = weights;
+    this.layerFace = layerFace == null ? "U" : layerFace;
     List<String> known = LastLayerScrambles.cases();
     for (String code : spec.getCases()) {
       (known.contains(code) ? cases : unknownCases).add(code);
@@ -98,7 +108,8 @@ public final class DrillSession {
       return false;
     }
     currentCase = pick();
-    currentScramble = LastLayerScrambles.forCase(currentCase, random);
+    currentScramble = LayerRotation.toFace(
+        LastLayerScrambles.forCase(currentCase, random), layerFace);
     cube = new CubieCube();
     FaceTurns.apply(cube, currentScramble);
     moveCount = 0;
@@ -166,7 +177,7 @@ public final class DrillSession {
     if (moveCount == 0) {
       firstMoveMs = at;
     }
-    if (algStartMs == 0 && move.getFace() != Face.U) {
+    if (algStartMs == 0 && move.getFace() != Face.valueOf(layerFace)) {
       algStartMs = at;
     }
     moveCount++;
@@ -181,9 +192,10 @@ public final class DrillSession {
   }
 
   /**
-   * A U turn before the algorithm only squared the case up to be read, so it is looking rather than
-   * solving; the U that closes an algorithm falls inside the execution by construction. A rep of
-   * nothing but U turns has no algorithm to have started, and is split at its first turn as before.
+   * A turn of the layer's own face before the algorithm only squared the case up to be read, so it
+   * is looking rather than solving; the one that closes an algorithm falls inside the execution by
+   * construction. A rep of nothing but those has no algorithm to have started, and is split at its
+   * first turn as before.
    */
   private DrillRep complete(boolean abandoned) {
     long algStart = algStartMs > 0 ? algStartMs : firstMoveMs;

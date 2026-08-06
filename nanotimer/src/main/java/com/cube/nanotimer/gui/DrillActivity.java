@@ -39,6 +39,12 @@ public class DrillActivity extends DrillScreenActivity {
   public static final String EXTRA_SPEC = "drillSpec";
 
   /**
+   * The face to deal the last layer onto, as its letter. Not on the spec: which colour a solver
+   * finishes on is theirs, and a drill prescribed from outside has no way of knowing it.
+   */
+  public static final String EXTRA_LAYER_FACE = "drillLayerFace";
+
+  /**
    * How long the solved cube stays up before the next case replaces it. Zero: the green wash is
    * what says the case was finished, and it reads as an ending without stopping for one. The
    * timing does not care either way, since recognition runs from the case being shown.
@@ -96,7 +102,8 @@ public class DrillActivity extends DrillScreenActivity {
       return;
     }
     setTitle(spec.getLabel() == null ? getString(R.string.drill_title) : spec.getLabel());
-    session = new DrillSession(spec, Utils.getRandom());
+    session = new DrillSession(spec, Utils.getRandom(), null,
+        getIntent().getStringExtra(EXTRA_LAYER_FACE));
 
     if (!session.isRunnable()) {
       showUnavailable(getString(R.string.drill_no_known_cases));
