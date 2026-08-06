@@ -764,7 +764,7 @@
   <string name="drill_rep_skipped">Saltada</string>
   <string name="drill_summary_reps">%1$d de %2$d repeticiones</string>
   <string name="drill_summary_mean">%1$s de media en %2$s</string>
-  <string name="drill_summary_best">Mejor %1$s</string>
+  <string name="drill_summary_best">Mejor %1$s en %2$s</string>
   <string name="drill_summary_nothing_timed">No se cronometró nada</string>
   <string name="drill_cube_left_scrambled">Tu cubo ya no está resuelto, es lo esperado. Resuélvelo antes de cronometrar nada.</string>
   <string name="drill_needs_cube">Conecta tu cubo inteligente para hacer un entrenamiento.</string>

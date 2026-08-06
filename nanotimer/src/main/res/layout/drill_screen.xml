@@ -173,6 +173,15 @@
          android:fontFeatureSettings="tnum"/>
 
       <TextView
+         android:id="@+id/tvDrillSummaryOtherMean"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="4dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="15sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <TextView
          android:id="@+id/tvDrillSummaryBest"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"

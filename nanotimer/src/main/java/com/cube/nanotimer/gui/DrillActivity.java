@@ -369,36 +369,46 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
 
     // Skipped reps are counted apart rather than folded into a mean, the same rule the case stats
     // follow: a case you gave up on is not a slow time.
-    long total = 0;
+    long recognitionTotal = 0;
+    long executionTotal = 0;
     long best = Long.MAX_VALUE;
     int timed = 0;
     for (DrillRep rep : reps) {
       if (rep.isAbandoned()) {
         continue;
       }
-      long ms = rep.getTimedMs(session.getSpec().getType());
-      total += ms;
-      best = Math.min(best, ms);
+      recognitionTotal += rep.getRecognitionMs();
+      executionTotal += rep.getExecutionMs();
+      best = Math.min(best, rep.getTimedMs(session.getSpec().getType()));
       timed++;
     }
     TextView tvMean = findViewById(R.id.tvDrillSummaryMean);
+    TextView tvOtherMean = findViewById(R.id.tvDrillSummaryOtherMean);
     TextView tvBest = findViewById(R.id.tvDrillSummaryBest);
     if (timed == 0) {
       tvMean.setText(R.string.drill_summary_nothing_timed);
+      tvOtherMean.setVisibility(View.GONE);
       tvBest.setVisibility(View.GONE);
       return;
     }
+    // Both halves, always: reading a case is half of what a drill trains, and a mean of the half
+    // the target happens to name says nothing about whether the other one is where the time went.
+    boolean recognitionDrill = session.getSpec().getType() == DrillSpec.Type.CASE_RECOGNITION;
+    long timedTotal = recognitionDrill ? recognitionTotal : executionTotal;
+    long otherTotal = recognitionDrill ? executionTotal : recognitionTotal;
     tvMean.setText(getString(R.string.drill_summary_mean,
-        FormatterService.INSTANCE.formatSolveTime(total / timed), timedHalfName()));
+        FormatterService.INSTANCE.formatSolveTime(timedTotal / timed), halfName(recognitionDrill)));
+    tvOtherMean.setVisibility(View.VISIBLE);
+    tvOtherMean.setText(getString(R.string.drill_summary_mean,
+        FormatterService.INSTANCE.formatSolveTime(otherTotal / timed), halfName(!recognitionDrill)));
     tvBest.setVisibility(View.VISIBLE);
     tvBest.setText(getString(R.string.drill_summary_best,
-        FormatterService.INSTANCE.formatSolveTime(best)));
+        FormatterService.INSTANCE.formatSolveTime(best), halfName(recognitionDrill)));
   }
 
-  /** The half the drill is judged on: the same reps either way, only the target moves. */
-  private String timedHalfName() {
-    return getString(session.getSpec().getType() == DrillSpec.Type.CASE_RECOGNITION
-        ? R.string.drill_recognition : R.string.drill_execution);
+  /** Named on every figure now that two are shown: which half a time is of is no longer implied. */
+  private String halfName(boolean recognition) {
+    return getString(recognition ? R.string.drill_recognition : R.string.drill_execution);
   }
 
   private void showUnavailable(String message) {
