@@ -173,8 +173,8 @@
   <string name="record_label_lifetime">PB</string>
   <string name="verdict_personal_best">Record personnel, %1$s de moins que %2$s</string>
   <string name="verdict_record">Meilleur %1$s, %2$s de moins que %3$s</string>
-  <string name="verdict_session_best">Meilleur de la session</string>
-  <string name="verdict_session_worst">Pire de la session</string>
+  <string name="verdict_window_best">Meilleur des %1$d derniers</string>
+  <string name="verdict_window_worst">Pire des %1$d derniers</string>
   <string name="verdict_under_average">%1$s sous votre Ao12</string>
   <string name="verdict_over_average">%1$s au-dessus de votre Ao12</string>
   <string name="record_notification_mode">Panneau de record</string>

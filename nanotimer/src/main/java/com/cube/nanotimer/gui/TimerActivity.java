@@ -159,6 +159,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private ColorStateList secondaryTextColor;
   private ColorStateList defaultTimerTextColor;
   private static final int MIN_TIMES_FOR_RECORD_NOTIFICATION = 12;
+  private static final int MIN_WINDOW_SUCCESSES_FOR_VERDICT = 5;
 
   private final long REFRESH_INTERVAL = 30;
   private Timer timer;
@@ -2093,9 +2094,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * What the solve was worth, said once and only when there is something to say: a record, or a
-   * session best or worst. A delta on every solve would be noise whatever the number, and the bars
-   * below already carry the "beat your recent times" job.
+   * What the solve was worth, said once and only when there is something to say: a record, or the
+   * best or worst of the window the bars draw. A delta on every solve would be noise whatever the
+   * number, and the bars below already carry the "beat your recent times" job.
    *
    * <p>Records also light the cell that holds them, which is how the other three are announced.
    */
@@ -2127,28 +2128,35 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       tvVerdictChip.setVisibility(View.INVISIBLE);
       return;
     }
-    if (isSessionExtreme(true)) {
-      showVerdictChip(getString(R.string.verdict_session_best) + againstAverage(), R.color.green_soft);
+    if (isWindowExtreme(true)) {
+      showVerdictChip(getString(R.string.verdict_window_best, windowSize()) + againstAverage(), R.color.green_soft);
       return;
     }
-    if (isSessionExtreme(false)) {
-      showVerdictChip(getString(R.string.verdict_session_worst) + againstAverage(), R.color.danger_text);
+    if (isWindowExtreme(false)) {
+      showVerdictChip(getString(R.string.verdict_window_worst, windowSize()) + againstAverage(), R.color.danger_text);
       return;
     }
     tvVerdictChip.setVisibility(View.INVISIBLE);
   }
 
   /**
-   * Whether the solve just finished is the best of the session, or the worst of it. A session of
-   * one or two is asked nothing: everything in it is both. Nor is a solve type timed in steps,
+   * Whether the solve just finished is the best of the window the bars draw, or the worst of it.
+   * Under five successes the window is asked nothing: among three or four times almost every solve
+   * is an extreme, and a chip that fires that often is not news. Nor is a solve type timed in steps,
    * whose session is never loaded, so what it holds is only this sitting.
    */
-  private boolean isSessionExtreme(boolean best) {
-    if (cubeSession == null || solveType.hasSteps() || cubeSession.getTimes().size() < 3) {
+  private boolean isWindowExtreme(boolean best) {
+    if (cubeSession == null || solveType.hasSteps()
+        || cubeSession.getSuccesses().size() < MIN_WINDOW_SUCCESSES_FOR_VERDICT) {
       return false;
     }
     boolean blind = solveType.isBlind();
     return (best ? cubeSession.getBestTimeInd(blind) : cubeSession.getWorstTimeInd(blind)) == 0;
+  }
+
+  /** The same count the bars are headed with, so the chip names what is drawn under it. */
+  private int windowSize() {
+    return (cubeSession == null) ? 0 : cubeSession.getTimes().size();
   }
 
   /** How the solve sat against the Ao12, which is the line the bars below draw. */
