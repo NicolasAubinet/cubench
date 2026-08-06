@@ -403,7 +403,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       case FOLLOWING:
         if (solveController.isReadyToSolve()) {
           scrambleAnimator.reset();
-          tvScramble.setText(R.string.smart_cube_ready_to_solve);
+          // A blind attempt is opened by the tap alone, so the prompt has to ask for one.
+          tvScramble.setText(solveType.isBlind()
+              ? R.string.smart_cube_ready_to_memo : R.string.smart_cube_ready_to_solve);
         } else if (solveController.isWrong()) {
           scrambleAnimator.reset();
           tvScramble.setText(ScrambleFormatterService.INSTANCE.formatReverseMoves(

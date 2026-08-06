@@ -659,6 +659,7 @@
   <string name="smart_cube_resynced">Estado do cubo realinhado</string>
   <string name="smart_cube_solve_first">Resolva seu cubo para começar</string>
   <string name="smart_cube_ready_to_solve">Pronto para resolver</string>
+  <string name="smart_cube_ready_to_memo">Toque para começar o memo</string>
   <string name="smart_cube_solving">Resolução em andamento</string>
   <string name="smart_cube_undo">Desfaça seus movimentos errados</string>
 

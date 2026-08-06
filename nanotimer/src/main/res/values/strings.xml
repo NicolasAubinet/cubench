@@ -662,6 +662,7 @@
   <string name="smart_cube_resynced">Cube state realigned</string>
   <string name="smart_cube_solve_first">Solve your cube to begin</string>
   <string name="smart_cube_ready_to_solve">Ready to solve</string>
+  <string name="smart_cube_ready_to_memo">Tap to start memo</string>
   <string name="smart_cube_solving">Solve in progress</string>
   <string name="smart_cube_undo">Undo your wrong moves</string>
 
