@@ -774,8 +774,26 @@
   <string name="drill_spec_unreadable">Cette version de l\'application ne peut pas lire cet entraînement.</string>
 
   <!-- Choix de l\'entrainement -->
+  <string name="drill_setup_title">Nouvel entraînement</string>
+  <string name="drill_practice">Travailler</string>
+  <string name="drill_practice_pll">PLL</string>
+  <string name="drill_practice_oll">OLL</string>
+  <string name="drill_practice_cross">Croix</string>
+  <string name="drill_practice_hint_pll">Les 21 PLL, l\'une après l\'autre.</string>
+  <string name="drill_practice_hint_oll">Les 57 OLL, l\'une après l\'autre.</string>
+  <string name="drill_practice_hint_cross">Un mélange complet, et la croix la plus courte que vous y trouvez.</string>
+  <string name="drill_reps">Essais</string>
+  <string name="drill_mode">Mode</string>
   <string name="drill_mode_casual">Détente</string>
   <string name="drill_mode_recording">Sérieux</string>
+  <string name="drill_mode_hint_casual">Une session libre. Rien n\'est conservé, donc s\'arrêter en route ne coûte rien.</string>
+  <string name="drill_mode_hint_recording">Des essais qui comptent, faits avec attention.</string>
+  <string name="drill_mode_locked">Le mode est fixé pour tout l\'entraînement. Pour en changer, arrêtez celui-ci et relancez-en un autre.</string>
+  <string name="drill_cross_colour">Couleur de la croix</string>
+  <string name="drill_planning_limit">Temps de réflexion limité</string>
+  <string name="drill_planning_seconds">secondes</string>
+  <string name="drill_planning_hint">Désactivé par défaut : apprendre la croix complète demande plus que les 15 secondes officielles.</string>
+  <string name="drill_start">Lancer l\'entraînement</string>
 
   <!-- Entrainement de croix -->
   <string name="drill_cross_title">Entraînement de croix</string>

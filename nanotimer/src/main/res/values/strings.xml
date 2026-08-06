@@ -792,8 +792,26 @@
   <string name="drill_spec_unreadable">This version of the app cannot read that drill.</string>
 
   <!-- Drill selection -->
+  <string name="drill_setup_title">New drill</string>
+  <string name="drill_practice">Practice</string>
+  <string name="drill_practice_pll">PLL</string>
+  <string name="drill_practice_oll">OLL</string>
+  <string name="drill_practice_cross">Cross</string>
+  <string name="drill_practice_hint_pll">All 21 PLLs, one after another.</string>
+  <string name="drill_practice_hint_oll">All 57 OLLs, one after another.</string>
+  <string name="drill_practice_hint_cross">A whole scramble, and the shortest cross you can find in it.</string>
+  <string name="drill_reps">Reps</string>
+  <string name="drill_mode">Mode</string>
   <string name="drill_mode_casual">Chill</string>
   <string name="drill_mode_recording">Focused</string>
+  <string name="drill_mode_hint_casual">A loose run. Nothing is kept, so stopping halfway costs nothing.</string>
+  <string name="drill_mode_hint_recording">Reps you mean to count, done with attention.</string>
+  <string name="drill_mode_locked">The mode is fixed for the whole drill. To change it, stop and start another.</string>
+  <string name="drill_cross_colour">Cross colour</string>
+  <string name="drill_planning_limit">Planning limit</string>
+  <string name="drill_planning_seconds">seconds</string>
+  <string name="drill_planning_hint">Off by default: learning the full cross takes longer than the official 15 seconds.</string>
+  <string name="drill_start">Start drill</string>
 
   <!-- Cross drill -->
   <string name="drill_cross_title">Cross drill</string>

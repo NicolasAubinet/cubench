@@ -11,12 +11,10 @@ import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.smartcube.model.CubeMove;
-import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,10 +35,8 @@ import java.util.List;
  */
 public class DrillActivity extends DrillScreenActivity {
 
-  /** The drill to run, as its JSON text. Absent for the app's own default drill. */
+  /** The drill to run, as its JSON text. */
   public static final String EXTRA_SPEC = "drillSpec";
-
-  private static final int DEFAULT_REPS = 20;
 
   /**
    * How long the solved cube stays up before the next case replaces it. Zero: the green wash is
@@ -94,7 +90,7 @@ public class DrillActivity extends DrillScreenActivity {
     try {
       // Refused rather than replaced: running a different drill from the one that was sent would
       // report reps against a prescription nobody made.
-      spec = json == null ? defaultSpec() : DrillSpec.fromJson(json);
+      spec = DrillSpec.fromJson(json);
     } catch (RuntimeException e) {
       showUnavailable(getString(R.string.drill_spec_unreadable));
       return;
@@ -280,17 +276,5 @@ public class DrillActivity extends DrillScreenActivity {
   /** Named on every figure now that two are shown: which half a time is of is no longer implied. */
   private String halfName(boolean recognition) {
     return getString(recognition ? R.string.drill_recognition : R.string.drill_execution);
-  }
-
-  /** Every PLL, until either the user picks a set or a coach sends one. */
-  private DrillSpec defaultSpec() {
-    List<String> cases = new ArrayList<String>();
-    for (String code : LastLayerScrambles.cases()) {
-      if (code.startsWith("pll_")) {
-        cases.add(code);
-      }
-    }
-    return new DrillSpec("local-pll", DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL,
-        cases, DrillSpec.Selection.ROUND_ROBIN, DEFAULT_REPS, 0, null);
   }
 }

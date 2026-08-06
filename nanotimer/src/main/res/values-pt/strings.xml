@@ -776,8 +776,26 @@
   <string name="drill_spec_unreadable">Esta versão da aplicação não consegue ler esse treino.</string>
 
   <!-- Escolha do treino -->
+  <string name="drill_setup_title">Novo treino</string>
+  <string name="drill_practice">Praticar</string>
+  <string name="drill_practice_pll">PLL</string>
+  <string name="drill_practice_oll">OLL</string>
+  <string name="drill_practice_cross">Cruz</string>
+  <string name="drill_practice_hint_pll">Os 21 PLL, um a seguir ao outro.</string>
+  <string name="drill_practice_hint_oll">Os 57 OLL, um a seguir ao outro.</string>
+  <string name="drill_practice_hint_cross">Uma mistura completa, e a cruz mais curta que lá encontrar.</string>
+  <string name="drill_reps">Repetições</string>
+  <string name="drill_mode">Modo</string>
   <string name="drill_mode_casual">Descontraído</string>
   <string name="drill_mode_recording">Concentrado</string>
+  <string name="drill_mode_hint_casual">Uma sessão solta. Nada é guardado, por isso parar a meio não custa nada.</string>
+  <string name="drill_mode_hint_recording">Repetições que quer que contem, feitas com atenção.</string>
+  <string name="drill_mode_locked">O modo fica fixo para todo o treino. Para o mudar, pare e comece outro.</string>
+  <string name="drill_cross_colour">Cor da cruz</string>
+  <string name="drill_planning_limit">Limite de planeamento</string>
+  <string name="drill_planning_seconds">segundos</string>
+  <string name="drill_planning_hint">Desligado por omissão: aprender a cruz completa leva mais do que os 15 segundos oficiais.</string>
+  <string name="drill_start">Começar treino</string>
 
   <!-- Treino de cruz -->
   <string name="drill_cross_title">Treino de cruz</string>

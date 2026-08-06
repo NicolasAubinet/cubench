@@ -305,7 +305,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itDrill) {
-      startActivity(new Intent(this, DrillActivity.class));
+      startActivity(new Intent(this, DrillSetupActivity.class));
       return true;
     }
     return super.onOptionsItemSelected(item);

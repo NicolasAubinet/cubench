@@ -53,6 +53,7 @@
        android:name=".gui.TimerActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>
     <activity android:name=".gui.OptionsActivity"/>
+    <activity android:name=".gui.DrillSetupActivity"/>
     <!-- Handle their own rotations: recreating would throw away a drill that is halfway through. -->
     <activity android:name=".gui.DrillActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>

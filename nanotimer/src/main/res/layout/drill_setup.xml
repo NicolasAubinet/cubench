@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Picking a drill: what to practise, how many reps, and whether the reps count. The three
+     controls above the fold are the ones every drill has; what a cross drill needs on top hangs
+     below them and is hidden for the others, so the screen never asks for a colour that has no
+     cross to go on. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:fillViewport="true">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:padding="16dp">
+
+    <TextView
+       style="@style/DialogSectionLabel"
+       android:text="@string/drill_practice"/>
+
+    <LinearLayout
+       android:id="@+id/llDrillPractice"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:background="@drawable/cross_segment_container"
+       android:orientation="horizontal"
+       android:padding="3dp"/>
+
+    <TextView
+       android:id="@+id/tvDrillPracticeHint"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="6dp"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"/>
+
+    <TextView
+       style="@style/DialogSectionLabel"
+       android:layout_marginTop="18dp"
+       android:text="@string/drill_reps"/>
+
+    <LinearLayout
+       android:id="@+id/llDrillReps"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:background="@drawable/cross_segment_container"
+       android:orientation="horizontal"
+       android:padding="3dp"/>
+
+    <TextView
+       style="@style/DialogSectionLabel"
+       android:layout_marginTop="18dp"
+       android:text="@string/drill_mode"/>
+
+    <LinearLayout
+       android:id="@+id/llDrillMode"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:background="@drawable/cross_segment_container"
+       android:orientation="horizontal"
+       android:padding="3dp"/>
+
+    <TextView
+       android:id="@+id/tvDrillModeHint"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="6dp"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"/>
+
+    <!-- Only for a cross drill: which cross, and how long there is to plan it. -->
+    <LinearLayout
+       android:id="@+id/llDrillCrossOptions"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:visibility="gone">
+
+      <TextView
+         style="@style/DialogSectionLabel"
+         android:layout_marginTop="18dp"
+         android:text="@string/drill_cross_colour"/>
+
+      <!-- Row of six colour swatches, populated in code, and the same row the cross solver uses. -->
+      <LinearLayout
+         android:id="@+id/llDrillCrossSwatches"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal"/>
+
+      <CheckBox
+         android:id="@+id/cbDrillPlanning"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="14dp"
+         android:text="@string/drill_planning_limit"
+         android:textColor="@color/white"
+         android:textSize="15sp"/>
+
+      <LinearLayout
+         android:id="@+id/llDrillPlanningSeconds"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="4dp"
+         android:gravity="center_vertical"
+         android:orientation="horizontal"
+         android:visibility="gone">
+
+        <EditText
+           android:id="@+id/etDrillPlanningSeconds"
+           android:layout_width="72dp"
+           android:layout_height="wrap_content"
+           android:inputType="number"
+           android:maxLength="3"
+           android:importantForAutofill="no"
+           android:textColor="@color/white"
+           android:textSize="15sp"/>
+
+        <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginLeft="8dp"
+           android:text="@string/drill_planning_seconds"
+           android:textColor="@color/secondary_text"
+           android:textSize="15sp"/>
+      </LinearLayout>
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="4dp"
+         android:text="@string/drill_planning_hint"
+         android:textColor="@color/secondary_text"
+         android:textSize="13sp"/>
+    </LinearLayout>
+
+    <!-- Says why the mode controls sit above rather than inside the drill. -->
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:text="@string/drill_mode_locked"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"/>
+
+    <Button
+       android:id="@+id/btDrillStart"
+       style="@style/PrimaryButton"
+       android:layout_marginTop="16dp"
+       android:text="@string/drill_start"/>
+
+    <TextView
+       android:id="@+id/tvDrillNoCube"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"
+       android:gravity="center"
+       android:text="@string/drill_needs_cube"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"
+       android:visibility="gone"/>
+
+  </LinearLayout>
+</ScrollView>

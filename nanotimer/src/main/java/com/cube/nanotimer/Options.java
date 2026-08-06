@@ -47,6 +47,7 @@ public enum Options {
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
+  public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
 
   private static final int MAX_STEPS_COUNT = 8;
 
@@ -226,6 +227,18 @@ public enum Options {
 
   public void setCrossFaceIndex(int faceIndex) {
     sharedPreferences.edit().putInt(CROSS_FACE_KEY, faceIndex).apply();
+  }
+
+  /**
+   * What the drill selection screen was left set to. Loose values rather than named settings: they
+   * are one screen's memory of the last drill picked, and nothing else reads them.
+   */
+  public int getDrillChoice(String key, int defaultValue) {
+    return sharedPreferences.getInt(DRILL_CHOICE_KEY_PREFIX + key, defaultValue);
+  }
+
+  public void setDrillChoice(String key, int value) {
+    sharedPreferences.edit().putInt(DRILL_CHOICE_KEY_PREFIX + key, value).apply();
   }
 
   /**
