@@ -8,6 +8,9 @@
     <item name="colorPrimaryDark">@color/app_bar</item>
     <item name="colorAccent">@color/color_accent</item>
     <item name="actionBarStyle">@style/NanoTimerActionBar</item>
+    <!-- So the framework bar screens stand as tall as the main screen's own toolbar. -->
+    <item name="actionBarSize">@dimen/app_bar_height</item>
+    <item name="android:actionBarSize">@dimen/app_bar_height</item>
 
     <!-- Named so the screens the app does not paint itself, the settings screen among them, sit on
          the same ground as the ones that do, and the bar above them has nothing to stand out from. -->

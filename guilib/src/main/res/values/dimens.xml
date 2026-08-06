@@ -8,6 +8,9 @@
   <dimen name="space_s">8dp</dimen>
   <dimen name="space_m">12dp</dimen>
   <dimen name="space_l">16dp</dimen>
+  <!-- Shorter than the platform's 56dp: with no colour of its own the bar reads as empty space, and
+       48dp still gives its icons the smallest touch target worth having. -->
+  <dimen name="app_bar_height">48dp</dimen>
   <dimen name="card_corner">14dp</dimen>
   <dimen name="card_elevation">2dp</dimen>
   <dimen name="divider_height">1dp</dimen>
