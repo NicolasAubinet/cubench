@@ -1,7 +1,6 @@
-<!-- Toolbar icon for "view scramble": a scrambled 3x3 cube face. Multi-coloured
-     (the app's cube palette) on a dark rounded backdrop so it reads on the
-     coloured action bar. NOT tinted — the menu item clears its icon tint so the
-     colours show (see TimerActivity.onCreateOptionsMenu). -->
+<!-- "View scramble" as a scrambled 3x3 cube face: multi-coloured (the app's cube palette) on a
+     dark rounded backdrop. For the tiles it is a hero on, never a menu: the timer's menu and
+     action bar both take the flat white ic_menu_scramble_view, so the icon set is one style. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="28dp"
     android:height="28dp"

@@ -10,8 +10,8 @@
      app:actionLayout="@layout/smart_cube_chip"
      app:showAsAction="always"/>
 
-  <!-- No showAsAction here: the solve type picks which item goes to the action bar, and
-       TimerActivity promotes it (and swaps this one's icon when it is the chosen one). -->
+  <!-- No showAsAction on any of these: the solve type picks which one goes to the action bar,
+       and TimerActivity promotes it. -->
   <item android:id="@+id/itScrambleView"
     android:icon="@drawable/ic_menu_scramble_view"
     android:title="@string/scramble_view"/>

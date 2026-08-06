@@ -1,5 +1,5 @@
-<!-- Overflow-menu variant of "view scramble": the flat white line style the other menu icons use.
-     The coloured ic_scramble_view is kept for the action bar, where its backdrop reads. -->
+<!-- "View scramble" in the flat white line style the other menu icons use, in the menu and in the
+     action bar alike. The coloured ic_scramble_view is for the screens where it is a hero. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"

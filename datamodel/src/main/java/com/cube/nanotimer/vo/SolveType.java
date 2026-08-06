@@ -13,7 +13,7 @@ public class SolveType implements Serializable, NameHolder {
   private boolean blind = false;
   private boolean inspection = true;
   private CubeMethod method; // null to follow the preferred method rather than name one here
-  private TimerQuickAction quickAction;
+  private TimerQuickAction quickAction; // null to follow the default rather than freeze a copy of it
 
   public SolveType(String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
     this.name = name;
@@ -21,7 +21,6 @@ public class SolveType implements Serializable, NameHolder {
     this.scrambleType = scrambleType;
     this.cubeTypeId = cubeTypeId;
     this.inspection = !blind;
-    this.quickAction = TimerQuickAction.getDefault(blind);
   }
 
   public SolveType(int id, String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
@@ -83,7 +82,17 @@ public class SolveType implements Serializable, NameHolder {
     this.method = method;
   }
 
+  /** The action this solve type puts in the timer's action bar, the default included. */
   public TimerQuickAction getQuickAction() {
+    return quickAction != null ? quickAction : TimerQuickAction.getDefault(blind);
+  }
+
+  /**
+   * The action this solve type overrides the default one with, or null to follow it. Null is the
+   * normal answer, and what a type that was never asked the question holds: the default then lives
+   * in {@link TimerQuickAction#getDefault} alone, and moving it moves every type that follows it.
+   */
+  public TimerQuickAction getQuickActionOverride() {
     return quickAction;
   }
 

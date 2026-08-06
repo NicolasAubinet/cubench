@@ -287,7 +287,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     updatedSolveType.setSteps(oldSolveType.getSteps());
     updatedSolveType.setInspection(parseInspection(props));
     updatedSolveType.setMethod(parseMethod(props));
-    updatedSolveType.setQuickAction(parseQuickAction(props, blindMode));
+    updatedSolveType.setQuickAction(parseQuickAction(props));
     liSolveTypes.set(index, updatedSolveType);
 
     App.INSTANCE.getService().updateSolveType(updatedSolveType, blindChanged, new DataCallback<Void>() {
@@ -325,10 +325,10 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     return CubeMethod.fromCode(props.getProperty(SolveTypeAddDialog.KEY_METHOD, ""));
   }
 
-  // Which timer menu action the solve type puts in the action bar (KEY_QUICK_ACTION is its stored id).
-  private TimerQuickAction parseQuickAction(Properties props, boolean blind) {
-    String id = props.getProperty(SolveTypeAddDialog.KEY_QUICK_ACTION);
-    return (id != null) ? TimerQuickAction.fromId(Integer.parseInt(id)) : TimerQuickAction.getDefault(blind);
+  // Which timer menu action the solve type overrides the default one with (null to follow it).
+  private TimerQuickAction parseQuickAction(Properties props) {
+    String id = props.getProperty(SolveTypeAddDialog.KEY_QUICK_ACTION, "");
+    return id.isEmpty() ? null : TimerQuickAction.fromId(Integer.parseInt(id));
   }
 
   @Override
@@ -342,7 +342,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     SolveType st = new SolveType(name, blindMode, scrambleType, curCubeType.getId());
     st.setInspection(parseInspection(props));
     st.setMethod(parseMethod(props));
-    st.setQuickAction(parseQuickAction(props, blindMode));
+    st.setQuickAction(parseQuickAction(props));
 
     liSolveTypes.add(st);
     App.INSTANCE.getService().addSolveType(st, new DataCallback<Integer>() {

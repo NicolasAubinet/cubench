@@ -201,7 +201,7 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       swBlind.setChecked(getArguments().getBoolean(ARG_EDIT_BLIND, false));
       swInspection.setChecked(getArguments().getBoolean(ARG_EDIT_INSPECTION, true));
       selectQuickAction(TimerQuickAction.fromId(
-          getArguments().getInt(ARG_EDIT_QUICK_ACTION, TimerQuickAction.SCRAMBLE_VIEW.getId())));
+          getArguments().getInt(ARG_EDIT_QUICK_ACTION, TimerQuickAction.getDefault(false).getId())));
       selectMethod(CubeMethod.fromCode(getArguments().getString(ARG_EDIT_METHOD, "")));
     } else {
       selectQuickAction(TimerQuickAction.getDefault(false));
@@ -428,7 +428,11 @@ public class SolveTypeAddDialog extends ConfirmDialog {
       scrambleTypeItemPosition = spScrambleType.getSelectedItemPosition();
     }
     props.put(KEY_SCRAMBLE_TYPE, String.valueOf(scrambleTypeItemPosition));
-    props.put(KEY_QUICK_ACTION, String.valueOf(getSelectedQuickAction().getId()));
+    // The default is stored as no answer at all, so a type left on it follows the default wherever
+    // it moves next. Picking it by hand is the same thing, and reads the same on screen.
+    TimerQuickAction quickAction = getSelectedQuickAction();
+    boolean isDefault = (quickAction == TimerQuickAction.getDefault(swBlind.isChecked()));
+    props.put(KEY_QUICK_ACTION, isDefault ? "" : String.valueOf(quickAction.getId()));
     // A blind type is read as blind whatever the spinner still holds, so it stores no sighted
     // override: a type ticked blind would otherwise keep one nothing can act on.
     CubeMethod method = swBlind.isChecked() ? null : getSelectedMethod();

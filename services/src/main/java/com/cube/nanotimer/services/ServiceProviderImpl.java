@@ -155,7 +155,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         SolveType st = new SolveType(cursor.getInt(0), cursor.getString(1), (cursor.getInt(2) == 1), toScrambleType(cubeType, cursor.getString(3)), cursor.getInt(4));
-        st.setQuickAction(TimerQuickAction.fromId(cursor.getInt(5)));
+        st.setQuickAction(cursor.isNull(5) ? null : TimerQuickAction.fromId(cursor.getInt(5)));
         st.setInspection(cursor.getInt(6) == 1);
         st.setMethod(CubeMethod.fromCode(cursor.getString(7)));
         st.setSteps(getSolveTypeSteps(st.getId()).toArray(new SolveTypeStep[0]));
@@ -960,7 +960,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethodOverride()));
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
-    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
+    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType.getQuickActionOverride()));
     int id = (int) db.insert(DB.TABLE_SOLVETYPE, null, values);
     solveType.setId(id);
 
@@ -973,6 +973,11 @@ public class ServiceProviderImpl implements ServiceProvider {
   /** Null for a type that follows the preferred method, which the column holds as NULL. */
   private static String toMethodCode(CubeMethod method) {
     return method == null ? null : method.getCode();
+  }
+
+  /** Likewise for a type that follows the default action rather than naming one. */
+  private static Integer toQuickActionId(TimerQuickAction quickAction) {
+    return quickAction == null ? null : quickAction.getId();
   }
 
   @Override
@@ -1001,7 +1006,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethodOverride()));
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
-    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, solveType.getQuickAction().getId());
+    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType.getQuickActionOverride()));
     db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
     if (recalculateAverages) {
       recalculateAverages(0, solveType);

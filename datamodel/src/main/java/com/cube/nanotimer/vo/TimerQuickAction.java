@@ -31,12 +31,16 @@ public enum TimerQuickAction {
         return action;
       }
     }
-    return SCRAMBLE_VIEW;
+    return getDefault(false);
   }
 
-  /** Blind solves default to DNF: the scramble is of no use once the solver is blindfolded. */
+  /**
+   * Blind solves default to DNF, the scramble being of no use once the solver is blindfolded.
+   * The others get the last solve: the timer draws the scramble's own state under it now, so a
+   * button to see that state is no longer what a sighted solver reaches for most.
+   */
   public static TimerQuickAction getDefault(boolean blind) {
-    return blind ? DNF : SCRAMBLE_VIEW;
+    return blind ? DNF : LAST_SOLVE;
   }
 
 }

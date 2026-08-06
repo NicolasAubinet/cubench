@@ -48,7 +48,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_SOLVETYPE_INSPECTION + " INTEGER DEFAULT 1, " +
         DB.COL_SOLVETYPE_METHOD + " TEXT, " +
         DB.COL_SOLVETYPE_SCRAMBLE_TYPE + " TEXT, " +
-        DB.COL_SOLVETYPE_QUICK_ACTION + " INTEGER DEFAULT " + TimerQuickAction.SCRAMBLE_VIEW.getId() + ", " +
+        DB.COL_SOLVETYPE_QUICK_ACTION + " INTEGER, " + // NULL to follow TimerQuickAction.getDefault
         DB.COL_SOLVETYPE_CUBETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_SOLVETYPE_CUBETYPE_ID + ") REFERENCES " + DB.TABLE_CUBETYPE + " (" + DB.COL_ID + ") " +
       ");"
@@ -292,6 +292,17 @@ public class DBHelper extends SQLiteOpenHelper {
       DBUpgradeScripts.keepInspectionModeOfExistingInstall(context);
     }
 
+    if (oldVersion < 26) {
+      // NULL now means "follow the default", which version 20 wrote into every row instead. A row
+      // still holding the one it was given was never asked the question, so it is cleared.
+      db.execSQL("UPDATE " + DB.TABLE_SOLVETYPE
+          + " SET " + DB.COL_SOLVETYPE_QUICK_ACTION + " = NULL"
+          + " WHERE (" + DB.COL_SOLVETYPE_BLIND + " = 1"
+          + "   AND " + DB.COL_SOLVETYPE_QUICK_ACTION + " = " + TimerQuickAction.DNF.getId() + ")"
+          + "    OR (" + DB.COL_SOLVETYPE_BLIND + " = 0"
+          + "   AND " + DB.COL_SOLVETYPE_QUICK_ACTION + " = " + TimerQuickAction.SCRAMBLE_VIEW.getId() + ")");
+    }
+
 //    progressDialog.hide();
   }
 
@@ -347,6 +358,9 @@ public class DBHelper extends SQLiteOpenHelper {
     ContentValues values = new ContentValues();
     values.put(DB.COL_SOLVETYPE_NAME, name);
     values.put(DB.COL_SOLVETYPE_CUBETYPE_ID, cubeTypeId);
+    // Spelled out: this also runs from the upgrades that add a puzzle, where the column an older
+    // install created still carries version 20's default and would answer for the new type.
+    values.putNull(DB.COL_SOLVETYPE_QUICK_ACTION);
     if (scrambleType != null) {
       values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, scrambleType.getName());
     }

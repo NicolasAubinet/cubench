@@ -12,7 +12,6 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.MenuItemCompat;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -853,14 +852,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (itemId == 0) {
       return;
     }
-    MenuItem quickActionItem = menu.findItem(itemId);
-    quickActionItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-    if (itemId == R.id.itScrambleView) {
-      // The action bar gets the coloured icon, which needs its tint cleared; the overflow keeps
-      // the flat white one from the menu XML.
-      quickActionItem.setIcon(R.drawable.ic_scramble_view);
-      MenuItemCompat.setIconTintList(quickActionItem, null);
-    }
+    menu.findItem(itemId).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
   }
 
   /** The menu item to promote, or 0 when the solve type wants none or its choice does not apply here. */
