@@ -85,8 +85,8 @@
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:layout_marginTop="-7px"
-             android:layout_marginLeft="8px"
-             android:layout_marginRight="8px"
+             android:layout_marginLeft="16px"
+             android:layout_marginRight="16px"
              android:visibility="gone"/>
           <TextView
              android:id="@+id/tvSolveStats"
