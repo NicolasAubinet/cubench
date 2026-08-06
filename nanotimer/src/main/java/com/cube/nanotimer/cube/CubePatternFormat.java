@@ -30,6 +30,14 @@ public final class CubePatternFormat {
   }
 
   /**
+   * The player's number for one of our edge slots, for anything that has to name a slot to it rather
+   * than hand it a whole state. The table is its own inverse, so this reads both ways.
+   */
+  public static int playerEdge(int slot) {
+    return EDGES[slot];
+  }
+
+  /**
    * @param facelets the 54 sticker colours, faces in URFDLB order
    * @return the state as a KTransformation's data, or null where the facelets are not a cube
    */

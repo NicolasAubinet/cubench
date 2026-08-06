@@ -75,6 +75,8 @@ public class VirtualCube implements GyroReferenceListener {
   /** What the cube is showing: the state it was pointed at, plus the turns made since. */
   private String pattern;
   private final List<String> movesSinceState = new ArrayList<String>();
+  /** Which of its stickers keep their colour, or null for all of them. */
+  private String stickering;
 
   /**
    * @param touchListener the host screen's own, forwarded so the cube is not a dead zone — a
@@ -121,6 +123,17 @@ public class VirtualCube implements GyroReferenceListener {
     // ⚠️ Quoted, never concatenated into a JS string literal: a prime move is spelled U', and the
     // apostrophe closes the literal and makes a syntax error of the whole call.
     evaluate("window.ntLiveMove(" + JSONObject.quote(notation) + ");");
+  }
+
+  /**
+   * Which stickers keep their colour, as {@link CubeStickering} writes it. Kept apart from the
+   * state: the two change on their own schedules, and a cube greyed mid-rep is still the same cube.
+   */
+  public void setStickering(String mask) {
+    this.stickering = mask;
+    if (mask != null) {
+      evaluate("window.ntLiveStickering(" + JSONObject.quote(mask) + ");");
+    }
   }
 
   /** Whether this cube should follow the physical one's orientation, if there is one to follow. */
@@ -236,6 +249,9 @@ public class VirtualCube implements GyroReferenceListener {
       return;
     }
     evaluate("window.ntLiveState(" + JSONObject.quote(pattern) + ");");
+    if (stickering != null) {
+      evaluate("window.ntLiveStickering(" + JSONObject.quote(stickering) + ");");
+    }
     for (String move : movesSinceState) {
       evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
     }

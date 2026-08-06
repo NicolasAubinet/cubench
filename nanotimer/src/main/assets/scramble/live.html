@@ -12,6 +12,9 @@
                             CubePatternFormat). Clears everything animated so far.
     ntLiveMove(notation)    one quarter turn, just made
     ntLiveGyro(on)          follow the cube's physical orientation, or keep it square
+    ntLiveStickering(mask)  which stickers keep their colour (see CubeStickering). A mask names
+                            SLOTS, not pieces: the state is drawn by colouring the stickers where
+                            they are, and this decides which of those keep the colour.
 
   WHY A STATE AND NOT A SETUP ALG.
 
@@ -348,6 +351,17 @@
     try {
       player.experimentalAddMove(notation);
     } catch (e) {} // an unparseable move is not worth losing the mirror over
+  };
+
+  window.ntLiveStickering = function (mask) {
+    ensurePlayer();
+    try {
+      player.experimentalStickeringMaskOrbits = JSON.parse(mask);
+    } catch (e) {
+      // Named rather than swallowed, and the cube is still drawn: a mask that will not parse costs
+      // the drill its blindfold, where a throw here would cost it the cube.
+      console.error("live stickering: " + e);
+    }
   };
 
   window.ntLiveGyro = function (on) {
