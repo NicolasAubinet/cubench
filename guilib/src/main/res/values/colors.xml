@@ -64,9 +64,6 @@
   <!-- ============================ Surfaces =========================== -->
 
   <color name="graybg">@color/gray850</color>
-  <!-- Laid over the live cube while a blind attempt is under way. Nearly the background, so the
-       cube keeps its place and its shape and none of its state can be read through it. -->
-  <color name="live_cube_veil">#E6323232</color>
   <color name="pushedbg">#454545</color>
   <!-- The timer's ground while a solve runs: a shade under the resting one, so the screen is
        visibly standing down rather than merely emptying. -->

@@ -64,6 +64,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   private ViewStub stub;
   private View cubeLayout;
   private View veil;
+  private View cubeWeb;
   private VirtualCube cube;
   private boolean obscured;
   private boolean suppressed;
@@ -140,6 +141,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     }
     cubeLayout = null;
     veil = null;
+    cubeWeb = null;
     stub = null;
   }
 
@@ -150,10 +152,13 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
    * the spacer came back, everything below it moved, and the screen shifted twice per blind
    * attempt. A cover also answers the question the empty space raised, which is why the cube went.
    *
-   * <p>The cube under the cover is drawn solved and stays there: the cover is nearly opaque but not
-   * quite, and a scrambled silhouette showing through it is both a hint of the state and, at one
-   * quarter turn in, simply a broken-looking cube. What the cube really holds is caught up with
-   * when the cover comes off.
+   * <p>The cube under the cover is not drawn while it is up, and is pointed at solved on top of
+   * that: a silhouette is both a hint of the state and, one quarter turn in, simply a broken-looking
+   * cube, so neither the drawing nor the state it would draw is left to leak one. What the cube
+   * really holds is caught up with when the cover comes off.
+   *
+   * <p>The cover carries no colour of its own. It used to, and a press then repainted the screen's
+   * ground everywhere except under it, leaving it outlined as a rectangle that had missed the touch.
    */
   public void setObscured(boolean obscured) {
     if (this.obscured == obscured) {
@@ -256,7 +261,8 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
       stub = null;
       veil = cubeLayout.findViewById(R.id.liveCubeVeil);
       keepUnscaled(veil);
-      cube = new VirtualCube((WebView) cubeLayout.findViewById(R.id.wvLiveCube), touchListener, this);
+      cubeWeb = cubeLayout.findViewById(R.id.wvLiveCube);
+      cube = new VirtualCube((WebView) cubeWeb, touchListener, this);
       cube.setGyroFollowing(true);
       point(); // a state taken before the cube existed still has to reach it
     } catch (Throwable t) {
@@ -268,6 +274,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
       cube = null;
       cubeLayout = null;
       veil = null;
+      cubeWeb = null;
     }
   }
 
@@ -327,6 +334,10 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
     }
     if (veil != null) {
       veil.setVisibility(obscured ? View.VISIBLE : View.GONE);
+    }
+    if (cubeWeb != null) {
+      // INVISIBLE, never GONE: see the warning above, it costs the page its viewport.
+      cubeWeb.setVisibility(obscured ? View.INVISIBLE : View.VISIBLE);
     }
   }
 }
