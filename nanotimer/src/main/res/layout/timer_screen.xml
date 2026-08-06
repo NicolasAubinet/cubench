@@ -70,8 +70,48 @@
              android:visibility="gone"/>
         </FrameLayout>
 
+        <!-- The steps of the solve, and what a cube counted of it, as one block. It sits directly
+             under the digits, because the time is the sum of the bar and the two are read as one
+             thing. Gone when the solve type has neither steps nor a cube behind it. -->
+        <LinearLayout
+           android:id="@+id/stepBreakdown"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:clipChildren="false"
+           android:clipToPadding="false"
+           android:orientation="vertical">
+          <!-- The margin is negative, and on the bar rather than on the block, for two reasons. The
+               digits carry their own descent inside their box — some 57px of it at this size, with
+               nothing drawn in it — so measured off the glyphs a positive margin here is already a
+               gap. And a solve type with no bar has it GONE, whose margin is not applied at all:
+               that screen keeps the air under its digits, which pulling the block up would take.
+               The block does not clip: a negative margin only shortens it, and the bar it lifted
+               out of the top would be cut off rather than drawn where it was put. -->
+          <com.cube.nanotimer.gui.widget.SolveStepBar
+             android:id="@+id/solveStepBar"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="-8px"
+             android:layout_marginLeft="8px"
+             android:layout_marginRight="8px"
+             android:visibility="gone"/>
+          <TextView
+             android:id="@+id/tvSolveStats"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_horizontal"
+             android:layout_marginTop="4px"
+             android:clickable="false"
+             android:focusable="false"
+             android:fontFeatureSettings="tnum"
+             android:textColor="@color/secondary_text"
+             android:textSize="19px"
+             android:visibility="gone"/>
+        </LinearLayout>
+
         <!-- The verdict on the solve just finished. The slot is here whether or not there is a
-             chip in it, so the scramble below never moves and is never covered. -->
+             chip in it, so the scramble below never moves and is never covered. Under the breakdown
+             rather than over it: between the digits and the bar it was air holding the two apart. -->
         <FrameLayout
            android:layout_width="match_parent"
            android:layout_height="30px"
@@ -91,35 +131,6 @@
              android:fontFeatureSettings="tnum"
              android:visibility="invisible"/>
         </FrameLayout>
-
-        <!-- The steps of the solve, and what a cube counted of it, as one block. It sits with the
-             time it breaks down, and above the scramble nothing can push it under the statistics
-             card. Gone when the solve type has neither steps nor a cube behind it. -->
-        <LinearLayout
-           android:id="@+id/stepBreakdown"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="vertical">
-          <com.cube.nanotimer.gui.widget.SolveStepBar
-             android:id="@+id/solveStepBar"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_marginLeft="8px"
-             android:layout_marginRight="8px"
-             android:visibility="gone"/>
-          <TextView
-             android:id="@+id/tvSolveStats"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:layout_gravity="center_horizontal"
-             android:layout_marginTop="4px"
-             android:clickable="false"
-             android:focusable="false"
-             android:fontFeatureSettings="tnum"
-             android:textColor="@color/secondary_text"
-             android:textSize="19px"
-             android:visibility="gone"/>
-        </LinearLayout>
 
         <FrameLayout
            android:id="@+id/scrambleBox"
