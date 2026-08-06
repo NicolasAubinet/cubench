@@ -833,4 +833,8 @@
   <string name="drill_cross_summary_optimal">%1$d of %2$d found the shortest way</string>
   <string name="drill_cross_summary_planning">%s mean planning</string>
   <string name="drill_cross_summary_none_built">No cross was built</string>
+  <string name="drill_cross_start_position">Start position</string>
+  <string name="drill_cross_other_ways">Other ways</string>
+  <string name="drill_cross_rep_times">Planned in %1$s, turned in %2$s</string>
+  <string name="drill_cross_shortest">Shortest: %s</string>
 </resources>

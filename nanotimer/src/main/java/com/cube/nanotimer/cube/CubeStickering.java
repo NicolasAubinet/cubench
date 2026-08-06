@@ -24,11 +24,6 @@ public final class CubeStickering {
   private CubeStickering() {
   }
 
-  /** Every sticker in its own colour, which is what a cube not being masked looks like. */
-  public static String full() {
-    return mask(all(EDGES, true), all(CORNERS, true), all(CENTERS, true));
-  }
-
   /** Nothing readable: the cube is there, and says nothing about where anything is. */
   public static String allGrey() {
     return mask(all(EDGES, false), all(CORNERS, false), all(CENTERS, false));

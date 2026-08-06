@@ -815,4 +815,8 @@
   <string name="drill_cross_summary_optimal">%1$d sur %2$d ont trouvé la solution la plus courte</string>
   <string name="drill_cross_summary_planning">%s de réflexion en moyenne</string>
   <string name="drill_cross_summary_none_built">Aucune croix n\'a été terminée</string>
+  <string name="drill_cross_start_position">Position de départ</string>
+  <string name="drill_cross_other_ways">Autres solutions</string>
+  <string name="drill_cross_rep_times">Réflexion %1$s, exécution %2$s</string>
+  <string name="drill_cross_shortest">Le plus court : %s</string>
 </resources>

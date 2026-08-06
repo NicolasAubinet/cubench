@@ -77,6 +77,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
   private int repSeq;
 
   private TextView tvStatus;
+  private Button btStart;
   private TextView tvLastRep;
   private TextView tvProgress;
   private Button btDone;
@@ -97,6 +98,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     tvProgress = findViewById(R.id.tvDrillProgress);
     btDone = findViewById(R.id.btDrillCrossDone);
     btSolutions = findViewById(R.id.btDrillCrossSolutions);
+    btStart = findViewById(R.id.btDrillCrossStart);
     repWash = findViewById(R.id.drillRepWash);
 
     btDone.setOnClickListener(new View.OnClickListener() {
@@ -113,6 +115,12 @@ public class CrossDrillActivity extends DrillScreenActivity {
       @Override
       public void onClick(View v) {
         showSolutions();
+      }
+    });
+    btStart.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        backToStart();
       }
     });
     findViewById(R.id.btDrillDone).setOnClickListener(new View.OnClickListener() {
@@ -171,7 +179,14 @@ public class CrossDrillActivity extends DrillScreenActivity {
    */
   @Override
   public void onMove(CubeMove move) {
-    if (!cubeReady || finished || session == null || !session.isRunning()) {
+    if (!cubeReady || finished || session == null) {
+      return;
+    }
+    // The rep is over but the cube is still theirs to turn: this is where they try the short way,
+    // or find out what their own extra move did. Nothing is timed and nothing is scored.
+    if (!session.isRunning()) {
+      cube.addMove(move.getNotation());
+      session.explore(move);
       return;
     }
     boolean first = session.getMoveCount() == 0;
@@ -204,22 +219,55 @@ public class CrossDrillActivity extends DrillScreenActivity {
     handler.removeCallbacks(stalledHint);
     betweenReps = true;
 
-    // The colours come back whether the cross was found the short way or the long one. A rep that
-    // took extra moves is a finish, and hiding the cube from it would read as a failure.
-    cube.setStickering(CubeStickering.full());
+    // The cross comes back and nothing else does. Every rep ends looking like the one thing the
+    // drill was about, whether it was found the short way or the long one, and the four edges stay
+    // lit through whatever is turned next so their own extra move can be seen undoing it.
+    cube.setStickering(CubeStickering.crossAndCentres(session.getCrossEdges()));
     if (rep.isBuilt()) {
       DrillRepFlourish.play(repWash, tvLastRep);
     }
     showLastRep(rep);
-    showStatus("");
+    showBetweenReps(rep);
     btDone.setText(R.string.drill_cross_next);
-    btSolutions.setVisibility(solutions == null ? View.GONE : View.VISIBLE);
+    btStart.setVisibility(View.VISIBLE);
+  }
+
+  /**
+   * What the rep cost in time, and the shortest way there was when it was not the way taken.
+   *
+   * <p>The solution is put in front of the user rather than behind a button: the rep is over, so
+   * there is nothing left to give away, and a sequence you have to go and ask for is one you will
+   * not try.
+   */
+  private void showBetweenReps(CrossDrillRep rep) {
+    StringBuilder detail = new StringBuilder(getString(R.string.drill_cross_rep_times,
+        FormatterService.INSTANCE.formatSolveTime(rep.getPlanningMs()),
+        FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs())));
+    boolean missedIt = !rep.isBuilt() || rep.getExtraMoves() > 0;
+    if (missedIt && solutions != null && !solutions.solutions.isEmpty()) {
+      detail.append("\n").append(getString(R.string.drill_cross_shortest,
+          join(CrossFormatter.toCrossOnBottom(face, solutions.solutions.get(0)))));
+    }
+    showStatus(detail.toString());
+    btSolutions.setVisibility(
+        missedIt && solutions != null && solutions.solutions.size() > 1 ? View.VISIBLE : View.GONE);
+  }
+
+  /**
+   * Puts the scramble back as it was dealt, so the short way can be turned on it and watched. The
+   * only rewind this drill has, and only between reps: mid-rep it would hand back the look the cube
+   * going grey just took away.
+   */
+  private void backToStart() {
+    session.resetToStart();
+    cube.setState(CubePatternFormat.format(session.getFacelets()));
   }
 
   private void nextRep() {
     betweenReps = false;
     solutions = null;
     btSolutions.setVisibility(View.GONE);
+    btStart.setVisibility(View.GONE);
     btDone.setText(R.string.drill_cross_done);
     if (session.isFinished()) {
       showSummary();
@@ -304,8 +352,11 @@ public class CrossDrillActivity extends DrillScreenActivity {
             }
             solutions = found;
             session.setOptimalLength(found.length);
-            if (betweenReps) {
-              btSolutions.setVisibility(View.VISIBLE);
+            if (betweenReps && !session.getReps().isEmpty()) {
+              // Landed after its own rep ended, so the line it belongs under is already up.
+              List<CrossDrillRep> reps = session.getReps();
+              showLastRep(reps.get(reps.size() - 1));
+              showBetweenReps(reps.get(reps.size() - 1));
             }
           }
         });
@@ -387,8 +438,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     } else {
       line = getString(R.string.drill_cross_rep_over, rep.getMoveCount(), rep.getOptimalLength());
     }
-    tvLastRep.setText(getString(R.string.drill_rep_line, line,
-        FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs())));
+    tvLastRep.setText(line);
   }
 
   private void showSolutions() {

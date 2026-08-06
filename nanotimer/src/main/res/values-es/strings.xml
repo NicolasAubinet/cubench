@@ -814,4 +814,8 @@
   <string name="drill_cross_summary_optimal">%1$d de %2$d encontraron la forma más corta</string>
   <string name="drill_cross_summary_planning">%s de planificación de media</string>
   <string name="drill_cross_summary_none_built">No se completó ninguna cruz</string>
+  <string name="drill_cross_start_position">Posición inicial</string>
+  <string name="drill_cross_other_ways">Otras formas</string>
+  <string name="drill_cross_rep_times">Planificación %1$s, ejecución %2$s</string>
+  <string name="drill_cross_shortest">Lo más corto: %s</string>
 </resources>

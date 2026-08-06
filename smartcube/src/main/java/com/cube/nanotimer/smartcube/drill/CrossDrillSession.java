@@ -156,6 +156,33 @@ public final class CrossDrillSession {
     return running ? complete() : null;
   }
 
+  /**
+   * Turns the cube without timing anything, for the rep that is over: the user is trying the short
+   * way they were shown, or seeing what their own extra move did, and the picture has to follow
+   * their hands or there is nothing to see. Ignored while a rep is running, which is what
+   * {@link #onMove} is for.
+   */
+  public void explore(CubeMove move) {
+    if (!running) {
+      cube.applyMove(move.getFace(), move.isPrime());
+    }
+  }
+
+  /**
+   * Puts the cube back to the scramble the rep started from, so the solution can be tried on it.
+   *
+   * <p>Only between reps, and that is the whole point of the restriction: the cube goes grey on the
+   * first turn of a rep so that the cross is built from what was read, and a rewind mid-rep would
+   * hand back the look the drill just took away.
+   */
+  public void resetToStart() {
+    if (running) {
+      return;
+    }
+    cube = new CubieCube();
+    FaceTurns.apply(cube, currentScramble);
+  }
+
   /** Whether the four edges of the drilled face are home and the right way up. */
   public boolean isCrossBuilt() {
     int[] cp = new int[8];

@@ -72,10 +72,11 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_marginTop="10dp"
-       android:minHeight="22dp"
+       android:minLines="2"
        android:gravity="center"
        android:textColor="@color/secondary_text"
        android:textSize="14sp"
+       android:lineSpacingExtra="2dp"
        android:fontFeatureSettings="tnum"/>
 
     <!-- ⚠️ The rep just FINISHED: how many moves it took against how few it could have. -->
@@ -132,13 +133,24 @@
        android:gravity="end"
        android:orientation="horizontal">
 
-      <!-- Only once a rep is over: during one it would be the answer. -->
+      <!-- Rewinds the cube to the scramble as dealt, so the short way can be turned on it and
+           watched. Between reps only. -->
+      <Button
+         android:id="@+id/btDrillCrossStart"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginRight="6dp"
+         android:text="@string/drill_cross_start_position"
+         android:visibility="gone"/>
+
+      <!-- Only when there is more than one way in the same number of moves, and only once the rep
+           is over: during one it would be the answer. -->
       <Button
          android:id="@+id/btDrillCrossSolutions"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:layout_marginRight="6dp"
-         android:text="@string/drill_cross_solutions"
+         android:text="@string/drill_cross_other_ways"
          android:visibility="gone"/>
 
       <!-- Announcing the cross is finished, and then taking the next one. Not a start or a stop:
