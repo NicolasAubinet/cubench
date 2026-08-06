@@ -1,6 +1,7 @@
 package com.cube.nanotimer.smartcube.drill;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -64,6 +65,56 @@ public class LayerFaceTest {
         }
       }
     }
+  }
+
+  /**
+   * The bug this was written for: every good algorithm for an OLL orients the layer and leaves the
+   * permutation its own way, so a rep waiting for a solved cube waited for ever unless the user
+   * happened to know the one algorithm the scramble was built from.
+   *
+   * <p>Shown without naming a second algorithm, which would only move the dependency: a scramble is
+   * {@code U^i alg' U^j}, so undoing it orients the layer as the alg finishes and is still an AUF
+   * short of solved whenever {@code i} is not zero. A rep that ends there ended on the orientation.
+   */
+  @Test
+  public void anOllEndsOnTheLayerBeingOrientedNotOnASolvedCube() {
+    DrillSession session = session("oll_21", 20, "U");
+    Hand hand = new Hand(session);
+    int endedUnsolved = 0;
+    while (hand.next()) {
+      assertNotNull("the rep did not finish", hand.execute(inverse(session.getCurrentScramble())));
+      CubieCube ended = new CubieCube();
+      assertTrue(ended.fromFacelet(session.getFacelets()));
+      if (!ended.isSolved()) {
+        endedUnsolved++;
+      }
+    }
+    assertEquals(20, session.getReps().size());
+    assertTrue("every rep held on for a solved cube", endedUnsolved > 0);
+  }
+
+  /**
+   * A PLL still asks for a solved cube, since restoring the permutation is the whole of it. Its
+   * layer is one colour from the moment it is dealt, so orientation cannot be the question here.
+   */
+  @Test
+  public void aPllStillEndsOnASolvedCube() {
+    DrillSession session = session("pll_h", 1, "U");
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    assertTrue("a PLL scramble leaves the layer oriented", isOneColour(session.getFacelets(), "U"));
+    assertTrue("and that must not have ended the rep", session.getReps().isEmpty());
+    assertNotNull(hand.execute(inverse(session.getCurrentScramble())));
+  }
+
+  private static boolean isOneColour(String facelets, String face) {
+    int start = "URFDLB".indexOf(face) * 9;
+    for (int i = 1; i < 9; i++) {
+      if (facelets.charAt(start + i) != facelets.charAt(start)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Every case still finishes on every face, which is the rotation not having broken anything. */

@@ -33,6 +33,9 @@ public final class DrillSession {
 
   private static final long NOT_SHOWN = -1;
 
+  /** Where the faces sit in a facelet string, which is the order {@link CubieCube} writes one in. */
+  private static final String FACELET_ORDER = "URFDLB";
+
   private final DrillSpec spec;
   private final Random random;
   private final Map<String, Long> weights;
@@ -183,7 +186,34 @@ public final class DrillSession {
     moveCount++;
     lastMoveMs = at;
     cube.applyMove(move.getFace(), move.isPrime());
-    return cube.isSolved() ? complete(false) : null;
+    return isCaseDone() ? complete(false) : null;
+  }
+
+  /**
+   * <b>An OLL is done when the layer is one colour, not when the cube is solved.</b> Orienting is
+   * all an OLL claims to do, and every good algorithm for a case leaves the layer permuted its own
+   * way; a scramble here is one particular algorithm inverted, so ending on a solved cube would ask
+   * the user to reproduce that algorithm rather than the one they know, and any other correct
+   * algorithm would orient the face and then never finish. A PLL restores the permutation, so for
+   * one of those a solved cube is exactly the question.
+   */
+  private boolean isCaseDone() {
+    if (currentCase != null && currentCase.startsWith("oll_")) {
+      return isLayerOriented();
+    }
+    return cube.isSolved();
+  }
+
+  /** Whether the nine stickers of the layer's face all show the same colour. */
+  private boolean isLayerOriented() {
+    String facelets = cube.toFaceCube();
+    int start = FACELET_ORDER.indexOf(layerFace) * 9;
+    for (int i = 1; i < 9; i++) {
+      if (facelets.charAt(start + i) != facelets.charAt(start)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Gives up on the case in front of the user, spending the rep. Null when there is none. */
