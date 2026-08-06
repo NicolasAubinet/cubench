@@ -17,14 +17,13 @@
      android:layout_width="match_parent"
      android:layout_height="match_parent"/>
 
-  <!-- What a blind attempt sees instead of the cube: the mark alone, centred on the cube's space.
-       Nothing in here takes a touch, and the WebView below is INVISIBLE for as long as this is up,
-       so a press falls through to the timer layout's own listener and starts or stops the timer
-       like a press anywhere else (see CLAUDE.md).
+  <!-- The mark a blind attempt gets over the cube, centred on the cube's space. Nothing in here
+       takes a touch — the timer screen has no dead zones, so a press lands on the WebView
+       underneath exactly as it would anywhere else (see CLAUDE.md).
 
        No background of its own: the screen's ground changes colour under a press, and a cover with
-       its own colour stayed put and read as a rectangle that had missed the press. It has nothing
-       to cover anyway, LiveCubeView hiding the cube for as long as this is up. -->
+       its own colour stayed put and read as a rectangle that had missed the press. LiveCubeView
+       dims the cube instead, which leaves the ground behind it the screen's own. -->
   <FrameLayout
      android:id="@+id/liveCubeVeil"
      android:layout_width="match_parent"

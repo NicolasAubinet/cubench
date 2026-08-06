@@ -59,6 +59,16 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
   /** The panels around it fade over this when the screen stands down for a solve; this goes too. */
   private static final long FADE_MS = 120;
 
+  /**
+   * What the cube is drawn at while it is covered: dimmed on its own rather than under a panel.
+   *
+   * <p>Faded rather than hidden so the cube still turns with the hands holding it, which is most of
+   * what it is there for, and low enough that it reads as covered rather than as a cube being
+   * offered to be read. The alpha is on the cube's own pixels, so the ground behind it stays the
+   * screen's and follows a press like everything else.
+   */
+  private static final float OBSCURED_ALPHA = 0.35f;
+
   private final View.OnTouchListener touchListener;
 
   private ViewStub stub;
@@ -152,13 +162,15 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
    * the spacer came back, everything below it moved, and the screen shifted twice per blind
    * attempt. A cover also answers the question the empty space raised, which is why the cube went.
    *
-   * <p>The cube under the cover is not drawn while it is up, and is pointed at solved on top of
-   * that: a silhouette is both a hint of the state and, one quarter turn in, simply a broken-looking
-   * cube, so neither the drawing nor the state it would draw is left to leak one. What the cube
-   * really holds is caught up with when the cover comes off.
+   * <p>The cube under the cover is drawn solved and stays there, dimmed to {@link #OBSCURED_ALPHA}:
+   * it keeps turning with the hands holding it, and the state it turns is one that gives nothing
+   * away. A real one showing through would be both a hint of the state and, one quarter turn in,
+   * simply a broken-looking cube. What the cube really holds is caught up with when the cover comes
+   * off.
    *
-   * <p>The cover carries no colour of its own. It used to, and a press then repainted the screen's
-   * ground everywhere except under it, leaving it outlined as a rectangle that had missed the touch.
+   * <p>The cover carries no colour of its own, the dimming being on the cube rather than over it.
+   * It used to, and a press then repainted the screen's ground everywhere except under that panel,
+   * outlining it as a rectangle that had missed the touch.
    */
   public void setObscured(boolean obscured) {
     if (this.obscured == obscured) {
@@ -336,8 +348,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
       veil.setVisibility(obscured ? View.VISIBLE : View.GONE);
     }
     if (cubeWeb != null) {
-      // INVISIBLE, never GONE: see the warning above, it costs the page its viewport.
-      cubeWeb.setVisibility(obscured ? View.INVISIBLE : View.VISIBLE);
+      cubeWeb.setAlpha(obscured ? OBSCURED_ALPHA : 1f);
     }
   }
 }
