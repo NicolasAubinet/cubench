@@ -4,11 +4,13 @@ import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -206,6 +208,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private int groundColor = R.color.graybg; // the ground at rest; a running solve drops it a shade
   private int pushedGroundColor = R.color.pushedbg; // the same ground with a finger on it
+  private int groundAbove = 0; // what the bar and the status bar were last given
   private boolean surfacePressed; // and whether there is one on it
 
   private RandomStateGenListener randomStateGenListener = new RandomStateGenListener() {
@@ -667,7 +670,36 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   // Held as state rather than only reacted to: the ground changes under a finger that never moved,
   // since in the hold and release mode the whole inspection is one press.
   private void applyGround() {
-    layout.setBackgroundResource(surfacePressed ? pushedGroundColor : groundColor);
+    int color = surfacePressed ? pushedGroundColor : groundColor;
+    layout.setBackgroundResource(color);
+    applyGroundAbove(color);
+  }
+
+  /**
+   * The bar and the two system bars take the same ground as the screen. Without this they sit as
+   * strips of the colour the screen had before it stood down for a solve, and a hold that lasts a
+   * whole inspection shows them for as long as the finger is there.
+   *
+   * Both routes are needed. From API 35 the app draws behind the system bars, so what shows there
+   * is the root, which sits outside the inset padding; below that the bars are the system's own and
+   * only the window colours will move them.
+   */
+  private void applyGroundAbove(int colorRes) {
+    if (colorRes == groundAbove) {
+      return; // a press sets the ground on every down and up; the window only wants the changes
+    }
+    groundAbove = colorRes;
+    int color = ContextCompat.getColor(this, colorRes);
+    ActionBar actionBar = getSupportActionBar();
+    if (actionBar != null) {
+      actionBar.setBackgroundDrawable(new ColorDrawable(color));
+    }
+    View root = findViewById(R.id.scalingRootLayout);
+    if (root != null) {
+      root.setBackgroundResource(colorRes);
+    }
+    getWindow().setStatusBarColor(color);
+    getWindow().setNavigationBarColor(color);
   }
 
   /** True while a solve is being timed with the time itself kept back. */

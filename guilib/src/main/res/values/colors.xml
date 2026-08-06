@@ -46,7 +46,9 @@
 
   <color name="color_accent">@color/lightblue</color>
   <color name="color_primary">@color/darkblue</color>
-  <color name="color_primary_dark">#2A363E</color>
+  <!-- The bar and the status bar take the screen's own ground: a top bar in a colour of its own
+       reads as a stripe pasted over the app rather than as part of it. -->
+  <color name="app_bar">@color/graybg</color>
   <!-- Ink for text sitting on the accent itself, where white would not hold. -->
   <color name="on_accent">#12181C</color>
   <color name="secondary_text">#AAAAAA</color>

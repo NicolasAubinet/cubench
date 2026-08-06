@@ -26,16 +26,14 @@
        android:orientation="vertical"
        android:background="@color/graybg">
 
-      <com.google.android.material.appbar.AppBarLayout
+      <!-- Directly in the column, with no AppBarLayout: that was there for an elevation shadow, and
+           a flat bar on the screen's own ground has nothing to cast one over. -->
+      <androidx.appcompat.widget.Toolbar
+         android:id="@+id/toolbar"
          android:layout_width="match_parent"
-         android:layout_height="wrap_content"> <!-- for the elevation shadow -->
-        <androidx.appcompat.widget.Toolbar
-           android:id="@+id/toolbar"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:background="@color/color_primary"
-           app:titleTextAppearance="@style/Toolbar.CustomTitleText"/>
-      </com.google.android.material.appbar.AppBarLayout>
+         android:layout_height="wrap_content"
+         android:background="@color/app_bar"
+         app:titleTextAppearance="@style/Toolbar.CustomTitleText"/>
 
       <LinearLayout
          android:layout_width="match_parent"
