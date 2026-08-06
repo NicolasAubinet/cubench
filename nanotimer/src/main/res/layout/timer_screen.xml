@@ -46,12 +46,13 @@
            android:layout_width="match_parent"
            android:layout_height="0px"
            android:layout_weight="1"/>
-        <!-- The band the digits sit in, shared with the dot that stands in for them. -->
+        <!-- The band the digits sit in, shared with the dot that stands in for them. No margin of
+             its own: the spacer above is the air over the digits, and a margin on top of it is air
+             the block cannot give back when a 7x7 scramble needs every pixel. -->
         <FrameLayout
            android:id="@+id/timerBox"
            android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="20px">
+           android:layout_height="wrap_content">
           <com.cube.nanotimer.util.view.DigitalTextView
              android:id="@+id/tvTimer"
              android:layout_width="wrap_content"
@@ -91,6 +92,35 @@
              android:visibility="invisible"/>
         </FrameLayout>
 
+        <!-- The steps of the solve, and what a cube counted of it, as one block. It sits with the
+             time it breaks down, and above the scramble nothing can push it under the statistics
+             card. Gone when the solve type has neither steps nor a cube behind it. -->
+        <LinearLayout
+           android:id="@+id/stepBreakdown"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical">
+          <com.cube.nanotimer.gui.widget.SolveStepBar
+             android:id="@+id/solveStepBar"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginLeft="8px"
+             android:layout_marginRight="8px"
+             android:visibility="gone"/>
+          <TextView
+             android:id="@+id/tvSolveStats"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_horizontal"
+             android:layout_marginTop="4px"
+             android:clickable="false"
+             android:focusable="false"
+             android:fontFeatureSettings="tnum"
+             android:textColor="@color/secondary_text"
+             android:textSize="19px"
+             android:visibility="gone"/>
+        </LinearLayout>
+
         <FrameLayout
            android:id="@+id/scrambleBox"
            android:layout_width="match_parent"
@@ -106,75 +136,32 @@
              android:layout_gravity="center_horizontal"
              android:paddingLeft="10px"
              android:paddingRight="10px"
+             android:lineSpacingMultiplier="0.88"
              app:myfont="SCRAMBLE"
              style="@style/ScrambleTextFieldPx"/>
 
         </FrameLayout>
 
-        <!-- The band holds the gap under the scramble. Everything in it is stacked, never laid over
-             anything else, and it asks for exactly the height its contents need: the picture's own
-             (given by ScrambleStatePreview, the same on every screen of the app) plus the bar's.
-             What is left over goes to the two spacers, so the solve type's statistics card, which
-             is taller for some than for others, changes the air around the block and never the
-             size of the picture in it. -->
+        <!-- What is drawn in the gap under the scramble: the scramble's state, or the connected cube
+             in its place (TimerActivity.refreshStatePreviewOwner). One or the other, never both. The
+             height is set from code — see ScrambleStatePreview.PICTURE_PX — and left at nothing where
+             the screen has no room for it, so the statistics card being taller under one solve type
+             than another changes the air around the picture and never its size. Two stubs, so a user
+             with no cube pays nothing for one and a puzzle with no diagram nothing for that. -->
         <FrameLayout
-           android:id="@+id/statePreviewSlot"
+           android:id="@+id/statePreviewCell"
            android:layout_width="match_parent"
-           android:layout_height="wrap_content">
-          <LinearLayout
+           android:layout_height="0px">
+          <ViewStub
+             android:id="@+id/stubStatePreview"
+             android:layout="@layout/timer_state_preview"
              android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="vertical">
-
-            <!-- What is drawn in the gap: the scramble's state, or the connected cube in its place
-                 (TimerActivity.refreshStatePreviewOwner). One or the other, never both. The height
-                 is set from code — see ScrambleStatePreview.PICTURE_PX — and left at nothing where
-                 the screen has no room for it. Two stubs, so a user with no cube pays nothing for
-                 one and a puzzle with no diagram nothing for that. -->
-            <FrameLayout
-               android:id="@+id/statePreviewCell"
-               android:layout_width="match_parent"
-               android:layout_height="0px">
-              <ViewStub
-                 android:id="@+id/stubStatePreview"
-                 android:layout="@layout/timer_state_preview"
-                 android:layout_width="match_parent"
-                 android:layout_height="match_parent"/>
-              <ViewStub
-                 android:id="@+id/stubLiveCube"
-                 android:layout="@layout/timer_live_cube"
-                 android:layout_width="match_parent"
-                 android:layout_height="match_parent"/>
-            </FrameLayout>
-
-            <!-- The bar and what it counted, as one block: a running solve moves it under the
-                 digits, and the two travel together. -->
-            <LinearLayout
-               android:id="@+id/stepBreakdown"
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:orientation="vertical">
-              <com.cube.nanotimer.gui.widget.SolveStepBar
-                 android:id="@+id/solveStepBar"
-                 android:layout_width="match_parent"
-                 android:layout_height="wrap_content"
-                 android:layout_marginLeft="8px"
-                 android:layout_marginRight="8px"
-                 android:visibility="gone"/>
-              <TextView
-                 android:id="@+id/tvSolveStats"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_gravity="center_horizontal"
-                 android:layout_marginTop="4px"
-                 android:clickable="false"
-                 android:focusable="false"
-                 android:fontFeatureSettings="tnum"
-                 android:textColor="@color/secondary_text"
-                 android:textSize="19px"
-                 android:visibility="gone"/>
-            </LinearLayout>
-          </LinearLayout>
+             android:layout_height="match_parent"/>
+          <ViewStub
+             android:id="@+id/stubLiveCube"
+             android:layout="@layout/timer_live_cube"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"/>
         </FrameLayout>
 
         <!-- The foot of the block. Heavier than the spacer at its head, because the digits carry

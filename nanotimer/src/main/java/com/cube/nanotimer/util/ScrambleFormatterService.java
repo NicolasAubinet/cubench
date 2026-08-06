@@ -314,19 +314,26 @@ public enum ScrambleFormatterService {
           movesPerLine = (orientation == Configuration.ORIENTATION_PORTRAIT) ? 3 : 2;
         }
         break;
+      // Sideways the big cubes take wider lines: the column is half as tall and twice as wide, and
+      // at the portrait count the last rows of the scramble fell off the bottom of the screen.
       case FOUR_BY_FOUR:
-        if (Options.INSTANCE.getBigCubesNotation() == BigCubesNotation.RUF && orientation == Configuration.ORIENTATION_PORTRAIT) {
+        movesPerLine = (Options.INSTANCE.getBigCubesNotation() == BigCubesNotation.RUF
+            || orientation != Configuration.ORIENTATION_PORTRAIT) ? 10 : 8;
+        break;
+      case FIVE_BY_FIVE:
+        movesPerLine = (orientation == Configuration.ORIENTATION_PORTRAIT) ? 10 : 15;
+        break;
+      case SIX_BY_SIX:
+        if (orientation != Configuration.ORIENTATION_PORTRAIT) {
+          movesPerLine = 16;
+        } else if (Options.INSTANCE.getBigCubesNotation() == BigCubesNotation.RUF) {
           movesPerLine = 10;
         } else {
           movesPerLine = 8;
         }
         break;
-      case SIX_BY_SIX:
-        if (Options.INSTANCE.getBigCubesNotation() == BigCubesNotation.RUF) {
-          movesPerLine = 10;
-        } else {
-          movesPerLine = 8;
-        }
+      case SEVEN_BY_SEVEN:
+        movesPerLine = (orientation == Configuration.ORIENTATION_PORTRAIT) ? 10 : 17;
         break;
       case TWO_BY_TWO:
         movesPerLine = getTwoByTwoMovesPerLine(scramble.length);

@@ -740,12 +740,18 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       case CLOCK:
         size = 20f;
         break;
-      case SIX_BY_SIX:
+      // Seven lines whatever happens — the scramble comes ready split — so sideways, where the
+      // column is half as tall, the only way they all fit on the screen is smaller.
       case MEGAMINX:
-        size = 18f;
+        size = (currentOrientation == Configuration.ORIENTATION_PORTRAIT) ? 18f : 13f;
+        break;
+      // The two puzzles whose scramble is long enough to leave no room for the state preview: a
+      // notch smaller here is what buys the diagram its band. See ScrambleStatePreview.
+      case SIX_BY_SIX:
+        size = 16.5f;
         break;
       case SEVEN_BY_SEVEN:
-        size = 15.5f;
+        size = 14f;
         break;
       default:
         size = null;
