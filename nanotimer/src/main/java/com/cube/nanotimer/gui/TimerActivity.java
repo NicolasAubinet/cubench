@@ -1758,7 +1758,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       return;
     }
     if (shownStats == null) {
-      tvSolveStats.setVisibility(View.INVISIBLE);
+      // The rule the resting screen reserves this line by. INVISIBLE whatever the solve type, one
+      // no cube ever counts gained a blank line the moment a solve landed, shifting the block.
+      tvSolveStats.setVisibility(canBreakDownSolves() ? View.INVISIBLE : View.GONE);
       return;
     }
     tvSolveStats.setText(shownStats);
