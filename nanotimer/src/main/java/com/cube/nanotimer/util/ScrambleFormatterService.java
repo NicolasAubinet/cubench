@@ -292,6 +292,11 @@ public enum ScrambleFormatterService {
     switch (cubeType) {
       case THREE_BY_THREE:
         movesPerLine = getThreeByThreeMovesPerLine(scramble.length);
+        if (orientation != Configuration.ORIENTATION_PORTRAIT) {
+          // Two lines, as the big cubes already take sideways, but never narrower than portrait:
+          // halving a last layer scramble would break three moves across two lines.
+          movesPerLine = Math.max(movesPerLine, (scramble.length + 1) / 2);
+        }
         break;
       case PYRAMINX:
       case SKEWB:
@@ -314,7 +319,7 @@ public enum ScrambleFormatterService {
           movesPerLine = (orientation == Configuration.ORIENTATION_PORTRAIT) ? 3 : 2;
         }
         break;
-      // Sideways the big cubes take wider lines: the column is half as tall and twice as wide, and
+      // Sideways every puzzle takes wider lines: the column is half as tall and twice as wide, and
       // at the portrait count the last rows of the scramble fell off the bottom of the screen.
       case FOUR_BY_FOUR:
         movesPerLine = (Options.INSTANCE.getBigCubesNotation() == BigCubesNotation.RUF
