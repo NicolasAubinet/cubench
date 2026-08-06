@@ -53,8 +53,10 @@
        android:name=".gui.TimerActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>
     <activity android:name=".gui.OptionsActivity"/>
-    <!-- Handles its own rotations: recreating would throw away a drill that is halfway through. -->
+    <!-- Handle their own rotations: recreating would throw away a drill that is halfway through. -->
     <activity android:name=".gui.DrillActivity"
+       android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>
+    <activity android:name=".gui.CrossDrillActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>
     <activity android:name=".gui.GraphActivity"
        android:theme="@style/NanoTimerThemeNoActionBar"

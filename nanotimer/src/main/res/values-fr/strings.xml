@@ -776,4 +776,25 @@
   <!-- Choix de l\'entrainement -->
   <string name="drill_mode_casual">Détente</string>
   <string name="drill_mode_recording">Sérieux</string>
+
+  <!-- Entrainement de croix -->
+  <string name="drill_cross_title">Entraînement de croix</string>
+  <string name="drill_cross_done">Terminé</string>
+  <string name="drill_cross_next">Suivant</string>
+  <string name="drill_cross_solutions">Solutions les plus courtes</string>
+  <string name="drill_cross_solutions_count">%1$d façons de la faire en %2$d mouvements</string>
+  <string name="drill_cross_dealing">Mélange en préparation</string>
+  <string name="drill_cross_plan_it">Préparez la croix, puis tournez</string>
+  <string name="drill_cross_planning_left">%d secondes pour réfléchir</string>
+  <string name="drill_cross_planning_over">Temps écoulé, faites-la de mémoire</string>
+  <string name="drill_cross_moves">%d mouvements</string>
+  <string name="drill_cross_not_yet">%d mouvements, et ce n\'est pas encore une croix</string>
+  <string name="drill_cross_rep_optimal">Optimal, %d mouvements</string>
+  <string name="drill_cross_rep_over">%1$d mouvements, il y avait une solution en %2$d</string>
+  <string name="drill_cross_rep_moves">%d mouvements</string>
+  <string name="drill_cross_rep_missed">Ce n\'était pas la croix</string>
+  <string name="drill_cross_summary_extra">%s mouvements de plus que le minimum</string>
+  <string name="drill_cross_summary_optimal">%1$d sur %2$d ont trouvé la solution la plus courte</string>
+  <string name="drill_cross_summary_planning">%s de réflexion en moyenne</string>
+  <string name="drill_cross_summary_none_built">Aucune croix n\'a été terminée</string>
 </resources>

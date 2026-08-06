@@ -775,4 +775,25 @@
   <!-- Eleccion del entrenamiento -->
   <string name="drill_mode_casual">Relajado</string>
   <string name="drill_mode_recording">Serio</string>
+
+  <!-- Entrenamiento de cruz -->
+  <string name="drill_cross_title">Entrenamiento de cruz</string>
+  <string name="drill_cross_done">Listo</string>
+  <string name="drill_cross_next">Siguiente</string>
+  <string name="drill_cross_solutions">Soluciones más cortas</string>
+  <string name="drill_cross_solutions_count">%1$d formas de hacerla en %2$d movimientos</string>
+  <string name="drill_cross_dealing">Preparando una mezcla</string>
+  <string name="drill_cross_plan_it">Planifica la cruz y luego gira</string>
+  <string name="drill_cross_planning_left">%d segundos para planificar</string>
+  <string name="drill_cross_planning_over">Se acabó el tiempo, hazla de memoria</string>
+  <string name="drill_cross_moves">%d movimientos</string>
+  <string name="drill_cross_not_yet">%d movimientos, y eso todavía no es una cruz</string>
+  <string name="drill_cross_rep_optimal">Óptimo, %d movimientos</string>
+  <string name="drill_cross_rep_over">%1$d movimientos, había una forma en %2$d</string>
+  <string name="drill_cross_rep_moves">%d movimientos</string>
+  <string name="drill_cross_rep_missed">Eso no era la cruz</string>
+  <string name="drill_cross_summary_extra">%s movimientos más que el mínimo</string>
+  <string name="drill_cross_summary_optimal">%1$d de %2$d encontraron la forma más corta</string>
+  <string name="drill_cross_summary_planning">%s de planificación de media</string>
+  <string name="drill_cross_summary_none_built">No se completó ninguna cruz</string>
 </resources>

@@ -1,0 +1,464 @@
+package com.cube.nanotimer.gui;
+
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.CubePatternFormat;
+import com.cube.nanotimer.cube.CubeStickering;
+import com.cube.nanotimer.cube.SmartCubeManager;
+import com.cube.nanotimer.gui.widget.dialog.CrossSolutionsDialog;
+import com.cube.nanotimer.scrambler.ScramblerService;
+import com.cube.nanotimer.scrambler.cross.CrossFace;
+import com.cube.nanotimer.scrambler.cross.CrossFormatter;
+import com.cube.nanotimer.scrambler.cross.CrossSolvers;
+import com.cube.nanotimer.scrambler.cross.CrossSolvers.FaceSolutions;
+import com.cube.nanotimer.smartcube.drill.CrossDrillRep;
+import com.cube.nanotimer.smartcube.drill.CrossDrillSession;
+import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.DrillRepFlourish;
+import com.cube.nanotimer.vo.CubeType;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Runs a cross drill: a whole scramble stands on the screen's cube, and the user has to build the
+ * cross on one face in as few moves as there were.
+ *
+ * <p><b>It is a blind execution drill, not only a move counting one.</b> The scramble opens with the
+ * four cross edges and the six centres in colour and everything else grey, and on the user's first
+ * turn the <em>whole</em> cube goes grey. So the cross is planned while it can be read and built
+ * from memory, which is what inspection actually asks of a solver. The centres are not decoration in
+ * that first view: with them grey there is nothing to say which face an edge belongs to and the case
+ * cannot be read at all.
+ *
+ * <p><b>A wrong cross is announced, not detected.</b> A built cross ends its own rep; a wrong one
+ * never will, because there is no state that says the user thinks they are finished. The one button
+ * is that announcement, and it is not a stop control: pressing it with the cross really built ends
+ * the rep the same way turning into it would have.
+ *
+ * <p><b>Extra moves are a finish, not a miss.</b> The colours come back exactly as they do on a rep
+ * that found the short way, and what is said is that there was a shorter one. The search runs the
+ * moment the scramble is drawn, on a background thread, so the solutions are waiting by the time
+ * anyone asks for them.
+ */
+public class CrossDrillActivity extends DrillScreenActivity {
+
+  /** The drill to run, as its JSON text. */
+  public static final String EXTRA_SPEC = "drillSpec";
+
+  /**
+   * How long the user may stop turning, mid-rep, before the screen says what it can see. Long
+   * enough not to talk over somebody thinking, short enough to answer the question they are asking
+   * themselves when they stop, which is "is that it?".
+   */
+  private static final long STALLED_MS = 3500;
+
+  /** How many scrambles to refuse for having their cross already built before taking one anyway. */
+  private static final int MAX_DEAL_ATTEMPTS = 5;
+
+  private final CrossSolvers solvers = new CrossSolvers();
+  private final Handler handler = new Handler(Looper.getMainLooper());
+
+  private CrossDrillSession session;
+  private CrossFace face;
+
+  /** The optimal solutions for the scramble on screen, or null while the search is still running. */
+  private FaceSolutions solutions;
+  /** Which rep a search belongs to, so one that lands late is dropped rather than shown. */
+  private int repSeq;
+
+  private TextView tvStatus;
+  private TextView tvLastRep;
+  private TextView tvProgress;
+  private Button btDone;
+  private Button btSolutions;
+  private View repWash;
+
+  /** Between reps: the cube stands finished and the button takes the next scramble. */
+  private boolean betweenReps;
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.crossdrill_screen);
+    bindDrillScreen();
+
+    tvStatus = findViewById(R.id.tvDrillCrossStatus);
+    tvLastRep = findViewById(R.id.tvDrillLastRep);
+    tvProgress = findViewById(R.id.tvDrillProgress);
+    btDone = findViewById(R.id.btDrillCrossDone);
+    btSolutions = findViewById(R.id.btDrillCrossSolutions);
+    repWash = findViewById(R.id.drillRepWash);
+
+    btDone.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (betweenReps) {
+          nextRep();
+        } else {
+          declareFinished();
+        }
+      }
+    });
+    btSolutions.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        showSolutions();
+      }
+    });
+    findViewById(R.id.btDrillDone).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        finish();
+      }
+    });
+
+    DrillSpec spec;
+    try {
+      spec = DrillSpec.fromJson(getIntent().getStringExtra(EXTRA_SPEC));
+      session = new CrossDrillSession(spec);
+      face = CrossFace.valueOf(spec.getCrossFace());
+    } catch (RuntimeException e) {
+      session = null; // half-read is not runnable, and nothing may take it for a drill in progress
+      showUnavailable(getString(R.string.drill_spec_unreadable));
+      return;
+    }
+    setTitle(spec.getLabel() == null ? getString(R.string.drill_cross_title) : spec.getLabel());
+
+    if (!SmartCubeManager.INSTANCE.isConnected()) {
+      showUnavailable(getString(R.string.drill_needs_cube));
+      return;
+    }
+    if (!createCube()) {
+      return;
+    }
+    nextRep();
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    handler.removeCallbacksAndMessages(null);
+    DrillRepFlourish.cancel(repWash, tvLastRep);
+  }
+
+  @Override
+  protected boolean isDrillRunning() {
+    return session != null;
+  }
+
+  /** The scramble is on screen, which is where the planning runs from. */
+  @Override
+  protected void onCaseVisible() {
+    if (session.isRunning()) {
+      startPlanning();
+    }
+  }
+
+  /**
+   * A turn made before the scramble is on screen is dropped, not queued. The first one of a rep
+   * takes the colours with it: from there the cross is built from what was read, not from what can
+   * still be seen.
+   */
+  @Override
+  public void onMove(CubeMove move) {
+    if (!cubeReady || finished || session == null || !session.isRunning()) {
+      return;
+    }
+    boolean first = session.getMoveCount() == 0;
+    cube.addMove(move.getNotation());
+    CrossDrillRep rep = session.onMove(move);
+    if (first) {
+      handler.removeCallbacks(planningRanOut);
+    }
+    if (rep != null) {
+      onRepFinished(rep); // which brings the colours back, so greying first would only flicker
+      return;
+    }
+    if (first) {
+      cube.setStickering(CubeStickering.allGrey());
+    }
+    showStatus(getString(R.string.drill_cross_moves, session.getMoveCount()));
+    armStalledHint();
+  }
+
+  /** The user says they are finished. A cross that is really there ends the same way either way. */
+  private void declareFinished() {
+    CrossDrillRep rep = session.declareFinished();
+    if (rep != null) {
+      onRepFinished(rep);
+    }
+  }
+
+  private void onRepFinished(CrossDrillRep rep) {
+    handler.removeCallbacks(planningRanOut);
+    handler.removeCallbacks(stalledHint);
+    betweenReps = true;
+
+    // The colours come back whether the cross was found the short way or the long one. A rep that
+    // took extra moves is a finish, and hiding the cube from it would read as a failure.
+    cube.setStickering(CubeStickering.full());
+    if (rep.isBuilt()) {
+      DrillRepFlourish.play(repWash, tvLastRep);
+    }
+    showLastRep(rep);
+    showStatus("");
+    btDone.setText(R.string.drill_cross_next);
+    btSolutions.setVisibility(solutions == null ? View.GONE : View.VISIBLE);
+  }
+
+  private void nextRep() {
+    betweenReps = false;
+    solutions = null;
+    btSolutions.setVisibility(View.GONE);
+    btDone.setText(R.string.drill_cross_done);
+    if (session.isFinished()) {
+      showSummary();
+      return;
+    }
+    showStatus(getString(R.string.drill_cross_dealing));
+    dealScramble(0);
+  }
+
+  /**
+   * Fetches a scramble off the UI thread and puts it up, redealing one whose cross happens to be
+   * there already, since that is a rep of nothing. Bounded because a scrambler handing back nothing
+   * would otherwise redeal for ever.
+   */
+  private void dealScramble(final int attempt) {
+    final int seq = ++repSeq;
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        final String scramble = nextScramble();
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (seq != repSeq || finished || isFinishing()) {
+              return;
+            }
+            // No scramble to be had ends the drill where it stands rather than hanging on one:
+            // the reps already done are the result, which is the rule everything else here follows.
+            if (scramble == null || !session.nextRep(scramble)) {
+              showSummary();
+              return;
+            }
+            if (session.isCrossBuilt() && attempt < MAX_DEAL_ATTEMPTS) {
+              dealScramble(attempt + 1);
+              return;
+            }
+            showScramble(scramble);
+          }
+        });
+      }
+    }).start();
+  }
+
+  private String nextScramble() {
+    String[] scramble = ScramblerService.INSTANCE.getScramble(CubeType.THREE_BY_THREE, null);
+    if (scramble == null) {
+      return null;
+    }
+    StringBuilder sb = new StringBuilder();
+    for (String move : scramble) {
+      sb.append(sb.length() == 0 ? "" : " ").append(move);
+    }
+    return sb.toString();
+  }
+
+  /** Four edges and six centres, and nothing else readable, which is the case to be planned. */
+  private void showScramble(String scramble) {
+    cube.setState(CubePatternFormat.format(session.getFacelets()));
+    cube.setStickering(CubeStickering.crossAndCentres(session.getCrossSlots()));
+    tvProgress.setText(getString(R.string.drill_progress,
+        session.getReps().size() + 1, session.getSpec().getReps()));
+    solveInBackground(scramble, repSeq);
+    if (cubeReady) {
+      startPlanning();
+    }
+  }
+
+  /**
+   * The search runs while the user looks, so the answer is waiting the moment they finish and
+   * nobody is left watching a spinner having just done the work.
+   */
+  private void solveInBackground(final String scramble, final int seq) {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        final FaceSolutions found = solvers.solveFace(face, scramble);
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (seq != repSeq || finished) {
+              return; // a search that landed after its own rep was replaced, or after the drill
+            }
+            solutions = found;
+            session.setOptimalLength(found.length);
+            if (betweenReps) {
+              btSolutions.setVisibility(View.VISIBLE);
+            }
+          }
+        });
+      }
+    }).start();
+  }
+
+  private void startPlanning() {
+    session.markCaseShown(System.currentTimeMillis());
+    long limit = session.getSpec().getPlanningMs();
+    handler.removeCallbacks(planningRanOut);
+    if (limit > 0) {
+      countdownFrom(limit);
+      handler.postDelayed(planningRanOut, limit);
+    } else {
+      showStatus(getString(R.string.drill_cross_plan_it));
+    }
+  }
+
+  /** Seconds left to look, redrawn each one, and only while nothing has been turned. */
+  private void countdownFrom(final long remaining) {
+    showStatus(getString(R.string.drill_cross_planning_left, (int) Math.ceil(remaining / 1000d)));
+    if (remaining > 1000) {
+      handler.postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          if (session.isRunning() && session.getMoveCount() == 0) {
+            countdownFrom(remaining - 1000);
+          }
+        }
+      }, 1000);
+    }
+  }
+
+  /** Time is up: the colours go, exactly as a first turn would have taken them. */
+  private final Runnable planningRanOut = new Runnable() {
+    @Override
+    public void run() {
+      if (session.isRunning() && session.getMoveCount() == 0) {
+        session.markPlanningExpired();
+        cube.setStickering(CubeStickering.allGrey());
+        showStatus(getString(R.string.drill_cross_planning_over));
+      }
+    }
+  };
+
+  private void armStalledHint() {
+    handler.removeCallbacks(stalledHint);
+    handler.postDelayed(stalledHint, STALLED_MS);
+  }
+
+  /**
+   * They have stopped turning, which usually means they think they are done. Saying what the cube
+   * really shows is the only thing the screen knows that they do not; it does not end the rep, since
+   * announcing the finish stays theirs.
+   */
+  private final Runnable stalledHint = new Runnable() {
+    @Override
+    public void run() {
+      if (session.isRunning() && session.getMoveCount() > 0 && !session.isCrossBuilt()) {
+        showStatus(getString(R.string.drill_cross_not_yet, session.getMoveCount()));
+      }
+    }
+  };
+
+  private void showStatus(String text) {
+    tvStatus.setText(text);
+  }
+
+  /** The rep that has just ended, scored on its moves against the fewest there were. */
+  private void showLastRep(CrossDrillRep rep) {
+    String line;
+    if (!rep.isBuilt()) {
+      line = getString(R.string.drill_cross_rep_missed);
+    } else if (rep.getOptimalLength() <= 0) {
+      line = getString(R.string.drill_cross_rep_moves, rep.getMoveCount());
+    } else if (rep.getExtraMoves() == 0) {
+      line = getString(R.string.drill_cross_rep_optimal, rep.getMoveCount());
+    } else {
+      line = getString(R.string.drill_cross_rep_over, rep.getMoveCount(), rep.getOptimalLength());
+    }
+    tvLastRep.setText(getString(R.string.drill_rep_line, line,
+        FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs())));
+  }
+
+  private void showSolutions() {
+    if (solutions == null) {
+      return;
+    }
+    ArrayList<String> lines = new ArrayList<String>();
+    for (String[] moves : solutions.solutions) {
+      lines.add(join(CrossFormatter.toCrossOnBottom(face, moves)));
+    }
+    DialogUtils.showFragment(this,
+        CrossSolutionsDialog.newInstance(lines, solutions.length));
+  }
+
+  private static String join(String[] moves) {
+    StringBuilder sb = new StringBuilder();
+    for (String move : moves) {
+      if (!move.isEmpty()) {
+        sb.append(sb.length() == 0 ? "" : " ").append(move);
+      }
+    }
+    return sb.toString();
+  }
+
+  @Override
+  protected void showSummary() {
+    if (finished) {
+      return; // a cube unplugged on the summary screen must not re-run this over its own figures
+    }
+    finished = true;
+    handler.removeCallbacksAndMessages(null);
+    runningLayout.setVisibility(View.GONE);
+    summaryLayout.setVisibility(View.VISIBLE);
+
+    List<CrossDrillRep> reps = session.getReps();
+    ((TextView) findViewById(R.id.tvDrillSummaryReps)).setText(getString(R.string.drill_summary_reps,
+        reps.size(), session.getSpec().getReps()));
+
+    // A rep whose cross was not there is counted apart rather than folded in: its moves went
+    // somewhere else, and averaging them in would flatter a drill that kept missing.
+    int built = 0;
+    int optimal = 0;
+    int extraTotal = 0;
+    long planningTotal = 0;
+    for (CrossDrillRep rep : reps) {
+      if (!rep.isBuilt()) {
+        continue;
+      }
+      built++;
+      extraTotal += rep.getExtraMoves();
+      planningTotal += rep.getPlanningMs();
+      if (rep.getExtraMoves() == 0 && rep.getOptimalLength() > 0) {
+        optimal++;
+      }
+    }
+    TextView tvMean = findViewById(R.id.tvDrillSummaryMean);
+    TextView tvOptimal = findViewById(R.id.tvDrillSummaryOptimal);
+    TextView tvPlanning = findViewById(R.id.tvDrillSummaryPlanning);
+    if (built == 0) {
+      tvMean.setText(R.string.drill_cross_summary_none_built);
+      tvOptimal.setVisibility(View.GONE);
+      tvPlanning.setVisibility(View.GONE);
+      return;
+    }
+    tvMean.setText(getString(R.string.drill_cross_summary_extra,
+        String.format("%.1f", extraTotal / (double) built)));
+    tvOptimal.setVisibility(View.VISIBLE);
+    tvOptimal.setText(getString(R.string.drill_cross_summary_optimal, optimal, built));
+    tvPlanning.setVisibility(View.VISIBLE);
+    tvPlanning.setText(getString(R.string.drill_cross_summary_planning,
+        FormatterService.INSTANCE.formatSolveTime(planningTotal / built)));
+  }
+}

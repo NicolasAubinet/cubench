@@ -794,4 +794,25 @@
   <!-- Drill selection -->
   <string name="drill_mode_casual">Chill</string>
   <string name="drill_mode_recording">Focused</string>
+
+  <!-- Cross drill -->
+  <string name="drill_cross_title">Cross drill</string>
+  <string name="drill_cross_done">Done</string>
+  <string name="drill_cross_next">Next</string>
+  <string name="drill_cross_solutions">Shortest ways</string>
+  <string name="drill_cross_solutions_count">%1$d ways to do it in %2$d moves</string>
+  <string name="drill_cross_dealing">Dealing a scramble</string>
+  <string name="drill_cross_plan_it">Plan the cross, then turn</string>
+  <string name="drill_cross_planning_left">%d seconds to plan</string>
+  <string name="drill_cross_planning_over">Time is up, build it from memory</string>
+  <string name="drill_cross_moves">%d moves</string>
+  <string name="drill_cross_not_yet">%d moves, and that is not a cross yet</string>
+  <string name="drill_cross_rep_optimal">Optimal, %d moves</string>
+  <string name="drill_cross_rep_over">%1$d moves, there was a way in %2$d</string>
+  <string name="drill_cross_rep_moves">%d moves</string>
+  <string name="drill_cross_rep_missed">That was not the cross</string>
+  <string name="drill_cross_summary_extra">%s moves over the shortest</string>
+  <string name="drill_cross_summary_optimal">%1$d of %2$d found the shortest way</string>
+  <string name="drill_cross_summary_planning">%s mean planning</string>
+  <string name="drill_cross_summary_none_built">No cross was built</string>
 </resources>
