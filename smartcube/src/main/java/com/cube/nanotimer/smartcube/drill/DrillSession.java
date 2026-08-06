@@ -46,6 +46,8 @@ public final class DrillSession {
   private String currentScramble;
   private int moveCount;
   private long firstMoveMs;
+  /** The first turn that was not an AUF, which is where the algorithm really started. */
+  private long algStartMs;
   private long lastMoveMs;
   private long caseShownAtMs = NOT_SHOWN;
   private int resetCount;
@@ -98,6 +100,7 @@ public final class DrillSession {
     applyScramble(cube, currentScramble);
     moveCount = 0;
     firstMoveMs = 0;
+    algStartMs = 0;
     lastMoveMs = 0;
     caseShownAtMs = NOT_SHOWN;
     resetCount = 0;
@@ -139,6 +142,7 @@ public final class DrillSession {
     applyScramble(cube, currentScramble);
     moveCount = 0;
     firstMoveMs = 0;
+    algStartMs = 0;
     lastMoveMs = 0;
     caseShownAtMs = NOT_SHOWN;
     resetCount++;
@@ -159,6 +163,9 @@ public final class DrillSession {
     if (moveCount == 0) {
       firstMoveMs = at;
     }
+    if (algStartMs == 0 && move.getFace() != Face.U) {
+      algStartMs = at;
+    }
     moveCount++;
     lastMoveMs = at;
     cube.applyMove(move.getFace(), move.isPrime());
@@ -170,9 +177,15 @@ public final class DrillSession {
     return currentCase == null ? null : complete(true);
   }
 
+  /**
+   * A U turn before the algorithm only squared the case up to be read, so it is looking rather than
+   * solving; the U that closes an algorithm falls inside the execution by construction. A rep of
+   * nothing but U turns has no algorithm to have started, and is split at its first turn as before.
+   */
   private DrillRep complete(boolean abandoned) {
-    long recognition = moveCount > 0 ? Math.max(0, firstMoveMs - caseShownAtMs) : 0;
-    long execution = moveCount > 0 ? Math.max(0, lastMoveMs - firstMoveMs) : 0;
+    long algStart = algStartMs > 0 ? algStartMs : firstMoveMs;
+    long recognition = moveCount > 0 ? Math.max(0, algStart - caseShownAtMs) : 0;
+    long execution = moveCount > 0 ? Math.max(0, lastMoveMs - algStart) : 0;
     DrillRep rep = new DrillRep(currentCase, currentScramble, recognition, execution, moveCount,
         resetCount, abandoned);
     reps.add(rep);

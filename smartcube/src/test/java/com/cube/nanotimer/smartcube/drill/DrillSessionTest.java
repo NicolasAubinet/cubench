@@ -92,7 +92,7 @@ public class DrillSessionTest {
   /** Including the first rep, which had nothing to measure from while this ran between reps. */
   @Test
   public void recognitionRunsFromWhenTheCaseAppeared() {
-    DrillSession session = new DrillSession(spec("pll_t", 2), new Random(3));
+    DrillSession session = new DrillSession(spec("pll_t", 2), noAlignment());
     Hand hand = new Hand(session);
 
     assertTrue(hand.next());
@@ -108,12 +108,64 @@ public class DrillSessionTest {
   }
 
   /**
+   * A case is the same case whatever way round it is read, so the U that squares it up is the user
+   * still reading it. Charging it to the turning made every drill of a case dealt off-square look
+   * like a slower algorithm than the same case dealt straight.
+   */
+  @Test
+  public void theAufBeforeAnAlgorithmIsLooking() {
+    DrillSession session = new DrillSession(spec("pll_t", 2), noAlignment());
+    Hand hand = new Hand(session);
+
+    assertTrue(hand.next());
+    hand.pause(500);
+    DrillRep straight = hand.execute(inverse(session.getCurrentScramble()));
+
+    assertTrue(hand.next());
+    hand.pause(500);
+    // Squared up and squared back: the cube is where it was, so the same algorithm still solves it.
+    DrillRep aligned = hand.execute("U U' " + inverse(session.getCurrentScramble()));
+
+    assertEquals("the AUF was charged to the turning",
+        straight.getExecutionMs(), aligned.getExecutionMs());
+    assertEquals("and it belongs to the looking",
+        straight.getRecognitionMs() + 2 * GAP_MS, aligned.getRecognitionMs());
+  }
+
+  /** The AUF that finishes a case is the case being solved, so it stays inside the turning. */
+  @Test
+  public void theAufThatFinishesACaseIsTurning() {
+    DrillSession session = new DrillSession(spec("pll_ja", 12), new Random(3));
+    Hand hand = new Hand(session);
+    while (hand.next()) {
+      String solution = inverse(session.getCurrentScramble());
+      int alignment = leadingAufMoves(solution);
+      DrillRep rep = hand.execute(solution);
+      assertNotNull(rep);
+      assertEquals("execution runs to the last turn, whatever that turn was",
+          (rep.getMoveCount() - alignment - 1) * GAP_MS, rep.getExecutionMs());
+    }
+  }
+
+  /** How many turns at the head of a solution only put the case where it could be read. */
+  private static int leadingAufMoves(String algorithm) {
+    int alignment = 0;
+    for (CubeMove move : asReported(algorithm)) {
+      if (move.getFace() != Face.U) {
+        break;
+      }
+      alignment++;
+    }
+    return alignment;
+  }
+
+  /**
    * The point of measuring from the case rather than from the rep before: a screen that holds the
    * solved cube for a beat must not bill that beat to the user's looking.
    */
   @Test
   public void aPauseBetweenRepsIsNobodysRecognition() {
-    DrillSession session = new DrillSession(spec("pll_t", 2), new Random(3));
+    DrillSession session = new DrillSession(spec("pll_t", 2), noAlignment());
     Hand hand = new Hand(session);
 
     assertTrue(hand.next());
@@ -180,7 +232,7 @@ public class DrillSessionTest {
   /** The redo is the rep that counts, so the abandoned attempt's looking is not charged to it. */
   @Test
   public void recognitionRunsFromTheResetNotFromTheFirstAttempt() {
-    DrillSession session = new DrillSession(spec("pll_t", 1), new Random(3));
+    DrillSession session = new DrillSession(spec("pll_t", 1), noAlignment());
     Hand hand = new Hand(session);
     assertTrue(hand.next());
     hand.pause(4000);

@@ -5,9 +5,11 @@ package com.cube.nanotimer.smartcube.drill;
  * moves it cost. Split the same way a solve's steps are, so a drill and a solve can be read against
  * each other.
  *
- * <p>Recognition is the gap from the case appearing on screen to the first move against it, so every
- * rep has one, the first included. It used to run from the end of the previous rep instead, which
- * left that first rep with nothing to measure from and charged any pause between reps to the user.
+ * <p>Recognition is the gap from the case appearing on screen to the first move of the algorithm, so
+ * every rep has one, the first included. It used to run from the end of the previous rep instead,
+ * which left that first rep with nothing to measure from and charged any pause between reps to the
+ * user. The AUF turns that only square a case up to be read are looking too, and so land in it; the
+ * AUF that finishes one is the case being solved, and stays in the execution.
  */
 public final class DrillRep {
 
