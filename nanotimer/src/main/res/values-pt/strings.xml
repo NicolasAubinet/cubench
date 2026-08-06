@@ -774,4 +774,8 @@
   <string name="drill_no_known_cases">A aplicação não sabe gerar nenhum dos casos deste treino.</string>
   <string name="drill_no_cube_view">Este dispositivo não consegue desenhar o cubo de um treino.</string>
   <string name="drill_spec_unreadable">Esta versão da aplicação não consegue ler esse treino.</string>
+
+  <!-- Escolha do treino -->
+  <string name="drill_mode_casual">Descontraído</string>
+  <string name="drill_mode_recording">Concentrado</string>
 </resources>

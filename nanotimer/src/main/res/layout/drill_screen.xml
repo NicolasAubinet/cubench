@@ -108,9 +108,26 @@
          android:layout_width="0dp"
          android:layout_height="wrap_content"
          android:layout_weight="1"
+         android:singleLine="true"
+         android:ellipsize="end"
          android:textColor="@color/secondary_text"
          android:textSize="14sp"
          android:fontFeatureSettings="tnum"/>
+
+      <!-- The mode picked before the drill started, shown because it cannot be changed now. -->
+      <TextView
+         android:id="@+id/tvDrillMode"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginRight="8dp"
+         android:background="@drawable/smart_cube_pill"
+         android:backgroundTint="@color/white_wash_10"
+         android:paddingLeft="10dp"
+         android:paddingRight="10dp"
+         android:paddingTop="3dp"
+         android:paddingBottom="3dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"/>
 
       <!-- Deals the same case again for a slip, and costs no rep. Neither of these two is a start
            or stop control: the cube still reports both ends of a rep. -->

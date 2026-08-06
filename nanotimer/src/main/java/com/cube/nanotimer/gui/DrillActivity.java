@@ -1,33 +1,18 @@
 package com.cube.nanotimer.gui;
 
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import androidx.activity.OnBackPressedCallback;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CubePatternFormat;
-import com.cube.nanotimer.cube.GyroReferenceListener;
-import com.cube.nanotimer.cube.SmartCubeChip;
-import com.cube.nanotimer.cube.SmartCubeManager;
-import com.cube.nanotimer.cube.VirtualCube;
-import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
-import com.cube.nanotimer.smartcube.model.CubeConnection;
-import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
+import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.smartcube.model.CubeMove;
-import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
-import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
 
@@ -35,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Runs a drill: the case stands on the screen's cube, the smart cube is only the input, and the
+ * Runs a case drill: the case stands on the screen's cube, the smart cube is only the input, and the
  * user's own cube ends up scrambled, which is expected and needs nothing done about it.
  *
  * <p><b>There is no control that starts or stops a rep, and none may be added.</b> The cube reports
@@ -50,8 +35,7 @@ import java.util.List;
  * screen stopping to show it. It belongs beside the time and nowhere else: set under the cube at
  * headline size it read as a caption for the cube, and so as the name of the case being looked at.
  */
-public class DrillActivity extends NanoTimerActivity implements CubeMoveListener,
-    CubeConnectionListener, GyroReferenceListener, VirtualCube.ReadyListener {
+public class DrillActivity extends DrillScreenActivity {
 
   /** The drill to run, as its JSON text. Absent for the app's own default drill. */
   public static final String EXTRA_SPEC = "drillSpec";
@@ -66,42 +50,22 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   private static final long REP_HOLD_MS = 0;
 
   private DrillSession session;
-  private VirtualCube cube;
 
-  private View runningLayout;
-  private View summaryLayout;
-  private TextView tvUnavailable;
-  private ProgressBar pbCube;
   private TextView tvLastRep;
   private TextView tvProgress;
-  private Button btSkip;
-  private WebView webView;
   private View repWash;
-
-  private SmartCubeChip smartCubeChip;
-
-  /** The page has drawn the case, which is when a turn can be counted against it. */
-  private boolean cubeReady;
-  /** The drill is over, by its last rep or by the cube going away, and takes no more turns. */
-  private boolean finished;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.drill_screen);
+    bindDrillScreen();
 
-    smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
-
-    runningLayout = findViewById(R.id.drillRunning);
-    summaryLayout = findViewById(R.id.drillSummary);
-    tvUnavailable = findViewById(R.id.tvDrillUnavailable);
-    pbCube = findViewById(R.id.pbDrillCube);
     tvLastRep = findViewById(R.id.tvDrillLastRep);
     tvProgress = findViewById(R.id.tvDrillProgress);
-    btSkip = findViewById(R.id.btDrillSkip);
     repWash = findViewById(R.id.drillRepWash);
 
-    btSkip.setOnClickListener(new View.OnClickListener() {
+    findViewById(R.id.btDrillSkip).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         DrillRep rep = session == null ? null : session.abandon();
@@ -125,30 +89,13 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
       }
     });
 
-    // Hands stay on the cube for a whole drill, so nothing here ever touches the screen.
-    runningLayout.setKeepScreenOn(true);
-
-    // Back stops the drill rather than throwing it away: a drill ended at rep 6 of 20 is a result,
-    // and the reps up to there are what the user came for. A second press then leaves.
-    getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-      @Override
-      public void handleOnBackPressed() {
-        if (session == null || finished) {
-          setEnabled(false);
-          DrillActivity.this.getOnBackPressedDispatcher().onBackPressed();
-        } else {
-          showSummary();
-        }
-      }
-    });
-
     String json = getIntent().getStringExtra(EXTRA_SPEC);
     DrillSpec spec;
     try {
       // Refused rather than replaced: running a different drill from the one that was sent would
       // report reps against a prescription nobody made.
       spec = json == null ? defaultSpec() : DrillSpec.fromJson(json);
-    } catch (IllegalArgumentException e) {
+    } catch (RuntimeException e) {
       showUnavailable(getString(R.string.drill_spec_unreadable));
       return;
     }
@@ -163,22 +110,9 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
       showUnavailable(getString(R.string.drill_needs_cube));
       return;
     }
-
-    webView = findViewById(R.id.wvDrillCube);
-    try {
-      // Null touch listener: a press on the cube does nothing here. This is not the timer, where a
-      // dead zone would leave a solve unstarted.
-      cube = new VirtualCube(webView, null, this);
-    } catch (Throwable t) {
-      // e.g. no WebView on this device. A drill cannot go on without a cube to look at, since the
-      // cube is the whole of what it shows.
-      showUnavailable(getString(R.string.drill_no_cube_view));
+    if (!createCube()) {
       return;
     }
-    cube.setGyroFollowing(true);
-    // A drill can be the first thing a session does, and the cube on screen only follows the
-    // physical one once there is a grip to measure from. Fills an empty one; never re-takes.
-    SmartCubeManager.INSTANCE.anchorGyroIfUnset();
 
     // The first case is queued before the page is up rather than waited for: the view holds it and
     // draws it as its first frame, so the drill never opens on a solved cube it then replaces.
@@ -186,58 +120,20 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.drill_menu, menu);
-    MenuItem item = menu.findItem(R.id.itSmartCube);
-    smartCubeChip.bind(item != null ? item.getActionView() : null);
-    return super.onCreateOptionsMenu(menu);
-  }
-
-  private void openSmartCubeConnect() {
-    DialogUtils.showFragment(this, new SmartCubeConnectDialog());
-  }
-
-  @Override
-  protected void onResume() {
-    super.onResume();
-    smartCubeChip.start();
-    if (cube != null) {
-      cube.onResume();
-      SmartCubeManager.INSTANCE.addMoveListener(this);
-      SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
-      SmartCubeManager.INSTANCE.addGyroReferenceListener(this);
-      refreshGripHint();
-    }
-  }
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    smartCubeChip.stop();
-    SmartCubeManager.INSTANCE.removeMoveListener(this);
-    SmartCubeManager.INSTANCE.removeConnectionListener(this);
-    SmartCubeManager.INSTANCE.removeGyroReferenceListener(this);
-    if (cube != null) {
-      cube.onPause();
-    }
-  }
-
-  @Override
   protected void onDestroy() {
     super.onDestroy();
     tvLastRep.removeCallbacks(showNextCase);
     DrillRepFlourish.cancel(repWash, tvLastRep);
-    if (cube != null) {
-      cube.destroy();
-    }
+  }
+
+  @Override
+  protected boolean isDrillRunning() {
+    return session != null;
   }
 
   /** The case is on screen, which is where the first rep's recognition runs from. */
   @Override
-  public void onCubeDrawn() {
-    pbCube.setVisibility(View.GONE);
-    webView.setVisibility(View.VISIBLE);
-    cubeReady = true;
+  protected void onCaseVisible() {
     session.markCaseShown(System.currentTimeMillis());
   }
 
@@ -255,32 +151,6 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
     DrillRep rep = session.onMove(move);
     if (rep != null) {
       onRepFinished(rep);
-    }
-  }
-
-  @Override
-  public void onGyroReferenceChanged() {
-    refreshGripHint();
-  }
-
-  /**
-   * The line telling the user which way up to hold their cube, shown only while the cube on screen
-   * is <em>not</em> following theirs. Once it follows, the face under their right hand is the face
-   * on the right of the screen however they picked it up, and the line would be telling them to do
-   * something that no longer matters.
-   */
-  private void refreshGripHint() {
-    findViewById(R.id.tvDrillGrip)
-        .setVisibility(SmartCubeManager.INSTANCE.getGyroReference().isSet()
-            ? View.GONE : View.VISIBLE);
-  }
-
-  /** A drill stopped at rep 6 of 20 is a result, so a cube that goes away ends it rather than
-   * losing it. */
-  @Override
-  public void onConnection(CubeConnection connection) {
-    if (session != null && !SmartCubeManager.INSTANCE.isConnected()) {
-      showSummary();
     }
   }
 
@@ -355,7 +225,8 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
         Utils.toSmartCubeCaseHeadline(this, rep.getCaseCode()), result));
   }
 
-  private void showSummary() {
+  @Override
+  protected void showSummary() {
     if (finished) {
       return; // a cube unplugged on the summary screen must not re-run this over its own figures
     }
@@ -409,12 +280,6 @@ public class DrillActivity extends NanoTimerActivity implements CubeMoveListener
   /** Named on every figure now that two are shown: which half a time is of is no longer implied. */
   private String halfName(boolean recognition) {
     return getString(recognition ? R.string.drill_recognition : R.string.drill_execution);
-  }
-
-  private void showUnavailable(String message) {
-    runningLayout.setVisibility(View.GONE);
-    tvUnavailable.setVisibility(View.VISIBLE);
-    tvUnavailable.setText(message);
   }
 
   /** Every PLL, until either the user picks a set or a coach sends one. */

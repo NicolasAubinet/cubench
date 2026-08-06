@@ -790,4 +790,8 @@
   <string name="drill_no_known_cases">This drill has no case this app knows how to scramble.</string>
   <string name="drill_no_cube_view">This device cannot draw the cube a drill is run on.</string>
   <string name="drill_spec_unreadable">This version of the app cannot read that drill.</string>
+
+  <!-- Drill selection -->
+  <string name="drill_mode_casual">Chill</string>
+  <string name="drill_mode_recording">Focused</string>
 </resources>

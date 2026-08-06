@@ -771,4 +771,8 @@
   <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este entrenamiento.</string>
   <string name="drill_no_cube_view">Este dispositivo no puede dibujar el cubo de un entrenamiento.</string>
   <string name="drill_spec_unreadable">Esta versión de la aplicación no puede leer ese entrenamiento.</string>
+
+  <!-- Eleccion del entrenamiento -->
+  <string name="drill_mode_casual">Relajado</string>
+  <string name="drill_mode_recording">Serio</string>
 </resources>
