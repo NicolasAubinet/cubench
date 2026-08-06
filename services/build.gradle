@@ -4,7 +4,6 @@ android {
     defaultConfig {
         minSdkVersion 21
         compileSdkVersion 36
-        targetSdkVersion 36
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
@@ -12,11 +11,17 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     namespace 'com.cube.nanotimer.services'
     useLibrary 'android.test.base' // ServiceProviderTest extends AndroidTestCase
+    lint {
+        targetSdk 36
+    }
+    testOptions {
+        targetSdk 36
+    }
 }
 
 // Only on the test classpath: the instrumented dependencies drag in the jdk7/jdk8 stdlib splits,

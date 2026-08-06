@@ -11,7 +11,7 @@ averages, graphs and sessions. Published on Google Play as `com.cube.nanotimer`
 `nanotimer` (permanent Play Store identity).
 
 - Language: **Java** (source/target Java 17). No Kotlin.
-- Build: **Gradle** (Android Gradle Plugin 8.13), multi-module.
+- Build: **Gradle** 9.5 (Android Gradle Plugin 9.3), multi-module.
 - `minSdk 21`, `compile/targetSdk 36`. AndroidX (`useAndroidX=true`, Jetifier on).
 - Current version: see `nanotimer/build.gradle` (`versionCode` / `versionName`).
 
