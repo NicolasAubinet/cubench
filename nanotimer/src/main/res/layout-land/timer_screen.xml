@@ -394,7 +394,7 @@
                    android:paddingTop="3px"
                    android:paddingBottom="3px">
                   <TextView
-                     android:text="@string/timer_personal_best"
+                     android:text="@string/personal_best_label"
                      android:singleLine="false"
                      android:maxLines="2"
                      style="@style/StatFooterKeyPx"/>

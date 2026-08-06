@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import androidx.appcompat.widget.AppCompatTextView;
+import android.text.method.TransformationMethod;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import com.cube.nanotimer.R;
@@ -115,7 +116,7 @@ public class FontFitTextView extends AppCompatTextView {
     int widthMode = MeasureSpec.getMode(widthMeasureSpec);
     int widthSize = MeasureSpec.getSize(widthMeasureSpec);
     if (widthMode != MeasureSpec.UNSPECIFIED && widthSize > 0) {
-      refitText(getText().toString(), widthSize);
+      refitText(displayedText(), widthSize);
     }
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     // Shrinking the text must not shrink the box holding it. The cell around this view is sized to
@@ -125,6 +126,19 @@ public class FontFitTextView extends AppCompatTextView {
       setMeasuredDimension(getMeasuredWidth(),
           Math.max(getMeasuredHeight(), unshrunkHeight()));
     }
+  }
+
+  /** What is actually drawn: a view set in caps is wider than the string it was handed. */
+  private String displayedText() {
+    CharSequence text = getText();
+    TransformationMethod transformation = getTransformationMethod();
+    if (transformation != null) {
+      CharSequence transformed = transformation.getTransformation(text, this);
+      if (transformed != null) {
+        text = transformed;
+      }
+    }
+    return text.toString();
   }
 
   /** The height this would measure with its text at full size, however far it has been scaled. */

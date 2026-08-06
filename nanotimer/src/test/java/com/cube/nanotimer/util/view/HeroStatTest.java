@@ -37,6 +37,17 @@ public class HeroStatTest {
     assertEquals(HeroStat.PB, HeroStat.defaultFor(2, true));
   }
 
+  // The two means read as a pair, so they are listed as one, after the averages they follow.
+  @Test
+  public void listsTheMeansTogetherAfterTheAverages() {
+    for (boolean blind : new boolean[] {false, true}) {
+      List<HeroStat> options = HeroStat.optionsFor(solveType(blind));
+
+      assertEquals(options.indexOf(HeroStat.MO3) + 1, options.indexOf(HeroStat.MEAN));
+      assertTrue(options.indexOf(HeroStat.AO100) < options.indexOf(HeroStat.MO3));
+    }
+  }
+
   @Test
   public void everyDefaultIsOneOfTheOptionsItsSolveTypeIsOffered() {
     for (int cell = 0; cell < 3; cell++) {

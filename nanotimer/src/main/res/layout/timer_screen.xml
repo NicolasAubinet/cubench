@@ -386,7 +386,7 @@
                  android:paddingTop="3px"
                  android:paddingBottom="3px">
                 <TextView
-                   android:text="@string/timer_personal_best"
+                   android:text="@string/personal_best_label"
                    style="@style/StatFooterKeyPx"/>
                 <!-- The value carries the weight, not the label: the label is fixed text while
                      the time is what varies, and FontFitTextView only shrinks into a width it

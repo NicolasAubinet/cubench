@@ -709,7 +709,7 @@
   <string name="discard_solve">Descartar</string>
   <string name="keep_solve">Conservar</string>
   <string name="timer_session">Sesión</string>
-  <string name="timer_personal_best">Récord personal</string>
+  <string name="personal_best_label">Récord personal</string>
   <string name="timer_avg_1000">Media de 1000</string>
   <string name="timer_best_value">mejor %1$s</string>
 

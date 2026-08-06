@@ -13,18 +13,18 @@ import java.util.List;
  * labelled, how it is read out of a {@link SolveAverages} and which solve types it means anything
  * for — so a cell is only ever "which of these", and offering a new one is an entry here.
  *
- * <p>The order they are declared in is the order the picker lists them: shortest window first, the
- * lifetime figures after them, and the blind-only success rates last.
+ * <p>The order they are declared in is the order the picker lists them: the averages first, shortest
+ * window first, then the means together, then the best, and the blind-only success rates last.
  */
 public enum HeroStat {
 
-  MO3(R.string.mo3_label),
   AO5(R.string.ao5_label),
   AO12(R.string.ao12_label),
   AO50(R.string.ao50_label),
   AO100(R.string.ao100_label),
+  MO3(R.string.mo3_label),
   MEAN(R.string.mean_label),
-  PB(R.string.record_label_lifetime),
+  PB(R.string.personal_best_label),
   ACC12(R.string.acc12_label),
   ACC50(R.string.acc50_label),
   ACC100(R.string.acc100_label),

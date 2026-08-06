@@ -211,7 +211,9 @@
                  android:background="@drawable/hero_stat_cell"
                  android:paddingTop="5dp"
                  android:paddingBottom="5dp">
-                <TextView android:id="@+id/tvStatKeyOne" style="@style/HeroStatKey"/>
+                <!-- The key shrinks rather than clips: a third of the row is narrow enough that
+                     "Personal best" in caps runs past it in some languages. -->
+                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatKeyOne" style="@style/HeroStatKey"/>
                 <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueOne" style="@style/HeroStatValue"/>
               </LinearLayout>
 
@@ -226,7 +228,7 @@
                  android:background="@drawable/hero_stat_cell"
                  android:paddingTop="5dp"
                  android:paddingBottom="5dp">
-                <TextView android:id="@+id/tvStatKeyTwo" style="@style/HeroStatKey"/>
+                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatKeyTwo" style="@style/HeroStatKey"/>
                 <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueTwo" style="@style/HeroStatValue"/>
               </LinearLayout>
 
@@ -240,7 +242,7 @@
                  android:background="@drawable/hero_stat_cell"
                  android:paddingTop="5dp"
                  android:paddingBottom="5dp">
-                <TextView android:id="@+id/tvStatKeyThree" style="@style/HeroStatKey"/>
+                <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatKeyThree" style="@style/HeroStatKey"/>
                 <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueThree" style="@style/HeroStatValue"/>
               </LinearLayout>
             </LinearLayout>

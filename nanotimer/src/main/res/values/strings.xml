@@ -715,7 +715,7 @@
   <string name="discard_solve">Discard</string>
   <string name="keep_solve">Keep</string>
   <string name="timer_session">Session</string>
-  <string name="timer_personal_best">Personal best</string>
+  <string name="personal_best_label">Personal best</string>
   <string name="timer_avg_1000">Avg of 1000</string>
   <string name="timer_best_value">best %1$s</string>
   <string name="ao5_label">Ao5</string>
