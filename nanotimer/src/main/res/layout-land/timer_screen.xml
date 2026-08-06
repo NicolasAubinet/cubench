@@ -47,12 +47,12 @@
            android:layout_height="0px"
            android:layout_weight="1"/>
 
-        <!-- The band the digits sit in, shared with the dot that stands in for them. -->
+        <!-- The band the digits sit in, shared with the dot that stands in for them. No margin of
+             its own: the slot below carries the gap, and sideways the column has none to spare. -->
         <FrameLayout
            android:id="@+id/timerBox"
            android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginBottom="15px">
+           android:layout_height="wrap_content">
           <com.cube.nanotimer.util.view.DigitalTextView
              android:id="@+id/tvTimer"
              android:layout_width="wrap_content"
@@ -69,8 +69,42 @@
              android:visibility="gone"/>
         </FrameLayout>
 
+        <!-- The steps of the solve, and what a cube counted of it. Gone when neither applies. One
+             block, as in portrait: directly under the time it is the breakdown of, and a running
+             solve moves the two together. -->
+        <LinearLayout
+           android:id="@+id/stepBreakdown"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:clipChildren="false"
+           android:clipToPadding="false"
+           android:orientation="vertical">
+          <!-- Negative, on the bar rather than on the block, and not clipped: see portrait. -->
+          <com.cube.nanotimer.gui.widget.SolveStepBar
+             android:id="@+id/solveStepBar"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="-7px"
+             android:layout_marginLeft="16px"
+             android:layout_marginRight="16px"
+             android:visibility="gone"/>
+          <TextView
+             android:id="@+id/tvSolveStats"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="center_horizontal"
+             android:layout_marginTop="4px"
+             android:clickable="false"
+             android:focusable="false"
+             android:fontFeatureSettings="tnum"
+             android:textColor="@color/secondary_text"
+             android:textSize="19px"
+             android:visibility="gone"/>
+        </LinearLayout>
+
         <!-- The verdict on the solve just finished. The slot is here whether or not there is a
-             chip in it, so the scramble below never moves and is never covered. -->
+             chip in it, so the scramble below never moves and is never covered. Under the breakdown
+             rather than over it: between the digits and the bar it was air holding the two apart. -->
         <FrameLayout
            android:layout_width="match_parent"
            android:layout_height="36px"
@@ -95,6 +129,7 @@
            android:id="@+id/scrambleBox"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
+           android:layout_marginTop="8px"
            android:clipChildren="false"
            android:clipToPadding="false">
 
@@ -106,40 +141,11 @@
              android:gravity="center_horizontal"
              android:paddingLeft="10px"
              android:paddingRight="10px"
+             android:lineSpacingMultiplier="0.88"
              app:myfont="SCRAMBLE"
              style="@style/ScrambleTextFieldPx"/>
 
         </FrameLayout>
-
-        <!-- The steps of the solve, and what a cube counted of it. Gone when neither applies. One
-             block, as in portrait: a running solve moves it under the digits, and the two travel
-             together. -->
-        <LinearLayout
-           android:id="@+id/stepBreakdown"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="vertical">
-          <com.cube.nanotimer.gui.widget.SolveStepBar
-             android:id="@+id/solveStepBar"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_marginTop="12px"
-             android:layout_marginLeft="8px"
-             android:layout_marginRight="8px"
-             android:visibility="gone"/>
-          <TextView
-             android:id="@+id/tvSolveStats"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:layout_gravity="center_horizontal"
-             android:layout_marginTop="4px"
-             android:clickable="false"
-             android:focusable="false"
-             android:fontFeatureSettings="tnum"
-             android:textColor="@color/secondary_text"
-             android:textSize="19px"
-             android:visibility="gone"/>
-        </LinearLayout>
 
         <!-- Where the state preview draws, and where the live cube stands in its place: the same
              gap under the scramble portrait puts them in, and it is one or the other, never both

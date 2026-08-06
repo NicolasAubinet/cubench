@@ -147,7 +147,11 @@ public class FontFitTextView extends AppCompatTextView {
     mTestPaint.setTextSize(initialTextSize);
     Paint.FontMetricsInt metrics = mTestPaint.getFontMetricsInt();
     int lines = Math.max(1, getLineCount());
-    return getPaddingTop() + getPaddingBottom() + lines * (metrics.bottom - metrics.top);
+    // The leading counts: a view told to set its lines closer together must be allowed to be
+    // shorter for it, or this floor hands the saved pixels straight back.
+    float lineHeight = (metrics.bottom - metrics.top) * getLineSpacingMultiplier()
+        + getLineSpacingExtra();
+    return getPaddingTop() + getPaddingBottom() + (int) (lines * lineHeight);
   }
 
   @Override
