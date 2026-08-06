@@ -38,13 +38,13 @@
      android:layout_height="wrap_content"
      android:orientation="horizontal"
      android:gravity="center_vertical"
-     android:minHeight="52dp"
+     android:minHeight="48dp"
      android:background="@drawable/history_row"
      android:duplicateParentState="true"
      android:paddingLeft="@dimen/space_xs"
      android:paddingRight="@dimen/space_xs"
-     android:paddingTop="10dp"
-     android:paddingBottom="10dp">
+     android:paddingTop="@dimen/space_s"
+     android:paddingBottom="@dimen/space_s">
 
     <!-- Tabular digits and a floor on the width, so the timestamps line up into a column. -->
     <TextView
