@@ -3,10 +3,11 @@ package com.cube.nanotimer.gui;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -492,7 +493,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
           icon.setImageResource(SolveTypeIcons.forSolveType(solveType));
           icon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
           view.findViewById(R.id.solveTypeTile)
-              .setBackgroundTintList(ColorStateList.valueOf(withAlpha(color, TILE_ALPHA)));
+              .setBackground(wash(R.drawable.hero_glyph, color, TILE_ALPHA));
 
           // The chip that names the kind wears the kind's colour; the rest stay neutral, since what
           // they say is not what the mark beside them is about.
@@ -531,8 +532,20 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
 
     private void tintChip(View row, int chipId, int color) {
       TextView chip = (TextView) row.findViewById(chipId);
-      chip.setBackgroundTintList(ColorStateList.valueOf(withAlpha(color, CHIP_ALPHA)));
+      chip.setBackground(wash(R.drawable.row_chip, color, CHIP_ALPHA));
       chip.setTextColor(color);
+    }
+
+    /**
+     * A wash of the kind's colour, built rather than tinted: a tint is composited SRC_IN, so it
+     * would multiply this alpha by the drawable's own and land at a fraction of what it asks for.
+     * Mutated, since the drawable's constant state is shared with every other row and screen.
+     */
+    private Drawable wash(int drawableId, int color, int alpha) {
+      GradientDrawable shape =
+        (GradientDrawable) ContextCompat.getDrawable(getContext(), drawableId).mutate();
+      shape.setColor(withAlpha(color, alpha));
+      return shape;
     }
 
     private int withAlpha(int color, int alpha) {
