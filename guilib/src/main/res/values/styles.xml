@@ -436,8 +436,8 @@
     <item name="android:background">@drawable/primary_button_ripple</item>
   </style>
 
-  <!-- Start, inside the hero card. The card is already a raised surface, so a tonal button on it
-       would read as one more panel; the accent is what makes it the thing to press. -->
+  <!-- Start. The accent, not the app's tonal button: it is the one thing on the screen you came to
+       press, and beside a card of raised panels a tonal one reads as another panel. -->
   <style name="HeroStartButton" parent="PrimaryButton">
     <item name="android:layout_height">54dp</item>
     <item name="android:textColor">@color/on_accent</item>
