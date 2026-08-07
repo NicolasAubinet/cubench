@@ -53,6 +53,10 @@ public class SolveBreakdownTest {
     SolveStep gap = steps.get(2);
     assertEquals(SolveBreakdown.GAP_STEP, gap.getName());
     assertEquals(2000, gap.getTotalMs());
+    // Turning nothing, and counted as turning all the same: the solve was over, so what the tail
+    // holds is the stop being made rather than a step being thought about.
+    assertEquals(0, gap.getRecognitionMs());
+    assertEquals(2000, gap.getExecutionMs());
     assertEquals(2, SolveBreakdown.withTail(twoSteps(), null, 5000, "R@1000", CubeMethod.CFOP).size());
   }
 

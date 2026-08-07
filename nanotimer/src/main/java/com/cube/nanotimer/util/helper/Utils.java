@@ -32,6 +32,7 @@ public class Utils {
   private static final String[] CASE_CODE_PREFIXES = { "oll_", "pll_" };
   private static final String SKIPPED_CASE = "skip";
   private static final String FLIP_CODE_PREFIX = "flip:", TWIST_CODE_PREFIX = "twist:";
+  private static final String MEMO_CODE = "memo";
 
   public static final String LANGUAGE_PREFS_NAME = "language";
   public static final String LANGUAGE_PREF_KEY = "picked";
@@ -243,6 +244,11 @@ public class Utils {
    * the step colours. */
   public static boolean isTailSegment(String code) {
     return SolveBreakdown.UNFINISHED_STEP.equals(code) || SolveBreakdown.GAP_STEP.equals(code);
+  }
+
+  /** A blind solve's memorisation, which is time spent on the whole solve rather than on a step. */
+  public static boolean isMemoStep(String code) {
+    return MEMO_CODE.equals(code);
   }
 
   /**

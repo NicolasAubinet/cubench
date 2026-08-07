@@ -597,10 +597,61 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         setChevron(name, stepRows.expanded);
       }
     }
+    addTotalRow(table, steps, solution, split, moves);
     setUpBarPicking(v);
     buildMovesSwitch(v, solution, label, method);
     applyRowVisibility();
     v.findViewById(R.id.breakdownSection).setVisibility(View.VISIBLE);
+  }
+
+  /**
+   * The columns added up under a rule at the foot of the table, so what the solve cost in thinking
+   * against what it cost in turning is read rather than summed by eye.
+   *
+   * <p>A blind solve's memorisation is left out of it: it is recognition of the whole solve, it
+   * dwarfs every step after it, and the split the row is here for is the split of the turning.
+   */
+  private void addTotalRow(TableLayout table, List<SolveStep> steps, SolveSolution solution,
+      boolean split, boolean moves) {
+    long recognitionMs = 0, executionMs = 0, totalMs = 0;
+    int moveCount = 0, counted = 0;
+    for (int i = 0; i < steps.size(); i++) {
+      SolveStep step = steps.get(i);
+      if (Utils.isMemoStep(step.getName())) {
+        continue;
+      }
+      recognitionMs += step.getRecognitionMs();
+      executionMs += step.getExecutionMs();
+      totalMs += step.getTotalMs();
+      moveCount += moveCountAt(solution, i);
+      counted++;
+    }
+    if (counted < 2) {
+      return; // a row that would only repeat the single one above it
+    }
+    table.addView(totalDivider());
+    TableRow row = new TableRow(getActivity());
+    row.addView(cell(R.style.BreakdownTotalName, getString(R.string.breakdown_total)));
+    if (split) {
+      row.addView(cell(R.style.BreakdownTotalRecognitionCell, formatTime(recognitionMs)));
+      row.addView(cell(R.style.BreakdownTotalCell, formatTime(executionMs)));
+    }
+    row.addView(cell(R.style.BreakdownTotalCell, formatTime(totalMs)));
+    if (moves) {
+      row.addView(cell(R.style.BreakdownTotalRecognitionCell, String.valueOf(moveCount)));
+    }
+    table.addView(row);
+  }
+
+  /** The rule the total sits under, added to the table itself so it runs the full width. */
+  private View totalDivider() {
+    View line = new View(getActivity());
+    TableLayout.LayoutParams params =
+        new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, Math.max(1, dp(1)));
+    params.topMargin = dp(7);
+    line.setLayoutParams(params);
+    line.setBackgroundColor(color(R.color.dialog_divider));
+    return line;
   }
 
   /** The step the bar has been asked about, or -1 while it is describing the whole solve. */
@@ -860,6 +911,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private String moveCountOf(SolveSolution solution, int stepIndex) {
     return stepIndex < solution.getSteps().size()
         ? String.valueOf(solution.getSteps().get(stepIndex).getMoveCount()) : "";
+  }
+
+  private int moveCountAt(SolveSolution solution, int stepIndex) {
+    return stepIndex < solution.getSteps().size()
+        ? solution.getSteps().get(stepIndex).getMoveCount() : 0;
   }
 
   private String partMoveCountOf(SolveSolution solution, int stepIndex, int part) {

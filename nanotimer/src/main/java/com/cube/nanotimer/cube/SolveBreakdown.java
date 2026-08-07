@@ -70,7 +70,9 @@ public final class SolveBreakdown {
     if (tailMs <= 0) { // the timer stopped before the last milestone reached us: only clock skew
       return new ArrayList<SolveStep>(steps);
     }
-    long recognitionMs = recognitionOf(moves, accountedMs, tailMs);
+    // A finished solve's tail is a blind one's stop: the cube is already solved and the time is the
+    // blindfold coming off and the reach for the timer, which is doing rather than thinking.
+    long recognitionMs = finished ? 0 : recognitionOf(moves, accountedMs, tailMs);
     List<SolveStep> result = new ArrayList<SolveStep>(steps);
     result.add(new SolveStep(index, finished ? GAP_STEP : UNFINISHED_STEP, recognitionMs,
         tailMs - recognitionMs, new ArrayList<SolveStep>()));

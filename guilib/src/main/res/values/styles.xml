@@ -508,6 +508,21 @@
     <item name="android:textColor">@color/secondary_text</item>
   </style>
 
+  <!-- The columns added up, under a rule at the foot of the table: the label echoes the header
+       above it so the row reads as the table's own summary rather than as another step. -->
+  <style name="BreakdownTotalName" parent="BreakdownHeaderName">
+    <item name="android:paddingTop">7dp</item>
+  </style>
+
+  <style name="BreakdownTotalCell" parent="BreakdownCell">
+    <item name="android:textStyle">bold</item>
+    <item name="android:paddingTop">6dp</item>
+  </style>
+
+  <style name="BreakdownTotalRecognitionCell" parent="BreakdownTotalCell">
+    <item name="android:textColor">@color/secondary_text</item>
+  </style>
+
   <style name="BreakdownSubCell" parent="BreakdownCell">
     <item name="android:textSize">13sp</item>
     <item name="android:textColor">@color/secondary_text</item>
