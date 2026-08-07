@@ -108,18 +108,25 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     yours.removeAllViews();
     List<Algorithm> listed = LastLayerCaseAlgorithms.forCase(caseCode);
     boolean ownIsListed = false;
-    for (Algorithm algorithm : listed) {
-      rows.addView(row(algorithm.getMoves(), algorithm.isRecommended()));
+    for (int i = 0; i < listed.size(); i++) {
+      Algorithm algorithm = listed.get(i);
+      rows.addView(row(algorithm.getMoves(), algorithm.isRecommended(), i == 0));
       ownIsListed |= algorithm.getMoves().equals(own);
     }
     boolean hasOwn = own != null && !ownIsListed;
     if (hasOwn) {
-      yours.addView(row(own, false));
+      yours.addView(row(own, false, false));
     }
     yoursLabel.setVisibility(hasOwn ? View.VISIBLE : View.GONE);
+    yours.setVisibility(hasOwn ? View.VISIBLE : View.GONE);
   }
 
-  private View row(final String moves, boolean recommended) {
+  /**
+   * One algorithm. The first is set a size larger and heavier: it is first because it is the one
+   * most people use, and a column of identical rows says nothing about an order that is the whole
+   * content of the list.
+   */
+  private View row(final String moves, boolean recommended, boolean top) {
     boolean mine = moves.equals(chosen);
 
     LinearLayout row = new LinearLayout(getActivity());
@@ -138,40 +145,60 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       }
     });
 
-    LinearLayout text = new LinearLayout(getActivity());
-    text.setOrientation(LinearLayout.VERTICAL);
-    text.setLayoutParams(new LinearLayout.LayoutParams(0,
-        LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-
     TextView notation = GUIUtils.newTextView(getActivity());
     notation.setText(moves);
-    notation.setTextSize(15);
+    notation.setTextSize(top ? 16 : 15);
     notation.setTextColor(ContextCompat.getColor(getActivity(), R.color.white));
-    text.addView(notation);
-
-    if (mine || recommended) {
-      TextView label = GUIUtils.newTextView(getActivity());
-      // Both when both apply: a choice does not stop an algorithm being the recommended one, and
-      // watching that word disappear on being tapped reads as having broken something.
-      label.setText(mine && recommended ? R.string.case_algorithm_mine_recommended
-          : mine ? R.string.case_algorithm_mine : R.string.case_algorithm_recommended);
-      label.setTextSize(12);
-      label.setTextColor(ContextCompat.getColor(getActivity(),
-          mine ? R.color.lightblue : R.color.secondary_text));
-      if (mine) {
-        GUIUtils.setWeight(label, Typeface.BOLD);
-      }
-      text.addView(label);
+    notation.setLayoutParams(new LinearLayout.LayoutParams(0,
+        LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+    if (top) {
+      GUIUtils.setWeight(notation, Typeface.BOLD);
     }
-    row.addView(text);
+    row.addView(notation);
+
+    // Marks rather than labels, and both when both apply: a choice does not stop an algorithm being
+    // the recommended one, and watching that word disappear on being tapped reads as having broken
+    // something.
+    LinearLayout marks = new LinearLayout(getActivity());
+    marks.setOrientation(LinearLayout.VERTICAL);
+    marks.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
+    marks.setPadding(dp(7), 0, 0, 0);
+    LinearLayout.LayoutParams markParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+    markParams.gravity = Gravity.CENTER_VERTICAL;
+    marks.setLayoutParams(markParams);
+    if (mine) {
+      marks.addView(chip(R.string.case_algorithm_mine, true));
+    }
+    if (recommended) {
+      marks.addView(chip(R.string.case_algorithm_recommended, false));
+    }
+    row.addView(marks);
 
     if (mine) {
       TextView star = GUIUtils.newTextView(getActivity());
       star.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_case_mine, 0, 0, 0);
       star.setGravity(Gravity.CENTER_VERTICAL);
+      LinearLayout.LayoutParams starParams = new LinearLayout.LayoutParams(
+          LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+      starParams.gravity = Gravity.CENTER_VERTICAL;
+      starParams.leftMargin = dp(6);
+      star.setLayoutParams(starParams);
       row.addView(star);
     }
     return row;
+  }
+
+  private TextView chip(int textResId, boolean accent) {
+    TextView chip = new TextView(getActivity(), null, 0,
+        accent ? R.style.RowChipAccent : R.style.RowChip);
+    chip.setText(textResId);
+    chip.setTextSize(10);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+    params.topMargin = dp(2);
+    chip.setLayoutParams(params);
+    return chip;
   }
 
   /** Tapping the one already kept lets it go, so a wrong tap is undone the same way it was made. */

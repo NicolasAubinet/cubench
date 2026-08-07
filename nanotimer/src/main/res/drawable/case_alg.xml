@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One of the other algorithms a case is solved with. -->
+<!-- One algorithm a case is solved with: the stage colour, so the notation is white on near black. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
    android:shape="rectangle">
-  <solid android:color="@color/white_wash_10"/>
+  <solid android:color="@color/case_alg_row"/>
   <corners android:radius="8dp"/>
 </shape>

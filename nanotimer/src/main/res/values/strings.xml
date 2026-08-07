@@ -801,14 +801,17 @@
   <string name="drill_practice_hint_oll">One OLL after another, from the cases you pick.</string>
   <string name="drill_practice_hint_cross">A whole scramble, and the shortest cross you can find in it.</string>
   <string name="drill_cases">Cases</string>
-  <string name="drill_cases_pick">Choose cases</string>
+  <string name="drill_cases_choose">Choose</string>
   <string name="drill_cases_count">%1$d of %2$d picked</string>
   <string name="drill_cases_title_oll">OLL cases</string>
   <string name="drill_cases_title_pll">PLL cases</string>
   <string name="drill_cases_all">All</string>
   <string name="drill_cases_none">None</string>
   <string name="drill_cases_empty">Pick at least one case to drill.</string>
-  <string name="drill_cases_hint">Tap a case to pick it, hold it to see its algorithms.</string>
+  <string name="drill_cases_hint">Hold a case for its algorithms.</string>
+  <string name="drill_cases_all_count">All %d cases</string>
+  <string name="drill_cases_skipping">Skipping</string>
+  <string name="drill_cases_more" translatable="false">+%d</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
   <string name="case_algorithms">Algorithms</string>
@@ -816,7 +819,6 @@
   <string name="case_algorithm_mine">The one you use</string>
   <string name="case_algorithm_recommended">Recommended</string>
   <string name="case_algorithm_yours">Yours</string>
-  <string name="case_algorithm_mine_recommended">The one you use, and recommended</string>
   <string name="case_algorithm_add">Use your own algorithm</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">That does not solve this case. Check it and try again.</string>

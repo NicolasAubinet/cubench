@@ -2,13 +2,16 @@ package com.cube.nanotimer.gui.widget;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
 import android.view.View;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
@@ -23,6 +26,12 @@ import com.cube.nanotimer.util.helper.Utils;
  * layer is. This is a chart rather than a picture of their cube — the drill screen's 3D cube is the
  * one that follows them — and a chart that changed colour with a setting would stop matching every
  * other chart they have ever read a case off.
+ *
+ * <p><b>The chart brings its own ground.</b> Stickers this grey on a card of about the same grey
+ * are a picture with nothing to be a picture on, so the view paints a lit well behind them and the
+ * card that used to surround it is gone. Turned down, it drops the well for an edge and draws the
+ * stickers themselves quieter: fading the whole tile pulls value, chroma and contrast down together
+ * and leaves the yellow olive.
  */
 public class LastLayerCaseView extends View {
 
@@ -33,16 +42,30 @@ public class LastLayerCaseView extends View {
   private static final float CORNER_RADIUS = 0.035f;
   private static final float ARROW_HEAD = 0.075f;
 
+  /** Of the whole square: the margin the chart keeps inside its well, and the well's own radius. */
+  private static final float STAGE_PAD = 0.055f;
+  private static final float STAGE_RADIUS = 0.10f;
+
+  /** How much of a sticker is left on a case that is turned down, and how much of a blank one. */
+  private static final float DIM = 0.42f;
+  private static final float DIM_BLANK = 0.55f;
+
   private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint arrowLine = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint arrowHead = new Paint(Paint.ANTI_ALIAS_FLAG);
+  private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final RectF sticker = new RectF();
+  private final RectF ground = new RectF();
   private final Path head = new Path();
 
+  private GradientDrawable stage;
   private int layerColor;
   private int blankColor;
+  private int arrowColor;
+  private int groundColor;
 
   private LastLayerDiagram diagram;
+  private boolean dimmed;
 
   public LastLayerCaseView(Context context) {
     super(context);
@@ -55,18 +78,30 @@ public class LastLayerCaseView extends View {
   }
 
   private void init() {
-    layerColor = ContextCompat.getColor(getContext(), R.color.case_layer);
-    blankColor = ContextCompat.getColor(getContext(), R.color.case_blank);
+    layerColor = color(R.color.case_layer);
+    blankColor = color(R.color.case_blank);
+    arrowColor = color(R.color.case_arrow);
+    groundColor = color(R.color.dialog_surface);
     fill.setStyle(Paint.Style.FILL);
-    arrowLine.setColor(ContextCompat.getColor(getContext(), R.color.case_arrow));
     arrowLine.setStyle(Paint.Style.STROKE);
     arrowLine.setStrokeCap(Paint.Cap.ROUND);
-    arrowHead.setColor(arrowLine.getColor());
     arrowHead.setStyle(Paint.Style.FILL);
+    edge.setStyle(Paint.Style.STROKE);
+    edge.setColor(color(R.color.case_off_edge));
+    // Mutated: the radius follows the chart's size, and the constant state is shared with every
+    // other chart on the screen.
+    stage = (GradientDrawable) ContextCompat.getDrawable(getContext(), R.drawable.case_stage)
+        .mutate();
   }
 
   public void setDiagram(LastLayerDiagram diagram) {
     this.diagram = diagram;
+    invalidate();
+  }
+
+  /** A case the drill will not deal: the well goes, an edge stays, and the stickers go quiet. */
+  public void setDimmed(boolean dimmed) {
+    this.dimmed = dimmed;
     invalidate();
   }
 
@@ -82,10 +117,15 @@ public class LastLayerCaseView extends View {
 
   @Override
   protected void onDraw(Canvas canvas) {
+    float full = Math.min(getWidth(), getHeight());
+    drawGround(canvas, full);
     if (diagram == null) {
       return;
     }
-    float size = Math.min(getWidth(), getHeight());
+    float pad = full * STAGE_PAD;
+    canvas.save();
+    canvas.translate(pad, pad);
+    float size = full - 2 * pad;
     float tab = size * TAB;
     float gap = size * GAP;
     float cell = (size - 2 * (tab + gap) - 2 * gap) / 3;
@@ -96,7 +136,7 @@ public class LastLayerCaseView extends View {
       float left = origin + (index % 3) * (cell + gap);
       float top = origin + (index / 3) * (cell + gap);
       sticker.set(left, top, left + cell, top + cell);
-      fill.setColor(diagram.isOriented(index) ? layerColor : blankColor);
+      fill.setColor(ink(diagram.isOriented(index) ? layerColor : blankColor));
       canvas.drawRoundRect(sticker, radius, radius, fill);
     }
 
@@ -109,13 +149,43 @@ public class LastLayerCaseView extends View {
         case 2: sticker.set(at, size - tab, at + cell, size); break;
         default: sticker.set(0, at, tab, at + cell); break;
       }
-      fill.setColor(sideColor(diagram.sideFace(index)));
+      fill.setColor(ink(sideColor(diagram.sideFace(index))));
       canvas.drawRoundRect(sticker, radius / 2, radius / 2, fill);
     }
 
     if (diagram.isPermutation()) {
       drawArrows(canvas, origin, cell, gap, size);
     }
+    canvas.restore();
+  }
+
+  private void drawGround(Canvas canvas, float size) {
+    float radius = size * STAGE_RADIUS;
+    if (dimmed) {
+      float width = getResources().getDisplayMetrics().density;
+      edge.setStrokeWidth(width);
+      ground.set(width / 2, width / 2, size - width / 2, size - width / 2);
+      canvas.drawRoundRect(ground, radius, radius, edge);
+    } else {
+      stage.setCornerRadius(radius);
+      stage.setBounds(0, 0, (int) size, (int) size);
+      stage.draw(canvas);
+    }
+  }
+
+  /**
+   * A colour as it is drawn here: itself, or what is left of it once the case is turned down. A
+   * sticker goes down towards black, which keeps its hue; mixing it into the tile instead takes the
+   * chroma with the value and lands the yellow on olive, which is the fade this replaces. A blank
+   * one has no hue to keep and goes the other way, or it would sink into the tile and take the
+   * shape of the case with it.
+   */
+  private int ink(int color) {
+    if (!dimmed) {
+      return color;
+    }
+    return color == blankColor ? ColorUtils.blendARGB(groundColor, color, DIM_BLANK)
+        : ColorUtils.blendARGB(Color.BLACK, color, DIM);
   }
 
   /**
@@ -137,6 +207,8 @@ public class LastLayerCaseView extends View {
    */
   private void drawArrows(Canvas canvas, float origin, float cell, float gap, float size) {
     arrowLine.setStrokeWidth(size * 0.025f);
+    arrowLine.setColor(ink(arrowColor));
+    arrowHead.setColor(arrowLine.getColor());
     for (int from = 0; from < 9; from++) {
       int to = diagram.arrow(from);
       if (to == from) {
@@ -182,5 +254,9 @@ public class LastLayerCaseView extends View {
 
   private static float centre(float origin, float cell, float gap, int index) {
     return origin + index * (cell + gap) + cell / 2;
+  }
+
+  private int color(int colorResId) {
+    return ContextCompat.getColor(getContext(), colorResId);
   }
 }

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- A case in the picker that the drill will not run: the card is there, quietly. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-   android:shape="rectangle">
-  <solid android:color="@color/white_wash_10"/>
-  <corners android:radius="8dp"/>
-</shape>

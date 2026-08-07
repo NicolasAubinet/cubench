@@ -30,6 +30,15 @@
   <!-- Lifted well clear of the cube green, which is too dark to carry small text on the dialog. -->
   <color name="green_soft">#7BD983</color>
 
+  <!-- The lit well a drawing stands on, centre to edge, and the flat near black it runs out to. -->
+  <color name="stage_centre">#22272C</color>
+  <color name="stage_edge">#0F1215</color>
+  <color name="stage_flat">#1A1D21</color>
+
+  <!-- Ink for something deliberately turned down, and the same again quieter. -->
+  <color name="bluegray500">#79848B</color>
+  <color name="bluegray600">#5E686E</color>
+
   <!-- Washes: the accent and white laid over a dark ground, named by how much of them lands.
        A fill that is "the accent, quietly" belongs here rather than written out again per screen. -->
   <color name="accent_wash_08">#146CCCEC</color>
@@ -131,7 +140,21 @@
        showing where a piece has to travel. Yellow-on-top, as every case chart is. -->
   <color name="case_layer">@color/cube_yellow</color>
   <color name="case_blank">#4A4F55</color>
-  <color name="case_arrow">#1A1D21</color>
+  <color name="case_arrow">@color/stage_flat</color>
+
+  <!-- The well the chart stands in, and the edge that is left of it on a case the drill skips. -->
+  <color name="case_stage_centre">@color/stage_centre</color>
+  <color name="case_stage_edge">@color/stage_edge</color>
+  <color name="case_stage_stroke">@color/white_wash_10</color>
+  <color name="case_off_edge">@color/white_wash_12</color>
+
+  <color name="case_name">@color/white</color>
+  <color name="case_name_off">@color/bluegray500</color>
+  <color name="case_shape">@color/secondary_text</color>
+  <color name="case_shape_off">@color/bluegray600</color>
+
+  <!-- An algorithm row, on the same near black the stage runs out to. -->
+  <color name="case_alg_row">@color/stage_flat</color>
 
   <!-- Solve steps, in solve order: cross, F2L, then the warm last-layer pair. Past the fourth there
        is no method step left to name, only a position, and a solve type may define eight: with four

@@ -782,14 +782,16 @@
   <string name="drill_practice_hint_oll">Un OLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_cross">Una mezcla completa, y la cruz más corta que encuentres en ella.</string>
   <string name="drill_cases">Casos</string>
-  <string name="drill_cases_pick">Elegir casos</string>
+  <string name="drill_cases_choose">Elegir</string>
   <string name="drill_cases_count">%1$d de %2$d elegidos</string>
   <string name="drill_cases_title_oll">Casos OLL</string>
   <string name="drill_cases_title_pll">Casos PLL</string>
   <string name="drill_cases_all">Todos</string>
   <string name="drill_cases_none">Ninguno</string>
   <string name="drill_cases_empty">Elige al menos un caso para practicar.</string>
-  <string name="drill_cases_hint">Toca un caso para elegirlo, mantenlo pulsado para ver sus algoritmos.</string>
+  <string name="drill_cases_hint">Mantén pulsado un caso para ver sus algoritmos.</string>
+  <string name="drill_cases_all_count">Los %d casos</string>
+  <string name="drill_cases_skipping">Omitidos</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
   <string name="case_algorithms">Algoritmos</string>
@@ -797,7 +799,6 @@
   <string name="case_algorithm_mine">El que usas</string>
   <string name="case_algorithm_recommended">Recomendado</string>
   <string name="case_algorithm_yours">El tuyo</string>
-  <string name="case_algorithm_mine_recommended">El que usas, y recomendado</string>
   <string name="case_algorithm_add">Usar tu propio algoritmo</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Eso no resuelve este caso. Compruébalo e inténtalo de nuevo.</string>

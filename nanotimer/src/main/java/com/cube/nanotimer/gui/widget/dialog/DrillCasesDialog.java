@@ -3,14 +3,21 @@ package com.cube.nanotimer.gui.widget.dialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
@@ -19,6 +26,7 @@ import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.util.helper.GUIUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -35,6 +43,11 @@ import java.util.Set;
  * <p>Every tap writes through to the preferences rather than being gathered up and saved at the end.
  * There is nothing to confirm — a case is either in the set or it is not — and it means the picker
  * survives being turned sideways or backed out of with the same answer it was showing.
+ *
+ * <p><b>The stage is the mark.</b> A picked case is a lit tile and an unpicked one is the same
+ * picture turned down behind a hairline, rather than the other way round: by default all 57 are
+ * picked, so a ring on a picked case was a ring on almost everything and the handful actually
+ * turned off were left to be found by their absence.
  */
 public class DrillCasesDialog extends NanoTimerDialogFragment {
 
@@ -45,8 +58,8 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
 
   private static final String ARG_FAMILY = "family";
 
-  /** Of the screen: how much of it the grid takes, so a long family scrolls in a card. */
-  private static final float GRID_HEIGHT = 0.62f;
+  /** Of the screen: how tall the picker may grow, leaving the dialog theme its own margins. */
+  private static final float MAX_HEIGHT = 0.92f;
 
   private String family;
   private final List<String> cases = new ArrayList<String>();
@@ -54,6 +67,9 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
   private final Set<String> picked = new LinkedHashSet<String>();
 
   private TextView tvCount;
+  private TextView tvAll;
+  private TextView tvNone;
+  private GridView grid;
   private CasesAdapter adapter;
 
   /** @param family the case code prefix, {@code "oll_"} or {@code "pll_"} */
@@ -82,12 +98,17 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
 
     View view = LayoutInflater.from(getActivity()).inflate(R.layout.drill_cases_dialog, null);
     tvCount = view.findViewById(R.id.tvCasesCount);
+    tvAll = view.findViewById(R.id.tvCasesAll);
+    tvNone = view.findViewById(R.id.tvCasesNone);
+    ((TextView) view.findViewById(R.id.tvCasesTitle)).setText(family.startsWith("oll")
+        ? R.string.drill_cases_title_oll : R.string.drill_cases_title_pll);
     adapter = new CasesAdapter();
-    GridView grid = view.findViewById(R.id.gvCases);
-    // Measured off the screen rather than left to the dialog: inside one, a grid asked to fill
-    // what is left of a card that is itself sized to its contents comes out with no height at all.
+    grid = view.findViewById(R.id.gvCases);
+    // A first guess, corrected to whole rows once there is a laid-out cell to measure. Inside a
+    // dialog a grid asked to fill what is left of a card that is itself sized to its contents comes
+    // out with no height at all, so it can never simply be given the room.
     grid.getLayoutParams().height = (int) (getResources().getDisplayMetrics().heightPixels
-        * GRID_HEIGHT);
+        * MAX_HEIGHT / 2);
     grid.setAdapter(adapter);
     grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
@@ -105,13 +126,13 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
         return true;
       }
     });
-    view.findViewById(R.id.tvCasesAll).setOnClickListener(new View.OnClickListener() {
+    tvAll.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         pickAll(true);
       }
     });
-    view.findViewById(R.id.tvCasesNone).setOnClickListener(new View.OnClickListener() {
+    tvNone.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         pickAll(false);
@@ -120,11 +141,47 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
     refreshCount();
 
     return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
-        .setTitle(family.startsWith("oll") ? R.string.drill_cases_title_oll
-            : R.string.drill_cases_title_pll)
         .setView(view)
         .setPositiveButton(R.string.close, null)
         .create();
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    grid.getViewTreeObserver().addOnGlobalLayoutListener(
+        new ViewTreeObserver.OnGlobalLayoutListener() {
+          @Override
+          public void onGlobalLayout() {
+            fitGrid();
+          }
+        });
+  }
+
+  /**
+   * The grid takes whole rows and no more room than the dialog has. Left to a fraction of the
+   * screen it cut the last row in half and left a dead band above CLOSE, on a family of 21 as
+   * surely as on one of 57.
+   */
+  private void fitGrid() {
+    Dialog dialog = getDialog();
+    if (dialog == null || dialog.getWindow() == null || grid.getChildCount() == 0) {
+      return;
+    }
+    int spacing = getResources().getDimensionPixelSize(R.dimen.case_grid_spacing);
+    int pitch = grid.getChildAt(0).getHeight() + spacing;
+    int columns = grid.getNumColumns();
+    if (pitch <= spacing || columns <= 0) {
+      return;
+    }
+    int chrome = dialog.getWindow().getDecorView().getHeight() - grid.getHeight();
+    int room = (int) (getResources().getDisplayMetrics().heightPixels * MAX_HEIGHT) - chrome;
+    int rows = (cases.size() + columns - 1) / columns;
+    int height = Math.min(rows, Math.max(1, room / pitch)) * pitch - spacing;
+    if (height != grid.getLayoutParams().height) {
+      grid.getLayoutParams().height = height;
+      grid.requestLayout();
+    }
   }
 
   @Override
@@ -158,8 +215,30 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
     refreshCount();
   }
 
+  /**
+   * The count with the picked number in the family's own colour, and the two shortcuts showing
+   * which of them the pick currently stands at.
+   */
   private void refreshCount() {
-    tvCount.setText(getString(R.string.drill_cases_count, picked.size(), cases.size()));
+    String count = String.valueOf(picked.size());
+    String text = getString(R.string.drill_cases_count, picked.size(), cases.size());
+    SpannableString spanned = new SpannableString(text);
+    int at = text.indexOf(count);
+    if (at >= 0) {
+      spanned.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getActivity(),
+              family.startsWith("oll") ? R.color.step_oll : R.color.step_pll)),
+          at, at + count.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+    tvCount.setText(spanned);
+    markSegment(tvAll, picked.size() == cases.size());
+    markSegment(tvNone, picked.isEmpty());
+  }
+
+  private void markSegment(TextView segment, boolean on) {
+    segment.setBackgroundResource(on ? R.drawable.cross_segment_selected : 0);
+    segment.setTextColor(ContextCompat.getColor(getActivity(),
+        on ? R.color.white : R.color.secondary_text));
+    GUIUtils.setWeight(segment, on ? Typeface.BOLD : Typeface.NORMAL);
   }
 
   private class CasesAdapter extends BaseAdapter {
@@ -187,18 +266,26 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
             .inflate(R.layout.drill_cases_cell, parent, false);
       }
       String code = cases.get(position);
+      boolean on = picked.contains(code);
+
       LastLayerCaseView chart = cell.findViewById(R.id.vCaseChart);
       chart.setDiagram(charts.get(position));
-      ((TextView) cell.findViewById(R.id.tvCaseName))
-          .setText(LastLayerCaseNames.shortName(code));
+      // Turned down rather than hidden: an unpicked case still has to be findable to be picked
+      // again. The chart dims itself, so the name and the edge keep the colours they were given.
+      chart.setDimmed(!on);
+
+      TextView name = cell.findViewById(R.id.tvCaseName);
+      name.setText(LastLayerCaseNames.shortName(code));
+      name.setTextColor(ContextCompat.getColor(getActivity(),
+          on ? R.color.case_name : R.color.case_name_off));
+
       TextView shape = cell.findViewById(R.id.tvCaseShape);
       String shapeName = LastLayerCaseNames.shape(code);
       shape.setText(shapeName == null ? "" : shapeName);
-
-      boolean on = picked.contains(code);
-      cell.setBackgroundResource(on ? R.drawable.case_cell_picked : R.drawable.case_cell);
-      // Dimmed rather than hidden: an unpicked case still has to be findable to be picked again.
-      cell.setAlpha(on ? 1f : 0.4f);
+      // A PLL has no shape, and an empty line still took its row on every one of the 21.
+      shape.setVisibility(shapeName == null ? View.GONE : View.VISIBLE);
+      shape.setTextColor(ContextCompat.getColor(getActivity(),
+          on ? R.color.case_shape : R.color.case_shape_off));
       return cell;
     }
   }

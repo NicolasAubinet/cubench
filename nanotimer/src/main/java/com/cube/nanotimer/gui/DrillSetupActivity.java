@@ -2,6 +2,10 @@ package com.cube.nanotimer.gui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -9,16 +13,21 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.CrossFaceSwatches;
+import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.helper.GUIUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +64,10 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final int[] REP_COUNTS = {10, 20, 30, 50};
   private static final int DEFAULT_PLANNING_SECONDS = 15;
 
+  /** How many of the skipped cases the row draws before it starts counting them instead. */
+  private static final int SKIPPED_SHOWN = 6;
+  private static final int SKIPPED_SIZE_DP = 32;
+
   private static final String KEY_PRACTICE = "practice";
   private static final String KEY_REPS = "reps";
   private static final String KEY_RECORDING = "recording";
@@ -76,6 +89,8 @@ public class DrillSetupActivity extends NanoTimerActivity
   private View planningSeconds;
   private TextView tvPracticeHint;
   private TextView tvCasesCount;
+  private TextView tvSkippingLabel;
+  private LinearLayout llSkipped;
   private View casesRow;
   private TextView tvModeHint;
   private TextView tvFaceLabel;
@@ -94,6 +109,8 @@ public class DrillSetupActivity extends NanoTimerActivity
     crossOptions = findViewById(R.id.llDrillCrossOptions);
     casesRow = findViewById(R.id.llDrillCases);
     tvCasesCount = findViewById(R.id.tvDrillCasesCount);
+    tvSkippingLabel = findViewById(R.id.tvDrillCasesSkipping);
+    llSkipped = findViewById(R.id.llDrillCasesSkipped);
     planningSeconds = findViewById(R.id.llDrillPlanningSeconds);
     tvPracticeHint = findViewById(R.id.tvDrillPracticeHint);
     tvFaceLabel = findViewById(R.id.tvDrillFaceLabel);
@@ -225,9 +242,60 @@ public class DrillSetupActivity extends NanoTimerActivity
     refreshCasesCount();
   }
 
+  /**
+   * What the drill will not deal, which is the short list and the one worth checking. Everything
+   * picked reads as one line: "57 of 57 picked" is a sum where "All 57 cases" is an answer.
+   */
   private void refreshCasesCount() {
     List<String> all = casesOf(family());
-    tvCasesCount.setText(getString(R.string.drill_cases_count, pickedCases().size(), all.size()));
+    List<String> picked = pickedCases();
+    List<String> skipped = new ArrayList<String>(all);
+    skipped.removeAll(picked);
+
+    if (skipped.isEmpty()) {
+      tvCasesCount.setText(getString(R.string.drill_cases_all_count, all.size()));
+    } else {
+      tvCasesCount.setText(countWithFamilyColour(picked.size(), all.size()));
+    }
+    tvSkippingLabel.setVisibility(skipped.isEmpty() ? View.GONE : View.VISIBLE);
+    llSkipped.setVisibility(skipped.isEmpty() ? View.GONE : View.VISIBLE);
+    llSkipped.removeAllViews();
+    for (int i = 0; i < Math.min(SKIPPED_SHOWN, skipped.size()); i++) {
+      LastLayerCaseView chart = new LastLayerCaseView(this);
+      chart.setDiagram(LastLayerDiagram.forCase(skipped.get(i)));
+      chart.setLayoutParams(stripCell());
+      llSkipped.addView(chart);
+    }
+    if (skipped.size() > SKIPPED_SHOWN) {
+      TextView more = GUIUtils.newTextView(this);
+      more.setText(getString(R.string.drill_cases_more, skipped.size() - SKIPPED_SHOWN));
+      more.setTextSize(11);
+      more.setTextColor(ContextCompat.getColor(this, R.color.secondary_text));
+      more.setGravity(Gravity.CENTER);
+      more.setBackgroundResource(R.drawable.case_more);
+      more.setLayoutParams(stripCell());
+      llSkipped.addView(more);
+    }
+  }
+
+  private LinearLayout.LayoutParams stripCell() {
+    int size = (int) (SKIPPED_SIZE_DP * getResources().getDisplayMetrics().density);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
+    params.rightMargin = getResources().getDimensionPixelSize(R.dimen.space_xs);
+    return params;
+  }
+
+  private CharSequence countWithFamilyColour(int picked, int total) {
+    String count = String.valueOf(picked);
+    String text = getString(R.string.drill_cases_count, picked, total);
+    SpannableString spanned = new SpannableString(text);
+    int at = text.indexOf(count);
+    if (at >= 0) {
+      spanned.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this,
+              FAMILY_OLL.equals(family()) ? R.color.step_oll : R.color.step_pll)),
+          at, at + count.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+    return spanned;
   }
 
   private String family() {

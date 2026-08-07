@@ -1,66 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The case picker: a chart of every case in the family, tapped on or off. The count and the two
-     shortcuts stay above the grid so they are reachable without scrolling back to the top of 57. -->
+<!-- The case picker: a chart of every case in the family, tapped on or off. The dialog draws its
+     own title so All and None can share that line as one segmented control, which gives the grid
+     back most of a row; the count and the hint follow on one line under it. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
    android:layout_width="match_parent"
-   android:layout_height="match_parent"
+   android:layout_height="wrap_content"
    android:orientation="vertical"
    android:paddingLeft="12dp"
    android:paddingRight="12dp"
-   android:paddingTop="12dp">
+   android:paddingTop="14dp">
 
   <LinearLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:gravity="center_vertical"
-     android:orientation="horizontal"
-     android:paddingBottom="8dp">
+     android:orientation="horizontal">
 
     <TextView
-       android:id="@+id/tvCasesCount"
+       android:id="@+id/tvCasesTitle"
        android:layout_width="0dp"
        android:layout_height="wrap_content"
        android:layout_weight="1"
-       android:textColor="@color/secondary_text"
-       android:textSize="13sp"/>
+       android:fontFamily="@font/roboto_medium"
+       android:textColor="@color/white"
+       android:textSize="17sp"
+       app:fontFamily="@font/roboto_medium"/>
 
-    <TextView
-       android:id="@+id/tvCasesAll"
-       style="@style/RowChip"
-       android:layout_marginLeft="6dp"
-       android:text="@string/drill_cases_all"
-       android:textColor="@color/lightblue"
-       android:textSize="13sp"/>
+    <!-- Two shortcuts as one container, which is also a reading of where the pick stands: All is
+         filled when every case is on, None when none is, neither in between. -->
+    <LinearLayout
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:background="@drawable/cross_segment_container"
+       android:orientation="horizontal"
+       android:padding="3dp">
 
-    <TextView
-       android:id="@+id/tvCasesNone"
-       style="@style/RowChip"
-       android:layout_marginLeft="6dp"
-       android:text="@string/drill_cases_none"
-       android:textColor="@color/lightblue"
-       android:textSize="13sp"/>
+      <TextView
+         android:id="@+id/tvCasesAll"
+         style="@style/CasesSegment"
+         android:text="@string/drill_cases_all"/>
+
+      <TextView
+         android:id="@+id/tvCasesNone"
+         style="@style/CasesSegment"
+         android:text="@string/drill_cases_none"/>
+    </LinearLayout>
   </LinearLayout>
 
-  <TextView
-     android:id="@+id/tvCasesHint"
+  <LinearLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_marginBottom="8dp"
-     android:text="@string/drill_cases_hint"
-     android:textColor="@color/secondary_text"
-     android:textSize="12sp"/>
+     android:layout_marginTop="7dp"
+     android:layout_marginBottom="9dp"
+     android:baselineAligned="true"
+     android:orientation="horizontal">
+
+    <TextView
+       android:id="@+id/tvCasesCount"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+
+    <TextView
+       android:id="@+id/tvCasesHint"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:ellipsize="end"
+       android:gravity="right"
+       android:maxLines="1"
+       android:paddingLeft="8dp"
+       android:text="@string/drill_cases_hint"
+       android:textColor="@color/secondary_text"
+       android:textSize="11sp"/>
+  </LinearLayout>
 
   <GridView
      android:id="@+id/gvCases"
      android:layout_width="match_parent"
-     android:layout_height="0dp"
-     android:layout_weight="1"
+     android:layout_height="wrap_content"
      android:columnWidth="72dp"
-     android:horizontalSpacing="8dp"
+     android:horizontalSpacing="@dimen/case_grid_spacing"
      android:numColumns="auto_fit"
-     android:paddingBottom="8dp"
      android:scrollbarStyle="outsideOverlay"
      android:stretchMode="columnWidth"
-     android:verticalSpacing="8dp"/>
+     android:verticalSpacing="@dimen/case_grid_spacing"/>
 
 </LinearLayout>

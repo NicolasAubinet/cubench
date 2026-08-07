@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One case in the picker: its chart, its name, and for an OLL the shape it goes by. -->
+<!-- One case in the picker: its chart, its name, and for an OLL the shape it goes by. No card of
+     its own — the chart brings the ground it stands on, and a second frame round a rounded picture
+     said nothing the picture was not already saying. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
    android:id="@+id/llCaseCell"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
    android:gravity="center_horizontal"
    android:orientation="vertical"
-   android:padding="5dp">
+   android:paddingBottom="2dp">
 
   <com.cube.nanotimer.gui.widget.LastLayerCaseView
      android:id="@+id/vCaseChart"
@@ -17,9 +20,11 @@
      android:id="@+id/tvCaseName"
      android:layout_width="wrap_content"
      android:layout_height="wrap_content"
-     android:layout_marginTop="4dp"
-     android:textColor="@color/white"
-     android:textSize="12sp"/>
+     android:layout_marginTop="5dp"
+     android:fontFamily="@font/roboto_medium"
+     android:textColor="@color/case_name"
+     android:textSize="13sp"
+     app:fontFamily="@font/roboto_medium"/>
 
   <TextView
      android:id="@+id/tvCaseShape"
@@ -28,7 +33,7 @@
      android:ellipsize="end"
      android:gravity="center_horizontal"
      android:maxLines="1"
-     android:textColor="@color/secondary_text"
+     android:textColor="@color/case_shape"
      android:textSize="10sp"/>
 
 </LinearLayout>

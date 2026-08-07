@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The block holding an algorithm of the user's own. The accent edge is what says it is a block
+     apart rather than the first item of the list under it. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <shape android:shape="rectangle">
+      <solid android:color="@color/lightblue"/>
+      <corners android:radius="8dp"/>
+    </shape>
+  </item>
+  <item android:left="3dp">
+    <shape android:shape="rectangle">
+      <solid android:color="@color/dialog_surface"/>
+      <corners
+         android:topLeftRadius="0dp"
+         android:bottomLeftRadius="0dp"
+         android:topRightRadius="8dp"
+         android:bottomRightRadius="8dp"/>
+    </shape>
+  </item>
+</layer-list>

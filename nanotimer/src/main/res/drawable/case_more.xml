@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tail of the skipped strip: how many more the drill leaves out than there was room to draw. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/chip_bg"/>
+  <corners android:radius="6dp"/>
+</shape>
