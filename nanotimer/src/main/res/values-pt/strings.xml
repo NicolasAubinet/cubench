@@ -391,7 +391,7 @@
   <string name="scramble_type_roux_last_6_edges">6 últimas arestas do Roux</string>
   <string name="scramble_type_parity">Paridade</string>
 
-  <string name="scramble_generating">Scramble sendo gerado\nAguarde&#8230;</string>
+  <string name="scramble_generating">Gerando scrambles</string>
   <string name="can_not_add_time_while_generating">Não é possível adicionar um tempo quando não há scramble</string>
 
   <string name="release_notes_features_html">

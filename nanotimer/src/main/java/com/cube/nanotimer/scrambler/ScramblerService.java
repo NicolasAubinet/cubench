@@ -41,6 +41,7 @@ public enum ScramblerService {
   private static final int MAX_CACHE_SIZE = 50;
 
   private Context context;
+  private SeedScrambles seedScrambles;
   private final Map<ScrambleCacheKey, LinkedList<String[]>> cachedScrambles = new HashMap<ScrambleCacheKey, LinkedList<String[]>>();
   private final List<RSScrambler> scramblers = new ArrayList<>();
   private volatile Thread generationThread = null;
@@ -54,6 +55,7 @@ public enum ScramblerService {
 
   public void init(Context context) {
     this.context = context;
+    this.seedScrambles = new SeedScrambles(context);
   }
 
   public void checkScrambleCaches() {
@@ -210,20 +212,6 @@ public enum ScramblerService {
         }
       }
 
-      /** The longest a generated scramble may be, or 0 where the solver decides for itself. */
-      public int getRSScrambleLength(CubeType cubeType) {
-        switch (cubeType) {
-          case TWO_BY_TWO:
-            return 11;
-          case THREE_BY_THREE:
-            return 21;
-          case PYRAMINX:
-            return 11;
-          default:
-            return 0;
-        }
-      }
-
 //      private void checkPluggedIn() {
 //        // call service to check if generation should be started or stopped
 //        context.sendBroadcast(new Intent(ChargingStateReceiver.CHECK_ACTION_NAME));
@@ -237,6 +225,20 @@ public enum ScramblerService {
       for (int i = 0; i < listeners.size(); i++) {
         listeners.get(i).onStateUpdate(state);
       }
+    }
+  }
+
+  /** The longest a generated scramble may be, or 0 where the solver decides for itself. */
+  public static int getRSScrambleLength(CubeType cubeType) {
+    switch (cubeType) {
+      case TWO_BY_TWO:
+        return 11;
+      case THREE_BY_THREE:
+        return 21;
+      case PYRAMINX:
+        return 11;
+      default:
+        return 0;
     }
   }
 
@@ -295,35 +297,65 @@ public enum ScramblerService {
     }
   }
 
+  /**
+   * The next scramble for this puzzle, or null when a random-state one is not ready yet.
+   *
+   * <p>A puzzle that has a random-state solver is never handed a random-move scramble instead: the
+   * two are not the same quality, and a session whose first scramble was the lesser one is a
+   * session with an odd solve in it. Where the solver has not run yet, one of the scrambles shipped
+   * with the app stands in ({@link SeedScrambles}); only once those are gone too does this return
+   * null, and a caller with nothing to show waits for a
+   * {@link RandomStateGenEvent.State#GENERATED} event and asks again.
+   *
+   * <p>Reads the scramble file, so call it off the UI thread. A caller that must answer at once
+   * asks {@link #getScramble(CubeType, ScrambleType, boolean)} for the memory cache alone first.
+   */
   public String[] getScramble(final CubeType cubeType, final ScrambleType scrambleType) {
-    if (getRandomStateCubeTypes().contains(cubeType)) {
-      String[] scramble = null;
-      boolean foundScrambleInCache = false;
+    return getScramble(cubeType, scrambleType, true);
+  }
 
-      synchronized (cacheMemHelper) {
-        Queue<String[]> scramblesCache = getCache(cubeType, scrambleType);
-        if (scramblesCache.size() > 0) {
-          scramble = scramblesCache.remove();
-          foundScrambleInCache = true;
-        }
-      }
-
-      if (!foundScrambleInCache) {
-        if (scrambleType == null || scrambleType.isDefault()) {
-          scramble = ScramblerFactory.getScrambler(cubeType).getNewScramble();
-        }
-      }
-
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          removeFirstScrambleFromFile(cubeType, scrambleType);
-          checkCache(cubeType);
-        }
-      }).start();
-      return scramble;
-    } else {
+  /**
+   * @param fromFile whether an empty memory cache may be refilled from the scramble file. Memory is
+   *     filled per cube type as generation reaches it, so a puzzle whose turn has not come yet can
+   *     have a full file sitting behind an empty cache. Reading it is disk access, though, and off
+   *     limits on the UI thread.
+   */
+  public String[] getScramble(final CubeType cubeType, final ScrambleType scrambleType, boolean fromFile) {
+    if (!getRandomStateCubeTypes().contains(cubeType)) {
       return ScramblerFactory.getScrambler(cubeType).getNewScramble();
+    }
+    String[] scramble = takeCachedScramble(cubeType, scrambleType);
+    if (scramble == null && fromFile) {
+      loadCacheFromFile(cubeType, scrambleType);
+      scramble = takeCachedScramble(cubeType, scrambleType);
+    }
+    final boolean fromCache = (scramble != null);
+    if (scramble == null && isDefault(scrambleType)) {
+      // Only the ordinary scramble has a shipped pool: one per special type is not worth an APK.
+      scramble = seedScrambles.take(cubeType, fromFile);
+    }
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if (fromCache) { // a shipped scramble, or none at all, costs the cache file nothing
+          removeFirstScrambleFromFile(cubeType, scrambleType);
+        }
+        checkCache(cubeType);
+      }
+    }).start();
+    return scramble;
+  }
+
+  /** A null scramble type is the ordinary full scramble, and so is the one named "default". */
+  private static boolean isDefault(ScrambleType scrambleType) {
+    return scrambleType == null || scrambleType.isDefault();
+  }
+
+  private String[] takeCachedScramble(CubeType cubeType, ScrambleType scrambleType) {
+    synchronized (cacheMemHelper) {
+      Queue<String[]> scramblesCache = getCache(cubeType, scrambleType);
+      return scramblesCache.isEmpty() ? null : scramblesCache.remove();
     }
   }
 
@@ -369,17 +401,14 @@ public enum ScramblerService {
 
   private String getFileName(CubeType cubeType, ScrambleType scrambleType) {
     String fileName = "randomstate_scrambles_" + cubeType.getId();
-    if (scrambleType != null && !scrambleType.isDefault()) {
+    if (!isDefault(scrambleType)) {
       fileName += "_" + scrambleType.getName();
     }
     return fileName;
   }
 
   private Queue<String[]> getCache(CubeType cubeType, ScrambleType scrambleType) {
-    ScrambleType cacheScrambleType = scrambleType;
-    if (cacheScrambleType != null && cacheScrambleType.isDefault()) {
-      cacheScrambleType = null;
-    }
+    ScrambleType cacheScrambleType = isDefault(scrambleType) ? null : scrambleType;
     ScrambleCacheKey scrambleCacheKey = new ScrambleCacheKey(cubeType.getId(), cacheScrambleType);
 
     LinkedList<String[]> scrambles;

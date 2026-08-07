@@ -389,7 +389,7 @@
   <string name="scramble_type_roux_last_6_edges">6 dernières pièces de Roux</string>
   <string name="scramble_type_parity">Parité</string>
 
-  <string name="scramble_generating">Mélange en cours de génération\nMerci de patienter&#8230;</string>
+  <string name="scramble_generating">Génération des mélanges</string>
   <string name="can_not_add_time_while_generating">Impossible d\'ajouter un temps quand il n\'y a pas de mélange</string>
 
   <string name="release_notes_features_html">

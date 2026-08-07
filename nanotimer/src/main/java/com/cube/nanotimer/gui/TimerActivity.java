@@ -106,6 +106,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private TextView tvTimer;
   private TextView tvScramble;
+  private View scrambleLoading; // the spinner that stands in for a scramble not generated yet
   private TextView tvSolvesCount;
   private TextView tvBanner;
   private View identityRow;
@@ -210,11 +211,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private RandomStateGenListener randomStateGenListener = new RandomStateGenListener() {
     @Override
     public void onStateUpdate(RandomStateGenEvent event) {
-      if (event.getState() == State.GENERATED) {
-        boolean foundScramble = getAndDisplayNewScramble();
-        if (foundScramble) {
-          ScramblerService.INSTANCE.removeRandomStateGenListener(this);
-        }
+      // Only this puzzle's own scrambles can end the wait, so the rest are not worth a look. The
+      // idle event that closes a run is the backstop, for a batch that finished without one.
+      boolean mayBeReady = event.getState() == State.IDLE
+          || (event.getState() == State.GENERATED && isOurGeneration(event));
+      if (mayBeReady && getAndDisplayNewScramble()) {
+        ScramblerService.INSTANCE.removeRandomStateGenListener(this);
       }
     }
   };
@@ -336,6 +338,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   @Override
   protected void onDestroy() {
+    ScramblerService.INSTANCE.removeRandomStateGenListener(randomStateGenListener);
     if (liveCube != null) { // onCreate finishes early without a solve type, and never builds one
       liveCube.destroy();
     }
@@ -388,9 +391,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void renderScramble() {
     if (currentScramble == null) {
       scrambleAnimator.reset();
-      tvScramble.setText(R.string.scramble_generating);
+      tvScramble.setText("");
+      showScrambleLoading(true);
       return;
     }
+    showScrambleLoading(false);
     switch (solveController.getFollowMode()) {
       case NEEDS_SOLVE:
         scrambleAnimator.reset();
@@ -471,6 +476,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private void initViews() {
     tvTimer = (TextView) findViewById(R.id.tvTimer);
     tvScramble = (TextView) findViewById(R.id.tvScramble);
+    scrambleLoading = findViewById(R.id.scrambleLoading);
     tvSolvesCount = (TextView) findViewById(R.id.tvSolvesCount);
     tvBanner = (TextView) findViewById(R.id.tvBanner);
     identityRow = findViewById(R.id.identityRow);
@@ -1613,20 +1619,63 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
+  /**
+   * Puts the next scramble on screen, or the spinner in its place until there is one. Puzzles with
+   * a random-state solver are never given a random-move scramble to fill the gap, and the app ships
+   * a pool of ordinary ones for whichever has not been generated yet, so the wait is rare: a
+   * special scramble type (last layer, F2L), which has no shipped pool, or one whose pool has run
+   * out before generation caught up.
+   */
   private void generateScramble() {
-    if (cubeType != null) {
-      boolean foundScramble = getAndDisplayNewScramble();
-      if (!foundScramble) {
-        tvScramble.setText(R.string.scramble_generating);
-        // couldn't find scramble in cache (for special scrambles like f2l, edges only etc), wait for a GENERATED event to check again
-        ScramblerService.INSTANCE.addRandomStateGenListener(randomStateGenListener);
-      }
+    if (cubeType == null) {
+      return;
     }
+    currentScramble = null; // the one just used is spent: no tap may start a solve on it
+    ScramblerService.INSTANCE.removeRandomStateGenListener(randomStateGenListener);
+    if (getAndDisplayNewScramble(false)) {
+      return; // straight out of memory, in the same breath: the spinner is never drawn
+    }
+    showScrambleWait();
+    new Thread(new Runnable() {
+      @Override
+      public void run() { // the scramble file may have to be read, which the UI thread may not do
+        if (!getAndDisplayNewScramble(true)) {
+          ScramblerService.INSTANCE.addRandomStateGenListener(randomStateGenListener);
+        }
+      }
+    }).start();
+  }
+
+  /** Nothing to solve until a scramble arrives: the screen says so, and a tap does nothing. */
+  private void showScrambleWait() {
+    renderScramble();
+    renderStatePreview(); // the picture belonged to the scramble that has just been used up
+  }
+
+  private void showScrambleLoading(boolean loading) {
+    scrambleLoading.setVisibility(loading ? View.VISIBLE : View.GONE);
+    tvScramble.setVisibility(loading ? View.GONE : View.VISIBLE);
+  }
+
+  /** Whether an event is about the scrambles this screen is waiting for. */
+  private boolean isOurGeneration(RandomStateGenEvent event) {
+    if (event.getCubeType() != cubeType) {
+      return false;
+    }
+    ScrambleType generating = event.getScrambleType();
+    if (generating == null || generating.isDefault()) {
+      return scramblesTheWholeCube();
+    }
+    return generating.equals(solveType.getScrambleType());
   }
 
   private boolean getAndDisplayNewScramble() {
+    return getAndDisplayNewScramble(true);
+  }
+
+  private boolean getAndDisplayNewScramble(boolean fromFile) {
     boolean foundScramble = false;
-    String[] scramble = ScramblerService.INSTANCE.getScramble(cubeType, solveType.getScrambleType());
+    String[] scramble = ScramblerService.INSTANCE.getScramble(cubeType, solveType.getScrambleType(), fromFile);
     if (scramble != null) {
       currentScramble = scramble;
       runOnUiThread(new Runnable() {
