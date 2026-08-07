@@ -6,6 +6,8 @@ import android.preference.PreferenceManager;
 import com.cube.nanotimer.util.view.HeroStat;
 import com.cube.nanotimer.util.view.TimerFont;
 import com.cube.nanotimer.vo.CubeMethod;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public enum Options {
   INSTANCE;
@@ -48,6 +50,9 @@ public enum Options {
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
+  public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
+  public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
+  public static final String CASE_OWN_ALGORITHM_KEY_PREFIX = "case_own_alg_";
 
   private static final int MAX_STEPS_COUNT = 8;
 
@@ -239,6 +244,83 @@ public enum Options {
 
   public void setDrillChoice(String key, int value) {
     sharedPreferences.edit().putInt(DRILL_CHOICE_KEY_PREFIX + key, value).apply();
+  }
+
+  /**
+   * Which cases of a family a drill runs, or null for every one of them. Null and "all of them"
+   * are deliberately the same thing: a user who has never opened the picker gets the whole set, and
+   * one who ticks every box is not then pinned to the 57 OLLs that existed the day they ticked it.
+   *
+   * @param family the case code prefix, {@code "oll_"} or {@code "pll_"}
+   */
+  public Set<String> getDrillCases(String family) {
+    String stored = sharedPreferences.getString(DRILL_CASES_KEY_PREFIX + family, null);
+    if (stored == null) {
+      return null;
+    }
+    Set<String> cases = new LinkedHashSet<String>();
+    for (String code : stored.split(",")) {
+      if (!code.isEmpty()) {
+        cases.add(code);
+      }
+    }
+    return cases;
+  }
+
+  /** @param cases the picked cases, or null to go back to every case in the family */
+  public void setDrillCases(String family, Set<String> cases) {
+    String key = DRILL_CASES_KEY_PREFIX + family;
+    if (cases == null) {
+      sharedPreferences.edit().remove(key).apply();
+      return;
+    }
+    StringBuilder stored = new StringBuilder();
+    for (String code : cases) {
+      if (stored.length() > 0) {
+        stored.append(',');
+      }
+      stored.append(code);
+    }
+    sharedPreferences.edit().putString(key, stored.toString()).apply();
+  }
+
+  /**
+   * The algorithm the user solves a case with, or null while they have not said. Kept whether it
+   * came off the list or was typed in, since which of those it was stops mattering the moment it is
+   * theirs: what the app owes them afterwards is the one they use, not the one most people use.
+   *
+   * @param caseCode the case as a solve records it, {@code "oll_21"} or {@code "pll_ga"}
+   */
+  public String getCaseAlgorithm(String caseCode) {
+    return sharedPreferences.getString(CASE_ALGORITHM_KEY_PREFIX + caseCode, null);
+  }
+
+  /** @param algorithm the algorithm they use, or null to go back to having no preference */
+  public void setCaseAlgorithm(String caseCode, String algorithm) {
+    String key = CASE_ALGORITHM_KEY_PREFIX + caseCode;
+    if (algorithm == null) {
+      sharedPreferences.edit().remove(key).apply();
+    } else {
+      sharedPreferences.edit().putString(key, algorithm).apply();
+    }
+  }
+
+  /**
+   * An algorithm the user typed in for a case, kept whether or not it is the one they are currently
+   * using. Separate from the choice on purpose: typing an algorithm in is work, and trying one of
+   * the listed ones for a week should not be a way to lose it.
+   */
+  public String getOwnCaseAlgorithm(String caseCode) {
+    return sharedPreferences.getString(CASE_OWN_ALGORITHM_KEY_PREFIX + caseCode, null);
+  }
+
+  public void setOwnCaseAlgorithm(String caseCode, String algorithm) {
+    String key = CASE_OWN_ALGORITHM_KEY_PREFIX + caseCode;
+    if (algorithm == null) {
+      sharedPreferences.edit().remove(key).apply();
+    } else {
+      sharedPreferences.edit().putString(key, algorithm).apply();
+    }
   }
 
   /**

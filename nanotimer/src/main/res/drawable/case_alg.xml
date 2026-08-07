@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One of the other algorithms a case is solved with. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/white_wash_10"/>
+  <corners android:radius="8dp"/>
+</shape>

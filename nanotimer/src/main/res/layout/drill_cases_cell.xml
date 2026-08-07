@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case in the picker: its chart, its name, and for an OLL the shape it goes by. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llCaseCell"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:gravity="center_horizontal"
+   android:orientation="vertical"
+   android:padding="5dp">
+
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vCaseChart"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"/>
+
+  <TextView
+     android:id="@+id/tvCaseName"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:textColor="@color/white"
+     android:textSize="12sp"/>
+
+  <TextView
+     android:id="@+id/tvCaseShape"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:ellipsize="end"
+     android:gravity="center_horizontal"
+     android:maxLines="1"
+     android:textColor="@color/secondary_text"
+     android:textSize="10sp"/>
+
+</LinearLayout>

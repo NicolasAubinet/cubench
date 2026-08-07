@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case, big: the chart to recognise it by and the algorithms people actually use for it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="16dp"
+   android:paddingRight="16dp"
+   android:paddingTop="8dp">
+
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vCaseChart"
+     android:layout_width="150dp"
+     android:layout_height="150dp"
+     android:layout_gravity="center_horizontal"/>
+
+  <TextView
+     android:id="@+id/tvCaseShape"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="6dp"
+     android:gravity="center"
+     android:textColor="@color/secondary_text"
+     android:textSize="14sp"/>
+
+  <!-- An algorithm of the user's own sits above the list rather than inside it, so that having one
+       never moves, hides or renames anything the list was saying. -->
+  <TextView
+     android:id="@+id/tvCaseYoursLabel"
+     style="@style/DialogSectionLabel"
+     android:layout_marginTop="18dp"
+     android:text="@string/case_algorithm_yours"
+     android:visibility="gone"/>
+
+  <LinearLayout
+     android:id="@+id/llCaseYours"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:orientation="vertical"/>
+
+  <TextView
+     style="@style/DialogSectionLabel"
+     android:layout_marginTop="18dp"
+     android:text="@string/case_algorithms"/>
+
+  <!-- One row per algorithm, built in code, always in the same order. -->
+  <LinearLayout
+     android:id="@+id/llCaseAlgorithms"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:orientation="vertical"/>
+
+  <!-- The way out of the list, for a user who solves the case some other way entirely. -->
+  <TextView
+     android:id="@+id/tvCaseAddAlgorithm"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:text="@string/case_algorithm_add"
+     android:textColor="@color/lightblue"
+     android:textSize="14sp"/>
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="14dp"
+     android:text="@string/case_algorithms_source"
+     android:textColor="@color/secondary_text"
+     android:textSize="12sp"/>
+
+</LinearLayout>

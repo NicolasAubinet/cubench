@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The case picker: a chart of every case in the family, tapped on or off. The count and the two
+     shortcuts stay above the grid so they are reachable without scrolling back to the top of 57. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:orientation="vertical"
+   android:paddingLeft="12dp"
+   android:paddingRight="12dp"
+   android:paddingTop="12dp">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+     android:paddingBottom="8dp">
+
+    <TextView
+       android:id="@+id/tvCasesCount"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"/>
+
+    <TextView
+       android:id="@+id/tvCasesAll"
+       style="@style/RowChip"
+       android:layout_marginLeft="6dp"
+       android:text="@string/drill_cases_all"
+       android:textColor="@color/lightblue"
+       android:textSize="13sp"/>
+
+    <TextView
+       android:id="@+id/tvCasesNone"
+       style="@style/RowChip"
+       android:layout_marginLeft="6dp"
+       android:text="@string/drill_cases_none"
+       android:textColor="@color/lightblue"
+       android:textSize="13sp"/>
+  </LinearLayout>
+
+  <TextView
+     android:id="@+id/tvCasesHint"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginBottom="8dp"
+     android:text="@string/drill_cases_hint"
+     android:textColor="@color/secondary_text"
+     android:textSize="12sp"/>
+
+  <GridView
+     android:id="@+id/gvCases"
+     android:layout_width="match_parent"
+     android:layout_height="0dp"
+     android:layout_weight="1"
+     android:columnWidth="72dp"
+     android:horizontalSpacing="8dp"
+     android:numColumns="auto_fit"
+     android:paddingBottom="8dp"
+     android:scrollbarStyle="outsideOverlay"
+     android:stretchMode="columnWidth"
+     android:verticalSpacing="8dp"/>
+
+</LinearLayout>

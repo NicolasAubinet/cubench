@@ -14,13 +14,16 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.CrossFaceSwatches;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
+import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.util.helper.DialogUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Picking a drill: what to practise, how many reps of it, and whether the reps count.
@@ -37,8 +40,13 @@ import java.util.Locale;
  * <p>What hangs below the three shared controls depends on the practice. A cross drill is the only
  * one with a colour to pick, and it picks it from the cross solver's own swatches rather than a
  * second set of colours that could drift from them.
+ *
+ * <p><b>A case drill runs the cases the user picked, not the family.</b> Knowing eleven of the 57
+ * OLLs is the normal state of learning them, and a drill that deals the other 46 spends the session
+ * on cases there is nothing to practise yet.
  */
-public class DrillSetupActivity extends NanoTimerActivity {
+public class DrillSetupActivity extends NanoTimerActivity
+    implements DrillCasesDialog.Listener {
 
   private static final int PRACTICE_PLL = 0;
   private static final int PRACTICE_OLL = 1;
@@ -55,6 +63,9 @@ public class DrillSetupActivity extends NanoTimerActivity {
   private static final String KEY_PLANNING_ON = "planning_on";
   private static final String KEY_PLANNING_SECONDS = "planning_seconds";
 
+  private static final String FAMILY_PLL = "pll_";
+  private static final String FAMILY_OLL = "oll_";
+
   private SegmentedControl practice;
   private SegmentedControl reps;
   private SegmentedControl mode;
@@ -64,6 +75,8 @@ public class DrillSetupActivity extends NanoTimerActivity {
   private View crossOptions;
   private View planningSeconds;
   private TextView tvPracticeHint;
+  private TextView tvCasesCount;
+  private View casesRow;
   private TextView tvModeHint;
   private TextView tvFaceLabel;
 
@@ -79,6 +92,8 @@ public class DrillSetupActivity extends NanoTimerActivity {
     setTitle(R.string.drill_setup_title);
 
     crossOptions = findViewById(R.id.llDrillCrossOptions);
+    casesRow = findViewById(R.id.llDrillCases);
+    tvCasesCount = findViewById(R.id.tvDrillCasesCount);
     planningSeconds = findViewById(R.id.llDrillPlanningSeconds);
     tvPracticeHint = findViewById(R.id.tvDrillPracticeHint);
     tvFaceLabel = findViewById(R.id.tvDrillFaceLabel);
@@ -150,6 +165,13 @@ public class DrillSetupActivity extends NanoTimerActivity {
       }
     });
 
+    findViewById(R.id.llDrillCasesPick).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        DrillCasesDialog.newInstance(family()).show(getSupportFragmentManager(), "drillCases");
+      }
+    });
+
     findViewById(R.id.btDrillStart).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -190,8 +212,42 @@ public class DrillSetupActivity extends NanoTimerActivity {
       hint = R.string.drill_practice_hint_pll;
     }
     tvPracticeHint.setText(hint);
+    casesRow.setVisibility(cross ? View.GONE : View.VISIBLE);
+    if (!cross) {
+      refreshCasesCount();
+    }
     tvFaceLabel.setText(cross ? R.string.drill_cross_colour : R.string.drill_layer_colour);
     crossFaces.setSelection(cross ? crossFace : layerFace, null);
+  }
+
+  @Override
+  public void onDrillCasesPicked(String family) {
+    refreshCasesCount();
+  }
+
+  private void refreshCasesCount() {
+    List<String> all = casesOf(family());
+    tvCasesCount.setText(getString(R.string.drill_cases_count, pickedCases().size(), all.size()));
+  }
+
+  private String family() {
+    return practice.getSelection() == PRACTICE_OLL ? FAMILY_OLL : FAMILY_PLL;
+  }
+
+  /** The cases the drill will deal: what was picked, or the whole family if nothing ever was. */
+  private List<String> pickedCases() {
+    List<String> all = casesOf(family());
+    Set<String> chosen = Options.INSTANCE.getDrillCases(family());
+    if (chosen == null) {
+      return all;
+    }
+    List<String> picked = new ArrayList<String>();
+    for (String code : all) {
+      if (chosen.contains(code)) {
+        picked.add(code);
+      }
+    }
+    return picked;
   }
 
   private boolean isCrossDrill() {
@@ -220,11 +276,15 @@ public class DrillSetupActivity extends NanoTimerActivity {
               getString(R.string.drill_cross_title))
           .toJson());
     } else {
-      String family = practice.getSelection() == PRACTICE_OLL ? "oll_" : "pll_";
+      List<String> cases = pickedCases();
+      if (cases.isEmpty()) {
+        DialogUtils.showInfoMessage(this, R.string.drill_cases_empty);
+        return;
+      }
       intent = new Intent(this, DrillActivity.class);
       intent.putExtra(DrillActivity.EXTRA_LAYER_FACE, layerFace.name());
-      intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-" + family + "all",
-          DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL, casesOf(family),
+      intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-" + family() + "picked",
+          DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL, cases,
           DrillSpec.Selection.ROUND_ROBIN, repCount, 0,
           getString(practice.getSelection() == PRACTICE_OLL ? R.string.drill_practice_oll
               : R.string.drill_practice_pll)).toJson());

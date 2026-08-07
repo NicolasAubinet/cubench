@@ -127,6 +127,12 @@
   <color name="cube_green">#43A047</color>
   <color name="cube_blue">#1E88E5</color>
 
+  <!-- A last-layer case drawn as a chart: the layer, a sticker not yet facing up, and the arrows
+       showing where a piece has to travel. Yellow-on-top, as every case chart is. -->
+  <color name="case_layer">@color/cube_yellow</color>
+  <color name="case_blank">#4A4F55</color>
+  <color name="case_arrow">#1A1D21</color>
+
   <!-- Solve steps, in solve order: cross, F2L, then the warm last-layer pair. Past the fourth there
        is no method step left to name, only a position, and a solve type may define eight: with four
        to go round, step five came back cyan and stopped saying which segment it was. -->

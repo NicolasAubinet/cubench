@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A case the drill will run, ringed in the accent so a picked one reads across the whole grid. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/accent_wash_20"/>
+  <stroke android:width="2dp" android:color="@color/lightblue"/>
+  <corners android:radius="8dp"/>
+</shape>
