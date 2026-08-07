@@ -185,7 +185,7 @@ final class LastLayerCases {
   }
 
   /** The state turned in space, colours renamed with it, so a solved cube stays a solved cube. */
-  private static String inFrame(String facelets, int rotation) {
+  static String inFrame(String facelets, int rotation) {
     char[] framed = new char[facelets.length()];
     for (int facelet = 0; facelet < framed.length; facelet++) {
       int colour = Cubies.FACES.indexOf(facelets.charAt(facelet));

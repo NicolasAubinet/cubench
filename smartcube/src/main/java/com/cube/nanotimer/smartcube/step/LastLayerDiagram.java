@@ -7,9 +7,18 @@ import java.util.List;
  * sticker belongs to, and for a permutation, where every piece has to travel.
  *
  * <p>Drawn rather than shipped, and drawn from the very algorithm shown beside it: the picture is
- * the state the case's first algorithm solves, so the two cannot end up a quarter turn apart the way
- * a picture read off some other algorithm can. The others are written to be picked up the same way,
+ * the state the case's first algorithm solves, taken up the way that algorithm takes the cube up,
+ * so the two cannot end up a rotation apart the way a picture read off some other algorithm can. The others are written to be picked up the same way,
  * so one alignment serves the whole case and it looks the same everywhere it appears.
+ *
+ * <p>A permutation is then turned to the alignment it is taught at. The turn a cuber makes to line
+ * the layer up before an algorithm, and the one they make after it, are not part of the algorithm
+ * and are not written down, so an algorithm can end a quarter turn from solved. It still solves the
+ * case, but the state it solves is that case turned by a quarter, which draws a Z whose corners
+ * cycle rather than one that only swaps its edges. {@link #aligned} turns the layer back.
+ *
+ * <p>Which way back is not a matter of taste. A G perm reads as three corners and three edges at two
+ * of the four turns, and the wrong one of the two draws a Ga that is not what a Gb undoes.
  *
  * <p>Positions are the nine cells of the layer as it is drawn, left to right and back to front, so
  * cell 0 is the back-left corner and cell 8 the front-right. The twelve side stickers run clockwise
@@ -38,6 +47,7 @@ public final class LastLayerDiagram {
 
   private final String caseCode;
   private final boolean permutation;
+  private final String facelets;
   private final char[] top = new char[9];
   private final char[] sides = new char[12];
   private final int[] arrows = new int[9];
@@ -45,6 +55,7 @@ public final class LastLayerDiagram {
   private LastLayerDiagram(String caseCode, boolean permutation, String facelets) {
     this.caseCode = caseCode;
     this.permutation = permutation;
+    this.facelets = facelets;
     for (int cell = 0; cell < top.length; cell++) {
       top[cell] = facelets.charAt(TOP_FACELETS[cell]);
     }
@@ -60,8 +71,43 @@ public final class LastLayerDiagram {
     if (algorithms.isEmpty()) {
       return null;
     }
-    return new LastLayerDiagram(caseCode, caseCode.startsWith("pll_"),
+    boolean permutation = caseCode.startsWith("pll_");
+    LastLayerDiagram diagram = new LastLayerDiagram(caseCode, permutation,
         Notation.caseState(algorithms.get(0).getMoves()));
+    return permutation ? diagram.aligned() : diagram;
+  }
+
+  /**
+   * The same case with its layer turned to where {@link LastLayerAlgorithms} leaves it. That is the
+   * algorithm a drill deals the case with, alignment turn and all, so the state it leaves is the
+   * case as it is taught: the one a Ga is drawn at is the one a Gb undoes.
+   *
+   * <p>Looked for from every angle, since the two algorithms need not hold the cube the same way,
+   * and only the layer is turned, so the algorithm shown beside the picture still solves what is
+   * drawn once the reader has lined the layer up.
+   */
+  private LastLayerDiagram aligned() {
+    String reference = Notation.caseState(LastLayerAlgorithms.algorithm(
+        LastLayerAlgorithms.PERMUTATIONS, caseCode.substring(caseCode.indexOf('_') + 1)));
+    String turned = facelets;
+    for (int quarters = 0; quarters < 4; quarters++) {
+      if (standsLike(turned, reference)) {
+        return quarters == 0 ? this : new LastLayerDiagram(caseCode, true, turned);
+      }
+      turned = Notation.apply(turned, "U");
+    }
+    return this;
+  }
+
+  /** The same state as the reference, allowing for the cube being held a quarter turn round. */
+  private static boolean standsLike(String state, String reference) {
+    for (int rotation = 0; rotation < FaceletRotations.COUNT; rotation++) {
+      if (FaceletRotations.face(rotation, Cubies.U) == Cubies.U
+          && state.equals(LastLayerCases.inFrame(reference, rotation))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public String getCaseCode() {
