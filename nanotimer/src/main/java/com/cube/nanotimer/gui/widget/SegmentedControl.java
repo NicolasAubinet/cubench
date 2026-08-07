@@ -63,6 +63,11 @@ public class SegmentedControl {
     refresh();
   }
 
+  /** Takes a cell out of the row, for a choice that does not apply to what is being set up. */
+  public void setSegmentVisible(int index, boolean visible) {
+    cells.get(index).setVisibility(visible ? View.VISIBLE : View.GONE);
+  }
+
   /** Shows a pick without announcing it, for a caller restoring one. */
   public void setSelection(int index) {
     selection = index;

@@ -62,6 +62,11 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final int PRACTICE_CROSS = 2;
 
   private static final int[] REP_COUNTS = {10, 20, 30, 50};
+
+  /** The last segment of the reps row: as many reps as there are cases, so each comes up once. */
+  private static final int REPS_ALL = REP_COUNTS.length;
+  /** Which segment a drill starts on, before the user has ever picked one. */
+  private static final int DEFAULT_REP_CHOICE = 1;
   private static final int DEFAULT_PLANNING_SECONDS = 15;
 
   /** How many of the skipped cases the row draws before it starts counting them instead. */
@@ -129,10 +134,11 @@ public class DrillSetupActivity extends NanoTimerActivity
           }
         });
 
-    String[] repLabels = new String[REP_COUNTS.length];
+    String[] repLabels = new String[REP_COUNTS.length + 1];
     for (int i = 0; i < REP_COUNTS.length; i++) {
       repLabels[i] = String.valueOf(REP_COUNTS[i]);
     }
+    repLabels[REPS_ALL] = getString(R.string.drill_reps_all);
     reps = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llDrillReps), repLabels,
         new SegmentedControl.Listener() {
           @Override
@@ -197,7 +203,6 @@ public class DrillSetupActivity extends NanoTimerActivity
     });
 
     practice.setSelection(Options.INSTANCE.getDrillChoice(KEY_PRACTICE, PRACTICE_PLL));
-    reps.setSelection(Options.INSTANCE.getDrillChoice(KEY_REPS, 1));
     mode.setSelection(Options.INSTANCE.getDrillChoice(KEY_RECORDING, 1));
     cbPlanning.setChecked(Options.INSTANCE.getDrillChoice(KEY_PLANNING_ON, 0) == 1);
     etPlanningSeconds.setText(String.valueOf(
@@ -229,6 +234,11 @@ public class DrillSetupActivity extends NanoTimerActivity
       hint = R.string.drill_practice_hint_pll;
     }
     tvPracticeHint.setText(hint);
+    // Getting through the set is an answer for a case drill; a cross rep is a fresh scramble, so
+    // there is no set to get through and the choice is taken away rather than left to mean nothing.
+    reps.setSegmentVisible(REPS_ALL, !cross);
+    int chosenReps = Options.INSTANCE.getDrillChoice(KEY_REPS, DEFAULT_REP_CHOICE);
+    reps.setSelection(cross && chosenReps == REPS_ALL ? DEFAULT_REP_CHOICE : chosenReps);
     casesRow.setVisibility(cross ? View.GONE : View.VISIBLE);
     if (!cross) {
       refreshCasesCount();
@@ -332,9 +342,9 @@ public class DrillSetupActivity extends NanoTimerActivity
   }
 
   private void start() {
-    int repCount = REP_COUNTS[reps.getSelection()];
     Intent intent;
     if (practice.getSelection() == PRACTICE_CROSS) {
+      int repCount = REP_COUNTS[reps.getSelection()];
       int seconds = typedPlanningSeconds();
       Options.INSTANCE.setDrillChoice(KEY_PLANNING_SECONDS, seconds);
       intent = new Intent(this, CrossDrillActivity.class);
@@ -349,6 +359,8 @@ public class DrillSetupActivity extends NanoTimerActivity
         DialogUtils.showInfoMessage(this, R.string.drill_cases_empty);
         return;
       }
+      int repCount = reps.getSelection() == REPS_ALL ? cases.size()
+          : REP_COUNTS[reps.getSelection()];
       intent = new Intent(this, DrillActivity.class);
       intent.putExtra(DrillActivity.EXTRA_LAYER_FACE, layerFace.name());
       intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-" + family() + "picked",

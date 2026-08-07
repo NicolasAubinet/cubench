@@ -804,6 +804,7 @@
   <string name="case_algorithm_wrong">Eso no resuelve este caso. Compruébalo e inténtalo de nuevo.</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Repeticiones</string>
+  <string name="drill_reps_all">Todos</string>
   <string name="drill_mode">Modo</string>
   <string name="drill_mode_casual">Relajado</string>
   <string name="drill_mode_recording">Serio</string>
