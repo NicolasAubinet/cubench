@@ -39,6 +39,12 @@
       width: 100%;
       height: 100%;
     }
+    /* The player draws the cube a little below the middle of its box (it is looked at from above,
+       so the near bottom corner hangs lower than the top face rises). Lifted back to the middle of
+       the stage it is standing in. */
+    twisty-player.nt-3d {
+      transform: translateY(-3%);
+    }
     /* Hide twisty-player chrome — we only want the 2D net. */
     twisty-player {
       --controls-height: 0;
@@ -79,6 +85,10 @@
         el.setAttribute("control-panel", "none");
         if (threeD) {
           el.setAttribute("hint-facelets", "none");
+          // Closer than the player's own default, which leaves the cube small in a dialog-sized
+          // box. Only the starting point: dragging still moves the camera from here.
+          el.setAttribute("camera-distance", "5.2");
+          el.className = "nt-3d";
         }
         // The alg with no setup alg: the player's initial timestamp is then the END of
         // the timeline, so the state shown is the scrambled one. (Same as the FTO net,

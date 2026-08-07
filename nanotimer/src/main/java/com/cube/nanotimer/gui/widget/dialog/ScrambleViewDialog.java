@@ -3,6 +3,7 @@ package com.cube.nanotimer.gui.widget.dialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -117,8 +118,8 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
       showFallback(fallback, fallbackText);
     }
 
+    // No dialog title: the layout carries its own header so the view toggle can share that line.
     return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.scramble_view)
         .setView(view)
         .setPositiveButton(R.string.close, null)
         .create();
@@ -163,15 +164,23 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
     }
   }
 
-  /** The chosen view is filled and outlined in the accent; the other stays the quiet pill. */
+  /** The chosen half is filled in the accent wash; the other is left as bare container. */
   private void updateModeChips() {
     if (chip2d == null) {
       return;
     }
-    chip2d.setBackgroundResource(threeD ? R.drawable.row_chip : R.drawable.row_chip_selected);
-    chip2d.setTextColor(getResources().getColor(threeD ? R.color.secondary_text : R.color.white));
-    chip3d.setBackgroundResource(threeD ? R.drawable.row_chip_selected : R.drawable.row_chip);
-    chip3d.setTextColor(getResources().getColor(threeD ? R.color.white : R.color.secondary_text));
+    styleSegment(chip2d, !threeD);
+    styleSegment(chip3d, threeD);
+  }
+
+  private void styleSegment(TextView segment, boolean chosen) {
+    if (chosen) {
+      segment.setBackgroundResource(R.drawable.view_segment_active);
+    } else {
+      segment.setBackground(null);
+    }
+    segment.setTextColor(getResources().getColor(chosen ? R.color.white : R.color.secondary_text));
+    segment.setTypeface(null, chosen ? Typeface.BOLD : Typeface.NORMAL);
   }
 
   private boolean setupWebView(final TextView fallback, final String fallbackText) {

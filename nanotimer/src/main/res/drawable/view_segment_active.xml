@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The chosen segment: filled in the accent wash so it is picked out of its sibling at a glance. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/chip_bg_selected"/>
+  <corners android:radius="14dp"/>
+</shape>
