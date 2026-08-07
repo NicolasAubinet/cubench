@@ -1,15 +1,15 @@
 package com.cube.nanotimer.smartcube.step;
 
-import com.cube.nanotimer.smartcube.cube.CubieCube;
+import java.util.List;
 
 /**
  * A last-layer case as a picture: which stickers of the layer show its colour, which face each side
  * sticker belongs to, and for a permutation, where every piece has to travel.
  *
- * <p>Drawn rather than shipped. The case's own algorithm undone <em>is</em> the case, so the picture
- * is read off that state instead of off 78 images that could disagree with the scramble the drill
- * hands out. The alignment is fixed rather than random, so a case always looks the same in a list
- * and looks the way the algorithm printed beside it expects to find it.
+ * <p>Drawn rather than shipped, and drawn from the very algorithm shown beside it: the picture is
+ * the state the case's first algorithm solves, so the two cannot end up a quarter turn apart the way
+ * a picture read off some other algorithm can. The others are written to be picked up the same way,
+ * so one alignment serves the whole case and it looks the same everywhere it appears.
  *
  * <p>Positions are the nine cells of the layer as it is drawn, left to right and back to front, so
  * cell 0 is the back-left corner and cell 8 the front-right. The twelve side stickers run clockwise
@@ -56,13 +56,12 @@ public final class LastLayerDiagram {
 
   /** The picture of a case, or null if that is not a case there is one for. */
   public static LastLayerDiagram forCase(String caseCode) {
-    String scramble = LastLayerScrambles.forCase(caseCode, 0, 0);
-    if (scramble == null) {
+    List<LastLayerCaseAlgorithms.Algorithm> algorithms = LastLayerCaseAlgorithms.forCase(caseCode);
+    if (algorithms.isEmpty()) {
       return null;
     }
-    CubieCube cube = new CubieCube();
-    FaceTurns.apply(cube, scramble);
-    return new LastLayerDiagram(caseCode, caseCode.startsWith("pll_"), cube.toFaceCube());
+    return new LastLayerDiagram(caseCode, caseCode.startsWith("pll_"),
+        Notation.caseState(algorithms.get(0).getMoves()));
   }
 
   public String getCaseCode() {

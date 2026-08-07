@@ -11,10 +11,11 @@ import java.util.Set;
 import org.junit.Test;
 
 /**
- * The picture has to be the case. Since it is read off the same scramble the drill hands out, what
- * is worth checking is that it is read off correctly: an OLL shows exactly the stickers that are
- * not yet facing up, a PLL shows a layer that is all one colour, and every arrow in one points at
- * the place the piece it names actually belongs.
+ * The picture has to be the case. Since it is read off the algorithm shown beside it, what is worth
+ * checking is that it is read off correctly: an OLL shows exactly the stickers that are not yet
+ * facing up, a PLL shows a layer that is all one colour, and every arrow in one points at the place
+ * the piece it names actually belongs. That the algorithms agree with it is
+ * {@code LastLayerCaseAlgorithmsTest}'s business.
  */
 public class LastLayerDiagramTest {
 

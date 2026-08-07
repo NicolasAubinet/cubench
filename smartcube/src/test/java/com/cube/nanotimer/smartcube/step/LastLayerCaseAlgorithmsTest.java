@@ -25,6 +25,14 @@ public class LastLayerCaseAlgorithmsTest {
   /** The last layer is up, so the cross is on D. */
   private static final int CROSS = Cubies.D;
 
+  /** The stickers the picture shows: the nine cells of the layer, then the twelve down its sides. */
+  private static final int[] LAYER = {
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 45, 46, 47, 9, 10, 11, 18, 19, 20, 36, 37, 38,
+  };
+
+  /** A permutation is solved whichever way the layer is left facing. */
+  private static final String[] AUFS = {"", "U", "U2", "U'"};
+
   @Test
   public void everyAlgorithmSolvesTheCaseItIsFiledUnder() {
     List<String> wrong = new ArrayList<String>();
@@ -134,6 +142,65 @@ public class LastLayerCaseAlgorithmsTest {
     assertEquals(1, LastLayerCaseAlgorithms.forCase("pll_ua", 100).size());
     assertTrue(LastLayerCaseAlgorithms.forCase("pll_ua", 1).size()
         >= LastLayerCaseAlgorithms.forCase("pll_ua").size());
+  }
+
+  /**
+   * What the picture beside them promises: every algorithm of a case is written for the cube held
+   * one way, so the reader turns nothing between recognising the case and starting. The first one is
+   * the one {@link LastLayerDiagram} draws, so the rest are held to it.
+   */
+  @Test
+  public void writesEveryAlgorithmForThePicture() {
+    List<String> wrong = new ArrayList<String>();
+    String code = null;
+    String picture = null;
+    for (String[] row : LastLayerCaseAlgorithms.rows()) {
+      if (!row[0].equals(code)) {
+        code = row[0];
+        picture = Notation.caseState(row[1]);
+      } else if (!worksFrom(picture, row[1], code.startsWith("oll_"))) {
+        wrong.add(code + " | " + row[1]);
+      }
+    }
+    assertEquals(join(wrong), 0, wrong.size());
+  }
+
+  /** A turn of the cube before the most used algorithm would be a turn of the picture. */
+  @Test
+  public void turnsNothingBeforeTheFirstAlgorithm() {
+    String code = null;
+    for (String[] row : LastLayerCaseAlgorithms.rows()) {
+      if (row[0].equals(code)) {
+        continue;
+      }
+      code = row[0];
+      assertFalse(code + " | " + row[1], row[1].split(" ")[0].matches("y('|2)?"));
+    }
+  }
+
+  /**
+   * Whether an algorithm does its job on the case as it is drawn: an orientation has to find the
+   * same stickers facing up, and a permutation the same pieces in the same places. An orientation is
+   * held to where the layer starts rather than where it ends, since it is the picture it has to
+   * agree with; a permutation may leave the layer facing any way it likes.
+   */
+  private static boolean worksFrom(String picture, String alg, boolean orientation) {
+    for (String auf : orientation ? new String[] {""} : AUFS) {
+      String state = Notation.caseState((alg + " " + auf).trim());
+      if (orientation ? sameStickersUp(state, picture) : state.equals(picture)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean sameStickersUp(String state, String picture) {
+    for (int facelet : LAYER) {
+      if ((state.charAt(facelet) == 'U') != (picture.charAt(facelet) == 'U')) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static String nameOf(String code, String state) {
