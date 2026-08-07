@@ -57,6 +57,7 @@ public final class DrillSession {
   private long lastMoveMs;
   private long caseShownAtMs = NOT_SHOWN;
   private int resetCount;
+  private boolean revealed;
 
   public DrillSession(DrillSpec spec, Random random) {
     this(spec, random, null, "U");
@@ -122,6 +123,7 @@ public final class DrillSession {
     lastMoveMs = 0;
     caseShownAtMs = NOT_SHOWN;
     resetCount = 0;
+    revealed = false;
     return true;
   }
 
@@ -137,6 +139,18 @@ public final class DrillSession {
    */
   public void markCaseShown(long hostMs) {
     caseShownAtMs = hostMs;
+  }
+
+  /**
+   * The user looked up the algorithm for the case in front of them. Nothing about the rep changes:
+   * it is still theirs to finish and still timed, since stopping the clock would only teach them to
+   * look things up. What it costs is the claim that the time says they know the case, and the rep
+   * carries that so nothing reading the drill back has to guess.
+   */
+  public void markRevealed() {
+    if (currentCase != null) {
+      revealed = true;
+    }
   }
 
   /**
@@ -233,7 +247,7 @@ public final class DrillSession {
     long recognition = moveCount > 0 ? Math.max(0, algStart - caseShownAtMs) : 0;
     long execution = moveCount > 0 ? Math.max(0, lastMoveMs - algStart) : 0;
     DrillRep rep = new DrillRep(currentCase, currentScramble, recognition, execution, moveCount,
-        resetCount, abandoned);
+        resetCount, revealed, abandoned);
     reps.add(rep);
     currentCase = null;
     caseShownAtMs = NOT_SHOWN;

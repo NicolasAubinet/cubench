@@ -10,8 +10,10 @@ import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.cube.SmartCubeManager;
+import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
 
@@ -76,6 +78,12 @@ public class DrillActivity extends DrillScreenActivity {
           showLastRep(rep);
           nextRep();
         }
+      }
+    });
+    findViewById(R.id.btDrillAlgorithm).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        showAlgorithms();
       }
     });
     findViewById(R.id.btDrillReset).setOnClickListener(new View.OnClickListener() {
@@ -192,6 +200,24 @@ public class DrillActivity extends DrillScreenActivity {
     if (cubeReady) {
       session.markCaseShown(System.currentTimeMillis());
     }
+  }
+
+  /**
+   * The algorithms for the case in front of the user, which is the one thing this screen otherwise
+   * refuses to say. Someone who has drawn a case they cannot place is not learning anything by
+   * staring at it, and the alternative was leaving the drill to go and look it up.
+   *
+   * <p>The rep is not stopped or forgiven. It goes on being timed and is marked as looked up, so a
+   * time reached this way is not later read as knowing the case. Between reps there is no case up
+   * and nothing to show.
+   */
+  private void showAlgorithms() {
+    String currentCase = session == null ? null : session.getCurrentCase();
+    if (currentCase == null) {
+      return;
+    }
+    session.markRevealed();
+    DialogUtils.showFragment(this, CaseAlgorithmsDialog.newInstance(currentCase));
   }
 
   private void nextRep() {

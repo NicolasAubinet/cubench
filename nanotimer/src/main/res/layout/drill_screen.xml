@@ -3,6 +3,7 @@
      physical cube's own state never matters and there is nothing here to press to start or stop a
      rep. The cube reports both ends of one. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:fitsSystemWindows="true"
    android:layout_width="match_parent"
    android:layout_height="match_parent">
 
@@ -96,6 +97,9 @@
        android:textSize="17sp"
        android:fontFeatureSettings="tnum"/>
 
+    <!-- Where the drill has got to, and the mode it cannot leave. On their own line above the
+         controls: a third button left the rep counter no width at all, and which rep this is is
+         not the thing to drop. -->
     <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
@@ -119,7 +123,6 @@
          android:id="@+id/tvDrillMode"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:layout_marginRight="8dp"
          android:background="@drawable/smart_cube_pill"
          android:backgroundTint="@color/white_wash_10"
          android:paddingLeft="10dp"
@@ -128,21 +131,40 @@
          android:paddingBottom="3dp"
          android:textColor="@color/secondary_text"
          android:textSize="12sp"/>
+    </LinearLayout>
 
-      <!-- Deals the same case again for a slip, and costs no rep. Neither of these two is a start
-           or stop control: the cube still reports both ends of a rep. -->
+    <!-- None of the three is a start or stop control: the cube still reports both ends of a rep. -->
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="8dp"
+       android:orientation="horizontal">
+
+      <!-- The case's algorithms, for a case that has gone. The rep runs on: stopping its clock for
+           this would teach looking it up, so the rep is marked instead. -->
+      <Button
+         android:id="@+id/btDrillAlgorithm"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:text="@string/drill_case_algorithm"/>
+
+      <!-- Deals the same case again for a slip, and costs no rep. -->
       <Button
          android:id="@+id/btDrillReset"
-         android:layout_width="wrap_content"
+         android:layout_width="0dp"
          android:layout_height="wrap_content"
-         android:layout_marginRight="6dp"
+         android:layout_weight="1"
+         android:layout_marginLeft="6dp"
          android:text="@string/drill_reset"/>
 
       <!-- Skipping spends the rep rather than escaping it: a case you could not do is a result. -->
       <Button
          android:id="@+id/btDrillSkip"
-         android:layout_width="wrap_content"
+         android:layout_width="0dp"
          android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:layout_marginLeft="6dp"
          android:text="@string/drill_skip"/>
     </LinearLayout>
 

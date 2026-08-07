@@ -19,16 +19,18 @@ public final class DrillRep {
   private final long executionMs;
   private final int moveCount;
   private final int resetCount;
+  private final boolean revealed;
   private final boolean abandoned;
 
   DrillRep(String caseCode, String scramble, long recognitionMs, long executionMs, int moveCount,
-      int resetCount, boolean abandoned) {
+      int resetCount, boolean revealed, boolean abandoned) {
     this.caseCode = caseCode;
     this.scramble = scramble;
     this.recognitionMs = recognitionMs;
     this.executionMs = executionMs;
     this.moveCount = moveCount;
     this.resetCount = resetCount;
+    this.revealed = revealed;
     this.abandoned = abandoned;
   }
 
@@ -68,6 +70,14 @@ public final class DrillRep {
     return resetCount;
   }
 
+  /**
+   * The user looked the algorithm up part way through this one. Its times are real but they are not
+   * a measure of knowing the case, which is what anything aggregating them has to know.
+   */
+  public boolean wasRevealed() {
+    return revealed;
+  }
+
   /** Given up on rather than solved, so its times are what it had reached. */
   public boolean isAbandoned() {
     return abandoned;
@@ -81,6 +91,6 @@ public final class DrillRep {
   @Override
   public String toString() {
     return caseCode + "(" + recognitionMs + "ms + " + executionMs + "ms, " + moveCount
-        + " moves" + (abandoned ? ", abandoned" : "") + ")";
+        + " moves" + (revealed ? ", revealed" : "") + (abandoned ? ", abandoned" : "") + ")";
   }
 }
