@@ -3,7 +3,6 @@ package com.cube.nanotimer.gui.widget.dialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -22,6 +21,7 @@ import androidx.webkit.WebViewClientCompat;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
+import com.cube.nanotimer.util.view.ViewSegments;
 
 import org.json.JSONObject;
 
@@ -30,11 +30,12 @@ import org.json.JSONObject;
  * scrambled correctly. Hosts a transparent WebView that renders via the vendored cubing.js bundle
  * (see {@code assets/scramble/scramble.html} and {@code ScrambleViewNotation}).
  *
- * <p>Two views of the same scramble, chosen by the chips under it: the flat net, which shows all
- * six faces at once, and a 3D cube the viewer can drag round. The cube is what makes a scramble
- * readable in a front face that is not green — a blind solver holding red front can turn it there
- * rather than translate the net in their head — so which one was last used is remembered
- * ({@link Options#isScrambleView3d}). Puzzles cubing.js only draws flat get no chips at all.</p>
+ * <p>Two views of the same scramble, chosen by the control on the title line: the flat net,
+ * which shows all six faces at once, and a 3D cube the viewer can drag round. The cube is what
+ * makes a scramble readable in a front face that is not green — a blind solver holding red front
+ * can turn it there rather than translate the net in their head — so which one was last used is
+ * remembered ({@link Options#isScrambleView3d}). Puzzles cubing.js only draws flat get no
+ * control at all.</p>
  *
  * <p>The page is served through {@link WebViewAssetLoader} from the secure
  * {@code https://appassets.androidplatform.net/} origin (not {@code file://}), and the whole
@@ -169,18 +170,8 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
     if (chip2d == null) {
       return;
     }
-    styleSegment(chip2d, !threeD);
-    styleSegment(chip3d, threeD);
-  }
-
-  private void styleSegment(TextView segment, boolean chosen) {
-    if (chosen) {
-      segment.setBackgroundResource(R.drawable.view_segment_active);
-    } else {
-      segment.setBackground(null);
-    }
-    segment.setTextColor(getResources().getColor(chosen ? R.color.white : R.color.secondary_text));
-    segment.setTypeface(null, chosen ? Typeface.BOLD : Typeface.NORMAL);
+    ViewSegments.style(chip2d, !threeD);
+    ViewSegments.style(chip3d, threeD);
   }
 
   private boolean setupWebView(final TextView fallback, final String fallbackText) {

@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -36,6 +35,7 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.util.view.ViewSegments;
 import com.cube.nanotimer.vo.SolveStep;
 
 import org.json.JSONArray;
@@ -78,22 +78,19 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private static final long LEAD_IN_MS = 800;
 
   // Shown side by side, slowest first, so any of them is one tap away. These double as JS number
-  // literals, so the chip and ntReplaySpeed() can never disagree.
+  // literals, so the segment and ntReplaySpeed() can never disagree.
   private static final String[] SPEEDS = {"0.25", "0.5", "1", "2"};
   private static final int[] SPEED_IDS = {
       R.id.buReplaySpeed0, R.id.buReplaySpeed1, R.id.buReplaySpeed2, R.id.buReplaySpeed3};
-  // A replay opens at the speed it happened, and 1x is also the one reached for most, so it is
-  // set a little larger than its siblings.
+  // A replay opens at the speed it happened.
   private static final int DEFAULT_SPEED = 2;
-  private static final float SPEED_SP = 12;
-  private static final float DEFAULT_SPEED_SP = 14;
 
   private WebView webView;
   private ProgressBar progressBar;
   private ImageButton playButton;
   private TextView positionLabel;
   private TextView heroTime;
-  private final TextView[] speedChips = new TextView[SPEEDS.length];
+  private final TextView[] speedSegments = new TextView[SPEEDS.length];
   private View gyroRow;
   private SwitchCompat gyroSwitch;
   private View controlsRow;
@@ -166,7 +163,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     positionLabel = view.findViewById(R.id.tvReplayPosition);
     heroTime = view.findViewById(R.id.tvReplayHeroTime);
     for (int i = 0; i < SPEEDS.length; i++) {
-      speedChips[i] = view.findViewById(SPEED_IDS[i]);
+      speedSegments[i] = view.findViewById(SPEED_IDS[i]);
     }
     gyroRow = view.findViewById(R.id.rowReplayGyro);
     gyroSwitch = view.findViewById(R.id.swReplayGyro);
@@ -271,9 +268,9 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
         evaluate(playing ? "window.ntReplayPause();" : "window.ntReplayPlay();");
       }
     });
-    for (int i = 0; i < speedChips.length; i++) {
+    for (int i = 0; i < speedSegments.length; i++) {
       final int index = i;
-      speedChips[i].setOnClickListener(new View.OnClickListener() {
+      speedSegments[i].setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           if (index == speedIndex) {
@@ -465,17 +462,11 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     playButton.setContentDescription(getString(playing ? R.string.replay_pause : R.string.replay_play));
   }
 
-  /** The chosen speed is filled and outlined in the accent; the rest stay the quiet pill. */
+  /** The chosen speed is filled in the accent wash; the rest are left as bare container. */
   private void updateSpeed() {
-    for (int i = 0; i < speedChips.length; i++) {
-      boolean chosen = i == speedIndex;
-      speedChips[i].setText(getString(R.string.replay_speed, SPEEDS[i]));
-      speedChips[i].setBackgroundResource(
-          chosen ? R.drawable.row_chip_selected : R.drawable.row_chip);
-      speedChips[i].setTextColor(getResources().getColor(
-          chosen ? R.color.white : R.color.secondary_text));
-      speedChips[i].setTextSize(TypedValue.COMPLEX_UNIT_SP,
-          i == DEFAULT_SPEED ? DEFAULT_SPEED_SP : SPEED_SP);
+    for (int i = 0; i < speedSegments.length; i++) {
+      speedSegments[i].setText(getString(R.string.replay_speed, SPEEDS[i]));
+      ViewSegments.style(speedSegments[i], i == speedIndex);
     }
   }
 

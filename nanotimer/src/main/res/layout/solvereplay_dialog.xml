@@ -34,8 +34,8 @@
         android:fontFeatureSettings="tnum"/>
   </LinearLayout>
 
-  <!-- The cube sits in a well rather than on the card: 3D on a flat surface needs something under
-       it or it reads as floating. -->
+  <!-- The cube sits in a lit well rather than on the card: 3D on a flat surface needs something
+       under it or it reads as floating. -->
   <FrameLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
@@ -112,18 +112,21 @@
         android:textSize="15sp"
         android:fontFeatureSettings="tnum"/>
 
-    <!-- Every speed side by side: one tap reaches any of them, where a cycle needed up to three. -->
+    <!-- Every speed side by side, as one control rather than four loose pills: one tap reaches any
+         of them, and the container is what says they are alternatives. -->
     <LinearLayout
         android:id="@+id/replaySpeeds"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:background="@drawable/view_segment_group"
+        android:padding="3dp">
 
-      <TextView android:id="@+id/buReplaySpeed0" style="@style/SegmentChip"/>
-      <TextView android:id="@+id/buReplaySpeed1" style="@style/SegmentChip"/>
-      <TextView android:id="@+id/buReplaySpeed2" style="@style/SegmentChip"/>
-      <TextView android:id="@+id/buReplaySpeed3" style="@style/SegmentChip"/>
+      <TextView android:id="@+id/buReplaySpeed0" style="@style/ViewSegmentCompact"/>
+      <TextView android:id="@+id/buReplaySpeed1" style="@style/ViewSegmentCompact"/>
+      <TextView android:id="@+id/buReplaySpeed2" style="@style/ViewSegmentCompact"/>
+      <TextView android:id="@+id/buReplaySpeed3" style="@style/ViewSegmentCompact"/>
     </LinearLayout>
   </LinearLayout>
 

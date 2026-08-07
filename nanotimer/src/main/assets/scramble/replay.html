@@ -50,7 +50,13 @@
     background: transparent; overflow: hidden;
   }
   #host { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-  twisty-player { width: 100%; height: 100%; --controls-height: 0; }
+  /* The player draws the cube a little below the middle of its box (it is looked at from above, so
+     the near bottom corner hangs lower than the top face rises). Lifted back to the middle of the
+     stage it is standing in. */
+  twisty-player {
+    width: 100%; height: 100%; --controls-height: 0;
+    transform: translateY(-3%);
+  }
 </style>
 <script src="bundle.js"></script>
 </head>
@@ -453,6 +459,11 @@
       player.background = "none";
       player.controlPanel = "none";
       player.hintFacelets = "none";
+      // Closer than the player's own default, which leaves the cube small in a dialog-sized box.
+      // Backed off from the scramble dialog's: with the gyro track on, the cube tumbles, and a
+      // corner swung towards the camera must not clip. Only the starting point: a drag still moves
+      // the camera from here.
+      player.cameraDistance = 5.6;
       document.getElementById("host").appendChild(player);
     }
     player.experimentalSetupAlg = setup || "";

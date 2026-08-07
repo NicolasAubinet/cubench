@@ -50,23 +50,8 @@
     <item name="android:textColor">@color/lightblue</item>
   </style>
 
-  <!-- One option of a segmented control: the row chip, but a target rather than a label, so it
-       carries the padding a finger needs and the ripple that says it can be pressed. -->
-  <style name="SegmentChip" parent="RowChip">
-    <item name="android:paddingLeft">10dp</item>
-    <item name="android:paddingRight">10dp</item>
-    <item name="android:paddingTop">6dp</item>
-    <item name="android:paddingBottom">6dp</item>
-    <item name="android:layout_marginLeft">4dp</item>
-    <item name="android:textSize">12sp</item>
-    <item name="android:gravity">center</item>
-    <item name="android:clickable">true</item>
-    <item name="android:focusable">true</item>
-    <item name="android:fontFeatureSettings">tnum</item>
-  </style>
-
-  <!-- One half of the compact 2D/3D control on a dialog header line. Sits inside a container
-       that says the two belong together, so it carries no background of its own until chosen. -->
+  <!-- One option of a segmented control (2D/3D, playback speed). Sits inside a container that says
+       the options belong together, so it carries no background of its own until chosen. -->
   <style name="ViewSegment">
     <item name="android:layout_width">wrap_content</item>
     <item name="android:layout_height">wrap_content</item>
@@ -80,6 +65,15 @@
     <item name="android:singleLine">true</item>
     <item name="android:clickable">true</item>
     <item name="android:focusable">true</item>
+  </style>
+
+  <!-- The same control with four options rather than two: tighter, so the whole of it still fits
+       beside the other things on its row. -->
+  <style name="ViewSegmentCompact" parent="ViewSegment">
+    <item name="android:paddingLeft">9dp</item>
+    <item name="android:paddingRight">9dp</item>
+    <item name="android:textSize">12sp</item>
+    <item name="android:fontFeatureSettings">tnum</item>
   </style>
 
   <style name="SmallTextFieldPx">

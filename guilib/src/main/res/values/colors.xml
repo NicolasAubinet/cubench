@@ -78,9 +78,10 @@
 
   <color name="dialog_surface">#23272B</color>
   <color name="dialog_divider">@color/white_wash_12</color>
-  <!-- Recessed well for a 3D cube to sit in: a shade under the dialog surface, so the cube reads as
-       being on something rather than floating on the card. -->
-  <color name="cube_stage">#1A1D21</color>
+  <!-- Recessed well for a 3D cube to sit in: lit in the middle and falling away at the rim, so the
+       cube reads as being on something rather than floating on the card. -->
+  <color name="cube_stage_lit">#2B3138</color>
+  <color name="cube_stage">#111417</color>
 
   <!-- History screen hero: a card a shade cooler than the ground, with its controls and
        statistics inset a shade darker so they read as recessed into it. -->
