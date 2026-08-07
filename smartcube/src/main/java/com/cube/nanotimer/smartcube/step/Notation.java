@@ -4,10 +4,14 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 
 /**
  * Standard cube notation applied to a facelet string: face turns, wide turns, slices and whole-cube
- * rotations. Test-only, and deliberately built from the cube's geometry rather than from tables — a
- * turn is a rotation of every facelet whose cubie lies in the layer, which is one rule for all of
- * them. {@code LastLayerCasesTest} pins it against {@link com.cube.nanotimer.smartcube.cube.CubieCube}
- * and {@link FaceletRotations} before trusting it with the case tables.
+ * rotations. Built from the cube's geometry rather than from tables — a turn is a rotation of every
+ * facelet whose cubie lies in the layer, which is one rule for all of them.
+ * {@code LastLayerCasesTest} pins it against {@link com.cube.nanotimer.smartcube.cube.CubieCube} and
+ * {@link FaceletRotations} before trusting it with anything.
+ *
+ * <p>It was test-only until an algorithm typed in by a user had to be checked before being kept: the
+ * check that an algorithm solves the case it is filed under is the same one either way, and running
+ * two of them would have let the table and the user's own entry disagree about what counts.
  */
 final class Notation {
 
