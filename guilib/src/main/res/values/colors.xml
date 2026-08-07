@@ -127,11 +127,17 @@
   <color name="cube_green">#43A047</color>
   <color name="cube_blue">#1E88E5</color>
 
-  <!-- Smart-cube solve steps, in solve order: cross, F2L, then the warm last-layer pair -->
+  <!-- Solve steps, in solve order: cross, F2L, then the warm last-layer pair. Past the fourth there
+       is no method step left to name, only a position, and a solve type may define eight: with four
+       to go round, step five came back cyan and stopped saying which segment it was. -->
   <color name="step_cross">@color/lightblue</color>
   <color name="step_f2l">@color/cube_green</color>
   <color name="step_oll">@color/cube_yellow</color>
   <color name="step_pll">@color/cube_orange</color>
+  <color name="step_5">@color/cube_red</color>
+  <color name="step_6">#E88FD0</color>
+  <color name="step_7">#9E92F0</color>
+  <color name="step_8">@color/cube_blue</color>
 
   <!-- =========================== Components ========================= -->
 

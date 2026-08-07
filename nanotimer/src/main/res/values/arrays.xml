@@ -123,6 +123,10 @@
     <item>@color/step_f2l</item>
     <item>@color/step_oll</item>
     <item>@color/step_pll</item>
+    <item>@color/step_5</item>
+    <item>@color/step_6</item>
+    <item>@color/step_7</item>
+    <item>@color/step_8</item>
   </array>
   <string-array name="mainscreen_menu_items">
     <item>@string/settings</item>
