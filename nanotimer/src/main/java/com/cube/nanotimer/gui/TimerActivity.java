@@ -210,7 +210,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private int groundColor = R.color.graybg; // the ground at rest; a running solve drops it a shade
   private int pushedGroundColor = R.color.pushedbg; // the same ground with a finger on it
-  private int groundAbove = 0; // what the bar and the status bar were last given
+  private int groundAbove = 0; // what the bar and the status bar were last given, 0 when unpainted
   private boolean surfacePressed; // and whether there is one on it
 
   private RandomStateGenListener randomStateGenListener = new RandomStateGenListener() {
@@ -441,6 +441,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * the bar is not a dead zone the way a plain toolbar is.
    */
   private void initActionBar() {
+    groundAbove = 0; // a fresh bar and root wear the theme's colour until they are told otherwise
     ActionBar actionBar = getSupportActionBar();
     actionBar.setDisplayHomeAsUpEnabled(true);
     actionBar.setTitle("");
