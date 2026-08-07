@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Cubench</string>
+  <!-- The logotype, not the app's name: a brand mark, so it is not translated and not capitalised
+       by the view. -->
+  <string name="wordmark" translatable="false">CUBENCH</string>
+  <string name="wordmark_tagline" translatable="false">SPEEDCUBE TIMER</string>
   <string name="app_formerly_name">Formerly Nano Timer</string>
   <string name="app_name_copyright">&#169; 2014–2026 Cubench\nFree &amp; open-source (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
   <!--<string name="admob_app_id" translatable="false">ca-app-pub-8294291525564683~7155145804</string>-->

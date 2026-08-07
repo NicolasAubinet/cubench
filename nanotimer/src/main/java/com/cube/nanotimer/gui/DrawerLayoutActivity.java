@@ -48,6 +48,7 @@ public class DrawerLayoutActivity extends NanoTimerActivity {
   protected void initViews() {
     toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
+    getSupportActionBar().setDisplayShowTitleEnabled(false); // the bar wears the logotype instead
 
     toolbar.setNavigationOnClickListener(new OnClickListener() {
       @Override
