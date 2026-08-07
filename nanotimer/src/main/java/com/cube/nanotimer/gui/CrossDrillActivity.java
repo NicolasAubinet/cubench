@@ -237,7 +237,8 @@ public class CrossDrillActivity extends DrillScreenActivity {
    *
    * <p>The solution is put in front of the user rather than behind a button: the rep is over, so
    * there is nothing left to give away, and a sequence you have to go and ask for is one you will
-   * not try.
+   * not try. It carries its length, since what the drill scores is a move count and the answer to
+   * "how many did I go over by" should not have to be counted off the notation.
    */
   private void showBetweenReps(CrossDrillRep rep) {
     StringBuilder detail = new StringBuilder(getString(R.string.drill_cross_rep_times,
@@ -246,7 +247,8 @@ public class CrossDrillActivity extends DrillScreenActivity {
     boolean missedIt = !rep.isBuilt() || rep.getExtraMoves() > 0;
     if (missedIt && solutions != null && !solutions.solutions.isEmpty()) {
       detail.append("\n").append(getString(R.string.drill_cross_shortest,
-          join(CrossFormatter.toCrossOnBottom(face, solutions.solutions.get(0)))));
+          join(CrossFormatter.toCrossOnBottom(face, solutions.solutions.get(0))),
+          solutions.length));
     }
     showStatus(detail.toString());
     btSolutions.setVisibility(

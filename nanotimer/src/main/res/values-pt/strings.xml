@@ -821,5 +821,5 @@
   <string name="drill_cross_start_position">Posição inicial</string>
   <string name="drill_cross_other_ways">Outras formas</string>
   <string name="drill_cross_rep_times">Planeamento %1$s, execução %2$s</string>
-  <string name="drill_cross_shortest">Mais curto: %s</string>
+  <string name="drill_cross_shortest">Mais curto: %1$s (%2$d movimentos)</string>
 </resources>
