@@ -126,19 +126,23 @@
          android:textSize="12sp"/>
     </LinearLayout>
 
+    <!-- ⚠️ Weights, not wrap_content: three intrinsically sized buttons overflow the row once the
+         labels are translated, and the one pushed off the right edge was the one that takes the
+         next case. Sharing the row keeps every button on screen in every language. Heights are
+         matched so a label that wraps does not leave its neighbours short. -->
     <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_marginTop="8dp"
-       android:gravity="end"
        android:orientation="horizontal">
 
       <!-- Rewinds the cube to the scramble as dealt, so the short way can be turned on it and
            watched. Between reps only. -->
       <Button
          android:id="@+id/btDrillCrossStart"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
+         android:layout_width="0dp"
+         android:layout_height="match_parent"
+         android:layout_weight="1"
          android:layout_marginRight="6dp"
          android:text="@string/drill_cross_start_position"
          android:visibility="gone"/>
@@ -147,8 +151,9 @@
            is over: during one it would be the answer. -->
       <Button
          android:id="@+id/btDrillCrossSolutions"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
+         android:layout_width="0dp"
+         android:layout_height="match_parent"
+         android:layout_weight="1"
          android:layout_marginRight="6dp"
          android:text="@string/drill_cross_other_ways"
          android:visibility="gone"/>
@@ -157,8 +162,9 @@
            a cross that is really built ends its own rep, and this is the only end a wrong one has. -->
       <Button
          android:id="@+id/btDrillCrossDone"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
+         android:layout_width="0dp"
+         android:layout_height="match_parent"
+         android:layout_weight="1"
          android:text="@string/drill_cross_done"/>
     </LinearLayout>
 
