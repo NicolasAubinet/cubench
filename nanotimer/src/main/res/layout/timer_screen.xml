@@ -20,8 +20,6 @@
        android:clipToPadding="false"
        android:orientation="vertical">
 
-      <include layout="@layout/timer_identity_strip"/>
-
       <!-- The timer and its scramble take every pixel the statistics below do not need, so a
            short 3x3 scramble is not charged for the ten lines a 7x7 one costs. -->
       <LinearLayout

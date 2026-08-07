@@ -67,6 +67,7 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CubeSession;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.ScaleUtils;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.util.YesNoListener;
@@ -82,6 +83,7 @@ import com.cube.nanotimer.util.view.FocusTransition;
 import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
+import com.cube.nanotimer.util.view.ScalingLinearLayout;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
 import com.cube.nanotimer.util.view.ScrambleStatePreview;
 import com.cube.nanotimer.util.view.SessionBarsView;
@@ -434,16 +436,28 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * The bar carries nothing but its buttons: the strip below it names the screen. Its empty space
-   * still starts and stops the timer, so the bar is not a dead zone the way a plain toolbar is.
+   * The bar names what is being timed. The strip rides in it rather than under it, which gives the
+   * screen back the row it used to stand in; its empty space still starts and stops the timer, so
+   * the bar is not a dead zone the way a plain toolbar is.
    */
   private void initActionBar() {
-    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    getSupportActionBar().setTitle("");
+    ActionBar actionBar = getSupportActionBar();
+    actionBar.setDisplayHomeAsUpEnabled(true);
+    actionBar.setTitle("");
+    actionBar.setDisplayShowCustomEnabled(true);
+    View strip = getLayoutInflater().inflate(R.layout.timer_identity_strip, null);
+    actionBar.setCustomView(strip,
+        new ActionBar.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    // The strip is authored in px like the rest of the timer, but the bar sits outside the
+    // ScalingLinearLayout that would have scaled it.
+    ScalingLinearLayout.scaleLateSubtree(strip, ScaleUtils.getScale(this));
 
     Toolbar decorToolbar = findToolbar(getWindow().getDecorView());
     if (decorToolbar != null) {
       decorToolbar.setOnTouchListener(layoutTouchListener);
+      // The platform holds a title 16dp clear of the navigation button. The strip is a good deal
+      // wider than a title, and on a long puzzle name that gap is what ellipsizes it.
+      decorToolbar.setContentInsetStartWithNavigation(0);
     }
   }
 
@@ -818,11 +832,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     ((TextView) findViewById(R.id.tvIdentityPuzzle)).setText(cubeType.getName());
 
-    int solveTypeColor = getResources().getColor(SolveTypeIcons.colorForSolveType(solveType));
-    TextView pill = (TextView) findViewById(R.id.tvIdentitySolveType);
-    pill.setTextColor(solveTypeColor);
-    pill.setBackgroundTintList(ColorStateList.valueOf(solveTypeColor));
-    pill.setText(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
+    TextView name = (TextView) findViewById(R.id.tvIdentitySolveType);
+    name.setTextColor(getResources().getColor(SolveTypeIcons.colorForSolveType(solveType)));
+    name.setText(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
   }
 
   /**
@@ -1184,6 +1196,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
       setContentView(R.layout.timer_screen);
       addOverlays();
+      initActionBar(); // a fresh strip: the one in the bar was scaled for the other orientation
       initViews();
 
       if (timerState == TimerState.STOPPED) {

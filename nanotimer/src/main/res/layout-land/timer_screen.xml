@@ -17,8 +17,6 @@
      android:clipToPadding="false"
      android:orientation="vertical">
 
-    <include layout="@layout/timer_identity_strip"/>
-
     <!-- Not clipping: a running solve moves the digits to the middle of the whole screen, which
          is outside the column they are laid out in. -->
     <LinearLayout
