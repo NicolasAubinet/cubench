@@ -8,9 +8,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build.VERSION;
@@ -617,7 +618,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           PuzzleIcons.colorForCubeType(curCubeType));
         imgCubeType.setImageResource(PuzzleIcons.forCubeType(curCubeType));
         imgCubeType.setColorFilter(puzzleColor, PorterDuff.Mode.SRC_IN);
-        heroGlyphTile.setBackgroundTintList(ColorStateList.valueOf((puzzleColor & 0x00FFFFFF) | 0x2E000000));
+        heroGlyphTile.setBackground(glyphTile(puzzleColor));
         if (curSolveType != null) {
           tvSolveType.setText(Utils.toSolveTypeLocalizedName(MainScreenActivity.this, curSolveType.getName()));
           imgSolveTypeKind.setImageResource(SolveTypeIcons.forSolveType(curSolveType));
@@ -631,6 +632,18 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       }
     });
     refreshStatCells();
+  }
+
+  /**
+   * The tile behind the puzzle mark, a wash of that puzzle's colour. Built rather than tinted: a
+   * tint is composited SRC_IN, so it would multiply this alpha by the drawable's own and land at a
+   * sixth of what it asks for. Mutated, since the drawable's constant state is shared.
+   */
+  private Drawable glyphTile(int puzzleColor) {
+    GradientDrawable tile =
+      (GradientDrawable) ContextCompat.getDrawable(this, R.drawable.hero_glyph).mutate();
+    tile.setColor((puzzleColor & 0x00FFFFFF) | 0x2E000000);
+    return tile;
   }
 
   /**
