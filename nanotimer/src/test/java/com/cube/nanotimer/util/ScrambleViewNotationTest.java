@@ -113,4 +113,23 @@ public class ScrambleViewNotationTest {
       }
     }
   }
+
+  /** The two the bundle answers "2D" for whatever is asked of it, so there is no view to offer. */
+  @Test
+  public void clockAndSquare1HaveNo3DView() {
+    assertNull(ScrambleViewNotation.get3DPuzzleId(CubeType.CLOCK));
+    assertNull(ScrambleViewNotation.get3DPuzzleId(CubeType.SQUARE1));
+  }
+
+  @Test
+  public void every3DPuzzleIdIsThePuzzleId() {
+    for (CubeType cubeType : CubeType.values()) {
+      String id = ScrambleViewNotation.get3DPuzzleId(cubeType);
+      if (id != null) {
+        assertEquals(cubeType.name(), ScrambleViewNotation.getPuzzleId(cubeType), id);
+      }
+    }
+    assertEquals("3x3x3", ScrambleViewNotation.get3DPuzzleId(CubeType.THREE_BY_THREE));
+    assertEquals("fto", ScrambleViewNotation.get3DPuzzleId(CubeType.FTO));
+  }
 }

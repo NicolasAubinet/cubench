@@ -307,6 +307,8 @@
 
   <string name="scramble_view">Ver la mezcla</string>
   <string name="scramble_view_no_scramble">Aún no hay mezcla disponible</string>
+  <string name="scramble_view_2d">2D</string>
+  <string name="scramble_view_3d">3D</string>
   <string name="no_solve_for_action">Aún no hay resolución a la que aplicar esto</string>
   <string name="last_solve">Última resolución</string>
 

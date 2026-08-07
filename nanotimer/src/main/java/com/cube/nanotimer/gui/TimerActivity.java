@@ -1136,7 +1136,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       String fallback = (moves == null && cubeType == CubeType.CLOCK)
           ? getString(R.string.scramble_view_clock_notation_hint) + "\n\n" + readable
           : readable;
-      DialogUtils.showFragment(this, ScrambleViewDialog.newInstance(key, moves, fallback));
+      DialogUtils.showFragment(this, ScrambleViewDialog.newInstance(key, moves, fallback,
+          ScrambleViewNotation.get3DPuzzleId(cubeType)));
     } else {
       DialogUtils.showShortInfoMessage(this, R.string.scramble_view_no_scramble);
     }

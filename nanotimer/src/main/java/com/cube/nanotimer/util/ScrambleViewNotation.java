@@ -91,6 +91,22 @@ public final class ScrambleViewNotation {
   }
 
   /**
+   * The puzzle id for the <em>3D</em> view the scramble dialog can be toggled into, or
+   * {@code null} for a puzzle cubing.js only draws flat (the caller should then not offer the
+   * toggle at all).
+   *
+   * <p>Clock and Square-1 are the two: the bundle's visualization resolver answers {@code "2D"}
+   * for them before it ever looks at what was asked for, so a 3D request gets the same flat
+   * drawing back and a toggle between the two would do nothing.</p>
+   */
+  public static String get3DPuzzleId(CubeType cubeType) {
+    if (cubeType == CubeType.CLOCK || cubeType == CubeType.SQUARE1) {
+      return null;
+    }
+    return getPuzzleId(cubeType);
+  }
+
+  /**
    * Reformat a NanoTimer scramble (one move per array element) into the single-line
    * notation string cubing.js parses for the given puzzle.
    *

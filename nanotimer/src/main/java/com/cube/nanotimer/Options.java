@@ -42,6 +42,7 @@ public enum Options {
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
   public static final String HERO_STAT_KEY_PREFIX = "hero_stat_";
   public static final String REPLAY_SHOW_GYRO_KEY = "replay_show_gyro";
+  public static final String SCRAMBLE_VIEW_3D_KEY = "scramble_view_3d";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
@@ -262,6 +263,21 @@ public enum Options {
 
   public void setBreakdownShowMoves(boolean showMoves) {
     sharedPreferences.edit().putBoolean(BREAKDOWN_SHOW_MOVES_KEY, showMoves).apply();
+  }
+
+  /**
+   * Whether the scramble dialog opens on the 3D cube rather than the flat net. Kept because the
+   * choice is a habit rather than a per-solve decision: a blind solver who reads scrambles on a
+   * cube they can turn to their own front face wants that view every time, and picking it again
+   * on every solve is the friction this is here to remove. Off by default — the net shows all six
+   * faces at once, which is what somebody checking they scrambled right is usually after.
+   */
+  public boolean isScrambleView3d() {
+    return sharedPreferences.getBoolean(SCRAMBLE_VIEW_3D_KEY, false);
+  }
+
+  public void setScrambleView3d(boolean threeD) {
+    sharedPreferences.edit().putBoolean(SCRAMBLE_VIEW_3D_KEY, threeD).apply();
   }
 
   /**

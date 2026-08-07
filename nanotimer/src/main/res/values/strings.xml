@@ -311,6 +311,8 @@
 
   <string name="scramble_view">View scramble</string>
   <string name="scramble_view_no_scramble">No scramble available yet</string>
+  <string name="scramble_view_2d">2D</string>
+  <string name="scramble_view_3d">3D</string>
   <string name="no_solve_for_action">No solve to apply this to yet</string>
   <string name="last_solve">Last solve</string>
 

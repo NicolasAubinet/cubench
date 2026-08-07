@@ -1,33 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Host for the on-demand scramble diagram. The WebView is transparent and blends
      onto the card background; a spinner shows while the bundle loads, and a text
-     fallback is shown if rendering is unavailable. -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     fallback is shown if rendering is unavailable. Under it, the view toggle. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
 
-  <WebView
-      android:id="@+id/wvScramble"
+  <!-- The same well the replay draws its cube in: 3D on a flat surface reads as floating
+       without one, and keeping the net in it too means the toggle changes the drawing
+       rather than the shape of the dialog around it. -->
+  <FrameLayout
       android:layout_width="match_parent"
-      android:layout_height="210dp"
-      android:background="@android:color/transparent"/>
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      android:background="@drawable/cube_stage">
 
-  <ProgressBar
-      android:id="@+id/pbScramble"
-      style="?android:attr/progressBarStyle"
+    <WebView
+        android:id="@+id/wvScramble"
+        android:layout_width="match_parent"
+        android:layout_height="210dp"
+        android:background="@android:color/transparent"/>
+
+    <ProgressBar
+        android:id="@+id/pbScramble"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/tvScrambleFallback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textSize="15sp"
+        android:textColor="@color/secondary_text"
+        android:visibility="gone"/>
+  </FrameLayout>
+
+  <!-- Flat or on a cube: the speed chips' idiom, one row down from the thing it changes. -->
+  <LinearLayout
+      android:id="@+id/scrambleViewModes"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_gravity="center"/>
+      android:layout_gravity="center_horizontal"
+      android:orientation="horizontal"
+      android:layout_marginTop="10dp"
+      android:visibility="gone">
 
-  <TextView
-      android:id="@+id/tvScrambleFallback"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_gravity="center"
-      android:gravity="center"
-      android:padding="16dp"
-      android:textSize="15sp"
-      android:textColor="@color/secondary_text"
-      android:visibility="gone"/>
+    <TextView
+        android:id="@+id/buScrambleView2d"
+        style="@style/SegmentChip"
+        android:text="@string/scramble_view_2d"/>
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/buScrambleView3d"
+        style="@style/SegmentChip"
+        android:text="@string/scramble_view_3d"/>
+  </LinearLayout>
+
+</LinearLayout>

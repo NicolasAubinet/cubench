@@ -309,6 +309,8 @@
 
   <string name="scramble_view">Ver o scramble</string>
   <string name="scramble_view_no_scramble">Nenhum scramble disponível no momento</string>
+  <string name="scramble_view_2d">2D</string>
+  <string name="scramble_view_3d">3D</string>
   <string name="no_solve_for_action">Nenhuma resolução à qual aplicar isto</string>
   <string name="last_solve">Última resolução</string>
 

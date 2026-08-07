@@ -7,9 +7,11 @@
   resolution). Java never reads anything back; the only bridge is
   window.ntRender(...) called via WebView.evaluateJavascript().
 
-  Two render paths (see bundle entry.mjs):
+  Three render paths (see bundle entry.mjs):
     - WCA puzzles -> <scramble-display event="...">
     - FTO         -> <twisty-player puzzle="fto" visualization="2D">
+    - 3D          -> <twisty-player puzzle="3x3x3" visualization="3D">, which the
+                     dialog can be toggled into and the viewer can drag round
 -->
 <html lang="en">
 <head>
@@ -47,24 +49,40 @@
 <body>
   <div id="host"></div>
   <script>
-    // The whole Java<->JS surface: set the puzzle + scramble, render a 2D net.
+    // The whole Java<->JS surface: set the puzzle + scramble, render it.
     //
-    //   ntRender("333", "R U R' U'")            -> scramble-display
-    //   ntRender("fto", "U F' BR L ...")        -> twisty-player (FTO)
+    //   ntRender("333", "R U R' U'")                    -> scramble-display, 2D net
+    //   ntRender("fto", "U F' BR L ...")                -> twisty-player (FTO), 2D net
+    //   ntRender("333", "R U R' U'", "3d", "3x3x3")     -> twisty-player, 3D, draggable
     //
     // `key` is a scramble-display event id (222 333 444 555 666 777 clock minx
-    // pyram skewb sq1) or the literal "fto". Returns nothing; failures fall back
-    // to the native text view on the Java side (feature-detect there).
-    window.ntRender = function (key, scramble) {
+    // pyram skewb sq1) or the literal "fto". `mode` is "3d" or anything else for
+    // the net, and `puzzleId` is the cubing.js PUZZLE id the 3D branch needs
+    // (3x3x3, megaminx...), which is a different namespace from `key`. Returns
+    // nothing; failures fall back to the native text view on the Java side.
+    //
+    // The 3D branch is drag-rotatable for free: `dragInput` defaults to "auto",
+    // which is the CAMERA orbit (clamped to +/-35 degrees of latitude, free all
+    // the way round), while turning a face is a separate input that only listens
+    // when `movePressInput` is "basic" — so a drag can never quietly rewrite the
+    // scramble somebody opened this to check.
+    window.ntRender = function (key, scramble, mode, puzzleId) {
       var host = document.getElementById("host");
       host.textContent = "";
       var el;
-      if (key === "fto") {
+      var threeD = mode === "3d" && !!puzzleId;
+      if (threeD || key === "fto") {
         el = document.createElement("twisty-player");
-        el.setAttribute("puzzle", "fto");
-        el.setAttribute("visualization", "2D");
+        el.setAttribute("puzzle", threeD ? puzzleId : "fto");
+        el.setAttribute("visualization", threeD ? "3D" : "2D");
         el.setAttribute("background", "none");
         el.setAttribute("control-panel", "none");
+        if (threeD) {
+          el.setAttribute("hint-facelets", "none");
+        }
+        // The alg with no setup alg: the player's initial timestamp is then the END of
+        // the timeline, so the state shown is the scrambled one. (Same as the FTO net,
+        // which has drawn the scramble this way since it was added.)
         el.setAttribute("alg", scramble || "");
       } else {
         el = document.createElement("scramble-display");
@@ -78,7 +96,7 @@
       // `.player`; twisty-player is itself the player. Both expose
       // experimentalModel.currentPattern, which resolves once the state is computed
       // — then one more frame ensures it has painted.
-      ntWaitForRender(key === "fto" ? el : el.player);
+      ntWaitForRender(el.player || el);
     };
 
     function ntNotifyRendered() {

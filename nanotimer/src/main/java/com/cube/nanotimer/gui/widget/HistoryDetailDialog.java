@@ -516,7 +516,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     String fallback = (moves == null && cubeType == CubeType.CLOCK)
         ? getString(R.string.scramble_view_clock_notation_hint) + "\n\n" + readable
         : readable;
-    DialogUtils.showFragment(getActivity(), ScrambleViewDialog.newInstance(key, moves, fallback));
+    DialogUtils.showFragment(getActivity(), ScrambleViewDialog.newInstance(key, moves, fallback,
+        ScrambleViewNotation.get3DPuzzleId(cubeType)));
   }
 
   /**
