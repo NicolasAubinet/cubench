@@ -1,4 +1,4 @@
-package com.cube.nanotimer.smartcube.drill;
+package com.cube.nanotimer.smartcube.step;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.Face;
@@ -10,13 +10,13 @@ import com.cube.nanotimer.smartcube.model.Face;
  * to come out that way or its layer would not be on top, and the app's 3x3 scrambles never held
  * anything else. A wide turn or a rotation is not silently half-read here; it is not accepted.
  */
-final class FaceTurns {
+public final class FaceTurns {
 
   private FaceTurns() {
   }
 
   /** @throws IllegalArgumentException if a token is not a face turn */
-  static void apply(CubieCube cube, String scramble) {
+  public static void apply(CubieCube cube, String scramble) {
     if (scramble == null) {
       return;
     }
