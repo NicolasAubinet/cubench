@@ -10,7 +10,10 @@
    android:paddingRight="8px">
 
   <!-- Stacked, and hugging the left: side by side the two names compete for a width the menu
-       buttons have already taken most of, and this way the bar needs the wider, not the sum. -->
+       buttons have already taken most of, and this way the bar needs the wider, not the sum.
+
+       Both names drop their font padding. Two lines of it need more than a 48dp bar on any phone
+       wider than ~390dp, and the overflow is taken off the lower name's descenders. -->
   <LinearLayout
      android:id="@+id/identityRow"
      android:layout_width="wrap_content"
@@ -38,6 +41,7 @@
          android:layout_height="wrap_content"
          android:textSize="26px"
          android:textStyle="bold"
+         android:includeFontPadding="false"
          android:textColor="@color/white"
          android:singleLine="true"
          android:ellipsize="end"/>
@@ -47,6 +51,7 @@
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:textSize="19px"
+         android:includeFontPadding="false"
          android:singleLine="true"
          android:ellipsize="end"/>
     </LinearLayout>
