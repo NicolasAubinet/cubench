@@ -16,6 +16,12 @@ import java.util.List;
  * fewest pieces out. Two rotations can only tie far from solved, where the shape is
  * {@link Shape#SCATTERED} and no piece is named anyway.
  *
+ * <p><b>A piece in a foreign slot and a piece turned where it stands are two different mistakes</b>,
+ * and they are said separately even when both are there: shooting to the wrong sticker of the right
+ * piece leaves the piece home and turned, and that is a memo item dropped rather than an algorithm
+ * misfired. The shape is read off the pieces out of place alone, so a clean three-cycle is still
+ * read as one with a twisted corner sitting beside it.
+ *
  * <p>Names are spelled through {@link BlindTargets}, in the grip the solve was held in, and are the
  * same words in every language: the display picks the sentence, never the pieces.
  */
@@ -46,11 +52,13 @@ public final class BlindResidual {
 
   private final Shape shape;
   private final String pieces;
+  private final String turned;
   private final int count;
 
-  private BlindResidual(Shape shape, String pieces, int count) {
+  private BlindResidual(Shape shape, String pieces, String turned, int count) {
     this.shape = shape;
     this.pieces = pieces;
+    this.turned = turned;
     this.count = count;
   }
 
@@ -61,6 +69,17 @@ public final class BlindResidual {
   /** The pieces left over, said in the order the shape reads in. Empty when there are none to name. */
   public String getPieces() {
     return pieces;
+  }
+
+  /**
+   * The pieces sitting in their own slot but turned, said apart from the ones in a foreign slot.
+   *
+   * <p>Empty where there are none, and empty too where they are all there is: a cube left with
+   * nothing out of place is {@link Shape#FLIPPED}, {@link Shape#TWISTED} or {@link Shape#TURNED},
+   * and {@link #getPieces()} names them as the whole of what was left.
+   */
+  public String getTurned() {
+    return turned;
   }
 
   /** How many pieces are not home. */
@@ -84,28 +103,27 @@ public final class BlindResidual {
     }
     int count = misplaced.size() + turned.size();
     if (count == 0) {
-      return new BlindResidual(Shape.SOLVED, "", 0);
+      return new BlindResidual(Shape.SOLVED, "", "", 0);
     }
     if (misplaced.isEmpty()) {
-      return new BlindResidual(turnedShape(turned), said(targets, turned, ", "), count);
-    }
-    if (turned.isEmpty()) {
-      List<Integer> cycle = cycleOf(steady, misplaced);
-      if (cycle != null) {
-        Shape shape = Cubies.isEdge(cycle.get(0)) ? Shape.EDGE_CYCLE : Shape.CORNER_CYCLE;
-        return new BlindResidual(shape, said(targets, cycle, "-"), count);
-      }
-      String parity = parityOf(steady, misplaced, targets);
-      if (parity != null) {
-        return new BlindResidual(Shape.PARITY, parity, count);
-      }
+      return new BlindResidual(turnedShape(turned), said(targets, turned, ", "), "", count);
     }
     if (count > MAX_NAMED) {
-      return new BlindResidual(Shape.SCATTERED, "", count);
+      return new BlindResidual(Shape.SCATTERED, "", "", count);
     }
-    List<Integer> all = new ArrayList<Integer>(misplaced);
-    all.addAll(turned);
-    return new BlindResidual(Shape.MIXED, said(targets, all, ", "), count);
+    // The shape is what the pieces out of place make; anything turned where it stands rides beside
+    // it, so a three-cycle with a twisted corner next to it reads as the three-cycle it is.
+    String alsoTurned = said(targets, turned, ", ");
+    List<Integer> cycle = cycleOf(steady, misplaced);
+    if (cycle != null) {
+      Shape shape = Cubies.isEdge(cycle.get(0)) ? Shape.EDGE_CYCLE : Shape.CORNER_CYCLE;
+      return new BlindResidual(shape, said(targets, cycle, "-"), alsoTurned, count);
+    }
+    String parity = parityOf(steady, misplaced, targets);
+    if (parity != null) {
+      return new BlindResidual(Shape.PARITY, parity, alsoTurned, count);
+    }
+    return new BlindResidual(Shape.MIXED, said(targets, misplaced, ", "), alsoTurned, count);
   }
 
   private static Shape turnedShape(List<Integer> turned) {

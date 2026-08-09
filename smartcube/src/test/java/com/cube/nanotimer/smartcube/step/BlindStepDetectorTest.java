@@ -50,6 +50,9 @@ public class BlindStepDetectorTest {
   /** Two corners and two edges swapped in one algorithm: exactly what a parity leaves to fix. */
   private static final String T_PERM = "R U R' U' R' F R2 U' R' U' R U R' F'";
 
+  /** The same swap set up on two other pieces, so a solve can be left owing a second one. */
+  private static final String T_PERM_ELSEWHERE = "U " + T_PERM + " U'";
+
   private final CubieCube cube = new CubieCube();
   private final BlindStepDetector detector = new BlindStepDetector();
   /** The solve is fed through the analyzer, which is how the app feeds it: it only forwards. */
@@ -308,6 +311,61 @@ public class BlindStepDetectorTest {
     assertNull(detector.getStepTimestampMs(2));
     assertFalse(detector.isComplete());
     assertTrue(detector.matchesMethod()); // a prefix in order is still a prefix in order
+  }
+
+  /**
+   * The parity is the one mistake nothing else here can point at: skipping it breaks no algorithm,
+   * so the marks blame nobody and the verdict line only says the shape. The scramble decides it.
+   */
+  @Test
+  public void namesTheParityTheScrambleNeededAndTheSolveNeverDid() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B, T_PERM);
+    play(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B);
+
+    assertFalse(detector.isComplete());
+    assertEquals(BlindResidual.Shape.PARITY, detector.getResidual().getShape());
+    assertEquals(ParityCheck.SKIPPED, detector.getParityCheck());
+  }
+
+  /**
+   * The other way round: an even scramble calls for no parity at all, so a cube left on one was put
+   * there by an algorithm the memo never had. The cube says it whether or not the algorithm read.
+   */
+  @Test
+  public void namesTheParityTheScrambleNeverCalledFor() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B, T_PERM,
+        T_PERM_ELSEWHERE);
+    play(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B, T_PERM);
+
+    assertEquals(BlindResidual.Shape.PARITY, detector.getResidual().getShape());
+    assertEquals(ParityCheck.NEEDLESS, detector.getParityCheck());
+  }
+
+  /** A solve that came out did its parity or never owed one, and either way it is not news. */
+  @Test
+  public void saysNothingOfTheParityOfASolveThatCameOut() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B, T_PERM);
+    play(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B, T_PERM);
+
+    assertTrue(detector.isComplete());
+    assertNull(detector.getParityCheck());
+  }
+
+  /**
+   * A parity never read is only a parity never done while every move is accounted for. Past the
+   * point the reading was lost, the turning nothing was read from could have held it.
+   */
+  @Test
+  public void withholdsTheSkippedParityOnceTheReadingIsLost() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B, T_PERM);
+    play(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B);
+    assertEquals(ParityCheck.SKIPPED, detector.getParityCheck());
+
+    play("R R'"); // turning no algorithm can be read out of, and the cube back where it stood
+
+    assertEquals(BlindResidual.Shape.PARITY, detector.getResidual().getShape());
+    assertNotNull(detector.getLostReading());
+    assertNull(detector.getParityCheck());
   }
 
   /** Scramble with the inverse of the whole solve, then start the timer and memorise. */

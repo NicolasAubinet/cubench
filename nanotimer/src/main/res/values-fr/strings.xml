@@ -362,7 +362,10 @@
   <string name="blind_left_flipped">Terminé avec des arêtes retournées : %s</string>
   <string name="blind_left_twisted">Terminé avec des coins tournés : %s</string>
   <string name="blind_left_turned">Terminé avec des pièces mal orientées : %s</string>
-  <string name="blind_left_pieces">Terminé avec %1$d pièces non résolues : %2$s</string>
+  <string name="blind_left_pieces">Terminé avec des pièces mal placées : %s</string>
+  <string name="blind_left_also_turned">Également mal orientées : %s</string>
+  <string name="blind_parity_skipped">Le mélange demandait une parité, et aucune n\'a été faite</string>
+  <string name="blind_parity_needless">Une parité a été faite alors que le mélange n\'en demandait pas</string>
   <string name="blind_left_scattered">Terminé avec %d pièces non résolues</string>
   <!-- Where the reading stopped short of the turning. -->
   <string name="blind_reading_lost">La lecture s\'arrête après %1$s : %2$d mouvements non lus</string>

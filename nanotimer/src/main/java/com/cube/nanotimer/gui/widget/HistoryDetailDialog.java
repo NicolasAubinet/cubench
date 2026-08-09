@@ -43,6 +43,7 @@ import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.BlindResidual;
 import com.cube.nanotimer.smartcube.step.LostReading;
+import com.cube.nanotimer.smartcube.step.ParityCheck;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
@@ -191,6 +192,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
           getString(R.string.breakdown), null, method);
       showResidual(v, reread == null ? null : reread.getResidual());
+      showParityCheck(v, reread == null ? null : reread.getParityCheck());
       showLostReading(v, reread == null ? null : reread.getLostReading());
     }
 
@@ -239,6 +241,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.breakdownCard).setVisibility(View.VISIBLE);
     v.findViewById(R.id.breakdownTotals).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownResidual).setVisibility(View.GONE);
+    v.findViewById(R.id.breakdownParity).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownLost).setVisibility(View.GONE);
     v.findViewById(R.id.movesSwitchLabel).setVisibility(View.VISIBLE);
     SwitchCompat moves = (SwitchCompat) v.findViewById(R.id.swMoves);
@@ -401,11 +404,27 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       case FLIPPED: text = getString(R.string.blind_left_flipped, pieces); break;
       case TWISTED: text = getString(R.string.blind_left_twisted, pieces); break;
       case TURNED: text = getString(R.string.blind_left_turned, pieces); break;
-      case MIXED: text = getString(R.string.blind_left_pieces, residual.getCount(), pieces); break;
+      case MIXED: text = getString(R.string.blind_left_pieces, pieces); break;
       default: text = getString(R.string.blind_left_scattered, residual.getCount()); break;
+    }
+    // A piece turned where it stands is a different mistake from one in a foreign slot, so it is
+    // said after the shape rather than counted into it.
+    if (!residual.getTurned().isEmpty()) {
+      text += " " + getString(R.string.blind_left_also_turned, residual.getTurned());
     }
     TextView line = (TextView) v.findViewById(R.id.breakdownResidual);
     line.setText(text);
+    line.setVisibility(View.VISIBLE);
+  }
+
+  // The parity is the one mistake the marks cannot point at: skipping it breaks no algorithm.
+  private void showParityCheck(View v, ParityCheck check) {
+    if (check == null) {
+      return;
+    }
+    TextView line = (TextView) v.findViewById(R.id.breakdownParity);
+    line.setText(check == ParityCheck.SKIPPED
+        ? R.string.blind_parity_skipped : R.string.blind_parity_needless);
     line.setVisibility(View.VISIBLE);
   }
 

@@ -268,6 +268,14 @@
                android:textColor="@color/warning"
                android:visibility="gone"
                style="@style/BreakdownMeta"/>
+            <!-- The one mistake nothing else can point at: a parity done wrongly or not at all. -->
+            <TextView
+               android:id="@+id/breakdownParity"
+               android:layout_gravity="center_horizontal"
+               android:layout_marginBottom="8dp"
+               android:textColor="@color/danger_text"
+               android:visibility="gone"
+               style="@style/BreakdownMeta"/>
             <!-- Where the reading stopped, said under the verdict it qualifies. -->
             <TextView
                android:id="@+id/breakdownLost"

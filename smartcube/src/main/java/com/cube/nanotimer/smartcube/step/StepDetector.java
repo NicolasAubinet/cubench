@@ -87,6 +87,14 @@ public interface StepDetector {
   }
 
   /**
+   * Whether the parity a scramble called for is the one the solve did, for a reading that keeps
+   * both facts. Null everywhere else, and null too where there is nothing certain to say.
+   */
+  default ParityCheck getParityCheck() {
+    return null;
+  }
+
+  /**
    * Whether the observed milestones are consistent with this method having been used — reached in
    * the method's order, each before the solve finished, with any step skipped still counting. A
    * method whose steps have no order to be done in asks only that they were reached at all. A solve

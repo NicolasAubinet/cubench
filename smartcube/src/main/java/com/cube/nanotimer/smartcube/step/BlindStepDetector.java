@@ -686,6 +686,33 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
+   * Whether the parity was the one the scramble asked for, told from the scramble's permutation and
+   * the state the solve was left in rather than from how the solve read.
+   *
+   * <p>Only ever said of a cube left on a two-and-two swap. That swap is an odd permutation, so the
+   * cube is exactly one parity algorithm from solvable and nothing built out of three-cycles could
+   * have reached it or could leave it. An even scramble never called for one, so a cube left on one
+   * was put there by an algorithm the memo did not have. An odd scramble did call for one, and where
+   * none was read that swap is the parity itself, still owed.
+   *
+   * <p>The second of those is the only half that leans on the reading, and it is held back once the
+   * turning outran it: past that point the parity could have been done in the moves nothing was read
+   * from. The first leans on the scramble and the final state alone, which a lost reading does not
+   * touch.
+   */
+  @Override
+  public ParityCheck getParityCheck() {
+    BlindResidual residual = getResidual();
+    if (residual == null || residual.getShape() != BlindResidual.Shape.PARITY) {
+      return null;
+    }
+    if (!parity) {
+      return ParityCheck.NEEDLESS;
+    }
+    return !parityFound && unread == 0 ? ParityCheck.SKIPPED : null;
+  }
+
+  /**
    * Where the reading stopped, when turning carried on past the last algorithm it could read. A
    * solve that came out has none of this: the turning after it is the blindfold coming off.
    */

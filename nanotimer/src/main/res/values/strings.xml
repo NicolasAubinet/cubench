@@ -370,7 +370,10 @@
   <string name="blind_left_flipped">Ended with edges flipped: %s</string>
   <string name="blind_left_twisted">Ended with corners twisted: %s</string>
   <string name="blind_left_turned">Ended with pieces turned in place: %s</string>
-  <string name="blind_left_pieces">Ended with %1$d pieces out: %2$s</string>
+  <string name="blind_left_pieces">Ended with pieces out of place: %s</string>
+  <string name="blind_left_also_turned">Also turned where they stand: %s</string>
+  <string name="blind_parity_skipped">The scramble needed a parity, and none was done</string>
+  <string name="blind_parity_needless">A parity was done that the scramble did not need</string>
   <string name="blind_left_scattered">Ended with %d pieces out</string>
   <!-- Where the reading stopped short of the turning. -->
   <string name="blind_reading_lost">The reading stops after %1$s: %2$d moves unread</string>

@@ -63,6 +63,11 @@ public final class SolveAnalyzer {
     return detector.getLostReading();
   }
 
+  /** Whether the parity was the one the scramble asked for, or null where nothing is certain. */
+  public ParityCheck getParityCheck() {
+    return detector.getParityCheck();
+  }
+
   /** The solve's moves in order, timestamped on the cube clock. */
   public List<CubeMove> getMoves() {
     return Collections.unmodifiableList(moves);

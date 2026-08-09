@@ -60,14 +60,46 @@ public class BlindResidualTest {
     assertEquals("UFR-UFL + UR-UF", residual.getPieces());
   }
 
-  /** A cycle and an orientation together are two mistakes, and no shape a single one makes. */
+  /** A cycle and an orientation are two mistakes, and the cycle is still the cycle it was. */
   @Test
-  public void aCycleWithAnExtraTurnedPieceIsNamedButNotShaped() {
+  public void aCycleWithAnExtraTurnedPieceKeepsItsShapeAndSaysTheTurnedPieceApart() {
     String left = turn(cycle(Cubies.SOLVED, UR, UF, UL), URF, 1);
+    BlindResidual residual = BlindResidual.of(left, targets);
+    assertEquals(BlindResidual.Shape.EDGE_CYCLE, residual.getShape());
+    assertEquals(4, residual.getCount());
+    assertEquals("UR-UL-UF", residual.getPieces());
+    assertEquals("UFR", residual.getTurned());
+  }
+
+  /** Shooting to the wrong sticker of the right piece: the parity landed, one of its pieces turned. */
+  @Test
+  public void aParityWithATurnedPieceKeepsItsShapeToo() {
+    String left = turn(swap(swap(Cubies.SOLVED, UR, UF), URF, UFL), UB, 1);
+    BlindResidual residual = BlindResidual.of(left, targets);
+    assertEquals(BlindResidual.Shape.PARITY, residual.getShape());
+    assertEquals(5, residual.getCount());
+    assertEquals("UFR-UFL + UR-UF", residual.getPieces());
+    assertEquals("UB", residual.getTurned());
+  }
+
+  /** Pieces out of place in no shape at all still say which of them are merely turned. */
+  @Test
+  public void pieceOutOfPlaceAndPieceTurnedAreSaidApartWhenThereIsNoShape() {
+    String left = turn(turn(swap(Cubies.SOLVED, UR, UF), URF, 1), UFL, 2);
     BlindResidual residual = BlindResidual.of(left, targets);
     assertEquals(BlindResidual.Shape.MIXED, residual.getShape());
     assertEquals(4, residual.getCount());
-    assertEquals("UR, UF, UL, UFR", residual.getPieces());
+    assertEquals("UR, UF", residual.getPieces());
+    assertEquals("UFR, UFL", residual.getTurned());
+  }
+
+  /** Nothing out of place: the turned pieces are the whole of what was left, and are said as it. */
+  @Test
+  public void turnedPiecesAloneAreNotSaidTwice() {
+    BlindResidual residual = BlindResidual.of(turn(turn(Cubies.SOLVED, UF, 1), UB, 1), targets);
+    assertEquals(BlindResidual.Shape.FLIPPED, residual.getShape());
+    assertEquals("UF, UB", residual.getPieces());
+    assertEquals("", residual.getTurned());
   }
 
   @Test

@@ -7,6 +7,7 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.BlindResidual;
 import com.cube.nanotimer.smartcube.step.LostReading;
+import com.cube.nanotimer.smartcube.step.ParityCheck;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
@@ -51,14 +52,16 @@ public final class StoredSolveReplay {
     private final Integer stoppedStep;
     private final BlindResidual residual;
     private final LostReading lostReading;
+    private final ParityCheck parityCheck;
 
     Result(CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
-        BlindResidual residual, LostReading lostReading) {
+        BlindResidual residual, LostReading lostReading, ParityCheck parityCheck) {
       this.method = method;
       this.steps = steps;
       this.stoppedStep = stoppedStep;
       this.residual = residual;
       this.lostReading = lostReading;
+      this.parityCheck = parityCheck;
     }
 
     public CubeMethod getMethod() {
@@ -81,6 +84,11 @@ public final class StoredSolveReplay {
     /** Where the reading stopped short of the turning, or null where it did not. */
     public LostReading getLostReading() {
       return lostReading;
+    }
+
+    /** Whether the parity was the one the scramble asked for, or null where nothing is certain. */
+    public ParityCheck getParityCheck() {
+      return parityCheck;
     }
   }
 
@@ -140,7 +148,8 @@ public final class StoredSolveReplay {
         return null;
       }
       return new Result(method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
-          stoppedStep, analyzer.getResidual(), analyzer.getLostReading());
+          stoppedStep, analyzer.getResidual(), analyzer.getLostReading(),
+          analyzer.getParityCheck());
     } catch (RuntimeException e) {
       return null; // a scramble in another puzzle's notation, a truncated stream: fall back
     }
