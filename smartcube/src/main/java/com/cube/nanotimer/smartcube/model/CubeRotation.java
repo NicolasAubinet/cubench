@@ -250,6 +250,35 @@ public final class CubeRotation {
   }
 
   /**
+   * The part of a grip that is a turn about the vertical, with the part that tips it away from
+   * upright taken out. A swing-twist split about {@link #WORLD_UP}, keeping the twist.
+   *
+   * <p>⚠️ <b>This is what an anchored grip may keep, and the up face is what it may not.</b> The
+   * fusion is gravity-referenced, so {@link #upFace} is absolute and cannot drift, while yaw is
+   * arbitrary per gyro session and drifts. A reference holding the whole grip therefore makes
+   * whatever face happened to be up when it was taken read as the top of the cube, so connecting
+   * with yellow up drew yellow on the bottom until something re-took it.
+   *
+   * <p>The degenerate case is the one that matters here: a cube anchored exactly upside down has
+   * its whole rotation about a horizontal axis, the projection vanishes, and the twist is nothing,
+   * which is the right answer. The swing that carries it is left to be measured, and comes back as
+   * the half turn it is.
+   */
+  public static CubeOrientation yawOnly(CubeOrientation grip) {
+    if (grip == null) {
+      return null;
+    }
+    // WORLD_UP is (0,0,1) in the gyro's axes, so the twist keeps w and z and drops x and y.
+    double w = grip.getW();
+    double z = grip.getZ();
+    double norm = Math.sqrt(w * w + z * z);
+    if (norm < 1e-9) {
+      return new CubeOrientation(1, 0, 0, 0); // no turn about the vertical to keep
+    }
+    return new CubeOrientation(w / norm, 0, 0, z / norm);
+  }
+
+  /**
    * The turn carrying unit vector {@code from} onto {@code to} the short way round. The two are
    * never opposite here — an up face is by definition the one nearest up — so the half-turn case,
    * where the axis would vanish, cannot arise.

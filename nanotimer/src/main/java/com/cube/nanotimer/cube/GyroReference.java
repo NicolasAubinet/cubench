@@ -25,6 +25,12 @@ import java.util.Map;
  * <p>The anchor fixes the <em>offset</em> — where front is. It does not fix drift, which is why the
  * track is stored raw beside the reference rather than composed with it — see
  * {@link GyroTrackFormat}.
+ *
+ * <p>⚠️ <b>Only the yaw is the anchor's to give.</b> The fusion is gravity-referenced, so which
+ * face is up is absolute and cannot drift; yaw is arbitrary per gyro session and can. Holding the
+ * whole grip made whatever face was up when it was taken read as the top of the cube, so a solver
+ * who connected with yellow up, or whose cube dropped and reconnected while it sat on the table,
+ * was drawn yellow down for the rest of the session. See {@link CubeRotation#yawOnly}.
  */
 public final class GyroReference {
 
@@ -33,14 +39,14 @@ public final class GyroReference {
   private volatile CubeOrientation reference;
 
   /**
-   * The grip to measure from, replacing whatever stood before. Deliberately overwrites: it is taken
+   * The grip to measure from, <b>reduced to its yaw</b>, replacing whatever stood before. Deliberately overwrites: it is taken
    * at moments that mean it — a fresh connection, or the solver saying so — rather than fed
    * speculatively, so the newest answer is the right one. A reading that is not there anchors
    * nothing, and leaves the previous grip standing.
    */
   public void anchor(CubeOrientation reading) {
     if (reading != null) {
-      reference = CubeRotation.upright(reading);
+      reference = CubeRotation.yawOnly(CubeRotation.upright(reading));
     }
   }
 
