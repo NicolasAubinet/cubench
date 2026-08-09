@@ -6,11 +6,13 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
@@ -19,6 +21,7 @@ import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.CrossFaceSwatches;
+import com.cube.nanotimer.gui.widget.DrillHelpDialog;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
@@ -88,7 +91,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   private SegmentedControl reps;
   private SegmentedControl mode;
   private CrossFaceSwatches crossFaces;
-  private CheckBox cbPlanning;
+  private Switch swPlanning;
   private EditText etPlanningSeconds;
   private View crossOptions;
   private View planningSeconds;
@@ -120,7 +123,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     tvPracticeHint = findViewById(R.id.tvDrillPracticeHint);
     tvFaceLabel = findViewById(R.id.tvDrillFaceLabel);
     tvModeHint = findViewById(R.id.tvDrillModeHint);
-    cbPlanning = findViewById(R.id.cbDrillPlanning);
+    swPlanning = findViewById(R.id.swDrillPlanning);
     etPlanningSeconds = findViewById(R.id.etDrillPlanningSeconds);
 
     practice = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llDrillPractice),
@@ -180,7 +183,7 @@ public class DrillSetupActivity extends NanoTimerActivity
           }
         });
 
-    cbPlanning.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+    swPlanning.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton button, boolean checked) {
         Options.INSTANCE.setDrillChoice(KEY_PLANNING_ON, checked ? 1 : 0);
@@ -204,11 +207,27 @@ public class DrillSetupActivity extends NanoTimerActivity
 
     practice.setSelection(Options.INSTANCE.getDrillChoice(KEY_PRACTICE, PRACTICE_PLL));
     mode.setSelection(Options.INSTANCE.getDrillChoice(KEY_RECORDING, 1));
-    cbPlanning.setChecked(Options.INSTANCE.getDrillChoice(KEY_PLANNING_ON, 0) == 1);
+    swPlanning.setChecked(Options.INSTANCE.getDrillChoice(KEY_PLANNING_ON, 0) == 1);
     etPlanningSeconds.setText(String.valueOf(
         Options.INSTANCE.getDrillChoice(KEY_PLANNING_SECONDS, DEFAULT_PLANNING_SECONDS)));
     refreshPractice();
     refreshModeHint();
+  }
+
+  /** The two explanations that used to stand as grey paragraphs between the last control and Start. */
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.drill_setup_menu, menu);
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.itDrillHelp) {
+      DialogUtils.showFragment(this, new DrillHelpDialog());
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   @Override
@@ -224,7 +243,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     int picked = practice.getSelection();
     boolean cross = picked == PRACTICE_CROSS;
     crossOptions.setVisibility(cross ? View.VISIBLE : View.GONE);
-    planningSeconds.setVisibility(cross && cbPlanning.isChecked() ? View.VISIBLE : View.GONE);
+    planningSeconds.setVisibility(cross && swPlanning.isChecked() ? View.VISIBLE : View.GONE);
     int hint;
     if (cross) {
       hint = R.string.drill_practice_hint_cross;
@@ -355,7 +374,7 @@ public class DrillSetupActivity extends NanoTimerActivity
       intent = new Intent(this, CrossDrillActivity.class);
       intent.putExtra(CrossDrillActivity.EXTRA_SPEC, DrillSpec
           .cross("local-cross-" + crossFace.name().toLowerCase(Locale.ROOT), crossFace.name(),
-              repCount, cbPlanning.isChecked() ? seconds * 1000L : 0,
+              repCount, swPlanning.isChecked() ? seconds * 1000L : 0,
               getString(R.string.drill_cross_title))
           .toJson());
     } else {

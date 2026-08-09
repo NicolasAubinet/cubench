@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What a drill decides before it starts, reached from the ? in the setup screen's bar. The two
+     explanations that used to sit as grey paragraphs between the last control and Start. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="16dp"
+   android:paddingRight="16dp"
+   android:paddingTop="8dp"
+   android:paddingBottom="14dp"
+   android:minWidth="300dp">
+
+  <!-- The grip: what says the sheet can be dragged back down to close it. -->
+  <View
+     android:layout_width="32dp"
+     android:layout_height="4dp"
+     android:layout_gravity="center_horizontal"
+     android:background="@drawable/bottomsheet_drag_handle"/>
+
+  <androidx.core.widget.NestedScrollView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginTop="12dp">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical">
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:text="@string/drill_help_title"
+         android:textColor="@color/white"
+         android:textSize="20sp"
+         android:textStyle="bold"/>
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="6dp"
+         android:text="@string/drill_help_body"
+         android:textColor="@color/secondary_text"
+         android:textSize="13.5sp"/>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal"
+         android:layout_marginTop="18dp">
+        <ImageView
+           android:layout_width="24dp"
+           android:layout_height="24dp"
+           android:layout_marginEnd="14dp"
+           android:layout_marginRight="14dp"
+           android:layout_marginTop="1dp"
+           android:src="@drawable/ic_menu_drill"
+           android:tint="@color/lightblue"
+           android:contentDescription="@null"/>
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical">
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="@string/drill_mode"
+             android:textColor="@color/white"
+             android:textSize="14.5sp"
+             android:textStyle="bold"/>
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="1dp"
+             android:text="@string/drill_help_mode"
+             android:textColor="@color/secondary_text"
+             android:textSize="12.5sp"/>
+        </LinearLayout>
+      </LinearLayout>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal"
+         android:layout_marginTop="16dp">
+        <ImageView
+           android:layout_width="24dp"
+           android:layout_height="24dp"
+           android:layout_marginEnd="14dp"
+           android:layout_marginRight="14dp"
+           android:layout_marginTop="1dp"
+           android:src="@drawable/ic_intro_timing"
+           android:contentDescription="@null"/>
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical">
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="@string/drill_planning_limit"
+             android:textColor="@color/white"
+             android:textSize="14.5sp"
+             android:textStyle="bold"/>
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="1dp"
+             android:text="@string/drill_planning_hint"
+             android:textColor="@color/secondary_text"
+             android:textSize="12.5sp"/>
+        </LinearLayout>
+      </LinearLayout>
+
+    </LinearLayout>
+
+  </androidx.core.widget.NestedScrollView>
+
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buDrillHelpDone"
+     android:layout_width="match_parent"
+     android:layout_marginTop="18dp"
+     android:text="@string/close"
+     style="@style/DialogActionButton"/>
+
+</LinearLayout>

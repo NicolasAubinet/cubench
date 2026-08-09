@@ -3,6 +3,7 @@
      physical cube's own state never matters and there is nothing here to press to start or stop a
      rep. The cube reports both ends of one. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
    android:fitsSystemWindows="true"
    android:layout_width="match_parent"
    android:layout_height="match_parent">
@@ -13,24 +14,6 @@
      android:layout_height="match_parent"
      android:orientation="vertical"
      android:padding="12dp">
-
-    <!-- Only for a cube whose grip cannot be read (no gyro, or no reference yet). Where it can,
-         the cube on screen turns with theirs and there is nothing to tell them. -->
-    <TextView
-       android:id="@+id/tvDrillGrip"
-       android:visibility="gone"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_gravity="center_horizontal"
-       android:background="@drawable/smart_cube_pill"
-       android:backgroundTint="@color/white_wash_10"
-       android:paddingLeft="12dp"
-       android:paddingRight="12dp"
-       android:paddingTop="4dp"
-       android:paddingBottom="4dp"
-       android:text="@string/drill_grip_hint"
-       android:textColor="@color/secondary_text"
-       android:textSize="12sp"/>
 
     <!-- The cube sits in a well rather than on the background: 3D on a flat surface needs
          something under it or it reads as floating. -->
@@ -63,7 +46,7 @@
          android:id="@+id/drillRepWash"
          android:layout_width="match_parent"
          android:layout_height="match_parent"
-         android:background="@color/green_soft"
+         android:background="@drawable/drill_rep_wash"
          android:visibility="gone"/>
 
       <TextView
@@ -78,24 +61,54 @@
          android:visibility="gone"/>
     </FrameLayout>
 
-    <!-- ⚠️ The rep just FINISHED: its case, then its time. Both belong to the case that is over,
-         never to the one on screen, which is deliberately not named anywhere — naming it would
-         hand the user the answer, and a recognition drill would be timing reading. The name sits
-         with the time rather than under the cube, where at headline size it read as a caption for
-         the cube and so as the name of the case being looked at.
+    <!-- ⚠️ The rep just FINISHED: its case, then its time, then how the time was spent. All three
+         belong to the case that is over, never to the one on screen, which is deliberately not
+         named anywhere: naming it would hand the user the answer, and a recognition drill would be
+         timing reading. The name sits with the time rather than under the cube, where at headline
+         size it read as a caption for the cube and so as the name of the case being looked at.
+
+         Three pieces rather than one sentence, so the time is the thing the eye lands on. A
+         minimum height rather than a fixed one: the row must not change height as reps come and
+         go, or the cube above it jumps, but at a large system font it has to be allowed to grow.
 
          This is also the only clock a drill shows. A running one would have to start somewhere,
          and a rep starts when its case is drawn, not when a frame is painted. -->
-    <TextView
-       android:id="@+id/tvDrillLastRep"
+    <LinearLayout
+       android:id="@+id/llDrillLastRep"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="14dp"
-       android:minHeight="26dp"
+       android:layout_marginTop="12dp"
+       android:minHeight="46dp"
        android:gravity="center"
-       android:textColor="@color/white"
-       android:textSize="17sp"
-       android:fontFeatureSettings="tnum"/>
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvDrillLastRepName"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginRight="8dp"
+         android:letterSpacing="0.02"
+         android:fontFamily="@font/roboto_medium"
+         android:textSize="13sp"/>
+
+      <TextView
+         android:id="@+id/tvDrillLastRep"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:textColor="@color/white"
+         android:fontFamily="@font/roboto_medium"
+         android:textSize="24sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <TextView
+         android:id="@+id/tvDrillLastRepSplit"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="8dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"
+         android:fontFeatureSettings="tnum"/>
+    </LinearLayout>
 
     <!-- Where the drill has got to, and the mode it cannot leave. On their own line above the
          controls: a third button left the rep counter no width at all, and which rep this is is
@@ -133,7 +146,19 @@
          android:textSize="12sp"/>
     </LinearLayout>
 
-    <!-- None of the three is a start or stop control: the cube still reports both ends of a rep. -->
+    <!-- Not tappable, so it is not a control: a drill has a known end, and until now it said so in
+         words only. -->
+    <ProgressBar
+       android:id="@+id/pbDrillProgress"
+       style="?android:attr/progressBarStyleHorizontal"
+       android:layout_width="match_parent"
+       android:layout_height="3dp"
+       android:layout_marginTop="8dp"
+       android:progressDrawable="@drawable/drill_progress"/>
+
+    <!-- None of the three is a start or stop control: the cube still reports both ends of a rep.
+         Autosized down to 12sp rather than left to wrap: a third of the row is 107dp, which every
+         translation fits today, and a future one shrinks by a point instead of breaking mid-word. -->
     <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
@@ -144,105 +169,187 @@
            this would teach looking it up, so the rep is marked instead. -->
       <Button
          android:id="@+id/btDrillAlgorithm"
+         style="@style/DialogActionButton"
          android:layout_width="0dp"
-         android:layout_height="wrap_content"
          android:layout_weight="1"
+         app:autoSizeTextType="uniform"
+         app:autoSizeMinTextSize="12sp"
+         app:autoSizeMaxTextSize="15sp"
          android:text="@string/drill_case_algorithm"/>
 
       <!-- Deals the same case again for a slip, and costs no rep. -->
       <Button
          android:id="@+id/btDrillReset"
+         style="@style/DialogActionButton"
          android:layout_width="0dp"
-         android:layout_height="wrap_content"
          android:layout_weight="1"
-         android:layout_marginLeft="6dp"
+         android:layout_marginLeft="8dp"
+         app:autoSizeTextType="uniform"
+         app:autoSizeMinTextSize="12sp"
+         app:autoSizeMaxTextSize="15sp"
          android:text="@string/drill_reset"/>
 
       <!-- Skipping spends the rep rather than escaping it: a case you could not do is a result. -->
       <Button
          android:id="@+id/btDrillSkip"
+         style="@style/DialogActionButton"
          android:layout_width="0dp"
-         android:layout_height="wrap_content"
          android:layout_weight="1"
-         android:layout_marginLeft="6dp"
+         android:layout_marginLeft="8dp"
+         app:autoSizeTextType="uniform"
+         app:autoSizeMinTextSize="12sp"
+         app:autoSizeMaxTextSize="15sp"
          android:text="@string/drill_skip"/>
     </LinearLayout>
 
   </LinearLayout>
 
-  <!-- What the drill leaves behind, which is a scrambled cube and needs one line, not a dialog. -->
+  <!-- What the drill leaves behind: four figures, the warning that the cube is scrambled, and the
+       way out under the thumb. On the app's own ground and its own cells, like every other screen
+       that reports numbers. -->
   <ScrollView
      android:id="@+id/drillSummary"
      android:layout_width="match_parent"
      android:layout_height="match_parent"
-     android:background="@color/color_primary"
+     android:background="@color/graybg"
+     android:fillViewport="true"
      android:visibility="gone">
 
     <LinearLayout
        android:layout_width="match_parent"
-       android:layout_height="wrap_content"
+       android:layout_height="match_parent"
        android:orientation="vertical"
-       android:gravity="center_horizontal"
-       android:padding="24dp">
-
-      <TextView
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:text="@string/drill_finished"
-         android:textColor="@color/white"
-         android:textSize="24sp"
-         android:textStyle="bold"/>
-
-      <TextView
-         android:id="@+id/tvDrillSummaryReps"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="16dp"
-         android:textColor="@color/secondary_text"
-         android:textSize="15sp"
-         android:fontFeatureSettings="tnum"/>
-
-      <TextView
-         android:id="@+id/tvDrillSummaryMean"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="6dp"
-         android:textColor="@color/white"
-         android:textSize="20sp"
-         android:fontFeatureSettings="tnum"/>
-
-      <TextView
-         android:id="@+id/tvDrillSummaryOtherMean"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="4dp"
-         android:textColor="@color/secondary_text"
-         android:textSize="15sp"
-         android:fontFeatureSettings="tnum"/>
-
-      <TextView
-         android:id="@+id/tvDrillSummaryBest"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="4dp"
-         android:textColor="@color/secondary_text"
-         android:textSize="15sp"
-         android:fontFeatureSettings="tnum"/>
+       android:padding="16dp">
 
       <TextView
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="24dp"
-         android:gravity="center"
-         android:text="@string/drill_cube_left_scrambled"
+         android:layout_marginTop="10dp"
+         android:text="@string/drill_finished"
+         android:textColor="@color/white"
+         android:textSize="26sp"
+         android:fontFamily="@font/roboto_medium"
+         android:textStyle="normal"/>
+
+      <!-- What was drilled and in which mode, since the drill is over and its own bar is gone. -->
+      <TextView
+         android:id="@+id/tvDrillSummarySubtitle"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="2dp"
          android:textColor="@color/secondary_text"
-         android:textSize="14sp"/>
+         android:textSize="13sp"/>
+
+      <!-- match_parent on the cells, so the tallest sets the height and the row never goes ragged. -->
+      <LinearLayout
+         android:id="@+id/llDrillSummaryCells"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="20dp"
+         android:baselineAligned="false"
+         android:orientation="horizontal">
+
+        <LinearLayout
+           android:id="@+id/llDrillCellOne"
+           android:layout_width="0dp"
+           android:layout_height="match_parent"
+           android:layout_weight="1"
+           android:layout_marginRight="3dp"
+           android:orientation="vertical"
+           android:background="@drawable/drill_stat_cell"
+           android:paddingLeft="6dp"
+           android:paddingRight="6dp"
+           android:paddingTop="8dp"
+           android:paddingBottom="8dp">
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellKeyOne" style="@style/HeroStatKey"/>
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellValueOne" style="@style/HeroStatValue"/>
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellSubOne" style="@style/HeroStatSub"/>
+        </LinearLayout>
+
+        <LinearLayout
+           android:id="@+id/llDrillCellTwo"
+           android:layout_width="0dp"
+           android:layout_height="match_parent"
+           android:layout_weight="1"
+           android:layout_marginLeft="3dp"
+           android:layout_marginRight="3dp"
+           android:orientation="vertical"
+           android:background="@drawable/drill_stat_cell"
+           android:paddingLeft="6dp"
+           android:paddingRight="6dp"
+           android:paddingTop="8dp"
+           android:paddingBottom="8dp">
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellKeyTwo" style="@style/HeroStatKey"/>
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellValueTwo" style="@style/HeroStatValue"/>
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellSubTwo" style="@style/HeroStatSub"/>
+        </LinearLayout>
+
+        <LinearLayout
+           android:id="@+id/llDrillCellThree"
+           android:layout_width="0dp"
+           android:layout_height="match_parent"
+           android:layout_weight="1"
+           android:layout_marginLeft="3dp"
+           android:orientation="vertical"
+           android:background="@drawable/drill_stat_cell"
+           android:paddingLeft="6dp"
+           android:paddingRight="6dp"
+           android:paddingTop="8dp"
+           android:paddingBottom="8dp">
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellKeyThree" style="@style/HeroStatKey"/>
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellValueThree" style="@style/HeroStatValue"/>
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellSubThree" style="@style/HeroStatSub"/>
+        </LinearLayout>
+      </LinearLayout>
+
+      <!-- The figure that has no cell of its own: the half the drill was not scored on. -->
+      <TextView
+         android:id="@+id/tvDrillSummaryExtra"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="10dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="14sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <!-- Instead of the cells, for a drill with nothing to average. -->
+      <TextView
+         android:id="@+id/tvDrillSummaryEmpty"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="20dp"
+         android:textColor="@color/white"
+         android:textSize="17sp"
+         android:visibility="gone"/>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="16dp"
+         android:background="@drawable/drill_note_card"
+         android:orientation="vertical"
+         android:padding="12dp">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="@string/drill_cube_left_scrambled"
+           android:textColor="@color/secondary_text"
+           android:textSize="13sp"/>
+      </LinearLayout>
+
+      <View
+         android:layout_width="match_parent"
+         android:layout_height="0dp"
+         android:layout_weight="1"
+         android:minHeight="8dp"/>
 
       <Button
          android:id="@+id/btDrillDone"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="24dp"
+         style="@style/DialogActionButton"
+         android:layout_height="48dp"
+         android:layout_marginTop="16dp"
+         android:textSize="16sp"
          android:text="@string/drill_done"/>
 
     </LinearLayout>
@@ -253,7 +360,7 @@
      android:id="@+id/tvDrillUnavailable"
      android:layout_width="match_parent"
      android:layout_height="match_parent"
-     android:background="@color/color_primary"
+     android:background="@color/graybg"
      android:gravity="center"
      android:padding="32dp"
      android:textColor="@color/secondary_text"

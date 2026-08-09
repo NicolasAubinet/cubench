@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- How far through its reps a drill is. A hairline, not a bar: it is the only screen in the app
+     with a known end, and saying so must not compete with the cube. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:id="@android:id/background">
+    <shape android:shape="rectangle">
+      <solid android:color="@color/white_wash_10"/>
+      <corners android:radius="3dp"/>
+    </shape>
+  </item>
+  <item android:id="@android:id/progress">
+    <clip>
+      <shape android:shape="rectangle">
+        <solid android:color="@color/lightblue"/>
+        <corners android:radius="3dp"/>
+      </shape>
+    </clip>
+  </item>
+</layer-list>

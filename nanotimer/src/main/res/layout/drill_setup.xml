@@ -149,7 +149,8 @@
        android:layout_height="wrap_content"
        android:orientation="horizontal"/>
 
-    <!-- Only for a cross drill: how long there is to plan it. -->
+    <!-- Only for a cross drill: how long there is to plan it. One row on a card rather than a
+         checkbox with a field under it, so the limit and the seconds read as one setting. -->
     <LinearLayout
        android:id="@+id/llDrillCrossOptions"
        android:layout_width="match_parent"
@@ -157,53 +158,74 @@
        android:orientation="vertical"
        android:visibility="gone">
 
-      <CheckBox
-         android:id="@+id/cbDrillPlanning"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="14dp"
-         android:text="@string/drill_planning_limit"
-         android:textColor="@color/white"
-         android:textSize="15sp"/>
+      <TextView
+         style="@style/DialogSectionLabel"
+         android:layout_marginTop="18dp"
+         android:text="@string/drill_planning"/>
 
       <LinearLayout
-         android:id="@+id/llDrillPlanningSeconds"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="4dp"
+         android:background="@drawable/drill_note_card"
          android:gravity="center_vertical"
          android:orientation="horizontal"
-         android:visibility="gone">
+         android:padding="12dp">
 
-        <EditText
-           android:id="@+id/etDrillPlanningSeconds"
-           android:layout_width="72dp"
+        <TextView
+           android:layout_width="0dp"
            android:layout_height="wrap_content"
-           android:inputType="number"
-           android:maxLength="3"
-           android:importantForAutofill="no"
+           android:layout_weight="1"
+           android:text="@string/drill_planning_limit"
            android:textColor="@color/white"
            android:textSize="15sp"/>
 
-        <TextView
+        <LinearLayout
+           android:id="@+id/llDrillPlanningSeconds"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:layout_marginLeft="8dp"
-           android:text="@string/drill_planning_seconds"
-           android:textColor="@color/secondary_text"
-           android:textSize="15sp"/>
-      </LinearLayout>
+           android:gravity="center_vertical"
+           android:orientation="horizontal"
+           android:visibility="gone">
 
-      <TextView
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="4dp"
-         android:text="@string/drill_planning_hint"
-         android:textColor="@color/secondary_text"
-         android:textSize="13sp"/>
+          <!-- Kept a field rather than made a label: the number is the point of the setting, and
+               reaching it should not cost a second screen. -->
+          <EditText
+             android:id="@+id/etDrillPlanningSeconds"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:background="@drawable/row_chip"
+             android:gravity="center"
+             android:minWidth="44dp"
+             android:paddingLeft="10dp"
+             android:paddingRight="10dp"
+             android:paddingTop="4dp"
+             android:paddingBottom="4dp"
+             android:inputType="number"
+             android:maxLength="3"
+             android:importantForAutofill="no"
+             android:textColor="@color/white"
+             android:textSize="15sp"/>
+
+          <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_marginLeft="6dp"
+             android:text="@string/drill_planning_seconds"
+             android:textColor="@color/secondary_text"
+             android:textSize="13sp"/>
+        </LinearLayout>
+
+        <Switch
+           android:id="@+id/swDrillPlanning"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginLeft="12dp"/>
+      </LinearLayout>
     </LinearLayout>
 
-    <!-- Says why the mode controls sit above rather than inside the drill. -->
+    <!-- The one sentence that has to be on screen: the mode cannot be changed once the drill has
+         started, and why it works that way is in the help panel. -->
     <TextView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
@@ -212,9 +234,11 @@
        android:textColor="@color/secondary_text"
        android:textSize="13sp"/>
 
+    <!-- The accent, not the tonal button: it is the one thing on the screen you came to press, and
+         beside a screen full of filled blue segments a tonal one reads as disabled. -->
     <Button
        android:id="@+id/btDrillStart"
-       style="@style/PrimaryButton"
+       style="@style/HeroStartButton"
        android:layout_marginTop="16dp"
        android:text="@string/drill_start"/>
 

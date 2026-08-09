@@ -69,6 +69,8 @@ public class CrossDrillActivity extends DrillScreenActivity {
 
   private CrossDrillSession session;
   private CrossFace face;
+  /** What this drill is called, for the summary once the bar that named it has gone. */
+  private String label;
 
   /** The optimal solutions for the scramble on screen, or null while the search is still running. */
   private FaceSolutions solutions;
@@ -77,10 +79,11 @@ public class CrossDrillActivity extends DrillScreenActivity {
 
   private TextView tvStatus;
   private Button btStart;
-  private TextView tvLastRep;
-  private TextView tvProgress;
+  /** The whole rep line, since the beat scales it. */
+  private View lastRepRow;
   private Button btDone;
   private Button btSolutions;
+  private View extrasRow;
   private View repWash;
 
   /** Between reps: the cube stands finished and the button takes the next scramble. */
@@ -93,11 +96,11 @@ public class CrossDrillActivity extends DrillScreenActivity {
     bindDrillScreen();
 
     tvStatus = findViewById(R.id.tvDrillCrossStatus);
-    tvLastRep = findViewById(R.id.tvDrillLastRep);
-    tvProgress = findViewById(R.id.tvDrillProgress);
+    lastRepRow = findViewById(R.id.llDrillLastRep);
     btDone = findViewById(R.id.btDrillCrossDone);
     btSolutions = findViewById(R.id.btDrillCrossSolutions);
     btStart = findViewById(R.id.btDrillCrossStart);
+    extrasRow = findViewById(R.id.llDrillCrossExtras);
     repWash = findViewById(R.id.drillRepWash);
 
     btDone.setOnClickListener(new View.OnClickListener() {
@@ -139,7 +142,8 @@ public class CrossDrillActivity extends DrillScreenActivity {
       showUnavailable(getString(R.string.drill_spec_unreadable));
       return;
     }
-    setTitle(spec.getLabel() == null ? getString(R.string.drill_cross_title) : spec.getLabel());
+    label = spec.getLabel() == null ? getString(R.string.drill_cross_title) : spec.getLabel();
+    setTitle(label);
 
     startWhenCubeConnected();
   }
@@ -153,7 +157,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
   protected void onDestroy() {
     super.onDestroy();
     handler.removeCallbacksAndMessages(null);
-    DrillRepFlourish.cancel(repWash, tvLastRep);
+    DrillRepFlourish.cancel(repWash, lastRepRow);
   }
 
   @Override
@@ -221,12 +225,13 @@ public class CrossDrillActivity extends DrillScreenActivity {
     // lit through whatever is turned next so their own extra move can be seen undoing it.
     cube.setStickering(CubeStickering.crossAndCentres(session.getCrossEdges()));
     if (rep.isBuilt()) {
-      DrillRepFlourish.play(repWash, tvLastRep);
+      DrillRepFlourish.play(repWash, lastRepRow);
     }
     showLastRep(rep);
     showBetweenReps(rep);
     btDone.setText(R.string.drill_cross_next);
     btStart.setVisibility(View.VISIBLE);
+    refreshExtrasRow();
   }
 
   /**
@@ -250,6 +255,14 @@ public class CrossDrillActivity extends DrillScreenActivity {
     showStatus(detail.toString());
     btSolutions.setVisibility(
         missedIt && solutions != null && solutions.solutions.size() > 1 ? View.VISIBLE : View.GONE);
+    refreshExtrasRow();
+  }
+
+  /** The row goes with its contents, or its top margin would leave a gap during a rep. */
+  private void refreshExtrasRow() {
+    extrasRow.setVisibility(
+        btStart.getVisibility() == View.VISIBLE || btSolutions.getVisibility() == View.VISIBLE
+            ? View.VISIBLE : View.GONE);
   }
 
   /**
@@ -265,8 +278,12 @@ public class CrossDrillActivity extends DrillScreenActivity {
   private void nextRep() {
     betweenReps = false;
     solutions = null;
+    // The verdict belonged to the cross that is over. Left up, "That was not the cross" reads as a
+    // verdict on the scramble about to be dealt.
+    clearLastRep();
     btSolutions.setVisibility(View.GONE);
     btStart.setVisibility(View.GONE);
+    refreshExtrasRow();
     btDone.setText(R.string.drill_cross_done);
     if (session.isFinished()) {
       showSummary();
@@ -326,8 +343,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
   private void showScramble(String scramble) {
     cube.setState(CubePatternFormat.format(session.getFacelets()));
     cube.setStickering(CubeStickering.crossAndCentres(session.getCrossEdges()));
-    tvProgress.setText(getString(R.string.drill_progress,
-        session.getReps().size() + 1, session.getSpec().getReps()));
+    setProgress(session.getReps().size() + 1, session.getSpec().getReps());
     solveInBackground(scramble, repSeq);
     if (cubeReady) {
       startPlanning();
@@ -427,17 +443,18 @@ public class CrossDrillActivity extends DrillScreenActivity {
 
   /** The rep that has just ended, scored on its moves against the fewest there were. */
   private void showLastRep(CrossDrillRep rep) {
-    String line;
     if (!rep.isBuilt()) {
-      line = getString(R.string.drill_cross_rep_missed);
-    } else if (rep.getOptimalLength() <= 0) {
-      line = getString(R.string.drill_cross_rep_moves, rep.getMoveCount());
-    } else if (rep.getExtraMoves() == 0) {
-      line = getString(R.string.drill_cross_rep_optimal, rep.getMoveCount());
-    } else {
-      line = getString(R.string.drill_cross_rep_over, rep.getMoveCount(), rep.getOptimalLength());
+      // Stood down rather than announced: there is no move count to read, only a verdict.
+      setLastRep(null, 0, getString(R.string.drill_cross_rep_missed), true, null);
+      return;
     }
-    tvLastRep.setText(line);
+    String moves = getString(R.string.drill_cross_rep_moves, rep.getMoveCount());
+    String against = null;
+    if (rep.getOptimalLength() > 0) {
+      against = rep.getExtraMoves() == 0 ? getString(R.string.drill_cross_rep_shortest)
+          : getString(R.string.drill_cross_rep_way_in, rep.getOptimalLength());
+    }
+    setLastRep(null, 0, moves, false, against);
   }
 
   private void showSolutions() {
@@ -469,12 +486,11 @@ public class CrossDrillActivity extends DrillScreenActivity {
     }
     finished = true;
     handler.removeCallbacksAndMessages(null);
-    runningLayout.setVisibility(View.GONE);
-    summaryLayout.setVisibility(View.VISIBLE);
+    showSummaryFor(label);
 
     List<CrossDrillRep> reps = session.getReps();
-    ((TextView) findViewById(R.id.tvDrillSummaryReps)).setText(getString(R.string.drill_summary_reps,
-        reps.size(), session.getSpec().getReps()));
+    setSummaryCell(0, getString(R.string.drill_summary_cell_reps), String.valueOf(reps.size()),
+        getString(R.string.drill_summary_cell_of, session.getSpec().getReps()));
 
     // A rep whose cross was not there is counted apart rather than folded in: its moves went
     // somewhere else, and averaging them in would flatter a drill that kept missing.
@@ -493,21 +509,15 @@ public class CrossDrillActivity extends DrillScreenActivity {
         optimal++;
       }
     }
-    TextView tvMean = findViewById(R.id.tvDrillSummaryMean);
-    TextView tvOptimal = findViewById(R.id.tvDrillSummaryOptimal);
-    TextView tvPlanning = findViewById(R.id.tvDrillSummaryPlanning);
     if (built == 0) {
-      tvMean.setText(R.string.drill_cross_summary_none_built);
-      tvOptimal.setVisibility(View.GONE);
-      tvPlanning.setVisibility(View.GONE);
+      showSummaryEmpty(R.string.drill_cross_summary_none_built);
       return;
     }
-    tvMean.setText(getString(R.string.drill_cross_summary_extra,
-        String.format("%.1f", extraTotal / (double) built)));
-    tvOptimal.setVisibility(View.VISIBLE);
-    tvOptimal.setText(getString(R.string.drill_cross_summary_optimal, optimal, built));
-    tvPlanning.setVisibility(View.VISIBLE);
-    tvPlanning.setText(getString(R.string.drill_cross_summary_planning,
-        FormatterService.INSTANCE.formatSolveTime(planningTotal / built)));
+    String average = getString(R.string.drill_summary_cell_average);
+    setSummaryCell(1, getString(R.string.drill_summary_cell_extra),
+        String.format("%.1f", extraTotal / (double) built), average);
+    setSummaryCell(2, getString(R.string.drill_summary_cell_planning),
+        FormatterService.INSTANCE.formatSolveTime(planningTotal / built), average);
+    setSummaryExtra(getString(R.string.drill_cross_summary_optimal, optimal, built));
   }
 }

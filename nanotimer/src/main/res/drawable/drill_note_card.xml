@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The one thing a finished drill has to say in words, given a card so it does not read as a
+     caption to the figures above it. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/timercardbg"/>
+  <corners android:radius="@dimen/card_corner"/>
+</shape>

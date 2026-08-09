@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The beat a solved case gets, cut to the well it covers. A flat colour here painted a rectangle
+     with the stage's 18dp corners poking out of it, so the radius has to match cube_stage. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/green_soft"/>
+  <corners android:radius="18dp"/>
+</shape>

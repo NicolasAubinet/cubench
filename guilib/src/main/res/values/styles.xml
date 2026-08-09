@@ -216,6 +216,17 @@
     <item name="android:textColor">@color/white</item>
     <item name="android:layout_marginTop">1dp</item>
   </style>
+  <!-- A third line, for a cell whose value needs saying what it is of. -->
+  <style name="HeroStatSub">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">11sp</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+    <item name="android:textColor">@color/secondary_text</item>
+    <item name="android:layout_marginTop">1dp</item>
+  </style>
 
   <!-- Day headings in the history list, and the one that names the sort when there are no days. -->
   <style name="HistoryGroupLabel">

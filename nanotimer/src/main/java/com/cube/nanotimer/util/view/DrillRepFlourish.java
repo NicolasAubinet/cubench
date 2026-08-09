@@ -22,6 +22,9 @@ public final class DrillRepFlourish {
   private static final long TIME_MS = 220;
   private static final float TIME_FROM_SCALE = 0.8f;
 
+  /** How long the whole beat lasts, for a screen that has to wait it out before moving on. */
+  public static final long BEAT_MS = WASH_IN_MS + WASH_OUT_MS;
+
   private DrillRepFlourish() {
   }
 

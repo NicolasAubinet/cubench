@@ -2,7 +2,6 @@ package com.cube.nanotimer.gui;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.TextView;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CubePatternFormat;
@@ -30,9 +29,10 @@ import java.util.List;
  *
  * <p><b>The case on screen is never named.</b> Naming it would hand over the answer, and a
  * recognition drill would be timing reading instead. A case is named once its rep is over, beside
- * that rep's time, and stands there while the next one is worked so it can be read without the
- * screen stopping to show it. It belongs beside the time and nowhere else: set under the cube at
- * headline size it read as a caption for the cube, and so as the name of the case being looked at.
+ * that rep's time, and goes again with the case it belongs to: left standing into the next rep it
+ * reads as naming the case being worked, which is the thing this screen is careful about. It
+ * belongs beside the time and nowhere else, since set under the cube at headline size it read as a
+ * caption for the cube, and so again as the name of the case being looked at.
  */
 public class DrillActivity extends DrillScreenActivity {
 
@@ -46,16 +46,25 @@ public class DrillActivity extends DrillScreenActivity {
   public static final String EXTRA_LAYER_FACE = "drillLayerFace";
 
   /**
-   * How long the solved cube stays up before the next case replaces it. Zero: the green wash is
-   * what says the case was finished, and it reads as an ending without stopping for one. The
-   * timing does not care either way, since recognition runs from the case being shown.
+   * How long the solved cube and the rep's line stay up before the next case replaces them.
+   *
+   * <p>The length of the green beat, so the wash lands on the case it belongs to rather than over
+   * its successor, and so the line naming that case is readable before it goes. It has to go: left
+   * standing into the next rep it reads as naming the case being worked, which is the one thing
+   * this screen refuses to do. The timing does not care either way, since recognition runs from
+   * when the next case is <em>shown</em>, so the hold is charged to nobody.
    */
-  private static final long REP_HOLD_MS = 0;
+  private static final long REP_HOLD_MS = DrillRepFlourish.BEAT_MS;
+
+  /** The family a case belongs to, which is the colour its name is written in everywhere. */
+  private static final String FAMILY_OLL = "oll_";
 
   private DrillSession session;
+  /** What this drill is called, for the summary once the bar that named it has gone. */
+  private String label;
 
-  private TextView tvLastRep;
-  private TextView tvProgress;
+  /** The whole rep line, since the beat scales it and the hold is posted to it. */
+  private View lastRepRow;
   private View repWash;
 
   @Override
@@ -64,8 +73,7 @@ public class DrillActivity extends DrillScreenActivity {
     setContentView(R.layout.drill_screen);
     bindDrillScreen();
 
-    tvLastRep = findViewById(R.id.tvDrillLastRep);
-    tvProgress = findViewById(R.id.tvDrillProgress);
+    lastRepRow = findViewById(R.id.llDrillLastRep);
     repWash = findViewById(R.id.drillRepWash);
 
     findViewById(R.id.btDrillSkip).setOnClickListener(new View.OnClickListener() {
@@ -73,9 +81,10 @@ public class DrillActivity extends DrillScreenActivity {
       public void onClick(View v) {
         DrillRep rep = session == null ? null : session.abandon();
         if (rep != null) {
-          // No wash and no hold: nothing was solved to dwell on, and the user asked to move on.
+          // No wash: nothing was solved to dwell on. The hold stays, since what the user could not
+          // place is the one thing worth reading off a skipped rep and the line goes with the case.
           showLastRep(rep);
-          nextRep();
+          holdThenNext();
         }
       }
     });
@@ -108,7 +117,8 @@ public class DrillActivity extends DrillScreenActivity {
       showUnavailable(getString(R.string.drill_spec_unreadable));
       return;
     }
-    setTitle(spec.getLabel() == null ? getString(R.string.drill_title) : spec.getLabel());
+    label = spec.getLabel() == null ? getString(R.string.drill_title) : spec.getLabel();
+    setTitle(label);
     session = new DrillSession(spec, Utils.getRandom(), null,
         getIntent().getStringExtra(EXTRA_LAYER_FACE));
 
@@ -131,8 +141,8 @@ public class DrillActivity extends DrillScreenActivity {
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    tvLastRep.removeCallbacks(showNextCase);
-    DrillRepFlourish.cancel(repWash, tvLastRep);
+    lastRepRow.removeCallbacks(showNextCase);
+    DrillRepFlourish.cancel(repWash, lastRepRow);
   }
 
   @Override
@@ -173,9 +183,13 @@ public class DrillActivity extends DrillScreenActivity {
    */
   private void onRepFinished(DrillRep rep) {
     showLastRep(rep);
-    DrillRepFlourish.play(repWash, tvLastRep);
-    tvLastRep.removeCallbacks(showNextCase);
-    tvLastRep.postDelayed(showNextCase, REP_HOLD_MS);
+    DrillRepFlourish.play(repWash, lastRepRow);
+    holdThenNext();
+  }
+
+  private void holdThenNext() {
+    lastRepRow.removeCallbacks(showNextCase);
+    lastRepRow.postDelayed(showNextCase, REP_HOLD_MS);
   }
 
   private final Runnable showNextCase = new Runnable() {
@@ -224,9 +238,10 @@ public class DrillActivity extends DrillScreenActivity {
       return;
     }
     cube.setState(CubePatternFormat.format(session.getFacelets()));
-    // ⚠️ The case now on screen is deliberately not named anywhere. Only the cube says what it is.
-    tvProgress.setText(getString(R.string.drill_progress,
-        session.getReps().size() + 1, session.getSpec().getReps()));
+    // ⚠️ The case now on screen is deliberately not named anywhere. Only the cube says what it is,
+    // which is also why the line about the rep that is over goes with the case that is over.
+    clearLastRep();
+    setProgress(session.getReps().size() + 1, session.getSpec().getReps());
     // Only once the case is really up: before the page has drawn, the first one is not yet in
     // front of anybody, and onCubeDrawn is what says it is.
     if (cubeReady) {
@@ -239,17 +254,17 @@ public class DrillActivity extends DrillScreenActivity {
    * over, so it can say what was done, or for a skipped one what it was the user could not place.
    */
   private void showLastRep(DrillRep rep) {
-    String result;
+    String name = Utils.toSmartCubeCaseHeadline(this, rep.getCaseCode());
+    int colour = rep.getCaseCode() != null && rep.getCaseCode().startsWith(FAMILY_OLL)
+        ? R.color.step_oll : R.color.step_pll;
     if (rep.isAbandoned()) {
-      result = getString(R.string.drill_rep_skipped);
-    } else {
-      result = getString(R.string.drill_rep_split,
-          FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs()),
-          FormatterService.INSTANCE.formatSolveTime(rep.getRecognitionMs()),
-          FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs()));
+      setLastRep(name, colour, getString(R.string.drill_rep_skipped), true, null);
+      return;
     }
-    tvLastRep.setText(getString(R.string.drill_rep_line,
-        Utils.toSmartCubeCaseHeadline(this, rep.getCaseCode()), result));
+    setLastRep(name, colour, FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs()), false,
+        getString(R.string.drill_rep_split,
+            FormatterService.INSTANCE.formatSolveTime(rep.getRecognitionMs()),
+            FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs())));
   }
 
   @Override
@@ -258,12 +273,11 @@ public class DrillActivity extends DrillScreenActivity {
       return; // a cube unplugged on the summary screen must not re-run this over its own figures
     }
     finished = true;
-    runningLayout.setVisibility(View.GONE);
-    summaryLayout.setVisibility(View.VISIBLE);
+    showSummaryFor(label);
 
     List<DrillRep> reps = session.getReps();
-    ((TextView) findViewById(R.id.tvDrillSummaryReps)).setText(getString(R.string.drill_summary_reps,
-        reps.size(), session.getSpec().getReps()));
+    setSummaryCell(0, getString(R.string.drill_summary_cell_reps), String.valueOf(reps.size()),
+        getString(R.string.drill_summary_cell_of, session.getSpec().getReps()));
 
     // Skipped reps are counted apart rather than folded into a mean, the same rule the case stats
     // follow: a case you gave up on is not a slow time.
@@ -280,13 +294,8 @@ public class DrillActivity extends DrillScreenActivity {
       best = Math.min(best, rep.getTimedMs(session.getSpec().getType()));
       timed++;
     }
-    TextView tvMean = findViewById(R.id.tvDrillSummaryMean);
-    TextView tvOtherMean = findViewById(R.id.tvDrillSummaryOtherMean);
-    TextView tvBest = findViewById(R.id.tvDrillSummaryBest);
     if (timed == 0) {
-      tvMean.setText(R.string.drill_summary_nothing_timed);
-      tvOtherMean.setVisibility(View.GONE);
-      tvBest.setVisibility(View.GONE);
+      showSummaryEmpty(R.string.drill_summary_nothing_timed);
       return;
     }
     // Both halves, always: reading a case is half of what a drill trains, and a mean of the half
@@ -294,14 +303,12 @@ public class DrillActivity extends DrillScreenActivity {
     boolean recognitionDrill = session.getSpec().getType() == DrillSpec.Type.CASE_RECOGNITION;
     long timedTotal = recognitionDrill ? recognitionTotal : executionTotal;
     long otherTotal = recognitionDrill ? executionTotal : recognitionTotal;
-    tvMean.setText(getString(R.string.drill_summary_mean,
-        FormatterService.INSTANCE.formatSolveTime(timedTotal / timed), halfName(recognitionDrill)));
-    tvOtherMean.setVisibility(View.VISIBLE);
-    tvOtherMean.setText(getString(R.string.drill_summary_mean,
+    setSummaryCell(1, getString(R.string.drill_summary_cell_mean),
+        FormatterService.INSTANCE.formatSolveTime(timedTotal / timed), halfName(recognitionDrill));
+    setSummaryCell(2, getString(R.string.drill_summary_cell_best),
+        FormatterService.INSTANCE.formatSolveTime(best), halfName(recognitionDrill));
+    setSummaryExtra(getString(R.string.drill_summary_mean,
         FormatterService.INSTANCE.formatSolveTime(otherTotal / timed), halfName(!recognitionDrill)));
-    tvBest.setVisibility(View.VISIBLE);
-    tvBest.setText(getString(R.string.drill_summary_best,
-        FormatterService.INSTANCE.formatSolveTime(best), halfName(recognitionDrill)));
   }
 
   /** Named on every figure now that two are shown: which half a time is of is no longer implied. */

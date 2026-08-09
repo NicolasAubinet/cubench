@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The ? that carries what the screen used to say in grey paragraphs above Start. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <item android:id="@+id/itDrillHelp"
+     android:icon="@drawable/ic_help_outline"
+     android:title="@string/drill_help_title"
+     app:showAsAction="always"/>
+
+</menu>
