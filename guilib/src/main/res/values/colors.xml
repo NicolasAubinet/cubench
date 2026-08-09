@@ -73,6 +73,10 @@
   <color name="piece_home">@color/green_soft</color>
   <!-- And one the last algorithm to touch it left out, which is where the mistake was made. -->
   <color name="piece_wrong">@color/danger_text</color>
+  <!-- The fastest and the slowest of the session, said as small text over the bars. The flat green
+       and red the times themselves take are too hard at this size, over a lit card. -->
+  <color name="session_best">@color/green_soft</color>
+  <color name="session_worst">@color/danger_text</color>
 
   <!-- ============================ Surfaces =========================== -->
 

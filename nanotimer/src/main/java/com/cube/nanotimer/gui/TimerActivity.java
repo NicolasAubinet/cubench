@@ -1986,8 +1986,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * The bars carry no numbers, so beside them the header names the window they are rather than the
-   * session's own size. Said once quietly: it is read on the first session and known after that.
+   * The bars name only their two ends, so beside them the header names the window they are rather
+   * than the session's own size. Said once quietly: it is read on the first session and known after that.
    */
   private void refreshSolvesCountLabel() {
     int shown = (cubeSession == null) ? 0 : cubeSession.getTimes().size();
