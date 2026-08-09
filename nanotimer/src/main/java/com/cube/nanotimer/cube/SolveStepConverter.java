@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.step.StepTime;
+import com.cube.nanotimer.vo.PieceMark;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,16 @@ public final class SolveStepConverter {
     }
     return new SolveStep(step.getStepIndex(), step.getStepName(),
         step.getRecognitionMs(), step.getExecutionMs(), subSteps, step.isComplete(),
-        step.getSolvedPieces());
+        toPieceMarks(step.getPieceMarks()));
+  }
+
+  /** The same marks in the datamodel's own terms, which is the seam this class exists to cross. */
+  private static List<PieceMark> toPieceMarks(
+      List<com.cube.nanotimer.smartcube.step.PieceMark> marks) {
+    List<PieceMark> converted = new ArrayList<>(marks.size());
+    for (com.cube.nanotimer.smartcube.step.PieceMark mark : marks) {
+      converted.add(PieceMark.valueOf(mark.name()));
+    }
+    return converted;
   }
 }

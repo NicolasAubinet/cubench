@@ -1,7 +1,10 @@
 package com.cube.nanotimer.smartcube.step;
 
+import static com.cube.nanotimer.smartcube.step.PieceMark.HOME;
+import static com.cube.nanotimer.smartcube.step.PieceMark.TOUCHED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
@@ -216,15 +219,15 @@ public class RecordedBlindSolveTest {
     replay(RecordedBlindSolve.SCRAMBLE_211, RecordedBlindSolve.MOVES_211, Long.MAX_VALUE);
 
     assertEquals("UF-DB-BR", detector.subStepName(1, 0));
-    assertEquals(home(false, true, true), detector.subStepSolvedPieces(1, 0));
+    assertEquals(Arrays.asList(TOUCHED, HOME, HOME), detector.subStepPieceMarks(1, 0));
     assertEquals("UF-UB-RU", detector.subStepName(1, 4)); // closed at UB and broke in at RU
-    assertEquals(home(false, true, false), detector.subStepSolvedPieces(1, 4));
+    assertEquals(Arrays.asList(TOUCHED, HOME, TOUCHED), detector.subStepPieceMarks(1, 4));
     assertEquals("UFR-UBR-LUB", detector.subStepName(2, 1)); // and the same on the corners
-    assertEquals(home(false, true, false), detector.subStepSolvedPieces(2, 1));
+    assertEquals(Arrays.asList(TOUCHED, HOME, TOUCHED), detector.subStepPieceMarks(2, 1));
     assertEquals("flip:UF-FL", detector.subStepName(1, 5));
-    assertEquals(home(false, true), detector.subStepSolvedPieces(1, 5));
+    assertEquals(Arrays.asList(TOUCHED, HOME), detector.subStepPieceMarks(1, 5));
     assertEquals("UFR-UBL + UF-UR", detector.subStepName(3, 0));
-    assertEquals(home(true, true, true, true), detector.subStepSolvedPieces(3, 0));
+    assertEquals(Arrays.asList(HOME, HOME, HOME, HOME), detector.subStepPieceMarks(3, 0));
   }
 
   /**
@@ -243,15 +246,15 @@ public class RecordedBlindSolveTest {
     replay(RecordedBlindSolve.SCRAMBLE_184, RecordedBlindSolve.MOVES_184, Long.MAX_VALUE);
 
     assertEquals("UF-UR-RF", detector.subStepName(1, 0));
-    assertEquals(home(false, false, false), detector.subStepSolvedPieces(1, 0));
-    assertTrue(detector.subStepSolvedPieces(1, 1).isEmpty()); // the undo
+    assertEquals(Arrays.asList(TOUCHED, TOUCHED, TOUCHED), detector.subStepPieceMarks(1, 0));
+    assertTrue(detector.subStepPieceMarks(1, 1).isEmpty()); // the undo
     assertEquals("UF-UR-FR", detector.subStepName(1, 2));
-    assertEquals(home(false, false, true), detector.subStepSolvedPieces(1, 2));
+    assertEquals(Arrays.asList(TOUCHED, TOUCHED, HOME), detector.subStepPieceMarks(1, 2));
 
     RecordedBlindSolveTest even = new RecordedBlindSolveTest();
     even.replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
     assertEquals("UF-UB-UR", even.detector.subStepName(1, 5));
-    assertEquals(home(true, true, true), even.detector.subStepSolvedPieces(1, 5));
+    assertEquals(Arrays.asList(HOME, HOME, HOME), even.detector.subStepPieceMarks(1, 5));
   }
 
   // Solve 146 ends on a three-corner twist, so stopped before that algorithm it stands with those
@@ -271,8 +274,38 @@ public class RecordedBlindSolveTest {
     assertEquals("UFL, UBL, UFR", residual.getPieces());
   }
 
-  private static List<Boolean> home(Boolean... pieces) {
-    return Arrays.asList(pieces);
+  // Cut inside the last algorithm: what follows the landing before it is turning nothing was read
+  // from, and the reading says where it stopped rather than ending quietly.
+  @Test
+  public void saysWhereTheReadingStopped() {
+    replay(RecordedBlindSolve.SCRAMBLE, RecordedBlindSolve.MOVES, Long.MAX_VALUE);
+    assertNull("a solve that came out lost nothing", detector.getLostReading());
+    int last = detector.subStepCount(2) - 2;
+    long lastLandingMs = detector.getSubStepTimestampMs(2, last);
+    String lastRead = detector.subStepName(2, last);
+
+    RecordedBlindSolveTest cut = new RecordedBlindSolveTest();
+    cut.replay(RecordedBlindSolve.SCRAMBLE, RecordedBlindSolve.MOVES,
+        nthMoveAfter(lastLandingMs, 2));
+    LostReading lost = cut.detector.getLostReading();
+    assertEquals(lastRead, lost.getAfter());
+    assertEquals(2, lost.getMoves());
+  }
+
+  /** The offset of the {@code count}-th face turn made after {@code afterMs}. */
+  private static long nthMoveAfter(long afterMs, int count) {
+    int seen = 0;
+    for (String token : RecordedBlindSolve.MOVES.trim().split("\s+")) {
+      int at = token.indexOf('@');
+      if (at < 0 || "xyz".indexOf(token.charAt(0)) >= 0) {
+        continue;
+      }
+      long offsetMs = Long.parseLong(token.substring(at + 1));
+      if (offsetMs > afterMs && ++seen == count) {
+        return offsetMs;
+      }
+    }
+    throw new IllegalStateException("no move that far into the solve");
   }
 
   /**

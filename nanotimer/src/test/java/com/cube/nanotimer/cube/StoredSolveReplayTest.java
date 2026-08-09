@@ -1,5 +1,7 @@
 package com.cube.nanotimer.cube;
 
+import static com.cube.nanotimer.vo.PieceMark.HOME;
+import static com.cube.nanotimer.vo.PieceMark.TOUCHED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -123,15 +125,15 @@ public class StoredSolveReplayTest {
 
     List<SolveStep> edges = result.getSteps().get(1).getSubSteps();
     assertEquals("UF-UL-UB", edges.get(0).getName());
-    assertEquals(Arrays.asList(false, true, false), edges.get(0).getSolvedPieces());
+    assertEquals(Arrays.asList(TOUCHED, HOME, TOUCHED), edges.get(0).getPieceMarks());
     assertEquals("UF-UB-DL", edges.get(1).getName());
-    assertEquals(Arrays.asList(true, true, true), edges.get(1).getSolvedPieces());
+    assertEquals(Arrays.asList(HOME, HOME, HOME), edges.get(1).getPieceMarks());
 
     // And there is one mark per piece the name says, which is what the sheet colours them by.
     for (int step = 1; step < result.getSteps().size(); step++) {
       for (SolveStep part : result.getSteps().get(step).getSubSteps()) {
         assertEquals(part.getName(), Utils.getSmartCubeNamedPieces(part.getName()).length,
-            part.getSolvedPieces().size());
+            part.getPieceMarks().size());
       }
     }
   }

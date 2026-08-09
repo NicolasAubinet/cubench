@@ -81,17 +81,18 @@ public final class BlindStepDetector implements StepDetector {
     final String after; // where it landed, kept only for a cycle that may still be renamed
     final List<Integer> pieces;
     final List<Integer> gained; // what it put home, which says which of its name's pieces are solved
+    final List<Integer> moved; // every piece it shifted, named or not: who to blame for one left out
     BlindTargets.Named named;
     int buffer;
 
     /** An algorithm with nothing left to settle: an undo, or a flip or a twist. */
     Landing(long timestampMs, int type, BlindTargets.Named named, String before,
-        List<Integer> gained) {
-      this(timestampMs, type, named, before, null, null, BlindTargets.NO_BUFFER, gained);
+        List<Integer> gained, List<Integer> moved) {
+      this(timestampMs, type, named, before, null, null, BlindTargets.NO_BUFFER, gained, moved);
     }
 
     Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
-        List<Integer> pieces, int buffer, List<Integer> gained) {
+        List<Integer> pieces, int buffer, List<Integer> gained, List<Integer> moved) {
       this.timestampMs = timestampMs;
       this.type = type;
       this.named = named;
@@ -100,18 +101,21 @@ public final class BlindStepDetector implements StepDetector {
       this.pieces = pieces;
       this.buffer = buffer;
       this.gained = gained;
+      this.moved = moved;
     }
 
     /**
-     * Which of the pieces this algorithm's name says it put home — in position and orientation —
-     * in the order they are said. A piece it only moved on the way is not one of them.
+     * What became of each piece this algorithm's name says it shot at, in the order they are said.
+     * Home is this algorithm's own doing; wrong is the whole solve's verdict, and which algorithm
+     * carries it is {@link #blamedOn} to decide.
      */
-    List<Boolean> solvedPieces() {
-      List<Boolean> solved = new ArrayList<>(named.slots.size());
+    List<PieceMark> marks(List<Integer> blamed) {
+      List<PieceMark> marks = new ArrayList<>(named.slots.size());
       for (int slot : named.slots) {
-        solved.add(gained.contains(slot));
+        marks.add(blamed.contains(slot) ? PieceMark.WRONG
+            : gained.contains(slot) ? PieceMark.HOME : PieceMark.TOUCHED);
       }
-      return solved;
+      return marks;
     }
   }
 
@@ -139,6 +143,7 @@ public final class BlindStepDetector implements StepDetector {
   private final int[] typeBuffer = new int[] {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
   private String landed; // the state at the last landing, with the drift taken out
   private String stopped; // the state the solve was left in, which says what went wrong with it
+  private int unread; // moves made since the last landing, which are moves nothing was read from
   private Long memoMs;
   private Long solvedMs;
   private long lastTimestampMs;
@@ -179,6 +184,7 @@ public final class BlindStepDetector implements StepDetector {
     lastTimestampMs = startTimestampMs;
     landed = startState.getFacelets();
     stopped = landed;
+    unread = 0;
     parity = Cubies.isOddPermutation(landed);
   }
 
@@ -194,7 +200,11 @@ public final class BlindStepDetector implements StepDetector {
     // thinking an orientation is still out; those turns are not the solve, and must not unfinish it.
     if (memoMs != null && solvedMs == null) {
       stopped = state.getFacelets();
-      readLanding(state.getFacelets(), lastTimestampMs);
+      if (readLanding(state.getFacelets(), lastTimestampMs)) {
+        unread = 0;
+      } else if (lastMove != null) {
+        unread++;
+      }
       // Read whether or not the state was a landing: a solve can come out on turning that reads as
       // no algorithm at all, and it has still come out.
       if (isSolved(state.getFacelets())) {
@@ -204,14 +214,14 @@ public final class BlindStepDetector implements StepDetector {
     return boundaries();
   }
 
-  private void readLanding(String facelets, long timestampMs) {
+  private boolean readLanding(String facelets, long timestampMs) {
     int frame = closestFrame(facelets);
     int touched = touched(facelets, frame);
     List<Integer>[] gained = gained(facelets, frame);
     boolean parityLanding = parity && !parityFound && touched == PARITY_CYCLE
         && !gained[EDGES].isEmpty() && !gained[CORNERS].isEmpty();
     if (touched != CYCLE && touched != FLIP && !parityLanding) {
-      return;
+      return false;
     }
     parityFound |= parityLanding;
     List<Integer> all = new ArrayList<>(gained[EDGES]);
@@ -234,7 +244,7 @@ public final class BlindStepDetector implements StepDetector {
               typeBuffer[CORNERS], typeBuffer[EDGES])
           : targets.name(landed, steady, shotFrom, named);
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed,
-          shot ? steady : null, named, shotFrom, all));
+          shot ? steady : null, named, shotFrom, all, moved));
       if (shot && shotFrom != BlindTargets.NO_BUFFER) {
         nameWhatWaitedForIt(shotFrom);
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
@@ -244,6 +254,7 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     landed = steady;
+    return true;
   }
 
   /**
@@ -314,7 +325,8 @@ public final class BlindStepDetector implements StepDetector {
           landings.remove(landings.size() - 1); // the halves are the one algorithm they compose
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
-        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from, gained));
+        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from, gained,
+            turned));
         return true;
       }
       int previous = landings.size() - 1 - joined;
@@ -336,7 +348,8 @@ public final class BlindStepDetector implements StepDetector {
       return false;
     }
     landings.add(new Landing(timestampMs, NO_GAIN,
-        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, gained));
+        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, gained,
+        moved(landed, steady)));
     return true;
   }
 
@@ -572,11 +585,70 @@ public final class BlindStepDetector implements StepDetector {
     return runs().get(step - 1).landings.get(subStep).named.name;
   }
 
-  /** Of the pieces an algorithm names, the ones it put home: what says a cycle break from a
-   * commutator, and either from a misfire. */
+  /** What became of each piece an algorithm names: what it put home, and what it lost the solve on. */
   @Override
-  public List<Boolean> subStepSolvedPieces(int step, int subStep) {
-    return runs().get(step - 1).landings.get(subStep).solvedPieces();
+  public List<PieceMark> subStepPieceMarks(int step, int subStep) {
+    Landing landing = runs().get(step - 1).landings.get(subStep);
+    return landing.marks(blamedOn(landing));
+  }
+
+  /**
+   * The pieces this algorithm is answerable for, which it is only when <b>what the cube was left
+   * with is exactly what this algorithm said it would fix</b>, and nothing has touched those pieces
+   * since. That is what an algorithm shot to the wrong sticker leaves: the same three pieces it
+   * named, cycled among themselves, still out.
+   *
+   * <p>Anything looser blames algorithms that did nothing wrong. A solve stopped part way through a
+   * cycle has pieces out because the cycle is still open, and the last algorithm of it was going
+   * right; a parity never done leaves two of each swapped, and no algorithm did that either. Both
+   * leave pieces out that no single algorithm ever claimed, so both are left to the verdict line,
+   * which says the shape without pointing at anyone.
+   *
+   * <p>The piece an algorithm was shot from is not marked even so: a cycle leaves its buffer holding
+   * whatever came back from its last target, so the buffer is where the leftover sits rather than
+   * something the algorithm missed.
+   *
+   * <p>Nothing is blamed on anything where the reading did not run to the last move: past that point
+   * the unread turning could have broken any of it. That is what {@link #getLostReading()} says.
+   */
+  private List<Integer> blamedOn(Landing landing) {
+    List<Integer> left = leftOut();
+    if (left.size() != landing.named.slots.size() || !landing.named.slots.containsAll(left)) {
+      return Collections.emptyList();
+    }
+    List<Integer> blamed = new ArrayList<>();
+    for (int slot : left) {
+      if (lastToMove(slot) != landing) {
+        return Collections.emptyList(); // something later had it, so this is not where it was lost
+      }
+      if (slot != landing.buffer) {
+        blamed.add(slot);
+      }
+    }
+    return blamed;
+  }
+
+  /** The pieces not home when the solve stopped, or none where there is nothing honest to read. */
+  private List<Integer> leftOut() {
+    List<Integer> left = new ArrayList<>();
+    if (solvedMs != null || unread > 0) {
+      return left;
+    }
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      if (!Cubies.inPlace(landed, PIECES[slot])) {
+        left.add(slot);
+      }
+    }
+    return left;
+  }
+
+  private Landing lastToMove(int slot) {
+    for (int i = landings.size() - 1; i >= 0; i--) {
+      if (landings.get(i).moved.contains(slot)) {
+        return landings.get(i);
+      }
+    }
+    return null;
   }
 
   /** A parity is one algorithm and a step of its own: collapsed, it loses both its name and its
@@ -611,6 +683,18 @@ public final class BlindStepDetector implements StepDetector {
   @Override
   public BlindResidual getResidual() {
     return BlindResidual.of(stopped, targets);
+  }
+
+  /**
+   * Where the reading stopped, when turning carried on past the last algorithm it could read. A
+   * solve that came out has none of this: the turning after it is the blindfold coming off.
+   */
+  @Override
+  public LostReading getLostReading() {
+    if (solvedMs != null || unread == 0 || landings.isEmpty()) {
+      return null;
+    }
+    return new LostReading(landings.get(landings.size() - 1).named.name, unread);
   }
 
   /**

@@ -71,6 +71,8 @@
   <color name="danger_text">#EF5350</color>
   <!-- A piece a blind algorithm put home, marked in its name. -->
   <color name="piece_home">@color/green_soft</color>
+  <!-- And one the last algorithm to touch it left out, which is where the mistake was made. -->
+  <color name="piece_wrong">@color/danger_text</color>
 
   <!-- ============================ Surfaces =========================== -->
 

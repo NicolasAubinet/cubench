@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import static com.cube.nanotimer.smartcube.step.PieceMark.WRONG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -10,6 +11,7 @@ import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
 
@@ -309,6 +311,63 @@ public class BlindStepDetectorTest {
   }
 
   /** Scramble with the inverse of the whole solve, then start the timer and memorise. */
+  /**
+   * The mistake the marks exist for: the last algorithm was executed the wrong way round, so its
+   * three pieces are cycled among themselves and none of them is home. What the cube was left with
+   * is exactly what that algorithm said it would fix, and that is what points at it.
+   *
+   * <p>All three are red here. An algorithm that puts nothing home says nothing about which piece it
+   * was shot from, so there is no buffer to leave unmarked and every piece it moved is its own
+   * doing. It also belongs to the stretch it precedes, and having none it joins the one before it.
+   */
+  @Test
+  public void marksTheTargetsOfTheAlgorithmThatLeftThemOut() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A);
+    play(EDGE_CYCLE_A, EDGE_CYCLE_B, invert(CORNER_CYCLE_A));
+
+    assertFalse(detector.isComplete());
+    assertNull("the last algorithm landed, so nothing went unread", detector.getLostReading());
+    assertEquals(BlindResidual.Shape.CORNER_CYCLE, detector.getResidual().getShape());
+
+    assertEquals("UFR-UBL-UBR", detector.subStepName(1, 2));
+    assertEquals(Arrays.asList(WRONG, WRONG, WRONG), detector.subStepPieceMarks(1, 2));
+    // The edges were finished and stay finished: red is laid where a piece was lost, not everywhere.
+    assertFalse(detector.subStepPieceMarks(1, 0).contains(WRONG));
+    assertFalse(detector.subStepPieceMarks(1, 1).contains(WRONG));
+  }
+
+  /**
+   * A solve stopped part way through its corners blames nobody. Its last corner algorithm was going
+   * right and the cycle is simply still open, so the pieces out are not what that algorithm claimed
+   * — which is the whole of what keeps a correct algorithm out of the red.
+   */
+  @Test
+  public void marksNothingOnASolveStoppedWithItsCycleStillOpen() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B);
+    play(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A);
+
+    assertEquals(BlindResidual.Shape.CORNER_CYCLE, detector.getResidual().getShape());
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertFalse(detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
+  }
+
+  /** A solve that came out has nothing to blame, whatever its algorithms did along the way. */
+  @Test
+  public void marksNothingOnASolveThatCameOut() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B);
+    play(EDGE_CYCLE_A, EDGE_CYCLE_B, CORNER_CYCLE_A, CORNER_CYCLE_B);
+
+    assertTrue(detector.isComplete());
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertFalse(detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
+  }
+
   private long startFrom(String... solve) {
     for (String token : invert(join(solve)).split(" ")) {
       apply(token);

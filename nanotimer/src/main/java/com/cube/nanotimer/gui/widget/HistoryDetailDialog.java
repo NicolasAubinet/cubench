@@ -42,6 +42,7 @@ import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.BlindResidual;
+import com.cube.nanotimer.smartcube.step.LostReading;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
@@ -54,6 +55,7 @@ import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.SwipeSwitchLayout;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
+import com.cube.nanotimer.vo.PieceMark;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
@@ -189,6 +191,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
           getString(R.string.breakdown), null, method);
       showResidual(v, reread == null ? null : reread.getResidual());
+      showLostReading(v, reread == null ? null : reread.getLostReading());
     }
 
     TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
@@ -236,6 +239,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.breakdownCard).setVisibility(View.VISIBLE);
     v.findViewById(R.id.breakdownTotals).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownResidual).setVisibility(View.GONE);
+    v.findViewById(R.id.breakdownLost).setVisibility(View.GONE);
     v.findViewById(R.id.movesSwitchLabel).setVisibility(View.VISIBLE);
     SwitchCompat moves = (SwitchCompat) v.findViewById(R.id.swMoves);
     moves.setVisibility(View.VISIBLE);
@@ -402,6 +406,18 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     TextView line = (TextView) v.findViewById(R.id.breakdownResidual);
     line.setText(text);
+    line.setVisibility(View.VISIBLE);
+  }
+
+  // Where the reading stopped, under the verdict: the table simply ends there, and a table that
+  // ends early otherwise reads as a solve that ended early.
+  private void showLostReading(View v, LostReading lost) {
+    if (lost == null) {
+      return;
+    }
+    TextView line = (TextView) v.findViewById(R.id.breakdownLost);
+    line.setText(getString(R.string.blind_reading_lost,
+        Utils.toSmartCubeStepLocalizedName(getActivity(), lost.getAfter(), 0), lost.getMoves()));
     line.setVisibility(View.VISIBLE);
   }
 
@@ -994,7 +1010,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private TableRow subStepRow(SolveStep part, int position, String moveCount) {
     TableRow row = new TableRow(getActivity());
-    row.addView(cell(R.style.BreakdownSubName, withSolvedPieces(part, withPairColors(part.getName(),
+    row.addView(cell(R.style.BreakdownSubName, withPieceMarks(part, withPairColors(part.getName(),
         Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)))));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
@@ -1026,33 +1042,48 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * commutator lands both the targets it was shot at, one that breaks into a new cycle lands only
    * one of them, and a misfire lands none.
    *
+   * <p><b>Red is the other half of it</b>: the solve was left with exactly the pieces this algorithm
+   * named, still out, which is what an algorithm shot to the wrong sticker leaves behind. Anything
+   * looser reddens algorithms that did nothing wrong, so a cycle left open and a parity never done
+   * carry no red at all and are the verdict line's to explain.
+   *
    * <p><b>The buffer of a solve with a parity is never green</b> — it holds a foreign piece until the
    * parity puts it right. Correct, and it reads as a bug the first time.
    *
    * <p>The pieces are found in the label rather than spelled into it: a translation wraps its own
    * words around the code's own pieces, so walking the label forward marks them wherever they fell.
    */
-  private CharSequence withSolvedPieces(SolveStep part, CharSequence label) {
-    List<Boolean> solved = part.getSolvedPieces();
-    if (solved.isEmpty()) {
+  private CharSequence withPieceMarks(SolveStep part, CharSequence label) {
+    List<PieceMark> marks = part.getPieceMarks();
+    if (marks.isEmpty()) {
       return label;
     }
     String[] pieces = Utils.getSmartCubeNamedPieces(part.getName());
     SpannableStringBuilder text = new SpannableStringBuilder(label);
     String plain = label.toString();
     int from = 0;
-    for (int i = 0; i < pieces.length && i < solved.size(); i++) {
+    for (int i = 0; i < pieces.length && i < marks.size(); i++) {
       int at = plain.indexOf(pieces[i], from);
       if (at < 0) {
         break; // the label does not spell the name the code does: nothing to mark it on
       }
-      if (solved.get(i)) {
-        text.setSpan(new ForegroundColorSpan(color(R.color.piece_home)), at,
-            at + pieces[i].length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      Integer mark = markColor(marks.get(i));
+      if (mark != null) {
+        text.setSpan(new ForegroundColorSpan(color(mark)), at, at + pieces[i].length(),
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
       }
       from = at + pieces[i].length();
     }
     return text;
+  }
+
+  // Null for a piece the algorithm only moved through, which is the plain colour of the row.
+  private static Integer markColor(PieceMark mark) {
+    switch (mark) {
+      case HOME: return R.color.piece_home;
+      case WRONG: return R.color.piece_wrong;
+      default: return null;
+    }
   }
 
   /**

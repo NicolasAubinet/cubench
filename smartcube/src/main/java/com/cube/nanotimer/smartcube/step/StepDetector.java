@@ -47,11 +47,11 @@ public interface StepDetector {
   String subStepName(int step, int subStep);
 
   /**
-   * Which of the pieces the sub-step's name is made of it actually put home — right slot and right
-   * way round — in the order they are said. Empty for a name that is not made of pieces, which is
-   * every method whose parts are cases and slots rather than the pieces a blind solver shoots at.
+   * What became of each piece the sub-step's name is made of, in the order they are said. Empty for
+   * a name that is not made of pieces, which is every method whose parts are cases and slots rather
+   * than the pieces a blind solver shoots at.
    */
-  default List<Boolean> subStepSolvedPieces(int step, int subStep) {
+  default List<PieceMark> subStepPieceMarks(int step, int subStep) {
     return Collections.emptyList();
   }
 
@@ -75,6 +75,14 @@ public interface StepDetector {
    * else: a sighted solver looks at their cube, and it is the blindfolded one who cannot.
    */
   default BlindResidual getResidual() {
+    return null;
+  }
+
+  /**
+   * Where the reading stopped short of the turning, for a reading that can tell. Null everywhere
+   * else, and null too where nothing went unread.
+   */
+  default LostReading getLostReading() {
     return null;
   }
 
