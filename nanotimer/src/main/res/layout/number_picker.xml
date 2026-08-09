@@ -1,59 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-   android:orientation="horizontal"
+   android:orientation="vertical"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
-   android:gravity="center"
    android:paddingLeft="@dimen/space_l"
    android:paddingRight="@dimen/space_l"
    android:paddingTop="@dimen/space_l"
    android:paddingBottom="@dimen/space_l">
 
-  <androidx.appcompat.widget.AppCompatButton
-     android:id="@+id/buMinus"
-     android:layout_width="46dp"
-     android:layout_height="46dp"
-     android:text="−"
-     android:textColor="@color/white"
-     android:textSize="26sp"
-     android:textStyle="bold"
-     android:gravity="center"
-     android:padding="0dp"
-     android:minWidth="0dp"
-     android:minHeight="0dp"
-     android:includeFontPadding="false"
-     android:background="@drawable/add_button_bg"/>
-
-  <EditText
-     android:id="@+id/tfValue"
+  <!-- Filled in code from the presets attribute; stays gone when a preference declares none. -->
+  <LinearLayout
+     android:id="@+id/presetRow"
+     android:orientation="horizontal"
      android:layout_width="wrap_content"
      android:layout_height="wrap_content"
-     android:minWidth="96dp"
-     android:layout_marginLeft="@dimen/space_l"
-     android:layout_marginRight="@dimen/space_l"
-     android:background="@drawable/dialog_time_field"
-     android:paddingTop="11dp"
-     android:paddingBottom="11dp"
-     android:textColor="@color/white"
-     android:textStyle="bold"
-     android:fontFeatureSettings="tnum"
-     android:imeOptions="actionDone"
-     style="@style/NumericEditText"/>
+     android:layout_gravity="center_horizontal"
+     android:layout_marginBottom="@dimen/space_l"
+     android:visibility="gone"/>
 
-  <androidx.appcompat.widget.AppCompatButton
-     android:id="@+id/buPlus"
-     android:layout_width="46dp"
-     android:layout_height="46dp"
-     android:text="+"
-     android:textColor="@color/white"
-     android:textSize="26sp"
-     android:textStyle="bold"
-     android:gravity="center"
-     android:padding="0dp"
-     android:minWidth="0dp"
-     android:minHeight="0dp"
-     android:includeFontPadding="false"
-     android:background="@drawable/add_button_bg"/>
+  <LinearLayout
+     android:orientation="horizontal"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:gravity="center">
+
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buMinus"
+       android:layout_width="46dp"
+       android:layout_height="46dp"
+       android:text="−"
+       android:textColor="@color/lightblue"
+       android:textSize="26sp"
+       android:textStyle="bold"
+       android:gravity="center"
+       android:padding="0dp"
+       android:minWidth="0dp"
+       android:minHeight="0dp"
+       android:includeFontPadding="false"
+       android:background="@drawable/number_step_button"/>
+
+    <EditText
+       android:id="@+id/tfValue"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:minWidth="112dp"
+       android:layout_marginLeft="@dimen/space_l"
+       android:layout_marginRight="@dimen/space_l"
+       android:background="@drawable/dialog_time_field"
+       android:paddingTop="9dp"
+       android:paddingBottom="9dp"
+       android:textColor="@color/white"
+       android:textSize="28sp"
+       android:textStyle="bold"
+       android:fontFeatureSettings="tnum"
+       android:imeOptions="actionDone"
+       style="@style/NumericEditText"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buPlus"
+       android:layout_width="46dp"
+       android:layout_height="46dp"
+       android:text="+"
+       android:textColor="@color/lightblue"
+       android:textSize="26sp"
+       android:textStyle="bold"
+       android:gravity="center"
+       android:padding="0dp"
+       android:minWidth="0dp"
+       android:minHeight="0dp"
+       android:includeFontPadding="false"
+       android:background="@drawable/number_step_button"/>
+
+  </LinearLayout>
+
+  <!-- Under the row, not beside the field: inside it, the steppers would centre on the pair and
+       sit low against the field they change. -->
+  <TextView
+     android:id="@+id/tvUnit"
+     android:layout_gravity="center_horizontal"
+     android:layout_marginTop="@dimen/space_xs"
+     android:visibility="gone"
+     style="@style/DialogSectionLabel"/>
 
 </LinearLayout>

@@ -36,7 +36,6 @@ The build is split into one app module and several libraries (see
 - **`guilib`** — shared drawables, styles, themes, app icons.
 - **`filebrowser`** — vendored file picker (`com.ankhsoft.filebrowser`) used by
   import/export.
-- **`wheel`** — vendored Android Wheel widget (`kankan.wheel`) for picker dialogs.
 
 Third-party deps of note: `MPAndroidChart` (graphs), `drag-sort-listview`
 (reorderable lists).
