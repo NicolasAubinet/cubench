@@ -19,14 +19,18 @@ import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.CrossFaceSwatches;
 import com.cube.nanotimer.gui.widget.DrillHelpDialog;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
+import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.smartcube.model.CubeConnection;
+import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -58,7 +62,7 @@ import java.util.Set;
  * on cases there is nothing to practise yet.
  */
 public class DrillSetupActivity extends NanoTimerActivity
-    implements DrillCasesDialog.Listener {
+    implements DrillCasesDialog.Listener, CubeConnectionListener {
 
   private static final int PRACTICE_PLL = 0;
   private static final int PRACTICE_OLL = 1;
@@ -91,6 +95,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   private SegmentedControl reps;
   private SegmentedControl mode;
   private CrossFaceSwatches crossFaces;
+  private SmartCubeChip smartCubeChip;
   private Switch swPlanning;
   private EditText etPlanningSeconds;
   private View crossOptions;
@@ -113,6 +118,9 @@ public class DrillSetupActivity extends NanoTimerActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.drill_setup);
     setTitle(R.string.drill_setup_title);
+
+    // Before the bar asks for it: onCreateOptionsMenu binds the chip this builds.
+    smartCubeChip = new SmartCubeChip(this, this::openSmartCubeConnect);
 
     crossOptions = findViewById(R.id.llDrillCrossOptions);
     casesRow = findViewById(R.id.llDrillCases);
@@ -214,10 +222,16 @@ public class DrillSetupActivity extends NanoTimerActivity
     refreshModeHint();
   }
 
-  /** The two explanations that used to stand as grey paragraphs between the last control and Start. */
+  /**
+   * The cube chip and the two explanations that used to stand as grey paragraphs between the last
+   * control and Start. The chip stays whether or not a cube is connected: this screen is only
+   * reached to set up a drill, which needs one, and it is where the asking happens.
+   */
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.drill_setup_menu, menu);
+    MenuItem item = menu.findItem(R.id.itSmartCube);
+    smartCubeChip.bind(item != null ? item.getActionView() : null);
     return super.onCreateOptionsMenu(menu);
   }
 
@@ -230,9 +244,27 @@ public class DrillSetupActivity extends NanoTimerActivity
     return super.onOptionsItemSelected(item);
   }
 
+  private void openSmartCubeConnect() {
+    DialogUtils.showFragment(this, new SmartCubeConnectDialog());
+  }
+
   @Override
   protected void onResume() {
     super.onResume();
+    smartCubeChip.start();
+    SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    smartCubeChip.stop();
+    SmartCubeManager.INSTANCE.removeConnectionListener(this);
+  }
+
+  /** A cube connected from the chip here, so the line asking for one goes without leaving. */
+  @Override
+  public void onConnection(CubeConnection connection) {
     // Said here rather than only on the drill screen: being turned back at the door having picked
     // everything is worse than being told at the door.
     findViewById(R.id.tvDrillNoCube).setVisibility(

@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The ? that carries what the screen used to say in grey paragraphs above Start. -->
+<!-- The cube chip, then the ? that carries what the screen used to say in grey paragraphs above
+     Start. The chip is here because this screen asks for a cube it gave no way to connect. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <item android:id="@+id/itSmartCube"
+     android:title="@string/smart_cube_title"
+     app:actionLayout="@layout/smart_cube_chip"
+     app:showAsAction="always"/>
 
   <item android:id="@+id/itDrillHelp"
      android:icon="@drawable/ic_help_outline"
