@@ -18,8 +18,9 @@ import com.cube.nanotimer.R;
  *
  * <p>The thresholds are counted back from the end rather than forward from the start, so they mean
  * the same thing at any inspection time: at 15 seconds they land on 8 and 12, which is where the
- * official penalties are. Below {@link #MIN_MARKED_SECONDS} there is too little inspection for a
- * warning to arrive before the end, so the ring keeps its one colour.
+ * official penalties are. They apply at every inspection time, so a short one spends more of itself
+ * warning; that is the point, since the warning is about the end approaching, not about the clock
+ * reaching some number.
  *
  * <p>It also washes the whole screen in its own colour, faintly at first and clearly by the end:
  * a ground that only drops once says nothing after the first instant.
@@ -31,8 +32,6 @@ public class InspectionRingView extends View {
 
   private static final int AMBER_SECONDS_LEFT = 7; // 8 seconds in, at the official 15
   private static final int RED_SECONDS_LEFT = 3; // and 12 seconds in
-  /** Under this there is no room for a warning to arrive before the end. */
-  private static final int MIN_MARKED_SECONDS = 10;
 
   private static final float RADIUS_FRACTION = 0.15f; // of the shorter side
   private static final float STROKE_FRACTION = 0.13f; // of the radius
@@ -54,7 +53,6 @@ public class InspectionRingView extends View {
   private boolean inspecting;
   private float exit; // how far through leaving the ring is: 0 while it is up, 1 once it is gone
   private int totalSeconds;
-  private boolean marksPenalties;
   private long elapsedMs;
   private CharSequence label; // overrides the count, for the official mode's "+2"
   private Float centerY; // set by the screen, so the ring and the digits share a centre
@@ -86,7 +84,6 @@ public class InspectionRingView extends View {
    */
   public void start(int totalSeconds) {
     this.totalSeconds = totalSeconds;
-    this.marksPenalties = (totalSeconds >= MIN_MARKED_SECONDS);
     this.elapsedMs = 0;
     this.label = null;
     this.exit = 0f;
@@ -179,8 +176,8 @@ public class InspectionRingView extends View {
   }
 
   private int currentColor() {
-    if (!marksPenalties) {
-      return accentColor;
+    if (totalSeconds <= 0) {
+      return accentColor; // no end to count back from
     }
     int secondsLeft = totalSeconds - (int) (elapsedMs / 1000);
     if (secondsLeft <= RED_SECONDS_LEFT) {
