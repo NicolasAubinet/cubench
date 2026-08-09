@@ -25,10 +25,11 @@ import com.cube.nanotimer.util.helper.DialogUtils;
  * one's turns, the chip that reaches that cube, and the handful of rules a drill has to obey however
  * it is scored.
  *
- * <p>Those rules are the reason this is shared rather than copied. A cube that goes away ends the
- * drill instead of losing it; back stops it rather than throwing it away, because a drill stopped at
- * rep 6 of 20 is a result; the grip line shows only where the gyro cannot answer it; and there is no
- * control that starts or stops a rep. Two screens keeping four rules in step by hand would not.
+ * <p>Those rules are the reason this is shared rather than copied. A drill waits for a cube rather
+ * than refusing for want of one; a cube that goes away ends the drill instead of losing it; back
+ * stops it rather than throwing it away, because a drill stopped at rep 6 of 20 is a result; the
+ * grip line shows only where the gyro cannot answer it; and there is no control that starts or stops
+ * a rep. Two screens keeping five rules in step by hand would not.
  *
  * <p>A subclass sets its own content view and must name the shared pieces the same way, since a
  * drill screen is the same screen twice over: {@code drillRunning}, {@code drillSummary},
@@ -57,6 +58,14 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   protected boolean cubeReady;
   /** The drill is over, by its last rep or by the cube going away, and takes no more turns. */
   protected boolean finished;
+
+  /** The first case has been dealt. Once only, however often a cube comes and goes after it. */
+  private boolean started;
+  /** Held at the door for want of a cube, which is not the same as having failed for good. */
+  private boolean awaitingCube;
+
+  /** Deals the first case. Called once, when there is a cube to run the drill with. */
+  protected abstract void startDrill();
 
   /** The case is on screen, which is where a rep's looking runs from. */
   protected abstract void onCaseVisible();
@@ -90,7 +99,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
       @Override
       public void handleOnBackPressed() {
-        if (!isDrillRunning() || finished) {
+        if (!started || !isDrillRunning() || finished) {
           setEnabled(false);
           DrillScreenActivity.this.getOnBackPressedDispatcher().onBackPressed();
         } else {
@@ -101,11 +110,53 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   }
 
   /**
+   * Starts the drill, or waits at the door and starts it the moment a cube connects.
+   *
+   * <p>Waiting rather than refusing, because the chip that connects a cube is in this screen's own
+   * bar: connecting from here is the ordinary way in, and a one-shot check at the door made it the
+   * one way that could not work. The drill was turned down, the cube arrived a second later, and
+   * nothing on the screen noticed until it was left and opened again.
+   */
+  protected void startWhenCubeConnected() {
+    if (started) {
+      return;
+    }
+    if (!SmartCubeManager.INSTANCE.isConnected()) {
+      awaitingCube = true;
+      showUnavailable(getString(R.string.drill_needs_cube));
+      return;
+    }
+    // A cube connected from here leaves the connect sheet standing over the drill, and the first
+    // case would be dealt behind it and its recognition timed while nobody could see it. Only a
+    // drill that was waiting has to check: one opened with a cube already there has no sheet, and
+    // has no window focus yet either.
+    if (awaitingCube && !hasWindowFocus()) {
+      return;
+    }
+    awaitingCube = false;
+    hideUnavailable();
+    if (!createCube()) {
+      return; // no cube to draw on, and back leaves rather than summing up a drill never dealt
+    }
+    started = true;
+    startDrill();
+  }
+
+  /** The connect sheet is gone, so a drill that was waiting behind it can deal its first case. */
+  @Override
+  public void onWindowFocusChanged(boolean hasFocus) {
+    super.onWindowFocusChanged(hasFocus);
+    if (hasFocus && awaitingCube) {
+      startWhenCubeConnected();
+    }
+  }
+
+  /**
    * Builds the drawn cube and points it at the user's grip.
    *
    * @return false when this device cannot draw one, having already said so in place of the drill
    */
-  protected boolean createCube() {
+  private boolean createCube() {
     webView = findViewById(R.id.wvDrillCube);
     try {
       // Null touch listener: a press on the cube does nothing here. This is not the timer, where a
@@ -142,11 +193,13 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     smartCubeChip.start();
     if (cube != null) {
       cube.onResume();
-      SmartCubeManager.INSTANCE.addMoveListener(this);
-      SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
-      SmartCubeManager.INSTANCE.addGyroReferenceListener(this);
-      refreshGripHint();
     }
+    // Subscribed whether or not there is a cube yet: a drill held at the door has no cube of its
+    // own, and this is what tells it one has arrived.
+    SmartCubeManager.INSTANCE.addMoveListener(this);
+    SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
+    SmartCubeManager.INSTANCE.addGyroReferenceListener(this);
+    refreshGripHint();
   }
 
   @Override
@@ -195,10 +248,12 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   }
 
   /** A drill stopped at rep 6 of 20 is a result, so a cube that goes away ends it rather than
-   * losing it. */
+   * losing it. One that never started waits instead, since it has no reps to end with. */
   @Override
   public void onConnection(CubeConnection connection) {
-    if (isDrillRunning() && !SmartCubeManager.INSTANCE.isConnected()) {
+    if (awaitingCube) {
+      startWhenCubeConnected();
+    } else if (started && isDrillRunning() && !SmartCubeManager.INSTANCE.isConnected()) {
       showSummary();
     }
   }
@@ -208,5 +263,10 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     runningLayout.setVisibility(View.GONE);
     tvUnavailable.setVisibility(View.VISIBLE);
     tvUnavailable.setText(message);
+  }
+
+  private void hideUnavailable() {
+    tvUnavailable.setVisibility(View.GONE);
+    runningLayout.setVisibility(View.VISIBLE);
   }
 }

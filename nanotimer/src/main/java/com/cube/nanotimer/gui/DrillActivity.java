@@ -9,7 +9,6 @@ import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
-import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.util.FormatterService;
@@ -117,16 +116,15 @@ public class DrillActivity extends DrillScreenActivity {
       showUnavailable(getString(R.string.drill_no_known_cases));
       return;
     }
-    if (!SmartCubeManager.INSTANCE.isConnected()) {
-      showUnavailable(getString(R.string.drill_needs_cube));
-      return;
-    }
-    if (!createCube()) {
-      return;
-    }
+    startWhenCubeConnected();
+  }
 
-    // The first case is queued before the page is up rather than waited for: the view holds it and
-    // draws it as its first frame, so the drill never opens on a solved cube it then replaces.
+  /**
+   * The first case is queued before the page is up rather than waited for: the view holds it and
+   * draws it as its first frame, so the drill never opens on a solved cube it then replaces.
+   */
+  @Override
+  protected void startDrill() {
     nextRep();
   }
 

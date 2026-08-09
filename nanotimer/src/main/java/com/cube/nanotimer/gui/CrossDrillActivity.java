@@ -10,7 +10,6 @@ import android.widget.TextView;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
-import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolutionsDialog;
 import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
@@ -142,13 +141,11 @@ public class CrossDrillActivity extends DrillScreenActivity {
     }
     setTitle(spec.getLabel() == null ? getString(R.string.drill_cross_title) : spec.getLabel());
 
-    if (!SmartCubeManager.INSTANCE.isConnected()) {
-      showUnavailable(getString(R.string.drill_needs_cube));
-      return;
-    }
-    if (!createCube()) {
-      return;
-    }
+    startWhenCubeConnected();
+  }
+
+  @Override
+  protected void startDrill() {
     nextRep();
   }
 
