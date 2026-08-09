@@ -706,7 +706,7 @@ public final class BlindStepDetector implements StepDetector {
    */
   @Override
   public BlindResidual getResidual() {
-    return BlindResidual.of(stopped, targets);
+    return BlindResidual.of(stopped, targets, typeBuffer[EDGES], typeBuffer[CORNERS]);
   }
 
   /**

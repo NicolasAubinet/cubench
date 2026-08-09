@@ -15,14 +15,14 @@ public class BlindResidualTest {
 
   @Test
   public void solvedCubeHasNothingLeft() {
-    BlindResidual residual = BlindResidual.of(Cubies.SOLVED, targets);
+    BlindResidual residual = read(Cubies.SOLVED);
     assertEquals(BlindResidual.Shape.SOLVED, residual.getShape());
     assertEquals(0, residual.getCount());
   }
 
   @Test
   public void threeEdgesLeftReadAsACycle() {
-    BlindResidual residual = BlindResidual.of(cycle(Cubies.SOLVED, UR, UF, UL), targets);
+    BlindResidual residual = read(cycle(Cubies.SOLVED, UR, UF, UL));
     assertEquals(BlindResidual.Shape.EDGE_CYCLE, residual.getShape());
     assertEquals(3, residual.getCount());
     assertEquals("UR-UL-UF", residual.getPieces());
@@ -30,7 +30,7 @@ public class BlindResidualTest {
 
   @Test
   public void threeCornersLeftReadAsACycle() {
-    BlindResidual residual = BlindResidual.of(cycle(Cubies.SOLVED, URF, UFL, UBL), targets);
+    BlindResidual residual = read(cycle(Cubies.SOLVED, URF, UFL, UBL));
     assertEquals(BlindResidual.Shape.CORNER_CYCLE, residual.getShape());
     assertEquals("UFR-UBL-UFL", residual.getPieces());
   }
@@ -38,7 +38,7 @@ public class BlindResidualTest {
   @Test
   public void twoEdgesTurnedWhereTheyStandReadAsFlipped() {
     String left = turn(turn(Cubies.SOLVED, UF, 1), UB, 1);
-    BlindResidual residual = BlindResidual.of(left, targets);
+    BlindResidual residual = read(left);
     assertEquals(BlindResidual.Shape.FLIPPED, residual.getShape());
     assertEquals("UF, UB", residual.getPieces());
   }
@@ -46,7 +46,7 @@ public class BlindResidualTest {
   @Test
   public void twoCornersTurnedWhereTheyStandReadAsTwisted() {
     String left = turn(turn(Cubies.SOLVED, URF, 1), UFL, 2);
-    BlindResidual residual = BlindResidual.of(left, targets);
+    BlindResidual residual = read(left);
     assertEquals(BlindResidual.Shape.TWISTED, residual.getShape());
     assertEquals("UFR, UFL", residual.getPieces());
   }
@@ -54,7 +54,7 @@ public class BlindResidualTest {
   @Test
   public void twoOfEachSwappedReadAsAParity() {
     String left = swap(swap(Cubies.SOLVED, UR, UF), URF, UFL);
-    BlindResidual residual = BlindResidual.of(left, targets);
+    BlindResidual residual = read(left);
     assertEquals(BlindResidual.Shape.PARITY, residual.getShape());
     assertEquals(4, residual.getCount());
     assertEquals("UFR-UFL + UR-UF", residual.getPieces());
@@ -64,7 +64,7 @@ public class BlindResidualTest {
   @Test
   public void aCycleWithAnExtraTurnedPieceKeepsItsShapeAndSaysTheTurnedPieceApart() {
     String left = turn(cycle(Cubies.SOLVED, UR, UF, UL), URF, 1);
-    BlindResidual residual = BlindResidual.of(left, targets);
+    BlindResidual residual = read(left);
     assertEquals(BlindResidual.Shape.EDGE_CYCLE, residual.getShape());
     assertEquals(4, residual.getCount());
     assertEquals("UR-UL-UF", residual.getPieces());
@@ -75,7 +75,7 @@ public class BlindResidualTest {
   @Test
   public void aParityWithATurnedPieceKeepsItsShapeToo() {
     String left = turn(swap(swap(Cubies.SOLVED, UR, UF), URF, UFL), UB, 1);
-    BlindResidual residual = BlindResidual.of(left, targets);
+    BlindResidual residual = read(left);
     assertEquals(BlindResidual.Shape.PARITY, residual.getShape());
     assertEquals(5, residual.getCount());
     assertEquals("UFR-UFL + UR-UF", residual.getPieces());
@@ -86,7 +86,7 @@ public class BlindResidualTest {
   @Test
   public void pieceOutOfPlaceAndPieceTurnedAreSaidApartWhenThereIsNoShape() {
     String left = turn(turn(swap(Cubies.SOLVED, UR, UF), URF, 1), UFL, 2);
-    BlindResidual residual = BlindResidual.of(left, targets);
+    BlindResidual residual = read(left);
     assertEquals(BlindResidual.Shape.MIXED, residual.getShape());
     assertEquals(4, residual.getCount());
     assertEquals("UR, UF", residual.getPieces());
@@ -96,7 +96,7 @@ public class BlindResidualTest {
   /** Nothing out of place: the turned pieces are the whole of what was left, and are said as it. */
   @Test
   public void turnedPiecesAloneAreNotSaidTwice() {
-    BlindResidual residual = BlindResidual.of(turn(turn(Cubies.SOLVED, UF, 1), UB, 1), targets);
+    BlindResidual residual = read(turn(turn(Cubies.SOLVED, UF, 1), UB, 1));
     assertEquals(BlindResidual.Shape.FLIPPED, residual.getShape());
     assertEquals("UF, UB", residual.getPieces());
     assertEquals("", residual.getTurned());
@@ -107,7 +107,7 @@ public class BlindResidualTest {
     String left = Cubies.SOLVED;
     left = swap(swap(swap(left, UR, UF), UL, UB), 4, 5);
     left = swap(swap(swap(left, 6, 7), 8, 9), 10, 11);
-    BlindResidual residual = BlindResidual.of(left, targets);
+    BlindResidual residual = read(left);
     assertEquals(BlindResidual.Shape.SCATTERED, residual.getShape());
     assertEquals(12, residual.getCount());
     assertEquals("", residual.getPieces());
@@ -118,19 +118,48 @@ public class BlindResidualTest {
   public void driftDoesNotChangeWhatWasLeft() {
     String left = cycle(Cubies.SOLVED, UR, UF, UL);
     for (int rotation = 0; rotation < FaceletRotations.COUNT; rotation++) {
-      BlindResidual residual = BlindResidual.of(rotated(left, rotation), targets);
+      BlindResidual residual = read(rotated(left, rotation));
       assertEquals(BlindResidual.Shape.EDGE_CYCLE, residual.getShape());
       assertEquals(3, residual.getCount());
     }
+  }
+
+  /**
+   * A cycle has no start of its own, so it is opened where the solver's memo opens it: on the piece
+   * they shoot from. Left to the order the cube stores its slots in, the same mistake reads from
+   * whichever of the three happens to sit lowest, which is nothing the solver would recognise.
+   */
+  @Test
+  public void aCycleIsOpenedOnTheBufferOfItsOwnType() {
+    String left = cycle(Cubies.SOLVED, UR, UF, UL);
+    assertEquals("UR-UL-UF", read(left).getPieces()); // no buffer settled: the slot order stands
+    assertEquals("UF-UR-UL",
+        BlindResidual.of(left, targets, UF, BlindTargets.NO_BUFFER).getPieces());
+
+    // A buffer of the other type is not this cycle's, and says nothing about where it opens.
+    String corners = cycle(Cubies.SOLVED, URF, UFL, UBL);
+    assertEquals("UFR-UBL-UFL",
+        BlindResidual.of(corners, targets, UF, BlindTargets.NO_BUFFER).getPieces());
+    assertEquals("UBL-UFL-UFR",
+        BlindResidual.of(corners, targets, BlindTargets.NO_BUFFER, UBL).getPieces());
   }
 
   /** The pieces are said in the grip the solve was held in, as every other blind name is. */
   @Test
   public void namesAreSpelledInTheGrip() {
     BlindTargets held = new BlindTargets(FaceletRotations.of(CubeRotation.byNotation("y")));
-    BlindResidual residual = BlindResidual.of(cycle(Cubies.SOLVED, UR, UF, UL), held);
+    BlindResidual residual = read(cycle(Cubies.SOLVED, UR, UF, UL), held);
     assertEquals(BlindResidual.Shape.EDGE_CYCLE, residual.getShape());
     assertEquals("UB-UF-UR", residual.getPieces()); // the same UR-UL-UF, said a y round
+  }
+
+  /** What the state was left in, of a solve that never settled a buffer for either type. */
+  private BlindResidual read(String facelets) {
+    return read(facelets, targets);
+  }
+
+  private static BlindResidual read(String facelets, BlindTargets targets) {
+    return BlindResidual.of(facelets, targets, BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER);
   }
 
   /** The piece at {@code a} moved to {@code b}, the one at {@code b} to {@code c}, and so round. */

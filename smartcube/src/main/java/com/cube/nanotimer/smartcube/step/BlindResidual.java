@@ -23,7 +23,9 @@ import java.util.List;
  * read as one with a twisted corner sitting beside it.
  *
  * <p>Names are spelled through {@link BlindTargets}, in the grip the solve was held in, and are the
- * same words in every language: the display picks the sentence, never the pieces.
+ * same words in every language: the display picks the sentence, never the pieces. A cycle is said as
+ * the shots that would fix it, opening on the buffer where the buffer is one of its pieces — which
+ * makes it a memo the solver can read straight off rather than three letters in an arbitrary order.
  */
 public final class BlindResidual {
 
@@ -87,8 +89,12 @@ public final class BlindResidual {
     return count;
   }
 
-  /** What was left in the state the solve stopped at, or null when there is no state to read. */
-  static BlindResidual of(String facelets, BlindTargets targets) {
+  /**
+   * What was left in the state the solve stopped at, or null when there is no state to read. The
+   * buffers are the pieces the solve was shooting each type from, so a cycle can be opened where the
+   * solver's memo would open it; {@link BlindTargets#NO_BUFFER} where the solve never settled one.
+   */
+  static BlindResidual of(String facelets, BlindTargets targets, int edgeBuffer, int cornerBuffer) {
     if (facelets == null) {
       return null;
     }
@@ -116,7 +122,9 @@ public final class BlindResidual {
     String alsoTurned = said(targets, turned, ", ");
     List<Integer> cycle = cycleOf(steady, misplaced);
     if (cycle != null) {
-      Shape shape = Cubies.isEdge(cycle.get(0)) ? Shape.EDGE_CYCLE : Shape.CORNER_CYCLE;
+      boolean edges = Cubies.isEdge(cycle.get(0));
+      cycle = fromBuffer(cycle, edges ? edgeBuffer : cornerBuffer);
+      Shape shape = edges ? Shape.EDGE_CYCLE : Shape.CORNER_CYCLE;
       return new BlindResidual(shape, shotToFix(steady, cycle, targets), alsoTurned, count);
     }
     String parity = parityOf(steady, misplaced, targets);
@@ -124,6 +132,22 @@ public final class BlindResidual {
       return new BlindResidual(Shape.PARITY, parity, alsoTurned, count);
     }
     return new BlindResidual(Shape.MIXED, said(targets, misplaced, ", "), alsoTurned, count);
+  }
+
+  /**
+   * The cycle turned round to open on the buffer, which is where the solver would start reading it:
+   * what is owed from the piece they shoot from, and then where that lands. Left as it stands where
+   * the buffer is not one of its pieces, or where the solve never settled which piece that was —
+   * a cycle has no start of its own, and any of the three is as true as the others.
+   */
+  private static List<Integer> fromBuffer(List<Integer> cycle, int buffer) {
+    int at = cycle.indexOf(buffer);
+    if (at <= 0) {
+      return cycle;
+    }
+    List<Integer> opened = new ArrayList<Integer>(cycle.subList(at, cycle.size()));
+    opened.addAll(cycle.subList(0, at));
+    return opened;
   }
 
   /**
