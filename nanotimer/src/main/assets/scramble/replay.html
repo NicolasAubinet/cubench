@@ -83,6 +83,9 @@
   // render loop, measured at ~0.8 ms a call, so this is not every frame; but the app shows the
   // position to hundredths, and the old 100 ms let it step by no less than 0.10.
   var REPORT_MS = 30;
+  // The finest the clock can be read: the app draws the position to hundredths. Two turns closer
+  // together than this are one moment as far as the label goes. See knot().
+  var MIN_KNOT_MS = 10;
 
   var player = null;
   var realAt = [];     // when each alg node was really turned, ms from the first turn
@@ -90,6 +93,8 @@
   var anims = [];      // how long each turn takes, ending on its doneAt
   var tlStarts = [];   // where each alg node sits on the player's timeline
   var tlEnd = 0;
+  var knotReal = [];   // the distinct moments of the solve the clock is read between...
+  var knotClock = [];  // ...and where each falls on the replay's clock. See knot().
   var totalMs = 0;       // the replay's own length, floors included
   var reportedTotal = 0; // the length the app shows, which is the solve's
   var clockMs = 0;
@@ -298,53 +303,80 @@
   }
 
   /**
-   * The moment of the solve the cube is currently showing. Every node knows both when it was
-   * really turned and where that lands on the replay's clock, so this walks back through that
-   * pairing. Scaling the whole clock by one ratio instead agrees at both ends and drifts
-   * everywhere between, because the floors add time at particular turns rather than evenly.
+   * The knots the clock is read between: one per DISTINCT moment of the solve, plus its end.
+   *
+   * ⚠️ Nodes are not distinct moments. A rotation is dated at the move it precedes to the
+   * millisecond (SolveMovesFormat.format), a core spin one millisecond off a turn
+   * (SliceSpinDetector), and the cube reports a double turn as two quarter turns two or three
+   * apart. Read node to node, the clock then had a whole turn's animation — 90 ms and more — to
+   * spread over nothing, and stood dead still there: at every rotation, which in a CFOP solve is
+   * most pair changes and the hand-over to the last layer.
+   *
+   * A run within MIN_KNOT_MS is one knot, pinned at its LAST because a turn ends on its timestamp,
+   * and measured from the last knot KEPT so a burst still breaks once ten milliseconds have passed.
+   */
+  function knot() {
+    knotReal = [];
+    knotClock = [];
+    for (var k = 0; k < doneAt.length; k++) {
+      if (knotReal.length && realAt[k] < knotReal[knotReal.length - 1] + MIN_KNOT_MS) {
+        knotClock[knotClock.length - 1] = doneAt[k]; // the same moment, later on the replay's clock
+      } else {
+        knotReal.push(realAt[k]);
+        knotClock.push(doneAt[k]);
+      }
+    }
+    // The tail, where the solve runs on past its last turn. Left off when it does not, so the
+    // clock holds at the last turn rather than counting backwards through the beat at the end.
+    if (knotReal.length && reportedTotal > knotReal[knotReal.length - 1]) {
+      knotReal.push(reportedTotal);
+      knotClock.push(totalMs);
+    }
+  }
+
+  /** The last knot at or before `clock`. */
+  function knotAt(clock) {
+    var lo = 0;
+    var hi = knotClock.length - 1;
+    while (lo < hi) {
+      var mid = (lo + hi + 1) >> 1;
+      if (knotClock[mid] <= clock) { lo = mid; } else { hi = mid - 1; }
+    }
+    return lo;
+  }
+
+  /**
+   * The moment of the solve the cube is currently showing. Scaling the whole clock by one ratio
+   * instead agrees at both ends and drifts everywhere between, because the floors add time at
+   * particular turns rather than evenly.
    */
   function displayMs() {
     var ms = clamped();
-    if (!doneAt.length) {
-      return 0;
-    }
-    var k = pending(ms);
-    if (k === 0) {
+    if (!knotClock.length || ms <= knotClock[0]) {
       return 0; // the first turn has not landed yet
     }
-    var last = k >= doneAt.length;
-    var fromReal = realAt[k - 1];
-    var fromClock = doneAt[k - 1];
-    var toReal = last ? reportedTotal : realAt[k];
-    var toClock = last ? totalMs : doneAt[k];
-    if (toClock <= fromClock) {
-      return Math.round(fromReal);
+    var i = knotAt(ms);
+    if (i >= knotClock.length - 1) {
+      return Math.round(knotReal[i]);
     }
-    var f = Math.max(0, Math.min(1, (ms - fromClock) / (toClock - fromClock)));
-    return Math.round(fromReal + f * (toReal - fromReal));
+    var span = knotClock[i + 1] - knotClock[i];
+    var f = span > 0 ? Math.max(0, Math.min(1, (ms - knotClock[i]) / span)) : 1;
+    return Math.round(knotReal[i] + f * (knotReal[i + 1] - knotReal[i]));
   }
 
   /** The inverse of displayMs: the replay clock showing a given moment of the solve. */
   function clockAt(wanted) {
-    if (!doneAt.length) {
+    if (!knotReal.length || wanted <= knotReal[0]) {
       return 0;
     }
-    var k = 0;
-    while (k < realAt.length && realAt[k] <= wanted) { k++; }
-    if (k === 0) {
-      return 0;
+    var i = 0;
+    while (i + 1 < knotReal.length && knotReal[i + 1] <= wanted) { i++; }
+    if (i >= knotReal.length - 1) {
+      return totalMs;
     }
-    var last = k >= realAt.length;
-    var fromReal = realAt[k - 1];
-    var fromClock = doneAt[k - 1];
-    var toReal = last ? reportedTotal : realAt[k];
-    var toClock = last ? totalMs : doneAt[k];
-    if (toReal <= fromReal) {
-      // No real time between the two, as when the solve is measured only to its last turn.
-      return wanted >= fromReal ? toClock : fromClock;
-    }
-    var f = Math.max(0, Math.min(1, (wanted - fromReal) / (toReal - fromReal)));
-    return fromClock + f * (toClock - fromClock);
+    var f = Math.max(0, Math.min(1,
+        (wanted - knotReal[i]) / (knotReal[i + 1] - knotReal[i])));
+    return knotClock[i] + f * (knotClock[i + 1] - knotClock[i]);
   }
 
   /**
@@ -460,6 +492,7 @@
     }
     layOut(tokens, stamps);
     reportedTotal = solveMs > 0 ? solveMs : (realAt.length ? realAt[realAt.length - 1] : 0);
+    knot();
     clockMs = 0;
     reportedMs = -1;
     reportedAt = 0;
