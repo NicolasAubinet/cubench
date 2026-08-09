@@ -785,7 +785,6 @@
   <string name="drill_summary_cell_extra">Mouvements en trop</string>
   <string name="drill_summary_cell_planning">Réflexion</string>
   <string name="drill_summary_cell_average">en moyenne</string>
-  <string name="drill_cube_left_scrambled">Votre cube n\'est plus résolu, c\'est normal. Résolvez-le avant de chronométrer quoi que ce soit.</string>
   <string name="drill_needs_cube">Connectez votre cube connecté pour lancer un entraînement.</string>
   <string name="drill_no_known_cases">Aucun cas de cet entraînement ne peut être mélangé par l\'application.</string>
   <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un entraînement.</string>

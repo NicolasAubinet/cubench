@@ -337,22 +337,6 @@
          android:textSize="17sp"
          android:visibility="gone"/>
 
-      <LinearLayout
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="16dp"
-         android:background="@drawable/drill_note_card"
-         android:orientation="vertical"
-         android:padding="12dp">
-
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:text="@string/drill_cube_left_scrambled"
-           android:textColor="@color/secondary_text"
-           android:textSize="13sp"/>
-      </LinearLayout>
-
       <View
          android:layout_width="match_parent"
          android:layout_height="0dp"

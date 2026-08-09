@@ -787,7 +787,6 @@
   <string name="drill_summary_cell_extra">Movimentos a mais</string>
   <string name="drill_summary_cell_planning">Planeamento</string>
   <string name="drill_summary_cell_average">em média</string>
-  <string name="drill_cube_left_scrambled">O seu cubo já não está resolvido, o que é normal. Resolva-o antes de cronometrar seja o que for.</string>
   <string name="drill_needs_cube">Ligue o seu cubo inteligente para fazer um treino.</string>
   <string name="drill_no_known_cases">A aplicação não sabe gerar nenhum dos casos deste treino.</string>
   <string name="drill_no_cube_view">Este dispositivo não consegue desenhar o cubo de um treino.</string>
