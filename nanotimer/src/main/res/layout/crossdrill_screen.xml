@@ -234,12 +234,14 @@
        android:layout_width="match_parent"
        android:layout_height="match_parent"
        android:orientation="vertical"
-       android:padding="16dp">
+       android:paddingLeft="16dp"
+       android:paddingRight="16dp"
+       android:paddingTop="6dp"
+       android:paddingBottom="16dp">
 
       <TextView
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="10dp"
          android:text="@string/drill_finished"
          android:textColor="@color/white"
          android:textSize="26sp"
@@ -260,7 +262,7 @@
          android:id="@+id/llDrillSummaryCells"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="20dp"
+         android:layout_marginTop="14dp"
          android:baselineAligned="false"
          android:orientation="horizontal">
 
@@ -343,12 +345,12 @@
          android:layout_weight="1"
          android:minHeight="8dp"/>
 
-      <Button
+      <!-- The sheet's own action, in the accent the main screen's Start wears. The case drill's
+           summary says it the same way. -->
+      <androidx.appcompat.widget.AppCompatButton
          android:id="@+id/btDrillDone"
-         style="@style/DialogActionButton"
-         android:layout_height="48dp"
+         style="@style/HeroStartButton"
          android:layout_marginTop="16dp"
-         android:textSize="16sp"
          android:text="@string/drill_done"/>
 
     </LinearLayout>

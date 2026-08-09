@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One case of a finished drill: its chart, its name, and what it cost in each half. The three
-     figures are means over the case's finished reps, so a case dealt four times is one line rather
-     than four. Tapping the row opens its algorithms, which is what a slow line is usually asking
-     about. -->
+<!-- One rep of a finished drill: the case's chart, its name, and what the attempt cost in each
+     half and in both together. Built like a history row rather than like a table cell, since it is
+     the same thing being read: a time, and enough beside it to say which one. No fill of its own,
+     so the list reads as a list; the hairlines between rows come from the container.
+
+     The figures fit themselves to the column rather than being cut off: a ten second recognition
+     is rare but it is exactly the row worth reading, and at a large system font it is the one that
+     would have run out of column. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:id="@+id/llDrillCaseRow"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
-   android:background="?android:attr/selectableItemBackground"
+   android:background="@drawable/history_row"
    android:gravity="center_vertical"
+   android:minHeight="48dp"
    android:orientation="horizontal"
-   android:paddingLeft="10dp"
-   android:paddingRight="10dp"
-   android:paddingTop="6dp"
-   android:paddingBottom="6dp">
+   android:paddingLeft="@dimen/space_xs"
+   android:paddingRight="@dimen/space_xs"
+   android:paddingTop="@dimen/space_s"
+   android:paddingBottom="@dimen/space_s">
 
   <com.cube.nanotimer.gui.widget.LastLayerCaseView
      android:id="@+id/vDrillCaseChart"
@@ -24,8 +29,8 @@
      android:layout_width="0dp"
      android:layout_height="wrap_content"
      android:layout_weight="1"
-     android:layout_marginLeft="10dp"
-     android:layout_marginRight="6dp"
+     android:layout_marginLeft="@dimen/space_m"
+     android:layout_marginRight="@dimen/space_xs"
      android:orientation="vertical">
 
     <TextView
@@ -36,12 +41,10 @@
        android:fontFamily="@font/roboto_medium"
        android:maxLines="1"
        android:textColor="@color/white"
-       android:textSize="14sp"/>
+       android:textSize="15sp"/>
 
-    <!-- What the figures beside it are made of: how many reps went into them, the quickest of
-         them, and anything that makes them worth less than they look. Gone on a case dealt once
-         and finished, where the figures are the rep and there is nothing to add. Two lines are
-         allowed for the rare case that has all of it to say, rather than losing the end of it. -->
+    <!-- What has to be said about the rep before its figures are read. Two lines are allowed for
+         the rare one that has both to say, rather than losing the end of it. -->
     <TextView
        android:id="@+id/tvDrillCaseNote"
        android:layout_width="match_parent"
@@ -50,19 +53,28 @@
        android:maxLines="2"
        android:textColor="@color/secondary_text"
        android:textSize="11sp"
-       android:fontFeatureSettings="tnum"
        android:visibility="gone"/>
+
+    <!-- Where the rep's time went, which is the one thing the three figures make the reader work
+         out. A fixed width rather than the row's: it is the shape of the rep and not its size, so
+         every rep is measured against the same length, and at the row's full width a dozen of them
+         read as a dozen progress bars. -->
+    <com.cube.nanotimer.util.view.DrillSplitBarView
+       android:id="@+id/vDrillCaseBar"
+       android:layout_width="96dp"
+       android:layout_height="5dp"
+       android:layout_marginTop="5dp"/>
   </LinearLayout>
 
-  <TextView
+  <com.cube.nanotimer.util.view.FontFitTextView
      android:id="@+id/tvDrillCaseRecognition"
      style="@style/DrillCaseValue"/>
 
-  <TextView
+  <com.cube.nanotimer.util.view.FontFitTextView
      android:id="@+id/tvDrillCaseExecution"
      style="@style/DrillCaseValue"/>
 
-  <TextView
+  <com.cube.nanotimer.util.view.FontFitTextView
      android:id="@+id/tvDrillCaseTotal"
      style="@style/DrillCaseValue"/>
 

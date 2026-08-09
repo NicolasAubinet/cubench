@@ -15,7 +15,9 @@ import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 
 import java.util.ArrayList;
@@ -32,13 +34,23 @@ import java.util.Map;
  * and those are the whole reason for looking a case up again.
  *
  * <p><b>The column headings are the sort.</b> Tapping one ranks the table by that column, tapping it
- * again turns the table round, and the ranked column is the one written in white so the ranking is
+ * again turns the table round, and the ranked column is the one at full strength so the ranking is
  * legible in the figures and not only in the heading. A control above the table would have had to
  * name the same three columns a second time.
  *
  * <p>It opens on the half the drill was scored on, slowest first, because the rep that cost the most
  * is the one worth doing something about. Tapping a line opens that case's algorithms, which is
  * usually what a slow line is asking about.
+ *
+ * <p>Under each name is the shape of that rep, its looking against its turning, in the two colours
+ * the mean cell writes its own halves in. The three figures say how long a rep was; the bar is the
+ * only thing that says where the time went without the reader working it out.
+ *
+ * <p>Every figure is written on the history screen's own green to red gradient, and each column
+ * gets a scale of its own: recognition and execution are different sizes of number, so one scale
+ * over all three would have painted a whole column green and another red for no reason but that.
+ * The ends are the drill's own fastest and slowest rather than percentiles, since a drill is twenty
+ * reps and trimming outliers out of twenty leaves the best of them looking ordinary.
  */
 public class DrillCaseTable {
 
@@ -55,10 +67,14 @@ public class DrillCaseTable {
   private static final String SLOWEST_FIRST = "▾";
   private static final String QUICKEST_FIRST = "▴";
 
+  /** What a column that is not the ranked one is worth: still coloured, but standing back. */
+  private static final float UNRANKED_ALPHA = 0.6f;
+
   private final FragmentActivity activity;
   private final LinearLayout rows;
   private final List<DrillRep> reps;
   private final Map<DrillRep, View> lines = new LinkedHashMap<DrillRep, View>();
+  private final TimeColorScale[] scales = new TimeColorScale[KEYS.length];
 
   private int sortedColumn;
   private boolean slowestFirst = true;
@@ -74,6 +90,7 @@ public class DrillCaseTable {
     this.rows = activity.findViewById(R.id.llDrillCaseRows);
     this.reps = new ArrayList<DrillRep>(reps);
     this.sortedColumn = type == DrillSpec.Type.CASE_RECOGNITION ? 0 : 1;
+    buildScales();
 
     LayoutInflater inflater = LayoutInflater.from(activity);
     for (final DrillRep rep : this.reps) {
@@ -105,15 +122,31 @@ public class DrillCaseTable {
     refresh();
   }
 
+  /** One gradient per column, over the reps that have a time to be ranked among. */
+  private void buildScales() {
+    for (int column = 0; column < KEYS.length; column++) {
+      List<Long> times = new ArrayList<Long>();
+      for (DrillRep rep : reps) {
+        if (!rep.isAbandoned()) {
+          times.add(DrillRepOrder.timeMs(rep, KEYS[column]));
+        }
+      }
+      scales[column] = new TimeColorScale(activity);
+      scales[column].setTimes(times, false);
+    }
+  }
+
   /** Ranks the table as it now stands, and says on the columns which ranking that is. */
   private void refresh() {
     DrillRepOrder.sort(reps, KEYS[sortedColumn], slowestFirst);
     rows.removeAllViews();
     for (DrillRep rep : reps) {
       View line = lines.get(rep);
+      // The ranked column at full strength and the other two standing back, since the colours are
+      // the same gradient in all three and something has to say which one the list is in.
       for (int column = 0; column < VALUE_IDS.length; column++) {
-        ((TextView) line.findViewById(VALUE_IDS[column])).setTextColor(
-            color(column == sortedColumn ? R.color.white : R.color.secondary_text));
+        line.findViewById(VALUE_IDS[column])
+            .setAlpha(column == sortedColumn ? 1f : UNRANKED_ALPHA);
       }
       rows.addView(line);
     }
@@ -129,6 +162,9 @@ public class DrillCaseTable {
 
   private void fill(View line, DrillRep rep) {
     String code = rep.getCaseCode();
+    // Never turned down, not even for a rep that was given up on: the picker's dim drops the
+    // chart's own well, which on a row that has no card of its own leaves a smudge rather than a
+    // mark. The dashes and the word beside them already say the rep was not done.
     ((LastLayerCaseView) line.findViewById(R.id.vDrillCaseChart))
         .setDiagram(LastLayerDiagram.forCase(code));
     ((TextView) line.findViewById(R.id.tvDrillCaseName))
@@ -137,10 +173,21 @@ public class DrillCaseTable {
     for (int column = 0; column < VALUE_IDS.length; column++) {
       TextView value = line.findViewById(VALUE_IDS[column]);
       // A rep that was given up on has no time worth printing: the seconds before giving up say
-      // nothing about the case, which is also why it is ranked nowhere.
-      value.setText(rep.isAbandoned() ? activity.getString(R.string.drill_case_no_time)
-          : FormatterService.INSTANCE.formatSolveTime(DrillRepOrder.timeMs(rep, KEYS[column])));
+      // nothing about the case, which is also why it is ranked nowhere and coloured as nothing.
+      if (rep.isAbandoned()) {
+        value.setText(R.string.drill_case_no_time);
+        value.setTextColor(color(R.color.secondary_text));
+      } else {
+        long time = DrillRepOrder.timeMs(rep, KEYS[column]);
+        value.setText(FormatterService.INSTANCE.formatSolveTime(time));
+        value.setTextColor(scales[column].colorFor(time, false));
+      }
     }
+
+    // Where the rep's time went. A rep with no time to divide has no shape, so it shows none.
+    DrillSplitBarView bar = line.findViewById(R.id.vDrillCaseBar);
+    bar.setVisibility(rep.isAbandoned() ? View.INVISIBLE : View.VISIBLE);
+    bar.setSplit(rep.getRecognitionMs(), rep.getExecutionMs());
 
     TextView note = line.findViewById(R.id.tvDrillCaseNote);
     String text = note(rep);

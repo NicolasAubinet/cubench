@@ -231,13 +231,12 @@
        android:orientation="vertical"
        android:paddingLeft="16dp"
        android:paddingRight="16dp"
-       android:paddingTop="16dp"
+       android:paddingTop="6dp"
        android:paddingBottom="16dp">
 
       <TextView
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="10dp"
          android:text="@string/drill_finished"
          android:textColor="@color/white"
          android:textSize="26sp"
@@ -262,7 +261,7 @@
          android:id="@+id/llDrillSummaryCells"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="20dp"
+         android:layout_marginTop="14dp"
          android:baselineAligned="false"
          android:orientation="horizontal">
 
@@ -301,11 +300,16 @@
            android:paddingBottom="8dp">
           <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellKeyTwo" style="@style/HeroStatKey"/>
 
+          <!-- The hairline between them is the one the statistics rows already use, so the two
+               halves read as two figures rather than as one number split by a space. -->
           <LinearLayout
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:baselineAligned="false"
-             android:orientation="horizontal">
+             android:divider="@drawable/stat_rule_v"
+             android:dividerPadding="3dp"
+             android:orientation="horizontal"
+             android:showDividers="middle">
 
             <LinearLayout
                android:layout_width="0dp"
@@ -313,17 +317,17 @@
                android:layout_weight="1"
                android:orientation="vertical">
               <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanRecognition" style="@style/HeroStatValue"/>
-              <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:text="@string/drill_summary_column_recognition"/>
+              <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:textColor="@color/drill_bar_recognition" android:text="@string/drill_summary_column_recognition"/>
             </LinearLayout>
 
             <LinearLayout
                android:layout_width="0dp"
                android:layout_height="wrap_content"
                android:layout_weight="1"
-               android:layout_marginLeft="4dp"
+               android:layout_marginLeft="6dp"
                android:orientation="vertical">
               <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanExecution" style="@style/HeroStatValue"/>
-              <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:text="@string/drill_summary_column_execution"/>
+              <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:textColor="@color/drill_bar_execution" android:text="@string/drill_summary_column_execution"/>
             </LinearLayout>
           </LinearLayout>
         </LinearLayout>
@@ -341,7 +345,8 @@
            android:paddingTop="8dp"
            android:paddingBottom="8dp">
           <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellKeyThree" style="@style/HeroStatKey"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellValueThree" style="@style/HeroStatValue"/>
+          <!-- In the green the table gives its quickest rep: the same reading, said twice. -->
+          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellValueThree" style="@style/HeroStatValue" android:textColor="@color/session_best"/>
           <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellSubThree" style="@style/HeroStatSub"/>
         </LinearLayout>
       </LinearLayout>
@@ -370,78 +375,68 @@
          android:orientation="vertical"
          android:visibility="gone">
 
-        <TextView
-           style="@style/DialogSectionLabel"
-           android:layout_marginTop="20dp"
-           android:layout_marginBottom="4dp"
-           android:text="@string/drill_summary_cases"/>
-
+        <!-- The section's own name shares the line with the three headings, which is all that is
+             needed to head a list: a heading strip of its own would have been a second row of
+             chrome over rows that already say what they are. -->
         <LinearLayout
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:background="@drawable/drill_note_card"
-           android:orientation="vertical"
-           android:paddingTop="2dp"
-           android:paddingBottom="6dp">
+           android:layout_marginTop="22dp"
+           android:gravity="center_vertical"
+           android:orientation="horizontal"
+           android:paddingLeft="@dimen/space_xs"
+           android:paddingRight="@dimen/space_xs">
 
-          <LinearLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:gravity="center_vertical"
-             android:orientation="horizontal"
-             android:paddingLeft="10dp"
-             android:paddingRight="10dp">
+          <TextView
+             style="@style/DialogSectionLabel"
+             android:layout_width="0dp"
+             android:layout_weight="1"
+             android:text="@string/drill_summary_cases"/>
 
-            <!-- Holds the width of the chart and the name beside it, so the three headings stand
-                 over the three columns of figures rather than beside them. -->
-            <View
-               android:layout_width="0dp"
-               android:layout_height="1dp"
-               android:layout_weight="1"/>
+          <TextView
+             android:id="@+id/tvDrillSortRecognition"
+             style="@style/DrillCaseColumn"
+             android:text="@string/drill_summary_column_recognition"/>
 
-            <TextView
-               android:id="@+id/tvDrillSortRecognition"
-               style="@style/DrillCaseColumn"
-               android:text="@string/drill_summary_column_recognition"/>
+          <TextView
+             android:id="@+id/tvDrillSortExecution"
+             style="@style/DrillCaseColumn"
+             android:text="@string/drill_summary_column_execution"/>
 
-            <TextView
-               android:id="@+id/tvDrillSortExecution"
-               style="@style/DrillCaseColumn"
-               android:text="@string/drill_summary_column_execution"/>
-
-            <TextView
-               android:id="@+id/tvDrillSortTotal"
-               style="@style/DrillCaseColumn"
-               android:text="@string/drill_summary_column_total"/>
-          </LinearLayout>
-
-          <View
-             android:layout_width="match_parent"
-             android:layout_height="1dp"
-             android:layout_marginBottom="2dp"
-             android:background="@color/white_wash_10"/>
-
-          <!-- One drill_case_row per case, filled in code. -->
-          <LinearLayout
-             android:id="@+id/llDrillCaseRows"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="vertical"/>
+          <TextView
+             android:id="@+id/tvDrillSortTotal"
+             style="@style/DrillCaseColumn"
+             android:text="@string/drill_summary_column_total"/>
         </LinearLayout>
+
+        <View
+           android:layout_width="match_parent"
+           android:layout_height="1dp"
+           android:background="@color/hero_divider"/>
+
+        <!-- One drill_case_row per rep, filled in code. No card around them: a list of times on
+             the ground reads as a list, which is what the history screen already proves. -->
+        <LinearLayout
+           android:id="@+id/llDrillCaseRows"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:divider="@drawable/stat_rule_h"
+           android:orientation="vertical"
+           android:showDividers="middle"/>
       </LinearLayout>
 
     </LinearLayout>
   </ScrollView>
 
-    <Button
+    <!-- The sheet's own action, in the accent the main screen's Start wears: it is the only thing
+         to do here, and a tonal slab beside a page of colour read as one more disabled control. -->
+    <androidx.appcompat.widget.AppCompatButton
        android:id="@+id/btDrillDone"
-       style="@style/DialogActionButton"
-       android:layout_height="48dp"
+       style="@style/HeroStartButton"
        android:layout_marginTop="12dp"
        android:layout_marginLeft="16dp"
        android:layout_marginRight="16dp"
        android:layout_marginBottom="16dp"
-       android:textSize="16sp"
        android:text="@string/drill_done"/>
 
   </LinearLayout>

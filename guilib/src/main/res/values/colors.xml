@@ -154,6 +154,13 @@
   <color name="case_stage_stroke">@color/white_wash_10</color>
   <color name="case_off_edge">@color/white_wash_12</color>
 
+  <!-- A rep's two halves, on the bar under its name and on the mean cell that names them. One hue
+       each, so the bar says where the time went without a legend of its own. Cool for the looking
+       and warm for the turning, in that order, which is how the history row's step bar already
+       reads a solve. -->
+  <color name="drill_bar_recognition">@color/lightblue</color>
+  <color name="drill_bar_execution">@color/cube_orange</color>
+
   <color name="case_name">@color/white</color>
   <color name="case_name_off">@color/bluegray500</color>
   <color name="case_shape">@color/secondary_text</color>

@@ -655,9 +655,11 @@
     <item name="android:layout_height">wrap_content</item>
     <item name="android:gravity">right</item>
     <item name="android:singleLine">true</item>
-    <item name="android:textSize">13sp</item>
+    <item name="android:textSize">15sp</item>
     <item name="android:textColor">@color/secondary_text</item>
     <item name="android:fontFeatureSettings">tnum</item>
+    <!-- So two long figures in neighbouring columns keep a gap between them. -->
+    <item name="android:paddingLeft">4dp</item>
   </style>
 
   <style name="DrillCaseColumn" parent="DrillCaseValue">

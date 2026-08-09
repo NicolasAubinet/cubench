@@ -17,5 +17,5 @@
 
   <!-- A drill summary's time columns. Shared so the tappable heading and the figures under it are
        the same column and not two that nearly line up. -->
-  <dimen name="drill_case_column">48dp</dimen>
+  <dimen name="drill_case_column">52dp</dimen>
 </resources>
