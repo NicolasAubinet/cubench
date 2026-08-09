@@ -47,9 +47,9 @@
          android:layout_marginTop="18dp"
          android:text="@string/drill_cases"/>
 
-      <!-- The row says what the drill is leaving out. Untouched it is one line and takes no room;
-           once cases are off it grows a strip of the ones that will not be dealt, since that is
-           the short list and the one worth checking before starting. -->
+      <!-- The row says what the drill will deal. Untouched it is one line and takes no room; once
+           cases are off it grows a strip of the ones that will come up, since a picked set is
+           worth a look before starting and the whole family drawn out is not. -->
       <LinearLayout
          android:id="@+id/llDrillCasesPick"
          android:layout_width="match_parent"
@@ -83,16 +83,16 @@
         </LinearLayout>
 
         <TextView
-           android:id="@+id/tvDrillCasesSkipping"
+           android:id="@+id/tvDrillCasesDrilling"
            style="@style/DialogSectionLabel"
            android:layout_marginTop="10dp"
-           android:text="@string/drill_cases_skipping"
+           android:text="@string/drill_cases_drilling"
            android:textSize="10sp"
            android:visibility="gone"/>
 
-        <!-- Charts of the skipped cases, populated in code. -->
+        <!-- Charts of the picked cases, populated in code. -->
         <LinearLayout
-           android:id="@+id/llDrillCasesSkipped"
+           android:id="@+id/llDrillCasesPicked"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:layout_marginTop="5dp"

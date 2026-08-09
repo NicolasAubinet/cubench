@@ -806,7 +806,7 @@
   <string name="drill_cases_empty">Choisissez au moins un cas à travailler.</string>
   <string name="drill_cases_hint">Restez appuyé sur un cas pour voir ses algorithmes.</string>
   <string name="drill_cases_all_count">Les %d cas</string>
-  <string name="drill_cases_skipping">Ignorés</string>
+  <string name="drill_cases_drilling">Au programme</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
   <string name="case_algorithms">Algorithmes</string>

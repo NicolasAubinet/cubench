@@ -808,7 +808,7 @@
   <string name="drill_cases_empty">Escolha pelo menos um caso para praticar.</string>
   <string name="drill_cases_hint">Mantenha premido um caso para ver os algoritmos.</string>
   <string name="drill_cases_all_count">Os %d casos</string>
-  <string name="drill_cases_skipping">Ignorados</string>
+  <string name="drill_cases_drilling">A treinar</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
   <string name="case_algorithms">Algoritmos</string>

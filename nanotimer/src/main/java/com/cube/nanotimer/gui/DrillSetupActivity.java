@@ -69,9 +69,9 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final int DEFAULT_REP_CHOICE = 1;
   private static final int DEFAULT_PLANNING_SECONDS = 15;
 
-  /** How many of the skipped cases the row draws before it starts counting them instead. */
-  private static final int SKIPPED_SHOWN = 6;
-  private static final int SKIPPED_SIZE_DP = 32;
+  /** How many of the picked cases the row draws before it starts counting them instead. */
+  private static final int PICKED_SHOWN = 6;
+  private static final int PICKED_SIZE_DP = 32;
 
   private static final String KEY_PRACTICE = "practice";
   private static final String KEY_REPS = "reps";
@@ -94,8 +94,8 @@ public class DrillSetupActivity extends NanoTimerActivity
   private View planningSeconds;
   private TextView tvPracticeHint;
   private TextView tvCasesCount;
-  private TextView tvSkippingLabel;
-  private LinearLayout llSkipped;
+  private TextView tvPickedLabel;
+  private LinearLayout llPicked;
   private View casesRow;
   private TextView tvModeHint;
   private TextView tvFaceLabel;
@@ -114,8 +114,8 @@ public class DrillSetupActivity extends NanoTimerActivity
     crossOptions = findViewById(R.id.llDrillCrossOptions);
     casesRow = findViewById(R.id.llDrillCases);
     tvCasesCount = findViewById(R.id.tvDrillCasesCount);
-    tvSkippingLabel = findViewById(R.id.tvDrillCasesSkipping);
-    llSkipped = findViewById(R.id.llDrillCasesSkipped);
+    tvPickedLabel = findViewById(R.id.tvDrillCasesDrilling);
+    llPicked = findViewById(R.id.llDrillCasesPicked);
     planningSeconds = findViewById(R.id.llDrillPlanningSeconds);
     tvPracticeHint = findViewById(R.id.tvDrillPracticeHint);
     tvFaceLabel = findViewById(R.id.tvDrillFaceLabel);
@@ -253,43 +253,48 @@ public class DrillSetupActivity extends NanoTimerActivity
   }
 
   /**
-   * What the drill will not deal, which is the short list and the one worth checking. Everything
-   * picked reads as one line: "57 of 57 picked" is a sum where "All 57 cases" is an answer.
+   * What the drill will deal, which is what the user is about to spend the session on. Everything
+   * picked reads as one line: "57 of 57 picked" is a sum where "All 57 cases" is an answer, and the
+   * strip under it would then be the whole family drawn out for nothing.
    */
   private void refreshCasesCount() {
     List<String> all = casesOf(family());
     List<String> picked = pickedCases();
-    List<String> skipped = new ArrayList<String>(all);
-    skipped.removeAll(picked);
+    boolean allPicked = picked.size() == all.size();
 
-    if (skipped.isEmpty()) {
+    if (allPicked) {
       tvCasesCount.setText(getString(R.string.drill_cases_all_count, all.size()));
     } else {
       tvCasesCount.setText(countWithFamilyColour(picked.size(), all.size()));
     }
-    tvSkippingLabel.setVisibility(skipped.isEmpty() ? View.GONE : View.VISIBLE);
-    llSkipped.setVisibility(skipped.isEmpty() ? View.GONE : View.VISIBLE);
-    llSkipped.removeAllViews();
-    for (int i = 0; i < Math.min(SKIPPED_SHOWN, skipped.size()); i++) {
-      LastLayerCaseView chart = new LastLayerCaseView(this);
-      chart.setDiagram(LastLayerDiagram.forCase(skipped.get(i)));
-      chart.setLayoutParams(stripCell());
-      llSkipped.addView(chart);
+    // Nothing to draw for the whole family, which the line above already answers, nor for none.
+    boolean strip = !allPicked && !picked.isEmpty();
+    tvPickedLabel.setVisibility(strip ? View.VISIBLE : View.GONE);
+    llPicked.setVisibility(strip ? View.VISIBLE : View.GONE);
+    llPicked.removeAllViews();
+    if (!strip) {
+      return;
     }
-    if (skipped.size() > SKIPPED_SHOWN) {
+    for (int i = 0; i < Math.min(PICKED_SHOWN, picked.size()); i++) {
+      LastLayerCaseView chart = new LastLayerCaseView(this);
+      chart.setDiagram(LastLayerDiagram.forCase(picked.get(i)));
+      chart.setLayoutParams(stripCell());
+      llPicked.addView(chart);
+    }
+    if (picked.size() > PICKED_SHOWN) {
       TextView more = GUIUtils.newTextView(this);
-      more.setText(getString(R.string.drill_cases_more, skipped.size() - SKIPPED_SHOWN));
+      more.setText(getString(R.string.drill_cases_more, picked.size() - PICKED_SHOWN));
       more.setTextSize(11);
       more.setTextColor(ContextCompat.getColor(this, R.color.secondary_text));
       more.setGravity(Gravity.CENTER);
       more.setBackgroundResource(R.drawable.case_more);
       more.setLayoutParams(stripCell());
-      llSkipped.addView(more);
+      llPicked.addView(more);
     }
   }
 
   private LinearLayout.LayoutParams stripCell() {
-    int size = (int) (SKIPPED_SIZE_DP * getResources().getDisplayMetrics().density);
+    int size = (int) (PICKED_SIZE_DP * getResources().getDisplayMetrics().density);
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
     params.rightMargin = getResources().getDimensionPixelSize(R.dimen.space_xs);
     return params;
