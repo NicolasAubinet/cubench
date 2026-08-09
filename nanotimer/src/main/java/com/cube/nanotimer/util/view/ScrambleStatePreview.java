@@ -72,19 +72,33 @@ public class ScrambleStatePreview {
    * <p>One height for every solve type and every puzzle, because the alternative was a share of
    * what the rest of the screen left: the statistics card is shorter for a solve type timed in
    * steps than for a plain one, so the same cube came out visibly larger under one than the other.
-   * Chosen as the largest that still fits the tightest screen that matters, since a size that fits
-   * one solve type and not another is the cliff this is here to remove. That screen is a 7x7 on a
-   * 1080x2400 480dpi phone, whose ten line scramble leaves this gap barely wider than the picture in
-   * it — and where the system bars, being dp, take 50px more than they do at 420dpi. Measure there,
-   * not on a 420dpi emulator, before believing a change to this fits.
+   *
+   * <p>Sized off the air rather than off the tightest screen. A 1080x2400 phone was carrying 297dp
+   * of gap it did nothing with, 128 over the digits and 169 under the picture; this takes that down
+   * to 223 and hands the difference here, which turns a 205 by 154dp net into a 193 by 204dp cube
+   * standing in a pool of shadow. A third taller than the net and no wider, which is as far as it
+   * goes on purpose: the picture is the anchor of the screen, not the subject of it, and a cube
+   * given every pixel the air could spare read as the thing being timed rather than as a note about
+   * it. {@link #FOOT_WEIGHT} splits what is left.
+   *
+   * <p>⚠️ It is therefore <b>no longer the largest that fits everywhere</b>, and it was not meant to
+   * be: a screen that cannot pay for it draws nothing at all rather than something small (see
+   * {@link #fit}). Measured on the two screens that decide it, both on a fresh launch. A 7x7 on a
+   * 1080x2400 480dpi phone still fits, which is the case that used to only just fit and where the
+   * system bars, being dp, take 50px more than they do at 420dpi. A 360x640dp phone no longer does,
+   * at any puzzle: it has about 280px spare against the 372 this asks of it there, so that screen
+   * keeps its air and loses the picture, whichever way the setting is left.
    */
-  private static final int PICTURE_PX = 158;
+  private static final int PICTURE_PX = 222;
 
   /**
    * What the two spacers must keep between them for the picture to be worth asking for, in the same
    * px. Below this the block would sit against the scramble above it and the card below it.
    */
   private static final int MIN_AIR_PX = 26;
+
+  /** How much heavier the spacer under the block is than the one over it: see {@link #fit}. */
+  private static final float FOOT_WEIGHT = 1.4f;
 
   /**
    * The room one row of facelets needs before the diagram is worth drawing at all.
@@ -192,13 +206,30 @@ public class ScrambleStatePreview {
    * above the digits is the head spacer plus the leading the glyphs carry inside their own box, and
    * the two gaps only read as equal when the one below is larger by that much.
    *
+   * <p>⚠️ That "much" is a <b>fixed</b> number of pixels, the leading, and {@link #FOOT_WEIGHT} is a
+   * ratio, so the two only agree at one size of gap. It was 2 when the picture was a small net and
+   * there was half again as much air to divide; at that ratio a bigger picture threw 120px at a
+   * 70px problem and left the block riding high. Measured on a 1080x2400 screen, this lands the two
+   * within about 12px of each other, and drifts by well under the leading across everything from a
+   * three line scramble to a ten line one.
+   *
    * <p>It is settled before the picture is drawn and not touched again, so nothing here can move
    * the digits during a solve. Standing down for a run is a visibility, never a height.
+   *
+   * <p>⚠️ <b>Nothing is asked for until the screen has been measured</b>, and that is not only about
+   * having an answer. {@code ScalingLinearLayout} multiplies every child's layout height by the
+   * screen's scale on its first pass, once, and the height set here is already in those px — so a
+   * height handed over before that pass is scaled a second time. Measured, the box then reported
+   * 1122px where it had been given 499, which is a number that fits any screen: the answer froze at
+   * "there is room", and sideways, where there is not, the picture was drawn overflowing its column
+   * with the cube cut off at the foot. Left at nothing until then, the box is measured for what the
+   * screen really has spare, and every height this class sets lands after the pass that would have
+   * doubled it.
    */
   private void fit() {
-    boolean showing = (replaced || key != null) && roomEnough;
+    boolean showing = (replaced || key != null) && measured && roomEnough;
     setHeight(cell, showing ? picturePx() : 0);
-    setWeight(foot, showing ? 2f : 1f);
+    setWeight(foot, showing ? FOOT_WEIGHT : 1f);
   }
 
   private int picturePx() {

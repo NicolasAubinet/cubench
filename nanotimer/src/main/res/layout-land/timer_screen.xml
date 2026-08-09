@@ -218,7 +218,7 @@
            android:id="@+id/statePreviewFoot"
            android:layout_width="match_parent"
            android:layout_height="0px"
-           android:layout_weight="2"/>
+           android:layout_weight="1.4"/>
 
       </LinearLayout>
 
