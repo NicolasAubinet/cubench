@@ -77,6 +77,8 @@ public class VirtualCube implements GyroReferenceListener {
   private final List<String> movesSinceState = new ArrayList<String>();
   /** Which of its stickers keep their colour, or null for all of them. */
   private String stickering;
+  /** How far back the camera stands, or 0 to leave the page on its own default. */
+  private double cameraDistance;
 
   /**
    * @param touchListener the host screen's own, forwarded so the cube is not a dead zone — a
@@ -134,6 +136,16 @@ public class VirtualCube implements GyroReferenceListener {
     if (mask != null) {
       evaluate("window.ntLiveStickering(" + JSONObject.quote(mask) + ");");
     }
+  }
+
+  /**
+   * How far back the camera stands, which is how much of its box the cube fills. Smaller is closer.
+   * The page's own default suits a small box; a screen that gives the cube a large well has to ask
+   * for less, or the cube sits small in the middle of it.
+   */
+  public void setCameraDistance(double distance) {
+    cameraDistance = distance;
+    evaluate("window.ntLiveCamera(" + distance + ");");
   }
 
   /** Whether this cube should follow the physical one's orientation, if there is one to follow. */
@@ -245,6 +257,11 @@ public class VirtualCube implements GyroReferenceListener {
 
   /** Hands a fresh page everything it missed: the state, then whatever has been turned since. */
   private void replay() {
+    // Before the state, so the first frame is drawn at the distance this screen asked for rather
+    // than at the page's default and then jumping.
+    if (cameraDistance > 0) {
+      evaluate("window.ntLiveCamera(" + cameraDistance + ");");
+    }
     if (pattern == null) {
       return;
     }
