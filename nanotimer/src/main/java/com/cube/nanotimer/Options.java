@@ -20,6 +20,8 @@ public enum Options {
   public enum CrossNeutrality { SPECIFIC, DUAL, FULL }
   public enum SessionTimesDisplay { BARS, TIMES }
   public enum TimerFontSize { SMALL, MEDIUM, LARGE }
+  /** What the timer screen draws under the scramble: the cube, the flat net, or nothing. */
+  public enum StatePreview { CUBE, NET, NONE }
 
   private Context context;
   private SharedPreferences sharedPreferences;
@@ -35,6 +37,7 @@ public enum Options {
   public static final String HIGH_PRECISION_TIMER_KEY = "high_precision_timer";
   public static final String COLOR_SAMPLE_SIZE_KEY = "color_sample_size";
   public static final String SESSION_TIMES_DISPLAY_KEY = "session_times_display";
+  public static final String STATE_PREVIEW_KEY = "state_preview";
   public static final String BIG_CUBES_NOTATION_KEY = "big_cubes_notation";
   public static final String CLOCK_NOTATION_SYSTEM_KEY = "clock_notation";
   public static final String SOLVE_TYPES_SHORTCUT_KEY = "solve_types_shortcut";
@@ -166,6 +169,17 @@ public enum Options {
   public SessionTimesDisplay getSessionTimesDisplay() {
     int mode = Integer.parseInt(sharedPreferences.getString(SESSION_TIMES_DISPLAY_KEY, "-1"));
     return mode == 2 ? SessionTimesDisplay.TIMES : SessionTimesDisplay.BARS;
+  }
+
+  public StatePreview getStatePreview() {
+    switch (Integer.parseInt(sharedPreferences.getString(STATE_PREVIEW_KEY, "-1"))) {
+      case 2:
+        return StatePreview.NET;
+      case 3:
+        return StatePreview.NONE;
+      default:
+        return StatePreview.CUBE;
+    }
   }
 
   public BigCubesNotation getBigCubesNotation() {

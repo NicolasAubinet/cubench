@@ -49,6 +49,15 @@
        custom:defaultVal="@integer/color_sample_size"/>
 
     <ListPreference
+       android:key="state_preview"
+       android:title="@string/state_preview"
+       android:summary="@string/state_preview_summary"
+       android:entries="@array/entries_state_preview"
+       android:entryValues="@array/entryvalues_state_preview"
+       android:dialogTitle="@string/state_preview"
+       android:defaultValue="1"/>
+
+    <ListPreference
        android:key="session_times_display"
        android:title="@string/session_times_display"
        android:summary="@string/session_times_display_summary"

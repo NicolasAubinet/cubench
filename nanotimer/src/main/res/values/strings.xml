@@ -139,6 +139,11 @@
   <string name="session_times_display_summary">Bars or times, for the last 12 on the timer screen</string>
   <string name="session_display_bars">Bars</string>
   <string name="session_display_times">Times</string>
+  <string name="state_preview">Scramble visualizer</string>
+  <string name="state_preview_summary">The picture under the scramble on the timer screen</string>
+  <string name="state_preview_cube">3D cube</string>
+  <string name="state_preview_net">Flat net</string>
+  <string name="state_preview_none">None</string>
   <string name="solve_types">Solve types</string>
   <string name="edit_solve_types">Edit solve types</string>
   <string name="edit_solve_types_summary">Edit, create and delete solve types</string>

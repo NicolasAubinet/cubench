@@ -131,6 +131,11 @@
   <string name="session_times_display_summary">Barras ou tempos, para os 12 últimos na tela do cronômetro</string>
   <string name="session_display_bars">Barras</string>
   <string name="session_display_times">Tempos</string>
+  <string name="state_preview">Visualização do embaralhamento</string>
+  <string name="state_preview_summary">A imagem abaixo do embaralhamento na tela do cronômetro</string>
+  <string name="state_preview_cube">Cubo 3D</string>
+  <string name="state_preview_net">Planificação</string>
+  <string name="state_preview_none">Nenhuma</string>
   <string name="solve_types">Tipos de resolução</string>
   <string name="edit_solve_types">Editar os tipos de resolução</string>
   <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>

@@ -131,6 +131,11 @@
   <string name="session_times_display_summary">Barras o tiempos, para los últimos 12 en la pantalla del temporizador</string>
   <string name="session_display_bars">Barras</string>
   <string name="session_display_times">Tiempos</string>
+  <string name="state_preview">Visualización de la mezcla</string>
+  <string name="state_preview_summary">La imagen bajo la mezcla en la pantalla del temporizador</string>
+  <string name="state_preview_cube">Cubo 3D</string>
+  <string name="state_preview_net">Plantilla plana</string>
+  <string name="state_preview_none">Ninguna</string>
   <string name="solve_types">Tipos de resolución</string>
   <string name="edit_solve_types">Editar los tipos de resolución</string>
   <string name="edit_solve_types_summary">Editar, crear y eliminar tipos de resolución</string>

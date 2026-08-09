@@ -19,6 +19,8 @@ import android.widget.LinearLayout;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
 
+import com.cube.nanotimer.Options;
+import com.cube.nanotimer.Options.StatePreview;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.ScaleUtils;
 import com.cube.nanotimer.util.ScrambleViewNotation;
@@ -34,12 +36,15 @@ import org.json.JSONObject;
  * {@code ntRender(key, scramble, mode, puzzleId, style)} call, and a new scramble is that call
  * again rather than a new page. Bind once, then {@link #show} whenever the scramble changes.
  *
- * <p>The state is drawn <b>as a cube</b>, in the three quarter view the connected cube uses in
- * this same box, standing in a pool of shadow the page draws under it. The flat net is kept only
- * for the two puzzles cubing.js will not draw any other way, Clock and Square-1
- * ({@link ScrambleViewNotation#get3DPuzzleId} returns null for those). Drawing the object rather
- * than its unfolding also buys legibility: a net stacks three faces down the box and a cube shows
- * two, so a facelet comes out half as large again in the same height.
+ * <p>The state is drawn <b>as a cube</b> by default, in the three quarter view the connected cube
+ * uses in this same box, standing in a pool of shadow the page draws under it. Drawing the object
+ * rather than its unfolding also buys legibility: a net stacks three faces down the box and a cube
+ * shows two, so a facelet comes out half as large again in the same height.
+ *
+ * <p>The flat net is still there, under {@link Options#getStatePreview()}, along with drawing
+ * nothing at all — and it is what Clock and Square-1 get whatever that setting says, cubing.js
+ * having no other way to draw them ({@link ScrambleViewNotation#get3DPuzzleId} returns null for
+ * those two).
  *
  * <p>It draws in the gap under the scramble, next to the moves it is a picture of, at one size on
  * every screen of the app: a share of what was left over made it a different size under a solve
@@ -377,7 +382,11 @@ public class ScrambleStatePreview {
    * @param blind a blind solve type, for which nothing is ever drawn and nothing is ever built
    */
   public void show(CubeType cubeType, String[] scramble, boolean blind) {
-    String renderKey = blind ? null : ScrambleViewNotation.getRenderKey(cubeType);
+    // Read here rather than held: the setting can change while this screen is behind the options,
+    // and every scramble comes back through here.
+    StatePreview wanted = Options.INSTANCE.getStatePreview();
+    String renderKey = (blind || wanted == StatePreview.NONE)
+        ? null : ScrambleViewNotation.getRenderKey(cubeType);
     // Null for a Clock pin notation, which cubing.js cannot parse. The dialog falls back to text;
     // here the scramble is already on screen a few pixels below, so the gap simply stays a gap.
     String notation = (renderKey == null || scramble == null)
@@ -387,7 +396,8 @@ public class ScrambleStatePreview {
     }
     key = renderKey;
     moves = notation;
-    puzzle3d = (renderKey == null) ? null : ScrambleViewNotation.get3DPuzzleId(cubeType);
+    puzzle3d = (renderKey == null || wanted != StatePreview.CUBE)
+        ? null : ScrambleViewNotation.get3DPuzzleId(cubeType);
     minPicturePx = (int) (pictureRows(cubeType, puzzle3d != null) * MIN_ROW_DP
         * context.getResources().getDisplayMetrics().density);
     // Asked afresh for every scramble, which is what bounds how long an answer stands: room is not

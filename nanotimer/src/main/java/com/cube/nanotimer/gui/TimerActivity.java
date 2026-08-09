@@ -331,6 +331,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     statePreview.start();
     SmartCubeManager.INSTANCE.addConnectionListener(statePreviewOwner);
     applySessionStripChoice(); // both this and the coloring below may have changed in the settings
+    renderStatePreview(); // and so may what the picture under the scramble is drawn as
     refreshSessionFields();
   }
 

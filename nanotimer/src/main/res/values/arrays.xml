@@ -65,6 +65,16 @@
     <item>1</item>
     <item>2</item>
   </string-array>
+  <string-array name="entries_state_preview">
+    <item>@string/state_preview_cube</item>
+    <item>@string/state_preview_net</item>
+    <item>@string/state_preview_none</item>
+  </string-array>
+  <string-array name="entryvalues_state_preview">
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+  </string-array>
   <string-array name="entries_big_cubes_notation">
     <item>@string/r_u_f</item>
     <item>@string/rw_uw_fw</item>
