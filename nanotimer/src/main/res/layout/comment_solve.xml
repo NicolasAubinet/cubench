@@ -3,21 +3,18 @@
    android:orientation="vertical"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
-   android:paddingLeft="16dp"
-   android:paddingRight="16dp"
-   android:paddingTop="16dp"
-   android:paddingBottom="8dp"
+   android:padding="@dimen/space_l"
    android:minWidth="300dp">
 
   <TextView
      android:text="@string/comment_label"
-     android:layout_marginBottom="6dp"
-     style="@style/DialogSectionLabel"/>
+     style="@style/DialogTitle"/>
 
   <EditText
      android:id="@+id/tfComment"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/space_l"
      android:background="@drawable/dialog_time_field"
      android:paddingLeft="12dp"
      android:paddingRight="12dp"

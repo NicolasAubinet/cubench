@@ -10,6 +10,15 @@
     <item name="android:ellipsize">end</item>
   </style>
 
+  <!-- A dialog's own title line, for the dialogs that draw one instead of using the frame's. -->
+  <style name="DialogTitle">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textColor">@color/white</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textSize">20sp</item>
+  </style>
+
   <!-- All-caps, letter-spaced section label used across the redesigned dialogs. -->
   <style name="DialogSectionLabel">
     <item name="android:layout_width">wrap_content</item>
