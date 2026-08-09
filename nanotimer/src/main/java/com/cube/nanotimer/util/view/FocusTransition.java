@@ -31,6 +31,7 @@ public final class FocusTransition {
   private static final long PANELS_LEAD_MS = 120; // most of the time's travel, so it lands first
   private static final long DIGITS_MOVE_MS = 240;
   private static final long RING_IN_MS = 160;
+  private static final long LIGHTS_MS = 200; // the room dims a shade slower than the panels clear
 
   private final InspectionRingView ring;
 
@@ -208,6 +209,23 @@ public final class FocusTransition {
     box.animate().cancel();
     box.setTranslationX(x);
     box.setTranslationY(y);
+  }
+
+  /**
+   * The pool of light the number stands in while the room is dark, coming up or going out. Slower
+   * than the panels, because a light that snaps on reads as a flash rather than as the room
+   * changing.
+   */
+  public void lightsDown(View pool, boolean on) {
+    if (pool == null) {
+      return;
+    }
+    pool.animate().cancel();
+    if (!enabled(pool.getContext())) {
+      pool.setAlpha(on ? 1f : 0f);
+      return;
+    }
+    pool.animate().alpha(on ? 1f : 0f).setStartDelay(0).setDuration(LIGHTS_MS).start();
   }
 
   /** The digits are wanted as they are, now: a solve ending cannot wait on a fade. */

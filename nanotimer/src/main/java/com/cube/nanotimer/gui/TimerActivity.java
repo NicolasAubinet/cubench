@@ -122,6 +122,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private View sessionLayout;
   private FocusDot focusDot;
   private TimePlinth timePlinth;
+  private View focusPool; // the light the number stands in while the room is dark
   private TableLayout sessionTimesLayout;
   private SessionBarsView sessionBars;
   private TextView tvVerdictChip;
@@ -486,6 +487,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * content parent, so a rotation has to put them back.
    */
   private void addOverlays() {
+    // First, so the ring and the confetti are over it rather than under it. It is a wash and not a
+    // surface: no edge anywhere in it, and nothing to catch a press, so the ground under it keeps
+    // repainting through it as the finger goes down and comes up.
+    focusPool = new View(this);
+    focusPool.setBackgroundResource(R.drawable.timer_focus_pool);
+    focusPool.setAlpha(0f);
+    addContentView(focusPool, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     particleView = new ParticleView(this); // the personal-best confetti
     addContentView(particleView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     inspectionRing = new InspectionRingView(this);
@@ -568,6 +576,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       focusTransition.panelsIn(identityStrip, scrambleBox, sessionLayout);
     }
     timePlinth.setShown(!on); // the rule belongs to the resting screen, not to a solve
+    focusTransition.lightsDown(focusPool, on);
+    if (tvTimer instanceof DigitalTextView) {
+      ((DigitalTextView) tvTimer).setQuietFraction(on); // the hundredths are a blur while it runs
+    }
     // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
     timerFocused = on;
     refreshStatePreviewSuppression(); // a panel like the rest, and it stands down with them
@@ -599,9 +611,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   /**
    * The digits sit at the centre of the band the layout leaves them, which is above the middle of
    * the screen once the block below is only holding its place. While the screen is stripped down
-   * they take the middle of the timer's own surface instead, and the ring takes the same point, so
-   * a solve and the inspection before it do not sit in different places. A translation rather than
-   * a layout change: nothing below is measured again, so the digits still cannot drift mid solve.
+   * they take the middle of the <b>screen</b> instead, and the ring and the pool of light take the
+   * same point, so a solve and the inspection before it do not sit in different places.
+   *
+   * <p>The screen, not the content: the content starts under the action bar and the status bar, so
+   * centring on it put the number some 54dp low — far enough to read as a number that had not
+   * quite arrived. A translation rather than a layout change: nothing below is measured again, so
+   * the digits still cannot drift mid solve.
    */
   private void centreOnSurface(boolean on) {
     if (!on) {
@@ -631,9 +647,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    */
   private void centreNow(boolean settle) {
     int[] at = new int[2];
-    layout.getLocationInWindow(at);
-    float centreX = at[0] + layout.getWidth() / 2f;
-    float centreY = at[1] + layout.getHeight() / 2f;
+    View decor = getWindow().getDecorView();
+    float centreX = decor.getWidth() / 2f;
+    float centreY = decor.getHeight() / 2f;
+    centreOverlay(focusPool, centreX, centreY);
     timerBox.getLocationInWindow(at);
     // The box may be part way through a move of its own, so take its translation back out: what is
     // wanted is where it has to end up, not a step on from wherever it happens to be.
@@ -673,9 +690,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       return;
     }
     int[] at = new int[2];
-    layout.getLocationInWindow(at);
-    float centreX = at[0] + layout.getWidth() / 2f;
-    float centreY = at[1] + layout.getHeight() / 2f;
+    View decor = getWindow().getDecorView();
+    float centreX = decor.getWidth() / 2f;
+    float centreY = decor.getHeight() / 2f;
     // Where the digits end up, not where they are: the move may still be running.
     float digitsBottom = centreY + timerBox.getHeight() / 2f;
     stepBreakdown.getLocationInWindow(at);
@@ -685,6 +702,20 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // hold, and a bar left behind in the timer's own column would not be under them any more.
     focusTransition.digitsAt(stepBreakdown,
         centreX - (restLeft + stepBreakdown.getWidth() / 2f), digitsBottom - restTop);
+  }
+
+  /**
+   * Puts a full-screen overlay's own centre on a point. They are added to the content parent, which
+   * begins under the action bar, so left alone they sit as low as the digits used to.
+   */
+  private static void centreOverlay(View overlay, float centreX, float centreY) {
+    if (overlay == null || overlay.getWidth() == 0) {
+      return;
+    }
+    int[] at = new int[2];
+    overlay.getLocationInWindow(at);
+    overlay.setTranslationX(centreX - (at[0] - overlay.getTranslationX() + overlay.getWidth() / 2f));
+    overlay.setTranslationY(centreY - (at[1] - overlay.getTranslationY() + overlay.getHeight() / 2f));
   }
 
   // Held as state rather than only reacted to: the ground changes under a finger that never moved,
