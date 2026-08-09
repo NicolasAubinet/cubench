@@ -31,8 +31,8 @@ import java.util.List;
 public class CrossFaceSwatches {
 
   /** How much of a face is left on one that is not the answer, and how much of its letter. */
-  private static final float DIM = 0.42f;
-  private static final float DIM_LETTER = 0.62f;
+  private static final float DIM = 0.58f;
+  private static final float DIM_LETTER = 0.85f;
 
   public interface Listener {
     void onFacePicked(CrossFace face);
