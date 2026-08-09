@@ -32,6 +32,12 @@ import java.util.List;
  * that moved. The closest of the 24 rotations is taken, and the landing is carried forward with that
  * drift taken out — otherwise the next algorithm is compared against a frame the solve has left.
  *
+ * <p><b>A parity is read by the shape it leaves, not by what it put home.</b> It exchanges two
+ * corners and two edges, and nothing else a blind solver runs does that. Asking it to bring one of
+ * each type home was a real solve's undoing: a memo slip left two edges out, the parity swapped that
+ * pair and so gained no edge, and it went unread — taking the rest of the solve with it, as turning
+ * nothing could be read from.
+ *
  * <p><b>A landing need not have gained anything.</b> A solver who spots a mistake undoes the
  * algorithm and does another, and the undo is every bit as much a three-cycle. Demanding progress
  * makes it invisible, and then the state it is compared against is one the solve has abandoned — on
@@ -67,6 +73,9 @@ public final class BlindStepDetector implements StepDetector {
 
   /** Pieces an algorithm moves: a three-cycle, a pair flipped or twisted, a parity's two of each. */
   private static final int CYCLE = 3, FLIP = 2, PARITY_CYCLE = 4;
+
+  /** The pieces of one type a parity swaps. */
+  private static final int SWAPPED_PAIR = 2;
 
   private static final int[][] PIECES = Cubies.PIECES;
 
@@ -219,7 +228,7 @@ public final class BlindStepDetector implements StepDetector {
     int touched = touched(facelets, frame);
     List<Integer>[] gained = gained(facelets, frame);
     boolean parityLanding = parity && !parityFound && touched == PARITY_CYCLE
-        && !gained[EDGES].isEmpty() && !gained[CORNERS].isEmpty();
+        && exchangesTwoOfEach(landed, withoutDrift(facelets, frame));
     if (touched != CYCLE && touched != FLIP && !parityLanding) {
       return false;
     }
@@ -351,6 +360,21 @@ public final class BlindStepDetector implements StepDetector {
         new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, gained,
         moved(landed, steady)));
     return true;
+  }
+
+  /** Whether the algorithm exchanged two corners and two edges, which is what a parity does. */
+  private static boolean exchangesTwoOfEach(String before, String after) {
+    List<Integer> moved = moved(before, after);
+    List<Integer> edges = ofType(moved, EDGES);
+    List<Integer> corners = ofType(moved, CORNERS);
+    return edges.size() == SWAPPED_PAIR && corners.size() == SWAPPED_PAIR
+        && exchanged(before, after, edges) && exchanged(before, after, corners);
+  }
+
+  /** Whether the two slots came out holding each other's piece. */
+  private static boolean exchanged(String before, String after, List<Integer> pair) {
+    return Cubies.homeSlotOf(before, pair.get(0)) == Cubies.homeSlotOf(after, pair.get(1))
+        && Cubies.homeSlotOf(before, pair.get(1)) == Cubies.homeSlotOf(after, pair.get(0));
   }
 
   /**

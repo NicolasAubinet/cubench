@@ -353,6 +353,29 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * Solve 247 is the one that says a parity is a parity whatever it puts home. The owner missed an
+   * edge cycle in the memo, so the pair the parity swapped were both edges still out — it gained no
+   * edge, and the rule that asked it for one of each type left it unread. Seventeen moves then read
+   * as turning nothing was read from, and the algorithm the solver did was reported as the solve
+   * falling apart at the corners.
+   *
+   * <p>What it was left with is the cycle that was never memorised, which is the one thing here no
+   * algorithm is answerable for.
+   */
+  @Test
+  public void readsAParityThatBroughtNeitherOfItsEdgesHome() {
+    replay(RecordedBlindSolve.SCRAMBLE_247, RecordedBlindSolve.MOVES_247, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals(5, detector.stepCount()); // and the fifth is the tail an unfinished solve ends on
+    assertEquals("parity", detector.stepName(3));
+    assertEquals("UFR-UBL + UF-UR", detector.subStepName(3, 0));
+    assertNull("the parity is the last algorithm, so nothing is left unread",
+        detector.getLostReading());
+    assertEquals(BlindResidual.Shape.EDGE_CYCLE, detector.getResidual().getShape());
+  }
+
+  /**
    * Two things follow from the order pieces are said in, and both hold across every recorded solve.
    *
    * <p><b>A flipped edge never begins with R or L.</b> R/L is the last of the three axes said, and an
