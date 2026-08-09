@@ -48,13 +48,13 @@ public class DrillActivity extends DrillScreenActivity {
   public static final String EXTRA_LAYER_FACE = "drillLayerFace";
 
   /**
-   * How long the solved cube and the rep's line stay up before the next case replaces them.
+   * How long the solved cube stays up before the next case replaces it.
    *
    * <p>The length of the green beat, so the wash lands on the case it belongs to rather than over
-   * its successor, and so the line naming that case is readable before it goes. It has to go: left
-   * standing into the next rep it reads as naming the case being worked, which is the one thing
-   * this screen refuses to do. The timing does not care either way, since recognition runs from
-   * when the next case is <em>shown</em>, so the hold is charged to nobody.
+   * its successor. The rep's line is not on this clock: it outlives its case and only stands back
+   * when the next one is dealt, because one beat is not long enough to read. The timing does not
+   * care either way, since recognition runs from when the next case is <em>shown</em>, so the hold
+   * is charged to nobody.
    */
   private static final long REP_HOLD_MS = DrillRepFlourish.BEAT_MS;
 
@@ -240,9 +240,10 @@ public class DrillActivity extends DrillScreenActivity {
       return;
     }
     cube.setState(CubePatternFormat.format(session.getFacelets()));
-    // ⚠️ The case now on screen is deliberately not named anywhere. Only the cube says what it is,
-    // which is also why the line about the rep that is over goes with the case that is over.
-    clearLastRep();
+    // ⚠️ The case now on screen is deliberately not named anywhere. Only the cube says what it
+    // is. The line naming the rep that is over stays, since one beat is not long enough to read
+    // it, but it stands back so that it cannot be taken for the name of this one.
+    recedeLastRep();
     setProgress(session.getReps().size() + 1, session.getSpec().getReps());
     // Only once the case is really up: before the page has drawn, the first one is not yet in
     // front of anybody, and onCubeDrawn is what says it is.

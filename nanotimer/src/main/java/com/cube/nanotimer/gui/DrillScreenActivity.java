@@ -276,6 +276,10 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     }
   }
 
+  /** What the line about the rep before the one being worked is worth: readable, not current. */
+  private static final float PAST_REP_ALPHA = 0.45f;
+  private static final long PAST_REP_FADE_MS = 200;
+
   /**
    * The rep that has just ended.
    *
@@ -287,6 +291,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
    */
   protected void setLastRep(CharSequence name, int nameColorRes, CharSequence value, boolean quiet,
       CharSequence sub) {
+    findViewById(R.id.llDrillLastRep).setAlpha(1f);
     TextView tvName = findViewById(R.id.tvDrillLastRepName);
     tvName.setText(name);
     tvName.setVisibility(name == null ? View.GONE : View.VISIBLE);
@@ -306,6 +311,19 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   /** Nothing to say about a rep that is over, because the one being worked is not it. */
   protected void clearLastRep() {
     setLastRep(null, 0, null, false, null);
+  }
+
+  /**
+   * Leaves the finished rep's line up once its successor has been dealt, standing back.
+   *
+   * <p>It stays because a line that went with its own case was on screen for the length of the beat
+   * and no longer, which is not long enough to read a name and two figures. It stands back so that
+   * a name beside a time still reads as the rep that is over rather than as the name of the case
+   * now in front of the user, which this screen never gives away.
+   */
+  protected void recedeLastRep() {
+    findViewById(R.id.llDrillLastRep).animate().alpha(PAST_REP_ALPHA)
+        .setDuration(PAST_REP_FADE_MS).start();
   }
 
   /** Where the drill has got to, in words and as the meter under them. */
