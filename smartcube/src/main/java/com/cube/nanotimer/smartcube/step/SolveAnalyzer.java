@@ -53,6 +53,11 @@ public final class SolveAnalyzer {
     pendingMove = null;
   }
 
+  /** What the cube was left in, where the reading can say it. Null for a method that cannot. */
+  public BlindResidual getResidual() {
+    return detector.getResidual();
+  }
+
   /** The solve's moves in order, timestamped on the cube clock. */
   public List<CubeMove> getMoves() {
     return Collections.unmodifiableList(moves);

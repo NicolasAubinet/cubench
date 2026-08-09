@@ -355,6 +355,15 @@
   <string name="smartcube_step_flip">%s (flip)</string>
   <string name="smartcube_step_twist">%s (twist)</string>
   <string name="smartcube_step_gap">Parada</string>
+  <!-- What a blind solve was left in, said under its breakdown. -->
+  <string name="blind_left_edge_cycle">Terminó en un ciclo de 3 aristas: %s</string>
+  <string name="blind_left_corner_cycle">Terminó en un ciclo de 3 esquinas: %s</string>
+  <string name="blind_left_parity">Terminó en una paridad: %s</string>
+  <string name="blind_left_flipped">Terminó con aristas volteadas: %s</string>
+  <string name="blind_left_twisted">Terminó con esquinas giradas: %s</string>
+  <string name="blind_left_turned">Terminó con piezas mal orientadas: %s</string>
+  <string name="blind_left_pieces">Terminó con %1$d piezas sin resolver: %2$s</string>
+  <string name="blind_left_scattered">Terminó con %d piezas sin resolver</string>
   <string name="scramble_view_clock_notation_hint">El diagrama no está disponible para esta notación de Clock. Cambia a la notación UR/DR/DL en las opciones para verlo.</string>
   <string name="cross_section_title">Cruz %1$s · %2$d movimientos</string>
   <string name="cross_solutions_count">%1$d soluciones óptimas</string>

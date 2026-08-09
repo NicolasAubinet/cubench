@@ -41,6 +41,7 @@ import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.smartcube.step.BlindResidual;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
@@ -187,6 +188,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
           solveTime.getSmartcubeMoves(), method);
       buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
           getString(R.string.breakdown), null, method);
+      showResidual(v, reread == null ? null : reread.getResidual());
     }
 
     TextView tvTime = (TextView) v.findViewById(R.id.tvTime);
@@ -233,6 +235,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.breakdownSection).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownCard).setVisibility(View.VISIBLE);
     v.findViewById(R.id.breakdownTotals).setVisibility(View.GONE);
+    v.findViewById(R.id.breakdownResidual).setVisibility(View.GONE);
     v.findViewById(R.id.movesSwitchLabel).setVisibility(View.VISIBLE);
     SwitchCompat moves = (SwitchCompat) v.findViewById(R.id.swMoves);
     moves.setVisibility(View.VISIBLE);
@@ -378,6 +381,28 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     chip.setTextColor(color);
     chip.setBackground(verdictChipBackground(color));
     chip.setVisibility(View.VISIBLE);
+  }
+
+  // What a blind solve was left in, which is the one thing its solver could not see for themselves.
+  private void showResidual(View v, BlindResidual residual) {
+    if (residual == null || residual.getShape() == BlindResidual.Shape.SOLVED) {
+      return;
+    }
+    String pieces = residual.getPieces();
+    String text;
+    switch (residual.getShape()) {
+      case EDGE_CYCLE: text = getString(R.string.blind_left_edge_cycle, pieces); break;
+      case CORNER_CYCLE: text = getString(R.string.blind_left_corner_cycle, pieces); break;
+      case PARITY: text = getString(R.string.blind_left_parity, pieces); break;
+      case FLIPPED: text = getString(R.string.blind_left_flipped, pieces); break;
+      case TWISTED: text = getString(R.string.blind_left_twisted, pieces); break;
+      case TURNED: text = getString(R.string.blind_left_turned, pieces); break;
+      case MIXED: text = getString(R.string.blind_left_pieces, residual.getCount(), pieces); break;
+      default: text = getString(R.string.blind_left_scattered, residual.getCount()); break;
+    }
+    TextView line = (TextView) v.findViewById(R.id.breakdownResidual);
+    line.setText(text);
+    line.setVisibility(View.VISIBLE);
   }
 
   /** The form a solve is held against: an average, and the name to quote it by. */

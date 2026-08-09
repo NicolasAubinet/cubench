@@ -71,6 +71,14 @@ public interface StepDetector {
   boolean isComplete();
 
   /**
+   * What the cube was left in when the solve stopped, for a reading that can say. Null everywhere
+   * else: a sighted solver looks at their cube, and it is the blindfolded one who cannot.
+   */
+  default BlindResidual getResidual() {
+    return null;
+  }
+
+  /**
    * Whether the observed milestones are consistent with this method having been used — reached in
    * the method's order, each before the solve finished, with any step skipped still counting. A
    * method whose steps have no order to be done in asks only that they were reached at all. A solve

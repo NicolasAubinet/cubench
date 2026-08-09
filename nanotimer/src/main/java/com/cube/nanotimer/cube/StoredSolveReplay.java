@@ -5,6 +5,7 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
+import com.cube.nanotimer.smartcube.step.BlindResidual;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
@@ -47,11 +48,14 @@ public final class StoredSolveReplay {
     private final CubeMethod method;
     private final List<SolveStep> steps;
     private final Integer stoppedStep;
+    private final BlindResidual residual;
 
-    Result(CubeMethod method, List<SolveStep> steps, Integer stoppedStep) {
+    Result(CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
+        BlindResidual residual) {
       this.method = method;
       this.steps = steps;
       this.stoppedStep = stoppedStep;
+      this.residual = residual;
     }
 
     public CubeMethod getMethod() {
@@ -64,6 +68,11 @@ public final class StoredSolveReplay {
 
     public Integer getStoppedStep() {
       return stoppedStep;
+    }
+
+    /** What the cube was left in, where the method can say it: never stored, always read again. */
+    public BlindResidual getResidual() {
+      return residual;
     }
   }
 
@@ -123,7 +132,7 @@ public final class StoredSolveReplay {
         return null;
       }
       return new Result(method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
-          stoppedStep);
+          stoppedStep, analyzer.getResidual());
     } catch (RuntimeException e) {
       return null; // a scramble in another puzzle's notation, a truncated stream: fall back
     }

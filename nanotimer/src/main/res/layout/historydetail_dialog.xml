@@ -260,6 +260,14 @@
                android:layout_marginBottom="8dp"
                android:visibility="gone"
                style="@style/BreakdownMeta"/>
+            <!-- What a blind solve was left in, for a solver who could not see it go wrong. -->
+            <TextView
+               android:id="@+id/breakdownResidual"
+               android:layout_gravity="center_horizontal"
+               android:layout_marginBottom="8dp"
+               android:textColor="@color/warning"
+               android:visibility="gone"
+               style="@style/BreakdownMeta"/>
             <TableLayout
                android:id="@+id/breakdownTable"
                android:layout_width="match_parent"

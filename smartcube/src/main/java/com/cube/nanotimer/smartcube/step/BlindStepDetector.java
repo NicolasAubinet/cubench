@@ -138,6 +138,7 @@ public final class BlindStepDetector implements StepDetector {
   // one running buffer is not enough: by then it holds whichever type was solved last.
   private final int[] typeBuffer = new int[] {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
   private String landed; // the state at the last landing, with the drift taken out
+  private String stopped; // the state the solve was left in, which says what went wrong with it
   private Long memoMs;
   private Long solvedMs;
   private long lastTimestampMs;
@@ -177,6 +178,7 @@ public final class BlindStepDetector implements StepDetector {
     typeBuffer[CORNERS] = BlindTargets.NO_BUFFER;
     lastTimestampMs = startTimestampMs;
     landed = startState.getFacelets();
+    stopped = landed;
     parity = Cubies.isOddPermutation(landed);
   }
 
@@ -191,6 +193,7 @@ public final class BlindStepDetector implements StepDetector {
     // Past the solved state nothing is read. A blind solver cannot see they are done and may turn on
     // thinking an orientation is still out; those turns are not the solve, and must not unfinish it.
     if (memoMs != null && solvedMs == null) {
+      stopped = state.getFacelets();
       readLanding(state.getFacelets(), lastTimestampMs);
       // Read whether or not the state was a landing: a solve can come out on turning that reads as
       // no algorithm at all, and it has still come out.
@@ -596,6 +599,18 @@ public final class BlindStepDetector implements StepDetector {
   @Override
   public boolean isComplete() {
     return solvedMs != null;
+  }
+
+  /**
+   * What the cube was left in, read off the state at the last move the solve is credited with: what
+   * a solver who came out wrong has to pick the cube up and work out for themselves.
+   *
+   * <p>Turning past solved is not part of it, the same turning {@link #onState} declines to read: a
+   * solve that came out and was then turned on came out.
+   */
+  @Override
+  public BlindResidual getResidual() {
+    return BlindResidual.of(stopped, targets);
   }
 
   /**

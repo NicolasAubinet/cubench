@@ -363,6 +363,15 @@
   <string name="smartcube_step_flip">%s (flip)</string>
   <string name="smartcube_step_twist">%s (twist)</string>
   <string name="smartcube_step_gap">Stopping</string>
+  <!-- What a blind solve was left in, said under its breakdown. -->
+  <string name="blind_left_edge_cycle">Ended on a 3-cycle of edges: %s</string>
+  <string name="blind_left_corner_cycle">Ended on a 3-cycle of corners: %s</string>
+  <string name="blind_left_parity">Ended on a parity: %s</string>
+  <string name="blind_left_flipped">Ended with edges flipped: %s</string>
+  <string name="blind_left_twisted">Ended with corners twisted: %s</string>
+  <string name="blind_left_turned">Ended with pieces turned in place: %s</string>
+  <string name="blind_left_pieces">Ended with %1$d pieces out: %2$s</string>
+  <string name="blind_left_scattered">Ended with %d pieces out</string>
   <string name="scramble_view_clock_notation_hint">The diagram isn\'t available for this Clock notation. Switch to the UR/DR/DL notation in the options to see it.</string>
   <string name="cross_section_title">%1$s cross · %2$d moves</string>
   <string name="cross_solutions_count">%1$d optimal solutions</string>

@@ -173,7 +173,8 @@ final class BlindTargets {
     return -1;
   }
 
-  private List<String> spellAll(List<Integer> slots) {
+  /** Some pieces said by the faces they belong on, in the order they are given. */
+  List<String> spellAll(List<Integer> slots) {
     List<String> names = new ArrayList<String>(slots.size());
     for (int slot : slots) {
       names.add(spell(slot));

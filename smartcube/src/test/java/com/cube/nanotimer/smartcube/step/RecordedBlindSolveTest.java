@@ -254,6 +254,23 @@ public class RecordedBlindSolveTest {
     assertEquals(home(true, true, true), even.detector.subStepSolvedPieces(1, 5));
   }
 
+  // Solve 146 ends on a three-corner twist, so stopped before that algorithm it stands with those
+  // three corners turned where they belong.
+  @Test
+  public void saysWhatTheCubeWasLeftIn() {
+    replay(RecordedBlindSolve.SCRAMBLE, RecordedBlindSolve.MOVES, Long.MAX_VALUE);
+    assertEquals(BlindResidual.Shape.SOLVED, detector.getResidual().getShape());
+    long lastLandingMs = detector.getSubStepTimestampMs(2, detector.subStepCount(2) - 2);
+    assertEquals("twist:LUF-BUL-FUR", detector.subStepName(2, detector.subStepCount(2) - 1));
+
+    RecordedBlindSolveTest stoppedShort = new RecordedBlindSolveTest();
+    stoppedShort.replay(RecordedBlindSolve.SCRAMBLE, RecordedBlindSolve.MOVES, lastLandingMs);
+    BlindResidual residual = stoppedShort.detector.getResidual();
+    assertEquals(BlindResidual.Shape.TWISTED, residual.getShape());
+    assertEquals(3, residual.getCount());
+    assertEquals("UFL, UBL, UFR", residual.getPieces());
+  }
+
   private static List<Boolean> home(Boolean... pieces) {
     return Arrays.asList(pieces);
   }
