@@ -57,6 +57,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private ImageButton btnHelp;
 
   private SmartCubeRadarView radar;
+  private View radarWell;
   private ImageView imgGlyph;
   private TextView tvPill;
   private TextView tvTitle;
@@ -119,6 +120,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     pairActions = v.findViewById(R.id.smartCubePairActions);
 
     radar = v.findViewById(R.id.smartCubeRadar);
+    radarWell = v.findViewById(R.id.smartCubeRadarWell);
     imgGlyph = v.findViewById(R.id.imgSmartCubeGlyph);
     tvPill = v.findViewById(R.id.tvSmartCubeStatusPill);
     tvTitle = v.findViewById(R.id.tvSmartCubeStatusTitle);
@@ -480,6 +482,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     tvListLabel.setVisibility(View.GONE);
     cubeList.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.VISIBLE);
+    setRadarCompact(true);
     showState();
     btnDisconnect.setVisibility(View.VISIBLE);
   }
@@ -524,6 +527,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     cubeList.setVisibility(empty ? View.GONE : View.VISIBLE);
     btnFix.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.GONE);
+    setRadarCompact(false);
     btnDisconnect.setVisibility(View.GONE);
   }
 
@@ -595,7 +599,22 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     tvListLabel.setVisibility(View.GONE);
     cubeList.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.GONE);
+    setRadarCompact(false);
     btnDisconnect.setVisibility(View.GONE);
+  }
+
+  /**
+   * The halo shrinks once a cube is linked: it is then only a battery arc, and the realigning well
+   * it shares the sheet with is what has to fit without scrolling.
+   */
+  private void setRadarCompact(boolean compact) {
+    int size = Math.round(getResources().getDisplayMetrics().density * (compact ? 104 : 148));
+    ViewGroup.LayoutParams lp = radarWell.getLayoutParams();
+    if (lp.height != size) {
+      lp.height = size;
+      lp.width = size;
+      radarWell.setLayoutParams(lp);
+    }
   }
 
   /** The glyph goes grey when the halo stops: nothing is happening, and it should look like it. */

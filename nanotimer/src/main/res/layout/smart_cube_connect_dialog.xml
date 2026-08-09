@@ -49,6 +49,7 @@
          android:gravity="center_horizontal">
 
         <FrameLayout
+           android:id="@+id/smartCubeRadarWell"
            android:layout_width="148dp"
            android:layout_height="148dp">
           <com.cube.nanotimer.util.view.SmartCubeRadarView
@@ -140,13 +141,13 @@
                scrambled" is something to check rather than something to guess at. It follows the
                cube's own orientation, so it can be held up against the one in the hand.
 
-               Kept deliberately short: the well sits at the bottom of a sheet that also carries the
-               radar, the title and two rows of buttons, and every dp here is one the "My cube is
-               solved" button below can be pushed off the screen by. -->
+               Kept deliberately short: the well sits at the bottom of a sheet that also carries
+               the halo, the title and three buttons, and every dp here is one that pushes the last
+               of them off the screen. -->
           <WebView
              android:id="@+id/wvSmartCubeState"
              android:layout_width="match_parent"
-             android:layout_height="96dp"
+             android:layout_height="84dp"
              android:layout_marginBottom="6dp"/>
           <TextView
              android:layout_width="match_parent"
@@ -157,7 +158,6 @@
           <Button
              android:id="@+id/btnSmartCubeResync"
              android:layout_width="match_parent"
-             android:layout_height="wrap_content"
              android:layout_marginTop="10dp"
              android:text="@string/smart_cube_resync"
              android:background="@drawable/dialog_action_button_ghost"
@@ -168,13 +168,11 @@
           <Button
              android:id="@+id/btnSmartCubeStraighten"
              android:layout_width="match_parent"
-             android:layout_height="wrap_content"
              android:layout_marginTop="8dp"
              android:text="@string/smart_cube_straighten"
              android:background="@drawable/dialog_action_button_ghost"
              android:textColor="@color/lightblue"
-             android:textSize="14sp"
-             android:textAllCaps="false"/>
+             style="@style/DialogActionButton"/>
         </LinearLayout>
 
       </LinearLayout>
