@@ -706,6 +706,8 @@
   <string name="method_info_message">Usado para reconstruir suas resoluções quando há um cubo inteligente conectado: diz ao aplicativo em quais etapas dividir uma resolução. Deixe no padrão para seguir o método preferido das configurações, ou indique o método que você realmente usa para este tipo de resolução.</string>
   <string name="preferred_method">Método preferido</string>
   <string name="preferred_method_summary">O método com que os tipos de resolução são lidos, a menos que tenham o seu</string>
+  <string name="smart_cube_auto_stop">Paragem automática</string>
+  <string name="smart_cube_auto_stop_summary">Parar o cronómetro assim que o cubo fica resolvido, em vez de com um toque</string>
   <string name="preferred_method_prompt">Com qual método você resolve? Ele é usado para dividir suas resoluções em etapas. Este é o padrão: cada tipo de resolução pode ter o seu.</string>
 
   <string name="quick_action">Ação rápida</string>

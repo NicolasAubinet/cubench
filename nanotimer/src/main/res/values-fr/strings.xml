@@ -704,6 +704,8 @@
   <string name="method_info_message">Sert à reconstruire vos résolutions lorsqu\'un cube connecté est utilisé : elle indique à l\'application en quelles étapes découper une résolution. Laissez la valeur par défaut pour suivre la méthode préférée des paramètres, ou indiquez la méthode que vous utilisez réellement pour ce type de résolution.</string>
   <string name="preferred_method">Méthode préférée</string>
   <string name="preferred_method_summary">La méthode avec laquelle les types de résolution sont lus, sauf s\'ils ont la leur</string>
+  <string name="smart_cube_auto_stop">Arrêt automatique</string>
+  <string name="smart_cube_auto_stop_summary">Arrêter le chrono dès que le cube est résolu, plutôt que sur une pression</string>
   <string name="preferred_method_prompt">Quelle méthode utilisez-vous ? Elle sert à découper vos résolutions en étapes. C\'est la méthode par défaut : chaque type de résolution peut avoir la sienne.</string>
 
   <string name="quick_action">Action rapide</string>

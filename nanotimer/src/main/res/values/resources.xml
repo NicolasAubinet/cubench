@@ -12,6 +12,7 @@
   <!-- 3 = URx_DRx_DLx (modern WCA notation): the standard, and the only one the
        scramble diagram can render. See ScrambleViewNotation. -->
   <integer name="clock_notation">3</integer>
+  <bool name="smart_cube_auto_stop">true</bool>
   <!-- 2 = PB only: a panel for every average record is too much. -->
   <integer name="record_notification_mode">2</integer>
 </resources>

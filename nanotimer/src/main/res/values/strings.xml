@@ -713,6 +713,8 @@
   <string name="method_info_message">Used to reconstruct your solves when a smart cube is connected: it tells the app which steps to break a solve into. Leave it on the default to follow the preferred method from the settings, or set it to the method you actually use for this solve type.</string>
   <string name="preferred_method">Preferred method</string>
   <string name="preferred_method_summary">The method solve types are read as, unless they set their own</string>
+  <string name="smart_cube_auto_stop">Auto stop</string>
+  <string name="smart_cube_auto_stop_summary">Stop the timer as soon as the cube reads solved, rather than on a tap</string>
   <string name="preferred_method_prompt">Which method do you solve with? It is used to break your solves down into steps. This is the default, and each solve type can be set on its own.</string>
 
   <string name="quick_action">Quick action</string>

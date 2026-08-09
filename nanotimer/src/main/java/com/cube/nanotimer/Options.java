@@ -48,6 +48,7 @@ public enum Options {
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
+  public static final String SMART_CUBE_AUTO_STOP_KEY = "smart_cube_auto_stop";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
@@ -415,6 +416,13 @@ public enum Options {
 
   public void setPreferredMethodAsked(boolean asked) {
     sharedPreferences.edit().putBoolean(SMART_CUBE_METHOD_ASKED_KEY, asked).apply();
+  }
+
+  // Whether the cube reading solved stops the timer by itself. Off leaves the solve to be stopped
+  // by a tap, the way a Stackmat is, since the automatic stop lands a shade earlier than a hand.
+  public boolean isSmartCubeAutoStop() {
+    Boolean defaultValue = context.getResources().getBoolean(R.bool.smart_cube_auto_stop);
+    return sharedPreferences.getBoolean(SMART_CUBE_AUTO_STOP_KEY, defaultValue);
   }
 
   // How far a cube's own idea of its state has drifted from the real one, as the facelets of the

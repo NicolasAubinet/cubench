@@ -140,6 +140,12 @@
        android:dialogTitle="@string/preferred_method"
        android:defaultValue="CFOP"/>
 
+    <SwitchPreference
+       android:key="smart_cube_auto_stop"
+       android:title="@string/smart_cube_auto_stop"
+       android:summary="@string/smart_cube_auto_stop_summary"
+       android:defaultValue="@bool/smart_cube_auto_stop"/>
+
   </PreferenceCategory>
 
   <PreferenceCategory

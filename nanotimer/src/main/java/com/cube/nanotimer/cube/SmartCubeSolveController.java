@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import android.os.Handler;
 import android.os.Looper;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
@@ -352,7 +353,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       case RUNNING:
         if (!state.isSolved()) {
           sawUnsolved = true;
-        } else if (sawUnsolved && !blind) { // a blind solve is stopped by its solver, never by us
+        } else if (sawUnsolved && stopsItself()) {
           phase = Phase.INACTIVE;
           listener.onCubeAutoStop();
         }
@@ -377,6 +378,12 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       default:
         break;
     }
+  }
+
+  // Asked here and not at the timer: a solve nothing stops stays RUNNING, so its later moves still
+  // reach the analyzers. A blind one is stopped by its solver; the setting says so for the rest.
+  private boolean stopsItself() {
+    return !blind && Options.INSTANCE.isSmartCubeAutoStop();
   }
 
   @Override
