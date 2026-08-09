@@ -674,11 +674,11 @@
   <string name="smart_cube_connect_failed">Connection failed: %s</string>
   <string name="smart_cube_intro_body">A Bluetooth smart cube reports every turn to Cubench as you make it. Once yours is paired, three things change.</string>
   <string name="smart_cube_done">Done</string>
-  <string name="smart_cube_resync">My cube is solved</string>
-  <string name="smart_cube_resync_hint">If the app thinks your cube is scrambled when it is not, the cube has lost track of itself. Solve it, then tap below.</string>
+  <string name="smart_cube_resync">Reset state</string>
+  <string name="smart_cube_resync_hint">If the app thinks your cube is scrambled when it is not, the cube has lost track of itself. Solve it, then reset the state.</string>
   <string name="smart_cube_resynced">Cube state realigned</string>
-  <string name="smart_cube_straighten">Straighten the view</string>
-  <string name="smart_cube_straightened">View straightened</string>
+  <string name="smart_cube_straighten">Reset orientation</string>
+  <string name="smart_cube_straightened">Cube orientation realigned</string>
   <string name="smart_cube_solve_first">Solve your cube to begin</string>
   <string name="smart_cube_ready_to_solve">Ready to solve</string>
   <string name="smart_cube_ready_to_memo">Tap to start memo</string>

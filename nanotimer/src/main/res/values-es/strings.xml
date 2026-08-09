@@ -665,11 +665,11 @@
   <string name="smart_cube_connect_failed">Error de conexión: %s</string>
   <string name="smart_cube_intro_body">Un cubo inteligente Bluetooth transmite a Cubench cada movimiento en el momento en que lo haces. Cuando el tuyo esté vinculado, tres cosas cambian.</string>
   <string name="smart_cube_done">Hecho</string>
-  <string name="smart_cube_resync">Mi cubo está resuelto</string>
-  <string name="smart_cube_resync_hint">Si la aplicación cree que tu cubo está mezclado cuando no lo está, el cubo ha perdido la cuenta. Resuélvelo y pulsa abajo.</string>
+  <string name="smart_cube_resync">Reiniciar el estado</string>
+  <string name="smart_cube_resync_hint">Si la aplicación cree que tu cubo está mezclado cuando no lo está, el cubo ha perdido la cuenta. Resuélvelo y reinicia el estado.</string>
   <string name="smart_cube_resynced">Estado del cubo realineado</string>
-  <string name="smart_cube_straighten">Enderezar la vista</string>
-  <string name="smart_cube_straightened">Vista enderezada</string>
+  <string name="smart_cube_straighten">Reiniciar la orientación</string>
+  <string name="smart_cube_straightened">Orientación del cubo realineada</string>
   <string name="smart_cube_solve_first">Resuelve tu cubo para empezar</string>
   <string name="smart_cube_ready_to_solve">Listo para resolver</string>
   <string name="smart_cube_ready_to_memo">Toca para empezar el memo</string>
