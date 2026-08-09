@@ -13,6 +13,10 @@
     ntLiveMove(notation)    one quarter turn, just made
     ntLiveGyro(on)          follow the cube's physical orientation, or keep it square
     ntLiveCamera(distance)  how far back the camera stands, so a cube in a big well can fill it
+    ntLiveView(lat, lon)    where the camera stands while there is NO grip to follow, in degrees.
+                            Ignored for as long as the gyro is followed, and applied again the
+                            moment it is not: a mirror drawn from anywhere but square on is not a
+                            mirror. A 90° step is turned rather than jumped.
     ntLiveStickering(mask)  which stickers keep their colour (see CubeStickering). A mask names
                             PIECES, not the slots they are in: Cube3D holds one object per piece
                             and moves it to wherever the piece sits, so the mask travels with the
@@ -82,6 +86,14 @@
   // small box and wants this; a drill's well is most of the screen and wants closer.
   var DEFAULT_CAMERA_DISTANCE = 6;
   var cameraDistance = DEFAULT_CAMERA_DISTANCE;
+  // Where it stands while there is no grip to follow, which a screen may ask to move (a cube with
+  // no gyroscope reports nothing about how it is held, so the user turns the view by hand). Square
+  // on until asked, and square on again whenever the gyro is followed.
+  var viewLatitude = CAMERA_LATITUDE;
+  var viewLongitude = CAMERA_LONGITUDE;
+  // How long a quarter of that turn takes. Turned rather than jumped: a cube that snaps a quarter
+  // turn has to be read again from nothing, where one that turns can be followed round.
+  var VIEW_TURN_MS = 260;
   // The scene model is not always up the instant the player is appended, and until the camera has
   // been asked for the cube is drawn at the player's own default distance — a visibly larger cube,
   // held still, because the pose loop skips its nudge with no camera to nudge. Keep asking rather
@@ -282,13 +294,68 @@
   }
 
   var cameraTries = 0;
+  var viewRaf = null;
 
-  /** Points the camera square at the cube, and keeps that as the base the nudge above varies. */
+  /** Square on while the gyro is followed, and wherever the screen asked for while it is not. */
+  function wantedLatitude() {
+    return gyroOn ? CAMERA_LATITUDE : viewLatitude;
+  }
+
+  function wantedLongitude() {
+    return gyroOn ? CAMERA_LONGITUDE : viewLongitude;
+  }
+
+  /** Where the camera is now, kept in `orbit` because the pose loop's nudge varies that. */
+  function setOrbit(latitude, longitude) {
+    orbit.latitude = latitude;
+    orbit.longitude = longitude;
+    try {
+      // A fresh object, like the nudge's: the model is handed a value, not this one to hold on to.
+      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(
+          { latitude: latitude, longitude: longitude, distance: orbit.distance });
+    } catch (e) {
+      console.error("live view: " + e);
+    }
+  }
+
+  /** Takes the camera to where it now belongs, turning it there unless asked to put it there. */
+  function moveView(turn) {
+    if (viewRaf) {
+      cancelAnimationFrame(viewRaf);
+      viewRaf = null;
+    }
+    if (!orbit) {
+      return; // nothing to turn yet; setCamera starts from wherever the view stands by then
+    }
+    // The short way round, so a view going from 315° to 45° turns a quarter rather than three.
+    var delta = ((wantedLongitude() - orbit.longitude) % 360 + 540) % 360 - 180;
+    var fromLatitude = orbit.latitude;
+    var fromLongitude = orbit.longitude;
+    var toLatitude = wantedLatitude();
+    if (Math.abs(delta) < 0.01 && Math.abs(toLatitude - fromLatitude) < 0.01) {
+      return; // already there: every seed asks, and a turn of nothing still costs a frame each
+    }
+    if (!turn) {
+      setOrbit(toLatitude, fromLongitude + delta);
+      return;
+    }
+    var started = performance.now();
+    var step = function () {
+      var f = Math.min(1, (performance.now() - started) / VIEW_TURN_MS);
+      var eased = f * f * (3 - 2 * f); // starts and stops softly, so it reads as one movement
+      setOrbit(fromLatitude + (toLatitude - fromLatitude) * eased, fromLongitude + delta * eased);
+      viewRaf = f < 1 ? requestAnimationFrame(step) : null;
+    };
+    viewRaf = requestAnimationFrame(step);
+  }
+
+  /** Points the camera at the cube, and keeps that as the base the nudge above varies. */
   function setCamera() {
     if (orbit || !player) {
       return;
     }
-    var wanted = { latitude: CAMERA_LATITUDE, longitude: CAMERA_LONGITUDE, distance: cameraDistance };
+    var wanted =
+        { latitude: wantedLatitude(), longitude: wantedLongitude(), distance: cameraDistance };
     try {
       player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(wanted);
       orbit = wanted;
@@ -361,11 +428,23 @@
       return;
     }
     orbit.distance = cameraDistance;
-    try {
-      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(orbit);
-    } catch (e) {
-      console.error("live camera: " + e);
+    setOrbit(orbit.latitude, orbit.longitude);
+  };
+
+  /**
+   * Where the camera stands while there is no grip to follow. A drill on a cube with no gyroscope
+   * asks for a corner, and for a quarter more each time the user presses to turn it: nothing on
+   * that cube says how it is being held, so the screen cannot follow it and the view is turned by
+   * hand instead. Held while the gyro is followed and applied again the moment it is not.
+   */
+  window.ntLiveView = function (latitude, longitude) {
+    viewLatitude = +latitude;
+    viewLongitude = +longitude;
+    if (!orbit) {
+      setCamera(); // the first view, which is where the camera should open rather than turn to
+      return;
     }
+    moveView(true);
   };
 
   window.ntLiveMove = function (notation) {
@@ -392,6 +471,9 @@
     gyroOn = !!on;
     hookPose();
     setCamera();
+    // Square on the instant there is a grip, since the pose is about to swing to it anyway and a
+    // camera still turning through that would be two movements at once. Turned back when it goes.
+    moveView(!gyroOn);
     if (poseRaf) {
       cancelAnimationFrame(poseRaf);
       poseRaf = null;

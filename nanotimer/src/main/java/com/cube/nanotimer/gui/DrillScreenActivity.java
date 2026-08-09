@@ -28,9 +28,9 @@ import com.cube.nanotimer.util.helper.DialogUtils;
  *
  * <p>Those rules are the reason this is shared rather than copied. A drill waits for a cube rather
  * than refusing for want of one; a cube that goes away ends the drill instead of losing it; back
- * stops it rather than throwing it away, because a drill stopped at rep 6 of 20 is a result; the
- * grip line shows only where the gyro cannot answer it; and there is no control that starts or stops
- * a rep. Two screens keeping five rules in step by hand would not.
+ * stops it rather than throwing it away, because a drill stopped at rep 6 of 20 is a result; a cube
+ * with no gyroscope to follow is stood at a corner rather than square on; and there is no control
+ * that starts or stops a rep. Two screens keeping five rules in step by hand would not.
  *
  * <p>A subclass sets its own content view and must name the shared pieces the same way, since a
  * drill screen is the same screen twice over: {@code drillRunning}, {@code drillSummary},
@@ -66,6 +66,13 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
 
   /** How far back the camera stands over a well that takes most of the screen. */
   private static final double CUBE_CAMERA_DISTANCE = 5.2;
+
+  /** How far above the cube the camera stands where there is no grip to follow. The mirror's own
+   * tilt: far enough down to see the top face, and no further. */
+  private static final double VIEW_LATITUDE = 26;
+  /** And at a corner, so two side faces show rather than one. A cube nobody is holding for the
+   * screen has to say more about itself than the single face it would be pointed at. */
+  private static final double VIEW_LONGITUDE = 45;
 
   /** The rep line at headline size, and stood down for a rep with no time to show. */
   private static final float REP_VALUE_SP = 24;
@@ -199,6 +206,10 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     // A drill can be the first thing a session does, and the cube on screen only follows the
     // physical one once there is a grip to measure from. Fills an empty one; never re-takes.
     SmartCubeManager.INSTANCE.anchorGyroIfUnset();
+    // Where it stands while that grip never comes, which is every cube with no gyroscope: at a
+    // corner, with two side faces in view, and the page's own drag to reach the rest. A cube that
+    // is followed is still drawn square on; the page holds this until that grip goes.
+    cube.setView(VIEW_LATITUDE, VIEW_LONGITUDE);
     return true;
   }
 

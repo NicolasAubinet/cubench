@@ -79,6 +79,8 @@ public class VirtualCube implements GyroReferenceListener {
   private String stickering;
   /** How far back the camera stands, or 0 to leave the page on its own default. */
   private double cameraDistance;
+  /** Where the camera stands while there is no grip to follow, or null for square on. */
+  private double[] view;
 
   /**
    * @param touchListener the host screen's own, forwarded so the cube is not a dead zone — a
@@ -146,6 +148,20 @@ public class VirtualCube implements GyroReferenceListener {
   public void setCameraDistance(double distance) {
     cameraDistance = distance;
     evaluate("window.ntLiveCamera(" + distance + ");");
+  }
+
+  /**
+   * Where the camera should stand while this cube has <em>no</em> grip to follow, in degrees:
+   * latitude above the cube, or below it when negative, and longitude round it. A screen showing a
+   * cube with no gyroscope has to give the user some way to see the other side of it, since nothing
+   * that cube reports says how it is being held.
+   *
+   * <p>Held while there is a grip: a mirror drawn from anywhere but square on is not a mirror, so
+   * the page keeps this until the gyro goes and puts it back the moment it does.
+   */
+  public void setView(double latitude, double longitude) {
+    view = new double[] {latitude, longitude};
+    evaluate("window.ntLiveView(" + latitude + "," + longitude + ");");
   }
 
   /** Whether this cube should follow the physical one's orientation, if there is one to follow. */
@@ -261,6 +277,9 @@ public class VirtualCube implements GyroReferenceListener {
     // than at the page's default and then jumping.
     if (cameraDistance > 0) {
       evaluate("window.ntLiveCamera(" + cameraDistance + ");");
+    }
+    if (view != null) {
+      evaluate("window.ntLiveView(" + view[0] + "," + view[1] + ");");
     }
     if (pattern == null) {
       return;
