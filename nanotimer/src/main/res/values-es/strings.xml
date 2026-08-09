@@ -408,8 +408,7 @@
   <string name="can_not_add_time_while_generating">No es posible añadir un tiempo cuando no hay mezcla</string>
 
   <string name="release_notes_features_html">
-    <![CDATA[<html><body>
-    <font color=\"white\">
+    <![CDATA[
     <u><b>v1.4.3 <i>(Nueva versión)</i></b></u><br/>
     <ul>
       <li>El panel de nuevo record ya no tapa la mezcla</li>
@@ -655,7 +654,7 @@
       <li>Pyraminx corner moves are now at the end of the scramble</li>
       <li>Minor GUI improvements</li>
     </ul>
-    </body></html>]]>
+    ]]>
   </string>
 
   <string name="smart_cube_title">Cubo inteligente</string>

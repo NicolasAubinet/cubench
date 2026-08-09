@@ -4,31 +4,35 @@
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
    android:minWidth="350dp"
-   android:paddingBottom="12dp">
+   android:padding="@dimen/space_l">
 
-  <ScrollView
-     android:layout_width="match_parent"
-     android:layout_height="match_parent"
-     android:layout_marginTop="5dp"
-     android:layout_marginLeft="5dp"
-     android:layout_marginRight="5dp"
-     android:layout_above="@+id/buClose">
-
-    <WebView
-       android:id="@+id/wvInfo"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:textSize="15sp"/>
-
-  </ScrollView>
+  <TextView
+     android:id="@+id/tvDialogTitle"
+     android:text="@string/release_notes"
+     style="@style/DialogTitle"/>
 
   <androidx.appcompat.widget.AppCompatButton
      android:id="@+id/buClose"
      android:text="@string/close"
+     android:layout_width="match_parent"
      android:layout_alignParentBottom="true"
-     android:layout_marginLeft="@dimen/space_m"
-     android:layout_marginRight="@dimen/space_m"
-     android:layout_marginTop="@dimen/space_s"
-     style="@style/PrimaryButton"/>
+     android:background="@drawable/dialog_action_button_ghost"
+     style="@style/DialogActionButton"/>
+
+  <ScrollView
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:layout_below="@id/tvDialogTitle"
+     android:layout_above="@id/buClose"
+     android:layout_marginTop="@dimen/space_m"
+     android:layout_marginBottom="@dimen/space_m"
+     android:scrollbars="none">
+
+    <WebView
+       android:id="@+id/wvInfo"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"/>
+
+  </ScrollView>
 
 </RelativeLayout>

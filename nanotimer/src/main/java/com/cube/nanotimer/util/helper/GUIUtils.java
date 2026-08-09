@@ -147,7 +147,8 @@ public class GUIUtils {
     settings.setDefaultTextEncodingName("utf-8");
 
     webView.setBackgroundColor(Color.TRANSPARENT);
-    webView.loadData(text, "text/html; charset=utf-8", "utf-8");
+    // Not loadData: it wraps the text in a data: URL, where a '#' truncates the rest.
+    webView.loadDataWithBaseURL(null, text, "text/html", "utf-8", null);
   }
 
   public static AlertDialog showLoadingIndicator(Context context) {

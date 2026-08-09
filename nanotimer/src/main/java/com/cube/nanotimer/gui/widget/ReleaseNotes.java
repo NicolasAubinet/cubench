@@ -18,6 +18,20 @@ public class ReleaseNotes {
 
   private static final String VERSION_KEY = "app_version";
 
+  // The notes are authored as bare markup, one string per locale; their look lives here.
+  private static final String STYLE =
+      "<style>" +
+      "body{margin:0;font-family:sans-serif;font-size:15px;line-height:1.45;color:#DDDDDD}" +
+      "u,u b{display:block;text-decoration:none;color:#6CCCEC;font-weight:bold}" +
+      "u{margin:20px 0 8px;padding-top:16px;border-top:1px solid #4A4A4A}" +
+      "u:first-child{margin-top:0;padding-top:0;border-top:none}" +
+      "u i{font-style:normal;font-weight:normal;color:#AAAAAA}" +
+      "u+br{display:none}" +
+      "ul{margin:0;padding-left:20px}" +
+      "li{margin-bottom:7px}" +
+      "body>b{display:block;color:#FFFFFF;margin:14px 0 6px}" +
+      "</style>";
+
   public static void appLaunched(Context context) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     String prefVersion = prefs.getString(VERSION_KEY, null);
@@ -45,11 +59,11 @@ public class ReleaseNotes {
     Utils.updateContextWithPrefsLocale(context); // needed to display release notes in the correct language (if default language was changed)
 
     final AlertDialog dialog = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme).setView(v).create();
-    dialog.setTitle(context.getString(R.string.release_notes));
     dialog.setCanceledOnTouchOutside(true);
 
     WebView wvInfo = (WebView) v.findViewById(R.id.wvInfo);
-    GUIUtils.setWebViewText(wvInfo, context.getString(R.string.release_notes_features_html));
+    GUIUtils.setWebViewText(wvInfo, "<html><head>" + STYLE + "</head><body>" +
+        context.getString(R.string.release_notes_features_html) + "</body></html>");
 
     Button buClose = (Button) v.findViewById(R.id.buClose);
     buClose.setOnClickListener(new OnClickListener() {
