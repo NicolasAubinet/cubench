@@ -405,17 +405,6 @@
     <!--<item name="gravity">center</item>-->
   </style>
 
-  <style name="EqualSizeColumnsTable">
-    <item name="android:shrinkColumns">*</item>
-    <item name="android:stretchColumns">*</item>
-  </style>
-
-  <style name="AverageTableHeaderField" parent="TableCell">
-    <item name="android:textColor">@color/lightblue</item>
-    <item name="android:background">@color/table_header</item>
-    <item name="android:textStyle">bold</item>
-  </style>
-
   <style name="AverageTableHeaderFieldPx" parent="TableCellPx">
     <item name="android:textColor">@color/lightblue</item>
     <item name="android:background">@color/transparent</item> <!-- softened: cyan text, no bar -->

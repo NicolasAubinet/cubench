@@ -311,24 +311,37 @@
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            style="@style/TableCardView">
-          <TableLayout
+
+          <LinearLayout
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
-             android:padding="4dp"
-             style="@style/EqualSizeColumnsTable">
-            <TableRow>
-              <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="5"/>
-              <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="12"/>
-              <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="50"/>
-              <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="100"/>
-            </TableRow>
-            <TableRow>
-              <TextView android:id="@+id/tvAvgOfFive" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-              <TextView android:id="@+id/tvAvgOfTwelve" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-              <TextView android:id="@+id/tvAvgOfFifty" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-              <TextView android:id="@+id/tvAvgOfHundred" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-            </TableRow>
-          </TableLayout>
+             android:orientation="horizontal"
+             android:paddingTop="@dimen/space_xs"
+             android:paddingBottom="@dimen/space_xs"
+             android:divider="@drawable/stat_rule_v"
+             android:showDividers="middle"
+             android:dividerPadding="2dp">
+
+            <LinearLayout style="@style/DialogStatTile">
+              <TextView android:text="5" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+              <TextView android:id="@+id/tvAvgOfFive" style="@style/DialogStatValueMinor"/>
+            </LinearLayout>
+
+            <LinearLayout style="@style/DialogStatTile">
+              <TextView android:text="12" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+              <TextView android:id="@+id/tvAvgOfTwelve" style="@style/DialogStatValueMinor"/>
+            </LinearLayout>
+
+            <LinearLayout style="@style/DialogStatTile">
+              <TextView android:text="50" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+              <TextView android:id="@+id/tvAvgOfFifty" style="@style/DialogStatValueMinor"/>
+            </LinearLayout>
+
+            <LinearLayout style="@style/DialogStatTile">
+              <TextView android:text="100" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+              <TextView android:id="@+id/tvAvgOfHundred" style="@style/DialogStatValueMinor"/>
+            </LinearLayout>
+          </LinearLayout>
         </androidx.cardview.widget.CardView>
 
       </LinearLayout>
