@@ -31,8 +31,15 @@ import org.json.JSONObject;
  *
  * <p>The same page the scramble dialog opens on demand ({@code assets/scramble/scramble.html}),
  * mounted instead of opened: the whole Java&rarr;JS surface is still one
- * {@code ntRender(key, scramble)} call, and a new scramble is that call again rather than a new
- * page. Bind once, then {@link #show} whenever the scramble changes.
+ * {@code ntRender(key, scramble, mode, puzzleId, style)} call, and a new scramble is that call
+ * again rather than a new page. Bind once, then {@link #show} whenever the scramble changes.
+ *
+ * <p>The state is drawn <b>as a cube</b>, in the three quarter view the connected cube uses in
+ * this same box, standing in a pool of shadow the page draws under it. The flat net is kept only
+ * for the two puzzles cubing.js will not draw any other way, Clock and Square-1
+ * ({@link ScrambleViewNotation#get3DPuzzleId} returns null for those). Drawing the object rather
+ * than its unfolding also buys legibility: a net stacks three faces down the box and a cube shows
+ * two, so a facelet comes out half as large again in the same height.
  *
  * <p>It draws in the gap under the scramble, next to the moves it is a picture of, at one size on
  * every screen of the app: a share of what was left over made it a different size under a solve
@@ -117,6 +124,8 @@ public class ScrambleStatePreview {
   /** What to draw: a cubing.js renderer key and the scramble in its notation, or null for neither. */
   private String key;
   private String moves;
+  /** The cubing.js puzzle id to draw as a cube, or null for the two puzzles that stay flat. */
+  private String puzzle3d;
   /** The surface the diagram on screen was built for, so a resize can ask for it again. */
   private int drawnWidth;
   private int drawnHeight;
@@ -300,18 +309,25 @@ public class ScrambleStatePreview {
       : (int) (DEFAULT_NET_ROWS * MIN_ROW_DP * context.getResources().getDisplayMetrics().density);
   }
 
-  /** How many rows of facelets the puzzle's net is drawn in, which is what has to stay legible. */
-  private static int netRows(CubeType cubeType) {
+  /**
+   * How many rows of facelets the picture is drawn in, which is what has to stay legible.
+   *
+   * <p>A net stacks three faces down the box, U over the middle band over D, so an n&times;n costs
+   * 3n rows. A cube in three quarter view shows two, the top face over the front one, so the same
+   * puzzle costs 2n and its facelets come out half as large again in the same height.
+   */
+  private static int pictureRows(CubeType cubeType, boolean cube) {
+    int faces = cube ? 2 : 3;
     if (cubeType == null) {
-      return DEFAULT_NET_ROWS;
+      return faces * 3;
     }
     switch (cubeType) {
-      case TWO_BY_TWO:     return 6;
-      case FOUR_BY_FOUR:   return 12;
-      case FIVE_BY_FIVE:   return 15;
-      case SIX_BY_SIX:     return 18;
-      case SEVEN_BY_SEVEN: return 21;
-      default:             return DEFAULT_NET_ROWS;
+      case TWO_BY_TWO:     return faces * 2;
+      case FOUR_BY_FOUR:   return faces * 4;
+      case FIVE_BY_FIVE:   return faces * 5;
+      case SIX_BY_SIX:     return faces * 6;
+      case SEVEN_BY_SEVEN: return faces * 7;
+      default:             return faces * 3;
     }
   }
 
@@ -340,7 +356,8 @@ public class ScrambleStatePreview {
     }
     key = renderKey;
     moves = notation;
-    minPicturePx = (int) (netRows(cubeType) * MIN_ROW_DP
+    puzzle3d = (renderKey == null) ? null : ScrambleViewNotation.get3DPuzzleId(cubeType);
+    minPicturePx = (int) (pictureRows(cubeType, puzzle3d != null) * MIN_ROW_DP
         * context.getResources().getDisplayMetrics().density);
     // Asked afresh for every scramble, which is what bounds how long an answer stands: room is not
     // taken back within one (see measureRoom), and a solve type whose card grew is a new one.
@@ -505,6 +522,10 @@ public class ScrambleStatePreview {
    * The one Java&rarr;JS call. Quoted, never concatenated into a JS string literal: a prime move is
    * spelled U', and the apostrophe would close the literal and make a syntax error of the call.
    *
+   * <p>Asks for the cube wherever there is one to ask for, and always in the page's "mat"
+   * dressing: this box sits on the timer's bare mat, which is what that style is for. With no cube
+   * to ask for the mode is still sent, and the page falls through to the flat net on its own.
+   *
    * <p>⚠️ <b>Held until the surface has been laid out.</b> The page draws an SVG sized to the
    * viewport it finds, and a WebView that has not been through a layout pass reports 0&times;0: the
    * diagram is then built at no size and stays that way, since nothing later asks it to be built
@@ -522,8 +543,9 @@ public class ScrambleStatePreview {
     }
     drawnWidth = width;
     drawnHeight = height;
-    webView.evaluateJavascript(
-        "window.ntRender(" + JSONObject.quote(key) + "," + JSONObject.quote(moves) + ");", null);
+    webView.evaluateJavascript("window.ntRender(" + JSONObject.quote(key) + ","
+        + JSONObject.quote(moves) + ",\"3d\","
+        + (puzzle3d == null ? "null" : JSONObject.quote(puzzle3d)) + ",\"mat\");", null);
     webView.removeCallbacks(renderTimeout);
     webView.postDelayed(renderTimeout, RENDER_TIMEOUT_MS);
   }

@@ -11,7 +11,8 @@
     - WCA puzzles -> <scramble-display event="...">
     - FTO         -> <twisty-player puzzle="fto" visualization="2D">
     - 3D          -> <twisty-player puzzle="3x3x3" visualization="3D">, which the
-                     dialog can be toggled into and the viewer can drag round
+                     dialog can be toggled into and the viewer can drag round, and
+                     which the timer screen's preview always asks for
 -->
 <html lang="en">
 <head>
@@ -28,6 +29,7 @@
     }
     #host {
       box-sizing: border-box;
+      position: relative; /* the pool of shadow below is placed against this box */
       width: 100%;
       height: 100%;
       display: flex;
@@ -45,6 +47,28 @@
     twisty-player.nt-3d {
       transform: translateY(-3%);
     }
+    /* The pool of shadow the cube stands in, for a screen that has no surface behind the picture:
+       without it a cube on a bare mat reads as hovering. Drawn here rather than as an Android view
+       on purpose — the timer repaints its whole background on every press, and anything opaque
+       laid over that ground reads as a rectangle the press missed. Light, not furniture: there is
+       no edge anywhere in it for a press to outline.
+
+       Sized off the box's HEIGHT, never its width: the cell is far wider than it is tall in both
+       orientations, so the height is what the player scales the cube to, and everything here is a
+       share of that same height. The cube takes 85% of it centred, which puts its near bottom
+       corner 7.5% up from the foot; this sits a little under that, half behind the cube the way a
+       contact shadow is, and comes out about a sixth wider than the cube so it reads to either
+       side of it. Its own edges are fully transparent, so the overflow cuts nothing. */
+    #floor {
+      position: absolute;
+      left: 50%;
+      bottom: 2.5%;
+      height: 18.5%;
+      aspect-ratio: 4.84;
+      transform: translateX(-50%);
+      background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, .50) 0%,
+                                  rgba(0, 0, 0, .20) 50%, rgba(0, 0, 0, 0) 76%);
+    }
     /* Hide twisty-player chrome — we only want the 2D net. */
     twisty-player {
       --controls-height: 0;
@@ -60,6 +84,7 @@
     //   ntRender("333", "R U R' U'")                    -> scramble-display, 2D net
     //   ntRender("fto", "U F' BR L ...")                -> twisty-player (FTO), 2D net
     //   ntRender("333", "R U R' U'", "3d", "3x3x3")     -> twisty-player, 3D, draggable
+    //   ntRender("333", "R U R' U'", "3d", "3x3x3", "mat") -> the same, dressed for a bare screen
     //
     // `key` is a scramble-display event id (222 333 444 555 666 777 clock minx
     // pyram skewb sq1) or the literal "fto". `mode` is "3d" or anything else for
@@ -72,11 +97,21 @@
     // the way round), while turning a face is a separate input that only listens
     // when `movePressInput` is "basic" — so a drag can never quietly rewrite the
     // scramble somebody opened this to check.
-    window.ntRender = function (key, scramble, mode, puzzleId) {
+    //
+    // `style` is how the cube is dressed: "mat" is the timer screen, whose picture stands on
+    // nothing and therefore wants the pool of shadow under it. Anything else, including a caller
+    // passing four arguments, is the dialog, whose cube already stands on a lit stage.
+    window.ntRender = function (key, scramble, mode, puzzleId, style) {
       var host = document.getElementById("host");
       host.textContent = "";
       var el;
       var threeD = mode === "3d" && !!puzzleId;
+      var onMat = threeD && style === "mat";
+      if (onMat) {
+        var pool = document.createElement("div");
+        pool.id = "floor";
+        host.appendChild(pool);
+      }
       if (threeD || key === "fto") {
         el = document.createElement("twisty-player");
         el.setAttribute("puzzle", threeD ? puzzleId : "fto");
@@ -87,6 +122,9 @@
           el.setAttribute("hint-facelets", "none");
           // Closer than the player's own default, which leaves the cube small in a dialog-sized
           // box. Only the starting point: dragging still moves the camera from here.
+          //
+          // Measured, for whoever sizes a box around it: the cube comes out its box's height times
+          // 4.44 over this, so 85% of it, and the rest is what a floor has to fit in.
           el.setAttribute("camera-distance", "5.2");
           el.className = "nt-3d";
         }
