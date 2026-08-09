@@ -1,24 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One row of the main screen's drawer. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:orientation="horizontal"
    android:layout_width="match_parent"
-   android:layout_height="match_parent"
-   android:padding="10dp">
+   android:layout_height="wrap_content"
+   android:gravity="center_vertical"
+   android:paddingLeft="20dp"
+   android:paddingRight="20dp"
+   android:paddingTop="14dp"
+   android:paddingBottom="14dp"
+   android:background="?android:attr/selectableItemBackground">
 
   <ImageView
      android:id="@+id/imgIcon"
-     android:layout_width="25dp"
-     android:layout_height="25dp"
-     android:layout_gravity="center"/>
+     android:layout_width="22dp"
+     android:layout_height="22dp"
+     android:contentDescription="@null"/>
 
   <TextView
      android:id="@+id/tvText"
-     android:layout_width="wrap_content"
-     android:layout_height="match_parent"
-     android:layout_marginStart="10dp"
-     android:layout_marginLeft="10dp"
-     android:gravity="start"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginStart="18dp"
+     android:layout_marginLeft="18dp"
+     android:singleLine="true"
      android:ellipsize="end"
-     android:textSize="17sp"/>
+     android:textSize="16sp"/>
 
 </LinearLayout>

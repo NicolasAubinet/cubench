@@ -280,9 +280,10 @@
 
     </LinearLayout>
 
+    <!-- A fixed width now that no banner sets it: the rows alone would leave the drawer narrow. -->
     <com.google.android.material.navigation.NavigationView
        android:id="@+id/navigationView"
-       android:layout_width="wrap_content"
+       android:layout_width="280dp"
        android:layout_height="match_parent"
        android:layout_gravity="start">
 
