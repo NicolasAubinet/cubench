@@ -648,6 +648,28 @@
     <item name="android:background">@color/iceblue</item>
   </style>
 
+  <!-- One time in a drill summary's case table, and the heading over it, which is also the control
+       that ranks the table by that column. -->
+  <style name="DrillCaseValue">
+    <item name="android:layout_width">@dimen/drill_case_column</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:gravity">right</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textSize">13sp</item>
+    <item name="android:textColor">@color/secondary_text</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+  </style>
+
+  <style name="DrillCaseColumn" parent="DrillCaseValue">
+    <item name="android:textSize">10sp</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:letterSpacing">0.06</item>
+    <item name="android:paddingTop">9dp</item>
+    <item name="android:paddingBottom">9dp</item>
+    <item name="android:clickable">true</item>
+    <item name="android:focusable">true</item>
+  </style>
+
   <style name="NumericEditText">
     <item name="android:inputType">number</item>
     <item name="android:gravity">center</item>

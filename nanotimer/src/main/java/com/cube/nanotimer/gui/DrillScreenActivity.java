@@ -324,9 +324,15 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     ((TextView) findViewById(CELL_SUBS[index])).setText(sub);
   }
 
-  /** The figure with no cell of its own, under them. */
+  /**
+   * The figure with no cell of its own, under them. A screen whose figures all have a cell has no
+   * such line, and does not have to grow an empty one to be a drill screen.
+   */
   protected void setSummaryExtra(CharSequence text) {
-    ((TextView) findViewById(R.id.tvDrillSummaryExtra)).setText(text);
+    TextView extra = findViewById(R.id.tvDrillSummaryExtra);
+    if (extra != null) {
+      extra.setText(text);
+    }
   }
 
   /**
@@ -336,7 +342,10 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   protected void showSummaryEmpty(int messageId) {
     findViewById(CELL_ROWS[1]).setVisibility(View.GONE);
     findViewById(CELL_ROWS[2]).setVisibility(View.GONE);
-    findViewById(R.id.tvDrillSummaryExtra).setVisibility(View.GONE);
+    View extra = findViewById(R.id.tvDrillSummaryExtra);
+    if (extra != null) {
+      extra.setVisibility(View.GONE);
+    }
     TextView empty = findViewById(R.id.tvDrillSummaryEmpty);
     empty.setVisibility(View.VISIBLE);
     empty.setText(messageId);

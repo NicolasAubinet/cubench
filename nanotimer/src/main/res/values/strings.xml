@@ -790,12 +790,9 @@
   <string name="drill_skip">Skip</string>
   <string name="drill_done">Done</string>
   <string name="drill_finished">Drill finished</string>
-  <string name="drill_recognition">recognition</string>
-  <string name="drill_execution">execution</string>
   <!-- Recognition then execution, under the total they add up to. -->
   <string name="drill_rep_split" translatable="false">%1$s + %2$s</string>
   <string name="drill_rep_skipped">Skipped</string>
-  <string name="drill_summary_mean">%1$s mean %2$s</string>
   <string name="drill_summary_nothing_timed">Nothing was timed</string>
   <string name="drill_summary_cell_reps">Reps</string>
   <string name="drill_summary_cell_of">of %d</string>
@@ -804,6 +801,18 @@
   <string name="drill_summary_cell_extra">Extra moves</string>
   <string name="drill_summary_cell_planning">Planning</string>
   <string name="drill_summary_cell_average">mean</string>
+  <!-- The case-by-case table a finished drill leaves, and the three column headings that are also
+       how it is sorted. Short: they stand over a column the width of a time. -->
+  <string name="drill_summary_cases">Cases</string>
+  <string name="drill_summary_column_recognition">Recog</string>
+  <string name="drill_summary_column_execution">Exec</string>
+  <string name="drill_summary_column_total">Total</string>
+  <!-- A heading with the caret saying which way round the table is, and the punctuation between
+       the things a case's line has to add about its figures. -->
+  <string name="drill_summary_column_sorted" translatable="false">%1$s %2$s</string>
+  <string name="drill_case_note_separator" translatable="false">" · "</string>
+  <string name="drill_case_no_time" translatable="false">-</string>
+  <string name="drill_case_revealed">Looked up</string>
   <!-- Punctuation between what was drilled and the mode it was drilled in. -->
   <string name="drill_summary_subtitle" translatable="false">%1$s · %2$s</string>
   <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>

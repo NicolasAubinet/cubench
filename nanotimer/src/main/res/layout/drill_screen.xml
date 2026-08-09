@@ -204,22 +204,35 @@
 
   </LinearLayout>
 
-  <!-- What the drill leaves behind: four figures, the warning that the cube is scrambled, and the
-       way out under the thumb. On the app's own ground and its own cells, like every other screen
-       that reports numbers. -->
-  <ScrollView
+  <!-- What the drill leaves behind: the figures for the run, then the case-by-case table that says
+       where those figures came from, the warning that the cube is scrambled, and the way out under
+       the thumb. On the app's own ground and its own cells, like every other screen that reports
+       numbers.
+
+       The way out is outside the scroll: the table is as long as the drill had cases, and a drill
+       of all 57 OLLs would otherwise bury Done under fifty-seven rows. -->
+  <LinearLayout
      android:id="@+id/drillSummary"
      android:layout_width="match_parent"
      android:layout_height="match_parent"
      android:background="@color/graybg"
-     android:fillViewport="true"
+     android:orientation="vertical"
      android:visibility="gone">
+
+  <ScrollView
+     android:layout_width="match_parent"
+     android:layout_height="0dp"
+     android:layout_weight="1"
+     android:fillViewport="true">
 
     <LinearLayout
        android:layout_width="match_parent"
-       android:layout_height="match_parent"
+       android:layout_height="wrap_content"
        android:orientation="vertical"
-       android:padding="16dp">
+       android:paddingLeft="16dp"
+       android:paddingRight="16dp"
+       android:paddingTop="16dp"
+       android:paddingBottom="16dp">
 
       <TextView
          android:layout_width="match_parent"
@@ -240,7 +253,11 @@
          android:textColor="@color/secondary_text"
          android:textSize="13sp"/>
 
-      <!-- match_parent on the cells, so the tallest sets the height and the row never goes ragged. -->
+      <!-- match_parent on the cells, so the tallest sets the height and the row never goes ragged.
+
+           ⚠️ The middle cell holds two figures rather than one, so it has ids of its own and is
+           NOT filled through the shared setSummaryCell: only cells one and three are. The cross
+           drill's own layout keeps all three in the shared shape. -->
       <LinearLayout
          android:id="@+id/llDrillSummaryCells"
          android:layout_width="match_parent"
@@ -266,11 +283,14 @@
           <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellSubOne" style="@style/HeroStatSub"/>
         </LinearLayout>
 
+        <!-- Both halves, side by side and the same size, because reading a case is half of what
+             a drill trains. Wider than its neighbours, since it says two figures where they say
+             one. -->
         <LinearLayout
            android:id="@+id/llDrillCellTwo"
            android:layout_width="0dp"
            android:layout_height="match_parent"
-           android:layout_weight="1"
+           android:layout_weight="1.5"
            android:layout_marginLeft="3dp"
            android:layout_marginRight="3dp"
            android:orientation="vertical"
@@ -280,8 +300,32 @@
            android:paddingTop="8dp"
            android:paddingBottom="8dp">
           <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellKeyTwo" style="@style/HeroStatKey"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellValueTwo" style="@style/HeroStatValue"/>
-          <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillCellSubTwo" style="@style/HeroStatSub"/>
+
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:baselineAligned="false"
+             android:orientation="horizontal">
+
+            <LinearLayout
+               android:layout_width="0dp"
+               android:layout_height="wrap_content"
+               android:layout_weight="1"
+               android:orientation="vertical">
+              <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanRecognition" style="@style/HeroStatValue"/>
+              <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:text="@string/drill_summary_column_recognition"/>
+            </LinearLayout>
+
+            <LinearLayout
+               android:layout_width="0dp"
+               android:layout_height="wrap_content"
+               android:layout_weight="1"
+               android:layout_marginLeft="4dp"
+               android:orientation="vertical">
+              <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanExecution" style="@style/HeroStatValue"/>
+              <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:text="@string/drill_summary_column_execution"/>
+            </LinearLayout>
+          </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -302,16 +346,6 @@
         </LinearLayout>
       </LinearLayout>
 
-      <!-- The figure that has no cell of its own: the half the drill was not scored on. -->
-      <TextView
-         android:id="@+id/tvDrillSummaryExtra"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="10dp"
-         android:textColor="@color/secondary_text"
-         android:textSize="14sp"
-         android:fontFeatureSettings="tnum"/>
-
       <!-- Instead of the cells, for a drill with nothing to average. -->
       <TextView
          android:id="@+id/tvDrillSummaryEmpty"
@@ -322,22 +356,95 @@
          android:textSize="17sp"
          android:visibility="gone"/>
 
-      <View
-         android:layout_width="match_parent"
-         android:layout_height="0dp"
-         android:layout_weight="1"
-         android:minHeight="8dp"/>
+      <!-- Where the figures above came from. One line per case rather than per rep, because the
+           question a finished drill answers is which cases the time went to, and a case dealt four
+           times is one answer and not four.
 
-      <Button
-         android:id="@+id/btDrillDone"
-         style="@style/DialogActionButton"
-         android:layout_height="48dp"
-         android:layout_marginTop="16dp"
-         android:textSize="16sp"
-         android:text="@string/drill_done"/>
+           The three headings are the sort: tapping one ranks the table by that column and taps
+           again to turn it round, and the ranked column is the one written in white. A control of
+           its own above the table would have had to name the same three things a second time. -->
+      <LinearLayout
+         android:id="@+id/llDrillCasesSection"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <TextView
+           style="@style/DialogSectionLabel"
+           android:layout_marginTop="20dp"
+           android:layout_marginBottom="4dp"
+           android:text="@string/drill_summary_cases"/>
+
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:background="@drawable/drill_note_card"
+           android:orientation="vertical"
+           android:paddingTop="2dp"
+           android:paddingBottom="6dp">
+
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:gravity="center_vertical"
+             android:orientation="horizontal"
+             android:paddingLeft="10dp"
+             android:paddingRight="10dp">
+
+            <!-- Holds the width of the chart and the name beside it, so the three headings stand
+                 over the three columns of figures rather than beside them. -->
+            <View
+               android:layout_width="0dp"
+               android:layout_height="1dp"
+               android:layout_weight="1"/>
+
+            <TextView
+               android:id="@+id/tvDrillSortRecognition"
+               style="@style/DrillCaseColumn"
+               android:text="@string/drill_summary_column_recognition"/>
+
+            <TextView
+               android:id="@+id/tvDrillSortExecution"
+               style="@style/DrillCaseColumn"
+               android:text="@string/drill_summary_column_execution"/>
+
+            <TextView
+               android:id="@+id/tvDrillSortTotal"
+               style="@style/DrillCaseColumn"
+               android:text="@string/drill_summary_column_total"/>
+          </LinearLayout>
+
+          <View
+             android:layout_width="match_parent"
+             android:layout_height="1dp"
+             android:layout_marginBottom="2dp"
+             android:background="@color/white_wash_10"/>
+
+          <!-- One drill_case_row per case, filled in code. -->
+          <LinearLayout
+             android:id="@+id/llDrillCaseRows"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical"/>
+        </LinearLayout>
+      </LinearLayout>
 
     </LinearLayout>
   </ScrollView>
+
+    <Button
+       android:id="@+id/btDrillDone"
+       style="@style/DialogActionButton"
+       android:layout_height="48dp"
+       android:layout_marginTop="12dp"
+       android:layout_marginLeft="16dp"
+       android:layout_marginRight="16dp"
+       android:layout_marginBottom="16dp"
+       android:textSize="16sp"
+       android:text="@string/drill_done"/>
+
+  </LinearLayout>
 
   <!-- Nothing to drill with. Said in place of the drill rather than over it. -->
   <TextView

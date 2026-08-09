@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case of a finished drill: its chart, its name, and what it cost in each half. The three
+     figures are means over the case's finished reps, so a case dealt four times is one line rather
+     than four. Tapping the row opens its algorithms, which is what a slow line is usually asking
+     about. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llDrillCaseRow"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:background="?android:attr/selectableItemBackground"
+   android:gravity="center_vertical"
+   android:orientation="horizontal"
+   android:paddingLeft="10dp"
+   android:paddingRight="10dp"
+   android:paddingTop="6dp"
+   android:paddingBottom="6dp">
+
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vDrillCaseChart"
+     android:layout_width="36dp"
+     android:layout_height="36dp"/>
+
+  <LinearLayout
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginLeft="10dp"
+     android:layout_marginRight="6dp"
+     android:orientation="vertical">
+
+    <TextView
+       android:id="@+id/tvDrillCaseName"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:ellipsize="end"
+       android:fontFamily="@font/roboto_medium"
+       android:maxLines="1"
+       android:textColor="@color/white"
+       android:textSize="14sp"/>
+
+    <!-- What the figures beside it are made of: how many reps went into them, the quickest of
+         them, and anything that makes them worth less than they look. Gone on a case dealt once
+         and finished, where the figures are the rep and there is nothing to add. Two lines are
+         allowed for the rare case that has all of it to say, rather than losing the end of it. -->
+    <TextView
+       android:id="@+id/tvDrillCaseNote"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:ellipsize="end"
+       android:maxLines="2"
+       android:textColor="@color/secondary_text"
+       android:textSize="11sp"
+       android:fontFeatureSettings="tnum"
+       android:visibility="gone"/>
+  </LinearLayout>
+
+  <TextView
+     android:id="@+id/tvDrillCaseRecognition"
+     style="@style/DrillCaseValue"/>
+
+  <TextView
+     android:id="@+id/tvDrillCaseExecution"
+     style="@style/DrillCaseValue"/>
+
+  <TextView
+     android:id="@+id/tvDrillCaseTotal"
+     style="@style/DrillCaseValue"/>
+
+</LinearLayout>

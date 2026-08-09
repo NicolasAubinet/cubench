@@ -773,10 +773,7 @@
   <string name="drill_skip">Passer</string>
   <string name="drill_done">Terminé</string>
   <string name="drill_finished">Entraînement terminé</string>
-  <string name="drill_recognition">reconnaissance</string>
-  <string name="drill_execution">exécution</string>
   <string name="drill_rep_skipped">Passé</string>
-  <string name="drill_summary_mean">%1$s de moyenne en %2$s</string>
   <string name="drill_summary_nothing_timed">Rien n\'a été chronométré</string>
   <string name="drill_summary_cell_reps">Essais</string>
   <string name="drill_summary_cell_of">sur %d</string>
@@ -785,6 +782,11 @@
   <string name="drill_summary_cell_extra">Mouvements en trop</string>
   <string name="drill_summary_cell_planning">Réflexion</string>
   <string name="drill_summary_cell_average">en moyenne</string>
+  <string name="drill_summary_cases">Cas</string>
+  <string name="drill_summary_column_recognition">Reco</string>
+  <string name="drill_summary_column_execution">Exéc</string>
+  <string name="drill_summary_column_total">Total</string>
+  <string name="drill_case_revealed">Consulté</string>
   <string name="drill_needs_cube">Connectez votre cube connecté pour lancer un entraînement.</string>
   <string name="drill_no_known_cases">Aucun cas de cet entraînement ne peut être mélangé par l\'application.</string>
   <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un entraînement.</string>

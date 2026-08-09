@@ -772,10 +772,7 @@
   <string name="drill_skip">Saltar</string>
   <string name="drill_done">Listo</string>
   <string name="drill_finished">Entrenamiento terminado</string>
-  <string name="drill_recognition">reconocimiento</string>
-  <string name="drill_execution">ejecución</string>
   <string name="drill_rep_skipped">Saltada</string>
-  <string name="drill_summary_mean">%1$s de media en %2$s</string>
   <string name="drill_summary_nothing_timed">No se cronometró nada</string>
   <string name="drill_summary_cell_reps">Repeticiones</string>
   <string name="drill_summary_cell_of">de %d</string>
@@ -784,6 +781,11 @@
   <string name="drill_summary_cell_extra">Movimientos de más</string>
   <string name="drill_summary_cell_planning">Planificación</string>
   <string name="drill_summary_cell_average">de media</string>
+  <string name="drill_summary_cases">Casos</string>
+  <string name="drill_summary_column_recognition">Recon</string>
+  <string name="drill_summary_column_execution">Ejec</string>
+  <string name="drill_summary_column_total">Total</string>
+  <string name="drill_case_revealed">Consultada</string>
   <string name="drill_needs_cube">Conecta tu cubo inteligente para hacer un entrenamiento.</string>
   <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este entrenamiento.</string>
   <string name="drill_no_cube_view">Este dispositivo no puede dibujar el cubo de un entrenamiento.</string>

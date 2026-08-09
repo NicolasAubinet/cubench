@@ -14,4 +14,8 @@
   <dimen name="card_corner">14dp</dimen>
   <dimen name="card_elevation">2dp</dimen>
   <dimen name="divider_height">1dp</dimen>
+
+  <!-- A drill summary's time columns. Shared so the tappable heading and the figures under it are
+       the same column and not two that nearly line up. -->
+  <dimen name="drill_case_column">48dp</dimen>
 </resources>

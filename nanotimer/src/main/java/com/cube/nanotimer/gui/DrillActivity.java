@@ -2,12 +2,14 @@ package com.cube.nanotimer.gui;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.gui.widget.DrillCaseTable;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.util.FormatterService;
@@ -278,12 +280,16 @@ public class DrillActivity extends DrillScreenActivity {
     List<DrillRep> reps = session.getReps();
     setSummaryCell(0, getString(R.string.drill_summary_cell_reps), String.valueOf(reps.size()),
         getString(R.string.drill_summary_cell_of, session.getSpec().getReps()));
+    // Before the figures give up: a drill where every case was skipped still has something to
+    // report, which is which cases they were.
+    new DrillCaseTable(this, reps, session.getSpec().getType());
 
     // Skipped reps are counted apart rather than folded into a mean, the same rule the case stats
     // follow: a case you gave up on is not a slow time.
     long recognitionTotal = 0;
     long executionTotal = 0;
     long best = Long.MAX_VALUE;
+    String bestCase = null;
     int timed = 0;
     for (DrillRep rep : reps) {
       if (rep.isAbandoned()) {
@@ -291,28 +297,28 @@ public class DrillActivity extends DrillScreenActivity {
       }
       recognitionTotal += rep.getRecognitionMs();
       executionTotal += rep.getExecutionMs();
-      best = Math.min(best, rep.getTimedMs(session.getSpec().getType()));
+      if (rep.getTotalMs() < best) {
+        best = rep.getTotalMs();
+        bestCase = rep.getCaseCode();
+      }
       timed++;
     }
     if (timed == 0) {
       showSummaryEmpty(R.string.drill_summary_nothing_timed);
       return;
     }
-    // Both halves, always: reading a case is half of what a drill trains, and a mean of the half
-    // the target happens to name says nothing about whether the other one is where the time went.
-    boolean recognitionDrill = session.getSpec().getType() == DrillSpec.Type.CASE_RECOGNITION;
-    long timedTotal = recognitionDrill ? recognitionTotal : executionTotal;
-    long otherTotal = recognitionDrill ? executionTotal : recognitionTotal;
-    setSummaryCell(1, getString(R.string.drill_summary_cell_mean),
-        FormatterService.INSTANCE.formatSolveTime(timedTotal / timed), halfName(recognitionDrill));
+    // Both halves, side by side and the same size, whichever one the drill was scored on. Reading
+    // a case is half of what a drill trains, and the half the target happens to name says nothing
+    // about whether the other one is where the time went.
+    ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
+    ((TextView) findViewById(R.id.tvDrillMeanRecognition))
+        .setText(FormatterService.INSTANCE.formatSolveTime(recognitionTotal / timed));
+    ((TextView) findViewById(R.id.tvDrillMeanExecution))
+        .setText(FormatterService.INSTANCE.formatSolveTime(executionTotal / timed));
+    // The best rep is the best of both halves together, and says which case it was: a time with no
+    // case attached was the one figure on this screen that could not be acted on.
     setSummaryCell(2, getString(R.string.drill_summary_cell_best),
-        FormatterService.INSTANCE.formatSolveTime(best), halfName(recognitionDrill));
-    setSummaryExtra(getString(R.string.drill_summary_mean,
-        FormatterService.INSTANCE.formatSolveTime(otherTotal / timed), halfName(!recognitionDrill)));
-  }
-
-  /** Named on every figure now that two are shown: which half a time is of is no longer implied. */
-  private String halfName(boolean recognition) {
-    return getString(recognition ? R.string.drill_recognition : R.string.drill_execution);
+        FormatterService.INSTANCE.formatSolveTime(best),
+        Utils.toSmartCubeCaseHeadline(this, bestCase));
   }
 }
