@@ -9,7 +9,6 @@
     <attr name="min" format="integer"/>
     <attr name="max" format="integer"/>
     <attr name="defaultVal" format="integer"/>
-    <attr name="cyclic" format="boolean"/>
     <attr name="step" format="integer"/>
     <!-- Values worth one tap, shown as chips above the stepper. -->
     <attr name="presets" format="reference"/>
