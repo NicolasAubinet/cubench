@@ -236,6 +236,50 @@ public class SolveAnalyzerTest {
   }
 
   @Test
+  public void countsATurnTakenStraightBackAsRecognition() {
+    // The solver turns an F and puts it back before starting the algorithm. The cube is where it was
+    // when they looked at it, so the case is still being read and the T perm's own first move starts
+    // the execution.
+    startFrom(T_PERM);
+
+    play("F F'", 800, 100); // turned and undone: struck out of the reconstruction
+    play(T_PERM, 300, 100);
+
+    StepTime pll = stepTimes().get(3);
+    assertEquals(800 + 100 + 300, pll.getRecognitionMs());
+    assertEquals(1400, pll.getExecutionMs()); // only the algorithm
+  }
+
+  @Test
+  public void countsAWholeRunUnwoundAsRecognition() {
+    // The same thing nested, however deep: this unwinds from the inside out, three pairs of it.
+    startFrom(T_PERM);
+
+    play("R F U U' F' R'", 800, 100);
+    play(T_PERM, 300, 100);
+
+    StepTime pll = stepTimes().get(3);
+    assertEquals(800 + 500 + 300, pll.getRecognitionMs());
+    assertEquals(1400, pll.getExecutionMs());
+  }
+
+  @Test
+  public void keepsAWobbleInsideAnAlgorithmAsExecution() {
+    // The undone pair comes after the algorithm started, so it costs execution: the solver was not
+    // reading the case, they were turning badly, and the time is theirs either way.
+    startFrom(T_PERM);
+
+    play("R U R'", 800, 100); // the T perm, started
+    play("F F'", 300, 100); // ...fumbled...
+    play("U' R' F R2 U' R' U' R U R' F'", 200, 100); // ...and carried on
+
+    StepTime pll = stepTimes().get(3);
+    assertEquals(800, pll.getRecognitionMs());
+    assertEquals(1900, pll.getExecutionMs());
+    assertTrue(analyzer.isComplete());
+  }
+
+  @Test
   public void matchesARealCfopSolve() {
     // Cross, then F2L, then the last layer: the cross completes before F2L, so this is CFOP.
     startFrom(T_PERM, SUNE, "R U' R'", "R' F'");

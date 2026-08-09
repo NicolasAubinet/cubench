@@ -209,9 +209,9 @@ public final class SolveAnalyzer {
 
   /**
    * The move a step's execution starts on: the first one after the step before it, skipping any AUF
-   * the solver made to read the case, or any turn they made and then stopped to look again — both
-   * are part of recognising it. A step made only of such moves (a skip left with just an AUF) still
-   * starts on the first of them.
+   * the solver made to read the case, any turn they made and then stopped to look again, and any run
+   * they turned and then took straight back — all are part of recognising it. A step made only of
+   * such moves (a skip left with just an AUF) still starts on the first of them.
    */
   private Long firstMoveIn(int step, long previousCompleteMs, long completeMs, boolean includeStart) {
     CubeMove first = null;
@@ -226,11 +226,52 @@ public final class SolveAnalyzer {
       if (first == null) {
         first = move;
       }
-      if (!isAlignment(step, i, completeMs)) {
+      if (isAlignment(step, i, completeMs)) {
+        continue;
+      }
+      int undoneThrough = endOfUndoneRun(i, completeMs);
+      if (undoneThrough < 0) {
         return move.getCubeTimestampMs();
       }
+      i = undoneThrough; // the run left the case exactly as it was read: still recognising
     }
     return first == null ? null : first.getCubeTimestampMs();
+  }
+
+  /**
+   * The last move of the run starting at {@code index} if that run came to nothing — the moves a
+   * reconstruction strikes out, {@code F F'} at the head of an algorithm or the {@code R F F' R'}
+   * that unwinds with it. Turning them and taking them back left the cube as it was, so the
+   * algorithm has not started and the solver is still reading the case. -1 when the run stands.
+   *
+   * <p>Push each turn, folding it into the one below when it is of the same face; a face that comes
+   * back to where it started pops, and the run is undone the moment the stack empties. Nesting needs
+   * no case of its own. Only whole cancellations count, so {@code R2 R'} is left standing — half of
+   * a move is not something that can be crossed out.
+   */
+  private int endOfUndoneRun(int index, long completeMs) {
+    List<int[]> stack = new ArrayList<>(); // {face, net quarter turns}
+    for (int i = index; i < moves.size(); i++) {
+      CubeMove move = moves.get(i);
+      if (move.getCubeTimestampMs() > completeMs) {
+        return -1; // the run ran into the next step still holding a turn that stood
+      }
+      int face = move.getFace().ordinal();
+      int quarters = move.isPrime() ? 3 : 1;
+      int[] top = stack.isEmpty() ? null : stack.get(stack.size() - 1);
+      if (top == null || top[0] != face) {
+        stack.add(new int[] {face, quarters});
+        continue;
+      }
+      top[1] = (top[1] + quarters) % 4;
+      if (top[1] == 0) {
+        stack.remove(stack.size() - 1);
+        if (stack.isEmpty()) {
+          return i;
+        }
+      }
+    }
+    return -1;
   }
 
   /**
