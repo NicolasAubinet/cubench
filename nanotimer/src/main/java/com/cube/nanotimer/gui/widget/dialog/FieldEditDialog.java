@@ -3,6 +3,7 @@ package com.cube.nanotimer.gui.widget.dialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.EditText;
+import android.widget.TextView;
 import com.cube.nanotimer.R;
 
 public class FieldEditDialog extends ConfirmDialog {
@@ -27,6 +28,7 @@ public class FieldEditDialog extends ConfirmDialog {
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     dialog = getDialog(R.string.confirm);
+    ((TextView) view.findViewById(R.id.tvDialogTitle)).setText(R.string.rename);
 
     pos = getArguments().getInt(ARG_POS);
     String defaultName = getArguments().getString(ARG_DEFAULT_NAME);

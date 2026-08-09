@@ -3,6 +3,7 @@ package com.cube.nanotimer.gui.widget.dialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.EditText;
+import android.widget.TextView;
 import com.cube.nanotimer.R;
 
 public class FieldAddDialog extends ConfirmDialog {
@@ -22,6 +23,7 @@ public class FieldAddDialog extends ConfirmDialog {
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     dialog = getDialog(R.string.add);
+    ((TextView) view.findViewById(R.id.tvDialogTitle)).setText(R.string.add);
     return dialog;
   }
 
