@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The rule under the time on the timer screen, carrying the puzzle's own hue. Drawn white and
+     tinted at the call site: the mapping from a puzzle to its colour has one home, PuzzleIcons.
+     The radius is half the 3px height, so the ends are round however long the rule is. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/white"/>
+  <corners android:radius="999dp"/>
+</shape>

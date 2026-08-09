@@ -88,6 +88,7 @@ import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
 import com.cube.nanotimer.util.view.ScrambleStatePreview;
 import com.cube.nanotimer.util.view.SessionBarsView;
 import com.cube.nanotimer.util.view.SolveTypeIcons;
+import com.cube.nanotimer.util.view.TimePlinth;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -120,6 +121,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private View scrambleBox;
   private View sessionLayout;
   private FocusDot focusDot;
+  private TimePlinth timePlinth;
   private TableLayout sessionTimesLayout;
   private SessionBarsView sessionBars;
   private TextView tvVerdictChip;
@@ -507,6 +509,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     focusDot = new FocusDot(findViewById(R.id.focusDot));
     focusDot.setColor(getResources().getColor(identityColor()));
+    timePlinth = new TimePlinth(findViewById(R.id.timePlinth), tvTimer);
+    timePlinth.setCubeType(cubeType);
     sessionTimesLayout = (TableLayout) findViewById(R.id.sessionTimesLayout);
     sessionBars = (SessionBarsView) findViewById(R.id.sessionBars);
     tvVerdictChip = (TextView) findViewById(R.id.tvVerdictChip);
@@ -563,6 +567,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     } else {
       focusTransition.panelsIn(identityStrip, scrambleBox, sessionLayout);
     }
+    timePlinth.setShown(!on); // the rule belongs to the resting screen, not to a solve
     // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
     timerFocused = on;
     refreshStatePreviewSuppression(); // a panel like the rest, and it stands down with them

@@ -50,7 +50,9 @@
         <FrameLayout
            android:id="@+id/timerBox"
            android:layout_width="match_parent"
-           android:layout_height="wrap_content">
+           android:layout_height="wrap_content"
+           android:clipChildren="false"
+           android:clipToPadding="false">
           <com.cube.nanotimer.util.view.DigitalTextView
              android:id="@+id/tvTimer"
              android:layout_width="wrap_content"
@@ -59,6 +61,16 @@
              android:layout_gravity="center"
              android:textColor="@color/white"
              android:gravity="left"/>
+          <!-- The rule under the time, in the puzzle's hue: the one piece of colour the upper
+               screen carries. Placed from code off the digits' baseline, since the timer font is a
+               setting and every face puts its baseline somewhere different — see TimePlinth. -->
+          <View
+             android:id="@+id/timePlinth"
+             android:layout_width="50px"
+             android:layout_height="3px"
+             android:layout_gravity="center_horizontal|top"
+             android:background="@drawable/time_plinth"
+             android:visibility="invisible"/>
           <!-- Stands in for the digits during a solve timed without them. -->
           <View
              android:id="@+id/focusDot"
