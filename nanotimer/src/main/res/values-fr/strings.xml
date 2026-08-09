@@ -669,6 +669,8 @@
   <string name="smart_cube_resync">Mon cube est résolu</string>
   <string name="smart_cube_resync_hint">Si l\'application croit que votre cube est mélangé alors qu\'il ne l\'est pas, c\'est que le cube s\'est perdu. Résolvez-le, puis touchez ci-dessous.</string>
   <string name="smart_cube_resynced">État du cube réaligné</string>
+  <string name="smart_cube_straighten">Redresser la vue</string>
+  <string name="smart_cube_straightened">Vue redressée</string>
   <string name="smart_cube_solve_first">Résolvez votre cube pour commencer</string>
   <string name="smart_cube_ready_to_solve">Prêt à résoudre</string>
   <string name="smart_cube_ready_to_memo">Touchez pour lancer la mémo</string>

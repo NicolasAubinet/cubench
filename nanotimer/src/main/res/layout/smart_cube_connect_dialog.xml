@@ -162,6 +162,19 @@
              android:text="@string/smart_cube_resync"
              android:background="@drawable/dialog_action_button_ghost"
              style="@style/DialogActionButton"/>
+          <!-- The other half of "the picture is wrong": the colours are the cube's to fix, the way
+               round it is drawn is the grip's. A drill deals a scrambled cube on purpose, so
+               squaring the view must not ask for a solved one first. -->
+          <Button
+             android:id="@+id/btnSmartCubeStraighten"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="8dp"
+             android:text="@string/smart_cube_straighten"
+             android:background="@drawable/dialog_action_button_ghost"
+             android:textColor="@color/lightblue"
+             android:textSize="14sp"
+             android:textAllCaps="false"/>
         </LinearLayout>
 
       </LinearLayout>

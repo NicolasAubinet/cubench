@@ -141,6 +141,11 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
       SmartCubeManager.INSTANCE.syncSolved();
       DialogUtils.showShortInfoMessage(getActivity(), R.string.smart_cube_resynced);
     });
+    v.findViewById(R.id.btnSmartCubeStraighten).setOnClickListener(view -> {
+      // Only the grip: nothing about the cube's state is claimed, so a scrambled cube is fine.
+      SmartCubeManager.INSTANCE.reanchorGyro();
+      DialogUtils.showShortInfoMessage(getActivity(), R.string.smart_cube_straightened);
+    });
     btnDisconnect.setOnClickListener(view -> SmartCubeManager.INSTANCE.disconnect());
     v.findViewById(R.id.buSmartCubeDone).setOnClickListener(view -> dismiss());
 
