@@ -4,12 +4,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.util.helper.GUIUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,24 +69,17 @@ public class SelectorFragmentDialog extends NanoTimerDialogFragment {
     liItems = args.getStringArrayList(ARG_ITEMS);
     liDrawableIds = args.getIntegerArrayList(ARG_DRAWABLE_IDS);
 
+    if (title != null) {
+      TextView tvTitle = (TextView) v.findViewById(R.id.tvDialogTitle);
+      tvTitle.setText(title);
+      tvTitle.setVisibility(View.VISIBLE);
+    }
+
     adapter = getNewAdapter();
     lvItems.setAdapter(adapter);
 
     final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setCanceledOnTouchOutside(cancelOnTouchOutside);
-
-    if (title != null) {
-      TextView tvTitle = new TextView(getContext());
-      tvTitle.setText(title);
-      tvTitle.setTextColor(ContextCompat.getColor(getContext(), R.color.white));
-      tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-      GUIUtils.setWeight(tvTitle, Typeface.BOLD);
-      tvTitle.setLetterSpacing(0.02f);
-      float density = getResources().getDisplayMetrics().density;
-      tvTitle.setPadding((int) (16 * density), (int) (16 * density), (int) (16 * density), (int) (8 * density));
-      tvTitle.setGravity(Gravity.CENTER_VERTICAL);
-      dialog.setCustomTitle(tvTitle);
-    }
 
     lvItems.setOnItemClickListener(new OnItemClickListener() {
       @Override

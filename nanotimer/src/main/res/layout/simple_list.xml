@@ -9,6 +9,16 @@
    android:paddingTop="@dimen/space_xs"
    android:paddingBottom="@dimen/space_xs">
 
+  <!-- Shown only by the pickers that name themselves; the ones with their own header leave it gone. -->
+  <TextView
+     android:id="@+id/tvDialogTitle"
+     android:paddingLeft="@dimen/space_m"
+     android:paddingRight="@dimen/space_m"
+     android:paddingTop="@dimen/space_s"
+     android:paddingBottom="@dimen/space_m"
+     android:visibility="gone"
+     style="@style/DialogTitle"/>
+
   <ListView
      android:id="@+id/lvItems"
      android:layout_width="match_parent"

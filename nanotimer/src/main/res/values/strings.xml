@@ -150,7 +150,7 @@
   <string name="clear_all_history">Delete all the times</string>
   <string name="yes">Yes</string>
   <string name="no">No</string>
-  <string name="choose_cube_type">Choose a cube type:</string>
+  <string name="choose_cube_type">Choose a cube type</string>
   <string name="scrambles">Scrambles</string>
   <string name="big_cubes_notation">Big cubes notation</string>
   <string name="big_cubes_notation_summary">Choose the big cubes notation system</string>

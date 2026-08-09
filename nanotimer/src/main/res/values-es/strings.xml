@@ -142,7 +142,7 @@
   <string name="clear_all_history">Eliminar todos los tiempos</string>
   <string name="yes">Sí</string>
   <string name="no">No</string>
-  <string name="choose_cube_type">Elegir tipo de cubo:</string>
+  <string name="choose_cube_type">Elegir tipo de cubo</string>
   <string name="scrambles">Mezclas</string>
   <string name="big_cubes_notation">Notación de cubos grandes</string>
   <string name="big_cubes_notation_summary">Elegir sistema de notación de cubos grandes</string>
