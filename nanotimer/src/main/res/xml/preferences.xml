@@ -43,6 +43,8 @@
        android:summary="@string/color_sample_size_summary"
        custom:min="10"
        custom:step="10"
+       custom:presets="@array/presets_color_sample_size"
+       custom:unit="@string/solves"
        android:defaultValue="@integer/color_sample_size"
        custom:defaultVal="@integer/color_sample_size"/>
 
@@ -69,13 +71,15 @@
        android:dialogTitle="@string/inspection_mode"
        android:defaultValue="2"/>
 
-    <com.cube.nanotimer.gui.widget.preferences.WheelViewDialog
+    <com.cube.nanotimer.gui.widget.preferences.NumberEntryDialog
        android:key="inspection_time"
        android:title="@string/inspection_time"
        android:summary="@string/inspection_time_summary"
        android:defaultValue="@integer/inspection_time"
        custom:min="0"
        custom:max="600"
+       custom:presets="@array/presets_inspection_time"
+       custom:unit="@string/seconds"
        custom:defaultVal="@integer/inspection_time"/>
 
     <SwitchPreference

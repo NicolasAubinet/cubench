@@ -2,6 +2,19 @@
 <resources
    xmlns:tools="http://schemas.android.com/tools"
    tools:ignore="MissingTranslation">
+  <!-- 15 is the WCA time; the rest are what people actually drill at. -->
+  <integer-array name="presets_inspection_time">
+    <item>8</item>
+    <item>15</item>
+    <item>30</item>
+    <item>60</item>
+  </integer-array>
+  <integer-array name="presets_color_sample_size">
+    <item>50</item>
+    <item>100</item>
+    <item>200</item>
+    <item>500</item>
+  </integer-array>
   <string-array name="entries_inspection_modes">
     <item>@string/hold_and_release_inspection_mode</item>
     <item>@string/automatic_inspection_mode</item>
