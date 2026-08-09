@@ -6,6 +6,7 @@ import com.cube.nanotimer.R;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -208,11 +209,15 @@ public enum FormatterService {
     return sdf.format(new Date(ms));
   }
 
-  public String formatDateTimeWithoutSeconds(Long ms) {
+  /** A session start as its picker states it: the year only when it is not the current one. */
+  public String formatSessionStart(Long ms) {
     if (ms == null) {
       return "";
     }
-    SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy · HH:mm", Locale.ENGLISH);
+    Calendar start = Calendar.getInstance();
+    start.setTimeInMillis(ms);
+    boolean thisYear = start.get(Calendar.YEAR) == Calendar.getInstance().get(Calendar.YEAR);
+    SimpleDateFormat sdf = new SimpleDateFormat(thisYear ? "MMM d · HH:mm" : "MMM d, yyyy · HH:mm", Locale.ENGLISH);
     return sdf.format(new Date(ms));
   }
 

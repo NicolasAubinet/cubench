@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Face of the session picker on the dialog's title line: the picked session, with the chevron
+     that says it can be changed. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"
+   android:paddingLeft="12dp"
+   android:paddingRight="10dp"
+   android:paddingTop="7dp"
+   android:paddingBottom="7dp"
+   android:drawablePadding="4dp"
+   android:drawableEnd="@drawable/ic_chevron_down"
+   android:drawableRight="@drawable/ic_chevron_down"
+   android:singleLine="true"
+   android:textColor="@color/white"
+   android:textSize="14sp"/>

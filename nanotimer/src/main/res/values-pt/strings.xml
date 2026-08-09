@@ -69,18 +69,17 @@
   <string name="NA">N/A</string>
   <string name="no_scramble">Sem scramble\n(o tempo foi adicionado manualmente)</string>
 
-  <string name="session_avg">Média:</string>
-  <string name="session_solves">Resoluções:</string>
-  <string name="session_best">Melhor:</string>
-  <string name="session_deviation">Desvio:</string>
+  <string name="session_avg">Média</string>
+  <string name="session_solves">Resoluções</string>
+  <string name="session_best">Melhor</string>
+  <string name="session_deviation">Desvio</string>
   <string name="total_solves">Total de resoluções:</string>
   <string name="more">Mais</string>
   <string name="best_averages">Melhores médias</string>
   <string name="times">Tempos</string>
-  <string name="session_best_mean_of_three">Melhor Mo3:</string>
-  <string name="session_success_average">Méd. de sucessos:</string>
-  <string name="session_accuracy">Precisão:</string>
-  <string name="session_start">Início:</string>
+  <string name="session_best_mean_of_three">Melhor Mo3</string>
+  <string name="session_success_average">Média de sucessos</string>
+  <string name="session_accuracy">Precisão</string>
 
   <string name="clear_history">Limpar o histórico</string>
   <string name="clear_history_solve_type_confirmation">Tem certeza de que deseja excluir todos os tempos deste tipo de resolução?</string>

@@ -77,18 +77,17 @@
   <string name="NA">N/A</string>
   <string name="no_scramble">No scramble\n(time was inserted manually)</string>
 
-  <string name="session_avg">Average:</string>
-  <string name="session_solves">Solves:</string>
-  <string name="session_best">Best:</string>
-  <string name="session_deviation">Deviation:</string>
+  <string name="session_avg">Average</string>
+  <string name="session_solves">Solves</string>
+  <string name="session_best">Best</string>
+  <string name="session_deviation">Deviation</string>
   <string name="total_solves">Total solves:</string>
   <string name="more">More</string>
   <string name="best_averages">Best averages</string>
   <string name="times">Times</string>
-  <string name="session_best_mean_of_three">Best Mo3:</string>
-  <string name="session_success_average">Succ. avg:</string>
-  <string name="session_accuracy">Accuracy:</string>
-  <string name="session_start">Start:</string>
+  <string name="session_best_mean_of_three">Best Mo3</string>
+  <string name="session_success_average">Success average</string>
+  <string name="session_accuracy">Accuracy</string>
 
   <string name="clear_history">Clear history</string>
   <string name="clear_history_solve_type_confirmation">Are you sure you want to delete all the times for this solve type?</string>

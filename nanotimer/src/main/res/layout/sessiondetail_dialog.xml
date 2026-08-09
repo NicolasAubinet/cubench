@@ -1,135 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- The dialog carries its own header so the session picker can sit on the title line, which is
+     also where it belongs: it names which session everything below is about. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content">
+
+<LinearLayout
    android:orientation="vertical"
    android:layout_width="match_parent"
-   android:layout_height="match_parent"
-   android:paddingLeft="16dp"
-   android:paddingRight="16dp"
-   android:paddingTop="16dp"
-   android:paddingBottom="8dp"
+   android:layout_height="wrap_content"
+   android:paddingLeft="@dimen/space_l"
+   android:paddingRight="@dimen/space_l"
+   android:paddingTop="18dp"
+   android:paddingBottom="@dimen/space_m"
    android:minWidth="300dp">
 
   <LinearLayout
-     android:baselineAligned="false"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:orientation="horizontal">
-    <TableLayout
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:layout_marginBottom="@dimen/space_l">
+
+    <TextView
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:layout_marginRight="@dimen/space_s"
+       android:text="@string/session_details"
+       android:textColor="@color/white"
+       android:textSize="20sp"
+       android:textStyle="bold"
+       android:singleLine="true"
+       android:ellipsize="end"/>
+
+    <Spinner
+       android:id="@+id/spSessionsList"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:background="@drawable/hero_selector_pill"
+       android:popupBackground="@drawable/dropdown_popup"/>
+  </LinearLayout>
+
+  <!-- The average is what a session is judged on, so it is the number, not a row in a table. -->
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:gravity="center_horizontal">
+
+    <TextView
+       android:id="@+id/tvLabelAverage"
+       android:text="@string/session_avg"
+       style="@style/DialogSectionLabel"/>
+
+    <TextView
+       android:id="@+id/tvAverage"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="1dp"
+       android:textColor="@color/white"
+       android:textStyle="bold"
+       android:textSize="36sp"
+       android:fontFeatureSettings="tnum"/>
+  </LinearLayout>
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:layout_marginTop="@dimen/space_l"
+     android:divider="@drawable/stat_rule_v"
+     android:showDividers="middle"
+     android:dividerPadding="2dp">
+
+    <LinearLayout style="@style/DialogStatTile">
+      <TextView android:text="@string/session_solves" style="@style/DialogStatKey"/>
+      <TextView android:id="@+id/tvSolves" style="@style/DialogStatValue"/>
+    </LinearLayout>
+
+    <LinearLayout style="@style/DialogStatTile">
+      <TextView android:text="@string/session_best" style="@style/DialogStatKey"/>
+      <TextView android:id="@+id/tvBest" style="@style/DialogStatValue"/>
+    </LinearLayout>
+
+    <LinearLayout style="@style/DialogStatTile">
+      <TextView android:text="@string/session_deviation" style="@style/DialogStatKey"/>
+      <TextView android:id="@+id/tvDeviation" style="@style/DialogStatValue"/>
+    </LinearLayout>
+  </LinearLayout>
+
+  <!-- Blind adds two statistics. They go on their own line rather than squeezing five tiles into
+       one: at this width the fifth key would not fit its column. -->
+  <LinearLayout
+     android:id="@+id/blindStatsLayout"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:visibility="gone">
+
+    <View
+       android:layout_width="match_parent"
+       android:layout_height="1dp"
+       android:layout_marginTop="@dimen/space_m"
+       android:background="@color/hero_divider"/>
+
+    <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_weight="1">
-      <TableRow android:layout_marginTop="4dp">
-        <TextView
-           android:id="@+id/tvLabelAverage"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/session_avg"
-           android:textColor="@color/secondary_text"
-           android:textSize="16sp"/>
-        <TextView
-           android:id="@+id/tvAverage"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginStart="6dp"
-           android:layout_marginLeft="6dp"
-           android:textColor="@color/white"
-           android:textStyle="bold"
-           android:textSize="16sp"/>
-      </TableRow>
-      <TableRow android:layout_marginTop="4dp">
-        <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/session_best"
-           android:textColor="@color/secondary_text"
-           android:textSize="16sp"/>
-        <TextView
-           android:id="@+id/tvBest"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:textColor="@color/white"
-           android:textStyle="bold"
-           android:layout_marginStart="6dp"
-           android:layout_marginLeft="6dp"
-           android:textSize="16sp"/>
-      </TableRow>
-      <TableRow android:id="@+id/trBestMeanOfThree" android:layout_marginTop="4dp" android:visibility="gone">
-        <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/session_best_mean_of_three"
-           android:textColor="@color/secondary_text"
-           android:textSize="16sp"/>
-        <TextView
-           android:id="@+id/tvBestMeanOfThree"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:textColor="@color/white"
-           android:textStyle="bold"
-           android:layout_marginStart="6dp"
-           android:layout_marginLeft="6dp"
-           android:textSize="16sp"/>
-      </TableRow>
-    </TableLayout>
-    <TableLayout
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginLeft="8dp"
-       android:layout_weight="1">
-      <TableRow android:layout_marginTop="4dp">
-        <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/session_solves"
-           android:textColor="@color/secondary_text"
-           android:textSize="16sp"/>
-        <TextView
-           android:id="@+id/tvSolves"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginStart="6dp"
-           android:layout_marginLeft="6dp"
-           android:textColor="@color/white"
-           android:textStyle="bold"
-           android:textSize="16sp"/>
-      </TableRow>
-      <TableRow android:layout_marginTop="4dp">
-        <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/session_deviation"
-           android:textColor="@color/secondary_text"
-           android:textSize="16sp"/>
-        <TextView
-           android:id="@+id/tvDeviation"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:textColor="@color/white"
-           android:textStyle="bold"
-           android:layout_marginStart="6dp"
-           android:layout_marginLeft="6dp"
-           android:textSize="16sp"/>
-      </TableRow>
-      <TableRow android:id="@+id/trAccuracy" android:layout_marginTop="4dp" android:visibility="gone">
-        <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/session_accuracy"
-           android:textColor="@color/secondary_text"
-           android:textSize="16sp"/>
-        <TextView
-           android:id="@+id/tvAccuracy"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:textColor="@color/white"
-           android:textStyle="bold"
-           android:layout_marginStart="6dp"
-           android:layout_marginLeft="6dp"
-           android:textSize="16sp"/>
-      </TableRow>
-    </TableLayout>
+       android:orientation="horizontal"
+       android:layout_marginTop="@dimen/space_m"
+       android:divider="@drawable/stat_rule_v"
+       android:showDividers="middle"
+       android:dividerPadding="2dp">
+
+      <LinearLayout style="@style/DialogStatTile">
+        <TextView android:text="@string/session_best_mean_of_three" style="@style/DialogStatKey"/>
+        <TextView android:id="@+id/tvBestMeanOfThree" style="@style/DialogStatValue"/>
+      </LinearLayout>
+
+      <LinearLayout style="@style/DialogStatTile">
+        <TextView android:text="@string/session_accuracy" style="@style/DialogStatKey"/>
+        <TextView android:id="@+id/tvAccuracy" style="@style/DialogStatValue"/>
+      </LinearLayout>
+    </LinearLayout>
   </LinearLayout>
 
   <LinearLayout
@@ -148,24 +144,37 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        style="@style/TableCardView">
-      <TableLayout
-         android:id="@+id/bestAveragesTableLayout"
+
+      <LinearLayout
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         style="@style/EqualSizeColumnsTable">
-        <TableRow>
-          <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="5"/>
-          <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="12"/>
-          <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="50"/>
-          <TextView style="@style/AverageTableHeaderField" android:background="@color/transparent" android:text="100"/>
-        </TableRow>
-        <TableRow android:background="@color/grid_background_1">
-          <TextView android:id="@+id/tvAvgOfFive" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-          <TextView android:id="@+id/tvAvgOfTwelve" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-          <TextView android:id="@+id/tvAvgOfFifty" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-          <TextView android:id="@+id/tvAvgOfHundred" style="@style/TableCell" android:fontFeatureSettings="tnum"/>
-        </TableRow>
-      </TableLayout>
+         android:orientation="horizontal"
+         android:paddingTop="@dimen/space_xs"
+         android:paddingBottom="@dimen/space_xs"
+         android:divider="@drawable/stat_rule_v"
+         android:showDividers="middle"
+         android:dividerPadding="2dp">
+
+        <LinearLayout android:id="@+id/avgTileFive" style="@style/DialogStatTile">
+          <TextView android:text="5" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+          <TextView android:id="@+id/tvAvgOfFive" style="@style/DialogStatValueMinor"/>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/avgTileTwelve" style="@style/DialogStatTile">
+          <TextView android:text="12" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+          <TextView android:id="@+id/tvAvgOfTwelve" style="@style/DialogStatValueMinor"/>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/avgTileFifty" style="@style/DialogStatTile">
+          <TextView android:text="50" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+          <TextView android:id="@+id/tvAvgOfFifty" style="@style/DialogStatValueMinor"/>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/avgTileHundred" style="@style/DialogStatTile">
+          <TextView android:text="100" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
+          <TextView android:id="@+id/tvAvgOfHundred" style="@style/DialogStatValueMinor"/>
+        </LinearLayout>
+      </LinearLayout>
     </androidx.cardview.widget.CardView>
 
   </LinearLayout>
@@ -176,22 +185,18 @@
      android:layout_marginBottom="6dp"
      style="@style/DialogSectionLabel"/>
 
-  <ScrollView
+  <androidx.cardview.widget.CardView
      android:layout_width="match_parent"
-     android:layout_height="wrap_content">
-
-    <androidx.cardview.widget.CardView
+     android:layout_height="wrap_content"
+     style="@style/TableCardView">
+    <androidx.gridlayout.widget.GridLayout
+       android:id="@+id/sessionTimesLayout"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       style="@style/TableCardView">
-      <androidx.gridlayout.widget.GridLayout
-         android:id="@+id/sessionTimesLayout"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         app:columnCount="4">
-      </androidx.gridlayout.widget.GridLayout>
-    </androidx.cardview.widget.CardView>
-
-  </ScrollView>
+       app:columnCount="4">
+    </androidx.gridlayout.widget.GridLayout>
+  </androidx.cardview.widget.CardView>
 
 </LinearLayout>
+
+</ScrollView>

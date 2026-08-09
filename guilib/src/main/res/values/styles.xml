@@ -25,6 +25,38 @@
     <item name="android:textColor">@color/lightblue</item>
   </style>
 
+  <!-- One column of a dialog's statistics row. Equal widths, so the hairlines between them fall
+       on an even rhythm however many there are. -->
+  <style name="DialogStatTile">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:orientation">vertical</item>
+  </style>
+
+  <!-- A statistic stated inside a dialog: the key over the value, both centred in their column. -->
+  <style name="DialogStatKey" parent="DialogSectionLabel">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:gravity">center</item>
+  </style>
+
+  <style name="DialogStatValue">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textSize">19sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+    <item name="android:textColor">@color/white</item>
+  </style>
+
+  <!-- The same value where the row is secondary to the one above it, as the best averages are to
+       the session's own figures. -->
+  <style name="DialogStatValueMinor" parent="DialogStatValue">
+    <item name="android:textSize">17sp</item>
+  </style>
+
   <!-- Small rounded pill carrying one secondary fact about the row it sits under. -->
   <style name="RowChip">
     <item name="android:layout_width">wrap_content</item>

@@ -4,19 +4,11 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import androidx.gridlayout.widget.GridLayout;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
@@ -36,7 +28,6 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
   private static final String ARG_SOLVETYPE = "solvetype";
 
   private LayoutInflater inflater;
-  private TextView tvSessionStart;
   private Spinner spSessionsList;
   private ArrayAdapter<String> spinnerAdapter;
   private GridLayout sessionTimesLayout;
@@ -69,11 +60,10 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
         });
       }
     });
-    View titleView = getTitleView();
+    spSessionsList = (Spinner) v.findViewById(R.id.spSessionsList);
     initSessionsList(v);
 
     final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
-    dialog.setCustomTitle(titleView);
     dialog.setCanceledOnTouchOutside(true);
     return dialog;
   }
@@ -84,8 +74,7 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
 
     if (solveType.isBlind()) {
       v.findViewById(R.id.bestAveragesLayout).setVisibility(View.GONE);
-      v.findViewById(R.id.trBestMeanOfThree).setVisibility(View.VISIBLE);
-      v.findViewById(R.id.trAccuracy).setVisibility(View.VISIBLE);
+      v.findViewById(R.id.blindStatsLayout).setVisibility(View.VISIBLE);
       ((TextView) v.findViewById(R.id.tvBestMeanOfThree)).setText(FormatterService.INSTANCE.formatSolveTime(getBestMeanOf(sessionTimes, 3)));
       ((TextView) v.findViewById(R.id.tvAccuracy)).setText(FormatterService.INSTANCE.formatPercentage(session.getAccuracy(sessionTimes.size())));
       ((TextView) v.findViewById(R.id.tvLabelAverage)).setText(R.string.session_success_average);
@@ -158,30 +147,22 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
       v.findViewById(R.id.bestAveragesLayout).setVisibility(View.GONE);
       return;
     }
+    // shown again explicitly: the same views serve every session the picker switches to
+    v.findViewById(R.id.bestAveragesLayout).setVisibility(View.VISIBLE);
 
-    TableLayout averagesTableLayout = (TableLayout) v.findViewById(R.id.bestAveragesTableLayout);
-    TableRow averagesTableRowHeader = (TableRow) averagesTableLayout.getChildAt(0);
-    TableRow averagesTableRowContent = (TableRow) averagesTableLayout.getChildAt(1);
-
-    setBestAverages(averagesTableRowHeader, averagesTableRowContent, 0, avg5);
-    setBestAverages(averagesTableRowHeader, averagesTableRowContent, 1, avg12);
-    setBestAverages(averagesTableRowHeader, averagesTableRowContent, 2, avg50);
-    setBestAverages(averagesTableRowHeader, averagesTableRowContent, 3, avg100);
+    setBestAverage(v, R.id.avgTileFive, R.id.tvAvgOfFive, avg5);
+    setBestAverage(v, R.id.avgTileTwelve, R.id.tvAvgOfTwelve, avg12);
+    setBestAverage(v, R.id.avgTileFifty, R.id.tvAvgOfFifty, avg50);
+    setBestAverage(v, R.id.avgTileHundred, R.id.tvAvgOfHundred, avg100);
   }
 
-  private void setBestAverages(TableRow tableRowHeader, TableRow tableRowContent, int index, long average) {
-    int visibility;
-
+  private void setBestAverage(View v, int tileId, int valueId, long average) {
     if (average < 0) {
-      visibility = View.GONE;
-    } else {
-      visibility = View.VISIBLE;
-      String averageStr = FormatterService.INSTANCE.formatSolveTime(average);
-      ((TextView) tableRowContent.getChildAt(index)).setText(averageStr);
+      v.findViewById(tileId).setVisibility(View.GONE);
+      return;
     }
-
-    tableRowHeader.getChildAt(index).setVisibility(visibility);
-    tableRowContent.getChildAt(index).setVisibility(visibility);
+    v.findViewById(tileId).setVisibility(View.VISIBLE);
+    ((TextView) v.findViewById(valueId)).setText(FormatterService.INSTANCE.formatSolveTime(average));
   }
 
   private TextView getNewSolveTimeTextView() {
@@ -227,9 +208,9 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
           public void run() {
             List<String> sessionStartsTexts = new ArrayList<String>();
             for (long sessionStart : sessionStarts) {
-              sessionStartsTexts.add(FormatterService.INSTANCE.formatDateTimeWithoutSeconds(sessionStart));
+              sessionStartsTexts.add(FormatterService.INSTANCE.formatSessionStart(sessionStart));
             }
-            spinnerAdapter = new ArrayAdapter<String>(getActivity(), R.layout.spinner_item, sessionStartsTexts);
+            spinnerAdapter = new ArrayAdapter<String>(getActivity(), R.layout.session_spinner_item, sessionStartsTexts);
             spinnerAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
             spSessionsList.setAdapter(spinnerAdapter);
           }
@@ -263,43 +244,6 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
       public void onNothingSelected(AdapterView<?> adapterView) {
       }
     });
-  }
-
-  private View getTitleView() {
-    int fontSize = 20;
-    LinearLayout view = new LinearLayout(getActivity());
-    view.setOrientation(LinearLayout.VERTICAL);
-
-    RelativeLayout titleLayout = new RelativeLayout(getActivity());
-    titleLayout.setGravity(Gravity.CENTER_VERTICAL);
-    titleLayout.setBackgroundColor(getResources().getColor(R.color.graybg));
-
-    TextView tvStart = GUIUtils.newTextView(getActivity());
-    tvStart.setPadding(10, 0, 0, 0);
-    tvStart.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
-    tvStart.setText(R.string.session_start);
-    RelativeLayout.LayoutParams tvStartParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-    tvStartParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-    tvStartParams.addRule(RelativeLayout.CENTER_VERTICAL);
-
-    titleLayout.setPadding(10, 0, 0, 0);
-    spSessionsList = new Spinner(getActivity());
-    View sessionView = spSessionsList;
-
-    RelativeLayout.LayoutParams sessionViewParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-    sessionViewParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-
-    titleLayout.addView(tvStart, tvStartParams);
-    titleLayout.addView(sessionView, sessionViewParams);
-
-    LinearLayout separator = new LinearLayout(getActivity());
-    separator.setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 3));
-    separator.setBackgroundColor(getResources().getColor(R.color.iceblue));
-
-    view.addView(titleLayout);
-    view.addView(separator);
-
-    return view;
   }
 
 }
