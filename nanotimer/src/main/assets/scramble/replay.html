@@ -79,6 +79,10 @@
   var MAX_ROTATION_MS = 220;
   // A beat on the solved cube at the end, so the last turn is not the final frame.
   var TAIL_MS = MAX_TURN_MS;
+  // How often the position is handed to the app. Crossing into Java is the one costly thing in the
+  // render loop, measured at ~0.8 ms a call, so this is not every frame; but the app shows the
+  // position to hundredths, and the old 100 ms let it step by no less than 0.10.
+  var REPORT_MS = 30;
 
   var player = null;
   var realAt = [];     // when each alg node was really turned, ms from the first turn
@@ -91,6 +95,7 @@
   var clockMs = 0;
   var lastFrameMs = 0;
   var reportedMs = -1;
+  var reportedAt = 0;
   var playing = false;
   var raf = null;
   var speed = 1;
@@ -342,11 +347,17 @@
     return fromClock + f * (toClock - fromClock);
   }
 
-  /** Rate-limited: the animation runs at frame rate, the app only needs a readable clock. */
+  /**
+   * Rate-limited on the wall clock, not on how far the position has moved: at 0.25x the position
+   * crawls, and limiting by it thinned the reports out exactly where the label should read
+   * smoothest. REPORT_MS is what the app's own running timer refreshes at.
+   */
   function report(force) {
     var ms = displayMs();
-    if (force || Math.abs(ms - reportedMs) >= 100) {
+    var now = Date.now();
+    if (force || (ms !== reportedMs && now - reportedAt >= REPORT_MS)) {
       reportedMs = ms;
+      reportedAt = now;
       bridge("onState", ms, playing);
     }
   }
@@ -451,6 +462,7 @@
     reportedTotal = solveMs > 0 ? solveMs : (realAt.length ? realAt[realAt.length - 1] : 0);
     clockMs = 0;
     reportedMs = -1;
+    reportedAt = 0;
 
     if (!player) {
       player = document.createElement("twisty-player");
