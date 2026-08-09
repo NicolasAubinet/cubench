@@ -117,13 +117,23 @@ public final class BlindResidual {
     List<Integer> cycle = cycleOf(steady, misplaced);
     if (cycle != null) {
       Shape shape = Cubies.isEdge(cycle.get(0)) ? Shape.EDGE_CYCLE : Shape.CORNER_CYCLE;
-      return new BlindResidual(shape, said(targets, cycle, "-"), alsoTurned, count);
+      return new BlindResidual(shape, shotToFix(steady, cycle, targets), alsoTurned, count);
     }
     String parity = parityOf(steady, misplaced, targets);
     if (parity != null) {
       return new BlindResidual(Shape.PARITY, parity, alsoTurned, count);
     }
     return new BlindResidual(Shape.MIXED, said(targets, misplaced, ", "), alsoTurned, count);
+  }
+
+  /**
+   * The cycle said as the shots that would fix it: each piece named at the sticker it has to be sent
+   * to, which is the target the solver would have memorised. Spelling the slots instead names the
+   * right pieces the wrong way round — {@code FL} where the piece is owed to {@code LF} — and on a
+   * cycle those are two different memo items.
+   */
+  private static String shotToFix(String steady, List<Integer> cycle, BlindTargets targets) {
+    return targets.name(steady, Cubies.SOLVED, cycle.get(0), cycle).name;
   }
 
   private static Shape turnedShape(List<Integer> turned) {

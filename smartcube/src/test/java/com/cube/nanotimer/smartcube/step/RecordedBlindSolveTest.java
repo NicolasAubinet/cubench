@@ -376,6 +376,18 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * A cycle left on the cube is said as the shots that would fix it, so it names stickers: the edge
+   * of solve 247 is owed to the L sticker of the FL slot, and {@code LF} and {@code FL} are two
+   * different targets on a memo however much they are the same piece.
+   */
+  @Test
+  public void saysALeftoverCycleAtTheStickersItIsOwedTo() {
+    replay(RecordedBlindSolve.SCRAMBLE_247, RecordedBlindSolve.MOVES_247, Long.MAX_VALUE);
+
+    assertEquals("UF-LF-UR", detector.getResidual().getPieces());
+  }
+
+  /**
    * Two things follow from the order pieces are said in, and both hold across every recorded solve.
    *
    * <p><b>A flipped edge never begins with R or L.</b> R/L is the last of the three axes said, and an
