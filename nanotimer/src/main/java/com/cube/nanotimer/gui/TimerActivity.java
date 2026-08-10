@@ -1986,10 +1986,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   // The step bar is pulled up into the digits' descent, so it stands in the rule's own few pixels
-  // and is the rule wherever there is one. Only a screen with no bar at all (GONE, not INVISIBLE)
-  // draws it, and never while a solve runs.
+  // and is the rule wherever one is drawn. A screen holding the bar's place without a solve in it
+  // (INVISIBLE) has nothing there, so the rule is its; never while a solve runs.
   private void refreshTimePlinth() {
-    timePlinth.setShown(!timerFocused && solveStepBar.getVisibility() == View.GONE);
+    timePlinth.setShown(!timerFocused && solveStepBar.getVisibility() != View.VISIBLE);
   }
 
   /**
