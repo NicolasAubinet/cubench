@@ -41,11 +41,16 @@
       width: 100%;
       height: 100%;
     }
-    /* The player draws the cube a little below the middle of its box (it is looked at from above,
+    /* The player draws the puzzle a little below the middle of its box (it is looked at from above,
        so the near bottom corner hangs lower than the top face rises). Lifted back to the middle of
-       the stage it is standing in. */
+       the stage it is standing in, by however much this puzzle's silhouette asks for (see VIEW).
+       ⚠️ The canvas CLIPS: it is the renderer's whole viewport, so anything the player draws past
+       its edge is simply not there, and no amount of moving it about afterwards brings that back.
+       A puzzle drawn off-centre in it (the pyraminx, whose apex stands three quarters of its
+       height above its own middle) is given a taller one to be drawn in — see VIEW's `canvas`. */
     twisty-player.nt-3d {
-      transform: translateY(-3%);
+      height: var(--nt-canvas, 100%);
+      transform: translateY(var(--nt-lift, -3%)) rotate(var(--nt-roll, 0deg));
     }
     /* The pool of shadow the cube stands in, for a screen that has no surface behind the picture:
        without it a cube on a bare mat reads as hovering. Drawn here rather than as an Android view
@@ -55,15 +60,16 @@
 
        Sized off the box's HEIGHT, never its width: the cell is far wider than it is tall in both
        orientations, so the height is what the player scales the cube to, and everything here is a
-       share of that same height. The cube takes 85% of it centred, which puts its near bottom
+       share of that same height. A 3x3 takes 85% of it centred, which puts its near bottom
        corner 7.5% up from the foot; this sits a little under that, half behind the cube the way a
        contact shadow is, and comes out about a sixth wider than the cube so it reads to either
-       side of it. Its own edges are fully transparent, so the overflow cuts nothing. */
+       side of it. Its own edges are fully transparent, so the overflow cuts nothing. A puzzle that
+       stands at another distance, or on a wider foot, moves the two numbers — see VIEW. */
     #floor {
       position: absolute;
       left: 50%;
-      bottom: 2.5%;
-      height: 18.5%;
+      bottom: var(--nt-floor-bottom, 2.5%);
+      height: var(--nt-floor-height, 18.5%);
       aspect-ratio: 4.84;
       transform: translateX(-50%);
       background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, .50) 0%,
@@ -80,6 +86,46 @@
 <body>
   <div id="host"></div>
   <script>
+    // How each puzzle is stood up in the box, and the pool of shadow that follows from it.
+    //
+    // cubing.js points its camera straight at a face for everything that is not an NxN, longitude
+    // 0, so a megaminx, a pyraminx and an FTO were drawn as flat rosettes with no depth in them at
+    // all. The longitude here is what turns them back into objects, at the same 30-odd degrees
+    // round the cube takes; `dist` brings them all to about one size in one box (smaller is closer,
+    // and the player's own default differs per puzzle); `lift` re-centres a silhouette that does
+    // not sit like a cube's; the two floor numbers put the shadow under whatever foot the puzzle
+    // really stands on. Measured by eye in the timer's own box, a 1072x499 cell.
+    //
+    // ⚠️ The turn is small on purpose: a scramble is written for the puzzle held one way, so the
+    // picture has to stay the picture of that. It costs the FTO and the pyraminx most of their
+    // depth, their next face being nearly edge on to the front one, and that is the trade made.
+    //
+    // ⚠️ `roll` is a few degrees in the picture plane, and both of the puzzles that carry one carry
+    // it to keep a level thing level while it turns. The pyraminx stands on its base, so its camera
+    // is put level with it (lat 0) and the turn is then a true yaw; what is left is the perspective
+    // of a near corner sitting lower than a far one, and the roll takes that out. The FTO has no
+    // base to stand on at all in the corner-forward pose the scramble is written for: a few degrees
+    // round and its outline is made of different, oblique edges, so the square reads as tipped over
+    // however level the camera is, and the roll is what puts it back square.
+    var VIEW = {
+      megaminx: {lat: 30, lon: 15, dist: 6.1, lift: "-1%", floorHeight: "17%", floorBottom: "2%"},
+      pyraminx:
+          {lat: 0, lon: 45, roll: -5, dist: 6.6, canvas: "140%", lift: "11%", floorHeight: "17%",
+              floorBottom: "1%"},
+      fto: {lat: 32, lon: 15, roll: -9, dist: 4.55, lift: "0%", floorHeight: "21%", floorBottom: "-1%"}
+    };
+    /** A cube: the player's own three quarter view, drawn closer than its default. */
+    var CUBE_VIEW =
+        {lat: 35, lon: 30, dist: 5.2, lift: "-3%", floorHeight: "18.5%", floorBottom: "2.5%"};
+    /**
+     * The same view for the cubes the bundle draws with its puzzle-geometry renderer, which is
+     * every one of them except the 3x3: at one distance that renderer comes out a tenth larger,
+     * which showed as a 2x2 standing taller than the 3x3 with its shadow squashed under it. Stood
+     * back by that tenth, so one pool of shadow does for all of them.
+     */
+    var PG_CUBE_VIEW =
+        {lat: 35, lon: 30, dist: 5.75, lift: "-3%", floorHeight: "18.5%", floorBottom: "2.5%"};
+
     // The whole Java<->JS surface: set the puzzle + scramble, render it.
     //
     //   ntRender("333", "R U R' U'")                    -> scramble-display, 2D net
@@ -108,9 +154,12 @@
       var el;
       var threeD = mode === "3d" && !!puzzleId;
       var onMat = threeD && style === "mat";
+      var view = VIEW[puzzleId] || (puzzleId === "3x3x3" ? CUBE_VIEW : PG_CUBE_VIEW);
       if (onMat) {
         var pool = document.createElement("div");
         pool.id = "floor";
+        pool.style.setProperty("--nt-floor-height", view.floorHeight);
+        pool.style.setProperty("--nt-floor-bottom", view.floorBottom);
         host.appendChild(pool);
       }
       if (threeD || key === "fto") {
@@ -121,12 +170,16 @@
         el.setAttribute("control-panel", "none");
         if (threeD) {
           el.setAttribute("hint-facelets", "none");
-          // Closer than the player's own default, which leaves the cube small in a dialog-sized
-          // box. Only the starting point: dragging still moves the camera from here.
+          // Where the camera opens. Only the starting point: dragging still moves it from here.
           //
-          // Measured, for whoever sizes a box around it: the cube comes out its box's height times
-          // 4.44 over this, so 85% of it, and the rest is what a floor has to fit in.
-          el.setAttribute("camera-distance", "5.2");
+          // Measured, for whoever sizes a box around it: a cube comes out its box's height times
+          // 4.44 over the distance, so 85% of it, and the rest is what a floor has to fit in.
+          el.setAttribute("camera-latitude", view.lat);
+          el.setAttribute("camera-longitude", view.lon);
+          el.setAttribute("camera-distance", view.dist);
+          el.style.setProperty("--nt-lift", view.lift);
+          el.style.setProperty("--nt-canvas", view.canvas || "100%");
+          el.style.setProperty("--nt-roll", (view.roll || 0) + "deg");
           el.className = "nt-3d";
         }
         // The alg with no setup alg: the player's initial timestamp is then the END of
