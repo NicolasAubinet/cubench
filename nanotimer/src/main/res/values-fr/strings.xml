@@ -792,6 +792,10 @@
   <string name="drill_summary_column_execution">Exéc</string>
   <string name="drill_summary_column_total">Total</string>
   <string name="drill_case_revealed">Consulté</string>
+  <string name="drill_case_remove_title">Retirer cet essai ?</string>
+  <string name="drill_case_remove_message">%1$s, essai %2$d, %3$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
+  <string name="drill_case_remove">Retirer</string>
+  <string name="drill_case_removed">Retiré, touchez pour rétablir</string>
   <string name="drill_needs_cube">Connectez votre cube connecté pour lancer un entraînement.</string>
   <string name="drill_no_known_cases">Aucun cas de cet entraînement ne peut être mélangé par l\'application.</string>
   <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un entraînement.</string>

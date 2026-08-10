@@ -31,7 +31,7 @@ import java.util.List;
 public class DrillRecorder {
 
   /**
-   * The five writes a drill makes. Set apart from {@link Service} so that what a drill stores reads
+   * The six writes a drill makes. Set apart from {@link Service} so that what a drill stores reads
    * in one place, and so that the ordering above can be exercised without a database.
    */
   interface Writes {
@@ -39,6 +39,7 @@ public class DrillRecorder {
     void addCaseRep(long drillId, DrillCaseRep rep);
     void addCrossRep(long drillId, DrillCrossRep rep);
     void setCrossOptimalLength(long drillId, int position, int optimalLength);
+    void setCaseRepDeleted(long drillId, int position, boolean deleted);
     void end(long drillId, DrillEnd end);
   }
 
@@ -105,6 +106,34 @@ public class DrillRecorder {
     } else if (drillId > 0) {
       writes.setCrossOptimalLength(drillId, lastCrossPosition, optimalLength);
     }
+  }
+
+  /**
+   * Throws a rep out of every figure, or puts it back, for one the user pruned off the summary.
+   *
+   * <p>The only write that outlives {@link #end}: pruning is done on the summary screen, which is
+   * reached by ending the drill. A rep still waiting for its drill row goes in already flagged
+   * rather than being written and then updated.
+   */
+  public synchronized void setCaseRepDeleted(int position, boolean deleted) {
+    if (!recording) {
+      return;
+    }
+    DrillCaseRep waiting = pendingCaseRep(position);
+    if (waiting != null) {
+      waiting.setDeleted(deleted);
+    } else if (drillId > 0) {
+      writes.setCaseRepDeleted(drillId, position, deleted);
+    }
+  }
+
+  private DrillCaseRep pendingCaseRep(int position) {
+    for (Object rep : pending) {
+      if (rep instanceof DrillCaseRep && ((DrillCaseRep) rep).getPosition() == position) {
+        return (DrillCaseRep) rep;
+      }
+    }
+    return null;
   }
 
   /**
@@ -189,6 +218,11 @@ public class DrillRecorder {
       @Override
       public void setCrossOptimalLength(long drillId, int position, int optimalLength) {
         service.setDrillCrossRepOptimalLength(drillId, position, optimalLength, IGNORED);
+      }
+
+      @Override
+      public void setCaseRepDeleted(long drillId, int position, boolean deleted) {
+        service.setDrillCaseRepDeleted(drillId, position, deleted, IGNORED);
       }
 
       @Override

@@ -382,6 +382,20 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   }
 
   /**
+   * Puts the figure cells back, for a summary whose reps changed after it was drawn. A rep thrown
+   * out can be put back, so nothing {@link #showSummaryEmpty} does may be one way only.
+   */
+  protected void showSummaryFigures() {
+    findViewById(CELL_ROWS[1]).setVisibility(View.VISIBLE);
+    findViewById(CELL_ROWS[2]).setVisibility(View.VISIBLE);
+    View extra = findViewById(R.id.tvDrillSummaryExtra);
+    if (extra != null) {
+      extra.setVisibility(View.VISIBLE);
+    }
+    findViewById(R.id.tvDrillSummaryEmpty).setVisibility(View.GONE);
+  }
+
+  /**
    * A drill with nothing to average. The reps cell stays: how far it got is still the result, and
    * it is the one figure a drill that timed nothing still has.
    */

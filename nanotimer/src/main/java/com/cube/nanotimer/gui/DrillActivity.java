@@ -36,7 +36,7 @@ import java.util.List;
  * belongs beside the time and nowhere else, since set under the cube at headline size it read as a
  * caption for the cube, and so again as the name of the case being looked at.
  */
-public class DrillActivity extends DrillScreenActivity {
+public class DrillActivity extends DrillScreenActivity implements DrillCaseTable.Listener {
 
   /** The drill to run, as its JSON text. */
   public static final String EXTRA_SPEC = "drillSpec";
@@ -282,12 +282,27 @@ public class DrillActivity extends DrillScreenActivity {
     finished = true;
     showSummaryFor(label);
 
-    List<DrillRep> reps = session.getReps();
+    // Before the figures give up: a drill where every case was skipped still has something to
+    // report, which is which cases they were. It is also what prunes a rep, hence counted().
+    DrillCaseTable table =
+        new DrillCaseTable(this, session.getReps(), session.getSpec().getType(), this);
+    showFigures(table.counted());
+  }
+
+  /**
+   * A rep thrown out on the summary, or put back. It leaves the stored drill as well as the screen:
+   * a rep the user rejected must not go on being averaged into the case history behind their back.
+   */
+  @Override
+  public void onRepsPruned(int position, boolean deleted, List<DrillRep> counted) {
+    recorder.setCaseRepDeleted(position, deleted);
+    showFigures(counted);
+  }
+
+  /** The cells over the table, from the reps that count. Redrawn whenever that stops being all. */
+  private void showFigures(List<DrillRep> reps) {
     setSummaryCell(0, getString(R.string.drill_summary_cell_reps), String.valueOf(reps.size()),
         getString(R.string.drill_summary_cell_of, session.getSpec().getReps()));
-    // Before the figures give up: a drill where every case was skipped still has something to
-    // report, which is which cases they were.
-    new DrillCaseTable(this, reps, session.getSpec().getType());
 
     // Skipped reps are counted apart rather than folded into a mean, the same rule the case stats
     // follow: a case you gave up on is not a slow time.
@@ -312,6 +327,7 @@ public class DrillActivity extends DrillScreenActivity {
       showSummaryEmpty(R.string.drill_summary_nothing_timed);
       return;
     }
+    showSummaryFigures(); // a drill pruned to nothing and then put back has these to get back
     // Both halves, side by side and the same size, whichever one the drill was scored on. Reading
     // a case is half of what a drill trains, and the half the target happens to name says nothing
     // about whether the other one is where the time went.

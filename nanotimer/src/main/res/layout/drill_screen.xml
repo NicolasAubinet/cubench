@@ -388,6 +388,11 @@
            android:paddingRight="@dimen/space_xs">
 
           <TextView
+             android:id="@+id/tvDrillSortPosition"
+             style="@style/DrillCasePositionColumn"
+             android:text="@string/drill_summary_column_position"/>
+
+          <TextView
              style="@style/DialogSectionLabel"
              android:layout_width="0dp"
              android:layout_weight="1"

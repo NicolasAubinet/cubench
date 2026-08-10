@@ -791,6 +791,10 @@
   <string name="drill_summary_column_execution">Ejec</string>
   <string name="drill_summary_column_total">Total</string>
   <string name="drill_case_revealed">Consultada</string>
+  <string name="drill_case_remove_title">¿Quitar esta repetición?</string>
+  <string name="drill_case_remove_message">%1$s, repetición %2$d, %3$s. Queda en la lista, tachada, y no cuenta para nada.</string>
+  <string name="drill_case_remove">Quitar</string>
+  <string name="drill_case_removed">Quitada, toque para restaurar</string>
   <string name="drill_needs_cube">Conecta tu cubo inteligente para hacer un entrenamiento.</string>
   <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este entrenamiento.</string>
   <string name="drill_no_cube_view">Este dispositivo no puede dibujar el cubo de un entrenamiento.</string>

@@ -172,6 +172,64 @@ public class DrillRecorderTest {
     assertEquals("2/0/8", writer.optimalUpdates.get(0));
   }
 
+  /** Pruning happens on the summary, which is reached by ending the drill, so it outlives the end. */
+  @Test
+  public void aRepIsThrownOutAfterTheDrillHasEnded() {
+    Writer writer = new Writer();
+    DrillRecorder recorder = new DrillRecorder(writer, caseSpec(3), true);
+
+    recorder.record(abandonedRep());
+    recorder.record(abandonedRep());
+    writer.openWith(5);
+    recorder.end(DrillEnd.FINISHED);
+
+    recorder.setCaseRepDeleted(1, true);
+
+    assertEquals(1, writer.deletions.size());
+    assertEquals("5/1/true", writer.deletions.get(0));
+  }
+
+  @Test
+  public void aRepPutBackIsUnflaggedRatherThanRewritten() {
+    Writer writer = new Writer();
+    DrillRecorder recorder = new DrillRecorder(writer, caseSpec(3), true);
+
+    recorder.record(abandonedRep());
+    writer.openWith(5);
+    recorder.setCaseRepDeleted(0, true);
+    recorder.setCaseRepDeleted(0, false);
+
+    assertEquals(1, writer.caseReps.size()); // the row went in once and was updated twice
+    assertEquals(Arrays.asList("5/0/true", "5/0/false"), writer.deletions);
+  }
+
+  /** Inside the gap there is no row to update, so the rep goes in already flagged. */
+  @Test
+  public void aRepThrownOutInsideTheGapGoesInFlagged() {
+    Writer writer = new Writer();
+    DrillRecorder recorder = new DrillRecorder(writer, caseSpec(3), true);
+
+    recorder.record(abandonedRep());
+    recorder.setCaseRepDeleted(0, true);
+    writer.openWith(9);
+
+    assertEquals(1, writer.caseReps.size());
+    assertTrue(writer.caseReps.get(0).isDeleted());
+    assertEquals(0, writer.deletions.size());
+  }
+
+  /** A casual drill stored nothing, so there is nothing to throw out of it. */
+  @Test
+  public void aCasualDrillWritesNothingWhenARepIsThrownOut() {
+    Writer writer = new Writer();
+    DrillRecorder recorder = new DrillRecorder(writer, caseSpec(3), false);
+
+    recorder.record(abandonedRep());
+    recorder.setCaseRepDeleted(0, true);
+
+    assertEquals(0, writer.deletions.size());
+  }
+
   private static DrillSpec caseSpec(int reps) {
     return new DrillSpec("local-pllpicked", DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL,
         Arrays.asList("pll_ga"), DrillSpec.Selection.ROUND_ROBIN, reps, 0, "G perms");
@@ -236,6 +294,7 @@ public class DrillRecorderTest {
     final List<DrillCrossRep> crossReps = new ArrayList<DrillCrossRep>();
     final List<Long> drillIds = new ArrayList<Long>();
     final List<String> optimalUpdates = new ArrayList<String>();
+    final List<String> deletions = new ArrayList<String>();
     final List<DrillEnd> ends = new ArrayList<DrillEnd>();
     private DataCallback<Long> waiting;
 
@@ -266,6 +325,11 @@ public class DrillRecorderTest {
     @Override
     public void setCrossOptimalLength(long drillId, int position, int optimalLength) {
       optimalUpdates.add(drillId + "/" + position + "/" + optimalLength);
+    }
+
+    @Override
+    public void setCaseRepDeleted(long drillId, int position, boolean deleted) {
+      deletions.add(drillId + "/" + position + "/" + deleted);
     }
 
     @Override

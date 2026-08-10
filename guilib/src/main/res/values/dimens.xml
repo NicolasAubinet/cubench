@@ -18,4 +18,6 @@
   <!-- A drill summary's time columns. Shared so the tappable heading and the figures under it are
        the same column and not two that nearly line up. -->
   <dimen name="drill_case_column">52dp</dimen>
+  <!-- Two digits and no more: a drill is at most every case once, and there are 57 OLLs. -->
+  <dimen name="drill_case_position_column">22dp</dimen>
 </resources>

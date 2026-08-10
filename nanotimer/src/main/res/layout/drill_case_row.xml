@@ -20,6 +20,12 @@
    android:paddingTop="@dimen/space_s"
    android:paddingBottom="@dimen/space_s">
 
+  <!-- Where this rep fell in the drill. Left of the chart, so a reader looking for a particular
+       attempt runs down one narrow column rather than reading rows. -->
+  <TextView
+     android:id="@+id/tvDrillCasePosition"
+     style="@style/DrillCasePosition"/>
+
   <com.cube.nanotimer.gui.widget.LastLayerCaseView
      android:id="@+id/vDrillCaseChart"
      android:layout_width="36dp"

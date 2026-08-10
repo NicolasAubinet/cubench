@@ -669,6 +669,28 @@
     <item name="android:paddingLeft">4dp</item>
   </style>
 
+  <!-- Where a rep fell in the drill, and the heading over it. Left of everything and quieter than
+       the figures: it names the row rather than measuring it, and it is what someone who remembers
+       only that a rep went wrong near the end reads down. -->
+  <style name="DrillCasePosition">
+    <item name="android:layout_width">@dimen/drill_case_position_column</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:gravity">left</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textSize">12sp</item>
+    <item name="android:textColor">@color/secondary_text</item>
+    <item name="android:fontFeatureSettings">tnum</item>
+  </style>
+
+  <style name="DrillCasePositionColumn" parent="DrillCasePosition">
+    <item name="android:textSize">10sp</item>
+    <item name="android:letterSpacing">0.06</item>
+    <item name="android:paddingTop">9dp</item>
+    <item name="android:paddingBottom">9dp</item>
+    <item name="android:clickable">true</item>
+    <item name="android:focusable">true</item>
+  </style>
+
   <style name="DrillCaseColumn" parent="DrillCaseValue">
     <item name="android:textSize">10sp</item>
     <item name="android:textAllCaps">true</item>
