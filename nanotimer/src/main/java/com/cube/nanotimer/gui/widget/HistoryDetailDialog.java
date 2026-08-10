@@ -410,7 +410,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     // A piece turned where it stands is a different mistake from one in a foreign slot, so it is
     // said after the shape rather than counted into it.
     if (!residual.getTurned().isEmpty()) {
-      text += " " + getString(R.string.blind_left_also_turned, residual.getTurned());
+      text += "\n" + getString(R.string.blind_left_also_turned, residual.getTurned());
     }
     TextView line = (TextView) v.findViewById(R.id.breakdownResidual);
     line.setText(text);
