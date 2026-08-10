@@ -15,6 +15,8 @@ public class FontFitTextView extends AppCompatTextView {
   private Paint mTestPaint;
   private float initialTextSize;
   private int textSizeUnit = TypedValue.COMPLEX_UNIT_PX;
+  private int extraPaddingTop;
+  private int extraPaddingBottom;
 
   /**
    * The face a scramble is set in. It has to be monospaced: {@code formatScramble} pads every move
@@ -118,6 +120,7 @@ public class FontFitTextView extends AppCompatTextView {
     if (widthMode != MeasureSpec.UNSPECIFIED && widthSize > 0) {
       refitText(displayedText(), widthSize);
     }
+    centreShrunkLine();
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     // Shrinking the text must not shrink the box holding it. The cell around this view is sized to
     // its tallest child, so a long value that scaled itself down was pulling the tile down with it
@@ -151,7 +154,42 @@ public class FontFitTextView extends AppCompatTextView {
     // shorter for it, or this floor hands the saved pixels straight back.
     float lineHeight = (metrics.bottom - metrics.top) * getLineSpacingMultiplier()
         + getLineSpacingExtra();
-    return getPaddingTop() + getPaddingBottom() + (int) (lines * lineHeight);
+    return basePaddingTop() + basePaddingBottom() + (int) (lines * lineHeight);
+  }
+
+  /**
+   * Pads a shrunk line back out to the height it had at full size, half above and half below, so it
+   * sits where the full-size line sat. Leaving the box to do it is not enough: a shrunk value ended
+   * up higher than the label beside it, which had not shrunk, and the two read as misaligned.
+   * The vertical padding is this view's own: whatever it is given is taken as the base to add to.
+   */
+  private void centreShrunkLine() {
+    int top = 0;
+    int bottom = 0;
+    if (getMaxLines() == 1 && getTextSize() < initialTextSize) {
+      mTestPaint.set(getPaint());
+      Paint.FontMetricsInt shrunk = mTestPaint.getFontMetricsInt();
+      mTestPaint.setTextSize(initialTextSize);
+      Paint.FontMetricsInt full = mTestPaint.getFontMetricsInt();
+      int missing = (full.bottom - full.top) - (shrunk.bottom - shrunk.top);
+      top = missing / 2;
+      bottom = missing - top;
+    }
+    if (top != extraPaddingTop || bottom != extraPaddingBottom) {
+      int baseTop = basePaddingTop();
+      int baseBottom = basePaddingBottom();
+      extraPaddingTop = top;
+      extraPaddingBottom = bottom;
+      setPadding(getPaddingLeft(), baseTop + top, getPaddingRight(), baseBottom + bottom);
+    }
+  }
+
+  private int basePaddingTop() {
+    return getPaddingTop() - extraPaddingTop;
+  }
+
+  private int basePaddingBottom() {
+    return getPaddingBottom() - extraPaddingBottom;
   }
 
   @Override

@@ -149,9 +149,14 @@
     <item name="android:singleLine">true</item>
     <item name="android:textColor">@color/secondary_text</item>
   </style>
+  <!-- The horizontal padding is the gutter FontFitTextView shrinks a long time into: fitted to the
+       bare cell width, a 7x7 average (10:10.012) came out wall to wall with its digits on the
+       dividers. -->
   <style name="StatTileValuePx">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
+    <item name="android:paddingLeft">5px</item>
+    <item name="android:paddingRight">5px</item>
     <item name="android:textSize">30px</item>
     <item name="android:textStyle">bold</item>
     <item name="android:gravity">center</item>
@@ -162,6 +167,8 @@
   <style name="StatTileSubPx">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
+    <item name="android:paddingLeft">5px</item>
+    <item name="android:paddingRight">5px</item>
     <item name="android:textSize">15px</item>
     <item name="android:gravity">center</item>
     <item name="android:singleLine">true</item>
