@@ -300,6 +300,70 @@ public class RecordedBlindSolveTest {
     }
   }
 
+  /**
+   * An algorithm shot at pieces already home, which is what a wrong target looks like: solve 163
+   * with its last algorithm replaced by a repeat of the one two before it. Real turning, so the
+   * buffer is read the way a solve's is — and the buffer is the one piece not marked, since taking
+   * that out of a slot it had just come home to is what breaking into a new cycle is.
+   */
+  @Test
+  public void marksAnAlgorithmThatShotAtPiecesAlreadyHome() {
+    RecordedBlindSolveTest read = new RecordedBlindSolveTest();
+    read.replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
+    List<Long> landings = read.landingTimes();
+    int last = landings.size() - 1;
+    replay(RecordedBlindSolve.SCRAMBLE_163,
+        withLastAlgorithmRepeating(RecordedBlindSolve.MOVES_163, landings.get(last - 1),
+            landings.get(last - 3), landings.get(last - 2)), Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals("UFR-UFL-DBR", detector.subStepName(2, 2));
+    assertEquals(Arrays.asList(TOUCHED, WRONG, WRONG), detector.subStepPieceMarks(2, 2));
+    assertEquals("UFR-UFL-DBR", detector.subStepName(2, 0)); // the same algorithm, done right
+    assertFalse(detector.subStepPieceMarks(2, 0).contains(WRONG));
+    for (int part = 0; part < detector.subStepCount(1); part++) {
+      assertFalse(detector.subStepPieceMarks(1, part).contains(WRONG));
+    }
+  }
+
+  /** Every landing of the solve, in order. */
+  private List<Long> landingTimes() {
+    List<Long> times = new ArrayList<Long>();
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        times.add(detector.getSubStepTimestampMs(step, part));
+      }
+    }
+    return times;
+  }
+
+  /** The solve up to {@code keepThroughMs}, then the face turns of the window given, replayed. */
+  private static String withLastAlgorithmRepeating(String moves, long keepThroughMs, long fromMs,
+      long toMs) {
+    StringBuilder spliced = new StringBuilder();
+    List<String> repeated = new ArrayList<String>();
+    for (String token : moves.trim().split("\\s+")) {
+      if (token.startsWith("[")) {
+        spliced.append(token).append(' ');
+        continue;
+      }
+      String notation = token.substring(0, token.indexOf('@'));
+      long offsetMs = Long.parseLong(token.substring(token.indexOf('@') + 1));
+      if (offsetMs <= keepThroughMs) {
+        spliced.append(token).append(' ');
+      }
+      if (offsetMs > fromMs && offsetMs <= toMs && "xyz".indexOf(notation.charAt(0)) < 0) {
+        repeated.add(notation);
+      }
+    }
+    long at = keepThroughMs;
+    for (String notation : repeated) {
+      at += 150;
+      spliced.append(notation).append('@').append(at).append(' ');
+    }
+    return spliced.toString().trim();
+  }
+
   // Cut inside the last algorithm: what follows the landing before it is turning nothing was read
   // from, and the reading says where it stopped rather than ending quietly.
   @Test

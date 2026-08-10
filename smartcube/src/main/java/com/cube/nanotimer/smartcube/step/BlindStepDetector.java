@@ -627,36 +627,86 @@ public final class BlindStepDetector implements StepDetector {
    * ({@link #wouldHaveSolvedItReversed}), and if the cube comes out this is where it was lost. A
    * cycle shot backwards leaves every piece it named out, the buffer among them.
    *
+   * <p><b>An algorithm answers for any piece it took out of its slot</b> and never put back, which
+   * is what a shot to a wrong target leaves ({@link #piecesItTookOut}).
+   *
    * <p><b>Or the cube was left with exactly the pieces it named</b>, none of them touched since:
    * what an algorithm shot to the wrong sticker leaves when nothing followed it. The buffer is not
    * marked here — a cycle leaves it holding whatever came back from the last target, so that is
    * where the leftover sits rather than something the algorithm missed.
    *
-   * <p>Neither blames an algorithm that did nothing wrong. A cycle left open and a parity never done
-   * put pieces out that no algorithm claimed and that no reversal would fix: both are the verdict
-   * line's to explain, which says the shape without pointing at anyone.
+   * <p>None of them blames an algorithm that did nothing wrong. A cycle left open and a parity never
+   * done put pieces out that no algorithm claimed, that no reversal would fix, and that no algorithm
+   * took out of a slot they were sitting home in: all of it is the verdict line's to explain, which
+   * says the shape without pointing at anyone.
    */
   private List<Integer> blamedOn(Landing landing) {
     if (solvedMs != null) {
       return Collections.emptyList();
     }
-    if (wouldHaveSolvedItReversed(landing)) {
-      return landing.named.slots;
+    Landing reversed = lostByReversal();
+    if (reversed != null) {
+      // Proved, so nothing else is asked: what the algorithms after a misfire took out, they took
+      // out executing the memo faithfully on a cube the misfire had already moved on.
+      return reversed == landing ? landing.named.slots : Collections.<Integer>emptyList();
     }
+    List<Integer> blamed = piecesItTookOut(landing);
     List<Integer> left = leftOut();
     if (left.size() != landing.named.slots.size() || !landing.named.slots.containsAll(left)) {
-      return Collections.emptyList();
+      return blamed;
     }
-    List<Integer> blamed = new ArrayList<>();
     for (int slot : left) {
       if (lastToMove(slot) != landing) {
-        return Collections.emptyList(); // something later had it, so this is not where it was lost
+        return blamed; // something later had it, so this is not where it was lost
       }
-      if (slot != landing.buffer) {
+      if (slot != landing.buffer && !blamed.contains(slot)) {
         blamed.add(slot);
       }
     }
     return blamed;
+  }
+
+  /**
+   * The pieces this algorithm took out of their own slots and never put back. Every piece a cycle
+   * is aimed at is out when it is aimed at, so one that was home, left, and is still out when the
+   * solve stops was shot at by mistake — which is what a wrong target leaves, and what a wrong
+   * direction does not: reversing a cycle disturbs only pieces that were out anyway.
+   *
+   * <p><b>Except the piece it was shot from</b>, which is the one an algorithm may take out of a
+   * slot it was sitting home in. That is a break-in: the cycle before it closed by bringing the
+   * buffer home, and the memo goes on by shooting it straight back out. Blaming that reddens every
+   * solve that simply stopped after a cycle closed.
+   *
+   * <p>An undo is not asked either: taking a mistake back is allowed to undo whatever the mistake
+   * happened to get right.
+   */
+  private List<Integer> piecesItTookOut(Landing landing) {
+    List<Integer> out = new ArrayList<>();
+    if (unread > 0 || UNDO.equals(landing.named.name)) {
+      return out; // past the reading, a piece could have been put back in the moves nothing read
+    }
+    if (landing.shot && landing.buffer == BlindTargets.NO_BUFFER) {
+      return out; // nothing says which piece it was entitled to take out, so nothing can be said
+    }
+    for (int slot : landing.named.slots) {
+      if (slot != landing.buffer
+          && Cubies.inPlace(landing.before, PIECES[slot])
+          && !Cubies.inPlace(landing.after, PIECES[slot])
+          && !Cubies.inPlace(landed, PIECES[slot])) {
+        out.add(slot);
+      }
+    }
+    return out;
+  }
+
+  /** The first algorithm the cube would have come out without, or null where there is none. */
+  private Landing lostByReversal() {
+    for (Landing landing : landings) {
+      if (wouldHaveSolvedItReversed(landing)) {
+        return landing;
+      }
+    }
+    return null;
   }
 
   /**

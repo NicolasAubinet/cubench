@@ -3,6 +3,8 @@ package com.cube.nanotimer.smartcube.step;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The cube's geometry as facelet indices, shared by the step detectors: which facelets make up each
@@ -174,20 +176,17 @@ final class Cubies {
     for (int facelet = 0; facelet < motion.length; facelet++) {
       motion[facelet] = facelet; // centres, and anything the pieces below do not claim
     }
-    int[] landedIn = new int[PIECES.length]; // the slot each piece is in afterwards, by its home
+    Map<String, Integer> landedIn = new HashMap<>(); // where each piece ended up, by its colours
     for (int slot = 0; slot < PIECES.length; slot++) {
-      int home = homeSlotOf(to, slot);
-      if (home >= 0) {
-        landedIn[home] = slot;
-      }
+      landedIn.put(coloursOf(to, PIECES[slot]), slot);
     }
     for (int slot = 0; slot < PIECES.length; slot++) {
-      int home = homeSlotOf(from, slot);
-      if (home < 0) {
+      Integer landed = landedIn.get(coloursOf(from, PIECES[slot]));
+      if (landed == null) {
         continue;
       }
       for (int facelet : PIECES[slot]) {
-        for (int candidate : PIECES[landedIn[home]]) {
+        for (int candidate : PIECES[landed]) {
           if (to.charAt(candidate) == from.charAt(facelet)) {
             motion[facelet] = candidate;
           }
