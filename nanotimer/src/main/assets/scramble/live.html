@@ -17,6 +17,8 @@
                             Ignored for as long as the gyro is followed, and applied again the
                             moment it is not: a mirror drawn from anywhere but square on is not a
                             mirror. A 90° step is turned rather than jumped.
+    ntLiveFloor(on)         stand the cube in a pool of shadow, for a screen that gives it no
+                            surface of its own (the timer's bare mat)
     ntLiveStickering(mask)  which stickers keep their colour (see CubeStickering). A mask names
                             PIECES, not the slots they are in: Cube3D holds one object per piece
                             and moves it to wherever the piece sits, so the mask travels with the
@@ -60,16 +62,40 @@
     margin: 0; padding: 0; width: 100%; height: 100%;
     background: transparent; overflow: hidden;
   }
-  #host { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  #host {
+    position: relative; /* the pool of shadow below is placed against this box */
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  }
   /* The player draws the cube a few percent above the middle of its canvas — it is looked at from
      above, so the top face pushes the silhouette up. Measured at ~5% of the box on the phone. */
   twisty-player { width: 100%; height: 100%; --controls-height: 0; transform: translateY(5%); }
+  /* The pool of shadow the cube stands in, for a screen whose picture stands on nothing: without
+     it a cube on a bare mat reads as hovering. The same one scramble.html draws under the diagram
+     this replaces, so connecting a cube does not take the ground out from under the box.
+     Off by default and asked for (ntLiveFloor) — a drill's cube has a lit well of its own.
+     ⚠️ Sized off the box's HEIGHT and for the DEFAULT camera distance, which is the only one the
+     timer uses: at 6, and square on, the cube stands 63% of the box tall with its foot 12% up
+     from the box's, and this sits just under that, half behind it the way a contact shadow is. A
+     screen that moves the camera would have to move this with it. Drawn a little wider than the
+     cube is square on, since the cube turns with the hands and comes out wider corner on. */
+  #floor {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: 6.5%;
+    height: 14%;
+    aspect-ratio: 4.84;
+    transform: translateX(-50%);
+    background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, .50) 0%,
+                                rgba(0, 0, 0, .20) 50%, rgba(0, 0, 0, 0) 76%);
+  }
+  #floor.on { display: block; }
 </style>
 <script src="bundle.js"></script>
 <script src="palette.js"></script>
 </head>
 <body>
-<div id="host"></div>
+<div id="host"><div id="floor"></div></div>
 <script>
 (function () {
   // The bundle's own catch-up length, which tempoScale divides. Not settable, so it is written
@@ -415,6 +441,11 @@
     // starves requestAnimationFrame and the app would hold its spinner until the timeout.
     requestAnimationFrame(function () { requestAnimationFrame(notifyReady); });
     setTimeout(notifyReady, 300);
+  };
+
+  /** Whether the cube stands in a pool of shadow: for a screen that gives it no surface of its own. */
+  window.ntLiveFloor = function (on) {
+    document.getElementById("floor").classList.toggle("on", !!on);
   };
 
   /**

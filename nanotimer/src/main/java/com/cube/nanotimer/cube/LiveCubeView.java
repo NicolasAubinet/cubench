@@ -276,6 +276,9 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
       cubeWeb = cubeLayout.findViewById(R.id.wvLiveCube);
       cube = new VirtualCube((WebView) cubeWeb, touchListener, this);
       cube.setGyroFollowing(true);
+      // It draws in the same gap as the scramble's diagram, on the same bare mat, so it stands in
+      // the same pool of shadow: connecting a cube swaps what is in the box, not what is under it.
+      cube.setFloor(true);
       point(); // a state taken before the cube existed still has to reach it
     } catch (Throwable t) {
       // e.g. no WebView implementation installed. Said out loud: swallowed, this is a feature that

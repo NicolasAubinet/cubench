@@ -79,6 +79,8 @@ public class VirtualCube implements GyroReferenceListener {
   private String stickering;
   /** How far back the camera stands, or 0 to leave the page on its own default. */
   private double cameraDistance;
+  /** Whether the cube is drawn standing in a pool of shadow. */
+  private boolean floor;
   /** Where the camera stands while there is no grip to follow, or null for square on. */
   private double[] view;
 
@@ -148,6 +150,19 @@ public class VirtualCube implements GyroReferenceListener {
   public void setCameraDistance(double distance) {
     cameraDistance = distance;
     evaluate("window.ntLiveCamera(" + distance + ");");
+  }
+
+  /**
+   * Stands the cube in a pool of shadow, for a screen that gives it no surface of its own: without
+   * one a cube on a bare mat reads as hovering. It is the same pool the scramble's diagram is drawn
+   * in, so taking that diagram's place does not take the ground with it.
+   *
+   * <p>⚠️ Drawn for the page's <em>default</em> camera distance. A screen that moves the camera and
+   * wants a floor too has to move the one in {@code live.html} with it.
+   */
+  public void setFloor(boolean floor) {
+    this.floor = floor;
+    evaluate("window.ntLiveFloor(" + floor + ");");
   }
 
   /**
@@ -280,6 +295,9 @@ public class VirtualCube implements GyroReferenceListener {
     }
     if (view != null) {
       evaluate("window.ntLiveView(" + view[0] + "," + view[1] + ");");
+    }
+    if (floor) {
+      evaluate("window.ntLiveFloor(true);");
     }
     if (pattern == null) {
       return;
