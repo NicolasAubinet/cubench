@@ -820,7 +820,8 @@
   <string name="drill_case_revealed">Looked up</string>
   <string name="drill_summary_column_position" translatable="false">#</string>
   <string name="drill_case_remove_title">Remove this rep?</string>
-  <string name="drill_case_remove_message">%1$s, rep %2$d, %3$s. It stays on the list, struck out, and counts toward nothing.</string>
+  <string name="drill_case_remove_message">%1$s (rep %2$d), %3$s. It stays on the list, struck out, and counts toward nothing.</string>
+  <string name="drill_case_seconds">%1$ss</string>
   <string name="drill_case_remove">Remove</string>
   <string name="drill_case_removed">Removed, tap to restore</string>
   <!-- Punctuation between what was drilled and the mode it was drilled in. -->

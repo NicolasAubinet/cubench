@@ -201,8 +201,11 @@ public class DrillCaseTable {
       setDeleted(rep, false);
       return true;
     }
+    // Carries its unit here where it stands in a sentence, unlike in the table where the column
+    // heading says what the figure is. A rep with no time says so instead, and takes no unit.
     String time = rep.isAbandoned() ? activity.getString(R.string.drill_rep_skipped)
-        : FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs());
+        : activity.getString(R.string.drill_case_seconds,
+            FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs()));
     String message = activity.getString(R.string.drill_case_remove_message,
         Utils.toSmartCubeCaseHeadline(activity, rep.getCaseCode()), number(rep), time);
     DialogUtils.showConfirmCancelDialog(activity, R.string.drill_case_remove_title, message,
