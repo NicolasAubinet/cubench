@@ -576,13 +576,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     } else {
       focusTransition.panelsIn(identityStrip, scrambleBox, sessionLayout);
     }
-    timePlinth.setShown(!on); // the rule belongs to the resting screen, not to a solve
     focusTransition.lightsDown(focusPool, on);
     if (tvTimer instanceof DigitalTextView) {
       ((DigitalTextView) tvTimer).setQuietFraction(on); // the hundredths are a blur while it runs
     }
     // The ring carries the count while inspecting, and the dot stands in for a solve timed blind.
     timerFocused = on;
+    refreshTimePlinth();
     refreshStatePreviewSuppression(); // a panel like the rest, and it stands down with them
     refreshStatePreviewOwner(); // and so does the cube, which draws in the same gap
     tvTimer.setVisibility(on && (standIn || inspecting) ? View.INVISIBLE : View.VISIBLE);
@@ -1926,6 +1926,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     shownDoneCount = doneCount;
     solveStepBar.setSteps(steps, stepNames, doneCount);
     solveStepBar.setVisibility(View.VISIBLE);
+    refreshTimePlinth();
     // The legend can wrap to another row, so where the block is parked has to be read again.
     stepBreakdown.post(parkBreakdown);
   }
@@ -1948,6 +1949,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     solveStepBar.setSteps(shownSteps, shownStepNames, shownDoneCount);
     solveStepBar.setVisibility(View.VISIBLE);
+    refreshTimePlinth();
     if (tvSolveStats != null && shownStats != null) { // absent in landscape
       tvSolveStats.setText(shownStats);
       tvSolveStats.setVisibility(View.VISIBLE);
@@ -1959,6 +1961,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     shownStepNames = null;
     shownStats = null;
     solveStepBar.setVisibility(breakdownRidesInGap() ? View.INVISIBLE : View.GONE);
+    refreshTimePlinth();
     if (tvSolveStats != null) {
       tvSolveStats.animate().cancel();
       // Only a cube ever fills this line, so only a cube's solve type keeps room for it: a solve
@@ -1980,6 +1983,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   private boolean canBreakDownSolves() {
     return solveController.isCubeDriven();
+  }
+
+  // The step bar is pulled up into the digits' descent, so it stands in the rule's own few pixels
+  // and is the rule wherever there is one. Only a screen with no bar at all (GONE, not INVISIBLE)
+  // draws it, and never while a solve runs.
+  private void refreshTimePlinth() {
+    timePlinth.setShown(!timerFocused && solveStepBar.getVisibility() == View.GONE);
   }
 
   /**
