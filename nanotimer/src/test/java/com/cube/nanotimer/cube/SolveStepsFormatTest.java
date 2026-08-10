@@ -130,11 +130,32 @@ public class SolveStepsFormatTest {
   }
 
   @Test
-  public void unserializableNamesFailAtFormatTimeNotAtParseTime() {
-    assertFormatFails(new SolveStep(0, "has space", 1, 2, NONE));
-    assertFormatFails(new SolveStep(0, "has:colon", 1, 2, NONE));
+  public void namelessStepsFailAtFormatTimeNotAtParseTime() {
     assertFormatFails(new SolveStep(0, "", 1, 2, NONE));
     assertFormatFails(new SolveStep(0, null, 1, 2, NONE));
+  }
+
+  /** A blind algorithm is called "twist:FUL-FUR" and a parity "UBL-UFR + UF-UR". */
+  @Test
+  public void namesHoldingASeparatorAreCarriedEscaped() {
+    List<SolveStep> steps = Arrays.asList(
+        new SolveStep(0, "twist:FUL-FUR", 1, 2, NONE),
+        new SolveStep(1, "UBL-UFR + UF-UR", 3, 4, NONE),
+        new SolveStep(2, "100%", 5, 6, NONE));
+    String stored = SolveStepsFormat.format(steps);
+    assertEquals("0:twist%3AFUL-FUR:1:2 1:UBL-UFR%20+%20UF-UR:3:4 2:100%25:5:6", stored);
+    List<SolveStep> parsed = SolveStepsFormat.parse(stored);
+    assertEquals(steps.size(), parsed.size());
+    for (int i = 0; i < steps.size(); i++) {
+      assertStepEquals(steps.get(i), parsed.get(i));
+    }
+  }
+
+  @Test
+  public void malformedEscapesAreRejected() {
+    assertParseFails("0:cross%:10:20");
+    assertParseFails("0:cross%2:10:20");
+    assertParseFails("0:cross%zz:10:20");
   }
 
   private void assertStepEquals(SolveStep expected, SolveStep actual) {

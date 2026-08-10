@@ -8,10 +8,17 @@ import java.util.List;
  * The exported form of a solve's step rows: one token per row, mirroring the DB columns, as in
  * {@code "0:cross:790:1520 1.0:pair_rf:550:1480"} ({@code index[.part]:name:recognition:execution},
  * times in ms). Shared by the share payload and the CSV export so a solve travels in one format.
+ *
+ * <p>A name may hold either of the two separators — a blind algorithm is called {@code twist:FUL-FUR}
+ * and a parity {@code UBL-UFR + UF-UR} — so the name field is percent-escaped ({@code %3A},
+ * {@code %20}, and {@code %25} for the escape character itself). Nothing written before carried an
+ * escape, since a name needing one used to be refused outright, so anything exported earlier reads
+ * back unchanged.
  */
 public final class SolveStepsFormat {
 
   private static final char FIELD_SEPARATOR = ':';
+  private static final char ESCAPE = '%';
 
   private SolveStepsFormat() {
   }
@@ -30,16 +37,60 @@ public final class SolveStepsFormat {
 
   private static void append(StringBuilder sb, String index, SolveStep step) {
     String name = step.getName();
-    if (name == null || name.isEmpty() || name.indexOf(' ') >= 0 || name.indexOf(FIELD_SEPARATOR) >= 0) {
-      // A name the grammar cannot carry must fail here, loudly, not produce a token parse() rejects.
+    if (name == null || name.isEmpty()) {
+      // A step with no name at all is not a row: fail here, loudly, rather than write a token
+      // parse() rejects.
       throw new IllegalArgumentException("Step name not serializable: \"" + name + "\"");
     }
     if (sb.length() > 0) {
       sb.append(' ');
     }
-    sb.append(index).append(FIELD_SEPARATOR).append(name)
+    sb.append(index).append(FIELD_SEPARATOR).append(escape(name))
         .append(FIELD_SEPARATOR).append(step.getRecognitionMs())
         .append(FIELD_SEPARATOR).append(step.getExecutionMs());
+  }
+
+  /** Hides the two separators inside a name, so the grammar can carry whatever a step is called. */
+  private static String escape(String name) {
+    StringBuilder sb = new StringBuilder(name.length());
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
+      if (c == ESCAPE) {
+        sb.append("%25");
+      } else if (c == ' ') {
+        sb.append("%20");
+      } else if (c == FIELD_SEPARATOR) {
+        sb.append("%3A");
+      } else {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
+  }
+
+  /** @throws IllegalArgumentException on an escape the format never writes */
+  private static String unescape(String name, String token) {
+    if (name.indexOf(ESCAPE) < 0) {
+      return name; // everything exported before the escaping, and most names since
+    }
+    StringBuilder sb = new StringBuilder(name.length());
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
+      if (c != ESCAPE) {
+        sb.append(c);
+        continue;
+      }
+      if (i + 2 >= name.length()) {
+        throw new IllegalArgumentException("Truncated escape in token: \"" + token + "\"");
+      }
+      try {
+        sb.append((char) Integer.parseInt(name.substring(i + 1, i + 3), 16));
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid escape in token: \"" + token + "\"");
+      }
+      i += 2;
+    }
+    return sb.toString();
   }
 
   /**
@@ -61,7 +112,7 @@ public final class SolveStepsFormat {
       if (fields.length != 4) {
         throw new IllegalArgumentException("Invalid step token: \"" + token + "\"");
       }
-      String name = fields[1];
+      String name = unescape(fields[1], token);
       if (name.isEmpty()) {
         throw new IllegalArgumentException("Empty step name in token: \"" + token + "\"");
       }
