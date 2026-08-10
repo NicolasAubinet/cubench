@@ -395,6 +395,31 @@ public class BlindStepDetectorTest {
   }
 
   /**
+   * A misfire the solve carried on past, which is what a misfire normally is — nobody blindfolded
+   * knows to stop. The rest of the memo is then shot from a buffer holding the wrong piece, so what
+   * the cube is left with is not the three pieces that algorithm named: two of them, and whichever
+   * target came next. Asking what was left over can never find this; reversing the algorithm can.
+   */
+  @Test
+  public void marksAMisfireTheSolveCarriedOnPast() {
+    startFrom(EDGE_CYCLE_A, EDGE_CYCLE_UL_DR, EDGE_CYCLE_DR_DL, EDGE_CYCLE_DL_UR, CORNER_CYCLE_A);
+    play(EDGE_CYCLE_A, invert(EDGE_CYCLE_UL_DR), EDGE_CYCLE_DR_DL, EDGE_CYCLE_DL_UR,
+        CORNER_CYCLE_A);
+
+    assertFalse(detector.isComplete());
+    assertNull(detector.getLostReading());
+    // Three edges out, none of them a piece the misfired algorithm was shot at.
+    assertEquals("UR-DL-UL", detector.getResidual().getPieces());
+    assertEquals("UF-DR-UL", detector.subStepName(1, 1));
+    assertEquals(Arrays.asList(WRONG, WRONG, WRONG), detector.subStepPieceMarks(1, 1));
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertEquals(step == 1 && part == 1, detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
+  }
+
+  /**
    * A solve stopped part way through its corners blames nobody. Its last corner algorithm was going
    * right and the cycle is simply still open, so the pieces out are not what that algorithm claimed
    * — which is the whole of what keeps a correct algorithm out of the red.

@@ -2,6 +2,7 @@ package com.cube.nanotimer.smartcube.step;
 
 import static com.cube.nanotimer.smartcube.step.PieceMark.HOME;
 import static com.cube.nanotimer.smartcube.step.PieceMark.TOUCHED;
+import static com.cube.nanotimer.smartcube.step.PieceMark.WRONG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -272,6 +273,31 @@ public class RecordedBlindSolveTest {
     assertEquals(BlindResidual.Shape.TWISTED, residual.getShape());
     assertEquals(3, residual.getCount());
     assertEquals("UFL, UBL, UFR", residual.getPieces());
+  }
+
+  /**
+   * The misfire of 2026-08-10: a corner commutator shot backwards, and a corner twist done after
+   * it. The twist moved the buffer, so asking that nothing had touched the leftover since let the
+   * algorithm that lost the solve off. Reversing that one algorithm solves the cube and reversing
+   * any other does not, which is the whole claim the red makes.
+   */
+  @Test
+  public void marksTheAlgorithmAnotherOneMovedThePiecesOf() {
+    replay(RecordedBlindSolve.SCRAMBLE_MISFIRE, RecordedBlindSolve.MOVES_MISFIRE, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertNull("the twist landed, so nothing went unread", detector.getLostReading());
+    assertEquals(BlindResidual.Shape.CORNER_CYCLE, detector.getResidual().getShape());
+
+    assertEquals("UFR-UBR-DBR", detector.subStepName(2, 2));
+    assertEquals(Arrays.asList(WRONG, WRONG, WRONG), detector.subStepPieceMarks(2, 2));
+    assertEquals("twist:FUL-UFR", detector.subStepName(2, 3)); // the algorithm after it, and clean
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertEquals("only the misfire is red: " + detector.subStepName(step, part),
+            step == 2 && part == 2, detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
   }
 
   // Cut inside the last algorithm: what follows the landing before it is turning nothing was read

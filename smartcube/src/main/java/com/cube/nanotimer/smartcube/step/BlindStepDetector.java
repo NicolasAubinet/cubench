@@ -87,7 +87,8 @@ public final class BlindStepDetector implements StepDetector {
     final long timestampMs;
     final int type;
     final String before;
-    final String after; // where it landed, kept only for a cycle that may still be renamed
+    final String after; // where it landed, which is where the solve stood one algorithm on
+    final boolean shot; // whether a cycle was shot, and so may still be renamed
     final List<Integer> pieces;
     final List<Integer> gained; // what it put home, which says which of its name's pieces are solved
     final List<Integer> moved; // every piece it shifted, named or not: who to blame for one left out
@@ -95,18 +96,20 @@ public final class BlindStepDetector implements StepDetector {
     int buffer;
 
     /** An algorithm with nothing left to settle: an undo, or a flip or a twist. */
-    Landing(long timestampMs, int type, BlindTargets.Named named, String before,
+    Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
         List<Integer> gained, List<Integer> moved) {
-      this(timestampMs, type, named, before, null, null, BlindTargets.NO_BUFFER, gained, moved);
+      this(timestampMs, type, named, before, after, false, null, BlindTargets.NO_BUFFER, gained,
+          moved);
     }
 
     Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
-        List<Integer> pieces, int buffer, List<Integer> gained, List<Integer> moved) {
+        boolean shot, List<Integer> pieces, int buffer, List<Integer> gained, List<Integer> moved) {
       this.timestampMs = timestampMs;
       this.type = type;
       this.named = named;
       this.before = before;
       this.after = after;
+      this.shot = shot;
       this.pieces = pieces;
       this.buffer = buffer;
       this.gained = gained;
@@ -252,8 +255,8 @@ public final class BlindStepDetector implements StepDetector {
           ? targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES),
               typeBuffer[CORNERS], typeBuffer[EDGES])
           : targets.name(landed, steady, shotFrom, named);
-      landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed,
-          shot ? steady : null, named, shotFrom, all, moved));
+      landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed, steady,
+          shot, named, shotFrom, all, moved));
       if (shot && shotFrom != BlindTargets.NO_BUFFER) {
         nameWhatWaitedForIt(shotFrom);
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
@@ -306,7 +309,7 @@ public final class BlindStepDetector implements StepDetector {
   private void nameWhatWaitedForIt(int shotFrom) {
     for (int i = landings.size() - 2; i >= 0; i--) {
       Landing landing = landings.get(i);
-      if (landing.after == null) {
+      if (!landing.shot) {
         continue; // nothing was shot here, so nothing here chose a buffer either
       }
       if (landing.buffer != BlindTargets.NO_BUFFER || !landing.pieces.contains(shotFrom)) {
@@ -334,8 +337,8 @@ public final class BlindStepDetector implements StepDetector {
           landings.remove(landings.size() - 1); // the halves are the one algorithm they compose
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
-        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from, gained,
-            turned));
+        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from, steady,
+            gained, turned));
         return true;
       }
       int previous = landings.size() - 1 - joined;
@@ -357,7 +360,7 @@ public final class BlindStepDetector implements StepDetector {
       return false;
     }
     landings.add(new Landing(timestampMs, NO_GAIN,
-        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, gained,
+        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, steady, gained,
         moved(landed, steady)));
     return true;
   }
@@ -617,25 +620,29 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * The pieces this algorithm is answerable for, which it is only when <b>what the cube was left
-   * with is exactly what this algorithm said it would fix</b>, and nothing has touched those pieces
-   * since. That is what an algorithm shot to the wrong sticker leaves: the same three pieces it
-   * named, cycled among themselves, still out.
+   * The pieces this algorithm is answerable for, of which a solve that came out has none.
    *
-   * <p>Anything looser blames algorithms that did nothing wrong. A solve stopped part way through a
-   * cycle has pieces out because the cycle is still open, and the last algorithm of it was going
-   * right; a parity never done leaves two of each swapped, and no algorithm did that either. Both
-   * leave pieces out that no single algorithm ever claimed, so both are left to the verdict line,
-   * which says the shape without pointing at anyone.
+   * <p><b>An algorithm executed the other way round is answerable for its whole name.</b> That is
+   * proved rather than guessed: reverse this one algorithm, leave the rest of the solve as it was
+   * ({@link #wouldHaveSolvedItReversed}), and if the cube comes out this is where it was lost. A
+   * cycle shot backwards leaves every piece it named out, the buffer among them.
    *
-   * <p>The piece an algorithm was shot from is not marked even so: a cycle leaves its buffer holding
-   * whatever came back from its last target, so the buffer is where the leftover sits rather than
-   * something the algorithm missed.
+   * <p><b>Or the cube was left with exactly the pieces it named</b>, none of them touched since:
+   * what an algorithm shot to the wrong sticker leaves when nothing followed it. The buffer is not
+   * marked here — a cycle leaves it holding whatever came back from the last target, so that is
+   * where the leftover sits rather than something the algorithm missed.
    *
-   * <p>Nothing is blamed on anything where the reading did not run to the last move: past that point
-   * the unread turning could have broken any of it. That is what {@link #getLostReading()} says.
+   * <p>Neither blames an algorithm that did nothing wrong. A cycle left open and a parity never done
+   * put pieces out that no algorithm claimed and that no reversal would fix: both are the verdict
+   * line's to explain, which says the shape without pointing at anyone.
    */
   private List<Integer> blamedOn(Landing landing) {
+    if (solvedMs != null) {
+      return Collections.emptyList();
+    }
+    if (wouldHaveSolvedItReversed(landing)) {
+      return landing.named.slots;
+    }
     List<Integer> left = leftOut();
     if (left.size() != landing.named.slots.size() || !landing.named.slots.containsAll(left)) {
       return Collections.emptyList();
@@ -650,6 +657,17 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     return blamed;
+  }
+
+  /**
+   * Whether the cube would have come out had this one algorithm been executed the other way round,
+   * everything after it held identical — the turning nothing was read from included, being turning
+   * all the same.
+   */
+  private boolean wouldHaveSolvedItReversed(Landing landing) {
+    String reversed = Cubies.applyMotion(
+        Cubies.motionBetween(landing.after, landing.before), landing.before);
+    return isSolved(Cubies.applyMotion(Cubies.motionBetween(landing.after, stopped), reversed));
   }
 
   /** The pieces not home when the solve stopped, or none where there is nothing honest to read. */

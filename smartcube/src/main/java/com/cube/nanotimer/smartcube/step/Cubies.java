@@ -164,6 +164,49 @@ final class Cubies {
   }
 
   /**
+   * Where every sticker went between two states, as the facelet each one moved to. Turning permutes
+   * places and not pieces, so the motion read off one pair of states is the motion those same turns
+   * would make from any other state — which is what lets a solve be replayed with one algorithm
+   * changed and nothing else. Read piece by piece, since only a cubie's own colours identify it.
+   */
+  static int[] motionBetween(String from, String to) {
+    int[] motion = new int[from.length()];
+    for (int facelet = 0; facelet < motion.length; facelet++) {
+      motion[facelet] = facelet; // centres, and anything the pieces below do not claim
+    }
+    int[] landedIn = new int[PIECES.length]; // the slot each piece is in afterwards, by its home
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      int home = homeSlotOf(to, slot);
+      if (home >= 0) {
+        landedIn[home] = slot;
+      }
+    }
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      int home = homeSlotOf(from, slot);
+      if (home < 0) {
+        continue;
+      }
+      for (int facelet : PIECES[slot]) {
+        for (int candidate : PIECES[landedIn[home]]) {
+          if (to.charAt(candidate) == from.charAt(facelet)) {
+            motion[facelet] = candidate;
+          }
+        }
+      }
+    }
+    return motion;
+  }
+
+  /** A state with the given motion made from it: every sticker carried where the motion sends it. */
+  static String applyMotion(int[] motion, String facelets) {
+    char[] moved = new char[facelets.length()];
+    for (int facelet = 0; facelet < moved.length; facelet++) {
+      moved[motion[facelet]] = facelets.charAt(facelet);
+    }
+    return new String(moved);
+  }
+
+  /**
    * Whether the piece is home, read in the given rotation: it shows its own colours wherever that
    * rotation has carried it. Which is what a slice leaves behind — the core turned, so relative to
    * the centres the state is written against, the solver's own frame is a rotation away.
