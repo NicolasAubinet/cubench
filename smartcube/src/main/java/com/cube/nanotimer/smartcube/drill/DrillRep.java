@@ -1,5 +1,9 @@
 package com.cube.nanotimer.smartcube.drill;
 
+import com.cube.nanotimer.smartcube.model.CubeMove;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * One attempt at one case: what it was, how long the looking and the turning took, and how many
  * moves it cost. Split the same way a solve's steps are, so a drill and a solve can be read against
@@ -15,6 +19,8 @@ public final class DrillRep {
 
   private final String caseCode;
   private final String scramble;
+  private final List<CubeMove> moves;
+  private final long shownAtMs;
   private final long recognitionMs;
   private final long executionMs;
   private final int moveCount;
@@ -22,10 +28,13 @@ public final class DrillRep {
   private final boolean revealed;
   private final boolean abandoned;
 
-  DrillRep(String caseCode, String scramble, long recognitionMs, long executionMs, int moveCount,
-      int resetCount, boolean revealed, boolean abandoned) {
+  DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
+      long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
+      boolean abandoned) {
     this.caseCode = caseCode;
     this.scramble = scramble;
+    this.moves = Collections.unmodifiableList(moves);
+    this.shownAtMs = shownAtMs;
     this.recognitionMs = recognitionMs;
     this.executionMs = executionMs;
     this.moveCount = moveCount;
@@ -42,6 +51,16 @@ public final class DrillRep {
   /** What the virtual cube was set up with, so a rep can be looked at again. */
   public String getScramble() {
     return scramble;
+  }
+
+  /** The turns that solved it, in order, so the algorithm used can be read back off the rep. */
+  public List<CubeMove> getMoves() {
+    return moves;
+  }
+
+  /** When the case went up, which the move timestamps are worth writing down against. */
+  public long getShownAtMs() {
+    return shownAtMs;
   }
 
   public long getRecognitionMs() {

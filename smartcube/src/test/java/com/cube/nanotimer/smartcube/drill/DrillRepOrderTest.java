@@ -2,8 +2,10 @@ package com.cube.nanotimer.smartcube.drill;
 
 import static org.junit.Assert.assertEquals;
 
+import com.cube.nanotimer.smartcube.model.CubeMove;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 
@@ -78,10 +80,12 @@ public class DrillRepOrderTest {
   }
 
   private static DrillRep rep(String caseCode, long recognitionMs, long executionMs) {
-    return new DrillRep(caseCode, "", recognitionMs, executionMs, 10, 0, false, false);
+    return new DrillRep(caseCode, "", Collections.<CubeMove>emptyList(), 0, recognitionMs,
+        executionMs, 10, 0, false, false);
   }
 
   private static DrillRep skipped(String caseCode) {
-    return new DrillRep(caseCode, "", 9000, 0, 0, 0, false, true);
+    return new DrillRep(caseCode, "", Collections.<CubeMove>emptyList(), 0, 9000, 0, 0, 0, false,
+        true);
   }
 }

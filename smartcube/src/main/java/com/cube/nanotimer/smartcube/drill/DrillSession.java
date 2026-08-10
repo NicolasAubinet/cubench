@@ -50,7 +50,7 @@ public final class DrillSession {
   private CubieCube cube = new CubieCube();
   private String currentCase;
   private String currentScramble;
-  private int moveCount;
+  private final List<CubeMove> moves = new ArrayList<CubeMove>();
   private long firstMoveMs;
   /** The first turn that was not an AUF, which is where the algorithm really started. */
   private long algStartMs;
@@ -120,7 +120,7 @@ public final class DrillSession {
         LastLayerScrambles.forCase(currentCase, random), layerFace);
     cube = new CubieCube();
     FaceTurns.apply(cube, currentScramble);
-    moveCount = 0;
+    moves.clear();
     firstMoveMs = 0;
     algStartMs = 0;
     lastMoveMs = 0;
@@ -182,7 +182,7 @@ public final class DrillSession {
     }
     cube = new CubieCube();
     FaceTurns.apply(cube, currentScramble);
-    moveCount = 0;
+    moves.clear();
     firstMoveMs = 0;
     algStartMs = 0;
     lastMoveMs = 0;
@@ -207,17 +207,18 @@ public final class DrillSession {
     long at = move.getCubeTimestampMs();
     if (at < caseShownOnCubeClock()) {
       // Turned before this case was up and delivered late: the cube still has to have it, or the
-      // two fall out of step, but it is the previous case's turn and cannot start this rep.
+      // two fall out of step, but it is the previous case's turn and cannot start this rep, and it
+      // is not one of the turns the rep is made of.
       cube.applyMove(move.getFace(), move.isPrime());
       return isCaseDone() ? complete(false) : null;
     }
-    if (moveCount == 0) {
+    if (moves.isEmpty()) {
       firstMoveMs = at;
     }
     if (algStartMs == 0 && move.getFace() != Face.valueOf(layerFace)) {
       algStartMs = at;
     }
-    moveCount++;
+    moves.add(move);
     lastMoveMs = at;
     cube.applyMove(move.getFace(), move.isPrime());
     return isCaseDone() ? complete(false) : null;
@@ -263,9 +264,13 @@ public final class DrillSession {
    */
   private DrillRep complete(boolean abandoned) {
     long algStart = algStartMs > 0 ? algStartMs : firstMoveMs;
-    long recognition = moveCount > 0 ? Math.max(0, algStart - caseShownOnCubeClock()) : 0;
-    long execution = moveCount > 0 ? Math.max(0, lastMoveMs - algStart) : 0;
-    DrillRep rep = new DrillRep(currentCase, currentScramble, recognition, execution, moveCount,
+    // On the cube's clock, not the host's: the turns are stamped on that one, and the offsets the
+    // rep is stored with are measured from this.
+    long shownAt = caseShownOnCubeClock();
+    long recognition = moves.isEmpty() ? 0 : Math.max(0, algStart - shownAt);
+    long execution = moves.isEmpty() ? 0 : Math.max(0, lastMoveMs - algStart);
+    DrillRep rep = new DrillRep(currentCase, currentScramble,
+        new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
         resetCount, revealed, abandoned);
     reps.add(rep);
     currentCase = null;

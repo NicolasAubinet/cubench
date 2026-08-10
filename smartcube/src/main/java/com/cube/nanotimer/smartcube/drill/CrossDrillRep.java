@@ -1,5 +1,9 @@
 package com.cube.nanotimer.smartcube.drill;
 
+import com.cube.nanotimer.smartcube.model.CubeMove;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * One attempt at one cross: how many moves it took against how few there were, and how the time
  * split between reading the scramble and turning it.
@@ -16,6 +20,8 @@ public final class CrossDrillRep {
 
   private final String face;
   private final String scramble;
+  private final List<CubeMove> moves;
+  private final long shownAtMs;
   private final long planningMs;
   private final long executionMs;
   private final int moveCount;
@@ -28,10 +34,13 @@ public final class CrossDrillRep {
   private final boolean built;
   private final boolean planningExpired;
 
-  CrossDrillRep(String face, String scramble, long planningMs, long executionMs, int moveCount,
-      int optimalLength, boolean built, boolean planningExpired) {
+  CrossDrillRep(String face, String scramble, List<CubeMove> moves, long shownAtMs,
+      long planningMs, long executionMs, int moveCount, int optimalLength, boolean built,
+      boolean planningExpired) {
     this.face = face;
     this.scramble = scramble;
+    this.moves = Collections.unmodifiableList(moves);
+    this.shownAtMs = shownAtMs;
     this.planningMs = planningMs;
     this.executionMs = executionMs;
     this.moveCount = moveCount;
@@ -48,6 +57,19 @@ public final class CrossDrillRep {
   /** The scramble the cross was to be found in, so a rep can be looked at again. */
   public String getScramble() {
     return scramble;
+  }
+
+  /**
+   * The turns the user made, in order. The count is what the rep is scored on, but only the
+   * sequence says where the moves over the shortest way went.
+   */
+  public List<CubeMove> getMoves() {
+    return moves;
+  }
+
+  /** When the scramble went up, which the move timestamps are worth writing down against. */
+  public long getShownAtMs() {
+    return shownAtMs;
   }
 
   /** From the scramble appearing to the first turn, which is the looking this drill trains. */

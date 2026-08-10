@@ -51,7 +51,7 @@ public final class CrossDrillSession {
   private CubieCube cube = new CubieCube();
   private String currentScramble;
   private boolean running;
-  private int moveCount;
+  private final List<CubeMove> moves = new ArrayList<CubeMove>();
   private long firstMoveMs;
   private long lastMoveMs;
   private long shownAtMs = NOT_SHOWN;
@@ -94,7 +94,7 @@ public final class CrossDrillSession {
     FaceTurns.apply(cube, scramble);
     currentScramble = scramble;
     running = true;
-    moveCount = 0;
+    moves.clear();
     firstMoveMs = 0;
     lastMoveMs = 0;
     shownAtMs = NOT_SHOWN;
@@ -148,14 +148,15 @@ public final class CrossDrillSession {
     }
     long at = move.getCubeTimestampMs();
     if (at < shownOnCubeClock()) {
-      // Turned before the scramble was up and delivered late: the cube takes it, the clock does not.
+      // Turned before the scramble was up and delivered late: the cube takes it, the clock and the
+      // stored solution do not.
       cube.applyMove(move.getFace(), move.isPrime());
       return isCrossBuilt() ? complete() : null;
     }
-    if (moveCount == 0) {
+    if (moves.isEmpty()) {
       firstMoveMs = at;
     }
-    moveCount++;
+    moves.add(move);
     lastMoveMs = at;
     cube.applyMove(move.getFace(), move.isPrime());
     return isCrossBuilt() ? complete() : null;
@@ -234,9 +235,13 @@ public final class CrossDrillSession {
 
   private CrossDrillRep complete() {
     boolean built = isCrossBuilt();
-    long planning = moveCount > 0 ? Math.max(0, firstMoveMs - shownOnCubeClock()) : 0;
-    long execution = moveCount > 0 ? Math.max(0, lastMoveMs - firstMoveMs) : 0;
-    CrossDrillRep rep = new CrossDrillRep(getFace(), currentScramble, planning, execution, moveCount,
+    // On the cube's clock, not the host's: the turns are stamped on that one, and the offsets the
+    // rep is stored with are measured from this.
+    long shownAt = shownOnCubeClock();
+    long planning = moves.isEmpty() ? 0 : Math.max(0, firstMoveMs - shownAt);
+    long execution = moves.isEmpty() ? 0 : Math.max(0, lastMoveMs - firstMoveMs);
+    CrossDrillRep rep = new CrossDrillRep(getFace(), currentScramble,
+        new ArrayList<CubeMove>(moves), shownAt, planning, execution, moves.size(),
         optimalLength, built, planningExpired);
     reps.add(rep);
     running = false;
@@ -256,7 +261,7 @@ public final class CrossDrillSession {
 
   /** Quarter turns made in the rep so far. */
   public int getMoveCount() {
-    return moveCount;
+    return moves.size();
   }
 
   /** Whether a scramble is in front of the user, waiting to be turned or already being turned. */

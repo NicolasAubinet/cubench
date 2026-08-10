@@ -188,6 +188,60 @@ public class CrossDrillSessionTest {
         DrillSpec.Selection.ROUND_ROBIN, 1, 0, null));
   }
 
+  /**
+   * A rep keeps what was turned. The count is the score, but only the sequence says where the moves
+   * over the shortest way went, which is the whole of what there is to work on after a cross.
+   */
+  @Test
+  public void aRepKeepsTheTurnsThatBuiltTheCross() {
+    CrossDrillSession session = session("D", 1);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next("U D"));
+
+    CrossDrillRep rep = hand.turn("D D D");
+    assertNotNull(rep);
+    assertEquals(rep.getMoveCount(), rep.getMoves().size());
+    assertEquals("D D D", notation(rep.getMoves()));
+  }
+
+  /** Including a rep announced finished with no cross there, whose moves went somewhere else. */
+  @Test
+  public void anAnnouncedRepKeepsTheTurnsThatMissed() {
+    CrossDrillSession session = session("D", 1);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next("U D"));
+    assertNull(hand.turn("R U"));
+
+    CrossDrillRep rep = session.declareFinished();
+    assertNotNull(rep);
+    assertFalse(rep.isBuilt());
+    assertEquals("R U", notation(rep.getMoves()));
+  }
+
+  /** Turns made after a rep, trying the short way that was shown, belong to no rep. */
+  @Test
+  public void exploringAfterARepAddsToNothing() {
+    CrossDrillSession session = session("D", 2);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next("U D"));
+    CrossDrillRep rep = hand.turn("D'");
+    assertNotNull(rep);
+
+    session.explore(new CubeMove(Face.R, false, 0));
+    assertEquals("D'", notation(rep.getMoves()));
+  }
+
+  private static String notation(List<CubeMove> moves) {
+    StringBuilder written = new StringBuilder();
+    for (CubeMove move : moves) {
+      if (written.length() > 0) {
+        written.append(' ');
+      }
+      written.append(move.getNotation());
+    }
+    return written.toString();
+  }
+
   private static CrossDrillSession session(String face, int reps) {
     return new CrossDrillSession(DrillSpec.cross("test", face, reps, 0, null));
   }

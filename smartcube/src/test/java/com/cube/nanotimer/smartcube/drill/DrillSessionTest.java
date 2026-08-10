@@ -394,6 +394,51 @@ public class DrillSessionTest {
   }
 
   /** The user's hands: turns arrive evenly spaced, and the clock runs on between reps. */
+  /**
+   * A rep keeps what was turned, which is the difference between "you took twelve moves" and "you
+   * used the wrong algorithm for it".
+   */
+  @Test
+  public void aRepKeepsTheTurnsThatSolvedIt() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), new Random(5));
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    String solution = inverse(session.getCurrentScramble());
+
+    DrillRep rep = hand.execute(solution);
+    assertNotNull(rep);
+    assertEquals(rep.getMoveCount(), rep.getMoves().size());
+    assertEquals(notation(asReported(solution)), notation(rep.getMoves()));
+  }
+
+  /** And keeps the last attempt's, as it keeps the last attempt's times. */
+  @Test
+  public void aResetRepKeepsOnlyTheTurnsThatFinallyWorked() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), new Random(3));
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    assertNull("this must not finish it", hand.execute("R U R'"));
+    hand.reset();
+    String solution = inverse(session.getCurrentScramble());
+
+    DrillRep rep = hand.execute(solution);
+    assertNotNull(rep);
+    assertEquals(notation(asReported(solution)), notation(rep.getMoves()));
+  }
+
+  /** A skipped rep keeps whatever was tried before it was given up on, which may be nothing. */
+  @Test
+  public void anAbandonedRepKeepsWhatWasTried() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), new Random(3));
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    hand.execute("R U R'");
+
+    DrillRep rep = session.abandon();
+    assertNotNull(rep);
+    assertEquals(notation(asReported("R U R'")), notation(rep.getMoves()));
+  }
+
   private static final class Hand {
 
     private final DrillSession session;
