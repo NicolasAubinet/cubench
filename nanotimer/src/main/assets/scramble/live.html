@@ -400,21 +400,100 @@
   // while an older one is still waiting for it must not be overwritten when that one lands.
   var stateSeq = 0;
 
+  /**
+   * ⚠️ <b>Never built into a box with no size.</b> The player sizes its canvas once, when it is
+   * appended, and a canvas built at zero stays at zero however large the box round it grows — an
+   * empty gap on screen, for good. The timer's box is given its height a frame or two after this
+   * page is asked for a state (the height is settled off a layout pass), so which of the two wins
+   * is a race, and a warm page wins it: measured on the phone, the state landed 150 ms in, with the
+   * box still 1072x0. Held until there is somewhere to draw, the race cannot be lost.
+   *
+   * @return whether there is a player to point at a state
+   */
   function ensurePlayer() {
-    if (!player) {
-      player = document.createElement("twisty-player");
-      player.puzzle = "3x3x3";
-      player.visualization = "3D";
-      player.background = "none";
-      player.controlPanel = "none";
-      player.hintFacelets = "none";
-      player.tempoScale = CATCH_UP_MS / DEFAULT_TURN_MS;
-      document.getElementById("host").appendChild(player);
+    if (player) {
+      return true;
     }
+    var host = document.getElementById("host");
+    if (!host.clientWidth || !host.clientHeight) {
+      waitForBox();
+      return false;
+    }
+    player = document.createElement("twisty-player");
+    player.puzzle = "3x3x3";
+    player.visualization = "3D";
+    player.background = "none";
+    player.controlPanel = "none";
+    player.hintFacelets = "none";
+    player.tempoScale = CATCH_UP_MS / DEFAULT_TURN_MS;
+    host.appendChild(player);
+    return true;
+  }
+
+  /** What is waiting for a box to be drawn into: the newest state, the turns since, the mask. */
+  var pendingPattern = null;
+  var pendingMoves = [];
+  var pendingStickering = null;
+  var boxWatch = null;
+
+  /** Builds the cube the moment the box has a size, from whatever arrived while it had none. */
+  function buildWhenBoxed() {
+    if (pendingPattern === null || !ensurePlayer()) {
+      return false;
+    }
+    var pattern = pendingPattern;
+    var moves = pendingMoves;
+    var mask = pendingStickering;
+    pendingPattern = null;
+    pendingMoves = [];
+    pendingStickering = null;
+    window.ntLiveState(pattern);
+    if (mask !== null) {
+      window.ntLiveStickering(mask);
+    }
+    for (var i = 0; i < moves.length; i++) {
+      window.ntLiveMove(moves[i]);
+    }
+    window.ntLiveGyro(gyroOn); // the pose loop stopped short of a player to draw at
+    return true;
+  }
+
+  /**
+   * Watches the box for the height the screen has yet to give it. A ResizeObserver where there is
+   * one, and otherwise the same polling the camera falls back on: the wait is a couple of frames in
+   * practice, and unbounded only in the sense that a box that never comes never costs anything but
+   * a timer.
+   */
+  function waitForBox() {
+    if (boxWatch) {
+      return;
+    }
+    if (window.ResizeObserver) {
+      boxWatch = new ResizeObserver(function () {
+        if (buildWhenBoxed()) {
+          boxWatch.disconnect();
+          boxWatch = null;
+        }
+      });
+      boxWatch.observe(document.getElementById("host"));
+      return;
+    }
+    boxWatch = setInterval(function () {
+      if (buildWhenBoxed()) {
+        clearInterval(boxWatch);
+        boxWatch = null;
+      }
+    }, CAMERA_RETRY_MS);
   }
 
   window.ntLiveState = function (pattern) {
-    ensurePlayer();
+    if (!ensurePlayer()) {
+      // Held rather than dropped: this is the state the cube is really in, and it is what the
+      // player is built from the moment there is a box to build it in.
+      pendingPattern = pattern;
+      pendingMoves = [];
+      return;
+    }
     var seq = ++stateSeq;
     // Cleared here rather than after the await: a turn made in between belongs to the new state,
     // and clearing it late would throw that turn away.
@@ -480,7 +559,15 @@
   };
 
   window.ntLiveMove = function (notation) {
-    if (!player || !notation) {
+    if (!notation) {
+      return;
+    }
+    if (!player) {
+      // Kept with the state it follows, and thrown away with it: the cube reports its whole state
+      // after every turn, so this holds a turn or two and never grows.
+      if (pendingPattern !== null) {
+        pendingMoves.push(notation);
+      }
       return;
     }
     try {
@@ -489,7 +576,10 @@
   };
 
   window.ntLiveStickering = function (mask) {
-    ensurePlayer();
+    if (!ensurePlayer()) {
+      pendingStickering = mask; // put on with the state it dresses, once there is a cube to dress
+      return;
+    }
     try {
       player.experimentalStickeringMaskOrbits = JSON.parse(mask);
     } catch (e) {
