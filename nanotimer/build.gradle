@@ -44,6 +44,7 @@ dependencies {
     implementation 'com.google.android.play:review:2.0.2' // Play In-App Review API
 
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20231013' // android.jar's org.json is a stub in unit tests
 
     implementation project(':datamodel')
     implementation project(':guilib')

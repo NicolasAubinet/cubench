@@ -144,6 +144,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     }
     label = spec.getLabel() == null ? getString(R.string.drill_cross_title) : spec.getLabel();
     setTitle(label);
+    initRecording(spec);
 
     startWhenCubeConnected();
   }
@@ -216,6 +217,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
   }
 
   private void onRepFinished(CrossDrillRep rep) {
+    recorder.record(rep);
     handler.removeCallbacks(planningRanOut);
     handler.removeCallbacks(stalledHint);
     betweenReps = true;
@@ -368,7 +370,9 @@ public class CrossDrillActivity extends DrillScreenActivity {
             solutions = found;
             session.setOptimalLength(found.length);
             if (betweenReps && !session.getReps().isEmpty()) {
-              // Landed after its own rep ended, so the line it belongs under is already up.
+              // Landed after its own rep ended, so the line it belongs under is already up, and so
+              // is the row it belongs in.
+              recorder.setLastOptimalLength(found.length);
               List<CrossDrillRep> reps = session.getReps();
               showLastRep(reps.get(reps.size() - 1));
               showBetweenReps(reps.get(reps.size() - 1));

@@ -83,10 +83,7 @@ public class DrillActivity extends DrillScreenActivity {
       public void onClick(View v) {
         DrillRep rep = session == null ? null : session.abandon();
         if (rep != null) {
-          // No wash: nothing was solved to dwell on. The hold stays, since what the user could not
-          // place is the one thing worth reading off a skipped rep and the line goes with the case.
-          showLastRep(rep);
-          holdThenNext();
+          onRepFinished(rep);
         }
       }
     });
@@ -123,6 +120,7 @@ public class DrillActivity extends DrillScreenActivity {
     setTitle(label);
     session = new DrillSession(spec, Utils.getRandom(), null,
         getIntent().getStringExtra(EXTRA_LAYER_FACE));
+    initRecording(spec);
 
     if (!session.isRunnable()) {
       showUnavailable(getString(R.string.drill_no_known_cases));
@@ -184,8 +182,14 @@ public class DrillActivity extends DrillScreenActivity {
    * hold is charged to nobody.
    */
   private void onRepFinished(DrillRep rep) {
+    recorder.record(rep);
     showLastRep(rep);
-    DrillRepFlourish.play(repWash, lastRepRow);
+    // No wash for a rep that was skipped: nothing was solved to dwell on. The hold stays, since
+    // what the user could not place is the one thing worth reading off a skipped rep, and the line
+    // goes with the case.
+    if (!rep.isAbandoned()) {
+      DrillRepFlourish.play(repWash, lastRepRow);
+    }
     holdThenNext();
   }
 

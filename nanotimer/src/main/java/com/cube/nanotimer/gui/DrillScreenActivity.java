@@ -11,15 +11,19 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.content.ContextCompat;
 
+import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.VirtualCube;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
+import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
+import com.cube.nanotimer.util.DrillRecorder;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.vo.drill.DrillEnd;
 
 /**
  * What every drill screen is made of, whichever question it asks: a cube drawn from the connected
@@ -97,6 +101,15 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   /** Held at the door for want of a cube, which is not the same as having failed for good. */
   private boolean awaitingCube;
 
+  /** Where a recording drill's reps go, and a drain for a casual one's. */
+  protected DrillRecorder recorder;
+  /**
+   * How this drill is going to have stopped. Set where the drill is cut short, since by the time
+   * the summary is drawn the three endings look alike, and a drill whose cube died at rep 6 is not
+   * the same result as one the user walked out of at rep 6.
+   */
+  private DrillEnd endReason = DrillEnd.FINISHED;
+
   /** Deals the first case. Called once, when there is a cube to run the drill with. */
   protected abstract void startDrill();
 
@@ -108,6 +121,19 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
 
   /** Whether there is a drill still to interrupt. */
   protected abstract boolean isDrillRunning();
+
+  /**
+   * Starts keeping the reps, for a drill the user chose to record. Call once the spec has been
+   * read: a spec that could not be is a drill that never ran, and records nothing.
+   */
+  protected void initRecording(DrillSpec spec) {
+    recorder = new DrillRecorder(App.INSTANCE.getService(), spec, isRecording());
+  }
+
+  /** Whether the reps count. Fixed before the drill and not changeable from here. */
+  protected boolean isRecording() {
+    return getIntent().getBooleanExtra(EXTRA_RECORDING, true);
+  }
 
   /** Wires the shared pieces. Call from {@code onCreate}, after {@code setContentView}. */
   protected void bindDrillScreen() {
@@ -134,6 +160,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
           setEnabled(false);
           DrillScreenActivity.this.getOnBackPressedDispatcher().onBackPressed();
         } else {
+          endReason = DrillEnd.STOPPED;
           showSummary();
         }
       }
@@ -272,6 +299,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     if (awaitingCube) {
       startWhenCubeConnected();
     } else if (started && isDrillRunning() && !SmartCubeManager.INSTANCE.isConnected()) {
+      endReason = DrillEnd.CUBE_LOST;
       showSummary();
     }
   }
@@ -369,8 +397,15 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     empty.setText(messageId);
   }
 
-  /** What was drilled and in which mode, since the drill is over and its own bar is gone. */
+  /**
+   * What was drilled and in which mode, since the drill is over and its own bar is gone. Also where
+   * the recording is closed off, this being the one point every ending passes through. A drill that
+   * never reaches it was killed rather than ended, and is stored with no ending at all.
+   */
   protected void showSummaryFor(String label) {
+    if (recorder != null) {
+      recorder.end(endReason);
+    }
     runningLayout.setVisibility(View.GONE);
     summaryLayout.setVisibility(View.VISIBLE);
     ((TextView) findViewById(R.id.tvDrillSummarySubtitle)).setText(
@@ -378,8 +413,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   }
 
   private int modeName() {
-    return getIntent().getBooleanExtra(EXTRA_RECORDING, true)
-        ? R.string.drill_mode_recording : R.string.drill_mode_casual;
+    return isRecording() ? R.string.drill_mode_recording : R.string.drill_mode_casual;
   }
 
   /** Nothing to drill with. Said in place of the drill rather than over it. */
