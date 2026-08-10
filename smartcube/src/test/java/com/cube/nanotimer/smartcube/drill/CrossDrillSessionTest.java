@@ -218,6 +218,32 @@ public class CrossDrillSessionTest {
     assertEquals("R U", notation(rep.getMoves()));
   }
 
+  /**
+   * The turns are stamped on the cube's clock, so the instant the stored offsets are measured from
+   * has to be on that clock too. The rep's own two figures would not show the error, both being
+   * differences it cancels out of.
+   */
+  @Test
+  public void theOffsetsAMoveIsStoredAgainstAreOnTheCubesClock() {
+    CrossDrillSession session = session("D", 1);
+    long hostShownAt = 100_000;
+    long cubeBehind = 1_900;
+    assertTrue(session.nextRep("U D"));
+    session.markCaseShown(hostShownAt);
+
+    long at = hostShownAt - cubeBehind + 700;
+    CrossDrillRep rep = null;
+    for (String token : "D D D".split(" ")) {
+      rep = session.onMove(new CubeMove(Face.valueOf(token), false, at,
+          Long.valueOf(at + cubeBehind)));
+      at += GAP_MS;
+    }
+    assertNotNull(rep);
+    assertEquals(700, rep.getMoves().get(0).getCubeTimestampMs() - rep.getShownAtMs());
+    assertEquals(rep.getPlanningMs(),
+        rep.getMoves().get(0).getCubeTimestampMs() - rep.getShownAtMs());
+  }
+
   /** Turns made after a rep, trying the short way that was shown, belong to no rep. */
   @Test
   public void exploringAfterARepAddsToNothing() {

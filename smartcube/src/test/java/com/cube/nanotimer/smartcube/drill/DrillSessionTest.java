@@ -426,6 +426,33 @@ public class DrillSessionTest {
     assertEquals(notation(asReported(solution)), notation(rep.getMoves()));
   }
 
+  /**
+   * The rep's turns are stamped on the cube's clock, so the instant they are measured from has to
+   * be on that clock too. Read against the raw host time the case was shown at, every stored offset
+   * comes out by whatever the cube's fit to host time was out by, which the rep's own two figures
+   * would not show: they are both differences and the error cancels.
+   */
+  @Test
+  public void theOffsetsAMoveIsStoredAgainstAreOnTheCubesClock() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), noAlignment());
+    assertTrue(session.nextRep());
+    long hostShownAt = 100_000;
+    long cubeBehind = 1_900;
+    session.markCaseShown(hostShownAt);
+
+    DrillRep rep = null;
+    long at = hostShownAt - cubeBehind + 700;
+    for (CubeMove move : asReported(inverse(session.getCurrentScramble()))) {
+      rep = session.onMove(new CubeMove(move.getFace(), move.isPrime(), at,
+          Long.valueOf(at + cubeBehind)));
+      at += GAP_MS;
+    }
+    assertNotNull(rep);
+    assertEquals(700, rep.getMoves().get(0).getCubeTimestampMs() - rep.getShownAtMs());
+    assertEquals(rep.getRecognitionMs(),
+        rep.getMoves().get(0).getCubeTimestampMs() - rep.getShownAtMs());
+  }
+
   /** A skipped rep keeps whatever was tried before it was given up on, which may be nothing. */
   @Test
   public void anAbandonedRepKeepsWhatWasTried() {
