@@ -1349,6 +1349,61 @@ public class ServiceProviderTest extends AndroidTestCase {
     assertEquals(3000, stats.getFamily("pll").getMeanMs()); // untouched by the twenty at 600
   }
 
+  // A rep the user threw out for being junk stays on the row, and leaves every figure. Flagged
+  // rather than deleted so it can be put back, and so a coach can still see what was pruned.
+  @Test
+  public void testAThrownOutRepIsReadBackFlaggedAndLeavesTheTally() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 2));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 9000, 9000, 40, 0, false, false));
+
+    provider.setDrillCaseRepDeleted(drillId, 1, true);
+
+    List<DrillCaseRep> reps = provider.getDrillCaseReps(drillId);
+    assertEquals(2, reps.size()); // still there, so it can be shown struck out and put back
+    assertFalse(reps.get(0).isDeleted());
+    assertTrue(reps.get(1).isDeleted());
+
+    List<StepStats> stats = provider.getDrillCaseStatistics(50);
+    assertEquals(1, stats.get(0).getCount());
+    assertEquals(3000, stats.get(0).getMeanMs()); // the 18000 is gone from the mean
+    assertEquals(1, provider.getDrills(10).get(0).getRepsCompleted());
+  }
+
+  @Test
+  public void testARepPutBackCountsAgain() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 1));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+
+    provider.setDrillCaseRepDeleted(drillId, 0, true);
+    assertEquals(0, provider.getDrillCaseStatistics(50).size());
+
+    provider.setDrillCaseRepDeleted(drillId, 0, false);
+    assertEquals(1, provider.getDrillCaseStatistics(50).get(0).getCount());
+  }
+
+  // A drill pruned to nothing keeps its row and reads as zero done, and must not eat a place in
+  // the window either: it has no rep left to say anything about a case.
+  @Test
+  public void testADrillPrunedToNothingLeavesTheWindow() {
+    deleteDrills();
+    long older = provider.addDrill(drill("case_execution", 1, 1000));
+    provider.addDrillCaseRep(older, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    long newer = provider.addDrill(drill("case_execution", 1, 2000));
+    provider.addDrillCaseRep(newer, caseRep(0, "pll_ga", 9000, 9000, 40, 0, false, false));
+    provider.setDrillCaseRepDeleted(newer, 0, true);
+
+    List<DrillRecord> drills = provider.getDrills(10);
+    assertEquals(2, drills.size());
+    assertEquals(0, drills.get(0).getRepsCompleted()); // the newer one, emptied but still a row
+
+    List<StepStats> window = provider.getDrillCaseStatistics(1);
+    assertEquals(1, window.size());
+    assertEquals(3000, window.get(0).getMeanMs()); // the older drill, not the emptied one's place
+  }
+
   private DrillRecord drill(String type, int repsAsked) {
     return drill(type, repsAsked, 5000);
   }

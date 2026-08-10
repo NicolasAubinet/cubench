@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 27;
+  public static final int DB_VERSION = 28;
 
   public static final String COL_ID = "id";
 
@@ -87,6 +87,7 @@ public class DB {
   public static final String COL_DRILL_REP_RESET_COUNT = "reset_count"; // a time reached on the third go is not a clean one
   public static final String COL_DRILL_REP_REVEALED = "revealed";
   public static final String COL_DRILL_REP_ABANDONED = "abandoned";
+  public static final String COL_DRILL_REP_DELETED = "deleted"; // pruned by hand: kept for undo and for the coach, counted by nothing
   public static final String IDX_DRILL_REP_DRILL = "idx_drill_rep_drill";
   public static final String IDX_DRILL_REP_CASE = "idx_drill_rep_case";
 

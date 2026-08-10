@@ -72,6 +72,12 @@ public interface Service {
   /** Fills in the shortest solution for a cross rep whose search landed after the rep had ended. */
   void setDrillCrossRepOptimalLength(long drillId, int position, int optimalLength,
       DataCallback<Void> callback);
+  /**
+   * Throws a case rep out of every figure, or puts it back. The row stays either way, so the rep
+   * can be restored and so a coach can still see that it was pruned.
+   */
+  void setDrillCaseRepDeleted(long drillId, int position, boolean deleted,
+      DataCallback<Void> callback);
   /** Says how a drill stopped, once it has. One left without an end was never ended. */
   void endDrill(long drillId, DrillEnd end, DataCallback<Void> callback);
   void getDrills(int limit, DataCallback<List<DrillRecord>> callback);

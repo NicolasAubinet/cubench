@@ -62,6 +62,8 @@ public interface ServiceProvider {
   void addDrillCrossRep(long drillId, DrillCrossRep rep);
   /** Fills in the shortest solution for a cross rep whose search landed after the rep had ended. */
   void setDrillCrossRepOptimalLength(long drillId, int position, int optimalLength);
+  /** Throws a case rep out of every figure, or puts it back. The row stays either way. */
+  void setDrillCaseRepDeleted(long drillId, int position, boolean deleted);
   /** Says how a drill stopped, once it has. A drill left without one was never ended. */
   void endDrill(long drillId, DrillEnd end);
   List<DrillRecord> getDrills(int limit);

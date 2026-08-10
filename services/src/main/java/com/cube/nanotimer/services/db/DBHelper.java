@@ -148,6 +148,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_DRILL_REP_RESET_COUNT + " INTEGER NOT NULL DEFAULT 0, " +
         DB.COL_DRILL_REP_REVEALED + " INTEGER NOT NULL DEFAULT 0, " +
         DB.COL_DRILL_REP_ABANDONED + " INTEGER NOT NULL DEFAULT 0, " +
+        DB.COL_DRILL_REP_DELETED + " INTEGER NOT NULL DEFAULT 0, " +
         "FOREIGN KEY (" + DB.COL_DRILL_REP_DRILL_ID + ") REFERENCES " + DB.TABLE_DRILL + " (" + DB.COL_ID + ") " +
       ");"
     );
@@ -369,6 +370,13 @@ public class DBHelper extends SQLiteOpenHelper {
     if (oldVersion < 27) {
       // Drill reps, which are recorded apart from solves and never join them.
       createDrillTables(db);
+    }
+
+    // Not < 28: a database coming from below 27 was just handed the column by createDrillTables.
+    if (oldVersion >= 27 && oldVersion < 28) {
+      // A rep the user threw out, flagged rather than deleted so it can be put back.
+      db.execSQL("ALTER TABLE " + DB.TABLE_DRILL_REP + " ADD COLUMN "
+          + DB.COL_DRILL_REP_DELETED + " INTEGER NOT NULL DEFAULT 0");
     }
 
 //    progressDialog.hide();

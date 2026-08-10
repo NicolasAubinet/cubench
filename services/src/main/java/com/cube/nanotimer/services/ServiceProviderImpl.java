@@ -968,6 +968,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_DRILL_REP_RESET_COUNT, rep.getResetCount());
     values.put(DB.COL_DRILL_REP_REVEALED, rep.wasRevealed() ? 1 : 0);
     values.put(DB.COL_DRILL_REP_ABANDONED, rep.isAbandoned() ? 1 : 0);
+    values.put(DB.COL_DRILL_REP_DELETED, rep.isDeleted() ? 1 : 0);
     db.insert(DB.TABLE_DRILL_REP, null, values);
   }
 
@@ -998,6 +999,15 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
+  public void setDrillCaseRepDeleted(long drillId, int position, boolean deleted) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_DRILL_REP_DELETED, deleted ? 1 : 0);
+    db.update(DB.TABLE_DRILL_REP, values,
+        DB.COL_DRILL_REP_DRILL_ID + " = ? AND " + DB.COL_DRILL_REP_POSITION + " = ?",
+        getStringArray(drillId, position));
+  }
+
+  @Override
   public void endDrill(long drillId, DrillEnd end) {
     ContentValues values = new ContentValues();
     values.put(DB.COL_DRILL_END, end == null ? null : Integer.valueOf(end.getId()));
@@ -1014,9 +1024,11 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , d.").append(DB.COL_DRILL_TYPE);
     q.append("     , d.").append(DB.COL_DRILL_REPS_ASKED);
     q.append("     , d.").append(DB.COL_DRILL_END);
-    // A drill is of one kind or the other, so one of these two counts is always zero.
+    // A drill is of one kind or the other, so one of these two counts is always zero. A rep the
+    // user threw out is not one that was completed, so a drill pruned to nothing reads as zero.
     q.append("     , (SELECT COUNT(*) FROM ").append(DB.TABLE_DRILL_REP);
-    q.append("         WHERE ").append(DB.COL_DRILL_REP_DRILL_ID).append(" = d.").append(DB.COL_ID).append(")");
+    q.append("         WHERE ").append(DB.COL_DRILL_REP_DRILL_ID).append(" = d.").append(DB.COL_ID);
+    q.append("           AND ").append(DB.COL_DRILL_REP_DELETED).append(" = 0)");
     q.append("     + (SELECT COUNT(*) FROM ").append(DB.TABLE_DRILL_CROSS_REP);
     q.append("         WHERE ").append(DB.COL_DRILL_CROSS_REP_DRILL_ID).append(" = d.").append(DB.COL_ID).append(")");
     q.append("  FROM ").append(DB.TABLE_DRILL).append(" d");
@@ -1049,6 +1061,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_DRILL_REP_RESET_COUNT);
     q.append("     , ").append(DB.COL_DRILL_REP_REVEALED);
     q.append("     , ").append(DB.COL_DRILL_REP_ABANDONED);
+    // Thrown-out reps come back too, flagged. They are struck through where they are read, not
+    // hidden: nine reps of which two were pruned is a different drill from seven.
+    q.append("     , ").append(DB.COL_DRILL_REP_DELETED);
     q.append("  FROM ").append(DB.TABLE_DRILL_REP);
     q.append(" WHERE ").append(DB.COL_DRILL_REP_DRILL_ID).append(" = ?");
     q.append(" ORDER BY ").append(DB.COL_DRILL_REP_POSITION);
@@ -1059,7 +1074,7 @@ public class ServiceProviderImpl implements ServiceProvider {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         reps.add(new DrillCaseRep(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
             cursor.getString(3), cursor.getLong(4), cursor.getLong(5), cursor.getInt(6),
-            cursor.getInt(7), cursor.getInt(8) == 1, cursor.getInt(9) == 1));
+            cursor.getInt(7), cursor.getInt(8) == 1, cursor.getInt(9) == 1, cursor.getInt(10) == 1));
       }
       cursor.close();
     }
@@ -1113,7 +1128,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     String window = "SELECT " + DB.COL_ID + " FROM " + DB.TABLE_DRILL
         + " WHERE EXISTS (SELECT 1 FROM " + DB.TABLE_DRILL_REP
         + "                WHERE " + DB.COL_DRILL_REP_DRILL_ID
-        + "                    = " + DB.TABLE_DRILL + "." + DB.COL_ID + ")"
+        + "                    = " + DB.TABLE_DRILL + "." + DB.COL_ID
+        + "                  AND " + DB.COL_DRILL_REP_DELETED + " = 0)"
         + " ORDER BY " + DB.COL_DRILL_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastDrills);
     String total = "(r." + DB.COL_DRILL_REP_RECOGNITION + " + r." + DB.COL_DRILL_REP_EXECUTION + ")";
 
@@ -1129,6 +1145,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
     q.append(" WHERE r.").append(DB.COL_DRILL_REP_ABANDONED).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_REVEALED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
     q.append(" GROUP BY r.").append(DB.COL_DRILL_REP_CASE);
     q.append(" ORDER BY r.").append(DB.COL_DRILL_REP_CASE);
 

@@ -457,6 +457,18 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void setDrillCaseRepDeleted(final long drillId, final int position, final boolean deleted,
+      final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.setDrillCaseRepDeleted(drillId, position, deleted);
+        callback.onData(null);
+      }
+    });
+  }
+
+  @Override
   public void setDrillCrossRepOptimalLength(final long drillId, final int position,
       final int optimalLength, final DataCallback<Void> callback) {
     run(new Runnable() {

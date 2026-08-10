@@ -7,6 +7,10 @@ package com.cube.nanotimer.vo.drill;
  *
  * <p>The times and the moves are the last attempt's, with {@code resetCount} saying how many went
  * before it, so a time reached on the third go is not read as a clean one.
+ *
+ * <p>A rep the user threw out is flagged rather than dropped. The row survives so the rep can be
+ * put back, and so a coach reading these can still see it: a rep pruned by hand is itself a signal,
+ * and a detector looking for times far outside the usual wants the ones that were.
  */
 public class DrillCaseRep {
 
@@ -20,6 +24,7 @@ public class DrillCaseRep {
   private final int resetCount;
   private final boolean revealed;
   private final boolean abandoned;
+  private boolean deleted;
 
   /**
    * @param position where in the drill this rep fell, since the rows are written as they finish
@@ -42,6 +47,15 @@ public class DrillCaseRep {
     this.resetCount = resetCount;
     this.revealed = revealed;
     this.abandoned = abandoned;
+  }
+
+  /** A rep read back, which may have been thrown out since it was written. */
+  public DrillCaseRep(int position, String caseCode, String scramble, String moves,
+      long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
+      boolean abandoned, boolean deleted) {
+    this(position, caseCode, scramble, moves, recognitionMs, executionMs, moveCount, resetCount,
+        revealed, abandoned);
+    this.deleted = deleted;
   }
 
   public int getPosition() {
@@ -86,5 +100,14 @@ public class DrillCaseRep {
 
   public boolean isAbandoned() {
     return abandoned;
+  }
+
+  /** Thrown out by the user: still here, and counted by nothing. */
+  public boolean isDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
   }
 }
