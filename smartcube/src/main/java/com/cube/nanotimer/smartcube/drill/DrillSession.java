@@ -55,7 +55,10 @@ public final class DrillSession {
   /** The first turn that was not an AUF, which is where the algorithm really started. */
   private long algStartMs;
   private long lastMoveMs;
+  /** Host wall-clock, converted to the cube's clock when it is read. See {@link #markCaseShown}. */
   private long caseShownAtMs = NOT_SHOWN;
+  /** Host clock minus cube clock, from the last move that carried both. */
+  private long clockSkewMs;
   private int resetCount;
   private boolean revealed;
 
@@ -128,9 +131,16 @@ public final class DrillSession {
   }
 
   /**
-   * The case is now in front of the user, as of a host timestamp on the same clock the moves carry.
-   * This is where recognition runs from, and until it is called the rep has not begun and turns are
-   * not counted against it.
+   * The case is now in front of the user, as of a host wall-clock timestamp. This is where
+   * recognition runs from, and until it is called the rep has not begun and turns are not counted
+   * against it.
+   *
+   * <p><b>The two clocks are not the same one.</b> A move is stamped on the cube's own clock, which
+   * is fitted to host time when the cube connects and only re-fitted once it has drifted seconds;
+   * subtracting one from the other took whatever the fit was out by out of the user's recognition
+   * and gave it to their execution, which is how a rep came back as 0.00 to recognise and four
+   * seconds to turn. The moves carry both stamps often enough to keep the difference, so this one
+   * is converted rather than compared.
    *
    * <p>Set apart from {@link #nextRep} because the two are not the same moment. A case is chosen
    * before it can be drawn, and a screen may hold the one just finished for a beat so that solving
@@ -191,7 +201,16 @@ public final class DrillSession {
     if (currentCase == null || caseShownAtMs == NOT_SHOWN) {
       return null;
     }
+    if (move.getHostTimestampMs() != null) {
+      clockSkewMs = move.getHostTimestampMs() - move.getCubeTimestampMs();
+    }
     long at = move.getCubeTimestampMs();
+    if (at < caseShownOnCubeClock()) {
+      // Turned before this case was up and delivered late: the cube still has to have it, or the
+      // two fall out of step, but it is the previous case's turn and cannot start this rep.
+      cube.applyMove(move.getFace(), move.isPrime());
+      return isCaseDone() ? complete(false) : null;
+    }
     if (moveCount == 0) {
       firstMoveMs = at;
     }
@@ -244,7 +263,7 @@ public final class DrillSession {
    */
   private DrillRep complete(boolean abandoned) {
     long algStart = algStartMs > 0 ? algStartMs : firstMoveMs;
-    long recognition = moveCount > 0 ? Math.max(0, algStart - caseShownAtMs) : 0;
+    long recognition = moveCount > 0 ? Math.max(0, algStart - caseShownOnCubeClock()) : 0;
     long execution = moveCount > 0 ? Math.max(0, lastMoveMs - algStart) : 0;
     DrillRep rep = new DrillRep(currentCase, currentScramble, recognition, execution, moveCount,
         resetCount, revealed, abandoned);
@@ -252,6 +271,11 @@ public final class DrillSession {
     currentCase = null;
     caseShownAtMs = NOT_SHOWN;
     return rep;
+  }
+
+  /** When the case went up, said in the clock the moves are stamped on. */
+  private long caseShownOnCubeClock() {
+    return caseShownAtMs - clockSkewMs;
   }
 
   /** Every case in turn, the order redrawn each pass so that the next one cannot be guessed. */

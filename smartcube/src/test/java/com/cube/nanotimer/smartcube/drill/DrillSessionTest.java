@@ -189,6 +189,59 @@ public class DrillSessionTest {
   }
 
   /**
+   * A cube stamps its moves on its own clock, fitted to host time when it connects and left alone
+   * until it is seconds out. Read against a raw host timestamp, whatever the fit was out by came
+   * off the recognition and went onto the execution: the rep this is drawn from came back as
+   * nothing to recognise and four seconds to turn.
+   */
+  @Test
+  public void recognitionIsReadOnTheClockTheMovesAreStampedOn() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), noAlignment());
+    assertTrue(session.nextRep());
+    long hostShownAt = 100_000;
+    long cubeBehind = 1_900; // the cube's clock, still within its fit's tolerance of host time
+    session.markCaseShown(hostShownAt);
+
+    DrillRep rep = null;
+    long at = hostShownAt - cubeBehind + 700; // turned 700ms after looking at the case
+    for (CubeMove move : asReported(inverse(session.getCurrentScramble()))) {
+      rep = session.onMove(new CubeMove(move.getFace(), move.isPrime(), at,
+          Long.valueOf(at + cubeBehind)));
+      at += GAP_MS;
+    }
+    assertNotNull(rep);
+    assertEquals(700, rep.getRecognitionMs());
+    assertEquals((rep.getMoveCount() - 1) * GAP_MS, rep.getExecutionMs());
+  }
+
+  /**
+   * The turns that finish one case keep coming while the screen holds it, and one made then can
+   * still be in flight when the next case goes up. It has to reach the cube, which really was
+   * turned, but it is not the rep's first move: counted as one it left nothing to recognise.
+   */
+  @Test
+  public void aTurnFromBeforeTheCaseWentUpDoesNotStartTheRep() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), noAlignment());
+    assertTrue(session.nextRep());
+    long shownAt = 50_000;
+    session.markCaseShown(shownAt);
+
+    // A turn of the previous case, made a beat before this one was dealt and delivered after it.
+    assertNull(session.onMove(new CubeMove(Face.R, false, shownAt - 200)));
+    assertNull(session.onMove(new CubeMove(Face.R, true, shownAt - 160)));
+
+    long at = shownAt + 800;
+    DrillRep rep = null;
+    for (CubeMove move : asReported(inverse(session.getCurrentScramble()))) {
+      rep = session.onMove(new CubeMove(move.getFace(), move.isPrime(), at));
+      at += GAP_MS;
+    }
+    assertNotNull(rep);
+    assertEquals(800, rep.getRecognitionMs());
+    assertEquals((rep.getMoveCount() - 1) * GAP_MS, rep.getExecutionMs());
+  }
+
+  /**
    * The same case must not keep arriving the same way round, or the user learns the picture instead
    * of the case and a recognition drill measures nothing. Every draw takes its own two alignment
    * turns, so a Ja comes up facing all four ways.

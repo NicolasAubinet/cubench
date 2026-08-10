@@ -55,6 +55,8 @@ public final class CrossDrillSession {
   private long firstMoveMs;
   private long lastMoveMs;
   private long shownAtMs = NOT_SHOWN;
+  /** Host clock minus cube clock, from the last move that carried both. */
+  private long clockSkewMs;
   private int optimalLength;
   private boolean planningExpired;
 
@@ -101,7 +103,12 @@ public final class CrossDrillSession {
     return true;
   }
 
-  /** The scramble is now in front of the user, which is where the planning time runs from. */
+  /**
+   * The scramble is now in front of the user, which is where the planning time runs from. A host
+   * wall-clock timestamp, converted where it is read: a move is stamped on the cube's own clock,
+   * and the two sit as far apart as that clock's fit to host time is out. See
+   * {@link DrillSession#markCaseShown}.
+   */
   public void markCaseShown(long hostMs) {
     shownAtMs = hostMs;
   }
@@ -136,7 +143,15 @@ public final class CrossDrillSession {
     if (!running || shownAtMs == NOT_SHOWN) {
       return null;
     }
+    if (move.getHostTimestampMs() != null) {
+      clockSkewMs = move.getHostTimestampMs() - move.getCubeTimestampMs();
+    }
     long at = move.getCubeTimestampMs();
+    if (at < shownOnCubeClock()) {
+      // Turned before the scramble was up and delivered late: the cube takes it, the clock does not.
+      cube.applyMove(move.getFace(), move.isPrime());
+      return isCrossBuilt() ? complete() : null;
+    }
     if (moveCount == 0) {
       firstMoveMs = at;
     }
@@ -212,9 +227,14 @@ public final class CrossDrillSession {
     return crossEdges.clone();
   }
 
+  /** When the scramble went up, said in the clock the moves are stamped on. */
+  private long shownOnCubeClock() {
+    return shownAtMs - clockSkewMs;
+  }
+
   private CrossDrillRep complete() {
     boolean built = isCrossBuilt();
-    long planning = moveCount > 0 ? Math.max(0, firstMoveMs - shownAtMs) : 0;
+    long planning = moveCount > 0 ? Math.max(0, firstMoveMs - shownOnCubeClock()) : 0;
     long execution = moveCount > 0 ? Math.max(0, lastMoveMs - firstMoveMs) : 0;
     CrossDrillRep rep = new CrossDrillRep(getFace(), currentScramble, planning, execution, moveCount,
         optimalLength, built, planningExpired);
