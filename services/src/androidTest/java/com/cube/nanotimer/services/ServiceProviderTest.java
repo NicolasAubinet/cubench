@@ -15,7 +15,13 @@ import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
+import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.services.db.DB;
+import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCrossRep;
+import com.cube.nanotimer.vo.drill.DrillEnd;
+import com.cube.nanotimer.vo.drill.DrillRecord;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,6 +85,7 @@ public class ServiceProviderTest extends AndroidTestCase {
   public void tearDown() throws Exception {
     super.tearDown();
     provider.deleteHistory();
+    deleteDrills();
   }
 
   @Test
@@ -1168,6 +1175,206 @@ public class ServiceProviderTest extends AndroidTestCase {
     st.setSmartcubeSteps(Arrays.asList(steps));
     st.setSmartcubeStoppedStep(stoppedStep);
     return provider.saveTime(st).getSolveTime();
+  }
+
+  @Test
+  public void testDrillCaseRepsReadBackWholeAndInOrder() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 3));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 900, 1400, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(1, "pll_gb", 700, 1200, 12, 2, true, false));
+
+    List<DrillCaseRep> reps = provider.getDrillCaseReps(drillId);
+    assertEquals(2, reps.size());
+    assertEquals("pll_ga", reps.get(0).getCaseCode());
+    assertEquals(SCRAMBLE, reps.get(0).getScramble());
+    assertEquals("R@0 U'@200", reps.get(0).getMoves());
+    assertEquals(900, reps.get(0).getRecognitionMs());
+    assertEquals(1400, reps.get(0).getExecutionMs());
+    assertEquals(2300, reps.get(0).getTotalMs());
+    assertEquals(13, reps.get(0).getMoveCount());
+    assertEquals(2, reps.get(1).getResetCount());
+    assertTrue(reps.get(1).wasRevealed());
+    assertFalse(reps.get(1).isAbandoned());
+  }
+
+  // The two kinds of rep are in tables of their own, and neither answers for the other.
+  @Test
+  public void testDrillCrossRepsAreKeptApartFromCaseReps() {
+    deleteDrills();
+    long crossDrill = provider.addDrill(drill("cross", 2));
+    provider.addDrillCrossRep(crossDrill, crossRep(0, 9, 6, true));
+    provider.addDrillCrossRep(crossDrill, crossRep(1, 7, 7, true));
+
+    assertEquals(0, provider.getDrillCaseReps(crossDrill).size());
+    List<DrillCrossRep> reps = provider.getDrillCrossReps(crossDrill);
+    assertEquals(2, reps.size());
+    assertEquals("D", reps.get(0).getFace());
+    assertEquals(9, reps.get(0).getMoveCount());
+    assertEquals(6, reps.get(0).getOptimalLength());
+    assertEquals(3, reps.get(0).getExtraMoves());
+    assertEquals(0, reps.get(1).getExtraMoves());
+    assertEquals(0, provider.getDrillCaseStatistics(50).size()); // and in no case tally either
+  }
+
+  // A search that lands after its rep fills the length in rather than leaving the row unwritten.
+  @Test
+  public void testACrossRepTakesItsOptimalLengthLate() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("cross", 1));
+    provider.addDrillCrossRep(drillId, crossRep(0, 8, 0, true));
+    assertEquals(0, provider.getDrillCrossReps(drillId).get(0).getOptimalLength());
+
+    provider.setDrillCrossRepOptimalLength(drillId, 0, 5);
+    assertEquals(5, provider.getDrillCrossReps(drillId).get(0).getOptimalLength());
+    assertEquals(3, provider.getDrillCrossReps(drillId).get(0).getExtraMoves());
+  }
+
+  // A drill stopped at rep 1 of 20 is a result, and how it stopped is part of it.
+  @Test
+  public void testADrillReportsRepsDoneAgainstRepsAskedAndHowItEnded() {
+    deleteDrills();
+    long stopped = provider.addDrill(drill("case_execution", 20));
+    provider.addDrillCaseRep(stopped, caseRep(0, "pll_ga", 900, 1400, 13, 0, false, false));
+    provider.endDrill(stopped, DrillEnd.STOPPED);
+
+    List<DrillRecord> drills = provider.getDrills(10);
+    assertEquals(1, drills.size());
+    assertEquals(20, drills.get(0).getRepsAsked());
+    assertEquals(1, drills.get(0).getRepsCompleted());
+    assertEquals(DrillEnd.STOPPED, drills.get(0).getEnd());
+    assertEquals("local-test", drills.get(0).getSpecId());
+    assertTrue(drills.get(0).getSpec().contains("spec_version"));
+  }
+
+  // An app killed mid-drill never writes an ending, which is not the same as being walked out of.
+  @Test
+  public void testADrillNeverEndedHasNoEnding() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 20));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 900, 1400, 13, 0, false, false));
+
+    assertNull(provider.getDrills(10).get(0).getEnd());
+  }
+
+  @Test
+  public void testDrillCaseStatisticsTallyPerCase() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 3));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 500, 1500, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(2, "pll_t", 400, 1100, 11, 0, false, false));
+
+    List<StepStats> stats = provider.getDrillCaseStatistics(50);
+    assertEquals(2, stats.size());
+    assertEquals("pll_ga", stats.get(0).getCode());
+    assertEquals(2, stats.get(0).getCount());
+    assertEquals(2500, stats.get(0).getMeanMs());
+    assertEquals(750, stats.get(0).getMeanRecognitionMs());
+    assertEquals(2000, stats.get(0).getBestMs());
+    assertEquals("pll_t", stats.get(1).getCode());
+    assertEquals(1, stats.get(1).getCount());
+  }
+
+  // Neither is a measurement of the case: one was never finished, the other was finished with the
+  // answer on screen.
+  @Test
+  public void testDrillCaseStatisticsLeaveOutAbandonedAndRevealedReps() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 3));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 9000, 9000, 40, 0, false, true));
+    provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 8000, 8000, 30, 1, true, false));
+
+    List<StepStats> stats = provider.getDrillCaseStatistics(50);
+    assertEquals(1, stats.size());
+    assertEquals(1, stats.get(0).getCount());
+    assertEquals(3000, stats.get(0).getMeanMs());
+  }
+
+  @Test
+  public void testDrillCaseStatisticsReadOnlyTheLastDrillsOfTheWindow() {
+    deleteDrills();
+    long older = provider.addDrill(drill("case_execution", 1, 1000));
+    provider.addDrillCaseRep(older, caseRep(0, "pll_ga", 4000, 4000, 13, 0, false, false));
+    long newer = provider.addDrill(drill("case_execution", 1, 2000));
+    provider.addDrillCaseRep(newer, caseRep(0, "pll_ga", 500, 1500, 13, 0, false, false));
+
+    assertEquals(2, provider.getDrillCaseStatistics(50).get(0).getCount());
+    List<StepStats> window = provider.getDrillCaseStatistics(1);
+    assertEquals(1, window.get(0).getCount());
+    assertEquals(2000, window.get(0).getMeanMs()); // the recent one, not the 8000
+  }
+
+  // A cross drill has no case reps, so it must not eat a place in the window either.
+  @Test
+  public void testDrillCaseStatisticsWindowSkipsDrillsWithNoCaseReps() {
+    deleteDrills();
+    long older = provider.addDrill(drill("case_execution", 1, 1000));
+    provider.addDrillCaseRep(older, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    long between = provider.addDrill(drill("cross", 1, 2000));
+    provider.addDrillCrossRep(between, crossRep(0, 8, 6, true));
+
+    List<StepStats> window = provider.getDrillCaseStatistics(1);
+    assertEquals(1, window.size());
+    assertEquals(1, window.get(0).getCount()); // the case drill, not the cross drill's empty place
+  }
+
+  /**
+   * The constraint the whole shape rests on. Twenty G perms would drag the PLL family mean toward
+   * G, and that mean is the baseline every case in the solve statistics is measured against, so a
+   * drill that improved the numbers by polluting them would be worse than no drill.
+   */
+  @Test
+  public void testDrillRepsNeverReachTheSolveHistoryOrItsStatistics() {
+    provider.deleteHistory();
+    deleteDrills();
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), step("pll_ga", 3000, 1000));
+    SolveAverages before = provider.getSolveAverages(solveType1);
+    int solvesBefore = provider.getSolvesCount(solveType1);
+
+    long drillId = provider.addDrill(drill("case_execution", 20));
+    for (int i = 0; i < 20; i++) {
+      provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 200, 400, 13, 0, false, false));
+    }
+
+    assertEquals(solvesBefore, provider.getSolvesCount(solveType1));
+    assertEquals(before.getAvgOfLifetime(),
+        provider.getSolveAverages(solveType1).getAvgOfLifetime());
+    assertEquals(1, provider.getHistory(solveType1, null).getSolveTimes().size());
+
+    MethodStatistics stats = provider.getMethodStatistics(solveType1, CubeMethod.CFOP, 50);
+    assertEquals(1, stats.getSolveCount());
+    assertEquals(1, stats.getFamily("pll").getCount());
+    assertEquals(3000, stats.getFamily("pll").getMeanMs()); // untouched by the twenty at 600
+  }
+
+  private DrillRecord drill(String type, int repsAsked) {
+    return drill(type, repsAsked, 5000);
+  }
+
+  private DrillRecord drill(String type, int repsAsked, long timestamp) {
+    String spec = "{\"spec_version\":2,\"id\":\"local-test\",\"type\":\"" + type + "\",\"reps\":"
+        + repsAsked + ",\"unknown_later_field\":\"kept\"}";
+    return new DrillRecord(timestamp, spec, "local-test", type, repsAsked);
+  }
+
+  private DrillCaseRep caseRep(int position, String caseCode, long recognitionMs, long executionMs,
+      int moveCount, int resetCount, boolean revealed, boolean abandoned) {
+    return new DrillCaseRep(position, caseCode, SCRAMBLE, "R@0 U'@200", recognitionMs, executionMs,
+        moveCount, resetCount, revealed, abandoned);
+  }
+
+  private DrillCrossRep crossRep(int position, int moveCount, int optimalLength, boolean built) {
+    return new DrillCrossRep(position, "D", SCRAMBLE, "R@0 U'@200", 2500, 1800, moveCount,
+        optimalLength, built, false);
+  }
+
+  /** Drills outlive a test otherwise: their tables are nobody's history and deleteHistory misses them. */
+  private void deleteDrills() {
+    service.getWritableDatabase().delete(DB.TABLE_DRILL_REP, null, null);
+    service.getWritableDatabase().delete(DB.TABLE_DRILL_CROSS_REP, null, null);
+    service.getWritableDatabase().delete(DB.TABLE_DRILL, null, null);
   }
 
   private SolveStep step(String name, long totalMs, long recognitionMs) {

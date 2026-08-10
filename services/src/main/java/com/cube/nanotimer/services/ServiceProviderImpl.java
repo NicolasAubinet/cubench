@@ -24,6 +24,10 @@ import com.cube.nanotimer.vo.SolveTypeStep;
 import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimerQuickAction;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCrossRep;
+import com.cube.nanotimer.vo.drill.DrillEnd;
+import com.cube.nanotimer.vo.drill.DrillRecord;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -930,6 +934,214 @@ public class ServiceProviderImpl implements ServiceProvider {
       cursor.close();
     }
     return sessionStart;
+  }
+
+  /**
+   * Opens a recorded drill. Written when its first rep lands rather than when the drill starts, so
+   * a drill nobody did a rep of leaves nothing behind, and its reps are appended as they finish so
+   * that an app killed mid-drill still keeps what was done.
+   */
+  @Override
+  public long addDrill(DrillRecord drill) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_DRILL_TIMESTAMP, drill.getTimestamp());
+    values.put(DB.COL_DRILL_SPEC, drill.getSpec());
+    values.put(DB.COL_DRILL_SPEC_ID, drill.getSpecId());
+    values.put(DB.COL_DRILL_TYPE, drill.getType());
+    values.put(DB.COL_DRILL_REPS_ASKED, drill.getRepsAsked());
+    long id = db.insert(DB.TABLE_DRILL, null, values);
+    drill.setId(id);
+    return id;
+  }
+
+  @Override
+  public void addDrillCaseRep(long drillId, DrillCaseRep rep) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_DRILL_REP_DRILL_ID, drillId);
+    values.put(DB.COL_DRILL_REP_POSITION, rep.getPosition());
+    values.put(DB.COL_DRILL_REP_CASE, rep.getCaseCode());
+    values.put(DB.COL_DRILL_REP_SCRAMBLE, rep.getScramble());
+    values.put(DB.COL_DRILL_REP_MOVES, rep.getMoves());
+    values.put(DB.COL_DRILL_REP_RECOGNITION, rep.getRecognitionMs());
+    values.put(DB.COL_DRILL_REP_EXECUTION, rep.getExecutionMs());
+    values.put(DB.COL_DRILL_REP_MOVE_COUNT, rep.getMoveCount());
+    values.put(DB.COL_DRILL_REP_RESET_COUNT, rep.getResetCount());
+    values.put(DB.COL_DRILL_REP_REVEALED, rep.wasRevealed() ? 1 : 0);
+    values.put(DB.COL_DRILL_REP_ABANDONED, rep.isAbandoned() ? 1 : 0);
+    db.insert(DB.TABLE_DRILL_REP, null, values);
+  }
+
+  @Override
+  public void addDrillCrossRep(long drillId, DrillCrossRep rep) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_DRILL_CROSS_REP_DRILL_ID, drillId);
+    values.put(DB.COL_DRILL_CROSS_REP_POSITION, rep.getPosition());
+    values.put(DB.COL_DRILL_CROSS_REP_FACE, rep.getFace());
+    values.put(DB.COL_DRILL_CROSS_REP_SCRAMBLE, rep.getScramble());
+    values.put(DB.COL_DRILL_CROSS_REP_MOVES, rep.getMoves());
+    values.put(DB.COL_DRILL_CROSS_REP_PLANNING, rep.getPlanningMs());
+    values.put(DB.COL_DRILL_CROSS_REP_EXECUTION, rep.getExecutionMs());
+    values.put(DB.COL_DRILL_CROSS_REP_MOVE_COUNT, rep.getMoveCount());
+    values.put(DB.COL_DRILL_CROSS_REP_OPTIMAL_LENGTH, rep.getOptimalLength());
+    values.put(DB.COL_DRILL_CROSS_REP_BUILT, rep.isBuilt() ? 1 : 0);
+    values.put(DB.COL_DRILL_CROSS_REP_PLANNING_EXPIRED, rep.isPlanningExpired() ? 1 : 0);
+    db.insert(DB.TABLE_DRILL_CROSS_REP, null, values);
+  }
+
+  @Override
+  public void setDrillCrossRepOptimalLength(long drillId, int position, int optimalLength) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_DRILL_CROSS_REP_OPTIMAL_LENGTH, optimalLength);
+    db.update(DB.TABLE_DRILL_CROSS_REP, values,
+        DB.COL_DRILL_CROSS_REP_DRILL_ID + " = ? AND " + DB.COL_DRILL_CROSS_REP_POSITION + " = ?",
+        getStringArray(drillId, position));
+  }
+
+  @Override
+  public void endDrill(long drillId, DrillEnd end) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_DRILL_END, end == null ? null : Integer.valueOf(end.getId()));
+    db.update(DB.TABLE_DRILL, values, DB.COL_ID + " = ?", getStringArray(drillId));
+  }
+
+  @Override
+  public List<DrillRecord> getDrills(int limit) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT d.").append(DB.COL_ID);
+    q.append("     , d.").append(DB.COL_DRILL_TIMESTAMP);
+    q.append("     , d.").append(DB.COL_DRILL_SPEC);
+    q.append("     , d.").append(DB.COL_DRILL_SPEC_ID);
+    q.append("     , d.").append(DB.COL_DRILL_TYPE);
+    q.append("     , d.").append(DB.COL_DRILL_REPS_ASKED);
+    q.append("     , d.").append(DB.COL_DRILL_END);
+    // A drill is of one kind or the other, so one of these two counts is always zero.
+    q.append("     , (SELECT COUNT(*) FROM ").append(DB.TABLE_DRILL_REP);
+    q.append("         WHERE ").append(DB.COL_DRILL_REP_DRILL_ID).append(" = d.").append(DB.COL_ID).append(")");
+    q.append("     + (SELECT COUNT(*) FROM ").append(DB.TABLE_DRILL_CROSS_REP);
+    q.append("         WHERE ").append(DB.COL_DRILL_CROSS_REP_DRILL_ID).append(" = d.").append(DB.COL_ID).append(")");
+    q.append("  FROM ").append(DB.TABLE_DRILL).append(" d");
+    q.append(" ORDER BY d.").append(DB.COL_DRILL_TIMESTAMP).append(" DESC");
+    q.append(" LIMIT ").append(Math.max(0, limit)); // written in, as elsewhere: a bound LIMIT arrives as text
+
+    List<DrillRecord> drills = new ArrayList<DrillRecord>();
+    Cursor cursor = db.rawQuery(q.toString(), null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        DrillEnd end = cursor.isNull(6) ? null : DrillEnd.fromId(cursor.getInt(6));
+        drills.add(new DrillRecord(cursor.getLong(0), cursor.getLong(1), cursor.getString(2),
+            cursor.getString(3), cursor.getString(4), cursor.getInt(5), end, cursor.getInt(7)));
+      }
+      cursor.close();
+    }
+    return drills;
+  }
+
+  @Override
+  public List<DrillCaseRep> getDrillCaseReps(long drillId) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.COL_DRILL_REP_POSITION);
+    q.append("     , ").append(DB.COL_DRILL_REP_CASE);
+    q.append("     , ").append(DB.COL_DRILL_REP_SCRAMBLE);
+    q.append("     , ").append(DB.COL_DRILL_REP_MOVES);
+    q.append("     , ").append(DB.COL_DRILL_REP_RECOGNITION);
+    q.append("     , ").append(DB.COL_DRILL_REP_EXECUTION);
+    q.append("     , ").append(DB.COL_DRILL_REP_MOVE_COUNT);
+    q.append("     , ").append(DB.COL_DRILL_REP_RESET_COUNT);
+    q.append("     , ").append(DB.COL_DRILL_REP_REVEALED);
+    q.append("     , ").append(DB.COL_DRILL_REP_ABANDONED);
+    q.append("  FROM ").append(DB.TABLE_DRILL_REP);
+    q.append(" WHERE ").append(DB.COL_DRILL_REP_DRILL_ID).append(" = ?");
+    q.append(" ORDER BY ").append(DB.COL_DRILL_REP_POSITION);
+
+    List<DrillCaseRep> reps = new ArrayList<DrillCaseRep>();
+    Cursor cursor = db.rawQuery(q.toString(), getStringArray(drillId));
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        reps.add(new DrillCaseRep(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
+            cursor.getString(3), cursor.getLong(4), cursor.getLong(5), cursor.getInt(6),
+            cursor.getInt(7), cursor.getInt(8) == 1, cursor.getInt(9) == 1));
+      }
+      cursor.close();
+    }
+    return reps;
+  }
+
+  @Override
+  public List<DrillCrossRep> getDrillCrossReps(long drillId) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.COL_DRILL_CROSS_REP_POSITION);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_FACE);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_SCRAMBLE);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_MOVES);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_PLANNING);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_EXECUTION);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_MOVE_COUNT);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_OPTIMAL_LENGTH);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_BUILT);
+    q.append("     , ").append(DB.COL_DRILL_CROSS_REP_PLANNING_EXPIRED);
+    q.append("  FROM ").append(DB.TABLE_DRILL_CROSS_REP);
+    q.append(" WHERE ").append(DB.COL_DRILL_CROSS_REP_DRILL_ID).append(" = ?");
+    q.append(" ORDER BY ").append(DB.COL_DRILL_CROSS_REP_POSITION);
+
+    List<DrillCrossRep> reps = new ArrayList<DrillCrossRep>();
+    Cursor cursor = db.rawQuery(q.toString(), getStringArray(drillId));
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        reps.add(new DrillCrossRep(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
+            cursor.getString(3), cursor.getLong(4), cursor.getLong(5), cursor.getInt(6),
+            cursor.getInt(7), cursor.getInt(8) == 1, cursor.getInt(9) == 1));
+      }
+      cursor.close();
+    }
+    return reps;
+  }
+
+  /**
+   * The drill side of the case figures, in the same {@link StepStats} the solve side is read into,
+   * so the two can be set beside each other: a case fast in drills and slow in solves is one that
+   * is known but not recognised under pressure, and the other way round says the drill is not
+   * asking what a solve asks.
+   *
+   * <p>Two kinds of rep are left out, both for the same reason, that they are not measurements of
+   * the case: an abandoned one was never finished, and a revealed one was finished with the answer
+   * in front of the user. Cross reps cannot appear here at all, being in a table of their own.
+   */
+  @Override
+  public List<StepStats> getDrillCaseStatistics(int lastDrills) {
+    // Drills with no case reps are not in the window, rather than filling it: a run of cross
+    // drills would otherwise quietly shrink how far back the case figures reach.
+    String window = "SELECT " + DB.COL_ID + " FROM " + DB.TABLE_DRILL
+        + " WHERE EXISTS (SELECT 1 FROM " + DB.TABLE_DRILL_REP
+        + "                WHERE " + DB.COL_DRILL_REP_DRILL_ID
+        + "                    = " + DB.TABLE_DRILL + "." + DB.COL_ID + ")"
+        + " ORDER BY " + DB.COL_DRILL_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastDrills);
+    String total = "(r." + DB.COL_DRILL_REP_RECOGNITION + " + r." + DB.COL_DRILL_REP_EXECUTION + ")";
+
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT r.").append(DB.COL_DRILL_REP_CASE);
+    q.append("     , COUNT(*)");
+    q.append("     , SUM(").append(total).append(")");
+    q.append("     , SUM(r.").append(DB.COL_DRILL_REP_RECOGNITION).append(")");
+    q.append("     , MIN(").append(total).append(")");
+    q.append("     , SUM(1.0 * ").append(total).append(" * ").append(total).append(")");
+    q.append("  FROM ").append(DB.TABLE_DRILL_REP).append(" r");
+    q.append("  JOIN (").append(window).append(") d");
+    q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
+    q.append(" WHERE r.").append(DB.COL_DRILL_REP_ABANDONED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_REVEALED).append(" = 0");
+    q.append(" GROUP BY r.").append(DB.COL_DRILL_REP_CASE);
+    q.append(" ORDER BY r.").append(DB.COL_DRILL_REP_CASE);
+
+    List<StepStats> stats = new ArrayList<StepStats>();
+    Cursor cursor = db.rawQuery(q.toString(), null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        stats.add(new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
+            cursor.getLong(3), cursor.getLong(4), cursor.getDouble(5)));
+      }
+      cursor.close();
+    }
+    return stats;
   }
 
   @Override

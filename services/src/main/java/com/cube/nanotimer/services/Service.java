@@ -14,7 +14,12 @@ import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
+import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCrossRep;
+import com.cube.nanotimer.vo.drill.DrillEnd;
+import com.cube.nanotimer.vo.drill.DrillRecord;
 
 import java.util.List;
 import java.util.Map;
@@ -55,6 +60,25 @@ public interface Service {
   void getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves,
       DataCallback<MethodStatistics> callback);
   void getAllUsedScrambleTypes(DataCallback<Map<CubeType, List<ScrambleType>>> callback);
+
+  /**
+   * Opens a recorded drill and hands back the id its reps are stored against. Drills are kept
+   * wholly apart from solves: nothing recorded here reaches the solve history, the session averages
+   * or {@link #getMethodStatistics}, whose figures are the baseline a drill is measured against.
+   */
+  void addDrill(DrillRecord drill, DataCallback<Long> callback);
+  void addDrillCaseRep(long drillId, DrillCaseRep rep, DataCallback<Void> callback);
+  void addDrillCrossRep(long drillId, DrillCrossRep rep, DataCallback<Void> callback);
+  /** Fills in the shortest solution for a cross rep whose search landed after the rep had ended. */
+  void setDrillCrossRepOptimalLength(long drillId, int position, int optimalLength,
+      DataCallback<Void> callback);
+  /** Says how a drill stopped, once it has. One left without an end was never ended. */
+  void endDrill(long drillId, DrillEnd end, DataCallback<Void> callback);
+  void getDrills(int limit, DataCallback<List<DrillRecord>> callback);
+  void getDrillCaseReps(long drillId, DataCallback<List<DrillCaseRep>> callback);
+  void getDrillCrossReps(long drillId, DataCallback<List<DrillCrossRep>> callback);
+  /** What each case has cost over the last {@code lastDrills} recorded drills. */
+  void getDrillCaseStatistics(int lastDrills, DataCallback<List<StepStats>> callback);
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);

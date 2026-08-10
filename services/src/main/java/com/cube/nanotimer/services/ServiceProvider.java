@@ -14,6 +14,11 @@ import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
+import com.cube.nanotimer.vo.StepStats;
+import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCrossRep;
+import com.cube.nanotimer.vo.drill.DrillEnd;
+import com.cube.nanotimer.vo.drill.DrillRecord;
 import com.cube.nanotimer.vo.TimesSort;
 
 import java.util.List;
@@ -50,6 +55,20 @@ public interface ServiceProvider {
   List<FrequencyData> getFrequencyData(SolveType solveType, Long from);
   MethodStatistics getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves);
   Map<CubeType, List<ScrambleType>> getAllUsedScrambleTypes();
+
+  /** Opens a recorded drill and hands back the id its reps are stored against. */
+  long addDrill(DrillRecord drill);
+  void addDrillCaseRep(long drillId, DrillCaseRep rep);
+  void addDrillCrossRep(long drillId, DrillCrossRep rep);
+  /** Fills in the shortest solution for a cross rep whose search landed after the rep had ended. */
+  void setDrillCrossRepOptimalLength(long drillId, int position, int optimalLength);
+  /** Says how a drill stopped, once it has. A drill left without one was never ended. */
+  void endDrill(long drillId, DrillEnd end);
+  List<DrillRecord> getDrills(int limit);
+  List<DrillCaseRep> getDrillCaseReps(long drillId);
+  List<DrillCrossRep> getDrillCrossReps(long drillId);
+  /** What each case has cost over the last {@code lastDrills} recorded drills. */
+  List<StepStats> getDrillCaseStatistics(int lastDrills);
 
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);

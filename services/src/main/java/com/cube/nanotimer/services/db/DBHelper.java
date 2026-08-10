@@ -115,6 +115,69 @@ public class DBHelper extends SQLiteOpenHelper {
         "FOREIGN KEY (" + DB.COL_SESSION_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
       ");"
     );
+
+    createDrillTables(db);
+  }
+
+  /**
+   * The three drill tables, from {@link #createTables} and from the upgrade that introduced them.
+   * Shared rather than written twice: the older tables here are duplicated between the two and the
+   * copies are what a schema change has to remember to touch.
+   */
+  private void createDrillTables(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE " + DB.TABLE_DRILL + "(" +
+        DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        DB.COL_DRILL_TIMESTAMP + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_SPEC + " TEXT NOT NULL, " +
+        DB.COL_DRILL_SPEC_ID + " TEXT, " +
+        DB.COL_DRILL_TYPE + " TEXT NOT NULL, " +
+        DB.COL_DRILL_REPS_ASKED + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_END + " INTEGER " + // NULL for a drill the app was killed in the middle of
+      ");"
+    );
+
+    db.execSQL("CREATE TABLE " + DB.TABLE_DRILL_REP + "(" +
+        DB.COL_DRILL_REP_DRILL_ID + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_REP_POSITION + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_REP_CASE + " TEXT NOT NULL, " +
+        DB.COL_DRILL_REP_SCRAMBLE + " TEXT, " +
+        DB.COL_DRILL_REP_MOVES + " TEXT, " +
+        DB.COL_DRILL_REP_RECOGNITION + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_REP_EXECUTION + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_REP_MOVE_COUNT + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_REP_RESET_COUNT + " INTEGER NOT NULL DEFAULT 0, " +
+        DB.COL_DRILL_REP_REVEALED + " INTEGER NOT NULL DEFAULT 0, " +
+        DB.COL_DRILL_REP_ABANDONED + " INTEGER NOT NULL DEFAULT 0, " +
+        "FOREIGN KEY (" + DB.COL_DRILL_REP_DRILL_ID + ") REFERENCES " + DB.TABLE_DRILL + " (" + DB.COL_ID + ") " +
+      ");"
+    );
+    db.execSQL("CREATE INDEX " + DB.IDX_DRILL_REP_DRILL +
+        " ON " + DB.TABLE_DRILL_REP + " (" + DB.COL_DRILL_REP_DRILL_ID + ");"
+    );
+    // The per-case tally is what this table is shaped for, and it reads across drills rather than
+    // within one, so it gets an index of its own.
+    db.execSQL("CREATE INDEX " + DB.IDX_DRILL_REP_CASE +
+        " ON " + DB.TABLE_DRILL_REP + " (" + DB.COL_DRILL_REP_CASE + ");"
+    );
+
+    db.execSQL("CREATE TABLE " + DB.TABLE_DRILL_CROSS_REP + "(" +
+        DB.COL_DRILL_CROSS_REP_DRILL_ID + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_CROSS_REP_POSITION + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_CROSS_REP_FACE + " TEXT NOT NULL, " +
+        DB.COL_DRILL_CROSS_REP_SCRAMBLE + " TEXT, " +
+        DB.COL_DRILL_CROSS_REP_MOVES + " TEXT, " +
+        DB.COL_DRILL_CROSS_REP_PLANNING + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_CROSS_REP_EXECUTION + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_CROSS_REP_MOVE_COUNT + " INTEGER NOT NULL, " +
+        DB.COL_DRILL_CROSS_REP_OPTIMAL_LENGTH + " INTEGER NOT NULL DEFAULT 0, " +
+        DB.COL_DRILL_CROSS_REP_BUILT + " INTEGER NOT NULL DEFAULT 1, " +
+        DB.COL_DRILL_CROSS_REP_PLANNING_EXPIRED + " INTEGER NOT NULL DEFAULT 0, " +
+        "FOREIGN KEY (" + DB.COL_DRILL_CROSS_REP_DRILL_ID + ") REFERENCES " + DB.TABLE_DRILL + " (" + DB.COL_ID + ") " +
+      ");"
+    );
+    db.execSQL("CREATE INDEX " + DB.IDX_DRILL_CROSS_REP_DRILL +
+        " ON " + DB.TABLE_DRILL_CROSS_REP + " (" + DB.COL_DRILL_CROSS_REP_DRILL_ID + ");"
+    );
   }
 
   @Override
@@ -301,6 +364,11 @@ public class DBHelper extends SQLiteOpenHelper {
           + "   AND " + DB.COL_SOLVETYPE_QUICK_ACTION + " = " + TimerQuickAction.DNF.getId() + ")"
           + "    OR (" + DB.COL_SOLVETYPE_BLIND + " = 0"
           + "   AND " + DB.COL_SOLVETYPE_QUICK_ACTION + " = " + TimerQuickAction.SCRAMBLE_VIEW.getId() + ")");
+    }
+
+    if (oldVersion < 27) {
+      // Drill reps, which are recorded apart from solves and never join them.
+      createDrillTables(db);
     }
 
 //    progressDialog.hide();

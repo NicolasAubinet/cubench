@@ -16,7 +16,12 @@ import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
+import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCrossRep;
+import com.cube.nanotimer.vo.drill.DrillEnd;
+import com.cube.nanotimer.vo.drill.DrillRecord;
 
 import java.util.List;
 import java.util.Map;
@@ -413,6 +418,106 @@ public class ServiceImpl extends DBHelper implements Service {
       @Override
       public void run() {
         callback.onData(provider.getAllUsedScrambleTypes());
+      }
+    });
+  }
+
+  @Override
+  public void addDrill(final DrillRecord drill, final DataCallback<Long> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.addDrill(drill));
+      }
+    });
+  }
+
+  @Override
+  public void addDrillCaseRep(final long drillId, final DrillCaseRep rep,
+      final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.addDrillCaseRep(drillId, rep);
+        callback.onData(null);
+      }
+    });
+  }
+
+  @Override
+  public void addDrillCrossRep(final long drillId, final DrillCrossRep rep,
+      final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.addDrillCrossRep(drillId, rep);
+        callback.onData(null);
+      }
+    });
+  }
+
+  @Override
+  public void setDrillCrossRepOptimalLength(final long drillId, final int position,
+      final int optimalLength, final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.setDrillCrossRepOptimalLength(drillId, position, optimalLength);
+        callback.onData(null);
+      }
+    });
+  }
+
+  @Override
+  public void endDrill(final long drillId, final DrillEnd end, final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.endDrill(drillId, end);
+        callback.onData(null);
+      }
+    });
+  }
+
+  @Override
+  public void getDrills(final int limit, final DataCallback<List<DrillRecord>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getDrills(limit));
+      }
+    });
+  }
+
+  @Override
+  public void getDrillCaseReps(final long drillId,
+      final DataCallback<List<DrillCaseRep>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getDrillCaseReps(drillId));
+      }
+    });
+  }
+
+  @Override
+  public void getDrillCrossReps(final long drillId,
+      final DataCallback<List<DrillCrossRep>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getDrillCrossReps(drillId));
+      }
+    });
+  }
+
+  @Override
+  public void getDrillCaseStatistics(final int lastDrills,
+      final DataCallback<List<StepStats>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getDrillCaseStatistics(lastDrills));
       }
     });
   }

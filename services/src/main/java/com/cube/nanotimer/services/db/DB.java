@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 26;
+  public static final int DB_VERSION = 27;
 
   public static final String COL_ID = "id";
 
@@ -63,5 +63,45 @@ public class DB {
   public static final String TABLE_SESSION = "session";
   public static final String COL_SESSION_START = "start";
   public static final String COL_SESSION_SOLVETYPE_ID = "solvetype_id";
+
+  // A drill is not a solve and none of the three tables below touches the ones above. Reps recorded
+  // here stay out of the solve history, out of the session averages and out of the method
+  // statistics, because those averages are the baseline a drill is supposed to be measured against.
+  public static final String TABLE_DRILL = "drill";
+  public static final String COL_DRILL_TIMESTAMP = "timestamp";
+  public static final String COL_DRILL_SPEC = "spec"; // the whole DrillSpec as its JSON text, so fields a later spec version adds survive
+  public static final String COL_DRILL_SPEC_ID = "spec_id"; // the sender's handle for the drill, not unique: the row id is what reps hang off
+  public static final String COL_DRILL_TYPE = "type"; // spec type code, so cross drills are told from case ones without parsing the JSON
+  public static final String COL_DRILL_REPS_ASKED = "reps_asked";
+  public static final String COL_DRILL_END = "end_reason"; // DrillEnd id, NULL for a drill the app was killed in the middle of
+
+  public static final String TABLE_DRILL_REP = "drill_rep";
+  public static final String COL_DRILL_REP_DRILL_ID = "drill_id";
+  public static final String COL_DRILL_REP_POSITION = "position"; // rows are written as reps finish, so the order is stored rather than implied
+  public static final String COL_DRILL_REP_CASE = "case_code"; // as a solve records it: "oll_21", "pll_ga"
+  public static final String COL_DRILL_REP_SCRAMBLE = "scramble";
+  public static final String COL_DRILL_REP_MOVES = "moves"; // SolveMovesFormat, offsets from the case going up. Tens of bytes: a rep is one algorithm
+  public static final String COL_DRILL_REP_RECOGNITION = "recognition";
+  public static final String COL_DRILL_REP_EXECUTION = "execution";
+  public static final String COL_DRILL_REP_MOVE_COUNT = "move_count";
+  public static final String COL_DRILL_REP_RESET_COUNT = "reset_count"; // a time reached on the third go is not a clean one
+  public static final String COL_DRILL_REP_REVEALED = "revealed";
+  public static final String COL_DRILL_REP_ABANDONED = "abandoned";
+  public static final String IDX_DRILL_REP_DRILL = "idx_drill_rep_drill";
+  public static final String IDX_DRILL_REP_CASE = "idx_drill_rep_case";
+
+  public static final String TABLE_DRILL_CROSS_REP = "drill_cross_rep";
+  public static final String COL_DRILL_CROSS_REP_DRILL_ID = "drill_id";
+  public static final String COL_DRILL_CROSS_REP_POSITION = "position";
+  public static final String COL_DRILL_CROSS_REP_FACE = "face";
+  public static final String COL_DRILL_CROSS_REP_SCRAMBLE = "scramble";
+  public static final String COL_DRILL_CROSS_REP_MOVES = "moves";
+  public static final String COL_DRILL_CROSS_REP_PLANNING = "planning";
+  public static final String COL_DRILL_CROSS_REP_EXECUTION = "execution";
+  public static final String COL_DRILL_CROSS_REP_MOVE_COUNT = "move_count";
+  public static final String COL_DRILL_CROSS_REP_OPTIMAL_LENGTH = "optimal_length"; // 0 where the search never landed, which is not a suspiciously good rep
+  public static final String COL_DRILL_CROSS_REP_BUILT = "built";
+  public static final String COL_DRILL_CROSS_REP_PLANNING_EXPIRED = "planning_expired";
+  public static final String IDX_DRILL_CROSS_REP_DRILL = "idx_drill_cross_rep_drill";
 
 }
