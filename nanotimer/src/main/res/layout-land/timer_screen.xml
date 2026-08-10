@@ -196,9 +196,9 @@
         <!-- Where the state preview draws, and where the live cube stands in its place: the same
              gap under the scramble portrait puts them in, and it is one or the other, never both
              (TimerActivity.refreshStatePreviewOwner). The height is the picture's own, set from
-             code, and nothing at all where this column has no room for it — which on a phone in
-             landscape is always, since the digits and a three line scramble fill it on their own.
-             What is left over goes to the two spacers, as in portrait. -->
+             code, and nothing at all where this column cannot pay for even the smallest of it —
+             which on a phone in landscape is always, since the digits and a three line scramble fill
+             it on their own. What is left over goes to the two spacers, as in portrait. -->
         <FrameLayout
            android:id="@+id/statePreviewSlot"
            android:layout_width="match_parent"

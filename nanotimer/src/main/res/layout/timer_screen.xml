@@ -202,9 +202,10 @@
         <!-- What is drawn in the gap under the scramble: the scramble's state, or the connected cube
              in its place (TimerActivity.refreshStatePreviewOwner). One or the other, never both. The
              height is set from code — see ScrambleStatePreview.PICTURE_PX — and left at nothing where
-             the screen has no room for it, so the statistics card being taller under one solve type
-             than another changes the air around the picture and never its size. Two stubs, so a user
-             with no cube pays nothing for one and a puzzle with no diagram nothing for that. -->
+             the screen cannot pay for even the smallest of it, so the statistics card being taller
+             under one solve type than another changes the air around the picture rather than its
+             size. Two stubs, so a user with no cube pays nothing for one and a puzzle with no
+             diagram nothing for that. -->
         <FrameLayout
            android:id="@+id/statePreviewCell"
            android:layout_width="match_parent"

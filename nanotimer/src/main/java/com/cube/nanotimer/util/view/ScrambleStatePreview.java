@@ -46,11 +46,11 @@ import org.json.JSONObject;
  * having no other way to draw them ({@link ScrambleViewNotation#get3DPuzzleId} returns null for
  * those two).
  *
- * <p>It draws in the gap under the scramble, next to the moves it is a picture of, at one size on
- * every screen of the app: a share of what was left over made it a different size under a solve
- * type whose statistics card is shorter, which reads as a bug rather than as a screen fitting
- * itself. The screen pays for that size out of the air around the block, and where there is not
- * enough of it the picture is not drawn at all — see {@link #fit}.
+ * <p>It draws in the gap under the scramble, at one size wherever that size fits, and steps down a
+ * coarse ladder where it does not — to nothing at all below the last rung. Never
+ * a free share of what the rest of the screen left: that made the same puzzle a different size
+ * under a solve type whose statistics card is shorter, which reads as a bug rather than as a
+ * screen fitting itself. See {@link #PICTURE_PX} and {@link #fit}.
  *
  * <p>The box is shared with the live cube, which draws in it instead whenever one is connected:
  * see {@link #setReplaced}.
@@ -71,12 +71,8 @@ public class ScrambleStatePreview {
   private static final long FADE_MS = 120;
 
   /**
-   * How tall the picture is, in the px the timer layouts are authored in (scaled to the screen like
-   * every other length there).
-   *
-   * <p>One height for every solve type and every puzzle, because the alternative was a share of
-   * what the rest of the screen left: the statistics card is shorter for a solve type timed in
-   * steps than for a plain one, so the same cube came out visibly larger under one than the other.
+   * How tall the picture is where it fits, in the px the timer layouts are authored in (scaled to
+   * the screen like every other length there), and the top of the ladder where it does not.
    *
    * <p>Sized off the air rather than off the tightest screen. A 1080x2400 phone was carrying 297dp
    * of gap it did nothing with, 128 over the digits and 169 under the picture; this takes that down
@@ -86,15 +82,29 @@ public class ScrambleStatePreview {
    * given every pixel the air could spare read as the thing being timed rather than as a note about
    * it. {@link #FOOT_WEIGHT} splits what is left.
    *
-   * <p>⚠️ It is therefore <b>no longer the largest that fits everywhere</b>, and it was not meant to
-   * be: a screen that cannot pay for it draws nothing at all rather than something small (see
-   * {@link #fit}). Measured on the two screens that decide it, both on a fresh launch. A 7x7 on a
-   * 1080x2400 480dpi phone still fits, which is the case that used to only just fit and where the
-   * system bars, being dp, take 50px more than they do at 420dpi. A 360x640dp phone no longer does,
-   * at any puzzle: it has about 280px spare against the 372 this asks of it there, so that screen
-   * keeps its air and loses the picture, whichever way the setting is left.
+   * <p>⚠️ It is therefore <b>not the largest that fits everywhere</b>, and was not meant to be. What
+   * decides the screens it does not fit is the length of the scramble over the box rather than
+   * their size, the air being what it is paid out of: measured on a 1440x2880 560dpi phone, a 3x3
+   * gets this and a 7x7 or a megaminx gets the bottom rung. A 1080x2400 480dpi phone pays for this
+   * at every puzzle, a 360x640dp one for no rung at any.
    */
   private static final int PICTURE_PX = 222;
+
+  /**
+   * The smallest the picture is drawn at, in the same px, below which the box is left empty. The
+   * rungs are reached by the longest scrambles, so under this one is an illegible 7x7, not a small
+   * 3x3.
+   */
+  private static final int MIN_PICTURE_PX = 150;
+
+  /**
+   * The gap between rungs, in the same px. Coarse so that a rung is earned by a real difference in
+   * air and not by the few pixels one solve type's card differs from another's.
+   *
+   * <p>⚠️ It must divide {@link #PICTURE_PX} minus {@link #MIN_PICTURE_PX} exactly, or the ladder
+   * stops short and the real floor is a rung above the stated one.
+   */
+  private static final int PICTURE_STEP_PX = 24;
 
   /**
    * What the two spacers must keep between them for the picture to be worth asking for, in the same
@@ -135,8 +145,8 @@ public class ScrambleStatePreview {
   private boolean replaced;
   /** The screen has been through a layout, so what it holds is an answer rather than a zero. */
   private boolean measured;
-  /** The screen has room for the picture. Assumed until measured: it has to be asked for first. */
-  private boolean roomEnough = true;
+  /** The rung the box was granted, in authored px, or 0 for a screen that can pay for none. */
+  private int grantedPx;
   /** What this puzzle's net needs, in pixels: see {@link #MIN_ROW_DP}. */
   private int minPicturePx;
 
@@ -185,7 +195,7 @@ public class ScrambleStatePreview {
     this.head = head;
     this.foot = foot;
     measured = false;
-    roomEnough = true;
+    grantedPx = 0;
     // All three, because what says whether there is room is what the three of them hold between
     // them, and any one of them can be the one that changes.
     watch(cell);
@@ -202,9 +212,9 @@ public class ScrambleStatePreview {
   /**
    * Gives the picture its height, and the spacers what is left.
    *
-   * <p>The height is {@link #PICTURE_PX} whenever there is something to put in the box and the
-   * screen can pay for it, and nothing at all otherwise, so the box is the same size under every
-   * solve type and the air around it is what varies instead.
+   * <p>The height is the rung {@link #measureRoom} granted whenever there is something to put in
+   * the box, and nothing at all otherwise. On a screen that can pay for the full one that is the
+   * same size under every solve type, with the air around it varying instead.
    *
    * <p>With nothing in the band the foot is evened up with the head, which is the screen as it was
    * before any of this. With something in it the foot stays the heavier of the two: what shows
@@ -232,13 +242,13 @@ public class ScrambleStatePreview {
    * doubled it.
    */
   private void fit() {
-    boolean showing = (replaced || key != null) && measured && roomEnough;
+    boolean showing = (replaced || key != null) && measured && grantedPx > 0;
     setHeight(cell, showing ? picturePx() : 0);
     setWeight(foot, showing ? FOOT_WEIGHT : 1f);
   }
 
   private int picturePx() {
-    return (int) (PICTURE_PX * ScaleUtils.getScale(context));
+    return (int) (grantedPx * ScaleUtils.getScale(context));
   }
 
   private static void setHeight(View view, int height) {
@@ -301,17 +311,18 @@ public class ScrambleStatePreview {
   };
 
   /**
-   * Whether the screen can pay for the picture, read off the two spacers plus whatever the box is
-   * already holding.
+   * How much of the picture the screen can pay for, read off the two spacers plus whatever the box
+   * is already holding.
    *
-   * <p>⚠️ <b>Room once given is never taken back</b> until {@link #bind} or a new puzzle asks the
-   * question again. The sum of the three was meant to hold whatever the box takes out of the
-   * spacers, so that granting the box could not change the answer to the question that granted it.
-   * It does not: the band holds the step bar too, and a connected cube fills it, so the sum falls
-   * between one pass and the next (measured: 617px, then 454px, on the pass after the box was
-   * given its height). The second answer then took back what the first gave, the box collapsed to
-   * nothing, and the mirror in it had nowhere to draw. Growing into room is still allowed, since
-   * that cannot chase itself.
+   * <p>⚠️ <b>A rung once given is never taken back</b> until {@link #bind} or a new puzzle asks the
+   * question again: only a larger answer than the one standing is acted on. The sum of the three
+   * was meant to hold whatever the box takes out of the spacers, so that granting the box could not
+   * change the answer to the question that granted it. It does not: the band holds the step bar
+   * too, and a connected cube fills it, so the sum falls between one pass and the next (measured:
+   * 617px, then 454px, on the pass after the box was given its height). The second answer then took
+   * back what the first gave, the box collapsed to nothing, and the mirror in it had nowhere to
+   * draw. With a ladder it would also hunt, each rung leaving the air that argues for the next one
+   * down. Growing into room is still allowed, since that cannot chase itself.
    *
    * @return whether the answer changed
    */
@@ -319,25 +330,38 @@ public class ScrambleStatePreview {
     if (cell == null || head == null || foot == null) {
       return false;
     }
-    if (measured && roomEnough) {
+    if (measured && grantedPx == PICTURE_PX) {
       return false;
     }
     int spare = head.getHeight() + foot.getHeight() + cell.getHeight();
     if (spare == 0) {
       return false; // not laid out yet, and reading that as an answer would settle for nothing
     }
-    // The mirror is asked for on its own terms: it is a cube on a transparent page, carrying its
-    // own margin, where the net is drawn edge to edge and needs air held back for it. Its legibility
-    // floor is the net's too and never binds, a cube only ever drawing for the 3x3 it is turning.
-    boolean room = replaced ? spare >= picturePx()
-        : spare >= picturePx() + (int) (MIN_AIR_PX * ScaleUtils.getScale(context))
-            && picturePx() >= minPicture();
-    if (measured && room == roomEnough) {
+    int rung = affordable(spare);
+    if (measured && rung <= grantedPx) {
       return false;
     }
     measured = true;
-    roomEnough = room;
+    grantedPx = rung;
     return true;
+  }
+
+  /**
+   * The tallest rung this much air pays for, in authored px, or 0 for none of them. The mirror is
+   * asked for on its own terms: it carries its own margin where the net is drawn edge to edge, and
+   * its legibility floor never binds, a cube only ever drawing for the 3x3 it is turning.
+   */
+  private int affordable(int spare) {
+    float scale = ScaleUtils.getScale(context);
+    int air = replaced ? 0 : (int) (MIN_AIR_PX * scale);
+    int floor = replaced ? 0 : minPicture();
+    for (int px = PICTURE_PX; px >= MIN_PICTURE_PX; px -= PICTURE_STEP_PX) {
+      int height = (int) (px * scale);
+      if (spare >= height + air && height >= floor) {
+        return px;
+      }
+    }
+    return 0;
   }
 
   private int minPicture() {
@@ -369,7 +393,7 @@ public class ScrambleStatePreview {
 
   /** Builds the page, once there is both something to draw and somewhere measured to draw it. */
   private void build() {
-    if (key == null || replaced || !measured || !roomEnough) {
+    if (key == null || replaced || !measured || grantedPx == 0) {
       return;
     }
     inflate();
@@ -403,7 +427,7 @@ public class ScrambleStatePreview {
     // Asked afresh for every scramble, which is what bounds how long an answer stands: room is not
     // taken back within one (see measureRoom), and a solve type whose card grew is a new one.
     measured = false;
-    roomEnough = true;
+    grantedPx = 0;
     measureRoom();
     fit();
     build();
@@ -432,7 +456,7 @@ public class ScrambleStatePreview {
     // The box is asked for on different terms by the two of them (see measureRoom), so whichever is
     // taking it over puts the question again rather than inheriting the other's answer.
     measured = false;
-    roomEnough = true;
+    grantedPx = 0;
     measureRoom();
     fit();
     build(); // a cube that connected first is what leaves the page unbuilt; this is where it is built
@@ -610,7 +634,8 @@ public class ScrambleStatePreview {
     if (previewLayout == null) {
       return;
     }
-    boolean visible = (key != null) && !replaced && measured && roomEnough && !suppressed && pageReady;
+    boolean visible =
+        (key != null) && !replaced && measured && grantedPx > 0 && !suppressed && pageReady;
     previewLayout.animate().cancel();
     if (visible) {
       previewLayout.setVisibility(View.VISIBLE);
