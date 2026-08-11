@@ -8,7 +8,8 @@
    android:layout_width="match_parent"
    android:layout_height="match_parent">
 
-  <!-- G1: cube/solve-type header + controls in one compact rounded filter card. -->
+  <!-- What is being drawn, and every control that changes it, on one line: the graph under it is
+       the screen, and every row this card grows comes out of the plot. -->
   <androidx.cardview.widget.CardView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
@@ -16,7 +17,7 @@
      android:layout_marginBottom="@dimen/space_xs"
      android:layout_marginLeft="@dimen/space_m"
      android:layout_marginRight="@dimen/space_m"
-     app:cardBackgroundColor="@color/mainscreen_top_card"
+     app:cardBackgroundColor="@color/hero_card"
      app:cardElevation="@dimen/mainscreen_card_elevation"
      app:cardCornerRadius="@dimen/card_corner">
 
@@ -27,9 +28,9 @@
        android:gravity="center_vertical"
        android:baselineAligned="false"
        android:paddingLeft="@dimen/space_m"
-       android:paddingRight="@dimen/space_m"
-       android:paddingTop="@dimen/space_s"
-       android:paddingBottom="@dimen/space_s">
+       android:paddingRight="@dimen/space_s"
+       android:paddingTop="@dimen/space_xs"
+       android:paddingBottom="@dimen/space_xs">
 
       <TextView
          android:id="@+id/tvCubeType"
@@ -51,36 +52,63 @@
          android:ellipsize="end"
          style="@style/SmallTextField"/>
 
-      <CheckBox
-         android:id="@+id/cbSmooth"
+      <!-- A switch with one option, said as the segmented control every other toggle uses. -->
+      <LinearLayout
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:text="@string/smooth"
-         android:textColor="@color/secondary_text"
-         android:textSize="14sp"/>
+         android:orientation="horizontal"
+         android:background="@drawable/view_segment_group"
+         android:padding="3dp">
+
+        <TextView
+           android:id="@+id/buSmooth"
+           style="@style/ViewSegmentCompact"
+           android:text="@string/smooth"/>
+      </LinearLayout>
 
       <Spinner
          android:id="@+id/spPeriod"
          android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
          android:layout_marginStart="@dimen/space_s"
-         android:gravity="center"
-         style="@style/CustomSpinner"/>
+         android:background="@drawable/hero_selector_pill"
+         android:popupBackground="@drawable/dropdown_popup"
+         android:dropDownVerticalOffset="8dp"/>
 
-      <Spinner
-         android:id="@+id/spGraphType"
+      <!-- Three graphs, all three named: the choice is the screen's main one and short enough to
+           show whole. -->
+      <LinearLayout
          android:layout_width="wrap_content"
-         android:layout_marginStart="@dimen/space_xs"
-         android:gravity="center"
-         style="@style/CustomSpinner"/>
+         android:layout_height="wrap_content"
+         android:layout_marginStart="@dimen/space_s"
+         android:orientation="horizontal"
+         android:background="@drawable/view_segment_group"
+         android:padding="3dp">
 
-      <!-- G5: what each graph draws, next to the picker that chooses between them. -->
+        <TextView
+           android:id="@+id/buGraphProgression"
+           style="@style/ViewSegmentCompact"
+           android:text="@string/chart_type_progression"/>
+
+        <TextView
+           android:id="@+id/buGraphFrequency"
+           style="@style/ViewSegmentCompact"
+           android:text="@string/chart_type_frequency"/>
+
+        <TextView
+           android:id="@+id/buGraphDistribution"
+           style="@style/ViewSegmentCompact"
+           android:text="@string/chart_type_distribution"/>
+      </LinearLayout>
+
+      <!-- What each graph draws, next to the control that chooses between them. -->
       <ImageButton
          android:id="@+id/buGraphHelp"
-         android:layout_width="34dp"
-         android:layout_height="34dp"
+         android:layout_width="30dp"
+         android:layout_height="30dp"
          android:layout_marginStart="@dimen/space_xs"
          android:scaleType="fitCenter"
-         android:padding="6dp"
+         android:padding="5dp"
          android:background="?android:attr/selectableItemBackgroundBorderless"
          android:src="@drawable/ic_help_outline"
          android:contentDescription="@string/graph_help_title"/>
@@ -89,16 +117,15 @@
 
   </androidx.cardview.widget.CardView>
 
-  <!-- G3: chart sits on a rounded surface card (G2: the old bright iceblue divider is gone). -->
+  <!-- The chart takes everything left, on a card whose plot is recessed a shade into it. -->
   <androidx.cardview.widget.CardView
      android:layout_width="match_parent"
      android:layout_height="0dp"
      android:layout_weight="1"
-     android:layout_marginTop="@dimen/space_xs"
-     android:layout_marginBottom="@dimen/space_s"
+     android:layout_marginBottom="@dimen/space_xs"
      android:layout_marginLeft="@dimen/space_m"
      android:layout_marginRight="@dimen/space_m"
-     app:cardBackgroundColor="@color/mainscreen_top_card"
+     app:cardBackgroundColor="@color/hero_card"
      app:cardElevation="@dimen/mainscreen_card_elevation"
      app:cardCornerRadius="@dimen/card_corner">
 
@@ -106,7 +133,7 @@
        android:id="@+id/chart"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
-       android:padding="@dimen/space_s"/>
+       android:padding="@dimen/space_xs"/>
 
     <!-- The distribution graph counts solves per time bucket, so it draws bars, not a line. -->
     <com.github.mikephil.charting.charts.BarChart
@@ -114,7 +141,7 @@
        android:layout_width="match_parent"
        android:layout_height="match_parent"
        android:visibility="gone"
-       android:padding="@dimen/space_s"/>
+       android:padding="@dimen/space_xs"/>
 
   </androidx.cardview.widget.CardView>
 

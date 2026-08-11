@@ -285,7 +285,7 @@
   <string name="chart_type_frequency">Fréquence</string>
   <string name="chart_type_distribution">Distribution</string>
   <string name="graph_help_title">Ce que montrent ces graphiques</string>
-  <string name="graph_help_body">Trois façons de lire le même historique. Le sélecteur choisit entre elles, celui d\'à côté choisit jusqu\'où elles remontent.</string>
+  <string name="graph_help_body">Trois façons de lire le même historique. La rangée de droite choisit entre elles, le sélecteur d\'à côté choisit jusqu\'où elles remontent.</string>
   <string name="graph_help_progression">Chaque temps dans l\'ordre, avec les Ao5 et Ao12 qui les traversent.</string>
   <string name="graph_help_frequency">Le nombre de résolutions faites chaque jour.</string>
   <string name="graph_help_distribution">Le nombre de résolutions tombées dans chaque plage de temps. Le nombre sous une barre est le début de sa plage.</string>

@@ -2,17 +2,14 @@ package com.cube.nanotimer.gui;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Spinner;
 import android.widget.TextView;
 import com.cube.nanotimer.App;
@@ -27,6 +24,7 @@ import com.cube.nanotimer.util.chart.ChartUtils;
 import com.cube.nanotimer.util.chart.TimeDistribution;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.ViewSegments;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.FrequencyData;
 import com.cube.nanotimer.vo.SolveHistory;
@@ -35,6 +33,10 @@ import com.cube.nanotimer.vo.SolveType;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.Chart;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.Legend.LegendForm;
+import com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment;
+import com.github.mikephil.charting.components.Legend.LegendVerticalAlignment;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
@@ -47,11 +49,24 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import androidx.core.content.ContextCompat;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class GraphActivity extends NanoTimerActivity {
+
+  private static final long DAY_MS = 24 * 60 * 60 * 1000L;
+  private static final long HALF_YEAR_MS = 182 * DAY_MS;
+  /** What an X label says, from the finest window it is worth saying it on to the coarsest. */
+  private static final String CLOCK_PATTERN = "HH:mm";
+  private static final String DAY_AND_CLOCK_PATTERN = "MMM d \u00b7 HH:mm";
+  private static final String DAY_PATTERN = "MMM d";
+  private static final String MONTH_PATTERN = "MMM, yyyy";
+  /** Past this many points a circle apiece is a band rather than a set of solves. */
+  private static final int MAX_POINTS_WITH_CIRCLES = 80;
 
   private CubeType cubeType;
   private SolveType solveType;
@@ -62,11 +77,14 @@ public class GraphActivity extends NanoTimerActivity {
   private LineChart chart;
   private BarChart barChart;
   private Spinner spPeriod;
-  private Spinner spGraphType;
-  private CheckBox cbSmooth;
+  private List<TextView> graphTypeCells = new ArrayList<>();
+  private int graphTypePos;
+  private TextView buSmooth;
+  private boolean smooth;
   private SharedPreferences prefs;
+  private final SimpleDateFormat axisDateFormat = new SimpleDateFormat(CLOCK_PATTERN, Locale.ENGLISH);
 
-  private int defaultColor = R.color.iceblue;
+  private int defaultColor = R.color.graph_series;
 
   /**
    * How much of the history the graph draws. A stretch of time, or — for the one that mirrors the
@@ -130,31 +148,46 @@ public class GraphActivity extends NanoTimerActivity {
   enum GraphType {
     PROGRESSION {
       @Override
-      public String formatValue(float value) {
-        return FormatterService.INSTANCE.formatSolveTime(Math.round((double) value));
+      public String formatAxisValue(float value, float axisRange) {
+        return formatAxisTime(Math.round(value), axisRange);
       }
     },
+    /** Solves counted, one day at a time. */
     FREQUENCY {
       @Override
-      public String formatValue(float value) {
-        return FormatterService.INSTANCE.formatFloat(value, 2);
+      public String formatAxisValue(float value, float axisRange) {
+        return String.valueOf(Math.round(value));
       }
     },
     /** Its values are counts of solves, not times. */
     DISTRIBUTION {
       @Override
-      public String formatValue(float value) {
+      public String formatAxisValue(float value, float axisRange) {
         return String.valueOf(Math.round(value));
       }
     };
 
-    public abstract String formatValue(float value);
+    public abstract String formatAxisValue(float value, float axisRange);
+
+    /**
+     * A time as a gridline is labelled: to the coarsest precision the axis still separates. A solve
+     * is read to the millisecond, but a gridline is not.
+     */
+    private static String formatAxisTime(long ms, float axisRange) {
+      if (ms >= 60000) {
+        long seconds = Math.round(ms / 1000d);
+        return seconds / 60 + ":" + String.format(Locale.US, "%02d", seconds % 60);
+      }
+      return String.format(Locale.US, axisRange >= 5000 ? "%.1f" : "%.2f", ms / 1000d);
+    }
   }
 
+  /** Gridlines only: no value is drawn on a point, so this rules the Y axis and nothing else. */
   ValueFormatter yValueFormatter = new ValueFormatter() {
     @Override
     public String getFormattedValue(float value) {
-      return getSelectedGraphType().formatValue(value);
+      YAxis axis = chart.getAxisLeft();
+      return getSelectedGraphType().formatAxisValue(value, axis.getAxisMaximum() - axis.getAxisMinimum());
     }
   };
 
@@ -180,29 +213,31 @@ public class GraphActivity extends NanoTimerActivity {
 
     prefs = getSharedPreferences("graph", 0);
 
-    cbSmooth = (CheckBox) findViewById(R.id.cbSmooth);
-    cbSmooth.setChecked(prefs.getBoolean("smooth", false));
-    cbSmooth.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+    buSmooth = (TextView) findViewById(R.id.buSmooth);
+    smooth = prefs.getBoolean("smooth", false);
+    ViewSegments.style(buSmooth, smooth);
+    buSmooth.setOnClickListener(new View.OnClickListener() {
       @Override
-      public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+      public void onClick(View view) {
+        smooth = !smooth;
         Editor editor = prefs.edit();
-        editor.putBoolean("smooth", b);
+        editor.putBoolean("smooth", smooth);
         editor.apply();
-        if (chartData != null) {
-          getData();
-        }
+        ViewSegments.style(buSmooth, smooth);
+        getData();
       }
     });
 
     chart = (LineChart) findViewById(R.id.chart);
     chart.getDescription().setEnabled(false);
-    chart.getLegend().setEnabled(true);
-    chart.setBackgroundColor(getResourceColor(R.color.mainscreen_top_card)); // blend into the surface card (G3)
-    chart.setDrawGridBackground(false);
+    chart.setBackgroundColor(getResourceColor(R.color.hero_card)); // blend into the surface card
+    chart.setDrawGridBackground(true); // the plot, recessed a shade into that card
+    chart.setGridBackgroundColor(getResourceColor(R.color.graph_plot));
     chart.setNoDataText("");
-    chart.setExtraTopOffset(5f); // fix X-labels being cut at the top
+    chart.setExtraBottomOffset(4f); // keep the X labels clear of the card's rounded edge
+    chart.setExtraRightOffset(6f); // and the last of them off its corner
 
-    // G4: styled empty state — muted, slightly larger "no data" text instead of bare default.
+    // Muted, slightly larger "no data" text instead of the bare default.
     chart.setNoDataTextColor(getResourceColor(R.color.secondary_text));
     Paint noDataPaint = chart.getPaint(Chart.PAINT_INFO);
     if (noDataPaint != null) {
@@ -213,38 +248,33 @@ public class GraphActivity extends NanoTimerActivity {
     ValueFormatter xValueFormatter = new ValueFormatter() {
       @Override
       public String getFormattedValue(float value) {
-        int i = (int) value;
-        if (i >= 0 && i < pointTimestamps.size()) {
-          long timestamp = pointTimestamps.get(i);
-          if (chart.getVisibleXRange() < 20) { // when zoomed in, show more details
-            return FormatterService.INSTANCE.formatDate(timestamp);
-          } else {
-            return FormatterService.INSTANCE.formatMonthYear(timestamp);
-          }
-        }
-        return "";
+        int i = Math.round(value);
+        return (i >= 0 && i < pointTimestamps.size()) ? formatAxisDate(pointTimestamps.get(i)) : "";
       }
     };
 
-    // G3: soften axis presentation — drop hard axis lines, keep only a faint Y grid.
+    // Soften axis presentation: no hard axis lines, only a faint Y grid over the plot.
     XAxis xAxis = chart.getXAxis();
-    xAxis.setPosition(XAxis.XAxisPosition.TOP);
+    xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // time runs along the foot of the plot, as on the bars
     xAxis.setSpaceMin(1);
-    xAxis.setTextColor(getResourceColor(R.color.white));
-    xAxis.setTextSize(12);
+    xAxis.setTextColor(getResourceColor(R.color.secondary_text));
+    xAxis.setTextSize(11);
     xAxis.setDrawAxisLine(false);
     xAxis.setDrawGridLines(false);
+    xAxis.setAvoidFirstLastClipping(true);
     xAxis.setValueFormatter(xValueFormatter);
 
     YAxis yAxis = chart.getAxisLeft();
-    yAxis.setTextColor(getResourceColor(R.color.white));
-    yAxis.setTextSize(12);
+    yAxis.setTextColor(getResourceColor(R.color.secondary_text));
+    yAxis.setTextSize(11);
     yAxis.setDrawAxisLine(false);
-    yAxis.setGridColor(getResourceColor(R.color.gray600));
+    yAxis.setGridColor(getResourceColor(R.color.graph_grid));
     yAxis.setGridLineWidth(0.5f);
     yAxis.setValueFormatter(yValueFormatter);
 
     chart.getAxisRight().setEnabled(false);
+
+    setUpLegend(chart.getLegend());
 
     barChart = (BarChart) findViewById(R.id.barChart);
     setupBarChart();
@@ -256,7 +286,9 @@ public class GraphActivity extends NanoTimerActivity {
       }
     });
 
-    // Last: picking a spinner value loads the data, which needs both charts to already be there.
+    setUpGraphTypes();
+
+    // Last: picking a period loads the data, which needs both charts and the graph type to be set.
     spPeriod = (Spinner) findViewById(R.id.spPeriod);
     configureSpinner(spPeriod, R.array.graph_periods, "period");
     // Opened on a period of its own (the history screen's trend leads here), rather than on the
@@ -265,19 +297,105 @@ public class GraphActivity extends NanoTimerActivity {
     if (requested != null) {
       spPeriod.setSelection(requested.ordinal());
     }
-    spGraphType = (Spinner) findViewById(R.id.spGraphType);
-    configureSpinner(spGraphType, R.array.graph_types, "graph_type");
+  }
+
+  /** The three graphs as a segmented control: the choice the screen is mostly about. */
+  private void setUpGraphTypes() {
+    graphTypeCells.add((TextView) findViewById(R.id.buGraphProgression));
+    graphTypeCells.add((TextView) findViewById(R.id.buGraphFrequency));
+    graphTypeCells.add((TextView) findViewById(R.id.buGraphDistribution));
+    for (int i = 0; i < graphTypeCells.size(); i++) {
+      final int index = i;
+      graphTypeCells.get(i).setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          if (graphTypePos != index) {
+            setGraphType(index);
+            rememberGraphType();
+            getData();
+          }
+        }
+      });
+    }
+    setGraphType(prefs.getInt("graph_type", 0));
+  }
+
+  private void setGraphType(int pos) {
+    graphTypePos = pos;
+    for (int i = 0; i < graphTypeCells.size(); i++) {
+      ViewSegments.style(graphTypeCells.get(i), i == pos);
+    }
+  }
+
+  private void rememberGraphType() {
+    Editor editor = prefs.edit();
+    editor.putInt("graph_type", graphTypePos);
+    editor.apply();
+  }
+
+  /** Names sit beside the plot rather than in it, and only where there is more than one line. */
+  private void setUpLegend(Legend legend) {
+    legend.setTextColor(getResourceColor(R.color.secondary_text));
+    legend.setTextSize(11f);
+    legend.setForm(LegendForm.LINE);
+    legend.setFormSize(11f);
+    legend.setFormLineWidth(2.5f);
+    legend.setXEntrySpace(14f);
+    legend.setVerticalAlignment(LegendVerticalAlignment.TOP);
+    legend.setHorizontalAlignment(LegendHorizontalAlignment.RIGHT);
+    legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
+    legend.setDrawInside(false);
+  }
+
+  private String formatAxisDate(long timestamp) {
+    axisDateFormat.applyPattern(axisDatePattern());
+    return axisDateFormat.format(new Date(timestamp));
+  }
+
+  /**
+   * What the labels say, taken from the stretch of time on screen: the clock within a day, the day
+   * up to half a year, the month past that. The axis runs on solves rather than on time, so two
+   * evenly spaced labels can land in the same day and say so twice; that is a day the user spent a
+   * lot of solves in, and naming it twice is honest. Naming the month six times was not, and the
+   * ladder cannot do it: a month label only appears where the labels are a month or more apart.
+   */
+  private String axisDatePattern() {
+    long span = visibleSpanMs();
+    if (span < DAY_MS / 2) {
+      return CLOCK_PATTERN; // inside one day, where the date on every label says nothing
+    } else if (span < 2 * DAY_MS) {
+      return DAY_AND_CLOCK_PATTERN; // a day is crossed, and the clock still separates the labels
+    } else if (span < HALF_YEAR_MS) {
+      return DAY_PATTERN;
+    }
+    return MONTH_PATTERN;
+  }
+
+  /** The stretch of time the chart is showing, zoom included. */
+  private long visibleSpanMs() {
+    if (pointTimestamps.size() < 2) {
+      return 0;
+    }
+    int first = clampToPoints(chart.getLowestVisibleX());
+    int last = clampToPoints(chart.getHighestVisibleX());
+    return Math.abs(pointTimestamps.get(last) - pointTimestamps.get(first));
+  }
+
+  private int clampToPoints(float x) {
+    return Math.max(0, Math.min(pointTimestamps.size() - 1, Math.round(x)));
   }
 
   /** The distribution graph's chart, styled to match the line one. */
   private void setupBarChart() {
     barChart.getDescription().setEnabled(false);
     barChart.getLegend().setEnabled(false); // a single series, already named by the graph type
-    barChart.setBackgroundColor(getResourceColor(R.color.mainscreen_top_card));
-    barChart.setDrawGridBackground(false);
+    barChart.setBackgroundColor(getResourceColor(R.color.hero_card));
+    barChart.setDrawGridBackground(true);
+    barChart.setGridBackgroundColor(getResourceColor(R.color.graph_plot));
     barChart.setNoDataText("");
     barChart.setNoDataTextColor(getResourceColor(R.color.secondary_text));
-    barChart.setExtraTopOffset(5f);
+    barChart.setExtraTopOffset(5f); // room for the count written over the tallest bar
+    barChart.setExtraBottomOffset(4f);
     barChart.setScaleEnabled(false); // every bucket already fits on screen
     barChart.setPinchZoom(false);
     barChart.setDoubleTapToZoomEnabled(false);
@@ -290,8 +408,8 @@ public class GraphActivity extends NanoTimerActivity {
 
     XAxis xAxis = barChart.getXAxis();
     xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-    xAxis.setTextColor(getResourceColor(R.color.white));
-    xAxis.setTextSize(12);
+    xAxis.setTextColor(getResourceColor(R.color.secondary_text));
+    xAxis.setTextSize(11);
     xAxis.setDrawAxisLine(false);
     xAxis.setDrawGridLines(false);
     xAxis.setGranularity(1f); // one label per bucket at most, never a repeated bound
@@ -304,10 +422,10 @@ public class GraphActivity extends NanoTimerActivity {
     });
 
     YAxis yAxis = barChart.getAxisLeft();
-    yAxis.setTextColor(getResourceColor(R.color.white));
-    yAxis.setTextSize(12);
+    yAxis.setTextColor(getResourceColor(R.color.secondary_text));
+    yAxis.setTextSize(11);
     yAxis.setDrawAxisLine(false);
-    yAxis.setGridColor(getResourceColor(R.color.gray600));
+    yAxis.setGridColor(getResourceColor(R.color.graph_grid));
     yAxis.setGridLineWidth(0.5f);
     yAxis.setAxisMinimum(0f);
     yAxis.setGranularity(1f); // counts are whole solves
@@ -316,9 +434,20 @@ public class GraphActivity extends NanoTimerActivity {
     barChart.getAxisRight().setEnabled(false);
   }
 
-  private Spinner configureSpinner(Spinner spinner, int dataArray, final String prefsKey) {
-    ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, dataArray, R.layout.spinner_item);
-    adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+  private Spinner configureSpinner(final Spinner spinner, int dataArray, final String prefsKey) {
+    // The list a pill drops marks the value the pill is showing: without it, the one you are on is
+    // the only row the list does not tell you about.
+    ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(this,
+        R.layout.pill_spinner_item, getResources().getTextArray(dataArray)) {
+      @Override
+      public View getDropDownView(int position, View convertView, ViewGroup parent) {
+        TextView row = (TextView) super.getDropDownView(position, convertView, parent);
+        boolean current = (position == spinner.getSelectedItemPosition());
+        row.setTextColor(getResourceColor(current ? R.color.lightblue : R.color.secondary_text));
+        return row;
+      }
+    };
+    adapter.setDropDownViewResource(R.layout.pill_spinner_dropdown_item);
     spinner.setAdapter(adapter);
     spinner.setSelection(prefs.getInt(prefsKey, 0));
     spinner.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -343,8 +472,19 @@ public class GraphActivity extends NanoTimerActivity {
     boolean bars = (selectedGraphType == GraphType.DISTRIBUTION);
     chart.setVisibility(bars ? View.GONE : View.VISIBLE);
     barChart.setVisibility(bars ? View.VISIBLE : View.GONE);
-    cbSmooth.setEnabled(!bars); // there is nothing to smooth in a histogram
-    cbSmooth.setAlpha(bars ? 0.4f : 1f);
+    buSmooth.setEnabled(!bars); // there is nothing to smooth in a histogram
+    buSmooth.setAlpha(bars ? 0.4f : 1f);
+
+    // Solves counted are whole and start at none; times are neither.
+    YAxis yAxis = chart.getAxisLeft();
+    boolean counts = (selectedGraphType == GraphType.FREQUENCY);
+    yAxis.setGranularity(1f);
+    yAxis.setGranularityEnabled(counts);
+    if (counts) {
+      yAxis.setAxisMinimum(0f);
+    } else {
+      yAxis.resetAxisMinimum();
+    }
 
     if (selectedGraphType == GraphType.PROGRESSION) {
       getProgressionData();
@@ -374,7 +514,7 @@ public class GraphActivity extends NanoTimerActivity {
 
             int average = 5;
             List<ChartData> averageLineData = getAverageOf(timesLineData, average);
-            chartLineData = new ChartLineData(averageLineData, getString(R.string.ao5), R.color.green);
+            chartLineData = new ChartLineData(averageLineData, getString(R.string.ao5), R.color.graph_ao5);
             chartLineData.setxOffset(average - 1);
             chartLineData.setLineWidth(1f);
             chartLineData.setCircleSize(2f);
@@ -382,7 +522,7 @@ public class GraphActivity extends NanoTimerActivity {
 
             average = 12;
             averageLineData = getAverageOf(timesLineData, average);
-            chartLineData = new ChartLineData(averageLineData, getString(R.string.ao12), R.color.darkred);
+            chartLineData = new ChartLineData(averageLineData, getString(R.string.ao12), R.color.graph_ao12);
             chartLineData.setxOffset(average - 1);
             chartLineData.setLineWidth(1f);
             chartLineData.setCircleSize(2f);
@@ -475,7 +615,7 @@ public class GraphActivity extends NanoTimerActivity {
 
   private List<ChartData> parseData(List<ChartData> chartData) {
     List<ChartData> data;
-    if (cbSmooth.isChecked()) {
+    if (smooth) {
       data = ChartUtils.getSmoothedChartTimes(chartData);
     } else {
       data = chartData;
@@ -486,21 +626,24 @@ public class GraphActivity extends NanoTimerActivity {
   private void refreshData() {
     chart.setNoDataText(getString(R.string.no_data_found)); // done here to avoid displaying that message when data is loading
     chart.clear();
-
-    if (chartData.isEmpty()) {
-      return;
-    }
-
-    ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
     pointTimestamps.clear();
 
+    ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
     for (ChartLineData chartLineData : chartData) {
       List<ChartData> data = chartLineData.getData();
+      if (data.isEmpty()) { // an average of fewer solves than it averages has no line
+        continue;
+      }
 
       ArrayList<Entry> times = new ArrayList<Entry>();
       for (ChartData solveTime : data) {
-        pointTimestamps.add(solveTime.getTimestamp());
         times.add(new Entry(times.size() + chartLineData.getxOffset(), solveTime.getData()));
+      }
+      if (pointTimestamps.isEmpty()) {
+        // The X axis is indexed by the first series; the averages hang off its points, offset.
+        for (ChartData solveTime : data) {
+          pointTimestamps.add(solveTime.getTimestamp());
+        }
       }
 
       LineDataSet dataSet = new LineDataSet(times, chartLineData.getLabel());
@@ -508,6 +651,7 @@ public class GraphActivity extends NanoTimerActivity {
       dataSet.setLineWidth(chartLineData.getLineWidth());
       dataSet.setCircleColor(getResourceColor(chartLineData.getColor()));
       dataSet.setCircleRadius(chartLineData.getCircleSize());
+      dataSet.setDrawCircles(times.size() <= MAX_POINTS_WITH_CIRCLES);
       dataSet.setHighlightEnabled(false);
       dataSet.setValueFormatter(yValueFormatter);
       dataSet.setDrawValues(false);
@@ -515,11 +659,14 @@ public class GraphActivity extends NanoTimerActivity {
       dataSets.add(dataSet);
     }
 
-    LineData chartData = new LineData(dataSets);
-    chart.setData(chartData);
+    // A period with no solves still carries its three empty series, so it is the points that say
+    // whether there is anything to draw, never the count of series.
+    if (dataSets.isEmpty()) {
+      return;
+    }
+    chart.getLegend().setEnabled(dataSets.size() > 1); // a lone line is already named by its picker
+    chart.setData(new LineData(dataSets));
     chart.invalidate();
-
-    chart.getLegend().setTextColor(Color.WHITE);
   }
 
   private int getResourceColor(int colorRes) {
@@ -537,10 +684,9 @@ public class GraphActivity extends NanoTimerActivity {
   }
 
   private GraphType getSelectedGraphType() {
-    int pos = spGraphType.getSelectedItemPosition();
     GraphType[] graphTypes = GraphType.values();
-    if (pos >= 0 && pos < graphTypes.length) {
-      return graphTypes[pos];
+    if (graphTypePos >= 0 && graphTypePos < graphTypes.length) {
+      return graphTypes[graphTypePos];
     } else {
       return GraphType.PROGRESSION;
     }

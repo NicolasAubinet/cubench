@@ -162,6 +162,16 @@
   <color name="drill_bar_recognition">@color/lightblue</color>
   <color name="drill_bar_execution">@color/cube_orange</color>
 
+  <!-- The progression graph's three lines: the solves themselves in the app's own accent, then the
+       two running averages over them, warming as the window widens. The bar and frequency graphs
+       draw a single series, which is the accent again. -->
+  <color name="graph_series">@color/lightblue</color>
+  <color name="graph_ao5">@color/green_soft</color>
+  <color name="graph_ao12">@color/cube_orange</color>
+  <!-- The plot itself, recessed into the card it stands on, and the grid ruled over it. -->
+  <color name="graph_plot">@color/hero_inset</color>
+  <color name="graph_grid">@color/white_wash_12</color>
+
   <color name="case_name">@color/white</color>
   <color name="case_name_off">@color/bluegray500</color>
   <color name="case_shape">@color/secondary_text</color>
