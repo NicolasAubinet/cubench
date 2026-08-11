@@ -16,11 +16,15 @@
      android:layout_gravity="center_horizontal"
      android:background="@drawable/bottomsheet_drag_handle"/>
 
+  <!-- The graph screen is landscape only, so the three sit side by side: stacked they ran off the
+       bottom of a sheet that had width to spare. The scroll and its fade are the safety net. -->
   <androidx.core.widget.NestedScrollView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
-     android:layout_marginTop="12dp">
+     android:layout_marginTop="12dp"
+     android:requiresFadingEdge="vertical"
+     android:fadingEdgeLength="28dp">
 
     <LinearLayout
        android:layout_width="match_parent"
@@ -47,102 +51,51 @@
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:orientation="horizontal"
+         android:baselineAligned="false"
          android:layout_marginTop="18dp">
-        <ImageView
-           android:layout_width="24dp"
-           android:layout_height="24dp"
-           android:layout_marginEnd="14dp"
-           android:layout_marginRight="14dp"
-           android:layout_marginTop="1dp"
-           android:src="@drawable/ic_graph_progression"
-           android:contentDescription="@null"/>
-        <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="vertical">
-          <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:text="@string/chart_type_progression"
-             android:textColor="@color/white"
-             android:textSize="14.5sp"
-             android:textStyle="bold"/>
-          <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_marginTop="1dp"
-             android:text="@string/graph_help_progression"
-             android:textColor="@color/secondary_text"
-             android:textSize="12.5sp"/>
-        </LinearLayout>
-      </LinearLayout>
 
-      <LinearLayout
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:orientation="horizontal"
-         android:layout_marginTop="16dp">
-        <ImageView
-           android:layout_width="24dp"
-           android:layout_height="24dp"
-           android:layout_marginEnd="14dp"
-           android:layout_marginRight="14dp"
-           android:layout_marginTop="1dp"
-           android:src="@drawable/ic_graph_frequency"
-           android:contentDescription="@null"/>
         <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="vertical">
+           style="@style/GraphHelpColumn"
+           android:layout_marginEnd="14dp"
+           android:layout_marginRight="14dp">
+          <ImageView
+             style="@style/GraphHelpIcon"
+             android:src="@drawable/ic_graph_progression"/>
           <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:text="@string/chart_type_frequency"
-             android:textColor="@color/white"
-             android:textSize="14.5sp"
-             android:textStyle="bold"/>
+             style="@style/GraphHelpName"
+             android:text="@string/chart_type_progression"/>
           <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_marginTop="1dp"
-             android:text="@string/graph_help_frequency"
-             android:textColor="@color/secondary_text"
-             android:textSize="12.5sp"/>
+             style="@style/GraphHelpText"
+             android:text="@string/graph_help_progression"/>
         </LinearLayout>
-      </LinearLayout>
 
-      <LinearLayout
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:orientation="horizontal"
-         android:layout_marginTop="16dp">
-        <ImageView
-           android:layout_width="24dp"
-           android:layout_height="24dp"
-           android:layout_marginEnd="14dp"
-           android:layout_marginRight="14dp"
-           android:layout_marginTop="1dp"
-           android:src="@drawable/ic_graph_distribution"
-           android:contentDescription="@null"/>
         <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="vertical">
+           style="@style/GraphHelpColumn"
+           android:layout_marginEnd="14dp"
+           android:layout_marginRight="14dp">
+          <ImageView
+             style="@style/GraphHelpIcon"
+             android:src="@drawable/ic_graph_frequency"/>
           <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:text="@string/chart_type_distribution"
-             android:textColor="@color/white"
-             android:textSize="14.5sp"
-             android:textStyle="bold"/>
+             style="@style/GraphHelpName"
+             android:text="@string/chart_type_frequency"/>
           <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_marginTop="1dp"
-             android:text="@string/graph_help_distribution"
-             android:textColor="@color/secondary_text"
-             android:textSize="12.5sp"/>
+             style="@style/GraphHelpText"
+             android:text="@string/graph_help_frequency"/>
         </LinearLayout>
+
+        <LinearLayout style="@style/GraphHelpColumn">
+          <ImageView
+             style="@style/GraphHelpIcon"
+             android:src="@drawable/ic_graph_distribution"/>
+          <TextView
+             style="@style/GraphHelpName"
+             android:text="@string/chart_type_distribution"/>
+          <TextView
+             style="@style/GraphHelpText"
+             android:text="@string/graph_help_distribution"/>
+        </LinearLayout>
+
       </LinearLayout>
 
     </LinearLayout>
