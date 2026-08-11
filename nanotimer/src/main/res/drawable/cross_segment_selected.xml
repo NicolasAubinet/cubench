@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Fill for the active segment of the neutrality control. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-   android:shape="rectangle">
-  <solid android:color="@color/iceblue"/>
-  <corners android:radius="7dp"/>
-</shape>

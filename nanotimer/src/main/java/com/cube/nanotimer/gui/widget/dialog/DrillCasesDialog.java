@@ -3,7 +3,6 @@ package com.cube.nanotimer.gui.widget.dialog;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -29,6 +28,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.util.view.ViewSegments;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -280,10 +280,7 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
   }
 
   private void markSegment(TextView segment, boolean on) {
-    segment.setBackgroundResource(on ? R.drawable.cross_segment_selected : 0);
-    segment.setTextColor(ContextCompat.getColor(getActivity(),
-        on ? R.color.white : R.color.secondary_text));
-    GUIUtils.setWeight(segment, on ? Typeface.BOLD : Typeface.NORMAL);
+    ViewSegments.style(segment, on);
   }
 
   private class CasesAdapter extends BaseAdapter {

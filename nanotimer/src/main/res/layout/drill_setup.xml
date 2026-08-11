@@ -23,7 +23,7 @@
        android:id="@+id/llDrillPractice"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:background="@drawable/cross_segment_container"
+       android:background="@drawable/view_segment_group"
        android:orientation="horizontal"
        android:padding="3dp"/>
 
@@ -110,7 +110,7 @@
        android:id="@+id/llDrillReps"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:background="@drawable/cross_segment_container"
+       android:background="@drawable/view_segment_group"
        android:orientation="horizontal"
        android:padding="3dp"/>
 
@@ -123,7 +123,7 @@
        android:id="@+id/llDrillMode"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:background="@drawable/cross_segment_container"
+       android:background="@drawable/view_segment_group"
        android:orientation="horizontal"
        android:padding="3dp"/>
 

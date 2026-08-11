@@ -1,16 +1,13 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
-
-import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.util.view.ViewSegments;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +16,8 @@ import java.util.List;
  * A row of cells where exactly one is picked: the same control the cross solver's neutrality modes
  * are chosen with, made shared so a screen that needs three of them does not grow three copies.
  *
- * <p>The container is expected to carry {@code cross_segment_container} as its background, which is
- * the trough the picked cell sits in.
+ * <p>The container is expected to carry {@code view_segment_group} as its background, which is the
+ * trough the picked cell sits in.
  */
 public class SegmentedControl {
 
@@ -80,24 +77,11 @@ public class SegmentedControl {
 
   private void refresh() {
     for (int i = 0; i < cells.size(); i++) {
-      TextView cell = cells.get(i);
-      if (i == selection) {
-        cell.setBackgroundResource(R.drawable.cross_segment_selected);
-        cell.setTextColor(color(R.color.white));
-        GUIUtils.setWeight(cell, Typeface.BOLD);
-      } else {
-        cell.setBackground(null);
-        cell.setTextColor(color(R.color.secondary_text));
-        GUIUtils.setWeight(cell, Typeface.NORMAL);
-      }
+      ViewSegments.style(cells.get(i), i == selection);
     }
   }
 
   private int dp(int value) {
     return (int) (value * context.getResources().getDisplayMetrics().density);
-  }
-
-  private int color(int colorResId) {
-    return ContextCompat.getColor(context, colorResId);
   }
 }
