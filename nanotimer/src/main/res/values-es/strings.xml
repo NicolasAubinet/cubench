@@ -82,6 +82,8 @@
   <string name="session_accuracy">Éxito</string>
 
   <string name="clear_history">Limpiar historial</string>
+  <string name="clear_history_title">¿Limpiar este historial?</string>
+  <string name="delete_solve_type_title">¿Eliminar este tipo de resolución?</string>
   <string name="clear_history_solve_type_confirmation">¿Estás seguro que quieres eliminar todos los tiempos para este tipo de resolución?</string>
   <string name="clear_all_history_confirmation">¿Estás seguro que quieres eliminar el historial completo?</string>
 

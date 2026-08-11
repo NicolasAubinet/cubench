@@ -1031,7 +1031,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
   /** Offers to throw away the solve that was just stopped and saved. */
   private void confirmDiscardSolve() {
-    DialogUtils.showConfirmCancelDialog(this, R.string.discard_solve_title, R.string.discard_solve_confirmation,
+    DialogUtils.showDestructiveConfirmDialog(this, R.string.discard_solve_title, R.string.discard_solve_confirmation,
         R.string.discard_solve, R.string.keep_solve, new YesNoListener() {
           @Override
           public void onYes() {

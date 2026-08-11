@@ -208,7 +208,7 @@ public class DrillCaseTable {
             FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs()));
     String message = activity.getString(R.string.drill_case_remove_message,
         Utils.toSmartCubeCaseHeadline(activity, rep.getCaseCode()), number(rep), time);
-    DialogUtils.showConfirmCancelDialog(activity, R.string.drill_case_remove_title, message,
+    DialogUtils.showDestructiveConfirmDialog(activity, R.string.drill_case_remove_title, message,
         R.string.drill_case_remove, R.string.cancel, new YesNoListener() {
           @Override
           public void onYes() {

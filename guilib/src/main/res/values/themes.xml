@@ -105,7 +105,20 @@
     <item name="android:textColorPrimary">@color/white</item>
     <item name="android:windowMinWidthMinor">92%</item>
     <item name="android:windowMinWidthMajor">70%</item>
+    <!-- Named on the framework attributes as well as the AppCompat one: every dialog in the app is
+         a framework AlertDialog, which reads its button styles from the android: namespace. -->
     <item name="buttonBarButtonStyle">@style/NanoTimerDialogButton</item>
+    <item name="android:buttonBarStyle">@style/NanoTimerDialogButtonBar</item>
+    <item name="android:buttonBarButtonStyle">@style/NanoTimerDialogButton</item>
+    <item name="android:buttonBarPositiveButtonStyle">@style/NanoTimerDialogButton</item>
+    <item name="android:buttonBarNegativeButtonStyle">@style/NanoTimerDialogButton.Ghost</item>
+    <item name="android:buttonBarNeutralButtonStyle">@style/NanoTimerDialogButton.Ghost</item>
+  </style>
+
+  <!-- For a confirmation that destroys something: the answer wears the danger fill so it cannot be
+       mistaken for the safe way out. -->
+  <style name="NanoTimerDangerDialogTheme" parent="NanoTimerDialogTheme">
+    <item name="android:buttonBarPositiveButtonStyle">@style/NanoTimerDialogButton.Danger</item>
   </style>
 
   <!-- Sheets that rise from the bottom edge, for detail too tall to sit comfortably in a dialog.
@@ -123,13 +136,38 @@
     <item name="android:background">@drawable/bottomsheet_window_bg</item>
   </style>
 
-  <!-- Bottom action buttons for the dialogs above: sentence-case, accent, comfortable tap target. -->
+  <!-- Bottom action buttons for the dialogs above. Shaped rather than borderless, so a dialog built
+       by AlertDialog ends the same way as one built by hand. Sentence case has to be asked for:
+       the AppCompat parent turns it to caps. -->
   <style name="NanoTimerDialogButton" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
-    <item name="android:textColor">@color/lightblue</item>
-    <item name="android:textStyle">bold</item>
+    <item name="fontFamily">@font/roboto_medium</item>
+    <item name="android:fontFamily">@font/roboto_medium</item>
+    <item name="android:background">@drawable/dialog_bar_button</item>
+    <item name="android:textColor">@color/white</item>
+    <item name="android:textAllCaps">false</item>
     <item name="android:textSize">15sp</item>
     <item name="android:letterSpacing">0.02</item>
     <item name="android:minHeight">44dp</item>
+    <item name="android:minWidth">100dp</item>
+    <item name="android:paddingLeft">14dp</item>
+    <item name="android:paddingRight">14dp</item>
+  </style>
+
+  <style name="NanoTimerDialogButton.Ghost">
+    <item name="android:background">@drawable/dialog_bar_button_ghost</item>
+  </style>
+
+  <style name="NanoTimerDialogButton.Danger">
+    <item name="android:background">@drawable/dialog_bar_button_danger</item>
+  </style>
+
+  <!-- A borderless button needed no room around it; a filled one does, or it sits on the dialog's
+       bottom edge. -->
+  <style name="NanoTimerDialogButtonBar" parent="@android:style/Widget.Material.ButtonBar.AlertDialog">
+    <item name="android:paddingLeft">12dp</item>
+    <item name="android:paddingRight">12dp</item>
+    <item name="android:paddingTop">4dp</item>
+    <item name="android:paddingBottom">14dp</item>
   </style>
 
 </resources>

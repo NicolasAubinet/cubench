@@ -453,7 +453,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         DialogUtils.showFragment(this, SelectorFragmentDialog.newInstance(ID_IMPORTEXPORT, items, icons, null, true, this));
         break;
       case 4:
-        DialogUtils.showYesNoConfirmation(this, R.string.clear_history_solve_type_confirmation, new YesNoListener() {
+        DialogUtils.showDestructiveConfirmDialog(this, R.string.clear_history_title,
+            R.string.clear_history_solve_type_confirmation, R.string.delete, R.string.cancel, new YesNoListener() {
           @Override
           public void onYes() {
             if (curSolveType != null) {

@@ -195,7 +195,8 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       DialogUtils.showFragment(this, editDialog);
     } else if (action == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
-      DialogUtils.showYesNoConfirmation(this, getString(R.string.delete_solve_type_confirmation, solveTypeName),
+      DialogUtils.showDestructiveConfirmDialog(this, R.string.delete_solve_type_title,
+          getString(R.string.delete_solve_type_confirmation, solveTypeName), R.string.delete, R.string.cancel,
           new YesNoListener() {
             @Override
             public void onYes() {

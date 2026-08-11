@@ -82,6 +82,8 @@
   <string name="session_accuracy">Precisão</string>
 
   <string name="clear_history">Limpar o histórico</string>
+  <string name="clear_history_title">Limpar este histórico?</string>
+  <string name="delete_solve_type_title">Excluir este tipo de resolução?</string>
   <string name="clear_history_solve_type_confirmation">Tem certeza de que deseja excluir todos os tempos deste tipo de resolução?</string>
   <string name="clear_all_history_confirmation">Tem certeza de que deseja excluir todo o histórico?</string>
 

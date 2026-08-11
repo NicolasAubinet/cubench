@@ -90,6 +90,8 @@
   <string name="session_accuracy">Accuracy</string>
 
   <string name="clear_history">Clear history</string>
+  <string name="clear_history_title">Clear this history?</string>
+  <string name="delete_solve_type_title">Delete this solve type?</string>
   <string name="clear_history_solve_type_confirmation">Are you sure you want to delete all the times for this solve type?</string>
   <string name="clear_all_history_confirmation">Are you sure you want to delete the whole history?</string>
 

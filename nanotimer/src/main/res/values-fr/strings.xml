@@ -82,6 +82,8 @@
   <string name="session_accuracy">Réussites</string>
 
   <string name="clear_history">Effacer l\'historique</string>
+  <string name="clear_history_title">Effacer cet historique ?</string>
+  <string name="delete_solve_type_title">Supprimer ce type de résolution ?</string>
   <string name="clear_history_solve_type_confirmation">Êtes-vous sûr de vouloir supprimer tous les temps pour ce type de résolution?</string>
   <string name="clear_all_history_confirmation">Êtes-vous sûr de vouloir supprimer tout l\'historique?</string>
 

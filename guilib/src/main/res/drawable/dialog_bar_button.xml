@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The dialog action button as an AlertDialog button bar wants it. The gap between buttons has
+     to come from the drawable: a button bar reads its style for everything except layout params,
+     so a margin set there would be dropped. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+   android:drawable="@drawable/dialog_action_button"
+   android:insetLeft="6dp"
+   android:insetRight="6dp"/>
