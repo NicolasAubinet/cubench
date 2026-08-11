@@ -622,10 +622,10 @@ public final class BlindStepDetector implements StepDetector {
   /**
    * The pieces this algorithm is answerable for, of which a solve that came out has none.
    *
-   * <p><b>An algorithm executed the other way round is answerable for its whole name.</b> That is
-   * proved rather than guessed: reverse this one algorithm, leave the rest of the solve as it was
-   * ({@link #wouldHaveSolvedItReversed}), and if the cube comes out this is where it was lost. A
-   * cycle shot backwards leaves every piece it named out, the buffer among them.
+   * <p><b>An algorithm executed the other way round is answerable for what it should have put
+   * home.</b> That is proved rather than guessed: reverse this one algorithm, leave the rest of the
+   * solve as it was ({@link #wouldHaveSolvedItReversed}), and if the cube comes out this is where it
+   * was lost, of which {@link #whatItShouldHavePutHome} says how much.
    *
    * <p><b>An algorithm answers for any piece it took out of its slot</b> and never put back, which
    * is what a shot to a wrong target leaves ({@link #piecesItTookOut}).
@@ -648,7 +648,8 @@ public final class BlindStepDetector implements StepDetector {
     if (reversed != null) {
       // Proved, so nothing else is asked: what the algorithms after a misfire took out, they took
       // out executing the memo faithfully on a cube the misfire had already moved on.
-      return reversed == landing ? landing.named.slots : Collections.<Integer>emptyList();
+      return reversed == landing
+          ? whatItShouldHavePutHome(landing) : Collections.<Integer>emptyList();
     }
     List<Integer> blamed = piecesItTookOut(landing);
     List<Integer> left = leftOut();
@@ -710,14 +711,34 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
+   * The pieces of an algorithm's name that executing it the right way round would have brought home,
+   * read off that corrected cube: the mirror of the ones it did put home. Which settles the piece it
+   * was shot from without a rule of its own, a buffer being landed only by a cycle that closes.
+   */
+  private List<Integer> whatItShouldHavePutHome(Landing landing) {
+    String corrected = executedTheOtherWayRound(landing);
+    List<Integer> blamed = new ArrayList<>();
+    for (int slot : landing.named.slots) {
+      if (Cubies.inPlace(corrected, PIECES[slot])) {
+        blamed.add(slot);
+      }
+    }
+    return blamed;
+  }
+
+  /**
    * Whether the cube would have come out had this one algorithm been executed the other way round,
    * everything after it held identical — the turning nothing was read from included, being turning
    * all the same.
    */
   private boolean wouldHaveSolvedItReversed(Landing landing) {
-    String reversed = Cubies.applyMotion(
-        Cubies.motionBetween(landing.after, landing.before), landing.before);
-    return isSolved(Cubies.applyMotion(Cubies.motionBetween(landing.after, stopped), reversed));
+    return isSolved(Cubies.applyMotion(Cubies.motionBetween(landing.after, stopped),
+        executedTheOtherWayRound(landing)));
+  }
+
+  /** The state this algorithm would have left had it been executed the other way round. */
+  private String executedTheOtherWayRound(Landing landing) {
+    return Cubies.applyMotion(Cubies.motionBetween(landing.after, landing.before), landing.before);
   }
 
   /** The pieces not home when the solve stopped, or none where there is nothing honest to read. */

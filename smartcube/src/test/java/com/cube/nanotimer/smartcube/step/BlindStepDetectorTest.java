@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import static com.cube.nanotimer.smartcube.step.PieceMark.TOUCHED;
 import static com.cube.nanotimer.smartcube.step.PieceMark.WRONG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -399,6 +400,10 @@ public class BlindStepDetectorTest {
    * knows to stop. The rest of the memo is then shot from a buffer holding the wrong piece, so what
    * the cube is left with is not the three pieces that algorithm named: two of them, and whichever
    * target came next. Asking what was left over can never find this; reversing the algorithm can.
+   *
+   * <p>What is marked is what it should have put home: neither the buffer, which holds a foreign
+   * piece either way round part way through a memo, nor {@code DR}, shot at again by the algorithm
+   * after it since these are set-up perms rather than a memo.
    */
   @Test
   public void marksAMisfireTheSolveCarriedOnPast() {
@@ -411,7 +416,7 @@ public class BlindStepDetectorTest {
     // Three edges out, none of them a piece the misfired algorithm was shot at.
     assertEquals("UR-DL-UL", detector.getResidual().getPieces());
     assertEquals("UF-DR-UL", detector.subStepName(1, 1));
-    assertEquals(Arrays.asList(WRONG, WRONG, WRONG), detector.subStepPieceMarks(1, 1));
+    assertEquals(Arrays.asList(TOUCHED, TOUCHED, WRONG), detector.subStepPieceMarks(1, 1));
     for (int step = 1; step < detector.stepCount(); step++) {
       for (int part = 0; part < detector.subStepCount(step); part++) {
         assertEquals(step == 1 && part == 1, detector.subStepPieceMarks(step, part).contains(WRONG));

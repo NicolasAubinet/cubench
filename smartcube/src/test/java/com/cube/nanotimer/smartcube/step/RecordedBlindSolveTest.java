@@ -280,6 +280,9 @@ public class RecordedBlindSolveTest {
    * it. The twist moved the buffer, so asking that nothing had touched the leftover since let the
    * algorithm that lost the solve off. Reversing that one algorithm solves the cube and reversing
    * any other does not, which is the whole claim the red makes.
+   *
+   * <p>Red for the two targets and not for the buffer: done right this algorithm lands those two and
+   * leaves the buffer twisted, which is what the twist under it is for.
    */
   @Test
   public void marksTheAlgorithmAnotherOneMovedThePiecesOf() {
@@ -290,7 +293,7 @@ public class RecordedBlindSolveTest {
     assertEquals(BlindResidual.Shape.CORNER_CYCLE, detector.getResidual().getShape());
 
     assertEquals("UFR-UBR-DBR", detector.subStepName(2, 2));
-    assertEquals(Arrays.asList(WRONG, WRONG, WRONG), detector.subStepPieceMarks(2, 2));
+    assertEquals(Arrays.asList(TOUCHED, WRONG, WRONG), detector.subStepPieceMarks(2, 2));
     assertEquals("twist:FUL-UFR", detector.subStepName(2, 3)); // the algorithm after it, and clean
     for (int step = 1; step < detector.stepCount(); step++) {
       for (int part = 0; part < detector.subStepCount(step); part++) {
