@@ -1287,7 +1287,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return super.onKeyUp(keyCode, event);
   }
 
-  // The last twelve, each ranked among the twelve: green fastest, white the middle, red slowest.
+  // The last twelve, each ranked among the twelve: green fastest, grey the middle, red slowest.
   // Relative to what is on screen rather than to the wider history, so the grid reads as a session.
   private void refreshSessionFields() {
     runOnUiThread(new Runnable() {
@@ -1315,7 +1315,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     sessionBars.setTimes(sessionTimes, colors, cubeSession.getDnfTimes());
   }
 
-  // Gradient coloring (green=fast → white=median → red=slow) against the given scale.
+  // Gradient coloring (green=fast → grey=median → red=slow) against the given scale.
   private int[] scaleColors(List<Long> sessionTimes, TimeColorScale scale) {
     int[] colors = new int[sessionTimes.size()];
     for (int i = 0; i < colors.length; i++) {

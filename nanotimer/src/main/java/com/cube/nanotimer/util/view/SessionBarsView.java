@@ -2,7 +2,6 @@ package com.cube.nanotimer.util.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
@@ -61,17 +60,6 @@ public class SessionBarsView extends View {
   private static final float NAME_PAD_Y_FRACTION = 0.30f;
   private static final float NAME_LEAD_FRACTION = 0.36f; // the plate's foot to its bar's head
   private static final float NAME_SPACING_FRACTION = 0.5f; // between two plates sharing a line
-
-  // The band a filled bar reads best in: enough colour that a near-white mid tone is still a hue,
-  // little enough that the ends stay pastel rather than turning into signal green and signal red.
-  private static final float FILL_MIN_SATURATION = 0.30f;
-  private static final float FILL_MAX_SATURATION = 0.55f;
-  private static final float FILL_MIN_VALUE = 0.86f;
-  private static final float FILL_MAX_VALUE = 0.97f;
-  /** Below this a colour has no hue to keep, and is meant to be neutral. */
-  private static final float NEUTRAL_SATURATION = 0.05f;
-
-  private static final float[] hsv = new float[3];
 
   private final Paint barPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint hollowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -257,7 +245,7 @@ public class SessionBarsView extends View {
         canvas.drawRoundRect(left + inset, top + inset, right - inset, foot - inset,
           cornerRadius, cornerRadius, hollowPaint);
       } else {
-        barPaint.setColor(asFill(colors[i]));
+        barPaint.setColor(colors[i]);
         canvas.drawRoundRect(left, top, right, foot, cornerRadius, cornerRadius, barPaint);
       }
       if (newest) { // marked rather than recoloured: a bar's colour is information
@@ -361,22 +349,6 @@ public class SessionBarsView extends View {
       }
     }
     return counted < 2 ? null : total / counted; // one solve has nothing to be measured against
-  }
-
-  /**
-   * The coloring option's colours are picked for text on a dark ground: at the middle of the scale
-   * they wash out to near white, and at its ends they are the flat green and red that read on small
-   * type. Filled at this size both are wrong, so a bar keeps the hue and takes the pastel band.
-   * A colour with no hue to keep is left alone: it is meant to be neutral.
-   */
-  private static int asFill(int color) {
-    Color.colorToHSV(color, hsv);
-    if (hsv[1] < NEUTRAL_SATURATION) {
-      return color;
-    }
-    hsv[1] = clamp(hsv[1], FILL_MIN_SATURATION, FILL_MAX_SATURATION);
-    hsv[2] = clamp(hsv[2], FILL_MIN_VALUE, FILL_MAX_VALUE);
-    return Color.HSVToColor(Color.alpha(color), hsv);
   }
 
   private static float clamp(float value, float min, float max) {
