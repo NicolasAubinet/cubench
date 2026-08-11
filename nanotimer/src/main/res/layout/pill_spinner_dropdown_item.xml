@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One row of the list a pill picker drops. Set at the pill's own size, not the platform's, so
+     the list reads as the control opened rather than as a menu from somewhere else. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:paddingLeft="14dp"
+   android:paddingRight="14dp"
+   android:paddingTop="9dp"
+   android:paddingBottom="9dp"
+   android:singleLine="true"
+   android:textColor="@color/secondary_text"
+   android:textSize="14sp"/>

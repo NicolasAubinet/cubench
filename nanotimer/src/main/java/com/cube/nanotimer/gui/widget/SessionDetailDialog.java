@@ -210,8 +210,8 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
             for (long sessionStart : sessionStarts) {
               sessionStartsTexts.add(FormatterService.INSTANCE.formatSessionStart(sessionStart));
             }
-            spinnerAdapter = new ArrayAdapter<String>(getActivity(), R.layout.session_spinner_item, sessionStartsTexts);
-            spinnerAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+            spinnerAdapter = new ArrayAdapter<String>(getActivity(), R.layout.pill_spinner_item, sessionStartsTexts);
+            spinnerAdapter.setDropDownViewResource(R.layout.pill_spinner_dropdown_item);
             spSessionsList.setAdapter(spinnerAdapter);
           }
         });

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Face of the session picker on the dialog's title line: the picked session, with the chevron
-     that says it can be changed. -->
+<!-- Face of a picker that sits on a line with other things: the picked value, with the chevron
+     that says it can be changed. Worn by the session picker and by the graph's period. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="wrap_content"
    android:layout_height="wrap_content"
