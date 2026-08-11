@@ -85,6 +85,8 @@ public class ExportActivity extends NanoTimerActivity {
   private TextView tvSelection;
   private TextView tvSelectAll;
   private TextView tvEmptyPuzzles;
+  private Button buSaveToFile;
+  private Button buExport;
   private FlowLayout emptyPuzzlePills;
 
   // CSV waiting to be copied to the destination picked by the system document picker
@@ -133,7 +135,7 @@ public class ExportActivity extends NanoTimerActivity {
       }
     });
 
-    Button buExport = (Button) findViewById(R.id.buExport);
+    buExport = (Button) findViewById(R.id.buExport);
     buExport.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -141,7 +143,7 @@ public class ExportActivity extends NanoTimerActivity {
       }
     });
 
-    Button buSaveToFile = (Button) findViewById(R.id.buSaveToFile);
+    buSaveToFile = (Button) findViewById(R.id.buSaveToFile);
     buSaveToFile.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -349,6 +351,11 @@ public class ExportActivity extends NanoTimerActivity {
       : getString(R.string.export_selection,
         getResources().getQuantityString(R.plurals.export_solves_count, solves, solves),
         getResources().getQuantityString(R.plurals.export_types_count, types, types)));
+
+    // Nothing picked is not a mistake to be told about after the tap: the two actions have
+    // nothing to act on, so they say so before it.
+    buSaveToFile.setEnabled(types > 0);
+    buExport.setEnabled(types > 0);
 
     // Only once the cards it acts on are on screen: mid-load there is nothing for it to tick.
     tvSelectAll.setVisibility(loaded && total > 0 ? View.VISIBLE : View.GONE);

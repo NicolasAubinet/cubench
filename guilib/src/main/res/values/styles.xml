@@ -508,7 +508,7 @@
     <item name="android:textSize">14sp</item>
     <item name="android:padding">2dp</item>
     <item name="android:gravity">center</item>
-    <item name="android:textColor">@color/white</item>
+    <item name="android:textColor">@color/button_ink</item>
     <item name="android:singleLine">true</item>
     <item name="android:textAllCaps">false</item>
   </style>
@@ -537,7 +537,7 @@
        press, and beside a card of raised panels a tonal one reads as another panel. -->
   <style name="HeroStartButton" parent="PrimaryButton">
     <item name="android:layout_height">54dp</item>
-    <item name="android:textColor">@color/on_accent</item>
+    <item name="android:textColor">@color/on_accent_ink</item>
     <item name="android:background">@drawable/hero_start_button</item>
   </style>
 

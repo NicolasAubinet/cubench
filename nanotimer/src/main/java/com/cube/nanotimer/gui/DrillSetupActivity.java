@@ -271,9 +271,11 @@ public class DrillSetupActivity extends NanoTimerActivity
   @Override
   public void onConnection(CubeConnection connection) {
     // Said here rather than only on the drill screen: being turned back at the door having picked
-    // everything is worse than being told at the door.
-    findViewById(R.id.tvDrillNoCube).setVisibility(
-        SmartCubeManager.INSTANCE.isConnected() ? View.GONE : View.VISIBLE);
+    // everything is worse than being told at the door. The button goes with the line, so it is not
+    // fully lit above a sentence explaining that it cannot run.
+    boolean connected = SmartCubeManager.INSTANCE.isConnected();
+    findViewById(R.id.tvDrillNoCube).setVisibility(connected ? View.GONE : View.VISIBLE);
+    findViewById(R.id.btDrillStart).setEnabled(connected);
   }
 
   private void refreshPractice() {

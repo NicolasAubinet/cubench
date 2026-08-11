@@ -122,7 +122,10 @@
   <color name="hero_divider">@color/white_wash_10</color>
 
   <color name="button_color">#3E5259</color>
-  <color name="button_disabled">@color/gray850</color>
+  <!-- A button that cannot be pressed: neutral, and a step off the screen's own ground rather than
+       equal to it, so the control is visibly there and visibly unavailable. -->
+  <color name="button_disabled">@color/gray800</color>
+  <color name="button_disabled_ink">@color/gray600</color>
 
   <!-- ======================== Puzzle identity ======================== -->
 
