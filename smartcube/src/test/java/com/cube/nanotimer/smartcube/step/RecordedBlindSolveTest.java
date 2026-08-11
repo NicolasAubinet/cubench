@@ -601,6 +601,42 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * The piece a cycle was shot from is never red, at any of the points any of these solves could
+   * have been stopped at. A blind solve holds a foreign piece in its buffer nearly throughout, so
+   * blaming a buffer for being out would redden the first letter of almost every algorithm of every
+   * solve that did not come out.
+   *
+   * <p>Only a proved reversal can lay one, and only where executing that algorithm the right way
+   * round would have brought the buffer home, which is a cycle that closes. None of these solves
+   * has one, so the sweep is a floor rather than the whole rule.
+   */
+  @Test
+  public void neverRedensThePieceACycleWasShotFrom() {
+    List<String[]> solves = new ArrayList<String[]>(Arrays.asList(RecordedBlindSolve.ALL));
+    solves.add(new String[] {RecordedBlindSolve.SCRAMBLE_MISFIRE, RecordedBlindSolve.MOVES_MISFIRE});
+    for (String[] solve : solves) {
+      RecordedBlindSolveTest whole = new RecordedBlindSolveTest();
+      whole.replay(solve[0], solve[1], Long.MAX_VALUE);
+      List<Long> stops = whole.landingTimes();
+      stops.add(Long.MAX_VALUE);
+      for (long stop : stops) {
+        RecordedBlindSolveTest cut = new RecordedBlindSolveTest();
+        cut.replay(solve[0], solve[1], stop);
+        for (int step = 1; step < cut.detector.stepCount(); step++) {
+          for (int part = 0; part < cut.detector.subStepCount(step); part++) {
+            String name = cut.detector.subStepName(step, part);
+            List<PieceMark> marks = cut.detector.subStepPieceMarks(step, part);
+            if (marks.isEmpty() || name.contains(":") || name.contains("+")) {
+              continue; // a flip, a twist and a parity are none of them shot from anywhere
+            }
+            assertFalse(name + " stopped at " + stop, marks.get(0) == WRONG);
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Solve 190 is the one whose grip the app read a quarter turn out. Read through the frame it was
    * really held in, its corners are four clean pairs, each shot from the buffer.
    *
