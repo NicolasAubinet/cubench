@@ -5,8 +5,18 @@
    android:layout_height="wrap_content"
    android:minHeight="48dp"
    android:gravity="center_vertical"
-   android:paddingLeft="@dimen/space_m"
    android:paddingRight="@dimen/space_m">
+
+  <!-- Holds its width whether or not it shows, so the names never shift between rows. -->
+  <View
+     android:id="@+id/selectionBar"
+     android:layout_width="3dp"
+     android:layout_height="26dp"
+     android:layout_marginLeft="6dp"
+     android:layout_marginStart="6dp"
+     android:layout_marginRight="@dimen/space_m"
+     android:layout_marginEnd="@dimen/space_m"
+     android:background="@drawable/selector_bar"/>
 
   <ImageView
      android:id="@+id/imgImage"

@@ -94,10 +94,10 @@
   <string name="clear_all_history_confirmation">Are you sure you want to delete the whole history?</string>
 
   <string name="language">Language</string>
-  <string name="english">English</string>
-  <string name="french">French</string>
-  <string name="spanish">Spanish</string>
-  <string name="portuguese">Portuguese</string>
+  <string name="english" translatable="false">English</string>
+  <string name="french" translatable="false">Français</string>
+  <string name="spanish" translatable="false">Español</string>
+  <string name="portuguese" translatable="false">Português</string>
 
   <string name="settings">Settings</string>
   <string name="look_and_feel">Look and feel</string>

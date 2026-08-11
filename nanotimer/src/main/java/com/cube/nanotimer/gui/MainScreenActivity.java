@@ -83,6 +83,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MainScreenActivity extends DrawerLayoutActivity implements SelectionHandler, ResultListener, TimeChangedHandler, SolveNavigator {
@@ -364,6 +365,22 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         PuzzleIcons.forCubeType(curCubeType), PuzzleIcons.colorForCubeType(curCubeType)));
   }
 
+  /** Which language the list is already on, so the picker marks it as every other picker does. */
+  private int currentLanguageIndex() {
+    String current = getApplicationContext()
+      .getSharedPreferences(Utils.LANGUAGE_PREFS_NAME, 0).getString(Utils.LANGUAGE_PREF_KEY, null);
+    if (current == null) {
+      current = Locale.getDefault().getLanguage();
+    }
+    String[] codes = getResources().getStringArray(R.array.language_codes);
+    for (int i = 0; i < codes.length; i++) {
+      if (codes[i].equals(current)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   private String currentPuzzleName() {
     return curCubeType == null ? "" : curCubeType.getName();
   }
@@ -473,7 +490,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       case 5:
         items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.languages)));
         ArrayList<Integer> flagIcons = new ArrayList<>(Arrays.asList(R.drawable.flag_uk, R.drawable.flag_france, R.drawable.flag_spain, R.drawable.flag_portugal));
-        DialogUtils.showFragment(this, SelectorFragmentDialog.newInstance(ID_LANGUAGE, items, flagIcons, null, true, this));
+        DialogUtils.showFragment(this, SelectorFragmentDialog
+          .newInstance(ID_LANGUAGE, items, flagIcons, null, true, this)
+          .setSelection(currentLanguageIndex()));
         break;
       case 6:
         DialogUtils.showFragment(this, AboutDialog.newInstance());

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The wash under the row already chosen, matching the one the cube and solve type pickers use. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/accent_wash_15"/>
+  <corners android:radius="10dp"/>
+</shape>
