@@ -2,7 +2,7 @@
 <resources>
   <string name="app_name">Cubench</string>
   <string name="app_formerly_name">Anciennement Nano Timer</string>
-  <string name="app_name_copyright">&#169; 2014–2026 Cubench\nGratuit et open-source (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
+  <string name="app_name_copyright">&#169; 2014-2026 Cubench\nGratuit et open-source (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
   <string name="app_description">Chronomètre de speedcubing pour Android</string>
   <string name="app_license">Cette application utilise les librairies drag-sort-listview et MPAndroidChart sous license Apache 2.0. Les diagrammes de mélange sont générés avec cubing.js et scramble-display (GPL-3.0) et three.js (MIT).</string>
   <string name="feedback_message">Si vous rencontrez un bug ou si vous avez des suggestions ou commentaires, n\'hésitez pas à envoyer un mail à l\'adresse ci-dessous.</string>
@@ -95,20 +95,15 @@
   <string name="look_and_feel">Apparence</string>
   <string name="timer_screen">Écran du chronomètre</string>
   <string name="inspection_mode">Mode d\'inspection</string>
-  <string name="inspection_mode_summary">Sélectionner le mode d\'inspection du timer</string>
   <string name="hold_and_release_inspection_mode">Hold and release: <i>Appuier et relacher une fois pour démarrer</i></string>
   <string name="automatic_inspection_mode">Automatique: <i>Démarrage automatique quand inspection terminée</i></string>
   <string name="official_inspection_mode">Officiel: <i>Appuyer pendant 0.5s pour démarrer, utilise les règles d\'inspection officielles +2/DNF</i></string>
   <string name="inspection_time">Temps d\'inspection</string>
-  <string name="inspection_time_summary">Sélectionner le type d\'inspection du timer</string>
   <string name="inspection_sounds">Sons d\'inspection</string>
-  <string name="inspection_sounds_summary">Activer / désactiver les sons d\'inspection</string>
   <string name="inspection_sounds_type">Types d\'avertissements d\'inspection</string>
-  <string name="inspection_sounds_type_summary">Sélectionner le type d\'avertissements</string>
   <string name="classic_inspection_sound_type">Classique (avertissement 3 secondes avant la fin)</string>
   <string name="official_inspection_sound_type">Officiel (avertissements à 8 et 12 secondes)</string>
   <string name="show_time_when_running">Afficher le temps pendant la résolution</string>
-  <string name="show_time_when_running_summary">Afficher le temps pendant que le chronomètre tourne</string>
   <string name="keep_screen_on">Laisser l\'écran activé</string>
   <string name="keep_screen_on_summary">Quand le chronomètre ne tourne pas</string>
   <string name="high_precision_timer">Chronomètre haute précision</string>
@@ -116,14 +111,12 @@
   <string name="color_sample_size">Échantillon des couleurs</string>
   <string name="color_sample_size_summary">Nombre de résolutions récentes auxquelles les couleurs se comparent</string>
   <string name="timer_font">Police du chronomètre</string>
-  <string name="timer_font_summary">Police utilisée pour l\'affichage du chronomètre</string>
   <string name="timer_font_modern">Moderne</string>
   <string name="timer_font_classic">Classique</string>
   <string name="timer_font_mono">Monospace</string>
   <string name="timer_font_light">Fine</string>
   <string name="timer_font_condensed">Condensée</string>
   <string name="timer_font_size">Taille du chronomètre</string>
-  <string name="timer_font_size_summary">Taille de l\'affichage du chronomètre</string>
   <string name="timer_font_size_small">Petite</string>
   <string name="timer_font_size_medium">Moyenne</string>
   <string name="timer_font_size_big">Grande</string>
@@ -182,7 +175,6 @@
   <string name="verdict_under_average">%1$s sous votre Ao12</string>
   <string name="verdict_over_average">%1$s au-dessus de votre Ao12</string>
   <string name="record_notification_mode">Panneau de record</string>
-  <string name="record_notification_mode_summary">Choisir quand afficher le panneau de nouveau record</string>
   <string name="record_notif_any">Pour tout record</string>
   <string name="record_notif_pb_only">Seulement pour un nouveau PB</string>
   <string name="record_notif_never">Jamais</string>
@@ -419,7 +411,7 @@
     <ul>
       <li>Le panneau de nouveau record ne recouvre plus le mélange</li>
       <li>Nouveau réglage pour choisir quand le panneau de record apparaît : pour tout record, seulement pour un nouveau PB, ou jamais</li>
-      <li>Nouvelle entrée « Dernier temps » dans le menu du chrono, qui ouvre le détail du temps — le commentaire et le partage s\'y trouvent désormais</li>
+      <li>Nouvelle entrée « Dernier temps » dans le menu du chrono, qui ouvre le détail du temps, où se trouvent désormais le commentaire et le partage</li>
       <li>Correction des chiffres du chrono qui bougeaient pendant le chronométrage sur certains appareils</li>
       <li>Les mélanges Megaminx ne se terminent plus par une ligne vide</li>
       <li>L\'exportation peut désormais enregistrer votre historique directement dans un fichier, et son partage fonctionne avec plus d\'applications</li>
@@ -755,8 +747,8 @@
 
   <!-- Solve detail: what the solve was worth. The ranks run from second to tenth, since the best
        ever has a line of its own, so the array is read at rank - 2. -->
-  <string name="verdict_best_ever">Meilleur temps</string>
-  <string name="verdict_best_ever_by">Meilleur temps, %1$s d\'avance</string>
+  <string name="verdict_best_ever">Record personnel</string>
+  <string name="verdict_best_ever_by">Record personnel, %1$s d\'avance</string>
   <string-array name="verdict_ranks">
     <item>2e meilleur temps</item>
     <item>3e meilleur temps</item>

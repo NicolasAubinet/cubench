@@ -2,7 +2,7 @@
 <resources>
   <string name="app_name">Cubench</string>
   <string name="app_formerly_name">Antes Nano Timer</string>
-  <string name="app_name_copyright">&#169; 2014–2026 Cubench\nGratis y de c&#243;digo abierto (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
+  <string name="app_name_copyright">&#169; 2014-2026 Cubench\nGratis y de c&#243;digo abierto (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
   <string name="app_description">Temporizador de speedcubing para Android</string>
   <string name="app_license">Esta app usa las librerías drag-sort-listview y MPAndroidChart licenciadas bajo Apache 2.0. Los diagramas de mezcla se dibujan con cubing.js y scramble-display (GPL-3.0) y three.js (MIT).</string>
   <string name="feedback_message">Si encuentras un error o tienes sugerencias o comentarios, no dudes en enviar un email al siguiente correo.</string>
@@ -95,20 +95,15 @@
   <string name="look_and_feel">Apariencia</string>
   <string name="timer_screen">Pantalla del temporizador</string>
   <string name="inspection_mode">Modo de inspección</string>
-  <string name="inspection_mode_summary">Seleccionar el modo de inspección</string>
   <string name="hold_and_release_inspection_mode">Pulsar y mantener: <i>Pulsar y soltar otra vez para comenzar</i></string>
   <string name="automatic_inspection_mode">Automático: <i>Comienzo automático cuando la inspección ha terminado</i></string>
   <string name="official_inspection_mode">Oficial: <i>Pulsar 0.5s para comenzar, usar reglas oficiales +2/DNF</i></string>
   <string name="inspection_time">Tiempo de inspección</string>
-  <string name="inspection_time_summary">Seleccionar el tiempo de inspección</string>
   <string name="inspection_sounds">Sonido de inspección</string>
-  <string name="inspection_sounds_summary">Activar / desactivar sonido de inspección</string>
   <string name="inspection_sounds_type">Tipo de aviso de inspección</string>
-  <string name="inspection_sounds_type_summary">Seleccionar tipo de aviso</string>
   <string name="classic_inspection_sound_type">Clasico (aviso de 3 segundos antes del acabar)</string>
   <string name="official_inspection_sound_type">Official (aviso a los 8 y 12 segundos)</string>
   <string name="show_time_when_running">Mostrar tiempo mientras cuenta</string>
-  <string name="show_time_when_running_summary">Mostrar tiempo mientras el temporizador está contando</string>
   <string name="keep_screen_on">Mantener pantalla encendida</string>
   <string name="keep_screen_on_summary">Cuando el temporizador no está contando</string>
   <string name="high_precision_timer">Alto precisión temporizador</string>
@@ -116,14 +111,12 @@
   <string name="color_sample_size">Tamaño de muestra de color</string>
   <string name="color_sample_size_summary">Cuántas resoluciones recientes se comparan para los colores</string>
   <string name="timer_font">Fuente del temporizador</string>
-  <string name="timer_font_summary">Fuente usada en la pantalla del temporizador</string>
   <string name="timer_font_modern">Moderna</string>
   <string name="timer_font_classic">Clásica</string>
   <string name="timer_font_mono">Monoespaciada</string>
   <string name="timer_font_light">Fina</string>
   <string name="timer_font_condensed">Condensada</string>
   <string name="timer_font_size">Tamaño del temporizador</string>
-  <string name="timer_font_size_summary">Tamaño de la pantalla del temporizador</string>
   <string name="timer_font_size_small">Pequeño</string>
   <string name="timer_font_size_medium">Mediano</string>
   <string name="timer_font_size_big">Grande</string>
@@ -182,7 +175,6 @@
   <string name="verdict_under_average">%1$s por debajo de tu Ao12</string>
   <string name="verdict_over_average">%1$s por encima de tu Ao12</string>
   <string name="record_notification_mode">Panel de record</string>
-  <string name="record_notification_mode_summary">Elige cuándo mostrar el panel de nuevo record</string>
   <string name="record_notif_any">Para cualquier record</string>
   <string name="record_notif_pb_only">Solo para un nuevo PB</string>
   <string name="record_notif_never">Nunca</string>
@@ -419,7 +411,7 @@
     <ul>
       <li>El panel de nuevo record ya no tapa la mezcla</li>
       <li>Nuevo ajuste para elegir cuándo aparece el panel de record: para cualquier record, solo para un nuevo PB, o nunca</li>
-      <li>Nueva entrada «Último tiempo» en el menú del cronómetro, que abre el detalle del tiempo — comentar y compartir están ahí ahora</li>
+      <li>Nueva entrada «Último tiempo» en el menú del cronómetro, que abre el detalle del tiempo, donde ahora están comentar y compartir</li>
       <li>Corregidos los dígitos del cronómetro que se movían durante el cronometraje en algunos dispositivos</li>
       <li>Las mezclas de Megaminx ya no terminan con una línea vacía</li>
       <li>La exportación ahora puede guardar su historia directamente en un archivo, y compartirla funciona con más aplicaciones</li>
@@ -754,8 +746,8 @@
 
   <!-- Solve detail: what the solve was worth. The ranks run from second to tenth, since the best
        ever has a line of its own, so the array is read at rank - 2. -->
-  <string name="verdict_best_ever">Mejor tiempo</string>
-  <string name="verdict_best_ever_by">Mejor tiempo, %1$s de ventaja</string>
+  <string name="verdict_best_ever">Récord personal</string>
+  <string name="verdict_best_ever_by">Récord personal, %1$s de ventaja</string>
   <string-array name="verdict_ranks">
     <item>2.º mejor tiempo</item>
     <item>3.º mejor tiempo</item>

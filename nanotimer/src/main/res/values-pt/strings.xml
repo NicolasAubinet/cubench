@@ -2,7 +2,7 @@
 <resources>
   <string name="app_name">Cubench</string>
   <string name="app_formerly_name">Antes Nano Timer</string>
-  <string name="app_name_copyright">&#169; 2014–2026 Cubench\nGratuito e de código aberto (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
+  <string name="app_name_copyright">&#169; 2014-2026 Cubench\nGratuito e de código aberto (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
   <string name="app_description">Cronômetro de speedcubing para Android</string>
   <string name="app_license">Este aplicativo usa as bibliotecas drag-sort-listview e MPAndroidChart licenciadas sob Apache 2.0. Os diagramas de scramble são gerados com cubing.js e scramble-display (GPL-3.0) e three.js (MIT).</string>
   <string name="feedback_message">Se você encontrar um bug ou tiver sugestões ou comentários, não hesite em enviar um e-mail para o endereço abaixo.</string>
@@ -95,20 +95,15 @@
   <string name="look_and_feel">Aparência</string>
   <string name="timer_screen">Tela do cronômetro</string>
   <string name="inspection_mode">Modo de inspeção</string>
-  <string name="inspection_mode_summary">Selecionar o modo de inspeção do cronômetro</string>
   <string name="hold_and_release_inspection_mode">Segurar e soltar: <i>Pressionar e soltar uma vez para iniciar</i></string>
   <string name="automatic_inspection_mode">Automático: <i>Início automático quando a inspeção termina</i></string>
   <string name="official_inspection_mode">Oficial: <i>Pressionar por 0,5s para iniciar, usa as regras oficiais de inspeção +2/DNF</i></string>
   <string name="inspection_time">Tempo de inspeção</string>
-  <string name="inspection_time_summary">Selecionar o tempo de inspeção do cronômetro</string>
   <string name="inspection_sounds">Sons de inspeção</string>
-  <string name="inspection_sounds_summary">Ativar / desativar os sons de inspeção</string>
   <string name="inspection_sounds_type">Tipo de avisos de inspeção</string>
-  <string name="inspection_sounds_type_summary">Selecionar o tipo de avisos</string>
   <string name="classic_inspection_sound_type">Clássico (aviso 3 segundos antes do fim)</string>
   <string name="official_inspection_sound_type">Oficial (avisos aos 8 e 12 segundos)</string>
   <string name="show_time_when_running">Mostrar o tempo durante a resolução</string>
-  <string name="show_time_when_running_summary">Mostrar o tempo enquanto o cronômetro está rodando</string>
   <string name="keep_screen_on">Manter a tela ligada</string>
   <string name="keep_screen_on_summary">Quando o cronômetro não está rodando</string>
   <string name="high_precision_timer">Cronômetro de alta precisão</string>
@@ -116,14 +111,12 @@
   <string name="color_sample_size">Amostra de cores</string>
   <string name="color_sample_size_summary">Número de resoluções recentes com as quais as cores se comparam</string>
   <string name="timer_font">Fonte do cronômetro</string>
-  <string name="timer_font_summary">Fonte usada na exibição do cronômetro</string>
   <string name="timer_font_modern">Moderna</string>
   <string name="timer_font_classic">Clássica</string>
   <string name="timer_font_mono">Monoespaçada</string>
   <string name="timer_font_light">Fina</string>
   <string name="timer_font_condensed">Condensada</string>
   <string name="timer_font_size">Tamanho do cronômetro</string>
-  <string name="timer_font_size_summary">Tamanho da exibição do cronômetro</string>
   <string name="timer_font_size_small">Pequeno</string>
   <string name="timer_font_size_medium">Médio</string>
   <string name="timer_font_size_big">Grande</string>
@@ -183,7 +176,6 @@
   <string name="verdict_over_average">%1$s acima do seu Ao12</string>
 
   <string name="record_notification_mode">Painel de recorde</string>
-  <string name="record_notification_mode_summary">Escolha quando mostrar o painel de novo recorde</string>
   <string name="record_notif_any">Para qualquer recorde</string>
   <string name="record_notif_pb_only">Somente para um novo PB</string>
   <string name="record_notif_never">Nunca</string>
@@ -421,7 +413,7 @@
     <ul>
       <li>O painel de novo recorde não cobre mais o scramble</li>
       <li>Nova configuração para escolher quando o painel de recorde aparece: para qualquer recorde, somente para um novo PB, ou nunca</li>
-      <li>Nova opção “Último tempo” no menu do cronômetro, que abre os detalhes do tempo — comentar e compartilhar agora ficam lá</li>
+      <li>Nova opção “Último tempo” no menu do cronômetro, que abre os detalhes do tempo, onde comentar e compartilhar agora ficam</li>
       <li>Corrigidos os dígitos do cronômetro que se moviam durante a cronometragem em alguns aparelhos</li>
       <li>Os scrambles de Megaminx não terminam mais com uma linha vazia</li>
       <li>A exportação agora pode guardar o seu histórico diretamente num ficheiro, e a partilha funciona com mais aplicações</li>
@@ -757,8 +749,8 @@
 
   <!-- Solve detail: what the solve was worth. The ranks run from second to tenth, since the best
        ever has a line of its own, so the array is read at rank - 2. -->
-  <string name="verdict_best_ever">Melhor tempo</string>
-  <string name="verdict_best_ever_by">Melhor tempo, %1$s de vantagem</string>
+  <string name="verdict_best_ever">Recorde pessoal</string>
+  <string name="verdict_best_ever_by">Recorde pessoal, %1$s de vantagem</string>
   <string-array name="verdict_ranks">
     <item>2.º melhor tempo</item>
     <item>3.º melhor tempo</item>

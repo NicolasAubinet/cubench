@@ -6,7 +6,7 @@
   <string name="wordmark" translatable="false">CUBENCH</string>
   <string name="wordmark_tagline" translatable="false">SPEEDCUBE TIMER</string>
   <string name="app_formerly_name">Formerly Nano Timer</string>
-  <string name="app_name_copyright">&#169; 2014–2026 Cubench\nFree &amp; open-source (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
+  <string name="app_name_copyright">&#169; 2014-2026 Cubench\nFree &amp; open-source (GPL v3)\ngithub.com/NicolasAubinet/cubench</string>
   <!--<string name="admob_app_id" translatable="false">ca-app-pub-8294291525564683~7155145804</string>-->
   <!--<string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>-->
   <!--<string name="admob_banner_unit_id" translatable="false">ca-app-pub-8294291525564683/1182680112</string>-->
@@ -103,20 +103,15 @@
   <string name="look_and_feel">Look and feel</string>
   <string name="timer_screen">Timer screen</string>
   <string name="inspection_mode">Inspection mode</string>
-  <string name="inspection_mode_summary">Select the timer inspection mode</string>
   <string name="hold_and_release_inspection_mode">Hold and release: <i>Push and release once to start</i></string>
   <string name="automatic_inspection_mode">Automatic: <i>Automatic start when inspection is over</i></string>
   <string name="official_inspection_mode">Official: <i>Push for 0.5s to start, use official +2/DNF inspection rules</i></string>
   <string name="inspection_time">Inspection time</string>
-  <string name="inspection_time_summary">Select the timer inspection time</string>
   <string name="inspection_sounds">Inspection sounds</string>
-  <string name="inspection_sounds_summary">Enable / disable inspection sounds</string>
   <string name="inspection_sounds_type">Inspection warnings type</string>
-  <string name="inspection_sounds_type_summary">Select the type of warnings</string>
   <string name="classic_inspection_sound_type">Classic (warn 3 seconds before end)</string>
   <string name="official_inspection_sound_type">Official (warn at 8 and 12 seconds)</string>
   <string name="show_time_when_running">Display time when running</string>
-  <string name="show_time_when_running_summary">Display time when timer is running</string>
   <string name="keep_screen_on">Keep screen on</string>
   <string name="keep_screen_on_summary">When timer is not running</string>
   <string name="high_precision_timer">Use high precision timer</string>
@@ -124,14 +119,12 @@
   <string name="color_sample_size">Color sample size</string>
   <string name="color_sample_size_summary">How many recent solves the colors compare against</string>
   <string name="timer_font">Timer font</string>
-  <string name="timer_font_summary">Font used for the timer display</string>
   <string name="timer_font_modern">Modern</string>
   <string name="timer_font_classic">Classic</string>
   <string name="timer_font_mono">Monospace</string>
   <string name="timer_font_light">Light</string>
   <string name="timer_font_condensed">Condensed</string>
   <string name="timer_font_size">Timer font size</string>
-  <string name="timer_font_size_summary">Size of the timer display</string>
   <string name="timer_font_size_small">Small</string>
   <string name="timer_font_size_medium">Medium</string>
   <string name="timer_font_size_big">Big</string>
@@ -190,7 +183,6 @@
   <string name="verdict_under_average">%1$s under your Ao12</string>
   <string name="verdict_over_average">%1$s over your Ao12</string>
   <string name="record_notification_mode">New record panel</string>
-  <string name="record_notification_mode_summary">Choose when to show the new record panel</string>
   <string name="record_notif_any">For any record</string>
   <string name="record_notif_pb_only">Only for a new PB</string>
   <string name="record_notif_never">Never</string>
@@ -427,7 +419,7 @@
     <ul>
       <li>The new record panel no longer covers the scramble</li>
       <li>New setting to choose when the record panel appears: for any record, only for a new PB, or never</li>
-      <li>New “Last solve” menu entry on the timer screen, opening the solve details — commenting and sharing have moved there</li>
+      <li>New \"Last solve\" menu entry on the timer screen, opening the solve details, where commenting and sharing have moved</li>
       <li>Fixed the timer digits shifting around while timing on some devices</li>
       <li>Megaminx scrambles no longer end with an empty line</li>
       <li>Export can now save your history directly to a file, and sharing it works with more apps</li>
@@ -768,8 +760,8 @@
 
   <!-- Solve detail: what the solve was worth. The ranks run from second to tenth, since the best
        ever has a line of its own, so the array is read at rank - 2. -->
-  <string name="verdict_best_ever">Best ever</string>
-  <string name="verdict_best_ever_by">Best ever, by %1$s</string>
+  <string name="verdict_best_ever">Personal best</string>
+  <string name="verdict_best_ever_by">Personal best, by %1$s</string>
   <string-array name="verdict_ranks">
     <item>2nd best ever</item>
     <item>3rd best ever</item>
