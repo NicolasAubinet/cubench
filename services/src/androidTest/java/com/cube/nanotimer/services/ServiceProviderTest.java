@@ -1,8 +1,14 @@
 package com.cube.nanotimer.services;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import android.test.AndroidTestCase;
 import org.junit.After;
 import org.junit.Before;
 import com.cube.nanotimer.session.MethodStatistics;
@@ -34,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RunWith(AndroidJUnit4.class)
-public class ServiceProviderTest extends AndroidTestCase {
+public class ServiceProviderTest {
 
   private ServiceProviderImpl provider;
   private ServiceImpl service;
@@ -48,11 +54,7 @@ public class ServiceProviderTest extends AndroidTestCase {
   private int timeCpt = 0;
 
   @Before
-  @Override
   public void setUp() throws Exception {
-    super.setUp();
-    // AndroidJUnit4 drives this class, so the JUnit3 context AndroidTestCase would inject never
-    // arrives; the runner's own application context stands in for it.
     service = ServiceImpl.getInstance(ApplicationProvider.getApplicationContext(), "testDB");
     provider = new ServiceProviderImpl(service.getWritableDatabase());
 
@@ -83,9 +85,7 @@ public class ServiceProviderTest extends AndroidTestCase {
   }
 
   @After
-  @Override
   public void tearDown() throws Exception {
-    super.tearDown();
     provider.deleteHistory();
     deleteDrills();
   }
