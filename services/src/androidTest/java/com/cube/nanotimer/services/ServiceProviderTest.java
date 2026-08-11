@@ -18,7 +18,9 @@ import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
 import com.cube.nanotimer.services.db.DB;
+import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCaseStats;
 import com.cube.nanotimer.vo.drill.DrillCrossRep;
 import com.cube.nanotimer.vo.drill.DrillEnd;
 import com.cube.nanotimer.vo.drill.DrillRecord;
@@ -1402,6 +1404,96 @@ public class ServiceProviderTest extends AndroidTestCase {
     List<StepStats> window = provider.getDrillCaseStatistics(1);
     assertEquals(1, window.size());
     assertEquals(3000, window.get(0).getMeanMs()); // the older drill, not the emptied one's place
+  }
+
+  // The tally the drill stats screen is drawn from, over a stretch of time rather than a count of
+  // drills, and carrying the slowest rep as well as the quickest.
+  @Test
+  public void testDrillCaseStatsTallyBothEndsOfEachCase() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 3));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 500, 1500, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(2, "oll_21", 400, 1100, 11, 0, false, false));
+
+    List<DrillCaseStats> stats = provider.getDrillCaseStats(0);
+    assertEquals(2, stats.size());
+    assertEquals("oll_21", stats.get(0).getCaseCode()); // ordered by code, families and all
+    assertEquals("pll_ga", stats.get(1).getCaseCode());
+    assertEquals(2, stats.get(1).getCount());
+    assertEquals(2500, stats.get(1).getMeanMs());
+    assertEquals(750, stats.get(1).getMeanRecognitionMs());
+    assertEquals(1750, stats.get(1).getMeanExecutionMs());
+    assertEquals(2000, stats.get(1).getBestMs());
+    assertEquals(3000, stats.get(1).getWorstMs());
+  }
+
+  @Test
+  public void testDrillCaseStatsReadOnlyTheDrillsInTheWindow() {
+    deleteDrills();
+    long older = provider.addDrill(drill("case_execution", 1, 1000));
+    provider.addDrillCaseRep(older, caseRep(0, "pll_ga", 4000, 4000, 13, 0, false, false));
+    long newer = provider.addDrill(drill("case_execution", 1, 2000));
+    provider.addDrillCaseRep(newer, caseRep(0, "pll_ga", 500, 1500, 13, 0, false, false));
+
+    assertEquals(2, provider.getDrillCaseStats(0).get(0).getCount());
+    List<DrillCaseStats> window = provider.getDrillCaseStats(1500);
+    assertEquals(1, window.size());
+    assertEquals(2000, window.get(0).getMeanMs()); // the recent one, not the 8000
+  }
+
+  // The same three the older tally leaves out, for the same reason: none measured the case.
+  @Test
+  public void testDrillCaseStatsLeaveOutTheRepsThatMeasuredNothing() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("case_execution", 4));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 9000, 9000, 40, 0, false, true));
+    provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 8000, 8000, 30, 1, true, false));
+    provider.addDrillCaseRep(drillId, caseRep(3, "pll_ga", 7000, 7000, 30, 0, false, false));
+    provider.setDrillCaseRepDeleted(drillId, 3, true);
+
+    List<DrillCaseStats> stats = provider.getDrillCaseStats(0);
+    assertEquals(1, stats.size());
+    assertEquals(1, stats.get(0).getCount());
+    assertEquals(3000, stats.get(0).getWorstMs()); // the three wild ones are in no end of it
+  }
+
+  // Every attempt at one case, whichever drill it was done in, newest first. The pruned ones are
+  // missing and the ones that measured nothing are not: a case given up on twice is an answer.
+  @Test
+  public void testDrillCaseAttemptsGatherOneCaseAcrossDrills() {
+    deleteDrills();
+    long older = provider.addDrill(drill("case_execution", 2, 1000));
+    provider.addDrillCaseRep(older, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    provider.addDrillCaseRep(older, caseRep(1, "pll_t", 400, 1100, 11, 0, false, false));
+    long newer = provider.addDrill(drill("case_execution", 2, 2000));
+    provider.addDrillCaseRep(newer, caseRep(0, "pll_ga", 500, 1500, 13, 2, false, true));
+    provider.addDrillCaseRep(newer, caseRep(1, "pll_ga", 800, 900, 13, 0, false, false));
+    provider.setDrillCaseRepDeleted(newer, 1, true);
+
+    List<DrillCaseAttempt> attempts = provider.getDrillCaseAttempts("pll_ga", 0);
+    assertEquals(2, attempts.size()); // the thrown-out one is gone, the abandoned one is not
+    assertEquals(newer, attempts.get(0).getDrillId());
+    assertEquals(2000, attempts.get(0).getTimestamp());
+    assertTrue(attempts.get(0).getRep().isAbandoned());
+    assertEquals(2, attempts.get(0).getRep().getResetCount());
+    assertFalse(attempts.get(0).isCounted());
+    assertEquals(older, attempts.get(1).getDrillId());
+    assertEquals(3000, attempts.get(1).getRep().getTotalMs());
+    assertTrue(attempts.get(1).isCounted());
+  }
+
+  @Test
+  public void testDrillCaseAttemptsReadOnlyTheirOwnCaseAndWindow() {
+    deleteDrills();
+    long older = provider.addDrill(drill("case_execution", 1, 1000));
+    provider.addDrillCaseRep(older, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    long newer = provider.addDrill(drill("case_execution", 1, 2000));
+    provider.addDrillCaseRep(newer, caseRep(0, "pll_ga", 500, 1500, 13, 0, false, false));
+
+    assertEquals(1, provider.getDrillCaseAttempts("pll_ga", 1500).size());
+    assertEquals(0, provider.getDrillCaseAttempts("oll_21", 0).size());
   }
 
   private DrillRecord drill(String type, int repsAsked) {

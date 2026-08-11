@@ -24,7 +24,9 @@ import com.cube.nanotimer.vo.SolveTypeStep;
 import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimerQuickAction;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCaseStats;
 import com.cube.nanotimer.vo.drill.DrillCrossRep;
 import com.cube.nanotimer.vo.drill.DrillEnd;
 import com.cube.nanotimer.vo.drill.DrillRecord;
@@ -1159,6 +1161,98 @@ public class ServiceProviderImpl implements ServiceProvider {
       cursor.close();
     }
     return stats;
+  }
+
+  /**
+   * The same tally as {@link #getDrillCaseStatistics}, over a stretch of time rather than a count of
+   * drills, and carrying the slowest rep as well as the quickest. A reader picking a window picks
+   * "this week", never "my last twenty drills", and the worst attempt is what says a case is known
+   * but not recognised.
+   *
+   * <p>Left out for the same reason as there: a rep given up on was never finished, a rep where the
+   * algorithm was looked up was finished with the answer in front of the user, and a pruned one was
+   * disowned. None of the three measured the case.
+   *
+   * @param fromTimestamp the moment the window opens, 0 for every drill ever recorded
+   */
+  @Override
+  public List<DrillCaseStats> getDrillCaseStats(long fromTimestamp) {
+    String total = "(r." + DB.COL_DRILL_REP_RECOGNITION + " + r." + DB.COL_DRILL_REP_EXECUTION + ")";
+
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT r.").append(DB.COL_DRILL_REP_CASE);
+    q.append("     , COUNT(*)");
+    q.append("     , SUM(").append(total).append(")");
+    q.append("     , SUM(r.").append(DB.COL_DRILL_REP_RECOGNITION).append(")");
+    q.append("     , MIN(").append(total).append(")");
+    q.append("     , MAX(").append(total).append(")");
+    q.append("  FROM ").append(DB.TABLE_DRILL_REP).append(" r");
+    q.append("  JOIN ").append(DB.TABLE_DRILL).append(" d");
+    q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
+    q.append(" WHERE d.").append(DB.COL_DRILL_TIMESTAMP).append(" >= ?");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_ABANDONED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_REVEALED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
+    q.append(" GROUP BY r.").append(DB.COL_DRILL_REP_CASE);
+    q.append(" ORDER BY r.").append(DB.COL_DRILL_REP_CASE);
+
+    List<DrillCaseStats> stats = new ArrayList<DrillCaseStats>();
+    Cursor cursor = db.rawQuery(q.toString(),
+        new String[] {String.valueOf(Math.max(0, fromTimestamp))});
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        stats.add(new DrillCaseStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
+            cursor.getLong(3), cursor.getLong(4), cursor.getLong(5)));
+      }
+      cursor.close();
+    }
+    return stats;
+  }
+
+  /**
+   * Every rep of one case in a window, newest first, whichever drill each was done in.
+   *
+   * <p>Unlike the tally above this keeps the reps that measured nothing, since a list of attempts is
+   * read to see what happened and a case given up on twice is the answer. Only the pruned ones are
+   * missing: those the user has already disowned, and a list opened months later has no reason to
+   * hand them back.
+   */
+  @Override
+  public List<DrillCaseAttempt> getDrillCaseAttempts(String caseCode, long fromTimestamp) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT d.").append(DB.COL_ID);
+    q.append("     , d.").append(DB.COL_DRILL_TIMESTAMP);
+    q.append("     , r.").append(DB.COL_DRILL_REP_POSITION);
+    q.append("     , r.").append(DB.COL_DRILL_REP_SCRAMBLE);
+    q.append("     , r.").append(DB.COL_DRILL_REP_MOVES);
+    q.append("     , r.").append(DB.COL_DRILL_REP_RECOGNITION);
+    q.append("     , r.").append(DB.COL_DRILL_REP_EXECUTION);
+    q.append("     , r.").append(DB.COL_DRILL_REP_MOVE_COUNT);
+    q.append("     , r.").append(DB.COL_DRILL_REP_RESET_COUNT);
+    q.append("     , r.").append(DB.COL_DRILL_REP_REVEALED);
+    q.append("     , r.").append(DB.COL_DRILL_REP_ABANDONED);
+    q.append("  FROM ").append(DB.TABLE_DRILL_REP).append(" r");
+    q.append("  JOIN ").append(DB.TABLE_DRILL).append(" d");
+    q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
+    q.append(" WHERE r.").append(DB.COL_DRILL_REP_CASE).append(" = ?");
+    q.append("   AND d.").append(DB.COL_DRILL_TIMESTAMP).append(" >= ?");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
+    q.append(" ORDER BY d.").append(DB.COL_DRILL_TIMESTAMP).append(" DESC");
+    q.append("        , r.").append(DB.COL_DRILL_REP_POSITION).append(" DESC");
+
+    List<DrillCaseAttempt> attempts = new ArrayList<DrillCaseAttempt>();
+    Cursor cursor = db.rawQuery(q.toString(),
+        new String[] {caseCode, String.valueOf(Math.max(0, fromTimestamp))});
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        DrillCaseRep rep = new DrillCaseRep(cursor.getInt(2), caseCode, cursor.getString(3),
+            cursor.getString(4), cursor.getLong(5), cursor.getLong(6), cursor.getInt(7),
+            cursor.getInt(8), cursor.getInt(9) == 1, cursor.getInt(10) == 1);
+        attempts.add(new DrillCaseAttempt(cursor.getLong(0), cursor.getLong(1), rep));
+      }
+      cursor.close();
+    }
+    return attempts;
   }
 
   @Override

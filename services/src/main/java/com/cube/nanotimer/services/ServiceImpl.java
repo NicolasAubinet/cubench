@@ -18,7 +18,9 @@ import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCaseStats;
 import com.cube.nanotimer.vo.drill.DrillCrossRep;
 import com.cube.nanotimer.vo.drill.DrillEnd;
 import com.cube.nanotimer.vo.drill.DrillRecord;
@@ -530,6 +532,28 @@ public class ServiceImpl extends DBHelper implements Service {
       @Override
       public void run() {
         callback.onData(provider.getDrillCaseStatistics(lastDrills));
+      }
+    });
+  }
+
+  @Override
+  public void getDrillCaseStats(final long fromTimestamp,
+      final DataCallback<List<DrillCaseStats>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getDrillCaseStats(fromTimestamp));
+      }
+    });
+  }
+
+  @Override
+  public void getDrillCaseAttempts(final String caseCode, final long fromTimestamp,
+      final DataCallback<List<DrillCaseAttempt>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getDrillCaseAttempts(caseCode, fromTimestamp));
       }
     });
   }

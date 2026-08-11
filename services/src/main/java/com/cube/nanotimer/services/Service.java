@@ -16,7 +16,9 @@ import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
+import com.cube.nanotimer.vo.drill.DrillCaseStats;
 import com.cube.nanotimer.vo.drill.DrillCrossRep;
 import com.cube.nanotimer.vo.drill.DrillEnd;
 import com.cube.nanotimer.vo.drill.DrillRecord;
@@ -85,6 +87,11 @@ public interface Service {
   void getDrillCrossReps(long drillId, DataCallback<List<DrillCrossRep>> callback);
   /** What each case has cost over the last {@code lastDrills} recorded drills. */
   void getDrillCaseStatistics(int lastDrills, DataCallback<List<StepStats>> callback);
+  /** What each case has cost over the drills done since {@code fromTimestamp}, 0 for all of them. */
+  void getDrillCaseStats(long fromTimestamp, DataCallback<List<DrillCaseStats>> callback);
+  /** Every rep of one case since {@code fromTimestamp}, latest first, the pruned ones left out. */
+  void getDrillCaseAttempts(String caseCode, long fromTimestamp,
+      DataCallback<List<DrillCaseAttempt>> callback);
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);
