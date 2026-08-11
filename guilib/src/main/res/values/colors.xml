@@ -149,13 +149,15 @@
 
   <!-- ========================= Cube and solve ======================== -->
 
-  <!-- 3x3 cross solver: standard WCA face colors, tuned for the dark dialog -->
-  <color name="cube_white">#ECEFF1</color>
-  <color name="cube_yellow">#FFD600</color>
-  <color name="cube_red">#E53935</color>
-  <color name="cube_orange">#FB8C00</color>
-  <color name="cube_green">#43A047</color>
-  <color name="cube_blue">#1E88E5</color>
+  <!-- The six faces, wherever the app draws a cube flat: the case charts, the face swatches, the
+       sticker icons. These are the six the calm filter over the 3D player lands on, so a chart and
+       the player next to it are the same cube rather than two. -->
+  <color name="cube_white">#E8E6E1</color>
+  <color name="cube_yellow">#E3C33C</color>
+  <color name="cube_red">#D9483F</color>
+  <color name="cube_orange">#DE8A3A</color>
+  <color name="cube_green">#4FB35C</color>
+  <color name="cube_blue">#3C74D4</color>
 
   <!-- A last-layer case drawn as a chart: the layer, a sticker not yet facing up, and the arrows
        showing where a piece has to travel. Yellow-on-top, as every case chart is. -->
