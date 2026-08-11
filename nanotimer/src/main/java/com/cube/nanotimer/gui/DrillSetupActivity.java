@@ -237,6 +237,10 @@ public class DrillSetupActivity extends NanoTimerActivity
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.itDrillStats) {
+      startActivity(new Intent(this, DrillStatsActivity.class));
+      return true;
+    }
     if (item.getItemId() == R.id.itDrillHelp) {
       DialogUtils.showFragment(this, new DrillHelpDialog());
       return true;

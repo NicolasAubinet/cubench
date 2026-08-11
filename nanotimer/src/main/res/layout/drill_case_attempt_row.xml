@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One attempt at one case: when it was done, what it cost in each half and in both together, and
+     the shape of it under the date. No chart, unlike the rows the stats table is made of: every row
+     here is the same case, and drawing it forty times would say nothing forty times. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llDrillAttemptRow"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:background="@drawable/history_row"
+   android:gravity="center_vertical"
+   android:minHeight="48dp"
+   android:orientation="horizontal"
+   android:paddingLeft="@dimen/space_xs"
+   android:paddingRight="@dimen/space_xs"
+   android:paddingTop="@dimen/space_s"
+   android:paddingBottom="@dimen/space_s">
+
+  <LinearLayout
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginRight="@dimen/space_xs"
+     android:orientation="vertical">
+
+    <TextView
+       android:id="@+id/tvDrillAttemptWhen"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:ellipsize="end"
+       android:maxLines="1"
+       android:textColor="@color/white"
+       android:textSize="15sp"/>
+
+    <!-- What has to be said about the attempt before its figures are read. -->
+    <TextView
+       android:id="@+id/tvDrillAttemptNote"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:ellipsize="end"
+       android:maxLines="2"
+       android:textColor="@color/secondary_text"
+       android:textSize="11sp"
+       android:visibility="gone"/>
+
+    <!-- A fixed width rather than the row's: it is the shape of the attempt and not its size, so
+         every one of them is measured against the same length. -->
+    <com.cube.nanotimer.util.view.DrillSplitBarView
+       android:id="@+id/vDrillAttemptBar"
+       android:layout_width="96dp"
+       android:layout_height="5dp"
+       android:layout_marginTop="5dp"/>
+  </LinearLayout>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvDrillAttemptRecognition"
+     style="@style/DrillCaseValue"/>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvDrillAttemptExecution"
+     style="@style/DrillCaseValue"/>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvDrillAttemptTotal"
+     style="@style/DrillCaseValue"/>
+
+</LinearLayout>

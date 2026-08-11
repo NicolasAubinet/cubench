@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What every recorded drill adds up to, case by case. The two rows of segments stay above the
+     scroll: the table is as long as the number of cases ever drilled, and a filter that scrolled
+     away with it would be unreachable from exactly the screen long enough to need it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:background="@color/graybg"
+   android:fitsSystemWindows="true"
+   android:orientation="vertical">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingLeft="16dp"
+     android:paddingRight="16dp"
+     android:paddingTop="10dp">
+
+    <!-- Which family, then how far back. Two rows rather than one, since they are two questions and
+         a single row of six segments would read as one. -->
+    <LinearLayout
+       android:id="@+id/llDrillStatsFamily"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:background="@drawable/cross_segment_container"
+       android:orientation="horizontal"
+       android:padding="3dp"/>
+
+    <LinearLayout
+       android:id="@+id/llDrillStatsWindow"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="8dp"
+       android:background="@drawable/cross_segment_container"
+       android:orientation="horizontal"
+       android:padding="3dp"/>
+  </LinearLayout>
+
+  <ScrollView
+     android:layout_width="match_parent"
+     android:layout_height="0dp"
+     android:layout_weight="1"
+     android:fillViewport="true">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:paddingLeft="16dp"
+       android:paddingRight="16dp"
+       android:paddingBottom="16dp">
+
+      <!-- The same three cells a finished drill ends on, over every drill in the window. -->
+      <include
+         layout="@layout/drill_stat_cells"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="14dp"/>
+
+      <!-- Instead of the cells and the table, for a window with nothing in it. -->
+      <TextView
+         android:id="@+id/tvDrillStatsEmpty"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="60dp"
+         android:gravity="center"
+         android:paddingLeft="16dp"
+         android:paddingRight="16dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="16sp"
+         android:visibility="gone"/>
+
+      <!-- One line per case, and the four headings that rank them. The headings are the sort, as
+           they are on a finished drill's own table: a control above them would have had to name the
+           same four things a second time. -->
+      <LinearLayout
+         android:id="@+id/llDrillStatsSection"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="20dp"
+           android:gravity="center_vertical"
+           android:orientation="horizontal"
+           android:paddingLeft="@dimen/space_xs"
+           android:paddingRight="@dimen/space_xs">
+
+          <TextView
+             android:id="@+id/tvDrillStatsSortCount"
+             style="@style/DrillCasePositionColumn"
+             android:text="@string/drill_stats_column_count"/>
+
+          <TextView
+             style="@style/DialogSectionLabel"
+             android:layout_width="0dp"
+             android:layout_weight="1"
+             android:text="@string/drill_summary_cases"/>
+
+          <TextView
+             android:id="@+id/tvDrillStatsSortMean"
+             style="@style/DrillCaseColumn"
+             android:text="@string/drill_summary_cell_mean"/>
+
+          <TextView
+             android:id="@+id/tvDrillStatsSortBest"
+             style="@style/DrillCaseColumn"
+             android:text="@string/drill_summary_cell_best"/>
+
+          <TextView
+             android:id="@+id/tvDrillStatsSortWorst"
+             style="@style/DrillCaseColumn"
+             android:text="@string/drill_stats_column_worst"/>
+        </LinearLayout>
+
+        <View
+           android:layout_width="match_parent"
+           android:layout_height="1dp"
+           android:background="@color/hero_divider"/>
+
+        <!-- One drill_stats_row per case, filled in code. No card around them: a list of times on
+             the ground reads as a list. -->
+        <LinearLayout
+           android:id="@+id/llDrillStatsRows"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:divider="@drawable/stat_rule_h"
+           android:orientation="vertical"
+           android:showDividers="middle"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="12dp"
+           android:text="@string/drill_stats_hint"
+           android:textColor="@color/secondary_text"
+           android:textSize="12sp"/>
+      </LinearLayout>
+
+    </LinearLayout>
+  </ScrollView>
+
+</LinearLayout>

@@ -799,6 +799,34 @@
   <string name="drill_case_seconds">%1$s s</string>
   <string name="drill_case_remove">Remover</string>
   <string name="drill_case_removed">Removida, toque para restaurar</string>
+  <string name="drill_stats_title">Estatísticas de treino</string>
+  <string name="drill_stats_column_worst">Pior</string>
+  <plurals name="drill_stats_cell_cases">
+    <item quantity="one">%d caso</item>
+    <item quantity="other">%d casos</item>
+  </plurals>
+  <string name="drill_stats_hint">Toque num caso para ver cada uma das suas tentativas.</string>
+  <string name="drill_stats_empty">Nada registado ainda. Os treinos feitos no modo concentrado aparecem aqui, caso a caso.</string>
+  <string name="drill_stats_empty_window">Nenhum treino neste período.</string>
+  <string name="drill_stats_window_today">Hoje</string>
+  <string name="drill_stats_window_week">Semana</string>
+  <string name="drill_stats_window_month">Mês</string>
+  <string name="drill_stats_window_all">Tudo</string>
+  <string name="drill_stats_window_today_long">Hoje</string>
+  <string name="drill_stats_window_week_long">Últimos 7 dias</string>
+  <string name="drill_stats_window_month_long">Últimos 30 dias</string>
+  <string name="drill_stats_window_all_long">Desde o início</string>
+  <string name="drill_case_stats_title">Caso</string>
+  <string name="drill_case_stats_attempts">Tentativas</string>
+  <string name="drill_case_stats_hint">Toque numa tentativa para os algoritmos, mantenha para a remover.</string>
+  <string name="drill_case_stats_empty">Nenhuma tentativa neste período.</string>
+  <string name="drill_case_stats_cell_worst">Pior %s</string>
+  <plurals name="drill_case_stats_resets">
+    <item quantity="one">%d reinício</item>
+    <item quantity="other">%d reinícios</item>
+  </plurals>
+  <string name="drill_case_stats_when">%1$s · repetição %2$d</string>
+  <string name="drill_case_stats_remove_message">%1$s, %2$s. Fica na lista, riscada, e não conta para nada.</string>
   <string name="drill_needs_cube">Ligue o seu cubo inteligente para fazer um treino.</string>
   <string name="drill_no_known_cases">A aplicação não sabe gerar nenhum dos casos deste treino.</string>
   <string name="drill_no_cube_view">Este dispositivo não consegue desenhar o cubo de um treino.</string>

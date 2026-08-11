@@ -824,6 +824,36 @@
   <string name="drill_case_seconds">%1$ss</string>
   <string name="drill_case_remove">Remove</string>
   <string name="drill_case_removed">Removed, tap to restore</string>
+  <!-- Drill stats: every recorded drill added up, case by case, and then one case's own attempts. -->
+  <string name="drill_stats_title">Drill stats</string>
+  <string name="drill_stats_column_count" translatable="false">n</string>
+  <string name="drill_stats_column_worst">Worst</string>
+  <plurals name="drill_stats_cell_cases">
+    <item quantity="one">%d case</item>
+    <item quantity="other">%d cases</item>
+  </plurals>
+  <string name="drill_stats_hint">Tap a case to see every attempt at it.</string>
+  <string name="drill_stats_empty">Nothing recorded yet. Drills run in the focused mode show up here, case by case.</string>
+  <string name="drill_stats_empty_window">No drill in this stretch of time.</string>
+  <string name="drill_stats_window_today">Today</string>
+  <string name="drill_stats_window_week">Week</string>
+  <string name="drill_stats_window_month">Month</string>
+  <string name="drill_stats_window_all">All</string>
+  <string name="drill_stats_window_today_long">Today</string>
+  <string name="drill_stats_window_week_long">Last 7 days</string>
+  <string name="drill_stats_window_month_long">Last 30 days</string>
+  <string name="drill_stats_window_all_long">All time</string>
+  <string name="drill_case_stats_title">Case</string>
+  <string name="drill_case_stats_attempts">Attempts</string>
+  <string name="drill_case_stats_hint">Tap an attempt for the algorithms, hold it to remove it.</string>
+  <string name="drill_case_stats_empty">No attempt in this stretch of time.</string>
+  <string name="drill_case_stats_cell_worst">Worst %s</string>
+  <plurals name="drill_case_stats_resets">
+    <item quantity="one">%d restart</item>
+    <item quantity="other">%d restarts</item>
+  </plurals>
+  <string name="drill_case_stats_when">%1$s · rep %2$d</string>
+  <string name="drill_case_stats_remove_message">%1$s, %2$s. It stays on the list, struck out, and counts toward nothing.</string>
   <!-- Punctuation between what was drilled and the mode it was drilled in. -->
   <string name="drill_summary_subtitle" translatable="false">%1$s · %2$s</string>
   <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>

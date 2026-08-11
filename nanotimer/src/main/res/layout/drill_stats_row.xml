@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case in the drill stats: how often it came up, its chart and name, and what it has cost on
+     average and at either end. Built like the row a finished drill's table uses, since it is the
+     same thing being read one level up.
+
+     Under the name is where the case's time goes, its looking against its turning, written as the
+     two figures with the bar they make between them. The three columns say how long the case takes;
+     this line is the only thing that says which half of it is the problem. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llDrillStatsRow"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:background="@drawable/history_row"
+   android:gravity="center_vertical"
+   android:minHeight="52dp"
+   android:orientation="horizontal"
+   android:paddingLeft="@dimen/space_xs"
+   android:paddingRight="@dimen/space_xs"
+   android:paddingTop="@dimen/space_s"
+   android:paddingBottom="@dimen/space_s">
+
+  <!-- How many reps are behind the figures, which is how much they are worth. -->
+  <TextView
+     android:id="@+id/tvDrillStatsCount"
+     style="@style/DrillCasePosition"/>
+
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vDrillStatsChart"
+     android:layout_width="36dp"
+     android:layout_height="36dp"/>
+
+  <LinearLayout
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginLeft="@dimen/space_m"
+     android:layout_marginRight="@dimen/space_xs"
+     android:orientation="vertical">
+
+    <TextView
+       android:id="@+id/tvDrillStatsName"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:ellipsize="end"
+       android:fontFamily="@font/roboto_medium"
+       android:maxLines="1"
+       android:textColor="@color/white"
+       android:textSize="15sp"/>
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="5dp"
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvDrillStatsRecognition"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:fontFeatureSettings="tnum"
+         android:singleLine="true"
+         android:textColor="@color/drill_bar_recognition"
+         android:textSize="11sp"/>
+
+      <com.cube.nanotimer.util.view.DrillSplitBarView
+         android:id="@+id/vDrillStatsBar"
+         android:layout_width="0dp"
+         android:layout_height="5dp"
+         android:layout_weight="1"
+         android:layout_marginLeft="5dp"
+         android:layout_marginRight="5dp"/>
+
+      <TextView
+         android:id="@+id/tvDrillStatsExecution"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:fontFeatureSettings="tnum"
+         android:singleLine="true"
+         android:textColor="@color/drill_bar_execution"
+         android:textSize="11sp"/>
+    </LinearLayout>
+  </LinearLayout>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvDrillStatsMean"
+     style="@style/DrillCaseValue"/>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvDrillStatsBest"
+     style="@style/DrillCaseValue"/>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvDrillStatsWorst"
+     style="@style/DrillCaseValue"/>
+
+</LinearLayout>

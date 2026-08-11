@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case, and every attempt at it in the window the stats screen was left on. The chart is
+     drawn large at the top because the case is what the screen is about: everything under it is
+     that one picture measured. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:background="@color/graybg"
+   android:fillViewport="true"
+   android:fitsSystemWindows="true">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingLeft="16dp"
+     android:paddingRight="16dp"
+     android:paddingTop="12dp"
+     android:paddingBottom="16dp">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <com.cube.nanotimer.gui.widget.LastLayerCaseView
+         android:id="@+id/vDrillCaseStatsChart"
+         android:layout_width="64dp"
+         android:layout_height="64dp"/>
+
+      <LinearLayout
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:layout_marginLeft="14dp"
+         android:orientation="vertical">
+
+        <TextView
+           android:id="@+id/tvDrillCaseStatsName"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:ellipsize="end"
+           android:fontFamily="@font/roboto_medium"
+           android:maxLines="1"
+           android:textColor="@color/white"
+           android:textSize="22sp"/>
+
+        <!-- Which stretch of time these attempts are, since the screen was opened from a window
+             that is no longer on the screen to read. -->
+        <TextView
+           android:id="@+id/tvDrillCaseStatsWindow"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="2dp"
+           android:textColor="@color/secondary_text"
+           android:textSize="13sp"/>
+      </LinearLayout>
+    </LinearLayout>
+
+    <!-- The same three cells the stats screen and a finished drill are read from. -->
+    <include
+       layout="@layout/drill_stat_cells"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="16dp"/>
+
+    <TextView
+       android:id="@+id/tvDrillCaseStatsEmpty"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="32dp"
+       android:gravity="center"
+       android:textColor="@color/secondary_text"
+       android:textSize="16sp"
+       android:visibility="gone"/>
+
+    <LinearLayout
+       android:id="@+id/llDrillCaseStatsSection"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:visibility="gone">
+
+      <!-- Newest first, and not sortable: a list of attempts at one case is read as a run of them,
+           and ranking it by time would take away the one thing it is here to show. -->
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="20dp"
+         android:gravity="center_vertical"
+         android:orientation="horizontal"
+         android:paddingLeft="@dimen/space_xs"
+         android:paddingRight="@dimen/space_xs">
+
+        <TextView
+           style="@style/DialogSectionLabel"
+           android:layout_width="0dp"
+           android:layout_weight="1"
+           android:text="@string/drill_case_stats_attempts"/>
+
+        <TextView
+           style="@style/DrillCaseColumn"
+           android:text="@string/drill_summary_column_recognition"/>
+
+        <TextView
+           style="@style/DrillCaseColumn"
+           android:text="@string/drill_summary_column_execution"/>
+
+        <TextView
+           style="@style/DrillCaseColumn"
+           android:text="@string/drill_summary_column_total"/>
+      </LinearLayout>
+
+      <View
+         android:layout_width="match_parent"
+         android:layout_height="1dp"
+         android:background="@color/hero_divider"/>
+
+      <!-- One drill_case_attempt_row per rep, filled in code. -->
+      <LinearLayout
+         android:id="@+id/llDrillCaseStatsRows"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:divider="@drawable/stat_rule_h"
+         android:orientation="vertical"
+         android:showDividers="middle"/>
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="12dp"
+         android:text="@string/drill_case_stats_hint"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"/>
+    </LinearLayout>
+
+  </LinearLayout>
+</ScrollView>

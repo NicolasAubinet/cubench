@@ -797,6 +797,34 @@
   <string name="drill_case_seconds">%1$s s</string>
   <string name="drill_case_remove">Retirer</string>
   <string name="drill_case_removed">Retiré, touchez pour rétablir</string>
+  <string name="drill_stats_title">Stats d\'entraînement</string>
+  <string name="drill_stats_column_worst">Pire</string>
+  <plurals name="drill_stats_cell_cases">
+    <item quantity="one">%d cas</item>
+    <item quantity="other">%d cas</item>
+  </plurals>
+  <string name="drill_stats_hint">Touchez un cas pour voir chacun de ses essais.</string>
+  <string name="drill_stats_empty">Rien d\'enregistré. Les entraînements faits en mode sérieux apparaissent ici, cas par cas.</string>
+  <string name="drill_stats_empty_window">Aucun entraînement sur cette période.</string>
+  <string name="drill_stats_window_today">Aujourd\'hui</string>
+  <string name="drill_stats_window_week">Semaine</string>
+  <string name="drill_stats_window_month">Mois</string>
+  <string name="drill_stats_window_all">Tout</string>
+  <string name="drill_stats_window_today_long">Aujourd\'hui</string>
+  <string name="drill_stats_window_week_long">7 derniers jours</string>
+  <string name="drill_stats_window_month_long">30 derniers jours</string>
+  <string name="drill_stats_window_all_long">Depuis le début</string>
+  <string name="drill_case_stats_title">Cas</string>
+  <string name="drill_case_stats_attempts">Essais</string>
+  <string name="drill_case_stats_hint">Touchez un essai pour les algorithmes, maintenez-le pour le retirer.</string>
+  <string name="drill_case_stats_empty">Aucun essai sur cette période.</string>
+  <string name="drill_case_stats_cell_worst">Pire %s</string>
+  <plurals name="drill_case_stats_resets">
+    <item quantity="one">%d reprise</item>
+    <item quantity="other">%d reprises</item>
+  </plurals>
+  <string name="drill_case_stats_when">%1$s · essai %2$d</string>
+  <string name="drill_case_stats_remove_message">%1$s, %2$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
   <string name="drill_needs_cube">Connectez votre cube connecté pour lancer un entraînement.</string>
   <string name="drill_no_known_cases">Aucun cas de cet entraînement ne peut être mélangé par l\'application.</string>
   <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un entraînement.</string>
