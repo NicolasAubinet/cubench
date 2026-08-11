@@ -1278,20 +1278,24 @@ public class ServiceProviderTest {
     assertEquals(1, stats.get(1).getCount());
   }
 
-  // Neither is a measurement of the case: one was never finished, the other was finished with the
-  // answer on screen.
+  // None is a measurement of the case: one was never finished, one was finished with the answer on
+  // screen, and one was recognised a second time off a position the user had already read.
   @Test
-  public void testDrillCaseStatisticsLeaveOutAbandonedAndRevealedReps() {
+  public void testDrillCaseStatisticsLeaveOutAbandonedRevealedAndRestartedReps() {
     deleteDrills();
-    long drillId = provider.addDrill(drill("case_execution", 3));
+    long drillId = provider.addDrill(drill("case_execution", 4));
     provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
     provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 9000, 9000, 40, 0, false, true));
-    provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 8000, 8000, 30, 1, true, false));
+    provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 8000, 8000, 30, 0, true, false));
+    // A restarted one, and the shape it comes in: a recognition of nothing, since the position was
+    // read on the attempt before, next to an execution that says nothing is wrong with the case.
+    provider.addDrillCaseRep(drillId, caseRep(3, "pll_ga", 50, 2000, 13, 1, false, false));
 
     List<StepStats> stats = provider.getDrillCaseStatistics(50);
     assertEquals(1, stats.size());
     assertEquals(1, stats.get(0).getCount());
     assertEquals(3000, stats.get(0).getMeanMs());
+    assertEquals(1000, stats.get(0).getMeanRecognitionMs()); // and not the 525 the restart makes it
   }
 
   @Test
@@ -1442,15 +1446,16 @@ public class ServiceProviderTest {
     assertEquals(2000, window.get(0).getMeanMs()); // the recent one, not the 8000
   }
 
-  // The same three the older tally leaves out, for the same reason: none measured the case.
+  // The same four the older tally leaves out, for the same reason: none measured the case.
   @Test
   public void testDrillCaseStatsLeaveOutTheRepsThatMeasuredNothing() {
     deleteDrills();
-    long drillId = provider.addDrill(drill("case_execution", 4));
+    long drillId = provider.addDrill(drill("case_execution", 5));
     provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
     provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 9000, 9000, 40, 0, false, true));
-    provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 8000, 8000, 30, 1, true, false));
+    provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 8000, 8000, 30, 0, true, false));
     provider.addDrillCaseRep(drillId, caseRep(3, "pll_ga", 7000, 7000, 30, 0, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(4, "pll_ga", 50, 9000, 30, 2, false, false));
     provider.setDrillCaseRepDeleted(drillId, 3, true);
 
     List<DrillCaseStats> stats = provider.getDrillCaseStats(0);

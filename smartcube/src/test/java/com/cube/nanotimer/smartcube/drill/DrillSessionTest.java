@@ -2,6 +2,7 @@ package com.cube.nanotimer.smartcube.drill;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -334,6 +335,46 @@ public class DrillSessionTest {
     assertEquals(6, seen.size());
     assertEquals(new HashSet<String>(codes), new HashSet<String>(seen.subList(0, 3)));
     assertEquals(new HashSet<String>(codes), new HashSet<String>(seen.subList(3, 6)));
+  }
+
+  /**
+   * A case whose rep measured nothing is dealt again inside the same pass, so that a drill is not
+   * left with nothing to say about it: the figures leave out a rep that was restarted, and one that
+   * was solved with the algorithm on screen. Five reps over four cases, so the pass is dealt out
+   * whole and the extra showing has to be the one put back.
+   */
+  @Test
+  public void aCaseWhoseRepMeasuredNothingComesRoundAgain() {
+    assertEquals(2, timesDealt(true, false));
+    assertEquals(2, timesDealt(false, true));
+    assertEquals(1, timesDealt(false, false)); // and a clean one is spent, as it always was
+  }
+
+  /** How often the first case dealt comes up over a five-rep drill of four cases. */
+  private static int timesDealt(boolean reset, boolean reveal) {
+    DrillSpec spec = new DrillSpec("again", DrillSpec.Type.CASE_EXECUTION,
+        DrillSpec.Delivery.VIRTUAL, Arrays.asList("pll_h", "pll_z", "pll_t", "pll_ua"),
+        DrillSpec.Selection.ROUND_ROBIN, 5, 0, null);
+    DrillSession session = new DrillSession(spec, new Random(7));
+    Hand hand = new Hand(session);
+    List<String> seen = new ArrayList<String>();
+    while (hand.next()) {
+      seen.add(session.getCurrentCase());
+      if (seen.size() == 1) {
+        if (reset) {
+          hand.execute("R U R'");
+          hand.reset();
+        }
+        if (reveal) {
+          session.markRevealed();
+        }
+      }
+      assertNotNull(session.getCurrentCase(), hand.execute(inverse(session.getCurrentScramble())));
+    }
+    assertEquals(5, seen.size());
+    assertNotEquals("never as the very next case, which is what a reset already offers",
+        seen.get(0), seen.get(1));
+    return Collections.frequency(seen, seen.get(0));
   }
 
   @Test

@@ -170,8 +170,10 @@ public final class DrillSession {
    *
    * <p>The same scramble, not another of the same case: a redo is of the position that went wrong,
    * and a fresh alignment would be a different one to look at. The rep it eventually finishes
-   * carries how many times it was restarted, so a time reached on the third go is not read as a
-   * clean one.
+   * carries how many times it was restarted, and is no measurement of the case: recognition is
+   * timed again off a position the user has already read and begun on, which is a couple of tenths
+   * whatever they know. The figures leave such a rep out, and {@link #showAgain} deals the case once
+   * more so the drill is not left with nothing for it.
    *
    * <p>Like a case just dealt, the rep is not running until {@link #markCaseShown} says the user can
    * see it again.
@@ -273,6 +275,9 @@ public final class DrillSession {
         new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
         resetCount, revealed, abandoned);
     reps.add(rep);
+    if (resetCount > 0 || revealed) {
+      showAgain(currentCase);
+    }
     currentCase = null;
     caseShownAtMs = NOT_SHOWN;
     return rep;
@@ -281,6 +286,21 @@ public final class DrillSession {
   /** When the case went up, said in the clock the moves are stamped on. */
   private long caseShownOnCubeClock() {
     return caseShownAtMs - clockSkewMs;
+  }
+
+  /**
+   * Deals a case again later in this pass, for one whose rep measured nothing: restarted, or solved
+   * with the algorithm on screen. Spending a case on a rep the figures will not read leaves the
+   * drill with nothing to say about it, and on a short drill it never comes round again.
+   *
+   * <p>Never as the next case, which is what {@link #resetRep} already offers and what nobody needs
+   * twice. Nothing is done where the pass is spent, since the next one deals every case anyway, and
+   * nothing for a drill drawing by weight, which can deal any case at any time.
+   */
+  private void showAgain(String code) {
+    if (!pass.isEmpty()) {
+      pass.add(random.nextInt(pass.size()), code);
+    }
   }
 
   /** Every case in turn, the order redrawn each pass so that the next one cannot be guessed. */

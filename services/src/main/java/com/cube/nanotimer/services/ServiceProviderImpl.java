@@ -1119,9 +1119,12 @@ public class ServiceProviderImpl implements ServiceProvider {
    * is known but not recognised under pressure, and the other way round says the drill is not
    * asking what a solve asks.
    *
-   * <p>Two kinds of rep are left out, both for the same reason, that they are not measurements of
-   * the case: an abandoned one was never finished, and a revealed one was finished with the answer
-   * in front of the user. Cross reps cannot appear here at all, being in a table of their own.
+   * <p>Three kinds of rep are left out, all for the same reason, that they are not measurements of
+   * the case: an abandoned one was never finished, a revealed one was finished with the answer in
+   * front of the user, and a restarted one was recognised twice, the second time off a position the
+   * user had already read and begun. That last recognition is near nothing and would otherwise be
+   * counted at full weight, in the figures a coach reads and in the weighting that decides what to
+   * drill next. Cross reps cannot appear here at all, being in a table of their own.
    */
   @Override
   public List<StepStats> getDrillCaseStatistics(int lastDrills) {
@@ -1147,6 +1150,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
     q.append(" WHERE r.").append(DB.COL_DRILL_REP_ABANDONED).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_REVEALED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_RESET_COUNT).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
     q.append(" GROUP BY r.").append(DB.COL_DRILL_REP_CASE);
     q.append(" ORDER BY r.").append(DB.COL_DRILL_REP_CASE);
@@ -1170,8 +1174,9 @@ public class ServiceProviderImpl implements ServiceProvider {
    * but not recognised.
    *
    * <p>Left out for the same reason as there: a rep given up on was never finished, a rep where the
-   * algorithm was looked up was finished with the answer in front of the user, and a pruned one was
-   * disowned. None of the three measured the case.
+   * algorithm was looked up was finished with the answer in front of the user, a restarted one was
+   * recognised a second time off a position already read, and a pruned one was disowned. None of
+   * the four measured the case.
    *
    * @param fromTimestamp the moment the window opens, 0 for every drill ever recorded
    */
@@ -1192,6 +1197,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append(" WHERE d.").append(DB.COL_DRILL_TIMESTAMP).append(" >= ?");
     q.append("   AND r.").append(DB.COL_DRILL_REP_ABANDONED).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_REVEALED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_RESET_COUNT).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
     q.append(" GROUP BY r.").append(DB.COL_DRILL_REP_CASE);
     q.append(" ORDER BY r.").append(DB.COL_DRILL_REP_CASE);
