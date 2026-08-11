@@ -129,7 +129,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private int previousLastItem = 0;
 
-  // History time color gradient (green=fast → grey=median → red=slow), recomputed once
+  // History time color gradient (green=fast → white=median → red=slow), recomputed once
   // per data load over the last N solves (N = Options.getColorSampleSize()).
   private TimeColorScale timeColorScale;
   private int recordColor;
@@ -1243,7 +1243,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           TextView tvTime = (TextView) view.findViewById(R.id.tvTime);
           tvTime.setText(FormatterService.INSTANCE.formatSolveTime(st.getTime()));
           // A record wears the record colour, which the gradient never produces; everything else
-          // is colored green→grey→red (fast→median→slow), and DNFs stay gray. Set on every bind
+          // is colored green→white→red (fast→median→slow), and DNFs stay gray. Set on every bind
           // so recycled rows never keep a stale color.
           tvTime.setTextColor(st.isPb() ? recordColor : timeColorScale.colorFor(st));
           view.findViewById(R.id.tvPbChip).setVisibility(st.isPb() ? View.VISIBLE : View.GONE);

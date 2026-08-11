@@ -1,9 +1,6 @@
 package com.cube.nanotimer.util.helper;
 
 import android.content.Context;
-
-import androidx.core.content.ContextCompat;
-
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -12,15 +9,11 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Maps a solve time to a color on the green→grey→red gradient (fast→median→slow).
- * The grey pivot is the median (interpolated on even counts so it never lands on an end);
+ * Maps a solve time to a color on the green→white→red gradient (fast→median→slow).
+ * The white pivot is the median (interpolated on even counts so it never lands on an end);
  * the fast/slow ends are the 5th/95th percentiles so outliers can't stretch the scale, or
  * the raw min/max when {@code trimOutliers} is off. Rebuild via {@link #setTimes} per data
  * load; {@link #colorFor} is O(1) per row.
- *
- * <p>The three anchors sit at roughly one brightness, so what separates a time from the median is
- * its colour and not its lightness. A ramp through white did the opposite: the loudest mark on a
- * strip belonged to the times nearest average, and the best and the worst were the quietest.</p>
  */
 public class TimeColorScale {
 
@@ -29,20 +22,20 @@ public class TimeColorScale {
 
   private final int colorFast;    // green
   private final int colorSlow;    // red
-  private final int colorNeutral; // grey (around the median)
-  private final int colorDnf;     // dnf_time (darker grey)
+  private final int colorNeutral; // white (around the median)
+  private final int colorDnf;     // dnf_time (gray)
 
   // Gradient anchors over the loaded window; valid only when hasRange is true.
   private boolean hasRange;
   private long fast;   // fast (green) end
-  private long median; // neutral (grey) pivot
+  private long median; // neutral (white) pivot
   private long slow;   // slow (red) end
 
   public TimeColorScale(Context context) {
-    colorFast = ContextCompat.getColor(context, R.color.time_good);
-    colorSlow = ContextCompat.getColor(context, R.color.time_bad);
-    colorNeutral = ContextCompat.getColor(context, R.color.time_neutral);
-    colorDnf = ContextCompat.getColor(context, R.color.dnf_time);
+    colorFast = context.getResources().getColor(R.color.green);
+    colorSlow = context.getResources().getColor(R.color.red);
+    colorNeutral = context.getResources().getColor(R.color.white);
+    colorDnf = context.getResources().getColor(R.color.dnf_time);
   }
 
   /** Recomputes the anchors from the given times (DNFs ignored), trimming outliers via percentiles. */
@@ -77,12 +70,12 @@ public class TimeColorScale {
       slow = sorted.get(sorted.size() - 1);
     }
     median = median(sorted);
-    // Keep the neutral pivot strictly inside the gradient so neither end maps to it.
+    // Keep the white pivot strictly inside the gradient so neither end maps to white.
     median = Math.max(fast, Math.min(slow, median));
     hasRange = fast < slow;
   }
 
-  /** Color for a solve: green near the fast end, grey around the median, red near the slow end. */
+  /** Color for a solve: green near the fast end, white around the median, red near the slow end. */
   public int colorFor(SolveTime st) {
     return colorFor(st.getTime(), st.isDNF());
   }

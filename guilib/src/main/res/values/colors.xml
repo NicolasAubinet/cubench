@@ -30,19 +30,12 @@
   <!-- Lifted well clear of the cube green, which is too dark to carry small text on the dialog. -->
   <color name="green_soft">#7BD983</color>
 
-  <!-- The two ends of the time ramp, and the ground between them. Held at one brightness, which is
-       where red lives: a green or a grey bright enough to match a vivid red does not exist. -->
-  <color name="green_mid">#4CAF50</color>
-  <color name="red_mid">#EA6E68</color>
-
   <!-- The lit well a drawing stands on, centre to edge, and the flat near black it runs out to. -->
   <color name="stage_centre">#22272C</color>
   <color name="stage_edge">#0F1215</color>
   <color name="stage_flat">#1A1D21</color>
 
-  <!-- A blue-grey in three steps: the time ramp's ordinary solve, ink deliberately turned down,
-       and the same again quieter. -->
-  <color name="bluegray400">#909699</color>
+  <!-- Ink for something deliberately turned down, and the same again quieter. -->
   <color name="bluegray500">#79848B</color>
   <color name="bluegray600">#5E686E</color>
 
@@ -73,13 +66,6 @@
 
   <color name="new_record">#FFEEDD00</color>
   <color name="warning">#FFFFAA00</color>
-  <!-- Fast, ordinary and slow. The ramp used to run through white, which put the loudest value in
-       the app on the times closest to average and left the best and the worst as the quietest
-       marks on the strip. Flat brightness instead, with the distance from average carried by
-       colour: an ordinary solve has none and recedes. -->
-  <color name="time_good">@color/green_mid</color>
-  <color name="time_neutral">@color/bluegray400</color>
-  <color name="time_bad">@color/red_mid</color>
   <color name="dnf_time">@color/gray600</color>
   <!-- Destructive action as text: pure red glares against the dark dialogs. -->
   <color name="danger_text">#EF5350</color>
