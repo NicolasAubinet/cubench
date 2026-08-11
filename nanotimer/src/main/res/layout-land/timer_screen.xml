@@ -475,7 +475,7 @@
                    android:paddingTop="3px"
                    android:paddingBottom="3px">
                   <TextView
-                     android:text="@string/timer_avg_1000"
+                     android:text="@string/mean_label"
                      android:singleLine="false"
                      android:maxLines="2"
                      style="@style/StatFooterKeyPx"/>

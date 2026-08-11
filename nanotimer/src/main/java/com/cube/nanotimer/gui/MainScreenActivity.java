@@ -128,7 +128,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private int previousLastItem = 0;
 
-  // History time color gradient (green=fast → white=median → red=slow), recomputed once
+  // History time color gradient (green=fast → grey=median → red=slow), recomputed once
   // per data load over the last N solves (N = Options.getColorSampleSize()).
   private TimeColorScale timeColorScale;
   private int recordColor;
@@ -358,7 +358,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     DialogUtils.showFragment(this, SelectorListDialog
       .newInstance(ID_SOLVETYPE, names, counts, icons, colors, selectedIndex,
         getString(R.string.edit_solve_types_dots), R.drawable.ic_action_edit, this)
-      .setHeader(getString(R.string.solve_type), currentPuzzleName(),
+      // Plural: the title under it is the puzzle these belong to, not the solve type in use, and
+      // a singular eyebrow read as a label for it.
+      .setHeader(getString(R.string.solve_types), currentPuzzleName(),
         PuzzleIcons.forCubeType(curCubeType), PuzzleIcons.colorForCubeType(curCubeType)));
   }
 

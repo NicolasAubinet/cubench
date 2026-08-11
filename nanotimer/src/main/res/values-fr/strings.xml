@@ -48,8 +48,6 @@
   <string name="life">Tous</string>
 
   <string name="lifetime_best">Meilleur temps:</string>
-  <string name="lifetime_avg">Moy. de 1000:</string>
-  <string name="lifetime_accuracy">Succ. sur 1000:</string>
   <string name="last_mean_of_three">Moy. de 3:</string>
   <string name="best_mean_of_three">Meilleur Mo3:</string>
   <string name="solves_count">Résolutions:</string>
@@ -738,7 +736,6 @@
   <string name="keep_solve">Garder</string>
   <string name="timer_session">Session</string>
   <string name="personal_best_label">Record perso</string>
-  <string name="timer_avg_1000">Moy. de 1000</string>
   <string name="timer_best_value">record %1$s</string>
 
   <!-- History screen -->

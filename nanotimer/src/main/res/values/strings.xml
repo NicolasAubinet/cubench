@@ -56,8 +56,6 @@
   <string name="life">Life</string>
 
   <string name="lifetime_best">Lifetime best:</string>
-  <string name="lifetime_avg">Avg of 1000:</string>
-  <string name="lifetime_accuracy">Accur on 1000:</string>
   <string name="last_mean_of_three">Last mean of 3:</string>
   <string name="best_mean_of_three">Best mean of 3:</string>
   <string name="solves_count">Solves count:</string>
@@ -746,7 +744,6 @@
   <string name="keep_solve">Keep</string>
   <string name="timer_session">Session</string>
   <string name="personal_best_label">Personal best</string>
-  <string name="timer_avg_1000">Avg of 1000</string>
   <string name="timer_best_value">best %1$s</string>
   <string name="ao5_label">Ao5</string>
   <string name="ao12_label">Ao12</string>
