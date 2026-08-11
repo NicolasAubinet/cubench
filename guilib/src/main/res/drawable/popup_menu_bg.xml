@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Surface an action bar overflow drops onto, the same panel the drawer's popups already use.
+     Inset rather than flush: the popup window itself reaches the screen edge, so the gap that
+     makes the panel read as a surface has to be drawn, not laid out. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+   android:insetLeft="8dp"
+   android:insetRight="8dp"
+   android:insetTop="2dp"
+   android:insetBottom="8dp">
+  <shape android:shape="rectangle">
+    <solid android:color="@color/dialog_surface"/>
+    <corners android:radius="12dp"/>
+    <padding android:top="6dp" android:bottom="6dp"/>
+  </shape>
+</inset>

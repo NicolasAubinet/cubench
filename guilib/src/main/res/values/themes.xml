@@ -8,6 +8,10 @@
     <item name="colorPrimaryDark">@color/app_bar</item>
     <item name="colorAccent">@color/color_accent</item>
     <item name="actionBarStyle">@style/NanoTimerActionBar</item>
+    <!-- The drawer's popups were given a rounded panel; the action bar overflows were not, and sat
+         square and flush against both screen edges. -->
+    <item name="actionOverflowMenuStyle">@style/NanoTimerOverflowMenu</item>
+    <item name="popupMenuStyle">@style/NanoTimerPopupMenu</item>
     <!-- So the framework bar screens stand as tall as the main screen's own toolbar. -->
     <item name="actionBarSize">@dimen/app_bar_height</item>
     <item name="android:actionBarSize">@dimen/app_bar_height</item>
@@ -78,6 +82,8 @@
 
     <item name="android:alertDialogTheme">@style/NanoTimerDialogTheme</item>
     <item name="android:listViewStyle">@style/NanoTimerListView</item>
+    <item name="actionOverflowMenuStyle">@style/NanoTimerOverflowMenu</item>
+    <item name="popupMenuStyle">@style/NanoTimerPopupMenu</item>
   </style>
 
   <!--<style name="NanoTimerActionBar" parent="Widget.AppCompat.ActionBar">
@@ -88,6 +94,17 @@
   <style name="NanoTimerActionButtonOverflow" parent="Widget.AppCompat.ActionButton.Overflow">
     <item name="android:minWidth">48dp</item>
     <item name="android:padding">0dp</item>
+  </style>
+
+  <!-- Dropped below the bar rather than over it, so the panel stands on the screen instead of
+       hanging off its corner. -->
+  <style name="NanoTimerOverflowMenu" parent="Widget.AppCompat.PopupMenu.Overflow">
+    <item name="android:popupBackground">@drawable/popup_menu_bg</item>
+    <item name="overlapAnchor">false</item>
+  </style>
+
+  <style name="NanoTimerPopupMenu" parent="Widget.AppCompat.PopupMenu">
+    <item name="android:popupBackground">@drawable/popup_menu_bg</item>
   </style>
 
   <style name="NanoTimerListView" parent="Widget.AppCompat.ListView.Menu">
