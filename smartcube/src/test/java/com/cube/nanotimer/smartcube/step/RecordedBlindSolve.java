@@ -289,9 +289,38 @@ final class RecordedBlindSolve {
           + "B'@55237 D@55370 B@55509 D'@55585 B'@55710 D@55798 B@55959 U'@56017 B'@56150 "
           + "D'@56303 z@56420 B@56421 D@56580 B'@56685 z'@56881 D'@56881 B@56972 U@57057";
 
+  /**
+   * 2026-08-10, and the one no reversal explains. The buffer held the {@code FR} edge and the shot
+   * went to {@code UL}, so the memo carried on from a buffer holding the wrong piece: four
+   * algorithms shot at a target they never brought home, and no single algorithm reversed or
+   * dropped would have brought the cube out.
+   *
+   * <p>Left with a three-cycle and an edge flipped in place, and with {@code FR} never shot at once.
+   */
+  static final String SCRAMBLE_WRONG_TARGET =
+      "D' R2 U F2 D' B2 D2 L2 U L' U2 R U R B' U2 B' F' D B' U'";
+  static final String MOVES_WRONG_TARGET =
+      "[y] y@32338 B'@32338 U'@32505 B'@32668 U@32759 D'@32800 y'@32801 R@32913 U@33061 "
+          + "R'@33156 D@33323 U'@33408 y@33409 B@33541 B@33697 B'@34119 U'@34755 B@34919 U@35007 "
+          + "B@35284 F'@35393 z@35394 L'@35609 B'@35779 L@35892 z'@36238 F@36239 D@36510 z'@36731 "
+          + "F@36732 R@36838 F'@37014 L@37176 R'@37178 x@37179 D@37383 R'@37448 R'@37572 D'@37749 "
+          + "L'@37912 R@37922 x'@37923 F@38133 R@38276 z@38453 F'@38454 D'@38689 U@39514 B@39680 "
+          + "U@39837 B'@39950 U'@40093 B'@40274 U'@40448 B'@40697 U@40936 B@41439 U@42661 B@42825 "
+          + "U@42974 B'@43075 U'@43168 B'@43353 U'@43511 B'@43722 U@43840 B@44070 y'@45223 D'@45224 "
+          + "R@45434 U@45662 D'@45669 y'@45670 F'@45822 F'@45932 D@46112 U'@46116 y@46117 R@46273 "
+          + "y@46482 D@46483 U'@47038 B@47213 F'@47262 z@47263 L@47458 L@47574 B@47734 F'@47775 "
+          + "z@47776 D@47943 F@48099 B'@48099 z'@48100 L@48286 L@48427 B'@49263 F@49268 z'@49269 "
+          + "z@52981 B@52982 L'@53117 R'@53167 B@53318 R@53404 B'@53581 L@53708 L@53814 B@53934 "
+          + "R'@54036 B'@54215 L'@54370 R@54374 z'@54675 B'@54676 B'@55265 D@55589 U@55636 B@55852 "
+          + "B@55962 U'@56058 B'@56230 D'@56356 B@56543 U@56694 B'@56877 D@56991 B'@57191 U'@57391 "
+          + "D'@57551 B@57839 U@58090 B@58197 U'@58307 B'@58447 D'@58613 B@58797 U@58917 B'@59124 "
+          + "D@59639 U'@59655 B'@59925 D@60033 B@60143 D'@60230 B'@60363 D@60447 B@60587 U'@60640 "
+          + "B'@60771 D'@60891 B@60997 D@61119 B'@61217 D'@61364 B@61465 U@61560";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
     {SCRAMBLE_195, MOVES_195}, {SCRAMBLE_211, MOVES_211}, {SCRAMBLE_247, MOVES_247},
+    {SCRAMBLE_WRONG_TARGET, MOVES_WRONG_TARGET},
   };
 }

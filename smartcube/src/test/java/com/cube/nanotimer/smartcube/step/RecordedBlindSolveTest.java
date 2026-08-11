@@ -304,6 +304,65 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * Solve 165 cut at its last corner algorithm, so the parity it owes was never done: four pieces
+   * out, one of them last shot at by the algorithm the solver took back. Nothing is red, since a
+   * mistake taken back answers for nothing and a parity never done is the verdict line's to
+   * explain.
+   */
+  @Test
+  public void marksNothingWhereTheSolveStoppedOwingAParity() {
+    RecordedBlindSolveTest read = new RecordedBlindSolveTest();
+    read.replay(RecordedBlindSolve.SCRAMBLE_165, RecordedBlindSolve.MOVES_165, Long.MAX_VALUE);
+    int corners = read.detector.subStepCount(2);
+
+    replay(RecordedBlindSolve.SCRAMBLE_165, RecordedBlindSolve.MOVES_165,
+        read.detector.getSubStepTimestampMs(2, corners - 1));
+
+    assertEquals(BlindResidual.Shape.PARITY, detector.getResidual().getShape());
+    assertNull("it stopped on a landing, so nothing went unread", detector.getLostReading());
+    assertEquals("undo", detector.subStepName(1, 3));
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertFalse(detector.subStepName(step, part),
+            detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
+  }
+
+  /**
+   * The solve of 2026-08-10 that nothing proves. The buffer held the {@code FR} edge and the shot
+   * went to {@code UL}, so from there the memo was executed from a buffer holding the wrong piece:
+   * no single algorithm reversed would have brought the cube out, and the leftover matches nobody's
+   * name.
+   *
+   * <p>What can still be said is that four shots never came home, so all four are marked. The two
+   * that opened the solve are not, and neither are the corners, which were clean throughout.
+   */
+  @Test
+  public void marksEveryShotThatNeverCameHomeWhereNothingProvesTheMisfire() {
+    replay(RecordedBlindSolve.SCRAMBLE_WRONG_TARGET, RecordedBlindSolve.MOVES_WRONG_TARGET,
+        Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals(BlindResidual.Shape.EDGE_CYCLE, detector.getResidual().getShape());
+
+    assertEquals("UF-UL-DR", detector.subStepName(1, 3)); // shot at UL with FR in the buffer
+    assertEquals(Arrays.asList(TOUCHED, WRONG, HOME), detector.subStepPieceMarks(1, 3));
+    assertEquals("UF-UL-DR", detector.subStepName(1, 4)); // and again, the same algorithm twice
+    assertEquals(Arrays.asList(TOUCHED, WRONG, TOUCHED), detector.subStepPieceMarks(1, 4));
+    assertEquals("UF-DR-LB", detector.subStepName(1, 5));
+    assertEquals(Arrays.asList(TOUCHED, HOME, WRONG), detector.subStepPieceMarks(1, 5));
+    assertEquals("UF-DF-UL", detector.subStepName(1, 6)); // UL again, and left flipped in place
+    assertEquals(Arrays.asList(TOUCHED, HOME, WRONG), detector.subStepPieceMarks(1, 6));
+    for (int part = 0; part < 3; part++) { // the three that opened the edges landed everything
+      assertFalse(detector.subStepPieceMarks(1, part).contains(WRONG));
+    }
+    for (int part = 0; part < detector.subStepCount(2); part++) {
+      assertFalse(detector.subStepPieceMarks(2, part).contains(WRONG));
+    }
+  }
+
+  /**
    * An algorithm shot at pieces already home, which is what a wrong target looks like: solve 163
    * with its last algorithm replaced by a repeat of the one two before it. Real turning, so the
    * buffer is read the way a solve's is — and the buffer is the one piece not marked, since taking
@@ -478,6 +537,13 @@ public class RecordedBlindSolveTest {
     replay(RecordedBlindSolve.SCRAMBLE_247, RecordedBlindSolve.MOVES_247, Long.MAX_VALUE);
 
     assertEquals("UF-LF-UR", detector.getResidual().getPieces());
+    // And nothing is red: the pieces left were never shot at, and the shots that did not land put
+    // the buffer's own piece where they were aimed, which is a cycle broken into, not a miss.
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertFalse(detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
   }
 
   /**

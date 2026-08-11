@@ -9,9 +9,9 @@ package com.cube.nanotimer.smartcube.step;
  * breakdown simply stops. That silence is itself the diagnosis, and saying it is the point of this
  * class. Without it a table that ends early reads as a solve that ended early.
  *
- * <p>It is also what stops the marking lying. Pieces left out are blamed on the last algorithm that
- * moved them, which is only honest while every move is accounted for: past this point the unread
- * turning could have broken anything, so nothing is blamed on anything.
+ * <p>It is also what stops the marking lying. A piece left out is blamed on the algorithms that
+ * shot at it, which is only honest while every move is accounted for: past this point the unread
+ * turning could have put it right, so nothing is blamed on anything.
  */
 public final class LostReading {
 

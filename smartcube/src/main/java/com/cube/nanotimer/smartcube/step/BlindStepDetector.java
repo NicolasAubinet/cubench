@@ -91,19 +91,17 @@ public final class BlindStepDetector implements StepDetector {
     final boolean shot; // whether a cycle was shot, and so may still be renamed
     final List<Integer> pieces;
     final List<Integer> gained; // what it put home, which says which of its name's pieces are solved
-    final List<Integer> moved; // every piece it shifted, named or not: who to blame for one left out
     BlindTargets.Named named;
     int buffer;
 
     /** An algorithm with nothing left to settle: an undo, or a flip or a twist. */
     Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
-        List<Integer> gained, List<Integer> moved) {
-      this(timestampMs, type, named, before, after, false, null, BlindTargets.NO_BUFFER, gained,
-          moved);
+        List<Integer> gained) {
+      this(timestampMs, type, named, before, after, false, null, BlindTargets.NO_BUFFER, gained);
     }
 
     Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
-        boolean shot, List<Integer> pieces, int buffer, List<Integer> gained, List<Integer> moved) {
+        boolean shot, List<Integer> pieces, int buffer, List<Integer> gained) {
       this.timestampMs = timestampMs;
       this.type = type;
       this.named = named;
@@ -113,7 +111,6 @@ public final class BlindStepDetector implements StepDetector {
       this.pieces = pieces;
       this.buffer = buffer;
       this.gained = gained;
-      this.moved = moved;
     }
 
     /**
@@ -256,7 +253,7 @@ public final class BlindStepDetector implements StepDetector {
               typeBuffer[CORNERS], typeBuffer[EDGES])
           : targets.name(landed, steady, shotFrom, named);
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed, steady,
-          shot, named, shotFrom, all, moved));
+          shot, named, shotFrom, all));
       if (shot && shotFrom != BlindTargets.NO_BUFFER) {
         nameWhatWaitedForIt(shotFrom);
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
@@ -338,7 +335,7 @@ public final class BlindStepDetector implements StepDetector {
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
         landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from, steady,
-            gained, turned));
+            gained));
         return true;
       }
       int previous = landings.size() - 1 - joined;
@@ -360,8 +357,7 @@ public final class BlindStepDetector implements StepDetector {
       return false;
     }
     landings.add(new Landing(timestampMs, NO_GAIN,
-        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, steady, gained,
-        moved(landed, steady)));
+        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, steady, gained));
     return true;
   }
 
@@ -625,20 +621,17 @@ public final class BlindStepDetector implements StepDetector {
    * <p><b>An algorithm executed the other way round is answerable for what it should have put
    * home.</b> That is proved rather than guessed: reverse this one algorithm, leave the rest of the
    * solve as it was ({@link #wouldHaveSolvedItReversed}), and if the cube comes out this is where it
-   * was lost, of which {@link #whatItShouldHavePutHome} says how much.
+   * was lost, of which {@link #whatItShouldHavePutHome} says how much. Proved outranks everything
+   * below: the algorithms after a misfire take pieces out executing the memo faithfully on a cube
+   * the misfire had already moved on, and reddening them points at the wrong one.
    *
-   * <p><b>An algorithm answers for any piece it took out of its slot</b> and never put back, which
-   * is what a shot to a wrong target leaves ({@link #piecesItTookOut}).
+   * <p><b>Otherwise an algorithm answers for a target it shot at and never brought home</b>
+   * ({@link #shotsThatNeverLanded}), all of them where there are several: nothing proved says which
+   * was the mistake and which the memo carried out on a cube that had moved on.
    *
-   * <p><b>Or the cube was left with exactly the pieces it named</b>, none of them touched since:
-   * what an algorithm shot to the wrong sticker leaves when nothing followed it. The buffer is not
-   * marked here — a cycle leaves it holding whatever came back from the last target, so that is
-   * where the leftover sits rather than something the algorithm missed.
-   *
-   * <p>None of them blames an algorithm that did nothing wrong. A cycle left open and a parity never
-   * done put pieces out that no algorithm claimed, that no reversal would fix, and that no algorithm
-   * took out of a slot they were sitting home in: all of it is the verdict line's to explain, which
-   * says the shape without pointing at anyone.
+   * <p>Neither blames an algorithm that did nothing wrong. A cycle left open and a parity never done
+   * put pieces out that no shot ever claimed and that no reversal would fix: both are the verdict
+   * line's to explain, which says the shape without pointing at anyone.
    */
   private List<Integer> blamedOn(Landing landing) {
     if (solvedMs != null) {
@@ -646,58 +639,44 @@ public final class BlindStepDetector implements StepDetector {
     }
     Landing reversed = lostByReversal();
     if (reversed != null) {
-      // Proved, so nothing else is asked: what the algorithms after a misfire took out, they took
-      // out executing the memo faithfully on a cube the misfire had already moved on.
       return reversed == landing
           ? whatItShouldHavePutHome(landing) : Collections.<Integer>emptyList();
     }
-    List<Integer> blamed = piecesItTookOut(landing);
-    List<Integer> left = leftOut();
-    if (left.size() != landing.named.slots.size() || !landing.named.slots.containsAll(left)) {
+    return shotsThatNeverLanded(landing);
+  }
+
+  /**
+   * The targets this algorithm shot at that it did not put home and that nothing put right after it:
+   * a target is where a piece was meant to arrive, so one that never arrived is a shot that missed.
+   *
+   * <p><b>Except a break-in</b>, the one shot not aimed at landing its target: it puts the buffer's
+   * own piece there to open a new cycle, which is what the target holds afterwards, so it says
+   * itself. And except an algorithm the solver took back, whose effect on the cube is gone.
+   *
+   * <p>Only a cycle is asked, and only one whose buffer settled: a parity swaps and a flip turns, so
+   * neither has a target to have missed, and a cycle its solver never memorised would otherwise be
+   * laid at the door of the parity before it. Nothing is asked past the reading either, which is
+   * what {@link #leftOut} answers with nothing.
+   */
+  private List<Integer> shotsThatNeverLanded(Landing landing) {
+    List<Integer> blamed = new ArrayList<>();
+    if (!landing.shot || landing.buffer == BlindTargets.NO_BUFFER || wasTakenBack(landing)) {
       return blamed;
     }
-    for (int slot : left) {
-      if (lastToMove(slot) != landing) {
-        return blamed; // something later had it, so this is not where it was lost
-      }
-      if (slot != landing.buffer && !blamed.contains(slot)) {
+    List<Integer> left = leftOut();
+    for (int slot : landing.named.slots) {
+      if (slot != landing.buffer && left.contains(slot) && !landing.gained.contains(slot)
+          && Cubies.homeSlotOf(landing.after, slot) != landing.buffer) {
         blamed.add(slot);
       }
     }
     return blamed;
   }
 
-  /**
-   * The pieces this algorithm took out of their own slots and never put back. Every piece a cycle
-   * is aimed at is out when it is aimed at, so one that was home, left, and is still out when the
-   * solve stops was shot at by mistake — which is what a wrong target leaves, and what a wrong
-   * direction does not: reversing a cycle disturbs only pieces that were out anyway.
-   *
-   * <p><b>Except the piece it was shot from</b>, which is the one an algorithm may take out of a
-   * slot it was sitting home in. That is a break-in: the cycle before it closed by bringing the
-   * buffer home, and the memo goes on by shooting it straight back out. Blaming that reddens every
-   * solve that simply stopped after a cycle closed.
-   *
-   * <p>An undo is not asked either: taking a mistake back is allowed to undo whatever the mistake
-   * happened to get right.
-   */
-  private List<Integer> piecesItTookOut(Landing landing) {
-    List<Integer> out = new ArrayList<>();
-    if (unread > 0 || UNDO.equals(landing.named.name)) {
-      return out; // past the reading, a piece could have been put back in the moves nothing read
-    }
-    if (landing.shot && landing.buffer == BlindTargets.NO_BUFFER) {
-      return out; // nothing says which piece it was entitled to take out, so nothing can be said
-    }
-    for (int slot : landing.named.slots) {
-      if (slot != landing.buffer
-          && Cubies.inPlace(landing.before, PIECES[slot])
-          && !Cubies.inPlace(landing.after, PIECES[slot])
-          && !Cubies.inPlace(landed, PIECES[slot])) {
-        out.add(slot);
-      }
-    }
-    return out;
+  /** Whether the algorithm right after this one put the cube back where this one found it. */
+  private boolean wasTakenBack(Landing landing) {
+    int next = landings.indexOf(landing) + 1;
+    return next > 0 && next < landings.size() && UNDO.equals(landings.get(next).named.name);
   }
 
   /** The first algorithm the cube would have come out without, or null where there is none. */
@@ -753,15 +732,6 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     return left;
-  }
-
-  private Landing lastToMove(int slot) {
-    for (int i = landings.size() - 1; i >= 0; i--) {
-      if (landings.get(i).moved.contains(slot)) {
-        return landings.get(i);
-      }
-    }
-    return null;
   }
 
   /** A parity is one algorithm and a step of its own: collapsed, it loses both its name and its
