@@ -1235,15 +1235,15 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         if (st != null) {
           // A day already has its date in its heading, so the row need only say when in the day it
           // was, and for a recent one how long ago. Sorted by time there are no days to group, so
-          // the row states the whole timestamp.
+          // the row states the date too, to the minute: the seconds do not fit beside a PB chip.
           ((TextView) view.findViewById(R.id.tvDate)).setText(
-            timesSort != TimesSort.TIMESTAMP ? FormatterService.INSTANCE.formatDateTime(st.getTimestamp())
+            timesSort != TimesSort.TIMESTAMP ? FormatterService.INSTANCE.formatDateTimeToMinute(st.getTimestamp())
               : FormatterService.INSTANCE.formatSolveMoment(st.getTimestamp(), System.currentTimeMillis()));
 
           TextView tvTime = (TextView) view.findViewById(R.id.tvTime);
           tvTime.setText(FormatterService.INSTANCE.formatSolveTime(st.getTime()));
           // A record wears the record colour, which the gradient never produces; everything else
-          // is colored green→white→red (fast→median→slow), and DNFs stay gray. Set on every bind
+          // is colored green→grey→red (fast→median→slow), and DNFs stay gray. Set on every bind
           // so recycled rows never keep a stale color.
           tvTime.setTextColor(st.isPb() ? recordColor : timeColorScale.colorFor(st));
           view.findViewById(R.id.tvPbChip).setVisibility(st.isPb() ? View.VISIBLE : View.GONE);

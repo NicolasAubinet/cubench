@@ -165,6 +165,14 @@ public enum FormatterService {
     return sdf.format(new Date(ms));
   }
 
+  /** The same moment to the minute, for a row too narrow to finish the seconds. */
+  public String formatDateTimeToMinute(Long ms) {
+    if (ms == null) {
+      return "";
+    }
+    return new SimpleDateFormat("MMM d, yyyy · HH:mm", Locale.ENGLISH).format(new Date(ms));
+  }
+
   /**
    * When a solve happened, as a history row says it: how long ago for one within the hour, which is
    * what you are reading a running session for, and the time of day for anything older. Past an

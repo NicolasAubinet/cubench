@@ -39,6 +39,8 @@ public class SparklineView extends View {
 
   private static final int MAX_POINTS = 50;
   private static final float DRAW_MS = 520f;
+  /** How far the line has to stay below the caption, in dp, for the caption to be drawn. */
+  private static final float CAPTION_CLEARANCE = 2f;
 
   /** Quiet enough to be read only when looked for. */
   private static final int CAPTION_ALPHA = 140;
@@ -60,6 +62,7 @@ public class SparklineView extends View {
   private int bestIndex = -1;
 
   private String caption;
+  private boolean captionShown;
   private float captionX;
   private float captionY;
 
@@ -70,6 +73,7 @@ public class SparklineView extends View {
   private final float dotRadius;
   private final float recordRadius;
   private final float verticalPadding;
+  private final float density;
 
   public SparklineView(Context context) {
     this(context, null);
@@ -77,7 +81,7 @@ public class SparklineView extends View {
 
   public SparklineView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    float density = getResources().getDisplayMetrics().density;
+    density = getResources().getDisplayMetrics().density;
     dotRadius = 2.5f * density;
     recordRadius = 3.5f * density;
     verticalPadding = 5f * density;
@@ -196,28 +200,48 @@ public class SparklineView extends View {
 
   /**
    * Some point always touches the top, since the line is normalized, so a fixed corner would sit on
-   * it half the time. The caption takes the corner the line stays further below.
+   * it half the time. The caption takes the corner the line stays further below, and stands down
+   * where even that one has no room: a noisy history runs high at both ends, and a caption the line
+   * is drawn through says less than no caption at all.
    */
   private void placeCaption(int width) {
+    captionShown = false;
     if (caption == null) {
       return;
     }
     float textWidth = captionPaint.measureText(caption);
     float left = recordRadius;
     float right = width - recordRadius - textWidth;
-    captionX = headroomIn(right, width) >= headroomIn(0, left + textWidth) ? right : left;
+    float roomRight = headroomIn(right, width);
+    float roomLeft = headroomIn(0, left + textWidth);
+    captionX = roomRight >= roomLeft ? right : left;
     captionY = verticalPadding - captionPaint.getFontMetrics().top;
+    float needed = captionY + captionPaint.getFontMetrics().bottom + CAPTION_CLEARANCE * density;
+    captionShown = Math.max(roomRight, roomLeft) >= needed;
   }
 
   /** How far the line stays below the top of a horizontal band. Larger is more room. */
   private float headroomIn(float fromX, float toX) {
     float headroom = Float.MAX_VALUE;
-    for (int i = 0; i < pointsX.length; i++) {
-      if (pointsX[i] >= fromX && pointsX[i] <= toX) {
-        headroom = Math.min(headroom, pointsY[i]);
+    for (int i = 1; i < pointsX.length; i++) {
+      // Measured on the line rather than on its vertices: a segment can cross the band with both
+      // of its ends outside it, and it is the line that has to clear the caption.
+      float x0 = Math.max(fromX, pointsX[i - 1]);
+      float x1 = Math.min(toX, pointsX[i]);
+      if (x0 <= x1) {
+        headroom = Math.min(headroom, Math.min(yOn(i - 1, x0), yOn(i - 1, x1)));
       }
     }
     return headroom;
+  }
+
+  /** Where the segment starting at {@code index} stands at the given x. */
+  private float yOn(int index, float x) {
+    float span = pointsX[index + 1] - pointsX[index];
+    if (span == 0) {
+      return pointsY[index];
+    }
+    return pointsY[index] + (x - pointsX[index]) / span * (pointsY[index + 1] - pointsY[index]);
   }
 
   private void startDrawAnimation() {
@@ -272,7 +296,7 @@ public class SparklineView extends View {
       drawDotAt(canvas, bestIndex, recordPaint, recordRadius);
     }
 
-    if (caption != null) {
+    if (captionShown) {
       captionPaint.setAlpha((int) (CAPTION_ALPHA * progress));
       canvas.drawText(caption, captionX, captionY, captionPaint);
     }
