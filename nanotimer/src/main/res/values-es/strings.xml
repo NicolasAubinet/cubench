@@ -45,7 +45,7 @@
   <string name="best_avg_of">Mejor media de</string>
   <string name="success_avg">Media de éxitos</string>
   <string name="accuracy">Éxito</string>
-  <string name="life">Vida</string>
+  <string name="life">Total</string>
 
   <string name="lifetime_best">Mejor tiempo:</string>
   <string name="last_mean_of_three">Media de 3:</string>

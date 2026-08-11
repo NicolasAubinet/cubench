@@ -53,7 +53,7 @@
   <string name="best_avg_of">Best avg of</string>
   <string name="success_avg">Avg of successes</string>
   <string name="accuracy">Accuracy</string>
-  <string name="life">Life</string>
+  <string name="life">All</string>
 
   <string name="lifetime_best">Lifetime best:</string>
   <string name="last_mean_of_three">Last mean of 3:</string>
