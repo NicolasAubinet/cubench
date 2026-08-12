@@ -140,7 +140,12 @@
   <string name="solve_types">Solve types</string>
   <string name="edit_solve_types">Edit solve types</string>
   <string name="edit_solve_types_summary">Edit, create and delete solve types</string>
-  <string name="solvetypes_hint">Tap a solve type to edit it, or drag it by the grip to reorder.</string>
+  <string name="solvetypes_help_title">About solve types</string>
+  <string name="solvetypes_help_body">Each one keeps a history of its own under this puzzle, and the timer\'s picker lists them in the order they are in here.</string>
+  <string name="solvetypes_help_reorder">Reorder</string>
+  <string name="solvetypes_help_edit_body">Tap a row to edit its name and settings, give it steps, or delete it.</string>
+  <string name="solvetypes_help_reorder_body">Drag a row by the grip on its right to move it up or down the list.</string>
+  <string name="solvetypes_help_add_body">The + in the bar creates another one, starting empty.</string>
   <string name="solvetypes_steps_count">%1$d steps</string>
   <string name="solvetypes_no_inspection">No inspection</string>
   <string name="solvetypes_empty_title">No solve types</string>

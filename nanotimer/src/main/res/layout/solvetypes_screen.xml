@@ -12,19 +12,6 @@
      android:layout_width="match_parent"
      android:layout_height="match_parent">
 
-    <!-- The drag grip is the only cue that the order is editable, so say so once. -->
-    <TextView
-       android:id="@+id/tvListHint"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginLeft="@dimen/space_m"
-       android:layout_marginRight="@dimen/space_m"
-       android:layout_marginTop="@dimen/space_m"
-       android:layout_marginBottom="@dimen/space_s"
-       android:text="@string/solvetypes_hint"
-       android:textColor="@color/secondary_text"
-       android:textSize="12sp"/>
-
     <com.mobeta.android.dslv.DragSortListView
        android:id="@+id/lvSolveTypes"
        android:layout_width="match_parent"
@@ -37,6 +24,7 @@
        android:clipToPadding="false"
        android:paddingLeft="@dimen/space_m"
        android:paddingRight="@dimen/space_m"
+       android:paddingTop="@dimen/space_m"
        android:paddingBottom="@dimen/space_m"
        dslv:drag_handle_id="@id/imgMove"
        dslv:drag_enabled="true"

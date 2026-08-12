@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One action in a solve type's action dialog. -->
+<!-- One action in a solve type's action dialog. The mark sits in the width the header's tile takes,
+     so the two columns are one. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:orientation="horizontal"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
    android:gravity="center_vertical"
-   android:paddingLeft="24dp"
-   android:paddingRight="24dp"
+   android:paddingLeft="18dp"
+   android:paddingRight="18dp"
    android:paddingTop="14dp"
    android:paddingBottom="14dp">
 
   <ImageView
      android:id="@+id/imgIcon"
-     android:layout_width="22dp"
+     android:layout_width="38dp"
      android:layout_height="22dp"
+     android:scaleType="fitCenter"
      android:contentDescription="@null"/>
 
   <TextView
      android:id="@+id/tvText"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_marginStart="18dp"
-     android:layout_marginLeft="18dp"
+     android:layout_marginStart="14dp"
+     android:layout_marginLeft="14dp"
      android:singleLine="true"
      android:ellipsize="end"
      android:textSize="16sp"/>

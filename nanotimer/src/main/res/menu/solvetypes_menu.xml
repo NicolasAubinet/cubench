@@ -9,4 +9,10 @@
      android:title="@string/add_solvetype"
      app:showAsAction="always"/>
 
+  <!-- Carries what the screen used to say in a grey caption line under the bar. -->
+  <item android:id="@+id/itSolveTypesHelp"
+     android:icon="@drawable/ic_help_outline"
+     android:title="@string/solvetypes_help_title"
+     app:showAsAction="always"/>
+
 </menu>

@@ -128,7 +128,12 @@
   <string name="solve_types">Types de résolution</string>
   <string name="edit_solve_types">Éditer les types de résolutions</string>
   <string name="edit_solve_types_summary">Éditer, ajouter et supprimer des types de résolution</string>
-  <string name="solvetypes_hint">Touchez un type de résolution pour l\'éditer, ou glissez-le par la poignée pour le déplacer.</string>
+  <string name="solvetypes_help_title">À propos des types de résolution</string>
+  <string name="solvetypes_help_body">Chacun garde son propre historique pour ce casse-tête, et le sélecteur du chronomètre les liste dans l\'ordre qu\'ils ont ici.</string>
+  <string name="solvetypes_help_reorder">Réordonner</string>
+  <string name="solvetypes_help_edit_body">Touchez une ligne pour éditer son nom et ses réglages, lui ajouter des étapes ou la supprimer.</string>
+  <string name="solvetypes_help_reorder_body">Glissez une ligne par la poignée à sa droite pour la monter ou la descendre dans la liste.</string>
+  <string name="solvetypes_help_add_body">Le + dans la barre en crée un autre, vide au départ.</string>
   <string name="solvetypes_steps_count">%1$d étapes</string>
   <string name="solvetypes_no_inspection">Sans inspection</string>
   <string name="solvetypes_empty_title">Aucun type de résolution</string>

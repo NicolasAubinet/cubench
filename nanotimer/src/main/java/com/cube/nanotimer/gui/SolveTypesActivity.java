@@ -25,6 +25,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.AddStepsDialog;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
+import com.cube.nanotimer.gui.widget.SolveTypesHelpDialog;
 import com.cube.nanotimer.gui.widget.StepsCreator;
 import com.cube.nanotimer.gui.widget.dialog.FieldCreator;
 import com.cube.nanotimer.gui.widget.dialog.FieldEditor;
@@ -55,7 +56,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
 
   private DragSortListView lvSolveTypes;
   private View emptyView;
-  private View listHint;
   private SolveTypeListAdapter adapter;
   private List<SolveType> liSolveTypes = new ArrayList<SolveType>();
   private boolean solveTypesLoaded;
@@ -107,7 +107,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   private void initViews() {
     lvSolveTypes = (DragSortListView) findViewById(R.id.lvSolveTypes);
     emptyView = findViewById(R.id.emptyView);
-    listHint = findViewById(R.id.tvListHint);
     adapter = new SolveTypeListAdapter(this, R.id.lvSolveTypes, liSolveTypes);
     lvSolveTypes.setDropListener(new DropListener() {
       @Override
@@ -174,7 +173,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     actions.add(new SolveTypeAction(ACTION_DELETE, R.string.delete, R.drawable.ic_menu_delete, true));
 
     new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
-        .setTitle(Utils.toSolveTypeLocalizedName(this, solveType.getName()))
+        .setCustomTitle(buildActionsHeader(solveType))
         .setAdapter(new ActionListAdapter(this, actions), new DialogInterface.OnClickListener() {
           @Override
           public void onClick(DialogInterface dialog, int which) {
@@ -182,6 +181,43 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
           }
         })
         .show();
+  }
+
+  /**
+   * The head of the actions dialog: the puzzle they are under, then the solve type they act on,
+   * wearing the mark and the colour its row wears. It is the picker's own header, so the two
+   * dialogs this screen opens read as the same kind of thing.
+   */
+  private View buildActionsHeader(SolveType solveType) {
+    View header = getLayoutInflater().inflate(R.layout.selector_list_header, null);
+    int color = ContextCompat.getColor(this, SolveTypeIcons.colorForSolveType(solveType));
+
+    TextView tvEyebrow = (TextView) header.findViewById(R.id.tvHeaderEyebrow);
+    tvEyebrow.setText(curCubeType != null ? curCubeType.getName() : "");
+    tvEyebrow.setTextColor(ContextCompat.getColor(this, R.color.lightblue));
+    ((TextView) header.findViewById(R.id.tvHeaderTitle))
+        .setText(Utils.toSolveTypeLocalizedName(this, solveType.getName()));
+
+    ImageView icon = (ImageView) header.findViewById(R.id.imgHeaderIcon);
+    icon.setImageResource(SolveTypeIcons.forSolveType(solveType));
+    icon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+    header.findViewById(R.id.headerTile).setBackground(wash(R.drawable.hero_glyph, color, TILE_ALPHA));
+    return header;
+  }
+
+  /**
+   * A wash of the kind's colour, built rather than tinted: a tint is composited SRC_IN, so it
+   * would multiply this alpha by the drawable's own and land at a fraction of what it asks for.
+   * Mutated, since the drawable's constant state is shared with every other row and screen.
+   */
+  private Drawable wash(int drawableId, int color, int alpha) {
+    GradientDrawable shape = (GradientDrawable) ContextCompat.getDrawable(this, drawableId).mutate();
+    shape.setColor(withAlpha(color, alpha));
+    return shape;
+  }
+
+  private int withAlpha(int color, int alpha) {
+    return (color & 0x00FFFFFF) | (alpha << 24);
   }
 
   private void actionSelected(int action, final int position) {
@@ -244,6 +280,9 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     switch (item.getItemId()) {
       case R.id.itAdd:
         showAddDialog();
+        break;
+      case R.id.itSolveTypesHelp:
+        DialogUtils.showFragment(this, new SolveTypesHelpDialog());
         break;
     }
     return super.onOptionsItemSelected(item);
@@ -421,10 +460,8 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
         if (!solveTypesLoaded) {
           return; // an empty list before the first load is "not read yet", not "none"
         }
-        // The hint only makes sense next to rows, so it goes with the list.
         boolean empty = liSolveTypes.isEmpty();
         emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
-        listHint.setVisibility(empty ? View.GONE : View.VISIBLE);
         lvSolveTypes.setVisibility(empty ? View.GONE : View.VISIBLE);
       }
     });
@@ -535,22 +572,6 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       TextView chip = (TextView) row.findViewById(chipId);
       chip.setBackground(wash(R.drawable.row_chip, color, CHIP_ALPHA));
       chip.setTextColor(color);
-    }
-
-    /**
-     * A wash of the kind's colour, built rather than tinted: a tint is composited SRC_IN, so it
-     * would multiply this alpha by the drawable's own and land at a fraction of what it asks for.
-     * Mutated, since the drawable's constant state is shared with every other row and screen.
-     */
-    private Drawable wash(int drawableId, int color, int alpha) {
-      GradientDrawable shape =
-        (GradientDrawable) ContextCompat.getDrawable(getContext(), drawableId).mutate();
-      shape.setColor(withAlpha(color, alpha));
-      return shape;
-    }
-
-    private int withAlpha(int color, int alpha) {
-      return (color & 0x00FFFFFF) | (alpha << 24);
     }
   }
 

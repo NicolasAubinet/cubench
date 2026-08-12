@@ -128,7 +128,12 @@
   <string name="solve_types">Tipos de resolução</string>
   <string name="edit_solve_types">Editar os tipos de resolução</string>
   <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>
-  <string name="solvetypes_hint">Toque num tipo de resolução para editá-lo, ou arraste-o pela pega para reordená-lo.</string>
+  <string name="solvetypes_help_title">Sobre os tipos de resolução</string>
+  <string name="solvetypes_help_body">Cada um guarda o seu próprio histórico neste quebra-cabeça, e o seletor do cronómetro lista-os pela ordem que têm aqui.</string>
+  <string name="solvetypes_help_reorder">Reordenar</string>
+  <string name="solvetypes_help_edit_body">Toque numa linha para editar o nome e as definições, dar-lhe etapas ou apagá-la.</string>
+  <string name="solvetypes_help_reorder_body">Arraste uma linha pela pega à sua direita para a subir ou descer na lista.</string>
+  <string name="solvetypes_help_add_body">O + na barra cria outro, vazio no início.</string>
   <string name="solvetypes_steps_count">%1$d etapas</string>
   <string name="solvetypes_no_inspection">Sem inspeção</string>
   <string name="solvetypes_empty_title">Nenhum tipo de resolução</string>
