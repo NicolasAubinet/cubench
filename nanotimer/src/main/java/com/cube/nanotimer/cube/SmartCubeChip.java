@@ -93,7 +93,7 @@ public class SmartCubeChip implements CubeConnectionListener, CubeBatteryListene
     OutlineTextView battery = chip.findViewById(R.id.tvSmartCubeChipBattery);
     boolean connected = SmartCubeManager.INSTANCE.isConnected();
 
-    boolean visible = !suppressed && (connected || !hideWhenDisconnected);
+    boolean visible = SmartCubeGate.ENABLED && !suppressed && (connected || !hideWhenDisconnected);
     chip.setVisibility(visible ? View.VISIBLE : View.GONE);
     if (item != null) {
       item.setVisible(visible);

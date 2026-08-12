@@ -24,6 +24,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -281,6 +282,10 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   }
 
   private void initMethodSpinner() {
+    // Set up either way, and only the field hidden: a type edited in a build without the smart cube
+    // keeps the method it was given rather than being quietly reset to the preferred one.
+    view.findViewById(R.id.methodSection)
+        .setVisibility(SmartCubeGate.ENABLED ? View.VISIBLE : View.GONE);
     spMethod = (Spinner) view.findViewById(R.id.spMethod);
     List<CharSequence> names = new ArrayList<>();
     for (CubeMethod method : METHODS) {

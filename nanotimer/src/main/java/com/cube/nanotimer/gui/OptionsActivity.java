@@ -6,6 +6,7 @@ import android.preference.Preference;
 import android.view.Menu;
 import android.view.MenuItem;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.gui.widget.ReleaseNotes;
 
 public class OptionsActivity extends NanoTimerActivity {
@@ -41,6 +42,11 @@ public class OptionsActivity extends NanoTimerActivity {
     public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       addPreferencesFromResource(R.xml.preferences);
+
+      Preference smartCube = findPreference("smart_cube_category");
+      if (smartCube != null && !SmartCubeGate.ENABLED) {
+        getPreferenceScreen().removePreference(smartCube);
+      }
 
       // Null when the reflection-based PreferenceFragment could not build its manager, which it
       // swallows rather than crashing on.

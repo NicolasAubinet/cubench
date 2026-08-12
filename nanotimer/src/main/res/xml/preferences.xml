@@ -142,6 +142,7 @@
   </PreferenceCategory>
 
   <PreferenceCategory
+     android:key="smart_cube_category"
      android:title="@string/smart_cube_title">
 
     <ListPreference

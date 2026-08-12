@@ -41,6 +41,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeChip;
+import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.gui.widget.AboutDialog;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
@@ -296,8 +297,14 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     }
     menu.findItem(R.id.itAppIcon).setIcon(drawableIcon);
 
+    // Bound to the item and not only to its view: an action view that is GONE still leaves the item
+    // holding its width in the bar, and the gate has to take the whole item away.
     MenuItem smartCubeItem = menu.findItem(R.id.itSmartCube);
-    smartCubeChip.bind(smartCubeItem != null ? smartCubeItem.getActionView() : null);
+    smartCubeChip.bind(smartCubeItem, smartCubeItem != null ? smartCubeItem.getActionView() : null);
+    MenuItem drillItem = menu.findItem(R.id.itDrill);
+    if (drillItem != null) {
+      drillItem.setVisible(SmartCubeGate.ENABLED); // a drill is run on a cube: the only way in
+    }
 
     return super.onCreateOptionsMenu(menu);
   }
