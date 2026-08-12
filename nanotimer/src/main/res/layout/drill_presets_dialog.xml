@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The named picks of a family: tap one to drill it, save the pick behind the popup as a new one. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="16dp"
+   android:paddingRight="16dp"
+   android:paddingTop="4dp">
+
+  <!-- One row per preset, built in code, always in the order they were saved. -->
+  <LinearLayout
+     android:id="@+id/llPresets"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"/>
+
+  <TextView
+     android:id="@+id/tvPresetsEmpty"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="2dp"
+     android:text="@string/drill_presets_empty"
+     android:textColor="@color/secondary_text"
+     android:textSize="13sp"/>
+
+  <TextView
+     android:id="@+id/tvPresetsSave"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="14dp"
+     android:textColor="@color/lightblue"
+     android:textSize="14sp"/>
+
+  <TextView
+     android:id="@+id/tvPresetsHint"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="14dp"
+     android:text="@string/drill_presets_hint"
+     android:textColor="@color/secondary_text"
+     android:textSize="12sp"/>
+
+</LinearLayout>

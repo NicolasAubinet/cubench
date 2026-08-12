@@ -853,6 +853,22 @@
   <string name="drill_cases_hint">Mantenha premido um caso para ver os algoritmos.</string>
   <string name="drill_cases_all_count">Os %d casos</string>
   <string name="drill_cases_drilling">A treinar</string>
+  <string name="drill_cases_count_preset">%1$d de %2$d · %3$s</string>
+  <plurals name="drill_preset_and_count">
+    <item quantity="one">%1$s · %2$d caso</item>
+    <item quantity="other">%1$s · %2$d casos</item>
+  </plurals>
+  <string name="drill_presets">Seleções</string>
+  <plurals name="drill_presets_save">
+    <item quantity="one">Guardar este caso</item>
+    <item quantity="other">Guardar estes %d casos</item>
+  </plurals>
+  <string name="drill_presets_empty">Guarde uma seleção à qual volta, e aplique-a novamente com um só toque.</string>
+  <string name="drill_presets_hint">Mantenha premida uma seleção para a atualizar, renomear ou eliminar.</string>
+  <string name="drill_presets_update">Atualizar com os casos escolhidos</string>
+  <string name="drill_presets_name">Nome da seleção</string>
+  <string name="drill_presets_replace_confirm">Já existe uma seleção chamada \'%1$s\'. Substituí-la?</string>
+  <string name="drill_presets_delete_confirm">Tem certeza de que deseja excluir a seleção \'%1$s\'?</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
   <string name="case_algorithms">Algoritmos</string>

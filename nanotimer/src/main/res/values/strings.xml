@@ -883,6 +883,23 @@
   <string name="drill_cases_all_count">All %d cases</string>
   <string name="drill_cases_drilling">Drilling</string>
   <string name="drill_cases_more" translatable="false">+%d</string>
+  <!-- A named pick of a family: a saved subset of the cases, applied again in one tap. -->
+  <string name="drill_cases_count_preset">%1$d of %2$d · %3$s</string>
+  <plurals name="drill_preset_and_count">
+    <item quantity="one">%1$s · %2$d case</item>
+    <item quantity="other">%1$s · %2$d cases</item>
+  </plurals>
+  <string name="drill_presets">Presets</string>
+  <plurals name="drill_presets_save">
+    <item quantity="one">Save this case</item>
+    <item quantity="other">Save these %d cases</item>
+  </plurals>
+  <string name="drill_presets_empty">Save a pick you come back to, and apply it again in one tap.</string>
+  <string name="drill_presets_hint">Hold a preset to update, rename or delete it.</string>
+  <string name="drill_presets_update">Update with current pick</string>
+  <string name="drill_presets_name">Preset name</string>
+  <string name="drill_presets_replace_confirm">A preset called \'%1$s\' already exists. Replace it?</string>
+  <string name="drill_presets_delete_confirm">Are you sure you want to delete the preset \'%1$s\'?</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
   <string name="case_algorithms">Algorithms</string>

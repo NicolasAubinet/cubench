@@ -33,6 +33,7 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
 
@@ -317,7 +318,13 @@ public class DrillSetupActivity extends NanoTimerActivity
     List<String> picked = pickedCases();
     boolean allPicked = picked.size() == all.size();
 
-    if (allPicked) {
+    // A preset the pick stands at names it better than any count of it can, the whole family
+    // included: someone who has named all 57 meant that name.
+    DrillCasePreset preset = DrillCasePreset.matching(
+        Options.INSTANCE.getDrillCasePresets(family()), picked);
+    if (preset != null) {
+      tvCasesCount.setText(presetWithFamilyColour(preset.getName(), picked.size()));
+    } else if (allPicked) {
       tvCasesCount.setText(getString(R.string.drill_cases_all_count, all.size()));
     } else {
       tvCasesCount.setText(countWithFamilyColour(picked.size(), all.size()));
@@ -361,11 +368,23 @@ public class DrillSetupActivity extends NanoTimerActivity
     SpannableString spanned = new SpannableString(text);
     int at = text.indexOf(count);
     if (at >= 0) {
-      spanned.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this,
-              FAMILY_OLL.equals(family()) ? R.color.step_oll : R.color.step_pll)),
-          at, at + count.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      spanned.setSpan(new ForegroundColorSpan(familyColour()), at, at + count.length(),
+          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
     return spanned;
+  }
+
+  private CharSequence presetWithFamilyColour(String name, int picked) {
+    SpannableString spanned = new SpannableString(getResources()
+        .getQuantityString(R.plurals.drill_preset_and_count, picked, name, picked));
+    spanned.setSpan(new ForegroundColorSpan(familyColour()), 0, name.length(),
+        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    return spanned;
+  }
+
+  private int familyColour() {
+    return ContextCompat.getColor(this,
+        FAMILY_OLL.equals(family()) ? R.color.step_oll : R.color.step_pll);
   }
 
   private String family() {

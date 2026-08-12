@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The same bookmark filled: the pick standing at a preset is the one state worth a solid mark. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+   android:width="24dp"
+   android:height="24dp"
+   android:viewportWidth="24"
+   android:viewportHeight="24">
+  <path
+     android:fillColor="#FFFFFF"
+     android:pathData="M7,4 L17,4 A1.3,1.3 0 0 1 18.3,5.3 L18.3,20 L12,15.6 L5.7,20 L5.7,5.3 A1.3,1.3 0 0 1 7,4 Z"/>
+</vector>

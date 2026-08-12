@@ -15,6 +15,7 @@ import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
@@ -26,6 +27,7 @@ import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.GUIUtils;
 
 import java.util.ArrayList;
@@ -44,12 +46,16 @@ import java.util.Set;
  * There is nothing to confirm — a case is either in the set or it is not — and it means the picker
  * survives being turned sideways or backed out of with the same answer it was showing.
  *
+ * <p>A pick worth coming back to can be given a name, which is all a preset is, reached from the
+ * bookmark on the title line.
+ *
  * <p><b>The stage is the mark.</b> A picked case is a lit tile and an unpicked one is the same
  * picture turned down behind a hairline, rather than the other way round: by default all 57 are
  * picked, so a ring on a picked case was a ring on almost everything and the handful actually
  * turned off were left to be found by their absence.
  */
-public class DrillCasesDialog extends NanoTimerDialogFragment {
+public class DrillCasesDialog extends NanoTimerDialogFragment
+    implements DrillPresetsDialog.Listener {
 
   /** Told when the picker closes, so the screen behind it can say what is now picked. */
   public interface Listener {
@@ -65,10 +71,12 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
   private final List<String> cases = new ArrayList<String>();
   private final List<LastLayerDiagram> charts = new ArrayList<LastLayerDiagram>();
   private final Set<String> picked = new LinkedHashSet<String>();
+  private List<DrillCasePreset> presets;
 
   private TextView tvCount;
   private TextView tvAll;
   private TextView tvNone;
+  private ImageButton buPresets;
   private GridView grid;
   private CasesAdapter adapter;
 
@@ -95,6 +103,7 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
     }
     Set<String> stored = Options.INSTANCE.getDrillCases(family);
     picked.addAll(stored == null ? cases : stored);
+    presets = Options.INSTANCE.getDrillCasePresets(family);
 
     View view = LayoutInflater.from(getActivity()).inflate(R.layout.drill_cases_dialog, null);
     tvCount = view.findViewById(R.id.tvCasesCount);
@@ -136,6 +145,13 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
       @Override
       public void onClick(View v) {
         pickAll(false);
+      }
+    });
+    buPresets = view.findViewById(R.id.buCasePresets);
+    buPresets.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        DrillPresetsDialog.show(getActivity(), family, picked, DrillCasesDialog.this);
       }
     });
     refreshCount();
@@ -215,13 +231,30 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
     refreshCount();
   }
 
+  @Override
+  public void onPresetApplied(Set<String> presetCases) {
+    picked.clear();
+    picked.addAll(presetCases);
+    save();
+  }
+
+  @Override
+  public void onPresetsChanged() {
+    presets = Options.INSTANCE.getDrillCasePresets(family);
+    refreshCount();
+  }
+
   /**
-   * The count with the picked number in the family's own colour, and the two shortcuts showing
-   * which of them the pick currently stands at.
+   * The count with the picked number in the family's own colour, the preset the pick stands at if
+   * it stands at one, and the two shortcuts showing which of them it stands at.
    */
   private void refreshCount() {
+    DrillCasePreset preset = DrillCasePreset.matching(presets, picked);
     String count = String.valueOf(picked.size());
-    String text = getString(R.string.drill_cases_count, picked.size(), cases.size());
+    String text = preset == null
+        ? getString(R.string.drill_cases_count, picked.size(), cases.size())
+        : getString(R.string.drill_cases_count_preset, picked.size(), cases.size(),
+            preset.getName());
     SpannableString spanned = new SpannableString(text);
     int at = text.indexOf(count);
     if (at >= 0) {
@@ -232,6 +265,18 @@ public class DrillCasesDialog extends NanoTimerDialogFragment {
     tvCount.setText(spanned);
     markSegment(tvAll, picked.size() == cases.size());
     markSegment(tvNone, picked.isEmpty());
+    refreshPresets(preset);
+  }
+
+  /**
+   * The bookmark fills in the family's colour while the pick stands at a preset, which is the whole
+   * of how a preset is shown.
+   */
+  private void refreshPresets(DrillCasePreset preset) {
+    buPresets.setImageResource(preset == null ? R.drawable.ic_preset : R.drawable.ic_preset_on);
+    buPresets.setColorFilter(ContextCompat.getColor(getActivity(), preset != null
+        ? (family.startsWith("oll") ? R.color.step_oll : R.color.step_pll)
+        : R.color.secondary_text));
   }
 
   private void markSegment(TextView segment, boolean on) {

@@ -3,10 +3,12 @@ package com.cube.nanotimer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.view.HeroStat;
 import com.cube.nanotimer.util.view.TimerFont;
 import com.cube.nanotimer.vo.CubeMethod;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public enum Options {
@@ -56,6 +58,7 @@ public enum Options {
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
+  public static final String DRILL_PRESETS_KEY_PREFIX = "drill_case_presets_";
   public static final String CASE_OWN_ALGORITHM_KEY_PREFIX = "case_own_alg_";
 
   private static final int MAX_STEPS_COUNT = 8;
@@ -297,6 +300,27 @@ public enum Options {
       stored.append(code);
     }
     sharedPreferences.edit().putString(key, stored.toString()).apply();
+  }
+
+  /**
+   * The picks of a family the user has given a name to, in the order they saved them. A preset is
+   * only ever a copy of a pick: it is applied by ticking what it holds, so nothing downstream of the
+   * picker has to know that presets exist at all.
+   *
+   * @param family the case code prefix, {@code "oll_"} or {@code "pll_"}
+   */
+  public List<DrillCasePreset> getDrillCasePresets(String family) {
+    return DrillCasePreset.fromJson(
+        sharedPreferences.getString(DRILL_PRESETS_KEY_PREFIX + family, null));
+  }
+
+  public void setDrillCasePresets(String family, List<DrillCasePreset> presets) {
+    String key = DRILL_PRESETS_KEY_PREFIX + family;
+    if (presets.isEmpty()) {
+      sharedPreferences.edit().remove(key).apply();
+      return;
+    }
+    sharedPreferences.edit().putString(key, DrillCasePreset.toJson(presets)).apply();
   }
 
   /**

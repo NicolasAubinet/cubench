@@ -27,6 +27,18 @@
        android:textSize="17sp"
        app:fontFamily="@font/roboto_medium"/>
 
+    <!-- The way into the named picks. -->
+    <ImageButton
+       android:id="@+id/buCasePresets"
+       android:layout_width="34dp"
+       android:layout_height="34dp"
+       android:layout_marginRight="2dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:contentDescription="@string/drill_presets"
+       android:padding="6dp"
+       android:scaleType="fitCenter"
+       android:src="@drawable/ic_preset"/>
+
     <!-- Two shortcuts as one container, which is also a reading of where the pick stands: All is
          filled when every case is on, None when none is, neither in between. -->
     <LinearLayout
