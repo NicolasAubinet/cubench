@@ -301,6 +301,9 @@
 
   <string name="add_time">Add time</string>
   <string name="select_time_to_add">Select time to add:</string>
+  <!-- The zeros an empty time field stands in for. Digits, so the same in every language. -->
+  <string name="time_field_hint_two" translatable="false">00</string>
+  <string name="time_field_hint_three" translatable="false">000</string>
   <string name="time_unit_min">min</string>
   <string name="time_unit_sec">sec</string>
   <string name="time_unit_ms">ms</string>

@@ -113,6 +113,8 @@ public class AddNewTimeDialog extends ConfirmDialog {
     tfHundreds = (EditText) view.findViewById(R.id.tfHundreds);
     tfScramble = (EditText) view.findViewById(R.id.tfScramble);
     cbDNF = view.findViewById(R.id.cbDNF);
+    // The dialog is here to be typed into, so it opens on the first field it wants filled.
+    tfMinutes.requestFocus();
 
     tfScramble.setText(getArguments().getString(ARG_SCRAMBLE));
     // First tap (the one that focuses the field) selects the whole scramble so it can be

@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- The body scrolls as a whole: a dialog measures its content unbounded, so in landscape or under
+     the keyboard an unscrolled body pushes the dialog's own buttons off the bottom. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:scrollbars="none">
+
+<LinearLayout
    android:orientation="vertical"
-   android:gravity="center_horizontal"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
    android:paddingLeft="16dp"
@@ -13,7 +19,7 @@
 
    <!-- Title -->
    <TextView
-      android:layout_width="wrap_content"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:text="@string/add_time"
       android:textColor="@color/white"
@@ -54,6 +60,8 @@
                android:textColor="@color/white"
                android:textSize="22sp"
                android:maxLength="2"
+               android:hint="@string/time_field_hint_two"
+               android:textColorHint="@color/gray600"
                android:nextFocusForward="@+id/tfSeconds"
                style="@style/NumericEditText"/>
             <TextView
@@ -98,6 +106,8 @@
                android:textColor="@color/white"
                android:textSize="22sp"
                android:maxLength="2"
+               android:hint="@string/time_field_hint_two"
+               android:textColorHint="@color/gray600"
                android:nextFocusForward="@+id/tfHundreds"
                style="@style/NumericEditText"/>
             <TextView
@@ -142,6 +152,8 @@
                android:textColor="@color/white"
                android:textSize="22sp"
                android:maxLength="3"
+               android:hint="@string/time_field_hint_three"
+               android:textColorHint="@color/gray600"
                style="@style/NumericEditText"/>
             <TextView
                android:layout_width="wrap_content"
@@ -232,3 +244,5 @@
    </LinearLayout>
 
 </LinearLayout>
+
+</ScrollView>
