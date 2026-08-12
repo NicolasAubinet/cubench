@@ -7,7 +7,8 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
+import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -211,7 +212,6 @@ public class DrillPresetsDialog {
     field.setSingleLine();
     field.setText(renaming == null ? "" : renaming.getName());
     field.setSelection(field.getText().length());
-    field.requestFocus();
     field.setTextColor(ContextCompat.getColor(activity, R.color.white));
     int pad = dp(20);
     field.setPadding(pad, dp(8), pad, dp(8));
@@ -222,7 +222,15 @@ public class DrillPresetsDialog {
         .setNegativeButton(R.string.cancel, null)
         .setPositiveButton(R.string.save, null)
         .create();
-    naming.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+    // A typed name is worth more than the tap that would throw it away, and on the phones where the
+    // keyboard comes up behind the popups every tap on a key was reaching the prompt as one.
+    naming.setCanceledOnTouchOutside(false);
+    naming.setOnShowListener(new DialogInterface.OnShowListener() {
+      @Override
+      public void onShow(DialogInterface d) {
+        raiseKeyboard(field);
+      }
+    });
     naming.show();
     // Bound after showing so an empty name leaves the prompt standing rather than closing on nothing.
     naming.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
@@ -241,6 +249,39 @@ public class DrillPresetsDialog {
         naming.dismiss();
       }
     });
+  }
+
+  /**
+   * Raises the keyboard for a field once its window holds the focus. Asked for while the window is
+   * still going up, the keyboard can be raised against the popup underneath and land behind this
+   * one, where a tap on a key never reaches the field it was meant for.
+   */
+  private void raiseKeyboard(final EditText field) {
+    field.requestFocus();
+    if (field.hasWindowFocus()) {
+      showSoftInput(field);
+      return;
+    }
+    field.getViewTreeObserver().addOnWindowFocusChangeListener(
+        new ViewTreeObserver.OnWindowFocusChangeListener() {
+          @Override
+          public void onWindowFocusChanged(boolean hasFocus) {
+            if (!hasFocus) {
+              return;
+            }
+            field.getViewTreeObserver().removeOnWindowFocusChangeListener(this);
+            field.requestFocus();
+            showSoftInput(field);
+          }
+        });
+  }
+
+  private void showSoftInput(EditText field) {
+    InputMethodManager imm =
+        (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+    if (imm != null) {
+      imm.showSoftInput(field, InputMethodManager.SHOW_IMPLICIT);
+    }
   }
 
   /**
