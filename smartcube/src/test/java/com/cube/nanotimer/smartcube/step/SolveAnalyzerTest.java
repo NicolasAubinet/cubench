@@ -17,6 +17,7 @@ public class SolveAnalyzerTest {
   private static final String T_PERM = "R U R' U' R' F R2 U' R' U' R U R' F'"; // its own inverse
   private static final String SUNE = "R U R' U R U2 R'";
   private static final String ANTI_SUNE = "R U2 R' U' R U' R'";
+  private static final String UB_PERM = "R2 U R U R' U' R' U' R' U R'";
 
   private static final long SOLVE_START_MS = 1000;
 
@@ -168,6 +169,41 @@ public class SolveAnalyzerTest {
     assertEquals(700, oll.getRecognitionMs()); // the single pause, counted once
     assertEquals(700, oll.getExecutionMs()); // 8 moves, 100ms apart
     assertTrue(oll.getSubSteps().isEmpty()); // only one part was needed: it is the step
+  }
+
+  @Test
+  public void givesAMisreadPllARowPerAlgorithm() {
+    // The last layer is left a Ua and the solver reads it as the Ub: the algorithm they run leaves a
+    // Ub standing, so it takes a second one. Each is a part of its own, with the think before it —
+    // which is where the misfire shows, as a case that was answered twice.
+    startFrom(UB_PERM, SUNE, "R U' R'", "R' F'");
+
+    play("F R", 0, 600);
+    play("R U R'", 500, 100);
+    play(ANTI_SUNE, 800, 100);
+    play(UB_PERM, 400, 100); // the wrong U perm...
+    play(UB_PERM, 900, 100); // ...and the case it left, read again
+
+    StepTime pll = stepTimes().get(3);
+    assertEquals("pll_ua", pll.getStepName()); // the case the solver was handed
+    assertEquals(2, pll.getSubSteps().size());
+    assertStep(pll.getSubSteps().get(0), "alg_ub", 400, 1100);
+    assertStep(pll.getSubSteps().get(1), "alg_ub", 900, 1100);
+    assertEquals(400 + 900, pll.getRecognitionMs()); // both thinks, not just the first
+    assertTrue(analyzer.isComplete());
+  }
+
+  @Test
+  public void leavesAPllDoneInOneAlgorithmWhole() {
+    // Splitting a step the solve did in one go would invent a structure it did not have.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' F'");
+
+    play("F R", 0, 600);
+    play("R U R'", 500, 100);
+    play(ANTI_SUNE, 800, 100);
+    play(T_PERM, 400, 100);
+
+    assertTrue(stepTimes().get(3).getSubSteps().isEmpty());
   }
 
   @Test

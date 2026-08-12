@@ -129,6 +129,25 @@ final class LastLayerCases {
     return PERMUTATIONS.get(permutationKey(facelets, crossFace));
   }
 
+  /**
+   * The PLL an algorithm <em>was</em>, read from the states it ran between: the case it would have
+   * solved, which is the name a speedcuber calls it by. So an algorithm executed on the case it
+   * belongs to names that case, and one executed on the wrong case names itself all the same —
+   * which is what says a misread case was a misread rather than a slow one.
+   *
+   * <p>Turning permutes places and not pieces, so where the pieces went between the two states is
+   * where those same turns send any pieces; undone and made from a solved cube, it leaves the state
+   * the algorithm takes to solved. Null when what was done is not a last-layer permutation at all.
+   */
+  static String algorithm(String before, String after, int crossFace) {
+    int[] motion = Cubies.motionBetween(before, after);
+    int[] undone = new int[motion.length];
+    for (int facelet = 0; facelet < motion.length; facelet++) {
+      undone[motion[facelet]] = facelet;
+    }
+    return permutation(Cubies.applyMotion(undone, Cubies.SOLVED), crossFace);
+  }
+
   /** The key a state's orientation reduces to, or null when the last layer cannot be read. */
   static String orientationKey(String facelets, int crossFace) {
     String state = lastLayerUp(facelets, crossFace);

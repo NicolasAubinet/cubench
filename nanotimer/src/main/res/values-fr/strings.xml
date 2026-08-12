@@ -339,6 +339,7 @@
   <string name="smartcube_step_edges">Arêtes</string>
   <string name="smartcube_step_corners">Coins</string>
   <string name="smartcube_step_pair">Paire %d</string>
+  <string name="smartcube_step_alg">Algo %s</string>
   <string name="smartcube_step_unfinished">Inachevé</string>
   <string name="smartcube_step_partial">%s (partiel)</string>
   <string name="smartcube_step_case">(cas %s)</string>

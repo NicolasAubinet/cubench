@@ -165,6 +165,31 @@ public class StoredSolveReplayTest {
     assertEquals("pll_t", result.getSteps().get(3).getName());
   }
 
+  /**
+   * A last layer misread: the algorithm the solver ran is not the case they were given, and each
+   * algorithm gets a line of the reconstruction to itself rather than running into the next.
+   */
+  @Test
+  public void givesEachAlgorithmOfAMisreadPllALineOfItsOwn() {
+    // The Ub algorithm on a solved cube leaves the Ua case — the two U perms are each other's
+    // mirror. Here the solver reads it the wrong way round, and is left the Ub to do after it.
+    String ubPerm = "R R U R U R' U' R' U' R' U R'";
+    String moves = played(ubPerm + " " + ubPerm);
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(ubPerm, moves, CubeMethod.CFOP);
+
+    assertNotNull(result);
+    SolveStep pll = result.getSteps().get(3);
+    assertEquals("pll_ua", pll.getName()); // the case they were given
+    assertEquals(2, pll.getSubSteps().size());
+    assertEquals("alg_ub", pll.getSubSteps().get(0).getName()); // the algorithms they ran
+    assertEquals("alg_ub", pll.getSubSteps().get(1).getName());
+
+    SolveSolution.Step step = SolveSolution.from(moves, result.getSteps()).getSteps().get(3);
+    assertEquals("R2 U R U R' U' R' U' R' U R'", step.getPartMoves(0));
+    assertEquals("R2 U R U R' U' R' U' R' U R'", step.getPartMoves(1));
+  }
+
   /** The algorithm as a stored move stream, a fifth of a second per turn. */
   private static String played(String alg) {
     return played(alg, 0);

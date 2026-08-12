@@ -30,6 +30,8 @@ public class Utils {
   private static final String PAIR_CODE_PREFIX = "pair_";
   /** The steps whose code carries the last-layer case they were left with ("pll_jb", "oll_21"). */
   private static final String[] CASE_CODE_PREFIXES = { "oll_", "pll_" };
+  /** A PLL part: the algorithm that was run, named by the case it solves ("alg_jb"). */
+  private static final String ALGORITHM_CODE_PREFIX = "alg_";
   private static final String SKIPPED_CASE = "skip";
   private static final String FLIP_CODE_PREFIX = "flip:", TWIST_CODE_PREFIX = "twist:";
   private static final String MEMO_CODE = "memo";
@@ -156,6 +158,10 @@ public class Utils {
     if (turn != null) {
       return turn;
     }
+    if (code != null && code.startsWith(ALGORITHM_CODE_PREFIX)) {
+      return context.getString(R.string.smartcube_step_alg,
+          capitalized(code.substring(ALGORITHM_CODE_PREFIX.length())));
+    }
     int resId = getStringIdentifier(context, "smartcube_step_" + toSmartCubeStepBaseCode(code));
     return resId == 0 ? code : context.getString(resId, position + 1);
   }
@@ -233,10 +239,15 @@ public class Utils {
       if (SKIPPED_CASE.equals(name)) {
         return context.getString(R.string.smartcube_case_skip);
       }
-      return context.getString(R.string.smartcube_step_case,
-          name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1));
+      return context.getString(R.string.smartcube_step_case, capitalized(name));
     }
     return null;
+  }
+
+  /** A case is written the way a speedcuber writes it: Ub, Ga, T. */
+  private static String capitalized(String caseName) {
+    return caseName.isEmpty() ? caseName
+        : caseName.substring(0, 1).toUpperCase(Locale.US) + caseName.substring(1);
   }
 
   /**

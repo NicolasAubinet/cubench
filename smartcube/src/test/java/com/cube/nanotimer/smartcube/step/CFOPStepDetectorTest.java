@@ -18,6 +18,8 @@ public class CFOPStepDetectorTest {
   private static final String T_PERM = "R U R' U' R' F R2 U' R' U' R U R' F'"; // its own inverse
   private static final String SUNE = "R U R' U R U2 R'";
   private static final String ANTI_SUNE = "R U2 R' U' R U' R'";
+  private static final String UB_PERM = "R2 U R U R' U' R' U' R' U R'";
+  private static final String SEXY = "R U R' U'";
 
   private final CubieCube cube = new CubieCube();
   private final CFOPStepDetector detector = new CFOPStepDetector();
@@ -159,6 +161,55 @@ public class CFOPStepDetectorTest {
     play(T_PERM);
     assertEquals("oll_skip", detector.stepName(CFOPStepDetector.OLL));
     assertEquals("pll_t", detector.stepName(CFOPStepDetector.PLL));
+  }
+
+  @Test
+  public void splitsThePllIntoTheAlgorithmsItTook() {
+    // The last layer is left a Ua. The two U perms are each other's mirror, and the solver reads
+    // this one the wrong way round: the Ub algorithm leaves a Ub standing, which the same algorithm
+    // then solves. So the step was given one case and answered with two algorithms.
+    startFrom(UB_PERM, SUNE, "R U' R'", "F'");
+    play("F", "R U R'", ANTI_SUNE);
+    assertEquals("pll_ua", detector.stepName(CFOPStepDetector.PLL));
+    assertEquals(0, detector.subStepCount(CFOPStepDetector.PLL));
+
+    play(UB_PERM);
+    assertEquals(1, detector.subStepCount(CFOPStepDetector.PLL));
+    assertFalse(detector.isComplete());
+
+    play(UB_PERM);
+    assertTrue(detector.isComplete());
+    assertEquals(2, detector.subStepCount(CFOPStepDetector.PLL));
+    assertEquals("alg_ub", detector.subStepName(CFOPStepDetector.PLL, 0));
+    assertEquals("alg_ub", detector.subStepName(CFOPStepDetector.PLL, 1));
+    // Each part is dated at the state it landed on, and the last of them ends the step.
+    assertEquals(detector.getStepTimestampMs(CFOPStepDetector.PLL),
+        detector.getSubStepTimestampMs(CFOPStepDetector.PLL, 1));
+  }
+
+  @Test
+  public void countsThePllTheSolverGotRightAsTheOneAlgorithmItWas() {
+    startFrom(T_PERM, SUNE, "R U' R'", "F'");
+    play("F", "R U R'", ANTI_SUNE, T_PERM);
+
+    assertEquals(1, detector.subStepCount(CFOPStepDetector.PLL));
+    assertEquals("alg_t", detector.subStepName(CFOPStepDetector.PLL, 0));
+  }
+
+  @Test
+  public void countsNoAlgorithmForOneTheSolverTookBack() {
+    startFrom(T_PERM, SUNE, "R U' R'", "F'");
+    play("F", "R U R'", ANTI_SUNE);
+
+    play("U", "U'"); // squaring the case up leaves it standing: not an algorithm
+    assertEquals(0, detector.subStepCount(CFOPStepDetector.PLL));
+
+    play(SEXY, SEXY, SEXY, SEXY, SEXY, SEXY); // started, then unwound: the same case again
+    assertEquals(0, detector.subStepCount(CFOPStepDetector.PLL));
+
+    play(T_PERM);
+    assertEquals(1, detector.subStepCount(CFOPStepDetector.PLL));
+    assertEquals("alg_t", detector.subStepName(CFOPStepDetector.PLL, 0));
   }
 
   @Test

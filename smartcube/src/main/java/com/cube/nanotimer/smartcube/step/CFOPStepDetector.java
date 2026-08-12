@@ -15,11 +15,11 @@ import java.util.Locale;
  * routinely disturb earlier ones for a few moves (an F2L insertion lifts a cross edge out and back).
  *
  * <p>The steps that are built in parts carry sub-steps — F2L its 4 slots, OLL its edge and corner
- * orientation, PLL its corner and edge permutation — so the pauses <em>between</em> the parts are
- * counted as recognition rather than disappearing into the step's execution. Sub-steps complete in
- * whatever order the solver works in, and are dated by the run they were in when the step completed
- * (a slot broken and rebuilt counts from the rebuild). A one-look OLL or PLL completes both of its
- * sub-steps on the same move, leaving one of them zero.
+ * orientation, PLL the algorithms it took — so the pauses <em>between</em> the parts are counted as
+ * recognition rather than disappearing into the step's execution. Sub-steps complete in whatever
+ * order the solver works in, and are dated by the run they were in when the step completed (a slot
+ * broken and rebuilt counts from the rebuild). A one-look OLL completes both of its sub-steps on the
+ * same move, leaving one of them zero, and a PLL read right is one algorithm.
  *
  * <p>The cross face is auto-detected. All six candidates are tracked, and F2L completion confirms
  * which one the solve was actually built on — so a cross that happens to be complete on some other
@@ -34,14 +34,13 @@ public final class CFOPStepDetector implements StepDetector {
 
   private static final String[] STEP_NAMES = {"cross", "f2l", "oll", "pll"};
 
-  /**
-   * PLL has no parts. A two-look PLL permutes the corners first, but in a one-look algorithm the
-   * corners often fall into place a move or two before the edges anyway — so the split cannot tell
-   * the two apart from the cube alone, and a one-look solve would be reported as a two-look. A
-   * two-look PLL is simply a longer execution.
-   */
+  /** Kept apart from the "pll_" a step's own case is coded under: one is the case the solver was
+   * given, the other the algorithm they answered it with, and averaging them together says nothing. */
+  private static final String ALGORITHM_CODE_PREFIX = "alg_";
+
   /** Step codes, localized when displayed. F2L's four entries only carry the count: each pair is
-   * coded by the slot it sits in ({@link #SLOT_CODES}), but shown by the order it was built. */
+   * coded by the slot it sits in ({@link #SLOT_CODES}), but shown by the order it was built. PLL's
+   * are not written here at all: they are the algorithms it took ({@link #trackAlgorithms}). */
   private static final String[][] SUB_STEP_NAMES = {
     {},
     {"", "", "", ""},
@@ -81,6 +80,15 @@ public final class CFOPStepDetector implements StepDetector {
   private final String[][] states = new String[6][STEP_NAMES.length]; // [cross face][step]
   private final Long[] reported = new Long[STEP_NAMES.length];
 
+  /** Everything but the last layer's permutation is done, per face: what a PLL runs between. */
+  private final boolean[] permutationOnly = new boolean[6];
+
+  /** The PLL algorithms the solve ran, in order, each dated at the state it landed on. */
+  private final List<String> algorithmCases = new ArrayList<>();
+  private final List<Long> algorithmTimes = new ArrayList<>();
+  private String landedState; // what the algorithm being turned started from
+  private boolean leftTheCase;
+
   private Integer crossFace; // provisional until F2L confirms it
   private boolean confirmed;
   private long lastTimestampMs;
@@ -94,6 +102,10 @@ public final class CFOPStepDetector implements StepDetector {
       Arrays.fill(states[face], null);
     }
     Arrays.fill(reported, null);
+    algorithmCases.clear();
+    algorithmTimes.clear();
+    landedState = null;
+    leftTheCase = false;
     crossFace = null;
     confirmed = false;
     lastTimestampMs = startTimestampMs;
@@ -131,6 +143,7 @@ public final class CFOPStepDetector implements StepDetector {
       boolean cornersOriented = lastLayerOriented(facelets, face, Cubies.CORNER_POSITIONS);
 
       boolean oll = f2l && edgesOriented && cornersOriented;
+      permutationOnly[face] = oll;
       for (int slot = 0; slot < 4; slot++) {
         markSubGoal(face, slot, slotDone(facelets, face, slot), timestampMs);
       }
@@ -148,6 +161,48 @@ public final class CFOPStepDetector implements StepDetector {
       markStep(face, PLL, solved, facelets, timestampMs);
     }
     updateCrossFace();
+    trackAlgorithms(facelets, timestampMs);
+  }
+
+  /**
+   * Watches the PLL for the algorithms it took, which is normally one. A solver who misreads the
+   * case executes an algorithm that leaves the last layer permuted some other way, and has a second
+   * one to do — so every return to a state where only the last layer's permutation is left ends an
+   * algorithm, and each is named by the case it would have solved rather than the one it was given.
+   * That is what tells a misread case from a slow one, and it is also how a two-look PLL reads.
+   *
+   * <p>An alignment turn ends nothing: it never leaves those states. Nor does a run that came back
+   * to where it started — an algorithm begun and taken back names no case, so those moves stay with
+   * the algorithm that follows rather than becoming one of their own.
+   *
+   * <p>The cross face is settled by the time any of this runs: F2L confirms it, and the OLL that
+   * opens the watch cannot complete before its own F2L has.
+   */
+  private void trackAlgorithms(String facelets, long timestampMs) {
+    if (crossFace == null || states[crossFace][OLL] == null) {
+      return;
+    }
+    if (Cubies.SOLVED.equals(landedState)) {
+      return; // the PLL landed solved: whatever is turned after it is not one of its algorithms
+    }
+    if (landedState == null) {
+      landedState = states[crossFace][OLL]; // the case the PLL was handed
+    }
+    if (!permutationOnly[crossFace]) {
+      leftTheCase = true;
+      return;
+    }
+    if (!leftTheCase) {
+      return;
+    }
+    String executed = LastLayerCases.algorithm(landedState, facelets, crossFace);
+    if (executed == null || LastLayerCases.SKIP.equals(executed)) {
+      return;
+    }
+    algorithmCases.add(executed);
+    algorithmTimes.add(timestampMs);
+    landedState = facelets;
+    leftTheCase = false;
   }
 
   /** Dated at its first completion, like a step: the parts that follow disturb it in passing. */
@@ -323,11 +378,15 @@ public final class CFOPStepDetector implements StepDetector {
 
   @Override
   public int subStepCount(int step) {
-    return SUB_STEP_NAMES[step].length;
+    return step == PLL ? algorithmCases.size() : SUB_STEP_NAMES[step].length;
   }
 
+  /** A PLL part is coded by the algorithm that was run ("alg_jb"), the way a pair is by its slot. */
   @Override
   public String subStepName(int step, int subStep) {
+    if (step == PLL) {
+      return ALGORITHM_CODE_PREFIX + algorithmCases.get(subStep);
+    }
     if (step != F2L) {
       return SUB_STEP_NAMES[step][subStep];
     }
@@ -336,6 +395,9 @@ public final class CFOPStepDetector implements StepDetector {
 
   @Override
   public Long getSubStepTimestampMs(int step, int subStep) {
+    if (step == PLL) {
+      return algorithmTimes.get(subStep);
+    }
     return crossFace == null ? null : subGoalTimes[crossFace][SUB_STEP_OFFSET[step] + subStep];
   }
 
