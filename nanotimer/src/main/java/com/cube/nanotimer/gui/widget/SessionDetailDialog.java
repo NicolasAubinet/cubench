@@ -16,6 +16,7 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.vo.SessionDetails;
 import com.cube.nanotimer.vo.SolveType;
 
@@ -91,8 +92,9 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
     sessionTimesLayout = (GridLayout) v.findViewById(R.id.sessionTimesLayout);
     sessionTimesLayout.removeAllViews();
 
-    int bestInd = session.getBestTimeInd(solveType.isBlind());
-    int worstInd = session.getWorstTimeInd(solveType.isBlind());
+    // Ranked by colour against the session itself, as the timer's own grid and its bars are.
+    TimeColorScale scale = new TimeColorScale(getActivity());
+    scale.setTimes(sessionTimes, false);
     int sessionTimesCount = sessionTimes.size();
 
     if (sessionTimesCount == 0) {
@@ -102,7 +104,8 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
     } else {
       for (int i = 0; i < sessionTimesCount; i++) {
         TextView tv = addNewSolveTimeTextView(sessionTimesLayout);
-        GUIUtils.setSessionTimeCellText(tv, sessionTimes.get(i), i, bestInd, worstInd);
+        long time = sessionTimes.get(i);
+        GUIUtils.setSessionTimeCellColor(tv, time, scale.colorFor(time, time < 0));
       }
       // add remaining cells to have the same cells count than the above lines
       if (sessionTimesCount > TIMES_PER_LINE && sessionTimesCount % TIMES_PER_LINE != 0) {

@@ -120,19 +120,6 @@ public class GUIUtils {
     return res;
   }
 
-  public static void setSessionTimeCellText(TextView tv, long time, int timeInd, int bestInd, int worstInd) {
-    String strTime = FormatterService.INSTANCE.formatSolveTime(time);
-    if (time < 0) { // DNF: always grayed out, for consistency across the app
-      setHtmlColoredTime(tv, strTime, tv.getContext().getResources().getColor(R.color.dnf_time));
-    } else if (timeInd == bestInd) {
-      setHtmlColoredTime(tv, strTime, tv.getContext().getResources().getColor(R.color.green));
-    } else if (timeInd == worstInd) {
-      setHtmlColoredTime(tv, strTime, tv.getContext().getResources().getColor(R.color.red));
-    } else {
-      tv.setText(strTime);
-    }
-  }
-
   /** Renders a session time tinted with the given color (gradient coloring). */
   public static void setSessionTimeCellColor(TextView tv, long time, int color) {
     setHtmlColoredTime(tv, FormatterService.INSTANCE.formatSolveTime(time), color);
