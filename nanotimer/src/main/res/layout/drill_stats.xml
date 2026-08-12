@@ -23,7 +23,7 @@
        android:id="@+id/llDrillStatsFamily"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:background="@drawable/cross_segment_container"
+       android:background="@drawable/view_segment_group"
        android:orientation="horizontal"
        android:padding="3dp"/>
 
@@ -32,7 +32,7 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_marginTop="8dp"
-       android:background="@drawable/cross_segment_container"
+       android:background="@drawable/view_segment_group"
        android:orientation="horizontal"
        android:padding="3dp"/>
   </LinearLayout>

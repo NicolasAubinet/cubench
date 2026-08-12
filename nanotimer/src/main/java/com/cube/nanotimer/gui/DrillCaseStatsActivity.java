@@ -288,7 +288,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
         : getString(R.string.drill_case_seconds,
             FormatterService.INSTANCE.formatSolveTime(attempt.getRep().getTotalMs()));
     String message = getString(R.string.drill_case_stats_remove_message, when(attempt), time);
-    DialogUtils.showConfirmCancelDialog(this, R.string.drill_case_remove_title, message,
+    DialogUtils.showDestructiveConfirmDialog(this, R.string.drill_case_remove_title, message,
         R.string.drill_case_remove, R.string.cancel, new YesNoListener() {
           @Override
           public void onYes() {
