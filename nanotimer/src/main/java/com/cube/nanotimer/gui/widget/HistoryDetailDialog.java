@@ -19,7 +19,6 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
-import android.text.style.StrikethroughSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -50,6 +49,7 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.CancelledMoveSpan;
 import com.cube.nanotimer.util.view.FontFitTextView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.SolveStepBars;
@@ -941,10 +941,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         text.append(token.getNotation());
         boolean struck = cancelled.contains(token);
         if (struck) {
-          text.setSpan(new StrikethroughSpan(), start, text.length(),
+          text.setSpan(new CancelledMoveSpan(color), start, text.length(),
               Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
-        if (struck || SolveMovesFormat.isRotation(token.getNotation())) {
+        } else if (SolveMovesFormat.isRotation(token.getNotation())) {
           text.setSpan(new ForegroundColorSpan(color), start, text.length(),
               Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
