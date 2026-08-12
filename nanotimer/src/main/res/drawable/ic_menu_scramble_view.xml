@@ -1,5 +1,5 @@
-<!-- "View scramble" in the flat white line style the other menu icons use, in the menu and in the
-     action bar alike. The coloured ic_scramble_view is for the screens where it is a hero. -->
+<!-- "View scramble" in the flat white line style the other menu icons use: the menu, the action bar
+     and the solve sheet's tool buttons alike, beside the cross solver it always sits next to. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"

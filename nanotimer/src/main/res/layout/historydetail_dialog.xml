@@ -158,7 +158,7 @@
            android:scaleType="fitCenter"
            android:padding="6dp"
            android:background="?android:attr/selectableItemBackgroundBorderless"
-           android:src="@drawable/ic_scramble_view"
+           android:src="@drawable/ic_menu_scramble_view"
            android:contentDescription="@string/scramble_view"/>
         <ImageButton
            android:id="@+id/buCrossSolver"
