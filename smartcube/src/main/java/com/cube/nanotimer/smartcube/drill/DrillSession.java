@@ -275,7 +275,9 @@ public final class DrillSession {
         new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
         resetCount, revealed, abandoned);
     reps.add(rep);
-    if (resetCount > 0 || revealed) {
+    // Not for one that was skipped: giving up on a case is an answer about it, and the rep spends
+    // it whether or not it had been restarted or looked up first.
+    if (!abandoned && (resetCount > 0 || revealed)) {
       showAgain(currentCase);
     }
     currentCase = null;

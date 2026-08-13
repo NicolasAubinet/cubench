@@ -378,6 +378,34 @@ public class DrillSessionTest {
   }
 
   /**
+   * A skipped case is not dealt again, even where it was restarted or looked up first. Giving up on
+   * a case is an answer about it, and the rep spends it.
+   */
+  @Test
+  public void aSkippedCaseIsNotDealtAgain() {
+    List<String> codes = Arrays.asList("pll_h", "pll_z", "pll_t", "pll_ua");
+    DrillSpec spec = new DrillSpec("skip", DrillSpec.Type.CASE_EXECUTION,
+        DrillSpec.Delivery.VIRTUAL, codes, DrillSpec.Selection.ROUND_ROBIN, 5, 0, null);
+    DrillSession session = new DrillSession(spec, new Random(7));
+    Hand hand = new Hand(session);
+    List<String> seen = new ArrayList<String>();
+    while (hand.next()) {
+      seen.add(session.getCurrentCase());
+      if (seen.size() == 1) {
+        hand.execute("R U R'");
+        hand.reset();
+        session.markRevealed();
+        assertTrue(session.abandon().isAbandoned());
+      } else {
+        assertNotNull(session.getCurrentCase(), hand.execute(inverse(session.getCurrentScramble())));
+      }
+    }
+    assertEquals(5, seen.size());
+    assertEquals("the skipped case is spent, not put back", 1,
+        Collections.frequency(seen, seen.get(0)));
+  }
+
+  /**
    * <b>A drill of one rep per case deals every one of them, redo or no redo.</b> Putting a botched
    * case back costs the drill a rep, and where there was no spare one that rep was taken off the
    * end of the pass, leaving a case the user picked never dealt at all. A case still owed its first
