@@ -104,11 +104,43 @@ public class CrossDrillSessionTest {
     Hand hand = new Hand(session);
     assertTrue(hand.next("U D"));
     session.setOptimalLength(1);
-    CrossDrillRep rep = hand.turn("D D D");
+    CrossDrillRep rep = hand.turn("R R' D'");
     assertNotNull(rep);
     assertTrue(rep.isBuilt());
     assertEquals(3, rep.getMoveCount());
     assertEquals(2, rep.getExtraMoves());
+  }
+
+  /**
+   * The cube reports a half turn as two quarters, and counting both put every cross holding one a
+   * move over an optimal that spells the same turn as one.
+   */
+  @Test
+  public void aHalfTurnIsOneMove() {
+    CrossDrillSession session = session("D", 1);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next("U D2"));
+    session.setOptimalLength(1);
+    assertNull(hand.turn("D"));
+    assertEquals("a quarter of the way through it, one move is what has been made",
+        1, session.getMoveCount());
+
+    CrossDrillRep rep = hand.turn("D");
+    assertNotNull(rep);
+    assertEquals(1, rep.getMoveCount());
+    assertEquals("both quarter turns were kept", 2, rep.getMoves().size());
+    assertEquals("the shortest way there was", 0, rep.getExtraMoves());
+  }
+
+  /** Only the same turn twice folds: a turn taken back is two moves that came to nothing. */
+  @Test
+  public void aTurnAndItsUndoAreTwoMoves() {
+    CrossDrillSession session = session("D", 1);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next("U D"));
+    CrossDrillRep rep = hand.turn("R R' D'");
+    assertNotNull(rep);
+    assertEquals("the R and the R' are two of the three", 3, rep.getMoveCount());
   }
 
   /** An optimal length the search has not handed over yet must not read as a perfect rep. */
@@ -128,7 +160,7 @@ public class CrossDrillSessionTest {
     CrossDrillSession session = session("D", 1);
     Hand hand = new Hand(session);
     assertTrue(hand.next("U D"));
-    CrossDrillRep rep = hand.turn("D D D");
+    CrossDrillRep rep = hand.turn("R R' D'");
     session.setOptimalLength(1);
     assertEquals(1, rep.getOptimalLength());
     assertEquals(2, rep.getExtraMoves());
@@ -200,7 +232,7 @@ public class CrossDrillSessionTest {
 
     CrossDrillRep rep = hand.turn("D D D");
     assertNotNull(rep);
-    assertEquals(rep.getMoveCount(), rep.getMoves().size());
+    assertEquals("every quarter turn, though the count folds two of them", 3, rep.getMoves().size());
     assertEquals("D D D", notation(rep.getMoves()));
   }
 

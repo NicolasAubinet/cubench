@@ -86,7 +86,11 @@ public final class CrossDrillRep {
     return planningMs + executionMs;
   }
 
-  /** Quarter turns made, which is what the rep is scored on. */
+  /**
+   * Moves made, in HTM, which is what the rep is scored on: the same metric as
+   * {@link #getOptimalLength}, so a half turn is one move on both sides of the comparison. Fewer
+   * than {@link #getMoves} holds, which is every quarter turn the cube reported.
+   */
   public int getMoveCount() {
     return moveCount;
   }

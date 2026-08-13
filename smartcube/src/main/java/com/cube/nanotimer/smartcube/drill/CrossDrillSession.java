@@ -22,6 +22,14 @@ import java.util.List;
  * for good. {@link #declareFinished} is that announcement, and it produces a rep either way: a cross
  * that was not there is a result, not a rep that did not happen.
  *
+ * <p><b>Moves are counted in HTM, not in quarter turns.</b> That is the metric the optimal handed
+ * to {@link #setOptimalLength} is in, and a rep is scored on the difference between the two, so a
+ * half turn counted as the two quarter turns the cube reports it as would put every cross
+ * containing one a move over an optimal that spells it as one. Consecutive identical turns pair
+ * off, as they do in the reconstruction's own folding, and nothing else does: {@code U U'} is two
+ * turns that came to nothing, and calling that one move, or none, would flatter a fumble into a
+ * shorter cross than the user found.
+ *
  * <p>The scramble comes from outside. Generating one is the app's business and there is a good
  * generator over there already; what belongs here is only what a scramble is turned into.
  */
@@ -241,7 +249,7 @@ public final class CrossDrillSession {
     long planning = moves.isEmpty() ? 0 : Math.max(0, firstMoveMs - shownAt);
     long execution = moves.isEmpty() ? 0 : Math.max(0, lastMoveMs - firstMoveMs);
     CrossDrillRep rep = new CrossDrillRep(getFace(), currentScramble,
-        new ArrayList<CubeMove>(moves), shownAt, planning, execution, moves.size(),
+        new ArrayList<CubeMove>(moves), shownAt, planning, execution, halfTurnCount(moves),
         optimalLength, built, planningExpired);
     reps.add(rep);
     running = false;
@@ -259,9 +267,26 @@ public final class CrossDrillSession {
     return currentScramble;
   }
 
-  /** Quarter turns made in the rep so far. */
+  /** Moves made in the rep so far, in the metric the optimal is measured in. */
   public int getMoveCount() {
-    return moves.size();
+    return halfTurnCount(moves);
+  }
+
+  /** Quarter turns in HTM: an identical pair is the one half turn the cube reported as two. */
+  private static int halfTurnCount(List<CubeMove> moves) {
+    int count = 0;
+    for (int i = 0; i < moves.size(); i++) {
+      CubeMove move = moves.get(i);
+      if (i + 1 < moves.size() && sameTurn(move, moves.get(i + 1))) {
+        i++;
+      }
+      count++;
+    }
+    return count;
+  }
+
+  private static boolean sameTurn(CubeMove a, CubeMove b) {
+    return a.getFace() == b.getFace() && a.isPrime() == b.isPrime();
   }
 
   /** Whether a scramble is in front of the user, waiting to be turned or already being turned. */
