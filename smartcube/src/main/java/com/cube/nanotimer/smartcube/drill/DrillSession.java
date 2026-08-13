@@ -296,9 +296,14 @@ public final class DrillSession {
    * <p>Never as the next case, which is what {@link #resetRep} already offers and what nobody needs
    * twice. Nothing is done where the pass is spent, since the next one deals every case anyway, and
    * nothing for a drill drawing by weight, which can deal any case at any time.
+   *
+   * <p><b>And nothing where the drill has no rep to spare.</b> The extra showing is a rep like any
+   * other and comes out of the same count, so on a drill of one rep per case it was paid for by the
+   * case at the end of the pass, which the user had picked and then never saw. A case still owed
+   * its first turn outranks a second turn for one that has already had it.
    */
   private void showAgain(String code) {
-    if (!pass.isEmpty()) {
+    if (!pass.isEmpty() && spec.getReps() - reps.size() > pass.size()) {
       pass.add(random.nextInt(pass.size()), code);
     }
   }
