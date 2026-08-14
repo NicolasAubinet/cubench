@@ -448,7 +448,7 @@
     <b>Misc</b>
     <ul>
       <li>Help buttons on several screens explain what they show</li>
-      <li>\"Cube type\" is now called \"Puzzle type\", since not every puzzle is a cube</li>
+      <li>\"Cube type\" is now called \"Puzzle type\"</li>
       <li>Each puzzle type now has a color of its own, which follows it through the app</li>
       <li>The export screen now groups your times by puzzle, showing how many solves each holds and how many you have picked</li>
       <li>Random-state scrambles are now always used, so the switch and the screen of options behind it are gone</li>

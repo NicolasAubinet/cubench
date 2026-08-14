@@ -435,7 +435,7 @@
     <b>Diversos</b>
     <ul>
       <li>Botões de ajuda em várias telas explicam o que elas mostram</li>
-      <li>“Tipo de cubo” agora se chama “Tipo de puzzle”, já que nem todo puzzle é um cubo</li>
+      <li>“Tipo de cubo” agora se chama “Tipo de puzzle”</li>
       <li>Cada tipo de puzzle agora tem a sua própria cor, que o acompanha por todo o aplicativo</li>
       <li>A tela de exportação agora agrupa os seus tempos por puzzle, mostrando quantos cada um contém e quantos você selecionou</li>
       <li>Os scrambles de estado aleatório são sempre usados agora, então a configuração e a tela de opções por trás dela desapareceram</li>
