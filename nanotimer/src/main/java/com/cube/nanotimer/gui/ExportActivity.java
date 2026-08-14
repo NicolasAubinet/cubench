@@ -2,6 +2,7 @@ package com.cube.nanotimer.gui;
 
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -34,6 +35,8 @@ import com.cube.nanotimer.services.Service;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.exportimport.csvexport.CSVGenerator;
+import com.cube.nanotimer.util.backup.BackupFormat;
+import com.cube.nanotimer.util.backup.BackupWriter;
 import com.cube.nanotimer.util.exportimport.csvexport.ExportCSVGenerator;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.FileUtils;
@@ -41,6 +44,7 @@ import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.FlowLayout;
 import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.SolveTypeIcons;
+import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.SolveType;
@@ -54,6 +58,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Picks what leaves the app. A puzzle is a card that takes or drops everything under it at once,
@@ -91,9 +96,18 @@ public class ExportActivity extends NanoTimerActivity {
   private Button buSaveToFile;
   private Button buExport;
   private FlowLayout emptyPuzzlePills;
+  private TextView tvBackupContents;
+  private TextView tvBackupSave;
+  private TextView tvBackupShare;
 
-  // CSV waiting to be copied to the destination picked by the system document picker
+  // File waiting to be copied to the destination picked by the system document picker
   private File pendingSaveFile;
+  private String pendingSaveName;
+  // The picker returns the same way for both files, and they do not report the same thing
+  private boolean pendingSaveIsBackup;
+
+  private BackupCounts backupCounts;
+  private boolean backingUp;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +118,7 @@ public class ExportActivity extends NanoTimerActivity {
     setTitle(R.string.export_times);
     initViews();
     loadData();
+    loadBackupCounts();
   }
 
   private void initViews() {
@@ -153,6 +168,23 @@ public class ExportActivity extends NanoTimerActivity {
         export(false);
       }
     });
+
+    tvBackupContents = (TextView) findViewById(R.id.tvBackupContents);
+    tvBackupSave = (TextView) findViewById(R.id.tvBackupSave);
+    tvBackupShare = (TextView) findViewById(R.id.tvBackupShare);
+    tvBackupSave.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        backUp(false);
+      }
+    });
+    tvBackupShare.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        backUp(true);
+      }
+    });
+    showBackupContents();
 
     if (loaded) {
       buildCards();
@@ -474,6 +506,115 @@ public class ExportActivity extends NanoTimerActivity {
       rounded(Color.WHITE, PILL_RADIUS_DP));
   }
 
+  /**
+   * How much the backup will hold, which is everything rather than the selection above. Counted
+   * once and kept, so rotating the screen does not go back to the database for it.
+   */
+  private void loadBackupCounts() {
+    App.INSTANCE.getService().getBackupCounts(new DataCallback<BackupCounts>() {
+      @Override
+      public void onData(final BackupCounts counts) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            backupCounts = counts;
+            showBackupContents();
+          }
+        });
+      }
+    });
+  }
+
+  private void showBackupContents() {
+    if (tvBackupContents == null) {
+      return;
+    }
+    // Dead until the counts land, and dimmed to say so: a live control that does nothing when
+    // pressed is the same fault as a button that swallows the press.
+    boolean ready = backupCounts != null;
+    for (TextView action : new TextView[] { tvBackupSave, tvBackupShare }) {
+      action.setEnabled(ready);
+      action.setClickable(ready);
+      action.setAlpha(ready ? 1f : 0.4f);
+    }
+    if (!ready) {
+      tvBackupContents.setVisibility(View.GONE);
+      return;
+    }
+    tvBackupContents.setVisibility(View.VISIBLE);
+    tvBackupContents.setText(getString(R.string.backup_contents_line,
+      getResources().getQuantityString(R.plurals.export_solves_count, backupCounts.getSolves(),
+        backupCounts.getSolves()),
+      getResources().getQuantityString(R.plurals.backup_drills_count, backupCounts.getDrills(),
+        backupCounts.getDrills())));
+  }
+
+  /** The whole app to one file. Nothing selected on this screen changes what goes in it. */
+  private void backUp(final boolean share) {
+    if (backupCounts == null || backingUp) {
+      return; // one at a time: two taps would stack two dialogs over two writes
+    }
+    backingUp = true;
+    // Cancelable, so back is never a button that does nothing. Writing the whole database out is
+    // the longest thing this screen does, and a dialog that swallows back for its duration reads
+    // as the press having been missed, the more so as the picker then opens anyway.
+    final AtomicBoolean cancelled = new AtomicBoolean(false);
+    final ProgressDialog progressDialog = new ProgressDialog(this);
+    progressDialog.setMessage(getString(R.string.backup_creating));
+    progressDialog.setIndeterminate(true);
+    progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+      @Override
+      public void onCancel(DialogInterface dialog) {
+        cancelled.set(true);
+      }
+    });
+    progressDialog.show();
+
+    final BackupCounts counts = backupCounts;
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        File file = null;
+        try {
+          file = BackupWriter.write(ExportActivity.this, counts);
+        } catch (IOException e) {
+          Log.e("[NanoTimer]", "Could not write the backup", e);
+        }
+        final File written = file;
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            progressDialog.dismiss();
+            backingUp = false;
+            if (cancelled.get()) {
+              // The write itself cannot be stopped part way and leave a usable file, so it runs to
+              // the end and the result is thrown away rather than offered.
+              if (written != null) {
+                written.delete();
+              }
+              return;
+            }
+            if (written == null) {
+              DialogUtils.showInfoMessage(ExportActivity.this, R.string.backup_failed);
+            } else if (share) {
+              sendBackupFile(written);
+            } else {
+              startSave(written, BackupFormat.MIME_TYPE, written.getName(), true);
+            }
+          }
+        });
+      }
+    }).start();
+  }
+
+  private void sendBackupFile(File file) {
+    Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+    DialogUtils.shareData(this,
+      getString(R.string.backup_mail_subject),
+      getString(R.string.backup_mail_body, FormatterService.INSTANCE.formatDateTime(System.currentTimeMillis())),
+      uri, BackupFormat.MIME_TYPE);
+  }
+
   private void export(final boolean share) {
     List<Integer> solveTypeIds = new ArrayList<Integer>();
     for (PuzzleGroup group : groups) {
@@ -526,16 +667,22 @@ public class ExportActivity extends NanoTimerActivity {
   }
 
   private void saveExportFile(File file) {
+    startSave(file, EXPORT_MIME_TYPE, getDefaultExportFileName(), false);
+  }
+
+  private void startSave(File file, String mimeType, String name, boolean backup) {
     pendingSaveFile = file;
+    pendingSaveName = name;
+    pendingSaveIsBackup = backup;
     Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
       .addCategory(Intent.CATEGORY_OPENABLE)
-      .setType(EXPORT_MIME_TYPE)
-      .putExtra(Intent.EXTRA_TITLE, getDefaultExportFileName());
+      .setType(mimeType)
+      .putExtra(Intent.EXTRA_TITLE, name);
     try {
       startActivityForResult(intent, REQ_CREATE_DOCUMENT);
     } catch (ActivityNotFoundException e) {
       // no document picker on this device (stripped ROM): fall back to the app's own storage folder
-      saveToAppStorage(file);
+      saveToAppStorage(file, name, backup);
     }
   }
 
@@ -546,37 +693,39 @@ public class ExportActivity extends NanoTimerActivity {
       return;
     }
     File source = pendingSaveFile;
+    boolean backup = pendingSaveIsBackup;
     pendingSaveFile = null;
+    pendingSaveName = null;
     if (resultCode != RESULT_OK || data == null || data.getData() == null) {
       return; // user cancelled
     }
     if (source == null) {
-      // the generated CSV was lost (process killed while the picker was open)
-      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+      // the generated file was lost (process killed while the picker was open)
+      DialogUtils.showInfoMessage(this, backup ? R.string.backup_failed : R.string.export_save_failed);
       return;
     }
     try {
       FileUtils.copyFileTo(source, getContentResolver().openOutputStream(data.getData()));
-      DialogUtils.showInfoMessage(this, R.string.export_saved);
+      DialogUtils.showInfoMessage(this, backup ? R.string.backup_saved : R.string.export_saved);
     } catch (IOException e) {
-      Log.e("[NanoTimer]", "Could not save export file", e);
-      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+      Log.e("[NanoTimer]", "Could not save the picked file", e);
+      DialogUtils.showInfoMessage(this, backup ? R.string.backup_failed : R.string.export_save_failed);
     }
   }
 
-  private void saveToAppStorage(File file) {
+  private void saveToAppStorage(File file, String name, boolean backup) {
     File dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
     if (dir == null) {
-      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+      DialogUtils.showInfoMessage(this, backup ? R.string.backup_failed : R.string.export_save_failed);
       return;
     }
-    File dest = new File(dir, getDefaultExportFileName());
+    File dest = new File(dir, name);
     try {
       FileUtils.copyFileTo(file, new FileOutputStream(dest));
       DialogUtils.showInfoMessage(this, getString(R.string.export_saved_to, dest.getAbsolutePath()));
     } catch (IOException e) {
-      Log.e("[NanoTimer]", "Could not save export file", e);
-      DialogUtils.showInfoMessage(this, R.string.export_save_failed);
+      Log.e("[NanoTimer]", "Could not save the file to app storage", e);
+      DialogUtils.showInfoMessage(this, backup ? R.string.backup_failed : R.string.export_save_failed);
     }
   }
 

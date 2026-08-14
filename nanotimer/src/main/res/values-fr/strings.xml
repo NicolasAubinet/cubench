@@ -215,6 +215,19 @@
   <string name="select_all">Tout sélectionner</string>
   <string name="export_selected">Sélection</string>
   <string name="export_nothing_selected">Aucune sélection</string>
+  <string name="export_csv_title">Exporter les temps en CSV</string>
+  <string name="export_csv_caption">Les temps seulement, pour un tableur.</string>
+  <string name="backup_everything">Tout sauvegarder</string>
+  <string name="backup_everything_caption">Résolutions, entraînements et réglages, à restaurer sur un autre téléphone.</string>
+  <string name="backup_contents_line">%1$s, %2$s</string>
+  <string name="backup_save">Enregistrer</string>
+  <string name="backup_creating">Préparation de la sauvegarde...</string>
+  <string name="backup_saved">Sauvegarde enregistrée</string>
+  <string name="backup_failed">Impossible de créer la sauvegarde</string>
+  <plurals name="backup_drills_count">
+    <item quantity="one">%d entraînement</item>
+    <item quantity="other">%d entraînements</item>
+  </plurals>
   <plurals name="export_solves_count">
     <item quantity="one">%d résolution</item>
     <item quantity="other">%d résolutions</item>
@@ -231,6 +244,8 @@
     <item quantity="other">Afficher %d puzzles sans résolution</item>
   </plurals>
   <string name="export_hide_empty_puzzles">Masquer les puzzles sans résolution</string>
+  <string name="backup_mail_subject">Sauvegarde Cubench</string>
+  <string name="backup_mail_body">Sauvegarde Cubench du %1$s</string>
   <string name="export_mail_subject">Exportation d\'historique Cubench</string>
   <string name="export_mail_body">Exportation d\'historique à partir de %1$s</string>
   <string name="send_via">Envoyer via:</string>

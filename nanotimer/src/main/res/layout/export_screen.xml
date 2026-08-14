@@ -1,62 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- What is about to leave the app, said once at the top, then one card per puzzle that holds
-     solves. The cards below are what you change; the line above is what you get. -->
+<!-- Two things leave the app, and they are told apart by what they are for rather than by what
+     they can carry. The backup is one card and takes everything; the CSV is a section under it,
+     with the running total and the cards that change it. The buttons at the bottom are the CSV's.
+
+     The total sits inside the scroll rather than pinned above it: pinned, it stood over the backup
+     card and looked like a figure that described it. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:fitsSystemWindows="true"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
    android:orientation="vertical"
    android:background="@color/graybg">
-
-  <LinearLayout
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:orientation="horizontal"
-     android:gravity="center_vertical"
-     android:paddingLeft="@dimen/space_l"
-     android:paddingRight="@dimen/space_s"
-     android:paddingTop="@dimen/space_s">
-
-    <LinearLayout
-       android:layout_width="0dp"
-       android:layout_height="wrap_content"
-       android:layout_weight="1"
-       android:orientation="vertical">
-
-      <TextView
-         android:text="@string/export_selected"
-         style="@style/DialogSectionLabel"/>
-
-      <!-- Shrinks rather than truncates: a running total cut off mid-figure says nothing. -->
-      <com.cube.nanotimer.util.view.FontFitTextView
-         android:id="@+id/tvSelection"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="1dp"
-         android:textSize="17sp"
-         android:textStyle="bold"
-         android:textColor="@color/white"
-         android:fontFeatureSettings="tnum"
-         android:singleLine="true"/>
-    </LinearLayout>
-
-    <TextView
-       android:id="@+id/tvSelectAll"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:minHeight="44dp"
-       android:gravity="center"
-       android:paddingLeft="@dimen/space_m"
-       android:paddingRight="@dimen/space_m"
-       android:textSize="14sp"
-       android:textStyle="bold"
-       android:textColor="@color/lightblue"
-       android:singleLine="true"
-       android:background="@drawable/hero_selector_row"
-       android:clickable="true"
-       android:focusable="true"/>
-  </LinearLayout>
 
   <ScrollView
      android:id="@+id/scrollView"
@@ -76,10 +31,68 @@
        android:paddingTop="@dimen/space_s"
        android:paddingBottom="@dimen/space_m">
 
+      <include layout="@layout/export_backup_card"/>
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:paddingLeft="@dimen/space_s"
+         android:paddingRight="@dimen/space_s"
+         android:text="@string/export_csv_title"
+         style="@style/DialogSectionLabel"/>
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="1dp"
+         android:paddingLeft="@dimen/space_s"
+         android:paddingRight="@dimen/space_s"
+         android:text="@string/export_csv_caption"
+         android:textSize="13sp"
+         android:textColor="@color/secondary_text"/>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="horizontal"
+         android:gravity="center_vertical"
+         android:layout_marginTop="@dimen/space_xs"
+         android:paddingLeft="@dimen/space_s">
+
+        <!-- Shrinks rather than truncates: a running total cut off mid-figure says nothing. -->
+        <com.cube.nanotimer.util.view.FontFitTextView
+           android:id="@+id/tvSelection"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_weight="1"
+           android:textSize="17sp"
+           android:textStyle="bold"
+           android:textColor="@color/white"
+           android:fontFeatureSettings="tnum"
+           android:singleLine="true"/>
+
+        <TextView
+           android:id="@+id/tvSelectAll"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:minHeight="44dp"
+           android:gravity="center"
+           android:paddingLeft="@dimen/space_m"
+           android:paddingRight="@dimen/space_m"
+           android:textSize="14sp"
+           android:textStyle="bold"
+           android:textColor="@color/lightblue"
+           android:singleLine="true"
+           android:background="@drawable/hero_selector_row"
+           android:clickable="true"
+           android:focusable="true"/>
+      </LinearLayout>
+
       <LinearLayout
          android:id="@+id/puzzleCards"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
+         android:layout_marginTop="@dimen/space_xs"
          android:orientation="vertical"/>
 
       <!-- Puzzles you have never timed are still worth being able to look for, and worth nothing

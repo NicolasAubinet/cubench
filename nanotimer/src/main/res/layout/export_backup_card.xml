@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The other thing this screen can produce, and the one that carries drills and settings. It sits
+     above the puzzle cards and ignores them: a backup is everything, so nothing here is selectable.
+     Its own two actions rather than the bar at the bottom, which belongs to the CSV. -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:layout_marginBottom="@dimen/space_m"
+   app:cardBackgroundColor="@color/hero_card"
+   app:cardElevation="@dimen/mainscreen_card_elevation"
+   app:cardCornerRadius="@dimen/card_corner">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:padding="@dimen/space_s">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="horizontal"
+       android:gravity="center_vertical"
+       android:paddingLeft="@dimen/space_s"
+       android:paddingRight="@dimen/space_s"
+       android:paddingTop="@dimen/space_xs">
+
+      <FrameLayout
+         android:layout_width="32dp"
+         android:layout_height="32dp"
+         android:background="@drawable/hero_glyph">
+        <ImageView
+           android:layout_width="19dp"
+           android:layout_height="19dp"
+           android:layout_gravity="center"
+           android:src="@drawable/ic_backup_archive"
+           android:contentDescription="@null"/>
+      </FrameLayout>
+
+      <LinearLayout
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:layout_marginLeft="@dimen/space_m"
+         android:layout_marginStart="@dimen/space_m"
+         android:orientation="vertical">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="@string/backup_everything"
+           android:textSize="18sp"
+           android:textStyle="bold"
+           android:textColor="@color/white"
+           android:singleLine="true"
+           android:ellipsize="end"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="1dp"
+           android:text="@string/backup_everything_caption"
+           android:textSize="13sp"
+           android:textColor="@color/secondary_text"/>
+      </LinearLayout>
+    </LinearLayout>
+
+    <!-- What the file will hold, so the card is not a promise the screen never checks. -->
+    <TextView
+       android:id="@+id/tvBackupContents"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_xs"
+       android:paddingLeft="@dimen/space_s"
+       android:paddingRight="@dimen/space_s"
+       android:textSize="13sp"
+       android:textColor="@color/secondary_text"
+       android:fontFeatureSettings="tnum"/>
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_xs"
+       android:orientation="horizontal"
+       android:gravity="end">
+
+      <TextView
+         android:id="@+id/tvBackupShare"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:minHeight="44dp"
+         android:minWidth="88dp"
+         android:gravity="center"
+         android:paddingLeft="@dimen/space_m"
+         android:paddingRight="@dimen/space_m"
+         android:text="@string/export_share"
+         android:textSize="14sp"
+         android:textStyle="bold"
+         android:textColor="@color/lightblue"
+         android:singleLine="true"
+         android:background="@drawable/hero_selector_row"
+         android:clickable="true"
+         android:focusable="true"/>
+
+      <TextView
+         android:id="@+id/tvBackupSave"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="@dimen/space_xs"
+         android:layout_marginStart="@dimen/space_xs"
+         android:minHeight="44dp"
+         android:minWidth="88dp"
+         android:gravity="center"
+         android:paddingLeft="@dimen/space_m"
+         android:paddingRight="@dimen/space_m"
+         android:text="@string/backup_save"
+         android:textSize="14sp"
+         android:textStyle="bold"
+         android:textColor="@color/lightblue"
+         android:singleLine="true"
+         android:background="@drawable/hero_selector_row"
+         android:clickable="true"
+         android:focusable="true"/>
+    </LinearLayout>
+
+  </LinearLayout>
+
+</androidx.cardview.widget.CardView>

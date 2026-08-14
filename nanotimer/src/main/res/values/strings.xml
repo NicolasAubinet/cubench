@@ -227,6 +227,19 @@
   <string name="select_all">Select all</string>
   <string name="export_selected">Selected</string>
   <string name="export_nothing_selected">Nothing selected</string>
+  <string name="export_csv_title">Export times to CSV</string>
+  <string name="export_csv_caption">Times only, to open in a spreadsheet.</string>
+  <string name="backup_everything">Back up everything</string>
+  <string name="backup_everything_caption">Solves, drills and settings, to restore on another phone.</string>
+  <string name="backup_contents_line">%1$s, %2$s</string>
+  <string name="backup_save">Save</string>
+  <string name="backup_creating">Preparing the backup...</string>
+  <string name="backup_saved">Backup saved</string>
+  <string name="backup_failed">Could not create the backup</string>
+  <plurals name="backup_drills_count">
+    <item quantity="one">%d drill</item>
+    <item quantity="other">%d drills</item>
+  </plurals>
   <plurals name="export_solves_count">
     <item quantity="one">%d solve</item>
     <item quantity="other">%d solves</item>
@@ -243,6 +256,8 @@
     <item quantity="other">Show %d puzzles with no solves</item>
   </plurals>
   <string name="export_hide_empty_puzzles">Hide puzzles with no solves</string>
+  <string name="backup_mail_subject">Cubench backup</string>
+  <string name="backup_mail_body">Cubench backup from %1$s</string>
   <string name="export_mail_subject">Cubench history export</string>
   <string name="export_mail_body">History export from %1$s</string>
   <string name="send_via">Send via:</string>
