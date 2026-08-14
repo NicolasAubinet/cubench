@@ -149,8 +149,9 @@ public class GanGen2ParserTest {
     assertTrue(info.isGyroSupported());
   }
 
+  /** What the driver makes of it is its business — see GanScannerTest; here it need only decode. */
   @Test
-  public void disconnectPacketEndsTheSession() {
+  public void theCubeCanAnnounceItIsPoweringDown() {
     int[] packet = new GanTestPacket(20).put(0, 4, 0x0D).encrypted();
     assertTrue(newParser().parse(packet, 1000).get(0) instanceof GanEvent.DisconnectEvent);
   }

@@ -39,9 +39,10 @@
   JS -> Java:
     NTBridge.onReady()      the cube is drawn
     NTBridge.orientation()  "w,x,y,z" — how the cube is held, in its own axes, or "" for no
-                            reading. POLLED from the render loop, never pushed: the gyro runs
-                            at ~20 Hz, faster than any consumer needs, and this is the idiom
-                            SmartCube.getOrientation() is documented with.
+                            reading. POLLED from the render loop, never pushed: a gyro reports
+                            slower than the screen draws, and this is the idiom
+                            SmartCube.getOrientation() is documented with. How MUCH slower is
+                            per brand and is measured here, not assumed — see POSE_TAU_FACTOR.
 
   WHY THIS USES experimentalAddMove AND replay.html MUST NOT.
 
@@ -163,12 +164,27 @@
   // player re-renders on its own schedule. Java hands over poses already in the cube's own
   // axes with its reference applied — nothing here knows what a gyro reference is.
 
-  // How far the drawn pose closes on the reported one each frame. The gyro reports at ~20 Hz and
-  // the screen draws at 60, so following the readings exactly means holding still for two frames
-  // and jumping on the third — which is what "not very smooth" looks like. Closing a third of the
-  // remaining angle per frame lands within a couple of degrees in ~4 frames, so the lag is well
-  // under a tenth of a second and the motion is continuous.
-  var POSE_FOLLOW = 0.34;
+  // How fast the drawn pose closes on the reported one. The gyro reports far slower than the screen
+  // draws, so following the readings exactly means holding still for a few frames and jumping on the
+  // next — which is what "not very smooth" looks like. The pose instead chases exponentially, with a
+  // time constant taken from the cube's own reporting interval, so each reading is spread over
+  // roughly the wait for the next one however fast that cube talks.
+  //
+  // ⚠️ Measure the interval, do not assume one. This used to be a flat 0.34 of the remaining angle
+  // per frame, tuned to the ~20 Hz a V10 was measured at — the only brand ever timed. A cube that
+  // reports slower than that empties the gap in three frames and then sits still until the next
+  // reading, which is stepping, and no constant fits every brand at once. Nothing here needs to know
+  // the rate now: it is timed, and the pose is spread over whatever gap this cube leaves.
+  // At 20 Hz and 60 fps the factor below still works out at 0.34, so a V10 follows exactly as before.
+  var POSE_TAU_FACTOR = 0.8;   // of one reading interval
+  var POSE_TAU_MIN_MS = 20;
+  var POSE_TAU_MAX_MS = 160;
+  var DEFAULT_READING_MS = 50; // 20 Hz, until this cube has been timed
+
+  var readingIntervalMs = DEFAULT_READING_MS;
+  var lastReadingMs = 0;
+  var lastReading = null;
+  var lastPoseFrameMs = 0;
 
   var gyroOn = false;
   var puzzleObject = null;
@@ -305,16 +321,36 @@
     // reading three times over — and every ask crosses into Java, which is the one thing in this
     // loop that is not free.
     frames++;
+    var now = performance.now();
     if (frames % 2 === 0) {
       var reading = bridge("orientation");
       if (reading) {
         var parts = String(reading).split(",");
         if (parts.length === 4) {
           target = [+parts[0], +parts[1], +parts[2], +parts[3]];
+          // Only a *changed* reading times the cube: polling runs faster than it reports, so the
+          // same value fetched twice says nothing about how often it speaks.
+          if (reading !== lastReading) {
+            // ⚠️ And only a gap between two readings is a reading interval. A cube set down reports
+            // the same pose until it is moved again, so the gap across a rest is not a rate — count
+            // it and the average lands at the ceiling, which is four times the true lag, exactly as
+            // the cube is picked up to start a solve. Anything slower than the ceiling implies is a
+            // pause, not a cube.
+            var gap = now - lastReadingMs;
+            if (lastReadingMs && gap <= POSE_TAU_MAX_MS / POSE_TAU_FACTOR) {
+              readingIntervalMs += (gap - readingIntervalMs) * 0.2;
+            }
+            lastReadingMs = now;
+            lastReading = reading;
+          }
         }
       }
     }
-    pose = slerp(pose, target, POSE_FOLLOW);
+    var dt = lastPoseFrameMs ? Math.min(now - lastPoseFrameMs, 100) : 1000 / 60;
+    lastPoseFrameMs = now;
+    var tau = Math.max(POSE_TAU_MIN_MS,
+        Math.min(POSE_TAU_MAX_MS, readingIntervalMs * POSE_TAU_FACTOR));
+    pose = slerp(pose, target, 1 - Math.exp(-dt / tau));
     // ⚠️ Nudge whenever the scene is not showing the pose, and never merely because a turn is not
     // animating. Skipping it during moves was tried and is a trap: through a fast slice the moves
     // never stop arriving, so the nudge stays suppressed, the player renders only for its own
@@ -627,6 +663,9 @@
       poseRaf = null;
     }
     if (gyroOn) {
+      // The gap since the loop last ran is not a frame and not a reading interval: time it afresh.
+      lastPoseFrameMs = 0;
+      lastReadingMs = 0;
       poseRaf = requestAnimationFrame(poseLoop);
     } else {
       target = [1, 0, 0, 0];

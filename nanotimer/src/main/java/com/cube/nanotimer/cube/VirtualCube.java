@@ -386,8 +386,9 @@ public class VirtualCube implements GyroReferenceListener {
      * gyro, no reading yet, or no reference to measure from.
      *
      * <p>Polled from the page's render loop rather than pushed, which is what
-     * {@code SmartCube.getOrientation()} is documented for: the gyro runs at ~20 Hz, faster than
-     * any consumer needs. Runs on the JS thread, and touches only volatile state.
+     * {@code SmartCube.getOrientation()} is documented for: a gyro reports slower than the screen
+     * draws. How much slower differs by brand, so the page times the readings rather than assuming
+     * a rate. Runs on the JS thread, and touches only volatile state.
      */
     @JavascriptInterface
     public String orientation() {

@@ -50,6 +50,26 @@ public enum SmartCubeManager {
   /** Long enough for a slice to finish, short enough not to leave a fresh cube unanchored. */
   private static final long STILL_TIMEOUT_MS = 2000;
 
+  /**
+   * How often to re-ask a connected cube for its battery, and how fast to keep asking until the
+   * first answer lands.
+   *
+   * <p>A GAN or a MoYu reports its level only when asked, and only the app asks — so without this
+   * the number the chip shows is whichever reply happened to arrive during the handshake, frozen for
+   * the rest of the session. Worse, if that one reply is missed (or the cube dozes off and comes
+   * back), nothing ever asks again and the chip has no number to show at all.
+   */
+  private static final long BATTERY_POLL_MS = 5 * 60 * 1000;
+  private static final long BATTERY_RETRY_MS = 3000;
+
+  /**
+   * How many fast retries before settling into the slow poll. Bounded rather than "keep trying until
+   * an answer": a QiYi has no battery request at all — it volunteers the level with every turn — so
+   * an unbounded retry would hammer the BLE queue every 3 seconds for the whole session on a cube
+   * that was never going to answer.
+   */
+  private static final int BATTERY_RETRIES = 5;
+
   private Context context;
   private CubeScanner scanner;
   private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -59,6 +79,7 @@ public enum SmartCubeManager {
   private volatile DiscoveredCube connectedDevice;
   private volatile CubeConnection connection = CubeConnection.DISCONNECTED;
   private volatile Integer battery;
+  private volatile int batteryAttempts;
   private volatile CubeState currentState;
   private volatile CubeStateCorrection correction = CubeStateCorrection.none();
 
@@ -374,9 +395,26 @@ public enum SmartCubeManager {
     connected.addMoveListener(this::onCubeMove);
     connected.requestBattery();
     updateConnection(connected.getConnection());
+    mainHandler.removeCallbacks(batteryPoll);
+    batteryAttempts = 0;
+    mainHandler.postDelayed(batteryPoll, BATTERY_RETRY_MS);
   }
 
+  /** Asks quickly until there is a level to show, then just keeps it current. */
+  private final Runnable batteryPoll = new Runnable() {
+    @Override
+    public void run() {
+      if (cube == null) {
+        return;
+      }
+      requestBattery();
+      boolean keepTrying = battery == null && ++batteryAttempts < BATTERY_RETRIES;
+      mainHandler.postDelayed(this, keepTrying ? BATTERY_RETRY_MS : BATTERY_POLL_MS);
+    }
+  };
+
   private void disconnectInternal() {
+    mainHandler.removeCallbacks(batteryPoll);
     SmartCube toDisconnect = cube;
     cube = null;
     connectedDevice = null;

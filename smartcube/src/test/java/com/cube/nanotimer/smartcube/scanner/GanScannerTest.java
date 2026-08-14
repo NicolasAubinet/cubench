@@ -102,6 +102,38 @@ public class GanScannerTest {
     assertEquals(1.0, orientation.getW(), 1e-4);
   }
 
+  /**
+   * A GAN says this when it dozes off after sitting still, and the link survives it. Reading it as a
+   * lost connection is what left the app half dead: the manager dropped the cube, so the chip lost
+   * its battery number and the gyro stopped, while moves kept arriving and nothing put it back.
+   */
+  @Test
+  public void aSleepAnnouncementDoesNotDropTheConnection() {
+    FakeBle.Chr stateChr = new FakeBle.Chr(BleUuid.normalize(GanDriver.GEN2_STATE_CHR_UUID));
+    FakeBle.Chr commandChr = new FakeBle.Chr(BleUuid.normalize(GanDriver.GEN2_COMMAND_CHR_UUID));
+    FakeBle.Service service = new FakeBle.Service(BleUuid.normalize(GanDriver.GEN2_SERVICE),
+        Arrays.asList(stateChr, commandChr));
+    FakeBle.Peripheral peripheral =
+        new FakeBle.Peripheral("dev1", "GAN-1234", Collections.singletonList(service));
+    CubeScanner scanner = CubeScannerFactory.create(new FakeBle.Transport(peripheral, SCAN_RESULT));
+    List<DiscoveredCube> discovered = new ArrayList<>();
+    scanner.scan(discovered::add);
+    SmartCube cube = scanner.connect(discovered.get(0));
+    int afterHandshake = commandChr.written.size();
+
+    stateChr.push(sleepAnnouncement());
+    assertEquals(CubeConnection.READY, cube.getConnection());
+    assertEquals(afterHandshake, commandChr.written.size()); // nothing to ask while it is quiet
+
+    stateChr.push(sleepAnnouncement()); // saying it twice is still not waking up
+    assertEquals(afterHandshake, commandChr.written.size());
+
+    stateChr.push(gyro()); // it spoke again, so it never went
+    assertEquals(CubeConnection.READY, cube.getConnection());
+    // The battery is the one thing that goes stale while it dozes, so it is asked for again.
+    assertEquals(afterHandshake + 1, commandChr.written.size());
+  }
+
   /** A cube exposing no GAN service at all must fail the handshake rather than connect half-open. */
   @Test
   public void aPeripheralWithoutAGanServiceIsRejected() {
@@ -152,6 +184,13 @@ public class GanScannerTest {
     plain[0] = 0x01 << 4 | 0x07; // event type, then the top nibble of w's 0x7FFF magnitude
     plain[1] = 0xFF;
     plain[2] = 0xF0;
+    return encrypted(plain);
+  }
+
+  /** A Gen2 power-down announcement: opcode 0x0D and nothing else. */
+  private static int[] sleepAnnouncement() {
+    int[] plain = new int[20];
+    plain[0] = 0x0D << 4;
     return encrypted(plain);
   }
 

@@ -57,6 +57,9 @@ final class GanCube implements SmartCube {
   private CubeConnection connection = CubeConnection.CONNECTING;
   private ScheduledFuture<?> anchorRetry;
 
+  /** The cube said it was powering down. Cleared by the next thing it says. */
+  private volatile boolean asleep;
+
   GanCube(DiscoveredCube device, BlePeripheral peripheral, int[] mac, boolean moyuAi) {
     this.device = device;
     this.peripheral = peripheral;
@@ -120,7 +123,14 @@ final class GanCube implements SmartCube {
 
   private void onData(int[] raw) {
     long nowMs = System.currentTimeMillis();
-    for (GanEvent event : protocol.parse(raw, nowMs)) {
+    List<GanEvent> events = protocol.parse(raw, nowMs);
+    if (asleep && saidMoreThanGoodbye(events)) {
+      // It said it was going and then spoke anyway, so it never went. Its battery is the one thing
+      // that goes stale while it dozes, and only a request gets it back.
+      asleep = false;
+      request(GanRequest.BATTERY);
+    }
+    for (GanEvent event : events) {
       if (event instanceof GanEvent.GyroEvent gyro) {
         lastOrientation = gyro.getOrientation(); // streamed fast: stored for polling, never broadcast
         history.onSample(gyro.getOrientation(), nowMs);
@@ -138,13 +148,29 @@ final class GanCube implements SmartCube {
       } else if (event instanceof GanEvent.BatteryEvent battery) {
         notifyBattery(battery.getLevel());
       } else if (event instanceof GanEvent.DisconnectEvent) {
-        setConnection(CubeConnection.LOST);
+        // ⚠️ NOT a lost connection. A GAN announces this when it dozes off after sitting still, and
+        // the link usually survives it: the cube goes quiet and streams again on the next turn.
+        // Calling it LOST here is what left the app half dead — the manager dropped the cube, so the
+        // chip lost its battery and the gyro stopped, while moves kept arriving from this object and
+        // nothing ever put the connection back. The transport's own callback is what knows the link
+        // is really gone; all this needs to do is notice the cube stopped talking.
+        asleep = true;
       }
       // InfoEvent carries nothing consumers need yet.
     }
     if (!protocol.needsAnchor()) {
       stopAnchoring(); // a fresh state packet re-anchored us
     }
+  }
+
+  /** A cube repeating its power-down announcement is not a cube waking up. */
+  private static boolean saidMoreThanGoodbye(List<GanEvent> events) {
+    for (GanEvent event : events) {
+      if (!(event instanceof GanEvent.DisconnectEvent)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void requestMoveHistory(GanEvent.HistoryRequestEvent history) {
