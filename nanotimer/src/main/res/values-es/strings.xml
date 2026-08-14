@@ -294,7 +294,7 @@
   <string name="chart_type_frequency">Frecuencia</string>
   <string name="chart_type_distribution">Distribución</string>
   <string name="graph_help_title">Qué muestran estos gráficos</string>
-  <string name="graph_help_body">Tres maneras de leer el mismo historial. La fila de la derecha elige entre ellas, el selector de al lado elige hasta dónde llegan.</string>
+  <string name="graph_help_body">Tres maneras de leer el mismo historial. La fila de la derecha elige entre ellas, el selector de al lado elige hasta dónde llegan, y Suavizado promedia cada punto con sus vecinos para mostrar la tendencia sin los picos.</string>
   <string name="graph_help_progression">Cada tiempo en orden, con los Ao5 y Ao12 que los recorren.</string>
   <string name="graph_help_frequency">Cuántas resoluciones hiciste cada día.</string>
   <string name="graph_help_distribution">Cuántas resoluciones cayeron en cada rango de tiempo. El número debajo de una barra es donde empieza su rango.</string>
@@ -794,8 +794,8 @@
   <string name="acc100_label">Prec100</string>
   <string name="mean_label">Media total</string>
   <string name="stat_to_show">Estadística</string>
-  <string name="history_help_title">Los números de esta tarjeta</string>
-  <string name="history_help_body">La línea es la forma de sus 50 últimos tiempos, y al tocarla se abre la gráfica. Cada una de las tres casillas de abajo puede mostrar la estadística que quiera: toque una para cambiarla.</string>
+  <string name="history_help_title">Sobre estas estadísticas</string>
+  <string name="history_help_body">Cualquiera de ellas puede ir en cualquiera de las tres casillas.</string>
   <string name="history_help_rolling">Ventanas móviles</string>
   <string name="history_help_rolling_body">Una estadística con un número en su nombre solo abarca esa cantidad de sus tiempos más recientes, así que se mueve con cada resolución.</string>
   <string name="history_help_all">Media total y Prec total</string>

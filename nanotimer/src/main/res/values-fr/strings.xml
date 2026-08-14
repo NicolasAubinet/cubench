@@ -294,7 +294,7 @@
   <string name="chart_type_frequency">Fréquence</string>
   <string name="chart_type_distribution">Distribution</string>
   <string name="graph_help_title">Ce que montrent ces graphiques</string>
-  <string name="graph_help_body">Trois façons de lire le même historique. La rangée de droite choisit entre elles, le sélecteur d\'à côté choisit jusqu\'où elles remontent.</string>
+  <string name="graph_help_body">Trois façons de lire le même historique. La rangée de droite choisit entre elles, le sélecteur d\'à côté choisit jusqu\'où elles remontent, et Lisser moyenne chaque point avec ses voisins pour montrer la tendance sans les pics.</string>
   <string name="graph_help_progression">Chaque temps dans l\'ordre, avec les Ao5 et Ao12 qui les traversent.</string>
   <string name="graph_help_frequency">Le nombre de résolutions faites chaque jour.</string>
   <string name="graph_help_distribution">Le nombre de résolutions tombées dans chaque plage de temps. Le nombre sous une barre est le début de sa plage.</string>
@@ -795,8 +795,8 @@
   <string name="acc100_label">Préc100</string>
   <string name="mean_label">Moy totale</string>
   <string name="stat_to_show">Statistique</string>
-  <string name="history_help_title">Les chiffres de cette carte</string>
-  <string name="history_help_body">La courbe est la forme de vos 50 derniers temps, et la toucher ouvre le graphique. Chacune des trois cases en dessous peut afficher la statistique de votre choix : touchez-en une pour la changer.</string>
+  <string name="history_help_title">À propos de ces statistiques</string>
+  <string name="history_help_body">N\'importe laquelle peut occuper n\'importe laquelle des trois cases.</string>
   <string name="history_help_rolling">Fenêtres glissantes</string>
   <string name="history_help_rolling_body">Une statistique dont le nom contient un nombre ne porte que sur ce nombre de temps les plus récents, elle bouge donc à chaque résolution.</string>
   <string name="history_help_all">Moy totale et Préc totale</string>

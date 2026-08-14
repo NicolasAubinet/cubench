@@ -296,7 +296,7 @@
   <string name="chart_type_frequency">Frequência</string>
   <string name="chart_type_distribution">Distribuição</string>
   <string name="graph_help_title">O que estes gráficos mostram</string>
-  <string name="graph_help_body">Três formas de ler o mesmo histórico. A fileira da direita escolhe entre elas, o seletor do lado escolhe até onde elas voltam.</string>
+  <string name="graph_help_body">Três formas de ler o mesmo histórico. A fileira da direita escolhe entre elas, o seletor do lado escolhe até onde elas voltam, e Suavizar faz a média de cada ponto com os seus vizinhos para mostrar a tendência sem os picos.</string>
   <string name="graph_help_progression">Cada tempo em ordem, com as Ao5 e Ao12 que passam por eles.</string>
   <string name="graph_help_frequency">Quantas resoluções você fez em cada dia.</string>
   <string name="graph_help_distribution">Quantas resoluções caíram em cada faixa de tempo. O número abaixo de uma barra é onde a sua faixa começa.</string>
@@ -797,8 +797,8 @@
   <string name="acc100_label">Prec100</string>
   <string name="mean_label">Média total</string>
   <string name="stat_to_show">Estatística</string>
-  <string name="history_help_title">Os números deste cartão</string>
-  <string name="history_help_body">A linha é a forma dos seus 50 últimos tempos, e tocar nela abre o gráfico. Cada uma das três células abaixo pode mostrar a estatística que você quiser: toque em uma para mudá-la.</string>
+  <string name="history_help_title">Sobre estas estatísticas</string>
+  <string name="history_help_body">Qualquer uma delas pode ficar em qualquer uma das três células.</string>
   <string name="history_help_rolling">Janelas móveis</string>
   <string name="history_help_rolling_body">Uma estatística com um número no nome cobre apenas essa quantidade dos seus tempos mais recentes, então ela muda a cada resolução.</string>
   <string name="history_help_all">Média total e Prec total</string>

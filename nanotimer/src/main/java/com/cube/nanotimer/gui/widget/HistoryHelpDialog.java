@@ -8,9 +8,11 @@ import androidx.annotation.NonNull;
 import com.cube.nanotimer.R;
 
 /**
- * What the card above the history means. Its three cells can be set to any of eleven statistics
- * whose names are the sport's shorthand, and nothing on the screen says which of them move with
- * every solve and which look back over everything.
+ * What the history card's three cells can be set to. The names are the sport's shorthand, and
+ * nothing says which of them move with every solve and which look back over everything.
+ *
+ * <p>Reached from the ? on the picker that lists them, rather than from the card itself: the card
+ * is the home screen, and a help button does not belong on it.
  *
  * <p>Takes the blind flag, since a blind solve type is offered a different set: no Ao5, and the
  * accuracies instead.

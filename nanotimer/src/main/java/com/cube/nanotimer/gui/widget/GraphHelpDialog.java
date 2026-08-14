@@ -14,6 +14,12 @@ import com.cube.nanotimer.R;
  */
 public class GraphHelpDialog extends NanoTimerBottomSheetFragment {
 
+  /** The graph screen is landscape only, so the usual cap leaves the last column clipped. */
+  @Override
+  protected float maxHeightRatio() {
+    return 0.95f;
+  }
+
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {

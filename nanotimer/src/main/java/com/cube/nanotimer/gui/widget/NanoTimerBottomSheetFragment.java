@@ -52,8 +52,14 @@ public class NanoTimerBottomSheetFragment extends BottomSheetDialogFragment {
     behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
   }
 
+  /** How much of the screen a sheet may take. Raised by sheets whose screen is landscape only,
+   * where the default leaves too little of an already short height. */
+  protected float maxHeightRatio() {
+    return MAX_HEIGHT_RATIO;
+  }
+
   private int maxHeightPx() {
-    return (int) (getResources().getDisplayMetrics().heightPixels * MAX_HEIGHT_RATIO);
+    return (int) (getResources().getDisplayMetrics().heightPixels * maxHeightRatio());
   }
 
   @Override

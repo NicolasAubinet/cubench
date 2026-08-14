@@ -306,7 +306,7 @@
   <string name="chart_type_frequency">Frequency</string>
   <string name="chart_type_distribution">Distribution</string>
   <string name="graph_help_title">What these graphs show</string>
-  <string name="graph_help_body">Three ways of reading the same history. The row on the right chooses between them, the picker beside it chooses how far back they go.</string>
+  <string name="graph_help_body">Three ways of reading the same history. The row on the right chooses between them, the picker beside it chooses how far back they go, and Smooth averages each point with its neighbours so the trend shows without the spikes.</string>
   <string name="graph_help_progression">Every solve in order, with the Ao5 and Ao12 running through them.</string>
   <string name="graph_help_frequency">How many solves you did on each day.</string>
   <string name="graph_help_distribution">How many solves landed in each time range. The number under a bar is where its range starts.</string>
@@ -815,8 +815,8 @@
   <string name="acc50_label">Acc50</string>
   <string name="acc100_label">Acc100</string>
   <string name="stat_to_show">Statistic</string>
-  <string name="history_help_title">The numbers on this card</string>
-  <string name="history_help_body">The line is the shape of your last 50 solves, and tapping it opens the graph. Each of the three cells below it can be set to any statistic: tap one to change it.</string>
+  <string name="history_help_title">About these statistics</string>
+  <string name="history_help_body">Any of them can go in any of the three cells.</string>
   <string name="history_help_rolling">Rolling windows</string>
   <string name="history_help_rolling_body">A statistic with a number in its name covers only that many of your most recent solves, so it moves with every solve you do.</string>
   <string name="history_help_all">Mean all and Acc all</string>
