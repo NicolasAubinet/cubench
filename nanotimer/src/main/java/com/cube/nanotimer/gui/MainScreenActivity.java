@@ -48,6 +48,7 @@ import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.HistoryHelpDialog;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
+import com.cube.nanotimer.gui.widget.SelectorHelpHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
 import com.cube.nanotimer.gui.widget.SelectorListDialog;
 import com.cube.nanotimer.gui.widget.SolveNavigator;
@@ -87,7 +88,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class MainScreenActivity extends DrawerLayoutActivity implements SelectionHandler, ResultListener, TimeChangedHandler, SolveNavigator {
+public class MainScreenActivity extends DrawerLayoutActivity implements SelectionHandler, SelectorHelpHandler, ResultListener, TimeChangedHandler, SolveNavigator {
 
   private ListView lvHistory;
   private TextView tvCubeType;
@@ -315,10 +316,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itDrill) {
       startActivity(new Intent(this, DrillSetupActivity.class));
-      return true;
-    }
-    if (item.getItemId() == R.id.itHistoryHelp) {
-      DialogUtils.showFragment(this, HistoryHelpDialog.newInstance(curSolveType != null && curSolveType.isBlind()));
       return true;
     }
     return super.onOptionsItemSelected(item);
@@ -735,6 +732,14 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
    * The statistics this solve type has to offer, each with what it currently stands at, so the
    * picker is also the one place they can all be read at once.
    */
+  @Override
+  public void onSelectorHelp(int id) {
+    if (id >= ID_STAT_CELL && id < ID_STAT_CELL + STAT_CELL_IDS.length) {
+      DialogUtils.showFragment(this,
+          HistoryHelpDialog.newInstance(curSolveType != null && curSolveType.isBlind()));
+    }
+  }
+
   private void openStatPicker(int cell) {
     if (curSolveType == null) {
       return;
@@ -757,7 +762,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       .setHeader(getString(R.string.stat_to_show),
         Utils.toSolveTypeLocalizedName(this, curSolveType.getName()),
         SolveTypeIcons.forSolveType(curSolveType), SolveTypeIcons.colorForSolveType(curSolveType))
-      .setNote(blind ? getString(R.string.blind_averages_note) : null));
+      .setNote(blind ? getString(R.string.blind_averages_note) : null)
+      .setHelp());
   }
 
   private void statPicked(int cell, int position) {

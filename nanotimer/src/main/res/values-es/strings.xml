@@ -80,7 +80,7 @@
   <string name="session_success_average">Media de éxitos</string>
   <string name="session_accuracy">Éxito</string>
   <string name="sessiondetail_help_title">Qué significan estos números</string>
-  <string name="sessiondetail_help_body">Todos se refieren a la única sesión nombrada arriba, nunca a todo su historial.</string>
+  <string name="sessiondetail_help_body">Todos se refieren a la única sesión nombrada arriba.</string>
   <string name="sessiondetail_help_average">Quita el mejor y el peor, y promedia el resto. Un DNF cuenta como el peor, así que es el primero en salir.</string>
   <string name="sessiondetail_help_success_average">La misma media, sobre los tiempos que no falló.</string>
   <string name="sessiondetail_help_deviation">Cuánto se aparta la sesión de su propia media, sin contar los DNF. Cuanto menor, más constante.</string>
@@ -799,7 +799,7 @@
   <string name="history_help_rolling">Ventanas móviles</string>
   <string name="history_help_rolling_body">Una estadística con un número en su nombre solo abarca esa cantidad de sus tiempos más recientes, así que se mueve con cada resolución.</string>
   <string name="history_help_all">Media total y Prec total</string>
-  <string name="history_help_all_body">Todo su historial para este tipo de resolución, hasta los últimos 1000 tiempos.</string>
+  <string name="history_help_all_body">La media total es la media simple de sus tiempos, sin contar los DNF. La prec total, en los tipos a ciegas, dice con qué frecuencia acertó. Ambas abarcan todo su historial para este tipo de resolución, hasta los últimos 1000 tiempos.</string>
   <string name="history_help_pb_body">Su mejor tiempo para este tipo de resolución, por antiguo que sea.</string>
   <string name="history_help_average">Media o media simple</string>
   <string name="history_help_average_body">Una media quita el mejor y el peor, y promedia el resto. Una media simple no quita nada, así que un solo DNF entre sus tiempos la convierte en DNF.</string>

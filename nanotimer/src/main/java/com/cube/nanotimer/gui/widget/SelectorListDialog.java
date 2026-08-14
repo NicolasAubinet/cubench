@@ -48,6 +48,7 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
   private static final String ARG_EYEBROW = "eyebrow";
   private static final String ARG_TITLE = "title";
   private static final String ARG_NOTE = "note";
+  private static final String ARG_HELP = "help";
   private static final String ARG_HEAD_ICON = "headIcon";
   private static final String ARG_HEAD_COLOR = "headColor";
   private static final String ARG_NAMES = "names";
@@ -125,6 +126,15 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
     return this;
   }
 
+  /**
+   * Puts a ? on the header, which reports back through {@link SelectorHelpHandler} with this
+   * picker's id. For the pickers whose rows are named in jargon; the rest carry none.
+   */
+  public SelectorListDialog setHelp() {
+    getArguments().putBoolean(ARG_HELP, true);
+    return this;
+  }
+
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     density = getResources().getDisplayMetrics().density;
@@ -183,6 +193,19 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
       TextView tvNote = (TextView) header.findViewById(R.id.tvHeaderNote);
       tvNote.setText(note);
       tvNote.setVisibility(View.VISIBLE);
+    }
+
+    if (args.getBoolean(ARG_HELP)) {
+      View help = header.findViewById(R.id.buSelectorHelp);
+      help.setVisibility(View.VISIBLE);
+      help.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          if (getActivity() instanceof SelectorHelpHandler) {
+            ((SelectorHelpHandler) getActivity()).onSelectorHelp(id);
+          }
+        }
+      });
     }
 
     int iconRes = args.getInt(ARG_HEAD_ICON);

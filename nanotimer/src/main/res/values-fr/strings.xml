@@ -80,7 +80,7 @@
   <string name="session_success_average">Moyenne des réussites</string>
   <string name="session_accuracy">Réussites</string>
   <string name="sessiondetail_help_title">Ce que veulent dire ces chiffres</string>
-  <string name="sessiondetail_help_body">Ils portent tous sur la seule session nommée ci-dessus, jamais sur tout votre historique.</string>
+  <string name="sessiondetail_help_body">Ils portent tous sur la seule session nommée ci-dessus.</string>
   <string name="sessiondetail_help_average">Retire le meilleur et le pire, puis fait la moyenne du reste. Un DNF compte comme le pire, il est donc retiré en premier.</string>
   <string name="sessiondetail_help_success_average">La même moyenne, sur les temps que vous n\'avez pas ratés.</string>
   <string name="sessiondetail_help_deviation">À quel point la session s\'écarte de sa propre moyenne, DNF exclus. Plus c\'est petit, plus c\'est régulier.</string>
@@ -800,7 +800,7 @@
   <string name="history_help_rolling">Fenêtres glissantes</string>
   <string name="history_help_rolling_body">Une statistique dont le nom contient un nombre ne porte que sur ce nombre de temps les plus récents, elle bouge donc à chaque résolution.</string>
   <string name="history_help_all">Moy totale et Préc totale</string>
-  <string name="history_help_all_body">Tout votre historique pour ce type de résolution, jusqu\'aux 1000 derniers temps.</string>
+  <string name="history_help_all_body">La moy totale est la moyenne simple de vos temps, DNF exclus. La préc totale, sur les types en aveugle, dit à quelle fréquence vous avez réussi. Les deux portent sur tout votre historique pour ce type de résolution, jusqu\'aux 1000 derniers temps.</string>
   <string name="history_help_pb_body">Votre meilleur temps pour ce type de résolution, aussi ancien soit-il.</string>
   <string name="history_help_average">Moyenne ou moyenne simple</string>
   <string name="history_help_average_body">Une moyenne retire le meilleur et le pire, puis fait la moyenne du reste. Une moyenne simple ne retire rien, un seul DNF parmi ses temps en fait donc un DNF.</string>

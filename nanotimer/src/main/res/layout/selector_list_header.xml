@@ -59,6 +59,20 @@
          android:ellipsize="end"/>
     </LinearLayout>
 
+    <!-- Only the pickers that name things needing explaining ask for this. -->
+    <ImageView
+       android:id="@+id/buSelectorHelp"
+       android:layout_width="30dp"
+       android:layout_height="30dp"
+       android:layout_marginLeft="8dp"
+       android:layout_marginStart="8dp"
+       android:scaleType="fitCenter"
+       android:padding="5dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:src="@drawable/ic_help_outline"
+       android:visibility="gone"
+       android:contentDescription="@null"/>
+
   </LinearLayout>
 
   <!-- Whatever has to be said about the whole list rather than about one row of it. -->

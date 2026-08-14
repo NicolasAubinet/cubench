@@ -88,7 +88,7 @@
   <string name="session_success_average">Success average</string>
   <string name="session_accuracy">Accuracy</string>
   <string name="sessiondetail_help_title">What these numbers mean</string>
-  <string name="sessiondetail_help_body">All of them cover the one session named above, never your whole history.</string>
+  <string name="sessiondetail_help_body">All of them cover the one session named above.</string>
   <string name="sessiondetail_help_average">Drops the fastest and the slowest, then means what is left. A DNF sorts as the slowest, so the first one drops out too.</string>
   <string name="sessiondetail_help_success_average">The same trimmed average, over the solves you did not DNF.</string>
   <string name="sessiondetail_help_deviation">How far the session spreads around its own mean, DNFs left out. Smaller is steadier.</string>
@@ -820,7 +820,7 @@
   <string name="history_help_rolling">Rolling windows</string>
   <string name="history_help_rolling_body">A statistic with a number in its name covers only that many of your most recent solves, so it moves with every solve you do.</string>
   <string name="history_help_all">Mean all and Acc all</string>
-  <string name="history_help_all_body">Your whole history under this solve type, up to the last 1000 solves.</string>
+  <string name="history_help_all_body">Mean all is the plain mean of your times, DNFs left out. Acc all, on blind types, is how often you succeeded. Both look back over your whole history under this solve type, up to the last 1000 solves.</string>
   <string name="history_help_pb_body">Your fastest ever under this solve type, however far back it is.</string>
   <string name="history_help_average">Average or mean</string>
   <string name="history_help_average_body">An average drops the fastest and the slowest, then means the rest. A mean drops nothing, so one DNF among its solves makes it a DNF.</string>
