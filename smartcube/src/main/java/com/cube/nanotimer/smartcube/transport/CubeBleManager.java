@@ -15,6 +15,9 @@ import no.nordicsemi.android.ble.callback.DataReceivedCallback;
  */
 final class CubeBleManager extends BleManager {
 
+  /** The largest an Android ATT MTU goes. A peripheral that wants less answers with less. */
+  private static final int MAX_MTU = 517;
+
   private volatile BluetoothGatt gatt;
 
   CubeBleManager(Context context) {
@@ -29,7 +32,17 @@ final class CubeBleManager extends BleManager {
 
   @Override
   protected void initialize() {
-    // The driver enables notifications and writes its handshake explicitly.
+    // The driver enables notifications and writes its handshake explicitly. All this has to do is
+    // make room for them.
+    //
+    // ⚠️ The MTU is not optional. A GAN or a MoYu packet is exactly 20 bytes, which is all the
+    // default ATT MTU of 23 leaves for a payload — so nothing needed this until QiYi, whose hello is
+    // 32 bytes out and whose state change is 96 back. A notification longer than the MTU is not
+    // fragmented, it is dropped, so without this the QiYi connects, is written a truncated hello it
+    // cannot read, and stays mute for good. Asked for here rather than in a driver: initialize()
+    // finishes before connectTo() returns, so every handshake already has the room, and a cube that
+    // does not need it is not harmed by having it.
+    requestMtu(MAX_MTU).enqueue();
   }
 
   @Override
