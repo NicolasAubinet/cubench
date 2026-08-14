@@ -41,9 +41,9 @@ public class ImportTimesData {
       solveTypesList.add(solveType);
       solveTypeInList = solveType;
     } else {
+      reconcileSteps(solveType, existingSolveType);
       if (!solveType.equals(existingSolveType)) {
-        // happens if a same solve type has conflicts like if it's once set as blind and once as non-blind,
-        // or one has steps and an other doesn't
+        // happens if a same solve type has conflicts like if it's once set as blind and once as non-blind
         throw new CSVFormatException(context.getString(R.string.solve_type_conflict,
           solveType.getName(),
           cubeType.getName(),
@@ -52,6 +52,29 @@ public class ImportTimesData {
       solveTypeInList = existingSolveType;
     }
     return solveTypeInList;
+  }
+
+  /**
+   * A DNF has no splits, so the export writes its steps field empty even for a solve type that has
+   * steps — which used to read back as a second, step-less solve type of the same name and fail the
+   * whole import. A row that says nothing about steps says nothing: whichever of the two carries
+   * them is the one that stands.
+   */
+  private void reconcileSteps(SolveType solveType, SolveType existingSolveType) {
+    if (solveType.hasSteps() == existingSolveType.hasSteps()) {
+      return;
+    }
+    if (!solveType.hasSteps()) {
+      solveType.setSteps(existingSolveType.getSteps());
+    } else {
+      // The step-less one arrived first and is already a key of solveTimes, whose hash it is about
+      // to change, so its times come out before the change and go back in after it.
+      List<SolveTime> timesSoFar = solveTimes.remove(existingSolveType);
+      existingSolveType.setSteps(solveType.getSteps());
+      if (timesSoFar != null) {
+        solveTimes.put(existingSolveType, timesSoFar);
+      }
+    }
   }
 
   public void addSolveTime(SolveType solveType, SolveTime solveTime) throws CSVFormatException {
