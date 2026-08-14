@@ -55,7 +55,7 @@ public final class QiyiParser {
   };
 
   /** Byte offsets into a decoded message. */
-  private static final int TS_OFFSET = 3; // u32 big-endian, units of 1.6 ms
+  private static final int TS_OFFSET = 3; // u32 big-endian, 1.6 ticks to the millisecond
   private static final int STATE_OFFSET = 7; // 27 bytes -> 54 facelet nibbles
   private static final int MOVE_OFFSET = 34; // state change only
   private static final int BATTERY_OFFSET = 35;
@@ -221,11 +221,14 @@ public final class QiyiParser {
   /**
    * The cube's clock, pulled onto host time the way the V10/GAN parsers do, so
    * {@link CubeMove#getCubeTimestampMs()} means the same thing on every brand.
+   *
+   * <p>A tick is 1/1.6 ms, as csTimer's {@code qiyicube.js} reads it. The spec calls that "units of
+   * 1.6 milliseconds" and then says to divide by 1.6, which is the half that is right.
    */
   private long fitTimestamp(int[] msg, long hostTimeMs) {
     long ticks = ((long) msg[TS_OFFSET] << 24) | (msg[TS_OFFSET + 1] << 16)
         | (msg[TS_OFFSET + 2] << 8) | msg[TS_OFFSET + 3];
-    return clock.stamp(Math.round(ticks * 1.6), hostTimeMs);
+    return clock.stamp(Math.round(ticks / 1.6), hostTimeMs);
   }
 
   /** An ACK echoes bytes 2..6 of the message being acknowledged — its opcode and timestamp. */

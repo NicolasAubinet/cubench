@@ -219,12 +219,13 @@ public class QiyiParserTest {
     assertEquals(50000, stamp(newParser(), 1000, 50000));
   }
 
+  /** A 22 s solve replayed over 56 s, 2026-08-14: 1.6 the wrong way round is a factor of 2.56. */
   @Test
-  public void laterMovesAdvanceByTheCubeClockAt1Point6MsPerTick() {
+  public void laterMovesAdvanceByTheCubeClockAt1Point6TicksPerMs() {
     QiyiParser parser = newParser();
     stamp(parser, 1000, 50000); // anchor
-    // 625 ticks on = 1000ms on the cube's clock, whatever the host reports.
-    assertEquals(51000, stamp(parser, 1625, 50040));
+    // 1600 ticks on = 1000 ms on the cube's clock, whatever the host reports.
+    assertEquals(51000, stamp(parser, 2600, 50040));
   }
 
   /** Solve 253, 2026-08-14: a 10-move cross read as 4, its last edge falling into the first pair. */
@@ -232,22 +233,22 @@ public class QiyiParserTest {
   public void aNotificationDeliveredLateDoesNotMoveTheTimelineBackwards() {
     QiyiParser parser = newParser();
     stamp(parser, 1000, 50000);
-    assertEquals(51000, stamp(parser, 1625, 53000)); // handed over 2 s late by a busy main thread
-    assertEquals(52000, stamp(parser, 2250, 50300)); // and the next one on time again
+    assertEquals(51000, stamp(parser, 2600, 53000)); // handed over 2 s late by a busy main thread
+    assertEquals(52000, stamp(parser, 4200, 50300)); // and the next one on time again
   }
 
   @Test
   public void aGapBetweenSolvesWithTheClocksPartedReAnchors() {
     QiyiParser parser = newParser();
-    stamp(parser, 1000, 50000); // 1600 ms on the cube's clock
-    assertEquals(90000, stamp(parser, 20000, 90000)); // 30 s of cube time, 40 s of host time
+    stamp(parser, 1000, 50000); // 625 ms on the cube's clock
+    assertEquals(90000, stamp(parser, 33000, 90000)); // 20 s of cube time, 40 s of host time
   }
 
   @Test
   public void aGapTheCubeClockKeptUpWithDoesNot() {
     QiyiParser parser = newParser();
     stamp(parser, 1000, 50000);
-    assertEquals(90000, stamp(parser, 26000, 90040));
+    assertEquals(90000, stamp(parser, 65000, 90040)); // 40 s on both clocks
   }
 
   // ---- fixture builders --------------------------------------------------------------------
