@@ -330,6 +330,11 @@
   <string name="cross_neutrality_specific">Specific</string>
   <string name="cross_neutrality_dual">Dual</string>
   <string name="cross_neutrality_full">Full</string>
+  <string name="cross_help_title">About the cross solver</string>
+  <string name="cross_help_body">The shortest ways to solve the cross from the scramble you are on. Every way listed under a color is as short as that color\'s cross can be done in.</string>
+  <string name="cross_help_specific">Only the color you pick below.</string>
+  <string name="cross_help_dual">That color and the one opposite it, shortest first.</string>
+  <string name="cross_help_full">All six colors, shortest first, with the shortest starred.</string>
   <string name="cross_solving">Solving…</string>
   <string name="cross_no_scramble">No scramble available yet</string>
 

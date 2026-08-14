@@ -8,15 +8,34 @@
    android:paddingTop="16dp"
    android:paddingBottom="2dp">
 
-  <TextView
-     android:layout_width="wrap_content"
+  <!-- The label shares its line with the ?, which is what explains the three modes under it. -->
+  <LinearLayout
+     android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:text="@string/cross_neutrality"
-     android:textAllCaps="true"
-     android:textColor="@color/secondary_text"
-     android:textSize="12sp"
-     android:letterSpacing="0.08"
-     android:layout_marginBottom="6dp"/>
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:layout_marginBottom="6dp">
+
+    <TextView
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:text="@string/cross_neutrality"
+       android:textAllCaps="true"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"
+       android:letterSpacing="0.08"/>
+
+    <ImageView
+       android:id="@+id/buCrossHelp"
+       android:layout_width="28dp"
+       android:layout_height="28dp"
+       android:scaleType="fitCenter"
+       android:padding="4dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:src="@drawable/ic_help_outline"
+       android:contentDescription="@string/cross_help_title"/>
+  </LinearLayout>
 
   <!-- Segmented control (Specific / Dual / Full), populated in code. -->
   <LinearLayout

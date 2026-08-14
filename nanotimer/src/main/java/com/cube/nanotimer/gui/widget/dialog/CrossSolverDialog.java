@@ -16,6 +16,8 @@ import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.Options.CrossNeutrality;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.CrossHelpDialog;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.gui.widget.CrossFaceSwatches;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
@@ -86,6 +88,13 @@ public class CrossSolverDialog extends NanoTimerDialogFragment {
     });
     refreshSwatchStyles();
     llFace.setVisibility(neutrality == CrossNeutrality.FULL ? View.GONE : View.VISIBLE);
+
+    view.findViewById(R.id.buCrossHelp).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        DialogUtils.showFragment(getActivity(), new CrossHelpDialog());
+      }
+    });
 
     AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
         .setTitle(R.string.cross_solver)

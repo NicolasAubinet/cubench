@@ -315,6 +315,11 @@
   <string name="cross_neutrality_specific">Spécifique</string>
   <string name="cross_neutrality_dual">Double</string>
   <string name="cross_neutrality_full">Complète</string>
+  <string name="cross_help_title">À propos du solveur de croix</string>
+  <string name="cross_help_body">Les façons les plus courtes de faire la croix depuis le mélange en cours. Chaque façon listée sous une couleur est aussi courte que la croix de cette couleur peut l\'être.</string>
+  <string name="cross_help_specific">Seulement la couleur choisie ci-dessous.</string>
+  <string name="cross_help_dual">Cette couleur et celle qui lui est opposée, la plus courte d\'abord.</string>
+  <string name="cross_help_full">Les six couleurs, la plus courte d\'abord, la plus courte étant marquée d\'une étoile.</string>
   <string name="cross_solving">Résolution…</string>
   <string name="cross_no_scramble">Aucun mélange disponible pour l\'instant</string>
 

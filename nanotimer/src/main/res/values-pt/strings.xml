@@ -317,6 +317,11 @@
   <string name="cross_neutrality_specific">Específica</string>
   <string name="cross_neutrality_dual">Dupla</string>
   <string name="cross_neutrality_full">Completa</string>
+  <string name="cross_help_title">Sobre o solucionador de cruz</string>
+  <string name="cross_help_body">As formas mais curtas de fazer a cruz a partir do scramble atual. Cada forma listada sob uma cor é tão curta quanto a cruz dessa cor pode ser.</string>
+  <string name="cross_help_specific">Apenas a cor que você escolher abaixo.</string>
+  <string name="cross_help_dual">Essa cor e a oposta a ela, a mais curta primeiro.</string>
+  <string name="cross_help_full">As seis cores, a mais curta primeiro, com a mais curta marcada com uma estrela.</string>
   <string name="cross_solving">Resolvendo…</string>
   <string name="cross_no_scramble">Nenhum scramble disponível no momento</string>
 
