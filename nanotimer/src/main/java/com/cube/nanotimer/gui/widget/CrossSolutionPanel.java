@@ -42,7 +42,7 @@ import java.util.List;
  * and the rewind is the way back in.
  *
  * <p><b>Both strips are written in one frame:</b> cross-on-bottom, which is how a solver reads a
- * cross and how they hold one. The user's own turns are relabeled into it too, and the way opens
+ * cross and how they hold one. The user's own turns are relabeled into it too, and both strips open
  * with the rotation that gets there, as the cross solver's own solutions do. Two rows an inch apart
  * spelling the same physical turn two ways is the one thing a panel like this must not do. The
  * rotation is not a move and cannot be turned, so it is drawn as what it is and the arrows step
@@ -166,6 +166,9 @@ public class CrossSolutionPanel extends LinearLayout {
    * The moves the user has turned this rep, already folded into the metric they are counted in.
    * Empty hides the strip: a rep with nothing turned has nothing to show, and an empty line under
    * the cube would only look like something failed to load.
+   *
+   * <p>It opens with the same rotation the way below it does, greyed the same way: the two rows are
+   * one frame, so what puts you in that frame is said once per row rather than once per panel.
    */
   public void setYourMoves(List<String> moves) {
     if (moves == null || moves.isEmpty()) {
@@ -173,11 +176,17 @@ public class CrossSolutionPanel extends LinearLayout {
       return;
     }
     yoursRow.setVisibility(VISIBLE);
-    StringBuilder sb = new StringBuilder();
-    for (String move : moves) {
-      sb.append(sb.length() == 0 ? "" : "  ").append(CrossFormatter.moveOnBottom(face, move));
+    SpannableStringBuilder text = new SpannableStringBuilder();
+    String rotation = CrossFormatter.rotationPrefix(face);
+    if (!rotation.isEmpty()) {
+      text.append(rotation);
+      text.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.gray600)),
+          0, text.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
     }
-    tvYours.setText(sb.toString());
+    for (String move : moves) {
+      text.append(text.length() == 0 ? "" : "  ").append(CrossFormatter.moveOnBottom(face, move));
+    }
+    tvYours.setText(text);
     // The last move turned is the one worth seeing, so a strip too long for the screen shows its
     // end rather than its beginning.
     yoursScroll.post(new Runnable() {

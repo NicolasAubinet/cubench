@@ -10,8 +10,9 @@
        quarter turns are folded back into the half turn they were, so this strip and the move count
        beside the rep can never disagree. Live during a rep, and kept after it.
 
-       Spelled cross-on-bottom like the solution under it, and NOT as the cube reported them: two
-       rows an inch apart in two frames spell the same physical turn two ways. -->
+       Spelled cross-on-bottom like the solution under it and behind the same rotation, and NOT as
+       the cube reported them: two rows an inch apart in two frames spell the same physical turn
+       two ways. -->
   <LinearLayout
      android:id="@+id/llCrossYours"
      android:layout_width="match_parent"

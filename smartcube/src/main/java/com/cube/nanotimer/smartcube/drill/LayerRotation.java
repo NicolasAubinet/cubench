@@ -18,14 +18,14 @@ final class LayerRotation {
 
   /**
    * Where each face goes when the cube is turned to bring U onto the named face, in URFDLB order.
-   * The rotations are x2 for D, x' for F, x for B, z for R and z' for L.
+   * The rotations are z2 for D, x' for F, x for B, z for R and z' for L.
    */
   private static final String FROM = "URFDLB";
   private static final String[] TO = {
     "URFDLB", // U: nothing to do
     "RDFLUB", // R (z): U->R, R->D, D->L, L->U
     "FRDBLU", // F (x'): U->F, F->D, D->B, B->U
-    "DRBULF", // D (x2): U->D, D->U, F->B, B->F
+    "DLFURB", // D (z2): U->D, D->U, R->L, L->R
     "LUFRDB", // L (z'): U->L, L->D, D->R, R->U
     "BRUFLD", // B (x): U->B, B->D, D->F, F->U
   };

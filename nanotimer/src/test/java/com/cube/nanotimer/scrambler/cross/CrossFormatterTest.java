@@ -20,7 +20,7 @@ public class CrossFormatterTest {
 
   @Test
   public void testNonDFacesPrependCanonicalRotation() {
-    Assert.assertEquals("x2", CrossFormatter.rotationPrefix(CrossFace.U));
+    Assert.assertEquals("z2", CrossFormatter.rotationPrefix(CrossFace.U));
     Assert.assertEquals("x'", CrossFormatter.rotationPrefix(CrossFace.F));
     Assert.assertEquals("x", CrossFormatter.rotationPrefix(CrossFace.B));
     Assert.assertEquals("z", CrossFormatter.rotationPrefix(CrossFace.R));
@@ -28,21 +28,21 @@ public class CrossFormatterTest {
 
     String[] formatted = CrossFormatter.toCrossOnBottom(CrossFace.U, new String[] { "R", "U'" });
     Assert.assertEquals(3, formatted.length);
-    Assert.assertEquals("x2", formatted[0]);
+    Assert.assertEquals("z2", formatted[0]);
   }
 
   @Test
   public void testModifiersArePreserved() {
-    // U face uses x2: U -> D, so "U'" -> "D'", "F2" -> "B2", "R" -> "R".
-    String[] formatted = CrossFormatter.toCrossOnBottom(CrossFace.U, new String[] { "U'", "F2", "R" });
-    Assert.assertArrayEquals(new String[] { "x2", "D'", "B2", "R" }, formatted);
+    // U face uses z2: U -> D, R -> L, so "U'" -> "D'", "R2" -> "L2", "F" -> "F".
+    String[] formatted = CrossFormatter.toCrossOnBottom(CrossFace.U, new String[] { "U'", "R2", "F" });
+    Assert.assertArrayEquals(new String[] { "z2", "D'", "L2", "F" }, formatted);
   }
 
   // The same relabeling with nothing in front, for a screen that writes every row in this frame.
   @Test
   public void testMovesOnBottomLeavesTheRotationOut() {
-    String[] solution = { "U'", "F2", "R" };
-    Assert.assertArrayEquals(new String[] { "D'", "B2", "R" },
+    String[] solution = { "U'", "R2", "F" };
+    Assert.assertArrayEquals(new String[] { "D'", "L2", "F" },
         CrossFormatter.movesOnBottom(CrossFace.U, solution));
     Assert.assertSame(solution, CrossFormatter.movesOnBottom(CrossFace.D, solution));
   }

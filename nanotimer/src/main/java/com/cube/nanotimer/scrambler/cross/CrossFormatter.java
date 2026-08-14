@@ -9,7 +9,7 @@ package com.cube.nanotimer.scrambler.cross;
  * modifiers ({@code '}, {@code 2}) are preserved because a whole-cube rotation keeps a face turn's
  * sense.
  *
- * <p>Canonical rotations: D = none, U = x2, F = x', B = x, R = z, L = z'.
+ * <p>Canonical rotations: D = none, U = z2, F = x', B = x, R = z, L = z'.
  */
 public class CrossFormatter {
 
@@ -57,7 +57,7 @@ public class CrossFormatter {
   /** The whole-cube rotation that brings {@code face} to the bottom. */
   public static String rotationPrefix(CrossFace face) {
     switch (face) {
-      case U: return "x2";
+      case U: return "z2";
       case F: return "x'";
       case B: return "x";
       case R: return "z";
@@ -77,13 +77,13 @@ public class CrossFormatter {
   // The face a given face-letter occupies after the cube is rotated to put `face` on the bottom.
   private static char mapLetter(CrossFace face, char letter) {
     switch (face) {
-      case U: // x2: U<->D, F<->B, R/L fixed
+      case U: // z2: U<->D, R<->L, F/B fixed
         switch (letter) {
           case 'U': return 'D';
           case 'D': return 'U';
-          case 'F': return 'B';
-          case 'B': return 'F';
-          default: return letter; // R, L
+          case 'R': return 'L';
+          case 'L': return 'R';
+          default: return letter; // F, B
         }
       case F: // x': U->F->D->B->U
         switch (letter) {
