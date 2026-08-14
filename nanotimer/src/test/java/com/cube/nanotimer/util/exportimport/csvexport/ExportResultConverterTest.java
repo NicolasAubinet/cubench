@@ -519,4 +519,108 @@ public class ExportResultConverterTest {
     Assert.assertEquals("a note, with commas", result.getComment());
     Assert.assertNull(result.getTimeBeforeDnf());
   }
+
+  // ---- Importing a whole file, the way the importer really does it ----------------------------
+  // Everything above hands fromCSVLine a maxFieldsCount directly. The app never does: CSVDataReader
+  // checks the header is known, then derives the count from that header alone and parses every line
+  // under it. That derivation is where a back-compat break would actually happen, so these drive it.
+
+  /** What CSVDataReader.getExportResults does, minus the Android parts: header in, records out. */
+  private List<ExportResult> importWholeFile(String... lines) throws Exception {
+    Assert.assertTrue("header must be recognized: " + lines[0], ExportCSVGenerator.isHeaderLegit(lines[0]));
+    int maxFieldsCount = ExportCSVGenerator.getMaxFieldsCount(lines[0]);
+    List<ExportResult> results = new ArrayList<ExportResult>();
+    for (int i = 1; i < lines.length; i++) {
+      results.add(ExportResultConverter.fromCSVLine(null, lines[i], maxFieldsCount));
+    }
+    return results;
+  }
+
+  // The file the app on the Play Store writes today (1.4.3, versionCode 64). This is the one that
+  // matters most: it is the format every user's existing export is in.
+  @Test
+  public void testAFileFromTheReleasedAppImports() throws Exception {
+    String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
+    List<ExportResult> results = importWholeFile(
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,comment",
+        "3x3x3,Default,12.345," + date + ",,n,n,,\"R U R'\",a note, with commas",
+        "3x3x3,OH,1:05.120," + date + ",,y,n,last_layer,\"R U R' F2\"",
+        "Square-1,Default,29.376," + date + ",,n,n,,\"(1,0) / (-3,0) /\",",
+        "3x3x3,BLD,10.000," + date + ",\"Memo=4.000|Exec=6.000\",n,y,,\"R U R'\",done");
+    Assert.assertEquals(4, results.size());
+
+    Assert.assertEquals("a note, with commas", results.get(0).getComment()); // commas fold into it
+    Assert.assertEquals("R U R'", results.get(0).getScramble());
+
+    Assert.assertEquals(65120, results.get(1).getTime());
+    Assert.assertTrue(results.get(1).isPlusTwo());
+    Assert.assertEquals("last_layer", results.get(1).getScrambleTypeName());
+    Assert.assertNull(results.get(1).getComment()); // the field is absent, not empty
+
+    Assert.assertEquals("(1,0) / (-3,0) /", results.get(2).getScramble()); // quoted, commas and all
+
+    Assert.assertTrue(results.get(3).isBlindType());
+    Assert.assertEquals("Memo", results.get(3).getStepsNames()[0]);
+    Assert.assertEquals(Long.valueOf(6000), results.get(3).getStepsTimes()[1]);
+
+    for (ExportResult r : results) {
+      Assert.assertNull(r.getTimeBeforeDnf()); // the column does not exist in this file
+    }
+  }
+
+  // The same drive-by-header path over every layout the app has released, each under its own
+  // header, so the derivation is proved for all four rather than only for the current one.
+  @Test
+  public void testEveryReleasedLayoutImportsUnderItsOwnHeader() throws Exception {
+    String date = FormatterService.INSTANCE.formatExportDateTime(1700000000000L);
+    String common = "3x3x3,Default,12.345," + date + ",,n,n";
+
+    assertCommonFields(importWholeFile(
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scramble",
+        common + ",\"R U R'\"").get(0));
+
+    assertCommonFields(importWholeFile(
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble",
+        common + ",,\"R U R'\"").get(0));
+
+    ExportResult withComment = importWholeFile(
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,comment",
+        common + ",,\"R U R'\",a note, with commas").get(0);
+    assertCommonFields(withComment);
+    Assert.assertEquals("a note, with commas", withComment.getComment());
+
+    ExportResult current = importWholeFile(ExportCSVGenerator.CSV_HEADER_LINE,
+        common + ",,\"R U R'\",,a note, with commas").get(0);
+    assertCommonFields(current);
+    Assert.assertEquals("a note, with commas", current.getComment());
+  }
+
+  // A file this build writes must import through the same path, comment and all. The writer and
+  // the reader are only really connected here.
+  @Test
+  public void testAFileThisBuildWritesImportsBack() throws Exception {
+    ExportResult original = new ExportResult("Megaminx", "Default", 65120, 1700000000000L, true, false,
+        null, "R++ D--\nR-- D++\nU'", "note, with \"quote\" and a comma");
+    ExportCSVGenerator generator = new ExportCSVGenerator(Arrays.asList(original));
+
+    // The scramble spans lines in the file, so the importer regroups before splitting.
+    List<String> grouped = CSVLineGrouper.group(Arrays.asList(generator.getExportLine(0).split("\n")));
+    Assert.assertEquals(1, grouped.size());
+
+    ExportResult imported = importWholeFile(generator.getHeaderLine(), grouped.get(0)).get(0);
+    Assert.assertEquals(original.getTime(), imported.getTime());
+    Assert.assertEquals(original.getTimestamp(), imported.getTimestamp());
+    Assert.assertEquals(original.isPlusTwo(), imported.isPlusTwo());
+    Assert.assertEquals(original.getScramble(), imported.getScramble());
+    Assert.assertEquals(original.getComment(), imported.getComment());
+  }
+
+  // A development-era wide file must be turned away at the header, which is the check the importer
+  // runs before any line is parsed. Being unreadable is fine; being read as the wrong layout is not,
+  // since its smart-cube fields would land in the pre-DNF and comment columns.
+  @Test
+  public void testADevEraWideFileIsRefusedAtTheHeader() {
+    Assert.assertFalse(ExportCSVGenerator.isHeaderLegit(
+        "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble,smartcubeMethod,smartcubeMoves,smartcubeSteps,smartcubeStopped,timeBeforeDnf,comment"));
+  }
 }
