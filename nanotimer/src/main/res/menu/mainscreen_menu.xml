@@ -13,7 +13,7 @@
      app:showAsAction="always"/>
 
   <item android:id="@+id/itAppIcon"
-     android:title="@string/app_name"
+     android:title="@string/about"
      android:icon="@drawable/app_icon_cube"
      app:showAsAction="always"/>
 

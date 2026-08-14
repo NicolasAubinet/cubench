@@ -318,6 +318,10 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       startActivity(new Intent(this, DrillSetupActivity.class));
       return true;
     }
+    if (item.getItemId() == R.id.itAppIcon) {
+      DialogUtils.showFragment(this, AboutDialog.newInstance());
+      return true;
+    }
     return super.onOptionsItemSelected(item);
   }
 
