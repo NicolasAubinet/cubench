@@ -1,7 +1,5 @@
 package com.cube.nanotimer.vo;
 
-import java.util.List;
-
 public class ExportResult {
 
   private int solveTimeId;
@@ -20,13 +18,6 @@ public class ExportResult {
 
   private String[] stepsNames;
   private Long[] stepsTimes;
-
-  // The smart-cube record of the solve, all null unless a cube drove it (see SolveTime).
-  private CubeMethod smartcubeMethod;
-  private String smartcubeMoves;
-  private String smartcubeGyroTrack;
-  private List<SolveStep> smartcubeSteps;
-  private Integer smartcubeStoppedStep;
 
   public ExportResult(int solveTimeId, int cubeTypeId, String cubeTypeName, int solveTypeId, String solveTypeName,
                       long time, long timestamp, boolean plusTwo, boolean blindType, String scrambleTypeName, String scramble, String comment) {
@@ -172,51 +163,6 @@ public class ExportResult {
 
   public boolean hasSteps() {
     return stepsNames != null && stepsTimes != null;
-  }
-
-  public CubeMethod getSmartcubeMethod() {
-    return smartcubeMethod;
-  }
-
-  public void setSmartcubeMethod(CubeMethod smartcubeMethod) {
-    this.smartcubeMethod = smartcubeMethod;
-  }
-
-  public String getSmartcubeMoves() {
-    return smartcubeMoves;
-  }
-
-  public void setSmartcubeMoves(String smartcubeMoves) {
-    this.smartcubeMoves = smartcubeMoves;
-  }
-
-  /** The solve's gyro track, null unless the cube had a gyro (see SolveTime). */
-  public String getSmartcubeGyroTrack() {
-    return smartcubeGyroTrack;
-  }
-
-  public void setSmartcubeGyroTrack(String smartcubeGyroTrack) {
-    this.smartcubeGyroTrack = smartcubeGyroTrack;
-  }
-
-  public List<SolveStep> getSmartcubeSteps() {
-    return smartcubeSteps;
-  }
-
-  public void setSmartcubeSteps(List<SolveStep> smartcubeSteps) {
-    this.smartcubeSteps = smartcubeSteps;
-  }
-
-  public Integer getSmartcubeStoppedStep() {
-    return smartcubeStoppedStep;
-  }
-
-  public void setSmartcubeStoppedStep(Integer smartcubeStoppedStep) {
-    this.smartcubeStoppedStep = smartcubeStoppedStep;
-  }
-
-  public boolean hasSmartcubeBreakdown() {
-    return smartcubeSteps != null && !smartcubeSteps.isEmpty();
   }
 
 }

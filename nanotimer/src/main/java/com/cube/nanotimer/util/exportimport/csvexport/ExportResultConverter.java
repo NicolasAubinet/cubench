@@ -2,27 +2,15 @@ package com.cube.nanotimer.util.exportimport.csvexport;
 
 import android.content.Context;
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.cube.GyroTrackFormat;
-import com.cube.nanotimer.cube.SolveMovesFormat;
-import com.cube.nanotimer.cube.SolveStepsFormat;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.exportimport.CSVFormatException;
 import com.cube.nanotimer.util.helper.Utils;
-import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.ExportResult;
-import com.cube.nanotimer.vo.SolveStep;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExportResultConverter {
-
-  // The gyro track rides at the end of the moves field, as "R@0 U'@180 gyro:AbCd", so the file
-  // needs no new column and every layout already written stays importable. Carrying no '@' it is
-  // not a move, so SolveMovesFormat.parse drops it as it drops the pick-up grip.
-  // ⚠️ The file's packing alone: in the DB the track has its own column, because smartcube_moves
-  // is read for every history row just as a "replayable" flag and a CSV field has no such reader.
-  private static final String GYRO_MARKER = "gyro:";
 
   static String encodeComment(String comment) {
     return comment
@@ -50,17 +38,7 @@ public class ExportResultConverter {
     return sb.toString();
   }
 
-  /**
-   * @param withSmartcubeFields whether the file carries the four smart-cube columns; a whole file
-   *     is one format or the other, so this follows the header the generator chose
-   */
-  public static String toCSVLine(ExportResult result, boolean withSmartcubeFields) {
-    if (!withSmartcubeFields
-        && (result.getSmartcubeMoves() != null || result.getSmartcubeGyroTrack() != null
-            || result.hasSmartcubeBreakdown())) {
-      // Writing this solve without its smart-cube columns would silently drop recorded data.
-      throw new IllegalArgumentException("Solve carries smart cube data the format cannot hold");
-    }
+  static String toCSVLine(ExportResult result) {
     StringBuilder sb = new StringBuilder();
     sb.append(result.getCubeTypeName());
     sb.append(",");
@@ -85,22 +63,6 @@ public class ExportResultConverter {
     if (result.getScramble() != null) {
       sb.append(escapeString(result.getScramble()));
     }
-    if (withSmartcubeFields) {
-      sb.append(",");
-      if (result.getSmartcubeMethod() != null) {
-        sb.append(result.getSmartcubeMethod().getCode());
-      }
-      sb.append(",");
-      sb.append(packMoves(result.getSmartcubeMoves(), result.getSmartcubeGyroTrack()));
-      sb.append(",");
-      if (result.hasSmartcubeBreakdown()) {
-        sb.append(SolveStepsFormat.format(result.getSmartcubeSteps()));
-      }
-      sb.append(",");
-      if (result.getSmartcubeStoppedStep() != null) {
-        sb.append(result.getSmartcubeStoppedStep());
-      }
-    }
     sb.append(",");
     if (result.getTimeBeforeDnf() != null) {
       sb.append(FormatterService.INSTANCE.formatSolveTime(result.getTimeBeforeDnf(), null, true));
@@ -122,10 +84,7 @@ public class ExportResultConverter {
     // The layout is the one the file's header announced, never a guess from the line's own field
     // count. Consecutive layouts differ by a single column, so a line that lost one would read as
     // the shorter layout and quietly shift every field after it — the damage has to be reported.
-    boolean smartcubeFormat = maxFieldsCount == ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT
-        || maxFieldsCount == ExportCSVGenerator.LEGACY_SMARTCUBE_MAX_FIELDS_COUNT;
-    boolean withTimeBeforeDnf = maxFieldsCount == ExportCSVGenerator.SMARTCUBE_MAX_FIELDS_COUNT
-        || maxFieldsCount == ExportCSVGenerator.MAX_FIELDS_COUNT;
+    boolean withTimeBeforeDnf = maxFieldsCount == ExportCSVGenerator.MAX_FIELDS_COUNT;
     if (!isFieldsCountValid(fields.size(), maxFieldsCount)) {
       throw new CSVFormatException(context.getString(R.string.import_invalid_columns_count));
     }
@@ -156,7 +115,7 @@ public class ExportResultConverter {
     }
 
     // Without the pre-DNF field the comment simply sits where that field would have been.
-    int timeBeforeDnfFieldIndex = smartcubeFormat ? 13 : 9;
+    int timeBeforeDnfFieldIndex = 9;
     int commentFieldIndex = withTimeBeforeDnf ? timeBeforeDnfFieldIndex + 1 : timeBeforeDnfFieldIndex;
     String comment = null;
     if (fields.size() > commentFieldIndex) {
@@ -167,13 +126,6 @@ public class ExportResultConverter {
     String stepsField = fields.get(4);
     exportResult.setStepsTimes(getStepsTimes(context, stepsField));
     exportResult.setStepsNames(getStepsNames(context, stepsField));
-    if (smartcubeFormat) {
-      try {
-        applySmartcubeFields(exportResult, fields.get(9), fields.get(10), fields.get(11), fields.get(12));
-      } catch (IllegalArgumentException e) {
-        throw new CSVFormatException(context.getString(R.string.import_invalid_smartcube_data, e.getMessage()));
-      }
-    }
     if (withTimeBeforeDnf) {
       try {
         applyTimeBeforeDnf(exportResult, fields.get(timeBeforeDnfFieldIndex));
@@ -186,10 +138,10 @@ public class ExportResultConverter {
 
   /**
    * Whether a line carries the number of fields the layout its header announced calls for.
-   * Only the three layouts predating the smart cube columns share a fold count, so only they let
-   * the line's own count say which it is: 8 fields is the oldest, 9 adds the scramble type, 10 the
-   * comment. Every layout since is exact, so a line short of its own layout is damaged rather than
-   * an older one — reading it as the older one would shift every field past the missing column.
+   * Only the three layouts that fold at ten share a fold count, so only they let the line's own
+   * count say which it is: 8 fields is the oldest, 9 adds the scramble type, 10 the comment. The
+   * layout carrying the pre-DNF time is exact, so a line short of it is damaged rather than an
+   * older one — reading it as the older one would shift every field past the missing column.
    */
   static boolean isFieldsCountValid(int fieldsCount, int maxFieldsCount) {
     if (maxFieldsCount == ExportCSVGenerator.LEGACY_MAX_FIELDS_COUNT) {
@@ -220,108 +172,6 @@ public class ExportResultConverter {
       throw new IllegalArgumentException("Not a solve time: \"" + timeBeforeDnf + "\"");
     }
     result.setTimeBeforeDnf(time);
-  }
-
-  /** The moves field as it is written: the solution, then the gyro track if the solve has one. */
-  static String packMoves(String moves, String gyroTrack) {
-    StringBuilder sb = new StringBuilder();
-    if (moves != null) {
-      sb.append(moves);
-    }
-    if (gyroTrack != null && !gyroTrack.isEmpty()) {
-      if (sb.length() > 0) {
-        sb.append(' ');
-      }
-      sb.append(GYRO_MARKER).append(gyroTrack);
-    }
-    return sb.toString();
-  }
-
-  /** The solution out of a moves field, without the gyro track riding at the end of it. */
-  static String movesIn(String movesField) {
-    int at = gyroTrackAt(movesField);
-    return (at < 0 ? movesField : movesField.substring(0, at)).trim();
-  }
-
-  /** The gyro track out of a moves field, empty where it carries none. */
-  static String gyroTrackIn(String movesField) {
-    int at = gyroTrackAt(movesField);
-    return at < 0 ? "" : movesField.substring(at + GYRO_MARKER.length()).trim();
-  }
-
-  /** Only a token of its own is the marker: a hand-edited field could hold the text anywhere. */
-  private static int gyroTrackAt(String movesField) {
-    int at = movesField.lastIndexOf(GYRO_MARKER);
-    return at > 0 && movesField.charAt(at - 1) != ' ' ? -1 : at;
-  }
-
-  /**
-   * Applies a new-format line's smart-cube fields, validating them as one record: the fields
-   * reference each other (steps need their method, the stopped step points into the steps, a gyro
-   * track describes a solution), so a half-valid set is rejected whole rather than half-imported.
-   * Empty fields mean a solve no cube drove and stay null.
-   *
-   * @param movesField the solution, and the gyro track at the end of it (see GYRO_MARKER)
-   */
-  static void applySmartcubeFields(ExportResult result, String method, String movesField,
-      String steps, String stoppedStep) {
-    method = method.trim(); // tolerate hand-edited whitespace, in every field
-    String moves = movesIn(movesField);
-    String gyroTrack = gyroTrackIn(movesField);
-    steps = steps.trim();
-    stoppedStep = stoppedStep.trim();
-    if (!method.isEmpty()) {
-      CubeMethod cubeMethod = CubeMethod.fromCode(method);
-      if (cubeMethod == null) {
-        throw new IllegalArgumentException("Unknown method: \"" + method + "\"");
-      }
-      result.setSmartcubeMethod(cubeMethod);
-    }
-    if (!moves.isEmpty()) {
-      if (SolveMovesFormat.parse(moves).isEmpty()) { // the lenient parser found not one valid move
-        throw new IllegalArgumentException("Unreadable moves: \"" + moves + "\"");
-      }
-      result.setSmartcubeMoves(moves);
-    }
-    if (gyroTrack.isEmpty() && movesField.contains(GYRO_MARKER)) {
-      // Marked but not as a token of its own, so the track would be absorbed into the moves and
-      // stored as part of the solution. Only a hand-edited field gets here.
-      throw new IllegalArgumentException("A gyro track that is not a token of its own");
-    }
-    if (!gyroTrack.isEmpty()) {
-      if (moves.isEmpty()) { // the persistence layer keeps a track only alongside its solution
-        throw new IllegalArgumentException("A gyro track with no moves to go with");
-      }
-      if (GyroTrackFormat.parse(gyroTrack) == null) {
-        throw new IllegalArgumentException("Unreadable gyro track");
-      }
-      result.setSmartcubeGyroTrack(gyroTrack);
-    }
-    List<SolveStep> parsedSteps = SolveStepsFormat.parse(steps);
-    if (!parsedSteps.isEmpty()) {
-      if (result.getSmartcubeMethod() == null) { // the persistence layer requires the pair
-        throw new IllegalArgumentException("Steps without a method");
-      }
-      result.setSmartcubeSteps(parsedSteps);
-    } else if (result.getSmartcubeMethod() != null) {
-      throw new IllegalArgumentException("Method without its steps");
-    }
-    if (!stoppedStep.isEmpty()) {
-      int stopped;
-      try {
-        stopped = Integer.parseInt(stoppedStep);
-      } catch (NumberFormatException e) {
-        throw new IllegalArgumentException("Invalid stopped step: \"" + stoppedStep + "\"");
-      }
-      boolean known = false;
-      for (SolveStep step : parsedSteps) {
-        known = known || step.getStepIndex() == stopped;
-      }
-      if (!known) { // also rejects a stopped step on a line that has no steps at all
-        throw new IllegalArgumentException("Stopped step " + stopped + " matches no step");
-      }
-      result.setSmartcubeStoppedStep(stopped);
-    }
   }
 
   private static Long[] getStepsTimes(Context context, String stepsField) throws CSVFormatException {

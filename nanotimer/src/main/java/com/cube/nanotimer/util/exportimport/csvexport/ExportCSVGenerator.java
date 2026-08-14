@@ -13,32 +13,26 @@ public class ExportCSVGenerator implements CSVGenerator {
   // by adding a block before the comment, so a new column means extending a block here and adding
   // the layout it produces to KNOWN_HEADER_LINES; no layout is ever spelled out twice.
   private static final String COMMON_COLUMNS = "cubetype,solvetype,time,date,steps,plustwo,blind,scrambleType,scramble";
-  private static final String SMARTCUBE_COLUMNS = "smartcubeMethod,smartcubeMoves,smartcubeSteps,smartcubeStopped";
   private static final String TIME_BEFORE_DNF_COLUMN = "timeBeforeDnf";
   private static final String COMMENT_COLUMN = "comment";
 
-  // Written whenever no exported solve carries smart-cube data.
+  // The only layout the app writes.
   public static final String CSV_HEADER_LINE = header(COMMON_COLUMNS, TIME_BEFORE_DNF_COLUMN, COMMENT_COLUMN);
-  // Written once a solve carries smart-cube data — a file is one layout throughout.
-  public static final String SMARTCUBE_CSV_HEADER_LINE = header(COMMON_COLUMNS, SMARTCUBE_COLUMNS, TIME_BEFORE_DNF_COLUMN, COMMENT_COLUMN);
-  // The layout that preceded the pre-DNF column, whose lines put the comment one field earlier.
-  public static final String LEGACY_SMARTCUBE_CSV_HEADER_LINE = header(COMMON_COLUMNS, SMARTCUBE_COLUMNS, COMMENT_COLUMN);
 
   /**
-   * Every layout the app has written, oldest first. The last two are what it writes now; the rest
-   * are kept only so the files they describe stay importable.
+   * Every layout the app has ever released, oldest first. Only {@link #CSV_HEADER_LINE} is written;
+   * the rest are kept so the files they describe stay importable, which is why the list only ever
+   * grows. A CSV is the file you open in a spreadsheet or bring over from another timer, so what a
+   * solve holds beyond these columns travels in a backup instead, which copies the database and so
+   * needs no layout of its own.
    */
   public static final List<String> KNOWN_HEADER_LINES = Arrays.asList(
       "cubetype,solvetype,time,date,steps,plustwo,blind,scramble", // before a scramble had a type
       COMMON_COLUMNS,                                              // before a solve had a comment
       header(COMMON_COLUMNS, COMMENT_COLUMN),
-      LEGACY_SMARTCUBE_CSV_HEADER_LINE,
-      CSV_HEADER_LINE,
-      SMARTCUBE_CSV_HEADER_LINE);
+      CSV_HEADER_LINE);
 
-  public static final int SMARTCUBE_MAX_FIELDS_COUNT = columnsCount(SMARTCUBE_CSV_HEADER_LINE);
   public static final int MAX_FIELDS_COUNT = columnsCount(CSV_HEADER_LINE);
-  public static final int LEGACY_SMARTCUBE_MAX_FIELDS_COUNT = columnsCount(LEGACY_SMARTCUBE_CSV_HEADER_LINE);
   public static final int LEGACY_MAX_FIELDS_COUNT = columnsCount(header(COMMON_COLUMNS, COMMENT_COLUMN));
 
   private static String header(String... columnBlocks) {
@@ -67,22 +61,14 @@ public class ExportCSVGenerator implements CSVGenerator {
   }
 
   private final List<ExportResult> results;
-  private final boolean smartcubeFormat;
 
   public ExportCSVGenerator(List<ExportResult> results) {
     this.results = results;
-    boolean hasSmartcubeData = false;
-    for (ExportResult result : results) {
-      hasSmartcubeData = hasSmartcubeData
-          || result.getSmartcubeMoves() != null || result.getSmartcubeGyroTrack() != null
-          || result.hasSmartcubeBreakdown();
-    }
-    this.smartcubeFormat = hasSmartcubeData;
   }
 
   @Override
   public String getHeaderLine() {
-    return smartcubeFormat ? SMARTCUBE_CSV_HEADER_LINE : CSV_HEADER_LINE;
+    return CSV_HEADER_LINE;
   }
 
   @Override
@@ -91,7 +77,7 @@ public class ExportCSVGenerator implements CSVGenerator {
       return null;
     }
     ExportResult line = results.get(n);
-    return ExportResultConverter.toCSVLine(line, smartcubeFormat);
+    return ExportResultConverter.toCSVLine(line);
   }
 
   public static boolean isHeaderLegit(String parHeaderLine) {
