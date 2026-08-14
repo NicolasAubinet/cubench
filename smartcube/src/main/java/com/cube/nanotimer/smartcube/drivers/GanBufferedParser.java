@@ -211,7 +211,7 @@ abstract class GanBufferedParser implements GanProtocol {
   private long stampOf(BufferedMove move, long hostTimeMs) {
     Long cubeTimeMs = move.getCubeTimeMs();
     if (cubeTimeMs == null) {
-      return clock.lastStamp(); // recovered from history: never seen live, so it has no time
+      return clock.lastStamp(hostTimeMs); // recovered from history: it has no time of its own
     }
     return clock.stamp(cubeTimeMs, hostTimeMs);
   }

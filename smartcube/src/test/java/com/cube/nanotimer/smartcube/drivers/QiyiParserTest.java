@@ -239,8 +239,8 @@ public class QiyiParserTest {
   @Test
   public void aGapBetweenSolvesWithTheClocksPartedReAnchors() {
     QiyiParser parser = newParser();
-    stamp(parser, 1000, 50000);
-    assertEquals(90000, stamp(parser, 1625, 90000));
+    stamp(parser, 1000, 50000); // 1600 ms on the cube's clock
+    assertEquals(90000, stamp(parser, 20000, 90000)); // 30 s of cube time, 40 s of host time
   }
 
   @Test

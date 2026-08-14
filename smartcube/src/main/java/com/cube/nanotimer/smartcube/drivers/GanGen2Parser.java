@@ -63,10 +63,10 @@ public final class GanGen2Parser implements GanProtocol {
 
   private final GanCipher cipher;
   private final CubieCube cube = new CubieCube();
+  private final CubeClock clock = new CubeClock();
 
   private int lastSerial = -1;
-  private long deviceTime = 0;
-  private long deviceTimeOffset = 0;
+  private long cubeTimeMs = 0;
   private long lastMoveTimeMs = 0;
   private Integer batteryLevel;
 
@@ -171,9 +171,11 @@ public final class GanGen2Parser implements GanProtocol {
     // the model dead instead.
     if (missed > MAX_RECOVERABLE_MOVES) {
       lastSerial = -1;
+      clock.refit(); // the lost moves take their gaps with them: the cube clock has a hole in it
       return List.of(new GanEvent.DesyncEvent(missed - MAX_RECOVERABLE_MOVES));
     }
     if (!packet.has(47 + 16 * missed)) {
+      clock.refit(); // the moves went with the packet, and their gaps with them
       return List.of();
     }
 
@@ -185,6 +187,7 @@ public final class GanGen2Parser implements GanProtocol {
     for (int i = 0; i < missed; i++) {
       int face = packet.val(12 + 5 * i, 4);
       if (face >= FACE_BY_CODE.length) {
+        clock.refit();
         return List.of(); // corrupt packet — drop it
       }
       faces[i] = FACE_BY_CODE[face];
@@ -198,24 +201,24 @@ public final class GanGen2Parser implements GanProtocol {
       elapsed[i] = ms;
     }
 
-    long calcTs = deviceTime + deviceTimeOffset;
+    // Only the newest move arrived at hostTimeMs; the ones behind it happened their own gaps ago,
+    // and dating them all at the delivery would fit the clock onto a batch's worth of lateness.
+    long behindMs = 0;
     for (int i = missed - 1; i >= 0; i--) {
-      calcTs += elapsed[i];
-    }
-    if (deviceTime == 0 || Math.abs(hostTimeMs - calcTs) > 2000) {
-      deviceTime += hostTimeMs - calcTs;
+      behindMs += elapsed[i];
     }
 
     List<GanEvent> events = new ArrayList<>();
     for (int i = missed - 1; i >= 0; i--) {
       cube.applyMove(faces[i], primes[i]);
-      deviceTime += elapsed[i];
+      cubeTimeMs += elapsed[i];
+      behindMs -= elapsed[i];
       events.add(new GanEvent.MoveEvent(
           // Recovered moves were never seen live, so they have no host time.
-          new CubeMove(faces[i], primes[i], deviceTime, i == 0 ? Long.valueOf(hostTimeMs) : null),
+          new CubeMove(faces[i], primes[i], clock.stamp(cubeTimeMs, hostTimeMs - behindMs),
+              i == 0 ? Long.valueOf(hostTimeMs) : null),
           new CubeState(cube.toFaceCube())));
     }
-    deviceTimeOffset = hostTimeMs - deviceTime;
     lastMoveTimeMs = hostTimeMs;
     return events;
   }
@@ -243,6 +246,9 @@ public final class GanGen2Parser implements GanProtocol {
 
     if (!cube.fromPermutation(cp, co, ep, eo)) {
       return List.of(); // corrupt packet
+    }
+    if (needsAnchor()) {
+      clock.refit(); // whatever was turned while unanchored was dropped, gaps and all
     }
     lastSerial = serial;
     return List.of(new GanEvent.StateEvent(new CubeState(cube.toFaceCube())));

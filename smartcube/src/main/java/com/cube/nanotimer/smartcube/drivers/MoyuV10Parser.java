@@ -53,6 +53,7 @@ public final class MoyuV10Parser {
   /** Force the next state message to re-anchor (used after packet loss). */
   public void resetAnchor() {
     prevMoveCnt = -1;
+    clock.refit(); // moves are dropped until the next state packet, gaps and all
   }
 
   /** False between {@link #resetAnchor} and the next state packet, while moves are dropped. */
@@ -155,6 +156,14 @@ public final class MoyuV10Parser {
     if (moveDiff > moves.size()) {
       moveDiff = moves.size();
       needsResync = true; // lost more moves than the packet carries; tracked state has drifted
+      clock.refit(); // and their gaps are lost with them: the cube clock has a hole in it
+    }
+
+    // Only the newest move arrived at hostTimeMs; the ones behind it happened their own gaps ago,
+    // and dating them all at the delivery would fit the clock onto a batch's worth of lateness.
+    long behindMs = 0;
+    for (int i = moveDiff - 1; i >= 0; i--) {
+      behindMs += timeOffs[i];
     }
 
     List<MoyuEvent> events = new ArrayList<>();
@@ -162,8 +171,9 @@ public final class MoyuV10Parser {
       CubeMove m = moves.get(i);
       cube.applyMove(m.getFace(), m.isPrime());
       cubeTimeMs += timeOffs[i]; // the cube's own clock, kept apart from the fit onto host time
+      behindMs -= timeOffs[i];
       events.add(new MoyuEvent.MoveEvent(
-          new CubeMove(m.getFace(), m.isPrime(), clock.stamp(cubeTimeMs, hostTimeMs),
+          new CubeMove(m.getFace(), m.isPrime(), clock.stamp(cubeTimeMs, hostTimeMs - behindMs),
               i == 0 ? Long.valueOf(hostTimeMs) : null),
           new CubeState(cube.toFaceCube())));
     }

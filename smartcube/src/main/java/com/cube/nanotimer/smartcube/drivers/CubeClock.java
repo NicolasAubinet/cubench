@@ -13,14 +13,18 @@ package com.cube.nanotimer.smartcube.drivers;
  * F2L pair.
  *
  * <p>What the re-fit is actually for is a cube that slept and came back counting from zero, caught
- * here by its clock running backwards, and a clock of either side that jumped or ran slow. Both are
- * asked for only at a gap in the stream, which falls between solves rather than inside one, and only
- * when the two clocks really have parted. That leaves the alignment the slice detector reads the
- * gyro history by no looser than it was, while leaving the moves of a solve alone.
+ * here by its clock running backwards, and a clock of either side that ran slow. Both are asked for
+ * only at a gap, and <b>the gap is measured on the cube's clock</b>: a real pause between solves is
+ * a pause on both clocks, while a notification handed over late is a gap on the host's alone. The
+ * two are otherwise indistinguishable, since the lateness of a delivery <em>is</em> the drift it
+ * reports.
+ *
+ * <p>A stamp is never lower than the one before it, re-fit or no re-fit. A parser that dropped moves
+ * has a hole in whatever it accumulates its cube time from and should say so, with {@link #refit()}.
  */
 final class CubeClock {
 
-  /** How far the two clocks may part before a gap in the stream is taken as worth re-fitting on. */
+  /** How far the two clocks may part before a gap is taken as worth re-fitting on. */
   private static final long DRIFT_MS = 2000;
 
   /** A gap this long falls between solves, where a jump in the timeline crosses nothing. */
@@ -28,7 +32,6 @@ final class CubeClock {
 
   private long offsetMs;
   private long lastCubeMs;
-  private long lastHostMs;
   private long lastStampMs;
   private boolean fitted;
 
@@ -40,21 +43,24 @@ final class CubeClock {
     if (!fitted || cubeMs < lastCubeMs || staleAtGap(cubeMs, hostTimeMs)) {
       offsetMs = hostTimeMs - cubeMs;
       fitted = true;
-      lastStampMs = Long.MIN_VALUE; // a re-fit is the one place the timeline may move
     }
     lastCubeMs = cubeMs;
-    lastHostMs = hostTimeMs;
     lastStampMs = Math.max(cubeMs + offsetMs, lastStampMs + 1);
     return lastStampMs;
   }
 
   /** The stamp of the last move, for one that arrived without a time of its own. */
-  long lastStamp() {
-    return fitted ? lastStampMs : 0;
+  long lastStamp(long hostTimeMs) {
+    return fitted ? lastStampMs : hostTimeMs;
+  }
+
+  /** Moves were lost: what comes next is measured from a clock that stood still through the hole. */
+  void refit() {
+    fitted = false;
   }
 
   private boolean staleAtGap(long cubeMs, long hostTimeMs) {
-    return hostTimeMs - lastHostMs > IDLE_MS
+    return cubeMs - lastCubeMs > IDLE_MS
         && Math.abs(hostTimeMs - (cubeMs + offsetMs)) > DRIFT_MS;
   }
 }

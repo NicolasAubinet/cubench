@@ -60,8 +60,34 @@ public class CubeClockTest {
 
   @Test
   public void aMoveWithNoTimeOfItsOwnRepeatsTheLastStamp() {
-    assertEquals(0, clock.lastStamp());
     clock.stamp(1000, 50000);
-    assertEquals(50000, clock.lastStamp());
+    assertEquals(50000, clock.lastStamp(50040));
+  }
+
+  /** Before any live move there is no last stamp to repeat, and 1970 is not an answer. */
+  @Test
+  public void aRecoveredMoveAheadOfEveryLiveOneTakesHostTime() {
+    assertEquals(50040, clock.lastStamp(50040));
+  }
+
+  @Test
+  public void aGapOnTheHostClockAloneIsNotAGap() {
+    clock.stamp(1000, 50000);
+    assertEquals(50250, clock.stamp(1250, 70000)); // 20 s late, 250 ms of cube time
+  }
+
+  @Test
+  public void movesLostFromTheAccumulationRefitOnTheNextOne() {
+    clock.stamp(1000, 50000);
+    clock.refit();
+    assertEquals(53000, clock.stamp(1250, 53000)); // the hole is the 2.75 s the cube did not report
+  }
+
+  @Test
+  public void aRefitStillNeverGoesBackwards() {
+    clock.stamp(1000, 50000);
+    clock.stamp(1250, 50250);
+    clock.refit();
+    assertEquals(50251, clock.stamp(1500, 50100));
   }
 }

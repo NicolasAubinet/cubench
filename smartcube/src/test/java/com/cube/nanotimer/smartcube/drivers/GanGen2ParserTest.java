@@ -83,6 +83,36 @@ public class GanGen2ParserTest {
     }
   }
 
+  /** The cube's own clock is the one the moves are spaced by, whenever Android hands them over. */
+  @Test
+  public void aNotificationDeliveredLateDoesNotMoveTheTimelineBackwards() {
+    GanGen2Parser parser = newParser();
+    parser.parse(facelets(5), 1000);
+    long first = stamp(parser.parse(moves(6, 1, 0, false, 100), 1500));
+    long late = stamp(parser.parse(moves(7, 1, 0, false, 200), 4000)); // handed over 2.3 s late
+    long prompt = stamp(parser.parse(moves(8, 1, 0, false, 200), 1900));
+
+    assertEquals(1500, first);
+    assertEquals(1700, late);
+    assertEquals(1900, prompt);
+  }
+
+  /** The batch's newest move is the one that arrived: the older ones are dated back from it. */
+  @Test
+  public void aBatchIsAnchoredByTheMoveThatDeliveredIt() {
+    GanGen2Parser parser = newParser();
+    parser.parse(facelets(5), 1000);
+
+    List<GanEvent> events = parser.parse(moves(7, 2, 0, false, 100), 1500);
+
+    assertEquals(1400, ((GanEvent.MoveEvent) events.get(0)).getMove().getCubeTimestampMs());
+    assertEquals(1500, ((GanEvent.MoveEvent) events.get(1)).getMove().getCubeTimestampMs());
+  }
+
+  private static long stamp(List<GanEvent> events) {
+    return ((GanEvent.MoveEvent) events.get(events.size() - 1)).getMove().getCubeTimestampMs();
+  }
+
   /** Only the newest move of a packet was seen live; the replayed ones carry no host time. */
   @Test
   public void onlyTheNewestMoveOfAPacketCarriesAHostTimestamp() {
