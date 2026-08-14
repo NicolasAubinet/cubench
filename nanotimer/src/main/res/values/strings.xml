@@ -802,6 +802,17 @@
   <string name="acc50_label">Acc50</string>
   <string name="acc100_label">Acc100</string>
   <string name="stat_to_show">Statistic</string>
+  <string name="history_help_title">The numbers on this card</string>
+  <string name="history_help_body">The line is the shape of your last 50 solves, and tapping it opens the graph. Each of the three cells below it can be set to any statistic: tap one to change it.</string>
+  <string name="history_help_rolling">Rolling windows</string>
+  <string name="history_help_rolling_body">A statistic with a number in its name covers only that many of your most recent solves, so it moves with every solve you do.</string>
+  <string name="history_help_all">Mean all and Acc all</string>
+  <string name="history_help_all_body">Your whole history under this solve type, up to the last 1000 solves.</string>
+  <string name="history_help_pb_body">Your fastest ever under this solve type, however far back it is.</string>
+  <string name="history_help_average">Average or mean</string>
+  <string name="history_help_average_body">An average drops the fastest and the slowest, then means the rest. A mean drops nothing, so one DNF among its solves makes it a DNF.</string>
+  <string name="history_help_blind">Blind types</string>
+  <string name="history_help_blind_body">Ao5 is not offered, since blind attempts are counted in threes. Acc says how often you succeeded, and an average counts successes only, reaching past a DNF rather than counting it.</string>
   <string name="blind_averages_note">An average here counts successes only: Ao12 is the average of your last twelve successful solves, reaching back past any DNF rather than counting it.</string>
   <string name="time_just_now">just now</string>
   <string name="time_minutes_ago">%1$d min ago</string>

@@ -45,6 +45,7 @@ import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.gui.widget.AboutDialog;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
+import com.cube.nanotimer.gui.widget.HistoryHelpDialog;
 import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
@@ -314,6 +315,10 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itDrill) {
       startActivity(new Intent(this, DrillSetupActivity.class));
+      return true;
+    }
+    if (item.getItemId() == R.id.itHistoryHelp) {
+      DialogUtils.showFragment(this, HistoryHelpDialog.newInstance(curSolveType != null && curSolveType.isBlind()));
       return true;
     }
     return super.onOptionsItemSelected(item);

@@ -12,6 +12,11 @@
      android:icon="@drawable/ic_menu_drill"
      app:showAsAction="always"/>
 
+  <item android:id="@+id/itHistoryHelp"
+     android:title="@string/history_help_title"
+     android:icon="@drawable/ic_help_outline"
+     app:showAsAction="always"/>
+
   <item android:id="@+id/itAppIcon"
      android:title="@string/app_name"
      android:icon="@drawable/app_icon_cube"

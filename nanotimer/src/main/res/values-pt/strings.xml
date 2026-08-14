@@ -784,6 +784,17 @@
   <string name="acc100_label">Prec100</string>
   <string name="mean_label">Média total</string>
   <string name="stat_to_show">Estatística</string>
+  <string name="history_help_title">Os números deste cartão</string>
+  <string name="history_help_body">A linha é a forma dos seus 50 últimos tempos, e tocar nela abre o gráfico. Cada uma das três células abaixo pode mostrar a estatística que você quiser: toque em uma para mudá-la.</string>
+  <string name="history_help_rolling">Janelas móveis</string>
+  <string name="history_help_rolling_body">Uma estatística com um número no nome cobre apenas essa quantidade dos seus tempos mais recentes, então ela muda a cada resolução.</string>
+  <string name="history_help_all">Média total e Prec total</string>
+  <string name="history_help_all_body">Todo o seu histórico para este tipo de resolução, até os últimos 1000 tempos.</string>
+  <string name="history_help_pb_body">O seu melhor tempo para este tipo de resolução, por mais antigo que seja.</string>
+  <string name="history_help_average">Média ou média simples</string>
+  <string name="history_help_average_body">Uma média tira o melhor e o pior, e faz a média do resto. Uma média simples não tira nada, então um único DNF entre os seus tempos a torna um DNF.</string>
+  <string name="history_help_blind">Tipos às cegas</string>
+  <string name="history_help_blind_body">O Ao5 não é oferecido, já que as tentativas às cegas são contadas de três em três. A prec diz com que frequência você acertou, e uma média conta apenas os acertos, voltando para além de um DNF em vez de contá-lo.</string>
   <string name="blind_averages_note">Aqui uma média conta apenas os sucessos: Ao12 é a média das suas últimas doze resoluções bem-sucedidas, recuando para além dos DNF em vez de contá-los.</string>
   <string name="time_just_now">agora mesmo</string>
   <string name="time_minutes_ago">há %1$d min</string>
