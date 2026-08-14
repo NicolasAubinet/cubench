@@ -13,7 +13,8 @@
     ntLiveMove(notation, ms) one turn, just made. ms is how long to draw it turning, or 0 for
                             the mirror's own speed: a turn a screen is stepping through for
                             somebody to WATCH is not a turn that has to keep up with hands.
-    ntLiveGyro(on)          follow the cube's physical orientation, or keep it square
+    ntLiveGyro(on)          follow the cube's physical orientation, or stand where it is held
+    ntLiveHold(w,x,y,z)     how it stands while it is following none. Square until asked.
     ntLiveCamera(distance)  how far back the camera stands, so a cube in a big well can fill it
     ntLiveView(lat, lon)    where the camera stands while there is NO grip to follow, in degrees.
                             Ignored for as long as the gyro is followed, and applied again the
@@ -192,6 +193,7 @@
   var poseRaf = null;
   var target = [1, 0, 0, 0]; // the newest reading
   var pose = [1, 0, 0, 0];   // what is drawn, chasing it
+  var hold = [1, 0, 0, 0];   // and how it stands while there is no grip to chase
   var lastApplied = null;
 
   /** q and -q are the same rotation, so take the short way round or the cube spins the long way. */
@@ -668,9 +670,28 @@
       lastReadingMs = 0;
       poseRaf = requestAnimationFrame(poseLoop);
     } else {
-      target = [1, 0, 0, 0];
-      pose = target;
-      applyPose(puzzleObject); // back to square, and paint it
+      target = hold;
+      pose = hold;
+      applyPose(puzzleObject); // back to where it is held, and paint it
+    }
+  };
+
+  /**
+   * How the cube stands while it is NOT following a grip: a whole-cube rotation in the cube's own
+   * axes, square by default. A screen that writes its moves in a rotated frame stands the cube in
+   * that frame too, so the face a user reads as R is the one its notation calls R.
+   *
+   * <p>Held rather than turned. This is where the cube is, not a move it makes, so it goes onto
+   * the pose and never onto the state: a rotation written into the state would be undone by the
+   * next state the cube reports, and every move after it would be spelled from the wrong frame.
+   * Ignored while the gyro is followed, since a mirror stands where the hands do.
+   */
+  window.ntLiveHold = function (w, x, y, z) {
+    hold = [+w, +x, +y, +z];
+    if (!gyroOn) {
+      target = hold;
+      pose = hold;
+      applyPose(puzzleObject);
     }
   };
 })();

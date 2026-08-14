@@ -13,12 +13,15 @@ import com.cube.nanotimer.cube.CubeStickering;
 import com.cube.nanotimer.gui.widget.CrossSolutionPanel;
 import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
+import com.cube.nanotimer.scrambler.cross.CrossFormatter;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers.FaceSolutions;
 import com.cube.nanotimer.smartcube.drill.CrossDrillRep;
 import com.cube.nanotimer.smartcube.drill.CrossDrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
@@ -291,6 +294,20 @@ public class CrossDrillActivity extends DrillScreenActivity {
       session.explore(new CubeMove(Face.valueOf(quarter.substring(0, 1)),
           quarter.endsWith("'"), System.currentTimeMillis()));
     }
+  }
+
+  /**
+   * Cross on the bottom, which is the one frame this screen reads in: the panel writes both its
+   * rows there, behind the very rotation returned here. A cube let go of and left square would
+   * spell the same turn the other way round from the moves under it.
+   *
+   * <p>A D cross is already there and stands square. Only where the cube is <em>not</em> following
+   * a grip: a mirror stands where the hands do, whatever frame the moves are written in.
+   */
+  @Override
+  protected CubeOrientation restingRotation() {
+    CubeRotation rotation = CubeRotation.byNotation(CrossFormatter.rotationPrefix(face));
+    return rotation == null ? null : rotation.quaternion();
   }
 
   private void nextRep() {

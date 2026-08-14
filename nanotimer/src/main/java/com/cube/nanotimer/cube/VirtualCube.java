@@ -39,6 +39,8 @@ import java.util.List;
  */
 public class VirtualCube implements GyroReferenceListener {
 
+  private static final CubeOrientation IDENTITY = new CubeOrientation(1, 0, 0, 0);
+
   public interface ReadyListener {
     /** The page has drawn a cube, which is when there is any point showing it. */
     void onCubeDrawn();
@@ -70,6 +72,8 @@ public class VirtualCube implements GyroReferenceListener {
   private boolean destroyed;
   private boolean gyroWanted;
   private boolean gyroOn;
+  /** How it stands while it is following nothing, or null for square. */
+  private CubeOrientation hold;
   private boolean paused;
 
   /** What the cube is showing: the state it was pointed at, plus the turns made since. */
@@ -202,6 +206,26 @@ public class VirtualCube implements GyroReferenceListener {
   public void setView(double latitude, double longitude) {
     view = new double[] {latitude, longitude};
     evaluate("window.ntLiveView(" + latitude + "," + longitude + ");");
+  }
+
+  /**
+   * How the cube stands while it has <em>no</em> grip to follow: a whole-cube rotation, in the
+   * cube's own axes. Square unless a screen asks otherwise.
+   *
+   * <p>For a screen that writes its moves in a rotated frame. Standing the cube in that frame is
+   * what makes the two agree: a move written {@code L} then turns the face the user is looking at
+   * on the left. Held on the pose and never on the state, so nothing the cube reports undoes it.
+   *
+   * @param rotation the rotation to stand at, or null to stand square
+   */
+  public void setHold(CubeOrientation rotation) {
+    hold = rotation;
+    evaluate(holdCall());
+  }
+
+  private String holdCall() {
+    CubeOrientation q = hold == null ? IDENTITY : hold;
+    return "window.ntLiveHold(" + q.getW() + "," + q.getX() + "," + q.getY() + "," + q.getZ() + ");";
   }
 
   /** Whether this cube should follow the physical one's orientation, if there is one to follow. */
@@ -338,6 +362,8 @@ public class VirtualCube implements GyroReferenceListener {
       evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
     }
     // Pushed rather than compared: the page is fresh and knows nothing of what was on before it.
+    // The hold goes first, since ntLiveGyro(false) is what stands the cube at it.
+    evaluate(holdCall());
     evaluate("window.ntLiveGyro(" + gyroOn + ");");
   }
 

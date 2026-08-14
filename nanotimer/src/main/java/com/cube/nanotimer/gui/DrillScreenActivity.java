@@ -23,6 +23,7 @@ import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.util.DrillRecorder;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.vo.drill.DrillEnd;
@@ -253,6 +254,8 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
       return false;
     }
     cube.setGyroFollowing(followGyro);
+    // How it stands when it is let go of, which each drill answers for itself.
+    cube.setHold(restingRotation());
     // The well here is most of the screen, and at the page's own distance the cube filled about a
     // third of it. The same value the scramble dialog measured for its own box.
     cube.setCameraDistance(CUBE_CAMERA_DISTANCE);
@@ -265,6 +268,15 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     // is followed is still drawn square on; the page holds this until that grip goes.
     cube.setView(VIEW_LATITUDE, VIEW_LONGITUDE);
     return true;
+  }
+
+  /**
+   * The rotation the cube stands at once it is no longer following the grip. Square by default; a
+   * drill that writes its moves in a rotated frame stands its cube in that same frame, or the two
+   * spell one turn two ways.
+   */
+  protected CubeOrientation restingRotation() {
+    return null;
   }
 
   /**
