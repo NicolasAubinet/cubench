@@ -40,6 +40,16 @@ public class CoachPayloadBuilderTest {
   }
 
   @Test
+  public void testACaseCarriesTheMeanItsCostWasWorkedOutAgainst() {
+    CoachPayload payload = build();
+    StepFigure worst = figure(payload.getCases(), "pll_gb");
+
+    Assert.assertNotNull(worst.getFamilyMeanMs());
+    Assert.assertEquals(worst.getTimeLostMs().longValue(),
+        (worst.getMeanMs() - worst.getFamilyMeanMs().longValue()) * worst.getCount());
+  }
+
+  @Test
   public void testCasesComeOutWorstCostFirst() {
     CoachPayload payload = build();
 

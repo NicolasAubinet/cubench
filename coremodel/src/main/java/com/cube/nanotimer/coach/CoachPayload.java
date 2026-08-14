@@ -131,6 +131,121 @@ public class CoachPayload {
     return comparisons;
   }
 
+  /**
+   * The figure at a path, or null when the payload holds nothing there. Paths are how a plan cites
+   * what it leans on: {@code solve.mean_ms}, {@code families.pll.recognition_ms},
+   * {@code cases.pll_gb.time_lost_ms}, {@code comparisons.pll_gb.gap_ms}, {@code windows.cases}.
+   */
+  public Double value(String path) {
+    String[] segments = path.split("\\.");
+    if (segments.length == 2 && "solve".equals(segments[0])) {
+      return solve == null ? null : field(solve, segments[1]);
+    }
+    if (segments.length == 2 && "windows".equals(segments[0])) {
+      return window(segments[1]);
+    }
+    if (segments.length != 3) {
+      return null;
+    }
+    if ("comparisons".equals(segments[0])) {
+      CaseComparison comparison = comparison(segments[1]);
+      return comparison == null ? null : field(comparison, segments[2]);
+    }
+    StepFigure figure = figure(list(segments[0]), segments[1]);
+    return figure == null ? null : field(figure, segments[2]);
+  }
+
+  private Double window(String name) {
+    if ("families".equals(name)) {
+      return Double.valueOf(familyWindow);
+    }
+    if ("cases".equals(name)) {
+      return Double.valueOf(caseWindow);
+    }
+    return "drills".equals(name) ? Double.valueOf(drillWindow) : null;
+  }
+
+  private List<StepFigure> list(String name) {
+    if ("families".equals(name)) {
+      return families;
+    }
+    if ("parts".equals(name)) {
+      return parts;
+    }
+    if ("cases".equals(name)) {
+      return cases;
+    }
+    return "drill_cases".equals(name) ? drillCases : Collections.<StepFigure>emptyList();
+  }
+
+  private static StepFigure figure(List<StepFigure> figures, String code) {
+    for (StepFigure figure : figures) {
+      if (figure.getCode().equals(code)) {
+        return figure;
+      }
+    }
+    return null;
+  }
+
+  private CaseComparison comparison(String code) {
+    for (CaseComparison comparison : comparisons) {
+      if (comparison.getCode().equals(code)) {
+        return comparison;
+      }
+    }
+    return null;
+  }
+
+  private static Double field(StepFigure figure, String name) {
+    if ("count".equals(name)) {
+      return Double.valueOf(figure.getCount());
+    }
+    if ("mean_ms".equals(name)) {
+      return Double.valueOf(figure.getMeanMs());
+    }
+    if ("recognition_ms".equals(name)) {
+      return figure.getRecognitionMs() == null ? null
+          : Double.valueOf(figure.getRecognitionMs().longValue());
+    }
+    if ("std_dev_ms".equals(name)) {
+      return Double.valueOf(figure.getStdDevMs());
+    }
+    if ("best_ms".equals(name)) {
+      return Double.valueOf(figure.getBestMs());
+    }
+    if ("rejection_rate".equals(name)) {
+      return Double.valueOf(figure.getRejectionRate());
+    }
+    if ("family_mean_ms".equals(name)) {
+      return figure.getFamilyMeanMs() == null ? null
+          : Double.valueOf(figure.getFamilyMeanMs().longValue());
+    }
+    if ("time_lost_ms".equals(name)) {
+      return figure.getTimeLostMs() == null ? null
+          : Double.valueOf(figure.getTimeLostMs().longValue());
+    }
+    if ("skip_rate".equals(name)) {
+      return figure.getSkipRate() == null ? null : figure.getSkipRate();
+    }
+    return null;
+  }
+
+  private static Double field(CaseComparison comparison, String name) {
+    if ("solve_count".equals(name)) {
+      return Double.valueOf(comparison.getSolveCount());
+    }
+    if ("solve_mean_ms".equals(name)) {
+      return Double.valueOf(comparison.getSolveMeanMs());
+    }
+    if ("drill_count".equals(name)) {
+      return Double.valueOf(comparison.getDrillCount());
+    }
+    if ("drill_mean_ms".equals(name)) {
+      return Double.valueOf(comparison.getDrillMeanMs());
+    }
+    return "gap_ms".equals(name) ? Double.valueOf(comparison.getGapMs()) : null;
+  }
+
   /** Is there enough here to say anything at all? */
   public boolean isEmpty() {
     return solve == null && families.isEmpty() && cases.isEmpty() && drillCases.isEmpty();

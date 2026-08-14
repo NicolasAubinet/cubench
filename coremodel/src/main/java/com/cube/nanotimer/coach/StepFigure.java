@@ -25,10 +25,11 @@ public class StepFigure {
   private final long bestMs;
   private final double rejectionRate;
   private final Long timeLostMs;
+  private final Long familyMeanMs;
   private final Double skipRate;
 
   private StepFigure(String code, int count, long meanMs, Long recognitionMs, long stdDevMs,
-      long bestMs, double rejectionRate, Long timeLostMs, Double skipRate) {
+      long bestMs, double rejectionRate, Long timeLostMs, Long familyMeanMs, Double skipRate) {
     this.code = code;
     this.count = count;
     this.meanMs = meanMs;
@@ -37,6 +38,7 @@ public class StepFigure {
     this.bestMs = bestMs;
     this.rejectionRate = rejectionRate;
     this.timeLostMs = timeLostMs;
+    this.familyMeanMs = familyMeanMs;
     this.skipRate = skipRate;
   }
 
@@ -45,15 +47,19 @@ public class StepFigure {
       double rejectionRate, Double skipRate) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, null, skipRate);
+        rejectionRate, null, null, skipRate);
   }
 
-  /** One case of a family, with what running it above the family's mean has cost over the window. */
+  /**
+   * One case of a family, with what running it above the family's mean has cost over the window and
+   * the mean it was weighed against, since that is what the cost is arithmetic on and neither figure
+   * is checkable without the other.
+   */
   public static StepFigure stepCase(StepStats stats, boolean measuresRecognition,
-      double rejectionRate, long timeLostMs) {
+      double rejectionRate, long timeLostMs, long familyMeanMs) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, Long.valueOf(timeLostMs), null);
+        rejectionRate, Long.valueOf(timeLostMs), Long.valueOf(familyMeanMs), null);
   }
 
   /** A figure with neither a family behind it nor cases under it: a whole solve, or a drilled case. */
@@ -61,7 +67,7 @@ public class StepFigure {
       double rejectionRate) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, null, null);
+        rejectionRate, null, null, null);
   }
 
   /** A step timed from its own first move has nowhere to put recognition, and 0 there reads as instant. */
@@ -105,6 +111,11 @@ public class StepFigure {
     return timeLostMs;
   }
 
+  /** What its family averaged over the same window, or null for anything that is not a case. */
+  public Long getFamilyMeanMs() {
+    return familyMeanMs;
+  }
+
   /** How often the step was already solved on arrival, or null for anything that cannot be skipped. */
   public Double getSkipRate() {
     return skipRate;
@@ -124,6 +135,9 @@ public class StepFigure {
     if (timeLostMs != null) {
       json.put("time_lost_ms", timeLostMs.longValue());
     }
+    if (familyMeanMs != null) {
+      json.put("family_mean_ms", familyMeanMs.longValue());
+    }
     if (skipRate != null) {
       json.put("skip_rate", round(skipRate.doubleValue()));
     }
@@ -135,6 +149,7 @@ public class StepFigure {
         json.has("recognition_ms") ? Long.valueOf(json.getLong("recognition_ms")) : null,
         json.getLong("std_dev_ms"), json.getLong("best_ms"), json.getDouble("rejection_rate"),
         json.has("time_lost_ms") ? Long.valueOf(json.getLong("time_lost_ms")) : null,
+        json.has("family_mean_ms") ? Long.valueOf(json.getLong("family_mean_ms")) : null,
         json.has("skip_rate") ? Double.valueOf(json.getDouble("skip_rate")) : null);
   }
 

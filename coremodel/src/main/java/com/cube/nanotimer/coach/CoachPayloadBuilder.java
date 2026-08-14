@@ -131,11 +131,13 @@ public class CoachPayloadBuilder {
       if (SLOT_FAMILY.equals(family)) {
         continue;
       }
+      StepStats familyStats = statistics.getFamily(family);
       for (StepStats stepCase : statistics.getCases(family)) {
         if (stepCase.getCount() >= CASE_FLOOR) {
           figures.add(StepFigure.stepCase(stepCase, measuresRecognition(stepCase.getCode()),
               tallies.getRejectionRate(stepCase.getCode()),
-              statistics.getTimeLostMs(stepCase.getCode())));
+              statistics.getTimeLostMs(stepCase.getCode()),
+              familyStats == null ? 0 : familyStats.getMeanMs()));
         }
       }
     }
