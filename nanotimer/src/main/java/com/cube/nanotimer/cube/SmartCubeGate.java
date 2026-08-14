@@ -21,7 +21,7 @@ package com.cube.nanotimer.cube;
  */
 public final class SmartCubeGate {
 
-  public static final boolean ENABLED = true;
+  public static final boolean ENABLED = false;
 
   private SmartCubeGate() {
   }

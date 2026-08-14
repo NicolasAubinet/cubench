@@ -8,13 +8,13 @@
           android:maxSdkVersion="28" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
-  <!-- Smart (Bluetooth) cube -->
-  <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
-          android:usesPermissionFlags="neverForLocation" />
-  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-  <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+  <!-- The smart cube is off in this build. The Nordic BLE libraries declare these in their own
+       manifests, so they have to be removed here, not merely left undeclared. -->
+  <uses-permission android:name="android.permission.BLUETOOTH" tools:node="remove" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:node="remove" />
+  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:node="remove" />
+  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
 
   <!-- Permissions for Stackmat -->
   <!--<uses-permission android:name="android.permission.RECORD_AUDIO" />-->
