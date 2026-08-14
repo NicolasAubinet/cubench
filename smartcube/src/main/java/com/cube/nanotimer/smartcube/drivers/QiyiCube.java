@@ -135,7 +135,15 @@ final class QiyiCube implements SmartCube {
 
   private void onData(int[] raw) {
     long nowMs = System.currentTimeMillis();
-    for (QiyiEvent event : parser.parse(raw, nowMs)) {
+    List<QiyiEvent> events = parser.parse(raw, nowMs);
+    if (!greeted && !events.isEmpty()) {
+      // Anything it says at all proves it heard the hello, since it says nothing until it has.
+      // Waiting for the hello *reply* in particular would keep writing for the whole session if that
+      // one packet were lost, or if a turn mid-handshake got its state change in first.
+      greeted = true;
+      stopGreeting();
+    }
+    for (QiyiEvent event : events) {
       if (event instanceof QiyiEvent.AckRequestEvent ack) {
         try {
           chr.write(ack.getMessage());
@@ -143,8 +151,6 @@ final class QiyiCube implements SmartCube {
           // A failed ACK is not worth reacting to — the cube re-sends.
         }
       } else if (event instanceof QiyiEvent.HelloEvent hello) {
-        greeted = true;
-        stopGreeting();
         lastState = hello.getState();
         notifyState(lastState);
       } else if (event instanceof QiyiEvent.StateEvent state) {

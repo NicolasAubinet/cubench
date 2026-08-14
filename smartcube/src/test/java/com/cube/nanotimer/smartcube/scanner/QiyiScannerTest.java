@@ -109,6 +109,23 @@ public class QiyiScannerTest {
     cube.disconnect();
   }
 
+  /** The cube is mute until greeted, so anything it says at all is proof the hello landed. */
+  @Test
+  public void anyMessageStopsTheHelloLoopNotJustTheHelloReply() {
+    CubeScanner scanner = rig();
+    List<DiscoveredCube> discovered = new ArrayList<>();
+    scanner.scan(discovered::add);
+    SmartCube cube = scanner.connect(discovered.get(0));
+    assertEquals(1, chr.written.size()); // the hello
+
+    // A turn made during the handshake: its state change beats the hello reply back.
+    chr.push(stateChange(U_FACELETS, 8, false));
+
+    assertEquals(U_FACELETS, cube.getCurrentState().getFacelets());
+    assertEquals(1, chr.written.size()); // nothing further written: not acked, and not re-greeted
+    cube.disconnect();
+  }
+
   @Test
   public void aMissingServiceFailsTheConnectAndHangsUpTheLink() {
     FakeBle.Peripheral peripheral =
