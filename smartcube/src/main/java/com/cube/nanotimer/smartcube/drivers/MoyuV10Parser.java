@@ -30,11 +30,11 @@ public final class MoyuV10Parser {
 
   private final GanCipher cipher;
   private final CubieCube cube = new CubieCube();
+  private final CubeClock clock = new CubeClock();
 
   private int prevMoveCnt = -1;
   private int moveCnt = -1;
-  private long deviceTime = 0;
-  private long deviceTimeOffset = 0;
+  private long cubeTimeMs = 0;
   private int batteryLevel = 0;
   private boolean needsResync = false;
 
@@ -157,24 +157,16 @@ public final class MoyuV10Parser {
       needsResync = true; // lost more moves than the packet carries; tracked state has drifted
     }
 
-    long calcTs = deviceTime + deviceTimeOffset;
-    for (int i = moveDiff - 1; i >= 0; i--) {
-      calcTs += timeOffs[i];
-    }
-    if (deviceTime == 0 || Math.abs(hostTimeMs - calcTs) > 2000) {
-      deviceTime += hostTimeMs - calcTs;
-    }
-
     List<MoyuEvent> events = new ArrayList<>();
     for (int i = moveDiff - 1; i >= 0; i--) {
       CubeMove m = moves.get(i);
       cube.applyMove(m.getFace(), m.isPrime());
-      deviceTime += timeOffs[i];
+      cubeTimeMs += timeOffs[i]; // the cube's own clock, kept apart from the fit onto host time
       events.add(new MoyuEvent.MoveEvent(
-          new CubeMove(m.getFace(), m.isPrime(), deviceTime, i == 0 ? Long.valueOf(hostTimeMs) : null),
+          new CubeMove(m.getFace(), m.isPrime(), clock.stamp(cubeTimeMs, hostTimeMs),
+              i == 0 ? Long.valueOf(hostTimeMs) : null),
           new CubeState(cube.toFaceCube())));
     }
-    deviceTimeOffset = hostTimeMs - deviceTime;
     return events;
   }
 

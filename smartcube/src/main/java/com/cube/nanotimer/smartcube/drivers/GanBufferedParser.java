@@ -38,17 +38,12 @@ abstract class GanBufferedParser implements GanProtocol {
 
   private static final Face[] FACES = {Face.U, Face.R, Face.F, Face.D, Face.L, Face.B};
 
-  /** How far the fitted cube clock may drift from host time before it is re-fitted. */
-  private static final long CLOCK_DRIFT_MS = 2000;
-
   final GanCipher cipher;
   private final CubieCube cube = new CubieCube();
   private final GanMoveBuffer buffer = new GanMoveBuffer();
+  private final CubeClock clock = new CubeClock();
 
   private long lastMoveHostMs = 0;
-  private long clockOffsetMs = 0;
-  private boolean clockFitted = false;
-  private long lastStampMs = 0;
   private Integer batteryLevel;
 
   GanBufferedParser(int[] macBytes) {
@@ -212,23 +207,13 @@ abstract class GanBufferedParser implements GanProtocol {
     return events;
   }
 
-  /**
-   * A move's timestamp on the cube's clock, carried onto host time. The cube counts from its own
-   * power-on, which means nothing to the orientation history and the analyzer that read these
-   * stamps, so the offset between the two clocks is fitted on the first move and re-fitted whenever
-   * it drifts (the cube sleeps, the host stalls).
-   */
+  /** A move's timestamp on the cube's clock, carried onto host time by {@link CubeClock}. */
   private long stampOf(BufferedMove move, long hostTimeMs) {
     Long cubeTimeMs = move.getCubeTimeMs();
     if (cubeTimeMs == null) {
-      return lastStampMs; // recovered from history: never seen live, so it has no time of its own
+      return clock.lastStamp(); // recovered from history: never seen live, so it has no time
     }
-    if (!clockFitted || Math.abs(hostTimeMs - (cubeTimeMs + clockOffsetMs)) > CLOCK_DRIFT_MS) {
-      clockOffsetMs = hostTimeMs - cubeTimeMs;
-      clockFitted = true;
-    }
-    lastStampMs = cubeTimeMs + clockOffsetMs;
-    return lastStampMs;
+    return clock.stamp(cubeTimeMs, hostTimeMs);
   }
 
   private static int indexOf(int[] values, int value) {

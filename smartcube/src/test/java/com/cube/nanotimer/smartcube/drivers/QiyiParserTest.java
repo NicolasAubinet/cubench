@@ -227,11 +227,27 @@ public class QiyiParserTest {
     assertEquals(51000, stamp(parser, 1625, 50040));
   }
 
+  /** Solve 253, 2026-08-14: a 10-move cross read as 4, its last edge falling into the first pair. */
   @Test
-  public void aDriftPastTwoSecondsReAnchorsRatherThanCompounding() {
+  public void aNotificationDeliveredLateDoesNotMoveTheTimelineBackwards() {
+    QiyiParser parser = newParser();
+    stamp(parser, 1000, 50000);
+    assertEquals(51000, stamp(parser, 1625, 53000)); // handed over 2 s late by a busy main thread
+    assertEquals(52000, stamp(parser, 2250, 50300)); // and the next one on time again
+  }
+
+  @Test
+  public void aGapBetweenSolvesWithTheClocksPartedReAnchors() {
     QiyiParser parser = newParser();
     stamp(parser, 1000, 50000);
     assertEquals(90000, stamp(parser, 1625, 90000));
+  }
+
+  @Test
+  public void aGapTheCubeClockKeptUpWithDoesNot() {
+    QiyiParser parser = newParser();
+    stamp(parser, 1000, 50000);
+    assertEquals(90000, stamp(parser, 26000, 90040));
   }
 
   // ---- fixture builders --------------------------------------------------------------------

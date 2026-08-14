@@ -61,16 +61,12 @@ public final class QiyiParser {
   private static final int BATTERY_OFFSET = 35;
   private static final int NEEDS_ACK_OFFSET = 91; // state change only
 
-  /** How far the fitted cube clock may drift from host time before it is re-fitted. */
-  private static final long CLOCK_DRIFT_MS = 2000;
-
   private final Aes128 aes = new Aes128(FIXED_KEY);
+  private final CubeClock clock = new CubeClock();
   private final int[] mac;
 
   private int batteryLevel = 0;
   private boolean batteryReported; // so a genuine 0% is still reported once
-  private long timeOffsetMs = 0;
-  private boolean timeAnchored = false;
 
   public QiyiParser(int[] macBytes) {
     this.mac = macBytes.clone();
@@ -229,12 +225,7 @@ public final class QiyiParser {
   private long fitTimestamp(int[] msg, long hostTimeMs) {
     long ticks = ((long) msg[TS_OFFSET] << 24) | (msg[TS_OFFSET + 1] << 16)
         | (msg[TS_OFFSET + 2] << 8) | msg[TS_OFFSET + 3];
-    long cubeMs = Math.round(ticks * 1.6);
-    if (!timeAnchored || Math.abs(hostTimeMs - (cubeMs + timeOffsetMs)) > CLOCK_DRIFT_MS) {
-      timeOffsetMs = hostTimeMs - cubeMs;
-      timeAnchored = true;
-    }
-    return cubeMs + timeOffsetMs;
+    return clock.stamp(Math.round(ticks * 1.6), hostTimeMs);
   }
 
   /** An ACK echoes bytes 2..6 of the message being acknowledged — its opcode and timestamp. */
