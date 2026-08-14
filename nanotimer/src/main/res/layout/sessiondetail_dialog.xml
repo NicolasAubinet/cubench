@@ -29,12 +29,24 @@
        android:layout_height="wrap_content"
        android:layout_weight="1"
        android:layout_marginRight="@dimen/space_s"
-       android:text="@string/session_details"
+       android:text="@string/session_title"
        android:textColor="@color/white"
        android:textSize="20sp"
        android:textStyle="bold"
        android:singleLine="true"
        android:ellipsize="end"/>
+
+    <ImageView
+       android:id="@+id/buSessionDetailHelp"
+       android:layout_width="30dp"
+       android:layout_height="30dp"
+       android:layout_marginRight="@dimen/space_xs"
+       android:layout_marginEnd="@dimen/space_xs"
+       android:scaleType="fitCenter"
+       android:padding="5dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:src="@drawable/ic_help_outline"
+       android:contentDescription="@string/sessiondetail_help_title"/>
 
     <Spinner
        android:id="@+id/spSessionsList"

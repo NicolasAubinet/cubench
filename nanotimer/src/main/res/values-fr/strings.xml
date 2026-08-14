@@ -60,6 +60,7 @@
   <string name="delete">Supprimer</string>
   <string name="session_details">Détails de session</string>
   <string name="new_session">Nouvelle session</string>
+  <string name="session_title">Session</string>
   <string name="date">Date:</string>
   <string name="time">Temps:</string>
   <string name="averages">Moyennes</string>
@@ -78,6 +79,14 @@
   <string name="session_best_mean_of_three">Meilleur Mo3</string>
   <string name="session_success_average">Moyenne des réussites</string>
   <string name="session_accuracy">Réussites</string>
+  <string name="sessiondetail_help_title">Ce que veulent dire ces chiffres</string>
+  <string name="sessiondetail_help_body">Ils portent tous sur la seule session nommée ci-dessus, jamais sur tout votre historique.</string>
+  <string name="sessiondetail_help_average">Retire le meilleur et le pire, puis fait la moyenne du reste. Un DNF compte comme le pire, il est donc retiré en premier.</string>
+  <string name="sessiondetail_help_success_average">La même moyenne, sur les temps que vous n\'avez pas ratés.</string>
+  <string name="sessiondetail_help_deviation">À quel point la session s\'écarte de sa propre moyenne, DNF exclus. Plus c\'est petit, plus c\'est régulier.</string>
+  <string name="sessiondetail_help_best_mo3">Les trois meilleurs d\'affilée, en moyenne simple. Une moyenne simple ne retire rien, un seul DNF parmi les trois en fait donc un DNF.</string>
+  <string name="sessiondetail_help_accuracy">La part de la session que vous n\'avez pas ratée.</string>
+  <string name="sessiondetail_help_best_averages">Les meilleures 5, 12, 50 et 100 n\'importe où dans la session, pas seulement les plus récentes.</string>
 
   <string name="clear_history">Effacer l\'historique</string>
   <string name="clear_history_title">Effacer cet historique ?</string>

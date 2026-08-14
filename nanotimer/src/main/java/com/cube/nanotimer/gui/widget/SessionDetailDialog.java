@@ -15,6 +15,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.vo.SessionDetails;
@@ -63,6 +64,13 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
     });
     spSessionsList = (Spinner) v.findViewById(R.id.spSessionsList);
     initSessionsList(v);
+
+    v.findViewById(R.id.buSessionDetailHelp).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        DialogUtils.showFragment(getActivity(), SessionDetailHelpDialog.newInstance(solveType.isBlind()));
+      }
+    });
 
     final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setCanceledOnTouchOutside(true);

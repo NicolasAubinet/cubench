@@ -136,6 +136,23 @@
     <item name="android:textSize">12.5sp</item>
   </style>
 
+  <!-- A term and its definition on a help sheet, stacked one per row. The icon the solve types
+       sheet puts beside its rows has nothing to point at here: a statistic is not an action. -->
+  <style name="HelpTermRow">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:layout_marginTop">16dp</item>
+    <item name="android:orientation">vertical</item>
+  </style>
+
+  <style name="HelpTermName" parent="GraphHelpName">
+    <item name="android:layout_marginTop">0dp</item>
+  </style>
+
+  <style name="HelpTermText" parent="GraphHelpText">
+    <item name="android:layout_marginTop">1dp</item>
+  </style>
+
   <!-- The same control with four options rather than two: tighter, so the whole of it still fits
        beside the other things on its row. -->
   <style name="ViewSegmentCompact" parent="ViewSegment">

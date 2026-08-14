@@ -68,6 +68,7 @@
   <string name="delete">Delete</string>
   <string name="session_details">Session details</string>
   <string name="new_session">New session</string>
+  <string name="session_title">Session</string>
   <string name="date">Date:</string>
   <string name="time">Time:</string>
   <string name="averages">Averages</string>
@@ -86,6 +87,14 @@
   <string name="session_best_mean_of_three">Best Mo3</string>
   <string name="session_success_average">Success average</string>
   <string name="session_accuracy">Accuracy</string>
+  <string name="sessiondetail_help_title">What these numbers mean</string>
+  <string name="sessiondetail_help_body">All of them cover the one session named above, never your whole history.</string>
+  <string name="sessiondetail_help_average">Drops the fastest and the slowest, then means what is left. A DNF sorts as the slowest, so the first one drops out too.</string>
+  <string name="sessiondetail_help_success_average">The same trimmed average, over the solves you did not DNF.</string>
+  <string name="sessiondetail_help_deviation">How far the session spreads around its own mean, DNFs left out. Smaller is steadier.</string>
+  <string name="sessiondetail_help_best_mo3">The best three in a row, as a plain mean: nothing is dropped, so one DNF among the three makes it a DNF.</string>
+  <string name="sessiondetail_help_accuracy">The share of the session you did not DNF.</string>
+  <string name="sessiondetail_help_best_averages">The best 5, 12, 50 and 100 anywhere in the session, not just the most recent ones.</string>
 
   <string name="clear_history">Clear history</string>
   <string name="clear_history_title">Clear this history?</string>

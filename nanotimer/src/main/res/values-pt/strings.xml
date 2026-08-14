@@ -60,6 +60,7 @@
   <string name="delete">Excluir</string>
   <string name="session_details">Detalhes da sessão</string>
   <string name="new_session">Nova sessão</string>
+  <string name="session_title">Sessão</string>
   <string name="date">Data:</string>
   <string name="time">Tempo:</string>
   <string name="averages">Médias</string>
@@ -78,6 +79,14 @@
   <string name="session_best_mean_of_three">Melhor Mo3</string>
   <string name="session_success_average">Média de sucessos</string>
   <string name="session_accuracy">Precisão</string>
+  <string name="sessiondetail_help_title">O que estes números significam</string>
+  <string name="sessiondetail_help_body">Todos se referem apenas à sessão nomeada acima, nunca a todo o seu histórico.</string>
+  <string name="sessiondetail_help_average">Tira o melhor e o pior, e faz a média do resto. Um DNF conta como o pior, então é o primeiro a sair.</string>
+  <string name="sessiondetail_help_success_average">A mesma média, sobre os tempos que você não errou.</string>
+  <string name="sessiondetail_help_deviation">O quanto a sessão se afasta da sua própria média, sem contar os DNF. Quanto menor, mais constante.</string>
+  <string name="sessiondetail_help_best_mo3">Os três melhores seguidos, em média simples. Uma média simples não tira nada, então um único DNF entre os três a torna um DNF.</string>
+  <string name="sessiondetail_help_accuracy">A parte da sessão que você não errou.</string>
+  <string name="sessiondetail_help_best_averages">As melhores 5, 12, 50 e 100 em qualquer ponto da sessão, não só as mais recentes.</string>
 
   <string name="clear_history">Limpar o histórico</string>
   <string name="clear_history_title">Limpar este histórico?</string>
