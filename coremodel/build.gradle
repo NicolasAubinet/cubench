@@ -1,0 +1,15 @@
+apply plugin: 'java-library'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    // Android ships org.json in the platform and the coach service brings its own, so it is
+    // compiled against here and never packaged.
+    compileOnly 'org.json:json:20231013'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20231013'
+}
