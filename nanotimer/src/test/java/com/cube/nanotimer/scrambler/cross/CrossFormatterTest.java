@@ -38,6 +38,27 @@ public class CrossFormatterTest {
     Assert.assertArrayEquals(new String[] { "x2", "D'", "B2", "R" }, formatted);
   }
 
+  // The same relabeling with nothing in front, for a screen that writes every row in this frame.
+  @Test
+  public void testMovesOnBottomLeavesTheRotationOut() {
+    String[] solution = { "U'", "F2", "R" };
+    Assert.assertArrayEquals(new String[] { "D'", "B2", "R" },
+        CrossFormatter.movesOnBottom(CrossFace.U, solution));
+    Assert.assertSame(solution, CrossFormatter.movesOnBottom(CrossFace.D, solution));
+  }
+
+  // A move at a time, which is how the user's own turns arrive.
+  @Test
+  public void testOneMoveReadsTheSameAsTheWholeWay() {
+    for (CrossFace face : CrossFace.values()) {
+      String[] moves = { "U", "D'", "R2", "L", "F'", "B2" };
+      String[] way = CrossFormatter.movesOnBottom(face, moves);
+      for (int i = 0; i < moves.length; i++) {
+        Assert.assertEquals(way[i], CrossFormatter.moveOnBottom(face, moves[i]));
+      }
+    }
+  }
+
   @Test
   public void testRelabelIsABijectionForEveryFace() {
     String[] faceLetters = { "U", "D", "R", "L", "F", "B" };

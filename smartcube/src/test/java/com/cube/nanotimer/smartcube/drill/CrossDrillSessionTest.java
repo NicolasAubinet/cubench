@@ -11,6 +11,7 @@ import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
 
@@ -141,6 +142,21 @@ public class CrossDrillSessionTest {
     CrossDrillRep rep = hand.turn("R R' D'");
     assertNotNull(rep);
     assertEquals("the R and the R' are two of the three", 3, rep.getMoveCount());
+  }
+
+  /**
+   * The moves as a screen shows them are the moves as they are counted. Written apart from the
+   * count they would drift, and a strip of seven under a rep announced as six is the screen calling
+   * itself a liar.
+   */
+  @Test
+  public void theMovesReadBackTheWayTheyAreCounted() {
+    CrossDrillSession session = session("D", 1);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next("U D"));
+    assertNull(hand.turn("R R' U U F'"));
+    assertEquals(Arrays.asList("R", "R'", "U2", "F'"), session.getFoldedMoves());
+    assertEquals(session.getMoveCount(), session.getFoldedMoves().size());
   }
 
   /** An optimal length the search has not handed over yet must not read as a perfect rep. */

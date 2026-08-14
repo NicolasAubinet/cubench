@@ -924,8 +924,6 @@
   <string name="drill_cross_title">Entraînement de croix</string>
   <string name="drill_cross_done">Terminé</string>
   <string name="drill_cross_next">Suivant</string>
-  <string name="drill_cross_solutions">Solutions les plus courtes</string>
-  <string name="drill_cross_solutions_count">%1$d façons de la faire en %2$d mouvements</string>
   <string name="drill_cross_dealing">Mélange en préparation</string>
   <string name="drill_cross_plan_it">Préparez la croix, puis tournez</string>
   <string name="drill_cross_planning_left">%d secondes pour réfléchir</string>
@@ -941,6 +939,10 @@
   <string name="drill_layer_colour">Couleur de la dernière face</string>
   <string name="drill_cross_start_position">Position de départ</string>
   <string name="drill_cross_other_ways">Autres solutions</string>
+  <string name="drill_cross_panel_you">Vos mouvements</string>
+  <string name="drill_cross_panel_shortest">Le plus court en %d</string>
+  <string name="drill_cross_way_of">%1$d/%2$d</string>
+  <string name="drill_cross_step_back">Mouvement précédent</string>
+  <string name="drill_cross_step_forward">Mouvement suivant</string>
   <string name="drill_cross_rep_times">Réflexion %1$s, exécution %2$s</string>
-  <string name="drill_cross_shortest">Le plus court : %1$s (%2$d mouvements)</string>
 </resources>
