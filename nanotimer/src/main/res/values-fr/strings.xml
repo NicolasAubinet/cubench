@@ -430,10 +430,10 @@
   <string name="release_notes_features_html">
     <![CDATA[
     <u><b>v2.0.0 <i>(Nouvelle version)</i></b></u><br/>
-    <b>Cubench a été redessiné de fond en comble.</b><br/>
+    <b>Cubench a été redessiné de fond en comble.</b>
     <b>Chrono</b>
     <ul>
-      <li>Le mélange s\'affiche maintenant sur l\'écran du chrono, en 3D ou en schéma à plat, et peut être masqué dans les réglages</li>
+      <li>Le mélange s\'affiche maintenant sur l\'écran du chrono, en 3D ou en schéma à plat (peut être masqué dans les réglages)</li>
       <li>Pendant une résolution, l\'écran ne garde que le temps</li>
       <li>Les 12 derniers temps sont affichés en barres (le tableau des temps reste disponible via les réglages)</li>
       <li>L\'inspection peut maintenant être activée ou désactivée par type de résolution</li>
@@ -444,7 +444,7 @@
       <li>Les lignes de l\'historique commencent par le temps et sont regroupées par jour</li>
       <li>Le détail d\'un temps s\'ouvre en fiche que l\'on fait glisser d\'un temps au suivant, et que l\'on écarte pour fermer</li>
       <li>Le mélange et le solveur de croix peuvent maintenant s\'ouvrir depuis le détail d\'un temps</li>
-      <li>Un DNF peut être annulé, ce qui rétablit le temps qu\'il remplaçait</li>
+      <li>Un DNF peut être annulé, ce qui rétablit le temps qu\'il remplaçait (non rétroactif)</li>
     </ul>
     <b>Graphiques</b>
     <ul>

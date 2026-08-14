@@ -445,10 +445,10 @@
   <string name="release_notes_features_html">
     <![CDATA[
     <u><b>v2.0.0 <i>(New version)</i></b></u><br/>
-    <b>Cubench has been redrawn from top to bottom.</b><br/>
+    <b>Cubench has been redrawn from top to bottom.</b>
     <b>Timer</b>
     <ul>
-      <li>The scramble now shows on the timer screen itself, in 3D or as a flat diagram, and can be hidden in the settings</li>
+      <li>The scramble now shows on the timer screen itself, in 3D or as a flat diagram (can be hidden in the settings)</li>
       <li>While a solve runs, the screen keeps nothing but the time</li>
       <li>The last 12 times are shown as bars (the times table is still available via the settings)</li>
       <li>Inspection can now be turned on or off for specific solve types</li>
@@ -459,7 +459,7 @@
       <li>History rows are led by the time and grouped by day</li>
       <li>Solve details open as a sheet you can swipe from one solve to the next, and drag away to close</li>
       <li>The scramble view and the cross solver can now also be opened from a solve\'s details</li>
-      <li>A DNF can be taken back, restoring the time it replaced</li>
+      <li>A DNF can be taken back, restoring the time it replaced (not retroactive)</li>
     </ul>
     <b>Graphs</b>
     <ul>

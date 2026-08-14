@@ -432,10 +432,10 @@
   <string name="release_notes_features_html">
     <![CDATA[
     <u><b>v2.0.0 <i>(Nova versão)</i></b></u><br/>
-    <b>O Cubench foi redesenhado de cima a baixo.</b><br/>
+    <b>O Cubench foi redesenhado de cima a baixo.</b>
     <b>Cronômetro</b>
     <ul>
-      <li>O scramble agora aparece na própria tela do cronômetro, em 3D ou como diagrama plano, e pode ser ocultado nas configurações</li>
+      <li>O scramble agora aparece na própria tela do cronômetro, em 3D ou como diagrama plano (pode ser ocultado nas configurações)</li>
       <li>Enquanto uma resolução corre, a tela não guarda nada além do tempo</li>
       <li>Os 12 últimos tempos são mostrados em barras (a tabela de tempos continua disponível pelas configurações)</li>
       <li>A inspeção agora pode ser ativada ou desativada por tipo de resolução</li>
@@ -446,7 +446,7 @@
       <li>As linhas do histórico começam pelo tempo e são agrupadas por dia</li>
       <li>Os detalhes de um tempo abrem como uma ficha que se desliza de um tempo para o seguinte, e que se arrasta para fora para fechar</li>
       <li>O scramble e o solucionador de cruz agora também podem ser abertos a partir dos detalhes de um tempo</li>
-      <li>Um DNF pode ser desfeito, restaurando o tempo que ele substituiu</li>
+      <li>Um DNF pode ser desfeito, restaurando o tempo que ele substituiu (não retroativo)</li>
     </ul>
     <b>Gráficos</b>
     <ul>

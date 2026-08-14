@@ -430,10 +430,10 @@
   <string name="release_notes_features_html">
     <![CDATA[
     <u><b>v2.0.0 <i>(Nueva versión)</i></b></u><br/>
-    <b>Cubench se ha rediseñado de arriba abajo.</b><br/>
+    <b>Cubench se ha rediseñado de arriba abajo.</b>
     <b>Cronómetro</b>
     <ul>
-      <li>La mezcla ahora se muestra en la propia pantalla del cronómetro, en 3D o como diagrama plano, y puede ocultarse en los ajustes</li>
+      <li>La mezcla ahora se muestra en la propia pantalla del cronómetro, en 3D o como diagrama plano (puede ocultarse en los ajustes)</li>
       <li>Mientras corre una resolución, la pantalla no conserva más que el tiempo</li>
       <li>Los 12 últimos tiempos se muestran como barras (la tabla de tiempos sigue disponible desde los ajustes)</li>
       <li>La inspección ahora puede activarse o desactivarse por tipo de resolución</li>
@@ -444,7 +444,7 @@
       <li>Las filas del historial empiezan por el tiempo y se agrupan por día</li>
       <li>El detalle de un tiempo se abre como una ficha que se desliza de un tiempo al siguiente, y que se arrastra fuera para cerrar</li>
       <li>La mezcla y el solucionador de cruz ahora también pueden abrirse desde el detalle de un tiempo</li>
-      <li>Un DNF puede deshacerse, restaurando el tiempo al que sustituyó</li>
+      <li>Un DNF puede deshacerse, restaurando el tiempo al que sustituyó (no retroactivo)</li>
     </ul>
     <b>Gráficas</b>
     <ul>
