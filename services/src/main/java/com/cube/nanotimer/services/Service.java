@@ -2,6 +2,7 @@ package com.cube.nanotimer.services;
 
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -92,6 +93,9 @@ public interface Service {
   /** Every rep of one case since {@code fromTimestamp}, latest first, the pruned ones left out. */
   void getDrillCaseAttempts(String caseCode, long fromTimestamp,
       DataCallback<List<DrillCaseAttempt>> callback);
+
+  /** The four figures a backup is described by, counted over the whole database. */
+  void getBackupCounts(DataCallback<BackupCounts> callback);
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);

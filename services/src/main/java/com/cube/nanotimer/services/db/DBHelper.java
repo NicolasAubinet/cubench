@@ -2,6 +2,7 @@ package com.cube.nanotimer.services.db;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.cube.nanotimer.vo.CubeType;
@@ -441,6 +442,38 @@ public class DBHelper extends SQLiteOpenHelper {
       values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, scrambleType.getName());
     }
     return (int) db.insert(DB.TABLE_SOLVETYPE, null, values);
+  }
+
+  /**
+   * Flushes the write-ahead log into the database file itself.
+   *
+   * <p>A backup stores the main file alone. Without this the most recent solves are still sitting
+   * in the {@code -wal} companion and are missing from the copy, with nothing to say so.
+   */
+  public static void checkpointWal() {
+    if (db == null) {
+      return;
+    }
+    // rawQuery, not execSQL: the pragma returns a row, and it does not run until one is read.
+    Cursor cursor = db.rawQuery("PRAGMA wal_checkpoint(FULL)", null);
+    if (cursor != null) {
+      cursor.moveToFirst();
+      cursor.close();
+    }
+  }
+
+  /**
+   * Closes the process-wide connection, so the database file can be replaced under it.
+   *
+   * <p>Only a restore has any business calling this: it hands the file back to the filesystem and
+   * leaves every {@code Service} caller pointing at a closed database. A restore restarts the
+   * process straight after, which is what makes that safe.
+   */
+  public static void closeConnection() {
+    if (db != null) {
+      db.close();
+      db = null;
+    }
   }
 
   private String getString(int resId) {

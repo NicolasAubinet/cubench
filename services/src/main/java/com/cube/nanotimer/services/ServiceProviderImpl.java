@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.cube.nanotimer.services.db.DB;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
+import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -1259,6 +1260,27 @@ public class ServiceProviderImpl implements ServiceProvider {
       cursor.close();
     }
     return attempts;
+  }
+
+  @Override
+  public BackupCounts getBackupCounts() {
+    return new BackupCounts(
+      countRows(DB.TABLE_TIMEHISTORY),
+      countRows(DB.TABLE_SOLVETYPE),
+      countRows(DB.TABLE_DRILL),
+      countRows(DB.TABLE_DRILL_REP) + countRows(DB.TABLE_DRILL_CROSS_REP));
+  }
+
+  private int countRows(String table) {
+    Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + table, null);
+    if (cursor == null) {
+      return 0;
+    }
+    try {
+      return cursor.moveToFirst() ? cursor.getInt(0) : 0;
+    } finally {
+      cursor.close();
+    }
   }
 
   @Override

@@ -4,6 +4,7 @@ import android.content.Context;
 import com.cube.nanotimer.services.db.DBHelper;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -244,6 +245,16 @@ public class ServiceImpl extends DBHelper implements Service {
       @Override
       public void run() {
         callback.onData(provider.getSessionStart(solveType));
+      }
+    });
+  }
+
+  @Override
+  public void getBackupCounts(final DataCallback<BackupCounts> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getBackupCounts());
       }
     });
   }
