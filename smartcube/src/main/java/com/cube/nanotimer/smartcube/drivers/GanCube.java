@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.drivers;
 
+import android.util.Log;
 import com.cube.nanotimer.smartcube.SmartCube;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
@@ -26,6 +27,21 @@ import java.util.concurrent.TimeUnit;
 
 /** A connected GAN cube, translating parser events into the {@link SmartCube} callbacks. */
 final class GanCube implements SmartCube {
+
+  /**
+   * Logs every gyro sample with the moment it arrived, for offline analysis by
+   * {@code tools/gyroprobe.py}.
+   *
+   * <p>⚠️ Turn this on before tuning anything that reads the gyro. <b>No GAN has ever been
+   * measured.</b> Both the pose smoothing in {@code live.html} and the still-detection the
+   * straighten button waits on are shaped around a report rate and a noise floor taken from a
+   * MoYu V10, and a cube that differs in either breaks both — a slower cube is read twice and
+   * mistaken for perfectly still, a noisier one never reads still at all.
+   *
+   * <p>Off for release: it costs a string per sample, and the stream is continuous.
+   */
+  private static final boolean CAPTURE = false;
+  private static final String CAPTURE_TAG = "GyroProbe";
 
   /** How often to re-ask for facelets while the model is unanchored and dropping every move. */
   private static final long ANCHOR_RETRY_INTERVAL_MS = 1000;
@@ -134,6 +150,7 @@ final class GanCube implements SmartCube {
       if (event instanceof GanEvent.GyroEvent gyro) {
         lastOrientation = gyro.getOrientation(); // streamed fast: stored for polling, never broadcast
         history.onSample(gyro.getOrientation(), nowMs);
+        capture(nowMs, gyro.getOrientation());
       } else if (event instanceof GanEvent.StateEvent state) {
         lastState = state.getState();
         notifyState(lastState);
@@ -160,6 +177,19 @@ final class GanCube implements SmartCube {
     }
     if (!protocol.needsAnchor()) {
       stopAnchoring(); // a fresh state packet re-anchored us
+    }
+  }
+
+  /** One gyro sample, as it arrived: {@code G <hostMs> <w> <x> <y> <z>}. */
+  private static void capture(long atMs, CubeOrientation orientation) {
+    if (!CAPTURE || orientation == null) {
+      return;
+    }
+    try {
+      Log.i(CAPTURE_TAG, "G " + atMs + " " + orientation.getW() + " " + orientation.getX()
+          + " " + orientation.getY() + " " + orientation.getZ());
+    } catch (RuntimeException e) {
+      // JVM unit tests have no android.util.Log; the capture is a hardware-only diagnostic.
     }
   }
 

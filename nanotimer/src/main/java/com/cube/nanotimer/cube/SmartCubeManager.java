@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.util.Log;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.smartcube.SmartCube;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
@@ -208,7 +209,21 @@ public enum SmartCubeManager {
    * cube settles.
    */
   public void reanchorGyro() {
+    probe("PRESS " + System.currentTimeMillis());
     mainHandler.post(() -> anchorGyro(true));
+  }
+
+  /**
+   * Traces what the straighten button actually waited for, for {@code tools/gyroprobe.py}. Pair it
+   * with {@code GanCube.CAPTURE}: this says what the wait concluded, that says what it had to
+   * conclude it from. Off for release.
+   */
+  private static final boolean GYRO_PROBE = false;
+
+  private static void probe(String line) {
+    if (GYRO_PROBE) {
+      Log.i("GyroProbe", line);
+    }
   }
 
   /**
@@ -266,12 +281,17 @@ public enum SmartCubeManager {
       CubeOrientation reading = getOrientation();
       boolean timedOut = SystemClock.uptimeMillis() - stillSince >= STILL_TIMEOUT_MS;
       if (reading != null) {
-        boolean still =
-            stillCandidate != null && stillCandidate.angleToDegrees(reading) < STILL_DEGREES;
+        double moved = stillCandidate == null ? -1 : stillCandidate.angleToDegrees(reading);
+        boolean still = stillCandidate != null && moved < STILL_DEGREES;
+        probe("A " + System.currentTimeMillis() + " " + moved + " still=" + still
+            + " timedOut=" + timedOut);
         stillCandidate = reading;
         if (still || timedOut) {
           anchoring = false;
           gyroReference.anchor(reading);
+          probe("ANCHOR " + System.currentTimeMillis() + " via=" + (still ? "still" : "timeout")
+              + " " + reading.getW() + " " + reading.getX()
+              + " " + reading.getY() + " " + reading.getZ());
           notifyGyroReferenceChanged();
           return;
         }
