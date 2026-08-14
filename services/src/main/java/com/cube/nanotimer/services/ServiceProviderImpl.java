@@ -3,6 +3,9 @@ package com.cube.nanotimer.services;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import com.cube.nanotimer.coach.CoachPayload;
+import com.cube.nanotimer.coach.CoachPayloadBuilder;
+import com.cube.nanotimer.coach.StepSample;
 import com.cube.nanotimer.services.db.DB;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
@@ -39,6 +42,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -1541,6 +1545,128 @@ public class ServiceProviderImpl implements ServiceProvider {
     return count;
   }
 
+  /**
+   * The one thing that leaves the device, built here because it is the floors and the outlier rule
+   * that decide what may be said and both need the occurrences one at a time, which SQL cannot give
+   * a mean of. The figures the screens read are aggregated in the query; these are not.
+   */
+  @Override
+  public CoachPayload getCoachPayload(SolveType solveType, CubeMethod method) {
+    int caseSolves = getMethodSolvesCount(solveType, method, CoachPayloadBuilder.CASE_WINDOW);
+    List<StepSample> drillSamples = getDrillCaseSamples(CoachPayloadBuilder.DRILL_WINDOW);
+    return CoachPayloadBuilder.build(puzzleCode(solveType),
+        method.getCode().toLowerCase(Locale.US),
+        getMethodSolveTimes(solveType, method, CoachPayloadBuilder.FAMILY_WINDOW),
+        getMethodStepSamples(solveType, method, CoachPayloadBuilder.FAMILY_WINDOW),
+        getMethodStepSamples(solveType, method, CoachPayloadBuilder.CASE_WINDOW), caseSolves,
+        drillSamples, getDrilledDrillsCount(CoachPayloadBuilder.DRILL_WINDOW));
+  }
+
+  /** The puzzle in the vocabulary a drill spec speaks, never a name the user could have edited. */
+  private static String puzzleCode(SolveType solveType) {
+    return solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId() ? "3x3"
+        : CubeType.getCubeType(solveType.getCubeTypeId()).name().toLowerCase(Locale.US);
+  }
+
+  /** The whole times of the window, one row each, so a junk solve can be told from a slow one. */
+  private List<Long> getMethodSolveTimes(SolveType solveType, CubeMethod method, int lastSolves) {
+    List<Long> times = new ArrayList<Long>();
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.COL_TIMEHISTORY_TIME);
+    q.append("  FROM ").append(DB.TABLE_TIMEHISTORY);
+    q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
+    q.append("   AND ").append(DB.COL_TIMEHISTORY_TIME).append(" > 0");
+    q.append("   AND ").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD).append(" = ?");
+    q.append(" ORDER BY ").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" DESC");
+    q.append(" LIMIT ").append(Math.max(0, lastSolves));
+    Cursor cursor = db.rawQuery(q.toString(),
+        new String[] { String.valueOf(solveType.getId()), method.getCode() });
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        times.add(Long.valueOf(cursor.getLong(0)));
+      }
+      cursor.close();
+    }
+    return times;
+  }
+
+  /** Every step of the window's solves, unaggregated, filtered exactly as {@link #getMethodStatistics}. */
+  private List<StepSample> getMethodStepSamples(SolveType solveType, CubeMethod method,
+      int lastSolves) {
+    String window = "SELECT " + DB.COL_ID + ", " + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
+        + "   AND " + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
+        + " ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastSolves);
+
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION);
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NOT NULL");
+    q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
+    q.append("  JOIN (").append(window).append(") h");
+    q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
+    q.append(" WHERE s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NOT NULL");
+    q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP).append(" IS NULL");
+    q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
+    q.append("    <> s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
+
+    List<StepSample> samples = new ArrayList<StepSample>();
+    Cursor cursor = db.rawQuery(q.toString(),
+        new String[] { String.valueOf(solveType.getId()), method.getCode() });
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        samples.add(new StepSample(cursor.getString(0), cursor.getLong(1), cursor.getLong(2),
+            cursor.getInt(3) == 1));
+      }
+      cursor.close();
+    }
+    return samples;
+  }
+
+  /** Every rep of the drill window that measured its case, unaggregated, same exclusions as {@link #getDrillCaseStatistics}. */
+  private List<StepSample> getDrillCaseSamples(int lastDrills) {
+    String total = "(r." + DB.COL_DRILL_REP_RECOGNITION + " + r." + DB.COL_DRILL_REP_EXECUTION + ")";
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT r.").append(DB.COL_DRILL_REP_CASE);
+    q.append("     , ").append(total);
+    q.append("     , r.").append(DB.COL_DRILL_REP_RECOGNITION);
+    q.append("  FROM ").append(DB.TABLE_DRILL_REP).append(" r");
+    q.append("  JOIN (").append(drilledDrillsWindow(lastDrills)).append(") d");
+    q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
+    q.append(" WHERE r.").append(DB.COL_DRILL_REP_ABANDONED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_REVEALED).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_RESET_COUNT).append(" = 0");
+    q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
+
+    List<StepSample> samples = new ArrayList<StepSample>();
+    Cursor cursor = db.rawQuery(q.toString(), null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        samples.add(new StepSample(cursor.getString(0), cursor.getLong(1), cursor.getLong(2),
+            false));
+      }
+      cursor.close();
+    }
+    return samples;
+  }
+
+  /** How many drills the drill figures were read from, which is the window or all there is of it. */
+  private int getDrilledDrillsCount(int lastDrills) {
+    int count = 0;
+    Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM (" + drilledDrillsWindow(lastDrills) + ")",
+        null);
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        count = cursor.getInt(0);
+      }
+      cursor.close();
+    }
+    return count;
+  }
+
   @Override
   public List<SolveTime> getSmartcubeSolves(SolveType solveType) {
     StringBuilder q = new StringBuilder();
@@ -1593,6 +1719,16 @@ public class ServiceProviderImpl implements ServiceProvider {
     } finally {
       db.endTransaction();
     }
+  }
+
+  /** The last drills that hold a rep, so a run of cross drills does not shrink how far back the figures reach. */
+  private static String drilledDrillsWindow(int lastDrills) {
+    return "SELECT " + DB.COL_ID + " FROM " + DB.TABLE_DRILL
+        + " WHERE EXISTS (SELECT 1 FROM " + DB.TABLE_DRILL_REP
+        + "                WHERE " + DB.COL_DRILL_REP_DRILL_ID
+        + "                    = " + DB.TABLE_DRILL + "." + DB.COL_ID
+        + "                  AND " + DB.COL_DRILL_REP_DELETED + " = 0)"
+        + " ORDER BY " + DB.COL_DRILL_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastDrills);
   }
 
   /** How many solves the step tallies were read from, which is the window or all there is of it. */

@@ -1,5 +1,6 @@
 package com.cube.nanotimer.services;
 
+import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -60,6 +61,7 @@ public interface ServiceProvider {
   int getSmartcubeSolvesCount(SolveType solveType);
   List<SolveTime> getSmartcubeSolves(SolveType solveType);
   void saveSmartcubeBreakdowns(List<SolveTime> solveTimes);
+  CoachPayload getCoachPayload(SolveType solveType, CubeMethod method);
   Map<CubeType, List<ScrambleType>> getAllUsedScrambleTypes();
 
   /** Opens a recorded drill and hands back the id its reps are stored against. */

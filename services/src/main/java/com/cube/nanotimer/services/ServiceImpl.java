@@ -3,6 +3,7 @@ package com.cube.nanotimer.services;
 import android.content.Context;
 import com.cube.nanotimer.services.db.DBHelper;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -455,6 +456,17 @@ public class ServiceImpl extends DBHelper implements Service {
       public void run() {
         provider.saveSmartcubeBreakdowns(solveTimes);
         callback.onData(null);
+      }
+    });
+  }
+
+  @Override
+  public void getCoachPayload(final SolveType solveType, final CubeMethod method,
+      final DataCallback<CoachPayload> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getCoachPayload(solveType, method));
       }
     });
   }

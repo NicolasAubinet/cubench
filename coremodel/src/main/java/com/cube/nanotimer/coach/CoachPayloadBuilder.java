@@ -1,0 +1,222 @@
+package com.cube.nanotimer.coach;
+
+import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.vo.StepStats;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Where a solver's history becomes the one thing a coach is allowed to see.
+ *
+ * <p>Everything that decides what may be said lives here rather than in whatever reads the payload:
+ * the windows, the floors under which a figure is not sent at all, the outlier rule
+ * ({@link StepTallies}), and the two figures that are cut outright because they are artefacts.
+ * A reader can only select and explain what survived this.
+ *
+ * <p>The two cuts, both measured on real history in 2026-08: the cross reads a recognition of zero
+ * because the step is timed from its own first move, which means unmeasured and not instant; and an
+ * F2L slot code is named relative to the cross face, so the same string means different slots for a
+ * colour-neutral solver and the per-slot figures are not comparable. The F2L family survives both,
+ * only its slots are dropped.
+ *
+ * <p>One window cannot serve both layers. Families want to be recent, so they track the level the
+ * user solves at now; cases want the length, because 21 PLLs and 57 OLLs spread thin over any
+ * window short enough to be current. The floor is what actually protects a case figure.
+ */
+public class CoachPayloadBuilder {
+
+  /** How many solves the step figures are read from: recent enough to be the level solved at now. */
+  public static final int FAMILY_WINDOW = 100;
+
+  /** How many solves the case figures are read from: long enough for 57 OLLs to be seen at all. */
+  public static final int CASE_WINDOW = 500;
+
+  /** How many recorded drills the drill figures are read from. */
+  public static final int DRILL_WINDOW = 50;
+
+  /** Below this many occurrences a case is not quoted, in a solve or in a drill. */
+  public static final int CASE_FLOOR = 5;
+
+  /** Below this many occurrences a step of the method is not quoted. */
+  public static final int FAMILY_FLOOR = 10;
+
+  /** Below this many solves nothing is said about the solve as a whole. */
+  public static final int SOLVE_FLOOR = 10;
+
+  /** The code the whole solve's figures ride under, which is not a step and has no family. */
+  public static final String SOLVE = "solve";
+
+  /** The part family whose codes name a slot rather than a case, and are cut for it. */
+  private static final String SLOT_FAMILY = "pair";
+
+  /** The step timed from its own first move, so it has no recognition to report. */
+  private static final String CROSS_FAMILY = "cross";
+
+  /** How far apart the two histories must be, against the solve side, before the gap is sent. */
+  private static final double MIN_GAP = 0.1;
+
+  private CoachPayloadBuilder() {
+  }
+
+  /**
+   * @param puzzle the puzzle in a drill spec's vocabulary, "3x3"
+   * @param method the method the solves were read as, "cfop"
+   * @param solveTimes the whole times of the last {@link #FAMILY_WINDOW} solves
+   * @param familySamples every step occurrence over that same window
+   * @param caseSamples every step occurrence over the longer {@link #CASE_WINDOW}
+   * @param caseSolveCount how many solves that longer window actually held, which is the window or
+   *     everything there is of it
+   * @param drillSamples every drilled case rep over the last {@link #DRILL_WINDOW} drills
+   * @param drillCount how many drills those reps came from
+   */
+  public static CoachPayload build(String puzzle, String method, List<Long> solveTimes,
+      List<StepSample> familySamples, List<StepSample> caseSamples, int caseSolveCount,
+      List<StepSample> drillSamples, int drillCount) {
+    StepTallies familyTallies = new StepTallies(familySamples);
+    MethodStatistics families =
+        new MethodStatistics(familyTallies.getSteps(), familyTallies.getParts(), solveTimes.size());
+    StepTallies caseTallies = new StepTallies(caseSamples);
+    MethodStatistics cases =
+        new MethodStatistics(caseTallies.getSteps(), caseTallies.getParts(), caseSolveCount);
+    StepTallies drillTallies = new StepTallies(drillSamples);
+
+    List<StepFigure> caseFigures = caseFigures(cases, caseTallies);
+    List<StepFigure> drillFigures = drillFigures(drillTallies);
+    return new CoachPayload(CoachPayload.VERSION, puzzle, method, solveTimes.size(),
+        caseSolveCount, drillCount, solveFigure(solveTimes),
+        familyFigures(families.getFamilies(), families, familyTallies),
+        familyFigures(families.getParts(), families, familyTallies), caseFigures, drillFigures,
+        comparisons(caseFigures, drillFigures, caseTallies, drillTallies));
+  }
+
+  /** The solve as a whole, which is the only norm there is for whether a step is long. */
+  private static StepFigure solveFigure(List<Long> solveTimes) {
+    if (solveTimes.size() < SOLVE_FLOOR) {
+      return null;
+    }
+    List<StepSample> samples = new ArrayList<StepSample>();
+    for (Long time : solveTimes) {
+      samples.add(new StepSample(SOLVE, time.longValue(), 0, false));
+    }
+    StepTallies tallies = new StepTallies(samples);
+    StepStats stats = tallies.get(SOLVE);
+    return stats.getCount() < SOLVE_FLOOR ? null
+        : StepFigure.plain(stats, false, tallies.getRejectionRate(SOLVE));
+  }
+
+  private static List<StepFigure> familyFigures(List<StepStats> stats, MethodStatistics statistics,
+      StepTallies tallies) {
+    List<StepFigure> figures = new ArrayList<StepFigure>();
+    for (StepStats family : stats) {
+      if (family.getCount() < FAMILY_FLOOR) {
+        continue;
+      }
+      double skipRate = statistics.getSkipRate(family.getCode());
+      figures.add(StepFigure.family(family, measuresRecognition(family.getCode()),
+          tallies.getRejectionRate(family.getCode()),
+          skipRate == 0 ? null : Double.valueOf(skipRate)));
+    }
+    return figures;
+  }
+
+  /** Every case above its floor, worst cost first, the slot codes left out. */
+  private static List<StepFigure> caseFigures(MethodStatistics statistics, StepTallies tallies) {
+    final List<StepFigure> figures = new ArrayList<StepFigure>();
+    for (String family : familiesOf(statistics)) {
+      if (SLOT_FAMILY.equals(family)) {
+        continue;
+      }
+      for (StepStats stepCase : statistics.getCases(family)) {
+        if (stepCase.getCount() >= CASE_FLOOR) {
+          figures.add(StepFigure.stepCase(stepCase, measuresRecognition(stepCase.getCode()),
+              tallies.getRejectionRate(stepCase.getCode()),
+              statistics.getTimeLostMs(stepCase.getCode())));
+        }
+      }
+    }
+    Collections.sort(figures, new Comparator<StepFigure>() {
+      @Override
+      public int compare(StepFigure a, StepFigure b) {
+        return Long.compare(b.getTimeLostMs().longValue(), a.getTimeLostMs().longValue());
+      }
+    });
+    return figures;
+  }
+
+  /** The same cases as a drill runs them, slowest first, with no family to weigh them against. */
+  private static List<StepFigure> drillFigures(StepTallies tallies) {
+    List<StepFigure> figures = new ArrayList<StepFigure>();
+    for (StepStats drilled : tallies.getSteps()) {
+      if (drilled.getCount() >= CASE_FLOOR) {
+        figures.add(StepFigure.plain(drilled, measuresRecognition(drilled.getCode()),
+            tallies.getRejectionRate(drilled.getCode())));
+      }
+    }
+    Collections.sort(figures, new Comparator<StepFigure>() {
+      @Override
+      public int compare(StepFigure a, StepFigure b) {
+        return Long.compare(b.getMeanMs(), a.getMeanMs());
+      }
+    });
+    return figures;
+  }
+
+  /**
+   * The cases both histories hold enough of, where the two are far enough apart to be worth saying.
+   * One good drill and two bad solves must not produce a diagnosis, so the gap has to clear a tenth
+   * of the solve figure and the noise of both samples before it is sent at all.
+   */
+  private static List<CaseComparison> comparisons(List<StepFigure> caseFigures,
+      List<StepFigure> drillFigures, StepTallies caseTallies, StepTallies drillTallies) {
+    List<CaseComparison> comparisons = new ArrayList<CaseComparison>();
+    for (StepFigure solved : caseFigures) {
+      StepFigure drilled = figure(drillFigures, solved.getCode());
+      if (drilled == null) {
+        continue;
+      }
+      long gap = Math.abs(solved.getMeanMs() - drilled.getMeanMs());
+      double noise = standardError(caseTallies.get(solved.getCode()))
+          + standardError(drillTallies.get(solved.getCode()));
+      if (gap > solved.getMeanMs() * MIN_GAP && gap > noise) {
+        comparisons.add(new CaseComparison(solved.getCode(), solved.getCount(), solved.getMeanMs(),
+            drilled.getCount(), drilled.getMeanMs()));
+      }
+    }
+    return comparisons;
+  }
+
+  private static double standardError(StepStats stats) {
+    return stats == null || stats.getCount() == 0 ? 0
+        : stats.getStdDevMs() / Math.sqrt(stats.getCount());
+  }
+
+  private static StepFigure figure(List<StepFigure> figures, String code) {
+    for (StepFigure figure : figures) {
+      if (figure.getCode().equals(code)) {
+        return figure;
+      }
+    }
+    return null;
+  }
+
+  /** Every family the window holds, steps and parts together, in the order they are solved in. */
+  private static Set<String> familiesOf(MethodStatistics statistics) {
+    Set<String> families = new LinkedHashSet<String>();
+    for (StepStats step : statistics.getFamilies()) {
+      families.add(step.getCode());
+    }
+    for (StepStats part : statistics.getParts()) {
+      families.add(part.getCode());
+    }
+    return families;
+  }
+
+  private static boolean measuresRecognition(String code) {
+    return !CROSS_FAMILY.equals(MethodStatistics.familyOf(code));
+  }
+}

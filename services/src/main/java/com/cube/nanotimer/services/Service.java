@@ -1,6 +1,7 @@
 package com.cube.nanotimer.services;
 
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -79,6 +80,12 @@ public interface Service {
    * fits its type's method deserves.
    */
   void saveSmartcubeBreakdowns(List<SolveTime> solveTimes, DataCallback<Void> callback);
+
+  /**
+   * The solver's history as a coach may see it: aggregated figures, vocabulary codes, and nothing a
+   * user ever typed. What is too thin to stand is left out here rather than caveated later.
+   */
+  void getCoachPayload(SolveType solveType, CubeMethod method, DataCallback<CoachPayload> callback);
   void getAllUsedScrambleTypes(DataCallback<Map<CubeType, List<ScrambleType>>> callback);
 
   /**
