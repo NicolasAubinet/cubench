@@ -408,7 +408,38 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v1.4.3 <i>(Nouvelle version)</i></b></u><br/>
+    <u><b>v2.0.0 <i>(Nouvelle version)</i></b></u><br/>
+    <b>Cubench a été redessiné de fond en comble.</b><br/>
+    <b>Chrono</b>
+    <ul>
+      <li>Le mélange s\'affiche maintenant sur l\'écran du chrono, en 3D ou en schéma à plat, et peut être masqué dans les réglages</li>
+      <li>Pendant une résolution, l\'écran ne garde que le temps</li>
+      <li>Les 12 derniers temps sont affichés en barres (le tableau des temps reste disponible via les réglages)</li>
+      <li>L\'inspection peut maintenant être activée ou désactivée par type de résolution</li>
+    </ul>
+    <b>Historique et temps</b>
+    <ul>
+      <li>Champs de statistiques personnalisables dans l\'écran d\'historique</li>
+      <li>Les lignes de l\'historique commencent par le temps et sont regroupées par jour</li>
+      <li>Le détail d\'un temps s\'ouvre en fiche que l\'on fait glisser d\'un temps au suivant, et que l\'on écarte pour fermer</li>
+      <li>Le mélange et le solveur de croix peuvent maintenant s\'ouvrir depuis le détail d\'un temps</li>
+      <li>Un DNF peut être annulé, ce qui rétablit le temps qu\'il remplaçait</li>
+    </ul>
+    <b>Graphiques</b>
+    <ul>
+      <li>Nouveau graphique « Distribution », qui compte combien de vos temps tombent dans chaque intervalle</li>
+      <li>Vos 50 derniers temps s\'affichent maintenant en graphique dans l\'écran d\'historique, qui mène à l\'écran des graphiques quand on le touche</li>
+    </ul>
+    <b>Divers</b>
+    <ul>
+      <li>Des boutons d\'aide sur plusieurs écrans expliquent ce qu\'ils montrent</li>
+      <li>Chaque type de cube a maintenant sa propre couleur, qui le suit dans toute l\'application</li>
+      <li>L\'écran d\'exportation regroupe maintenant vos temps par puzzle, en indiquant combien chacun en contient et combien vous en avez sélectionnés</li>
+      <li>Les mélanges à état aléatoire sont maintenant toujours utilisés, le réglage et l\'écran d\'options derrière lui ont donc disparu</li>
+      <li>Les réglages utilisent des interrupteurs, et les réglages numériques proposent des valeurs prédéfinies au lieu d\'une molette</li>
+      <li>De nombreuses corrections et retouches plus petites</li>
+    </ul>
+    <u><b>v1.4.3</b></u><br/>
     <ul>
       <li>Le panneau de nouveau record ne recouvre plus le mélange</li>
       <li>Nouveau réglage pour choisir quand le panneau de record apparaît : pour tout record, seulement pour un nouveau PB, ou jamais</li>

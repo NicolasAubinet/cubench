@@ -408,7 +408,38 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v1.4.3 <i>(Nueva versión)</i></b></u><br/>
+    <u><b>v2.0.0 <i>(Nueva versión)</i></b></u><br/>
+    <b>Cubench se ha rediseñado de arriba abajo.</b><br/>
+    <b>Cronómetro</b>
+    <ul>
+      <li>La mezcla ahora se muestra en la propia pantalla del cronómetro, en 3D o como diagrama plano, y puede ocultarse en los ajustes</li>
+      <li>Mientras corre una resolución, la pantalla no conserva más que el tiempo</li>
+      <li>Los 12 últimos tiempos se muestran como barras (la tabla de tiempos sigue disponible desde los ajustes)</li>
+      <li>La inspección ahora puede activarse o desactivarse por tipo de resolución</li>
+    </ul>
+    <b>Historial y tiempos</b>
+    <ul>
+      <li>Campos de estadísticas personalizables en la pantalla de historial</li>
+      <li>Las filas del historial empiezan por el tiempo y se agrupan por día</li>
+      <li>El detalle de un tiempo se abre como una ficha que se desliza de un tiempo al siguiente, y que se arrastra fuera para cerrar</li>
+      <li>La mezcla y el solucionador de cruz ahora también pueden abrirse desde el detalle de un tiempo</li>
+      <li>Un DNF puede deshacerse, restaurando el tiempo al que sustituyó</li>
+    </ul>
+    <b>Gráficas</b>
+    <ul>
+      <li>Nueva gráfica «Distribución», que cuenta cuántos de sus tiempos caen en cada intervalo</li>
+      <li>Sus 50 últimos tiempos ahora se muestran como gráfica en la pantalla de historial, que lleva a la pantalla de gráficas al tocarla</li>
+    </ul>
+    <b>Varios</b>
+    <ul>
+      <li>Botones de ayuda en varias pantallas explican lo que muestran</li>
+      <li>Cada tipo de cubo tiene ahora su propio color, que lo acompaña por toda la aplicación</li>
+      <li>La pantalla de exportación ahora agrupa sus tiempos por puzzle, indicando cuántos contiene cada uno y cuántos ha seleccionado</li>
+      <li>Las mezclas de estado aleatorio se usan siempre ahora, así que el ajuste y la pantalla de opciones que había detrás han desaparecido</li>
+      <li>Los ajustes usan interruptores, y los ajustes numéricos ofrecen valores predefinidos en vez de una rueda</li>
+      <li>Muchas correcciones y retoques más pequeños</li>
+    </ul>
+    <u><b>v1.4.3</b></u><br/>
     <ul>
       <li>El panel de nuevo record ya no tapa la mezcla</li>
       <li>Nuevo ajuste para elegir cuándo aparece el panel de record: para cualquier record, solo para un nuevo PB, o nunca</li>

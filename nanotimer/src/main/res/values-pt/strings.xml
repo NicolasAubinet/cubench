@@ -410,7 +410,38 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v1.4.3 <i>(Nova versão)</i></b></u><br/>
+    <u><b>v2.0.0 <i>(Nova versão)</i></b></u><br/>
+    <b>O Cubench foi redesenhado de cima a baixo.</b><br/>
+    <b>Cronômetro</b>
+    <ul>
+      <li>O scramble agora aparece na própria tela do cronômetro, em 3D ou como diagrama plano, e pode ser ocultado nas configurações</li>
+      <li>Enquanto uma resolução corre, a tela não guarda nada além do tempo</li>
+      <li>Os 12 últimos tempos são mostrados em barras (a tabela de tempos continua disponível pelas configurações)</li>
+      <li>A inspeção agora pode ser ativada ou desativada por tipo de resolução</li>
+    </ul>
+    <b>Histórico e tempos</b>
+    <ul>
+      <li>Campos de estatísticas personalizáveis na tela de histórico</li>
+      <li>As linhas do histórico começam pelo tempo e são agrupadas por dia</li>
+      <li>Os detalhes de um tempo abrem como uma ficha que se desliza de um tempo para o seguinte, e que se arrasta para fora para fechar</li>
+      <li>O scramble e o solucionador de cruz agora também podem ser abertos a partir dos detalhes de um tempo</li>
+      <li>Um DNF pode ser desfeito, restaurando o tempo que ele substituiu</li>
+    </ul>
+    <b>Gráficos</b>
+    <ul>
+      <li>Novo gráfico “Distribuição”, que conta quantos dos seus tempos caem em cada intervalo</li>
+      <li>Os seus 50 últimos tempos agora aparecem como gráfico na tela de histórico, que leva à tela de gráficos ao tocar nele</li>
+    </ul>
+    <b>Diversos</b>
+    <ul>
+      <li>Botões de ajuda em várias telas explicam o que elas mostram</li>
+      <li>Cada tipo de cubo agora tem a sua própria cor, que o acompanha por todo o aplicativo</li>
+      <li>A tela de exportação agora agrupa os seus tempos por puzzle, mostrando quantos cada um contém e quantos você selecionou</li>
+      <li>Os scrambles de estado aleatório são sempre usados agora, então a configuração e a tela de opções por trás dela desapareceram</li>
+      <li>As configurações usam interruptores, e as configurações numéricas oferecem valores predefinidos em vez de uma roda</li>
+      <li>Muitas correções e ajustes menores</li>
+    </ul>
+    <u><b>v1.4.3</b></u><br/>
     <ul>
       <li>O painel de novo recorde não cobre mais o scramble</li>
       <li>Nova configuração para escolher quando o painel de recorde aparece: para qualquer recorde, somente para um novo PB, ou nunca</li>
