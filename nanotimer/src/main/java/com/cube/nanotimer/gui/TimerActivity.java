@@ -1262,7 +1262,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         lastSolveGyroTrack = null;
         lastSolveMethod = null;
         lastSolveStoppedStep = null;
-        addTimeToUI(solveAverages.getSolveTime().getTime());
+        long time = solveAverages.getSolveTime().getTime();
+        addTimeToUI(time);
+        // The hand-entered solve is the one the verdict and the menu now speak of, so it is the
+        // one the timer has to show.
+        tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(time));
+        setTimerTextColor(time);
         generateScramble();
       }
     });
