@@ -12,7 +12,9 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.App;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.GyroReferenceListener;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.VirtualCube;
@@ -33,12 +35,13 @@ import com.cube.nanotimer.vo.drill.DrillEnd;
  * <p>Those rules are the reason this is shared rather than copied. A drill waits for a cube rather
  * than refusing for want of one; a cube that goes away ends the drill instead of losing it; back
  * stops it rather than throwing it away, because a drill stopped at rep 6 of 20 is a result; a cube
- * with no gyroscope to follow is stood at a corner rather than square on; and there is no control
- * that starts or stops a rep. Two screens keeping five rules in step by hand would not.
+ * with no gyroscope to follow is stood at a corner rather than square on, and the chip on the well
+ * stands a cube that has one there too; and there is no control that starts or stops a rep. Two screens keeping five rules in step by hand would not.
  *
  * <p>A subclass sets its own content view and must name the shared pieces the same way, since a
  * drill screen is the same screen twice over: {@code drillRunning}, {@code drillSummary},
- * {@code tvDrillUnavailable}, {@code wvDrillCube} and {@code pbDrillCube}.
+ * {@code tvDrillUnavailable}, {@code wvDrillCube} and {@code pbDrillCube}, and it includes
+ * {@code drill_gyro_chip} on the cube's well.
  *
  * <p>The line for the rep that has just ended is shared as well: three slots, a name, a figure
  * and what the figure is made of, which every drill fills with whatever it scores. The same slots
@@ -50,7 +53,7 @@ import com.cube.nanotimer.vo.drill.DrillEnd;
  * them.
  */
 public abstract class DrillScreenActivity extends NanoTimerActivity
-    implements CubeMoveListener, CubeConnectionListener,
+    implements CubeMoveListener, CubeConnectionListener, GyroReferenceListener,
     VirtualCube.ReadyListener {
 
   /**
@@ -97,6 +100,10 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   private ProgressBar pbCube;
   private WebView webView;
   private SmartCubeChip smartCubeChip;
+  private TextView gyroChip;
+
+  /** Whether the drawn cube follows the grip. The user's standing answer, kept between drills. */
+  private boolean followGyro;
 
   /** The page has drawn the case, which is when a turn can be counted against it. */
   protected boolean cubeReady;
@@ -150,6 +157,18 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     summaryLayout = findViewById(R.id.drillSummary);
     tvUnavailable = findViewById(R.id.tvDrillUnavailable);
     pbCube = findViewById(R.id.pbDrillCube);
+
+    followGyro = Options.INSTANCE.isDrillFollowGyro();
+    gyroChip = findViewById(R.id.tvDrillGyro);
+    gyroChip.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        followGyro = !followGyro;
+        Options.INSTANCE.setDrillFollowGyro(followGyro);
+        refreshGyroChip();
+      }
+    });
+    refreshGyroChip();
 
     // Shown because it cannot be changed from here: a set drilled loosely must not be claimable as
     // a result at the end, so the user has to be able to see which mode they locked in.
@@ -233,7 +252,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
       showUnavailable(getString(R.string.drill_no_cube_view));
       return false;
     }
-    cube.setGyroFollowing(true);
+    cube.setGyroFollowing(followGyro);
     // The well here is most of the screen, and at the page's own distance the cube filled about a
     // third of it. The same value the scramble dialog measured for its own box.
     cube.setCameraDistance(CUBE_CAMERA_DISTANCE);
@@ -246,6 +265,29 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     // is followed is still drawn square on; the page holds this until that grip goes.
     cube.setView(VIEW_LATITUDE, VIEW_LONGITUDE);
     return true;
+  }
+
+  /**
+   * Points the cube at the grip or lets it go, and says which on the chip.
+   *
+   * <p>The chip is hidden where there is no grip to let go of, which is every cube with no
+   * gyroscope: that cube is already stood at its corner and turned by hand, so the toggle would
+   * offer the state it is in. The drill's own scoring never reads the grip, so this changes nothing
+   * but what the user is looking at.
+   */
+  private void refreshGyroChip() {
+    if (cube != null) {
+      cube.setGyroFollowing(followGyro);
+    }
+    gyroChip.setSelected(followGyro);
+    gyroChip.setVisibility(
+        SmartCubeManager.INSTANCE.getGyroReference().isSet() ? View.VISIBLE : View.GONE);
+  }
+
+  /** A grip taken or lost is what decides whether the chip has anything to offer. */
+  @Override
+  public void onGyroReferenceChanged() {
+    runOnUiThread(this::refreshGyroChip);
   }
 
   @Override
@@ -270,7 +312,10 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     // Subscribed whether or not there is a cube yet: a drill held at the door has no cube of its
     // own, and this is what tells it one has arrived.
     SmartCubeManager.INSTANCE.addMoveListener(this);
+    SmartCubeManager.INSTANCE.addGyroReferenceListener(this);
     SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
+    // The grip can have been taken or lost while the screen was away, and nothing told this then.
+    refreshGyroChip();
   }
 
   @Override
@@ -278,6 +323,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     super.onPause();
     smartCubeChip.stop();
     SmartCubeManager.INSTANCE.removeMoveListener(this);
+    SmartCubeManager.INSTANCE.removeGyroReferenceListener(this);
     SmartCubeManager.INSTANCE.removeConnectionListener(this);
     if (cube != null) {
       cube.onPause();

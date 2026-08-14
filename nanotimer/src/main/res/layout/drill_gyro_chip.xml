@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Whether the drawn cube follows the grip, on the well of the cube it turns. Lit while it does,
+     which is what a drill screen normally is; pressed off, the cube stands at its corner and the
+     page's own drag turns it, so a case can be read from a side the hands are not showing.
+
+     Hidden on a cube with no gyroscope: there is no grip to let go of, and that cube already
+     drags. Shown on both drill screens, so it is included rather than written twice. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/tvDrillGyro"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"
+   android:layout_gravity="bottom|right"
+   android:layout_margin="10dp"
+   android:paddingLeft="13dp"
+   android:paddingRight="13dp"
+   android:paddingTop="6dp"
+   android:paddingBottom="6dp"
+   android:text="@string/gyro"
+   android:textSize="12sp"
+   android:textColor="@color/gyro_chip_text"
+   android:background="@drawable/gyro_chip"
+   android:visibility="gone"/>

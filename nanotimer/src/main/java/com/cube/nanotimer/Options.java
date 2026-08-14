@@ -49,6 +49,7 @@ public enum Options {
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
   public static final String HERO_STAT_KEY_PREFIX = "hero_stat_";
   public static final String REPLAY_SHOW_GYRO_KEY = "replay_show_gyro";
+  public static final String DRILL_FOLLOW_GYRO_KEY = "drill_follow_gyro";
   public static final String SCRAMBLE_VIEW_3D_KEY = "scramble_view_3d";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
@@ -424,6 +425,19 @@ public enum Options {
 
   public void setReplayShowGyro(boolean showGyro) {
     sharedPreferences.edit().putBoolean(REPLAY_SHOW_GYRO_KEY, showGyro).apply();
+  }
+
+  /**
+   * Whether a drill's drawn cube follows the grip. On by default, which is what a drill screen is:
+   * a mirror of the cube in the user's hands. Off, it stands at its corner to be turned by hand,
+   * the way a cube with no gyroscope to follow is drilled.
+   */
+  public boolean isDrillFollowGyro() {
+    return sharedPreferences.getBoolean(DRILL_FOLLOW_GYRO_KEY, true);
+  }
+
+  public void setDrillFollowGyro(boolean follow) {
+    sharedPreferences.edit().putBoolean(DRILL_FOLLOW_GYRO_KEY, follow).apply();
   }
 
   // Whether the smart-cube sheet has already explained itself. It leads with the explanation until

@@ -53,6 +53,9 @@
          android:layout_height="match_parent"
          android:background="@drawable/drill_rep_wash"
          android:visibility="gone"/>
+
+      <include layout="@layout/drill_gyro_chip"/>
+
     </FrameLayout>
 
     <!-- What is happening now: the planning left, the moves spent, or that what is on the cube is

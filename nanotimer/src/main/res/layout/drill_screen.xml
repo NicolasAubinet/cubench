@@ -59,6 +59,8 @@
          android:textColor="@color/secondary_text"
          android:textSize="15sp"
          android:visibility="gone"/>
+
+      <include layout="@layout/drill_gyro_chip"/>
     </FrameLayout>
 
     <!-- ⚠️ The rep just FINISHED: its case, then its time, then how the time was spent. All three
