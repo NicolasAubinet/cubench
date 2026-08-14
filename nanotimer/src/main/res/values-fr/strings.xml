@@ -433,7 +433,8 @@
     <b>Divers</b>
     <ul>
       <li>Des boutons d\'aide sur plusieurs écrans expliquent ce qu\'ils montrent</li>
-      <li>Chaque type de cube a maintenant sa propre couleur, qui le suit dans toute l\'application</li>
+      <li>« Type de cube » s\'appelle maintenant « Type de puzzle », car tous les puzzles ne sont pas des cubes</li>
+      <li>Chaque type de puzzle a maintenant sa propre couleur, qui le suit dans toute l\'application</li>
       <li>L\'écran d\'exportation regroupe maintenant vos temps par puzzle, en indiquant combien chacun en contient et combien vous en avez sélectionnés</li>
       <li>Les mélanges à état aléatoire sont maintenant toujours utilisés, le réglage et l\'écran d\'options derrière lui ont donc disparu</li>
       <li>Les réglages utilisent des interrupteurs, et les réglages numériques proposent des valeurs prédéfinies au lieu d\'une molette</li>
