@@ -11,7 +11,7 @@
   <string name="about">À propos</string>
   <string name="backspace_exit">Appuyez à nouveau sur retour pour quitter</string>
 
-  <string name="cube_type">Type de cube</string>
+  <string name="cube_type">Type de puzzle</string>
   <string name="solve_type">Type de résolution</string>
   <string name="history">Historique</string>
   <string name="solves">résolutions</string>
@@ -141,7 +141,7 @@
   <string name="clear_all_history">Supprimer tous les temps</string>
   <string name="yes">Oui</string>
   <string name="no">Non</string>
-  <string name="choose_cube_type">Choisissez un type de cube</string>
+  <string name="choose_cube_type">Choisissez un type de puzzle</string>
   <string name="scrambles">Mélanges</string>
   <string name="big_cubes_notation">Notation gros cubes</string>
   <string name="big_cubes_notation_summary">Choisir le système de notation des gros cubes</string>
@@ -245,9 +245,9 @@
   <string name="import_error">Erreur d\'importation</string>
   <string name="could_not_convert_time">Impossible de convertir le temps \'%1$s\'</string>
   <string name="could_not_convert_date">Impossible to convertir la date \'%1$s\'</string>
-  <string name="could_not_find_cube_type">Impossible de trouver le type de cube \'%1$s\'.\nVérifiez le fichier importé, ou essayez de mettre à jour.</string>
-  <string name="could_not_find_scramble_type">Impossible de trouver le type de mélange \'%1$s\' pour le cube \'%2$s\'.\nVérifiez le fichier importé, ou essayez de mettre à jour.</string>
-  <string name="solve_type_conflict">Incohérence trouvée dans le type de résolution \'%1$s\' du type de cube \'%2$s\'.\nVérifiez le fichier importé ou contactez le support à %3$s.</string>
+  <string name="could_not_find_cube_type">Impossible de trouver le type de puzzle \'%1$s\'.\nVérifiez le fichier importé, ou essayez de mettre à jour.</string>
+  <string name="could_not_find_scramble_type">Impossible de trouver le type de mélange \'%1$s\' pour le puzzle \'%2$s\'.\nVérifiez le fichier importé, ou essayez de mettre à jour.</string>
+  <string name="solve_type_conflict">Incohérence trouvée dans le type de résolution \'%1$s\' du type de puzzle \'%2$s\'.\nVérifiez le fichier importé ou contactez le support à %3$s.</string>
   <string name="invalid_step_format">Format d\'étape invalide \'%1$s\'</string>
   <string name="could_not_convert_step_time">Impossible de convertir le temps d\'étape \'%1$s\'</string>
   <string name="error_reading_import_file">Impossible de lire le fichier d\'import: %1$s</string>

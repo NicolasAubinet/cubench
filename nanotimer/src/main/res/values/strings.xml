@@ -19,7 +19,7 @@
   <string name="about">About</string>
   <string name="backspace_exit">Press back again to exit</string>
 
-  <string name="cube_type">Cube type</string>
+  <string name="cube_type">Puzzle type</string>
   <string name="solve_type">Solve type</string>
   <string name="history">History</string>
   <string name="solves">solves</string>
@@ -153,7 +153,7 @@
   <string name="clear_all_history">Delete all the times</string>
   <string name="yes">Yes</string>
   <string name="no">No</string>
-  <string name="choose_cube_type">Choose a cube type</string>
+  <string name="choose_cube_type">Choose a puzzle type</string>
   <string name="scrambles">Scrambles</string>
   <string name="big_cubes_notation">Big cubes notation</string>
   <string name="big_cubes_notation_summary">Choose the big cubes notation system</string>
@@ -257,9 +257,9 @@
   <string name="import_error">Import error</string>
   <string name="could_not_convert_time">Could not convert time \'%1$s\'</string>
   <string name="could_not_convert_date">Could not convert date \'%1$s\'</string>
-  <string name="could_not_find_cube_type">Could not resolve cube type \'%1$s\'.\nPlease check input file, or try updating.</string>
-  <string name="could_not_find_scramble_type">Could not resolve scramble type \'%1$s\' for cube type \'%2$s\'.\nPlease check input file, or try updating.</string>
-  <string name="solve_type_conflict">Inconsistencies found in solve type \'%1$s\' of cube type \'%2$s\'.\nPlease check input file or contact support at %3$s.</string>
+  <string name="could_not_find_cube_type">Could not resolve puzzle type \'%1$s\'.\nPlease check input file, or try updating.</string>
+  <string name="could_not_find_scramble_type">Could not resolve scramble type \'%1$s\' for puzzle type \'%2$s\'.\nPlease check input file, or try updating.</string>
+  <string name="solve_type_conflict">Inconsistencies found in solve type \'%1$s\' of puzzle type \'%2$s\'.\nPlease check input file or contact support at %3$s.</string>
   <string name="invalid_step_format">Invalid format for step \'%1$s\'</string>
   <string name="could_not_convert_step_time">Could not convert step time \'%1$s\'</string>
   <string name="error_reading_import_file">Could not read import file: %1$s</string>
