@@ -42,10 +42,20 @@ import java.util.concurrent.Executors;
 public enum SmartCubeManager {
   INSTANCE;
 
-  /** Two gyro periods, so each tick of {@link #anchorWhenStill} sees a genuinely new reading. */
-  private static final long STILL_POLL_MS = 100;
+  /**
+   * Two gyro periods of the <em>slowest</em> cube, so each tick of {@link #anchorWhenStill} sees a
+   * genuinely new reading. A GAN reports a new orientation every 91 ms (measured 2026-08-14), so the
+   * 100 ms this used to be was 1.1 of its periods, not 2 — see that method for why that matters.
+   */
+  private static final long STILL_POLL_MS = 200;
 
-  /** How far the cube may drift between two ticks and still count as held still. */
+  /**
+   * How far the cube may drift between two ticks and still count as held still. Sits between the
+   * two measured things it has to tell apart: over one tick a GAN held still drifts at most 3°
+   * (2026-08-14), while the core this exists to reject is 25° to 110° into a spin. Raising it was
+   * tried and reverted — at 12° a cube turning at 60°/s reads as still, which is the very thing
+   * being guarded against, and the headroom below was never the problem.
+   */
   private static final double STILL_DEGREES = 8.0;
 
   /** Long enough for a slice to finish, short enough not to leave a fresh cube unanchored. */
@@ -266,10 +276,20 @@ public enum SmartCubeManager {
    * to come. Anchoring there pins the frame to a spinning core, and since the reference stands for
    * the session, the cube stays that far out until something re-takes it.
    *
-   * <p>Polled at 100 ms, which is two gyro periods, so every tick is a genuinely new sample rather
-   * than the same one read twice — that would read as perfectly still and is the trap this is shaped
-   * around. A hand turning the cube over moves it well under {@link #STILL_DEGREES} in that time; a
-   * core mid-slice moves an order of magnitude more.
+   * <p>Polled at {@link #STILL_POLL_MS}, which is two gyro periods, so every tick is a genuinely new
+   * sample rather than the same one read twice — that would read as perfectly still and is the trap
+   * this is shaped around.
+   *
+   * <p>⚠️ The two constants are one number: {@link #STILL_DEGREES} over this window is a <em>speed</em>,
+   * currently 40°/s. That is what decides whether a cube counts as still, so neither can be changed
+   * on its own — doubling this window halved the speed, and 8° would have had to become 16° to leave
+   * it alone. A cube being held sits far below 40°/s; a core spinning down from a slice is far above.
+   *
+   * <p>⚠️ The period is the <em>slowest</em> cube's, and it is measured, not assumed. This was
+   * written against a MoYu V10 at 20 Hz and sat at 100 ms for that; a GAN turned out to report a new
+   * orientation only every 91 ms, and one packet in five repeats the previous value outright, so
+   * 100 ms was a coin flip on reading the same sample twice rather than the two clear periods the
+   * paragraph above claims. Measure a new brand with {@code tools/gyroprobe.py} before trusting this.
    *
    * <p>Keeps polling through readings that are not there: a cube's gyro stream can start well after
    * its connection is ready. Past the timeout it settles for whatever it can get, since a cube that

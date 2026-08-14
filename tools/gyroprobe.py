@@ -29,8 +29,10 @@ import sys
 # stretches out of a capture that also contains deliberate movement.
 MOVING_DEGREES = 2.0
 
-# The app's own constants, quoted so the report can say whether this cube trips them.
-STILL_POLL_MS = 100
+# The app's own constants, copied so the report can say whether this cube trips them.
+# Keep them in step with SmartCubeManager: a stale value here reports headroom that the
+# real straighten button does not have.
+STILL_POLL_MS = 200
 STILL_DEGREES = 8.0
 
 SAMPLE = re.compile(r"\bG (\d+) (-?[\d.eE+-]+) (-?[\d.eE+-]+) (-?[\d.eE+-]+) (-?[\d.eE+-]+)")
@@ -122,8 +124,11 @@ def report_noise(samples):
 
     # What the straighten button actually asks: did it move less than STILL_DEGREES between two
     # ticks STILL_POLL_MS apart? Re-created here from the raw stream.
+    # A stretch counts as still only if EVERY step inside it is small. Rejecting on the endpoints
+    # alone would silently cap the answer at whatever cutoff was used - the first version of this
+    # did exactly that and reported its own filter ceiling as the measurement.
     ordered = sorted(samples)
-    worst = 0.0
+    drifts = []
     ahead = 0
     for index, (at, quat) in enumerate(ordered):
         ahead = max(ahead, index)
@@ -131,14 +136,22 @@ def report_noise(samples):
             ahead += 1
         if ahead >= len(ordered):
             break
-        moved = angle_between(quat, ordered[ahead][1])
-        if moved < MOVING_DEGREES * 3:  # only stretches where the cube was not being turned
-            worst = max(worst, moved)
-    print(f"  worst {STILL_POLL_MS}ms drift while still: {worst:.2f}deg "
-          f"(threshold is {STILL_DEGREES}deg)")
-    if worst >= STILL_DEGREES:
-        print(f"  !! This cube can move more than {STILL_DEGREES}deg between ticks while sitting "
-              f"still, so the wait never reads still and always falls out on the timeout.")
+        if any(angle_between(ordered[k][1], ordered[k + 1][1]) > MOVING_DEGREES
+               for k in range(index, ahead)):
+            continue  # the cube was being turned across this stretch
+        drifts.append(angle_between(quat, ordered[ahead][1]))
+    if not drifts:
+        print(f"  no stretch of {STILL_POLL_MS}ms was quiet enough to measure a drift over")
+        return
+    describe(f"drift over {STILL_POLL_MS}ms while still", drifts, "deg")
+    headroom = STILL_DEGREES - max(drifts)
+    print(f"  headroom to STILL_DEGREES ({STILL_DEGREES}deg): {headroom:.2f}deg")
+    if headroom <= 0:
+        print(f"  !! This cube drifts more than {STILL_DEGREES}deg over a tick while sitting still, "
+              f"so the wait never reads still and always falls out on the timeout.")
+    elif headroom < STILL_DEGREES * 0.25:
+        print(f"  .. Under a quarter of the threshold is left. A still cube will sometimes fail to "
+              f"read still and fall through to the timeout.")
 
 
 def report_anchors(ticks, anchors, presses):

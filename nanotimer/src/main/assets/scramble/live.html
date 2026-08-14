@@ -172,11 +172,14 @@
   // roughly the wait for the next one however fast that cube talks.
   //
   // ⚠️ Measure the interval, do not assume one. This used to be a flat 0.34 of the remaining angle
-  // per frame, tuned to the ~20 Hz a V10 was measured at — the only brand ever timed. A cube that
-  // reports slower than that empties the gap in three frames and then sits still until the next
-  // reading, which is stepping, and no constant fits every brand at once. Nothing here needs to know
-  // the rate now: it is timed, and the pose is spread over whatever gap this cube leaves.
-  // At 20 Hz and 60 fps the factor below still works out at 0.34, so a V10 follows exactly as before.
+  // per frame, tuned to the ~20 Hz a V10 was measured at — for a while the only brand ever timed.
+  // A GAN was then measured at a new orientation every 91 ms (2026-08-14, tools/gyroprobe.py), which
+  // is less than half that: the fixed 0.34 emptied the gap in about three frames and then sat still
+  // for the remaining eight, so the cube ticked through the ~0.95° of noise each reading carries
+  // instead of drifting through it. That is what the jitter was. No constant fits both brands, and
+  // nothing here needs to know the rate now: it is timed, and the pose is spread over whatever gap
+  // this cube leaves. At 20 Hz and 60 fps the factor below still works out at 0.34, so a V10 follows
+  // exactly as before.
   var POSE_TAU_FACTOR = 0.8;   // of one reading interval
   var POSE_TAU_MIN_MS = 20;
   var POSE_TAU_MAX_MS = 160;
