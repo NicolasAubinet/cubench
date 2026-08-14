@@ -436,6 +436,7 @@
       <li>Le mélange s\'affiche maintenant sur l\'écran du chrono, en 3D ou en schéma à plat (peut être masqué dans les réglages)</li>
       <li>Pendant une résolution, l\'écran ne garde que le temps</li>
       <li>Les 12 derniers temps sont affichés en barres (le tableau des temps reste disponible via les réglages)</li>
+      <li>Les records sont maintenant annoncés sur une ligne plutôt que dans une fenêtre, tout comme le meilleur et le pire de vos 12 derniers temps</li>
       <li>L\'inspection peut maintenant être activée ou désactivée par type de résolution</li>
     </ul>
     <b>Historique et temps</b>

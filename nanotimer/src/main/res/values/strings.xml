@@ -445,12 +445,13 @@
   <string name="release_notes_features_html">
     <![CDATA[
     <u><b>v2.0.0 <i>(New version)</i></b></u><br/>
-    <b>Cubench has been redrawn from top to bottom.</b>
+    <b>Cubench has been redesigned from top to bottom.</b>
     <b>Timer</b>
     <ul>
       <li>The scramble now shows on the timer screen itself, in 3D or as a flat diagram (can be hidden in the settings)</li>
       <li>While a solve runs, the screen keeps nothing but the time</li>
       <li>The last 12 times are shown as bars (the times table is still available via the settings)</li>
+      <li>Records are now announced in a line instead of a popup, and so are the best and worst of your last 12</li>
       <li>Inspection can now be turned on or off for specific solve types</li>
     </ul>
     <b>History and solves</b>

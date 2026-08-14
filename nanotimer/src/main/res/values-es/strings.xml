@@ -436,6 +436,7 @@
       <li>La mezcla ahora se muestra en la propia pantalla del cronómetro, en 3D o como diagrama plano (puede ocultarse en los ajustes)</li>
       <li>Mientras corre una resolución, la pantalla no conserva más que el tiempo</li>
       <li>Los 12 últimos tiempos se muestran como barras (la tabla de tiempos sigue disponible desde los ajustes)</li>
+      <li>Los récords ahora se anuncian en una línea en vez de en una ventana, igual que el mejor y el peor de sus 12 últimos tiempos</li>
       <li>La inspección ahora puede activarse o desactivarse por tipo de resolución</li>
     </ul>
     <b>Historial y tiempos</b>

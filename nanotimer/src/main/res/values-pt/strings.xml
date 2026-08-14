@@ -438,6 +438,7 @@
       <li>O scramble agora aparece na própria tela do cronômetro, em 3D ou como diagrama plano (pode ser ocultado nas configurações)</li>
       <li>Enquanto uma resolução corre, a tela não guarda nada além do tempo</li>
       <li>Os 12 últimos tempos são mostrados em barras (a tabela de tempos continua disponível pelas configurações)</li>
+      <li>Os recordes agora são anunciados em uma linha em vez de uma janela, assim como o melhor e o pior dos seus 12 últimos tempos</li>
       <li>A inspeção agora pode ser ativada ou desativada por tipo de resolução</li>
     </ul>
     <b>Histórico e tempos</b>
