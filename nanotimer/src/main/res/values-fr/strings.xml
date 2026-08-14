@@ -245,6 +245,14 @@
   <string name="read_permission_denied_cant_import">Les permissions de lectures ont été refusées, impossible d\'importer.</string>
 
   <string name="import_times">Importer</string>
+  <string name="export_help_title">À propos de l\'exportation</string>
+  <string name="export_help_body">Votre historique sort sous forme de fichier CSV, une ligne par temps. Ce que les cartes ci-dessous ont sélectionné est ce qui y entre.</string>
+  <string name="export_help_share">Passe le fichier directement à une autre application : un mail, une discussion, un espace en ligne.</string>
+  <string name="export_help_save">L\'écrit où vous voulez sur cet appareil, pour le garder ou le déplacer vous-même.</string>
+  <string name="export_help_columns">Ce que contient une ligne</string>
+  <string name="export_help_columns_body">Le type de puzzle, le type de résolution, le temps et sa date, le mélange, ainsi que la pénalité et le commentaire éventuels.</string>
+  <string name="export_help_reading_back">La relire</string>
+  <string name="export_help_reading_back_body">L\'importation reprend ce fichier, ou le CSV d\'un autre chrono avec les mêmes colonnes, et ajoute ses temps à votre historique sans rien supprimer.</string>
   <string name="storage">Disque</string>
   <string name="line">ligne</string>
   <string name="error_in_line">Erreur dans la ligne %1$d</string>

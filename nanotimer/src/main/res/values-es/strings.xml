@@ -245,6 +245,14 @@
   <string name="read_permission_denied_cant_import">Permiso de lectura denegado, no puedes importar.</string>
 
   <string name="import_times">Importar</string>
+  <string name="export_help_title">Sobre la exportación</string>
+  <string name="export_help_body">Su historial sale como un archivo CSV, una línea por tiempo. Lo que las tarjetas de abajo hayan seleccionado es lo que entra en él.</string>
+  <string name="export_help_share">Entrega el archivo directamente a otra aplicación: un correo, un chat, un espacio en la nube.</string>
+  <string name="export_help_save">Lo escribe donde usted elija en este dispositivo, para guardarlo o moverlo usted mismo.</string>
+  <string name="export_help_columns">Qué contiene una línea</string>
+  <string name="export_help_columns_body">El tipo de puzzle, el tipo de resolución, el tiempo y su fecha, la mezcla, y la penalización y el comentario si los hay.</string>
+  <string name="export_help_reading_back">Volver a leerlo</string>
+  <string name="export_help_reading_back_body">La importación toma este archivo, o el CSV de otro cronómetro con las mismas columnas, y añade sus tiempos a su historial sin eliminar nada.</string>
   <string name="storage">Almacenamiento</string>
   <string name="line">línia</string>
   <string name="error_in_line">Error en línea %1$d</string>

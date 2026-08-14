@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the export writes and where it can send it, reached from the ? in the bar. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="16dp"
+   android:paddingRight="16dp"
+   android:paddingTop="8dp"
+   android:paddingBottom="14dp"
+   android:minWidth="300dp">
+
+  <!-- The grip: what says the sheet can be dragged back down to close it. -->
+  <View
+     android:layout_width="32dp"
+     android:layout_height="4dp"
+     android:layout_gravity="center_horizontal"
+     android:background="@drawable/bottomsheet_drag_handle"/>
+
+  <androidx.core.widget.NestedScrollView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginTop="12dp"
+     android:requiresFadingEdge="vertical"
+     android:fadingEdgeLength="28dp">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical">
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:text="@string/export_help_title"
+         android:textColor="@color/white"
+         android:textSize="20sp"
+         android:textStyle="bold"/>
+
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="6dp"
+         android:text="@string/export_help_body"
+         android:textColor="@color/secondary_text"
+         android:textSize="13.5sp"/>
+
+      <LinearLayout style="@style/HelpTermRow">
+        <TextView android:text="@string/export_share" style="@style/HelpTermName"/>
+        <TextView android:text="@string/export_help_share" style="@style/HelpTermText"/>
+      </LinearLayout>
+
+      <LinearLayout style="@style/HelpTermRow">
+        <TextView android:text="@string/export_save_to_file" style="@style/HelpTermName"/>
+        <TextView android:text="@string/export_help_save" style="@style/HelpTermText"/>
+      </LinearLayout>
+
+      <LinearLayout style="@style/HelpTermRow">
+        <TextView android:text="@string/export_help_columns" style="@style/HelpTermName"/>
+        <TextView android:text="@string/export_help_columns_body" style="@style/HelpTermText"/>
+      </LinearLayout>
+
+      <LinearLayout style="@style/HelpTermRow">
+        <TextView android:text="@string/export_help_reading_back" style="@style/HelpTermName"/>
+        <TextView android:text="@string/export_help_reading_back_body" style="@style/HelpTermText"/>
+      </LinearLayout>
+
+    </LinearLayout>
+
+  </androidx.core.widget.NestedScrollView>
+
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buExportHelpDone"
+     android:layout_width="match_parent"
+     android:layout_marginTop="18dp"
+     android:text="@string/close"
+     style="@style/DialogActionButton"/>
+
+</LinearLayout>

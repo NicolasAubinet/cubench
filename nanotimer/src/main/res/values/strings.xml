@@ -257,6 +257,14 @@
   <string name="read_permission_denied_cant_import">Read permission was denied, can not import.</string>
 
   <string name="import_times">Import</string>
+  <string name="export_help_title">About exporting</string>
+  <string name="export_help_body">Your history leaves as a CSV file, one line per solve. What the cards below have picked is what goes into it.</string>
+  <string name="export_help_share">Hands the file straight to another app: a mail, a chat, a cloud drive.</string>
+  <string name="export_help_save">Writes it where you choose on this device, to keep or move yourself.</string>
+  <string name="export_help_columns">What a line holds</string>
+  <string name="export_help_columns_body">The puzzle type, the solve type, the time and its date, the scramble, and any penalty or comment.</string>
+  <string name="export_help_reading_back">Reading it back</string>
+  <string name="export_help_reading_back_body">Import takes this file, or another timer\'s CSV with the same columns, and adds its solves to your history without removing anything.</string>
   <string name="storage">Storage</string>
   <string name="line">line</string>
   <string name="error_in_line">Error in line %1$d</string>

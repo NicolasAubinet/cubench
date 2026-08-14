@@ -26,6 +26,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.cube.nanotimer.App;
+import android.view.Menu;
+import android.view.MenuItem;
+import com.cube.nanotimer.gui.widget.ExportHelpDialog;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.services.Service;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -628,4 +631,18 @@ public class ExportActivity extends NanoTimerActivity {
     }
   }
 
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.export_menu, menu);
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.itExportHelp) {
+      DialogUtils.showFragment(this, new ExportHelpDialog());
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
 }

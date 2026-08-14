@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The one item the export and import screens carry: what the CSV file is. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <item android:id="@+id/itExportHelp"
+     android:title="@string/export_help_title"
+     android:icon="@drawable/ic_help_outline"
+     app:showAsAction="always"/>
+
+</menu>

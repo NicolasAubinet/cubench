@@ -247,6 +247,14 @@
   <string name="read_permission_denied_cant_import">A permissão de leitura foi negada, não é possível importar.</string>
 
   <string name="import_times">Importar</string>
+  <string name="export_help_title">Sobre a exportação</string>
+  <string name="export_help_body">O seu histórico sai como um arquivo CSV, uma linha por tempo. O que os cartões abaixo tiverem selecionado é o que entra nele.</string>
+  <string name="export_help_share">Entrega o arquivo direto para outro aplicativo: um e-mail, uma conversa, um espaço na nuvem.</string>
+  <string name="export_help_save">Grava onde você escolher neste aparelho, para guardar ou mover você mesmo.</string>
+  <string name="export_help_columns">O que uma linha contém</string>
+  <string name="export_help_columns_body">O tipo de puzzle, o tipo de resolução, o tempo e a sua data, o scramble, e a penalidade e o comentário se houver.</string>
+  <string name="export_help_reading_back">Ler de volta</string>
+  <string name="export_help_reading_back_body">A importação pega este arquivo, ou o CSV de outro cronômetro com as mesmas colunas, e adiciona os tempos dele ao seu histórico sem remover nada.</string>
   <string name="storage">Armazenamento</string>
   <string name="line">linha</string>
   <string name="error_in_line">Erro na linha %1$d</string>
