@@ -11,6 +11,7 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
@@ -335,6 +336,25 @@ public class Utils {
 
   public static int getStringIdentifier(Context context, String name) {
     return context.getResources().getIdentifier(name, "string", context.getPackageName());
+  }
+
+  /**
+   * Relaunches the app from scratch, tearing the process down with it.
+   *
+   * <p>Used where state held across the app has been replaced underneath it, by a language change
+   * or by a restore. Killing the process is the point rather than a shortcut: it is the only way to
+   * be sure no screen is still showing what was there before.
+   */
+  public static void restartApp(Context context) {
+    Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+    if (launchIntent != null) {
+      context.startActivity(Intent.makeRestartActivityTask(launchIntent.getComponent()));
+    } else {
+      // Nothing to come back to, but staying up is worse: the caller has already replaced what
+      // the running app was built on. It closes, and the user opens it again.
+      Log.w("[NanoTimer]", "No launch intent to restart with");
+    }
+    System.exit(0);
   }
 
   public static void updateContextWithPrefsLocale(Context context) {

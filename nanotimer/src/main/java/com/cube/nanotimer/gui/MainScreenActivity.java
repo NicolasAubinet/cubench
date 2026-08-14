@@ -2,7 +2,6 @@ package com.cube.nanotimer.gui;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -969,20 +968,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           editor.putString(Utils.LANGUAGE_PREF_KEY, localeCode);
           editor.commit(); // MUST use commit instead of apply to make sure the pref is updated before restarting app
 
-          if (VERSION.SDK_INT >= 11) {
-            Context context = getBaseContext();
-            PackageManager packageManager = context.getPackageManager();
-            Intent launchIntent = packageManager.getLaunchIntentForPackage(context.getPackageName());
-            ComponentName componentName = launchIntent.getComponent();
-
-            Intent mainIntent = Intent.makeRestartActivityTask(componentName);
-            context.startActivity(mainIntent);
-            System.exit(0);
-          } else {
-            Intent intent = getIntent();
-            finish();
-            startActivity(intent);
-          }
+          Utils.restartApp(getBaseContext());
         }
       }
     }
