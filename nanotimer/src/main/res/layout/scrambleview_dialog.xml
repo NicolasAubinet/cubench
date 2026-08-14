@@ -58,7 +58,7 @@
     <WebView
         android:id="@+id/wvScramble"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="@dimen/scramble_dialog_diagram_height"
         android:background="@android:color/transparent"/>
 
     <ProgressBar

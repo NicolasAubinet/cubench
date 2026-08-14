@@ -9,4 +9,7 @@
   <dimen name="smart_cube_row_gap">8dp</dimen>
   <!-- Between case tiles in the picker, and the pitch the grid rounds itself to. -->
   <dimen name="case_grid_spacing">8dp</dimen>
+  <!-- The scramble dialog's diagram. Landscape overrides it: at the portrait height the dialog is
+       taller than the screen, and a dialog cannot shrink a child that overflows it. -->
+  <dimen name="scramble_dialog_diagram_height">240dp</dimen>
 </resources>
