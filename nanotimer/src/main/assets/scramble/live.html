@@ -10,7 +10,9 @@
   Java -> JS surface:
     ntLiveState(pattern)    the state the cube is in now, as a KTransformation's data (see
                             CubePatternFormat). Clears everything animated so far.
-    ntLiveMove(notation)    one quarter turn, just made
+    ntLiveMove(notation, ms) one turn, just made. ms is how long to draw it turning, or 0 for
+                            the mirror's own speed: a turn a screen is stepping through for
+                            somebody to WATCH is not a turn that has to keep up with hands.
     ntLiveGyro(on)          follow the cube's physical orientation, or keep it square
     ntLiveCamera(distance)  how far back the camera stands, so a cube in a big well can fill it
     ntLiveView(lat, lon)    where the camera stands while there is NO grip to follow, in degrees.
@@ -67,8 +69,12 @@
     width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
   }
   /* The player draws the cube a few percent above the middle of its canvas — it is looked at from
-     above, so the top face pushes the silhouette up. Measured at ~5% of the box on the phone. */
-  twisty-player { width: 100%; height: 100%; --controls-height: 0; transform: translateY(5%); }
+     above, so the top face pushes the silhouette up. Measured at ~5% of the box on the phone.
+     A percentage of the BOX, so a screen that gives the cube a much taller well than the timer
+     does gets a much larger nudge for the same bias, and overshoots: such a screen sets its own
+     with ntLiveNudge. */
+  twisty-player { width: 100%; height: 100%; --controls-height: 0;
+                  transform: translateY(var(--nt-nudge, 5%)); }
   /* The pool of shadow the cube stands in, for a screen whose picture stands on nothing: without
      it a cube on a bare mat reads as hovering. The same one scramble.html draws under the diagram
      this replaces, so connecting a cube does not take the ground out from under the box.
@@ -103,6 +109,10 @@
   var CATCH_UP_MS = 500;
   // A turn is over this quickly, so the mirror is never seen lagging a fast solver.
   var DEFAULT_TURN_MS = 110;
+  // How long the turn now being drawn takes, so a move at the same speed as the last one does not
+  // set it again. Per move rather than per screen: the one screen that steps slowly through a
+  // solution is also mirroring the cube in the user's hands, and only one of the two may lag.
+  var turnMs = DEFAULT_TURN_MS;
   // Square on to the cube, so a cube held white-up green-front is drawn white-up green-front. The
   // player's own default is 30° round to the right, which reads as the cube sitting askew — and
   // the whole point of the anchor is that it should look square at the moment it is taken. Tilted
@@ -425,7 +435,7 @@
     player.background = "none";
     player.controlPanel = "none";
     player.hintFacelets = "none";
-    player.tempoScale = CATCH_UP_MS / DEFAULT_TURN_MS;
+    player.tempoScale = CATCH_UP_MS / turnMs;
     host.appendChild(player);
     return true;
   }
@@ -522,6 +532,15 @@
     setTimeout(notifyReady, 300);
   };
 
+  /**
+   * How far below the middle of its box the cube is drawn, as a percentage of the box height.
+   * The default suits the timer, whose box is short and wide; a tall well needs less, since the
+   * bias being corrected is a fraction of the cube and not of the box.
+   */
+  window.ntLiveNudge = function (percent) {
+    document.documentElement.style.setProperty("--nt-nudge", percent + "%");
+  };
+
   /** Whether the cube stands in a pool of shadow: for a screen that gives it no surface of its own. */
   window.ntLiveFloor = function (on) {
     document.getElementById("floor").classList.toggle("on", !!on);
@@ -558,17 +577,24 @@
     moveView(true);
   };
 
-  window.ntLiveMove = function (notation) {
+  window.ntLiveMove = function (notation, ms) {
     if (!notation) {
       return;
     }
     if (!player) {
       // Kept with the state it follows, and thrown away with it: the cube reports its whole state
-      // after every turn, so this holds a turn or two and never grows.
+      // after every turn, so this holds a turn or two and never grows. Held without its speed:
+      // a turn that waited for a cube to be built is history by the time there is one, and history
+      // is caught up with rather than watched.
       if (pendingPattern !== null) {
         pendingMoves.push(notation);
       }
       return;
+    }
+    var wanted = ms > 0 ? ms : DEFAULT_TURN_MS;
+    if (wanted !== turnMs) {
+      turnMs = wanted;
+      player.tempoScale = CATCH_UP_MS / turnMs;
     }
     try {
       player.experimentalAddMove(notation);

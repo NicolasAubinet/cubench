@@ -11,7 +11,7 @@
   <string name="about">Sobre</string>
   <string name="backspace_exit">Toque em voltar novamente para sair</string>
 
-  <string name="cube_type">Tipo de cubo</string>
+  <string name="cube_type">Tipo de puzzle</string>
   <string name="solve_type">Tipo de resolução</string>
   <string name="history">Histórico</string>
   <string name="solves">resoluções</string>
@@ -150,7 +150,7 @@
   <string name="clear_all_history">Excluir todos os tempos</string>
   <string name="yes">Sim</string>
   <string name="no">Não</string>
-  <string name="choose_cube_type">Escolha um tipo de cubo</string>
+  <string name="choose_cube_type">Escolha um tipo de puzzle</string>
   <string name="scrambles">Scrambles</string>
   <string name="big_cubes_notation">Notação de cubos grandes</string>
   <string name="big_cubes_notation_summary">Escolher o sistema de notação dos cubos grandes</string>
@@ -255,9 +255,9 @@
   <string name="import_error">Erro de importação</string>
   <string name="could_not_convert_time">Não foi possível converter o tempo \'%1$s\'</string>
   <string name="could_not_convert_date">Não foi possível converter a data \'%1$s\'</string>
-  <string name="could_not_find_cube_type">Não foi possível encontrar o tipo de cubo \'%1$s\'.\nVerifique o arquivo importado ou tente atualizar.</string>
-  <string name="could_not_find_scramble_type">Não foi possível encontrar o tipo de scramble \'%1$s\' para o cubo \'%2$s\'.\nVerifique o arquivo importado ou tente atualizar.</string>
-  <string name="solve_type_conflict">Inconsistência encontrada no tipo de resolução \'%1$s\' do tipo de cubo \'%2$s\'.\nVerifique o arquivo importado ou entre em contato com o suporte em %3$s.</string>
+  <string name="could_not_find_cube_type">Não foi possível encontrar o tipo de puzzle \'%1$s\'.\nVerifique o arquivo importado ou tente atualizar.</string>
+  <string name="could_not_find_scramble_type">Não foi possível encontrar o tipo de scramble \'%1$s\' para o puzzle \'%2$s\'.\nVerifique o arquivo importado ou tente atualizar.</string>
+  <string name="solve_type_conflict">Inconsistência encontrada no tipo de resolução \'%1$s\' do tipo de puzzle \'%2$s\'.\nVerifique o arquivo importado ou entre em contato com o suporte em %3$s.</string>
   <string name="invalid_step_format">Formato de etapa inválido \'%1$s\'</string>
   <string name="could_not_convert_step_time">Não foi possível converter o tempo da etapa \'%1$s\'</string>
   <string name="error_reading_import_file">Não foi possível ler o arquivo de importação: %1$s</string>
@@ -934,8 +934,6 @@
   <string name="drill_cross_title">Treino de cruz</string>
   <string name="drill_cross_done">Concluído</string>
   <string name="drill_cross_next">Seguinte</string>
-  <string name="drill_cross_solutions">Soluções mais curtas</string>
-  <string name="drill_cross_solutions_count">%1$d formas de a fazer em %2$d movimentos</string>
   <string name="drill_cross_dealing">A preparar uma mistura</string>
   <string name="drill_cross_plan_it">Planeie a cruz e depois rode</string>
   <string name="drill_cross_planning_left">%d segundos para planear</string>
@@ -951,6 +949,10 @@
   <string name="drill_layer_colour">Cor da última camada</string>
   <string name="drill_cross_start_position">Posição inicial</string>
   <string name="drill_cross_other_ways">Outras formas</string>
+  <string name="drill_cross_panel_you">Seus movimentos</string>
+  <string name="drill_cross_panel_shortest">Mais curto em %d</string>
+  <string name="drill_cross_way_of">%1$d/%2$d</string>
+  <string name="drill_cross_step_back">Movimento anterior</string>
+  <string name="drill_cross_step_forward">Movimento seguinte</string>
   <string name="drill_cross_rep_times">Planeamento %1$s, execução %2$s</string>
-  <string name="drill_cross_shortest">Mais curto: %1$s (%2$d movimentos)</string>
 </resources>

@@ -272,17 +272,32 @@ public final class CrossDrillSession {
     return halfTurnCount(moves);
   }
 
+  /**
+   * The moves of the rep as they are counted, for a screen that shows them: the quarter turn pairs
+   * the metric folds into one half turn are written as that half turn, so a strip of them can never
+   * disagree with the count beside it.
+   */
+  public List<String> getFoldedMoves() {
+    return fold(moves);
+  }
+
   /** Quarter turns in HTM: an identical pair is the one half turn the cube reported as two. */
   private static int halfTurnCount(List<CubeMove> moves) {
-    int count = 0;
+    return fold(moves).size();
+  }
+
+  /** The turns in notation, an identical consecutive pair written as the half turn it was. */
+  private static List<String> fold(List<CubeMove> moves) {
+    List<String> folded = new ArrayList<String>();
     for (int i = 0; i < moves.size(); i++) {
       CubeMove move = moves.get(i);
-      if (i + 1 < moves.size() && sameTurn(move, moves.get(i + 1))) {
+      boolean half = i + 1 < moves.size() && sameTurn(move, moves.get(i + 1));
+      if (half) {
         i++;
       }
-      count++;
+      folded.add(move.getFace().name() + (half ? "2" : move.isPrime() ? "'" : ""));
     }
-    return count;
+    return folded;
   }
 
   private static boolean sameTurn(CubeMove a, CubeMove b) {

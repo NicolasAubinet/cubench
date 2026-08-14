@@ -71,6 +71,13 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   /** How far back the camera stands over a well that takes most of the screen. */
   private static final double CUBE_CAMERA_DISTANCE = 5.2;
 
+  /**
+   * And how far below the middle of that well it is drawn: not at all. The page's own default is a
+   * percentage measured in the timer's box, and this well is more than twice as tall, which turned
+   * a cube sitting a shade low into one sitting 30dp low with its foot almost on the bottom edge.
+   */
+  private static final double CUBE_NUDGE = 0;
+
   /** How far above the cube the camera stands where there is no grip to follow. The mirror's own
    * tilt: far enough down to see the top face, and no further. */
   private static final double VIEW_LATITUDE = 26;
@@ -230,6 +237,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     // The well here is most of the screen, and at the page's own distance the cube filled about a
     // third of it. The same value the scramble dialog measured for its own box.
     cube.setCameraDistance(CUBE_CAMERA_DISTANCE);
+    cube.setNudge(CUBE_NUDGE);
     // A drill can be the first thing a session does, and the cube on screen only follows the
     // physical one once there is a grip to measure from. Fills an empty one; never re-takes.
     SmartCubeManager.INSTANCE.anchorGyroIfUnset();

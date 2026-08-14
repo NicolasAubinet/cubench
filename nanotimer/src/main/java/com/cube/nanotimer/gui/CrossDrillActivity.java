@@ -10,22 +10,20 @@ import android.widget.TextView;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
-import com.cube.nanotimer.gui.widget.dialog.CrossSolutionsDialog;
+import com.cube.nanotimer.gui.widget.CrossSolutionPanel;
 import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
-import com.cube.nanotimer.scrambler.cross.CrossFormatter;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers.FaceSolutions;
 import com.cube.nanotimer.smartcube.drill.CrossDrillRep;
 import com.cube.nanotimer.smartcube.drill.CrossDrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.util.FormatterService;
-import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
 import com.cube.nanotimer.vo.CubeType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -64,6 +62,20 @@ public class CrossDrillActivity extends DrillScreenActivity {
   /** How many scrambles to refuse for having their cross already built before taking one anyway. */
   private static final int MAX_DEAL_ATTEMPTS = 5;
 
+  /**
+   * How long a stepped turn takes to draw. Several times the speed the cube is mirrored at, which
+   * is set so the drawn cube is never seen lagging the hands and is far too fast to follow: a move
+   * you are being shown has to be watchable, and one that is over before the eye finds the face
+   * only leaves a cube that changed.
+   */
+  private static final int STEP_TURN_MS = 280;
+
+  /**
+   * And a half turn, which is twice as far to go. Not twice as long: an R2 drawn over the time two
+   * turns take reads as two turns rather than as the one it is.
+   */
+  private static final int STEP_HALF_TURN_MS = 380;
+
   private final CrossSolvers solvers = new CrossSolvers();
   private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -78,12 +90,10 @@ public class CrossDrillActivity extends DrillScreenActivity {
   private int repSeq;
 
   private TextView tvStatus;
-  private Button btStart;
   /** The whole rep line, since the beat scales it. */
   private View lastRepRow;
   private Button btDone;
-  private Button btSolutions;
-  private View extrasRow;
+  private CrossSolutionPanel panel;
   private View repWash;
 
   /** Between reps: the cube stands finished and the button takes the next scramble. */
@@ -98,9 +108,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     tvStatus = findViewById(R.id.tvDrillCrossStatus);
     lastRepRow = findViewById(R.id.llDrillLastRep);
     btDone = findViewById(R.id.btDrillCrossDone);
-    btSolutions = findViewById(R.id.btDrillCrossSolutions);
-    btStart = findViewById(R.id.btDrillCrossStart);
-    extrasRow = findViewById(R.id.llDrillCrossExtras);
+    panel = findViewById(R.id.crossSolutionPanel);
     repWash = findViewById(R.id.drillRepWash);
 
     btDone.setOnClickListener(new View.OnClickListener() {
@@ -113,15 +121,16 @@ public class CrossDrillActivity extends DrillScreenActivity {
         }
       }
     });
-    btSolutions.setOnClickListener(new View.OnClickListener() {
+    // The panel turns the cube rather than doing it itself: the drawn cube and the session's own
+    // are one picture, and only this screen holds both.
+    panel.setListener(new CrossSolutionPanel.Listener() {
       @Override
-      public void onClick(View v) {
-        showSolutions();
+      public void onSolutionMove(String notation) {
+        turnExploring(notation);
       }
-    });
-    btStart.setOnClickListener(new View.OnClickListener() {
+
       @Override
-      public void onClick(View v) {
+      public void onRewind() {
         backToStart();
       }
     });
@@ -142,6 +151,9 @@ public class CrossDrillActivity extends DrillScreenActivity {
       showUnavailable(getString(R.string.drill_spec_unreadable));
       return;
     }
+    // Before the first rep: the panel writes the user's own moves in this frame from their first
+    // turn, which is long before there is a solution to show.
+    panel.setCrossFace(face);
     label = spec.getLabel() == null ? getString(R.string.drill_cross_title) : spec.getLabel();
     setTitle(label);
     initRecording(spec);
@@ -189,6 +201,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     if (!session.isRunning()) {
       cube.addMove(move.getNotation());
       session.explore(move);
+      panel.onCubeTurned(move.getNotation()); // walks the shown way when it is the next move of it
       return;
     }
     boolean first = session.getMoveCount() == 0;
@@ -204,6 +217,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     if (first) {
       cube.setStickering(CubeStickering.allGrey());
     }
+    panel.setYourMoves(session.getFoldedMoves());
     showStatus(getString(R.string.drill_cross_moves, session.getMoveCount()));
     armStalledHint();
   }
@@ -221,6 +235,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     handler.removeCallbacks(planningRanOut);
     handler.removeCallbacks(stalledHint);
     betweenReps = true;
+    lastRepRow.setVisibility(View.VISIBLE);
 
     // The cross comes back and nothing else does. Every rep ends looking like the one thing the
     // drill was about, whether it was found the short way or the long one, and the four edges stay
@@ -229,42 +244,27 @@ public class CrossDrillActivity extends DrillScreenActivity {
     if (rep.isBuilt()) {
       DrillRepFlourish.play(repWash, lastRepRow);
     }
+    panel.setYourMoves(session.getFoldedMoves()); // including the move that ended the rep
     showLastRep(rep);
     showBetweenReps(rep);
     btDone.setText(R.string.drill_cross_next);
-    btStart.setVisibility(View.VISIBLE);
-    refreshExtrasRow();
   }
 
   /**
-   * What the rep cost in time, and the shortest way there was when it was not the way taken.
+   * What the rep cost in time, and the shortest ways there were.
    *
-   * <p>The solution is put in front of the user rather than behind a button: the rep is over, so
+   * <p>The ways are put in front of the user rather than behind a button: the rep is over, so
    * there is nothing left to give away, and a sequence you have to go and ask for is one you will
-   * not try. It carries its length, since what the drill scores is a move count and the answer to
-   * "how many did I go over by" should not have to be counted off the notation.
+   * not try. Shown for a rep that found one of them too, which is not a spoiler by then and is the
+   * only chance the drill has to show the other thirty-eight.
    */
   private void showBetweenReps(CrossDrillRep rep) {
-    StringBuilder detail = new StringBuilder(getString(R.string.drill_cross_rep_times,
+    showStatus(getString(R.string.drill_cross_rep_times,
         FormatterService.INSTANCE.formatSolveTime(rep.getPlanningMs()),
         FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs())));
-    boolean missedIt = !rep.isBuilt() || rep.getExtraMoves() > 0;
-    if (missedIt && solutions != null && !solutions.solutions.isEmpty()) {
-      detail.append("\n").append(getString(R.string.drill_cross_shortest,
-          join(CrossFormatter.toCrossOnBottom(face, solutions.solutions.get(0))),
-          solutions.length));
+    if (solutions != null) {
+      panel.showSolutions(solutions.solutions, solutions.length);
     }
-    showStatus(detail.toString());
-    btSolutions.setVisibility(
-        missedIt && solutions != null && solutions.solutions.size() > 1 ? View.VISIBLE : View.GONE);
-    refreshExtrasRow();
-  }
-
-  /** The row goes with its contents, or its top margin would leave a gap during a rep. */
-  private void refreshExtrasRow() {
-    extrasRow.setVisibility(
-        btStart.getVisibility() == View.VISIBLE || btSolutions.getVisibility() == View.VISIBLE
-            ? View.VISIBLE : View.GONE);
   }
 
   /**
@@ -277,15 +277,32 @@ public class CrossDrillActivity extends DrillScreenActivity {
     cube.setState(CubePatternFormat.format(session.getFacelets()));
   }
 
+  /**
+   * Turns both cubes by one move of a way the user is walking. The drawn cube takes the move whole,
+   * since a half turn drawn as two quarters reads as a stutter; the session takes the quarter turns
+   * a cube would have reported, which is the only thing it is ever fed.
+   *
+   * <p>Drawn slowly, unlike every other move this screen draws: this one is being shown rather than
+   * mirrored, and nobody's hands are waiting for it.
+   */
+  private void turnExploring(String notation) {
+    cube.addMove(notation, notation.endsWith("2") ? STEP_HALF_TURN_MS : STEP_TURN_MS);
+    for (String quarter : CrossSolutionPanel.quartersOf(notation)) {
+      session.explore(new CubeMove(Face.valueOf(quarter.substring(0, 1)),
+          quarter.endsWith("'"), System.currentTimeMillis()));
+    }
+  }
+
   private void nextRep() {
     betweenReps = false;
     solutions = null;
     // The verdict belonged to the cross that is over. Left up, "That was not the cross" reads as a
     // verdict on the scramble about to be dealt.
     clearLastRep();
-    btSolutions.setVisibility(View.GONE);
-    btStart.setVisibility(View.GONE);
-    refreshExtrasRow();
+    // Taken away rather than emptied: a row holding its place under the cube for the length of a
+    // rep is a band of nothing where the eye goes looking for the cube.
+    lastRepRow.setVisibility(View.GONE);
+    panel.clear();
     btDone.setText(R.string.drill_cross_done);
     if (session.isFinished()) {
       showSummary();
@@ -459,28 +476,6 @@ public class CrossDrillActivity extends DrillScreenActivity {
           : getString(R.string.drill_cross_rep_way_in, rep.getOptimalLength());
     }
     setLastRep(null, 0, moves, false, against);
-  }
-
-  private void showSolutions() {
-    if (solutions == null) {
-      return;
-    }
-    ArrayList<String> lines = new ArrayList<String>();
-    for (String[] moves : solutions.solutions) {
-      lines.add(join(CrossFormatter.toCrossOnBottom(face, moves)));
-    }
-    DialogUtils.showFragment(this,
-        CrossSolutionsDialog.newInstance(lines, solutions.length));
-  }
-
-  private static String join(String[] moves) {
-    StringBuilder sb = new StringBuilder();
-    for (String move : moves) {
-      if (!move.isEmpty()) {
-        sb.append(sb.length() == 0 ? "" : " ").append(move);
-      }
-    }
-    return sb.toString();
   }
 
   @Override

@@ -83,6 +83,8 @@ public class VirtualCube implements GyroReferenceListener {
   private boolean floor;
   /** Where the camera stands while there is no grip to follow, or null for square on. */
   private double[] view;
+  /** How far below the middle of its box the cube sits, or null for the page's own default. */
+  private Double nudge;
 
   /**
    * @param touchListener the host screen's own, forwarded so the cube is not a dead zone — a
@@ -123,12 +125,24 @@ public class VirtualCube implements GyroReferenceListener {
     }
   }
 
-  /** One quarter turn, drawn turning. */
+  /** One turn, drawn turning at the speed a mirror needs: as fast as hands. */
   public void addMove(String notation) {
+    addMove(notation, 0);
+  }
+
+  /**
+   * One turn, drawn turning over {@code turnMs}, or at the mirror's own speed for 0. A screen that
+   * steps through a sequence for somebody to watch wants a turn slow enough to see happen, which is
+   * several times what a mirror can afford: the mirror must never be seen lagging the hands.
+   *
+   * <p>Per move rather than per screen, since the screen that steps is also mirroring: only the
+   * stepped turns may be slow.
+   */
+  public void addMove(String notation, int turnMs) {
     movesSinceState.add(notation);
     // ⚠️ Quoted, never concatenated into a JS string literal: a prime move is spelled U', and the
     // apostrophe closes the literal and makes a syntax error of the whole call.
-    evaluate("window.ntLiveMove(" + JSONObject.quote(notation) + ");");
+    evaluate("window.ntLiveMove(" + JSONObject.quote(notation) + "," + turnMs + ");");
   }
 
   /**
@@ -150,6 +164,17 @@ public class VirtualCube implements GyroReferenceListener {
   public void setCameraDistance(double distance) {
     cameraDistance = distance;
     evaluate("window.ntLiveCamera(" + distance + ");");
+  }
+
+  /**
+   * How far below the middle of its box the cube is drawn, as a percentage of the box height. The
+   * page's default corrects a bias measured in the timer's box, which is short and wide; the same
+   * percentage in a well twice as tall is twice the correction and lands the cube low. A screen
+   * with a well of its own shape measures its own.
+   */
+  public void setNudge(double percent) {
+    nudge = percent;
+    evaluate("window.ntLiveNudge(" + percent + ");");
   }
 
   /**
@@ -295,6 +320,9 @@ public class VirtualCube implements GyroReferenceListener {
     }
     if (view != null) {
       evaluate("window.ntLiveView(" + view[0] + "," + view[1] + ");");
+    }
+    if (nudge != null) {
+      evaluate("window.ntLiveNudge(" + nudge + ");");
     }
     if (floor) {
       evaluate("window.ntLiveFloor(true);");

@@ -32,6 +32,28 @@ public class CrossFormatter {
     return out;
   }
 
+  /**
+   * The same relabeling without the rotation token in front, for a screen that writes every row it
+   * has in this one frame and so has nothing to announce the change of frame to. A rotation printed
+   * among the moves is a token that cannot be turned: it is not a move, and a screen that steps
+   * through the moves one at a time would have to step over it.
+   */
+  public static String[] movesOnBottom(CrossFace face, String[] moves) {
+    if (face == CrossFace.D) {
+      return moves;
+    }
+    String[] out = new String[moves.length];
+    for (int i = 0; i < moves.length; i++) {
+      out[i] = relabel(face, moves[i]);
+    }
+    return out;
+  }
+
+  /** One move as it reads cross-on-bottom: the same turn of the same face, spelled from there. */
+  public static String moveOnBottom(CrossFace face, String move) {
+    return face == CrossFace.D ? move : relabel(face, move);
+  }
+
   /** The whole-cube rotation that brings {@code face} to the bottom. */
   public static String rotationPrefix(CrossFace face) {
     switch (face) {

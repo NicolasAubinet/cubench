@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What a cross drill has to say once the rep is over: what the user turned, the shortest way
+     there was, and a way to walk that way on the cube standing above it.
+
+     Both strips scroll sideways rather than wrapping. A cross is one line of notation, and a line
+     that reflows to two moves the cube every time a rep runs long. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <!-- The moves the user turned, written as they were counted: the pairs the cube reported as two
+       quarter turns are folded back into the half turn they were, so this strip and the move count
+       beside the rep can never disagree. Live during a rep, and kept after it.
+
+       Spelled cross-on-bottom like the solution under it, and NOT as the cube reported them: two
+       rows an inch apart in two frames spell the same physical turn two ways. -->
+  <LinearLayout
+     android:id="@+id/llCrossYours"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+     android:visibility="gone">
+
+    <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginRight="10dp"
+       android:text="@string/drill_cross_panel_you"
+       android:textAllCaps="true"
+       android:letterSpacing="0.08"
+       android:textColor="@color/gray600"
+       android:textSize="11sp"/>
+
+    <HorizontalScrollView
+       android:id="@+id/svCrossYours"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:scrollbars="none"
+       android:requiresFadingEdge="horizontal"
+       android:fadingEdgeLength="20dp">
+
+      <TextView
+         android:id="@+id/tvCrossYours"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:singleLine="true"
+         android:letterSpacing="0.06"
+         android:textColor="@color/gray200"
+         android:textSize="15sp"
+         android:fontFeatureSettings="tnum"/>
+    </HorizontalScrollView>
+  </LinearLayout>
+
+  <!-- The answer, on a cell of its own so that it is the thing the eye lands on. It used to be a
+       second line inside the status pill, in the same grey as the state of the drill, which is
+       where the one sequence worth reading was hardest to read. -->
+  <LinearLayout
+     android:id="@+id/llCrossBest"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:orientation="vertical"
+     android:background="@drawable/drill_stat_cell"
+     android:paddingLeft="12dp"
+     android:paddingRight="6dp"
+     android:paddingTop="6dp"
+     android:paddingBottom="2dp"
+     android:visibility="gone">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvCrossBestLabel"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:singleLine="true"
+         android:ellipsize="end"
+         android:textAllCaps="true"
+         android:letterSpacing="0.08"
+         android:textColor="@color/gray600"
+         android:textSize="11sp"/>
+
+      <!-- Every other way in the same number of moves, switched here rather than in a sheet over
+           the cube: the whole use of another way is turning it on the cube you can see. -->
+      <LinearLayout
+         android:id="@+id/llCrossAlts"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:gravity="center_vertical"
+         android:orientation="horizontal"
+         android:background="@drawable/view_segment_group"
+         android:padding="2dp"
+         android:visibility="gone">
+
+        <ImageButton
+           android:id="@+id/btCrossAltPrev"
+           android:layout_width="30dp"
+           android:layout_height="30dp"
+           android:padding="6dp"
+           android:scaleType="fitCenter"
+           android:background="?android:attr/selectableItemBackgroundBorderless"
+           android:src="@drawable/ic_alt_prev"
+           android:contentDescription="@string/drill_cross_other_ways"/>
+
+        <TextView
+           android:id="@+id/tvCrossAltIndex"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:minWidth="46dp"
+           android:gravity="center"
+           android:textColor="@color/secondary_text"
+           android:textSize="12sp"
+           android:fontFeatureSettings="tnum"/>
+
+        <ImageButton
+           android:id="@+id/btCrossAltNext"
+           android:layout_width="30dp"
+           android:layout_height="30dp"
+           android:padding="6dp"
+           android:scaleType="fitCenter"
+           android:background="?android:attr/selectableItemBackgroundBorderless"
+           android:src="@drawable/ic_alt_next"
+           android:contentDescription="@string/drill_cross_other_ways"/>
+      </LinearLayout>
+    </LinearLayout>
+
+    <HorizontalScrollView
+       android:id="@+id/svCrossBest"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="2dp"
+       android:scrollbars="none"
+       android:requiresFadingEdge="horizontal"
+       android:fadingEdgeLength="20dp">
+
+      <TextView
+         android:id="@+id/tvCrossBestMoves"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:singleLine="true"
+         android:letterSpacing="0.06"
+         android:textColor="@color/white"
+         android:fontFamily="@font/roboto_medium"
+         android:textSize="21sp"
+         android:fontFeatureSettings="tnum"/>
+    </HorizontalScrollView>
+
+    <!-- Walking the solution on the drawn cube, a move at a time, for the hands that are already
+         holding a cube of their own and would rather watch than turn. -->
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:gravity="center"
+       android:orientation="horizontal">
+
+      <ImageButton
+         android:id="@+id/btCrossStepStart"
+         android:layout_width="44dp"
+         android:layout_height="38dp"
+         android:padding="9dp"
+         android:scaleType="fitCenter"
+         android:background="?android:attr/selectableItemBackgroundBorderless"
+         android:src="@drawable/ic_move_start"
+         android:contentDescription="@string/drill_cross_start_position"/>
+
+      <ImageButton
+         android:id="@+id/btCrossStepBack"
+         android:layout_width="44dp"
+         android:layout_height="38dp"
+         android:layout_marginLeft="16dp"
+         android:padding="9dp"
+         android:scaleType="fitCenter"
+         android:background="?android:attr/selectableItemBackgroundBorderless"
+         android:src="@drawable/ic_move_prev"
+         android:contentDescription="@string/drill_cross_step_back"/>
+
+      <ImageButton
+         android:id="@+id/btCrossStepNext"
+         android:layout_width="44dp"
+         android:layout_height="38dp"
+         android:layout_marginLeft="16dp"
+         android:padding="9dp"
+         android:scaleType="fitCenter"
+         android:background="?android:attr/selectableItemBackgroundBorderless"
+         android:src="@drawable/ic_move_next"
+         android:contentDescription="@string/drill_cross_step_forward"/>
+    </LinearLayout>
+  </LinearLayout>
+
+</merge>

@@ -19,7 +19,7 @@
   <string name="about">About</string>
   <string name="backspace_exit">Press back again to exit</string>
 
-  <string name="cube_type">Cube type</string>
+  <string name="cube_type">Puzzle type</string>
   <string name="solve_type">Solve type</string>
   <string name="history">History</string>
   <string name="solves">solves</string>
@@ -162,7 +162,7 @@
   <string name="clear_all_history">Delete all the times</string>
   <string name="yes">Yes</string>
   <string name="no">No</string>
-  <string name="choose_cube_type">Choose a cube type</string>
+  <string name="choose_cube_type">Choose a puzzle type</string>
   <string name="scrambles">Scrambles</string>
   <string name="big_cubes_notation">Big cubes notation</string>
   <string name="big_cubes_notation_summary">Choose the big cubes notation system</string>
@@ -265,9 +265,9 @@
   <string name="import_error">Import error</string>
   <string name="could_not_convert_time">Could not convert time \'%1$s\'</string>
   <string name="could_not_convert_date">Could not convert date \'%1$s\'</string>
-  <string name="could_not_find_cube_type">Could not resolve cube type \'%1$s\'.\nPlease check input file, or try updating.</string>
-  <string name="could_not_find_scramble_type">Could not resolve scramble type \'%1$s\' for cube type \'%2$s\'.\nPlease check input file, or try updating.</string>
-  <string name="solve_type_conflict">Inconsistencies found in solve type \'%1$s\' of cube type \'%2$s\'.\nPlease check input file or contact support at %3$s.</string>
+  <string name="could_not_find_cube_type">Could not resolve puzzle type \'%1$s\'.\nPlease check input file, or try updating.</string>
+  <string name="could_not_find_scramble_type">Could not resolve scramble type \'%1$s\' for puzzle type \'%2$s\'.\nPlease check input file, or try updating.</string>
+  <string name="solve_type_conflict">Inconsistencies found in solve type \'%1$s\' of puzzle type \'%2$s\'.\nPlease check input file or contact support at %3$s.</string>
   <string name="invalid_step_format">Invalid format for step \'%1$s\'</string>
   <string name="could_not_convert_step_time">Could not convert step time \'%1$s\'</string>
   <string name="error_reading_import_file">Could not read import file: %1$s</string>
@@ -972,8 +972,6 @@
   <string name="drill_cross_title">Cross drill</string>
   <string name="drill_cross_done">Done</string>
   <string name="drill_cross_next">Next</string>
-  <string name="drill_cross_solutions">Shortest ways</string>
-  <string name="drill_cross_solutions_count">%1$d ways to do it in %2$d moves</string>
   <string name="drill_cross_dealing">Dealing a scramble</string>
   <string name="drill_cross_plan_it">Plan the cross, then turn</string>
   <string name="drill_cross_planning_left">%d seconds to plan</string>
@@ -989,6 +987,10 @@
   <string name="drill_layer_colour">Last layer colour</string>
   <string name="drill_cross_start_position">Start position</string>
   <string name="drill_cross_other_ways">Other ways</string>
+  <string name="drill_cross_panel_you">Your moves</string>
+  <string name="drill_cross_panel_shortest">Shortest in %d</string>
+  <string name="drill_cross_way_of">%1$d/%2$d</string>
+  <string name="drill_cross_step_back">Previous move</string>
+  <string name="drill_cross_step_forward">Next move</string>
   <string name="drill_cross_rep_times">Planned in %1$s, turned in %2$s</string>
-  <string name="drill_cross_shortest">Shortest: %1$s (%2$d moves)</string>
 </resources>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The cross drill while it is running: the cube, what the drill has to say about the rep just
+     finished, and the button that ends or takes one.
+
+     <b>It scrolls, and in portrait it never has to.</b> The pieces need about 420dp between them,
+     which every phone has standing up and none has on its side, and a column that cannot scroll
+     answers that by pushing the button that takes the next scramble off the bottom of the screen.
+     The cube keeps a floor of its own so that what gets squeezed is the empty space around it and
+     not the cube. Where the room is there, fillViewport hands the slack back to the weight and
+     nothing scrolls at all. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/drillRunning"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:fillViewport="true"
+   android:scrollbars="none">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingLeft="12dp"
+     android:paddingRight="12dp"
+     android:paddingTop="10dp"
+     android:paddingBottom="10dp">
+
+    <FrameLayout
+       android:layout_width="match_parent"
+       android:layout_height="0dp"
+       android:layout_weight="1"
+       android:minHeight="190dp"
+       android:background="@drawable/cube_stage">
+
+      <!-- ⚠️ INVISIBLE until the page has drawn, never GONE: a GONE WebView is not laid out, so
+           the player would build into a 0x0 viewport and stay that size once shown. -->
+      <WebView
+         android:id="@+id/wvDrillCube"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:background="@android:color/transparent"
+         android:visibility="invisible"/>
+
+      <ProgressBar
+         android:id="@+id/pbDrillCube"
+         style="?android:attr/progressBarStyle"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center"/>
+
+      <View
+         android:id="@+id/drillRepWash"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:background="@drawable/drill_rep_wash"
+         android:visibility="gone"/>
+    </FrameLayout>
+
+    <!-- What is happening now: the planning left, the moves spent, or that what is on the cube is
+         not a cross. Never what the cross is; that is the whole question. A pill, so it reads as a
+         state the drill is in rather than as a caption for the cube above it. -->
+    <FrameLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp">
+
+      <TextView
+         android:id="@+id/tvDrillCrossStatus"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center"
+         android:background="@drawable/smart_cube_pill"
+         android:backgroundTint="@color/white_wash_10"
+         android:paddingLeft="14dp"
+         android:paddingRight="14dp"
+         android:paddingTop="5dp"
+         android:paddingBottom="5dp"
+         android:gravity="center"
+         android:textColor="@color/secondary_text"
+         android:textSize="13sp"
+         android:lineSpacingExtra="2dp"
+         android:fontFeatureSettings="tnum"/>
+    </FrameLayout>
+
+    <!-- ⚠️ The rep just FINISHED: how many moves it took, and how few it could have. Two pieces
+         rather than one sentence, so the move count is the thing the eye lands on.
+
+         No height is reserved for it and the screen takes the whole row away between reps: an
+         empty row that holds its place is 46dp of nothing under the cube for as long as a rep
+         lasts, which is most of the time. What it would have cost is a cube that changes size
+         when a rep ends, and the cube is drawn to its well whatever size that is.
+
+         The name slot the case drill uses stays empty here: a scramble has no name to give. -->
+    <LinearLayout
+       android:id="@+id/llDrillLastRep"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"
+       android:gravity="center"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvDrillLastRepName"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginRight="8dp"
+         android:letterSpacing="0.02"
+         android:fontFamily="@font/roboto_medium"
+         android:textSize="13sp"/>
+
+      <TextView
+         android:id="@+id/tvDrillLastRep"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:textColor="@color/white"
+         android:fontFamily="@font/roboto_medium"
+         android:textSize="24sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <TextView
+         android:id="@+id/tvDrillLastRepSplit"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="8dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"
+         android:fontFeatureSettings="tnum"/>
+    </LinearLayout>
+
+    <!-- What the rep leaves to look at: the moves that were turned, and the shortest way there
+         was, on a cell of its own where the whole of it can be walked onto the cube above. Its
+         own view, since it holds a way, a place in that way and a way of following one. -->
+    <com.cube.nanotimer.gui.widget.CrossSolutionPanel
+       android:id="@+id/crossSolutionPanel"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"/>
+
+    <!-- On its own line above the controls: sharing one with a button would squeeze the rep
+         counter to nothing on a narrow phone, and which rep this is is not the thing to drop. -->
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvDrillProgress"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:singleLine="true"
+         android:ellipsize="end"
+         android:textColor="@color/secondary_text"
+         android:textSize="14sp"
+         android:fontFeatureSettings="tnum"/>
+
+      <!-- The mode picked before the drill started, shown because it cannot be changed now. -->
+      <TextView
+         android:id="@+id/tvDrillMode"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:background="@drawable/smart_cube_pill"
+         android:backgroundTint="@color/white_wash_10"
+         android:paddingLeft="10dp"
+         android:paddingRight="10dp"
+         android:paddingTop="3dp"
+         android:paddingBottom="3dp"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"/>
+    </LinearLayout>
+
+    <!-- Not tappable, so it is not a control: a drill has a known end, and until now it said so in
+         words only. -->
+    <ProgressBar
+       android:id="@+id/pbDrillProgress"
+       style="?android:attr/progressBarStyleHorizontal"
+       android:layout_width="match_parent"
+       android:layout_height="3dp"
+       android:layout_marginTop="6dp"
+       android:progressDrawable="@drawable/drill_progress"/>
+
+    <!-- Announcing the cross is finished, and then taking the next one. Not a start or a stop:
+         a cross that is really built ends its own rep, and this is the only end a wrong one has. -->
+    <Button
+       android:id="@+id/btDrillCrossDone"
+       style="@style/DialogActionButton"
+       android:layout_height="48dp"
+       android:layout_marginTop="10dp"
+       android:textSize="16sp"
+       android:text="@string/drill_cross_done"/>
+
+  </LinearLayout>
+
+</ScrollView>
+
