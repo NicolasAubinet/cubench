@@ -1,4 +1,4 @@
-package com.cube.nanotimer.smartcube.drill;
+package com.cube.nanotimer.drill;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ import org.json.JSONObject;
  * the user wrote here never arrived in one and still has to be readable after an update. A drill
  * from a newer version is refused rather than guessed at, and so is a type or a delivery this app
  * does not know, since running the wrong drill is worse than running none. An unknown <em>case</em>
- * is different and is only dropped ({@link DrillSession#getUnknownCases}), so a prescription written
+ * is different and is only dropped (the session reports them), so a prescription written
  * against a larger vocabulary still runs for the part this app understands.
  *
  * <p>A spec that was parsed keeps the text it was parsed from, which is what should be stored:

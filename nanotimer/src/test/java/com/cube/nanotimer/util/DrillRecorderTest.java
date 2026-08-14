@@ -10,7 +10,7 @@ import com.cube.nanotimer.smartcube.drill.CrossDrillRep;
 import com.cube.nanotimer.smartcube.drill.CrossDrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
-import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;

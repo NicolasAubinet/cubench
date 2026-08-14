@@ -13,7 +13,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
-import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;

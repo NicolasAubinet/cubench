@@ -20,7 +20,7 @@ import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.VirtualCube;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
-import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;

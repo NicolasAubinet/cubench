@@ -1,4 +1,4 @@
-package com.cube.nanotimer.smartcube.drill;
+package com.cube.nanotimer.drill;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

@@ -18,7 +18,7 @@ import com.cube.nanotimer.scrambler.cross.CrossSolvers;
 import com.cube.nanotimer.scrambler.cross.CrossSolvers.FaceSolutions;
 import com.cube.nanotimer.smartcube.drill.CrossDrillRep;
 import com.cube.nanotimer.smartcube.drill.CrossDrillSession;
-import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeRotation;

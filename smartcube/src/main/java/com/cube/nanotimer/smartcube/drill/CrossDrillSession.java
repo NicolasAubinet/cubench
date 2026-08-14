@@ -1,5 +1,7 @@
 package com.cube.nanotimer.smartcube.drill;
 
+import com.cube.nanotimer.drill.DrillSpec;
+
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.step.FaceTurns;

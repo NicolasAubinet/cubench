@@ -5,7 +5,7 @@ import com.cube.nanotimer.services.Service;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.drill.CrossDrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
-import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
 import com.cube.nanotimer.vo.drill.DrillCrossRep;
 import com.cube.nanotimer.vo.drill.DrillEnd;
