@@ -2,11 +2,13 @@ package com.cube.nanotimer.gui.widget.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -124,6 +126,24 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
         .setView(view)
         .setPositiveButton(R.string.close, null)
         .create();
+  }
+
+  /**
+   * The diagram's height is orientation-dependent, and a dialog inflated in portrait keeps the
+   * taller one: laid out on a landscape screen it runs off the bottom, taking Close with it.
+   */
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    if (webView == null) {
+      return;
+    }
+    ViewGroup.LayoutParams params = webView.getLayoutParams();
+    int height = getResources().getDimensionPixelSize(R.dimen.scramble_dialog_diagram_height);
+    if (params.height != height) {
+      params.height = height;
+      webView.setLayoutParams(params);
+    }
   }
 
   /** Shown only when there are two views to choose between, and something to draw in them. */
