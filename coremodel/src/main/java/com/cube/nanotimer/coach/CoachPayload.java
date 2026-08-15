@@ -27,8 +27,9 @@ import org.json.JSONObject;
  */
 public class CoachPayload {
 
-  /** The newest payload this app writes and can read back. */
-  public static final int VERSION = 1;
+  /** The newest payload this app writes and can read back. Version 2 added the two-look count and
+   * the known set; a version 1 payload is still read, and is simply missing them. */
+  public static final int VERSION = 2;
 
   private final int schemaVersion;
   private final String puzzle;
@@ -36,25 +37,32 @@ public class CoachPayload {
   private final int familyWindow;
   private final int caseWindow;
   private final int drillWindow;
-  private final int twoLookCount;
+  private final Integer twoLookCount;
   private final StepFigure solve;
   private final List<StepFigure> families;
   private final List<StepFigure> parts;
   private final List<StepFigure> cases;
   private final List<StepFigure> drillCases;
   private final List<CaseComparison> comparisons;
+  private final List<String> knownCases;
+  private final List<String> learningCases;
 
   /**
    * @param solve the whole solve's figures, or null when the window holds too few to quote
    * @param familyWindow how many solves the step figures were read from, {@code caseWindow} the
    *     same for the case figures, which need a longer look to say anything
    * @param drillWindow how many recorded drills the drill figures were read from
-   * @param twoLookCount how many of those solves took the last layer in more than one algorithm
+   * @param twoLookCount how many of those solves took the last layer in more than one algorithm,
+   *     null in a payload written before it was counted — which is not the same as none
+   * @param knownCases the cases the solver has been shown to execute in one algorithm unaided,
+   *     {@code learningCases} the ones they have not. A case in neither has too little behind it to
+   *     say so, which is its own answer and is never the same as not knowing it.
    */
   public CoachPayload(int schemaVersion, String puzzle, String method, int familyWindow,
-      int caseWindow, int drillWindow, int twoLookCount, StepFigure solve,
+      int caseWindow, int drillWindow, Integer twoLookCount, StepFigure solve,
       List<StepFigure> families, List<StepFigure> parts, List<StepFigure> cases,
-      List<StepFigure> drillCases, List<CaseComparison> comparisons) {
+      List<StepFigure> drillCases, List<CaseComparison> comparisons, List<String> knownCases,
+      List<String> learningCases) {
     this.schemaVersion = schemaVersion;
     this.puzzle = puzzle;
     this.method = method;
@@ -70,6 +78,13 @@ public class CoachPayload {
     this.comparisons = comparisons == null
         ? Collections.<CaseComparison>emptyList()
         : Collections.unmodifiableList(new ArrayList<CaseComparison>(comparisons));
+    this.knownCases = codes(knownCases);
+    this.learningCases = codes(learningCases);
+  }
+
+  private static List<String> codes(List<String> codes) {
+    return codes == null ? Collections.<String>emptyList()
+        : Collections.unmodifiableList(new ArrayList<String>(codes));
   }
 
   private static List<StepFigure> unmodifiable(List<StepFigure> figures) {
@@ -108,8 +123,11 @@ public class CoachPayload {
    * How many of the family window's solves needed more than one algorithm for the last layer's
    * orientation, which is what a two-look OLL is. A technique rather than a speed, and the one level
    * difference in the splits that is real, so it is counted rather than read off a mean.
+   *
+   * <p>Null where the payload was written before this was counted, which no reader may take for a
+   * count of none: a stored plan re-read that way would say the solver two-looks nothing.
    */
-  public int getTwoLookCount() {
+  public Integer getTwoLookCount() {
     return twoLookCount;
   }
 
@@ -144,6 +162,22 @@ public class CoachPayload {
   }
 
   /**
+   * The cases the solver has been shown to execute in one algorithm on their own. Codes only: it is
+   * a status and not a figure, and how fast each of them runs is already here as a case.
+   */
+  public List<String> getKnownCases() {
+    return knownCases;
+  }
+
+  /**
+   * The cases they reach for a second algorithm on, or have had to be shown. Every other case is
+   * absent because too little has been seen of it, never because it is not known.
+   */
+  public List<String> getLearningCases() {
+    return learningCases;
+  }
+
+  /**
    * The figure at a path, or null when the payload holds nothing there. Paths are how a plan cites
    * what it leans on: {@code solve.mean_ms}, {@code families.pll.recognition_ms},
    * {@code cases.pll_gb.time_lost_ms}, {@code comparisons.pll_gb.gap_ms}, {@code windows.cases},
@@ -152,7 +186,8 @@ public class CoachPayload {
   public Double value(String path) {
     String[] segments = path.split("\\.");
     if (segments.length == 1) {
-      return "two_look_count".equals(segments[0]) ? Double.valueOf(twoLookCount) : null;
+      return "two_look_count".equals(segments[0]) && twoLookCount != null
+          ? Double.valueOf(twoLookCount.intValue()) : null;
     }
     if (segments.length == 2 && "solve".equals(segments[0])) {
       return solve == null ? null : field(solve, segments[1]);
@@ -278,7 +313,9 @@ public class CoachPayload {
       windows.put("cases", caseWindow);
       windows.put("drills", drillWindow);
       json.put("windows", windows);
-      json.put("two_look_count", twoLookCount);
+      if (twoLookCount != null) {
+        json.put("two_look_count", twoLookCount);
+      }
       if (solve != null) {
         json.put("solve", solve.toJson());
       }
@@ -291,6 +328,8 @@ public class CoachPayload {
         gaps.put(comparison.toJson());
       }
       json.put("comparisons", gaps);
+      json.put("known_cases", new JSONArray(knownCases));
+      json.put("learning_cases", new JSONArray(learningCases));
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write coach payload", e);
@@ -321,10 +360,12 @@ public class CoachPayload {
       return new CoachPayload(version, json.getString("puzzle"), json.getString("method"),
           windows == null ? 0 : windows.optInt("families"),
           windows == null ? 0 : windows.optInt("cases"),
-          windows == null ? 0 : windows.optInt("drills"), json.optInt("two_look_count"),
+          windows == null ? 0 : windows.optInt("drills"),
+          json.has("two_look_count") ? Integer.valueOf(json.getInt("two_look_count")) : null,
           json.has("solve") ? StepFigure.fromJson(json.getJSONObject("solve")) : null,
           figures(json, "families"), figures(json, "parts"), figures(json, "cases"),
-          figures(json, "drill_cases"), comparisons(json));
+          figures(json, "drill_cases"), comparisons(json), codes(json, "known_cases"),
+          codes(json, "learning_cases"));
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a coach payload: " + e.getMessage(), e);
     }
@@ -337,6 +378,15 @@ public class CoachPayload {
       figures.add(StepFigure.fromJson(array.getJSONObject(i)));
     }
     return figures;
+  }
+
+  private static List<String> codes(JSONObject json, String field) throws JSONException {
+    List<String> codes = new ArrayList<String>();
+    JSONArray array = json.optJSONArray(field);
+    for (int i = 0; array != null && i < array.length(); i++) {
+      codes.add(array.getString(i));
+    }
+    return codes;
   }
 
   private static List<CaseComparison> comparisons(JSONObject json) throws JSONException {

@@ -213,6 +213,7 @@ public class CoachActivity extends NanoTimerActivity {
     basisRow(R.string.coach_basis_solves, payload.getFamilyWindow());
     basisRow(R.string.coach_basis_cases, payload.getCaseWindow());
     basisRow(R.string.coach_basis_named, payload.getCases().size());
+    basisRow(R.string.coach_basis_known, payload.getKnownCases().size());
     basisRow(R.string.coach_basis_drills, payload.getDrillWindow());
   }
 

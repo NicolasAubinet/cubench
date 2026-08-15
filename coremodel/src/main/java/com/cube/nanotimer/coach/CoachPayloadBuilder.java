@@ -1,5 +1,6 @@
 package com.cube.nanotimer.coach;
 
+import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.StepStats;
 
@@ -96,10 +97,12 @@ public class CoachPayloadBuilder {
    *     everything there is of it
    * @param drillSamples every drilled case rep over the last {@link #DRILL_WINDOW} drills
    * @param drillCount how many drills those reps came from
+   * @param knowledge where every case with a status stands, of every method: the ones belonging to
+   *     this method's own steps are picked out here
    */
   public static CoachPayload build(String puzzle, String method, List<Long> solveTimes,
       List<StepSample> familySamples, List<StepSample> caseSamples, int caseSolveCount,
-      List<StepSample> drillSamples, int drillCount) {
+      List<StepSample> drillSamples, int drillCount, List<CaseKnowledge> knowledge) {
     StepTallies familyTallies = new StepTallies(familySamples);
     MethodStatistics families =
         new MethodStatistics(familyTallies.getSteps(), familyTallies.getParts(), solveTimes.size());
@@ -110,11 +113,36 @@ public class CoachPayloadBuilder {
 
     List<StepFigure> caseFigures = caseFigures(cases, caseTallies);
     List<StepFigure> drillFigures = drillFigures(drillTallies);
+    Set<String> sets = familiesOf(cases);
     return new CoachPayload(CoachPayload.VERSION, puzzle, method, solveTimes.size(),
-        caseSolveCount, drillCount, twoLookSolves(familySamples), solveFigure(solveTimes),
+        caseSolveCount, drillCount, Integer.valueOf(twoLookSolves(familySamples)),
+        solveFigure(solveTimes),
         familyFigures(families.getFamilies(), families, familyTallies),
         familyFigures(families.getParts(), families, familyTallies), caseFigures, drillFigures,
-        comparisons(caseFigures, drillFigures, caseTallies, drillTallies));
+        comparisons(caseFigures, drillFigures, caseTallies, drillTallies),
+        casesAt(knowledge, sets, CaseKnowledge.Status.KNOWN),
+        casesAt(knowledge, sets, CaseKnowledge.Status.LEARNING));
+  }
+
+  /**
+   * The cases standing at one status, as codes. Kept to the sets this method's own steps are made
+   * of: a payload for one method has no business carrying what the solver knows of another's, and a
+   * case code means nothing without the set it belongs to.
+   *
+   * <p>Nothing is sent for a case that has no status. The floor it did not reach is
+   * {@link CaseKnowledge}'s, and a case under it is one the solver has barely met rather than one
+   * they cannot do: sending it in either list would be the guess that rule exists to prevent.
+   */
+  private static List<String> casesAt(List<CaseKnowledge> knowledge, Set<String> sets,
+      CaseKnowledge.Status status) {
+    List<String> codes = new ArrayList<String>();
+    for (CaseKnowledge stepCase : knowledge == null
+        ? Collections.<CaseKnowledge>emptyList() : knowledge) {
+      if (stepCase.getStatus() == status && sets.contains(stepCase.getCaseSet())) {
+        codes.add(stepCase.getCode());
+      }
+    }
+    return codes;
   }
 
   /**

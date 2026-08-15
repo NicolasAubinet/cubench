@@ -5,7 +5,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import com.cube.nanotimer.session.CaseKnowledge;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -78,7 +81,7 @@ public class CoachPayloadBuilderTest {
   public void testNothingIsSaidAboutTheSolveUnderItsFloor() {
     CoachPayload payload = CoachPayloadBuilder.build("3x3", "cfop", solveTimes(4),
         familySamples(4), Collections.<StepSample>emptyList(), 4,
-        Collections.<StepSample>emptyList(), 0);
+        Collections.<StepSample>emptyList(), 0, knowledge());
 
     Assert.assertNull(payload.getSolve());
     Assert.assertTrue(payload.getFamilies().isEmpty()); // four solves is under the family floor too
@@ -89,8 +92,9 @@ public class CoachPayloadBuilderTest {
   public void testATwoLookIsCountedPerSolveAndNotPerAlgorithm() {
     CoachPayload payload = build();
 
-    Assert.assertEquals(TWO_LOOKS, payload.getTwoLookCount());
-    Assert.assertEquals(TWO_LOOKS, CoachPayload.parse(payload.toJson()).getTwoLookCount());
+    Assert.assertEquals(TWO_LOOKS, payload.getTwoLookCount().intValue());
+    Assert.assertEquals(TWO_LOOKS,
+        CoachPayload.parse(payload.toJson()).getTwoLookCount().intValue());
   }
 
   /** Solves recorded before an OLL was split by algorithm still say they were taken in two looks. */
@@ -100,9 +104,48 @@ public class CoachPayloadBuilderTest {
     samples.add(new StepSample("edges", 2100, 900, true, 20));
     samples.add(new StepSample("corners", 2400, 800, true, 20));
     CoachPayload payload = CoachPayloadBuilder.build("3x3", "cfop", solveTimes(21), samples,
-        Collections.<StepSample>emptyList(), 0, Collections.<StepSample>emptyList(), 0);
+        Collections.<StepSample>emptyList(), 0, Collections.<StepSample>emptyList(), 0,
+        knowledge());
 
-    Assert.assertEquals(TWO_LOOKS + 1, payload.getTwoLookCount());
+    Assert.assertEquals(TWO_LOOKS + 1, payload.getTwoLookCount().intValue());
+  }
+
+  /** The status rides as codes, and only for the sets this payload's own method is solved in. */
+  @Test
+  public void testTheKnownSetCarriesThisMethodsCasesOnly() {
+    CoachPayload payload = build();
+
+    Assert.assertEquals(Arrays.asList("pll_t", "oll_33"), payload.getKnownCases());
+    Assert.assertEquals(Collections.singletonList("oll_21"), payload.getLearningCases());
+    Assert.assertEquals(payload.getKnownCases(),
+        CoachPayload.parse(payload.toJson()).getKnownCases());
+  }
+
+  /** A case under the floor has no status, and nothing may read that silence as not knowing it. */
+  @Test
+  public void testACaseWithNoStatusIsInNeitherList() {
+    CoachPayload payload = build();
+
+    Assert.assertNotNull(figure(payload.getCases(), "pll_gb")); // quoted as a figure...
+    Assert.assertFalse(payload.getKnownCases().contains("pll_gb")); // ...and said nothing of here
+    Assert.assertFalse(payload.getLearningCases().contains("pll_gb"));
+  }
+
+  /**
+   * A payload stored before the two-look was counted holds no count, and none is not zero: read as
+   * zero, a plan kept beside it would come back saying the solver two-looks none of their solves.
+   */
+  @Test
+  public void testAPayloadWrittenBeforeTheTwoLookWasCountedHoldsNoCount() {
+    String older = build().toJson()
+        .replace("\"schema_version\":" + CoachPayload.VERSION, "\"schema_version\":1")
+        .replace("\"two_look_count\":" + TWO_LOOKS + ",", "");
+    CoachPayload payload = CoachPayload.parse(older);
+
+    Assert.assertEquals(1, payload.getSchemaVersion());
+    Assert.assertNull(payload.getTwoLookCount());
+    Assert.assertNull(payload.value("two_look_count")); // so the card that reads it stays quiet
+    Assert.assertFalse(StepShares.twoLooks(payload));
   }
 
   @Test
@@ -156,7 +199,16 @@ public class CoachPayloadBuilderTest {
     drills.addAll(steps("oll_21", 6, 1900, 800));
 
     return CoachPayloadBuilder.build("3x3", "cfop", solveTimes(20), familySamples(20), cases, 40,
-        drills, 3);
+        drills, 3, knowledge());
+  }
+
+  /** Two cases that go in unaided, one that does not, and one of a method this payload is not for. */
+  private static List<CaseKnowledge> knowledge() {
+    return Arrays.asList(
+        new CaseKnowledge("pll", "t", CaseKnowledge.Status.KNOWN, 8, 5000),
+        new CaseKnowledge("oll", "33", CaseKnowledge.Status.KNOWN, 6, 4000),
+        new CaseKnowledge("oll", "21", CaseKnowledge.Status.LEARNING, 5, 3000),
+        new CaseKnowledge("cmll", "sune", CaseKnowledge.Status.KNOWN, 9, 2000));
   }
 
   private static List<Long> solveTimes(int solves) {

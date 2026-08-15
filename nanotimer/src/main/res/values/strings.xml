@@ -1133,6 +1133,7 @@
   <string name="coach_basis_cases">Solves read for cases</string>
   <string name="coach_basis_drills">Drills read</string>
   <string name="coach_basis_named">Cases with enough behind them</string>
+  <string name="coach_basis_known">Cases you do in one algorithm</string>
   <string name="coach_basis_hint">A figure thinner than its floor is left out rather than guessed at: ten occurrences for a step of the method, five for a case.</string>
   <string name="coach_uncited">%1$d of this plan\'s figures are not in your history, and are not shown.</string>
 </resources>

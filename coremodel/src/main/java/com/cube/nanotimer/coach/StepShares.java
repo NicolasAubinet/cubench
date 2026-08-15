@@ -86,10 +86,11 @@ public final class StepShares {
    * recorded as the algorithms it took, the way a PLL already was.
    */
   public static boolean twoLooks(CoachPayload payload) {
-    if (payload == null || payload.getFamilyWindow() == 0) {
+    if (payload == null || payload.getFamilyWindow() == 0 || payload.getTwoLookCount() == null) {
       return false;
     }
-    return (double) payload.getTwoLookCount() / payload.getFamilyWindow() >= TWO_LOOK_SHARE;
+    return (double) payload.getTwoLookCount().intValue() / payload.getFamilyWindow()
+        >= TWO_LOOK_SHARE;
   }
 
   /** The steps compared, which is not every step the solver has. */

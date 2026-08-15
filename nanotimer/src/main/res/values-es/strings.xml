@@ -1092,6 +1092,7 @@
   <string name="coach_basis_cases">Resoluciones leídas para los casos</string>
   <string name="coach_basis_drills">Drills leídos</string>
   <string name="coach_basis_named">Casos con datos suficientes</string>
+  <string name="coach_basis_known">Casos hechos en un solo algoritmo</string>
   <string name="coach_basis_hint">Una cifra demasiado escasa se omite en lugar de adivinarse: diez apariciones para un paso del método, cinco para un caso.</string>
   <string name="coach_uncited">%1$d cifras de este plan no están en tu historial y no se muestran.</string>
 </resources>

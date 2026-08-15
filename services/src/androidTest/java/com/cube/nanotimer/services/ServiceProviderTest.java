@@ -11,6 +11,7 @@ import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.After;
 import org.junit.Before;
+import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -23,6 +24,7 @@ import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
+import com.cube.nanotimer.services.db.CaseKnowledgeStore;
 import com.cube.nanotimer.services.db.DB;
 import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
@@ -1180,6 +1182,132 @@ public class ServiceProviderTest {
   }
 
   @Test
+  public void testACaseGoingInOneAlgorithmEnoughTimesIsKnown() {
+    deleteDrills();
+    provider.deleteHistory();
+    for (int i = 0; i < 3; i++) {
+      saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), lastLayer("oll_21", 1));
+    }
+
+    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
+  }
+
+  @Test
+  public void testACaseTakingTwoAlgorithmsIsBeingLearned() {
+    deleteDrills();
+    provider.deleteHistory();
+    for (int i = 0; i < 3; i++) {
+      saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), lastLayer("oll_21", 2));
+    }
+
+    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("oll_21"));
+  }
+
+  // Under the floor there is no status, and a skipped step was never a case that was executed.
+  @Test
+  public void testACaseWithTooLittleBehindItHasNoStatus() {
+    deleteDrills();
+    provider.deleteHistory();
+    saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1));
+    saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1));
+    for (int i = 0; i < 5; i++) {
+      saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_skip", 1));
+    }
+
+    assertNull(knowledgeOf("oll_21"));
+    assertNull(knowledgeOf("oll_skip"));
+  }
+
+  // The step a solve stopped inside holds only the parts that were done: it is not one clean run.
+  @Test
+  public void testTheStepASolveStoppedInIsNotEvidence() {
+    deleteDrills();
+    provider.deleteHistory();
+    for (int i = 0; i < 5; i++) {
+      saveCubeSolve(CubeMethod.CFOP, 2, step("cross", 2000, 500), lastLayer("oll_21", 1));
+    }
+
+    assertNull(knowledgeOf("oll_21"));
+  }
+
+  /** Asking to be shown the algorithm is the plainest thing in the database. */
+  @Test
+  public void testADrillRepShownItsAlgorithmCountsAgainstTheCase() {
+    deleteDrills();
+    provider.deleteHistory();
+    long drillId = provider.addDrill(drill("case_execution", 3));
+    for (int i = 0; i < 3; i++) {
+      provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 900, 1400, 13, 0, true, false));
+    }
+
+    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_ga"));
+  }
+
+  @Test
+  public void testDrillRepsGoingInCleanSayTheCaseIsKnown() {
+    deleteDrills();
+    provider.deleteHistory();
+    long drillId = provider.addDrill(drill("case_execution", 3));
+    for (int i = 0; i < 3; i++) {
+      provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 900, 1400, 13, 0, false, false));
+    }
+
+    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("pll_ga"));
+  }
+
+  // A rep fumbled or given up on says the rep went badly, not that the algorithm is not known.
+  @Test
+  public void testARepRestartedOrAbandonedIsNotEvidenceEitherWay() {
+    deleteDrills();
+    provider.deleteHistory();
+    long drillId = provider.addDrill(drill("case_execution", 4));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 900, 1400, 13, 2, false, false));
+    provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 900, 1400, 13, 0, false, true));
+    provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 900, 1400, 13, 0, false, false));
+
+    assertNull(knowledgeOf("pll_ga")); // one usable rep of the three
+  }
+
+  /** The table is a cache: thrown away and read back, it says exactly what it said before. */
+  @Test
+  public void testARebuildSaysWhatTheRunningTotalSaid() {
+    deleteDrills();
+    provider.deleteHistory();
+    for (int i = 0; i < 3; i++) {
+      saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1));
+      saveCubeSolve(CubeMethod.CFOP, null, lastLayer("pll_t", 2));
+    }
+    long drillId = provider.addDrill(drill("case_execution", 3));
+    for (int i = 0; i < 3; i++) {
+      provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 900, 1400, 13, 0, false, false));
+    }
+    List<String> running = knowledgeCodes();
+
+    CaseKnowledgeStore.rebuild(service.getWritableDatabase());
+
+    assertEquals(running, knowledgeCodes());
+    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
+    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_t"));
+    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("pll_ga"));
+  }
+
+  /** Deleting the solves takes back what they said, rather than leaving a status behind them. */
+  @Test
+  public void testAStatusGoesWhenItsEvidenceDoes() {
+    deleteDrills();
+    provider.deleteHistory();
+    List<SolveTime> solves = new ArrayList<SolveTime>();
+    for (int i = 0; i < 3; i++) {
+      solves.add(saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1)));
+    }
+    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
+
+    provider.deleteTime(solves.get(0));
+
+    assertNull(knowledgeOf("oll_21")); // two left, which is under the floor
+  }
+
+  @Test
   public void testDrillCaseRepsReadBackWholeAndInOrder() {
     deleteDrills();
     long drillId = provider.addDrill(drill("case_execution", 3));
@@ -1520,6 +1648,33 @@ public class ServiceProviderTest {
   private DrillCrossRep crossRep(int position, int moveCount, int optimalLength, boolean built) {
     return new DrillCrossRep(position, "D", SCRAMBLE, "R@0 U'@200", 2500, 1800, moveCount,
         optimalLength, built, false);
+  }
+
+  private List<String> knowledgeCodes() {
+    List<String> codes = new ArrayList<String>();
+    for (CaseKnowledge stepCase : CaseKnowledgeStore.read(service.getWritableDatabase())) {
+      codes.add(stepCase.getCode() + ":" + stepCase.getStatus().code());
+    }
+    return codes;
+  }
+
+  private CaseKnowledge.Status knowledgeOf(String code) {
+    for (CaseKnowledge stepCase : CaseKnowledgeStore.read(service.getWritableDatabase())) {
+      if (stepCase.getCode().equals(code)) {
+        return stepCase.getStatus();
+      }
+    }
+    return null;
+  }
+
+  /** A case solved in the given number of algorithms, which is what says whether it is known. A
+   * step is only recorded in parts where it took more than one, so one algorithm carries none. */
+  private SolveStep lastLayer(String name, int algorithms) {
+    List<SolveStep> parts = new ArrayList<SolveStep>();
+    for (int i = 0; algorithms > 1 && i < algorithms; i++) {
+      parts.add(subStep(i, name.startsWith("oll") ? "ollalg_45" : "alg_ub", 1000, 300));
+    }
+    return new SolveStep(stepIndexOf(name), name, 500, 1500, parts);
   }
 
   /** Drills outlive a test otherwise: their tables are nobody's history and deleteHistory misses them. */

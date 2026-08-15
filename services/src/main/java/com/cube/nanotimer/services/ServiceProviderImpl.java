@@ -8,7 +8,9 @@ import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.StepSample;
 import com.cube.nanotimer.coach.StoredCoachPlan;
+import com.cube.nanotimer.services.db.CaseKnowledgeStore;
 import com.cube.nanotimer.services.db.DB;
+import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
@@ -253,6 +255,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
     values.put(DB.COL_TIMEHISTORY_PB, solveTime.isPb() ? 1 : 0);
     db.update(DB.TABLE_TIMEHISTORY, values, DB.COL_ID + " = ?", getStringArray(solveTime.getId()));
+    // A DNF has no time to read a case out of, and taking one back hands the case back.
+    CaseKnowledgeStore.update(db, smartcubeStepNames(solveTime.getId()));
     synchronized (cacheSyncHelper) {
       for (CachedTime ct : cachedSolveTimes) {
         if (ct.getSolveId() == solveTime.getId()) {
@@ -602,9 +606,11 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     // remove from DB
+    List<String> cases = smartcubeStepNames(solveTime.getId()); // read before the rows go
     db.delete(DB.TABLE_TIMEHISTORYSTEP, DB.COL_TIMEHISTORYSTEP_TIMEHISTORY_ID + " = ?", getStringArray(solveTime.getId()));
     db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " = ?", getStringArray(solveTime.getId()));
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_ID + " = ?", getStringArray(solveTime.getId()));
+    CaseKnowledgeStore.update(db, cases); // the solve no longer says anything about its cases
 
     if (cachedSolveTimes.size() == CACHE_MIN_SIZE) { // re-read the cache if we reach the minimum size
       loadSolveTimes(solveTime.getSolveType().getId());
@@ -760,13 +766,32 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   private void insertSmartcubeSteps(long historyId, List<SolveStep> steps) {
+    List<String> cases = new ArrayList<String>();
     for (SolveStep step : steps) {
       insertSmartcubeStep(historyId, step.getStepIndex(), null, step);
+      cases.add(step.getName());
       List<SolveStep> subSteps = step.getSubSteps();
       for (int i = 0; i < subSteps.size(); i++) {
         insertSmartcubeStep(historyId, step.getStepIndex(), i, subSteps.get(i));
       }
     }
+    CaseKnowledgeStore.update(db, cases); // the solve is evidence about the cases it was dealt
+  }
+
+  /** The step codes of one solve's breakdown, its parts included. */
+  private List<String> smartcubeStepNames(int solveTimeId) {
+    List<String> names = new ArrayList<String>();
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_SMARTCUBE_SOLVESTEP_NAME
+        + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP
+        + " WHERE " + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " = ?",
+        getStringArray(solveTimeId));
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        names.add(cursor.getString(0));
+      }
+      cursor.close();
+    }
+    return names;
   }
 
   private void insertSmartcubeStep(long historyId, int stepIndex, Integer subIndex, SolveStep step) {
@@ -842,6 +867,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, null, null);
     db.delete(DB.TABLE_TIMEHISTORY, null, null);
     db.delete(DB.TABLE_COACH_PLAN, null, null); // a plan is a reading of the history, not a thing beside it
+    CaseKnowledgeStore.rebuild(db);
     clearCaches();
   }
 
@@ -855,6 +881,7 @@ public class ServiceProviderImpl implements ServiceProvider {
             + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?)", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
+    CaseKnowledgeStore.rebuild(db);
     if (solveType.equals(currentSolveType)) {
       clearCaches();
     }
@@ -981,6 +1008,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_DRILL_REP_ABANDONED, rep.isAbandoned() ? 1 : 0);
     values.put(DB.COL_DRILL_REP_DELETED, rep.isDeleted() ? 1 : 0);
     db.insert(DB.TABLE_DRILL_REP, null, values);
+    CaseKnowledgeStore.update(db, Collections.singletonList(rep.getCaseCode()));
   }
 
   @Override
@@ -1016,6 +1044,22 @@ public class ServiceProviderImpl implements ServiceProvider {
     db.update(DB.TABLE_DRILL_REP, values,
         DB.COL_DRILL_REP_DRILL_ID + " = ? AND " + DB.COL_DRILL_REP_POSITION + " = ?",
         getStringArray(drillId, position));
+    CaseKnowledgeStore.update(db, Collections.singletonList(drillRepCase(drillId, position)));
+  }
+
+  /** The case one rep was dealt, so throwing it out can take back what it said about that case. */
+  private String drillRepCase(long drillId, int position) {
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_DRILL_REP_CASE + " FROM " + DB.TABLE_DRILL_REP
+        + " WHERE " + DB.COL_DRILL_REP_DRILL_ID + " = ? AND " + DB.COL_DRILL_REP_POSITION + " = ?",
+        getStringArray(drillId, position));
+    String code = "";
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        code = cursor.getString(0);
+      }
+      cursor.close();
+    }
+    return code;
   }
 
   @Override
@@ -1382,6 +1426,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     db.delete(DB.TABLE_SOLVETYPESTEP, DB.COL_SOLVETYPESTEP_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_SOLVETYPE, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
+    CaseKnowledgeStore.rebuild(db); // the solves that said what the solver knows went with it
     if (solveType.equals(currentSolveType)) {
       clearCaches();
     }
@@ -1569,7 +1614,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         getMethodSolveTimes(solveType, method, CoachPayloadBuilder.FAMILY_WINDOW),
         getMethodStepSamples(solveType, method, CoachPayloadBuilder.FAMILY_WINDOW),
         getMethodStepSamples(solveType, method, CoachPayloadBuilder.CASE_WINDOW), caseSolves,
-        drillSamples, getDrilledDrillsCount(CoachPayloadBuilder.DRILL_WINDOW));
+        drillSamples, getDrilledDrillsCount(CoachPayloadBuilder.DRILL_WINDOW),
+        CaseKnowledgeStore.read(db));
   }
 
   @Override
