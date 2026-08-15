@@ -71,10 +71,6 @@
     <activity android:name=".gui.ExportActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden">
     </activity>
-    <activity android:name=".gui.ImportActivity"
-       android:windowSoftInputMode="stateAlwaysHidden"
-       android:configChanges="orientation|screenSize|keyboard|keyboardHidden">
-    </activity>
 
     <!--<service android:name=".scrambler.randomstate.ChargingStateService"/>
     <receiver android:name=".scrambler.randomstate.ChargingStateReceiver" android:exported="false">

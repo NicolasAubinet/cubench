@@ -258,8 +258,6 @@
   <string name="no_data_to_export">Pas de données à exporter</string>
   <string name="select_at_least_one_solve_type">Sélectionnez au moins un type de résolution pour exporter</string>
   <string name="exporting_history">Exportation de l\'historique…</string>
-  <string name="import_requires_read_permissions">Les droits de lecture sont requis pour importer</string>
-  <string name="read_permission_denied_cant_import">Les permissions de lectures ont été refusées, impossible d\'importer.</string>
 
   <string name="import_times">Importer</string>
   <string name="export_help_title">À propos de l\'exportation</string>
@@ -271,7 +269,6 @@
   <string name="export_help_columns_body">Le type de puzzle, le type de résolution, le temps et sa date, le mélange, ainsi que la pénalité et le commentaire éventuels.</string>
   <string name="export_help_reading_back">La relire</string>
   <string name="export_help_reading_back_body">L\'importation reprend ce fichier, ou le CSV d\'un autre chrono avec les mêmes colonnes, et ajoute ses temps à votre historique sans rien supprimer.</string>
-  <string name="storage">Disque</string>
   <string name="line">ligne</string>
   <string name="error_in_line">Erreur dans la ligne %1$d</string>
   <string name="import_invalid_columns_count">Nombre de colonnes invalide. Vérifiez le fichier d\'import ou essayez de ré-exporter.</string>
@@ -1003,4 +1000,26 @@
   <string name="export_segment_backup">Sauvegarder</string>
   <string name="export_segment_csv">Temps en CSV</string>
   <string name="backup_holds_everything">Une sauvegarde contient tous les puzzles, tous les entraînements et tous les réglages. Rien n’est à sélectionner ici, puisque rien n’est laissé de côté.</string>
+  <string name="restore_restarts_the_app">Cubench se fermera et se rouvrira une fois terminé.</string>
+  <string name="import_no_file_picker">Aucune application de ce téléphone ne peut choisir un fichier.</string>
+  <string name="restore_reading">Lecture de la sauvegarde…</string>
+  <string name="restore_running">Restauration…</string>
+  <string name="restore_confirm_title">Restaurer cette sauvegarde ?</string>
+  <string name="restore_in_the_file">Dans le fichier</string>
+  <string name="restore_on_this_phone">Sur ce téléphone</string>
+  <string name="restore_made_on">Créée le %1$s</string>
+  <string name="restore_replaces_everything">Tout ce qui se trouve sur ce téléphone est remplacé par le contenu du fichier. Cela ne peut pas être annulé depuis l’application.</string>
+  <string name="restore_confirm">Restaurer</string>
+  <string name="restore_failed">Impossible de restaurer la sauvegarde</string>
+  <string name="restore_failed_body">Un problème est survenu pendant la lecture ou l\'écriture du fichier. Vérifiez qu\'il reste assez d\'espace libre sur le téléphone, puis réessayez.</string>
+  <string name="restore_rejected_not_a_backup">Ce fichier n’est pas une sauvegarde Cubench.</string>
+  <string name="restore_rejected_damaged">Cette sauvegarde est endommagée et ne peut pas être lue.</string>
+  <string name="restore_rejected_newer_format">Cette sauvegarde a été créée par une version plus récente de Cubench. Mettez l’application à jour, puis réessayez.</string>
+  <string name="restore_rejected_newer_db_version">Cette sauvegarde contient des données d’une version plus récente de Cubench. Mettez l’application à jour, puis réessayez.</string>
+  <string name="restore_rejected_wrong_app">Cette sauvegarde appartient à une autre application.</string>
+  <string name="restore_rejected_corrupt_database">Les données de cette sauvegarde sont endommagées et ne peuvent pas être restaurées.</string>
+  <plurals name="backup_solve_types_count">
+    <item quantity="one">%d type de temps</item>
+    <item quantity="other">%d types de temps</item>
+  </plurals>
 </resources>

@@ -270,8 +270,6 @@
   <string name="no_data_to_export">Could not find any data to export</string>
   <string name="select_at_least_one_solve_type">Please select at least one solve type to export</string>
   <string name="exporting_history">Exporting history…</string>
-  <string name="import_requires_read_permissions">You need to grant read permissions in order to import</string>
-  <string name="read_permission_denied_cant_import">Read permission was denied, can not import.</string>
 
   <string name="import_times">Import</string>
   <string name="export_help_title">About exporting</string>
@@ -283,7 +281,6 @@
   <string name="export_help_columns_body">The puzzle type, the solve type, the time and its date, the scramble, and any penalty or comment.</string>
   <string name="export_help_reading_back">Reading it back</string>
   <string name="export_help_reading_back_body">Import takes this file, or another timer\'s CSV with the same columns, and adds its solves to your history without removing anything.</string>
-  <string name="storage">Storage</string>
   <string name="line">line</string>
   <string name="error_in_line">Error in line %1$d</string>
   <string name="import_invalid_columns_count">Invalid columns count. Please check the import file format or try re-exporting.</string>
@@ -1043,4 +1040,26 @@
   <string name="export_segment_backup">Back up</string>
   <string name="export_segment_csv">Times to CSV</string>
   <string name="backup_holds_everything">A backup holds every puzzle, every drill and every setting. Nothing here is selectable, because nothing is left out.</string>
+  <string name="restore_restarts_the_app">Cubench will close and reopen when it is done.</string>
+  <string name="import_no_file_picker">No app on this device can pick a file.</string>
+  <string name="restore_reading">Reading the backup…</string>
+  <string name="restore_running">Restoring…</string>
+  <string name="restore_confirm_title">Restore this backup?</string>
+  <string name="restore_in_the_file">In the file</string>
+  <string name="restore_on_this_phone">On this phone</string>
+  <string name="restore_made_on">Made on %1$s</string>
+  <string name="restore_replaces_everything">Everything on this phone is replaced by what the file holds. This cannot be undone from inside the app.</string>
+  <string name="restore_confirm">Restore</string>
+  <string name="restore_failed">Could not restore the backup</string>
+  <string name="restore_failed_body">Something went wrong while reading or writing the file. Check that there is enough free space on the phone, then try again.</string>
+  <string name="restore_rejected_not_a_backup">This file is not a Cubench backup.</string>
+  <string name="restore_rejected_damaged">This backup is damaged and cannot be read.</string>
+  <string name="restore_rejected_newer_format">This backup was made by a newer version of Cubench. Update the app, then try again.</string>
+  <string name="restore_rejected_newer_db_version">This backup holds data from a newer version of Cubench. Update the app, then try again.</string>
+  <string name="restore_rejected_wrong_app">This backup belongs to another app.</string>
+  <string name="restore_rejected_corrupt_database">The data inside this backup is damaged and cannot be restored.</string>
+  <plurals name="backup_solve_types_count">
+    <item quantity="one">%d solve type</item>
+    <item quantity="other">%d solve types</item>
+  </plurals>
 </resources>

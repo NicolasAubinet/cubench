@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- What the file holds beside what the phone holds, because "this replaces everything" only means
+     something next to the everything it replaces. The whole body scrolls rather than weighting a
+     region inside it: a dialog measures its view unbounded, so a weight cannot shrink an
+     overflowing child and the overflow is simply clipped. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingLeft="@dimen/space_l"
+     android:paddingRight="@dimen/space_l"
+     android:paddingTop="@dimen/space_s"
+     android:paddingBottom="@dimen/space_s">
+
+    <TextView
+       android:id="@+id/tvRestoreMadeOn"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:textSize="13sp"
+       android:textColor="@color/secondary_text"/>
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_s"
+       android:orientation="horizontal"
+       android:background="@drawable/case_stage"
+       android:padding="@dimen/space_m">
+
+      <LinearLayout
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:orientation="vertical">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="@string/restore_in_the_file"
+           style="@style/DialogSectionLabel"/>
+
+        <TextView
+           android:id="@+id/tvFileContents"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="@dimen/space_xs"
+           android:textSize="15sp"
+           android:textColor="@color/white"
+           android:fontFeatureSettings="tnum"/>
+      </LinearLayout>
+
+      <LinearLayout
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:layout_marginLeft="@dimen/space_m"
+         android:layout_marginStart="@dimen/space_m"
+         android:orientation="vertical">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="@string/restore_on_this_phone"
+           style="@style/DialogSectionLabel"/>
+
+        <TextView
+           android:id="@+id/tvPhoneContentsNow"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="@dimen/space_xs"
+           android:textSize="15sp"
+           android:textColor="@color/secondary_text"
+           android:fontFeatureSettings="tnum"/>
+      </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_m"
+       android:text="@string/restore_replaces_everything"
+       android:textSize="14sp"
+       android:textColor="@color/white"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="@dimen/space_xs"
+       android:text="@string/restore_restarts_the_app"
+       android:textSize="13sp"
+       android:textColor="@color/secondary_text"/>
+
+  </LinearLayout>
+</ScrollView>

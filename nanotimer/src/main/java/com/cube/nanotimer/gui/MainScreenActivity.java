@@ -1,24 +1,20 @@
 package com.cube.nanotimer.gui;
 
-import android.Manifest;
-import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build.VERSION;
 import android.os.Bundle;
 import android.os.Handler;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -55,6 +51,7 @@ import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
+import com.cube.nanotimer.util.backup.BackupRestorer;
 import com.cube.nanotimer.util.exportimport.ErrorListener;
 import com.cube.nanotimer.util.exportimport.csvimport.CSVImporter;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -74,9 +71,7 @@ import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.TimesSort;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -154,7 +149,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private static final int IMPORT_REQUEST_CODE = 1;
 
-  private static final int REQUEST_READ_PERMISSIONS_CODE = 10;
+  /** What the picker offers: a backup zip, or a CSV. Everything else is noise to scroll past. */
+  private static final String[] IMPORTABLE_MIME_TYPES = {
+    "text/*", "application/zip", "application/x-zip-compressed", "application/octet-stream" };
 
   /**
    * How many recent solves the sparkline draws, whatever the color sample size is set to. Shared
@@ -951,7 +948,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         statPicked(id - ID_STAT_CELL, position);
       } else if (id == ID_IMPORTEXPORT) {
         if (position == 0) {
-          tryLaunchImportActivity();
+          pickFileToImport();
         } else if (position == 1) {
           startActivity(new Intent(this, ExportActivity.class));
         }
@@ -974,91 +971,62 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     }
   }
 
+  /**
+   * One way in for both files the app can read, because the user has a file rather than a category.
+   * The mime types narrow the picker to the two kinds worth offering, but they do not decide
+   * anything: providers are free to get a type wrong, so what the file is, is read off its content.
+   */
+  private void pickFileToImport() {
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
+      .addCategory(Intent.CATEGORY_OPENABLE)
+      .setType("*/*")
+      .putExtra(Intent.EXTRA_MIME_TYPES, IMPORTABLE_MIME_TYPES);
+    try {
+      startActivityForResult(intent, IMPORT_REQUEST_CODE);
+    } catch (ActivityNotFoundException e) {
+      // no document picker on this device (stripped ROM)
+      DialogUtils.showInfoMessage(this, R.string.import_no_file_picker);
+    }
+  }
+
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
-
-    if (requestCode == IMPORT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-      InputStream inputStream;
-      try {
-        if (VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-          Uri uri = data.getData();
-          assert uri != null;
-          inputStream = getContentResolver().openInputStream(uri);
-        } else {
-          File file = (File) data.getSerializableExtra("file");
-          inputStream = new FileInputStream(file);
-        }
-      } catch (FileNotFoundException e) {
-        throw new RuntimeException(e);
-      }
-
-      new CSVImporter(this, this, new ErrorListener() {
-        @Override
-        public void onError(final String message) {
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              DialogUtils.showOkDialog(MainScreenActivity.this, getString(R.string.import_error), message);
-            }
-          });
-        }
-      }).importData(inputStream);
+    if (requestCode != IMPORT_REQUEST_CODE || resultCode != RESULT_OK
+        || data == null || data.getData() == null) {
+      return;
     }
-  }
-
-  private void tryLaunchImportActivity() {
-    if (VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-      launchImportActivity(); // Lollipop and up can use the default OS file browser
-    } else if (VERSION.SDK_INT >= 19) {
-      final String permission = Manifest.permission.READ_EXTERNAL_STORAGE;
-      if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-//        if (!ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
-//          DialogUtils.showConfirmCancelDialog(MainScreenActivity.this, R.string.import_requires_read_permissions,
-//            R.string.confirm, R.string.cancel, new YesNoListener() {
-//            @Override
-//            public void onYes() {
-//              ActivityCompat.requestPermissions(MainScreenActivity.this, new String[] { permission }, REQUEST_READ_PERMISSIONS_CODE);
-//            }
-//          });
-//        } else {
-        ActivityCompat.requestPermissions(this, new String[] { permission }, REQUEST_READ_PERMISSIONS_CODE);
-//        }
-      } else {
-        launchImportActivity();
-      }
+    Uri uri = data.getData();
+    if (BackupRestorer.looksLikeABackup(this, uri)) {
+      new BackupRestorer(this).restoreFrom(uri);
     } else {
-      launchImportActivity();
+      importCSV(uri);
     }
   }
 
-  @Override
-  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-    switch (requestCode) {
-      case REQUEST_READ_PERMISSIONS_CODE:
-        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-          launchImportActivity();
-        } else {
-          DialogUtils.showShortInfoMessage(this, R.string.read_permission_denied_cant_import);
-        }
-        break;
-      default:
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+  private void importCSV(Uri uri) {
+    InputStream inputStream;
+    try {
+      inputStream = getContentResolver().openInputStream(uri);
+    } catch (IOException e) {
+      inputStream = null;
     }
-  }
-
-  private void launchImportActivity() {
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-      // Choose a directory using the system's file picker.
-      Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-      intent.addCategory(Intent.CATEGORY_OPENABLE);
-      intent.setType("text/*");
-
-      startActivityForResult(intent, IMPORT_REQUEST_CODE);
-    } else {
-      // Use custom-made file browser (not compatible with newer Android versions because of permissions)
-      startActivityForResult(new Intent(this, ImportActivity.class), IMPORT_REQUEST_CODE);
+    if (inputStream == null) {
+      DialogUtils.showOkDialog(this, getString(R.string.import_error),
+        getString(R.string.no_import_data_found));
+      return;
     }
+    new CSVImporter(this, this, new ErrorListener() {
+      @Override
+      public void onError(final String message) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            DialogUtils.showOkDialog(MainScreenActivity.this, getString(R.string.import_error), message);
+          }
+        });
+      }
+    }).importData(inputStream);
   }
 
   private void setSolvesCount(int solvesCount) {
