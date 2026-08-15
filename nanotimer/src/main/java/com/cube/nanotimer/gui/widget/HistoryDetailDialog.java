@@ -223,7 +223,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     setUpReplay(v, solveTime, cubeType);
     ((TextView) v.findViewById(R.id.tvDate))
         .setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
-    tvTime.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
+    tvTime.setText(FormatterService.INSTANCE.formatMarkedSolveTime(solveTime));
     tvTime.setTextColor(color(solveTime.isDNF() ? R.color.dnf_time : R.color.white));
   }
 

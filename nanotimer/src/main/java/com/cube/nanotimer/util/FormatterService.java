@@ -1,8 +1,14 @@
 package com.cube.nanotimer.util;
 
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.vo.SolveTime;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,8 +24,69 @@ public enum FormatterService {
   private static final long MINUTE_MS = 60000;
   private static final long HOUR_MS = 60 * MINUTE_MS;
 
+  /** How large a solve's mark is drawn against the time it qualifies, and in what. Quieter than
+   * the time on both counts: it is a note on the solve, and the solve is what the screen is read
+   * for. */
+  private static final float MARK_SIZE = 0.5f;
+
   public String formatSolveTime(Long solveTime) {
     return formatSolveTime(solveTime, null);
+  }
+
+  /**
+   * A solve as it should be read, carrying what was done to it: a +2 says so beside the time it is
+   * already part of, and a DNF is followed by the time it replaced.
+   *
+   * <p>Marked wherever a whole solve is shown, because the app hands these out by itself when a
+   * smart cube reads the stop, and a penalty nobody was told about is one nobody can take back. The
+   * time behind a DNF is shown for the same reason it is kept: the solve happened, and its owner
+   * gets to see what it was.
+   */
+  public String formatSolveTime(SolveTime solveTime) {
+    return solveTimeText(solveTime) + solveTimeMark(solveTime);
+  }
+
+  /**
+   * The same, with the mark drawn smaller: it is a note on the time rather than part of it, and the
+   * time is what the screen is read for. For anywhere it is shown rather than written out.
+   */
+  public CharSequence formatMarkedSolveTime(SolveTime solveTime) {
+    String text = solveTimeText(solveTime);
+    String mark = solveTimeMark(solveTime);
+    if (mark.isEmpty()) {
+      return text;
+    }
+    SpannableString out = new SpannableString(text + mark);
+    out.setSpan(new RelativeSizeSpan(MARK_SIZE), text.length(), out.length(),
+        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    out.setSpan(new ForegroundColorSpan(markColor()), text.length(), out.length(),
+        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    return out;
+  }
+
+  private int markColor() {
+    return ContextCompat.getColor(App.INSTANCE.getContext(), R.color.solve_mark);
+  }
+
+  private String solveTimeText(SolveTime solveTime) {
+    if (solveTime == null) {
+      return formatSolveTime((Long) null);
+    }
+    return solveTime.isDNF() ? App.INSTANCE.getContext().getString(R.string.DNF)
+        : formatSolveTime(solveTime.getTime());
+  }
+
+  /** What was done to the solve, said after it: the +2 it carries, or the time its DNF replaced. */
+  private String solveTimeMark(SolveTime solveTime) {
+    if (solveTime == null) {
+      return "";
+    }
+    if (solveTime.isDNF()) {
+      Long before = solveTime.getTimeBeforeDnf();
+      return before == null ? "" : " (" + formatSolveTime(before) + ")";
+    }
+    return solveTime.isPlusTwo()
+        ? " (" + App.INSTANCE.getContext().getString(R.string.plus_two) + ")" : "";
   }
 
   /** Turns per second, to one decimal — the precision the figure is worth. */

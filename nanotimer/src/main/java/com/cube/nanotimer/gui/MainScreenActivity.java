@@ -1256,7 +1256,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
               : FormatterService.INSTANCE.formatSolveMoment(st.getTimestamp(), System.currentTimeMillis()));
 
           TextView tvTime = (TextView) view.findViewById(R.id.tvTime);
-          tvTime.setText(FormatterService.INSTANCE.formatSolveTime(st.getTime()));
+          tvTime.setText(FormatterService.INSTANCE.formatMarkedSolveTime(st));
           // A record wears the record colour, which the gradient never produces; everything else
           // is colored green→white→red (fast→median→slow), and DNFs stay gray. Set on every bind
           // so recycled rows never keep a stale color.

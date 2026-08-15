@@ -136,7 +136,7 @@ public class DialogUtils {
 
   private static void shareTime(Activity activity, SolveTime solveTime, CubeType cubeType,
       boolean withSmartcubeData) {
-    String timeStr = FormatterService.INSTANCE.formatSolveTime(solveTime.getTime());
+    String timeStr = FormatterService.INSTANCE.formatSolveTime(solveTime);
     String timestampStr = FormatterService.INSTANCE.formatExportDateTime(solveTime.getTimestamp());
     String subject = activity.getString(R.string.share_time_subject, timeStr);
     String playStorePage = "http://play.google.com/store/apps/details?id=" + activity.getPackageName();
