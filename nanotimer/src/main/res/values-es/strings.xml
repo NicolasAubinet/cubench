@@ -1084,6 +1084,10 @@
   <string name="coach_drill_case">Practicar este caso</string>
   <string name="coach_drill_cases">Practicar estos casos</string>
   <string name="coach_basis_title">En qué se basa esto</string>
+  <string name="coach_splits_title">Adónde va tu tiempo</string>
+  <string name="coach_split_value">%1$s, normalmente %2$s</string>
+  <string name="coach_split_set_aside">Apartado</string>
+  <string name="coach_splits_hint">Cada paso como parte de los pasos comparados, frente a la parte habitual. Una última capa tomada en dos miradas se aparta, porque por naturaleza supera cualquier valor de una mirada.</string>
   <string name="coach_basis_solves">Resoluciones leídas para los pasos</string>
   <string name="coach_basis_cases">Resoluciones leídas para los casos</string>
   <string name="coach_basis_drills">Drills leídos</string>

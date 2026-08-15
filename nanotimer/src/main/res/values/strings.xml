@@ -1125,6 +1125,10 @@
   <string name="coach_drill_case">Drill this case</string>
   <string name="coach_drill_cases">Drill these cases</string>
   <string name="coach_basis_title">What this is based on</string>
+  <string name="coach_splits_title">Where your time goes</string>
+  <string name="coach_split_value">%1$s, usually %2$s</string>
+  <string name="coach_split_set_aside">Set aside</string>
+  <string name="coach_splits_hint">Each step as a share of the steps compared, against what it usually takes. A last layer taken in two looks is set aside, because it runs over any one-look figure by nature.</string>
   <string name="coach_basis_solves">Solves read for steps</string>
   <string name="coach_basis_cases">Solves read for cases</string>
   <string name="coach_basis_drills">Drills read</string>

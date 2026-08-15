@@ -11,6 +11,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.CoachPlan;
+import com.cube.nanotimer.coach.StepShares;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -40,6 +41,8 @@ public class CoachActivity extends NanoTimerActivity {
   private LinearLayout llEmpty;
   private LinearLayout llBasis;
   private LinearLayout llBasisRows;
+  private LinearLayout llSplits;
+  private LinearLayout llSplitRows;
   private TextView tvUncited;
 
   @Override
@@ -57,6 +60,8 @@ public class CoachActivity extends NanoTimerActivity {
     llEmpty = findViewById(R.id.llCoachEmpty);
     llBasis = findViewById(R.id.llCoachBasis);
     llBasisRows = findViewById(R.id.llCoachBasisRows);
+    llSplits = findViewById(R.id.llCoachSplits);
+    llSplitRows = findViewById(R.id.llCoachSplitRows);
     planView = new CoachPlanView(this, (LinearLayout) findViewById(R.id.llCoachAreas));
 
     if (!sayIfUnreadable()) {
@@ -137,9 +142,13 @@ public class CoachActivity extends NanoTimerActivity {
       tvWritten.setText(getString(R.string.coach_written,
           DateFormat.getDateInstance(DateFormat.MEDIUM).format(new Date(stored.getWrittenAt()))));
       showUncited(stored);
+      showSplits(stored.getPayload());
       showBasis(stored.getPayload());
     }
     llBasis.setVisibility(stored == null ? View.GONE : View.VISIBLE);
+    if (stored == null) {
+      llSplits.setVisibility(View.GONE);
+    }
   }
 
   /** What to say instead of a plan, which is a different thing in each of the three cases. */
@@ -163,6 +172,39 @@ public class CoachActivity extends NanoTimerActivity {
     int invented = stored.uncited().size();
     tvUncited.setVisibility(invented == 0 ? View.GONE : View.VISIBLE);
     tvUncited.setText(getString(R.string.coach_uncited, invented));
+  }
+
+  /**
+   * Where the time goes, shown whether or not any step was far enough out to earn a card. Steps in
+   * proportion is a reading, and a solver who never sees the figures cannot tell that from silence.
+   */
+  private void showSplits(CoachPayload payload) {
+    llSplitRows.removeAllViews();
+    StepShares shares = StepShares.of(payload);
+    llSplits.setVisibility(shares.isEmpty() ? View.GONE : View.VISIBLE);
+    if (shares.isEmpty()) {
+      return;
+    }
+    for (String family : shares.families()) {
+      splitRow(family, getString(R.string.coach_split_value,
+          percent(shares.actual(family)), percent(shares.expected(family))));
+    }
+    if (shares.getExcluded() != null) {
+      splitRow(shares.getExcluded(), getString(R.string.coach_split_set_aside));
+    }
+  }
+
+  private void splitRow(String family, String value) {
+    View row = LayoutInflater.from(this).inflate(R.layout.coach_basis_row, llSplitRows, false);
+    ((TextView) row.findViewById(R.id.tvCoachBasisLabel))
+        .setText(Utils.toSmartCubeStepLocalizedName(this, family, 0));
+    ((TextView) row.findViewById(R.id.tvCoachBasisValue)).setText(value);
+    llSplitRows.addView(row);
+  }
+
+  private String percent(Double share) {
+    return getString(R.string.coach_percent,
+        Integer.valueOf((int) Math.round(share.doubleValue() * 100)));
   }
 
   /** How much history is behind the plan, so a thin one reads as young rather than as broken. */

@@ -25,10 +25,12 @@ public final class StepShares {
 
   private final Map<String, Double> actual;
   private final Map<String, Double> expected;
+  private final String excluded;
 
-  private StepShares(Map<String, Double> actual, Map<String, Double> expected) {
+  private StepShares(Map<String, Double> actual, Map<String, Double> expected, String excluded) {
     this.actual = Collections.unmodifiableMap(actual);
     this.expected = Collections.unmodifiableMap(expected);
+    this.excluded = excluded;
   }
 
   /**
@@ -42,9 +44,10 @@ public final class StepShares {
   public static StepShares of(CoachPayload payload) {
     Map<String, Double> none = Collections.emptyMap();
     if (payload == null || !StepBaseline.has(payload.getMethod())) {
-      return new StepShares(none, none);
+      return new StepShares(none, none, null);
     }
     boolean twoLook = twoLooks(payload);
+    String excluded = twoLook ? TWO_LOOK_FAMILY : null;
     Map<String, Long> spent = new LinkedHashMap<String, Long>();
     long total = 0;
     for (StepFigure family : payload.getFamilies()) {
@@ -59,13 +62,18 @@ public final class StepShares {
     }
     Map<String, Double> baseline = StepBaseline.shares(payload.getMethod(), spent.keySet());
     if (total <= 0 || baseline.size() < 2) {
-      return new StepShares(none, none);
+      return new StepShares(none, none, null);
     }
     Map<String, Double> actual = new LinkedHashMap<String, Double>();
     for (String family : baseline.keySet()) {
       actual.put(family, Double.valueOf(spent.get(family).doubleValue() / total));
     }
-    return new StepShares(actual, baseline);
+    return new StepShares(actual, baseline, excluded);
+  }
+
+  /** The step left out of the comparison, or null when every step was compared. */
+  public String getExcluded() {
+    return excluded;
   }
 
   /**

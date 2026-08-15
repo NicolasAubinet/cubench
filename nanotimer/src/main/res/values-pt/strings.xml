@@ -1087,6 +1087,10 @@
   <string name="coach_drill_case">Treinar este caso</string>
   <string name="coach_drill_cases">Treinar estes casos</string>
   <string name="coach_basis_title">Em que isto se baseia</string>
+  <string name="coach_splits_title">Para onde vai o seu tempo</string>
+  <string name="coach_split_value">%1$s, normalmente %2$s</string>
+  <string name="coach_split_set_aside">Posto de lado</string>
+  <string name="coach_splits_hint">Cada passo como parte dos passos comparados, face à parte habitual. Uma última camada feita em dois olhares fica de lado, porque por natureza supera qualquer valor de um olhar.</string>
   <string name="coach_basis_solves">Resoluções lidas para os passos</string>
   <string name="coach_basis_cases">Resoluções lidas para os casos</string>
   <string name="coach_basis_drills">Drills lidos</string>

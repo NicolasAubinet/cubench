@@ -115,6 +115,45 @@
          android:layout_height="wrap_content"
          android:orientation="vertical"/>
 
+      <!-- Where the time goes, whether or not any step was far enough out to be a card. A solver
+           whose steps are all in proportion is told so, which is a finding and not an empty screen. -->
+      <LinearLayout
+         android:id="@+id/llCoachSplits"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="@dimen/space_l"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <TextView
+           style="@style/DialogSectionLabel"
+           android:layout_marginLeft="@dimen/space_xs"
+           android:text="@string/coach_splits_title"/>
+
+        <View
+           android:layout_width="match_parent"
+           android:layout_height="1dp"
+           android:layout_marginTop="@dimen/space_xs"
+           android:background="@color/hero_divider"/>
+
+        <LinearLayout
+           android:id="@+id/llCoachSplitRows"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:divider="@drawable/stat_rule_h"
+           android:orientation="vertical"
+           android:showDividers="middle"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="@dimen/space_s"
+           android:layout_marginLeft="@dimen/space_xs"
+           android:text="@string/coach_splits_hint"
+           android:textColor="@color/secondary_text"
+           android:textSize="12sp"/>
+      </LinearLayout>
+
       <!-- Why a thin plan is thin. Without it, a screen with one area on it reads as broken rather
            than as a history that cannot yet answer. -->
       <LinearLayout
