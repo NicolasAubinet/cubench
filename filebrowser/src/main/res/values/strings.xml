@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-  <string name="can_not_retrieve_files">Could not read the files from external folder.\nPlease check your permissions.</string>
-</resources>

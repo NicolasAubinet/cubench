@@ -34,8 +34,6 @@ The build is split into one app module and several libraries (see
   `SolveType`…), session/stats logic (`session/`). Pure-ish model, the leaf module.
   Namespace `com.cube.nanotimer.vo`.
 - **`guilib`** — shared drawables, styles, themes, app icons.
-- **`filebrowser`** — vendored file picker (`com.ankhsoft.filebrowser`) used by
-  import/export.
 
 Third-party deps of note: `MPAndroidChart` (graphs), `drag-sort-listview`
 (reorderable lists).
@@ -123,11 +121,7 @@ Tests are plain **JUnit 4**.
 - Import/export is CSV (`util/exportimport/`), shared via a `FileProvider`
   (authority `${applicationId}.fileprovider` — the debug build has an
   `applicationIdSuffix`, so never hardcode the authority).
-- Localized into English, French (`values-fr`), Spanish (`values-es`) and
-  Portuguese (`values-pt`). Add new user-facing strings to `strings.xml` in
-  **all four** locales — forgetting one leaves that language showing English.
-  Localized strings live in `nanotimer`, `datamodel` and `filebrowser`
-  (`guilib` and `services` only hold `app_name`, untranslated).
+- Localized into English, French (`values-fr`), Spanish (`values-es`) and Portuguese (`values-pt`). Add new user-facing strings to `strings.xml` in **all four** locales — forgetting one leaves that language showing English. Localized strings live in `nanotimer` and `datamodel` (`guilib` and `services` only hold `app_name`, untranslated).
 
 ### "Pro" unlock (legacy / inactive)
 The app is now **completely free, open-source, and fully unlocked** — it used to

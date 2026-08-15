@@ -49,7 +49,6 @@ dependencies {
     implementation project(':datamodel')
     implementation project(':guilib')
     implementation project(':services')
-    implementation project(':filebrowser')
     implementation project(':smartcube')
     
     implementation 'asia.ivity.android:drag-sort-listview:1.0'
