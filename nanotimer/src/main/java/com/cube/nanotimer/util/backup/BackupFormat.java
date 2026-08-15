@@ -28,7 +28,10 @@ public class BackupFormat {
 
   /** The application id with the debug build's suffix taken off. */
   public static String appPackage(Context context) {
-    String pkg = context.getPackageName();
+    return stripDebugSuffix(context.getPackageName());
+  }
+
+  static String stripDebugSuffix(String pkg) {
     return pkg.endsWith(DEBUG_SUFFIX) ? pkg.substring(0, pkg.length() - DEBUG_SUFFIX.length()) : pkg;
   }
 

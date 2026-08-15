@@ -231,7 +231,7 @@ public class BackupRestorer {
   }
 
   /** One message per reason, so a file we cannot use says which kind of file it is. */
-  private static int messageFor(BackupRejection rejection) {
+  static int messageFor(BackupRejection rejection) {
     switch (rejection) {
       case DAMAGED:
         return R.string.restore_rejected_damaged;
