@@ -8,12 +8,12 @@ import androidx.annotation.NonNull;
 import com.cube.nanotimer.R;
 
 /**
- * What leaves the app when times are exported, and which of the two buttons does what. The screen
- * shows a running total and two actions but never says what the file is, and "where did it go" is
- * the question an export screen always gets.
+ * What leaves the app, and which of the two buttons does what. The screen writes two files that a
+ * segmented control switches between, and "where did it go" is the question an export screen always
+ * gets.
  *
- * <p>The import side has no panel of its own because it has no screen of its own: above API 21 the
- * import is the system file picker, and {@code ImportActivity} is only launched below that.
+ * <p>Import has no panel of its own because it has no screen to hang one on: it is a file picker,
+ * and what it does with what you picked is asked in a dialog at the moment it matters.
  */
 public class ExportHelpDialog extends NanoTimerBottomSheetFragment {
 

@@ -275,7 +275,8 @@
 
   <string name="import_times">Import</string>
   <string name="export_help_title">About exporting</string>
-  <string name="export_help_body">Your history leaves as a CSV file, one line per solve. What the cards below have picked is what goes into it.</string>
+  <string name="export_help_body">This screen writes two different files, and the control at the top picks which. What the cards below have picked is what goes into the CSV.</string>
+  <string name="export_help_backup_body">One file holding everything: every solve, every drill, your settings and your own algorithms. Only Cubench reads it, and restoring one replaces what is on the phone.</string>
   <string name="export_help_share">Hands the file straight to another app: a mail, a chat, a cloud drive.</string>
   <string name="export_help_save">Writes it where you choose on this device, to keep or move yourself.</string>
   <string name="export_help_columns">What a line holds</string>
@@ -1037,4 +1038,9 @@
   <string name="drill_cross_step_back">Previous move</string>
   <string name="drill_cross_step_forward">Next move</string>
   <string name="drill_cross_rep_times">Planned in %1$s, turned in %2$s</string>
+
+  <!-- Backup and restore -->
+  <string name="export_segment_backup">Back up</string>
+  <string name="export_segment_csv">Times to CSV</string>
+  <string name="backup_holds_everything">A backup holds every puzzle, every drill and every setting. Nothing here is selectable, because nothing is left out.</string>
 </resources>

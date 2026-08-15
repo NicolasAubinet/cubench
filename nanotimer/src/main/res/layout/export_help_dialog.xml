@@ -47,6 +47,11 @@
          android:textSize="13.5sp"/>
 
       <LinearLayout style="@style/HelpTermRow">
+        <TextView android:text="@string/backup_everything" style="@style/HelpTermName"/>
+        <TextView android:text="@string/export_help_backup_body" style="@style/HelpTermText"/>
+      </LinearLayout>
+
+      <LinearLayout style="@style/HelpTermRow">
         <TextView android:text="@string/export_share" style="@style/HelpTermName"/>
         <TextView android:text="@string/export_help_share" style="@style/HelpTermText"/>
       </LinearLayout>

@@ -30,6 +30,7 @@ import com.cube.nanotimer.App;
 import android.view.Menu;
 import android.view.MenuItem;
 import com.cube.nanotimer.gui.widget.ExportHelpDialog;
+import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.services.Service;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -73,6 +74,9 @@ public class ExportActivity extends NanoTimerActivity {
   /** What you picked is what you get: nothing on this screen caps a solve type. */
   private static final int NO_LIMIT = -1;
 
+  private static final int SEGMENT_BACKUP = 0;
+  private static final int SEGMENT_CSV = 1;
+
   private static final float BOX_RADIUS_DP = 6f;
   private static final float TILE_RADIUS_DP = 10f;
   private static final float PILL_RADIUS_DP = 17f;
@@ -97,8 +101,10 @@ public class ExportActivity extends NanoTimerActivity {
   private Button buExport;
   private FlowLayout emptyPuzzlePills;
   private TextView tvBackupContents;
-  private TextView tvBackupSave;
-  private TextView tvBackupShare;
+  private View backupHalf;
+  private View csvHalf;
+  /** Which half the buttons at the bottom act on. Survives a rotation, which re-inflates. */
+  private int segment = SEGMENT_BACKUP;
 
   // File waiting to be copied to the destination picked by the system document picker
   private File pendingSaveFile;
@@ -124,6 +130,8 @@ public class ExportActivity extends NanoTimerActivity {
   private void initViews() {
     scrollView = (ScrollView) findViewById(R.id.scrollView);
     puzzleCards = (LinearLayout) findViewById(R.id.puzzleCards);
+    backupHalf = findViewById(R.id.backupHalf);
+    csvHalf = findViewById(R.id.csvHalf);
     tvSelection = (TextView) findViewById(R.id.tvSelection);
     tvSelectAll = (TextView) findViewById(R.id.tvSelectAll);
     tvEmptyPuzzles = (TextView) findViewById(R.id.tvEmptyPuzzles);
@@ -157,7 +165,11 @@ public class ExportActivity extends NanoTimerActivity {
     buExport.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        export(true);
+        if (segment == SEGMENT_BACKUP) {
+          backUp(true);
+        } else {
+          export(true);
+        }
       }
     });
 
@@ -165,25 +177,16 @@ public class ExportActivity extends NanoTimerActivity {
     buSaveToFile.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        export(false);
+        if (segment == SEGMENT_BACKUP) {
+          backUp(false);
+        } else {
+          export(false);
+        }
       }
     });
 
     tvBackupContents = (TextView) findViewById(R.id.tvBackupContents);
-    tvBackupSave = (TextView) findViewById(R.id.tvBackupSave);
-    tvBackupShare = (TextView) findViewById(R.id.tvBackupShare);
-    tvBackupSave.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        backUp(false);
-      }
-    });
-    tvBackupShare.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        backUp(true);
-      }
-    });
+    initSegments();
     showBackupContents();
 
     if (loaded) {
@@ -198,6 +201,38 @@ public class ExportActivity extends NanoTimerActivity {
     super.onConfigurationChanged(newConfig);
     setContentView(R.layout.export_screen);
     initViews();
+  }
+
+  /** The two files this screen can write. Only one of them is on screen, and the bar at the bottom
+   * is that one's. */
+  private void initSegments() {
+    LinearLayout container = (LinearLayout) findViewById(R.id.exportSegments);
+    String[] labels = { getString(R.string.export_segment_backup),
+      getString(R.string.export_segment_csv) };
+    SegmentedControl segments = new SegmentedControl(this, container, labels,
+      new SegmentedControl.Listener() {
+        @Override
+        public void onSegmentPicked(int index) {
+          segment = index;
+          showSegment();
+        }
+      });
+    segments.setSelection(segment);
+    showSegment();
+  }
+
+  private void showSegment() {
+    backupHalf.setVisibility(segment == SEGMENT_BACKUP ? View.VISIBLE : View.GONE);
+    csvHalf.setVisibility(segment == SEGMENT_CSV ? View.VISIBLE : View.GONE);
+    scrollView.scrollTo(0, 0); // the other half's scroll position means nothing here
+    refreshActions();
+  }
+
+  /** The bar at the bottom is dead until the half it serves has something to act on. */
+  private void refreshActions() {
+    boolean ready = segment == SEGMENT_BACKUP ? backupCounts != null : selectedSolveTypes() > 0;
+    buSaveToFile.setEnabled(ready);
+    buExport.setEnabled(ready);
   }
 
   /**
@@ -370,17 +405,16 @@ public class ExportActivity extends NanoTimerActivity {
   /** The running total, and the action that takes or drops the lot. */
   private void refreshSelection() {
     int solves = 0;
-    int types = 0;
     int total = 0;
     for (PuzzleGroup group : groups) {
       total += group.total;
       for (SolveTypeItem item : group.items) {
         if (item.selected) {
           solves += item.count;
-          types++;
         }
       }
     }
+    int types = selectedSolveTypes();
 
     tvSelection.setText(solves == 0 ? getString(R.string.export_nothing_selected)
       : getString(R.string.export_selection,
@@ -389,8 +423,7 @@ public class ExportActivity extends NanoTimerActivity {
 
     // Nothing picked is not a mistake to be told about after the tap: the two actions have
     // nothing to act on, so they say so before it.
-    buSaveToFile.setEnabled(types > 0);
-    buExport.setEnabled(types > 0);
+    refreshActions();
 
     // Only once the cards it acts on are on screen: mid-load there is nothing for it to tick.
     tvSelectAll.setVisibility(loaded && total > 0 ? View.VISIBLE : View.GONE);
@@ -525,19 +558,26 @@ public class ExportActivity extends NanoTimerActivity {
     });
   }
 
+  private int selectedSolveTypes() {
+    int types = 0;
+    for (PuzzleGroup group : groups) {
+      for (SolveTypeItem item : group.items) {
+        if (item.selected) {
+          types++;
+        }
+      }
+    }
+    return types;
+  }
+
   private void showBackupContents() {
     if (tvBackupContents == null) {
       return;
     }
-    // Dead until the counts land, and dimmed to say so: a live control that does nothing when
-    // pressed is the same fault as a button that swallows the press.
-    boolean ready = backupCounts != null;
-    for (TextView action : new TextView[] { tvBackupSave, tvBackupShare }) {
-      action.setEnabled(ready);
-      action.setClickable(ready);
-      action.setAlpha(ready ? 1f : 0.4f);
-    }
-    if (!ready) {
+    // Dead until the counts land: a live control that does nothing when pressed is the same fault
+    // as a button that swallows the press.
+    refreshActions();
+    if (backupCounts == null) {
       tvBackupContents.setVisibility(View.GONE);
       return;
     }

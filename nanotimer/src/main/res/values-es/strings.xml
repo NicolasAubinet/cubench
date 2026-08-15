@@ -263,7 +263,8 @@
 
   <string name="import_times">Importar</string>
   <string name="export_help_title">Sobre la exportación</string>
-  <string name="export_help_body">Su historial sale como un archivo CSV, una línea por tiempo. Lo que las tarjetas de abajo hayan seleccionado es lo que entra en él.</string>
+  <string name="export_help_body">Esta pantalla escribe dos archivos distintos, y el control de arriba elige cuál. Lo que hayas seleccionado en las tarjetas de abajo es lo que va al CSV.</string>
+  <string name="export_help_backup_body">Un solo archivo con todo: cada tiempo, cada entrenamiento, tus ajustes y tus propios algoritmos. Solo Cubench lo lee, y restaurarlo sustituye lo que hay en el teléfono.</string>
   <string name="export_help_share">Entrega el archivo directamente a otra aplicación: un correo, un chat, un espacio en la nube.</string>
   <string name="export_help_save">Lo escribe donde usted elija en este dispositivo, para guardarlo o moverlo usted mismo.</string>
   <string name="export_help_columns">Qué contiene una línea</string>
@@ -996,4 +997,9 @@
   <string name="drill_cross_step_back">Movimiento anterior</string>
   <string name="drill_cross_step_forward">Movimiento siguiente</string>
   <string name="drill_cross_rep_times">Planificación %1$s, ejecución %2$s</string>
+
+  <!-- Copia de seguridad y restauración -->
+  <string name="export_segment_backup">Copia</string>
+  <string name="export_segment_csv">Tiempos a CSV</string>
+  <string name="backup_holds_everything">Una copia contiene todos los puzles, todos los entrenamientos y todos los ajustes. Aquí no hay nada que seleccionar, porque no se deja nada fuera.</string>
 </resources>
