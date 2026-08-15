@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One line of what the plan was read from: what was counted, and how much of it there was. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:gravity="center_vertical"
+   android:minHeight="40dp"
+   android:orientation="horizontal"
+   android:paddingLeft="@dimen/space_xs"
+   android:paddingRight="@dimen/space_xs">
+
+  <TextView
+     android:id="@+id/tvCoachBasisLabel"
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:textColor="@color/secondary_text"
+     android:textSize="14sp"/>
+
+  <TextView
+     android:id="@+id/tvCoachBasisValue"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/white"
+     android:textSize="15sp"/>
+
+</LinearLayout>

@@ -1053,4 +1053,41 @@
     <item quantity="one">%d tipo de tempo</item>
     <item quantity="other">%d tipos de tempo</item>
   </plurals>
+  <!-- Coach -->
+  <string name="coach_title">Treinador</string>
+  <string name="coach_read">Analisar as minhas resoluções</string>
+  <string name="coach_reading">A ler as suas resoluções…</string>
+  <string name="coach_read_again">Analisar de novo</string>
+  <string name="coach_written">Analisado a %1$s</string>
+  <string name="coach_never_read">Analise as suas resoluções e este ecrã dirá o que vale a pena trabalhar esta semana.</string>
+  <string name="coach_only_3x3_title">Apenas para o 3x3</string>
+  <string name="coach_only_3x3">O treinador lê o que um cubo inteligente registou, e um cubo inteligente só comanda um 3x3.</string>
+  <string name="coach_only_cfop_title">Apenas CFOP, por agora</string>
+  <string name="coach_only_cfop">O treinador lê resoluções CFOP. Este tipo de resolução é lido como %1$s.</string>
+  <string name="coach_too_few_title">Ainda não há resoluções suficientes</string>
+  <string name="coach_too_few">O treinador lê resoluções registadas por um cubo inteligente. Precisa de %1$d aqui, e há %2$d por agora.</string>
+  <string name="coach_empty_title">Nada para trabalhar ainda</string>
+  <string name="coach_empty">Ainda não há nada que se destaque. Um caso é citado após cinco ocorrências, e 57 OLL demoram a aparecer.</string>
+  <string name="coach_area_family">%1$s: %2$s</string>
+  <string name="coach_reason_slow_case">Casos que lhe custam tempo</string>
+  <string name="coach_reason_slow_under_pressure">Conhecidos, mas lentos a resolver</string>
+  <string name="coach_reason_recognition_heavy">Mais procura do que execução</string>
+  <string name="coach_reason_two_look_oll">Dois olhares à última camada</string>
+  <string name="coach_reason_inconsistent_case">Casos que correm mal</string>
+  <string name="coach_reason_unknown">Outra coisa para trabalhar</string>
+  <string name="coach_case_mean">%1$s contra %2$s dos restantes</string>
+  <string name="coach_case_cost">%1$d vezes, %2$s perdidos</string>
+  <string name="coach_case_gap">%1$s em drill, %2$s mais a resolver</string>
+  <string name="coach_case_rejected">%1$d%% deles descartados</string>
+  <string name="coach_recognition_body">%1$s: %2$s de %3$s passam antes do primeiro movimento.</string>
+  <string name="coach_two_look_body">%1$d das últimas %2$d resoluções levaram a última camada em dois olhares.</string>
+  <string name="coach_drill_case">Treinar este caso</string>
+  <string name="coach_drill_cases">Treinar estes casos</string>
+  <string name="coach_basis_title">Em que isto se baseia</string>
+  <string name="coach_basis_solves">Resoluções lidas para os passos</string>
+  <string name="coach_basis_cases">Resoluções lidas para os casos</string>
+  <string name="coach_basis_drills">Drills lidos</string>
+  <string name="coach_basis_named">Casos com dados suficientes</string>
+  <string name="coach_basis_hint">Um número demasiado escasso é omitido em vez de adivinhado: dez ocorrências para um passo do método, cinco para um caso.</string>
+  <string name="coach_uncited">%1$d números deste plano não estão no seu histórico e não são mostrados.</string>
 </resources>

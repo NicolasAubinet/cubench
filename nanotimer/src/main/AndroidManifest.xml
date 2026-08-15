@@ -53,6 +53,7 @@
        android:name=".gui.TimerActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>
     <activity android:name=".gui.OptionsActivity"/>
+    <activity android:name=".gui.CoachActivity"/>
     <activity android:name=".gui.DrillSetupActivity"/>
     <activity android:name=".gui.DrillStatsActivity"/>
     <activity android:name=".gui.DrillCaseStatsActivity"/>

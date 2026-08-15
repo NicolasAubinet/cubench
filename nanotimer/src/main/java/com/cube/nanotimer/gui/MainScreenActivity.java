@@ -119,6 +119,24 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   // so binding a row stays a lookup.
   private final Map<Integer, String> dayHeaders = new HashMap<>();
   private final Handler timeAgoHandler = new Handler();
+  /**
+   * The drawer's entries, by their place in {@code R.array.mainscreen_menu_items}. Named because one
+   * of them is not always shown, and an index counted off the rows on screen would then mean a
+   * different entry depending on whether it was.
+   */
+  private static final int MENU_SETTINGS = 0;
+  private static final int MENU_SORT = 1;
+  private static final int MENU_GRAPHS = 2;
+  private static final int MENU_COACH = 3;
+  private static final int MENU_IMPORT_EXPORT = 4;
+  private static final int MENU_CLEAR_HISTORY = 5;
+  private static final int MENU_LANGUAGE = 6;
+  private static final int MENU_ABOUT = 7;
+  private static final int MENU_RATE = 8;
+
+  /** Which entry each row of the drawer is, in order. */
+  private int[] menuEntries;
+
   private HistoryListAdapter historyListAdapter;
   private MenuListAdapter menuListAdapter;
   private SmartCubeChip smartCubeChip;
@@ -252,14 +270,14 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
     initHistoryList();
 
-    menuListAdapter = new MenuListAdapter(this, R.id.lvMenuItems, getResources().getStringArray(R.array.mainscreen_menu_items));
+    menuListAdapter = new MenuListAdapter(this, R.id.lvMenuItems, buildMenu());
     ListView lvMenuItems = (ListView) findViewById(R.id.lvMenuItems);
     lvMenuItems.setAdapter(menuListAdapter);
     lvMenuItems.setOnItemClickListener(new OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         closeDrawer();
-        onMenuItemClick(i);
+        onMenuItemClick(menuEntries[i]);
       }
     });
 
@@ -390,6 +408,35 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     return (count == null || count == 0) ? "" : String.valueOf(count);
   }
 
+  /**
+   * The rows the drawer shows, and their labels, filling in {@link #menuEntries} as it goes. An
+   * entry left out here takes its row with it rather than leaving a gap, which is why the rows and
+   * the entries are two different numbers everywhere below.
+   */
+  private String[] buildMenu() {
+    String[] labels = getResources().getStringArray(R.array.mainscreen_menu_items);
+    List<String> shown = new ArrayList<>();
+    List<Integer> entries = new ArrayList<>();
+    for (int entry = 0; entry < labels.length; entry++) {
+      if (entry == MENU_COACH && !SmartCubeGate.ENABLED) {
+        continue; // it reads what a cube recorded: without one there is nothing for it to read
+      }
+      entries.add(entry);
+      shown.add(labels[entry]);
+    }
+    menuEntries = new int[entries.size()];
+    for (int row = 0; row < menuEntries.length; row++) {
+      menuEntries[row] = entries.get(row);
+    }
+    return shown.toArray(new String[0]);
+  }
+
+  private void openCoach() {
+    Intent i = new Intent(this, CoachActivity.class);
+    i.putExtra("solveType", curSolveType);
+    startActivity(i);
+  }
+
   private void openGraph() {
     openGraph(null);
   }
@@ -454,25 +501,28 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private void onMenuItemClick(int index) {
     switch (index) {
-      case 0:
+      case MENU_SETTINGS:
         startActivity(new Intent(this, OptionsActivity.class));
         break;
-      case 1:
+      case MENU_SORT:
         if (timesSort == TimesSort.TIMESTAMP) {
           setSortMode(TimesSort.TIME);
         } else if (timesSort == TimesSort.TIME) {
           setSortMode(TimesSort.TIMESTAMP);
         }
         break;
-      case 2:
+      case MENU_GRAPHS:
         openGraph();
         break;
-      case 3:
+      case MENU_COACH:
+        openCoach();
+        break;
+      case MENU_IMPORT_EXPORT:
         ArrayList<String> items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.import_export)));
         ArrayList<Integer> icons = new ArrayList<>(Arrays.asList(R.drawable.import_icon, R.drawable.export_icon));
         DialogUtils.showFragment(this, SelectorFragmentDialog.newInstance(ID_IMPORTEXPORT, items, icons, null, true, this));
         break;
-      case 4:
+      case MENU_CLEAR_HISTORY:
         DialogUtils.showDestructiveConfirmDialog(this, R.string.clear_history_title,
             R.string.clear_history_solve_type_confirmation, R.string.delete, R.string.cancel, new YesNoListener() {
           @Override
@@ -488,17 +538,17 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           }
         });
         break;
-      case 5:
+      case MENU_LANGUAGE:
         items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.languages)));
         ArrayList<Integer> flagIcons = new ArrayList<>(Arrays.asList(R.drawable.flag_uk, R.drawable.flag_france, R.drawable.flag_spain, R.drawable.flag_portugal));
         DialogUtils.showFragment(this, SelectorFragmentDialog
           .newInstance(ID_LANGUAGE, items, flagIcons, null, true, this)
           .setSelection(currentLanguageIndex()));
         break;
-      case 6:
+      case MENU_ABOUT:
         DialogUtils.showFragment(this, AboutDialog.newInstance());
         break;
-      case 7:
+      case MENU_RATE:
         Utils.openPlayStorePage(this, getPackageName());
         break;
     }
@@ -1124,29 +1174,32 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       if (position >= 0 && position < objects.length) {
         ImageView icon = (ImageView) view.findViewById(R.id.imgIcon);
         Integer imageResource = null;
-        switch (position) {
-          case 0:
+        switch (menuEntries[position]) {
+          case MENU_SETTINGS:
             imageResource = R.drawable.menu_settings;
             break;
-          case 1:
+          case MENU_SORT:
             imageResource = R.drawable.menu_sort_history;
             break;
-          case 2:
+          case MENU_GRAPHS:
             imageResource = R.drawable.menu_graph;
             break;
-          case 3:
+          case MENU_COACH:
+            imageResource = R.drawable.menu_coach;
+            break;
+          case MENU_IMPORT_EXPORT:
             imageResource = R.drawable.menu_import_export;
             break;
-          case 4:
+          case MENU_CLEAR_HISTORY:
             imageResource = R.drawable.menu_clear;
             break;
-          case 5:
+          case MENU_LANGUAGE:
             imageResource = R.drawable.menu_language;
             break;
-          case 6:
+          case MENU_ABOUT:
             imageResource = R.drawable.menu_about;
             break;
-          case 7:
+          case MENU_RATE:
             imageResource = R.drawable.menu_rate;
             break;
         }
@@ -1155,7 +1208,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         }
 
         TextView tvName = (TextView) view.findViewById(R.id.tvText);
-        if (position == 1) {
+        if (menuEntries[position] == MENU_SORT) {
           if (timesSort == TimesSort.TIMESTAMP) {
             tvName.setText(R.string.show_best_times);
           } else {

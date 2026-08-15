@@ -175,8 +175,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     // the opposite face, which is where a solver who builds that cross finishes.
     int defaultCross = Options.INSTANCE.getCrossFaceIndex(CrossFace.D.ordinal());
     crossFace = CrossFace.values()[Options.INSTANCE.getDrillChoice(KEY_CROSS_FACE, defaultCross)];
-    layerFace = CrossFace.values()[Options.INSTANCE.getDrillChoice(KEY_LAYER_FACE,
-        CrossFace.values()[defaultCross].opposite().ordinal())];
+    layerFace = layerFace();
     crossFaces = new CrossFaceSwatches(this, (LinearLayout) findViewById(R.id.llDrillCrossSwatches),
         new CrossFaceSwatches.Listener() {
           @Override
@@ -407,6 +406,17 @@ public class DrillSetupActivity extends NanoTimerActivity
       }
     }
     return picked;
+  }
+
+  /**
+   * Which way up a last-layer drill stands the cube, which is the user's own standing answer rather
+   * than anything a drill prescribes: a coach names the cases, never the hand holding them. Shared
+   * so a drill launched from a plan stands the cube where this screen last left it.
+   */
+  public static CrossFace layerFace() {
+    int defaultCross = Options.INSTANCE.getCrossFaceIndex(CrossFace.D.ordinal());
+    return CrossFace.values()[Options.INSTANCE.getDrillChoice(KEY_LAYER_FACE,
+        CrossFace.values()[defaultCross].opposite().ordinal())];
   }
 
   private boolean isCrossDrill() {

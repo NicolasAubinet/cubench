@@ -1091,4 +1091,41 @@
     <item quantity="one">%d solve type</item>
     <item quantity="other">%d solve types</item>
   </plurals>
+  <!-- Coach -->
+  <string name="coach_title">Coach</string>
+  <string name="coach_read">Read my solves</string>
+  <string name="coach_reading">Reading your solves…</string>
+  <string name="coach_read_again">Read them again</string>
+  <string name="coach_written">Read on %1$s</string>
+  <string name="coach_never_read">Read your solves and this says what the week is worth spending on.</string>
+  <string name="coach_only_3x3_title">Only for the 3x3</string>
+  <string name="coach_only_3x3">The coach reads what a smart cube recorded, and a smart cube only drives a 3x3.</string>
+  <string name="coach_only_cfop_title">CFOP only, for now</string>
+  <string name="coach_only_cfop">The coach reads CFOP solves. This solve type is read as %1$s.</string>
+  <string name="coach_too_few_title">Not enough solves yet</string>
+  <string name="coach_too_few">The coach reads solves recorded by a smart cube. It needs %1$d of them here, and there are %2$d so far.</string>
+  <string name="coach_empty_title">Nothing to work on yet</string>
+  <string name="coach_empty">There is nothing here that stands out yet. A case is quoted once it has been seen five times, and 57 OLLs take a while to come round.</string>
+  <string name="coach_area_family">%1$s: %2$s</string>
+  <string name="coach_reason_slow_case">Cases costing you time</string>
+  <string name="coach_reason_slow_under_pressure">Known, but slow in a solve</string>
+  <string name="coach_reason_recognition_heavy">More looking than turning</string>
+  <string name="coach_reason_two_look_oll">Two looks at the last layer</string>
+  <string name="coach_reason_inconsistent_case">Cases that go wrong</string>
+  <string name="coach_reason_unknown">Something else to work on</string>
+  <string name="coach_case_mean">%1$s against %2$s for the rest</string>
+  <string name="coach_case_cost">%1$d times, %2$s lost</string>
+  <string name="coach_case_gap">%1$s drilled, %2$s slower in a solve</string>
+  <string name="coach_case_rejected">%1$d%% of them thrown out</string>
+  <string name="coach_recognition_body">%1$s: %2$s of %3$s goes before the first move.</string>
+  <string name="coach_two_look_body">%1$d of the last %2$d solves took the last layer in two looks.</string>
+  <string name="coach_drill_case">Drill this case</string>
+  <string name="coach_drill_cases">Drill these cases</string>
+  <string name="coach_basis_title">What this is based on</string>
+  <string name="coach_basis_solves">Solves read for steps</string>
+  <string name="coach_basis_cases">Solves read for cases</string>
+  <string name="coach_basis_drills">Drills read</string>
+  <string name="coach_basis_named">Cases with enough behind them</string>
+  <string name="coach_basis_hint">A figure thinner than its floor is left out rather than guessed at: ten occurrences for a step of the method, five for a case.</string>
+  <string name="coach_uncited">%1$d of this plan\'s figures are not in your history, and are not shown.</string>
 </resources>
