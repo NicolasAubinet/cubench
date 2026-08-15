@@ -235,7 +235,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    App.INSTANCE.setContext(this);
     setContentView(R.layout.timer_screen);
     setVolumeControlStream(AudioManager.STREAM_MUSIC);
     currentOrientation = getResources().getConfiguration().orientation;
@@ -327,7 +326,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   @Override
   protected void onResume() {
     super.onResume();
-    App.INSTANCE.setContext(this);
     smartCubeChip.start();
     solveController.start();
     liveCube.start();

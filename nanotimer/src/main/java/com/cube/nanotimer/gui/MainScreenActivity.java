@@ -165,7 +165,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    App.INSTANCE.setContext(this);
     Utils.updateContextWithPrefsLocale(this); // because ad provider somehow re-initializes the context
 
     setContentView(R.layout.mainscreen_screen);
@@ -508,7 +507,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   @Override
   protected void onResume() {
     super.onResume();
-    App.INSTANCE.setContext(this);
 
     buStart.setEnabled(true);
 
