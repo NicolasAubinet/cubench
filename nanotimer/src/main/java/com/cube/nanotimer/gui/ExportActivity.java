@@ -679,10 +679,18 @@ public class ExportActivity extends NanoTimerActivity {
       DialogUtils.showInfoMessage(this, R.string.select_at_least_one_solve_type);
       return;
     }
+    // Cancelable for the same reason as the backup above: a dialog that swallows back reads as a
+    // press that did nothing, the more so as the picker then opens anyway.
+    final AtomicBoolean cancelled = new AtomicBoolean(false);
     final ProgressDialog progressDialog = new ProgressDialog(this);
     progressDialog.setMessage(getString(R.string.exporting_history));
     progressDialog.setIndeterminate(true);
-    progressDialog.setCancelable(false);
+    progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+      @Override
+      public void onCancel(DialogInterface dialog) {
+        cancelled.set(true);
+      }
+    });
     progressDialog.show();
     App.INSTANCE.getService().getExportFile(solveTypeIds, NO_LIMIT, new DataCallback<List<ExportResult>>() {
       @Override
@@ -692,6 +700,9 @@ public class ExportActivity extends NanoTimerActivity {
           public void run() {
             progressDialog.hide();
             progressDialog.dismiss();
+            if (cancelled.get()) {
+              return; // nothing has been written yet, so there is nothing to throw away
+            }
             if (data != null && !data.isEmpty()) {
               CSVGenerator generator = new ExportCSVGenerator(data);
               File file = FileUtils.createCSVFile(ExportActivity.this, EXPORT_FILE_NAME, generator);
