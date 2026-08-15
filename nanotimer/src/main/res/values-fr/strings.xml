@@ -182,6 +182,8 @@
   <string name="verdict_record">Meilleur %1$s, %2$s de moins que %3$s</string>
   <string name="verdict_window_best">Meilleur des %1$d derniers</string>
   <string name="verdict_window_worst">Pire des %1$d derniers</string>
+  <string name="verdict_auto_plus_two">+2 : le cube était à un mouvement du résolu (%1$s)</string>
+  <string name="verdict_auto_dnf">DNF : le cube n\'était pas résolu</string>
   <string name="verdict_under_average">%1$s sous votre Ao12</string>
   <string name="verdict_over_average">%1$s au-dessus de votre Ao12</string>
   <string name="record_notification_mode">Panneau de record</string>
@@ -773,6 +775,8 @@
   <string name="preferred_method_summary">La méthode avec laquelle les types de résolution sont lus, sauf s\'ils ont la leur</string>
   <string name="smart_cube_auto_stop">Arrêt automatique</string>
   <string name="smart_cube_auto_stop_summary">Arrêter le chrono dès que le cube est résolu, plutôt que sur une pression</string>
+  <string name="smart_cube_auto_penalty">+2 et DNF automatiques</string>
+  <string name="smart_cube_auto_penalty_summary">Donner un +2 à une résolution arrêtée à un mouvement du résolu, et un DNF à une résolution arrêtée plus loin</string>
   <string name="preferred_method_prompt">Quelle méthode utilisez-vous ? Elle sert à découper vos résolutions en étapes. C\'est la méthode par défaut : chaque type de résolution peut avoir la sienne.</string>
 
   <string name="quick_action">Action rapide</string>

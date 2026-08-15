@@ -156,6 +156,12 @@
        android:summary="@string/smart_cube_auto_stop_summary"
        android:defaultValue="@bool/smart_cube_auto_stop"/>
 
+    <SwitchPreference
+       android:key="smart_cube_auto_penalty"
+       android:title="@string/smart_cube_auto_penalty"
+       android:summary="@string/smart_cube_auto_penalty_summary"
+       android:defaultValue="@bool/smart_cube_auto_penalty"/>
+
   </PreferenceCategory>
 
   <PreferenceCategory

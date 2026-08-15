@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import android.os.Handler;
 import android.os.Looper;
 import com.cube.nanotimer.Options;
+import com.cube.nanotimer.smartcube.cube.StopPenalty;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
@@ -48,6 +49,17 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    * for it to arrive. A solve ending on a slice has none yet when the cube reports it solved. */
   private static final long GYRO_CATCHUP_MS = SliceSpinDetector.SETTLE_MS + 50;
 
+  /**
+   * How long a move in flight at the tap has to land before the penalty is read as final.
+   *
+   * <p>The last move of a solve can reach us after the tap that ended it, which would read as a
+   * cube stopped one move short of solved: a +2 nobody earned. It cannot be dated out of the way,
+   * the cube's clock being fitted to host time only within a couple of seconds, so it is waited
+   * for instead. Only a softer verdict is taken from the wait, and only a move that lands the cube
+   * exactly where it was headed can soften one, which nothing done after a tap does by accident.
+   */
+  private static final long PENALTY_GRACE_MS = 150;
+
   private final Listener listener;
   private final CubeConnectionListener connectionListener = this::onConnection;
   private MethodAnalyzers analyzers = new MethodAnalyzers(CubeMethod.CFOP); // replaced by the solve type's own at the first setScramble
@@ -78,6 +90,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private long timerStartMs; // when the tap started the solve, on the cube's (host-fitted) clock
   private long lastSolveMoveHostMs; // host clock at the solve's latest move, 0 before the first
   private Runnable pendingRecord; // set while the moves are waiting on the gyro
+  private StopPenalty stopPenalty = StopPenalty.none(); // what the state at the last tap earned
+  private long penaltyDeadlineMs; // past it, the cube is being handled rather than solved
 
   public SmartCubeSolveController(Listener listener) {
     this.listener = listener;
@@ -157,6 +171,14 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     // reached solved — a botched PLL is exactly the solve worth looking at. What still earns none is
     // a method the milestones never fitted, or a prefix too short to tell the methods apart.
     boolean cubeDrove = analyzing;
+    // Judged here rather than at the handover, which is late enough for the cube to have been put
+    // down and picked up again. A solve is judged on the state it was stopped in.
+    //
+    // A cube that dropped mid-solve leaves its last state behind it, and that state is not the one
+    // the solve ended in: a solve nothing was watching the end of is judged by nothing.
+    boolean readable = cubeDrove && SmartCubeManager.INSTANCE.isConnected();
+    stopPenalty = readable ? StopPenalty.of(SmartCubeManager.INSTANCE.getCurrentState())
+        : StopPenalty.none();
     method = cubeDrove ? analyzers.resolve() : null;
     SolveAnalyzer analyzer = method == null ? null : analyzers.get(method);
     stepTimes = analyzer == null ? Collections.<StepTime>emptyList() : analyzer.getStepTimes();
@@ -170,7 +192,13 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       return;
     }
     pendingRecord = onRecorded;
-    long waitMs = lastSolveMoveHostMs + GYRO_CATCHUP_MS - System.currentTimeMillis();
+    long now = System.currentTimeMillis();
+    long readyAtMs = lastSolveMoveHostMs + GYRO_CATCHUP_MS;
+    if (!stopPenalty.isNone()) {
+      penaltyDeadlineMs = now + PENALTY_GRACE_MS;
+      readyAtMs = Math.max(readyAtMs, penaltyDeadlineMs);
+    }
+    long waitMs = readyAtMs - now;
     if (waitMs <= 0) {
       recordMoves(); // the last move is already old enough: nothing to wait for
     } else {
@@ -185,6 +213,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     }
     Runnable onRecorded = pendingRecord;
     pendingRecord = null;
+    settlePenalty();
     long solveStartMs = analyzers.moves().getSolveStartMs();
     // The moves need no method: an unrecognised solve still has a solution worth keeping.
     solveMoves = SolveMovesFormat.format(analyzers.moves().getMoves(),
@@ -199,6 +228,22 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
             solveStartMs, lastSolveMoveHostMs + GYRO_CATCHUP_MS),
         gyroReference.get(), solveStartMs);
     onRecorded.run();
+  }
+
+  /** Takes the verdict back down where the move that finishes the solve only just landed. */
+  private void settlePenalty() {
+    if (stopPenalty.isNone() || System.currentTimeMillis() > penaltyDeadlineMs) {
+      return;
+    }
+    StopPenalty settled = StopPenalty.of(SmartCubeManager.INSTANCE.getCurrentState());
+    if (settled.isMilderThan(stopPenalty)) {
+      stopPenalty = settled;
+    }
+  }
+
+  /** What the state the solve just finished was stopped in earned it. Never null. */
+  public StopPenalty getStopPenalty() {
+    return stopPenalty;
   }
 
   /** The method the solve just finished was solved with, null when its milestones fitted none. */

@@ -13,6 +13,7 @@
        scramble diagram can render. See ScrambleViewNotation. -->
   <integer name="clock_notation">3</integer>
   <bool name="smart_cube_auto_stop">true</bool>
+  <bool name="smart_cube_auto_penalty">true</bool>
   <!-- 2 = PB only: a panel for every average record is too much. -->
   <integer name="record_notification_mode">2</integer>
 </resources>

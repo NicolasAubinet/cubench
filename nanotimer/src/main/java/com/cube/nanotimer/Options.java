@@ -55,6 +55,7 @@ public enum Options {
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
   public static final String SMART_CUBE_AUTO_STOP_KEY = "smart_cube_auto_stop";
+  public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
@@ -475,6 +476,12 @@ public enum Options {
   public boolean isSmartCubeAutoStop() {
     Boolean defaultValue = context.getResources().getBoolean(R.bool.smart_cube_auto_stop);
     return sharedPreferences.getBoolean(SMART_CUBE_AUTO_STOP_KEY, defaultValue);
+  }
+
+  // Whether the state the cube was left in adds the +2 or the DNF that state earns.
+  public boolean isSmartCubeAutoPenalty() {
+    Boolean defaultValue = context.getResources().getBoolean(R.bool.smart_cube_auto_penalty);
+    return sharedPreferences.getBoolean(SMART_CUBE_AUTO_PENALTY_KEY, defaultValue);
   }
 
   // How far a cube's own idea of its state has drifted from the real one, as the facelets of the

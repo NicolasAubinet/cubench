@@ -65,6 +65,7 @@ import com.cube.nanotimer.scrambler.randomstate.RandomStateGenEvent.State;
 import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CubeSession;
+import com.cube.nanotimer.smartcube.cube.StopPenalty;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScaleUtils;
@@ -150,6 +151,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private CharSequence shownStats;
   private boolean discardWhenSaved; // discard confirmed while the solve was still being saved
   private boolean recordPending; // the stopped solve is still waiting on the cube before it is saved
+  private String autoPenaltyReason; // why the cube marked the last solve, null when it did not
+  private ValueAnimator solveFlourish; // the finish flash, kept so a late verdict can call it off
   private boolean skipRecordPanel; // suppress the record panel on the next refresh (a discard-bound stop, or a delete)
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
@@ -1080,9 +1083,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
             DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
           } else if (!lastSolveTime.isDNF()) {
             boolean isPlusTwo = !lastSolveTime.isPlusTwo();
+            autoPenaltyReason = null; // a mark set by hand is the user's, whatever the cube read
             lastSolveTime.setPlusTwo(isPlusTwo, true);
             App.INSTANCE.getService().saveTime(lastSolveTime, solveAverageCallback);
-            tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(lastSolveTime.getTime()));
+            tvTimer.setText(FormatterService.INSTANCE.formatMarkedSolveTime(lastSolveTime));
             setTimerTextColor(lastSolveTime.getTime());
             cubeSession.setLastAsPlusTwo(isPlusTwo);
             refreshSessionFields();
@@ -1159,6 +1163,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * replaced. A DNF with nothing to restore is left alone: the tap does nothing.
    */
   private void toggleLastSolveDNF() {
+    autoPenaltyReason = null; // a mark set by hand is the user's, whatever the cube read
     if (lastSolveTime.canUndoDNF()) {
       lastSolveTime.undoDNF();
       cubeSession.setLastTime(lastSolveTime.getTime(), lastSolveTime.getTimeBeforeDnf());
@@ -1169,7 +1174,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       return;
     }
     App.INSTANCE.getService().saveTime(lastSolveTime, solveAverageCallback);
-    tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(lastSolveTime.getTime()));
+    tvTimer.setText(FormatterService.INSTANCE.formatMarkedSolveTime(lastSolveTime));
     setTimerTextColor(lastSolveTime.getTime());
     refreshSessionFields();
     supportInvalidateOptionsMenu(); // the menu item now offers the other direction
@@ -1181,7 +1186,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       @Override
       public void run() {
         setLastSolveTime(solveTime);
-        tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(solveTime.getTime()));
+        tvTimer.setText(FormatterService.INSTANCE.formatMarkedSolveTime(solveTime));
         setTimerTextColor(solveTime.getTime());
         cubeSession.setLastTime(solveTime.getTime(), solveTime.getTimeBeforeDnf());
         refreshSessionFields();
@@ -1263,10 +1268,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         lastSolveMethod = null;
         lastSolveStoppedStep = null;
         long time = solveAverages.getSolveTime().getTime();
-        addTimeToUI(time);
+        addTimeToUI(solveAverages.getSolveTime());
         // The hand-entered solve is the one the verdict and the menu now speak of, so it is the
         // one the timer has to show.
-        tvTimer.setText(FormatterService.INSTANCE.formatSolveTime(time));
+        tvTimer.setText(FormatterService.INSTANCE.formatMarkedSolveTime(solveAverages.getSolveTime()));
         setTimerTextColor(time);
         generateScramble();
       }
@@ -1430,9 +1435,23 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     recordPending = false;
     showStepBreakdown(solveDurationMs);
     if (save) {
-      saveTime(timeToSave);
+      saveTime(timeToSave, autoPenalty());
     }
     generateScramble();
+  }
+
+  /**
+   * What the cube's reading of the stop costs the solve, or nothing where it does not apply.
+   *
+   * <p>Only a full scramble is judged. The other scramble types are practice states, and half of
+   * them are done with the cube still unsolved: a cross or an F2L drilled to its end would be
+   * called a DNF every time, by a rule written for solves that are meant to finish.
+   */
+  private StopPenalty autoPenalty() {
+    if (!Options.INSTANCE.isSmartCubeAutoPenalty() || !scramblesTheWholeCube()) {
+      return StopPenalty.none();
+    }
+    return solveController.getStopPenalty();
   }
 
   // A small pop and accent flash on the time when a smart cube stops the solve, so the finish
@@ -1448,11 +1467,22 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
     final int accent = getResources().getColor(R.color.lightblue);
     final int endColor = defaultTimerTextColor.getDefaultColor();
-    ValueAnimator flash = ValueAnimator.ofFloat(0f, 1f);
-    flash.setDuration(500);
-    flash.addUpdateListener(a -> tvTimer.setTextColor(
+    solveFlourish = ValueAnimator.ofFloat(0f, 1f);
+    solveFlourish.setDuration(500);
+    solveFlourish.addUpdateListener(a -> tvTimer.setTextColor(
         GUIUtils.getColorCodeBetween(accent, endColor, (float) a.getAnimatedValue())));
-    flash.start();
+    solveFlourish.start();
+  }
+
+  /** The finish was not one: a solve the cube marks is not celebrated, even half a flourish in. */
+  private void stopSolveCompletionFlourish() {
+    if (solveFlourish != null) {
+      solveFlourish.cancel();
+      solveFlourish = null;
+    }
+    tvTimer.animate().cancel();
+    tvTimer.setScaleX(1f);
+    tvTimer.setScaleY(1f);
   }
 
   private void startInspectionTimer() {
@@ -1547,6 +1577,15 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
 
 
   private void saveTime(long time) {
+    saveTime(time, StopPenalty.none());
+  }
+
+  /**
+   * @param time what the timer measured, before anything the cube has to say about it
+   * @param penalty what the state the cube was stopped in earns the solve, applied here so the
+   *     stored solve is the judged one and the reading it was judged on is stored with it
+   */
+  private void saveTime(long time, StopPenalty penalty) {
     SolveTime solveTime = new SolveTime();
     solveTime.setTime(time);
     solveTime.setTimestamp(System.currentTimeMillis());
@@ -1561,7 +1600,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (solveType.hasSteps()) {
       solveTime.setStepsTimes(stepsTimes.toArray(new Long[0]));
     }
-    if (!solveTime.isDNF()) {
+    // A solve the timer measured, which a hand-entered DNF is not: that one has nothing of its own
+    // to keep. A solve the cube calls a DNF does, and it is the one worth keeping a reading of.
+    if (time > 0) {
       // A solve type with its own steps is read through those alone, so the method's are not
       // recorded: nothing would ever show them, and stored is worth keeping equal to shown.
       if (!lastSolveSteps.isEmpty() && !solveType.hasSteps()) {
@@ -1574,19 +1615,47 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         solveTime.setSmartcubeGyroTrack(lastSolveGyroTrack); // null unless the cube has a gyro
       }
     }
+    applyAutoPenalty(solveTime, penalty);
 
-    addTimeToUI(time);
+    addTimeToUI(solveTime);
     App.INSTANCE.getService().saveTime(solveTime, solveAverageCallback);
 
-    if (time > 0 && !reviewRequested) { // ask for a review after a completed solve, never after a DNF
+    if (solveTime.getTime() > 0 && !reviewRequested) { // ask for a review after a completed solve, never after a DNF
       reviewRequested = true;
       InAppReviewManager.maybeRequestReview(this, historySolvesCount);
     }
   }
 
-  private void addTimeToUI(long time) {
+  /**
+   * Marks the solve with what the cube read of its stop, and puts the reason where the solve is:
+   * a penalty handed out by the app has to arrive saying why, next to the menu that takes it back.
+   */
+  private void applyAutoPenalty(SolveTime solveTime, StopPenalty penalty) {
+    autoPenaltyReason = null;
+    if (penalty.isDnf()) {
+      solveTime.setDNF(); // which keeps the time it replaced, so the solve can still be read
+      autoPenaltyReason = getString(R.string.verdict_auto_dnf);
+    } else if (penalty.isPlusTwo()) {
+      solveTime.setPlusTwo(true, true);
+      autoPenaltyReason = getString(R.string.verdict_auto_plus_two, penalty.getMissingMove());
+    } else {
+      return;
+    }
+    // The time was shown the moment the solve ended; the cube's reading of it lands a moment later.
+    stopSolveCompletionFlourish();
+    tvTimer.setText(FormatterService.INSTANCE.formatMarkedSolveTime(solveTime));
+    setTimerTextColor(solveTime.getTime());
+  }
+
+  private void addTimeToUI(SolveTime solveTime) {
     if (cubeSession != null) {
-      cubeSession.addTime(time);
+      // Added as it was timed and then marked, so the session holds the time behind a DNF exactly
+      // as it does for one marked by hand.
+      Long beforeDnf = solveTime.getTimeBeforeDnf();
+      cubeSession.addTime(beforeDnf != null ? beforeDnf : solveTime.getTime());
+      if (solveTime.isDNF()) {
+        cubeSession.setLastAsDNF();
+      }
       historySolvesCount++;
       setSolvesCount(solvesCount + 1);
       refreshSessionFields();
@@ -2267,6 +2336,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     });
     for (RecordInfo r : records) {
       highlightRecordCell(r.priority);
+    }
+    // A mark the app made itself takes the chip ahead of any record: the record is announced by its
+    // own lit cell as well, while a penalty nobody was told the reason for is one nobody can weigh.
+    if (autoPenaltyReason != null && lastSolveTime != null
+        && (lastSolveTime.isDNF() || lastSolveTime.isPlusTwo())) {
+      showVerdictChip(autoPenaltyReason, R.color.danger_text);
+      return;
     }
     if (!records.isEmpty()) {
       RecordInfo best = records.get(0);
