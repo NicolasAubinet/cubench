@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CubePatternFormat;
+import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
@@ -15,6 +16,7 @@ import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
+import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
@@ -158,7 +160,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The case is on screen, which is where the first rep's recognition runs from. */
   @Override
   protected void onCaseVisible() {
-    session.markCaseShown(System.currentTimeMillis());
+    caseShown();
   }
 
   /**
@@ -173,6 +175,27 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   protected CubeOrientation restingRotation() {
     CubeRotation rotation = CubeRotation.byNotation(LayerRotation.toTop(layerFace));
     return rotation == null ? null : rotation.quaternion();
+  }
+
+  /**
+   * The state the cube says it is really in. A turn it made without reporting is recovered here,
+   * and the case is drawn again from where that leaves it: a QiYi drops a state change during fast
+   * slices, and the drill that missed one drew a scrambled cube for the rest of the rep and never
+   * saw the case solved however well it was.
+   */
+  @Override
+  public void onState(CubeState state) {
+    if (!cubeReady || finished || session == null) {
+      return;
+    }
+    DrillSession.Correction correction = session.onState(state);
+    if (!correction.isRepaired()) {
+      return;
+    }
+    cube.setState(CubePatternFormat.format(session.getFacelets()));
+    if (correction.getRep() != null) {
+      onRepFinished(correction.getRep());
+    }
   }
 
   /**
@@ -235,7 +258,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     session.resetRep();
     cube.setState(CubePatternFormat.format(session.getFacelets()));
     if (cubeReady) {
-      session.markCaseShown(System.currentTimeMillis());
+      caseShown();
     }
   }
 
@@ -271,8 +294,22 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     // Only once the case is really up: before the page has drawn, the first one is not yet in
     // front of anybody, and onCubeDrawn is what says it is.
     if (cubeReady) {
-      session.markCaseShown(System.currentTimeMillis());
+      caseShown();
     }
+  }
+
+  /**
+   * The case is in front of the user, which is where the rep's looking runs from and where the
+   * turns that count start.
+   *
+   * <p>The cube is asked where it stands at the same moment. From here on, a turn it makes without
+   * reporting has to be recoverable, and it is only recoverable against a state: waiting for the
+   * next one to arrive by itself would leave the first turn of the rep the one turn whose loss
+   * nothing later could put right.
+   */
+  private void caseShown() {
+    session.markCaseShown(System.currentTimeMillis());
+    session.onState(SmartCubeManager.INSTANCE.getCurrentState());
   }
 
   /**

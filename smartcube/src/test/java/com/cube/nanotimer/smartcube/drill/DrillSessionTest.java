@@ -7,7 +7,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import java.util.ArrayList;
@@ -176,6 +178,92 @@ public class DrillSessionTest {
     assertTrue(hand.next());
     hand.pause(300);
     assertEquals(300, hand.execute(inverse(session.getCurrentScramble())).getRecognitionMs());
+  }
+
+  /**
+   * The turn a cube makes without ever saying so. A QiYi skips a state change during fast slices,
+   * which is exactly what an H perm turned on M2 is made of, and the drill that missed one drew a
+   * scrambled cube from there on and never read the case as solved. The state the cube does report
+   * is what puts it back, whichever turn went missing.
+   */
+  @Test
+  public void aTurnTheCubeNeverReportedIsRecoveredFromTheStateItDoes() {
+    List<CubeMove> algorithm = asReported(inverse(scrambleFor("pll_h")));
+    for (int dropped = 0; dropped < algorithm.size(); dropped++) {
+      DrillSession session = new DrillSession(spec("pll_h", 1), new Random(5));
+      assertTrue(session.nextRep());
+      session.markCaseShown(10_000);
+      CubieCube hands = new CubieCube(); // the user's own cube, wherever the drill's one stands
+      assertFalse("the first state is only a seed", session.onState(state(hands)).isRepaired());
+
+      DrillRep rep = null;
+      long clock = 10_000;
+      for (int i = 0; i < algorithm.size() && rep == null; i++) {
+        CubeMove move = algorithm.get(i);
+        hands.applyMove(move.getFace(), move.isPrime());
+        if (i != dropped) {
+          rep = session.onMove(new CubeMove(move.getFace(), move.isPrime(), clock += GAP_MS));
+        }
+        DrillSession.Correction correction = session.onState(state(hands));
+        assertEquals("only the missed turn is a repair", i == dropped, correction.isRepaired());
+        rep = rep == null ? correction.getRep() : rep;
+      }
+      assertNotNull("turn " + dropped + " went missing and the rep never ended", rep);
+      assertTrue(session.isFinished());
+    }
+  }
+
+  /** And the case is still the case: a repaired cube is the one the turns would have left. */
+  @Test
+  public void aRecoveredTurnLeavesTheSameCubeAsAReportedOne() {
+    DrillSession reported = new DrillSession(spec("pll_z", 1), new Random(5));
+    DrillSession missed = new DrillSession(spec("pll_z", 1), new Random(5));
+    assertTrue(reported.nextRep());
+    assertTrue(missed.nextRep());
+    reported.markCaseShown(10_000);
+    missed.markCaseShown(10_000);
+    CubieCube hands = new CubieCube();
+    missed.onState(state(hands));
+
+    long clock = 10_000;
+    List<CubeMove> algorithm = asReported(inverse(reported.getCurrentScramble()));
+    for (int i = 0; i + 1 < algorithm.size(); i++) { // stopping short, so neither rep is over
+      CubeMove move = new CubeMove(
+          algorithm.get(i).getFace(), algorithm.get(i).isPrime(), clock += GAP_MS);
+      hands.applyMove(move.getFace(), move.isPrime());
+      reported.onMove(move);
+      if (i % 3 != 0) { // every third turn is one the cube never sent
+        missed.onMove(move);
+      }
+      missed.onState(state(hands));
+    }
+    assertEquals(reported.getFacelets(), missed.getFacelets());
+  }
+
+  /** A turn recovered while the case is still being drawn is dropped, the same as a reported one. */
+  @Test
+  public void aRecoveredTurnBeforeTheCaseIsShownIsDroppedToo() {
+    DrillSession session = new DrillSession(spec("pll_t", 1), new Random(3));
+    assertTrue(session.nextRep());
+    String facelets = session.getFacelets();
+    CubieCube hands = new CubieCube();
+    session.onState(state(hands));
+    for (CubeMove move : asReported(inverse(session.getCurrentScramble()))) {
+      hands.applyMove(move.getFace(), move.isPrime());
+    }
+    assertFalse(session.onState(state(hands)).isRepaired());
+    assertEquals("the case is still up, untouched", facelets, session.getFacelets());
+  }
+
+  /** The scramble a case is dealt with, for a test that has to know it before the rep starts. */
+  private static String scrambleFor(String code) {
+    DrillSession session = new DrillSession(spec(code, 1), new Random(5));
+    session.nextRep();
+    return session.getCurrentScramble();
+  }
+
+  private static CubeState state(CubieCube cube) {
+    return new CubeState(cube.toFaceCube());
   }
 
   /** A turn made before the case was drawn belongs to no rep, and must not start one. */

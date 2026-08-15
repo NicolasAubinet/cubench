@@ -24,6 +24,8 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeState;
+import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.util.DrillRecorder;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.vo.drill.DrillEnd;
@@ -54,7 +56,7 @@ import com.cube.nanotimer.vo.drill.DrillEnd;
  * them.
  */
 public abstract class DrillScreenActivity extends NanoTimerActivity
-    implements CubeMoveListener, CubeConnectionListener, GyroReferenceListener,
+    implements CubeMoveListener, CubeStateListener, CubeConnectionListener, GyroReferenceListener,
     VirtualCube.ReadyListener {
 
   /**
@@ -328,6 +330,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     // Subscribed whether or not there is a cube yet: a drill held at the door has no cube of its
     // own, and this is what tells it one has arrived.
     SmartCubeManager.INSTANCE.addMoveListener(this);
+    SmartCubeManager.INSTANCE.addStateListener(this);
     SmartCubeManager.INSTANCE.addGyroReferenceListener(this);
     SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
     // The grip can have been taken or lost while the screen was away, and nothing told this then.
@@ -339,6 +342,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     super.onPause();
     smartCubeChip.stop();
     SmartCubeManager.INSTANCE.removeMoveListener(this);
+    SmartCubeManager.INSTANCE.removeStateListener(this);
     SmartCubeManager.INSTANCE.removeGyroReferenceListener(this);
     SmartCubeManager.INSTANCE.removeConnectionListener(this);
     if (cube != null) {
@@ -352,6 +356,16 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     if (cube != null) {
       cube.destroy();
     }
+  }
+
+  /**
+   * The state the cube says it is really in, which is the truth wherever its turns disagree. A
+   * drill that draws from the turns alone is one dropped notification away from a cube nobody can
+   * solve, and a QiYi drops one whenever a slice is turned fast. Left to each drill, since what
+   * has to be redrawn is the drill's own business.
+   */
+  @Override
+  public void onState(CubeState state) {
   }
 
   @Override

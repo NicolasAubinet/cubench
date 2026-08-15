@@ -1,7 +1,9 @@
 package com.cube.nanotimer.smartcube.drill;
 
+import com.cube.nanotimer.smartcube.cube.CubeTwin;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.FaceTurns;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
@@ -48,6 +50,8 @@ public final class DrillSession {
   private final List<String> pass = new ArrayList<String>();
 
   private CubieCube cube = new CubieCube();
+  /** The user's own cube, followed only so that a turn it never reported can be recovered. */
+  private final CubeTwin twin = new CubeTwin();
   private String currentCase;
   private String currentScramble;
   private final List<CubeMove> moves = new ArrayList<CubeMove>();
@@ -149,6 +153,9 @@ public final class DrillSession {
    */
   public void markCaseShown(long hostMs) {
     caseShownAtMs = hostMs;
+    // Turns count from here, so what the cube did before this is not something to recover: the
+    // caller says where it stands now, and anything it misses from now on is measured against that.
+    twin.reset();
   }
 
   /**
@@ -200,6 +207,9 @@ public final class DrillSession {
    * @return the finished rep if that turn solved the case, null while it is still going
    */
   public DrillRep onMove(CubeMove move) {
+    // Before the drop: the twin follows the cube itself, so a turn this rep has no use for is
+    // still not one the cube is later found to have "missed".
+    twin.onMove(move);
     if (currentCase == null || caseShownAtMs == NOT_SHOWN) {
       return null;
     }
@@ -224,6 +234,60 @@ public final class DrillSession {
     lastMoveMs = at;
     cube.applyMove(move.getFace(), move.isPrime());
     return isCaseDone() ? complete(false) : null;
+  }
+
+  /**
+   * The state the cube says it is really in, which is the truth wherever the two disagree.
+   *
+   * <p>Reported turns are the fast path and not a complete one: a QiYi drops a state change during
+   * fast slices, and one turn lost that way leaves the drawn cube wrong for the rest of the rep,
+   * with the case never reading as done however well it was solved. The turns nobody saw are handed
+   * to the case here instead, which needs no notation for them and no idea of which they were.
+   *
+   * <p>Only while a case is in front of the user: a turn made before it was shown is dropped by
+   * {@link #onMove}, and one recovered here has to be dropped the same way or the two cubes part
+   * company over it.
+   *
+   * <p>What the rep cannot have is the turns themselves. A recovered one has no notation and no
+   * timestamp, so it counts towards nothing and the rep it ends is timed to the last turn that was
+   * really reported. A rep a turn short is a smaller price than one that could not end at all.
+   *
+   * @return what that cost, which is nothing at all unless something really was missed
+   */
+  public Correction onState(CubeState state) {
+    CubieCube missed = twin.missing(state);
+    if (missed == null || currentCase == null || caseShownAtMs == NOT_SHOWN) {
+      return Correction.NONE;
+    }
+    cube = cube.multiply(missed);
+    return new Correction(true, isCaseDone() ? complete(false) : null);
+  }
+
+  /**
+   * What a reported state put right. Both halves can land at once: the drawn cube is behind the
+   * one in the user's hands, and the turns it was behind by are the ones that finished the case.
+   */
+  public static final class Correction {
+
+    private static final Correction NONE = new Correction(false, null);
+
+    private final boolean repaired;
+    private final DrillRep rep;
+
+    private Correction(boolean repaired, DrillRep rep) {
+      this.repaired = repaired;
+      this.rep = rep;
+    }
+
+    /** Whether the case has moved under the drawing, and so has to be drawn again. */
+    public boolean isRepaired() {
+      return repaired;
+    }
+
+    /** The rep the missed turns finished, or null if the case is still going. */
+    public DrillRep getRep() {
+      return rep;
+    }
   }
 
   /**
