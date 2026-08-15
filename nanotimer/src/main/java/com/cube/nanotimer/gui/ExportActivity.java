@@ -71,6 +71,7 @@ public class ExportActivity extends NanoTimerActivity {
   private static final String EXPORT_FILE_NAME = "export.csv";
   private static final String EXPORT_MIME_TYPE = "text/csv";
   private static final int REQ_CREATE_DOCUMENT = 1;
+  private static final String STATE_PENDING_SAVE_IS_BACKUP = "pendingSaveIsBackup";
   /** What you picked is what you get: nothing on this screen caps a solve type. */
   private static final int NO_LIMIT = -1;
 
@@ -109,7 +110,8 @@ public class ExportActivity extends NanoTimerActivity {
   // File waiting to be copied to the destination picked by the system document picker
   private File pendingSaveFile;
   private String pendingSaveName;
-  // The picker returns the same way for both files, and they do not report the same thing
+  // The picker returns the same way for both files, and they do not report the same thing.
+  // Saved state: the field is read after the picker returns, which can be past a process death.
   private boolean pendingSaveIsBackup;
 
   private BackupCounts backupCounts;
@@ -118,6 +120,9 @@ public class ExportActivity extends NanoTimerActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    if (savedInstanceState != null) {
+      pendingSaveIsBackup = savedInstanceState.getBoolean(STATE_PENDING_SAVE_IS_BACKUP);
+    }
     density = getResources().getDisplayMetrics().density;
     setContentView(R.layout.export_screen);
 
@@ -125,6 +130,12 @@ public class ExportActivity extends NanoTimerActivity {
     initViews();
     loadData();
     loadBackupCounts();
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putBoolean(STATE_PENDING_SAVE_IS_BACKUP, pendingSaveIsBackup);
   }
 
   private void initViews() {
