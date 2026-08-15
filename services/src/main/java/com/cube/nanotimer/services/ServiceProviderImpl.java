@@ -1661,6 +1661,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION);
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NOT NULL");
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
     q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
     q.append("  JOIN (").append(window).append(") h");
     q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
@@ -1675,7 +1676,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         samples.add(new StepSample(cursor.getString(0), cursor.getLong(1), cursor.getLong(2),
-            cursor.getInt(3) == 1));
+            cursor.getInt(3) == 1, cursor.getLong(4)));
       }
       cursor.close();
     }
@@ -1702,7 +1703,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         samples.add(new StepSample(cursor.getString(0), cursor.getLong(1), cursor.getLong(2),
-            false));
+            false, 0)); // a rep stands on its own: there is no solve for its parts to belong to
       }
       cursor.close();
     }

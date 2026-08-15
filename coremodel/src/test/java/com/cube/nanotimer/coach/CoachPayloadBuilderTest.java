@@ -84,6 +84,27 @@ public class CoachPayloadBuilderTest {
     Assert.assertTrue(payload.getFamilies().isEmpty()); // four solves is under the family floor too
   }
 
+  /** A solve that took two algorithms to orient the layer looked twice; one that took one did not. */
+  @Test
+  public void testATwoLookIsCountedPerSolveAndNotPerAlgorithm() {
+    CoachPayload payload = build();
+
+    Assert.assertEquals(TWO_LOOKS, payload.getTwoLookCount());
+    Assert.assertEquals(TWO_LOOKS, CoachPayload.parse(payload.toJson()).getTwoLookCount());
+  }
+
+  /** Solves recorded before an OLL was split by algorithm still say they were taken in two looks. */
+  @Test
+  public void testASolveInTheOlderTwoLookCodesStillCounts() {
+    List<StepSample> samples = new ArrayList<StepSample>(familySamples(20));
+    samples.add(new StepSample("edges", 2100, 900, true, 20));
+    samples.add(new StepSample("corners", 2400, 800, true, 20));
+    CoachPayload payload = CoachPayloadBuilder.build("3x3", "cfop", solveTimes(21), samples,
+        Collections.<StepSample>emptyList(), 0, Collections.<StepSample>emptyList(), 0);
+
+    Assert.assertEquals(TWO_LOOKS + 1, payload.getTwoLookCount());
+  }
+
   @Test
   public void testWindowsCarryWhatWasActuallyRead() {
     CoachPayload payload = build();
@@ -146,6 +167,9 @@ public class CoachPayloadBuilderTest {
     return times;
   }
 
+  /** How many of the window's solves orient the last layer in two algorithms rather than one. */
+  private static final int TWO_LOOKS = 6;
+
   /** One solve's worth of steps, with the F2L built out of slots the way the breakdown stores it. */
   private static List<StepSample> familySamples(int solves) {
     List<StepSample> samples = new ArrayList<StepSample>();
@@ -156,8 +180,15 @@ public class CoachPayloadBuilderTest {
     for (String slot : new String[] { "pair_rf", "pair_fl", "pair_lb", "pair_br" }) {
       for (StepSample sample : steps(slot, solves, 3700, 1200)) {
         samples.add(new StepSample(sample.getCode(), sample.getTimeMs(), sample.getRecognitionMs(),
-            true));
+            true, sample.getSolveId()));
       }
+    }
+    for (int solve = 0; solve < Math.min(TWO_LOOKS, solves); solve++) {
+      samples.add(new StepSample("ollalg_45", 2100, 900, true, solve));
+      samples.add(new StepSample("ollalg_26", 2400, 800, true, solve));
+    }
+    if (solves > TWO_LOOKS) { // one algorithm, which is a solve that read the case in one look
+      samples.add(new StepSample("ollalg_27", 1900, 700, true, TWO_LOOKS));
     }
     return samples;
   }
@@ -167,7 +198,7 @@ public class CoachPayloadBuilderTest {
     List<StepSample> samples = new ArrayList<StepSample>();
     for (int i = 0; i < count; i++) {
       long offset = (i % 2 == 0 ? 1 : -1) * (i + 1) * 20L;
-      samples.add(new StepSample(code, meanMs + offset, recognitionMs, false));
+      samples.add(new StepSample(code, meanMs + offset, recognitionMs, false, i));
     }
     return samples;
   }

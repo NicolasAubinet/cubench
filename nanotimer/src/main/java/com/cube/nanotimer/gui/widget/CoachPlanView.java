@@ -139,14 +139,12 @@ public class CoachPlanView {
           Utils.toSmartCubeStepLocalizedName(activity, code, 0), percent(took), percent(should));
     }
     if (area.getReason() == FocusArea.Reason.TWO_LOOK_OLL) {
-      Double edges = payload.value("parts.edges.count");
-      Double corners = payload.value("parts.corners.count");
+      Double looks = payload.value("two_look_count");
       Double solves = payload.value("windows.families");
-      if (edges == null || corners == null || solves == null) {
+      if (looks == null || solves == null) {
         return null;
       }
-      return activity.getString(R.string.coach_two_look_body,
-          (int) Math.min(edges.doubleValue(), corners.doubleValue()), solves.intValue());
+      return activity.getString(R.string.coach_two_look_body, looks.intValue(), solves.intValue());
     }
     return null;
   }

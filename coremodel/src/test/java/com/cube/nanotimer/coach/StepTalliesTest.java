@@ -50,7 +50,7 @@ public class StepTalliesTest {
   @Test
   public void testStepsAndPartsAreKeptApart() {
     List<StepSample> samples = times("f2l", 12000, 13000, 14000);
-    samples.add(new StepSample("pair_rf", 3000, 900, true));
+    samples.add(new StepSample("pair_rf", 3000, 900, true, 0));
     StepTallies tallies = new StepTallies(samples);
 
     Assert.assertEquals(1, tallies.getSteps().size());
@@ -62,7 +62,7 @@ public class StepTalliesTest {
   private static List<StepSample> times(String code, long... times) {
     List<StepSample> samples = new ArrayList<StepSample>();
     for (long time : times) {
-      samples.add(new StepSample(code, time, time / 3, false));
+      samples.add(new StepSample(code, time, time / 3, false, 0));
     }
     return samples;
   }

@@ -4,10 +4,13 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -68,6 +71,15 @@ public class CoachPayloadBuilder {
   /** The step timed from its own first move, so it has no recognition to report. */
   private static final String CROSS_FAMILY = "cross";
 
+  /**
+   * The part families a look at the last layer's orientation is recorded under: the algorithms the
+   * OLL took, and — for solves recorded before an OLL was split that way — the edge and corner
+   * orientation it used to be cut into. Two parts of either kind is a solve that looked twice, and
+   * no other step of any method records a part under those names.
+   */
+  private static final Set<String> LOOK_FAMILIES = new LinkedHashSet<String>(
+      Arrays.asList("ollalg", "edges", "corners"));
+
   /** How far apart the two histories must be, against the solve side, before the gap is sent. */
   private static final double MIN_GAP = 0.1;
 
@@ -99,10 +111,35 @@ public class CoachPayloadBuilder {
     List<StepFigure> caseFigures = caseFigures(cases, caseTallies);
     List<StepFigure> drillFigures = drillFigures(drillTallies);
     return new CoachPayload(CoachPayload.VERSION, puzzle, method, solveTimes.size(),
-        caseSolveCount, drillCount, solveFigure(solveTimes),
+        caseSolveCount, drillCount, twoLookSolves(familySamples), solveFigure(solveTimes),
         familyFigures(families.getFamilies(), families, familyTallies),
         familyFigures(families.getParts(), families, familyTallies), caseFigures, drillFigures,
         comparisons(caseFigures, drillFigures, caseTallies, drillTallies));
+  }
+
+  /**
+   * The window's solves that took more than one look at the last layer's orientation, counted per
+   * solve rather than per look: a two-look is a technique the solver chose, and half a look is not a
+   * thing. Counted rather than inferred from a step being recorded in parts at all, so it still says
+   * what it counts if a one-look OLL should later start carrying its one algorithm as a part.
+   */
+  private static int twoLookSolves(List<StepSample> samples) {
+    Map<Long, Integer> looks = new LinkedHashMap<Long, Integer>();
+    for (StepSample sample : samples) {
+      if (!sample.isPart() || !LOOK_FAMILIES.contains(MethodStatistics.familyOf(sample.getCode()))) {
+        continue;
+      }
+      Long solve = Long.valueOf(sample.getSolveId());
+      Integer seen = looks.get(solve);
+      looks.put(solve, Integer.valueOf(seen == null ? 1 : seen.intValue() + 1));
+    }
+    int twoLooks = 0;
+    for (Integer count : looks.values()) {
+      if (count.intValue() > 1) {
+        twoLooks++;
+      }
+    }
+    return twoLooks;
   }
 
   /** The solve as a whole, which is the only norm there is for whether a step is long. */
@@ -112,7 +149,7 @@ public class CoachPayloadBuilder {
     }
     List<StepSample> samples = new ArrayList<StepSample>();
     for (Long time : solveTimes) {
-      samples.add(new StepSample(SOLVE, time.longValue(), 0, false));
+      samples.add(new StepSample(SOLVE, time.longValue(), 0, false, 0));
     }
     StepTallies tallies = new StepTallies(samples);
     StepStats stats = tallies.get(SOLVE);

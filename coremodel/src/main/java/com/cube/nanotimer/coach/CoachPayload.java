@@ -36,6 +36,7 @@ public class CoachPayload {
   private final int familyWindow;
   private final int caseWindow;
   private final int drillWindow;
+  private final int twoLookCount;
   private final StepFigure solve;
   private final List<StepFigure> families;
   private final List<StepFigure> parts;
@@ -48,17 +49,19 @@ public class CoachPayload {
    * @param familyWindow how many solves the step figures were read from, {@code caseWindow} the
    *     same for the case figures, which need a longer look to say anything
    * @param drillWindow how many recorded drills the drill figures were read from
+   * @param twoLookCount how many of those solves took the last layer in more than one algorithm
    */
   public CoachPayload(int schemaVersion, String puzzle, String method, int familyWindow,
-      int caseWindow, int drillWindow, StepFigure solve, List<StepFigure> families,
-      List<StepFigure> parts, List<StepFigure> cases, List<StepFigure> drillCases,
-      List<CaseComparison> comparisons) {
+      int caseWindow, int drillWindow, int twoLookCount, StepFigure solve,
+      List<StepFigure> families, List<StepFigure> parts, List<StepFigure> cases,
+      List<StepFigure> drillCases, List<CaseComparison> comparisons) {
     this.schemaVersion = schemaVersion;
     this.puzzle = puzzle;
     this.method = method;
     this.familyWindow = familyWindow;
     this.caseWindow = caseWindow;
     this.drillWindow = drillWindow;
+    this.twoLookCount = twoLookCount;
     this.solve = solve;
     this.families = unmodifiable(families);
     this.parts = unmodifiable(parts);
@@ -101,6 +104,15 @@ public class CoachPayload {
     return drillWindow;
   }
 
+  /**
+   * How many of the family window's solves needed more than one algorithm for the last layer's
+   * orientation, which is what a two-look OLL is. A technique rather than a speed, and the one level
+   * difference in the splits that is real, so it is counted rather than read off a mean.
+   */
+  public int getTwoLookCount() {
+    return twoLookCount;
+  }
+
   /** The whole solve, or null when there were too few to quote one. */
   public StepFigure getSolve() {
     return solve;
@@ -134,10 +146,14 @@ public class CoachPayload {
   /**
    * The figure at a path, or null when the payload holds nothing there. Paths are how a plan cites
    * what it leans on: {@code solve.mean_ms}, {@code families.pll.recognition_ms},
-   * {@code cases.pll_gb.time_lost_ms}, {@code comparisons.pll_gb.gap_ms}, {@code windows.cases}.
+   * {@code cases.pll_gb.time_lost_ms}, {@code comparisons.pll_gb.gap_ms}, {@code windows.cases},
+   * {@code two_look_count}.
    */
   public Double value(String path) {
     String[] segments = path.split("\\.");
+    if (segments.length == 1) {
+      return "two_look_count".equals(segments[0]) ? Double.valueOf(twoLookCount) : null;
+    }
     if (segments.length == 2 && "solve".equals(segments[0])) {
       return solve == null ? null : field(solve, segments[1]);
     }
@@ -262,6 +278,7 @@ public class CoachPayload {
       windows.put("cases", caseWindow);
       windows.put("drills", drillWindow);
       json.put("windows", windows);
+      json.put("two_look_count", twoLookCount);
       if (solve != null) {
         json.put("solve", solve.toJson());
       }
@@ -304,7 +321,7 @@ public class CoachPayload {
       return new CoachPayload(version, json.getString("puzzle"), json.getString("method"),
           windows == null ? 0 : windows.optInt("families"),
           windows == null ? 0 : windows.optInt("cases"),
-          windows == null ? 0 : windows.optInt("drills"),
+          windows == null ? 0 : windows.optInt("drills"), json.optInt("two_look_count"),
           json.has("solve") ? StepFigure.fromJson(json.getJSONObject("solve")) : null,
           figures(json, "families"), figures(json, "parts"), figures(json, "cases"),
           figures(json, "drill_cases"), comparisons(json));

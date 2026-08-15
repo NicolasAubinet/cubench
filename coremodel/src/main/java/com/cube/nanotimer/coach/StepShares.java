@@ -80,24 +80,16 @@ public final class StepShares {
    * Whether the last layer is being taken in two looks often enough to say so, which is the one
    * level difference in the splits that is real: it moves OLL and PLL together and it is a technique
    * rather than a speed.
+   *
+   * <p>A two-look is a solve whose OLL took more than one algorithm, which the payload counts. It
+   * used to be read off the two halves an OLL was recorded in, and those are gone: an OLL is now
+   * recorded as the algorithms it took, the way a PLL already was.
    */
   public static boolean twoLooks(CoachPayload payload) {
-    StepFigure edges = part(payload, "edges");
-    StepFigure corners = part(payload, "corners");
-    if (edges == null || corners == null || payload.getFamilyWindow() == 0) {
+    if (payload == null || payload.getFamilyWindow() == 0) {
       return false;
     }
-    int looks = Math.min(edges.getCount(), corners.getCount());
-    return (double) looks / payload.getFamilyWindow() >= TWO_LOOK_SHARE;
-  }
-
-  private static StepFigure part(CoachPayload payload, String code) {
-    for (StepFigure figure : payload.getParts()) {
-      if (figure.getCode().equals(code)) {
-        return figure;
-      }
-    }
-    return null;
+    return (double) payload.getTwoLookCount() / payload.getFamilyWindow() >= TWO_LOOK_SHARE;
   }
 
   /** The steps compared, which is not every step the solver has. */
