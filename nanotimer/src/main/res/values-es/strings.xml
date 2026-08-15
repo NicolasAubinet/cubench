@@ -1071,6 +1071,7 @@
   <string name="coach_reason_recognition_heavy">Más buscar que girar</string>
   <string name="coach_reason_two_look_oll">Dos miradas a la última capa</string>
   <string name="coach_reason_inconsistent_case">Casos que salen mal</string>
+  <string name="coach_reason_slow_step">Ocupa más resolución de lo habitual</string>
   <string name="coach_reason_unknown">Otra cosa que trabajar</string>
   <string name="coach_case_mean">%1$s frente a %2$s del resto</string>
   <string name="coach_case_cost">%1$d veces, %2$s perdidos</string>
@@ -1078,6 +1079,8 @@
   <string name="coach_case_rejected">%1$d%% de ellos descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s pasan antes del primer movimiento.</string>
   <string name="coach_two_look_body">%1$d de las últimas %2$d resoluciones tomaron la última capa en dos miradas.</string>
+  <string name="coach_step_share_body">%1$s ocupa el %2$s de tu resolución, cuando lo habitual es el %3$s.</string>
+  <string name="coach_percent">%1$d%%</string>
   <string name="coach_drill_case">Practicar este caso</string>
   <string name="coach_drill_cases">Practicar estos casos</string>
   <string name="coach_basis_title">En qué se basa esto</string>

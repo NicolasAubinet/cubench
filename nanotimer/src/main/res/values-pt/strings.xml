@@ -1074,6 +1074,7 @@
   <string name="coach_reason_recognition_heavy">Mais procura do que execução</string>
   <string name="coach_reason_two_look_oll">Dois olhares à última camada</string>
   <string name="coach_reason_inconsistent_case">Casos que correm mal</string>
+  <string name="coach_reason_slow_step">Ocupa mais resolução do que o habitual</string>
   <string name="coach_reason_unknown">Outra coisa para trabalhar</string>
   <string name="coach_case_mean">%1$s contra %2$s dos restantes</string>
   <string name="coach_case_cost">%1$d vezes, %2$s perdidos</string>
@@ -1081,6 +1082,8 @@
   <string name="coach_case_rejected">%1$d%% deles descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s passam antes do primeiro movimento.</string>
   <string name="coach_two_look_body">%1$d das últimas %2$d resoluções levaram a última camada em dois olhares.</string>
+  <string name="coach_step_share_body">%1$s ocupa %2$s da sua resolução, quando o habitual é %3$s.</string>
+  <string name="coach_percent">%1$d%%</string>
   <string name="coach_drill_case">Treinar este caso</string>
   <string name="coach_drill_cases">Treinar estes casos</string>
   <string name="coach_basis_title">Em que isto se baseia</string>

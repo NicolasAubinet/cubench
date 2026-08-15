@@ -1112,6 +1112,7 @@
   <string name="coach_reason_recognition_heavy">More looking than turning</string>
   <string name="coach_reason_two_look_oll">Two looks at the last layer</string>
   <string name="coach_reason_inconsistent_case">Cases that go wrong</string>
+  <string name="coach_reason_slow_step">Taking more of the solve than usual</string>
   <string name="coach_reason_unknown">Something else to work on</string>
   <string name="coach_case_mean">%1$s against %2$s for the rest</string>
   <string name="coach_case_cost">%1$d times, %2$s lost</string>
@@ -1119,6 +1120,8 @@
   <string name="coach_case_rejected">%1$d%% of them thrown out</string>
   <string name="coach_recognition_body">%1$s: %2$s of %3$s goes before the first move.</string>
   <string name="coach_two_look_body">%1$d of the last %2$d solves took the last layer in two looks.</string>
+  <string name="coach_step_share_body">%1$s takes %2$s of your solve, where %3$s is usual.</string>
+  <string name="coach_percent">%1$d%%</string>
   <string name="coach_drill_case">Drill this case</string>
   <string name="coach_drill_cases">Drill these cases</string>
   <string name="coach_basis_title">What this is based on</string>

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.coach.FocusArea;
+import com.cube.nanotimer.coach.StepShares;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.session.MethodStatistics;
@@ -94,6 +95,8 @@ public class CoachPlanView {
         return activity.getString(R.string.coach_reason_recognition_heavy);
       case TWO_LOOK_OLL:
         return activity.getString(R.string.coach_reason_two_look_oll);
+      case SLOW_STEP:
+        return familyTitle(area, R.string.coach_reason_slow_step);
       default:
         // Not the consistency note: it ranks across the whole history and names no family of its own.
         return activity.getString(R.string.coach_reason_inconsistent_case);
@@ -123,6 +126,17 @@ public class CoachPlanView {
       }
       return activity.getString(R.string.coach_recognition_body,
           Utils.toSmartCubeStepLocalizedName(activity, code, 0), time(recognition), time(mean));
+    }
+    if (area.getReason() == FocusArea.Reason.SLOW_STEP && !area.getCodes().isEmpty()) {
+      String code = area.getCodes().get(0);
+      StepShares shares = StepShares.of(payload);
+      Double took = shares.actual(code);
+      Double should = shares.expected(code);
+      if (took == null || should == null) {
+        return null;
+      }
+      return activity.getString(R.string.coach_step_share_body,
+          Utils.toSmartCubeStepLocalizedName(activity, code, 0), percent(took), percent(should));
     }
     if (area.getReason() == FocusArea.Reason.TWO_LOOK_OLL) {
       Double edges = payload.value("parts.edges.count");
@@ -235,5 +249,10 @@ public class CoachPlanView {
 
   private String time(Double ms) {
     return FormatterService.INSTANCE.formatSolveTime(Long.valueOf(Math.round(ms.doubleValue())));
+  }
+
+  private String percent(Double share) {
+    return activity.getString(R.string.coach_percent,
+        Integer.valueOf((int) Math.round(share.doubleValue() * 100)));
   }
 }

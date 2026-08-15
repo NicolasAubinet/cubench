@@ -40,7 +40,9 @@ public class FocusArea {
     /** A last layer being taken in two looks where one would do. */
     TWO_LOOK_OLL,
     /** A case whose occurrences are thrown out often enough to be the complaint itself. */
-    INCONSISTENT_CASE;
+    INCONSISTENT_CASE,
+    /** A step taking more of the solve than the method's published baseline says it should. */
+    SLOW_STEP;
 
     public String code() {
       return name().toLowerCase(Locale.ROOT);
