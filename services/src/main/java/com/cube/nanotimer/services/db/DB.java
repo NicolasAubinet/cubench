@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 28;
+  public static final int DB_VERSION = 29;
 
   public static final String COL_ID = "id";
 
@@ -104,5 +104,16 @@ public class DB {
   public static final String COL_DRILL_CROSS_REP_BUILT = "built";
   public static final String COL_DRILL_CROSS_REP_PLANNING_EXPIRED = "planning_expired";
   public static final String IDX_DRILL_CROSS_REP_DRILL = "idx_drill_cross_rep_drill";
+
+  // The last plan written for a solve type, and the payload it was written from. The payload is
+  // kept beside it because a plan is only checkable against the figures it was supposed to come
+  // from: without it, CoachPlan.uncited has nothing to say a coach's claim is invented.
+  public static final String TABLE_COACH_PLAN = "coach_plan";
+  public static final String COL_COACH_PLAN_SOLVETYPE_ID = "solvetype_id";
+  public static final String COL_COACH_PLAN_SOURCE = "source"; // CoachPlan.Source code: the device's plan and a coach's are kept apart so the two can be read against each other
+  public static final String COL_COACH_PLAN_TIMESTAMP = "timestamp";
+  public static final String COL_COACH_PLAN_PLAN = "plan"; // the whole CoachPlan as its JSON text, so fields a later version adds survive being stored
+  public static final String COL_COACH_PLAN_PAYLOAD = "payload";
+  public static final String IDX_COACH_PLAN_SOLVETYPE = "idx_coach_plan_solvetype";
 
 }

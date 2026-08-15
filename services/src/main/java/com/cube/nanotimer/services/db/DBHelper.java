@@ -118,6 +118,7 @@ public class DBHelper extends SQLiteOpenHelper {
     );
 
     createDrillTables(db);
+    createCoachPlanTable(db);
   }
 
   /**
@@ -179,6 +180,29 @@ public class DBHelper extends SQLiteOpenHelper {
     );
     db.execSQL("CREATE INDEX " + DB.IDX_DRILL_CROSS_REP_DRILL +
         " ON " + DB.TABLE_DRILL_CROSS_REP + " (" + DB.COL_DRILL_CROSS_REP_DRILL_ID + ");"
+    );
+  }
+
+  /**
+   * The plan table, from {@link #createTables} and from the upgrade that introduced it. One row per
+   * solve type per writer: the plan on screen is the last one written, and a plan history is C2's
+   * business rather than something stored now for nobody to read.
+   */
+  private void createCoachPlanTable(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE " + DB.TABLE_COACH_PLAN + "(" +
+        DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        DB.COL_COACH_PLAN_SOLVETYPE_ID + " INTEGER NOT NULL, " +
+        DB.COL_COACH_PLAN_SOURCE + " TEXT NOT NULL, " +
+        DB.COL_COACH_PLAN_TIMESTAMP + " INTEGER NOT NULL, " +
+        DB.COL_COACH_PLAN_PLAN + " TEXT NOT NULL, " +
+        DB.COL_COACH_PLAN_PAYLOAD + " TEXT NOT NULL, " +
+        "FOREIGN KEY (" + DB.COL_COACH_PLAN_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
+      ");"
+    );
+    // Unique rather than merely fast: it is what makes writing a plan a replacement of the one it
+    // supersedes instead of a row nothing will ever look at again.
+    db.execSQL("CREATE UNIQUE INDEX " + DB.IDX_COACH_PLAN_SOLVETYPE +
+        " ON " + DB.TABLE_COACH_PLAN + " (" + DB.COL_COACH_PLAN_SOLVETYPE_ID + ", " + DB.COL_COACH_PLAN_SOURCE + ");"
     );
   }
 
@@ -378,6 +402,11 @@ public class DBHelper extends SQLiteOpenHelper {
       // A rep the user threw out, flagged rather than deleted so it can be put back.
       db.execSQL("ALTER TABLE " + DB.TABLE_DRILL_REP + " ADD COLUMN "
           + DB.COL_DRILL_REP_DELETED + " INTEGER NOT NULL DEFAULT 0");
+    }
+
+    if (oldVersion < 29) {
+      // What to work on this week, kept so a plan reads without being asked for again.
+      createCoachPlanTable(db);
     }
 
 //    progressDialog.hide();
