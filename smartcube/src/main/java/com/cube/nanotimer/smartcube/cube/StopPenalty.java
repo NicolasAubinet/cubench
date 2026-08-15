@@ -27,15 +27,14 @@ public final class StopPenalty {
   public enum Type { NONE, PLUS_TWO, DNF }
 
   /** Also what an unreadable state earns: nothing to say about it is the safe thing to say. */
-  private static final StopPenalty NO_PENALTY = new StopPenalty(Type.NONE, null);
-  private static final StopPenalty DNF = new StopPenalty(Type.DNF, null);
+  private static final StopPenalty NO_PENALTY = new StopPenalty(Type.NONE);
+  private static final StopPenalty PLUS_TWO = new StopPenalty(Type.PLUS_TWO);
+  private static final StopPenalty DNF = new StopPenalty(Type.DNF);
 
   private final Type type;
-  private final String missingMove;
 
-  private StopPenalty(Type type, String missingMove) {
+  private StopPenalty(Type type) {
     this.type = type;
-    this.missingMove = missingMove;
   }
 
   /** What a solve nothing was read of earns: nothing. */
@@ -58,22 +57,11 @@ public final class StopPenalty {
       for (int quarters = 1; quarters <= 4; quarters++) {
         cube.applyMove(face, false);
         if (quarters < 4 && cube.isSolved()) {
-          return new StopPenalty(Type.PLUS_TWO, notation(face, quarters));
+          return PLUS_TWO;
         }
       }
     }
     return DNF;
-  }
-
-  private static String notation(Face face, int quarters) {
-    switch (quarters) {
-      case 2:
-        return face.name() + "2";
-      case 3:
-        return face.name() + "'";
-      default:
-        return face.name();
-    }
   }
 
   public Type getType() {
@@ -97,13 +85,8 @@ public final class StopPenalty {
     return type == Type.DNF;
   }
 
-  /** The move that would have finished the solve, in WCA notation. Null unless this is a +2. */
-  public String getMissingMove() {
-    return missingMove;
-  }
-
   @Override
   public String toString() {
-    return "StopPenalty(" + type + (missingMove != null ? ", " + missingMove : "") + ")";
+    return "StopPenalty(" + type + ")";
   }
 }

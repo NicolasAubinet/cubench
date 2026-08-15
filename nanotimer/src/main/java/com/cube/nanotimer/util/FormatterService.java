@@ -1,9 +1,12 @@
 package com.cube.nanotimer.util;
 
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.text.style.ReplacementSpan;
 import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
@@ -24,10 +27,17 @@ public enum FormatterService {
   private static final long MINUTE_MS = 60000;
   private static final long HOUR_MS = 60 * MINUTE_MS;
 
-  /** How large a solve's mark is drawn against the time it qualifies, and in what. Quieter than
-   * the time on both counts: it is a note on the solve, and the solve is what the screen is read
-   * for. */
-  private static final float MARK_SIZE = 0.5f;
+  /** How large a solve's mark is drawn against the time it qualifies. Quieter than the time, and
+   * quieter still behind a DNF: the +2 changes what the time means, while the time behind a DNF is
+   * only there to be looked up. */
+  private static final float PLUS_TWO_SIZE = 0.4f;
+  private static final float DNF_TIME_SIZE = 0.3f;
+
+  /** The same mark in a list, where the time is small to begin with and half of it is illegible. */
+  private static final float ROW_MARK_SIZE = 0.6f;
+
+  /** Stands in for the space the counterweight holds, and is never drawn itself. */
+  private static final String COUNTERWEIGHT = "\u200B";
 
   public String formatSolveTime(Long solveTime) {
     return formatSolveTime(solveTime, null);
@@ -48,20 +58,75 @@ public enum FormatterService {
 
   /**
    * The same, with the mark drawn smaller: it is a note on the time rather than part of it, and the
-   * time is what the screen is read for. For anywhere it is shown rather than written out.
+   * time is what the screen is read for. For a time given a whole screen or a whole dialog, where
+   * the mark hangs off the right of the time rather than moving it: the time is centred where it
+   * would be with nothing after it, over the plinth and under the heading.
    */
   public CharSequence formatMarkedSolveTime(SolveTime solveTime) {
-    String text = solveTimeText(solveTime);
     String mark = solveTimeMark(solveTime);
+    float size = solveTime != null && solveTime.isDNF() ? DNF_TIME_SIZE : PLUS_TWO_SIZE;
+    return marked(solveTimeText(solveTime), mark, size, true);
+  }
+
+  /**
+   * A solve in a list of them, marked only where the mark changes the time: a +2 is part of the
+   * figure on the row and says why it reads high, while the time behind a DNF is another figure
+   * again, and a column of times is no place to be told two of them. That one is for the solve's
+   * own screen, where there is room to say which is which.
+   */
+  public CharSequence formatRowSolveTime(SolveTime solveTime) {
+    String mark = solveTime != null && !solveTime.isDNF() && solveTime.isPlusTwo() ? plusTwoMark() : "";
+    return marked(solveTimeText(solveTime), mark, ROW_MARK_SIZE, false);
+  }
+
+  /**
+   * The time and its mark, the mark drawn small and quiet. Centred, the mark is balanced by empty
+   * space of its own width before the time, so that what centres is the time.
+   */
+  private CharSequence marked(String text, String mark, float size, boolean centred) {
     if (mark.isEmpty()) {
       return text;
     }
-    SpannableString out = new SpannableString(text + mark);
-    out.setSpan(new RelativeSizeSpan(MARK_SIZE), text.length(), out.length(),
+    SpannableString out = new SpannableString((centred ? COUNTERWEIGHT : "") + text + mark);
+    int markStart = out.length() - mark.length();
+    out.setSpan(new RelativeSizeSpan(size), markStart, out.length(),
         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    out.setSpan(new ForegroundColorSpan(markColor()), text.length(), out.length(),
+    out.setSpan(new ForegroundColorSpan(markColor()), markStart, out.length(),
         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    if (centred) {
+      out.setSpan(new CounterweightSpan(mark, size), 0, COUNTERWEIGHT.length(),
+          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
     return out;
+  }
+
+  /** Empty space as wide as the mark it answers, drawing nothing. */
+  private static class CounterweightSpan extends ReplacementSpan {
+    private final String mark;
+    private final float size;
+
+    CounterweightSpan(String mark, float size) {
+      this.mark = mark;
+      this.size = size;
+    }
+
+    @Override
+    public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
+      if (fm != null) {
+        paint.getFontMetricsInt(fm);
+      }
+      float full = paint.getTextSize();
+      paint.setTextSize(full * size);
+      int width = Math.round(paint.measureText(mark));
+      paint.setTextSize(full);
+      return width;
+    }
+
+    @Override
+    public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y,
+        int bottom, Paint paint) {
+      // Space, and nothing in it.
+    }
   }
 
   private int markColor() {
@@ -85,8 +150,11 @@ public enum FormatterService {
       Long before = solveTime.getTimeBeforeDnf();
       return before == null ? "" : " (" + formatSolveTime(before) + ")";
     }
-    return solveTime.isPlusTwo()
-        ? " (" + App.INSTANCE.getContext().getString(R.string.plus_two) + ")" : "";
+    return solveTime.isPlusTwo() ? plusTwoMark() : "";
+  }
+
+  private String plusTwoMark() {
+    return " (" + App.INSTANCE.getContext().getString(R.string.plus_two) + ")";
   }
 
   /** Turns per second, to one decimal — the precision the figure is worth. */

@@ -1,7 +1,6 @@
 package com.cube.nanotimer.smartcube.cube;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
@@ -29,10 +28,9 @@ public class StopPenaltyTest {
     return new CubeState(c.toFaceCube());
   }
 
-  private static void assertPlusTwo(String expectedMissingMove, String movesLeftUndone) {
-    StopPenalty penalty = StopPenalty.of(state(movesLeftUndone));
-    assertEquals(movesLeftUndone, StopPenalty.Type.PLUS_TWO, penalty.getType());
-    assertEquals(movesLeftUndone, expectedMissingMove, penalty.getMissingMove());
+  private static void assertPlusTwo(String movesLeftUndone) {
+    assertEquals(movesLeftUndone, StopPenalty.Type.PLUS_TWO,
+        StopPenalty.of(state(movesLeftUndone)).getType());
   }
 
   private static void assertDnf(String moves) {
@@ -41,28 +39,21 @@ public class StopPenaltyTest {
 
   @Test
   public void solvedEarnsNothing() {
-    StopPenalty penalty = StopPenalty.of(CubeState.SOLVED);
-    assertEquals(StopPenalty.Type.NONE, penalty.getType());
-    assertNull(penalty.getMissingMove());
+    assertEquals(StopPenalty.Type.NONE, StopPenalty.of(CubeState.SOLVED).getType());
   }
 
   @Test
   public void oneOuterTurnOnAnyFaceIsAPlusTwo() {
     for (Face face : Face.values()) {
-      assertPlusTwo(face.name() + "'", face.name());
-      assertPlusTwo(face.name(), face.name() + "'");
-      assertPlusTwo(face.name() + "2", face.name() + "2");
+      assertPlusTwo(face.name());
+      assertPlusTwo(face.name() + "'");
+      assertPlusTwo(face.name() + "2");
     }
   }
 
   @Test
-  public void aMissingAufNamesTheMoveThatWouldHaveFinishedIt() {
-    assertPlusTwo("U'", "U");
-  }
-
-  @Test
   public void aHalfTurnIsStillOneMove() {
-    assertPlusTwo("U2", "U2");
+    assertPlusTwo("U2");
   }
 
   @Test

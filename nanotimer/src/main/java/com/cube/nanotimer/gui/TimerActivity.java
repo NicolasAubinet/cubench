@@ -1637,7 +1637,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       autoPenaltyReason = getString(R.string.verdict_auto_dnf);
     } else if (penalty.isPlusTwo()) {
       solveTime.setPlusTwo(true, true);
-      autoPenaltyReason = getString(R.string.verdict_auto_plus_two, penalty.getMissingMove());
+      autoPenaltyReason = getString(R.string.verdict_auto_plus_two);
     } else {
       return;
     }

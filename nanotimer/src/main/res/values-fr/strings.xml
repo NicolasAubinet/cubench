@@ -182,7 +182,7 @@
   <string name="verdict_record">Meilleur %1$s, %2$s de moins que %3$s</string>
   <string name="verdict_window_best">Meilleur des %1$d derniers</string>
   <string name="verdict_window_worst">Pire des %1$d derniers</string>
-  <string name="verdict_auto_plus_two">+2 : le cube était à un mouvement du résolu (%1$s)</string>
+  <string name="verdict_auto_plus_two">+2 : le cube était à un mouvement du résolu</string>
   <string name="verdict_auto_dnf">DNF : le cube n\'était pas résolu</string>
   <string name="verdict_under_average">%1$s sous votre Ao12</string>
   <string name="verdict_over_average">%1$s au-dessus de votre Ao12</string>

@@ -194,7 +194,7 @@
   <string name="verdict_record">Best %1$s, %2$s under %3$s</string>
   <string name="verdict_window_best">Best of the last %1$d</string>
   <string name="verdict_window_worst">Worst of the last %1$d</string>
-  <string name="verdict_auto_plus_two">+2: the cube was one move from solved (%1$s)</string>
+  <string name="verdict_auto_plus_two">+2: the cube was one move from solved</string>
   <string name="verdict_auto_dnf">DNF: the cube was not solved</string>
   <string name="verdict_under_average">%1$s under your Ao12</string>
   <string name="verdict_over_average">%1$s over your Ao12</string>
