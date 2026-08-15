@@ -3,8 +3,10 @@ package com.cube.nanotimer.util.view;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.text.Layout;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import androidx.appcompat.widget.AppCompatTextView;
@@ -15,10 +17,12 @@ import com.cube.nanotimer.Options;
 /**
  * The timer's own digits.
  *
- * <p>Owns the timer font setting, and the quieter fraction the running screen asks for: see
- * {@link #setQuietFraction}. The figures stay tabular either way, which is the font's job
- * ({@code TimerFont} sets {@code tnum} on every face that has it) and not this one's — without it
- * the number jitters as the hundredths turn over.
+ * <p>Owns the timer font setting, the quieter fraction the running screen asks for (see
+ * {@link #setQuietFraction}), and the size the digits are drawn at, which is the size the settings
+ * ask for until a time comes along that will not fit across the screen: see {@link #fitToWidth}.
+ * The figures stay tabular whatever the size, which is the font's job ({@code TimerFont} sets
+ * {@code tnum} on every face that has it) and not this one's — without it the number jitters as
+ * the hundredths turn over.
  */
 public class DigitalTextView extends AppCompatTextView {
 
@@ -26,7 +30,13 @@ public class DigitalTextView extends AppCompatTextView {
   private static final float FRACTION_SIZE = 0.62f;
   private static final float FRACTION_ALPHA = 0.55f;
 
+  /** How far the digits may be shrunk to fit. Below this they are a nuisance to read, and a time
+   * that long is a stopwatch reading rather than a solve. */
+  private static final float MIN_FIT = 0.5f;
+
   private float baseTextSizePx = -1f;
+  /** The size this was last told to be. What is drawn is that or smaller, never larger. */
+  private float wantedTextSizePx = -1f;
   private boolean quietFraction;
   /**
    * What was last handed in, unstyled, so the styling can be put on or taken off at any time.
@@ -130,6 +140,55 @@ public class DigitalTextView extends AppCompatTextView {
             Color.red(color), Color.green(color), Color.blue(color))),
         dot + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     return out;
+  }
+
+  /**
+   * Every size this is set to passes through here, which is what {@link #fitToWidth} shrinks from:
+   * the font setting is not the last word on it, since {@link ScalingLinearLayout} multiplies the
+   * whole screen up from the px the layouts are authored in.
+   */
+  @Override
+  public void setTextSize(int unit, float size) {
+    super.setTextSize(unit, size);
+    wantedTextSizePx = getTextSize();
+  }
+
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    fitToWidth(MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight());
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+  }
+
+  /**
+   * Draws the digits smaller when the time is too long for the width, and only then.
+   *
+   * <p>An hour-long solve at high precision with a +2 beside it is fourteen figures where the
+   * screen was drawn for five, and wrapped it lands on top of the scramble. Everything that fits
+   * keeps the size the settings ask for, which is every time anybody actually solves in.
+   *
+   * <p>Set on the paint rather than through {@code setTextSize}: this runs inside the measure pass,
+   * whose whole job is to answer with a width, and asking for another layout from in there is how a
+   * measure loop starts.
+   */
+  private void fitToWidth(int available) {
+    if (wantedTextSizePx <= 0f || available <= 0 || getText().length() == 0) {
+      return;
+    }
+    TextPaint paint = getPaint();
+    paint.setTextSize(wantedTextSizePx);
+    float width = Layout.getDesiredWidth(getText(), paint);
+    if (width <= available) {
+      return;
+    }
+    float floor = wantedTextSizePx * MIN_FIT;
+    float size = Math.max(floor, wantedTextSizePx * available / width);
+    paint.setTextSize(size);
+    // A glyph's advance does not scale quite linearly, and the width is rounded up after this, so
+    // the size the ratio gives can still be a pixel over. Step down until it is not.
+    while (size > floor && Math.ceil(Layout.getDesiredWidth(getText(), paint)) > available) {
+      size -= 1f;
+      paint.setTextSize(size);
+    }
   }
 
   /**

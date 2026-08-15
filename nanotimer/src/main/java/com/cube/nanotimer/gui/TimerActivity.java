@@ -1235,7 +1235,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     super.onConfigurationChanged(newConfig);
     if (newConfig.orientation != currentOrientation) {
       currentOrientation = newConfig.orientation;
-      String timerText = tvTimer.getText().toString();
+      CharSequence timerText = tvTimer.getText(); // spans and all: a marked time keeps its mark
 
       setContentView(R.layout.timer_screen);
       addOverlays();
