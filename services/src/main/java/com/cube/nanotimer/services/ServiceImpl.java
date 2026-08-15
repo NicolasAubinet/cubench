@@ -4,6 +4,8 @@ import android.content.Context;
 import com.cube.nanotimer.services.db.DBHelper;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.coach.CoachPayload;
+import com.cube.nanotimer.coach.CoachPlan;
+import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -461,12 +463,46 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getCoachSolveCount(final SolveType solveType, final CubeMethod method,
+      final DataCallback<Integer> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(Integer.valueOf(provider.getCoachSolveCount(solveType, method)));
+      }
+    });
+  }
+
+  @Override
   public void getCoachPayload(final SolveType solveType, final CubeMethod method,
       final DataCallback<CoachPayload> callback) {
     run(new Runnable() {
       @Override
       public void run() {
         callback.onData(provider.getCoachPayload(solveType, method));
+      }
+    });
+  }
+
+  @Override
+  public void saveCoachPlan(final SolveType solveType, final StoredCoachPlan plan,
+      final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.saveCoachPlan(solveType, plan);
+        callback.onData(null);
+      }
+    });
+  }
+
+  @Override
+  public void getCoachPlan(final SolveType solveType, final CoachPlan.Source source,
+      final DataCallback<StoredCoachPlan> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getCoachPlan(solveType, source));
       }
     });
   }

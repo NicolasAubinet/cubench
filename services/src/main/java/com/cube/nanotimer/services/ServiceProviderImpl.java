@@ -5,7 +5,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
+import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.StepSample;
+import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.services.db.DB;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
@@ -839,6 +841,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     db.delete(DB.TABLE_TIMEHISTORYSTEP, null, null);
     db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, null, null);
     db.delete(DB.TABLE_TIMEHISTORY, null, null);
+    db.delete(DB.TABLE_COACH_PLAN, null, null); // a plan is a reading of the history, not a thing beside it
     clearCaches();
   }
 
@@ -851,6 +854,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " IN (SELECT " + DB.COL_ID + " FROM " + DB.TABLE_TIMEHISTORY
             + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?)", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
+    db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     if (solveType.equals(currentSolveType)) {
       clearCaches();
     }
@@ -1376,6 +1380,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_SOLVETYPESTEP, DB.COL_SOLVETYPESTEP_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
+    db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_SOLVETYPE, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
     if (solveType.equals(currentSolveType)) {
       clearCaches();
@@ -1545,6 +1550,11 @@ public class ServiceProviderImpl implements ServiceProvider {
     return count;
   }
 
+  @Override
+  public int getCoachSolveCount(SolveType solveType, CubeMethod method) {
+    return getMethodSolvesCount(solveType, method, Integer.MAX_VALUE); // uncapped: it is a total, not a window
+  }
+
   /**
    * The one thing that leaves the device, built here because it is the floors and the outlier rule
    * that decide what may be said and both need the occurrences one at a time, which SQL cannot give
@@ -1560,6 +1570,52 @@ public class ServiceProviderImpl implements ServiceProvider {
         getMethodStepSamples(solveType, method, CoachPayloadBuilder.FAMILY_WINDOW),
         getMethodStepSamples(solveType, method, CoachPayloadBuilder.CASE_WINDOW), caseSolves,
         drillSamples, getDrilledDrillsCount(CoachPayloadBuilder.DRILL_WINDOW));
+  }
+
+  @Override
+  public void saveCoachPlan(SolveType solveType, StoredCoachPlan plan) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_COACH_PLAN_SOLVETYPE_ID, solveType.getId());
+    values.put(DB.COL_COACH_PLAN_SOURCE, plan.getPlan().getSource().code());
+    values.put(DB.COL_COACH_PLAN_TIMESTAMP, plan.getWrittenAt());
+    values.put(DB.COL_COACH_PLAN_PLAN, plan.getPlan().toJson());
+    values.put(DB.COL_COACH_PLAN_PAYLOAD, plan.getPayload().toJson());
+    // A writer keeps one plan per solve type, so the new one replaces what it supersedes rather
+    // than piling up beside it. The unique index is what makes that a replacement.
+    db.insertWithOnConflict(DB.TABLE_COACH_PLAN, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+  }
+
+  @Override
+  public StoredCoachPlan getCoachPlan(SolveType solveType, CoachPlan.Source source) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.COL_COACH_PLAN_PLAN);
+    q.append("     , ").append(DB.COL_COACH_PLAN_PAYLOAD);
+    q.append("     , ").append(DB.COL_COACH_PLAN_TIMESTAMP);
+    q.append("  FROM ").append(DB.TABLE_COACH_PLAN);
+    q.append(" WHERE ").append(DB.COL_COACH_PLAN_SOLVETYPE_ID).append(" = ?");
+    q.append("   AND ").append(DB.COL_COACH_PLAN_SOURCE).append(" = ?");
+    Cursor cursor = db.rawQuery(q.toString(),
+        new String[] { String.valueOf(solveType.getId()), source.code() });
+    StoredCoachPlan stored = null;
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        stored = parseCoachPlan(cursor.getString(0), cursor.getString(1), cursor.getLong(2));
+      }
+      cursor.close();
+    }
+    return stored;
+  }
+
+  /**
+   * A stored plan this version is too old to read is no plan, not a crash: an app downgraded past
+   * the version that wrote it would otherwise fail on the way into the screen.
+   */
+  private static StoredCoachPlan parseCoachPlan(String plan, String payload, long writtenAt) {
+    try {
+      return new StoredCoachPlan(CoachPlan.parse(plan), CoachPayload.parse(payload), writtenAt);
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
   }
 
   /** The puzzle in the vocabulary a drill spec speaks, never a name the user could have edited. */

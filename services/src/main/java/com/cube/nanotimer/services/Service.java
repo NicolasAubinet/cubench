@@ -2,6 +2,8 @@ package com.cube.nanotimer.services;
 
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.coach.CoachPayload;
+import com.cube.nanotimer.coach.CoachPlan;
+import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -82,10 +84,25 @@ public interface Service {
   void saveSmartcubeBreakdowns(List<SolveTime> solveTimes, DataCallback<Void> callback);
 
   /**
+   * How many solves the coach has to read on this solve type, which is what says whether it can say
+   * anything at all. Asked before a payload is built, so a history too young to speak from is told
+   * so rather than made to press for an empty plan.
+   */
+  void getCoachSolveCount(SolveType solveType, CubeMethod method, DataCallback<Integer> callback);
+  /**
    * The solver's history as a coach may see it: aggregated figures, vocabulary codes, and nothing a
    * user ever typed. What is too thin to stand is left out here rather than caveated later.
    */
   void getCoachPayload(SolveType solveType, CubeMethod method, DataCallback<CoachPayload> callback);
+  /**
+   * Keeps the last plan written for a solve type, and the payload it was written from, replacing
+   * whatever that writer left before. A plan is stored so it reads without the network and without
+   * being paid for twice.
+   */
+  void saveCoachPlan(SolveType solveType, StoredCoachPlan plan, DataCallback<Void> callback);
+  /** The last plan that writer left for the solve type, or null where it has never written one. */
+  void getCoachPlan(SolveType solveType, CoachPlan.Source source,
+      DataCallback<StoredCoachPlan> callback);
   void getAllUsedScrambleTypes(DataCallback<Map<CubeType, List<ScrambleType>>> callback);
 
   /**

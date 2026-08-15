@@ -48,6 +48,17 @@ public class CoachPayloadBuilder {
   /** Below this many solves nothing is said about the solve as a whole. */
   public static final int SOLVE_FLOOR = 10;
 
+  /**
+   * Below this many solves there is no plan to write, so it is not worth offering to write one.
+   * Derived rather than chosen: it is the point at which the floors above stop refusing everything,
+   * since every solve holds one of each step and a step is quoted at {@link #FAMILY_FLOOR}.
+   *
+   * <p>There is deliberately no floor on drills. A drill history only adds the solve-versus-drill
+   * gap, which already needs both sides above {@link #CASE_FLOOR}; requiring drills to say anything
+   * at all would shut the coach to everyone who has only ever solved.
+   */
+  public static final int PLAN_FLOOR = Math.max(SOLVE_FLOOR, FAMILY_FLOOR);
+
   /** The code the whole solve's figures ride under, which is not a step and has no family. */
   public static final String SOLVE = "solve";
 
