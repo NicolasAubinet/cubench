@@ -37,6 +37,8 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.exportimport.csvexport.CSVGenerator;
 import com.cube.nanotimer.util.backup.BackupFormat;
+import com.cube.nanotimer.util.backup.BackupReader;
+import com.cube.nanotimer.util.backup.BackupRestorer;
 import com.cube.nanotimer.util.backup.BackupWriter;
 import com.cube.nanotimer.util.exportimport.csvexport.ExportCSVGenerator;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -143,6 +145,7 @@ public class ExportActivity extends NanoTimerActivity {
     puzzleCards = (LinearLayout) findViewById(R.id.puzzleCards);
     backupHalf = findViewById(R.id.backupHalf);
     csvHalf = findViewById(R.id.csvHalf);
+    initUndoRestore();
     tvSelection = (TextView) findViewById(R.id.tvSelection);
     tvSelectAll = (TextView) findViewById(R.id.tvSelectAll);
     tvEmptyPuzzles = (TextView) findViewById(R.id.tvEmptyPuzzles);
@@ -598,6 +601,26 @@ public class ExportActivity extends NanoTimerActivity {
         backupCounts.getSolves()),
       getResources().getQuantityString(R.plurals.backup_drills_count, backupCounts.getDrills(),
         backupCounts.getDrills())));
+  }
+
+  /**
+   * Offers the way back from a restore, and only when there is one: the backup taken before the
+   * last restore. It goes straight to the file, because the picker cannot see the app's own folder
+   * on Android 11 and up, and then joins the ordinary restore with its usual confirmation.
+   */
+  private void initUndoRestore() {
+    final File backup = BackupReader.preRestoreBackup(this);
+    View button = findViewById(R.id.buUndoRestore);
+    if (backup == null) {
+      return;
+    }
+    button.setVisibility(View.VISIBLE);
+    button.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        new BackupRestorer(ExportActivity.this).restoreFrom(Uri.fromFile(backup));
+      }
+    });
   }
 
   /** The whole app to one file. Nothing selected on this screen changes what goes in it. */

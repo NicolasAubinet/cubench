@@ -190,6 +190,20 @@ public class BackupReader {
     }
   }
 
+  /**
+   * The backup taken before the last restore, or null where there is none to go back to. The undo
+   * reads it from here rather than through the picker, which cannot reach the app's own folder on
+   * Android 11 and up.
+   */
+  public static File preRestoreBackup(Context context) {
+    File dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+    if (dir == null) {
+      return null;
+    }
+    File file = new File(dir, PRE_RESTORE_NAME);
+    return file.isFile() ? file : null;
+  }
+
   /** A copy of what is about to be replaced, so the wrong file picked in the dialog is undoable. */
   private static void savePreRestoreBackup(Context context, BackupCounts currentCounts) {
     File dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);

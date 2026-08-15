@@ -1007,7 +1007,8 @@
   <string name="restore_in_the_file">En el archivo</string>
   <string name="restore_on_this_phone">En este teléfono</string>
   <string name="restore_made_on">Creada el %1$s</string>
-  <string name="restore_replaces_everything">Todo lo que hay en este teléfono se sustituye por el contenido del archivo. Esto no se puede deshacer desde la aplicación.</string>
+  <string name="restore_replaces_everything">Todo lo que hay en este teléfono se sustituye por el contenido del archivo. Cubench guarda una copia de lo que sustituye, así que puedes volver a ella.</string>
+  <string name="undo_last_restore">Deshacer la última restauración</string>
   <string name="restore_confirm">Restaurar</string>
   <string name="restore_failed">No se pudo restaurar la copia de seguridad</string>
   <string name="restore_failed_body">Algo ha fallado al leer o escribir el archivo. Comprueba que queda espacio libre en el teléfono y vuelve a intentarlo.</string>

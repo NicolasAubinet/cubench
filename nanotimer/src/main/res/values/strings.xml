@@ -1048,7 +1048,8 @@
   <string name="restore_in_the_file">In the file</string>
   <string name="restore_on_this_phone">On this phone</string>
   <string name="restore_made_on">Made on %1$s</string>
-  <string name="restore_replaces_everything">Everything on this phone is replaced by what the file holds. This cannot be undone from inside the app.</string>
+  <string name="restore_replaces_everything">Everything on this phone is replaced by what the file holds. Cubench keeps a copy of what it replaces, so you can go back to it.</string>
+  <string name="undo_last_restore">Undo last restore</string>
   <string name="restore_confirm">Restore</string>
   <string name="restore_failed">Could not restore the backup</string>
   <string name="restore_failed_body">Something went wrong while reading or writing the file. Check that there is enough free space on the phone, then try again.</string>

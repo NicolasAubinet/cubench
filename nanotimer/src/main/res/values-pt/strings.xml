@@ -1010,7 +1010,8 @@
   <string name="restore_in_the_file">No ficheiro</string>
   <string name="restore_on_this_phone">Neste telemóvel</string>
   <string name="restore_made_on">Criada a %1$s</string>
-  <string name="restore_replaces_everything">Tudo o que está neste telemóvel é substituído pelo conteúdo do ficheiro. Isto não pode ser anulado a partir da aplicação.</string>
+  <string name="restore_replaces_everything">Tudo o que está neste telemóvel é substituído pelo conteúdo do ficheiro. O Cubench guarda uma cópia do que substitui, por isso pode voltar a ela.</string>
+  <string name="undo_last_restore">Anular o último restauro</string>
   <string name="restore_confirm">Restaurar</string>
   <string name="restore_failed">Não foi possível restaurar a cópia de segurança</string>
   <string name="restore_failed_body">Algo correu mal ao ler ou escrever o ficheiro. Verifica se há espaço livre suficiente no telemóvel e tenta de novo.</string>

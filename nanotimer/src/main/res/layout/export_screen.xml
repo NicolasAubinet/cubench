@@ -58,6 +58,20 @@
            android:text="@string/backup_holds_everything"
            android:textSize="13sp"
            android:textColor="@color/secondary_text"/>
+
+        <!-- The way back from a restore. Hidden until one has happened, and kept quieter than the
+             bar below, which is where producing a file belongs. -->
+        <androidx.appcompat.widget.AppCompatButton
+           android:id="@+id/buUndoRestore"
+           android:layout_marginTop="@dimen/space_l"
+           android:layout_marginLeft="@dimen/space_s"
+           android:layout_marginRight="@dimen/space_s"
+           android:text="@string/undo_last_restore"
+           android:drawableLeft="@drawable/ic_restore_undo"
+           android:drawablePadding="@dimen/space_s"
+           android:background="@drawable/dialog_action_button_ghost"
+           android:visibility="gone"
+           style="@style/DialogActionButton"/>
       </LinearLayout>
 
       <LinearLayout

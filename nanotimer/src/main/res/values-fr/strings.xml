@@ -1008,7 +1008,8 @@
   <string name="restore_in_the_file">Dans le fichier</string>
   <string name="restore_on_this_phone">Sur ce téléphone</string>
   <string name="restore_made_on">Créée le %1$s</string>
-  <string name="restore_replaces_everything">Tout ce qui se trouve sur ce téléphone est remplacé par le contenu du fichier. Cela ne peut pas être annulé depuis l’application.</string>
+  <string name="restore_replaces_everything">Tout ce qui se trouve sur ce téléphone est remplacé par le contenu du fichier. Cubench garde une copie de ce qu’il remplace, vous pouvez donc y revenir.</string>
+  <string name="undo_last_restore">Annuler la dernière restauration</string>
   <string name="restore_confirm">Restaurer</string>
   <string name="restore_failed">Impossible de restaurer la sauvegarde</string>
   <string name="restore_failed_body">Un problème est survenu pendant la lecture ou l\'écriture du fichier. Vérifiez qu\'il reste assez d\'espace libre sur le téléphone, puis réessayez.</string>
