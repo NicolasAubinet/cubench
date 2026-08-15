@@ -14,7 +14,7 @@ import java.util.Locale;
  * sequence stays face turns only, and rotating a case is the one thing that cannot change which case
  * it is.
  */
-final class LayerRotation {
+public final class LayerRotation {
 
   /**
    * Where each face goes when the cube is turned to bring U onto the named face, in URFDLB order.
@@ -30,7 +30,29 @@ final class LayerRotation {
     "BRUFLD", // B (x): U->B, B->D, D->F, F->U
   };
 
+  /**
+   * And the way back, in the same order: the whole-cube rotation that stands each face on top.
+   * Green stays in front wherever it still can, and where it cannot (green itself on top, or the
+   * blue opposite it) white takes its place.
+   */
+  private static final String[] TO_TOP = {"", "z'", "x", "z2", "z", "x'"};
+
   private LayerRotation() {
+  }
+
+  /**
+   * The whole-cube rotation that stands {@code face} on top, as {@code x}/{@code y}/{@code z}
+   * notation, or empty for U. For a screen drawing a case the user solves on that face: the cube
+   * is dealt in the colours' own frame, where a last layer on yellow is drawn on the underside.
+   *
+   * @throws IllegalArgumentException if the face is not one of the six
+   */
+  public static String toTop(String face) {
+    int from = FROM.indexOf(face == null ? "U" : face.toUpperCase(Locale.ROOT));
+    if (from < 0) {
+      throw new IllegalArgumentException("Not a face: " + face);
+    }
+    return TO_TOP[from];
   }
 
   /**

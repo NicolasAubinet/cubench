@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.Face;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +46,33 @@ public class LayerFaceTest {
     {0, 1, 4, 5},   // F
     {2, 3, 6, 7},   // B
   };
+
+  /**
+   * And the screen stands it there. The cube is drawn in the colours' own frame, where white is up
+   * whatever the user solves on, so a last layer dealt onto yellow is drawn on the underside of the
+   * cube and a drill of it asks the user to read a face they cannot see.
+   */
+  @Test
+  public void theFaceALayerIsDealtOntoIsStoodOnTop() {
+    for (String face : FACES) {
+      CubeRotation rotation = CubeRotation.byNotation(LayerRotation.toTop(face));
+      assertNotNull(face, rotation);
+      assertEquals(face, 'U', rotation.mapFace(face.charAt(0)));
+    }
+  }
+
+  /** Green in front wherever it can be, which is every face but green itself and the blue over it. */
+  @Test
+  public void greenStaysInFrontWhereItCan() {
+    for (String face : new String[] {"U", "D", "L", "R"}) {
+      CubeRotation rotation = CubeRotation.byNotation(LayerRotation.toTop(face));
+      assertEquals(face, 'F', rotation.mapFace('F'));
+    }
+    assertEquals("green on top leaves white in front",
+        'F', CubeRotation.byNotation(LayerRotation.toTop("F")).mapFace('D'));
+    assertEquals("and blue on top does too",
+        'F', CubeRotation.byNotation(LayerRotation.toTop("B")).mapFace('U'));
+  }
 
   /**
    * The scramble really does leave the case on the chosen face: everything outside that layer is

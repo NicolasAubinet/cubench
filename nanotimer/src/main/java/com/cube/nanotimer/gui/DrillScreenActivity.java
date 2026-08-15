@@ -85,9 +85,13 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   /** How far above the cube the camera stands where there is no grip to follow. The mirror's own
    * tilt: far enough down to see the top face, and no further. */
   private static final double VIEW_LATITUDE = 26;
-  /** And at a corner, so two side faces show rather than one. A cube nobody is holding for the
-   * screen has to say more about itself than the single face it would be pointed at. */
-  private static final double VIEW_LONGITUDE = 45;
+  /**
+   * And off the corner, so two side faces show rather than one. A cube nobody is holding for the
+   * screen has to say more about itself than the single face it would be pointed at. Off rather
+   * than on: at the corner's own 45 the two show equally and neither reads as the front, which on
+   * a drill is the face the user is being asked about.
+   */
+  private static final double VIEW_LONGITUDE = 30;
 
   /** The rep line at headline size, and stood down for a rep with no time to show. */
   private static final float REP_VALUE_SP = 24;

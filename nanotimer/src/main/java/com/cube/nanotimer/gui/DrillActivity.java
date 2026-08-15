@@ -9,9 +9,12 @@ import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillSpec;
+import com.cube.nanotimer.smartcube.drill.LayerRotation;
 import com.cube.nanotimer.gui.widget.DrillCaseTable;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
@@ -64,6 +67,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private DrillSession session;
   /** What this drill is called, for the summary once the bar that named it has gone. */
   private String label;
+  /** The face the user finishes on, which is the one the drawn cube has to stand on. */
+  private String layerFace;
 
   /** The whole rep line, since the beat scales it and the hold is posted to it. */
   private View lastRepRow;
@@ -118,8 +123,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     }
     label = spec.getLabel() == null ? getString(R.string.drill_title) : spec.getLabel();
     setTitle(label);
-    session = new DrillSession(spec, Utils.getRandom(), null,
-        getIntent().getStringExtra(EXTRA_LAYER_FACE));
+    layerFace = getIntent().getStringExtra(EXTRA_LAYER_FACE);
+    session = new DrillSession(spec, Utils.getRandom(), null, layerFace);
     initRecording(spec);
 
     if (!session.isRunnable()) {
@@ -154,6 +159,20 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   @Override
   protected void onCaseVisible() {
     session.markCaseShown(System.currentTimeMillis());
+  }
+
+  /**
+   * The layer stands on top, the way the user is holding their own cube.
+   *
+   * <p>A case is dealt in the colours' own frame, where white is up whatever colour its owner
+   * finishes on, so a last layer on yellow was drawn on the underside of a cube whose top face was
+   * a solved white. On a cube with a gyroscope the grip answers this and the page ignores what is
+   * asked here; on one without, nothing says how it is held and this is the whole of the answer.
+   */
+  @Override
+  protected CubeOrientation restingRotation() {
+    CubeRotation rotation = CubeRotation.byNotation(LayerRotation.toTop(layerFace));
+    return rotation == null ? null : rotation.quaternion();
   }
 
   /**
