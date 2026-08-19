@@ -22,10 +22,13 @@ import java.util.List;
  * The last solves of the session as bars, oldest to newest, with a hairline at the average they
  * are being measured against: beating your recent times is beating the line, without reading a
  * number. A DNF is hollow rather than filled, and is drawn at the height of the time it replaced,
- * so a DNF that was on for a good solve says so. One with nothing to restore — every DNF recorded
- * before that was kept — has no duration to draw and takes the full height instead, which reads as
- * no solve rather than as a very fast one. The newest solve is underlined in the accent colour
- * rather than recoloured, since a bar's own colour is already saying something.
+ * so a DNF that was on for a good solve says so. That duration is a time like any other here: it
+ * is measured on the same scale as the solves and stretches the range as they do, so two DNFs draw
+ * at two heights and a DNF and a solve of the same length draw at one. A DNF with nothing to
+ * restore — every DNF recorded before that was kept — has no duration to draw and takes the full
+ * height instead, which is the one bar above the ceiling and reads as no solve rather than as a
+ * very fast one. The newest solve is underlined in the accent colour rather than recoloured, since
+ * a bar's own colour is already saying something.
  *
  * <p>Two of the bars are named: the fastest in green and the slowest in red, so the strip carries a
  * scale and not only a shape. A name sits on the head of the bar it belongs to, with a short lead
@@ -218,6 +221,12 @@ public class SessionBarsView extends View {
       low = times.get(best);
       high = times.get(worst);
     }
+    for (Long dnfTime : dnfTimes) { // a DNF's own duration is in the range, as it is on the scale
+      if (dnfTime != null && dnfTime > 0) {
+        low = Math.min(low, dnfTime);
+        high = Math.max(high, dnfTime);
+      }
+    }
     if (line != null) { // the line is part of the range, so it always lands inside the bars
       low = Math.min(low, line);
       high = Math.max(high, line);
@@ -238,9 +247,7 @@ public class SessionBarsView extends View {
       float left = i * slot + (slot - barWidth) / 2f;
       float right = left + barWidth;
       boolean dnf = (time == null || time <= 0);
-      // A DNF is drawn at the time it replaced; with none to draw it takes the whole height. The
-      // range above is the successes' own, so a DNF slower than all of them is clamped to the top
-      // rather than flattening every real solve to fit it in.
+      // A DNF is drawn at the time it replaced; with none to draw it takes the whole height.
       Long height = dnf ? dnfTimes.get(i) : time;
       // Only the newest bar's foot lifts, to sit clear of its own rule; the rest keep the floor.
       float foot = newest ? floor - footLift : floor;
@@ -387,7 +394,9 @@ public class SessionBarsView extends View {
     if (!scaled) {
       return (FLOOR + CEILING) / 2f;
     }
-    return clamp(FLOOR + (CEILING - FLOOR) * (time - low) / (float) (high - low), FLOOR, 1f);
+    // Everything drawn is inside the range, so the ceiling is reached and never passed: full
+    // height is left to the one bar that has no time to place, the DNF that kept none.
+    return clamp(FLOOR + (CEILING - FLOOR) * (time - low) / (float) (high - low), FLOOR, CEILING);
   }
 
 }
