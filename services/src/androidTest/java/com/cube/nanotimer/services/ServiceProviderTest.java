@@ -1181,35 +1181,45 @@ public class ServiceProviderTest {
     return provider.saveTime(st).getSolveTime();
   }
 
+  /** One solve is the whole of it: a rare case should not wait for a second to be believed. */
   @Test
-  public void testACaseGoingInOneAlgorithmEnoughTimesIsKnown() {
+  public void testOneSolveGoingInOneAlgorithmIsKnown() {
     deleteDrills();
     provider.deleteHistory();
-    for (int i = 0; i < 3; i++) {
-      saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), lastLayer("oll_21", 1));
-    }
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), lastLayer("oll_21", 1));
 
     assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
   }
 
   @Test
-  public void testACaseTakingTwoAlgorithmsIsBeingLearned() {
+  public void testOneSolveTakingTwoAlgorithmsIsBeingLearned() {
     deleteDrills();
     provider.deleteHistory();
-    for (int i = 0; i < 3; i++) {
-      saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), lastLayer("oll_21", 2));
-    }
+    saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), lastLayer("oll_21", 2));
 
     assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("oll_21"));
   }
 
-  // Under the floor there is no status, and a skipped step was never a case that was executed.
+  /** The latest occurrence decides, so a case put in unaided for weeks is not known after a lapse. */
   @Test
-  public void testACaseWithTooLittleBehindItHasNoStatus() {
+  public void testTheLatestSolveDecides() {
     deleteDrills();
     provider.deleteHistory();
-    saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1));
-    saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1));
+    for (int i = 0; i < 5; i++) {
+      saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1));
+    }
+    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
+
+    saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 2));
+
+    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("oll_21"));
+  }
+
+  // Nothing behind it is no status, and a skipped step was never a case that was executed.
+  @Test
+  public void testACaseWithNothingBehindItHasNoStatus() {
+    deleteDrills();
+    provider.deleteHistory();
     for (int i = 0; i < 5; i++) {
       saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_skip", 1));
     }
@@ -1243,14 +1253,27 @@ public class ServiceProviderTest {
     assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_ga"));
   }
 
+  /** A drill hands the case over with nothing to recognise, so a clean rep promotes nothing. */
   @Test
-  public void testDrillRepsGoingInCleanSayTheCaseIsKnown() {
+  public void testDrillRepsGoingInCleanSayNothingEitherWay() {
     deleteDrills();
     provider.deleteHistory();
     long drillId = provider.addDrill(drill("case_execution", 3));
     for (int i = 0; i < 3; i++) {
       provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 900, 1400, 13, 0, false, false));
     }
+
+    assertNull(knowledgeOf("pll_ga"));
+  }
+
+  /** And it cannot take back a solve either: what promotes is the only thing that demotes. */
+  @Test
+  public void testACleanDrillRepDoesNotUnsayASolve() {
+    deleteDrills();
+    provider.deleteHistory();
+    saveCubeSolve(CubeMethod.CFOP, null, lastLayer("pll_ga", 1));
+    long drillId = provider.addDrill(drill("case_execution", 1));
+    provider.addDrillCaseRep(drillId, caseRep(0, "pll_ga", 900, 1400, 13, 0, false, false));
 
     assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("pll_ga"));
   }
@@ -1265,7 +1288,7 @@ public class ServiceProviderTest {
     provider.addDrillCaseRep(drillId, caseRep(1, "pll_ga", 900, 1400, 13, 0, false, true));
     provider.addDrillCaseRep(drillId, caseRep(2, "pll_ga", 900, 1400, 13, 0, false, false));
 
-    assertNull(knowledgeOf("pll_ga")); // one usable rep of the three
+    assertNull(knowledgeOf("pll_ga")); // and the one usable rep of the three is a clean drill
   }
 
   /** The table is a cache: thrown away and read back, it says exactly what it said before. */
@@ -1279,7 +1302,7 @@ public class ServiceProviderTest {
     }
     long drillId = provider.addDrill(drill("case_execution", 3));
     for (int i = 0; i < 3; i++) {
-      provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 900, 1400, 13, 0, false, false));
+      provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 900, 1400, 13, 0, true, false));
     }
     List<String> running = knowledgeCodes();
 
@@ -1288,7 +1311,7 @@ public class ServiceProviderTest {
     assertEquals(running, knowledgeCodes());
     assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
     assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_t"));
-    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("pll_ga"));
+    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_ga"));
   }
 
   /** Deleting the solves takes back what they said, rather than leaving a status behind them. */
@@ -1297,14 +1320,15 @@ public class ServiceProviderTest {
     deleteDrills();
     provider.deleteHistory();
     List<SolveTime> solves = new ArrayList<SolveTime>();
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 2; i++) {
       solves.add(saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1)));
     }
     assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
 
     provider.deleteTime(solves.get(0));
+    provider.deleteTime(solves.get(1));
 
-    assertNull(knowledgeOf("oll_21")); // two left, which is under the floor
+    assertNull(knowledgeOf("oll_21")); // nothing left that says anything either way
   }
 
   @Test

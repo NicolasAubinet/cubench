@@ -84,11 +84,13 @@ public final class CaseKnowledgeStore {
 
   private static void write(SQLiteDatabase db, String caseSet, String caseName,
       List<Occurrence> occurrences) {
-    List<Boolean> unaided = new ArrayList<Boolean>();
+    List<CaseKnowledge.Evidence> said = new ArrayList<CaseKnowledge.Evidence>();
+    int spoke = 0;
     for (Occurrence occurrence : occurrences) {
-      unaided.add(Boolean.valueOf(occurrence.unaided));
+      said.add(occurrence.says);
+      spoke += occurrence.says == CaseKnowledge.Evidence.SILENT ? 0 : 1;
     }
-    CaseKnowledge.Status status = CaseKnowledge.read(unaided);
+    CaseKnowledge.Status status = CaseKnowledge.read(said);
     String where = DB.COL_CASE_KNOWLEDGE_SET + " = ? AND " + DB.COL_CASE_KNOWLEDGE_CASE + " = ?";
     String[] args = new String[] { caseSet, caseName };
     if (status == null) {
@@ -99,7 +101,7 @@ public final class CaseKnowledgeStore {
     values.put(DB.COL_CASE_KNOWLEDGE_SET, caseSet);
     values.put(DB.COL_CASE_KNOWLEDGE_CASE, caseName);
     values.put(DB.COL_CASE_KNOWLEDGE_STATUS, status.code());
-    values.put(DB.COL_CASE_KNOWLEDGE_EVIDENCE, occurrences.size());
+    values.put(DB.COL_CASE_KNOWLEDGE_EVIDENCE, spoke);
     values.put(DB.COL_CASE_KNOWLEDGE_LAST_SEEN, occurrences.get(occurrences.size() - 1).atMs);
     values.put(DB.COL_CASE_KNOWLEDGE_UPDATED, System.currentTimeMillis());
     if (db.update(DB.TABLE_CASE_KNOWLEDGE, values, where, args) == 0) {
@@ -124,8 +126,11 @@ public final class CaseKnowledgeStore {
   }
 
   /**
-   * One case's last occurrences, oldest last of the newest {@link CaseKnowledge#WINDOW}, then turned
-   * back the way round the rule reads them.
+   * One case's occurrences, oldest first, which is the way round the rule reads them.
+   *
+   * <p><b>All of them, with no window.</b> The rule only looks at the newest one that says
+   * anything, and a case can go a hundred solves between occurrences, so cutting the list short
+   * would lose the last thing the solver actually did with the case.
    *
    * <p>A rep that was abandoned or restarted is left out rather than counted against the case: it
    * says the rep was fumbled, and what is being answered here is whether the algorithm is known, not
@@ -141,6 +146,7 @@ public final class CaseKnowledgeStore {
         + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
 
     String solved = "SELECT " + parts + " < 2 AS unaided"
+        + "     , 1 AS from_solve"
         + "     , h." + DB.COL_TIMEHISTORY_TIMESTAMP + " AS seen_at"
         + "     , 0 AS ordinal"
         + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
@@ -154,6 +160,7 @@ public final class CaseKnowledgeStore {
         + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")";
 
     String drilled = "SELECT r." + DB.COL_DRILL_REP_REVEALED + " = 0 AS unaided"
+        + "     , 0 AS from_solve"
         + "     , d." + DB.COL_DRILL_TIMESTAMP + " AS seen_at"
         + "     , r." + DB.COL_DRILL_REP_POSITION + " AS ordinal"
         + "  FROM " + DB.TABLE_DRILL_REP + " r"
@@ -166,24 +173,32 @@ public final class CaseKnowledgeStore {
 
     List<Occurrence> occurrences = new ArrayList<Occurrence>();
     Cursor cursor = db.rawQuery(solved + " UNION ALL " + drilled
-        + " ORDER BY seen_at DESC, ordinal DESC LIMIT " + CaseKnowledge.WINDOW,
-        new String[] { code, code });
+        + " ORDER BY seen_at DESC, ordinal DESC", new String[] { code, code });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        occurrences.add(0, new Occurrence(cursor.getInt(0) == 1, cursor.getLong(1)));
+        occurrences.add(0, new Occurrence(says(cursor.getInt(0) == 1, cursor.getInt(2) == 1),
+            cursor.getLong(1)));
       }
       cursor.close();
     }
     return occurrences;
   }
 
-  /** One time the case came up, and whether it went in one algorithm with nothing shown. */
+  /** A clean drill rep is the one occurrence that says nothing: nothing had to be recognised. */
+  private static CaseKnowledge.Evidence says(boolean unaided, boolean fromSolve) {
+    if (!unaided) {
+      return CaseKnowledge.Evidence.HELPED;
+    }
+    return fromSolve ? CaseKnowledge.Evidence.UNAIDED : CaseKnowledge.Evidence.SILENT;
+  }
+
+  /** One time the case came up, and what it said about whether the algorithm is known. */
   private static final class Occurrence {
-    private final boolean unaided;
+    private final CaseKnowledge.Evidence says;
     private final long atMs;
 
-    Occurrence(boolean unaided, long atMs) {
-      this.unaided = unaided;
+    Occurrence(CaseKnowledge.Evidence says, long atMs) {
+      this.says = says;
       this.atMs = atMs;
     }
   }

@@ -1103,9 +1103,9 @@
   <string name="known_algorithms_subtitle">Deducido de tus resoluciones y tus drills.</string>
   <string name="known_algorithms_status_known">Conocido</string>
   <string name="known_algorithms_status_learning">Aprendiendo</string>
-  <string name="known_algorithms_status_unseen">Datos insuficientes</string>
+  <string name="known_algorithms_status_unseen">Aún sin ver</string>
   <string name="known_algorithms_no_moves">Sin caso registrado</string>
-  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso visto menos de tres veces no recibe ningún veredicto.</string>
+  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto, y deja de contar si vuelves a hacerlo en dos pasos.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
 </resources>

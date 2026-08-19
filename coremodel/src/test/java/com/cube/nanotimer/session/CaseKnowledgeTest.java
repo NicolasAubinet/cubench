@@ -1,5 +1,6 @@
 package com.cube.nanotimer.session;
 
+import com.cube.nanotimer.session.CaseKnowledge.Evidence;
 import com.cube.nanotimer.session.CaseKnowledge.Status;
 
 import org.junit.Assert;
@@ -14,50 +15,50 @@ import java.util.List;
 public class CaseKnowledgeTest {
 
   @Test
-  public void testACaseSeenTooFewTimesHasNoStatusAtAll() {
-    Assert.assertNull(CaseKnowledge.read(occurrences("11")));
-    Assert.assertNull(CaseKnowledge.read(occurrences("00")));
-    Assert.assertNull(CaseKnowledge.read(new ArrayList<Boolean>()));
+  public void testACaseWithNothingBehindItHasNoStatusAtAll() {
+    Assert.assertNull(CaseKnowledge.read(new ArrayList<Evidence>()));
+    Assert.assertNull(CaseKnowledge.read(null));
+  }
+
+  /** One is enough: a rare OLL turns up once in sixty solves and should not wait for a second. */
+  @Test
+  public void testOneSolveGoingInUnaidedIsEnoughToBeKnown() {
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("U")));
   }
 
   @Test
-  public void testACaseGoingInUnaidedIsKnown() {
-    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("111")));
+  public void testOneSolveTakingMoreThanOneAlgorithmIsBeingLearned() {
+    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("H")));
   }
 
+  /** The most recent occurrence decides, in both directions. */
   @Test
-  public void testACaseTakingMoreThanOneAlgorithmIsBeingLearned() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("000")));
+  public void testTheLatestOccurrenceIsTheOneThatCounts() {
+    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("UUUUUH")));
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("HHHHHU")));
   }
 
-  /** The whole point of the hysteresis: one bad solve is a bad solve. */
+  /**
+   * The cost of that, accepted deliberately: a case put in unaided nine times reads as being
+   * learned after one two-look. It is what the solver last did with it.
+   */
   @Test
-  public void testOneOccurrenceAgainstTheStatusDoesNotFlipIt() {
-    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("11111110")));
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("00000001")));
+  public void testOneLapseIsEnoughToStopACaseReadingAsKnown() {
+    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("UUUUUUUUUH")));
   }
 
+  /** A drill hands the case over with nothing to recognise, so a clean rep promotes nothing. */
   @Test
-  public void testTwoInARowFlipIt() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("11111100")));
-    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("00000011")));
+  public void testACleanDrillRepSaysNothingEitherWay() {
+    Assert.assertNull(CaseKnowledge.read(occurrences("SSS")));
+    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("HSSS")));
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("USSS")));
   }
 
-  /** A case that never goes in twice running was never shown to be known. */
+  /** Asking to be shown the algorithm is the plainest thing in the database, drill or not. */
   @Test
-  public void testACaseAlternatingIsNotCalledKnown() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("1010101010")));
-  }
-
-  /** Learned since: the old occurrences are in the window and still lose to the recent ones. */
-  @Test
-  public void testACaseLearnedPartWayThroughTheWindowIsKnown() {
-    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("0000011111")));
-  }
-
-  @Test
-  public void testACaseDroppedPartWayThroughTheWindowIsNotKnown() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("1111100000")));
+  public void testBeingShownTheAlgorithmIsTheLastWord() {
+    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("USH")));
   }
 
   @Test
@@ -68,11 +69,13 @@ public class CaseKnowledgeTest {
     Assert.assertNull(Status.forCode(""));
   }
 
-  /** Oldest first, 1 for a case that went in unaided. */
-  private static List<Boolean> occurrences(String reading) {
-    List<Boolean> occurrences = new ArrayList<Boolean>();
+  /** Oldest first: U went in unaided, H needed help, S said nothing. */
+  private static List<Evidence> occurrences(String reading) {
+    List<Evidence> occurrences = new ArrayList<Evidence>();
     for (int i = 0; i < reading.length(); i++) {
-      occurrences.add(Boolean.valueOf(reading.charAt(i) == '1'));
+      char said = reading.charAt(i);
+      occurrences.add(said == 'U' ? Evidence.UNAIDED : said == 'H' ? Evidence.HELPED
+          : Evidence.SILENT);
     }
     return occurrences;
   }

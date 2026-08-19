@@ -13,16 +13,25 @@ import java.util.List;
  * is learned but not recognised under pressure, and slow because it is deliberately taken in two
  * looks are three diagnoses with three different fixes.
  *
- * <p><b>What counts as an occurrence.</b> A solve that was handed the case and a drill rep of it,
- * each saying one thing: whether it went in one algorithm, unaided. A last layer step recorded in
- * two or more algorithms did not; a drill rep whose algorithm had to be shown did not. A rep that
- * was abandoned or restarted says neither — it says the rep was fumbled, and the fact here is
- * deliberately not about fluency.
+ * <p><b>The most recent occurrence decides, and one is enough.</b> A rare OLL turns up once in
+ * sixty solves, so waiting for a case to come up several times before saying anything left most of
+ * a set with nothing said about it for months. Putting a case in with one algorithm in a real solve
+ * is already about as strong as evidence gets, so the first time it happens the case is known; and a
+ * case taken in two looks since is not known now, whatever it did before.
  *
- * <p><b>Absence is never evidence.</b> A rare OLL turns up once in sixty solves, so a case under
- * {@link #FLOOR} occurrences has no status at all rather than a bad one, and nothing downstream may
- * read that silence as "does not know it". The only honest thing to say about such a case is to
- * drill it and find out.
+ * <p>The cost of that is accepted deliberately: <b>one lapse reads as {@link Status#LEARNING}</b>
+ * even on a case the solver knows and merely failed to recognise in time. It is the honest reading
+ * of what they last did, and LEARNING is a description rather than an accusation.
+ *
+ * <p><b>What counts as an occurrence.</b> A solve that was handed the case, and a drill rep of it
+ * that had to be shown. A solve says {@link Evidence#UNAIDED} where its last layer step went in one
+ * algorithm and {@link Evidence#HELPED} where it took more; a rep whose algorithm was revealed says
+ * HELPED, since asking is the answer. <b>A clean drill rep says nothing</b>: a drill hands the
+ * solver the case with no recognition to survive and no fatigue behind it, so letting one call a
+ * case known would collapse the "known but slow" distinction this whole fact exists to make.
+ *
+ * <p><b>Absence is still never evidence.</b> A case with nothing behind it has no status at all
+ * rather than a bad one, and nothing downstream may read that silence as "does not know it".
  */
 public class CaseKnowledge {
 
@@ -56,16 +65,18 @@ public class CaseKnowledge {
     }
   }
 
-  /** How many of a case's most recent occurrences the status is read from. A case learned in March
-   * is not held against the solver, and one since dropped does not stay green. */
-  public static final int WINDOW = 10;
+  /** What one occurrence of a case says about whether the solver knows it. */
+  public enum Evidence {
 
-  /** Below this many occurrences in that window there is no status. */
-  public static final int FLOOR = 3;
+    /** A solve whose last layer step went in one algorithm with nothing shown. */
+    UNAIDED,
 
-  /** How many occurrences in a row must disagree before the status flips, so it does not flap on a
-   * single bad solve. */
-  private static final int FLIP_AFTER = 2;
+    /** A solve that took more than one algorithm, or a drill rep whose algorithm had to be shown. */
+    HELPED,
+
+    /** A clean drill rep, or a rep fumbled and restarted: neither says anything either way. */
+    SILENT,
+  }
 
   private final String caseSet;
   private final String caseCode;
@@ -76,8 +87,8 @@ public class CaseKnowledge {
   /**
    * @param caseSet the family the case belongs to, "oll" — kept apart from the code so a COLL or a
    *     CMLL later costs a row and not a migration
-   * @param evidenceCount how many occurrences the status was read from, which is at most
-   *     {@link #WINDOW}
+   * @param evidenceCount how many occurrences of the case said anything either way, which is not
+   *     how many times it came up: a clean drill rep is not one of them
    */
   public CaseKnowledge(String caseSet, String caseCode, Status status, int evidenceCount,
       long lastSeenMs) {
@@ -89,30 +100,24 @@ public class CaseKnowledge {
   }
 
   /**
-   * Where a case stands over its last occurrences.
+   * Where a case stands: what the most recent occurrence that said anything said.
    *
-   * <p>It starts at {@link Status#LEARNING} and is not seeded from the oldest occurrence, so
-   * {@link Status#KNOWN} is only ever reached by evidence of the case going in unaided — never by
-   * the window happening to open on a good solve.
-   *
-   * @param occurrences oldest first, each true where the case went in one algorithm unaided
-   * @return the status, or null when there is too little to say
+   * @param occurrences oldest first
+   * @return the status, or null where nothing has been seen that says either way
    */
-  public static Status read(List<Boolean> occurrences) {
-    if (occurrences == null || occurrences.size() < FLOOR) {
+  public static Status read(List<Evidence> occurrences) {
+    if (occurrences == null) {
       return null;
     }
-    Status status = Status.LEARNING;
-    int against = 0;
-    for (Boolean occurrence : occurrences) {
-      Status says = occurrence.booleanValue() ? Status.KNOWN : Status.LEARNING;
-      against = says == status ? 0 : against + 1;
-      if (against >= FLIP_AFTER) {
-        status = says;
-        against = 0;
+    for (int i = occurrences.size() - 1; i >= 0; i--) { // newest first: the last word wins
+      if (occurrences.get(i) == Evidence.UNAIDED) {
+        return Status.KNOWN;
+      }
+      if (occurrences.get(i) == Evidence.HELPED) {
+        return Status.LEARNING;
       }
     }
-    return status;
+    return null;
   }
 
   /** The code a solve and a drill both record the case under, "oll_53". */
