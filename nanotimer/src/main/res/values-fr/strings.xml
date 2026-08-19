@@ -1102,7 +1102,7 @@
   <string name="known_algorithms_status_known">Connu</string>
   <string name="known_algorithms_status_learning">En cours</string>
   <string name="known_algorithms_status_unseen">Pas assez de données</string>
-  <string name="known_algorithms_no_moves">Aucune exécution enregistrée</string>
+  <string name="known_algorithms_no_moves">Aucun cas enregistré</string>
   <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas vu moins de trois fois ne reçoit aucun verdict.</string>
   <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec un smart cube connecté et les cas que vous faites sans aide apparaîtront.</string>
   <string name="known_algorithms_reading">Lecture de vos résolutions...</string>

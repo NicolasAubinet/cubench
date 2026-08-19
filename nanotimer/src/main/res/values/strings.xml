@@ -1143,7 +1143,7 @@
   <string name="known_algorithms_status_known">Known</string>
   <string name="known_algorithms_status_learning">Learning</string>
   <string name="known_algorithms_status_unseen">Not enough yet</string>
-  <string name="known_algorithms_no_moves">No answer recorded yet</string>
+  <string name="known_algorithms_no_moves">No case recorded yet</string>
   <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case seen fewer than three times has no verdict either way.</string>
   <string name="known_algorithms_empty">Nothing here yet. Solve with a smart cube connected and the cases you put in unaided will show up.</string>
   <string name="known_algorithms_reading">Reading your solves...</string>
