@@ -517,7 +517,9 @@ public final class LastLayerCaseAlgorithms {
    * voted on is one this table has never heard of rather than one nobody should turn.
    */
   public static Execution read(String caseCode, String executedMoves) {
-    if (caseCode == null || executedMoves == null) {
+    // Notation nothing can read is not an unusual algorithm, it is an unknown one, and the whole
+    // point of the paragraph above is that this cannot say things about executions it has not read.
+    if (caseCode == null || executedMoves == null || AlgorithmForm.key(executedMoves) == null) {
       return new Execution(false, 0, 0);
     }
     List<Algorithm> folded = folded(caseCode);

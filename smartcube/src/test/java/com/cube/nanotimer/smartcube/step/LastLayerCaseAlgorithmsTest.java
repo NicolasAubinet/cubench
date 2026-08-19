@@ -374,6 +374,20 @@ public class LastLayerCaseAlgorithmsTest {
     assertEquals(plain, LastLayerCaseAlgorithms.read("pll_t", "z " + tperm + " z'").getMoves());
   }
 
+  /**
+   * It cannot call an execution unusual when it could not read the execution at all: that would be
+   * a claim about something it knows nothing about. Unreadable, not merely unrecognised, since
+   * {@code b} is a wide B and a great deal of nonsense parses.
+   */
+  @Test
+  public void saysNothingAboutNotationItCannotRead() {
+    LastLayerCaseAlgorithms.Execution execution = LastLayerCaseAlgorithms.read("oll_27", "R U 7");
+
+    assertFalse(execution.isUnusual());
+    assertFalse(execution.isLonger());
+    assertEquals(0, execution.getMoves());
+  }
+
   private static String written(List<String> turns) {
     StringBuilder written = new StringBuilder();
     for (String turn : turns) {
