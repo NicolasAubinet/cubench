@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
@@ -37,6 +38,13 @@ import java.util.Locale;
  * <em>settled</em> state: the cross up and every piece already counted still home. The last layer's
  * parts are read the same way, between the states where the first two layers stand.
  *
+ * <p><b>The first layer is read up to a turn of its own layer.</b> That layer turns as a whole and
+ * nothing else moves with it, so a solve that leaves it turned has built exactly as much of it as
+ * one that squared it up. Which is not a corner case but the point of keyhole: the empty slot is
+ * carried to the edge being inserted and left there, and the layer only comes back at the end. Read
+ * where it stood, a whole stretch of the solve settled at no state at all, and the edges inserted
+ * across it were all dated together on the turn that squared the layer up.
+ *
  * <p>The two permutation parts are read <b>up to a turn of the last layer</b>, since the solver
  * leaves it wherever the algorithm ended. But not on their own terms: "the edges are placed after
  * some turn" is also true of an H perm, and the corners' version is true of a diagonal swap, so a
@@ -70,6 +78,9 @@ public final class LblStepDetector implements StepDetector {
 
   private static final int PIECES_PER_LAYER = 4;
 
+  /** Quarter turns of a layer, which is how many the first layer may stand away from home by. */
+  private static final int TURNS_OF_A_LAYER = 4;
+
   /** The first layer's corners and the second layer's edges, per cross face, with their codes. */
   private static final int[][][] FIRST_LAYER_CORNERS = new int[6][][];
   private static final int[][][] SECOND_LAYER_EDGES = new int[6][][];
@@ -80,8 +91,12 @@ public final class LblStepDetector implements StepDetector {
   private static final int[][][] LAST_LAYER_CORNERS = new int[6][][];
   private static final int[][][] LAST_LAYER_EDGES = new int[6][][];
 
+  /** Where a quarter turn of each face carries every sticker, for squaring the first layer up. */
+  private static final int[][] LAYER_TURN = new int[6][];
+
   static {
     for (int face = 0; face < 6; face++) {
+      LAYER_TURN[face] = quarterTurn(face);
       FIRST_LAYER_CORNERS[face] = touching(Cubies.CORNERS, face);
       SECOND_LAYER_EDGES[face] = middleEdges(face);
       for (int piece = 0; piece < PIECES_PER_LAYER; piece++) {
@@ -167,18 +182,22 @@ public final class LblStepDetector implements StepDetector {
       solvedMs = timestampMs;
     }
     for (int face = 0; face < 6; face++) {
-      if (crossMs[face] == null && Cubies.crossDone(facelets, face)) {
+      String squared = squared(facelets, face);
+      if (squared == null) {
+        continue;
+      }
+      if (crossMs[face] == null) {
         crossMs[face] = timestampMs;
       }
       // A piece put in before the cross was is dated with the cross, not before it; and a state
       // the solver is still turning through says nothing about what is in.
-      if (crossMs[face] == null || !settled(face, facelets)) {
+      if (!settled(face, squared)) {
         continue;
       }
       int cornersDated = dated(cornerMs[face]);
       int edgesDated = dated(edgeMs[face]);
-      int corners = mark(cornerMs[face], FIRST_LAYER_CORNERS[face], facelets, timestampMs);
-      int edges = mark(edgeMs[face], SECOND_LAYER_EDGES[face], facelets, timestampMs);
+      int corners = mark(cornerMs[face], FIRST_LAYER_CORNERS[face], squared, timestampMs);
+      int edges = mark(edgeMs[face], SECOND_LAYER_EDGES[face], squared, timestampMs);
       if (dated(edgeMs[face]) > edgesDated && timestampMs != crossMs[face]) {
         boolean alone = dated(cornerMs[face]) == cornersDated;
         countEdgeStarting(face, corners, alone);
@@ -191,10 +210,26 @@ public final class LblStepDetector implements StepDetector {
         layersMs[face] = timestampMs;
       }
       if (layersUp) {
-        markLastLayer(face, facelets, timestampMs);
+        markLastLayer(face, squared, timestampMs);
       }
     }
     updateCrossFace();
+  }
+
+  /**
+   * The state with this face's layer turned to where its cross stands home, or null where no turn of
+   * it does. A turn of that layer carries the whole first layer and nothing else, so squaring it up
+   * costs the reading nothing and spares it having to wait for the solver to do the same.
+   */
+  private static String squared(String facelets, int face) {
+    String turned = facelets;
+    for (int quarter = 0; quarter < TURNS_OF_A_LAYER; quarter++) {
+      if (Cubies.crossDone(turned, face)) {
+        return turned;
+      }
+      turned = Cubies.applyMotion(LAYER_TURN[face], turned);
+    }
+    return null;
   }
 
   /**
@@ -483,7 +518,7 @@ public final class LblStepDetector implements StepDetector {
    * home about as often as it carries one through, and a solve read at such an edge is judged on the
    * corners of the moment rather than on the ones the solver had in. So the count that decides is
    * taken at the first edge that came home <em>on its own</em>, and the first edge of any kind only
-   * stands in where there was no such edge â€” which is a solve that paired every one of them, and is
+   * stands in where there was no such edge — which is a solve that paired every one of them, and is
    * the very thing this asks about.
    *
    * <p>A solve that stopped before the second layer was started is judged on the same count, since a
@@ -578,6 +613,12 @@ public final class LblStepDetector implements StepDetector {
       }
     }
     return sides.toString().toLowerCase(Locale.US);
+  }
+
+  private static int[] quarterTurn(int face) {
+    CubieCube cube = new CubieCube();
+    cube.applyMove(Cubies.faceAt(face), false);
+    return Cubies.motionBetween(Cubies.SOLVED, cube.toFaceCube());
   }
 
   /** A rotation that brings the up face onto the given one, so the U layer's tables can be read

@@ -87,6 +87,37 @@ public class RecordedLblSolveTest {
           + "R'@33656 B@33826 R@34236 F@34359 F@34515 R'@34629 z@34899 B'@34899 z'@34990 R@34990 "
           + "F'@35100 R'@35163 B@35481 R@35705 F'@35768 R'@35865 B'@36183 R@36790";
 
+  /**
+   * A fourth solve, keyholing in earnest: the first layer is left turned from 17.6s to 21.5s while
+   * two middle edges go in through the empty corner slot.
+   */
+  private static final String SCRAMBLE_4 =
+      "R2 U R2 F2 U B2 D2 L2 R2 D B2 L F2 D' R' U2 B R' D U2 F";
+
+  private static final String MOVES_4 =
+      "[y' z] y@0 x2@0 F'@0 x@1610 U@1610 y'@1687 U@1688 U'@2020 B'@2489 y@3548 x2@3548 L@3548 "
+          + "L@3884 B'@5344 z'@6020 L@6020 z@6209 B@6209 z'@6986 U@6986 z'@8075 R'@8075 F'@8364 "
+          + "R@8640 F@8857 z'@9150 R'@9150 F'@9427 R@9669 y'@10892 F@10892 y@11674 x@11674 "
+          + "F@11674 L'@11913 F'@12214 y'@12472 x'@12472 L@12472 y2@13034 x'@13034 D'@13034 "
+          + "y'@13217 F@13217 D@13481 R@13788 F@14155 y@14993 x2@14993 R'@14993 y2@16115 "
+          + "z'@16115 B'@16115 z'@16296 B'@16297 B@16806 B@16848 B@17618 D@18555 z2@18802 "
+          + "F'@18802 z@18952 D'@18952 z'@19276 B@19276 z2@20733 F@20733 R@21037 F'@21115 "
+          + "R'@21182 z@21476 B@21477 B@21521 B'@21691 z'@22874 F'@22874 z@23441 F'@23441 "
+          + "R'@23843 F@24385 R@24800 z'@25149 B@25149 y@25752 z@25752 F'@25752 y@26635 z@26635 "
+          + "U@26635 y'@26937 z@26937 L'@26937 U'@27293 L@27470 y2@28746 z'@28746 F'@28746 "
+          + "y'@29351 z@29351 L'@29351 x'@29689 F'@29689 y@29959 L'@29959 F'@30278 y'@30634 "
+          + "L'@30634 y@31146 F@31146 L@31397 F@31736 L@32070 x'@33066 R@33067 F@33468 U@33583 "
+          + "F'@33691 U'@33858 x@34231 R'@34232 F@35679 R@37376 F@37450 z@37612 R'@37612 F@38223 "
+          + "z'@38388 R@38388 F'@38499 R'@38683 z@38764 F@38764 z'@38919 R@38919 F'@39022 "
+          + "F'@39373 R'@39417 y@40778 x'@40778 F'@40778 y2@42521 x'@42521 L@42521 z'@42680 "
+          + "F@42680 L'@42773 z@42921 F@42921 z'@43133 L@43133 F'@43319 L'@43517 z@43631 F@43631 "
+          + "z'@43831 L@43831 F'@43963 F'@44540 L'@44768 R'@45538 z@45689 F@45689 L@46070 "
+          + "F'@46117 R@46446 z'@46761 F@46761 L'@46956 z@47008 F'@47008 z'@48055 U@48055 "
+          + "F'@48117 z'@48478 D'@48478 z@48617 F@48617 z'@49016 U'@49016 F'@49096 z@49577 "
+          + "D@49577 F@49699 z@50455 L'@50455 B@50611 L@50746 F@50814 z'@50998 F@50998 L'@51149 "
+          + "z@51374 B'@51374 L@51537 F'@51609 L'@51805 B@51938 L@52015 F'@52135 L'@52258 "
+          + "B'@52468 L@52678";
+
   private final CubieCube cube = new CubieCube();
   private final LblStepDetector detector = new LblStepDetector();
 
@@ -200,7 +231,7 @@ public class RecordedLblSolveTest {
   }
 
   /**
-   * The second corner's insertion drops a middle edge home on its way and leaves it there â€” three
+   * The second corner's insertion drops a middle edge home on its way and leaves it there — three
    * moves that were turned for the corner alone, the edge having been nowhere near its slot. Read as
    * the second layer being started there, the solve had two corners in at that moment and failed the
    * one thing this method is asked for. The edge the solver actually turned for is the next one, and
@@ -217,7 +248,30 @@ public class RecordedLblSolveTest {
     assertEquals(10758L, (long) detector.getSubStepTimestampMs(1, 1)); // the corner's own move
     assertEquals(10758L, (long) detector.getSubStepTimestampMs(2, 0));
     assertEquals("edge_dr", detector.subStepName(4, 0)); // the first one turned for, three in
-    assertEquals(16978L, (long) detector.getSubStepTimestampMs(4, 0));
+    assertEquals(15825L, (long) detector.getSubStepTimestampMs(4, 0));
+  }
+
+  /**
+   * The solver turns the first layer at 17.6s and does not turn it back until 21.5s, putting two
+   * middle edges in through the empty corner slot meanwhile. Read where the layer stood, nothing at
+   * all settled across those four seconds: both edges were dated together on the turn that squared
+   * the layer up, one of them a step of no moves and no time, and the moves that inserted them fell
+   * to the edge before.
+   */
+  @Test
+  public void readsEdgesPutInWhileTheFirstLayerStoodTurned() {
+    replay(SCRAMBLE_4, MOVES_4);
+
+    assertTrue(detector.isComplete());
+    assertTrue(detector.matchesMethod());
+    assertEquals(Face.B, detector.getCrossFace());
+    assertEquals(3, detector.subStepCount(2));
+    assertEquals("edge_dl", detector.subStepName(2, 0));
+    assertEquals(18952L, (long) detector.getSubStepTimestampMs(2, 0));
+    assertEquals("edge_dr", detector.subStepName(2, 1));
+    assertEquals(21182L, (long) detector.getSubStepTimestampMs(2, 1));
+    assertEquals("edge_ur", detector.subStepName(2, 2));
+    assertEquals(24800L, (long) detector.getSubStepTimestampMs(2, 2));
   }
 
   private void replay() {
