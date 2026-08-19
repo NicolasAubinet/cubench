@@ -8,6 +8,8 @@ import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,12 @@ import java.util.Map;
  * able to rename what the solver knows. So they are grouped by what they turn, the biggest group
  * wins, and the most recent of that group is what is shown, since a real execution spelled the way
  * it was turned is more use than an average nobody performed.
+ *
+ * <p><b>But a solver really can have two answers to one case</b>, picked by the angle it came up
+ * at or by which hand is free, and calling one of them the algorithm they use would be wrong about
+ * the other half of their solves. So the groups are kept rather than thrown away: {@link #spreadFrom}
+ * hands back every distinct execution with how many of the answers it was, and it is up to the
+ * screen whether it has room to say so. {@link #readFrom} is the same reading with only the winner.
  */
 public final class CaseExecutions {
 
@@ -40,15 +48,27 @@ public final class CaseExecutions {
    * @return the moves usually turned for each case there is an answer to, newest solve first
    */
   public static Map<String, String> readFrom(List<SolveTime> solves) {
+    Map<String, String> usual = new LinkedHashMap<String, String>();
+    for (Map.Entry<String, Spread> spread : spreadFrom(solves).entrySet()) {
+      usual.put(spread.getKey(), spread.getValue().getTurned().get(0).getMoves());
+    }
+    return usual;
+  }
+
+  /**
+   * @param solves the most recent solves, newest first, whatever they were solved as
+   * @return every distinct execution of each case there is an answer to, most turned first
+   */
+  public static Map<String, Spread> spreadFrom(List<SolveTime> solves) {
     Map<String, List<String>> answers = new LinkedHashMap<String, List<String>>();
     for (SolveTime solve : solves) {
       collect(solve, answers);
     }
-    Map<String, String> usual = new LinkedHashMap<String, String>();
+    Map<String, Spread> spreads = new LinkedHashMap<String, Spread>();
     for (Map.Entry<String, List<String>> answer : answers.entrySet()) {
-      usual.put(answer.getKey(), mostTurned(answer.getValue()));
+      spreads.put(answer.getKey(), spreadOf(answer.getValue()));
     }
-    return usual;
+    return spreads;
   }
 
   /**
@@ -142,14 +162,18 @@ public final class CaseExecutions {
     }
   }
 
-  /** The most turned of a case's answers, newest first, ties going to the more recent. */
-  static String mostTurned(List<String> answers) {
+  /**
+   * A case's answers grouped by what they turn, most turned first, ties going to the more recent.
+   * Each group is spelled as the most recent of its own answers, since a real execution written the
+   * way it was turned is more use than an average nobody performed.
+   */
+  static Spread spreadOf(List<String> answers) {
     Map<String, Integer> counts = new LinkedHashMap<String, Integer>();
     Map<String, String> firstSeen = new LinkedHashMap<String, String>();
     for (String moves : answers) {
       String key = AlgorithmForm.key(moves);
       if (key == null) {
-        continue;
+        continue; // notation nothing can read groups with nothing, not with everything
       }
       Integer count = counts.get(key);
       counts.put(key, Integer.valueOf(count == null ? 1 : count.intValue() + 1));
@@ -157,12 +181,63 @@ public final class CaseExecutions {
         firstSeen.put(key, moves); // the list is newest first, so this is the latest of its group
       }
     }
-    String most = null;
-    for (Map.Entry<String, Integer> count : counts.entrySet()) {
-      if (most == null || count.getValue().intValue() > counts.get(most).intValue()) {
-        most = count.getKey();
-      }
+    if (counts.isEmpty()) {
+      return new Spread(Collections.singletonList(new Turned(answers.get(0), 1)), 1);
     }
-    return most == null ? answers.get(0) : firstSeen.get(most);
+    List<Turned> turned = new ArrayList<Turned>();
+    int of = 0;
+    for (Map.Entry<String, Integer> count : counts.entrySet()) {
+      turned.add(new Turned(firstSeen.get(count.getKey()), count.getValue().intValue()));
+      of += count.getValue().intValue();
+    }
+    Collections.sort(turned, new Comparator<Turned>() {
+      @Override
+      public int compare(Turned one, Turned other) {
+        return other.times - one.times;
+      }
+    });
+    return new Spread(Collections.unmodifiableList(turned), of);
+  }
+
+  /** One thing the solver turns for a case, and how many of the answers looked at it was. */
+  public static final class Turned {
+
+    private final String moves;
+    private final int times;
+
+    Turned(String moves, int times) {
+      this.moves = moves;
+      this.times = times;
+    }
+
+    public String getMoves() {
+      return moves;
+    }
+
+    public int getTimes() {
+      return times;
+    }
+  }
+
+  /** Everything the solver turns for one case, most turned first. */
+  public static final class Spread {
+
+    private final List<Turned> turned;
+    private final int of;
+
+    Spread(List<Turned> turned, int of) {
+      this.turned = turned;
+      this.of = of;
+    }
+
+    /** Never empty: a case with no answer at all has no spread rather than an empty one. */
+    public List<Turned> getTurned() {
+      return turned;
+    }
+
+    /** How many of the case's answers these were counted out of, which is at most five. */
+    public int getOf() {
+      return of;
+    }
   }
 }

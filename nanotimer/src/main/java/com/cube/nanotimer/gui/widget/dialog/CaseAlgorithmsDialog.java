@@ -31,6 +31,7 @@ import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.vo.SolveTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,6 +64,11 @@ import java.util.List;
  * <b>Nothing here is ever written to preferences from an execution</b>: a deliberate tap is the one
  * thing this dialog exists to keep. An execution that is none of the listed algorithms goes above
  * the list as theirs, marked the same way and still stored nowhere.
+ *
+ * <p><b>A case can honestly have two answers</b>, picked by the angle it came up at or by which hand
+ * is free, so every execution their solves hold is shown and each says how many of them it was.
+ * "The one you use" goes to the one they turn most; the rest are still theirs and still marked. The
+ * counts appear only where there is more than one, since "5 of your last 5" is a fact about nothing.
  */
 public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
@@ -77,9 +83,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private String caseCode;
   private String chosen;
   private String own;
-  /** What they turn, in the table's spelling where it is one of the table's algorithms. */
-  private String executed;
-  private Execution execution;
+  /** Everything they turn for the case, most turned first, empty until the solves have been read. */
+  private List<Turned> turned = new ArrayList<Turned>();
   private LinearLayout rows;
   private LinearLayout yours;
   private View yoursLabel;
@@ -137,7 +142,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(List<SolveTime> solves) {
-            final String moves = CaseExecutions.readFrom(solves).get(caseCode);
+            final List<Turned> read = read(CaseExecutions.spreadFrom(solves).get(caseCode));
             Activity activity = getActivity();
             if (activity == null) {
               return;
@@ -148,8 +153,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
                 if (!isAdded()) {
                   return;
                 }
-                executed = CaseExecutions.asAlgorithm(caseCode, moves);
-                execution = LastLayerCaseAlgorithms.read(caseCode, moves);
+                turned = read;
                 refresh();
               }
             });
@@ -158,32 +162,59 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   }
 
   /**
+   * Each execution named the way it will be shown, and read against the algorithms people use. Done
+   * once, off the main thread, since matching an execution walks the case's rows against 24 grips.
+   */
+  private List<Turned> read(CaseExecutions.Spread spread) {
+    List<Turned> read = new ArrayList<Turned>();
+    if (spread == null) {
+      return read;
+    }
+    for (CaseExecutions.Turned one : spread.getTurned()) {
+      read.add(new Turned(CaseExecutions.asAlgorithm(caseCode, one.getMoves()),
+          LastLayerCaseAlgorithms.read(caseCode, one.getMoves()), one.getTimes(), spread.getOf()));
+    }
+    return read;
+  }
+
+  /**
    * The listed algorithms in their own order, and above them what is theirs and not on the list:
-   * an algorithm they typed in, and the one they turn where that is none of the listed ones.
+   * an algorithm they typed in, and every execution of theirs that is none of the listed ones.
    * Nothing here depends on what is chosen or turned: those mark a row, they do not rearrange them.
    */
   private void refresh() {
     rows.removeAllViews();
     yours.removeAllViews();
     List<Algorithm> listed = LastLayerCaseAlgorithms.forCase(caseCode);
-    boolean ownIsListed = false;
-    boolean executedIsListed = false;
+    List<String> shown = new ArrayList<String>();
     for (int i = 0; i < listed.size(); i++) {
       Algorithm algorithm = listed.get(i);
       rows.addView(row(algorithm.getMoves(), algorithm.isRecommended(), i == 0));
-      ownIsListed |= algorithm.getMoves().equals(own);
-      executedIsListed |= algorithm.getMoves().equals(executed);
+      shown.add(algorithm.getMoves());
     }
-    boolean hasOwn = own != null && !ownIsListed;
-    if (hasOwn) {
+    if (own != null && !shown.contains(own)) {
+      shown.add(own);
       yours.addView(row(own, false, false));
     }
-    boolean hasExecuted = executed != null && !executedIsListed && !executed.equals(own);
-    if (hasExecuted) {
-      yours.addView(row(executed, false, false));
+    for (Turned one : turned) {
+      if (!shown.contains(one.moves)) {
+        shown.add(one.moves);
+        yours.addView(row(one.moves, false, false));
+      }
     }
-    yoursLabel.setVisibility(hasOwn || hasExecuted ? View.VISIBLE : View.GONE);
-    yours.setVisibility(hasOwn || hasExecuted ? View.VISIBLE : View.GONE);
+    boolean any = yours.getChildCount() > 0;
+    yoursLabel.setVisibility(any ? View.VISIBLE : View.GONE);
+    yours.setVisibility(any ? View.VISIBLE : View.GONE);
+  }
+
+  /** What the solver turns for this row, or null where this is not one of their executions. */
+  private Turned turnedFor(String moves) {
+    for (Turned one : turned) {
+      if (one.moves.equals(moves)) {
+        return one;
+      }
+    }
+    return null;
   }
 
   /**
@@ -193,8 +224,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    */
   private View row(final String moves, boolean recommended, boolean top) {
     boolean declared = moves.equals(chosen);
-    boolean turned = moves.equals(executed);
-    boolean mine = declared || turned; // theirs either way, said or done
+    Turned one = turnedFor(moves);
+    boolean mine = declared || one != null; // theirs either way, said or done
 
     LinearLayout row = new LinearLayout(getActivity());
     row.setOrientation(LinearLayout.VERTICAL);
@@ -240,11 +271,12 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
     markParams.gravity = Gravity.CENTER_VERTICAL;
     marks.setLayoutParams(markParams);
-    // Only the execution says this: a tap says which one they mean to use, not which one they do.
-    if (turned) {
+    // Only the execution says this, and only the one they turn most: a tap says which one they mean
+    // to use, not which one they do.
+    if (one != null && one == turned.get(0)) {
       marks.addView(chip(R.string.case_algorithm_mine, true));
     }
-    if (turned && execution != null && execution.isUnusual()) {
+    if (one != null && one.execution.isUnusual()) {
       marks.addView(chip(R.string.case_algorithm_unusual, false));
     }
     if (recommended) {
@@ -263,17 +295,21 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       star.setLayoutParams(starParams);
       line.addView(star);
     }
-    if (turned && execution != null && execution.isUnusual() && execution.isLonger()) {
-      row.addView(longer());
+    // How often, only where there is another answer to be compared with.
+    if (one != null && turned.size() > 1) {
+      row.addView(note(getString(R.string.case_algorithm_of_last, one.times, one.of)));
+    }
+    if (one != null && one.execution.isUnusual() && one.execution.isLonger()) {
+      row.addView(note(getString(R.string.case_algorithm_longer, one.execution.getMoves(),
+          one.execution.getUsualMoves())));
     }
     return row;
   }
 
-  /** The half of an unusual execution the solver can do something about: how long it is. */
-  private TextView longer() {
+  /** A line under an algorithm, for what will not fit in a chip. */
+  private TextView note(String text) {
     TextView note = GUIUtils.newTextView(getActivity());
-    note.setText(getString(R.string.case_algorithm_longer, execution.getMoves(),
-        execution.getUsualMoves()));
+    note.setText(text);
     note.setTextSize(12);
     note.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -281,6 +317,22 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     params.topMargin = dp(4);
     note.setLayoutParams(params);
     return note;
+  }
+
+  /** One execution of the case, named the way it is shown and read against the vote table. */
+  private static final class Turned {
+
+    private final String moves;
+    private final Execution execution;
+    private final int times;
+    private final int of;
+
+    Turned(String moves, Execution execution, int times, int of) {
+      this.moves = moves;
+      this.execution = execution;
+      this.times = times;
+      this.of = of;
+    }
   }
 
   private TextView chip(int textResId, boolean accent) {

@@ -75,13 +75,43 @@ public class CaseExecutionsTest {
   public void answersWithWhatIsUsuallyTurnedAndNotWithTheLatest() {
     List<String> answers = Arrays.asList("R U2 R'", "R U R' U'", "U R U R' U' U'");
 
-    assertEquals("R U R' U'", CaseExecutions.mostTurned(answers));
+    assertEquals("R U R' U'", CaseExecutions.spreadOf(answers).getTurned().get(0).getMoves());
   }
 
   /** With nothing to go on twice, the most recent stands: it is at least something they turned. */
   @Test
   public void answersWithTheLatestWhenNothingWasTurnedTwice() {
-    assertEquals("R U2 R'", CaseExecutions.mostTurned(Arrays.asList("R U2 R'", "R U R' U'")));
+    List<String> answers = Arrays.asList("R U2 R'", "R U R' U'");
+
+    assertEquals("R U2 R'", CaseExecutions.spreadOf(answers).getTurned().get(0).getMoves());
+  }
+
+  /**
+   * A solver really can have two answers to one case, picked by the angle it came up at. Both are
+   * kept, most turned first, and each says how many of the answers it was.
+   */
+  @Test
+  public void keepsEveryThingTheSolverTurnsForOneCase() {
+    CaseExecutions.Spread spread = CaseExecutions.spreadOf(
+        Arrays.asList("R U2 R'", "R U R' U'", "U R U R' U' U'", "R U R' U'"));
+
+    assertEquals(2, spread.getTurned().size());
+    assertEquals(4, spread.getOf());
+    assertEquals("R U R' U'", spread.getTurned().get(0).getMoves());
+    assertEquals(3, spread.getTurned().get(0).getTimes());
+    assertEquals("R U2 R'", spread.getTurned().get(1).getMoves());
+    assertEquals(1, spread.getTurned().get(1).getTimes());
+  }
+
+  /** One answer is one answer: nothing to compare it against and nothing to say about a spread. */
+  @Test
+  public void hasOneAnswerForACaseAlwaysTurnedTheSameWay() {
+    CaseExecutions.Spread spread =
+        CaseExecutions.spreadOf(Arrays.asList("R U R' U'", "U R U R' U' U'"));
+
+    assertEquals(1, spread.getTurned().size());
+    assertEquals(2, spread.getOf());
+    assertEquals(2, spread.getTurned().get(0).getTimes());
   }
 
   @Test

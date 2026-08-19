@@ -1014,6 +1014,7 @@
   <string name="case_algorithms_source">Most used first, from SpeedCubeDB community votes. Tap the one you use.</string>
   <string name="case_algorithm_mine">The one you use</string>
   <string name="case_algorithm_unusual">Unusual</string>
+  <string name="case_algorithm_of_last">%1$d of your last %2$d</string>
   <string name="case_algorithm_longer">%1$d moves, the usual one is %2$d</string>
   <string name="case_algorithm_recommended">Recommended</string>
   <string name="case_algorithm_yours">Yours</string>
