@@ -1,5 +1,6 @@
 package com.cube.nanotimer.gui.widget.dialog;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.graphics.Typeface;
@@ -14,16 +15,20 @@ import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 
+import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.CaseExecutions;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
+import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms.Algorithm;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.vo.SolveTime;
 
 import java.util.List;
 
@@ -44,14 +49,30 @@ import java.util.List;
  *
  * <p>An algorithm they typed in is kept whether or not it is the one they are using, so trying a
  * listed one is not a way to lose the work of entering theirs.
+ *
+ * <p><b>What they turn is read out of their own solves and shown beside what they said.</b> The two
+ * are separate facts: the choice is a tap and the execution is their hands, and where they disagree
+ * both are marked rather than one being made to win. <b>Nothing here is ever written to preferences
+ * from an execution</b>, since a deliberate tap is the one thing this dialog exists to keep. So the
+ * mark is filled by the tap where there is one and by the execution where there is none, and an
+ * execution that is none of the listed algorithms goes above the list as theirs, marked the same
+ * way and still stored nowhere.
  */
 public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   private static final String ARG_CASE = "case";
 
+  /**
+   * How many of the case's own solves are read for the moves. Each one is replayed, so this is the
+   * cost of opening the dialog, and it is deep enough to see which execution is the usual one.
+   */
+  private static final int SOLVES_READ = 10;
+
   private String caseCode;
   private String chosen;
   private String own;
+  /** What they turn, in the table's spelling where it is one of the table's algorithms. */
+  private String executed;
   private LinearLayout rows;
   private LinearLayout yours;
   private View yoursLabel;
@@ -89,6 +110,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       }
     });
     refresh();
+    readExecution();
 
     return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
         .setTitle(getString(caseCode.startsWith("oll_") ? R.string.case_title_oll
@@ -99,26 +121,61 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   }
 
   /**
-   * The listed algorithms in their own order, and above them the user's own if they have entered
-   * one that is not already on the list. Nothing here depends on what is currently chosen: a choice
-   * marks a row, it does not rearrange them.
+   * Reads the case out of the solves it came up in, which is a handful rather than the whole
+   * history. The dialog stands and draws without it: it opens on a table that is already in memory,
+   * and the marks arrive when the solves have been cut up.
+   */
+  private void readExecution() {
+    App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(caseCode), SOLVES_READ,
+        new DataCallback<List<SolveTime>>() {
+          @Override
+          public void onData(List<SolveTime> solves) {
+            final String moves = CaseExecutions.readFrom(solves).get(caseCode);
+            Activity activity = getActivity();
+            if (activity == null) {
+              return;
+            }
+            activity.runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                if (!isAdded()) {
+                  return;
+                }
+                executed = CaseExecutions.asAlgorithm(caseCode, moves);
+                refresh();
+              }
+            });
+          }
+        });
+  }
+
+  /**
+   * The listed algorithms in their own order, and above them what is theirs and not on the list:
+   * an algorithm they typed in, and the one they turn where that is none of the listed ones.
+   * Nothing here depends on what is chosen or turned: those mark a row, they do not rearrange them.
    */
   private void refresh() {
     rows.removeAllViews();
     yours.removeAllViews();
     List<Algorithm> listed = LastLayerCaseAlgorithms.forCase(caseCode);
     boolean ownIsListed = false;
+    boolean executedIsListed = false;
     for (int i = 0; i < listed.size(); i++) {
       Algorithm algorithm = listed.get(i);
       rows.addView(row(algorithm.getMoves(), algorithm.isRecommended(), i == 0));
       ownIsListed |= algorithm.getMoves().equals(own);
+      executedIsListed |= algorithm.getMoves().equals(executed);
     }
     boolean hasOwn = own != null && !ownIsListed;
     if (hasOwn) {
       yours.addView(row(own, false, false));
     }
-    yoursLabel.setVisibility(hasOwn ? View.VISIBLE : View.GONE);
-    yours.setVisibility(hasOwn ? View.VISIBLE : View.GONE);
+    boolean hasExecuted = executed != null && !executedIsListed && !executed.equals(own);
+    if (hasExecuted) {
+      yours.addView(row(executed, false, false));
+    }
+    yoursLabel.setVisibility(hasOwn || hasExecuted ? View.VISIBLE : View.GONE);
+    yours.setVisibility(hasOwn || hasExecuted ? View.VISIBLE : View.GONE);
   }
 
   /**
@@ -127,10 +184,13 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    * content of the list.
    */
   private View row(final String moves, boolean recommended, boolean top) {
-    boolean mine = moves.equals(chosen);
+    boolean declared = moves.equals(chosen);
+    boolean turned = moves.equals(executed);
+    // The mark is filled by the tap where there is one and by the execution where there is not.
+    boolean mine = declared || (chosen == null && turned);
 
     LinearLayout row = new LinearLayout(getActivity());
-    row.setOrientation(LinearLayout.HORIZONTAL);
+    row.setOrientation(LinearLayout.VERTICAL);
     row.setPadding(dp(10), dp(9), dp(10), dp(9));
     row.setBackgroundResource(mine ? R.drawable.case_alg_mine : R.drawable.case_alg);
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -145,6 +205,12 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       }
     });
 
+    LinearLayout line = new LinearLayout(getActivity());
+    line.setOrientation(LinearLayout.HORIZONTAL);
+    line.setLayoutParams(new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+    row.addView(line);
+
     TextView notation = GUIUtils.newTextView(getActivity());
     notation.setText(moves);
     notation.setTextSize(top ? 16 : 15);
@@ -154,11 +220,11 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     if (top) {
       GUIUtils.setWeight(notation, Typeface.BOLD);
     }
-    row.addView(notation);
+    line.addView(notation);
 
-    // Marks rather than labels, and both when both apply: a choice does not stop an algorithm being
-    // the recommended one, and watching that word disappear on being tapped reads as having broken
-    // something.
+    // Marks rather than labels, and all of them when they all apply: a choice does not stop an
+    // algorithm being the recommended one, and watching that word disappear on being tapped reads
+    // as having broken something.
     LinearLayout marks = new LinearLayout(getActivity());
     marks.setOrientation(LinearLayout.VERTICAL);
     marks.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
@@ -167,13 +233,17 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
     markParams.gravity = Gravity.CENTER_VERTICAL;
     marks.setLayoutParams(markParams);
-    if (mine) {
+    if (declared) {
       marks.addView(chip(R.string.case_algorithm_mine, true));
+    }
+    // Said only where it is not already the row they tapped: a disagreement is what there is to show.
+    if (turned && !declared) {
+      marks.addView(chip(R.string.case_algorithm_turned, mine));
     }
     if (recommended) {
       marks.addView(chip(R.string.case_algorithm_recommended, false));
     }
-    row.addView(marks);
+    line.addView(marks);
 
     if (mine) {
       TextView star = GUIUtils.newTextView(getActivity());
@@ -184,7 +254,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       starParams.gravity = Gravity.CENTER_VERTICAL;
       starParams.leftMargin = dp(6);
       star.setLayoutParams(starParams);
-      row.addView(star);
+      line.addView(star);
     }
     return row;
   }

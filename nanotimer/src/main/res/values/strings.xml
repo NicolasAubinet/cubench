@@ -1013,6 +1013,7 @@
   <string name="case_algorithms">Algorithms</string>
   <string name="case_algorithms_source">Most used first, from SpeedCubeDB community votes. Tap the one you use.</string>
   <string name="case_algorithm_mine">The one you use</string>
+  <string name="case_algorithm_turned">What you turn</string>
   <string name="case_algorithm_recommended">Recommended</string>
   <string name="case_algorithm_yours">Yours</string>
   <string name="case_algorithm_add">Use your own algorithm</string>
