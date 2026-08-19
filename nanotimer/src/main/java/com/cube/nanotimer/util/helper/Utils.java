@@ -31,8 +31,10 @@ public class Utils {
   private static final String PAIR_CODE_PREFIX = "pair_";
   /** The steps whose code carries the last-layer case they were left with ("pll_jb", "oll_21"). */
   private static final String[] CASE_CODE_PREFIXES = { "oll_", "pll_" };
-  /** A PLL part: the algorithm that was run, named by the case it solves ("alg_jb"). */
-  private static final String ALGORITHM_CODE_PREFIX = "alg_";
+  /** The parts of a last layer step: the algorithms that were run, each named by the case it solves
+   * ("alg_jb" for a PLL, "ollalg_45" for an OLL). */
+  private static final String PERMUTATION_ALGORITHM_PREFIX = "alg_";
+  private static final String ORIENTATION_ALGORITHM_PREFIX = "ollalg_";
   private static final String SKIPPED_CASE = "skip";
   private static final String FLIP_CODE_PREFIX = "flip:", TWIST_CODE_PREFIX = "twist:";
   private static final String MEMO_CODE = "memo";
@@ -159,9 +161,13 @@ public class Utils {
     if (turn != null) {
       return turn;
     }
-    if (code != null && code.startsWith(ALGORITHM_CODE_PREFIX)) {
+    if (code != null && code.startsWith(ORIENTATION_ALGORITHM_PREFIX)) {
+      return context.getString(R.string.smartcube_step_oll_alg,
+          code.substring(ORIENTATION_ALGORITHM_PREFIX.length()));
+    }
+    if (code != null && code.startsWith(PERMUTATION_ALGORITHM_PREFIX)) {
       return context.getString(R.string.smartcube_step_alg,
-          capitalized(code.substring(ALGORITHM_CODE_PREFIX.length())));
+          capitalized(code.substring(PERMUTATION_ALGORITHM_PREFIX.length())));
     }
     int resId = getStringIdentifier(context, "smartcube_step_" + toSmartCubeStepBaseCode(code));
     return resId == 0 ? code : context.getString(resId, position + 1);
@@ -245,6 +251,12 @@ public class Utils {
     return null;
   }
 
+  /** The algorithm a last layer step was answered with, rather than the case it was handed. */
+  private static boolean isAlgorithmCode(String code) {
+    return code.startsWith(PERMUTATION_ALGORITHM_PREFIX)
+        || code.startsWith(ORIENTATION_ALGORITHM_PREFIX);
+  }
+
   /** A case is written the way a speedcuber writes it: Ub, Ga, T. */
   private static String capitalized(String caseName) {
     return caseName.isEmpty() ? caseName
@@ -259,6 +271,9 @@ public class Utils {
   public static String toSmartCubeCaseHeadline(Context context, String code) {
     if (code == null) {
       return null;
+    }
+    if (isAlgorithmCode(code)) {
+      return toSmartCubeStepLocalizedName(context, code, 0); // already names its own case
     }
     int split = code.indexOf('_');
     String name = split < 0 ? code : code.substring(split + 1);

@@ -139,13 +139,30 @@ final class LastLayerCases {
    * where those same turns send any pieces; undone and made from a solved cube, it leaves the state
    * the algorithm takes to solved. Null when what was done is not a last-layer permutation at all.
    */
-  static String algorithm(String before, String after, int crossFace) {
+  static String permutationAlgorithm(String before, String after, int crossFace) {
+    return permutation(solvedBy(before, after), crossFace);
+  }
+
+  /**
+   * The OLL an algorithm <em>was</em>, the same reading {@link #permutationAlgorithm} gives a PLL:
+   * the case it would have oriented.
+   *
+   * <p>It names a case rather than a state because turning moves stickers, so which places show the
+   * last layer's colour afterwards depends only on which showed it before — an algorithm orients the
+   * same case whatever permutation the layer happened to be in when it was fired.
+   */
+  static String orientationAlgorithm(String before, String after, int crossFace) {
+    return orientation(solvedBy(before, after), crossFace);
+  }
+
+  /** The state the turns between the two would take to solved: what they did, undone from solved. */
+  private static String solvedBy(String before, String after) {
     int[] motion = Cubies.motionBetween(before, after);
     int[] undone = new int[motion.length];
     for (int facelet = 0; facelet < motion.length; facelet++) {
       undone[motion[facelet]] = facelet;
     }
-    return permutation(Cubies.applyMotion(undone, Cubies.SOLVED), crossFace);
+    return Cubies.applyMotion(undone, Cubies.SOLVED);
   }
 
   /** The key a state's orientation reduces to, or null when the last layer cannot be read. */

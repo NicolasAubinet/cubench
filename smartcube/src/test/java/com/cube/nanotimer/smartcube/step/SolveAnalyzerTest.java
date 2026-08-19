@@ -152,9 +152,9 @@ public class SolveAnalyzerTest {
 
     StepTime oll = stepTimes().get(2);
     assertEquals(2, oll.getSubSteps().size());
-    assertEquals("edges", oll.getSubSteps().get(0).getStepName());
+    assertEquals("ollalg_45", oll.getSubSteps().get(0).getStepName());
     assertEquals(600, oll.getSubSteps().get(0).getRecognitionMs());
-    assertEquals("corners", oll.getSubSteps().get(1).getStepName());
+    assertEquals("ollalg_26", oll.getSubSteps().get(1).getStepName());
     assertEquals(900, oll.getSubSteps().get(1).getRecognitionMs());
     assertEquals(600 + 900, oll.getRecognitionMs()); // both pauses, not just the first
   }

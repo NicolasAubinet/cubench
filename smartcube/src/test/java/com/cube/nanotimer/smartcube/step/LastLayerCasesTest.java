@@ -186,24 +186,24 @@ public class LastLayerCasesTest {
     String uaAlg = LastLayerAlgorithms.algorithm(PLL, "ua");
     String ubAlg = LastLayerAlgorithms.algorithm(PLL, "ub");
 
-    assertEquals("ua", LastLayerCases.algorithm(ua, Notation.apply(ua, uaAlg), CROSS));
+    assertEquals("ua", LastLayerCases.permutationAlgorithm(ua, Notation.apply(ua, uaAlg), CROSS));
 
     // The two U perms are each other's mirror, and the likeliest pair to be misread for one another:
     // answering a Ua with the Ub algorithm leaves a Ub, and names the algorithm that was run.
     String misfired = Notation.apply(ua, ubAlg);
-    assertEquals("ub", LastLayerCases.algorithm(ua, misfired, CROSS));
+    assertEquals("ub", LastLayerCases.permutationAlgorithm(ua, misfired, CROSS));
     assertEquals("ub", LastLayerCases.permutation(misfired, CROSS));
-    assertEquals("ub", LastLayerCases.algorithm(misfired, Notation.apply(misfired, ubAlg), CROSS));
+    assertEquals("ub", LastLayerCases.permutationAlgorithm(misfired, Notation.apply(misfired, ubAlg), CROSS));
   }
 
   @Test
   public void readsNoAlgorithmWhereTheCaseWasLeftStanding() {
     String ua = Notation.caseState(LastLayerAlgorithms.algorithm(PLL, "ua"));
     for (String auf : new String[] {"U", "U2", "U'"}) {
-      assertEquals(auf, LastLayerCases.SKIP, LastLayerCases.algorithm(ua, Notation.apply(ua, auf), CROSS));
+      assertEquals(auf, LastLayerCases.SKIP, LastLayerCases.permutationAlgorithm(ua, Notation.apply(ua, auf), CROSS));
     }
     String taken = Notation.apply(ua, "R U R' U' R U R' U' R U R' U' R U R' U' R U R' U' R U R' U'");
-    assertEquals(LastLayerCases.SKIP, LastLayerCases.algorithm(ua, taken, CROSS));
+    assertEquals(LastLayerCases.SKIP, LastLayerCases.permutationAlgorithm(ua, taken, CROSS));
   }
 
   @Test
