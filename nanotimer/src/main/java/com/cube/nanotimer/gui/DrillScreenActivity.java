@@ -1,5 +1,6 @@
 package com.cube.nanotimer.gui;
 
+import android.content.res.ColorStateList;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -393,31 +394,42 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   private static final long PAST_REP_FADE_MS = 200;
 
   /**
-   * The rep that has just ended.
+   * The rep that has just ended, with the figure in whichever ink the drill scores it in.
    *
    * @param name what it was, or null where the drill deals nothing with a name
-   * @param nameColorRes the family colour that name carries everywhere else
+   * @param nameColorRes the family colour that name carries everywhere else, or the verdict's
    * @param value the figure it is scored on, set as the thing the eye lands on
+   * @param valueColorRes the ink for that figure
    * @param quiet true for a rep with no figure, which is said rather than announced
    * @param sub what the figure is made of, or null
    */
-  protected void setLastRep(CharSequence name, int nameColorRes, CharSequence value, boolean quiet,
-      CharSequence sub) {
+  protected void setLastRep(CharSequence name, int nameColorRes, CharSequence value,
+      int valueColorRes, boolean quiet, CharSequence sub) {
     findViewById(R.id.llDrillLastRep).setAlpha(1f);
     TextView tvName = findViewById(R.id.tvDrillLastRepName);
     tvName.setText(name);
     tvName.setVisibility(name == null ? View.GONE : View.VISIBLE);
     if (name != null) {
-      tvName.setTextColor(ContextCompat.getColor(this, nameColorRes));
+      int colour = ContextCompat.getColor(this, nameColorRes);
+      tvName.setTextColor(colour);
+      // For a drill that puts a pill behind the name; on one whose name is bare text this tints
+      // nothing, which is how the case drill's own families keep looking like plain labels.
+      tvName.setBackgroundTintList(ColorStateList.valueOf(colour));
     }
     TextView tvValue = findViewById(R.id.tvDrillLastRep);
     tvValue.setText(value);
     tvValue.setTextSize(TypedValue.COMPLEX_UNIT_SP, quiet ? REP_VALUE_QUIET_SP : REP_VALUE_SP);
-    tvValue.setTextColor(ContextCompat.getColor(this,
-        quiet ? R.color.secondary_text : R.color.white));
+    tvValue.setTextColor(ContextCompat.getColor(this, valueColorRes));
     TextView tvSub = findViewById(R.id.tvDrillLastRepSplit);
     tvSub.setText(sub);
     tvSub.setVisibility(sub == null ? View.GONE : View.VISIBLE);
+  }
+
+  /** The same, for a drill that scores every rep in the one ink. */
+  protected void setLastRep(CharSequence name, int nameColorRes, CharSequence value, boolean quiet,
+      CharSequence sub) {
+    setLastRep(name, nameColorRes, value, quiet ? R.color.secondary_text : R.color.white, quiet,
+        sub);
   }
 
   /** Nothing to say about a rep that is over, because the one being worked is not it. */

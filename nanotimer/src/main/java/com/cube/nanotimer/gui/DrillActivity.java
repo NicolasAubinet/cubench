@@ -61,7 +61,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    * care either way, since recognition runs from when the next case is <em>shown</em>, so the hold
    * is charged to nobody.
    */
-  private static final long REP_HOLD_MS = DrillRepFlourish.BEAT_MS;
+  private static final long REP_HOLD_MS = DrillRepFlourish.PLAY_BEAT_MS;
 
   /** The family a case belongs to, which is the colour its name is written in everywhere. */
   private static final String FAMILY_OLL = "oll_";

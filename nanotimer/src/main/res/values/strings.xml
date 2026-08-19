@@ -1023,8 +1023,9 @@
   <string name="drill_cross_moves">%d moves</string>
   <string name="drill_cross_not_yet">%d moves, and that is not a cross yet</string>
   <string name="drill_cross_rep_moves">%d moves</string>
-  <string name="drill_cross_rep_shortest">the shortest there was</string>
-  <string name="drill_cross_rep_way_in">there was a way in %d</string>
+  <string name="drill_cross_verdict_optimal">Optimal</string>
+  <string name="drill_cross_verdict_extra">%d extra</string>
+  <string name="drill_cross_badge_optimal">Optimal cross</string>
   <string name="drill_cross_rep_missed">That was not the cross</string>
   <string name="drill_cross_summary_optimal">%1$d of %2$d found the shortest way</string>
   <string name="drill_cross_summary_none_built">No cross was built</string>

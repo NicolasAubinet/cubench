@@ -985,8 +985,9 @@
   <string name="drill_cross_moves">%d movimentos</string>
   <string name="drill_cross_not_yet">%d movimentos, e ainda não é uma cruz</string>
   <string name="drill_cross_rep_moves">%d movimentos</string>
-  <string name="drill_cross_rep_shortest">o mais curto que havia</string>
-  <string name="drill_cross_rep_way_in">havia uma forma em %d</string>
+  <string name="drill_cross_verdict_optimal">Ótimo</string>
+  <string name="drill_cross_verdict_extra">%d a mais</string>
+  <string name="drill_cross_badge_optimal">Cruz ótima</string>
   <string name="drill_cross_rep_missed">Isso não era a cruz</string>
   <string name="drill_cross_summary_optimal">%1$d de %2$d encontraram a forma mais curta</string>
   <string name="drill_cross_summary_none_built">Nenhuma cruz foi terminada</string>

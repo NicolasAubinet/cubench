@@ -82,6 +82,29 @@
        android:background="@drawable/drill_rep_wash"
        android:visibility="gone"/>
 
+    <!-- The one thing this drill exists to produce, said so it cannot be missed: that cross could
+         not have been built in fewer moves. Over the cube, where the eye already is, and gone again
+         in a second, since what it covers is the cross the user has just built. -->
+    <TextView
+       android:id="@+id/tvDrillCrossBadge"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_gravity="center"
+       android:background="@drawable/smart_cube_pill"
+       android:backgroundTint="@color/green_soft"
+       android:drawableLeft="@drawable/ic_optimal_check"
+       android:drawablePadding="7dp"
+       android:gravity="center_vertical"
+       android:paddingLeft="16dp"
+       android:paddingRight="18dp"
+       android:paddingTop="9dp"
+       android:paddingBottom="9dp"
+       android:fontFamily="@font/roboto_medium"
+       android:textColor="@color/on_accent"
+       android:textSize="18sp"
+       android:text="@string/drill_cross_badge_optimal"
+       android:visibility="gone"/>
+
     <include layout="@layout/drill_gyro_chip"/>
 
   </FrameLayout>
@@ -151,7 +174,10 @@
              lasts, which is most of the time. What it would have cost is a cube that changes size
              when a rep ends, and the cube is drawn to its well whatever size that is.
 
-             The name slot the case drill uses stays empty here: a scramble has no name to give. -->
+             The name slot the case drill fills with a case name carries the verdict here, since a
+             scramble has no name of its own to give: whether that was the shortest cross there was,
+             and if not by how much. The count and the verdict together say what the optimum was, so
+             it is not said a third time in a line of its own. -->
         <LinearLayout
            android:id="@+id/llDrillLastRep"
            android:layout_width="match_parent"
@@ -160,11 +186,19 @@
            android:gravity="center"
            android:orientation="horizontal">
 
+          <!-- A tinted pill, which is how the app says a verdict everywhere else. The pill is here
+               rather than in the shared row because the case drill's own name slot is a plain
+               label. -->
           <TextView
              android:id="@+id/tvDrillLastRepName"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:layout_marginRight="8dp"
+             android:background="@drawable/tinted_pill"
+             android:paddingLeft="10dp"
+             android:paddingRight="10dp"
+             android:paddingTop="2dp"
+             android:paddingBottom="2dp"
              android:letterSpacing="0.02"
              android:fontFamily="@font/roboto_medium"
              android:textSize="13sp"/>

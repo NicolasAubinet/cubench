@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The mark on the badge a cross that could not have been shorter gets. The ink is drawn in rather
+     than tinted at the call site: drawableTint does not reach the oldest devices the app runs on. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+   android:width="19dp"
+   android:height="19dp"
+   android:viewportWidth="24"
+   android:viewportHeight="24">
+  <path
+     android:fillColor="@color/on_accent"
+     android:pathData="M9.55,17.4 L4.2,12.05 L5.95,10.3 L9.55,13.9 L18.05,5.4 L19.8,7.15 Z"/>
+</vector>

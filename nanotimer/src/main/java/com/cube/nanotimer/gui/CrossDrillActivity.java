@@ -49,11 +49,33 @@ import java.util.List;
  * that found the short way, and what is said is that there was a shorter one. The search runs the
  * moment the scramble is drawn, on a background thread, so the solutions are waiting by the time
  * anyone asks for them.
+ *
+ * <p><b>The three finishes have to be told apart without being read.</b> A cross built in the fewest
+ * moves there were is the whole point of the drill, and for as long as it was scored in one grey line
+ * of small print it looked like the two finishes that are not that. So each has a beat of its own
+ * over the cube, loud, quiet and none, and a verdict of its own beside the count. What the beat says
+ * the {@link Verdict} decides; how it says it is {@link DrillRepFlourish}'s business.
  */
 public class CrossDrillActivity extends DrillScreenActivity {
 
   /** The drill to run, as its JSON text. */
   public static final String EXTRA_SPEC = "drillSpec";
+
+  /**
+   * What a finished rep came to. Named as one thing because the screen has to say it in three places
+   * at once and they must not be able to disagree: the beat over the cube, the verdict beside the
+   * count, and the badge.
+   */
+  private enum Verdict {
+    /** Announced finished with the cross not there, which is the only way a wrong one ends. */
+    MISSED,
+    /** Built, and there was no shorter way. What the drill is for. */
+    OPTIMAL,
+    /** Built, and there was a shorter way. A finish, and not the one that was being practised. */
+    LONGER,
+    /** Built, and the search that says which of the two it was has not landed yet. */
+    UNSCORED
+  }
 
   /**
    * How long the user may stop turning, mid-rep, before the screen says what it can see. Long
@@ -98,6 +120,21 @@ public class CrossDrillActivity extends DrillScreenActivity {
   private Button btDone;
   private CrossSolutionPanel panel;
   private View repWash;
+  private View repBadge;
+
+  /**
+   * The verdict the beat on screen was played for, or null before there has been one. A search that
+   * lands after its own rep turns an unscored finish into a scored one, and the beat that is owed
+   * has to be able to tell that from a beat it has already played.
+   */
+  private Verdict beatPlayed;
+
+  /**
+   * Whether the cube has been turned since the rep ended. The ways are walked on the same cube the
+   * beat washes over, so a beat that arrives late has to give way: covering the moves the user has
+   * just asked to be shown is worse than not celebrating at all.
+   */
+  private boolean exploring;
 
   /** Between reps: the cube stands finished and the button takes the next scramble. */
   private boolean betweenReps;
@@ -113,6 +150,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     btDone = findViewById(R.id.btDrillCrossDone);
     panel = findViewById(R.id.crossSolutionPanel);
     repWash = findViewById(R.id.drillRepWash);
+    repBadge = findViewById(R.id.tvDrillCrossBadge);
 
     btDone.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -173,7 +211,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
   protected void onDestroy() {
     super.onDestroy();
     handler.removeCallbacksAndMessages(null);
-    DrillRepFlourish.cancel(repWash, lastRepRow);
+    DrillRepFlourish.cancel(repWash, lastRepRow, repBadge);
   }
 
   @Override
@@ -202,6 +240,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     // The rep is over but the cube is still theirs to turn: this is where they try the short way,
     // or find out what their own extra move did. Nothing is timed and nothing is scored.
     if (!session.isRunning()) {
+      exploring = true;
       cube.addMove(move.getNotation());
       session.explore(move);
       panel.onCubeTurned(move.getNotation()); // walks the shown way when it is the next move of it
@@ -244,11 +283,11 @@ public class CrossDrillActivity extends DrillScreenActivity {
     // drill was about, whether it was found the short way or the long one, and the four edges stay
     // lit through whatever is turned next so their own extra move can be seen undoing it.
     cube.setStickering(CubeStickering.crossAndCentres(session.getCrossEdges()));
-    if (rep.isBuilt()) {
-      DrillRepFlourish.play(repWash, lastRepRow);
-    }
     panel.setYourMoves(session.getFoldedMoves()); // including the move that ended the rep
     showLastRep(rep);
+    // Before the ways go up rather than after: the beat reads the rep, and nothing it reads should
+    // be able to change because of what putting a solution on screen happens to do.
+    playRepBeat(rep);
     showBetweenReps(rep);
     btDone.setText(R.string.drill_cross_next);
   }
@@ -276,6 +315,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
    * going grey just took away.
    */
   private void backToStart() {
+    exploring = true;
     session.resetToStart();
     cube.setState(CubePatternFormat.format(session.getFacelets()));
   }
@@ -289,6 +329,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
    * mirrored, and nobody's hands are waiting for it.
    */
   private void turnExploring(String notation) {
+    exploring = true;
     cube.addMove(notation, notation.endsWith("2") ? STEP_HALF_TURN_MS : STEP_TURN_MS);
     for (String quarter : CrossSolutionPanel.quartersOf(notation)) {
       session.explore(new CubeMove(Face.valueOf(quarter.substring(0, 1)),
@@ -313,6 +354,9 @@ public class CrossDrillActivity extends DrillScreenActivity {
   private void nextRep() {
     betweenReps = false;
     solutions = null;
+    beatPlayed = null;
+    exploring = false;
+    DrillRepFlourish.cancel(repWash, lastRepRow, repBadge); // a beat cut short by a quick Next
     // The verdict belonged to the cross that is over. Left up, "That was not the cross" reads as a
     // verdict on the scramble about to be dealt.
     clearLastRep();
@@ -408,8 +452,10 @@ public class CrossDrillActivity extends DrillScreenActivity {
               // is the row it belongs in.
               recorder.setLastOptimalLength(found.length);
               List<CrossDrillRep> reps = session.getReps();
-              showLastRep(reps.get(reps.size() - 1));
-              showBetweenReps(reps.get(reps.size() - 1));
+              CrossDrillRep last = reps.get(reps.size() - 1);
+              showLastRep(last);
+              playRepBeat(last); // which only has anything left to play if it turns out to be the best
+              showBetweenReps(last);
             }
           }
         });
@@ -479,20 +525,60 @@ public class CrossDrillActivity extends DrillScreenActivity {
     tvStatus.setText(text);
   }
 
-  /** The rep that has just ended, scored on its moves against the fewest there were. */
-  private void showLastRep(CrossDrillRep rep) {
+  private static Verdict verdictOf(CrossDrillRep rep) {
     if (!rep.isBuilt()) {
-      // Stood down rather than announced: there is no move count to read, only a verdict.
-      setLastRep(null, 0, getString(R.string.drill_cross_rep_missed), true, null);
+      return Verdict.MISSED;
+    }
+    if (rep.getOptimalLength() <= 0) {
+      return Verdict.UNSCORED;
+    }
+    return rep.getExtraMoves() == 0 ? Verdict.OPTIMAL : Verdict.LONGER;
+  }
+
+  /**
+   * The beat the rep gets over the cube: the loud one for a cross that could not have been shorter,
+   * the quiet one for a cross that could, and none at all for a cross that was not there.
+   *
+   * <p>An unscored finish takes the quiet beat and can still be celebrated later. Nothing here moves
+   * on by itself, so a search landing after its own rep can pay what it turns out to owe, and the
+   * quiet beat it already had is not replayed for the same finish twice. What it may not do is
+   * celebrate over a cube the user has since started turning: by then the screen is showing them
+   * something they asked for, and a wash over it is in the way.
+   */
+  private void playRepBeat(CrossDrillRep rep) {
+    Verdict verdict = verdictOf(rep);
+    if (verdict == Verdict.OPTIMAL && beatPlayed != Verdict.OPTIMAL && !exploring) {
+      DrillRepFlourish.celebrate(repWash, lastRepRow, repBadge);
+    } else if (beatPlayed == null && verdict != Verdict.MISSED) {
+      DrillRepFlourish.playQuietly(repWash, lastRepRow);
+    }
+    beatPlayed = verdict;
+  }
+
+  /**
+   * The rep that has just ended: what it cost in moves, and the verdict on that count. The two of
+   * them say what the shortest way was, so it is not spelled out a third time beside them.
+   */
+  private void showLastRep(CrossDrillRep rep) {
+    Verdict verdict = verdictOf(rep);
+    if (verdict == Verdict.MISSED) {
+      // Stood down rather than announced, and in the ink of a miss: there is no move count to read
+      // here, only a verdict. The moves went somewhere else.
+      setLastRep(null, 0, getString(R.string.drill_cross_rep_missed), R.color.danger_text, true,
+          null);
       return;
     }
     String moves = getString(R.string.drill_cross_rep_moves, rep.getMoveCount());
-    String against = null;
-    if (rep.getOptimalLength() > 0) {
-      against = rep.getExtraMoves() == 0 ? getString(R.string.drill_cross_rep_shortest)
-          : getString(R.string.drill_cross_rep_way_in, rep.getOptimalLength());
+    if (verdict == Verdict.UNSCORED) {
+      setLastRep(null, 0, moves, R.color.white, false, null);
+      return;
     }
-    setLastRep(null, 0, moves, false, against);
+    boolean optimal = verdict == Verdict.OPTIMAL;
+    setLastRep(
+        optimal ? getString(R.string.drill_cross_verdict_optimal)
+            : getString(R.string.drill_cross_verdict_extra, rep.getExtraMoves()),
+        optimal ? R.color.green_soft : R.color.warning,
+        moves, optimal ? R.color.green_soft : R.color.white, false, null);
   }
 
   @Override
