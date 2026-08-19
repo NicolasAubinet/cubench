@@ -10,9 +10,9 @@ import com.cube.nanotimer.smartcube.model.Face;
 import org.junit.Test;
 
 /**
- * The detector against a layer-by-layer solve recorded off a cube, replayed from its scramble and
- * stored moves. The synthetic fixtures next door are textbook algorithms played end to end; this
- * one is a beginner solving at their own pace, and the rules about which states count came from it.
+ * The detector against layer-by-layer solves recorded off a cube, replayed from their scramble and
+ * stored moves. The synthetic fixtures next door are textbook algorithms played end to end; these
+ * are a beginner solving at their own pace, and the rules about which states count came from them.
  *
  * <p>Read from the states the moves passed through it came out as no method at all. Its pieces flit
  * through home constantly — the corner insertion at 14.2s carries the DL edge into its slot on the
@@ -44,6 +44,29 @@ public class RecordedLblSolveTest {
           + "R'@46679 y@47247 D@47247 R@47390 y'@48737 x'@48737 L'@48737 B@48937 L@49012 F@49170 "
           + "L'@49334 B'@49589 L@49734 F@49982 L'@50123 B@50185 L@50335 F@50469 F@50649 L'@50839 "
           + "B'@51065 L@51205";
+
+  /** A second solve of the same session: the same reading missed the last of its middle edges. */
+  private static final String SCRAMBLE_2 =
+      "D R2 D2 R2 U F2 L2 D L2 B2 R' F' U L U2 B' F2 R2 F L2 U";
+
+  private static final String MOVES_2 =
+      "[y z'] y@0 z'@0 B@0 z'@705 R@705 z@1012 D@1012 y'@1595 R'@1595 y@1771 x@1771 R'@1771 "
+          + "z2@2605 R'@2605 F'@2895 y'@3297 z@3297 F'@3297 y@3926 x'@3926 L@3926 L@3971 R@4406 "
+          + "L'@5637 y@5795 z'@5795 F@5795 L@6074 y'@6804 U'@6804 y@6969 F@6969 y'@7216 U@7216 "
+          + "z@8656 F'@8657 z@9230 F@9230 z'@9627 R@9627 F'@10036 x@10431 R'@10432 y'@11131 "
+          + "z'@11131 U@11131 F@11362 U'@11433 F'@11686 z@12019 B@12019 L@12356 F'@12396 "
+          + "L'@12485 z@12797 B@12798 B@15154 F'@16463 z@16800 D'@16800 F@17042 z@17322 D@17322 "
+          + "y@17736 z'@17736 B@17736 y'@18998 x@18998 B'@18998 B'@19077 z2@19720 F@19720 "
+          + "F@19860 F@20988 D@21305 F'@21369 D'@21418 z'@21767 B'@21768 B'@21889 R'@23886 "
+          + "F@24162 y2@24725 R@24725 x'@25735 R@25736 U'@26042 x@26379 R'@26380 U@26557 "
+          + "y2@27785 z@27785 R@27785 F@28073 R@28318 F@28612 R@28930 F'@29090 y'@29417 R'@29417 "
+          + "F'@29750 R'@30324 y@31402 x2@31402 R@31402 x'@31753 F@31753 U@31847 F'@31928 "
+          + "U'@32077 x@32347 R'@32348 F@34115 z@36960 R@36960 F@37077 R'@37142 F@37383 R@37553 "
+          + "F'@37653 R'@37835 F@37936 R@38128 F'@38192 F'@38604 R'@38985 z@40694 U@40694 "
+          + "F'@40784 D'@42560 F@42673 U'@42939 F'@43103 D@44181 F@44784 z'@45665 R'@45665 "
+          + "B@45853 R@46072 F@46239 F@46404 R'@46584 B'@46824 R@46959 F@47149 F@47318 R'@47477 "
+          + "B@47560 R@47699 F'@47765 R'@47915 B'@48534 R@48697 F@48893 F@49072 R'@49210 B@49279 "
+          + "R@49444 F@49514 F@49661 R'@49844 B'@50114 R@50199 F@51564";
 
   private final CubieCube cube = new CubieCube();
   private final LblStepDetector detector = new LblStepDetector();
@@ -122,15 +145,54 @@ public class RecordedLblSolveTest {
     assertEquals(51205L, (long) detector.getStepTimestampMs(5));
   }
 
+  /**
+   * The last of the second layer's edges goes in nine moves after the corner before it, and the
+   * first reading had it home already — carried through its slot by that corner's insertion. The
+   * second layer's last step was then a step of no moves at all, and the nine moves that really
+   * inserted the edge fell into the last layer, where they read as the longest edge orientation of
+   * the solve. One flicker, and two steps wrong at once.
+   */
+  @Test
+  public void keepsTheMovesThatInsertedAnEdgeInTheLayerTheyBelongTo() {
+    replay(SCRAMBLE_2, MOVES_2);
+
+    assertEquals("layer2", detector.stepName(4));
+    assertEquals("edge_ur", detector.subStepName(4, 0));
+    assertEquals(30324L, (long) detector.getSubStepTimestampMs(4, 0));
+    assertEquals(32348L, (long) detector.getSubStepTimestampMs(5, 0)); // and the last layer's own
+  }
+
+  /**
+   * This solve permutes its last layer's edges before orienting the corners, and the algorithm it
+   * then turns for the corners leaves the layer a turn off. There the edges are placed by one turn
+   * and the corners by another, which is an H perm and a diagonal swap read from either end — the
+   * same state, and nothing to choose between them.
+   *
+   * <p>So the edges are unproven there rather than undone, and the six seconds the solver spent
+   * permuting them stay theirs. Read as undone they were dated at the turn that squared the layer
+   * up again, and the algorithm that did the work was counted into orienting the corners.
+   */
+  @Test
+  public void keepsAPermutationAStateCannotDisprove() {
+    replay(SCRAMBLE_2, MOVES_2);
+
+    assertEquals(38985L, (long) detector.getSubStepTimestampMs(5, 3)); // llep
+    assertEquals(44181L, (long) detector.getSubStepTimestampMs(5, 1)); // llco, after it
+  }
+
   private void replay() {
-    for (String token : SCRAMBLE.trim().split("\\s+")) {
+    replay(SCRAMBLE, MOVES);
+  }
+
+  private void replay(String scramble, String moves) {
+    for (String token : scramble.trim().split("\\s+")) {
       Face face = Face.valueOf(token.substring(0, 1));
       for (int i = 0; i < (token.endsWith("2") ? 2 : 1); i++) {
         cube.applyMove(face, token.endsWith("'"));
       }
     }
     detector.reset(new CubeState(cube.toFaceCube()), 0);
-    for (String token : MOVES.trim().split("\\s+")) {
+    for (String token : moves.trim().split("\\s+")) {
       int at = token.indexOf('@');
       if (at < 0) {
         continue; // the grip, which has no offset and turns nothing

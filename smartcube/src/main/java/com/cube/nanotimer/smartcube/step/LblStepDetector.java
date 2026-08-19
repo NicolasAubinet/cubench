@@ -46,7 +46,11 @@ import java.util.Locale;
  * <p>A part is dated where it was reached <b>for good</b>, unlike a piece of the layers: the corners
  * come out of the first two layers already permuted once in six, and the algorithm the solver then
  * turns for the edges takes that apart again. So a part goes back to undated where a settled state
- * has lost it, and the time it keeps is the one it was last reached at.
+ * has lost it — but <em>lost</em> means no turn would place them at all. A permutation some turn
+ * would place, contradicted only by what the other kind of piece claims, is unproven rather than
+ * undone: the layer left a turn off after an algorithm cannot tell an H perm from a diagonal swap,
+ * and the two are the same state read from either end. An unproven permutation takes nothing back,
+ * and the turn the solver squares the layer up with proves it again.
  */
 public final class LblStepDetector implements StepDetector {
 
@@ -238,11 +242,12 @@ public final class LblStepDetector implements StepDetector {
   private void markLastLayer(int face, String facelets, long timestampMs) {
     int corners = Cubies.placingTurns(facelets, LAST_LAYER_CORNERS[face]);
     int edges = Cubies.placingTurns(facelets, LAST_LAYER_EDGES[face]);
-    markPart(face, EO, Cubies.lastLayerOriented(facelets, face, Cubies.EDGE_POSITIONS), timestampMs);
-    markPart(face, CO, Cubies.lastLayerOriented(facelets, face, Cubies.CORNER_POSITIONS),
-        timestampMs);
-    markPart(face, CP, placed(corners, edges), timestampMs);
-    markPart(face, EP, placed(edges, corners), timestampMs);
+    boolean edgesOriented = Cubies.lastLayerOriented(facelets, face, Cubies.EDGE_POSITIONS);
+    boolean cornersOriented = Cubies.lastLayerOriented(facelets, face, Cubies.CORNER_POSITIONS);
+    markPart(face, EO, edgesOriented, !edgesOriented, timestampMs);
+    markPart(face, CO, cornersOriented, !cornersOriented, timestampMs);
+    markPart(face, CP, placed(corners, edges), corners == 0, timestampMs);
+    markPart(face, EP, placed(edges, corners), edges == 0, timestampMs);
   }
 
   /**
@@ -259,11 +264,15 @@ public final class LblStepDetector implements StepDetector {
     return turns != 0 && (otherTurns == 0 || (turns & otherTurns) != 0);
   }
 
-  /** Dated where the part was reached and held: a settled state without it takes the date back. */
-  private void markPart(int face, int part, boolean done, long timestampMs) {
-    if (!done) {
+  /**
+   * Dated where the part was reached and held. Only a settled state that has <em>lost</em> it takes
+   * the date back — for a permutation, one where no turn at all would place the pieces, rather than
+   * one where the other kind of piece is claiming a different turn.
+   */
+  private void markPart(int face, int part, boolean reached, boolean lost, long timestampMs) {
+    if (lost) {
       partMs[face][part] = null;
-    } else if (partMs[face][part] == null) {
+    } else if (reached && partMs[face][part] == null) {
       partMs[face][part] = timestampMs;
     }
   }
