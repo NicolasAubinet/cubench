@@ -435,6 +435,7 @@
   <string name="scramble_type_pll">PLL</string>
   <string name="scramble_type_corners">Sólo esquinas</string>
   <string name="scramble_type_edges">Sólo aristas</string>
+  <string name="scramble_type_roux_second_block">Segundo bloque de Roux</string>
   <string name="scramble_type_roux_last_10_pieces">Roux últimas 10 piezas</string>
   <string name="scramble_type_roux_last_6_edges">Roux últimas 6 aristas</string>
   <string name="scramble_type_parity">Paridad</string>
