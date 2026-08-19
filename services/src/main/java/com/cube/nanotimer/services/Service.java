@@ -62,6 +62,23 @@ public interface Service {
   /** What each step and case of a solve type's method has cost over its last {@code lastSolves} solves. */
   void getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves,
       DataCallback<MethodStatistics> callback);
+
+  /** How many of a solve type's solves a smart cube drove, and so could be read again. */
+  void getSmartcubeSolvesCount(SolveType solveType, DataCallback<Integer> callback);
+
+  /**
+   * A solve type's cube-driven solves, carrying what it takes to read them again: the scramble and
+   * the move stream. Their stored breakdowns are left out, being the very thing a re-reading
+   * replaces.
+   */
+  void getSmartcubeSolves(SolveType solveType, DataCallback<List<SolveTime>> callback);
+
+  /**
+   * Writes the breakdowns of solves read again, all of them or none of them. A solve carrying no
+   * method has its breakdown removed rather than replaced, which is what a solve that no longer
+   * fits its type's method deserves.
+   */
+  void saveSmartcubeBreakdowns(List<SolveTime> solveTimes, DataCallback<Void> callback);
   void getAllUsedScrambleTypes(DataCallback<Map<CubeType, List<ScrambleType>>> callback);
 
   /**

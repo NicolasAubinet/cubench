@@ -62,6 +62,16 @@ public class DialogUtils {
         .setNegativeButton(parCancelMessageId, clickListener).show();
   }
 
+  public static AlertDialog showConfirmCancelDialog(Context context, int titleId, String message, int parConfirmMessageId, int parCancelMessageId, final YesNoListener listener) {
+    DialogInterface.OnClickListener clickListener = getYesNoClickListener(listener);
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme);
+    return builder.setTitle(titleId)
+        .setMessage(message)
+        .setPositiveButton(parConfirmMessageId, clickListener)
+        .setNegativeButton(parCancelMessageId, clickListener).show();
+  }
+
   /** For a confirmation that throws something away: the answer is filled red rather than styled
    * like the way out, and a title names the consequence before the message spells it out. */
   public static AlertDialog showDestructiveConfirmDialog(Context context, int titleId, int messageId, int parConfirmMessageId, int parCancelMessageId, final YesNoListener listener) {

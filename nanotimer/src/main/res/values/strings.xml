@@ -811,6 +811,13 @@
   <string name="method_default">Default (%1$s)</string>
   <string name="method_info">About the method</string>
   <string name="method_info_message">Used to reconstruct your solves when a smart cube is connected: it tells the app which steps to break a solve into. Leave it on the default to follow the preferred method from the settings, or set it to the method you actually use for this solve type.</string>
+  <string name="reread_solves_title">Read past solves again?</string>
+  <string name="reread_solves_message">%1$d solves of this solve type were read as %2$s. They can be read again as %3$s, which can take a while on a long history. Nothing is lost: setting the method back and reading again restores them.</string>
+  <string name="reread_solves_confirm">Read again</string>
+  <string name="reread_solves_cancel">Not now</string>
+  <string name="reread_solves_progress">Reading the solves again...</string>
+  <string name="reread_solves_running">A reading is already running</string>
+  <string name="reread_solves_done">%1$d solves read again</string>
   <string name="preferred_method">Preferred method</string>
   <string name="preferred_method_summary">The method solve types are read as, unless they set their own</string>
   <string name="smart_cube_auto_stop">Auto stop</string>

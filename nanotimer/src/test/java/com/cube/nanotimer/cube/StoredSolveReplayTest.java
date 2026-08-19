@@ -243,6 +243,33 @@ public class StoredSolveReplayTest {
    */
   @Test
   public void refusesAReadingThatFinishesOnACubeThatIsNotSolved() {
-    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE + " R", MOVES, CubeMethod.ROUX));
+    // The walk starts a turn away from where the solve did, so it fits nothing. What says that
+    // answer is the walk's fault rather than the solve's is that it never came out solved, which is
+    // the difference between "this solve does not fit the method" and "this reading proves nothing".
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(SCRAMBLE + " R", MOVES, CubeMethod.ROUX);
+
+    assertTrue(result == null || result.getMethod() == null);
+    assertTrue(result == null || !result.reachedSolved());
+  }
+
+  /** A solve that was read right through, came out solved, and still fitted nothing: the one answer
+   * that is safe to empty a stored breakdown with. */
+  @Test
+  public void readsASolveThatFitsNoMethodAsFittingNoMethod() {
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.LBL);
+
+    assertNotNull(result);
+    assertNull(result.getMethod()); // a Roux solve is no layer-by-layer solve
+    assertTrue(result.getSteps().isEmpty());
+    assertTrue(result.reachedSolved());
+  }
+
+  @Test
+  public void refusesASolveItCannotReplayAtAll() {
+    assertNull(StoredSolveReplay.reinterpret(null, MOVES, CubeMethod.ROUX));
+    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, null, CubeMethod.ROUX));
+    assertNull(StoredSolveReplay.reinterpret("R U Rw", MOVES, CubeMethod.ROUX));
   }
 }

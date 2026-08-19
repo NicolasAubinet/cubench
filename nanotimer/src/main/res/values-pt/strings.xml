@@ -798,6 +798,13 @@
   <string name="method_default">Padrão (%1$s)</string>
   <string name="method_info">Sobre o método</string>
   <string name="method_info_message">Usado para reconstruir suas resoluções quando há um cubo inteligente conectado: diz ao aplicativo em quais etapas dividir uma resolução. Deixe no padrão para seguir o método preferido das configurações, ou indique o método que você realmente usa para este tipo de resolução.</string>
+  <string name="reread_solves_title">Reler as resoluções anteriores?</string>
+  <string name="reread_solves_message">%1$d resoluções deste tipo foram lidas como %2$s. Podem ser lidas de novo como %3$s, o que pode demorar um pouco num histórico longo. Nada se perde: repor o método e reler restaura-as.</string>
+  <string name="reread_solves_confirm">Reler</string>
+  <string name="reread_solves_cancel">Agora não</string>
+  <string name="reread_solves_progress">A reler as resoluções...</string>
+  <string name="reread_solves_running">Já existe uma releitura em curso</string>
+  <string name="reread_solves_done">%1$d resoluções relidas</string>
   <string name="preferred_method">Método preferido</string>
   <string name="preferred_method_summary">O método com que os tipos de resolução são lidos, a menos que tenham o seu</string>
   <string name="smart_cube_auto_stop">Paragem automática</string>

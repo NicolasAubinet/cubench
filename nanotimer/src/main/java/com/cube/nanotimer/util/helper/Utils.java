@@ -159,7 +159,11 @@ public class Utils {
     if (method == CubeMethod.ROUX) {
       return R.string.method_roux;
     }
-    return method == CubeMethod.LBL ? R.string.method_lbl : R.string.method_cfop;
+    if (method == CubeMethod.LBL) {
+      return R.string.method_lbl;
+    }
+    // Never offered as an override, but a blind solve type is read as it all the same.
+    return method == CubeMethod.BLIND ? R.string.method_blind : R.string.method_cfop;
   }
 
   public static String toScrambleTypeLocalizedName(Context context, ScrambleType scrambleType) {

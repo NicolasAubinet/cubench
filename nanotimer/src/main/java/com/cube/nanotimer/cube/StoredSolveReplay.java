@@ -11,6 +11,7 @@ import com.cube.nanotimer.smartcube.step.ParityCheck;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -53,15 +54,18 @@ public final class StoredSolveReplay {
     private final BlindResidual residual;
     private final LostReading lostReading;
     private final ParityCheck parityCheck;
+    private final boolean reachedSolved;
 
     Result(CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
-        BlindResidual residual, LostReading lostReading, ParityCheck parityCheck) {
+        BlindResidual residual, LostReading lostReading, ParityCheck parityCheck,
+        boolean reachedSolved) {
       this.method = method;
       this.steps = steps;
       this.stoppedStep = stoppedStep;
       this.residual = residual;
       this.lostReading = lostReading;
       this.parityCheck = parityCheck;
+      this.reachedSolved = reachedSolved;
     }
 
     public CubeMethod getMethod() {
@@ -90,12 +94,28 @@ public final class StoredSolveReplay {
     public ParityCheck getParityCheck() {
       return parityCheck;
     }
+
+    /**
+     * Whether the replayed moves brought the cube out solved, which is what says the walk started
+     * where the solve did. It is the difference between a solve that genuinely fits no method and
+     * one this cannot judge: a walk from the wrong state fits none either, and so does a solve that
+     * was abandoned part way. Only a solve that came out solved and still fitted nothing is known
+     * to fit nothing.
+     */
+    public boolean reachedSolved() {
+      return reachedSolved;
+    }
   }
 
   /**
-   * Null when the solve cannot be read again — no moves, no scramble, a scramble that is not a 3x3
-   * one, or a blind solve recorded before its grip was kept. The caller shows what was recorded in
-   * that case; nothing is worse off than before.
+   * Null when the solve cannot be read again at all — no moves, no scramble, a scramble that is not
+   * a 3x3 one, a blind solve recorded before its grip was kept, or a walk that did not end where the
+   * solve did. The caller keeps what was recorded in that case; nothing is worse off than before.
+   *
+   * <p>A solve that was read but fitted no method comes back with a null {@link Result#getMethod()}
+   * and no steps, which is a different answer from being unable to read it: the moves are known and
+   * they bear the method out or they do not. {@link Result#reachedSolved()} is what says how much
+   * that answer is worth.
    *
    * @param expected the method the solve type is read as, and the only one on offer: a solve that
    *     does not fit it is left unread rather than filed under the method it happens to fit.
@@ -125,6 +145,7 @@ public final class StoredSolveReplay {
         analyzers.setPickupRotation(CubeRotation.byNotation(pickup));
       }
       analyzers.start(new CubeState(cube.toFaceCube()), 0);
+      boolean reachedSolved = false;
       for (SolveMovesFormat.Move move : SolveMovesFormat.parse(storedMoves)) {
         String notation = move.getNotation();
         if (SolveMovesFormat.isRotation(notation)) {
@@ -132,11 +153,14 @@ public final class StoredSolveReplay {
         }
         analyzers.onMove(new CubeMove(face(notation), prime(notation), move.getOffsetMs()));
         apply(cube, notation);
-        analyzers.onState(new CubeState(cube.toFaceCube()));
+        String facelets = cube.toFaceCube();
+        reachedSolved |= CubieCube.SOLVED_FACELET.equals(facelets);
+        analyzers.onState(new CubeState(facelets));
       }
       CubeMethod method = analyzers.resolve();
       if (method == null) {
-        return null; // the moves do not bear out its method: keep what was recorded rather than empty it
+        return new Result(null, Collections.<SolveStep>emptyList(), null, null, null, null,
+            reachedSolved);
       }
       SolveAnalyzer analyzer = analyzers.get(method);
       Integer stoppedStep = analyzer.getStoppedStep();
@@ -149,7 +173,7 @@ public final class StoredSolveReplay {
       }
       return new Result(method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
           stoppedStep, analyzer.getResidual(), analyzer.getLostReading(),
-          analyzer.getParityCheck());
+          analyzer.getParityCheck(), reachedSolved);
     } catch (RuntimeException e) {
       return null; // a scramble in another puzzle's notation, a truncated stream: fall back
     }

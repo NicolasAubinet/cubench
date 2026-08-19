@@ -796,6 +796,13 @@
   <string name="method_default">Par défaut (%1$s)</string>
   <string name="method_info">À propos de la méthode</string>
   <string name="method_info_message">Sert à reconstruire vos résolutions lorsqu\'un cube connecté est utilisé : elle indique à l\'application en quelles étapes découper une résolution. Laissez la valeur par défaut pour suivre la méthode préférée des paramètres, ou indiquez la méthode que vous utilisez réellement pour ce type de résolution.</string>
+  <string name="reread_solves_title">Relire les résolutions passées ?</string>
+  <string name="reread_solves_message">%1$d résolutions de ce type ont été lues en %2$s. Elles peuvent être relues en %3$s, ce qui peut prendre un moment sur un long historique. Rien n\'est perdu : remettre la méthode et relire les restaure.</string>
+  <string name="reread_solves_confirm">Relire</string>
+  <string name="reread_solves_cancel">Plus tard</string>
+  <string name="reread_solves_progress">Relecture des résolutions...</string>
+  <string name="reread_solves_running">Une relecture est déjà en cours</string>
+  <string name="reread_solves_done">%1$d résolutions relues</string>
   <string name="preferred_method">Méthode préférée</string>
   <string name="preferred_method_summary">La méthode avec laquelle les types de résolution sont lus, sauf s\'ils ont la leur</string>
   <string name="smart_cube_auto_stop">Arrêt automatique</string>

@@ -181,19 +181,23 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       // reads as. Falls back to what was recorded whenever the solve cannot be read again.
       StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solveTime.getScramble(),
           solveTime.getSmartcubeMoves(), SolveTypeMethod.of(solveTime.getSolveType()));
-      CubeMethod method = reread == null ? solveTime.getSmartcubeMethod() : reread.getMethod();
-      List<SolveStep> read = reread == null ? solveTime.getSmartcubeSteps() : reread.getSteps();
+      // A solve that was read and fitted nothing keeps what was recorded here, the same as one that
+      // could not be read at all: emptying it is the re-reading pass's to do, once and on the store,
+      // rather than something the sheet does silently every time it opens.
+      boolean fresh = reread != null && reread.getMethod() != null;
+      CubeMethod method = fresh ? reread.getMethod() : solveTime.getSmartcubeMethod();
+      List<SolveStep> read = fresh ? reread.getSteps() : solveTime.getSmartcubeSteps();
       Integer stoppedStep =
-          reread == null ? solveTime.getSmartcubeStoppedStep() : reread.getStoppedStep();
+          fresh ? reread.getStoppedStep() : solveTime.getSmartcubeStoppedStep();
       // The tail is derived rather than stored, so it is added back here, before anything reads the
       // breakdown: the solution splits its moves by the same step windows the bar draws.
       List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs,
           solveTime.getSmartcubeMoves(), method);
       buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
           getString(R.string.breakdown), null, method);
-      showResidual(v, reread == null ? null : reread.getResidual());
-      showParityCheck(v, reread == null ? null : reread.getParityCheck());
-      showLostReading(v, reread == null ? null : reread.getLostReading());
+      showResidual(v, fresh ? reread.getResidual() : null);
+      showParityCheck(v, fresh ? reread.getParityCheck() : null);
+      showLostReading(v, fresh ? reread.getLostReading() : null);
     }
 
     TextView tvTime = (TextView) v.findViewById(R.id.tvTime);

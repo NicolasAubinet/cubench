@@ -1,6 +1,7 @@
 package com.cube.nanotimer.gui;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
@@ -22,6 +23,8 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SolveReinterpreter;
+import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.gui.widget.AddStepsDialog;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
@@ -34,12 +37,13 @@ import com.cube.nanotimer.scrambler.ScramblerService;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.helper.DialogUtils;
-import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveHistory;
+import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.SolveTypeStep;
 import com.cube.nanotimer.vo.TimerQuickAction;
@@ -51,6 +55,7 @@ import com.mobeta.android.dslv.DragSortListView.DropListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SolveTypesActivity extends NanoTimerActivity implements SelectionHandler, FieldEditor, FieldCreator, StepsCreator {
 
@@ -59,6 +64,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   private SolveTypeListAdapter adapter;
   private List<SolveType> liSolveTypes = new ArrayList<SolveType>();
   private boolean solveTypesLoaded;
+  private boolean rereading; // a history is being read again: one run at a time
 
   private List<CubeType> cubeTypes;
   private CubeType curCubeType;
@@ -331,13 +337,152 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     updatedSolveType.setQuickAction(parseQuickAction(props));
     liSolveTypes.set(index, updatedSolveType);
 
+    // The method a type is read as, which the override may follow rather than name: changing the
+    // override to what was already being followed is not a change and asks nothing.
+    final CubeMethod methodBefore = SolveTypeMethod.of(oldSolveType);
+    final CubeMethod methodAfter = SolveTypeMethod.of(updatedSolveType);
+
     App.INSTANCE.getService().updateSolveType(updatedSolveType, blindChanged, new DataCallback<Void>() {
       @Override
       public void onData(Void data) {
         refreshList();
+        if (methodBefore != methodAfter) {
+          offerToRereadSolves(updatedSolveType, methodBefore, methodAfter);
+        }
       }
     });
     return true;
+  }
+
+  /**
+   * A solve type whose method changed has a history read under the old one. The sheet reads a solve
+   * again whenever it opens, so it needs no help; the list's bars and the method figures are drawn
+   * from what is stored, and only this brings those up to date.
+   */
+  private void offerToRereadSolves(final SolveType solveType, final CubeMethod before,
+      final CubeMethod after) {
+    App.INSTANCE.getService().getSmartcubeSolvesCount(solveType, new DataCallback<Integer>() {
+      @Override
+      public void onData(final Integer count) {
+        if (count == null || count == 0) {
+          return; // nothing a cube drove: there is nothing to read again
+        }
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (!alive()) {
+              return;
+            }
+            String message = getString(R.string.reread_solves_message, count,
+                getString(Utils.getMethodLabel(before)), getString(Utils.getMethodLabel(after)));
+            DialogUtils.showConfirmCancelDialog(SolveTypesActivity.this,
+                R.string.reread_solves_title, message, R.string.reread_solves_confirm,
+                R.string.reread_solves_cancel, new YesNoListener() {
+                  @Override
+                  public void onYes() {
+                    rereadSolves(solveType, after);
+                  }
+
+                  @Override
+                  public void onNo() {
+                  }
+                });
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Reads the whole history again and writes it in one go. Cancelable, because reading a long
+   * history takes a while and a dialog that swallows back reads as the press having been missed —
+   * and safe to cancel, since nothing is written until every solve has been read.
+   */
+  private void rereadSolves(final SolveType solveType, final CubeMethod method) {
+    if (rereading) {
+      // One at a time: two runs would write the same history twice over. Said rather than simply
+      // refused, since the run this stands aside for may have had its dialog dismissed long ago.
+      DialogUtils.showInfoMessage(this, R.string.reread_solves_running);
+      return;
+    }
+    rereading = true;
+    final AtomicBoolean cancelled = new AtomicBoolean(false);
+    final ProgressDialog progressDialog = new ProgressDialog(this);
+    progressDialog.setMessage(getString(R.string.reread_solves_progress));
+    // Counted rather than spun: the reading knows how many solves it has and how far along it is,
+    // and a long history is long enough that a spinner reads as a screen that has stopped.
+    progressDialog.setIndeterminate(false);
+    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+      @Override
+      public void onCancel(DialogInterface dialog) {
+        cancelled.set(true);
+      }
+    });
+    progressDialog.show();
+
+    App.INSTANCE.getService().getSmartcubeSolves(solveType, new DataCallback<List<SolveTime>>() {
+      @Override
+      public void onData(List<SolveTime> solves) {
+        final List<SolveTime> rewritten = SolveReinterpreter.reread(solves, method,
+            new SolveReinterpreter.Progress() {
+              @Override
+              public boolean onRead(int done, int total) {
+                showProgress(progressDialog, done, total);
+                return !cancelled.get();
+              }
+            });
+        if (rewritten == null) {
+          done(progressDialog);
+          return; // stopped part way: the store is untouched, so there is nothing to undo
+        }
+        App.INSTANCE.getService().saveSmartcubeBreakdowns(rewritten, new DataCallback<Void>() {
+          @Override
+          public void onData(Void data) {
+            done(progressDialog);
+            runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                if (alive()) {
+                  DialogUtils.showInfoMessage(SolveTypesActivity.this,
+                      getString(R.string.reread_solves_done, rewritten.size()));
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  /** The solves are read off the UI thread, so the bar counting them is reached from on it. */
+  private void showProgress(final ProgressDialog progressDialog, final int done, final int total) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        if (progressDialog.isShowing()) {
+          progressDialog.setMax(total);
+          progressDialog.setProgress(done);
+        }
+      }
+    });
+  }
+
+  /** The reading outlives the screen it was started from, so its dialog may already be gone. */
+  private void done(final ProgressDialog progressDialog) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        rereading = false;
+        if (progressDialog.isShowing() && alive()) {
+          progressDialog.dismiss();
+        }
+      }
+    });
+  }
+
+  private boolean alive() {
+    return !isFinishing() && !isDestroyed();
   }
 
   // Resolves the dialog's chosen scramble type (KEY_SCRAMBLE_TYPE is a spinner position; 0 = none),

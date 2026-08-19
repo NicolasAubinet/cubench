@@ -57,6 +57,9 @@ public interface ServiceProvider {
   String getGyroTrack(int solveTimeId);
   List<FrequencyData> getFrequencyData(SolveType solveType, Long from);
   MethodStatistics getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves);
+  int getSmartcubeSolvesCount(SolveType solveType);
+  List<SolveTime> getSmartcubeSolves(SolveType solveType);
+  void saveSmartcubeBreakdowns(List<SolveTime> solveTimes);
   Map<CubeType, List<ScrambleType>> getAllUsedScrambleTypes();
 
   /** Opens a recorded drill and hands back the id its reps are stored against. */

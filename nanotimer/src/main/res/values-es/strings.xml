@@ -795,6 +795,13 @@
   <string name="method_default">Predeterminado (%1$s)</string>
   <string name="method_info">Acerca del método</string>
   <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un cubo inteligente conectado: le dice a la aplicación en qué pasos dividir una resolución. Déjalo en el valor predeterminado para seguir el método preferido de los ajustes, o indica el método que realmente usas para este tipo de resolución.</string>
+  <string name="reread_solves_title">¿Releer los resueltos anteriores?</string>
+  <string name="reread_solves_message">%1$d resueltos de este tipo se leyeron como %2$s. Pueden releerse como %3$s, lo que puede tardar un poco con un historial largo. No se pierde nada: volver a poner el método y releer los restaura.</string>
+  <string name="reread_solves_confirm">Releer</string>
+  <string name="reread_solves_cancel">Ahora no</string>
+  <string name="reread_solves_progress">Releyendo los resueltos...</string>
+  <string name="reread_solves_running">Ya hay una relectura en curso</string>
+  <string name="reread_solves_done">%1$d resueltos releídos</string>
   <string name="preferred_method">Método preferido</string>
   <string name="preferred_method_summary">El método con el que se leen los tipos de resolución, salvo que tengan el suyo</string>
   <string name="smart_cube_auto_stop">Parada automática</string>

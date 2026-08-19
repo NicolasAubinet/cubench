@@ -1525,6 +1525,76 @@ public class ServiceProviderImpl implements ServiceProvider {
     return new MethodStatistics(steps, parts, getMethodSolvesCount(solveType, method, windowSize));
   }
 
+  @Override
+  public int getSmartcubeSolvesCount(SolveType solveType) {
+    Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
+        + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL",
+        getStringArray(solveType.getId()));
+    int count = 0;
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        count = cursor.getInt(0);
+      }
+      cursor.close();
+    }
+    return count;
+  }
+
+  @Override
+  public List<SolveTime> getSmartcubeSolves(SolveType solveType) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT ").append(DB.COL_ID);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_SCRAMBLE);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
+    q.append("  FROM ").append(DB.TABLE_TIMEHISTORY);
+    q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
+    q.append("   AND ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES).append(" IS NOT NULL");
+    q.append(" ORDER BY ").append(DB.COL_TIMEHISTORY_TIMESTAMP);
+
+    List<SolveTime> solveTimes = new ArrayList<SolveTime>();
+    Cursor cursor = db.rawQuery(q.toString(), getStringArray(solveType.getId()));
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        SolveTime st = new SolveTime();
+        st.setId(cursor.getInt(0));
+        st.setSolveType(solveType);
+        st.setScramble(cursor.getString(1));
+        st.setSmartcubeMoves(cursor.getString(2));
+        solveTimes.add(st);
+      }
+      cursor.close();
+    }
+    return solveTimes;
+  }
+
+  /**
+   * All of them or none: the whole rewrite is one transaction, so a solve type's history is never
+   * left half under one method and half under another, whatever interrupts it. A crash or a kill
+   * part way through rolls the journal back and leaves what was there.
+   */
+  @Override
+  public void saveSmartcubeBreakdowns(List<SolveTime> solveTimes) {
+    db.beginTransaction();
+    try {
+      for (SolveTime solveTime : solveTimes) {
+        ContentValues values = new ContentValues();
+        values.put(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD, toMethodCode(solveTime.getSmartcubeMethod()));
+        values.put(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP, solveTime.getSmartcubeStoppedStep());
+        db.update(DB.TABLE_TIMEHISTORY, values, DB.COL_ID + " = ?",
+            getStringArray(solveTime.getId()));
+        db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " = ?",
+            getStringArray(solveTime.getId()));
+        if (solveTime.getSmartcubeSteps() != null) {
+          insertSmartcubeSteps(solveTime.getId(), solveTime.getSmartcubeSteps());
+        }
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+
   /** How many solves the step tallies were read from, which is the window or all there is of it. */
   private int getMethodSolvesCount(SolveType solveType, CubeMethod method, int lastSolves) {
     int count = 0;
