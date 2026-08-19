@@ -22,4 +22,8 @@
      android:title="@string/drill_help_title"
      app:showAsAction="always"/>
 
+  <!-- Which cases go in unaided, and what the solver turns for them. Here because this is where the
+       cases are chosen; it is not about drills and will move when there is a screen to move it to. -->
+  <item android:id="@+id/itKnownAlgorithms"
+     android:title="@string/known_algorithms_title"/>
 </menu>

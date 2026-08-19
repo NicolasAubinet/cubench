@@ -241,6 +241,10 @@ public class DrillSetupActivity extends NanoTimerActivity
       startActivity(new Intent(this, DrillStatsActivity.class));
       return true;
     }
+    if (item.getItemId() == R.id.itKnownAlgorithms) {
+      startActivity(new Intent(this, KnownAlgorithmsActivity.class));
+      return true;
+    }
     if (item.getItemId() == R.id.itDrillHelp) {
       DialogUtils.showFragment(this, new DrillHelpDialog());
       return true;

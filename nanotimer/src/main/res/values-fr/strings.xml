@@ -1096,4 +1096,14 @@
   <string name="coach_basis_known">Cas faits en un seul algorithme</string>
   <string name="coach_basis_hint">Un chiffre trop mince est omis plutôt que deviné : dix occurrences pour une étape de la méthode, cinq pour un cas.</string>
   <string name="coach_uncited">%1$d chiffres de ce plan ne figurent pas dans votre historique et ne sont pas affichés.</string>
+  <string name="known_algorithms_title">Algorithmes connus</string>
+  <string name="known_algorithms_count">%1$d sur %2$d en un seul algorithme</string>
+  <string name="known_algorithms_subtitle">Déduit de vos résolutions et de vos drills.</string>
+  <string name="known_algorithms_status_known">Connu</string>
+  <string name="known_algorithms_status_learning">En cours</string>
+  <string name="known_algorithms_status_unseen">Pas assez de données</string>
+  <string name="known_algorithms_no_moves">Aucune exécution enregistrée</string>
+  <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas vu moins de trois fois ne reçoit aucun verdict.</string>
+  <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec un smart cube connecté et les cas que vous faites sans aide apparaîtront.</string>
+  <string name="known_algorithms_reading">Lecture de vos résolutions...</string>
 </resources>

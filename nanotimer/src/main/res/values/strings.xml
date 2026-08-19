@@ -1136,4 +1136,15 @@
   <string name="coach_basis_known">Cases you do in one algorithm</string>
   <string name="coach_basis_hint">A figure thinner than its floor is left out rather than guessed at: ten occurrences for a step of the method, five for a case.</string>
   <string name="coach_uncited">%1$d of this plan\'s figures are not in your history, and are not shown.</string>
+  <!-- The cases the solver puts in unaided, and what they turn for each. -->
+  <string name="known_algorithms_title">Algorithms you know</string>
+  <string name="known_algorithms_count">%1$d of %2$d in one algorithm</string>
+  <string name="known_algorithms_subtitle">Worked out from your solves and your drills.</string>
+  <string name="known_algorithms_status_known">Known</string>
+  <string name="known_algorithms_status_learning">Learning</string>
+  <string name="known_algorithms_status_unseen">Not enough yet</string>
+  <string name="known_algorithms_no_moves">No answer recorded yet</string>
+  <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case seen fewer than three times has no verdict either way.</string>
+  <string name="known_algorithms_empty">Nothing here yet. Solve with a smart cube connected and the cases you put in unaided will show up.</string>
+  <string name="known_algorithms_reading">Reading your solves...</string>
 </resources>

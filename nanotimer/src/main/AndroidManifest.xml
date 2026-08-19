@@ -57,6 +57,7 @@
     <activity android:name=".gui.DrillSetupActivity"/>
     <activity android:name=".gui.DrillStatsActivity"/>
     <activity android:name=".gui.DrillCaseStatsActivity"/>
+    <activity android:name=".gui.KnownAlgorithmsActivity"/>
     <!-- Handle their own rotations: recreating would throw away a drill that is halfway through. -->
     <activity android:name=".gui.DrillActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case: its picture, its name, and the moves the solver turns for it. The moves get the whole
+     width under the name and are allowed a second line, because a PLL algorithm is eighteen turns
+     and cutting it off would hide the one thing the row is for. Whether the case goes in unaided is
+     said once by the heading it sits under, not again on every line. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llKnownAlgorithmsRow"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:background="@drawable/history_row"
+   android:gravity="center_vertical"
+   android:minHeight="52dp"
+   android:orientation="horizontal"
+   android:paddingLeft="@dimen/space_xs"
+   android:paddingRight="@dimen/space_xs"
+   android:paddingTop="@dimen/space_s"
+   android:paddingBottom="@dimen/space_s">
+
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vKnownAlgorithmsChart"
+     android:layout_width="36dp"
+     android:layout_height="36dp"/>
+
+  <LinearLayout
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginLeft="@dimen/space_m"
+     android:orientation="vertical">
+
+    <TextView
+       android:id="@+id/tvKnownAlgorithmsName"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:ellipsize="end"
+       android:fontFamily="@font/roboto_medium"
+       android:maxLines="1"
+       android:textColor="@color/white"
+       android:textSize="15sp"/>
+
+    <TextView
+       android:id="@+id/tvKnownAlgorithmsMoves"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="3dp"
+       android:ellipsize="end"
+       android:maxLines="2"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"/>
+  </LinearLayout>
+</LinearLayout>

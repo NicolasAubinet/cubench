@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The heading over one run of cases: known, being learnt, or nothing said yet. It carries what
+     would otherwise be repeated on every line of the section under it. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/tvKnownAlgorithmsSection"
+   style="@style/DialogSectionLabel"
+   android:layout_width="match_parent"
+   android:layout_marginTop="18dp"
+   android:layout_marginBottom="6dp"
+   android:paddingLeft="@dimen/space_xs"/>
