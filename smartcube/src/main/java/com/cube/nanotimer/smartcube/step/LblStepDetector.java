@@ -198,7 +198,8 @@ public final class LblStepDetector implements StepDetector {
       int edgesDated = dated(edgeMs[face]);
       int corners = mark(cornerMs[face], FIRST_LAYER_CORNERS[face], squared, timestampMs);
       int edges = mark(edgeMs[face], SECOND_LAYER_EDGES[face], squared, timestampMs);
-      if (dated(edgeMs[face]) > edgesDated && timestampMs != crossMs[face]) {
+      if (dated(edgeMs[face]) > edgesDated && timestampMs != crossMs[face]
+          && !Cubies.SOLVED.equals(squared)) {
         boolean alone = dated(cornerMs[face]) == cornersDated;
         countEdgeStarting(face, corners, alone);
       }
@@ -257,7 +258,8 @@ public final class LblStepDetector implements StepDetector {
   /**
    * Counts the state the second layer was started in, which is only ever counted once. Twice over,
    * rather: an edge landing on the very move a first-layer corner did was not turned for, and the
-   * count that decides is the first edge that came home on its own.
+   * count that decides is the first edge that came home on its own. States where the edge cannot
+   * have been turned for at all are not offered here, see {@link #matchesMethod}.
    */
   private void countEdgeStarting(int face, int corners, boolean alone) {
     if (cornersAtFirstEdge[face] == null) {
@@ -523,13 +525,19 @@ public final class LblStepDetector implements StepDetector {
    * two puts one corner in there, never three.
    *
    * <p>But an edge that came home <b>without being turned for</b> does not start anything, and there
-   * are two ways of that: it was in already when the cross was finished, or it landed on the very
-   * move a first-layer corner did. A corner's insertion sweeps the middle slice, so it drops an edge
-   * home about as often as it carries one through, and a solve read at such an edge is judged on the
-   * corners of the moment rather than on the ones the solver had in. So the count that decides is
-   * taken at the first edge that came home <em>on its own</em>, and the first edge of any kind only
-   * stands in where there was no such edge — which is a solve that paired every one of them, and is
-   * the very thing this asks about.
+   * are three ways of that: it was in already when the cross was finished, it landed on the very
+   * move a first-layer corner did, or it came home in the state the whole cube did. A corner's
+   * insertion sweeps the middle slice, so it drops an edge home about as often as it carries one
+   * through, and a solve read at such an edge is judged on the corners of the moment rather than on
+   * the ones the solver had in. So the count that decides is taken at the first edge that came home
+   * <em>on its own</em>, and the first edge of any kind only stands in where there was no such edge
+   * — which is a solve that paired every one of them, and is the very thing this asks about.
+   *
+   * <p>The first and the last of those three are the same exclusion at the two ends of the solve,
+   * and both are needed. A method that finishes several pieces at once has middle edges that only
+   * come home as it ends: Roux's last six edges go in together, and read on a face whose cross those
+   * blocks happened to close, the count would be taken on a solved cube, where it can only be four.
+   * Nothing about how the solve was built is visible in a state that has everything in it.
    *
    * <p>A solve that stopped before the second layer was started is judged on the same count, since a
    * prefix that has not reached the two layers' boundary cannot show it. A cross on its own proves
