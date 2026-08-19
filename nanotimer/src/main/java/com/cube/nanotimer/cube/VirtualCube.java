@@ -248,11 +248,18 @@ public class VirtualCube implements GyroReferenceListener {
     }
   }
 
+  /**
+   * ⚠️ <b>The page is told to paint again.</b> Android is free to drop what a WebView had drawn
+   * while its screen was away, and a page that renders on demand never draws it back: the cube is
+   * missing, its pool of shadow is not (that is CSS), and it stays missing until something happens
+   * to turn it. Which is "sometimes the cube is gone when I come back to the timer".
+   */
   public void onResume() {
     paused = false;
     webView.onResume();
     // Read afresh: the reference can have been taken, re-taken or lost while the screen was away.
     refreshGyro();
+    evaluate("window.ntLiveRedraw();");
   }
 
   public void onPause() {

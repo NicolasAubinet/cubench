@@ -26,6 +26,7 @@
                             PIECES, not the slots they are in: Cube3D holds one object per piece
                             and moves it to wherever the piece sits, so the mask travels with the
                             piece. The two readings agree on a solved cube and nowhere else.
+    ntLiveRedraw()          paint the cube again, for a screen coming back from the background
 
   WHY A STATE AND NOT A SETUP ALG.
 
@@ -290,17 +291,32 @@
   var frames = 0;
 
   /**
-   * ⚠️ The player renders only when something it owns changes, and standing still between
-   * turns it owns nothing that does — so a pose written there would never be painted, and the
-   * cube would sit frozen for exactly the seconds it is being turned over in the hands, which
-   * is the one thing following the gyro is for.
+   * Asks for one frame, whether or not the player thinks anything has changed.
    *
-   * The camera is what forces it: `orbitCoordinates` has a listener that calls the renderer's
-   * `scheduleRender`, so half a thousandth of a degree of longitude, alternating, is a render
-   * a frame and is invisible. Deliberately NOT the timeline (which is what replay.html nudges):
-   * a live cube's timeline is where the catch-up animation lives, and moving it under a turn in
+   * <p>⚠️ The player renders only when something it owns changes, and standing still between turns
+   * it owns nothing that does — so a pose written there would never be painted, and the cube would
+   * sit frozen for exactly the seconds it is being turned over in the hands, which is the one thing
+   * following the gyro is for.
+   *
+   * <p>The camera is what forces it: `orbitCoordinates` has a listener that calls the renderer's
+   * `scheduleRender`, so half a thousandth of a degree of longitude, alternating, is a render a
+   * frame and is invisible. Deliberately NOT the timeline (which is what replay.html nudges): a
+   * live cube's timeline is where the catch-up animation lives, and moving it under a turn in
    * flight would cut the turn short.
    */
+  function paint() {
+    if (!orbit || !player) {
+      return;
+    }
+    nudge = nudge ? 0 : 0.0005;
+    try {
+      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(
+          { latitude: orbit.latitude, longitude: orbit.longitude + nudge, distance: orbit.distance });
+    } catch (e) {
+      console.error("live paint: " + e);
+    }
+  }
+
   function poseLoop() {
     if (!gyroOn || !player) {
       poseRaf = null;
@@ -310,8 +326,8 @@
     // the loop for good: the drawn pose froze at the last frame it managed, so the cube sat a
     // quarter turn from where the hands held it, no amount of moving it did anything (nothing was
     // reading the gyro any more), and only the next seed's ntLiveGyro(true) started it again —
-    // which is exactly "a fast slice leaves it sideways until you re-solve". The nudge below is
-    // the unguarded call that can do it: setCamera wraps the identical set() and this did not.
+    // which is exactly "a fast slice leaves it sideways until you re-solve". It was the nudge that
+    // did it, back when that call was the one place here not wrapped in a try.
     try {
       poseStep();
     } catch (e) {
@@ -363,10 +379,8 @@
     // showing an orientation from the middle of the turn. Asking the scene paints exactly when
     // there is something new to paint, which is also cheaper while the cube is held still, and
     // unlike "has the pose moved" it still fires for a puzzle object the player has just replaced.
-    if (orbit && (puzzleObject ? poseStale(puzzleObject) : poseMoved())) {
-      nudge = nudge ? 0 : 0.0005;
-      player.experimentalModel.twistySceneModel.orbitCoordinatesRequest.set(
-          { latitude: orbit.latitude, longitude: orbit.longitude + nudge, distance: orbit.distance });
+    if (puzzleObject ? poseStale(puzzleObject) : poseMoved()) {
+      paint();
     }
     applyPose(puzzleObject);
   }
@@ -446,6 +460,52 @@
       }
     }
   }
+
+  /**
+   * How long the page keeps asking for frames after the screen comes back. A single frame asked for
+   * the instant Java says the WebView has resumed is not enough: the compositor is not necessarily
+   * ready for it, and where the GL context was dropped rather than merely emptied, three.js skips
+   * every render until the browser has restored it and told it so. Long enough to outlast both.
+   */
+  var REDRAW_MS = 1500;
+  var redrawUntil = 0;
+  var redrawRaf = null;
+
+  function redrawStep() {
+    redrawRaf = null;
+    // ⚠️ Never setCamera() here. It is a no-op once the camera has been taken and a *retry* before
+    // that, out of a budget of 25 — which this loop would spend in a fifth of a second, leaving the
+    // cube at the page's own distance for good. A camera still being retried paints when it lands.
+    paint();
+    if (performance.now() < redrawUntil) {
+      redrawRaf = requestAnimationFrame(redrawStep);
+    }
+  }
+
+  /**
+   * Paints the cube again, for a screen that has just come back from the background.
+   *
+   * <p>⚠️ <b>Nothing else will.</b> The player renders on demand, and a cube standing still owns
+   * nothing that changes — so what Android drops while the app is away (the layer's memory under
+   * pressure, or the GL context outright) is never drawn again, and the cube is simply missing.
+   * Its pool of shadow is CSS and comes back with the rest of the page, which is what makes the
+   * gap read as a cube that failed rather than as a cube that was never there.
+   *
+   * <p>Not the gyro's job: that loop only asks for a frame when the drawn pose is behind the
+   * reported one, so a cube set down on the table asks for nothing, and a cube with no gyroscope
+   * has no loop at all.
+   *
+   * <p>⚠️ The first paint is made here and now, never asked of an animation frame: a page drawing
+   * nothing may not be given one, and a chain that opens by waiting for one then never runs at all.
+   */
+  window.ntLiveRedraw = function () {
+    redrawUntil = performance.now() + REDRAW_MS;
+    if (redrawRaf) {
+      cancelAnimationFrame(redrawRaf);
+      redrawRaf = null;
+    }
+    redrawStep(); // paints at once, and re-arms itself for the rest of the window
+  };
 
   // Which state is the newest: the puzzle is fetched through a promise, so a state that arrives
   // while an older one is still waiting for it must not be overwritten when that one lands.
