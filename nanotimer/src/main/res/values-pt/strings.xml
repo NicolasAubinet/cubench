@@ -390,10 +390,10 @@
   <string name="smartcube_step_ll">Última camada</string>
   <string name="smartcube_step_corner">Canto %d</string>
   <string name="smartcube_step_edge">Aresta %d</string>
-  <string name="smartcube_step_lleo">EO</string>
-  <string name="smartcube_step_llco">CO</string>
-  <string name="smartcube_step_llcp">CP</string>
-  <string name="smartcube_step_llep">EP</string>
+  <string name="smartcube_step_lleo">Orientar arestas</string>
+  <string name="smartcube_step_llco">Orientar cantos</string>
+  <string name="smartcube_step_llcp">Permutar cantos</string>
+  <string name="smartcube_step_llep">Permutar arestas</string>
   <string name="smartcube_step_memo">Memo</string>
   <string name="smartcube_step_execution">Execução</string>
   <string name="smartcube_step_parity">Paridade</string>

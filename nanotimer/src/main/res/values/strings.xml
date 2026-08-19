@@ -403,10 +403,10 @@
   <string name="smartcube_step_ll">Last layer</string>
   <string name="smartcube_step_corner">Corner %d</string>
   <string name="smartcube_step_edge">Edge %d</string>
-  <string name="smartcube_step_lleo">EO</string>
-  <string name="smartcube_step_llco">CO</string>
-  <string name="smartcube_step_llcp">CP</string>
-  <string name="smartcube_step_llep">EP</string>
+  <string name="smartcube_step_lleo">Orient edges</string>
+  <string name="smartcube_step_llco">Orient corners</string>
+  <string name="smartcube_step_llcp">Permute corners</string>
+  <string name="smartcube_step_llep">Permute edges</string>
   <string name="smartcube_step_memo">Memo</string>
   <string name="smartcube_step_execution">Execution</string>
   <string name="smartcube_step_parity">Parity</string>
