@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -108,6 +109,32 @@ public class CaseExecutionsTest {
         CaseExecutions.asAlgorithm("oll_27", "y U' R U R' U R U U R' U"));
     assertEquals("R U R' banana", CaseExecutions.asAlgorithm("oll_27", "R U R' banana"));
     assertNull(CaseExecutions.asAlgorithm("oll_27", null));
+  }
+
+  /**
+   * What the chip on a row is drawn from, end to end: the moves cut out of a solve, read against the
+   * algorithms the case is usually turned with. OLL 33 holds two percent of its case's votes for
+   * this spelling and eight moves for the one nearly everybody turns.
+   */
+  @Test
+  public void flagsAnExecutionHardlyAnybodyTurns() {
+    Map<String, String> turned = CaseExecutions.readFrom(solves("R U R' F' U' F R U' R'"));
+
+    LastLayerCaseAlgorithms.Execution execution =
+        LastLayerCaseAlgorithms.read("oll_33", turned.get("oll_33"));
+    assertTrue(execution.isUnusual());
+    assertTrue(execution.isLonger());
+    assertEquals(9, execution.getMoves());
+    assertEquals(8, execution.getUsualMoves());
+  }
+
+  /** And the case turned the way the world turns it says nothing at all. */
+  @Test
+  public void saysNothingAboutAnExecutionEverybodyTurns() {
+    Map<String, String> turned = CaseExecutions.readFrom(solves(SUNE + " " + TPERM));
+
+    assertFalse(LastLayerCaseAlgorithms.read("oll_27", turned.get("oll_27")).isUnusual());
+    assertFalse(LastLayerCaseAlgorithms.read("pll_t", turned.get("pll_t")).isUnusual());
   }
 
   /** One solve of the given moves, scrambled so that exactly they solve it. */

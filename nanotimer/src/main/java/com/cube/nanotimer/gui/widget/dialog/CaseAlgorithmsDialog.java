@@ -24,6 +24,7 @@ import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms.Algorithm;
+import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms.Execution;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -73,6 +74,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private String own;
   /** What they turn, in the table's spelling where it is one of the table's algorithms. */
   private String executed;
+  private Execution execution;
   private LinearLayout rows;
   private LinearLayout yours;
   private View yoursLabel;
@@ -142,6 +144,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
                   return;
                 }
                 executed = CaseExecutions.asAlgorithm(caseCode, moves);
+                execution = LastLayerCaseAlgorithms.read(caseCode, moves);
                 refresh();
               }
             });
@@ -240,6 +243,9 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     if (turned && !declared) {
       marks.addView(chip(R.string.case_algorithm_turned, mine));
     }
+    if (turned && execution != null && execution.isUnusual()) {
+      marks.addView(chip(R.string.case_algorithm_unusual, false));
+    }
     if (recommended) {
       marks.addView(chip(R.string.case_algorithm_recommended, false));
     }
@@ -256,7 +262,24 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       star.setLayoutParams(starParams);
       line.addView(star);
     }
+    if (turned && execution != null && execution.isUnusual() && execution.isLonger()) {
+      row.addView(longer());
+    }
     return row;
+  }
+
+  /** The half of an unusual execution the solver can do something about: how long it is. */
+  private TextView longer() {
+    TextView note = GUIUtils.newTextView(getActivity());
+    note.setText(getString(R.string.case_algorithm_longer, execution.getMoves(),
+        execution.getUsualMoves()));
+    note.setTextSize(12);
+    note.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+    params.topMargin = dp(4);
+    note.setLayoutParams(params);
+    return note;
   }
 
   private TextView chip(int textResId, boolean accent) {

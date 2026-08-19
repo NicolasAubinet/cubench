@@ -16,6 +16,7 @@ import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
+import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -40,6 +41,8 @@ import java.util.Map;
  * answer rather than the last one: one odd solve should not rename an algorithm they have been
  * turning for months. Where the answer is one of the listed algorithms it is written the way the
  * table writes it, which is the way the case is drawn; where it is none of them it stands as turned.
+ * An execution hardly anybody turns is chipped as unusual, and where it is also longer than what
+ * people do turn the row says by how many moves, which is the part the solver can act on.
  *
  * <p><b>Whether a case goes in unaided is said by the heading it sits under, not on every line.</b>
  * Most of a family has nothing said about it, and repeating that down fifty rows would drown the one
@@ -77,7 +80,7 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
   private final Map<String, CaseKnowledge.Status> statuses =
       new LinkedHashMap<String, CaseKnowledge.Status>();
   /** What each case is shown as, worked out once off the main thread rather than as it is drawn. */
-  private Map<String, String> turned = new LinkedHashMap<String, String>();
+  private Map<String, Shown> turned = new LinkedHashMap<String, Shown>();
   private boolean read;
 
   @Override
@@ -118,7 +121,7 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
       public void onData(CaseHistory history) {
         // Cutting the solves up and naming what they turned is the slow half of this screen, and is
         // deliberately still on the service's thread: a family is up to 57 rows to draw.
-        final Map<String, String> shown = named(CaseExecutions.readFrom(history.getSolves()));
+        final Map<String, Shown> shown = named(CaseExecutions.readFrom(history.getSolves()));
         final List<CaseKnowledge> cases = history.getCases();
         runOnUiThread(new Runnable() {
           @Override
@@ -203,23 +206,46 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
         .setDiagram(LastLayerDiagram.forCase(code));
     ((TextView) row.findViewById(R.id.tvKnownAlgorithmsName))
         .setText(Utils.toSmartCubeCaseHeadline(this, code));
-    String moves = turned.get(code);
+    Shown shown = turned.get(code);
     ((TextView) row.findViewById(R.id.tvKnownAlgorithmsMoves))
-        .setText(moves == null ? getString(R.string.known_algorithms_no_moves) : moves);
+        .setText(shown == null ? getString(R.string.known_algorithms_no_moves) : shown.moves);
+
+    boolean unusual = shown != null && shown.execution.isUnusual();
+    row.findViewById(R.id.tvKnownAlgorithmsUnusual)
+        .setVisibility(unusual ? View.VISIBLE : View.GONE);
+    TextView longer = row.findViewById(R.id.tvKnownAlgorithmsLonger);
+    boolean says = unusual && shown.execution.isLonger();
+    if (says) {
+      longer.setText(getString(R.string.case_algorithm_longer, shown.execution.getMoves(),
+          shown.execution.getUsualMoves()));
+    }
+    longer.setVisibility(says ? View.VISIBLE : View.GONE);
   }
 
   /**
-   * What each case is shown as: the algorithm the table holds where the execution is one of them,
-   * and the moves as they were turned where it is not. The rule lives in {@link CaseExecutions}
-   * rather than here, so that this screen and the case dialog read one execution the same way
-   * instead of two implementations of it disagreeing.
+   * What each case is shown as, and how what is turned stands beside the algorithms people use.
+   * Neither rule lives here: both are the ones the case dialog reads its own execution with, so the
+   * two screens cannot end up disagreeing about the same solve.
    */
-  private static Map<String, String> named(Map<String, String> executions) {
-    Map<String, String> named = new LinkedHashMap<String, String>();
+  private static Map<String, Shown> named(Map<String, String> executions) {
+    Map<String, Shown> named = new LinkedHashMap<String, Shown>();
     for (Map.Entry<String, String> execution : executions.entrySet()) {
-      named.put(execution.getKey(),
-          CaseExecutions.asAlgorithm(execution.getKey(), execution.getValue()));
+      named.put(execution.getKey(), new Shown(
+          CaseExecutions.asAlgorithm(execution.getKey(), execution.getValue()),
+          LastLayerCaseAlgorithms.read(execution.getKey(), execution.getValue())));
     }
     return named;
+  }
+
+  /** One case's row, as far as it can be worked out before there is a view to put it in. */
+  private static final class Shown {
+
+    private final String moves;
+    private final LastLayerCaseAlgorithms.Execution execution;
+
+    Shown(String moves, LastLayerCaseAlgorithms.Execution execution) {
+      this.moves = moves;
+      this.execution = execution;
+    }
   }
 }

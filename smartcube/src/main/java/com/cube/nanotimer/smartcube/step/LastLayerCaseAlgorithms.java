@@ -2,6 +2,7 @@ package com.cube.nanotimer.smartcube.step;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -40,6 +41,14 @@ public final class LastLayerCaseAlgorithms {
 
   /** However flat the vote, a case is not a catalogue. */
   private static final int MOST_SHOWN = 4;
+
+  /**
+   * The share of its case's folded votes an algorithm has to hold before it counts as one people
+   * use, in percent. A flat floor rather than a running total of the shares above it: two rules
+   * would disagree on the cases the world is split across, and what a solver can act on is "hardly
+   * anybody turns this", which is a share of its own rather than a position in a queue.
+   */
+  public static final int UNUSUAL_SHARE = 6;
 
   /**
    * How far ahead the most used algorithm has to be before it is called the recommended one: half
@@ -380,22 +389,89 @@ public final class LastLayerCaseAlgorithms {
 
   /** Every algorithm the table holds for a case, most used first, shown or not. */
   private static List<Algorithm> every(String caseCode) {
+    List<String[]> rows = rowsOf(caseCode);
     int votes = 0;
-    for (String[] row : ALGORITHMS) {
-      if (row[0].equals(caseCode)) {
-        votes += Integer.parseInt(row[2]);
-      }
+    for (String[] row : rows) {
+      votes += Integer.parseInt(row[2]);
     }
     if (votes == 0) {
       return Collections.emptyList();
     }
     List<Algorithm> all = new ArrayList<Algorithm>();
-    for (String[] row : ALGORITHMS) {
-      if (row[0].equals(caseCode)) {
-        all.add(new Algorithm(row[1], Math.round(Integer.parseInt(row[2]) * 100f / votes), false));
-      }
+    for (String[] row : rows) {
+      all.add(new Algorithm(row[1], Math.round(Integer.parseInt(row[2]) * 100f / votes), false));
     }
     return all;
+  }
+
+  /** The table's rows for one case, in the order it holds them. */
+  private static List<String[]> rowsOf(String caseCode) {
+    List<String[]> rows = new ArrayList<String[]>();
+    for (String[] row : ALGORITHMS) {
+      if (row[0].equals(caseCode)) {
+        rows.add(row);
+      }
+    }
+    return rows;
+  }
+
+  /**
+   * The case's algorithms with the rows that are one algorithm said twice folded into one, most used
+   * first, each holding the votes of every spelling of it.
+   *
+   * <p><b>Nothing may be read as rare before this is done.</b> A sixth of the table is a mirror
+   * behind a rotation, or a wide where another row writes a slice, so one algorithm's vote arrives
+   * split across its spellings and understates what it is: OLL 45's four rows are two algorithms,
+   * and the second reads as an eighth of the case until its spellings are added back up. Folded by
+   * the same test {@link #matching} recognises an execution with, so an execution and the row it
+   * reads as always land in the same place.
+   *
+   * <p><b>A mirror is not always a rotation and those rows stay apart.</b> The Z perm's four rows
+   * are two algorithms each written both ways round, and reflecting one is not something the cube
+   * can be stood up to do, so they are four here. That is a limit of what turning can tell, not an
+   * oversight: it costs nothing while each half still clears the floor on its own.
+   */
+  public static List<Algorithm> folded(String caseCode) {
+    List<Fold> folds = new ArrayList<Fold>();
+    List<List<String>> forms = new ArrayList<List<String>>();
+    int votes = 0;
+    for (String[] row : rowsOf(caseCode)) {
+      int held = Integer.parseInt(row[2]);
+      votes += held;
+      int at = turning(forms, row[1]);
+      if (at < 0) {
+        folds.add(new Fold(row[1], held));
+        forms.add(formOf(row[1]));
+      } else {
+        folds.get(at).votes += held;
+      }
+    }
+    if (votes == 0) {
+      return Collections.emptyList();
+    }
+    Collections.sort(folds, new Comparator<Fold>() {
+      @Override
+      public int compare(Fold one, Fold other) {
+        return other.votes - one.votes;
+      }
+    });
+    List<Algorithm> all = new ArrayList<Algorithm>();
+    for (Fold fold : folds) {
+      all.add(new Algorithm(fold.moves, Math.round(fold.votes * 100f / votes), false));
+    }
+    return Collections.unmodifiableList(all);
+  }
+
+  /** One algorithm of a case and every spelling of it, while its votes are being added up. */
+  private static final class Fold {
+
+    private final String moves;
+    private int votes;
+
+    Fold(String moves, int votes) {
+      this.moves = moves;
+      this.votes = votes;
+    }
   }
 
   /**
@@ -423,15 +499,49 @@ public final class LastLayerCaseAlgorithms {
       return null;
     }
     List<Algorithm> algorithms = every(caseCode);
+    int at = turning(formsOf(algorithms), executedMoves);
+    return at < 0 ? null : algorithms.get(at);
+  }
+
+  /**
+   * What there is to say about an execution beyond which algorithm it was: whether hardly anybody
+   * turns it, and how many turns it takes beside the algorithms people do.
+   *
+   * <p>An execution the table holds no algorithm for is unusual, and so is one holding less than
+   * {@link #UNUSUAL_SHARE} of its case's folded votes. <b>The most used algorithm of a case never
+   * is</b>, whatever its share: a case the world turns one way has one usual answer by definition,
+   * which is the rule {@link #forCase} already follows for what it shows.
+   *
+   * <p><b>It cannot say an execution is bad, and must not be made to.</b> The table ranks the few
+   * algorithms a case is usually taught with, not every algorithm that exists, so a spelling nobody
+   * voted on is one this table has never heard of rather than one nobody should turn.
+   */
+  public static Execution read(String caseCode, String executedMoves) {
+    if (caseCode == null || executedMoves == null) {
+      return new Execution(false, 0, 0);
+    }
+    List<Algorithm> folded = folded(caseCode);
+    int at = turning(formsOf(folded), executedMoves);
+    boolean unusual = !folded.isEmpty()
+        && (at < 0 || (at > 0 && folded.get(at).getShare() < UNUSUAL_SHARE));
+    return new Execution(unusual, length(executedMoves), shortestInUse(folded));
+  }
+
+  private static List<List<String>> formsOf(List<Algorithm> algorithms) {
     List<List<String>> forms = new ArrayList<List<String>>();
+    for (Algorithm algorithm : algorithms) {
+      forms.add(formOf(algorithm.getMoves()));
+    }
+    return forms;
+  }
+
+  /** The first of the forms the moves are that algorithm turned, from whatever grip, or -1. */
+  private static int turning(List<List<String>> forms, String moves) {
     List<String> turns;
     try {
-      turns = AlgorithmForm.of(executedMoves);
-      for (Algorithm algorithm : algorithms) {
-        forms.add(AlgorithmForm.withoutAlignment(AlgorithmForm.of(algorithm.getMoves())));
-      }
+      turns = AlgorithmForm.of(moves);
     } catch (RuntimeException e) {
-      return null; // notation nothing can read is no algorithm of anything
+      return -1; // notation nothing can read is no algorithm of anything
     }
     for (char[] grip : AlgorithmForm.grips()) { // the cube as it was held comes first
       List<String> executed =
@@ -439,13 +549,46 @@ public final class LastLayerCaseAlgorithms {
       if (executed.isEmpty()) {
         continue;
       }
-      for (int i = 0; i < algorithms.size(); i++) {
+      for (int i = 0; i < forms.size(); i++) {
         if (executed.equals(forms.get(i))) {
-          return algorithms.get(i);
+          return i;
         }
       }
     }
-    return null;
+    return -1;
+  }
+
+  /** An algorithm as it is compared, or nothing at all for notation that cannot be read. */
+  private static List<String> formOf(String algorithm) {
+    try {
+      return AlgorithmForm.withoutAlignment(AlgorithmForm.of(algorithm));
+    } catch (RuntimeException e) {
+      return new ArrayList<String>(); // matched by nothing: an empty execution is skipped above
+    }
+  }
+
+  /**
+   * How many turns something takes, counted as the outer turns it is made of once what cancels has
+   * cancelled and the alignment is off both ends. A wide and a slice come out as the turns they are
+   * made of on both sides of the comparison, so an execution and an algorithm are counted alike.
+   */
+  private static int length(String moves) {
+    return formOf(moves).size();
+  }
+
+  /** The shortest algorithm people do use, which is what a long execution is measured against. */
+  private static int shortestInUse(List<Algorithm> folded) {
+    int shortest = 0;
+    for (int i = 0; i < folded.size(); i++) {
+      if (i > 0 && folded.get(i).getShare() < UNUSUAL_SHARE) {
+        continue;
+      }
+      int length = length(folded.get(i).getMoves());
+      if (length > 0 && (shortest == 0 || length < shortest)) {
+        shortest = length;
+      }
+    }
+    return shortest;
   }
 
   /**
@@ -507,6 +650,40 @@ public final class LastLayerCaseAlgorithms {
      */
     public boolean isRecommended() {
       return recommended;
+    }
+  }
+
+  /** How an execution stands against the algorithms its case is usually turned with. */
+  public static final class Execution {
+
+    private final boolean unusual;
+    private final int moves;
+    private final int usualMoves;
+
+    Execution(boolean unusual, int moves, int usualMoves) {
+      this.unusual = unusual;
+      this.moves = moves;
+      this.usualMoves = usualMoves;
+    }
+
+    /** Whether hardly anybody turns this: a rare spelling, or one the table has not got at all. */
+    public boolean isUnusual() {
+      return unusual;
+    }
+
+    /** How many turns it takes. */
+    public int getMoves() {
+      return moves;
+    }
+
+    /** How many the shortest algorithm in use takes, or 0 where there is nothing to compare with. */
+    public int getUsualMoves() {
+      return usualMoves;
+    }
+
+    /** Whether it takes more turns than the shortest algorithm people use: the actionable half. */
+    public boolean isLonger() {
+      return usualMoves > 0 && moves > usualMoves;
     }
   }
 }

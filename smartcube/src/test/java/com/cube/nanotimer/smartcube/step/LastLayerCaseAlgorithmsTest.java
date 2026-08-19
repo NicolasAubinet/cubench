@@ -237,6 +237,124 @@ public class LastLayerCaseAlgorithmsTest {
         LastLayerCaseAlgorithms.matching("oll_5", "z r' U2 R U R' U r z'").getMoves());
   }
 
+  /**
+   * The fold: OLL 45's four rows are two algorithms, so its second answer holds a sixth of the case
+   * rather than the eighth its own row shows. Every share is wrong until this is done.
+   */
+  @Test
+  public void foldsTheRowsThatAreOneAlgorithmSaidTwice() {
+    List<LastLayerCaseAlgorithms.Algorithm> folded = LastLayerCaseAlgorithms.folded("oll_45");
+
+    assertEquals(4, rowsFor("oll_45"));
+    assertEquals(2, folded.size());
+    assertEquals("F R U R' U' F'", folded.get(0).getMoves());
+    assertEquals(84, folded.get(0).getShare());
+    assertEquals(16, folded.get(1).getShare());
+  }
+
+  /**
+   * How much of the table it is, pinned: 57 of the 304 rows are another row said differently. A new
+   * row changing these two numbers is expected; one changing only the second is a duplicate that
+   * was not spotted when it was added.
+   */
+  @Test
+  public void foldsAwayASixthOfTheTable() {
+    int folded = 0;
+    for (String caseCode : LastLayerScrambles.cases()) {
+      folded += LastLayerCaseAlgorithms.folded(caseCode).size();
+    }
+
+    assertEquals(304, LastLayerCaseAlgorithms.rows().size());
+    assertEquals(247, folded);
+  }
+
+  /** Folding moves votes between spellings of a case and never in or out of it. */
+  @Test
+  public void foldingAddsUpToTheWholeCase() {
+    for (String caseCode : LastLayerScrambles.cases()) {
+      int share = 0;
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
+        share += algorithm.getShare();
+      }
+      assertTrue(caseCode + " came to " + share, Math.abs(share - 100) <= 2); // rounding, per row
+    }
+  }
+
+  /** A top-heavy case: nine solvers in ten turn one algorithm, and the tail is what is unusual. */
+  @Test
+  public void readsTheRareSpellingOfATopHeavyCaseAsUnusual() {
+    assertFalse(LastLayerCaseAlgorithms
+        .read("pll_jb", "R U R' F' R U R' U' R' F R2 U' R'").isUnusual());
+    assertTrue(LastLayerCaseAlgorithms
+        .read("pll_jb", "R U2 R' U' R U2 L' U R' U' L").isUnusual());
+    // Folded to a sixth of the case between them, so neither of the two below it is rare either.
+    assertFalse(LastLayerCaseAlgorithms
+        .read("pll_jb", "r' F R F' r U2 R' U R U2 R'").isUnusual());
+  }
+
+  /**
+   * And a flat one: four spellings between a sixth and a third, none of them odd to turn. Four and
+   * not two, because the Z perm's pairs are reflections rather than the same turning from another
+   * grip, which is a limit of reading moves and costs nothing while each half clears the floor.
+   */
+  @Test
+  public void readsNothingOnACaseTheWorldIsSplitAcrossAsUnusual() {
+    assertEquals(4, LastLayerCaseAlgorithms.folded("pll_z").size());
+    for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded("pll_z")) {
+      assertFalse(algorithm.getMoves(),
+          LastLayerCaseAlgorithms.read("pll_z", algorithm.getMoves()).isUnusual());
+    }
+  }
+
+  /** What most people turn is never unusual, which is the rule {@code forCase} already follows. */
+  @Test
+  public void neverReadsWhatMostPeopleTurnAsUnusual() {
+    for (String caseCode : LastLayerScrambles.cases()) {
+      String mostUsed = LastLayerCaseAlgorithms.folded(caseCode).get(0).getMoves();
+      assertFalse(caseCode, LastLayerCaseAlgorithms.read(caseCode, mostUsed).isUnusual());
+    }
+  }
+
+  /** An algorithm the table has not got is unusual too, and this one is two algorithms. */
+  @Test
+  public void readsAnAlgorithmTheTableHasNotGotAsUnusual() {
+    String twoSunes = "R U R' U R U2 R' U2 R U R' U R U2 R'";
+    LastLayerCaseAlgorithms.Execution execution = LastLayerCaseAlgorithms.read("oll_45", twoSunes);
+
+    assertTrue(execution.isUnusual());
+    assertTrue(execution.isLonger());
+    assertEquals(15, execution.getMoves());
+    assertEquals(6, execution.getUsualMoves());
+  }
+
+  /** Rare is not long: a spelling few people turn can be the shortest thing on the list. */
+  @Test
+  public void saysNothingAboutTheLengthOfAShortRareAlgorithm() {
+    LastLayerCaseAlgorithms.Execution execution =
+        LastLayerCaseAlgorithms.read("pll_jb", "R U2 R' U' R U2 L' U R' U' L");
+
+    assertTrue(execution.isUnusual());
+    assertFalse(execution.isLonger());
+  }
+
+  @Test
+  public void hasNothingToSayAboutNothing() {
+    assertFalse(LastLayerCaseAlgorithms.read("oll_27", null).isUnusual());
+    assertFalse(LastLayerCaseAlgorithms.read(null, "R U R' U R U2 R'").isUnusual());
+    assertFalse(LastLayerCaseAlgorithms.read("oll_27", "R U R' banana").isLonger());
+    assertTrue(LastLayerCaseAlgorithms.folded("pll_nothing").isEmpty());
+  }
+
+  private static int rowsFor(String caseCode) {
+    int rows = 0;
+    for (String[] row : LastLayerCaseAlgorithms.rows()) {
+      if (row[0].equals(caseCode)) {
+        rows++;
+      }
+    }
+    return rows;
+  }
+
   private static boolean sameAlgorithm(String one, String other) {
     return AlgorithmForm.withoutAlignment(AlgorithmForm.of(one))
         .equals(AlgorithmForm.withoutAlignment(AlgorithmForm.of(other)));

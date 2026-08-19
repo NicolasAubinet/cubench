@@ -28,15 +28,32 @@
      android:layout_marginLeft="@dimen/space_m"
      android:orientation="vertical">
 
-    <TextView
-       android:id="@+id/tvKnownAlgorithmsName"
+    <!-- The chip rides on the name line and never on the moves: it turns up on a handful of rows
+         and the moves need every pixel of the width they have. -->
+    <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:ellipsize="end"
-       android:fontFamily="@font/roboto_medium"
-       android:maxLines="1"
-       android:textColor="@color/white"
-       android:textSize="15sp"/>
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvKnownAlgorithmsName"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:ellipsize="end"
+         android:fontFamily="@font/roboto_medium"
+         android:maxLines="1"
+         android:textColor="@color/white"
+         android:textSize="15sp"/>
+
+      <TextView
+         android:id="@+id/tvKnownAlgorithmsUnusual"
+         style="@style/RowChip"
+         android:layout_marginLeft="@dimen/space_s"
+         android:text="@string/case_algorithm_unusual"
+         android:visibility="gone"/>
+    </LinearLayout>
 
     <TextView
        android:id="@+id/tvKnownAlgorithmsMoves"
@@ -47,5 +64,16 @@
        android:maxLines="2"
        android:textColor="@color/secondary_text"
        android:textSize="13sp"/>
+
+    <!-- Only on a row that is flagged, and only where it is longer: the actionable half. -->
+    <TextView
+       android:id="@+id/tvKnownAlgorithmsLonger"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="2dp"
+       android:maxLines="1"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"
+       android:visibility="gone"/>
   </LinearLayout>
 </LinearLayout>
