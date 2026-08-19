@@ -46,9 +46,11 @@ import java.util.Map;
  *
  * <p><b>Whether a case goes in unaided is said by the heading it sits under, not on every line.</b>
  * Most of a family has nothing said about it, and repeating that down fifty rows would drown the one
- * thing each row is there for. The last group is the cases nothing has been seen of at all, and it
- * is called that rather than unlearnt: silence is not evidence. Tapping a case opens the algorithms
- * it can be solved with, which is where the solver says which one is theirs.
+ * thing each row is there for. The last group is the cases nothing is known about either way, which
+ * is not the same as never solved: a case drilled cleanly twenty times is still in it, since a drill
+ * hands the case over with nothing to recognise. It is called that rather than unlearnt because
+ * silence is not evidence. Tapping a case opens the algorithms it can be solved with, which is where
+ * the solver says which one is theirs.
  */
 public class KnownAlgorithmsActivity extends NanoTimerActivity {
 

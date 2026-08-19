@@ -1104,7 +1104,7 @@
   <string name="known_algorithms_subtitle">Déduit de vos résolutions et de vos drills.</string>
   <string name="known_algorithms_status_known">Connu</string>
   <string name="known_algorithms_status_learning">En cours</string>
-  <string name="known_algorithms_status_unseen">Pas encore vu</string>
+  <string name="known_algorithms_status_unseen">Rien à en dire</string>
   <string name="known_algorithms_no_moves">Aucun cas enregistré</string>
   <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas est connu dès que vous le faites en un seul algorithme dans une résolution, et cesse de l\'être si vous le reprenez en deux temps.</string>
   <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec un smart cube connecté et les cas que vous faites sans aide apparaîtront.</string>
