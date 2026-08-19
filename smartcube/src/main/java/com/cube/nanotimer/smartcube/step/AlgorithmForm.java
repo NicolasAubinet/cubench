@@ -25,7 +25,7 @@ import java.util.List;
  * carried, and both come out as the outer turns they are made of ({@code Rw} as {@code x L},
  * {@code M} as {@code x' R L'}).
  */
-final class AlgorithmForm {
+public final class AlgorithmForm {
 
   /** The face on the positive side of each axis, in the axis order {@link Notation} turns about. */
   private static final char[] PLUS = {'R', 'U', 'F'};
@@ -59,6 +59,23 @@ final class AlgorithmForm {
       }
     }
     return folded(turns);
+  }
+
+  /**
+   * One string naming what was turned, for telling two executions of a case apart. Null for notation
+   * nothing can read, which is not the same answer as turning nothing.
+   */
+  public static String key(String algorithm) {
+    try {
+      List<String> turns = withoutAlignment(of(algorithm));
+      StringBuilder key = new StringBuilder();
+      for (String turn : turns) {
+        key.append(key.length() == 0 ? "" : " ").append(turn);
+      }
+      return key.toString();
+    } catch (RuntimeException e) {
+      return null;
+    }
   }
 
   /** The same turning done with the cube stood some other way, which is the same algorithm. */

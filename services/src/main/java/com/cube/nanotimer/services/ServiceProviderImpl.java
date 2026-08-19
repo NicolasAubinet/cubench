@@ -14,6 +14,7 @@ import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
+import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -1616,6 +1617,71 @@ public class ServiceProviderImpl implements ServiceProvider {
         getMethodStepSamples(solveType, method, CoachPayloadBuilder.CASE_WINDOW), caseSolves,
         drillSamples, getDrilledDrillsCount(CoachPayloadBuilder.DRILL_WINDOW),
         CaseKnowledgeStore.read(db));
+  }
+
+  /**
+   * The statuses and the solves behind them in one read. The moves a case was answered with are not
+   * stored anywhere on their own: they are part of the solve, so the solves come up whole and the
+   * caller cuts them at their steps.
+   *
+   * <p>A blind solve type is left out here rather than by the caller, since it can never hold one of
+   * these cases and would otherwise eat into the count of solves that can.
+   *
+   * <p><b>The solves come without their recorded steps.</b> What is wanted from them is the moves,
+   * and a caller reading those reads the breakdown again from the scramble anyway; fetching the
+   * stored steps would be a query per solve for something nothing here looks at.
+   */
+  @Override
+  public CaseHistory getCaseHistory(int solves) {
+    StringBuilder q = new StringBuilder();
+    q.append("SELECT h.").append(DB.COL_ID);
+    q.append("     , h.").append(DB.COL_TIMEHISTORY_TIME);
+    q.append("     , h.").append(DB.COL_TIMEHISTORY_TIMESTAMP);
+    q.append("     , h.").append(DB.COL_TIMEHISTORY_SCRAMBLE);
+    q.append("     , h.").append(DB.COL_TIMEHISTORY_PLUSTWO);
+    q.append("     , h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
+    q.append("     , h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD);
+    q.append("     , h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
+    q.append("     , t.").append(DB.COL_ID);
+    q.append("     , t.").append(DB.COL_SOLVETYPE_NAME);
+    q.append("     , t.").append(DB.COL_SOLVETYPE_BLIND);
+    q.append("     , t.").append(DB.COL_SOLVETYPE_SCRAMBLE_TYPE);
+    q.append("     , t.").append(DB.COL_SOLVETYPE_CUBETYPE_ID);
+    q.append("     , t.").append(DB.COL_SOLVETYPE_METHOD);
+    q.append("  FROM ").append(DB.TABLE_TIMEHISTORY).append(" h");
+    q.append("  JOIN ").append(DB.TABLE_SOLVETYPE).append(" t");
+    q.append("    ON t.").append(DB.COL_ID).append(" = h.").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
+    q.append(" WHERE h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES).append(" IS NOT NULL");
+    q.append("   AND h.").append(DB.COL_TIMEHISTORY_TIME).append(" > 0");
+    q.append("   AND t.").append(DB.COL_SOLVETYPE_BLIND).append(" = 0");
+    q.append(" ORDER BY h.").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" DESC");
+    q.append(" LIMIT ").append(solves);
+
+    List<SolveTime> history = new ArrayList<SolveTime>();
+    Cursor cursor = db.rawQuery(q.toString(), null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        SolveTime st = new SolveTime();
+        st.setId(cursor.getInt(0));
+        st.setTime(cursor.getInt(1));
+        st.setTimestamp(cursor.getLong(2));
+        st.setScramble(cursor.getString(3));
+        st.setPlusTwo(cursor.getInt(4) == 1, false);
+        st.setSmartcubeMoves(cursor.getString(5));
+        Integer stoppedStep = cursor.isNull(7) ? null : cursor.getInt(7);
+        st.setSmartcubeStoppedStep(stoppedStep);
+        st.setSmartcubeMethod(CubeMethod.fromCode(cursor.getString(6)));
+        int cubeTypeId = cursor.getInt(12);
+        SolveType solveType = new SolveType(cursor.getInt(8), cursor.getString(9),
+            cursor.getInt(10) == 1, toScrambleType(CubeType.getCubeType(cubeTypeId),
+            cursor.getString(11)), cubeTypeId);
+        solveType.setMethod(CubeMethod.fromCode(cursor.getString(13)));
+        st.setSolveType(solveType);
+        history.add(st);
+      }
+      cursor.close();
+    }
+    return new CaseHistory(CaseKnowledgeStore.read(db), history);
   }
 
   @Override

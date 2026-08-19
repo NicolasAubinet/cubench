@@ -87,6 +87,31 @@ public class MethodStatistics implements Serializable {
     return separator < 0 ? null : code.substring(separator + 1);
   }
 
+  /** The families a last layer part is coded under, beside the step code that names the same case. */
+  private static final String[][] PART_FAMILIES = {{"ollalg", "oll"}, {"alg", "pll"}};
+
+  /**
+   * The case a last layer part names, written the way the step handed it would be, or null for a
+   * part that is not one. A part names the algorithm that was run rather than the case it was dealt,
+   * so {@code ollalg_45} is the answer to OLL 45 whatever case the step began as.
+   */
+  public static String caseOfPart(String code) {
+    if (code == null) {
+      return null;
+    }
+    String family = familyOf(code);
+    String caseName = caseOf(code);
+    if (caseName == null || SKIP.equals(caseName)) {
+      return null;
+    }
+    for (String[] part : PART_FAMILIES) {
+      if (part[0].equals(family)) {
+        return part[1] + "_" + caseName;
+      }
+    }
+    return null; // a part coded by something other than the algorithm it ran
+  }
+
   public int getSolveCount() {
     return solveCount;
   }

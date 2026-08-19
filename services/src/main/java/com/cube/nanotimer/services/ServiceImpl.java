@@ -8,6 +8,7 @@ import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
+import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -625,6 +626,16 @@ public class ServiceImpl extends DBHelper implements Service {
       @Override
       public void run() {
         callback.onData(provider.getDrillCaseStatistics(lastDrills));
+      }
+    });
+  }
+
+  @Override
+  public void getCaseHistory(final int solves, final DataCallback<CaseHistory> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getCaseHistory(solves));
       }
     });
   }

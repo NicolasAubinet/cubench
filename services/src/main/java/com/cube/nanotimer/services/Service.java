@@ -6,6 +6,7 @@ import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
+import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -137,6 +138,14 @@ public interface Service {
 
   /** The four figures a backup is described by, counted over the whole database. */
   void getBackupCounts(DataCallback<BackupCounts> callback);
+
+  /**
+   * Which cases the solver does unaided, and the solves the moves they turn are read out of.
+   *
+   * @param solves how many of the most recent smart-cube solves to bring back. Reading them is what
+   *     costs, since each is replayed, so a screen asks for as many as it needs and no more.
+   */
+  void getCaseHistory(int solves, DataCallback<CaseHistory> callback);
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);

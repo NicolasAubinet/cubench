@@ -5,6 +5,7 @@ import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
+import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -91,6 +92,9 @@ public interface ServiceProvider {
 
   /** The four figures a backup is described by, counted over the whole database. */
   BackupCounts getBackupCounts();
+
+  /** Which cases the solver does unaided, and the newest {@code solves} the moves are read from. */
+  CaseHistory getCaseHistory(int solves);
 
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);
