@@ -75,7 +75,8 @@ public class CaseExecutionsTest {
   public void answersWithWhatIsUsuallyTurnedAndNotWithTheLatest() {
     List<String> answers = Arrays.asList("R U2 R'", "R U R' U'", "U R U R' U' U'");
 
-    assertEquals("R U R' U'", CaseExecutions.spreadOf(answers).getTurned().get(0).getMoves());
+    assertEquals("R U R' U'",
+        CaseExecutions.spreadOf(null, answers).getTurned().get(0).getMoves());
   }
 
   /** With nothing to go on twice, the most recent stands: it is at least something they turned. */
@@ -83,7 +84,8 @@ public class CaseExecutionsTest {
   public void answersWithTheLatestWhenNothingWasTurnedTwice() {
     List<String> answers = Arrays.asList("R U2 R'", "R U R' U'");
 
-    assertEquals("R U2 R'", CaseExecutions.spreadOf(answers).getTurned().get(0).getMoves());
+    assertEquals("R U2 R'",
+        CaseExecutions.spreadOf(null, answers).getTurned().get(0).getMoves());
   }
 
   /**
@@ -92,7 +94,7 @@ public class CaseExecutionsTest {
    */
   @Test
   public void keepsEveryThingTheSolverTurnsForOneCase() {
-    CaseExecutions.Spread spread = CaseExecutions.spreadOf(
+    CaseExecutions.Spread spread = CaseExecutions.spreadOf(null,
         Arrays.asList("R U2 R'", "R U R' U'", "U R U R' U' U'", "R U R' U'"));
 
     assertEquals(2, spread.getTurned().size());
@@ -107,7 +109,7 @@ public class CaseExecutionsTest {
   @Test
   public void hasOneAnswerForACaseAlwaysTurnedTheSameWay() {
     CaseExecutions.Spread spread =
-        CaseExecutions.spreadOf(Arrays.asList("R U R' U'", "U R U R' U' U'"));
+        CaseExecutions.spreadOf(null, Arrays.asList("R U R' U'", "U R U R' U' U'"));
 
     assertEquals(1, spread.getTurned().size());
     assertEquals(2, spread.getOf());
@@ -121,6 +123,20 @@ public class CaseExecutionsTest {
 
     assertTrue(CaseExecutions.readFrom(solves).isEmpty());
     assertNull(CaseExecutions.readFrom(new ArrayList<SolveTime>()).get("pll_t"));
+  }
+
+  /**
+   * A solver regrips between solves and leaves the layer facing wherever the next case wants it, so
+   * one algorithm comes back written several ways. That is one answer turned three times, not three
+   * answers turned once each.
+   */
+  @Test
+  public void countsOneAlgorithmRegrippedAsOneAnswer() {
+    CaseExecutions.Spread spread = CaseExecutions.spreadOf("oll_27", Arrays.asList(
+        "R U R' U R U2 R'", "F R F R' F R F2 R'", "U R U R' U R U2 R' U'"));
+
+    assertEquals(1, spread.getTurned().size());
+    assertEquals(3, spread.getTurned().get(0).getTimes());
   }
 
   /** Both codes a case is recorded under, since a step taking two algorithms names only the part. */

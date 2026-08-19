@@ -66,7 +66,7 @@ public final class CaseExecutions {
     }
     Map<String, Spread> spreads = new LinkedHashMap<String, Spread>();
     for (Map.Entry<String, List<String>> answer : answers.entrySet()) {
-      spreads.put(answer.getKey(), spreadOf(answer.getValue()));
+      spreads.put(answer.getKey(), spreadOf(answer.getKey(), answer.getValue()));
     }
     return spreads;
   }
@@ -167,11 +167,13 @@ public final class CaseExecutions {
    * Each group is spelled as the most recent of its own answers, since a real execution written the
    * way it was turned is more use than an average nobody performed.
    */
-  static Spread spreadOf(List<String> answers) {
+  static Spread spreadOf(String caseCode, List<String> answers) {
     Map<String, Integer> counts = new LinkedHashMap<String, Integer>();
     Map<String, String> firstSeen = new LinkedHashMap<String, String>();
     for (String moves : answers) {
-      String key = AlgorithmForm.key(moves);
+      // From the frame the case is drawn in, so the same algorithm regripped between solves and
+      // left facing another way is one answer rather than two or three.
+      String key = LastLayerCaseAlgorithms.keyAsDrawn(caseCode, moves);
       if (key == null) {
         continue; // notation nothing can read groups with nothing, not with everything
       }

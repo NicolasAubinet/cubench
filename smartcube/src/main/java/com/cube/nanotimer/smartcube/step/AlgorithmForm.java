@@ -78,6 +78,49 @@ public final class AlgorithmForm {
     }
   }
 
+  /**
+   * One string naming what was turned, the same however the cube was held. Null for notation
+   * nothing can read.
+   *
+   * <p>{@link #key} is enough to tell two executions of one case apart only while they were turned
+   * from the same frame. A solver regrips between solves, so the same algorithm comes back written
+   * two ways, and grouping on the plain key splits one answer into two. The smallest of the 24 is
+   * an arbitrary representative and deliberately so: what matters is that the same turning always
+   * picks the same one, not which one it picks.
+   *
+   * <p><b>The alignment comes off before the cube is stood up, not after.</b> Standing it up moves
+   * the layer's turns onto another face, so stripping afterwards takes off whatever happens to be
+   * named {@code U} in that grip, which is not the alignment and not the same thing in each of the
+   * 24. Stripping first is what makes the 24 a set the same turning always maps onto itself.
+   * ⚠️ It still assumes the layer was up in the frame the moves were written in, which is true of
+   * the table and not of an execution; {@code LastLayerCaseAlgorithms.keyAsDrawn} is the one that
+   * finds the frame first, and this is its fallback.
+   */
+  public static String keyFromAnyGrip(String algorithm) {
+    List<String> turns;
+    try {
+      turns = withoutAlignment(of(algorithm));
+    } catch (RuntimeException e) {
+      return null;
+    }
+    String smallest = null;
+    for (char[] grip : grips()) {
+      String stood = written(conjugatedBy(turns, grip));
+      if (smallest == null || stood.compareTo(smallest) < 0) {
+        smallest = stood;
+      }
+    }
+    return smallest;
+  }
+
+  private static String written(List<String> turns) {
+    StringBuilder written = new StringBuilder();
+    for (String turn : turns) {
+      written.append(written.length() == 0 ? "" : " ").append(turn);
+    }
+    return written.toString();
+  }
+
   /** The same turning done with the cube stood some other way, which is the same algorithm. */
   static List<String> conjugatedBy(List<String> turns, char[] rotated) {
     List<String> conjugated = new ArrayList<String>(turns.size());

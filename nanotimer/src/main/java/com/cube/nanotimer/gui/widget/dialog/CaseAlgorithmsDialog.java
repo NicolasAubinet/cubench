@@ -171,10 +171,27 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       return read;
     }
     for (CaseExecutions.Turned one : spread.getTurned()) {
-      read.add(new Turned(CaseExecutions.asAlgorithm(caseCode, one.getMoves()),
-          LastLayerCaseAlgorithms.read(caseCode, one.getMoves()), one.getTimes(), spread.getOf()));
+      String moves = CaseExecutions.asAlgorithm(caseCode, one.getMoves());
+      // Two executions written the same way are one row, or the counts on the rows drawn would not
+      // add up to the answers they were counted out of.
+      Turned already = named(read, moves);
+      if (already == null) {
+        read.add(new Turned(moves, LastLayerCaseAlgorithms.read(caseCode, one.getMoves()),
+            one.getTimes(), spread.getOf()));
+      } else {
+        already.times += one.getTimes();
+      }
     }
     return read;
+  }
+
+  private static Turned named(List<Turned> read, String moves) {
+    for (Turned one : read) {
+      if (one.moves.equals(moves)) {
+        return one;
+      }
+    }
+    return null;
   }
 
   /**
@@ -324,7 +341,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
     private final String moves;
     private final Execution execution;
-    private final int times;
+    private int times;
     private final int of;
 
     Turned(String moves, Execution execution, int times, int of) {

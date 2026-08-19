@@ -610,6 +610,38 @@ public final class LastLayerCaseAlgorithms {
     return AlgorithmForm.withoutAlignment(turns).size(); // nothing it does names the case
   }
 
+  /**
+   * One string naming what an execution turned, from the frame its case is drawn in and with the
+   * alignment off both ends. Two executions of one algorithm come out equal however the solver was
+   * holding the cube and whichever way they left the layer facing, which is what makes counting how
+   * often each is turned mean anything.
+   *
+   * <p>Four of the 24 grips leave the execution solving the case, the four that differ only by
+   * which way the layer faces, and the smallest of those four answers for all of them. An execution
+   * that solves the case from no grip at all falls back to
+   * {@link AlgorithmForm#keyFromAnyGrip}, which is the same question asked without the case.
+   */
+  public static String keyAsDrawn(String caseCode, String moves) {
+    List<String> turns;
+    try {
+      turns = AlgorithmForm.of(moves);
+    } catch (RuntimeException e) {
+      return null; // notation nothing can read groups with nothing, not with everything
+    }
+    String smallest = null;
+    for (char[] grip : AlgorithmForm.grips()) {
+      List<String> stood = AlgorithmForm.conjugatedBy(turns, grip);
+      if (!solves(caseCode, written(stood))) {
+        continue;
+      }
+      String key = written(AlgorithmForm.withoutAlignment(stood));
+      if (smallest == null || key.compareTo(smallest) < 0) {
+        smallest = key;
+      }
+    }
+    return smallest == null ? AlgorithmForm.keyFromAnyGrip(moves) : smallest;
+  }
+
   private static String written(List<String> turns) {
     StringBuilder written = new StringBuilder();
     for (String turn : turns) {
