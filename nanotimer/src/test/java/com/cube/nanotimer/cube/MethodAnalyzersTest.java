@@ -84,18 +84,19 @@ public class MethodAnalyzersTest {
 
     assertEquals(CubeMethod.LBL, analyzers.resolve());
     List<StepTime> steps = analyzers.get(CubeMethod.LBL).getStepTimes();
-    // Keyholed, so the first layer is come back to: five steps of four names.
-    assertEquals(5, steps.size());
+    // Keyholed, so both layers are come back to: six steps of four names.
+    assertEquals(6, steps.size());
     assertEquals("cross", steps.get(0).getStepName());
     assertEquals("layer1", steps.get(1).getStepName());
     assertEquals("layer2", steps.get(2).getStepName());
     assertEquals("layer1", steps.get(3).getStepName());
-    assertEquals("ll", steps.get(4).getStepName());
+    assertEquals("layer2", steps.get(4).getStepName());
+    assertEquals("ll", steps.get(5).getStepName());
   }
 
   /** The steps of a solve that goes back to a layer still account for all of it, and none of them
-   * for less than nothing: the corner that landed on the same move as the edge before it costs
-   * nothing rather than running backwards. */
+   * for less than nothing: a step of a single piece costs what it took rather than running
+   * backwards. */
   @Test
   public void addsUpTheStepsOfASolveThatGoesBackToALayer() {
     analyzers = new MethodAnalyzers(CubeMethod.LBL);

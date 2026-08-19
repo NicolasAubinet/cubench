@@ -111,8 +111,10 @@ public class LblStepDetectorTest {
     startFrom(SOLVE);
     play(SOLVE);
 
+    // Each layer in the order it was built: the first corner inserted, then the first edge sent
+    // down. An edge carried through its own slot by an earlier insertion is not the first of them.
     assertEquals("corner_fr", detector.subStepName(1, 0));
-    assertEquals("edge_br", detector.subStepName(2, 0));
+    assertEquals("edge_fr", detector.subStepName(2, 0));
     for (int part = 0; part < 4; part++) {
       assertTrue(detector.subStepName(1, part).startsWith("corner_"));
       assertTrue(detector.subStepName(2, part).startsWith("edge_"));
@@ -169,28 +171,34 @@ public class LblStepDetectorTest {
 
     assertTrue(detector.isComplete());
     assertTrue(detector.matchesMethod());
-    assertEquals(5, detector.stepCount());
+    assertEquals(6, detector.stepCount());
     assertEquals("cross", detector.stepName(0));
     assertEquals("layer1", detector.stepName(1));
     assertEquals("layer2", detector.stepName(2));
     assertEquals("layer1", detector.stepName(3)); // the corner held back for the keyhole
-    assertEquals("ll", detector.stepName(4));
+    assertEquals("layer2", detector.stepName(4)); // and the edge its empty slot was carrying
+    assertEquals("ll", detector.stepName(5));
 
     assertEquals(3, detector.subStepCount(1));
+    assertEquals(3, detector.subStepCount(2));
     assertEquals(1, detector.subStepCount(3));
+    assertEquals(1, detector.subStepCount(4));
     assertTrue(detector.getStepTimestampMs(1) < detector.getStepTimestampMs(2));
-    assertTrue(detector.getStepTimestampMs(2) <= detector.getStepTimestampMs(3));
+    assertTrue(detector.getStepTimestampMs(2) < detector.getStepTimestampMs(3));
+    assertTrue(detector.getStepTimestampMs(3) < detector.getStepTimestampMs(4));
   }
 
   @Test
   public void keepsAPieceLandingWithAnotherInTheStretchAlreadyOpen() {
-    // The keyholed solve's last edge lands on the same move as the corner. One move is one step, so
-    // it stays with the second layer rather than opening a stretch of its own for that single move.
-    startFrom(KEYHOLED);
-    play(KEYHOLED);
+    // A paired solve lands a corner and an edge on the same move. One move is one step, so the one
+    // continuing the stretch already open comes first rather than opening a stretch of its own.
+    startFrom(PAIRED);
+    play(PAIRED);
 
-    assertEquals(4, detector.subStepCount(2));
-    assertEquals(detector.getStepTimestampMs(2), detector.getStepTimestampMs(3));
+    assertEquals("layer2", detector.stepName(2));
+    assertEquals("edge_br", detector.subStepName(2, 1));
+    assertEquals("corner_rb", detector.subStepName(3, 0));
+    assertEquals(detector.getSubStepTimestampMs(2, 1), detector.getSubStepTimestampMs(3, 0));
   }
 
   @Test

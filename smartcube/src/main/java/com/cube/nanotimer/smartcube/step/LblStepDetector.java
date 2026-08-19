@@ -27,14 +27,26 @@ import java.util.Locale;
  *
  * <p><b>The last layer is done in whatever order was taught.</b> Its four parts (orienting the
  * edges, orienting the corners, permuting the corners, permuting the edges) are sub-goals of one
- * step, each dated when it is first reached, and the display sorts them by time. Every beginner
+ * step, each dated where it was reached, and the display sorts them by time. Every beginner
  * variant is then just a different order of the same four.
+ *
+ * <p><b>Only the states the solver stopped at count.</b> A beginner's insertion carries pieces
+ * through home on its way — a corner going in turns the cross apart and back, and a middle edge
+ * passes through its own slot on the way to being sent down — so a piece read the first time it is
+ * ever home is read on a move it was still being turned by. What is read instead is a
+ * <em>settled</em> state: the cross up and every piece already counted still home. The last layer's
+ * parts are read the same way, between the states where the first two layers stand.
  *
  * <p>The two permutation parts are read <b>up to a turn of the last layer</b>, since the solver
  * leaves it wherever the algorithm ended. But not on their own terms: "the edges are placed after
  * some turn" is also true of an H perm, and the corners' version is true of a diagonal swap, so a
  * turn one kind of piece claims counts only where the other kind has no claim of its own or makes
  * the same one. Placed where they stand, needing no turn at all, is never in doubt.
+ *
+ * <p>A part is dated where it was reached <b>for good</b>, unlike a piece of the layers: the corners
+ * come out of the first two layers already permuted once in six, and the algorithm the solver then
+ * turns for the edges takes that apart again. So a part goes back to undated where a settled state
+ * has lost it, and the time it keeps is the one it was last reached at.
  */
 public final class LblStepDetector implements StepDetector {
 
@@ -90,6 +102,10 @@ public final class LblStepDetector implements StepDetector {
 
   private final Long[] firstLayerMs = new Long[6];
 
+  /** How many first-layer corners were in when the second layer's first edge landed: what tells a
+   * layer-by-layer solve from one that puts each corner in with its own edge. */
+  private final Integer[] cornersAtFirstEdge = new Integer[6];
+
   private List<Long> reported = new ArrayList<Long>();
 
   private Integer crossFace; // provisional until the first layer confirms it
@@ -104,6 +120,7 @@ public final class LblStepDetector implements StepDetector {
       crossMs[face] = null;
       firstLayerMs[face] = null;
       layersMs[face] = null;
+      cornersAtFirstEdge[face] = null;
       Arrays.fill(cornerMs[face], null);
       Arrays.fill(edgeMs[face], null);
       Arrays.fill(partMs[face], null);
@@ -146,22 +163,60 @@ public final class LblStepDetector implements StepDetector {
       if (crossMs[face] == null && Cubies.crossDone(facelets, face)) {
         crossMs[face] = timestampMs;
       }
-      if (crossMs[face] == null) {
-        continue; // a piece put in before the cross was is dated with the cross, not before it
+      // A piece put in before the cross was is dated with the cross, not before it; and a state
+      // the solver is still turning through says nothing about what is in.
+      if (crossMs[face] == null || !settled(face, facelets)) {
+        continue;
       }
+      boolean hadEdge = dated(edgeMs[face]);
       int corners = mark(cornerMs[face], FIRST_LAYER_CORNERS[face], facelets, timestampMs);
       int edges = mark(edgeMs[face], SECOND_LAYER_EDGES[face], facelets, timestampMs);
+      if (!hadEdge && dated(edgeMs[face])) {
+        cornersAtFirstEdge[face] = Integer.valueOf(corners);
+      }
       if (corners == PIECES_PER_LAYER && firstLayerMs[face] == null) {
         firstLayerMs[face] = timestampMs;
       }
-      if (corners == PIECES_PER_LAYER && edges == PIECES_PER_LAYER && layersMs[face] == null) {
+      boolean layersUp = corners == PIECES_PER_LAYER && edges == PIECES_PER_LAYER;
+      if (layersUp && layersMs[face] == null) {
         layersMs[face] = timestampMs;
       }
-      if (layersMs[face] != null) {
+      if (layersUp) {
         markLastLayer(face, facelets, timestampMs);
       }
     }
     updateCrossFace();
+  }
+
+  /**
+   * Whether the solve is between algorithms rather than part way through one: the cross up and every
+   * piece already counted still home. A beginner's algorithm takes the cross apart and puts it back,
+   * so this is false through the middle of one and true at its two ends.
+   */
+  private boolean settled(int face, String facelets) {
+    if (!Cubies.crossDone(facelets, face)) {
+      return false;
+    }
+    for (int piece = 0; piece < PIECES_PER_LAYER; piece++) {
+      if (cornerMs[face][piece] != null
+          && !Cubies.inPlace(facelets, FIRST_LAYER_CORNERS[face][piece])) {
+        return false;
+      }
+      if (edgeMs[face][piece] != null
+          && !Cubies.inPlace(facelets, SECOND_LAYER_EDGES[face][piece])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean dated(Long[] times) {
+    for (Long time : times) {
+      if (time != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Dates the pieces newly home, and says how many of them are; each is dated once and for all,
@@ -204,8 +259,11 @@ public final class LblStepDetector implements StepDetector {
     return turns != 0 && (otherTurns == 0 || (turns & otherTurns) != 0);
   }
 
+  /** Dated where the part was reached and held: a settled state without it takes the date back. */
   private void markPart(int face, int part, boolean done, long timestampMs) {
-    if (done && partMs[face][part] == null) {
+    if (!done) {
+      partMs[face][part] = null;
+    } else if (partMs[face][part] == null) {
       partMs[face][part] = timestampMs;
     }
   }
@@ -386,6 +444,10 @@ public final class LblStepDetector implements StepDetector {
    * was started with the first all but finished: {@value #CORNERS_BEFORE_THE_SECOND_LAYER} of its
    * corners in, keyhole's held-back one being the fourth.
    *
+   * <p>It is counted <em>in the state that edge landed in</em> rather than off the corners' dates: a
+   * corner going in on the same move as the edge was in when it landed, and a method that pairs the
+   * two puts one corner in there, never three.
+   *
    * <p>A solve that stopped before the second layer was started is judged on the same count, since a
    * prefix that has not reached the two layers' boundary cannot show it. A cross on its own proves
    * nothing, as every method builds one eventually.
@@ -402,25 +464,16 @@ public final class LblStepDetector implements StepDetector {
     if (layersMs[crossFace] != null && layersMs[crossFace] == solveStartMs) {
       return true;
     }
-    Long firstEdge = earliest(edgeMs[crossFace]);
-    long deadline = firstEdge != null ? firstEdge : Long.MAX_VALUE;
+    if (cornersAtFirstEdge[crossFace] != null) {
+      return cornersAtFirstEdge[crossFace] >= CORNERS_BEFORE_THE_SECOND_LAYER;
+    }
     int corners = 0;
     for (Long corner : cornerMs[crossFace]) {
-      if (corner != null && corner < deadline && corner > crossMs[crossFace]) {
+      if (corner != null && corner > crossMs[crossFace]) {
         corners++;
       }
     }
     return corners >= CORNERS_BEFORE_THE_SECOND_LAYER;
-  }
-
-  private static Long earliest(Long[] times) {
-    Long first = null;
-    for (Long time : times) {
-      if (time != null && (first == null || time < first)) {
-        first = time;
-      }
-    }
-    return first;
   }
 
   /** One piece of the first two layers, or one part of the last layer. */
