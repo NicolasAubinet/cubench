@@ -119,6 +119,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     createDrillTables(db);
     createCoachPlanTable(db);
+    createCaseKnowledgeTable(db);
   }
 
   /**
@@ -203,6 +204,27 @@ public class DBHelper extends SQLiteOpenHelper {
     // supersedes instead of a row nothing will ever look at again.
     db.execSQL("CREATE UNIQUE INDEX " + DB.IDX_COACH_PLAN_SOLVETYPE +
         " ON " + DB.TABLE_COACH_PLAN + " (" + DB.COL_COACH_PLAN_SOLVETYPE_ID + ", " + DB.COL_COACH_PLAN_SOURCE + ");"
+    );
+  }
+
+  /**
+   * Which cases the solver can execute in one algorithm on their own. A cache over the solves and
+   * drill reps and nothing more, so it is safe to throw away and read back.
+   */
+  private void createCaseKnowledgeTable(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE " + DB.TABLE_CASE_KNOWLEDGE + "(" +
+        DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        DB.COL_CASE_KNOWLEDGE_SET + " TEXT NOT NULL, " +
+        DB.COL_CASE_KNOWLEDGE_CASE + " TEXT NOT NULL, " +
+        DB.COL_CASE_KNOWLEDGE_STATUS + " TEXT NOT NULL, " +
+        DB.COL_CASE_KNOWLEDGE_EVIDENCE + " INTEGER NOT NULL, " +
+        DB.COL_CASE_KNOWLEDGE_LAST_SEEN + " INTEGER NOT NULL, " +
+        DB.COL_CASE_KNOWLEDGE_UPDATED + " INTEGER NOT NULL" +
+      ");"
+    );
+    // Unique rather than merely fast: one case has one status, and a refresh replaces it.
+    db.execSQL("CREATE UNIQUE INDEX " + DB.IDX_CASE_KNOWLEDGE_CASE +
+        " ON " + DB.TABLE_CASE_KNOWLEDGE + " (" + DB.COL_CASE_KNOWLEDGE_SET + ", " + DB.COL_CASE_KNOWLEDGE_CASE + ");"
     );
   }
 
@@ -407,6 +429,12 @@ public class DBHelper extends SQLiteOpenHelper {
     if (oldVersion < 29) {
       // What to work on this week, kept so a plan reads without being asked for again.
       createCoachPlanTable(db);
+    }
+
+    if (oldVersion < 30) {
+      // Which cases go in unaided. Created empty here: the code that reads the evidence back out of
+      // the history lives with the feature, so the build that owns it is the one that fills it.
+      createCaseKnowledgeTable(db);
     }
 
 //    progressDialog.hide();

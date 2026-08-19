@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 29;
+  public static final int DB_VERSION = 30;
 
   public static final String COL_ID = "id";
 
@@ -115,5 +115,17 @@ public class DB {
   public static final String COL_COACH_PLAN_PLAN = "plan"; // the whole CoachPlan as its JSON text, so fields a later version adds survive being stored
   public static final String COL_COACH_PLAN_PAYLOAD = "payload";
   public static final String IDX_COACH_PLAN_SOLVETYPE = "idx_coach_plan_solvetype";
+
+  // Which cases the solver can execute in one algorithm without being shown it, worked out from
+  // solves and drill reps rather than declared. Materialized because it is read a row at a time by
+  // screens and by the coach payload, and rebuildable from that evidence at any point.
+  public static final String TABLE_CASE_KNOWLEDGE = "case_knowledge";
+  public static final String COL_CASE_KNOWLEDGE_SET = "case_set"; // the case family ("oll"), kept apart from the code so a COLL or a CMLL later costs a row and not a migration
+  public static final String COL_CASE_KNOWLEDGE_CASE = "case_code"; // "53", "ub"
+  public static final String COL_CASE_KNOWLEDGE_STATUS = "status"; // CaseKnowledge.Status code
+  public static final String COL_CASE_KNOWLEDGE_EVIDENCE = "evidence"; // how many occurrences the status was read from
+  public static final String COL_CASE_KNOWLEDGE_LAST_SEEN = "last_seen"; // when the case last came up, in a solve or a drill
+  public static final String COL_CASE_KNOWLEDGE_UPDATED = "updated";
+  public static final String IDX_CASE_KNOWLEDGE_CASE = "idx_case_knowledge_case";
 
 }
