@@ -51,13 +51,18 @@ import java.util.List;
  * <p>An algorithm they typed in is kept whether or not it is the one they are using, so trying a
  * listed one is not a way to lose the work of entering theirs.
  *
- * <p><b>What they turn is read out of their own solves and shown beside what they said.</b> The two
- * are separate facts: the choice is a tap and the execution is their hands, and where they disagree
- * both are marked rather than one being made to win. <b>Nothing here is ever written to preferences
- * from an execution</b>, since a deliberate tap is the one thing this dialog exists to keep. So the
- * mark is filled by the tap where there is one and by the execution where there is none, and an
- * execution that is none of the listed algorithms goes above the list as theirs, marked the same
- * way and still stored nowhere.
+ * <p><b>What they turn is read out of their own solves, and it is what carries the words.</b> The
+ * tap and the execution are two separate facts, so they get two separate marks: a <b>star</b> on the
+ * one they picked, which is a thing they said, and <b>"the one you use"</b> on the one their solves
+ * show, which is a thing they did. Only the second claims to know what they use, because only the
+ * second is evidence.
+ *
+ * <p>That split does the ageing for free. A solver who changes algorithm sees the words move to the
+ * new one as soon as their recent solves outvote the old, while the star stays where they put it
+ * until they move it — so a stale pick shows as a stale pick rather than being silently corrected.
+ * <b>Nothing here is ever written to preferences from an execution</b>: a deliberate tap is the one
+ * thing this dialog exists to keep. An execution that is none of the listed algorithms goes above
+ * the list as theirs, marked the same way and still stored nowhere.
  */
 public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
@@ -189,8 +194,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private View row(final String moves, boolean recommended, boolean top) {
     boolean declared = moves.equals(chosen);
     boolean turned = moves.equals(executed);
-    // The mark is filled by the tap where there is one and by the execution where there is not.
-    boolean mine = declared || (chosen == null && turned);
+    boolean mine = declared || turned; // theirs either way, said or done
 
     LinearLayout row = new LinearLayout(getActivity());
     row.setOrientation(LinearLayout.VERTICAL);
@@ -236,12 +240,9 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
     markParams.gravity = Gravity.CENTER_VERTICAL;
     marks.setLayoutParams(markParams);
-    if (declared) {
+    // Only the execution says this: a tap says which one they mean to use, not which one they do.
+    if (turned) {
       marks.addView(chip(R.string.case_algorithm_mine, true));
-    }
-    // Said only where it is not already the row they tapped: a disagreement is what there is to show.
-    if (turned && !declared) {
-      marks.addView(chip(R.string.case_algorithm_turned, mine));
     }
     if (turned && execution != null && execution.isUnusual()) {
       marks.addView(chip(R.string.case_algorithm_unusual, false));
@@ -251,7 +252,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     }
     line.addView(marks);
 
-    if (mine) {
+    if (declared) {
       TextView star = GUIUtils.newTextView(getActivity());
       star.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_case_mine, 0, 0, 0);
       star.setGravity(Gravity.CENTER_VERTICAL);
