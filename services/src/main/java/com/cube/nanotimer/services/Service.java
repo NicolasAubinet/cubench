@@ -147,6 +147,15 @@ public interface Service {
    */
   void getCaseHistory(int solves, DataCallback<CaseHistory> callback);
 
+  /**
+   * The newest solves one case came up in, for the moves it was answered with. Far cheaper than the
+   * whole history: a case turns up once in sixty solves and every solve read is one replayed.
+   *
+   * @param codes what the case is recorded under: the step handed it, and the part naming the
+   *     algorithm that answers it, since a two-look records the second under the part alone
+   */
+  void getCaseSolves(List<String> codes, int solves, DataCallback<List<SolveTime>> callback);
+
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);
   void updateSolveType(SolveType solveType, boolean recalculateAverages, DataCallback<Void> callback);

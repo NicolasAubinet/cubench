@@ -641,6 +641,17 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getCaseSolves(final List<String> codes, final int solves,
+      final DataCallback<List<SolveTime>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getCaseSolves(codes, solves));
+      }
+    });
+  }
+
+  @Override
   public void getDrillCaseStats(final long fromTimestamp,
       final DataCallback<List<DrillCaseStats>> callback) {
     run(new Runnable() {

@@ -96,6 +96,9 @@ public interface ServiceProvider {
   /** Which cases the solver does unaided, and the newest {@code solves} the moves are read from. */
   CaseHistory getCaseHistory(int solves);
 
+  /** The newest {@code solves} one case came up in, for the moves it was answered with. */
+  List<SolveTime> getCaseSolves(List<String> codes, int solves);
+
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);
   void updateSolveType(SolveType solveType, boolean recalculateAverages);

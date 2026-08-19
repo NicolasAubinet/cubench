@@ -112,6 +112,28 @@ public class MethodStatistics implements Serializable {
     return null; // a part coded by something other than the algorithm it ran
   }
 
+  /**
+   * The part code the algorithm answering a case is recorded under, or null for a case whose family
+   * has no parts. The way back from {@link #caseOfPart}, for asking the database which solves a case
+   * came up in: a step that took two algorithms names the second under the part alone.
+   */
+  public static String partOfCase(String caseCode) {
+    if (caseCode == null) {
+      return null;
+    }
+    String family = familyOf(caseCode);
+    String caseName = caseOf(caseCode);
+    if (caseName == null || SKIP.equals(caseName)) {
+      return null;
+    }
+    for (String[] part : PART_FAMILIES) {
+      if (part[1].equals(family)) {
+        return part[0] + "_" + caseName;
+      }
+    }
+    return null;
+  }
+
   public int getSolveCount() {
     return solveCount;
   }

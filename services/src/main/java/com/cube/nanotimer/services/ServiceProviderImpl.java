@@ -1633,6 +1633,46 @@ public class ServiceProviderImpl implements ServiceProvider {
    */
   @Override
   public CaseHistory getCaseHistory(int solves) {
+    return new CaseHistory(CaseKnowledgeStore.read(db), smartcubeSolves(null, null, solves));
+  }
+
+  /**
+   * The solves one case came up in, newest first, for a screen that wants the moves of that case
+   * alone. A case turns up once in sixty solves, so asking for the whole history and throwing away
+   * everything else would be sixty replays to answer one question.
+   *
+   * @param codes what the case is recorded under: the step that was handed it and the part naming
+   *     the algorithm that answers it, since a two-look records the second under the part alone
+   */
+  @Override
+  public List<SolveTime> getCaseSolves(List<String> codes, int solves) {
+    if (codes.isEmpty()) {
+      return new ArrayList<SolveTime>();
+    }
+    StringBuilder where = new StringBuilder(" AND EXISTS (SELECT 1 FROM ");
+    where.append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s WHERE s.")
+        .append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID).append(" = h.").append(DB.COL_ID)
+        .append(" AND s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME).append(" IN (");
+    for (int i = 0; i < codes.size(); i++) {
+      where.append(i == 0 ? "?" : ",?");
+    }
+    where.append("))");
+    return smartcubeSolves(where.toString(), codes.toArray(new String[0]), solves);
+  }
+
+  /**
+   * The most recent solves a cube recorded the moves of. The moves a case was answered with are not
+   * stored anywhere on their own: they are part of the solve, so the solves come up whole and the
+   * caller cuts them at their steps.
+   *
+   * <p>A blind solve type is left out here rather than by the caller, since it can never hold one of
+   * these cases and would otherwise eat into the count of solves that can.
+   *
+   * <p><b>They come without their recorded steps.</b> What is wanted from them is the moves, and a
+   * caller reading those reads the breakdown again from the scramble anyway; fetching the stored
+   * steps would be a query per solve for something nothing here looks at.
+   */
+  private List<SolveTime> smartcubeSolves(String and, String[] args, int solves) {
     StringBuilder q = new StringBuilder();
     q.append("SELECT h.").append(DB.COL_ID);
     q.append("     , h.").append(DB.COL_TIMEHISTORY_TIME);
@@ -1654,11 +1694,14 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append(" WHERE h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES).append(" IS NOT NULL");
     q.append("   AND h.").append(DB.COL_TIMEHISTORY_TIME).append(" > 0");
     q.append("   AND t.").append(DB.COL_SOLVETYPE_BLIND).append(" = 0");
+    if (and != null) {
+      q.append(and);
+    }
     q.append(" ORDER BY h.").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" DESC");
     q.append(" LIMIT ").append(solves);
 
     List<SolveTime> history = new ArrayList<SolveTime>();
-    Cursor cursor = db.rawQuery(q.toString(), null);
+    Cursor cursor = db.rawQuery(q.toString(), args);
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         SolveTime st = new SolveTime();
@@ -1668,9 +1711,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         st.setScramble(cursor.getString(3));
         st.setPlusTwo(cursor.getInt(4) == 1, false);
         st.setSmartcubeMoves(cursor.getString(5));
-        Integer stoppedStep = cursor.isNull(7) ? null : cursor.getInt(7);
-        st.setSmartcubeStoppedStep(stoppedStep);
         st.setSmartcubeMethod(CubeMethod.fromCode(cursor.getString(6)));
+        st.setSmartcubeStoppedStep(cursor.isNull(7) ? null : Integer.valueOf(cursor.getInt(7)));
         int cubeTypeId = cursor.getInt(12);
         SolveType solveType = new SolveType(cursor.getInt(8), cursor.getString(9),
             cursor.getInt(10) == 1, toScrambleType(CubeType.getCubeType(cubeTypeId),
@@ -1681,7 +1723,7 @@ public class ServiceProviderImpl implements ServiceProvider {
       }
       cursor.close();
     }
-    return new CaseHistory(CaseKnowledgeStore.read(db), history);
+    return history;
   }
 
   @Override

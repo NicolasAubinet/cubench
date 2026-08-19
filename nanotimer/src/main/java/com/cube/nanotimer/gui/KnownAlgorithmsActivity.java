@@ -16,7 +16,6 @@ import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
-import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -211,18 +210,15 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
 
   /**
    * What each case is shown as: the algorithm the table holds where the execution is one of them,
-   * and the moves as they were turned where it is not. An execution that is none of the listed
-   * algorithms is still the solver's own, and calling it the nearest listed one would be putting
-   * words in their hands; the table's spelling is only borrowed where the two really are the same
-   * algorithm, since it is the one written the way the case is drawn.
+   * and the moves as they were turned where it is not. The rule lives in {@link CaseExecutions}
+   * rather than here, so that this screen and the case dialog read one execution the same way
+   * instead of two implementations of it disagreeing.
    */
   private static Map<String, String> named(Map<String, String> executions) {
     Map<String, String> named = new LinkedHashMap<String, String>();
     for (Map.Entry<String, String> execution : executions.entrySet()) {
-      LastLayerCaseAlgorithms.Algorithm matched =
-          LastLayerCaseAlgorithms.matching(execution.getKey(), execution.getValue());
       named.put(execution.getKey(),
-          matched == null ? execution.getValue() : matched.getMoves());
+          CaseExecutions.asAlgorithm(execution.getKey(), execution.getValue()));
     }
     return named;
   }

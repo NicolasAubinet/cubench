@@ -92,6 +92,24 @@ public class CaseExecutionsTest {
     assertNull(CaseExecutions.readFrom(new ArrayList<SolveTime>()).get("pll_t"));
   }
 
+  /** Both codes a case is recorded under, since a step taking two algorithms names only the part. */
+  @Test
+  public void namesBothCodesACaseIsRecordedUnder() {
+    assertEquals(Arrays.asList("oll_53", "ollalg_53"), CaseExecutions.codesFor("oll_53"));
+    assertEquals(Arrays.asList("pll_jb", "alg_jb"), CaseExecutions.codesFor("pll_jb"));
+    assertEquals(Arrays.asList("cross"), CaseExecutions.codesFor("cross"));
+    assertTrue(CaseExecutions.codesFor(null).isEmpty());
+  }
+
+  /** One rule for how an execution is spelled, shared by the screen and the case dialog. */
+  @Test
+  public void writesAnExecutionTheWayTheTableWritesIt() {
+    assertEquals("R U R' U R U2 R'",
+        CaseExecutions.asAlgorithm("oll_27", "y U' R U R' U R U U R' U"));
+    assertEquals("R U R' banana", CaseExecutions.asAlgorithm("oll_27", "R U R' banana"));
+    assertNull(CaseExecutions.asAlgorithm("oll_27", null));
+  }
+
   /** One solve of the given moves, scrambled so that exactly they solve it. */
   private static List<SolveTime> solves(String moves) {
     SolveType solveType = new SolveType(1, "3x3", false, null, CubeType.THREE_BY_THREE.getId());

@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.AlgorithmForm;
+import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -48,6 +49,38 @@ public final class CaseExecutions {
       usual.put(answer.getKey(), mostTurned(answer.getValue()));
     }
     return usual;
+  }
+
+  /**
+   * What one case is recorded under, for asking the database which solves it came up in. Two codes:
+   * the step that was handed the case, and the part naming the algorithm that answers it, since a
+   * step taking more than one algorithm records all but the first under the part alone.
+   */
+  public static List<String> codesFor(String caseCode) {
+    List<String> codes = new ArrayList<String>();
+    if (caseCode == null) {
+      return codes;
+    }
+    codes.add(caseCode);
+    String part = MethodStatistics.partOfCase(caseCode);
+    if (part != null) {
+      codes.add(part);
+    }
+    return codes;
+  }
+
+  /**
+   * How an execution is written where it is shown: the table's spelling where the two really are
+   * the same algorithm, since that is the one written the way the case is drawn, and the moves as
+   * they were turned where they are not. Calling an execution the nearest listed algorithm would be
+   * putting words in the solver's hands.
+   */
+  public static String asAlgorithm(String caseCode, String moves) {
+    if (moves == null) {
+      return null;
+    }
+    LastLayerCaseAlgorithms.Algorithm matched = LastLayerCaseAlgorithms.matching(caseCode, moves);
+    return matched == null ? moves : matched.getMoves();
   }
 
   /** One solve's cases, or none of them where it cannot be read again. */
