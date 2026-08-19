@@ -52,6 +52,7 @@ public final class SolveShareFormat {
       sb.append(')');
     }
     sb.append(":\n");
+    int[][] partPositions = Utils.getSmartCubeSubStepPositions(steps);
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       appendStepLine(context, sb, "- ", Utils.toSmartCubeStepDisplayName(context, step, i), step);
@@ -61,7 +62,8 @@ public final class SolveShareFormat {
       } else {
         for (int j = 0; j < parts.size(); j++) {
           appendStepLine(context, sb, "  - ",
-              Utils.toSmartCubeStepLocalizedName(context, parts.get(j).getName(), j), parts.get(j));
+              Utils.toSmartCubeStepLocalizedName(context, parts.get(j).getName(),
+                  partPositions[i][j]), parts.get(j));
           appendMovesLine(sb, "      ", partMoves(solution, i, j));
         }
         appendMovesLine(sb, "    ", partMoves(solution, i, parts.size())); // turning past the last part

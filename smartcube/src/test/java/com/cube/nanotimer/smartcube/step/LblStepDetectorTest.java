@@ -113,7 +113,7 @@ public class LblStepDetectorTest {
 
     // Each layer in the order it was built: the first corner inserted, then the first edge sent
     // down. An edge carried through its own slot by an earlier insertion is not the first of them.
-    assertEquals("corner_fr", detector.subStepName(1, 0));
+    assertEquals("corner_dfr", detector.subStepName(1, 0));
     assertEquals("edge_fr", detector.subStepName(2, 0));
     for (int part = 0; part < 4; part++) {
       assertTrue(detector.subStepName(1, part).startsWith("corner_"));
@@ -197,7 +197,7 @@ public class LblStepDetectorTest {
 
     assertEquals("layer2", detector.stepName(2));
     assertEquals("edge_br", detector.subStepName(2, 1));
-    assertEquals("corner_rb", detector.subStepName(3, 0));
+    assertEquals("corner_drb", detector.subStepName(3, 0));
     assertEquals(detector.getSubStepTimestampMs(2, 1), detector.getSubStepTimestampMs(3, 0));
   }
 

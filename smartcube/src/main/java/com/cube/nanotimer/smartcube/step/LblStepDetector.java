@@ -497,6 +497,16 @@ public final class LblStepDetector implements StepDetector {
     return layout().get(step).parts.get(subStep).timestampMs;
   }
 
+  /**
+   * A step of one piece keeps it: which piece it was is the whole of what the part says, and the
+   * step it sits in says only which layer. Keyhole ends on two such steps — the corner held back
+   * and the edge its empty slot was carrying — and collapsing them would name neither.
+   */
+  @Override
+  public boolean keepsLonePart() {
+    return true;
+  }
+
   @Override
   public boolean isComplete() {
     return solvedMs != null;
@@ -603,9 +613,17 @@ public final class LblStepDetector implements StepDetector {
     return found.toArray(new int[0][]);
   }
 
-  /** A piece's code, carrying the faces it sits between ("corner_rf") so it can be told apart. */
+  /**
+   * A piece's code, carrying every face it shows ("corner_dfr", "edge_rf") so it can be told apart
+   * and drawn in its own colours. The cross face leads where the piece touches it, which is every
+   * first-layer corner and no second-layer edge: the one colour they all share is then the one the
+   * eye starts each of them on.
+   */
   private static String code(String prefix, int[] piece, int face) {
     StringBuilder sides = new StringBuilder(prefix);
+    if (Cubies.touches(piece, face)) {
+      sides.append(Cubies.FACES.charAt(face));
+    }
     for (int facelet : piece) {
       char colour = Cubies.SOLVED.charAt(facelet);
       if (colour != Cubies.FACES.charAt(face)) {

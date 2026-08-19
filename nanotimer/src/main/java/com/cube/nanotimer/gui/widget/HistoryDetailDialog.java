@@ -630,6 +630,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     // The rows stand in the order the solve was executed, names repeating where it came back to a
     // step; the colour is what says two of them are the same work.
     int[] slots = SolveStepBars.colorSlots(steps);
+    int[][] partPositions = Utils.getSmartCubeSubStepPositions(steps);
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
     TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
@@ -649,7 +650,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       stepRows.moves = movesRow(table, R.style.BreakdownMoves, dim(groupsOf(solution, i)));
       List<SolveStep> parts = step.getSubSteps();
       for (int j = 0; j < parts.size(); j++) {
-        TableRow partRow = subStepRow(parts.get(j), j, partMoveCountOf(solution, i, j));
+        TableRow partRow =
+            subStepRow(parts.get(j), partPositions[i][j], partMoveCountOf(solution, i, j));
         table.addView(partRow);
         stepRows.partRows.add(partRow);
         stepRows.partMoves.add(
@@ -1032,7 +1034,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private TableRow subStepRow(SolveStep part, int position, String moveCount) {
     TableRow row = new TableRow(getActivity());
-    row.addView(cell(R.style.BreakdownSubName, withPieceMarks(part, withPairColors(part.getName(),
+    row.addView(cell(R.style.BreakdownSubName, withPieceMarks(part, withSlotColors(part.getName(),
         Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)))));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
@@ -1109,32 +1111,37 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   /**
-   * An F2L pair is labelled by the order it was built, so the two colours of its slot are what says
-   * <em>which</em> pair it was. Solves recorded before the slot was stored simply keep the label.
+   * A piece of the layers is labelled by the order it was built — pair 1, corner 4 — so the colours
+   * of its slot are what says <em>which</em> piece it was. Solves recorded before the slot was
+   * stored simply keep the label.
    */
-  private CharSequence withPairColors(String code, String label) {
-    char[] faces = Utils.getSmartCubePairFaces(code);
+  private CharSequence withSlotColors(String code, String label) {
+    char[] faces = Utils.getSmartCubeSlotFaces(code);
     if (faces == null) {
       return label;
     }
     SpannableStringBuilder text = new SpannableStringBuilder(" " + label);
-    text.setSpan(new ImageSpan(pairSwatch(faces), ImageSpan.ALIGN_BASELINE),
+    text.setSpan(new ImageSpan(slotSwatch(faces), ImageSpan.ALIGN_BASELINE),
         0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     return text;
   }
 
-  /** The slot's two colours as one rectangle split down the middle, with the gap to the label built
-   * into the drawable so it stays a fixed size rather than a space character's. */
-  private Drawable pairSwatch(char[] faces) {
-    int height = dp(9);
+  /** The slot's colours as one rectangle in as many bands as the piece has faces — two for an edge
+   * or a pair, three for a corner — with the gap to the label built into the drawable so it stays a
+   * fixed size rather than a space character's. */
+  private Drawable slotSwatch(char[] faces) {
+    int band = dp(9);
     int gap = dp(7);
-    LayerDrawable swatch = new LayerDrawable(new Drawable[] {
-        new ColorDrawable(color(Utils.getFaceColorRes(faces[0]))),
-        new ColorDrawable(color(Utils.getFaceColorRes(faces[1]))),
-    });
-    swatch.setLayerInset(0, 0, 0, height + gap, 0);
-    swatch.setLayerInset(1, height, 0, gap, 0);
-    swatch.setBounds(0, 0, height * 2 + gap, height);
+    Drawable[] bands = new Drawable[faces.length];
+    for (int face = 0; face < faces.length; face++) {
+      bands[face] = new ColorDrawable(color(Utils.getFaceColorRes(faces[face])));
+    }
+    LayerDrawable swatch = new LayerDrawable(bands);
+    int width = band * faces.length + gap;
+    for (int face = 0; face < faces.length; face++) {
+      swatch.setLayerInset(face, band * face, 0, width - band * (face + 1), 0);
+    }
+    swatch.setBounds(0, 0, width, band);
     return swatch;
   }
 

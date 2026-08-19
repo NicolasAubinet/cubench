@@ -22,7 +22,10 @@ import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 
 public class Utils {
@@ -314,15 +317,44 @@ public class Utils {
   }
 
   /**
-   * The two faces an F2L pair sits between, from its slot code, or null for any other step (and for
-   * the pairs of solves recorded before the slot was stored).
+   * The faces a part shows in its own colours, from its slot code: an F2L pair's two ("pair_rf"), a
+   * first-layer corner's three ("corner_dfr"). Null for any other step, and for the pairs of solves
+   * recorded before the slot was stored.
    */
-  public static char[] getSmartCubePairFaces(String code) {
-    if (code == null || !code.startsWith(PAIR_CODE_PREFIX)) {
+  public static char[] getSmartCubeSlotFaces(String code) {
+    if (code == null) {
       return null;
     }
-    String faces = code.substring(PAIR_CODE_PREFIX.length()).toUpperCase(Locale.US);
-    return faces.length() == 2 ? faces.toCharArray() : null;
+    for (String prefix : SLOT_CODE_PREFIXES) {
+      if (!code.startsWith(prefix)) {
+        continue;
+      }
+      String faces = code.substring(prefix.length()).toUpperCase(Locale.US);
+      return faces.length() >= 2 ? faces.toCharArray() : null;
+    }
+    return null;
+  }
+
+  /**
+   * The number each part is shown under, by step and by part: its rank among the parts of its own
+   * kind across the whole solve rather than within the step it fell in. Layer by layer breaks a
+   * layer into as many steps as the solver came back to it, and keyhole's held-back corner — a step
+   * of its own, after the second layer — is still the first layer's fourth corner.
+   */
+  public static int[][] getSmartCubeSubStepPositions(List<SolveStep> steps) {
+    int[][] positions = new int[steps.size()][];
+    Map<String, Integer> seen = new HashMap<String, Integer>();
+    for (int step = 0; step < steps.size(); step++) {
+      List<SolveStep> parts = steps.get(step).getSubSteps();
+      positions[step] = new int[parts.size()];
+      for (int part = 0; part < parts.size(); part++) {
+        String kind = toSmartCubeStepBaseCode(parts.get(part).getName());
+        Integer count = seen.get(kind);
+        positions[step][part] = count == null ? 0 : count;
+        seen.put(kind, positions[step][part] + 1);
+      }
+    }
+    return positions;
   }
 
   /**

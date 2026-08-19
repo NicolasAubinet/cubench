@@ -157,7 +157,7 @@ public class RecordedLblSolveTest {
   public void datesAPieceWhereItStayedRatherThanWhereItPassedThrough() {
     replay();
 
-    assertEquals("corner_dl", detector.subStepName(1, 2));
+    assertEquals("corner_bdl", detector.subStepName(1, 2));
     assertEquals(18646L, (long) detector.getSubStepTimestampMs(1, 2));
     assertEquals("edge_dl", detector.subStepName(2, 0));
     assertEquals(18646L, (long) detector.getSubStepTimestampMs(2, 0));
@@ -170,7 +170,7 @@ public class RecordedLblSolveTest {
     replay();
 
     assertEquals("edge_ur", detector.subStepName(2, 2));
-    assertEquals("corner_ur", detector.subStepName(3, 0));
+    assertEquals("corner_bur", detector.subStepName(3, 0));
     assertEquals(30166L, (long) detector.getSubStepTimestampMs(2, 2));
     assertEquals(30166L, (long) detector.getSubStepTimestampMs(3, 0));
   }
