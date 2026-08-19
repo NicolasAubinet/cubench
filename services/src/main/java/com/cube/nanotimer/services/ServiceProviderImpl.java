@@ -1660,6 +1660,11 @@ public class ServiceProviderImpl implements ServiceProvider {
     return smartcubeSolves(where.toString(), codes.toArray(new String[0]), solves);
   }
 
+  @Override
+  public void refreshCaseKnowledge() {
+    CaseKnowledgeStore.rebuild(db);
+  }
+
   /**
    * The most recent solves a cube recorded the moves of, optionally narrowed by {@code and}. The
    * moves a case was answered with are not stored anywhere on their own: they are part of the solve,

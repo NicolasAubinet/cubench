@@ -652,6 +652,19 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void refreshCaseKnowledge(final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.refreshCaseKnowledge();
+        if (callback != null) {
+          callback.onData(null);
+        }
+      }
+    });
+  }
+
+  @Override
   public void getDrillCaseStats(final long fromTimestamp,
       final DataCallback<List<DrillCaseStats>> callback) {
     run(new Runnable() {

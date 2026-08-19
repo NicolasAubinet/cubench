@@ -11,6 +11,7 @@ import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.Service;
 import com.cube.nanotimer.services.ServiceImpl;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeType;
@@ -68,6 +69,8 @@ public enum App {
         }
       });
 
+      refreshCaseKnowledge();
+
       if (dynamicTranslations == null) {
         dynamicTranslations = new DynamicTranslations();
         dynamicTranslations.init(context);
@@ -82,6 +85,26 @@ public enum App {
     if (!appGUILaunched && !fromService) { // app GUI started
       appGUILaunched(context);
     }
+  }
+
+  /**
+   * Reads every case's status back once after the rule that works them out has changed. The statuses
+   * are a cache of the solves and drill reps behind them, refreshed a case at a time as that case
+   * comes up again, so nothing else would ever revisit a case the solver has not met since. It is
+   * one query per case over the history and happens on the service's thread, once per install of a
+   * build that changed the rule.
+   */
+  private void refreshCaseKnowledge() {
+    if (Options.INSTANCE.getCaseKnowledgeRuleVersion() == CaseKnowledge.RULE_VERSION) {
+      return;
+    }
+    getService().refreshCaseKnowledge(new DataCallback<Void>() {
+      @Override
+      public void onData(Void data) {
+        // Only once it has been read back, so a run killed part way through does it again.
+        Options.INSTANCE.setCaseKnowledgeRuleVersion(CaseKnowledge.RULE_VERSION);
+      }
+    });
   }
 
   private void appGUILaunched(Context context) {

@@ -99,6 +99,9 @@ public interface ServiceProvider {
   /** The newest {@code solves} one case came up in, for the moves it was answered with. */
   List<SolveTime> getCaseSolves(List<String> codes, int solves);
 
+  /** Reads every case's status again from the history behind it. */
+  void refreshCaseKnowledge();
+
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);
   void updateSolveType(SolveType solveType, boolean recalculateAverages);

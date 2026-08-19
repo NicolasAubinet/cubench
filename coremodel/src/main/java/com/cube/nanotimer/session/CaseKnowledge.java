@@ -65,6 +65,18 @@ public class CaseKnowledge {
     }
   }
 
+  /**
+   * Which reading of the occurrences the stored statuses were worked out under.
+   *
+   * <p>The statuses live in a table that is a cache of the history and nothing more, and it is
+   * refreshed a case at a time as that case comes up again. So <b>changing the rule below does not
+   * change what is already stored</b>: a case that has not been solved since would go on showing
+   * what the old rule said, for months in the case of a rare OLL, and there is no schema change to
+   * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
+   * back. <b>Bump it for any change to {@link #read}.</b>
+   */
+  public static final int RULE_VERSION = 2;
+
   /** What one occurrence of a case says about whether the solver knows it. */
   public enum Evidence {
 

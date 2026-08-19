@@ -58,6 +58,7 @@ public enum Options {
   public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
+  public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
   public static final String DRILL_PRESETS_KEY_PREFIX = "drill_case_presets_";
@@ -499,6 +500,15 @@ public enum Options {
     } else {
       sharedPreferences.edit().putString(key, offsetFacelets).apply();
     }
+  }
+
+  /** Which reading of the occurrences the stored case statuses were last worked out under. */
+  public int getCaseKnowledgeRuleVersion() {
+    return sharedPreferences.getInt(CASE_KNOWLEDGE_RULE_KEY, 0);
+  }
+
+  public void setCaseKnowledgeRuleVersion(int version) {
+    sharedPreferences.edit().putInt(CASE_KNOWLEDGE_RULE_KEY, version).apply();
   }
 
 }
