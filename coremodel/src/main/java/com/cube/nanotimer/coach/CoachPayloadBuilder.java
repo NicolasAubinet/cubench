@@ -129,9 +129,11 @@ public class CoachPayloadBuilder {
    * of: a payload for one method has no business carrying what the solver knows of another's, and a
    * case code means nothing without the set it belongs to.
    *
-   * <p>Nothing is sent for a case that has no status. The floor it did not reach is
-   * {@link CaseKnowledge}'s, and a case under it is one the solver has barely met rather than one
-   * they cannot do: sending it in either list would be the guess that rule exists to prevent.
+   * <p>Nothing is sent for a case that has no status. {@link CaseKnowledge} gives one to any case
+   * a solve or a revealed drill rep has said anything about, so a case without one is one nothing
+   * has been seen of at all: sending it in either list would be the guess that rule exists to
+   * prevent. <b>There is no floor</b> — one solve that went in unaided puts a case in the known
+   * list, and this is the payload that leaves the device.
    */
   private static List<String> casesAt(List<CaseKnowledge> knowledge, Set<String> sets,
       CaseKnowledge.Status status) {

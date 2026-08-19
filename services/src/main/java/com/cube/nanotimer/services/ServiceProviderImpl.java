@@ -1661,9 +1661,9 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   /**
-   * The most recent solves a cube recorded the moves of. The moves a case was answered with are not
-   * stored anywhere on their own: they are part of the solve, so the solves come up whole and the
-   * caller cuts them at their steps.
+   * The most recent solves a cube recorded the moves of, optionally narrowed by {@code and}. The
+   * moves a case was answered with are not stored anywhere on their own: they are part of the solve,
+   * so the solves come up whole and the caller cuts them at their steps.
    *
    * <p>A blind solve type is left out here rather than by the caller, since it can never hold one of
    * these cases and would otherwise eat into the count of solves that can.
