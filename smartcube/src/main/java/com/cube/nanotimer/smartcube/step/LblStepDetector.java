@@ -106,9 +106,11 @@ public final class LblStepDetector implements StepDetector {
 
   private final Long[] firstLayerMs = new Long[6];
 
-  /** How many first-layer corners were in when the second layer's first edge landed: what tells a
-   * layer-by-layer solve from one that puts each corner in with its own edge. */
+  /** How many first-layer corners were in when the second layer's first edge landed, and the same
+   * for the first one the solver turned for: what tells a layer-by-layer solve from one that puts
+   * each corner in with its own edge. */
   private final Integer[] cornersAtFirstEdge = new Integer[6];
+  private final Integer[] cornersAtFirstLoneEdge = new Integer[6];
 
   private List<Long> reported = new ArrayList<Long>();
 
@@ -125,6 +127,7 @@ public final class LblStepDetector implements StepDetector {
       firstLayerMs[face] = null;
       layersMs[face] = null;
       cornersAtFirstEdge[face] = null;
+      cornersAtFirstLoneEdge[face] = null;
       Arrays.fill(cornerMs[face], null);
       Arrays.fill(edgeMs[face], null);
       Arrays.fill(partMs[face], null);
@@ -172,11 +175,13 @@ public final class LblStepDetector implements StepDetector {
       if (crossMs[face] == null || !settled(face, facelets)) {
         continue;
       }
-      boolean hadEdge = dated(edgeMs[face]);
+      int cornersDated = dated(cornerMs[face]);
+      int edgesDated = dated(edgeMs[face]);
       int corners = mark(cornerMs[face], FIRST_LAYER_CORNERS[face], facelets, timestampMs);
       int edges = mark(edgeMs[face], SECOND_LAYER_EDGES[face], facelets, timestampMs);
-      if (!hadEdge && dated(edgeMs[face])) {
-        cornersAtFirstEdge[face] = Integer.valueOf(corners);
+      if (dated(edgeMs[face]) > edgesDated && timestampMs != crossMs[face]) {
+        boolean alone = dated(cornerMs[face]) == cornersDated;
+        countEdgeStarting(face, corners, alone);
       }
       if (corners == PIECES_PER_LAYER && firstLayerMs[face] == null) {
         firstLayerMs[face] = timestampMs;
@@ -214,13 +219,28 @@ public final class LblStepDetector implements StepDetector {
     return true;
   }
 
-  private static boolean dated(Long[] times) {
+  /**
+   * Counts the state the second layer was started in, which is only ever counted once. Twice over,
+   * rather: an edge landing on the very move a first-layer corner did was not turned for, and the
+   * count that decides is the first edge that came home on its own.
+   */
+  private void countEdgeStarting(int face, int corners, boolean alone) {
+    if (cornersAtFirstEdge[face] == null) {
+      cornersAtFirstEdge[face] = Integer.valueOf(corners);
+    }
+    if (alone && cornersAtFirstLoneEdge[face] == null) {
+      cornersAtFirstLoneEdge[face] = Integer.valueOf(corners);
+    }
+  }
+
+  private static int dated(Long[] times) {
+    int count = 0;
     for (Long time : times) {
       if (time != null) {
-        return true;
+        count++;
       }
     }
-    return false;
+    return count;
   }
 
   /** Dates the pieces newly home, and says how many of them are; each is dated once and for all,
@@ -457,6 +477,15 @@ public final class LblStepDetector implements StepDetector {
    * corner going in on the same move as the edge was in when it landed, and a method that pairs the
    * two puts one corner in there, never three.
    *
+   * <p>But an edge that came home <b>without being turned for</b> does not start anything, and there
+   * are two ways of that: it was in already when the cross was finished, or it landed on the very
+   * move a first-layer corner did. A corner's insertion sweeps the middle slice, so it drops an edge
+   * home about as often as it carries one through, and a solve read at such an edge is judged on the
+   * corners of the moment rather than on the ones the solver had in. So the count that decides is
+   * taken at the first edge that came home <em>on its own</em>, and the first edge of any kind only
+   * stands in where there was no such edge â€” which is a solve that paired every one of them, and is
+   * the very thing this asks about.
+   *
    * <p>A solve that stopped before the second layer was started is judged on the same count, since a
    * prefix that has not reached the two layers' boundary cannot show it. A cross on its own proves
    * nothing, as every method builds one eventually.
@@ -473,16 +502,18 @@ public final class LblStepDetector implements StepDetector {
     if (layersMs[crossFace] != null && layersMs[crossFace] == solveStartMs) {
       return true;
     }
-    if (cornersAtFirstEdge[crossFace] != null) {
-      return cornersAtFirstEdge[crossFace] >= CORNERS_BEFORE_THE_SECOND_LAYER;
+    Integer corners = cornersAtFirstLoneEdge[crossFace] != null
+        ? cornersAtFirstLoneEdge[crossFace] : cornersAtFirstEdge[crossFace];
+    if (corners != null) {
+      return corners >= CORNERS_BEFORE_THE_SECOND_LAYER;
     }
-    int corners = 0;
+    int inserted = 0;
     for (Long corner : cornerMs[crossFace]) {
       if (corner != null && corner > crossMs[crossFace]) {
-        corners++;
+        inserted++;
       }
     }
-    return corners >= CORNERS_BEFORE_THE_SECOND_LAYER;
+    return inserted >= CORNERS_BEFORE_THE_SECOND_LAYER;
   }
 
   /** One piece of the first two layers, or one part of the last layer. */

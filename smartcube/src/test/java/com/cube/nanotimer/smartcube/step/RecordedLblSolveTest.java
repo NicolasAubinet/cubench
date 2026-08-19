@@ -68,6 +68,25 @@ public class RecordedLblSolveTest {
           + "B@47560 R@47699 F'@47765 R'@47915 B'@48534 R@48697 F@48893 F@49072 R'@49210 B@49279 "
           + "R@49444 F@49514 F@49661 R'@49844 B'@50114 R@50199 F@51564";
 
+  /** A third solve: a corner insertion drops a middle edge home on its way, and it stays there. */
+  private static final String SCRAMBLE_3 =
+      "U2 F2 L2 U F2 U' L2 R2 D L' D' F' R B2 R' U B U L' D2 R2";
+
+  private static final String MOVES_3 =
+      "[y z'] y@0 z'@0 D@0 B'@85 B'@1178 z'@2063 L@2063 B@2200 D@3399 F@3780 z'@4104 D'@4104 "
+          + "y2@5559 x'@5559 F'@5559 z@5677 F'@5678 y@6589 x'@6589 U@6589 U@6640 U'@7066 y@7499 "
+          + "x@7499 F@7499 y'@7763 z@7763 U@7763 z'@9597 F@9598 F@9724 R'@10219 F'@10487 R@10758 "
+          + "R@11595 z'@11940 F@11940 z'@12258 R'@12258 x2@13128 B@13128 z2@13558 B@13558 "
+          + "F'@14438 D'@14808 F@15239 D@15825 z@16512 B@16512 z@16977 B@16978 B@17781 F'@18340 "
+          + "z@18882 D@18882 F'@18913 D'@19011 z'@19318 B'@19319 F'@19910 U'@20366 y@20652 "
+          + "x'@20652 F'@20652 F'@20749 x'@21233 U@21233 F@21510 z'@21846 L'@21846 y'@22339 "
+          + "z@22339 U@22339 z@23063 L@23063 U'@23159 x@24295 F@24295 z@24787 U@24787 z'@25076 "
+          + "F@25076 z@25355 U@25355 z'@25681 F@25681 U@25987 F'@26096 x@26659 U'@26659 y@26885 "
+          + "F'@26885 y'@27218 x'@27218 U'@27218 y@28360 F@28360 z'@30557 L'@30557 x'@30971 "
+          + "U'@30971 R@31127 U@31299 x@31983 L@31983 x'@32410 U'@32410 R'@32592 U@32741 x@33656 "
+          + "R'@33656 B@33826 R@34236 F@34359 F@34515 R'@34629 z@34899 B'@34899 z'@34990 R@34990 "
+          + "F'@35100 R'@35163 B@35481 R@35705 F'@35768 R'@35865 B'@36183 R@36790";
+
   private final CubieCube cube = new CubieCube();
   private final LblStepDetector detector = new LblStepDetector();
 
@@ -178,6 +197,27 @@ public class RecordedLblSolveTest {
 
     assertEquals(38985L, (long) detector.getSubStepTimestampMs(5, 3)); // llep
     assertEquals(44181L, (long) detector.getSubStepTimestampMs(5, 1)); // llco, after it
+  }
+
+  /**
+   * The second corner's insertion drops a middle edge home on its way and leaves it there â€” three
+   * moves that were turned for the corner alone, the edge having been nowhere near its slot. Read as
+   * the second layer being started there, the solve had two corners in at that moment and failed the
+   * one thing this method is asked for. The edge the solver actually turned for is the next one, and
+   * three corners were in by then.
+   */
+  @Test
+  public void doesNotCountAnEdgeACornerInsertionDroppedHomeAsStartingTheSecondLayer() {
+    replay(SCRAMBLE_3, MOVES_3);
+
+    assertTrue(detector.isComplete());
+    assertTrue(detector.matchesMethod());
+    assertEquals(Face.B, detector.getCrossFace());
+    assertEquals("edge_ur", detector.subStepName(2, 0));
+    assertEquals(10758L, (long) detector.getSubStepTimestampMs(1, 1)); // the corner's own move
+    assertEquals(10758L, (long) detector.getSubStepTimestampMs(2, 0));
+    assertEquals("edge_dr", detector.subStepName(4, 0)); // the first one turned for, three in
+    assertEquals(16978L, (long) detector.getSubStepTimestampMs(4, 0));
   }
 
   private void replay() {
