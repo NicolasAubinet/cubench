@@ -176,8 +176,9 @@ public final class CaseKnowledgeStore {
         + " ORDER BY seen_at DESC, ordinal DESC", new String[] { code, code });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        occurrences.add(0, new Occurrence(says(cursor.getInt(0) == 1, cursor.getInt(2) == 1),
-            cursor.getLong(1)));
+        // unaided, from_solve, seen_at: the order the two halves of the union both select in.
+        occurrences.add(0, new Occurrence(says(cursor.getInt(0) == 1, cursor.getInt(1) == 1),
+            cursor.getLong(2)));
       }
       cursor.close();
     }
