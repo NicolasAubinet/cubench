@@ -524,7 +524,7 @@ public final class LastLayerCaseAlgorithms {
     int at = turning(formsOf(folded), executedMoves);
     boolean unusual = !folded.isEmpty()
         && (at < 0 || (at > 0 && folded.get(at).getShare() < UNUSUAL_SHARE));
-    return new Execution(unusual, length(executedMoves), shortestInUse(folded));
+    return new Execution(unusual, lengthOf(caseCode, executedMoves), shortestInUse(folded));
   }
 
   private static List<List<String>> formsOf(List<Algorithm> algorithms) {
@@ -571,9 +571,49 @@ public final class LastLayerCaseAlgorithms {
    * How many turns something takes, counted as the outer turns it is made of once what cancels has
    * cancelled and the alignment is off both ends. A wide and a slice come out as the turns they are
    * made of on both sides of the comparison, so an execution and an algorithm are counted alike.
+   *
+   * <p>Only for an algorithm out of the table, which is already written the way its case is drawn.
+   * An execution is not, and wants {@link #lengthOf}.
    */
   private static int length(String moves) {
     return formOf(moves).size();
+  }
+
+  /**
+   * How many turns an execution takes, counted from the frame the case is drawn in.
+   *
+   * <p><b>Which frame is not a detail here.</b> A solver holds the cube where their hands want it,
+   * so their moves come back named from wherever the last layer happened to be, and the turns that
+   * align the layer at each end only look like alignment once the cube is stood up the way the case
+   * is drawn. Counted anywhere else, the same eleven-move algorithm reads as ten or as thirteen
+   * depending on how it was held, and a solver is told their own algorithm is long.
+   *
+   * <p>The frame is found by standing the cube every way and asking which one leaves the execution
+   * solving the case, which is exactly the question {@link #solves} answers. Four of the 24 do, the
+   * four that differ only by which way the layer faces, and alignment comes off all four alike.
+   */
+  private static int lengthOf(String caseCode, String moves) {
+    List<String> turns;
+    try {
+      turns = AlgorithmForm.of(moves);
+    } catch (RuntimeException e) {
+      return 0;
+    }
+    for (char[] grip : AlgorithmForm.grips()) { // the cube as it was held comes first
+      List<String> stood = AlgorithmForm.conjugatedBy(turns, grip);
+      if (solves(caseCode, written(stood))) {
+        return AlgorithmForm.withoutAlignment(stood).size();
+      }
+    }
+    return AlgorithmForm.withoutAlignment(turns).size(); // nothing it does names the case
+  }
+
+  private static String written(List<String> turns) {
+    StringBuilder written = new StringBuilder();
+    for (String turn : turns) {
+      written.append(written.length() == 0 ? "" : " ").append(turn);
+    }
+    return written.toString();
   }
 
   /** The shortest algorithm people do use, which is what a long execution is measured against. */

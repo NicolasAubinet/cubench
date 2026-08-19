@@ -345,6 +345,43 @@ public class LastLayerCaseAlgorithmsTest {
     assertTrue(LastLayerCaseAlgorithms.folded("pll_nothing").isEmpty());
   }
 
+  /**
+   * An execution comes back named from wherever the solver was holding the cube, and counting it
+   * there reads the turns that align the layer as part of the algorithm. All 24 ways of holding the
+   * same eleven-move Jb have to come to eleven, or a solver is told their own algorithm is long
+   * because of how they picked the cube up.
+   */
+  @Test
+  public void countsAnExecutionFromTheFrameTheCaseIsDrawnIn() {
+    String jb = "R U2 R' U' R U2 L' U R' U' L";
+    for (char[] grip : AlgorithmForm.grips()) {
+      String stood = written(AlgorithmForm.conjugatedBy(AlgorithmForm.of(jb), grip));
+      LastLayerCaseAlgorithms.Execution execution = LastLayerCaseAlgorithms.read("pll_jb", stood);
+
+      assertEquals(stood, 11, execution.getMoves());
+      assertFalse(stood, execution.isLonger());
+    }
+  }
+
+  /** And the alignment still comes off, wherever the layer was pointing when it was turned. */
+  @Test
+  public void takesTheAlignmentOffAnExecutionInAnyFrame() {
+    String tperm = "R U R' U' R' F R2 U' R' U' R U R' F'";
+    int plain = LastLayerCaseAlgorithms.read("pll_t", tperm).getMoves();
+
+    assertEquals(plain, LastLayerCaseAlgorithms.read("pll_t", "U " + tperm + " U2").getMoves());
+    assertEquals(plain, LastLayerCaseAlgorithms.read("pll_t", "y " + tperm).getMoves());
+    assertEquals(plain, LastLayerCaseAlgorithms.read("pll_t", "z " + tperm + " z'").getMoves());
+  }
+
+  private static String written(List<String> turns) {
+    StringBuilder written = new StringBuilder();
+    for (String turn : turns) {
+      written.append(written.length() == 0 ? "" : " ").append(turn);
+    }
+    return written.toString();
+  }
+
   private static int rowsFor(String caseCode) {
     int rows = 0;
     for (String[] row : LastLayerCaseAlgorithms.rows()) {
