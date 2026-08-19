@@ -274,37 +274,7 @@ public final class RouxStepDetector implements StepDetector {
    * round.
    */
   private static boolean cornersPermuted(String facelets, int candidate, int drift) {
-    int[][] slots = CORNER_SLOTS[candidate];
-    for (int auf = 0; auf < slots.length; auf++) {
-      boolean placed = true;
-      for (int slot = 0; slot < slots.length && placed; slot++) {
-        placed = colours(facelets, slots[slot], drift)
-            .equals(homeColours(slots[(slot + auf) % slots.length]));
-      }
-      if (placed) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /** The piece's three colours, sorted, so it can be recognized however it is twisted. */
-  private static String colours(String facelets, int[] slot, int drift) {
-    char[] found = new char[slot.length];
-    for (int i = 0; i < slot.length; i++) {
-      found[i] = facelets.charAt(FaceletRotations.apply(drift, slot[i]));
-    }
-    Arrays.sort(found);
-    return new String(found);
-  }
-
-  private static String homeColours(int[] slot) {
-    char[] found = new char[slot.length];
-    for (int i = 0; i < slot.length; i++) {
-      found[i] = Cubies.SOLVED.charAt(slot[i]);
-    }
-    Arrays.sort(found);
-    return new String(found);
+    return Cubies.placingTurns(facelets, CORNER_SLOTS[candidate], drift) != 0;
   }
 
   /**

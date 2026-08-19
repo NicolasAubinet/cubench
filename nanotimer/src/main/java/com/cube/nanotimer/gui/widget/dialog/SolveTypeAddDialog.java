@@ -58,7 +58,8 @@ public class SolveTypeAddDialog extends ConfirmDialog {
    * The spinner's choices: following the preferred method first, then each sighted method that can
    * override it, in order of how common they are. Null is the follower, and the one stored as NULL.
    */
-  private static final CubeMethod[] METHODS = {null, CubeMethod.CFOP, CubeMethod.ROUX};
+  private static final CubeMethod[] METHODS =
+      {null, CubeMethod.CFOP, CubeMethod.ROUX, CubeMethod.LBL};
 
   // Offered in the order the timer menu lists them, with the opt-out last.
   private static final TimerQuickAction[] QUICK_ACTIONS = {
@@ -303,17 +304,13 @@ public class SolveTypeAddDialog extends ConfirmDialog {
     });
   }
 
-  private static int getMethodLabel(CubeMethod method) {
-    return method == CubeMethod.ROUX ? R.string.method_roux : R.string.method_cfop;
-  }
-
   /** The follower names the method it currently stands for, that choice being invisible otherwise. */
   private CharSequence getMethodName(CubeMethod method) {
     if (method != null) {
-      return getString(getMethodLabel(method));
+      return getString(Utils.getMethodLabel(method));
     }
     return getString(R.string.method_default,
-        getString(getMethodLabel(Options.INSTANCE.getPreferredMethod())));
+        getString(Utils.getMethodLabel(Options.INSTANCE.getPreferredMethod())));
   }
 
   /** Null when the type follows the preferred method rather than overriding it. */

@@ -127,10 +127,10 @@ public final class CFOPStepDetector implements StepDetector {
   private void evaluate(String facelets, long timestampMs) {
     boolean solved = Cubies.SOLVED.equals(facelets);
     for (int face = 0; face < 6; face++) {
-      boolean cross = crossDone(facelets, face);
+      boolean cross = Cubies.crossDone(facelets, face);
       boolean f2l = cross && slotsDone(facelets, face); // the 4 slots are the whole first two layers
-      boolean edgesOriented = lastLayerOriented(facelets, face, Cubies.EDGE_POSITIONS);
-      boolean cornersOriented = lastLayerOriented(facelets, face, Cubies.CORNER_POSITIONS);
+      boolean edgesOriented = Cubies.lastLayerOriented(facelets, face, Cubies.EDGE_POSITIONS);
+      boolean cornersOriented = Cubies.lastLayerOriented(facelets, face, Cubies.CORNER_POSITIONS);
 
       boolean oll = f2l && edgesOriented && cornersOriented;
       firstTwoLayers[face] = f2l;
@@ -201,16 +201,6 @@ public final class CFOPStepDetector implements StepDetector {
     }
   }
 
-  /** The 4 edges of the cross face are in place. */
-  private static boolean crossDone(String facelets, int face) {
-    for (int[] edge : Cubies.EDGES) {
-      if (Cubies.touches(edge, face) && !Cubies.inPlace(facelets, edge)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   /** One F2L slot: its first-layer corner and the middle edge beside it are both in place. */
   private static boolean slotDone(String facelets, int face, int slot) {
     return Cubies.inPlace(facelets, Cubies.CORNERS[SLOT_CORNERS[face][slot]])
@@ -220,18 +210,6 @@ public final class CFOPStepDetector implements StepDetector {
   private static boolean slotsDone(String facelets, int face) {
     for (int slot = 0; slot < 4; slot++) {
       if (!slotDone(facelets, face, slot)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /** The given positions of the last-layer face all show its colour: those pieces are oriented. */
-  private static boolean lastLayerOriented(String facelets, int face, int[] positions) {
-    int opposite = Cubies.opposite(face);
-    char colour = Cubies.FACES.charAt(opposite);
-    for (int position : positions) {
-      if (facelets.charAt(opposite * 9 + position) != colour) {
         return false;
       }
     }

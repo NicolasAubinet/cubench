@@ -3,11 +3,14 @@ package com.cube.nanotimer.cube;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
+import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
+import com.cube.nanotimer.smartcube.step.StepTime;
 import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +32,22 @@ public class MethodAnalyzersTest {
 
   private static final String[] ROUX_SOLVE = {
     "U R' F R", "R U R' U M U' R U R'", SUNE, T_PERM, "M2 U M", "U M' U2 M", "M2",
+  };
+
+  /** A layer-by-layer solve, keyholed: the fourth corner waits for the second layer's edges to go
+   * through the slot it left open. */
+  private static final String[] LBL_SOLVE = {
+    "R2 F2 U R U'",
+    "R U R' U'", "B U B' U'", "L U L' U'",
+    "U R U' R' U' F' U F", "U B U' B' U' R' U R", "U L U' L' U' B' U B",
+    "F U F' U'", "U F U' F' U' L' U L",
+    "F R U R' U' F'", SUNE, "R' F R' B2 R F' R' B2 R2", "R U' R U R U R U' R' U' R2",
+  };
+
+  /** The same first two layers with each corner put in beside its own edge, which is not it. */
+  private static final String[] PAIRED_SOLVE = {
+    "R2 F2 U R U'", "U R U' R'", "U B U' B'", "U L U' L'", "U F U' F'",
+    "F R U R' U' F'", SUNE, "R' F R' B2 R F' R' B2 R2", "R U' R U R U R U' R' U' R2",
   };
 
   private final CubieCube cube = new CubieCube();
@@ -55,6 +74,50 @@ public class MethodAnalyzersTest {
     assertEquals(CubeMethod.ROUX, analyzers.resolve());
     assertEquals(4, analyzers.get(CubeMethod.ROUX).getStepTimes().size());
     assertEquals("fb", analyzers.get(CubeMethod.ROUX).getStepTimes().get(0).getStepName());
+  }
+
+  @Test
+  public void readsALayerByLayerSolveOnAnLblSolveTypeAsLbl() {
+    analyzers = new MethodAnalyzers(CubeMethod.LBL);
+    scramble(invert(join(LBL_SOLVE)));
+    play(LBL_SOLVE);
+
+    assertEquals(CubeMethod.LBL, analyzers.resolve());
+    List<StepTime> steps = analyzers.get(CubeMethod.LBL).getStepTimes();
+    // Keyholed, so the first layer is come back to: five steps of four names.
+    assertEquals(5, steps.size());
+    assertEquals("cross", steps.get(0).getStepName());
+    assertEquals("layer1", steps.get(1).getStepName());
+    assertEquals("layer2", steps.get(2).getStepName());
+    assertEquals("layer1", steps.get(3).getStepName());
+    assertEquals("ll", steps.get(4).getStepName());
+  }
+
+  /** The steps of a solve that goes back to a layer still account for all of it, and none of them
+   * for less than nothing: the corner that landed on the same move as the edge before it costs
+   * nothing rather than running backwards. */
+  @Test
+  public void addsUpTheStepsOfASolveThatGoesBackToALayer() {
+    analyzers = new MethodAnalyzers(CubeMethod.LBL);
+    scramble(invert(join(LBL_SOLVE)));
+    play(LBL_SOLVE);
+
+    SolveAnalyzer analyzer = analyzers.get(CubeMethod.LBL);
+    long total = 0;
+    for (StepTime step : analyzer.getStepTimes()) {
+      assertTrue(step.getTotalMs() >= 0);
+      total += step.getTotalMs();
+    }
+    assertEquals(timestampMs - analyzer.getSolveStartMs(), total);
+  }
+
+  @Test
+  public void givesNoMethodToASolveThatPairsItsCornersOnAnLblSolveType() {
+    analyzers = new MethodAnalyzers(CubeMethod.LBL);
+    scramble(invert(join(PAIRED_SOLVE)));
+    play(PAIRED_SOLVE);
+
+    assertNull(analyzers.resolve());
   }
 
   /**

@@ -383,6 +383,15 @@
   <string name="smartcube_step_lse_eo">EO</string>
   <string name="smartcube_step_lse_ulur">UL/UR</string>
   <string name="smartcube_step_lse_l4e">L4E</string>
+  <string name="smartcube_step_layer1">1re couche</string>
+  <string name="smartcube_step_layer2">2e couche</string>
+  <string name="smartcube_step_ll">Dernière couche</string>
+  <string name="smartcube_step_corner">Coin %d</string>
+  <string name="smartcube_step_edge">Arête %d</string>
+  <string name="smartcube_step_lleo">EO</string>
+  <string name="smartcube_step_llco">CO</string>
+  <string name="smartcube_step_llcp">CP</string>
+  <string name="smartcube_step_llep">EP</string>
   <string name="smartcube_step_memo">Mémo</string>
   <string name="smartcube_step_execution">Exécution</string>
   <string name="smartcube_step_parity">Parité</string>
@@ -782,6 +791,7 @@
   <string name="method">Méthode</string>
   <string name="method_cfop">CFOP</string>
   <string name="method_roux">Roux</string>
+  <string name="method_lbl">Couche par couche</string>
   <string name="method_blind">En aveugle</string>
   <string name="method_default">Par défaut (%1$s)</string>
   <string name="method_info">À propos de la méthode</string>

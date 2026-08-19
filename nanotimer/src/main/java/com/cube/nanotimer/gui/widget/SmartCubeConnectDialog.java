@@ -36,6 +36,7 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
@@ -71,7 +72,8 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private Button btnDisconnect;
 
   /** The sighted methods a solve can be broken down into, in order of how common they are. */
-  private static final CubeMethod[] METHOD_CHOICES = {CubeMethod.CFOP, CubeMethod.ROUX};
+  private static final CubeMethod[] METHOD_CHOICES =
+      {CubeMethod.CFOP, CubeMethod.ROUX, CubeMethod.LBL};
 
   private final List<DiscoveredCube> discovered = new ArrayList<>();
   private boolean scanning;
@@ -403,7 +405,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private View methodCard(CubeMethod method, LinearLayout parent, AlertDialog dialog) {
     View card = getLayoutInflater().inflate(R.layout.preferred_method_item, parent, false);
     ((ImageView) card.findViewById(R.id.imgMethod)).setImageResource(methodIcon(method));
-    ((TextView) card.findViewById(R.id.tvMethodName)).setText(methodLabel(method));
+    ((TextView) card.findViewById(R.id.tvMethodName)).setText(Utils.getMethodLabel(method));
 
     LinearLayout steps = card.findViewById(R.id.methodSteps);
     for (int step : methodSteps(method)) {
@@ -425,24 +427,28 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
 
   /** The step names the breakdown uses, so the card shows what picking the method buys. */
   private static int[] methodSteps(CubeMethod method) {
-    return method == CubeMethod.ROUX
-        ? new int[] {R.string.smartcube_step_fb, R.string.smartcube_step_sb,
-            R.string.smartcube_step_cmll, R.string.smartcube_step_lse}
-        : new int[] {R.string.smartcube_step_cross, R.string.smartcube_step_f2l,
-            R.string.smartcube_step_oll, R.string.smartcube_step_pll};
+    if (method == CubeMethod.ROUX) {
+      return new int[] {R.string.smartcube_step_fb, R.string.smartcube_step_sb,
+          R.string.smartcube_step_cmll, R.string.smartcube_step_lse};
+    }
+    if (method == CubeMethod.LBL) {
+      return new int[] {R.string.smartcube_step_cross, R.string.smartcube_step_layer1,
+          R.string.smartcube_step_layer2, R.string.smartcube_step_ll};
+    }
+    return new int[] {R.string.smartcube_step_cross, R.string.smartcube_step_f2l,
+        R.string.smartcube_step_oll, R.string.smartcube_step_pll};
   }
 
   private static int methodIcon(CubeMethod method) {
-    return method == CubeMethod.ROUX ? R.drawable.ic_method_roux : R.drawable.ic_method_cfop;
+    if (method == CubeMethod.ROUX) {
+      return R.drawable.ic_method_roux;
+    }
+    return method == CubeMethod.LBL ? R.drawable.ic_method_lbl : R.drawable.ic_method_cfop;
   }
 
   private void choosePreferredMethod(CubeMethod method) {
     Options.INSTANCE.setPreferredMethodAsked(true);
     Options.INSTANCE.setPreferredMethod(method);
-  }
-
-  private static int methodLabel(CubeMethod method) {
-    return method == CubeMethod.ROUX ? R.string.method_roux : R.string.method_cfop;
   }
 
   /** Re-renders whichever state the sheet is in. Connection callbacks can land at any moment. */

@@ -130,9 +130,13 @@ final class Cubies {
   }
 
   private static String coloursOf(String facelets, int[] piece) {
+    return coloursOf(facelets, piece, FaceletRotations.IDENTITY);
+  }
+
+  private static String coloursOf(String facelets, int[] piece, int rotation) {
     char[] colours = new char[piece.length];
     for (int i = 0; i < piece.length; i++) {
-      colours[i] = facelets.charAt(piece[i]);
+      colours[i] = facelets.charAt(FaceletRotations.apply(rotation, piece[i]));
     }
     Arrays.sort(colours);
     return new String(colours);
@@ -145,6 +149,57 @@ final class Cubies {
     }
     Arrays.sort(colours);
     return new String(colours);
+  }
+
+  /** The four edges of a face are home: its cross is built. */
+  static boolean crossDone(String facelets, int face) {
+    for (int[] edge : EDGES) {
+      if (touches(edge, face) && !inPlace(facelets, edge)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** The given positions of the face opposite this one all show its own colour: on the last layer
+   * of a solve built on {@code face}, those pieces are oriented. */
+  static boolean lastLayerOriented(String facelets, int face, int[] positions) {
+    int opposite = opposite(face);
+    char colour = FACES.charAt(opposite);
+    for (int position : positions) {
+      if (facelets.charAt(opposite * 9 + position) != colour) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static int placingTurns(String facelets, int[][] slots) {
+    return placingTurns(facelets, slots, FaceletRotations.IDENTITY);
+  }
+
+  /**
+   * Which turns of a layer would place every one of these pieces, as a bit per quarter turn, and 0
+   * when none would. The slots must be given in the order a turn of that layer carries them through,
+   * so bit {@code a} says every piece is sitting {@code a} slots short of home. Pieces are read by
+   * their colours, so one placed but twisted counts as placed: orientation is a question of its own.
+   *
+   * <p>Read as a set rather than as a yes: two piece types placed under turns that have none in
+   * common are not both placed, since only one turn can be made.
+   */
+  static int placingTurns(String facelets, int[][] slots, int rotation) {
+    int turns = 0;
+    for (int auf = 0; auf < slots.length; auf++) {
+      boolean placed = true;
+      for (int slot = 0; slot < slots.length && placed; slot++) {
+        placed = coloursOf(facelets, slots[slot], rotation)
+            .equals(homeColoursOf(slots[(slot + auf) % slots.length]));
+      }
+      if (placed) {
+        turns |= 1 << auf;
+      }
+    }
+    return turns;
   }
 
   static Face faceAt(int face) {

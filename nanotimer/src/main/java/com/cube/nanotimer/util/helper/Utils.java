@@ -15,6 +15,7 @@ import android.util.Log;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveStep;
@@ -29,6 +30,10 @@ public class Utils {
   public static final char[] FORBIDDEN_NAME_CHARACTERS = new char[] { '"', ',', ';', '|', '=' };
 
   private static final String PAIR_CODE_PREFIX = "pair_";
+
+  /** The parts that carry the slot they went into, which is shown as their order instead. */
+  private static final String[] SLOT_CODE_PREFIXES = { PAIR_CODE_PREFIX, "corner_", "edge_" };
+
   /** The steps whose code carries the last-layer case they were left with ("pll_jb", "oll_21"). */
   private static final String[] CASE_CODE_PREFIXES = { "oll_", "pll_" };
   /** The parts of a last layer step: the algorithms that were run, each named by the case it solves
@@ -149,6 +154,14 @@ public class Utils {
     return forbiddenChar;
   }
 
+  /** What a solving method is called, wherever one is named. */
+  public static int getMethodLabel(CubeMethod method) {
+    if (method == CubeMethod.ROUX) {
+      return R.string.method_roux;
+    }
+    return method == CubeMethod.LBL ? R.string.method_lbl : R.string.method_cfop;
+  }
+
   public static String toScrambleTypeLocalizedName(Context context, ScrambleType scrambleType) {
     int nameStringResourceId = Utils.getStringIdentifier(context, "scramble_type_" + scrambleType.getName());
     return context.getString(nameStringResourceId);
@@ -201,8 +214,10 @@ public class Utils {
     if (code == null) {
       return null;
     }
-    if (code.startsWith(PAIR_CODE_PREFIX)) {
-      return "pair";
+    for (String prefix : SLOT_CODE_PREFIXES) {
+      if (code.startsWith(prefix)) {
+        return prefix.substring(0, prefix.length() - 1);
+      }
     }
     for (String prefix : CASE_CODE_PREFIXES) {
       if (code.startsWith(prefix)) {

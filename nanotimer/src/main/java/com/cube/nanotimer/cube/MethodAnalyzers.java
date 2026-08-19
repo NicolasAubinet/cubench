@@ -5,6 +5,7 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.step.BlindStepDetector;
 import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
+import com.cube.nanotimer.smartcube.step.LblStepDetector;
 import com.cube.nanotimer.smartcube.step.RouxStepDetector;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -41,6 +42,8 @@ public final class MethodAnalyzers {
       analyzers.put(CubeMethod.BLIND, new SolveAnalyzer(blindDetector));
     } else if (method == CubeMethod.ROUX) {
       analyzers.put(CubeMethod.ROUX, new SolveAnalyzer(new RouxStepDetector()));
+    } else if (method == CubeMethod.LBL) {
+      analyzers.put(CubeMethod.LBL, new SolveAnalyzer(new LblStepDetector()));
     } else {
       analyzers.put(CubeMethod.CFOP, new SolveAnalyzer(new CFOPStepDetector()));
     }

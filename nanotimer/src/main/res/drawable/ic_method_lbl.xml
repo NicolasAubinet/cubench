@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layer by layer: the same layers as ic_method_cfop, each reaching less far than the one under
+     it, since every layer is finished before the next one is begun. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M3,3 H9.67 V8.33 H3 Z"
+      android:fillColor="#FFFFFFFF"
+      android:fillAlpha="0.4" />
+  <path
+      android:pathData="M3,9.33 H15.33 V14.67 H3 Z"
+      android:fillColor="#FFFFFFFF"
+      android:fillAlpha="0.7" />
+  <path
+      android:pathData="M3,15.67 H21 V21 H3 Z"
+      android:fillColor="#FFFFFFFF" />
+</vector>

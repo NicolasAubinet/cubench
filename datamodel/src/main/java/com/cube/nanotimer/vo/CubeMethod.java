@@ -4,6 +4,8 @@ package com.cube.nanotimer.vo;
 public enum CubeMethod {
   CFOP("CFOP"),
   ROUX("Roux"),
+  /** Layer by layer, the method a beginner is first taught. */
+  LBL("LBL"),
   /** Every blindfolded method under one code: they differ in how pieces are solved, not in when
    * the cube's state says a phase ended, which is all a detector can see. */
   BLIND("BLD");
