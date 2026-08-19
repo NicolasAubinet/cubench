@@ -367,6 +367,19 @@ public final class LastLayerCaseAlgorithms {
   /** @param minShare the share of the case's votes an algorithm needs, in percent */
   public static List<Algorithm> forCase(String caseCode, int minShare) {
     List<Algorithm> all = new ArrayList<Algorithm>();
+    for (Algorithm algorithm : every(caseCode)) {
+      if (all.isEmpty() || (algorithm.getShare() >= minShare && all.size() < MOST_SHOWN)) {
+        all.add(algorithm);
+      }
+    }
+    if (all.size() > 1 && all.get(0).getShare() >= all.get(1).getShare() * CLEAR_LEAD) {
+      all.set(0, new Algorithm(all.get(0).getMoves(), all.get(0).getShare(), true));
+    }
+    return Collections.unmodifiableList(all);
+  }
+
+  /** Every algorithm the table holds for a case, most used first, shown or not. */
+  private static List<Algorithm> every(String caseCode) {
     int votes = 0;
     for (String[] row : ALGORITHMS) {
       if (row[0].equals(caseCode)) {
@@ -376,19 +389,63 @@ public final class LastLayerCaseAlgorithms {
     if (votes == 0) {
       return Collections.emptyList();
     }
+    List<Algorithm> all = new ArrayList<Algorithm>();
     for (String[] row : ALGORITHMS) {
-      if (!row[0].equals(caseCode)) {
+      if (row[0].equals(caseCode)) {
+        all.add(new Algorithm(row[1], Math.round(Integer.parseInt(row[2]) * 100f / votes), false));
+      }
+    }
+    return all;
+  }
+
+  /**
+   * Which algorithm an execution was, or null for one that is none of the case's.
+   *
+   * <p>Compared as {@link AlgorithmForm}s rather than as text, and against every grip. A solver holds
+   * the cube where their hands want it, turns the layer to read it, and leaves it wherever the next
+   * case wants it, so an execution equals the table's spelling almost never and is the same turning
+   * constantly.
+   *
+   * <p>Matched against every row of the case rather than the few that are shown: the question is
+   * which algorithm this solver turns, and an algorithm a fifth of the world uses is still the one
+   * they learned.
+   *
+   * <p><b>A sixth of the table is one algorithm written twice</b>, the same turning spelled with the
+   * wide instead of the slice, or mirrored onto the other hand behind the rotation that puts it
+   * there. Those rows cannot be told apart here and deliberately are not tried: they turn the cube
+   * identically, and what separates them is how the solver was holding it, which is a rotation that
+   * as often as not was made in the step before this one. The most used of them answers.
+   *
+   * @param executedMoves the moves that were turned, in the solver's own frame
+   */
+  public static Algorithm matching(String caseCode, String executedMoves) {
+    if (caseCode == null || executedMoves == null) {
+      return null;
+    }
+    List<Algorithm> algorithms = every(caseCode);
+    List<List<String>> forms = new ArrayList<List<String>>();
+    List<String> turns;
+    try {
+      turns = AlgorithmForm.of(executedMoves);
+      for (Algorithm algorithm : algorithms) {
+        forms.add(AlgorithmForm.withoutAlignment(AlgorithmForm.of(algorithm.getMoves())));
+      }
+    } catch (RuntimeException e) {
+      return null; // notation nothing can read is no algorithm of anything
+    }
+    for (char[] grip : AlgorithmForm.grips()) { // the cube as it was held comes first
+      List<String> executed =
+          AlgorithmForm.withoutAlignment(AlgorithmForm.conjugatedBy(turns, grip));
+      if (executed.isEmpty()) {
         continue;
       }
-      int share = Math.round(Integer.parseInt(row[2]) * 100f / votes);
-      if (all.isEmpty() || (share >= minShare && all.size() < MOST_SHOWN)) {
-        all.add(new Algorithm(row[1], share, false));
+      for (int i = 0; i < algorithms.size(); i++) {
+        if (executed.equals(forms.get(i))) {
+          return algorithms.get(i);
+        }
       }
     }
-    if (all.size() > 1 && all.get(0).getShare() >= all.get(1).getShare() * CLEAR_LEAD) {
-      all.set(0, new Algorithm(all.get(0).getMoves(), all.get(0).getShare(), true));
-    }
-    return Collections.unmodifiableList(all);
+    return null;
   }
 
   /**

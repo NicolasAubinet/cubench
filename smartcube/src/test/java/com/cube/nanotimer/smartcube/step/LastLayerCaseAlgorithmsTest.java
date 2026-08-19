@@ -3,6 +3,7 @@ package com.cube.nanotimer.smartcube.step;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -184,6 +185,63 @@ public class LastLayerCaseAlgorithmsTest {
    * held to where the layer starts rather than where it ends, since it is the picture it has to
    * agree with; a permutation may leave the layer facing any way it likes.
    */
+  /** Every algorithm on file is recognised from its own moves, which is the floor for the rest. */
+  @Test
+  public void recognisesEveryAlgorithmItHolds() {
+    List<String> missed = new ArrayList<String>();
+    for (String[] row : LastLayerCaseAlgorithms.rows()) {
+      LastLayerCaseAlgorithms.Algorithm matched = LastLayerCaseAlgorithms.matching(row[0], row[1]);
+      if (matched == null || !sameAlgorithm(matched.getMoves(), row[1])) {
+        missed.add(row[0] + " | " + row[1] + " | read as "
+            + (matched == null ? "none of them" : matched.getMoves()));
+      }
+    }
+    assertEquals(join(missed), 0, missed.size());
+  }
+
+  /** What an execution actually looks like: aligned, held somewhere, and turned into the next case. */
+  @Test
+  public void recognisesOneThroughAnAlignmentAndAGrip() {
+    String tperm = "R U R' U' R' F R2 U' R' U' R U R' F'";
+    assertNotNull(LastLayerCaseAlgorithms.matching("pll_t", "U " + tperm + " U2"));
+    assertNotNull(LastLayerCaseAlgorithms.matching("pll_t", "y2 " + tperm));
+    assertNotNull(LastLayerCaseAlgorithms.matching("pll_t", "U' y " + tperm + " y' U"));
+    // The regrip in the middle of it, turned back before the algorithm goes on.
+    assertNotNull(LastLayerCaseAlgorithms.matching("pll_t", "R U R' U' R' F R2 U' R' U' R U R' D D' F'"));
+  }
+
+  /** A misread is the whole point of asking: the algorithm run is not the case it was handed. */
+  @Test
+  public void doesNotRecogniseAnAlgorithmOfAnotherCase() {
+    assertNull(LastLayerCaseAlgorithms.matching("oll_21", "R U R' U R U2 R'")); // that is OLL 27
+    assertNull(LastLayerCaseAlgorithms.matching("oll_27", "R U R' banana"));
+    assertNull(LastLayerCaseAlgorithms.matching("oll_27", ""));
+    assertNull(LastLayerCaseAlgorithms.matching("oll_27", null));
+    assertNull(LastLayerCaseAlgorithms.matching(null, "R U R' U R U2 R'"));
+  }
+
+  /**
+   * A sixth of the table is one algorithm written twice, and the mirrored spelling turns the cube
+   * exactly as the first one does. Nothing reading the moves can tell those apart, so the most used
+   * of them answers for all of them rather than a coin being tossed.
+   */
+  @Test
+  public void answersWithTheMostUsedOfTheSpellingsThatTurnTheCubeAlike() {
+    String mirrored = "y2 l' U2 L U L' U l"; // OLL 5's most used, mirrored behind the rotation
+    assertTrue(sameAlgorithm("r' U2 R U R' U r", mirrored));
+    assertEquals("r' U2 R U R' U r", LastLayerCaseAlgorithms.matching("oll_5", mirrored).getMoves());
+    assertEquals("r' U2 R U R' U r",
+        LastLayerCaseAlgorithms.matching("oll_5", "r' U2 R U R' U r").getMoves());
+    // And for a cube that was standing on its side when the case came up.
+    assertEquals("r' U2 R U R' U r",
+        LastLayerCaseAlgorithms.matching("oll_5", "z r' U2 R U R' U r z'").getMoves());
+  }
+
+  private static boolean sameAlgorithm(String one, String other) {
+    return AlgorithmForm.withoutAlignment(AlgorithmForm.of(one))
+        .equals(AlgorithmForm.withoutAlignment(AlgorithmForm.of(other)));
+  }
+
   private static boolean worksFrom(String picture, String alg, boolean orientation) {
     for (String auf : orientation ? new String[] {""} : AUFS) {
       String state = Notation.caseState((alg + " " + auf).trim());

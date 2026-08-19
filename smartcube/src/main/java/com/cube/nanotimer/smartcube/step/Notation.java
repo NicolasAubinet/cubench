@@ -115,7 +115,7 @@ final class Notation {
   }
 
   /** The axis a letter turns about, the slice of cubies it carries, and which way round. */
-  private static int[] layerOf(char face) {
+  static int[] layerOf(char face) {
     switch (face) {
       case 'U': return new int[] {1, 1, 1, 1};
       case 'D': return new int[] {1, -1, -1, -1};
