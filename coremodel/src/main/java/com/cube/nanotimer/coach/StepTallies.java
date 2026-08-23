@@ -73,8 +73,14 @@ public class StepTallies {
       count++;
       totalMs += sample.getTimeMs();
       recognitionMs += sample.getRecognitionMs();
-      bestMs = Math.min(bestMs, sample.getTimeMs());
+      // An occurrence that took no time came free rather than fast, so it is nobody's best.
+      if (sample.getTimeMs() > 0) {
+        bestMs = Math.min(bestMs, sample.getTimeMs());
+      }
       sumOfSquares += (double) sample.getTimeMs() * sample.getTimeMs();
+    }
+    if (bestMs == Long.MAX_VALUE) {
+      bestMs = 0; // nothing but free occurrences: there is no best to report
     }
     tallies.put(code, count == 0 ? new StepStats(code, 0, 0, 0, 0, 0)
         : new StepStats(code, count, totalMs, recognitionMs, bestMs, sumOfSquares));
