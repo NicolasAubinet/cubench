@@ -1920,7 +1920,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
     // The stats read the whole thing, gap included, so the move count is the same number the detail
     // sheet shows — only the bar leaves it out.
-    showSolveStats(SolveSolution.from(lastSolveMoves, barSteps));
+    showSolveStats(SolveSolution.from(lastSolveMoves, barSteps, lastSolveMethod));
   }
 
   /**
@@ -1938,7 +1938,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     solveStepBar.animateIn();
     // The steps were timed by tapping, so there are only moves to count when a cube drove them too;
     // with none, this hides itself and the bar stands alone.
-    showSolveStats(SolveSolution.from(lastSolveMoves, steps));
+    showSolveStats(SolveSolution.from(lastSolveMoves, steps, lastSolveMethod));
   }
 
   private String[] stepNames() {

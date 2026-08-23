@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -507,6 +508,48 @@ public class SolveSolutionTest {
     assertEquals(2, solution.getMoveCount());
   }
 
+  /**
+   * A blind solve is spelled from the grip it was picked up in, and the grip is shown so the
+   * sequence still follows from the scramble. Only blind: the grip is read at the first move
+   * outside a slice pair, and nothing guards it against a first move that is wide.
+   */
+  @Test
+  public void aBlindSolveIsSpelledFromTheGripItWasPickedUpIn() {
+    assertEquals("y R", blind("[y] B@10"));
+    assertEquals("B", displayed("[y] B@10"));
+  }
+
+  /** With no grip stored there is none to spell from, and the cube's own frame stands. */
+  @Test
+  public void aBlindSolveWithNoStoredGripReadsAsItAlwaysDid() {
+    assertEquals("B", blind("B@10"));
+  }
+
+  /**
+   * A blind solver never turns the cube, so a rotation token in one is the frame accounting
+   * leaking rather than turning that happened, and it neither shows nor moves the frame: the B
+   * that follows is still spelled through the grip alone.
+   */
+  @Test
+  public void aBlindSolvesRotationTokensAreNotTurningTheSolverDid() {
+    assertEquals("y R", blind("[y] x@10 B@20"));
+    assertEquals("x D", displayed("[y] x@10 B@20"));
+  }
+
+  /**
+   * The 2026-08-23 solve in miniature: two turns of the one physical axis with a stray rotation
+   * between them. Read as a blind solve they are the same slice twice, which is what they were;
+   * read as any other, the rotation re-letters the second and the pair comes out as two different
+   * slices, which is what sent that solve's whole reading astray.
+   */
+  @Test
+  public void theSameSliceIsSpelledTheSameWayThroughABlindSolve() {
+    String stored = "[y] B'@0 F@2 z'@3 x@100 R@100 F@200 B'@202 z'@203";
+
+    assertEquals("y M' U M'", blind(stored));
+    assertEquals("S' y U M'", displayed(stored));
+  }
+
   private static String marked(String stored) {
     return MarkedMoves.of(
         SolveSolution.from(stored, Arrays.asList(step("f2l", 0, 1000))).getSteps().get(0));
@@ -518,6 +561,11 @@ public class SolveSolutionTest {
 
   private static String displayed(String stored) {
     return SolveSolution.from(stored, Arrays.asList(step("f2l", 0, 1000)))
+        .getSteps().get(0).getMoves();
+  }
+
+  private static String blind(String stored) {
+    return SolveSolution.from(stored, Arrays.asList(step("execution", 0, 1000)), CubeMethod.BLIND)
         .getSteps().get(0).getMoves();
   }
 

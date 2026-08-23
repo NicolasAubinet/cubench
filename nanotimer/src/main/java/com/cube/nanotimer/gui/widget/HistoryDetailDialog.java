@@ -193,7 +193,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       // breakdown: the solution splits its moves by the same step windows the bar draws.
       List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs,
           solveTime.getSmartcubeMoves(), method);
-      buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps),
+      buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps, method),
           getString(R.string.breakdown), null, method);
       showResidual(v, fresh ? reread.getResidual() : null);
       showParityCheck(v, fresh ? reread.getParityCheck() : null);
@@ -603,7 +603,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     if (steps.isEmpty()) {
       return false;
     }
-    SolveSolution solution = SolveSolution.from(solveTime.getSmartcubeMoves(), steps);
+    SolveSolution solution =
+        SolveSolution.from(solveTime.getSmartcubeMoves(), steps, solveTime.getSmartcubeMethod());
     SolveTypeStep[] names = solveTime.getSolveType().hasSteps()
         ? solveTime.getSolveType().getSteps() : new SolveTypeStep[0];
     buildBreakdown(v, steps, solution, getString(R.string.steps), names, null);

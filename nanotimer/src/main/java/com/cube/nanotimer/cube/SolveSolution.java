@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.cube.SolveMovesFormat.Move;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +25,20 @@ import java.util.Set;
  * {@code r r'} fall out of it for free. Only whole cancellations count: {@code R2 R'} is left
  * standing, since half of a move is not something that can be crossed out. Which of them a given
  * row may draw is {@link #cancelledIn}'s business.
+ *
+ * <p><b>A blind solve is spelled from the grip it was picked up in, and shows no rotations.</b> The
+ * solver never turns the cube, so the frame can only be the grip plus what the slices and the wides
+ * rock the core by, and a rotation token in one of these solves is the frame accounting leaking
+ * rather than turning that happened. Both halves of that are the one leak: the grip is read at the
+ * first move <em>outside a slice pair</em>, so a solve opening on a slice has no frame read at its
+ * first moves at all, the grip goes unwritten, and it surfaces several moves later as a regrip
+ * nobody made. The 2026-08-23 solve spelled its opening {@code M'} as {@code S'} and its twin four
+ * moves on as {@code M'} for exactly that reason.
+ *
+ * <p><b>No other solve may be read this way.</b> Nothing guards the stored grip against a first
+ * move that is <em>wide</em>, whose swing the gyro has already reported, and the scripted wide
+ * drill stores a grip its own ground truth disowns. Spelling a sighted solve from the grip turns
+ * every letter of it a quarter turn.
  */
 public final class SolveSolution {
 
@@ -51,7 +66,17 @@ public final class SolveSolution {
    * fall outside every window.
    */
   public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps) {
-    List<Move> moves = timedSolution(storedMoves);
+    return from(storedMoves, solveSteps, null);
+  }
+
+  /**
+   * The same, for a solve whose method was read. Only blind makes any difference, and only because
+   * of what it promises: see {@link #inSolversFrame}. Null where no method fitted.
+   */
+  public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps,
+      CubeMethod method) {
+    List<Move> moves = inSolversFrame(SolveMovesFormat.parse(storedMoves), null,
+        method == CubeMethod.BLIND ? gripOf(storedMoves) : null);
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
       return new SolveSolution(new ArrayList<Step>(), 0, 0, 0);
     }
@@ -92,7 +117,7 @@ public final class SolveSolution {
    * apart. Rotation tokens are kept, since the whole point of a replay is to turn with the solver.
    */
   public static List<Move> timedSolution(String storedMoves) {
-    return inSolversFrame(SolveMovesFormat.parse(storedMoves), null);
+    return inSolversFrame(SolveMovesFormat.parse(storedMoves), null, null);
   }
 
   /**
@@ -106,7 +131,7 @@ public final class SolveSolution {
    */
   public static List<FrameAt> framesOf(String storedMoves) {
     List<FrameAt> frames = new ArrayList<FrameAt>();
-    inSolversFrame(SolveMovesFormat.parse(storedMoves), frames);
+    inSolversFrame(SolveMovesFormat.parse(storedMoves), frames, null);
     return frames;
   }
 
@@ -141,10 +166,18 @@ public final class SolveSolution {
    *
    * <p>The stored stream stays raw for exactly this reason: the frame is rebuilt on the way out, so
    * a correction here fixes solves already recorded.
+   *
+   * @param heldIn the one grip the solve was turned in, or null where it cannot be known. See the
+   *     class javadoc for what only a blind solve can promise.
    */
-  private static List<Move> inSolversFrame(List<Move> stored, List<FrameAt> framesOut) {
-    CubeRotation frame = CubeRotation.byNotation("");
+  private static List<Move> inSolversFrame(List<Move> stored, List<FrameAt> framesOut,
+      CubeRotation heldIn) {
+    CubeRotation frame = heldIn != null ? heldIn : CubeRotation.byNotation("");
     List<Move> rewritten = new ArrayList<Move>(stored.size());
+    if (heldIn != null && !heldIn.getNotation().isEmpty()) {
+      rewritten.add(new Move(heldIn.getNotation(), 0)); // shown, so it follows from the scramble
+      record(framesOut, 0, frame);
+    }
     for (int i = 0; i < stored.size(); i++) {
       Move move = stored.get(i);
       String notation = move.getNotation();
@@ -172,8 +205,8 @@ public final class SolveSolution {
           composite.append(' ').append(stored.get(++i).getNotation());
         }
         CubeRotation rotation = CubeRotation.byNotation(composite.toString());
-        if (rotation == null) {
-          continue;
+        if (rotation == null || heldIn != null) {
+          continue; // held in one grip: nothing here is turning the solver did
         }
         CubeRotation seen = rotation.seenFrom(frame);
         rewritten.add(new Move(seen.getNotation(), move.getOffsetMs()));
@@ -200,6 +233,13 @@ public final class SolveSolution {
       }
     }
     return rewritten;
+  }
+
+  /** The grip the solve was picked up in, or none where the stream carries none to read. */
+  private static CubeRotation gripOf(String storedMoves) {
+    String pickup = SolveMovesFormat.pickupOf(storedMoves);
+    CubeRotation grip = pickup == null ? null : CubeRotation.byNotation(pickup);
+    return grip == null ? CubeRotation.byNotation("") : grip;
   }
 
   private static void record(List<FrameAt> framesOut, long offsetMs, CubeRotation frame) {

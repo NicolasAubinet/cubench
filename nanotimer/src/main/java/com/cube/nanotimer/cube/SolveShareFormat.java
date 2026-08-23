@@ -21,15 +21,15 @@ public final class SolveShareFormat {
 
   public static String smartcubeSection(Context context, SolveTime solveTime) {
     long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
+    CubeMethod method = solveTime.getSmartcubeMethod();
     List<SolveStep> steps = SolveBreakdown.withTail(solveTime.getSmartcubeSteps(),
-        solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves(),
-        solveTime.getSmartcubeMethod());
+        solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves(), method);
     StringBuilder sb = new StringBuilder();
     // Solves recorded before the method breakdown stopped being kept for a solve type with its own
     // steps still carry one. It is not shown anywhere, so it is not shared either.
     if (steps != null && !steps.isEmpty() && !solveTime.hasSteps()) {
       appendBreakdown(context, sb, steps,
-          SolveSolution.from(solveTime.getSmartcubeMoves(), steps), solveTime.getSmartcubeMethod());
+          SolveSolution.from(solveTime.getSmartcubeMoves(), steps, method), method);
     }
     appendRawData(context, sb, solveTime);
     return sb.toString();
