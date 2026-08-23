@@ -1200,14 +1200,17 @@ public class ServiceProviderTest {
     assertEquals(CaseKnowledge.Status.TO_LEARN, knowledgeOf("oll_21"));
   }
 
-  /** The latest occurrence decides, so a case put in unaided for weeks is not known after a lapse. */
+  /** One two-look against a clean record is a slip and is forgiven; the second one demotes. */
   @Test
-  public void testTheLatestSolveDecides() {
+  public void testTwoLapsesInARowAreWhatStopsASolveReadingAsKnown() {
     deleteDrills();
     provider.deleteHistory();
     for (int i = 0; i < 5; i++) {
       saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 1));
     }
+    assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
+
+    saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 2));
     assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
 
     saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 2));

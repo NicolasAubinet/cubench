@@ -31,21 +31,36 @@ public class CaseKnowledgeTest {
     Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("H")));
   }
 
-  /** The most recent occurrence decides, in both directions. */
+  /** One unaided occurrence promotes immediately, whatever the case did before it. */
   @Test
-  public void testTheLatestOccurrenceIsTheOneThatCounts() {
-    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UUUUUH")));
+  public void testOneUnaidedOccurrenceIsEnoughHoweverBadTheRecordBeforeIt() {
     Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("HHHHHU")));
   }
 
   /**
-   * The cost of that, accepted deliberately: a case put in unaided nine times stops reading as
-   * known after one two-look. It is what the solver last did with it, and it wants review rather
-   * than learning from scratch.
+   * An algorithm fired in reverse, or a case missed once, is a slip rather than knowledge lost: it
+   * would be wrong to ask for a review of a case with nine clean executions behind it.
    */
   @Test
-  public void testOneLapseIsEnoughToStopACaseReadingAsKnown() {
-    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UUUUUUUUUH")));
+  public void testASingleLapseAgainstAnUnaidedRecordIsForgiven() {
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("UUUUUUUUUH")));
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("UUUUUH")));
+  }
+
+  /** Twice running is a pattern rather than a slip, and it is what demotes. */
+  @Test
+  public void testTwoLapsesInARowStopACaseReadingAsKnown() {
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UUUUUHH")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UHHHHHH")));
+  }
+
+  /**
+   * The accepted cost of forgiving one: a case slipped on every other time still reads as known,
+   * since no two of its lapses are ever adjacent.
+   */
+  @Test
+  public void testAlternatingLapsesGoOnReadingAsKnown() {
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("UHUHUH")));
   }
 
   /** The whole point of the split: never once done in one algorithm is not the same as slipping. */
@@ -55,11 +70,11 @@ public class CaseKnowledgeTest {
     Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("HSHSH")));
   }
 
-  /** One unaided solve, however long ago and however buried, is what separates the two. */
+  /** One unaided occurrence, however long ago and however buried, is what separates the two. */
   @Test
-  public void testASingleUnaidedOccurrenceBeforeTheLapseMakesItReviewRatherThanToLearn() {
-    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UHHHHHH")));
+  public void testACaseWithNoUnaidedOccurrenceAtAllIsToLearnRatherThanReview() {
     Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("HHHHHHH")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UHHHHHH")));
   }
 
   /** A drill hands the case over with nothing to recognise, so a clean rep promotes nothing. */
@@ -70,10 +85,11 @@ public class CaseKnowledgeTest {
     Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("USSS")));
   }
 
-  /** Asking to be shown the algorithm is the plainest thing in the database, drill or not. */
+  /** Asking to be shown counts as a lapse, drill or not, and is forgiven or not on the same terms. */
   @Test
-  public void testBeingShownTheAlgorithmIsTheLastWord() {
-    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("USH")));
+  public void testBeingShownTheAlgorithmCountsAsALapse() {
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("USH")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("USHH")));
   }
 
   @Test

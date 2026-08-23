@@ -1,5 +1,6 @@
 package com.cube.nanotimer.session;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,11 +14,20 @@ import java.util.List;
  * is learned but not recognised under pressure, and slow because it is deliberately taken in two
  * looks are three diagnoses with three different fixes.
  *
- * <p><b>The most recent occurrence decides, and one is enough.</b> A rare OLL turns up once in
- * sixty solves, so waiting for a case to come up several times before saying anything left most of
- * a set with nothing said about it for months. Putting a case in with one algorithm in a real solve
- * is already about as strong as evidence gets, so the first time it happens the case is known; and a
- * case taken in two looks since is not known now, whatever it did before.
+ * <p><b>One unaided solve is enough to be known, and two lapses running are enough to stop being
+ * it.</b> A rare OLL turns up once in sixty solves, so waiting for a case to come up several times
+ * before saying anything left most of a set with nothing said about it for months: putting a case in
+ * with one algorithm in a real solve is already about as strong as evidence gets, so the first time
+ * it happens the case is known.
+ *
+ * <p>Coming back down is not symmetrical, deliberately. <b>A single two-look against an unaided
+ * record is forgiven</b>, because an algorithm fired in reverse or a case missed once is a slip
+ * rather than knowledge lost, and demoting on it made a case with twenty clean executions behind it
+ * ask to be reviewed. <b>Two in a row is a pattern</b> and demotes. Consecutive occurrences rather
+ * than a window of time, so a case seen twice in six months still reads.
+ *
+ * <p>The cost of <em>that</em>, in turn: a case slipped on every other time it comes up goes on
+ * reading as known, since no two of its lapses are ever adjacent.
  *
  * <p><b>A case not known now is one of two things, and they want opposite advice.</b> One never yet
  * put in with a single algorithm has not been learnt at all, and telling its solver to drill it is
@@ -25,9 +35,7 @@ import java.util.List;
  * occurrence still decides whether a case is known; what separates {@link Status#TO_LEARN} from
  * {@link Status#NEEDS_REVIEW} is whether any occurrence before it was {@link Evidence#UNAIDED}.
  *
- * <p>The cost of that is accepted deliberately: <b>one lapse reads as {@link Status#NEEDS_REVIEW}</b>
- * even on a case the solver knows and merely failed to recognise in time. It is the honest reading
- * of what they last did, and both statuses describe rather than accuse.
+ * <p>Both of the statuses below describe rather than accuse.
  *
  * <p><b>What counts as an occurrence.</b> A solve that was handed the case, and a drill rep of it
  * that had to be shown. A solve says {@link Evidence#UNAIDED} where its last layer step went in one
@@ -47,7 +55,7 @@ public class CaseKnowledge {
     /** Executed in one algorithm, unaided, and recently enough for that still to be true. */
     KNOWN("known"),
 
-    /** Taken in two looks last time, but put in with one algorithm at some point before that. */
+    /** Taken in two looks the last two times it came up, having gone in with one before that. */
     NEEDS_REVIEW("needs_review"),
 
     /** Taken in two looks, or shown, every time it has ever come up: never yet done in one. */
@@ -84,7 +92,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 3;
+  public static final int RULE_VERSION = 4;
 
   /** What one occurrence of a case says about whether the solver knows it. */
   public enum Evidence {
@@ -121,7 +129,7 @@ public class CaseKnowledge {
   }
 
   /**
-   * Where a case stands: what the most recent occurrence that said anything said.
+   * Where a case stands, read from the occurrences that said anything.
    *
    * @param occurrences oldest first
    * @return the status, or null where nothing has been seen that says either way
@@ -130,16 +138,22 @@ public class CaseKnowledge {
     if (occurrences == null) {
       return null;
     }
-    for (int i = occurrences.size() - 1; i >= 0; i--) { // newest first: the last word wins
-      if (occurrences.get(i) == Evidence.UNAIDED) {
-        return Status.KNOWN;
-      }
-      if (occurrences.get(i) == Evidence.HELPED) {
-        return occurrences.subList(0, i).contains(Evidence.UNAIDED)
-            ? Status.NEEDS_REVIEW : Status.TO_LEARN;
+    List<Evidence> said = new ArrayList<Evidence>(); // newest first, the silent ones dropped
+    for (int i = occurrences.size() - 1; i >= 0; i--) {
+      if (occurrences.get(i) != Evidence.SILENT) {
+        said.add(occurrences.get(i));
       }
     }
-    return null;
+    if (said.isEmpty()) {
+      return null;
+    }
+    if (said.get(0) == Evidence.UNAIDED) {
+      return Status.KNOWN;
+    }
+    if (!said.contains(Evidence.UNAIDED)) {
+      return Status.TO_LEARN; // never once put in with a single algorithm
+    }
+    return said.get(1) == Evidence.HELPED ? Status.NEEDS_REVIEW : Status.KNOWN;
   }
 
   /** The code a solve and a drill both record the case under, "oll_53". */
