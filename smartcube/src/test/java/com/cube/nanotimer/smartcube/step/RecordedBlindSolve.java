@@ -345,11 +345,38 @@ final class RecordedBlindSolve {
           + "D'@61785 B'@61940 B@62654 D'@62784 B'@62979 U@63071 B'@63193 D@63273 B@63436 "
           + "U'@63493 B'@63612 D'@63757 B@63884 U'@63976 B@64160 D@64281 B'@64457 U@64612";
 
+  /**
+   * 2026-08-23, and the one that breaks into a new cycle. Its fourth edge algorithm is made with the
+   * buffer holding its own piece: to open the next cycle it takes the solved {@code UR} edge back
+   * out and parks it in {@code BL}, which is where the last edge algorithm was to collect it from.
+   * That one misfired, and the solve ends a three-cycle and two flipped edges out.
+   */
+  static final String SCRAMBLE_BROKE_IN =
+      "F2 U2 L2 B2 D' U B2 L2 U2 L F' D' B R' U' L' U2 L' R2 B D2";
+  static final String MOVES_BROKE_IN =
+      "[y] y@50531 x@50531 R'@50531 U@50800 D'@50820 y'@50821 x'@51000 R@51000 U'@51100 R'@51227 "
+          + "D@51476 U'@51480 y@51604 B@51604 U@51715 z'@51932 B'@51933 R@52210 R@52992 L'@53005 "
+          + "x'@53006 U@53213 R'@53302 U'@53443 L@53610 R'@53612 x@53613 F@53755 R@53881 z@54021 "
+          + "F'@54021 F'@54507 B@54509 z@54510 L'@54751 F'@54931 L@55027 F@55243 B'@55269 z'@55270 "
+          + "F@55343 B'@55579 z'@55580 R'@55763 F@55998 R@56251 F'@57151 B@57157 z@57158 R'@61121 "
+          + "L@61125 x@61126 F'@61310 U'@61528 F'@61668 B@61670 z@61671 L@61777 L@61854 F@62016 "
+          + "B'@62017 z'@62018 U'@62185 F@62656 L'@62903 R@62919 x'@62920 U'@63381 B'@63692 "
+          + "U'@63880 D@63896 y@63897 L@64394 U@64600 U@64759 L'@64877 U@65028 D'@65060 y'@65061 "
+          + "B@65214 U'@65310 y@65990 D@65991 R'@66164 U@66392 D'@66401 y'@66402 F@66602 U'@66757 "
+          + "U@68620 U@69477 D'@69479 y'@69480 L'@69692 L@71134 D@71692 U'@71701 y@71702 U'@72395 "
+          + "F'@72725 D@73123 U'@73125 y@73126 R@73325 D'@74286 U@74313 y'@74314 D'@82063 U@82114 "
+          + "B'@82273 D@82385 B@82581 U'@82668 B'@82807 D'@82960 B@83122 D@84258 U'@86312 B@86501 "
+          + "D@86636 B'@86811 U'@86926 B@87055 D'@87242 B'@87623 U@88074 U@88242 B@88734 D'@88977 "
+          + "U@88992 B@89159 D@89289 B'@89411 U'@89542 B@89682 D'@89826 B'@90026 D@90656 B'@92395 "
+          + "B@94536 U@94770 z'@95749 B'@95750 R'@95962 B@96094 U@96235 z@96383 B'@96383 U'@96500 "
+          + "B'@96668 R@96752 B@96891 B@96989 U'@97117 B'@97285 U'@97505";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
     {SCRAMBLE_195, MOVES_195}, {SCRAMBLE_211, MOVES_211}, {SCRAMBLE_247, MOVES_247},
     {SCRAMBLE_WRONG_TARGET, MOVES_WRONG_TARGET},
     {SCRAMBLE_PASSED_THROUGH, MOVES_PASSED_THROUGH},
+    {SCRAMBLE_BROKE_IN, MOVES_BROKE_IN},
   };
 }

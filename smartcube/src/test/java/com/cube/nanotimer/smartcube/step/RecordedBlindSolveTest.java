@@ -388,6 +388,33 @@ public class RecordedBlindSolveTest {
     }
   }
 
+  /**
+   * An algorithm made once a cycle has closed shot at nothing, so it answers for nothing. This solve
+   * closes its cycle three algorithms from the end and breaks into a new one at {@code RU}, taking
+   * that solved edge out and parking it in {@code BL}. Both slots are still out when the solve
+   * stops, but what left them out is the last edge algorithm, which is where the red belongs.
+   */
+  @Test
+  public void marksNothingOnTheAlgorithmThatBrokeIntoANewCycle() {
+    replay(RecordedBlindSolve.SCRAMBLE_BROKE_IN, RecordedBlindSolve.MOVES_BROKE_IN, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals(BlindResidual.Shape.EDGE_CYCLE, detector.getResidual().getShape());
+
+    assertEquals("UF-RU-BL", detector.subStepName(1, 3));
+    assertEquals(Arrays.asList(TOUCHED, TOUCHED, TOUCHED), detector.subStepPieceMarks(1, 3));
+    assertEquals("UF-UL-BL", detector.subStepName(1, 5)); // the one that lost it, and the only red
+    assertEquals(Arrays.asList(TOUCHED, WRONG, WRONG), detector.subStepPieceMarks(1, 5));
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        if (step != 1 || part != 5) {
+          assertFalse(detector.subStepName(step, part),
+              detector.subStepPieceMarks(step, part).contains(WRONG));
+        }
+      }
+    }
+  }
+
   /** Every landing of the solve, in order. */
   private List<Long> landingTimes() {
     List<Long> times = new ArrayList<Long>();

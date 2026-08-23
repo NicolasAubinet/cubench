@@ -753,9 +753,11 @@ public final class BlindStepDetector implements StepDetector {
    * The targets this algorithm shot at that it did not put home and that nothing put right after it:
    * a target is where a piece was meant to arrive, so one that never arrived is a shot that missed.
    *
-   * <p><b>Except a break-in</b>, the one shot not aimed at landing its target: it puts the buffer's
-   * own piece there to open a new cycle, which is what the target holds afterwards, so it says
-   * itself. And except an algorithm the solver took back, whose effect on the cube is gone.
+   * <p><b>Except a break-in</b>, which is the algorithm made once a cycle has closed: with its own
+   * piece in the buffer there is nothing left to shoot, so all it can do is put that piece into a
+   * new cycle and take a fresh one in. Neither slot it moved a piece into was a target it missed:
+   * one holds the buffer's piece, and the piece that one displaced had to be parked in the other.
+   * And except an algorithm the solver took back, whose effect on the cube is gone.
    *
    * <p>Only a cycle is asked, and only one whose buffer settled: a parity swaps and a flip turns, so
    * neither has a target to have missed, and a cycle its solver never memorised would otherwise be
@@ -764,17 +766,22 @@ public final class BlindStepDetector implements StepDetector {
    */
   private List<Integer> shotsThatNeverLanded(Landing landing) {
     List<Integer> blamed = new ArrayList<>();
-    if (!landing.shot || landing.buffer == BlindTargets.NO_BUFFER || wasTakenBack(landing)) {
+    if (!landing.shot || landing.buffer == BlindTargets.NO_BUFFER || wasTakenBack(landing)
+        || brokeIntoANewCycle(landing)) {
       return blamed;
     }
     List<Integer> left = leftOut();
     for (int slot : landing.named.slots) {
-      if (slot != landing.buffer && left.contains(slot) && !landing.gained.contains(slot)
-          && Cubies.homeSlotOf(landing.after, slot) != landing.buffer) {
+      if (slot != landing.buffer && left.contains(slot) && !landing.gained.contains(slot)) {
         blamed.add(slot);
       }
     }
     return blamed;
+  }
+
+  /** Whether this algorithm found the buffer holding its own piece, which is a cycle closed. */
+  private boolean brokeIntoANewCycle(Landing landing) {
+    return Cubies.homeSlotOf(landing.before, landing.buffer) == landing.buffer;
   }
 
   /** Whether the algorithm right after this one put the cube back where this one found it. */
