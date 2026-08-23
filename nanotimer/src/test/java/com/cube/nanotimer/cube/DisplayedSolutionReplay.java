@@ -15,6 +15,9 @@ final class DisplayedSolutionReplay {
 
   private static final String FACES = "UDLRFB";
 
+  /** A scramble that scrambles nothing, so what follows is asked whether it comes to nothing. */
+  private static final String NOTHING = "U U'";
+
   private final CubieCube cube = new CubieCube();
   private CubeRotation frame = CubeRotation.byNotation("");
 
@@ -26,6 +29,39 @@ final class DisplayedSolutionReplay {
       replay.turn(token);
     }
     return replay.cube.isSolved();
+  }
+
+  /**
+   * Whether two reconstructions are the same solve, held however each of them leaves the cube.
+   *
+   * <p><b>Two of these cannot simply be joined.</b> A reconstruction's letters are read through the
+   * frame its own rotations and spins have built up, so inverting one walks those frames backwards,
+   * and joining it to another that ends somewhere else misreads every letter of it. The whole-cube
+   * rotation bridging the two ends is what makes the join say anything, and there can only be one
+   * of them, since it is whatever carries the one ending onto the other.
+   */
+  static boolean sameSolve(String a, String b) {
+    for (String about : new String[] {"", "x", "x2", "x'", "z", "z'"}) {
+      for (String round : new String[] {"", "y", "y2", "y'"}) {
+        if (solves(NOTHING, a + " " + about + " " + round + " " + undo(b))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /** The same moves, taken back: read in reverse the frames walk back with them. */
+  static String undo(String sequence) {
+    String[] tokens = sequence.trim().split(" +");
+    StringBuilder sb = new StringBuilder();
+    for (int i = tokens.length - 1; i >= 0; i--) {
+      String token = tokens[i];
+      sb.append(token.endsWith("2") ? token
+          : token.endsWith("'") ? token.substring(0, token.length() - 1) : token + "'");
+      sb.append(' ');
+    }
+    return sb.toString().trim();
   }
 
   private void scramble(String scramble) {
