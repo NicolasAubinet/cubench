@@ -35,6 +35,10 @@ import java.util.Set;
  * nobody made. The 2026-08-23 solve spelled its opening {@code M'} as {@code S'} and its twin four
  * moves on as {@code M'} for exactly that reason.
  *
+ * <p>{@link RotationTracker#getRotations} writes the grip down before it compares any frame against
+ * it, so a solve recorded since carries no such phantom. This rule stays for the ones recorded
+ * before, and because a blind solve's rotation tokens are noise however they got there.
+ *
  * <p><b>No other solve may be read this way.</b> Nothing guards the stored grip against a first
  * move that is <em>wide</em>, whose swing the gyro has already reported, and the scripted wide
  * drill stores a grip its own ground truth disowns. Spelling a sighted solve from the grip turns

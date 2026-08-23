@@ -3,7 +3,9 @@ package com.cube.nanotimer.cube;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.Face;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +30,13 @@ public class RotationTrackerTest {
     double half = Math.toRadians(degrees) / 2;
     // cube (w, s, 0, 0) sits in gyro axes (R=+X, U=+Z, F=−Y) as (w, s, 0, 0)
     return new CubeOrientation(Math.cos(half), Math.sin(half), 0, 0);
+  }
+
+  /** A gyro-frame quaternion for a turn about the cube's F axis, per the measured axis map. */
+  private static CubeOrientation aboutCubeF(double degrees) {
+    double half = Math.toRadians(degrees) / 2;
+    // cube (w, 0, 0, s) sits in gyro axes (R=+X, U=+Z, F=−Y) as (w, 0, -s, 0)
+    return new CubeOrientation(Math.cos(half), 0, -Math.sin(half), 0);
   }
 
   /** The orientation the gyro reports after turning the cube by {@code gyroDelta} from {@code from}. */
@@ -208,6 +217,7 @@ public class RotationTrackerTest {
   public void aRegripAfterASliceIsStillRecorded() {
     CubeOrientation grip = new CubeOrientation(1, 0, 0, 0);
     RotationTracker tracker = anchoredAt(grip);
+    tracker.onMove(grip, 800); // a move of its own first, so the grip is settled: see the next test
     tracker.onMove(grip, 1000);
     tracker.onMove(turnedFrom(grip, aboutCubeR(-90)), 1030); // the pair, mid-rock: nothing written
     CubeOrientation regripped =
@@ -215,6 +225,59 @@ public class RotationTrackerTest {
     tracker.onMove(regripped, 1400);
     assertEquals(Arrays.asList("x@1031", "y@1400"),
         tokens(tracker.getRotations(spins("x", 1031, 1000))));
+  }
+
+  /**
+   * A solve opening on a slice has no frame read at its first moves, so the first one that is read
+   * already has that slice's spin in it and the grip is what is left over. Written where it shows,
+   * it lands after the slice instead of before it; written first, the slice is named through it.
+   *
+   * <p>The difference could as well be a regrip made between the second move and the third, and
+   * nothing in the stream tells the two apart. It is read as the grip because a grip is what nearly
+   * every solve has one of — the scramble is turned green in front and the solve in whatever grip
+   * the solver prefers — while a regrip one move in is rare.
+   */
+  @Test
+  public void theGripOfASolveOpeningOnASliceIsWrittenBeforeIt() {
+    CubeOrientation square = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(square);
+    CubeOrientation grip = turnedFrom(square, aboutCubeU(-90)); // picked up in a y
+    CubeOrientation rocked = turnedFrom(grip, aboutCubeF(90)); // the slice rocked the core by z'
+    tracker.onMove(rocked, 1000); // the pair's first face, its reading already past the rock
+    tracker.onMove(rocked, 1002); // its second
+    tracker.onMove(rocked, 1200);
+
+    assertEquals(Arrays.asList("y@1000", "z'@1003"),
+        tokens(tracker.getRotations(spins("z'", 1003, 1000))));
+  }
+
+  /**
+   * The same solve end to end, which is what the grip is written first <em>for</em>: the opening
+   * slice comes out as the {@code M'} it was, where written after the slice the same grip named it
+   * {@code S'} and printed itself as an {@code x} the solver never turned. That is the 2026-08-23
+   * blind solve, whose gyro track was not captured — this is the shape of it, built by hand.
+   */
+  @Test
+  public void theOpeningSliceIsNamedThroughTheGripItWasTurnedIn() {
+    CubeOrientation square = new CubeOrientation(1, 0, 0, 0);
+    RotationTracker tracker = anchoredAt(square);
+    CubeOrientation rocked =
+        turnedFrom(turnedFrom(square, aboutCubeU(-90)), aboutCubeF(90));
+    List<CubeMove> moves = Arrays.asList(cubeMove("B'", 1000), cubeMove("F", 1002),
+        cubeMove("U", 1200), cubeMove("R", 1400));
+    for (CubeMove move : moves) {
+      tracker.onMove(rocked, move.getCubeTimestampMs());
+    }
+    String stored = SolveMovesFormat.format(moves,
+        tracker.getRotations(spins("z'", 1003, 1000)), 1000, "y");
+
+    assertEquals("[y] y@0 B'@0 F@2 z'@3 U@200 R@400", stored);
+    assertEquals("y M' B U", new RecordedSolveReplay("", stored).display());
+  }
+
+  private static CubeMove cubeMove(String notation, long timestampMs) {
+    return new CubeMove(Face.valueOf(notation.substring(0, 1)), notation.endsWith("'"),
+        timestampMs);
   }
 
   /** A Roux solve usually ends on an M2: the last rock has no move after it to be read against. */

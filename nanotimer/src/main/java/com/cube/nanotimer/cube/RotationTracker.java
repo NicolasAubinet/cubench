@@ -83,12 +83,20 @@ public final class RotationTracker {
    * the tokens so far add up to, the regrip making up the difference, dated at the move it shows at.
    * No hysteresis — waiting for a second move to agree costs more than the noise it suppresses
    * (frame 78% down to 66%).
+   *
+   * <p><strong>The grip is written down before any frame is compared against it.</strong> A solve
+   * opening on a slice has no frame read at its first moves, so by the time one is the tokens
+   * already carry that slice's spin, and the difference left over is the grip — but written there it
+   * lands <em>after</em> the slice instead of before it, which names the slice through the wrong
+   * frame and prints the grip as a regrip nobody made. So the opening difference is hoisted to the
+   * front, where a solve not opening on a slice puts it anyway. See {@link #gripAt}.
    */
   public List<Rotation> getRotations(List<Rotation> coreSpins) {
     List<Rotation> rotations = new ArrayList<Rotation>();
     CubeRotation written = CubeRotation.byNotation(""); // what the tokens so far add up to
     int nextSpin = 0;
     int lagging = 0; // frames still owed to a wide whose swing the gyro has not reported yet
+    boolean opening = true; // still before the first frame read against the tokens: see gripAt
     for (int f = 0; f < frames.size(); f++) {
       Frame frame = frames.get(f);
       boolean stale = false; // this move's reading predates its own turning: see isWide
@@ -104,18 +112,28 @@ public final class RotationTracker {
           }
           stale = behind; // its reading predates the swing, so nothing here is a regrip
           lagging = behind ? GYRO_LAG_FRAMES : 0;
+          opening = false; // a wide has already swung the frame: see gripAt
         }
         rotations.add(spin);
         written = after;
       }
-      if (stale || frame.rotation.getNotation().equals(written.getNotation())
-          || insideSlicePair(coreSpins, nextSpin, frame.timestampMs)) {
+      boolean insidePair = insideSlicePair(coreSpins, nextSpin, frame.timestampMs);
+      if (stale || frame.rotation.getNotation().equals(written.getNotation()) || insidePair) {
+        opening &= insidePair; // a frame that could be read has been: the opening is over
         continue;
       }
       if (lagging > 0) {
         lagging--;
+        opening = false;
         continue; // still owed a wide's swing: this reading is behind it, not a regrip
       }
+      if (opening && !written.isIdentity()) {
+        rotations.add(0, new Rotation(gripAt(written, frame.rotation), openedAtMs(rotations)));
+        opening = false;
+        written = frame.rotation; // the grip plus the spins already folded: nothing else is owed
+        continue;
+      }
+      opening = false;
       rotations.add(new Rotation(written.to(frame.rotation).getNotation(), frame.timestampMs));
       written = frame.rotation;
     }
@@ -125,6 +143,39 @@ public final class RotationTracker {
       }
     }
     return rotations;
+  }
+
+  /**
+   * The grip a solve opening on a slice was picked up in: the part of its first readable frame that
+   * the spins already folded do not account for.
+   *
+   * <p>Written at the opening rather than where it surfaces, which is the whole point. The frames
+   * compose in the cube's own axes, so a grip {@code G} followed by a spin {@code s} reads as
+   * {@code G·s} — and the same difference written after the spin instead is {@code s⁻¹·G·s}, a
+   * different rotation, at a moment the solver did nothing. That phantom re-letters the rest of the
+   * solve and names the opening slice itself through the wrong frame.
+   *
+   * <p>⚠️ <b>The stored pick-up grip is not what this reads.</b> That one is measured over the
+   * window before the first move, which for a solve the cube auto-starts is no window at all, so it
+   * can come back holding the swing of a wide the solve opened on — the scripted wide drill stores a
+   * grip its own ground truth disowns. Nothing here trusts it: a wide at the opening ends the
+   * opening, and what is hoisted is only ever the difference the frames themselves show.
+   */
+  private static String gripAt(CubeRotation written, CubeRotation frame) {
+    return written.to(CubeRotation.byNotation("")).then(frame).getNotation();
+  }
+
+  /**
+   * When the solve opened, so the grip is written ahead of its first move and of the spins folded
+   * since. Ahead of the move and not merely of the spin: a pair whose first face the gyro said
+   * nothing at would otherwise take the grip token between its two halves and stop it folding.
+   */
+  private long openedAtMs(List<Rotation> spins) {
+    long from = frames.get(0).timestampMs;
+    for (Rotation spin : spins) {
+      from = Math.min(from, spin.getPairFromMs());
+    }
+    return from;
   }
 
   /**
