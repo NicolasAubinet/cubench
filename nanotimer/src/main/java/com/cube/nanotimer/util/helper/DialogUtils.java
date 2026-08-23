@@ -13,8 +13,10 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.core.app.ShareCompat;
 import android.widget.Toast;
+import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveShareFormat;
+import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.YesNoListener;
@@ -128,24 +130,49 @@ public class DialogUtils {
    * "look at my time" share. */
   public static void shareTime(final Activity activity, final SolveTime solveTime, final CubeType cubeType) {
     if (!solveTime.hasSmartcubeMoves()) {
-      shareTime(activity, solveTime, cubeType, false);
+      shareTime(activity, solveTime, cubeType, null, false);
       return;
     }
     showYesNoConfirmation(activity, R.string.share_include_breakdown, new YesNoListener() {
       @Override
       public void onYes() {
-        shareTime(activity, solveTime, cubeType, true);
+        shareWithSmartcubeData(activity, solveTime, cubeType);
       }
 
       @Override
       public void onNo() {
-        shareTime(activity, solveTime, cubeType, false);
+        shareTime(activity, solveTime, cubeType, null, false);
+      }
+    });
+  }
+
+  /**
+   * The gyro track is fetched here rather than carried on the solve: it is kilobytes, and a history
+   * screen holds hundreds of solves it would never look at. A solve with none simply shares without.
+   */
+  private static void shareWithSmartcubeData(final Activity activity, final SolveTime solveTime,
+      final CubeType cubeType) {
+    if (solveTime.getId() <= 0) {
+      shareTime(activity, solveTime, cubeType, null, true);
+      return;
+    }
+    App.INSTANCE.getService().getGyroTrack(solveTime.getId(), new DataCallback<String>() {
+      @Override
+      public void onData(final String gyroTrack) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (!activity.isFinishing()) {
+              shareTime(activity, solveTime, cubeType, gyroTrack, true);
+            }
+          }
+        });
       }
     });
   }
 
   private static void shareTime(Activity activity, SolveTime solveTime, CubeType cubeType,
-      boolean withSmartcubeData) {
+      String gyroTrack, boolean withSmartcubeData) {
     String timeStr = FormatterService.INSTANCE.formatSolveTime(solveTime);
     String timestampStr = FormatterService.INSTANCE.formatExportDateTime(solveTime.getTimestamp());
     String subject = activity.getString(R.string.share_time_subject, timeStr);
@@ -166,7 +193,7 @@ public class DialogUtils {
       text = activity.getString(R.string.share_time_text, cubeType.getName(), timeStr, scramble, timestampStr, playStorePage);
     }
     if (withSmartcubeData) {
-      text += "\n\n" + SolveShareFormat.smartcubeSection(activity, solveTime);
+      text += "\n\n" + SolveShareFormat.smartcubeSection(activity, solveTime, gyroTrack);
     }
     shareData(activity, subject, text, null, "text/plain");
   }

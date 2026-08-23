@@ -11,15 +11,22 @@ import java.util.List;
 
 /**
  * The smart-cube section of a shared solve: the breakdown as readable text, then the raw fields
- * (method, moves with offsets, step rows) that let whoever receives it replay the solve offline —
- * sharing one is how a user hands over everything needed to look into a solve.
+ * that let whoever receives it replay the solve offline — sharing one is how a user hands over
+ * everything needed to look into a solve, which is the route a reconstruction bug report takes.
+ *
+ * <p><b>The raw fields have to be enough to re-derive the breakdown, not merely to repeat it.</b>
+ * The moves and the step rows are already the output of the frame reading, so a solve spelled
+ * through the wrong frame shares that spelling and nothing that could contradict it. The gyro track
+ * is the only stored thing the reading is derived <em>from</em>, so it goes too, kilobytes and all:
+ * without it a wrongly-read solve cannot be told from a wrongly-turned one.
  */
 public final class SolveShareFormat {
 
   private SolveShareFormat() {
   }
 
-  public static String smartcubeSection(Context context, SolveTime solveTime) {
+  /** @param gyroTrack the solve's stored track, read separately, or null where it has none */
+  public static String smartcubeSection(Context context, SolveTime solveTime, String gyroTrack) {
     long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
     CubeMethod method = solveTime.getSmartcubeMethod();
     List<SolveStep> steps = SolveBreakdown.withTail(solveTime.getSmartcubeSteps(),
@@ -31,7 +38,7 @@ public final class SolveShareFormat {
       appendBreakdown(context, sb, steps,
           SolveSolution.from(solveTime.getSmartcubeMoves(), steps, method), method);
     }
-    appendRawData(context, sb, solveTime);
+    appendRawData(context, sb, solveTime, gyroTrack);
     return sb.toString();
   }
 
@@ -99,7 +106,8 @@ public final class SolveShareFormat {
   }
 
   /** The stored fields verbatim, not the derived display: what an offline replay starts from. */
-  private static void appendRawData(Context context, StringBuilder sb, SolveTime solveTime) {
+  private static void appendRawData(Context context, StringBuilder sb, SolveTime solveTime,
+      String gyroTrack) {
     if (sb.length() > 0) {
       sb.append('\n');
     }
@@ -113,6 +121,10 @@ public final class SolveShareFormat {
     }
     if (solveTime.getSmartcubeStoppedStep() != null) {
       sb.append("stopped_step: ").append(solveTime.getSmartcubeStoppedStep()).append('\n');
+    }
+    // Last, being the one field nobody reads and by far the longest.
+    if (gyroTrack != null && !gyroTrack.isEmpty()) {
+      sb.append("gyro: ").append(gyroTrack).append('\n');
     }
   }
 }
