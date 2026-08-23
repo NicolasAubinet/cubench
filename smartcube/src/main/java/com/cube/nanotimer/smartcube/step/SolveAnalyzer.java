@@ -25,6 +25,9 @@ public final class SolveAnalyzer {
    */
   private static final long LOOKAHEAD_PAUSE_MS = 400;
 
+  /** The family whose parts can come free: a slot the cross or an earlier pair solved in passing. */
+  private static final String SLOT_FAMILY = "pair";
+
   private final StepDetector detector;
   private final List<CubeMove> moves = new ArrayList<>();
 
@@ -178,8 +181,14 @@ public final class SolveAnalyzer {
       recognitionMs = firstMoveMs - previousCompleteMs;
       executionMs = completeMs - firstMoveMs;
     }
-    return new StepTime(index, name, recognitionMs, executionMs, subSteps, true, pieceMarks,
-        wantedName);
+    return new StepTime(index, firstMoveMs == null ? skipped(name) : name, recognitionMs,
+        executionMs, subSteps, true, pieceMarks, wantedName);
+  }
+
+  /** A slot that came free named as the skip it is, the way a detector names a solved last layer. */
+  private static String skipped(String name) {
+    return name != null && (SLOT_FAMILY.equals(name) || name.startsWith(SLOT_FAMILY + "_"))
+        ? SLOT_FAMILY + "_skip" : name;
   }
 
   private static StepTime sumOf(int step, String name, List<StepTime> subSteps, boolean split,

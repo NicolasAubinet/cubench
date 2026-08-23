@@ -143,6 +143,24 @@ public class SolveAnalyzerTest {
   }
 
   @Test
+  public void namesASlotThatCameFreeASkip() {
+    // Only three pairs are pulled out, so the fourth slot is already solved when F2L begins. It has
+    // no moves of its own, and a part with none is a skip rather than an instant pair.
+    startFrom(T_PERM, SUNE, "R U' R'", "R' U R", "L' U L", "R' F'");
+
+    play("F R", 0, 600); // cross
+    play("L' U' L", 400, 100);
+    play("R' U' R", 300, 100);
+    play("R U R'", 200, 100);
+
+    StepTime f2l = stepTimes().get(1);
+    List<StepTime> pairs = f2l.getSubSteps();
+    assertEquals(4, pairs.size());
+    assertStep(pairs.get(0), "pair_skip", 0, 0);
+    assertEquals(3, pairs.stream().filter(p -> !"pair_skip".equals(p.getStepName())).count());
+  }
+
+  @Test
   public void countsThePauseBetweenTheTwoLooksOfOll() {
     // Orient the edges, think, then orient the corners: the pause between is OLL recognition.
     startFrom(T_PERM, SUNE, "F U R U' R' F'"); // the inverse of the edge-orientation alg below
