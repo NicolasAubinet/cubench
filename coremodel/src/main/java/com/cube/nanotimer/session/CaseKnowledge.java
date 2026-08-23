@@ -19,9 +19,15 @@ import java.util.List;
  * is already about as strong as evidence gets, so the first time it happens the case is known; and a
  * case taken in two looks since is not known now, whatever it did before.
  *
- * <p>The cost of that is accepted deliberately: <b>one lapse reads as {@link Status#LEARNING}</b>
+ * <p><b>A case not known now is one of two things, and they want opposite advice.</b> One never yet
+ * put in with a single algorithm has not been learnt at all, and telling its solver to drill it is
+ * noise; one that has been, and was taken in two looks since, is learnt and slipping. The newest
+ * occurrence still decides whether a case is known; what separates {@link Status#TO_LEARN} from
+ * {@link Status#NEEDS_REVIEW} is whether any occurrence before it was {@link Evidence#UNAIDED}.
+ *
+ * <p>The cost of that is accepted deliberately: <b>one lapse reads as {@link Status#NEEDS_REVIEW}</b>
  * even on a case the solver knows and merely failed to recognise in time. It is the honest reading
- * of what they last did, and LEARNING is a description rather than an accusation.
+ * of what they last did, and both statuses describe rather than accuse.
  *
  * <p><b>What counts as an occurrence.</b> A solve that was handed the case, and a drill rep of it
  * that had to be shown. A solve says {@link Evidence#UNAIDED} where its last layer step went in one
@@ -41,8 +47,11 @@ public class CaseKnowledge {
     /** Executed in one algorithm, unaided, and recently enough for that still to be true. */
     KNOWN("known"),
 
-    /** Reached for more than one algorithm, or had to be shown one. */
-    LEARNING("learning");
+    /** Taken in two looks last time, but put in with one algorithm at some point before that. */
+    NEEDS_REVIEW("needs_review"),
+
+    /** Taken in two looks, or shown, every time it has ever come up: never yet done in one. */
+    TO_LEARN("to_learn");
 
     private final String code;
 
@@ -75,7 +84,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 2;
+  public static final int RULE_VERSION = 3;
 
   /** What one occurrence of a case says about whether the solver knows it. */
   public enum Evidence {
@@ -126,7 +135,8 @@ public class CaseKnowledge {
         return Status.KNOWN;
       }
       if (occurrences.get(i) == Evidence.HELPED) {
-        return Status.LEARNING;
+        return occurrences.subList(0, i).contains(Evidence.UNAIDED)
+            ? Status.NEEDS_REVIEW : Status.TO_LEARN;
       }
     }
     return null;

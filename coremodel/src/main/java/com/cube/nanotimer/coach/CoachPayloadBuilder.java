@@ -121,11 +121,14 @@ public class CoachPayloadBuilder {
         familyFigures(families.getParts(), families, familyTallies), caseFigures, drillFigures,
         comparisons(caseFigures, drillFigures, caseTallies, drillTallies),
         casesAt(knowledge, sets, CaseKnowledge.Status.KNOWN),
-        casesAt(knowledge, sets, CaseKnowledge.Status.LEARNING));
+        casesAt(knowledge, sets, CaseKnowledge.Status.NEEDS_REVIEW,
+            CaseKnowledge.Status.TO_LEARN),
+        casesAt(knowledge, sets, CaseKnowledge.Status.TO_LEARN));
   }
 
   /**
-   * The cases standing at one status, as codes. Kept to the sets this method's own steps are made
+   * The cases standing at any of the given statuses, as codes. Kept to the sets this method's own
+   * steps are made
    * of: a payload for one method has no business carrying what the solver knows of another's, and a
    * case code means nothing without the set it belongs to.
    *
@@ -136,11 +139,12 @@ public class CoachPayloadBuilder {
    * list, and this is the payload that leaves the device.
    */
   private static List<String> casesAt(List<CaseKnowledge> knowledge, Set<String> sets,
-      CaseKnowledge.Status status) {
+      CaseKnowledge.Status... statuses) {
     List<String> codes = new ArrayList<String>();
+    List<CaseKnowledge.Status> wanted = Arrays.asList(statuses);
     for (CaseKnowledge stepCase : knowledge == null
         ? Collections.<CaseKnowledge>emptyList() : knowledge) {
-      if (stepCase.getStatus() == status && sets.contains(stepCase.getCaseSet())) {
+      if (wanted.contains(stepCase.getStatus()) && sets.contains(stepCase.getCaseSet())) {
         codes.add(stepCase.getCode());
       }
     }

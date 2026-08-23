@@ -66,11 +66,11 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
   private static final String FAMILY_OLL = "oll_";
 
   /**
-   * The headings, in the order they are walked: what has been learnt, then what is being learnt,
-   * then what there is nothing to say about yet.
+   * The headings, in the order they are walked: what has been learnt, then what has been and is
+   * slipping, then what has not been learnt at all, then what there is nothing to say about yet.
    */
-  private static final CaseKnowledge.Status[] GROUPS =
-      {CaseKnowledge.Status.KNOWN, CaseKnowledge.Status.LEARNING, null};
+  private static final CaseKnowledge.Status[] GROUPS = {CaseKnowledge.Status.KNOWN,
+      CaseKnowledge.Status.NEEDS_REVIEW, CaseKnowledge.Status.TO_LEARN, null};
 
   private SegmentedControl family;
   private LinearLayout rows;
@@ -171,7 +171,8 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
     LayoutInflater inflater = LayoutInflater.from(this);
     TextView heading = (TextView) inflater.inflate(R.layout.known_algorithms_section, rows, false);
     heading.setText(status == CaseKnowledge.Status.KNOWN ? R.string.known_algorithms_status_known
-        : status == CaseKnowledge.Status.LEARNING ? R.string.known_algorithms_status_learning
+        : status == CaseKnowledge.Status.NEEDS_REVIEW ? R.string.known_algorithms_status_review
+        : status == CaseKnowledge.Status.TO_LEARN ? R.string.known_algorithms_status_to_learn
         : R.string.known_algorithms_status_unseen);
     rows.addView(heading);
 

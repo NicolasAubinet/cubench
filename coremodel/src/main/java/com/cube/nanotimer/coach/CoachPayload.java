@@ -29,7 +29,7 @@ public class CoachPayload {
 
   /** The newest payload this app writes and can read back. Version 2 added the two-look count and
    * the known set; a version 1 payload is still read, and is simply missing them. */
-  public static final int VERSION = 2;
+  public static final int VERSION = 3;
 
   private final int schemaVersion;
   private final String puzzle;
@@ -46,6 +46,7 @@ public class CoachPayload {
   private final List<CaseComparison> comparisons;
   private final List<String> knownCases;
   private final List<String> learningCases;
+  private final List<String> toLearnCases;
 
   /**
    * @param solve the whole solve's figures, or null when the window holds too few to quote
@@ -57,12 +58,14 @@ public class CoachPayload {
    * @param knownCases the cases the solver has been shown to execute in one algorithm unaided,
    *     {@code learningCases} the ones they have not. A case in neither has too little behind it to
    *     say so, which is its own answer and is never the same as not knowing it.
+   * @param toLearnCases the subset of {@code learningCases} never once put in with a single
+   *     algorithm, so a plan can say learn where it would otherwise say drill
    */
   public CoachPayload(int schemaVersion, String puzzle, String method, int familyWindow,
       int caseWindow, int drillWindow, Integer twoLookCount, StepFigure solve,
       List<StepFigure> families, List<StepFigure> parts, List<StepFigure> cases,
       List<StepFigure> drillCases, List<CaseComparison> comparisons, List<String> knownCases,
-      List<String> learningCases) {
+      List<String> learningCases, List<String> toLearnCases) {
     this.schemaVersion = schemaVersion;
     this.puzzle = puzzle;
     this.method = method;
@@ -80,6 +83,7 @@ public class CoachPayload {
         : Collections.unmodifiableList(new ArrayList<CaseComparison>(comparisons));
     this.knownCases = codes(knownCases);
     this.learningCases = codes(learningCases);
+    this.toLearnCases = codes(toLearnCases);
   }
 
   private static List<String> codes(List<String> codes) {
@@ -175,6 +179,15 @@ public class CoachPayload {
    */
   public List<String> getLearningCases() {
     return learningCases;
+  }
+
+  /**
+   * The cases of {@link #getLearningCases} that have never once gone in with a single algorithm, so
+   * they have not been learnt rather than slipped. Empty in a payload written before they were told
+   * apart, which is not the same as every learning case having been learnt once.
+   */
+  public List<String> getToLearnCases() {
+    return toLearnCases;
   }
 
   /**
@@ -330,6 +343,7 @@ public class CoachPayload {
       json.put("comparisons", gaps);
       json.put("known_cases", new JSONArray(knownCases));
       json.put("learning_cases", new JSONArray(learningCases));
+      json.put("to_learn_cases", new JSONArray(toLearnCases));
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write coach payload", e);
@@ -365,7 +379,7 @@ public class CoachPayload {
           json.has("solve") ? StepFigure.fromJson(json.getJSONObject("solve")) : null,
           figures(json, "families"), figures(json, "parts"), figures(json, "cases"),
           figures(json, "drill_cases"), comparisons(json), codes(json, "known_cases"),
-          codes(json, "learning_cases"));
+          codes(json, "learning_cases"), codes(json, "to_learn_cases"));
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a coach payload: " + e.getMessage(), e);
     }

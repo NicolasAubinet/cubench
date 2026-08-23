@@ -1102,10 +1102,11 @@
   <string name="known_algorithms_count">%1$d de %2$d en un solo algoritmo</string>
   <string name="known_algorithms_subtitle">Deducido de tus resoluciones y tus drills.</string>
   <string name="known_algorithms_status_known">Conocido</string>
-  <string name="known_algorithms_status_learning">Aprendiendo</string>
+  <string name="known_algorithms_status_review">Para repasar</string>
+  <string name="known_algorithms_status_to_learn">Para aprender</string>
   <string name="known_algorithms_status_unseen">Nada que decir</string>
   <string name="known_algorithms_no_moves">Sin caso registrado</string>
-  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto, y deja de contar si vuelves a hacerlo en dos pasos.</string>
+  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en dos pasos, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
 </resources>

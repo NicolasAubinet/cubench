@@ -27,44 +27,61 @@ public class CaseKnowledgeTest {
   }
 
   @Test
-  public void testOneSolveTakingMoreThanOneAlgorithmIsBeingLearned() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("H")));
+  public void testOneSolveTakingMoreThanOneAlgorithmIsStillToLearn() {
+    Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("H")));
   }
 
   /** The most recent occurrence decides, in both directions. */
   @Test
   public void testTheLatestOccurrenceIsTheOneThatCounts() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("UUUUUH")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UUUUUH")));
     Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("HHHHHU")));
   }
 
   /**
-   * The cost of that, accepted deliberately: a case put in unaided nine times reads as being
-   * learned after one two-look. It is what the solver last did with it.
+   * The cost of that, accepted deliberately: a case put in unaided nine times stops reading as
+   * known after one two-look. It is what the solver last did with it, and it wants review rather
+   * than learning from scratch.
    */
   @Test
   public void testOneLapseIsEnoughToStopACaseReadingAsKnown() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("UUUUUUUUUH")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UUUUUUUUUH")));
+  }
+
+  /** The whole point of the split: never once done in one algorithm is not the same as slipping. */
+  @Test
+  public void testACaseNeverPutInWithOneAlgorithmIsToLearnHoweverOftenItHasComeUp() {
+    Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("HHHHHHH")));
+    Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("HSHSH")));
+  }
+
+  /** One unaided solve, however long ago and however buried, is what separates the two. */
+  @Test
+  public void testASingleUnaidedOccurrenceBeforeTheLapseMakesItReviewRatherThanToLearn() {
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UHHHHHH")));
+    Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("HHHHHHH")));
   }
 
   /** A drill hands the case over with nothing to recognise, so a clean rep promotes nothing. */
   @Test
   public void testACleanDrillRepSaysNothingEitherWay() {
     Assert.assertNull(CaseKnowledge.read(occurrences("SSS")));
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("HSSS")));
+    Assert.assertEquals(Status.TO_LEARN, CaseKnowledge.read(occurrences("HSSS")));
     Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("USSS")));
   }
 
   /** Asking to be shown the algorithm is the plainest thing in the database, drill or not. */
   @Test
   public void testBeingShownTheAlgorithmIsTheLastWord() {
-    Assert.assertEquals(Status.LEARNING, CaseKnowledge.read(occurrences("USH")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("USH")));
   }
 
   @Test
   public void testAStatusIsStoredUnderItsOwnCodeAndNotItsPosition() {
     Assert.assertEquals(Status.KNOWN, Status.forCode("known"));
-    Assert.assertEquals(Status.LEARNING, Status.forCode("learning"));
+    Assert.assertEquals(Status.NEEDS_REVIEW, Status.forCode("needs_review"));
+    Assert.assertEquals(Status.TO_LEARN, Status.forCode("to_learn"));
+    Assert.assertNull(Status.forCode("learning")); // the code the split replaced
     Assert.assertNull(Status.forCode("KNOWN"));
     Assert.assertNull(Status.forCode(""));
   }

@@ -1192,12 +1192,12 @@ public class ServiceProviderTest {
   }
 
   @Test
-  public void testOneSolveTakingTwoAlgorithmsIsBeingLearned() {
+  public void testOneSolveTakingTwoAlgorithmsIsStillToLearn() {
     deleteDrills();
     provider.deleteHistory();
     saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), lastLayer("oll_21", 2));
 
-    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("oll_21"));
+    assertEquals(CaseKnowledge.Status.TO_LEARN, knowledgeOf("oll_21"));
   }
 
   /** The latest occurrence decides, so a case put in unaided for weeks is not known after a lapse. */
@@ -1212,7 +1212,7 @@ public class ServiceProviderTest {
 
     saveCubeSolve(CubeMethod.CFOP, null, lastLayer("oll_21", 2));
 
-    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("oll_21"));
+    assertEquals(CaseKnowledge.Status.NEEDS_REVIEW, knowledgeOf("oll_21"));
   }
 
   // Nothing behind it is no status, and a skipped step was never a case that was executed.
@@ -1250,7 +1250,7 @@ public class ServiceProviderTest {
       provider.addDrillCaseRep(drillId, caseRep(i, "pll_ga", 900, 1400, 13, 0, true, false));
     }
 
-    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_ga"));
+    assertEquals(CaseKnowledge.Status.TO_LEARN, knowledgeOf("pll_ga"));
   }
 
   /** A drill hands the case over with nothing to recognise, so a clean rep promotes nothing. */
@@ -1310,8 +1310,8 @@ public class ServiceProviderTest {
 
     assertEquals(running, knowledgeCodes());
     assertEquals(CaseKnowledge.Status.KNOWN, knowledgeOf("oll_21"));
-    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_t"));
-    assertEquals(CaseKnowledge.Status.LEARNING, knowledgeOf("pll_ga"));
+    assertEquals(CaseKnowledge.Status.TO_LEARN, knowledgeOf("pll_t"));
+    assertEquals(CaseKnowledge.Status.TO_LEARN, knowledgeOf("pll_ga"));
   }
 
   /** Deleting the solves takes back what they said, rather than leaving a status behind them. */

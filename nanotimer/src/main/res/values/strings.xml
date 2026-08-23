@@ -1144,10 +1144,11 @@
   <string name="known_algorithms_count">%1$d of %2$d in one algorithm</string>
   <string name="known_algorithms_subtitle">Worked out from your solves and your drills.</string>
   <string name="known_algorithms_status_known">Known</string>
-  <string name="known_algorithms_status_learning">Learning</string>
+  <string name="known_algorithms_status_review">Needs review</string>
+  <string name="known_algorithms_status_to_learn">To learn</string>
   <string name="known_algorithms_status_unseen">Nothing to say yet</string>
   <string name="known_algorithms_no_moves">No case recorded yet</string>
-  <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case counts as known the first time you put it in with one algorithm in a solve, and stops counting if you take it in two looks again.</string>
+  <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case counts as known the first time you put it in with one algorithm in a solve. Take it in two looks again and it needs review; one you have never yet put in with a single algorithm is still to learn.</string>
   <string name="known_algorithms_empty">Nothing here yet. Solve with a smart cube connected and the cases you put in unaided will show up.</string>
   <string name="known_algorithms_reading">Reading your solves...</string>
 </resources>

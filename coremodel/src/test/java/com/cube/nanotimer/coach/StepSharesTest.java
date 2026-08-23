@@ -97,7 +97,7 @@ public class StepSharesTest {
         Collections.singletonList(family("pair", 400, 3700)),
         Collections.<StepFigure>emptyList(), Collections.<StepFigure>emptyList(),
         Collections.<CaseComparison>emptyList(), Collections.<String>emptyList(),
-        Collections.<String>emptyList());
+        Collections.<String>emptyList(), Collections.<String>emptyList());
   }
 
   private static StepFigure family(String code, int count, long meanMs) {

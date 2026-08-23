@@ -207,7 +207,7 @@ public class CoachPayloadBuilderTest {
     return Arrays.asList(
         new CaseKnowledge("pll", "t", CaseKnowledge.Status.KNOWN, 8, 5000),
         new CaseKnowledge("oll", "33", CaseKnowledge.Status.KNOWN, 6, 4000),
-        new CaseKnowledge("oll", "21", CaseKnowledge.Status.LEARNING, 5, 3000),
+        new CaseKnowledge("oll", "21", CaseKnowledge.Status.TO_LEARN, 5, 3000),
         new CaseKnowledge("cmll", "sune", CaseKnowledge.Status.KNOWN, 9, 2000));
   }
 
