@@ -44,6 +44,23 @@ import java.util.List;
  * the recorded solve that left the whole rest of it unread. What the algorithm was worth is a
  * question for its net effect afterwards, not for whether it happened.
  *
+ * <p><b>A landing is provisional until the solve lands <em>from</em> it, and where an algorithm
+ * could have ended in more than one place all of them are held.</b> An algorithm can pass through a
+ * landing on its way to its own: a twelve-turn M-slice three-cycle stands a clean three-cycle from
+ * where it began after eight of those turns. Committed there, the four edges the rest of it moves
+ * are no algorithm at all, every state after is compared against one the solve never really stood
+ * in, and nothing lands again. A whole 3-style solve arrived reading as one algorithm that way.
+ *
+ * <p>So each state that lands from the last committed one is kept as another way that same
+ * algorithm may have ended, and the solve itself settles which: the one the <em>next</em> algorithm
+ * lands from is the one that was real, and the rest are dropped unread.
+ *
+ * <p>Choosing at the time instead — taking the later reading as soon as it appears — trades one
+ * failure for its mirror, since a state part way through the next algorithm can stand a cycle from
+ * the landing before last, and preferring it there throws away a landing that was right. Measured
+ * against the greedy reading over three thousand generated solves: choosing early lost a solve the
+ * greedy reading had read whole, while holding both loses none and reads more of 54 of them.
+ *
  * <p><b>An algorithm is a flip or a twist when its net effect leaves every piece it touched in the
  * slot that piece belongs to</b> — turned where it stands rather than cycled anywhere. Read off the
  * effect rather than off how many pieces moved, which is what a real solve demanded: two flips and a
@@ -73,6 +90,9 @@ public final class BlindStepDetector implements StepDetector {
 
   /** Pieces an algorithm moves: a three-cycle, a pair flipped or twisted, a parity's two of each. */
   private static final int CYCLE = 3, FLIP = 2, PARITY_CYCLE = 4;
+
+  /** Ways one algorithm may have ended that are worth holding at once. Measured never above two. */
+  private static final int MOST_TAILS = 6;
 
   /** The pieces of one type a parity swaps. */
   private static final int SWAPPED_PAIR = 2;
@@ -150,6 +170,16 @@ public final class BlindStepDetector implements StepDetector {
   // The last piece each type was shot from. A parity swaps a pair of each and is said from both, so
   // one running buffer is not enough: by then it holds whichever type was solved last.
   private final int[] typeBuffer = new int[] {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
+  private String start; // the state the cube was memorised from, which the chain is read against
+  // The states the solve landed in, each with the drift taken out against the one before. The last
+  // of them is provisional: until the solve lands again from it, it may still turn out to have been
+  // a state one algorithm was passing through rather than where that algorithm ended.
+  private final List<String> chain = new ArrayList<>();
+  private final List<Long> chainMs = new ArrayList<>();
+  // The ways the algorithm now being executed may already have ended, each read against the last
+  // committed landing. The first is the reading shown until the solve says which of them was real.
+  private final List<String> tails = new ArrayList<>();
+  private final List<Long> tailMs = new ArrayList<>();
   private String landed; // the state at the last landing, with the drift taken out
   private String stopped; // the state the solve was left in, which says what went wrong with it
   private int unread; // moves made since the last landing, which are moves nothing was read from
@@ -182,19 +212,18 @@ public final class BlindStepDetector implements StepDetector {
 
   @Override
   public void reset(CubeState startState, long startTimestampMs) {
-    landings.clear();
+    chain.clear();
+    chainMs.clear();
+    tails.clear();
+    tailMs.clear();
     memoMs = null;
     solvedMs = null;
-    parityFound = false;
-    buffer = BlindTargets.NO_BUFFER;
-    lastBuffer = BlindTargets.NO_BUFFER;
-    typeBuffer[EDGES] = BlindTargets.NO_BUFFER;
-    typeBuffer[CORNERS] = BlindTargets.NO_BUFFER;
     lastTimestampMs = startTimestampMs;
-    landed = startState.getFacelets();
-    stopped = landed;
+    start = startState.getFacelets();
+    stopped = start;
     unread = 0;
-    parity = Cubies.isOddPermutation(landed);
+    parity = Cubies.isOddPermutation(start);
+    rebuild();
   }
 
   @Override
@@ -223,19 +252,95 @@ public final class BlindStepDetector implements StepDetector {
     return boundaries();
   }
 
+  /** One algorithm on from a state: a cycle, a pair turned where they stand, or a parity. */
+  private boolean lands(String base, String facelets) {
+    int frame = closestFrame(base, facelets);
+    int touched = touched(base, facelets, frame);
+    return touched == CYCLE || touched == FLIP
+        || (parity && !parityFound && touched == PARITY_CYCLE
+            && exchangesTwoOfEach(base, withoutDrift(facelets, frame)));
+  }
+
+  /** The landings, of which the last algorithm's are held open until the solve says which was it. */
   private boolean readLanding(String facelets, long timestampMs) {
-    int frame = closestFrame(facelets);
-    int touched = touched(facelets, frame);
-    List<Integer>[] gained = gained(facelets, frame);
-    boolean parityLanding = parity && !parityFound && touched == PARITY_CYCLE
-        && exchangesTwoOfEach(landed, withoutDrift(facelets, frame));
-    if (touched != CYCLE && touched != FLIP && !parityLanding) {
+    for (int tail = 0; tail < tails.size(); tail++) {
+      if (lands(tails.get(tail), facelets)) {
+        commit(tail); // the solve moved on from this one, so this one is what the algorithm was
+        addTail(facelets, timestampMs);
+        return true;
+      }
+    }
+    if (repeatsATail(facelets) || !lands(committed(), facelets)) {
       return false;
     }
+    addTail(facelets, timestampMs); // another way the same algorithm may have ended
+    return true;
+  }
+
+  /** The last landing the solve has settled on, which every candidate tail is read against. */
+  private String committed() {
+    return chain.isEmpty() ? start : chain.get(chain.size() - 1);
+  }
+
+  /**
+   * Whether the cube is back at somewhere this algorithm was already read as ending. Turning that
+   * comes to nothing is not another reading of it, and must not pass for one.
+   */
+  private boolean repeatsATail(String facelets) {
+    for (String tail : tails) {
+      if (touched(tail, facelets, closestFrame(tail, facelets)) == 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Settles the algorithm on one of the places it could have ended, and drops the others. */
+  private void commit(int tail) {
+    chain.add(tails.get(tail));
+    chainMs.add(tailMs.get(tail));
+    tails.clear();
+    tailMs.clear();
+  }
+
+  /** Keeps a state as somewhere the algorithm now running may have ended. */
+  private void addTail(String facelets, long timestampMs) {
+    String base = committed();
+    tails.add(withoutDrift(facelets, closestFrame(base, facelets)));
+    tailMs.add(timestampMs);
+    if (tails.size() > MOST_TAILS) {
+      tails.remove(tails.size() - 1); // the earliest readings are the ones worth keeping
+      tailMs.remove(tailMs.size() - 1);
+    }
+    rebuild();
+  }
+
+  /** The reading, read afresh off the chain: every landing named against the one before it. */
+  private void rebuild() {
+    landings.clear();
+    parityFound = false;
+    buffer = BlindTargets.NO_BUFFER;
+    lastBuffer = BlindTargets.NO_BUFFER;
+    typeBuffer[EDGES] = BlindTargets.NO_BUFFER;
+    typeBuffer[CORNERS] = BlindTargets.NO_BUFFER;
+    landed = start;
+    for (int i = 0; i < chain.size(); i++) {
+      readAlgorithm(chain.get(i), chainMs.get(i));
+    }
+    if (!tails.isEmpty()) {
+      readAlgorithm(tails.get(0), tailMs.get(0));
+    }
+  }
+
+  /** One landing of the chain, read against the one before it, which is what {@code landed} holds. */
+  private void readAlgorithm(String steady, long timestampMs) {
+    int touched = touched(landed, steady, FaceletRotations.IDENTITY);
+    List<Integer>[] gained = gained(landed, steady, FaceletRotations.IDENTITY);
+    boolean parityLanding = parity && !parityFound && touched == PARITY_CYCLE
+        && exchangesTwoOfEach(landed, steady);
     parityFound |= parityLanding;
     List<Integer> all = new ArrayList<>(gained[EDGES]);
     all.addAll(gained[CORNERS]);
-    String steady = withoutDrift(facelets, frame);
     // Undo first: it is the stricter claim of the two, the cube standing exactly where the previous
     // algorithm found it. A misfire taken straight back leaves pieces turned where they stand and
     // would otherwise read as the flip it undid.
@@ -263,7 +368,6 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     landed = steady;
-    return true;
   }
 
   /**
@@ -432,12 +536,12 @@ public final class BlindStepDetector implements StepDetector {
     return gained[CORNERS].isEmpty() ? NO_GAIN : CORNERS;
   }
 
-  /** The rotation under which the state differs from the last landing in the fewest pieces. */
-  private int closestFrame(String facelets) {
+  /** The rotation under which the state differs from a landing in the fewest pieces. */
+  private static int closestFrame(String base, String facelets) {
     int closest = FaceletRotations.IDENTITY;
     int fewest = Integer.MAX_VALUE;
     for (int rotation = 0; rotation < FaceletRotations.COUNT; rotation++) {
-      int differing = touched(facelets, rotation);
+      int differing = touched(base, facelets, rotation);
       if (differing < fewest) {
         fewest = differing;
         closest = rotation;
@@ -446,11 +550,11 @@ public final class BlindStepDetector implements StepDetector {
     return closest;
   }
 
-  private int touched(String facelets, int frame) {
+  private static int touched(String base, String facelets, int frame) {
     int differing = 0;
     for (int[] piece : PIECES) {
       for (int facelet : piece) {
-        if (landed.charAt(facelet) != facelets.charAt(FaceletRotations.apply(frame, facelet))) {
+        if (base.charAt(facelet) != facelets.charAt(FaceletRotations.apply(frame, facelet))) {
           differing++;
           break;
         }
@@ -459,12 +563,12 @@ public final class BlindStepDetector implements StepDetector {
     return differing;
   }
 
-  /** The pieces home now that were not at the last landing, split by type. */
+  /** The pieces home now that were not at the landing before, split by type. */
   @SuppressWarnings("unchecked")
-  private List<Integer>[] gained(String facelets, int frame) {
+  private static List<Integer>[] gained(String base, String facelets, int frame) {
     List<Integer>[] gained = new List[] {new ArrayList<Integer>(), new ArrayList<Integer>()};
     for (int i = 0; i < PIECES.length; i++) {
-      if (Cubies.inPlace(facelets, PIECES[i], frame) && !Cubies.inPlace(landed, PIECES[i])) {
+      if (Cubies.inPlace(facelets, PIECES[i], frame) && !Cubies.inPlace(base, PIECES[i])) {
         gained[Cubies.isEdge(i) ? EDGES : CORNERS].add(i);
       }
     }

@@ -719,6 +719,38 @@ public class RecordedBlindSolveTest {
     assertEquals("flip:UF-DF", detector.subStepName(3, 0));
   }
 
+  /**
+   * The solve that read as one algorithm. Its first is twelve turns of M-slice work and stands a
+   * clean three-cycle from where it began after eight of them, so read greedily it was cut there —
+   * and the four edges the rest of it moved are no algorithm, so nothing landed again and seven
+   * algorithms went unread.
+   *
+   * <p>A landing held open until the solve lands from it reads the whole of it: five edge algorithms
+   * from {@code UF} and three corner ones from {@code UFR}, every one a three-cycle.
+   */
+  @Test
+  public void readsAnAlgorithmThatPassedThroughALandingOnItsWay() {
+    replay(RecordedBlindSolve.SCRAMBLE_PASSED_THROUGH, RecordedBlindSolve.MOVES_PASSED_THROUGH,
+        Long.MAX_VALUE);
+
+    assertTrue(detector.matchesMethod());
+    assertFalse(detector.isComplete()); // it was left on a three-cycle
+    assertEquals(4, detector.stepCount()); // memo, edges, corners, and the tail it stopped in
+    assertEquals("edges", detector.stepName(1));
+    assertEquals("corners", detector.stepName(2));
+    assertEquals(5, detector.subStepCount(1));
+    assertEquals(3, detector.subStepCount(2));
+    // The cut used to fall four turns early, on a cycle holding no buffer at all, and the name had
+    // none to be spelled from: it read UB-DF-DB.
+    assertEquals(38624L, (long) detector.getSubStepTimestampMs(1, 0));
+    for (String name : namesOf(detector)) {
+      String[] pieces = name.split("-");
+      assertEquals("every algorithm is a cycle: " + name, 3, pieces.length);
+      assertEquals("and every one shot from the buffer of its type: " + name,
+          pieces[0].length() == 2 ? "UF" : "UFR", pieces[0]);
+    }
+  }
+
   private static List<String> namesOf(BlindStepDetector detector) {
     List<String> names = new ArrayList<String>();
     for (int step = 1; step < detector.stepCount(); step++) {
