@@ -751,7 +751,9 @@ public final class BlindStepDetector implements StepDetector {
    *
    * <p><b>Otherwise an algorithm answers for a target it shot at and never brought home</b>
    * ({@link #shotsThatNeverLanded}), all of them where there are several: nothing proved says which
-   * was the mistake and which the memo carried out on a cube that had moved on.
+   * was the mistake and which the memo carried out on a cube that had moved on. Or, where it shot
+   * at nothing because the cycle had closed, for having broken into a piece that was already home
+   * ({@link #brokeIntoASolvedPiece}).
    *
    * <p>Neither blames an algorithm that did nothing wrong. A cycle left open and a parity never done
    * put pieces out that no shot ever claimed and that no reversal would fix: both are the verdict
@@ -766,7 +768,50 @@ public final class BlindStepDetector implements StepDetector {
       return reversed == landing
           ? whatItShouldHavePutHome(landing) : Collections.<Integer>emptyList();
     }
-    return shotsThatNeverLanded(landing);
+    List<Integer> brokeIn = brokeIntoASolvedPiece(landing);
+    return brokeIn.isEmpty() ? shotsThatNeverLanded(landing) : brokeIn;
+  }
+
+  /**
+   * The one break-in worth blaming: the piece it took back out was already home, and no parity was
+   * owed that would have put it back. A cycle to break into can be opened at any piece still out,
+   * and choosing one that was not is a target read off the wrong letter.
+   *
+   * <p><b>The parity is why this is not simply "the target was home".</b> A parity ends by swapping
+   * the buffer with one other piece, so a solver who breaks into the piece the parity is going to
+   * swap breaks into a solved slot on purpose and comes out. The permutation says whether one is
+   * still owed at that moment, which the state before the algorithm answers on its own: every
+   * three-cycle leaves it as it found it, so it is odd exactly while the parity is outstanding.
+   *
+   * <p>Only the target is blamed. The piece it displaced had to be parked somewhere, and where is
+   * no more the solver's choice here than it is on any other break-in.
+   */
+  private List<Integer> brokeIntoASolvedPiece(Landing landing) {
+    List<Integer> blamed = new ArrayList<>();
+    if (!landing.shot || landing.buffer == BlindTargets.NO_BUFFER || wasTakenBack(landing)
+        || !brokeIntoANewCycle(landing) || Cubies.isOddPermutation(landing.before)) {
+      return blamed;
+    }
+    int target = brokeInto(landing);
+    if (target >= 0 && Cubies.inPlace(landing.before, PIECES[target])) {
+      blamed.add(target);
+    }
+    return blamed;
+  }
+
+  /**
+   * The slot a break-in put the buffer's own piece into, read off the cube: the one that comes out
+   * holding the piece the buffer belongs to. Not the second piece of the name, which is the target
+   * only while the name could be walked as a cycle at all — where it could not, the pieces are said
+   * in the order the cube stores them and the second of them is nobody in particular.
+   */
+  private int brokeInto(Landing landing) {
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      if (slot != landing.buffer && Cubies.homeSlotOf(landing.after, slot) == landing.buffer) {
+        return slot;
+      }
+    }
+    return -1;
   }
 
   /**
@@ -777,6 +822,7 @@ public final class BlindStepDetector implements StepDetector {
    * piece in the buffer there is nothing left to shoot, so all it can do is put that piece into a
    * new cycle and take a fresh one in. Neither slot it moved a piece into was a target it missed:
    * one holds the buffer's piece, and the piece that one displaced had to be parked in the other.
+   * Which piece it broke into is a question of its own, and {@link #brokeIntoASolvedPiece} asks it.
    * And except an algorithm the solver took back, whose effect on the cube is gone.
    *
    * <p>Only a cycle is asked, and only one whose buffer settled: a parity swaps and a flip turns, so

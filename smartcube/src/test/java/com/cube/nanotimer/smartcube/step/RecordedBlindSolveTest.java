@@ -416,6 +416,38 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * A cycle is broken into at a piece still out; breaking into one already home is the memo read off
+   * the wrong letter, and the one break-in there is anything to say about. Solve 163 with its first
+   * algorithm made a second time: it finds its own piece in the buffer and shoots it straight back
+   * at the edge the first put home.
+   *
+   * <p><b>Only where no parity is owed.</b> A parity ends by swapping the buffer with one other
+   * piece, so breaking into that piece is a solver doing it deliberately — which is what the
+   * recorded break-in solve does at {@code RU} while its parity is still to come, and it stays grey.
+   */
+  @Test
+  public void marksABreakInThatTookASolvedPieceBackOut() {
+    RecordedBlindSolveTest read = new RecordedBlindSolveTest();
+    read.replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
+    long first = read.landingTimes().get(0);
+    replay(RecordedBlindSolve.SCRAMBLE_163,
+        withLastAlgorithmRepeating(RecordedBlindSolve.MOVES_163, first, 0, first), Long.MAX_VALUE);
+
+    assertEquals("UF-DF-RF", detector.subStepName(1, 1)); // the same algorithm a second time
+    assertEquals(Arrays.asList(TOUCHED, WRONG, TOUCHED), detector.subStepPieceMarks(1, 1));
+    // Nothing was owed here to say against it: a cycle closed leaves the next one to open anywhere.
+    assertNull(detector.subStepWantedName(1, 1));
+    assertFalse(detector.subStepPieceMarks(1, 0).contains(WRONG));
+
+    RecordedBlindSolveTest owed = new RecordedBlindSolveTest();
+    owed.replay(RecordedBlindSolve.SCRAMBLE_BROKE_IN, RecordedBlindSolve.MOVES_BROKE_IN,
+        Long.MAX_VALUE);
+    assertEquals("UF-RU-BL", owed.detector.subStepName(1, 3)); // broken into a solved RU...
+    assertEquals(Arrays.asList(TOUCHED, TOUCHED, TOUCHED), // ...with the parity still to come
+        owed.detector.subStepPieceMarks(1, 3));
+  }
+
+  /**
    * The cycle the cube wanted, under the algorithm that lost the solve. Exact rather than guessed:
    * the {@code UF} buffer held the piece belonging at {@code LD}, and {@code LD} held the piece
    * belonging at {@code BL} — so the pair owed was {@code LD} then {@code BL}, and the solver shot
