@@ -99,7 +99,7 @@ public final class SolveAnalyzer {
       List<StepTime> subSteps = splitSubSteps(step, previousCompleteMs, completeMs);
       times.add(subSteps.isEmpty()
           ? timeFor(step, step, detector.stepName(step), previousCompleteMs, completeMs, step == 0,
-              subSteps, Collections.<PieceMark>emptyList())
+              subSteps, Collections.<PieceMark>emptyList(), null)
           : sumOf(step, detector.stepName(step), subSteps, worthSplitting(subSteps), true));
       previousCompleteMs = completeMs;
     }
@@ -161,14 +161,16 @@ public final class SolveAnalyzer {
           : Math.max(previousMs, detector.getSubStepTimestampMs(step, subStep));
       subSteps.add(timeFor(step, subStep, detector.subStepName(step, subStep), previousMs,
           subCompleteMs, step == 0 && i == 0, new ArrayList<>(),
-          detector.subStepPieceMarks(step, subStep)));
+          detector.subStepPieceMarks(step, subStep),
+          detector.subStepWantedName(step, subStep)));
       previousMs = subCompleteMs;
     }
     return subSteps;
   }
 
   private StepTime timeFor(int step, int index, String name, long previousCompleteMs, long completeMs,
-      boolean includeStartMove, List<StepTime> subSteps, List<PieceMark> pieceMarks) {
+      boolean includeStartMove, List<StepTime> subSteps, List<PieceMark> pieceMarks,
+      String wantedName) {
     Long firstMoveMs = firstMoveIn(step, previousCompleteMs, completeMs, includeStartMove);
     long recognitionMs = 0;
     long executionMs = 0;
@@ -176,7 +178,8 @@ public final class SolveAnalyzer {
       recognitionMs = firstMoveMs - previousCompleteMs;
       executionMs = completeMs - firstMoveMs;
     }
-    return new StepTime(index, name, recognitionMs, executionMs, subSteps, true, pieceMarks);
+    return new StepTime(index, name, recognitionMs, executionMs, subSteps, true, pieceMarks,
+        wantedName);
   }
 
   private static StepTime sumOf(int step, String name, List<StepTime> subSteps, boolean split,

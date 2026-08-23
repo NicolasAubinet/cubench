@@ -415,6 +415,8 @@
   <string name="blind_left_scattered">Terminou com %d peças por resolver</string>
   <!-- Where the reading stopped short of the turning. -->
   <string name="blind_reading_lost">A leitura para depois de %1$s: %2$d movimentos por ler</string>
+  <!-- The cycle the cube wanted, under a blind algorithm that shot the wrong one. -->
+  <string name="blind_wanted">Esperado: %s</string>
   <string name="scramble_view_clock_notation_hint">O diagrama não está disponível para esta notação do Clock. Mude para a notação UR/DR/DL nas opções para vê-lo.</string>
   <string name="cross_section_title">Cruz %1$s · %2$d movimentos</string>
   <string name="cross_solutions_count">%1$d soluções ótimas</string>

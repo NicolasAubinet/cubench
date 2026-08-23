@@ -415,6 +415,54 @@ public class RecordedBlindSolveTest {
     }
   }
 
+  /**
+   * The cycle the cube wanted, under the algorithm that lost the solve. Exact rather than guessed:
+   * the {@code UF} buffer held the piece belonging at {@code LD}, and {@code LD} held the piece
+   * belonging at {@code BL} — so the pair owed was {@code LD} then {@code BL}, and the solver shot
+   * {@code UL} instead. The second target was right, which is what makes the first the mistake.
+   *
+   * <p>Nothing else is asked. The break-in has no expectation to fail — with its own piece in the
+   * buffer the next cycle is the solver's to open anywhere — and an algorithm that went right is
+   * shown nothing at all.
+   */
+  @Test
+  public void saysWhatTheAlgorithmThatLostItShouldHaveShotAt() {
+    replay(RecordedBlindSolve.SCRAMBLE_BROKE_IN, RecordedBlindSolve.MOVES_BROKE_IN, Long.MAX_VALUE);
+
+    assertEquals("UF-UL-BL", detector.subStepName(1, 5));
+    assertEquals("UF-LD-BL", detector.subStepWantedName(1, 5));
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        if (step != 1 || part != 5) {
+          assertNull(detector.subStepName(step, part), detector.subStepWantedName(step, part));
+        }
+      }
+    }
+  }
+
+  /**
+   * A cycle that closes after one shot is said as the one target: the piece waiting at it is the
+   * buffer's own, and there is nothing after that to expect. Solve 3 of 2026-08-10 stops there —
+   * the buffer held the {@code FR} edge, its home sticker was {@code RF}, and the solver shot
+   * {@code UL}, which is where the whole solve went.
+   */
+  @Test
+  public void saysTheOneTargetWhereTheCycleClosedAfterIt() {
+    replay(RecordedBlindSolve.SCRAMBLE_WRONG_TARGET, RecordedBlindSolve.MOVES_WRONG_TARGET,
+        Long.MAX_VALUE);
+
+    assertEquals("UF-UL-DR", detector.subStepName(1, 3));
+    assertEquals("UF-RF", detector.subStepWantedName(1, 3));
+    // And a solve that came out is owed nothing anywhere: no algorithm of it carries red.
+    RecordedBlindSolveTest solved = new RecordedBlindSolveTest();
+    solved.replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
+    for (int step = 1; step < solved.detector.stepCount(); step++) {
+      for (int part = 0; part < solved.detector.subStepCount(step); part++) {
+        assertNull(solved.detector.subStepWantedName(step, part));
+      }
+    }
+  }
+
   /** Every landing of the solve, in order. */
   private List<Long> landingTimes() {
     List<Long> times = new ArrayList<Long>();

@@ -720,6 +720,26 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
+   * What the cube wanted of an algorithm that carries red: the piece sitting in the buffer shot
+   * home, and then the piece waiting at that target shot home after it. Read off the state the
+   * algorithm found rather than off a memo nothing here has, which is the same thing wherever the
+   * memo was being followed.
+   *
+   * <p><b>Only the blamed algorithm is asked</b>, and for the reason the ones after it carry no red:
+   * past the first mistake the cube has moved on, so what it wants there is no longer what the
+   * solver memorised. A break-in is silent too, the buffer holding its own piece leaving the next
+   * cycle the solver's to open wherever they please.
+   */
+  @Override
+  public String subStepWantedName(int step, int subStep) {
+    Landing landing = runs().get(step - 1).landings.get(subStep);
+    if (landing.buffer == BlindTargets.NO_BUFFER || blamedOn(landing).isEmpty()) {
+      return null;
+    }
+    return targets.wantedName(landing.before, landing.buffer);
+  }
+
+  /**
    * The pieces this algorithm is answerable for, of which a solve that came out has none.
    *
    * <p><b>An algorithm executed the other way round is answerable for what it should have put

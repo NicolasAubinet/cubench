@@ -154,6 +154,47 @@ final class BlindTargets {
     return sentTo(before, after, facelet) == start ? new Named(join(names), slots) : null;
   }
 
+  /**
+   * The cycle the cube was standing in: the buffer, the sticker its piece belongs on, and then the
+   * sticker the piece waiting there belongs on. What the memo asked for at that moment, read off the
+   * cube rather than guessed at, since a shot that lands its piece home is the whole of what a
+   * target means.
+   *
+   * <p>Two targets, because that is what one algorithm shoots. Only one where the cycle closes after
+   * the first — the piece waiting there is the buffer's own — and none at all where the buffer
+   * already holds its own piece, which is a cycle closed and a break-in the solver is free to make
+   * anywhere.
+   */
+  String wantedName(String before, int buffer) {
+    int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);
+    int first = homeFacelet(before, start);
+    if (first < 0 || Cubies.slotOf(first) == buffer) {
+      return null;
+    }
+    List<String> names = new ArrayList<String>(3);
+    names.add(spell(buffer));
+    names.add(spellFrom(first));
+    int second = homeFacelet(before, first);
+    if (second >= 0 && Cubies.slotOf(second) != buffer) {
+      names.add(spellFrom(second));
+    }
+    return join(names);
+  }
+
+  /** Where the sticker sitting on this facelet belongs, which is where shooting it would send it. */
+  private static int homeFacelet(String facelets, int facelet) {
+    int home = Cubies.homeSlotOf(facelets, Cubies.slotOf(facelet));
+    if (home < 0) {
+      return -1;
+    }
+    for (int candidate : Cubies.PIECES[home]) {
+      if (Cubies.SOLVED.charAt(candidate) == facelets.charAt(facelet)) {
+        return candidate;
+      }
+    }
+    return -1;
+  }
+
   /** Where the sticker on this facelet ended up: a piece by its colours, a sticker by its own. */
   private static int sentTo(String before, String after, int facelet) {
     int home = Cubies.homeSlotOf(before, Cubies.slotOf(facelet));

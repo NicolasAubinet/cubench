@@ -21,6 +21,8 @@ public class SolveStep implements Serializable {
   // What became of each piece the name is made of. Read from the solve rather than stored with
   // it, so a solve that cannot be read back simply has none.
   private final List<PieceMark> pieceMarks;
+  // And the cycle the cube wanted of it, where what it shot went wrong. Read, never stored.
+  private final String wantedName;
 
   public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
       List<SolveStep> subSteps) {
@@ -35,6 +37,11 @@ public class SolveStep implements Serializable {
 
   public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
       List<SolveStep> subSteps, boolean complete, List<PieceMark> pieceMarks) {
+    this(stepIndex, name, recognitionMs, executionMs, subSteps, complete, pieceMarks, null);
+  }
+
+  public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
+      List<SolveStep> subSteps, boolean complete, List<PieceMark> pieceMarks, String wantedName) {
     this.stepIndex = stepIndex;
     this.name = name;
     this.recognitionMs = recognitionMs;
@@ -42,6 +49,7 @@ public class SolveStep implements Serializable {
     this.complete = complete;
     this.subSteps = Collections.unmodifiableList(subSteps);
     this.pieceMarks = Collections.unmodifiableList(pieceMarks);
+    this.wantedName = wantedName;
   }
 
   public int getStepIndex() {
@@ -81,5 +89,13 @@ public class SolveStep implements Serializable {
    */
   public List<PieceMark> getPieceMarks() {
     return pieceMarks;
+  }
+
+  /**
+   * The cycle the cube was standing in when this step was made, said as its name is: what a blind
+   * algorithm carrying a wrong piece should have shot at. Null on every other step.
+   */
+  public String getWantedName() {
+    return wantedName;
   }
 }

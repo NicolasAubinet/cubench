@@ -55,6 +55,16 @@ public interface StepDetector {
     return Collections.emptyList();
   }
 
+  /**
+   * The cycle the cube was standing in when the sub-step was made, said the way its name is, for a
+   * reading that both knows and has something to add: a blind algorithm that carries a wrong piece
+   * is shown what it should have shot at. Null everywhere else, and null on every algorithm that
+   * went right.
+   */
+  default String subStepWantedName(int step, int subStep) {
+    return null;
+  }
+
   /** Cube-clock time the sub-step was reached, or null while its step is still pending. */
   Long getSubStepTimestampMs(int step, int subStep);
 

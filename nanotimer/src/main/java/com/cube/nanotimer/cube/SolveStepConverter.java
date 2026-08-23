@@ -27,7 +27,7 @@ public final class SolveStepConverter {
     }
     return new SolveStep(step.getStepIndex(), step.getStepName(),
         step.getRecognitionMs(), step.getExecutionMs(), subSteps, step.isComplete(),
-        toPieceMarks(step.getPieceMarks()));
+        toPieceMarks(step.getPieceMarks()), step.getWantedName());
   }
 
   /** The same marks in the datamodel's own terms, which is the seam this class exists to cross. */

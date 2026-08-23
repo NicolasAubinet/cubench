@@ -19,6 +19,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
+import android.text.style.RelativeSizeSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -1035,8 +1036,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private TableRow subStepRow(SolveStep part, int position, String moveCount) {
     TableRow row = new TableRow(getActivity());
-    row.addView(cell(R.style.BreakdownSubName, withPieceMarks(part, withSlotColors(part.getName(),
-        Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)))));
+    row.addView(cell(R.style.BreakdownSubName, withWanted(part,
+        withPieceMarks(part, withSlotColors(part.getName(),
+            Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position))))));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
@@ -1099,6 +1101,25 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       }
       from = at + pieces[i].length();
     }
+    return text;
+  }
+
+  /**
+   * Under an algorithm carrying red, the cycle the cube was standing in: the pair it was owed
+   * against the pair it was shot. Exact rather than a guess, and left to stand as the one fact it
+   * is — a sentence classifying the mistake on top of the red would be the sheet arguing with a
+   * solver who can already see what happened.
+   */
+  private CharSequence withWanted(SolveStep part, CharSequence label) {
+    if (part.getWantedName() == null) {
+      return label;
+    }
+    SpannableStringBuilder text = new SpannableStringBuilder(label);
+    int at = text.length();
+    text.append("\n").append(getString(R.string.blind_wanted, part.getWantedName()));
+    text.setSpan(new ForegroundColorSpan(color(R.color.gray600)), at, text.length(),
+        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    text.setSpan(new RelativeSizeSpan(0.9f), at, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     return text;
   }
 

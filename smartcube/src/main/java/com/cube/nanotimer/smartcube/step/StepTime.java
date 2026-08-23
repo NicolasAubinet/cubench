@@ -21,6 +21,7 @@ public final class StepTime {
   private final boolean complete;
   private final List<StepTime> subSteps;
   private final List<PieceMark> pieceMarks;
+  private final String wantedName;
 
   public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
       List<StepTime> subSteps) {
@@ -35,6 +36,11 @@ public final class StepTime {
 
   public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
       List<StepTime> subSteps, boolean complete, List<PieceMark> pieceMarks) {
+    this(stepIndex, stepName, recognitionMs, executionMs, subSteps, complete, pieceMarks, null);
+  }
+
+  public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
+      List<StepTime> subSteps, boolean complete, List<PieceMark> pieceMarks, String wantedName) {
     this.stepIndex = stepIndex;
     this.stepName = stepName;
     this.recognitionMs = recognitionMs;
@@ -42,6 +48,7 @@ public final class StepTime {
     this.complete = complete;
     this.subSteps = Collections.unmodifiableList(subSteps);
     this.pieceMarks = Collections.unmodifiableList(pieceMarks);
+    this.wantedName = wantedName;
   }
 
   public int getStepIndex() {
@@ -79,6 +86,11 @@ public final class StepTime {
   /** Of the pieces this step's name is made of, which it put home. Empty for a name without any. */
   public List<PieceMark> getPieceMarks() {
     return pieceMarks;
+  }
+
+  /** The cycle the cube wanted here, where the step carries a wrong piece. Null everywhere else. */
+  public String getWantedName() {
+    return wantedName;
   }
 
   @Override
