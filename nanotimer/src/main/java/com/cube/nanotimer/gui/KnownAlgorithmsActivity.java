@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.cube.nanotimer.App;
@@ -77,6 +78,7 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
   private TextView count;
   private TextView empty;
   private TextView hint;
+  private ProgressBar spinner;
 
   private final Map<String, CaseKnowledge.Status> statuses =
       new LinkedHashMap<String, CaseKnowledge.Status>();
@@ -94,6 +96,7 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
     count = findViewById(R.id.tvKnownAlgorithmsCount);
     empty = findViewById(R.id.tvKnownAlgorithmsEmpty);
     hint = findViewById(R.id.tvKnownAlgorithmsHint);
+    spinner = findViewById(R.id.pbKnownAlgorithms);
 
     family = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llKnownAlgorithmsFamily),
         new String[] {getString(R.string.drill_practice_pll),
@@ -107,6 +110,8 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
         });
     family.setSelection(
         Math.max(0, Math.min(1, Options.INSTANCE.getDrillChoice(KEY_FAMILY, FAMILY_PLL_SEGMENT))));
+    // Restoring the family announces nothing, so nothing else draws the wait the solves are read in.
+    show();
   }
 
   /** Read again on the way back: the algorithm a case is filed under can have changed meanwhile. */
@@ -143,6 +148,10 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
   /** Draws the family that is showing, in the order the reader wants to walk it. */
   private void show() {
     rows.removeAllViews();
+    if (!read) {
+      waiting();
+      return;
+    }
     String prefix = family.getSelection() == FAMILY_PLL_SEGMENT ? FAMILY_PLL : FAMILY_OLL;
     int size = 0;
     int known = 0;
@@ -154,13 +163,27 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
       }
       draw(status, cases);
     }
+    count.setVisibility(View.VISIBLE);
     count.setText(getString(R.string.known_algorithms_count, known, size));
-    boolean nothing = read && turned.isEmpty() && statuses.isEmpty();
-    empty.setText(read ? getString(R.string.known_algorithms_empty)
-        : getString(R.string.known_algorithms_reading));
-    empty.setVisibility(!read || nothing ? View.VISIBLE : View.GONE);
-    rows.setVisibility(!read || nothing ? View.GONE : View.VISIBLE);
-    hint.setVisibility(!read || nothing ? View.GONE : View.VISIBLE);
+    boolean nothing = turned.isEmpty() && statuses.isEmpty();
+    empty.setText(R.string.known_algorithms_empty);
+    empty.setVisibility(nothing ? View.VISIBLE : View.GONE);
+    spinner.setVisibility(View.GONE);
+    rows.setVisibility(nothing ? View.GONE : View.VISIBLE);
+    hint.setVisibility(nothing ? View.GONE : View.VISIBLE);
+  }
+
+  /**
+   * What is on screen until the solves have been read. The count is held rather than dropped: it is
+   * a line of its own above the list, and blanking it would move the whole list up and back again.
+   */
+  private void waiting() {
+    count.setVisibility(View.INVISIBLE);
+    empty.setText(R.string.known_algorithms_reading);
+    empty.setVisibility(View.VISIBLE);
+    spinner.setVisibility(View.VISIBLE);
+    rows.setVisibility(View.GONE);
+    hint.setVisibility(View.GONE);
   }
 
   /** One heading and the cases under it, or nothing at all where a group is empty. */

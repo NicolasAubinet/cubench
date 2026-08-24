@@ -77,6 +77,17 @@
          android:textSize="16sp"
          android:visibility="gone"/>
 
+      <!-- Under the wait line rather than beside it: the same view also carries the empty message,
+           which is a paragraph, and a spinner alongside a paragraph reads as part of the sentence. -->
+      <ProgressBar
+         android:id="@+id/pbKnownAlgorithms"
+         style="?android:attr/progressBarStyle"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+         android:layout_marginTop="16dp"
+         android:visibility="gone"/>
+
       <!-- A heading and its cases, then the next, filled in code. -->
       <LinearLayout
          android:id="@+id/llKnownAlgorithmsRows"
