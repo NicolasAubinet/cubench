@@ -6,6 +6,7 @@ import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,13 @@ import java.util.Set;
  * it, so a solve recorded since carries no such phantom. This rule stays for the ones recorded
  * before, and because a blind solve's rotation tokens are noise however they got there.
  *
+ * <p><b>A dropped token can take a wide with it.</b> The solver peeks at the cube and tips it back,
+ * and where one half of that swing lands beside a face turn the gyro reads it as that face being
+ * wide — it cannot tell the two apart, since a peek and a wide move the core identically. The half
+ * that finds no face becomes a rotation token, so the peek reaches here written down twice: once as
+ * a token this drops and once as a wide it would believe. Believing it leaves the frame a quarter
+ * turn out for the rest of the solve. See {@link #peekedWides}.
+ *
  * <p><b>No other solve may be read this way.</b> Nothing guards the stored grip against a first
  * move that is <em>wide</em>, whose swing the gyro has already reported, and the scripted wide
  * drill stores a grip its own ground truth disowns. Spelling a sighted solve from the grip turns
@@ -48,6 +56,15 @@ public final class SolveSolution {
 
   /** Between the parts of a step, wherever they are shown as one run of moves. */
   public static final String GROUP_SEPARATOR = " · ";
+
+  /**
+   * How far apart the two halves of a peek may land before a wide stops being in question. A tip
+   * and its tip back happen inside one algorithm: the 2026-08-23 capture's two are 333 ms and
+   * 789 ms across, the second only that far because a slice pair stood between the swing and the
+   * move the frame was next read at. Two rotation tokens are paired at any distance, since taking
+   * each other back is all they can do and leaving them loose is what lets one claim a wide.
+   */
+  private static final long PEEK_WINDOW_MS = 2000;
 
   private final List<Step> steps;
   private final int moveCount;
@@ -177,6 +194,7 @@ public final class SolveSolution {
   private static List<Move> inSolversFrame(List<Move> stored, List<FrameAt> framesOut,
       CubeRotation heldIn) {
     CubeRotation frame = heldIn != null ? heldIn : CubeRotation.byNotation("");
+    Set<Long> peeked = heldIn != null ? peekedWides(stored) : Collections.<Long>emptySet();
     List<Move> rewritten = new ArrayList<Move>(stored.size());
     if (heldIn != null && !heldIn.getNotation().isEmpty()) {
       rewritten.add(new Move(heldIn.getNotation(), 0)); // shown, so it follows from the scramble
@@ -187,7 +205,7 @@ public final class SolveSolution {
       String notation = move.getNotation();
       if (SolveMovesFormat.isRotation(notation)) {
         Move face = wideFace(stored, i);
-        if (face != null) {
+        if (face != null && !peeked.contains(move.getOffsetMs())) {
           // The solver did one wide move, named in their frame. As with a slice the spin is the
           // move itself rather than a grip change: not shown, but it still turns the frame.
           CubeRotation spin = CubeRotation.byNotation(notation).seenFrom(frame);
@@ -237,6 +255,142 @@ public final class SolveSolution {
       }
     }
     return rewritten;
+  }
+
+  /**
+   * The wide spins that never happened: each one is the far half of a peek whose near half is a
+   * rotation token this reading drops anyway.
+   *
+   * <p>A slice is corroborated by the pair of faces the cube reports, but a wide is a lone face the
+   * gyro alone promotes, and <b>the gyro cannot tell a wide from a swing that came back</b> — the
+   * two are the same reading either side of one face turn. What tells them apart is what happens
+   * afterwards: a wide leaves the core a quarter turn round, a peek gives it back. So a wide's spin
+   * and a rotation token that cancel each other out, with only the solve's own turning between them,
+   * are one peek that the frame accounting wrote down as two events.
+   *
+   * <p>Cancelling is asked of the composed frame rather than of the two notations: they are a
+   * quarter turn apart in the cube's own axes, so a slice between them re-expresses the second, and
+   * the 2026-08-23 solve's pair reads {@code y} and {@code z} for exactly that reason.
+   *
+   * <p>Only a blind solve may be read this way. A solver who is looking at the cube turns it on
+   * purpose, and a rotation that a wide happens to undo is two moves they meant.
+   */
+  private static Set<Long> peekedWides(List<Move> stored) {
+    List<FrameStep> steps = frameSteps(stored);
+    List<Peek> peeks = new ArrayList<Peek>();
+    for (int i = 0; i < steps.size(); i++) {
+      for (int j = i + 1; j < steps.size(); j++) {
+        if (steps.get(i).slice || steps.get(j).slice
+            || steps.get(i).isWide() && steps.get(j).isWide() // two real wides may cancel
+            || !cancels(steps, i, j)) {
+          continue;
+        }
+        long apartMs = steps.get(j).atMs - steps.get(i).atMs;
+        if ((steps.get(i).isWide() || steps.get(j).isWide()) && apartMs > PEEK_WINDOW_MS) {
+          continue; // too far apart to be one peek, and a wide is not given away on a coincidence
+        }
+        peeks.add(new Peek(i, j, apartMs));
+      }
+    }
+    // Nearest first: the two halves of one peek are seconds apart at most, and taking them in that
+    // order stops a token that has a partner of its own from claiming a wide further off.
+    Collections.sort(peeks, Comparator.comparingLong(peek -> peek.apartMs));
+    Set<Long> peeked = new HashSet<Long>();
+    boolean[] spent = new boolean[steps.size()];
+    for (Peek peek : peeks) {
+      if (spent[peek.from] || spent[peek.to]) {
+        continue;
+      }
+      spent[peek.from] = true;
+      spent[peek.to] = true;
+      long wide = Math.max(steps.get(peek.from).wideOffsetMs, steps.get(peek.to).wideOffsetMs);
+      if (wide >= 0) { // two rotation tokens taking each other back: no wide is in question
+        peeked.add(wide);
+      }
+    }
+    return peeked;
+  }
+
+  /** Two frame changes that come to nothing, and how far apart the solve made them. */
+  private static final class Peek {
+
+    private final int from;
+    private final int to;
+    private final long apartMs;
+
+    private Peek(int from, int to, long apartMs) {
+      this.from = from;
+      this.to = to;
+      this.apartMs = apartMs;
+    }
+  }
+
+  /** Whether steps {@code i} and {@code j} leave the frame where it stood, everything between kept. */
+  private static boolean cancels(List<FrameStep> steps, int i, int j) {
+    CubeRotation between = CubeRotation.byNotation("");
+    for (int k = i + 1; k < j; k++) {
+      between = steps.get(k).rotation.then(between); // composes in the cube's axes, so on the right
+    }
+    CubeRotation taken = steps.get(i).rotation.to(CubeRotation.byNotation(""));
+    return between.to(between.then(taken)).getNotation().equals(steps.get(j).rotation.getNotation());
+  }
+
+  /** Everything in the stored stream that turns the frame, in order. */
+  private static List<FrameStep> frameSteps(List<Move> stored) {
+    List<FrameStep> steps = new ArrayList<FrameStep>();
+    for (int i = 0; i < stored.size(); i++) {
+      Move move = stored.get(i);
+      String notation = move.getNotation();
+      if (!SolveMovesFormat.isRotation(notation)) {
+        Move spin = sliceCoreSpin(stored, i);
+        if (spin != null) {
+          steps.add(new FrameStep(CubeRotation.byNotation(spin.getNotation()),
+              move.getOffsetMs(), -1, true));
+          i += 2;
+        }
+        continue;
+      }
+      Move face = wideFace(stored, i);
+      // Whether the two name a wide does not depend on the frame, so it is asked without one: a
+      // rotation landing a millisecond before a face it cannot be the spin of folds nowhere here
+      // either, and counting it would put this walk out of step with the one that shows the moves.
+      if (face != null && Wides.forFaceAndSpin(face.getNotation(), notation) != null) {
+        steps.add(new FrameStep(CubeRotation.byNotation(notation), move.getOffsetMs(),
+            move.getOffsetMs(), false));
+        i++; // the face is spoken for
+        continue;
+      }
+      StringBuilder composite = new StringBuilder(notation);
+      while (i + 1 < stored.size() && stored.get(i + 1).getOffsetMs() == move.getOffsetMs()
+          && SolveMovesFormat.isRotation(stored.get(i + 1).getNotation())) {
+        composite.append(' ').append(stored.get(++i).getNotation());
+      }
+      CubeRotation rotation = CubeRotation.byNotation(composite.toString());
+      if (rotation != null) {
+        steps.add(new FrameStep(rotation, move.getOffsetMs(), -1, false));
+      }
+    }
+    return steps;
+  }
+
+  /** One frame change: a slice's spin, a wide's spin, or a rotation token nobody vouches for. */
+  private static final class FrameStep {
+
+    private final CubeRotation rotation;
+    private final long atMs;
+    private final long wideOffsetMs;
+    private final boolean slice;
+
+    private FrameStep(CubeRotation rotation, long atMs, long wideOffsetMs, boolean slice) {
+      this.rotation = rotation;
+      this.atMs = atMs;
+      this.wideOffsetMs = wideOffsetMs;
+      this.slice = slice;
+    }
+
+    private boolean isWide() {
+      return wideOffsetMs >= 0;
+    }
   }
 
   /** The grip the solve was picked up in, or none where the stream carries none to read. */
