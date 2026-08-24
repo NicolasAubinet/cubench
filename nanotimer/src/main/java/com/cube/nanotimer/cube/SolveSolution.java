@@ -281,12 +281,12 @@ public final class SolveSolution {
     for (int i = 0; i < steps.size(); i++) {
       for (int j = i + 1; j < steps.size(); j++) {
         if (steps.get(i).slice || steps.get(j).slice
-            || steps.get(i).isWide() && steps.get(j).isWide() // two real wides may cancel
+            || steps.get(i).wide && steps.get(j).wide // two real wides may cancel
             || !cancels(steps, i, j)) {
           continue;
         }
         long apartMs = steps.get(j).atMs - steps.get(i).atMs;
-        if ((steps.get(i).isWide() || steps.get(j).isWide()) && apartMs > PEEK_WINDOW_MS) {
+        if ((steps.get(i).wide || steps.get(j).wide) && apartMs > PEEK_WINDOW_MS) {
           continue; // too far apart to be one peek, and a wide is not given away on a coincidence
         }
         peeks.add(new Peek(i, j, apartMs));
@@ -303,9 +303,10 @@ public final class SolveSolution {
       }
       spent[peek.from] = true;
       spent[peek.to] = true;
-      long wide = Math.max(steps.get(peek.from).wideOffsetMs, steps.get(peek.to).wideOffsetMs);
-      if (wide >= 0) { // two rotation tokens taking each other back: no wide is in question
-        peeked.add(wide);
+      FrameStep wide = steps.get(peek.from).wide ? steps.get(peek.from)
+          : steps.get(peek.to).wide ? steps.get(peek.to) : null;
+      if (wide != null) { // two rotation tokens taking each other back: no wide is in question
+        peeked.add(wide.wideOffsetMs);
       }
     }
     return peeked;
@@ -344,8 +345,8 @@ public final class SolveSolution {
       if (!SolveMovesFormat.isRotation(notation)) {
         Move spin = sliceCoreSpin(stored, i);
         if (spin != null) {
-          steps.add(new FrameStep(CubeRotation.byNotation(spin.getNotation()),
-              move.getOffsetMs(), -1, true));
+          steps.add(FrameStep.slice(CubeRotation.byNotation(spin.getNotation()),
+              move.getOffsetMs()));
           i += 2;
         }
         continue;
@@ -355,8 +356,7 @@ public final class SolveSolution {
       // rotation landing a millisecond before a face it cannot be the spin of folds nowhere here
       // either, and counting it would put this walk out of step with the one that shows the moves.
       if (face != null && Wides.forFaceAndSpin(face.getNotation(), notation) != null) {
-        steps.add(new FrameStep(CubeRotation.byNotation(notation), move.getOffsetMs(),
-            move.getOffsetMs(), false));
+        steps.add(FrameStep.wide(CubeRotation.byNotation(notation), move.getOffsetMs()));
         i++; // the face is spoken for
         continue;
       }
@@ -367,29 +367,46 @@ public final class SolveSolution {
       }
       CubeRotation rotation = CubeRotation.byNotation(composite.toString());
       if (rotation != null) {
-        steps.add(new FrameStep(rotation, move.getOffsetMs(), -1, false));
+        steps.add(FrameStep.token(rotation, move.getOffsetMs()));
       }
     }
     return steps;
   }
 
-  /** One frame change: a slice's spin, a wide's spin, or a rotation token nobody vouches for. */
+  /**
+   * One frame change: a slice's spin, a wide's spin, or a rotation token nobody vouches for.
+   *
+   * <p>Which of the three it is gets its own field rather than being read off the offset. A wide's
+   * spin is dated a millisecond ahead of its face, so a solve whose first move is wide carries that
+   * spin at {@code -1}: a real offset, as the drill capture shows, and not a spare value.
+   */
   private static final class FrameStep {
 
     private final CubeRotation rotation;
     private final long atMs;
     private final long wideOffsetMs;
+    private final boolean wide;
     private final boolean slice;
 
-    private FrameStep(CubeRotation rotation, long atMs, long wideOffsetMs, boolean slice) {
+    private static FrameStep slice(CubeRotation rotation, long atMs) {
+      return new FrameStep(rotation, atMs, 0, false, true);
+    }
+
+    private static FrameStep wide(CubeRotation rotation, long atMs) {
+      return new FrameStep(rotation, atMs, atMs, true, false);
+    }
+
+    private static FrameStep token(CubeRotation rotation, long atMs) {
+      return new FrameStep(rotation, atMs, 0, false, false);
+    }
+
+    private FrameStep(CubeRotation rotation, long atMs, long wideOffsetMs, boolean wide,
+        boolean slice) {
       this.rotation = rotation;
       this.atMs = atMs;
       this.wideOffsetMs = wideOffsetMs;
+      this.wide = wide;
       this.slice = slice;
-    }
-
-    private boolean isWide() {
-      return wideOffsetMs >= 0;
     }
   }
 

@@ -101,6 +101,21 @@ public class BlindPeekCaptureTest {
     assertEquals(whole(CubeMethod.BLIND), 4, wides(whole(CubeMethod.BLIND)));
   }
 
+  /**
+   * A solve opening on a wide dates that wide's spin a millisecond ahead of the first move, so its
+   * offset is {@code -1}: a real offset, and one no sentinel may quietly stand for. Read as a
+   * rotation token instead of a wide, it pairs with the wide that takes it back and eats it.
+   */
+  @Test
+  public void aWideAtTheOpeningIsAWideAndNotATokenStandingInForOne() {
+    String opening = "[y] y@-1 D@0 y'@1613 D'@1614";
+    List<SolveStep> one =
+        Arrays.asList(new SolveStep(0, "execution", 0, 5000, Arrays.<SolveStep>asList()));
+
+    assertEquals("y u u'",
+        SolveSolution.from(opening, one, CubeMethod.BLIND).getSteps().get(0).getMoves());
+  }
+
   private static int wides(String shown) {
     int wides = 0;
     for (String token : shown.split(" ")) {
