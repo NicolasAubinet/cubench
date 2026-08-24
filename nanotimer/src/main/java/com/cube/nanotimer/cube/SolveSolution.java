@@ -57,15 +57,6 @@ public final class SolveSolution {
   /** Between the parts of a step, wherever they are shown as one run of moves. */
   public static final String GROUP_SEPARATOR = " · ";
 
-  /**
-   * How far apart the two halves of a peek may land before a wide stops being in question. A tip
-   * and its tip back happen inside one algorithm: the 2026-08-23 capture's two are 333 ms and
-   * 789 ms across, the second only that far because a slice pair stood between the swing and the
-   * move the frame was next read at. Two rotation tokens are paired at any distance, since taking
-   * each other back is all they can do and leaving them loose is what lets one claim a wide.
-   */
-  private static final long PEEK_WINDOW_MS = 2000;
-
   private final List<Step> steps;
   private final int moveCount;
   private final int partCount;
@@ -285,20 +276,16 @@ public final class SolveSolution {
             || !cancels(steps, i, j)) {
           continue;
         }
-        long apartMs = steps.get(j).atMs - steps.get(i).atMs;
-        if ((steps.get(i).wide || steps.get(j).wide) && apartMs > PEEK_WINDOW_MS) {
-          continue; // too far apart to be one peek, and a wide is not given away on a coincidence
-        }
-        peeks.add(new Peek(i, j, apartMs));
+        peeks.add(new Peek(i, j, steps.get(j).atMs - steps.get(i).atMs));
       }
     }
-    // Nearest first: the two halves of one peek are seconds apart at most, and taking them in that
-    // order stops a token that has a partner of its own from claiming a wide further off.
+    // Nearest first, which does two things: a token that has a partner of its own is taken by it
+    // before anything further off can claim it, and a nested peek settles before the one round it.
     Collections.sort(peeks, Comparator.comparingLong(peek -> peek.apartMs));
     Set<Long> peeked = new HashSet<Long>();
     boolean[] spent = new boolean[steps.size()];
     for (Peek peek : peeks) {
-      if (spent[peek.from] || spent[peek.to]) {
+      if (spent[peek.from] || spent[peek.to] || !settledBetween(steps, spent, peek)) {
         continue;
       }
       spent[peek.from] = true;
@@ -324,6 +311,26 @@ public final class SolveSolution {
       this.to = to;
       this.apartMs = apartMs;
     }
+  }
+
+  /**
+   * Whether everything between a peek's two halves is either a slice or a peek already settled.
+   *
+   * <p>The correction is the accounting's <em>next</em> word on the matter, so a token or a wide
+   * standing unaccounted for between the two is a chance to notice that was taken and did not
+   * correct: whatever those two are, they are not one peek. Slices do not count, since no frame is
+   * read inside a pair, and neither does a peek nested in this one, which the solver really can
+   * make and the 2026-08-23 solve's twin capture does. Nesting needs no case of its own: the
+   * shorter pair is always reached first, so by the time the longer one is asked its insides are
+   * already spent.
+   */
+  private static boolean settledBetween(List<FrameStep> steps, boolean[] spent, Peek peek) {
+    for (int k = peek.from + 1; k < peek.to; k++) {
+      if (!steps.get(k).slice && !spent[k]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Whether steps {@code i} and {@code j} leave the frame where it stood, everything between kept. */

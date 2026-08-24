@@ -116,6 +116,21 @@ public class BlindPeekCaptureTest {
         SolveSolution.from(opening, one, CubeMethod.BLIND).getSteps().get(0).getMoves());
   }
 
+  /**
+   * A peek's two halves are the accounting's word and its next word on the matter. Something
+   * unaccounted for standing between them, here a wide of its own, is a chance to notice that was
+   * taken and did not correct: reaching past it would cost the solver a wide they really turned.
+   */
+  @Test
+  public void aTokenMayNotReachPastAWideToTakeADistantOne() {
+    List<SolveStep> one =
+        Arrays.asList(new SolveStep(0, "execution", 0, 5000, Arrays.<SolveStep>asList()));
+    String reaching = "[y] z@1000 R@1000 y@2000 D@2001 x'@2999 R@3000";
+
+    assertEquals("y F u r",
+        SolveSolution.from(reaching, one, CubeMethod.BLIND).getSteps().get(0).getMoves());
+  }
+
   private static int wides(String shown) {
     int wides = 0;
     for (String token : shown.split(" ")) {
