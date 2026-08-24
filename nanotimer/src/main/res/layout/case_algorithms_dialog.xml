@@ -21,8 +21,22 @@
      android:layout_marginTop="10dp"
      android:textSize="12sp"/>
 
-  <!-- An algorithm of the user's own sits above the list rather than inside it, so that having one
-       never moves, hides or renames anything the list was saying. -->
+  <TextView
+     style="@style/DialogSectionLabel"
+     android:layout_marginTop="18dp"
+     android:text="@string/case_algorithms"/>
+
+  <!-- One row per algorithm, built in code, always in the same order. -->
+  <LinearLayout
+     android:id="@+id/llCaseAlgorithms"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:orientation="vertical"/>
+
+  <!-- An algorithm of the user's own sits beside the list rather than inside it, so that having one
+       never moves, hides or renames anything the list was saying. Below it rather than above: the
+       row the list marks as the one they use must have nothing of theirs standing over it. -->
   <TextView
      android:id="@+id/tvCaseYoursLabel"
      style="@style/DialogSectionLabel"
@@ -39,19 +53,6 @@
      android:orientation="vertical"
      android:paddingLeft="3dp"
      android:visibility="gone"/>
-
-  <TextView
-     style="@style/DialogSectionLabel"
-     android:layout_marginTop="18dp"
-     android:text="@string/case_algorithms"/>
-
-  <!-- One row per algorithm, built in code, always in the same order. -->
-  <LinearLayout
-     android:id="@+id/llCaseAlgorithms"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:layout_marginTop="4dp"
-     android:orientation="vertical"/>
 
   <!-- The way out of the list, for a user who solves the case some other way entirely. -->
   <TextView

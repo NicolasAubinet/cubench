@@ -444,4 +444,129 @@ public class LastLayerCaseAlgorithmsTest {
     }
     return joined.toString();
   }
+
+  /**
+   * The whole point of folding a list: a case may not offer a choice between an algorithm and
+   * itself. The unfolded list does, which is what says this test is testing something.
+   */
+  @Test
+  public void aFoldedListNeverShowsTheSameAlgorithmTwice() {
+    int twiceUnfolded = 0;
+    for (String code : LastLayerScrambles.cases()) {
+      assertFalse(code, saysOneAlgorithmTwice(code, LastLayerCaseAlgorithms.foldedForCase(code)));
+      if (saysOneAlgorithmTwice(code, LastLayerCaseAlgorithms.forCase(code))) {
+        twiceUnfolded++;
+      }
+    }
+    assertTrue("nothing to fold, so this proves nothing", twiceUnfolded > 0);
+  }
+
+  /** And folding is what puts the algorithm most people turn in front, not just what tidies up. */
+  @Test
+  public void foldingCanChangeWhichRowComesFirst() {
+    int moved = 0;
+    for (String code : LastLayerScrambles.cases()) {
+      List<LastLayerCaseAlgorithms.Algorithm> folded = LastLayerCaseAlgorithms.foldedForCase(code);
+      List<LastLayerCaseAlgorithms.Algorithm> unfolded = LastLayerCaseAlgorithms.forCase(code);
+      if (!folded.isEmpty() && !unfolded.isEmpty()
+          && !LastLayerCaseAlgorithms.sameTurning(code, folded.get(0).getMoves(),
+              unfolded.get(0).getMoves())) {
+        moved++;
+      }
+    }
+    assertTrue("folding moved no case's first row", moved > 0);
+  }
+
+  private static boolean saysOneAlgorithmTwice(String code,
+      List<LastLayerCaseAlgorithms.Algorithm> shown) {
+    for (int i = 0; i < shown.size(); i++) {
+      for (int j = i + 1; j < shown.size(); j++) {
+        if (LastLayerCaseAlgorithms.sameTurning(code, shown.get(i).getMoves(),
+            shown.get(j).getMoves())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /** A pick is kept as text, so the row it belongs to has to be found by what it turns. */
+  @Test
+  public void aSpellingFoldedAwayIsStillTheRowItWasFoldedInto() {
+    assertTrue(LastLayerCaseAlgorithms.sameTurning("oll_27", "R U R' U R U2 R'",
+        "y' L U L' U L U2 L'"));
+    assertTrue(LastLayerCaseAlgorithms.sameTurning("oll_27", "U R U R' U R U2 R' U'",
+        "R U R' U R U2 R'"));
+    assertFalse(LastLayerCaseAlgorithms.sameTurning("oll_27", "R U R' U R U2 R'",
+        "R U2 R' U' R U' R'"));
+    assertFalse(LastLayerCaseAlgorithms.sameTurning("oll_27", "R U R' U R U2 R'", null));
+  }
+
+  /** What an execution loses on its way to being shown, and what it must never lose. */
+  @Test
+  public void tidyingTakesTheAlignmentAndTheRegripOffAndNothingElse() {
+    // The turn that squared the case up, the one left for the next case, and a regrip turned back.
+    assertEquals("R U R' U R U2 R'",
+        LastLayerCaseAlgorithms.tidied("oll_27", "U R U R' U R U2 R' D D' U'"));
+    // The grip it was picked up in is not part of the algorithm.
+    assertEquals("R U R' U R U2 R'",
+        LastLayerCaseAlgorithms.tidied("oll_27", "y y R U R' U R U2 R'"));
+    // But the faces the solver turned stay the faces they turned.
+    assertEquals("L U L' U L U2 L'",
+        LastLayerCaseAlgorithms.tidied("oll_27", "L U L' U L U2 L' U"));
+  }
+
+  /**
+   * A rotation inside an algorithm is part of how it is spelled, and folding it away names the
+   * later turns from before it — which moves the layer off the top, so what looked like alignment
+   * was not. Such an execution is handed back rather than tidied into something else.
+   */
+  @Test
+  public void anExecutionItCannotTidyWithoutChangingItIsHandedBack() {
+    String executed = "x' R U' R' D R U R' D' R U R' D R U' R' D' x";
+    assertEquals(executed, LastLayerCaseAlgorithms.tidied("pll_e", executed));
+    assertEquals("R U R' banana", LastLayerCaseAlgorithms.tidied("oll_27", "R U R' banana"));
+    assertNull(LastLayerCaseAlgorithms.tidied("oll_27", null));
+  }
+
+  /**
+   * The two halves of the dialog have to agree about which row an execution is: it is written as
+   * the row {@link LastLayerCaseAlgorithms#matching} found and drawn as the row its fold is kept
+   * under, and anything that joins the two would lose the execution if those were different rows.
+   *
+   * <p>They are the same row for every spelling in the table turned from every grip, and this is
+   * why: a fold only happens where two rows come out as the same turns written the same way, the
+   * wide saying what the slice said, so the two spellings share one form and the earlier of them
+   * answers for both wherever either is asked for. ⚠️ <b>A fold whose halves keep different forms</b>
+   * — a mirror reached by standing the cube up — <b>would break that</b>, since which of the two the
+   * match lands on would then depend on which grip came first. The dialog compares turnings rather
+   * than text throughout so that it survives one, and this test is what says whether the table has
+   * gained one.
+   */
+  @Test
+  public void theRowAnExecutionIsWrittenAsIsTheRowItIsDrawnAs() {
+    int checked = 0;
+    for (String[] row : LastLayerCaseAlgorithms.rows()) {
+      for (char[] grip : AlgorithmForm.grips()) {
+        String executed =
+            String.join(" ", AlgorithmForm.conjugatedBy(AlgorithmForm.of(row[1]), grip));
+        LastLayerCaseAlgorithms.Algorithm written =
+            LastLayerCaseAlgorithms.matching(row[0], executed);
+        if (written == null) {
+          // Alignment comes off the face named U, so a grip that stands the layer elsewhere
+          // leaves turns on it that no algorithm of the case has. Nothing is claimed about those.
+          continue;
+        }
+        for (LastLayerCaseAlgorithms.Algorithm drawn
+            : LastLayerCaseAlgorithms.foldedForCase(row[0])) {
+          if (LastLayerCaseAlgorithms.sameTurning(row[0], drawn.getMoves(), written.getMoves())) {
+            checked++;
+            assertEquals(row[0] + " turned as " + executed,
+                drawn.getMoves(), written.getMoves());
+          }
+        }
+      }
+    }
+    assertTrue("no row was both written and drawn, so this proves nothing", checked > 0);
+  }
 }

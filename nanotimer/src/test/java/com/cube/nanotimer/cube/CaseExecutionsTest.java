@@ -183,6 +183,78 @@ public class CaseExecutionsTest {
     assertFalse(LastLayerCaseAlgorithms.read("pll_t", turned.get("pll_t")).isUnusual());
   }
 
+  /**
+   * The rule that keeps a wrecked case out of the list of algorithms a solver uses. The moves that
+   * put a misread case right do solve the case, so nothing about them says they were a scramble and
+   * a rebuild — what says so is that they happened once and the real answer happened twice.
+   */
+  @Test
+  public void anAnswerTurnedOnlyOnceIsNotOneOfTheirAlgorithms() {
+    List<CaseExecutions.Shown> shown = CaseExecutions.shownFrom("pll_t",
+        spread(3, turned(TPERM, 2), turned("R U R' U'", 1)));
+
+    assertEquals(1, shown.size());
+    assertEquals("R U R' U' R' F R2 U' R' U' R U R' F'", shown.get(0).getMoves());
+    assertEquals(2, shown.get(0).getTimes());
+    assertEquals(3, shown.get(0).getOf()); // out of every answer, not out of the ones shown
+  }
+
+  /** Or there would be a case that had been solved and had nothing to show for it. */
+  @Test
+  public void theOneTurnedMostIsShownWhetherOrNotItWasTurnedTwice() {
+    List<CaseExecutions.Shown> shown = CaseExecutions.shownFrom("pll_t",
+        spread(2, turned(TPERM, 1), turned("R U R' U'", 1)));
+
+    assertEquals(1, shown.size());
+    assertEquals(1, shown.get(0).getTimes());
+  }
+
+  /** A case really can have two answers, and both are theirs once both have happened twice. */
+  @Test
+  public void bothAnswersAreShownOnceBothHaveRepeated() {
+    assertEquals(2, CaseExecutions.shownFrom("pll_t",
+        spread(4, turned(TPERM, 2), turned("R U R' U'", 2))).size());
+  }
+
+  /**
+   * Executions that come out written alike are one row holding both counts, and adding them up can
+   * carry that row past the one that was in front of it — which is the row the words go on.
+   */
+  @Test
+  public void addingUpTwoSpellingsCanPutTheirRowInFront() {
+    List<CaseExecutions.Shown> shown = CaseExecutions.shownFrom("pll_t", spread(5,
+        turned("R U R' U'", 2), turned(TPERM, 1), turned("U " + TPERM + " U'", 1),
+        turned("U2 " + TPERM + " U2", 1)));
+
+    assertEquals(2, shown.size());
+    assertEquals("R U R' U' R' F R2 U' R' U' R U R' F'", shown.get(0).getMoves());
+    assertEquals(3, shown.get(0).getTimes());
+    assertEquals("R U R' U'", shown.get(1).getMoves());
+  }
+
+  @Test
+  public void showsNothingForACaseWithNoAnswer() {
+    assertTrue(CaseExecutions.shownFrom("pll_t", null).isEmpty());
+  }
+
+  /** The moves the execution was read from stay with it: what it turned is not how it is written. */
+  @Test
+  public void keepsTheMovesAsTheyWereTurnedBesideTheWayTheyAreWritten() {
+    CaseExecutions.Shown shown = CaseExecutions.shownFrom("pll_t",
+        spread(2, turned("U " + TPERM + " U'", 2))).get(0);
+
+    assertEquals("U " + TPERM + " U'", shown.getExecuted());
+    assertEquals("R U R' U' R' F R2 U' R' U' R U R' F'", shown.getMoves());
+  }
+
+  private static CaseExecutions.Turned turned(String moves, int times) {
+    return new CaseExecutions.Turned(moves, times);
+  }
+
+  private static CaseExecutions.Spread spread(int of, CaseExecutions.Turned... turned) {
+    return new CaseExecutions.Spread(Arrays.asList(turned), of);
+  }
+
   /** One solve of the given moves, scrambled so that exactly they solve it. */
   private static List<SolveTime> solves(String moves) {
     SolveType solveType = new SolveType(1, "3x3", false, null, CubeType.THREE_BY_THREE.getId());

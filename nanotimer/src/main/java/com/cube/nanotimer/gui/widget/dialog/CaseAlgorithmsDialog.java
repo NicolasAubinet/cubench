@@ -47,7 +47,15 @@ import java.util.List;
  * <p><b>Tapping one keeps it, and nothing moves.</b> The list stays in most-used order whatever the
  * user picks: marking their choice by lifting it to the front made the order a lie and took the
  * recommendation off the row that had earned it. An algorithm of their own is not squeezed into that
- * order either — it sits above the list, where it can be theirs without displacing anything.
+ * order either — it sits under the list, where it can be theirs without displacing anything. Under
+ * and not over: the row carrying "the one you use" is the answer to the question the dialog was
+ * opened with, and nothing of theirs may stand above it.
+ *
+ * <p><b>One row per algorithm, not per spelling.</b> A sixth of the table writes one algorithm twice,
+ * so the rows are folded before they are drawn — otherwise a case offers a choice between an
+ * algorithm and itself, and its vote arrives split, which can put the wrong row in front. What that
+ * costs is that a pick is kept as the text it was while the row it belongs to may now be spelled
+ * some other way, so the star is hung on the turning rather than on the string.
  *
  * <p>An algorithm they typed in is kept whether or not it is the one they are using, so trying a
  * listed one is not a way to lose the work of entering theirs.
@@ -66,9 +74,15 @@ import java.util.List;
  * the list as theirs, marked the same way and still stored nowhere.
  *
  * <p><b>A case can honestly have two answers</b>, picked by the angle it came up at or by which hand
- * is free, so every execution their solves hold is shown and each says how many of them it was.
- * "The one you use" goes to the one they turn most; the rest are still theirs and still marked. The
- * counts appear only where there is more than one, since "5 of your last 5" is a fact about nothing.
+ * is free, so every execution they have turned more than once is shown and each says how many of
+ * their answers it was. "The one you use" goes to the one they turn most; the rest are still theirs
+ * and still marked. The counts appear only where there is more than one, since "5 of your last 5" is
+ * a fact about nothing.
+ *
+ * <p><b>Once is not an answer.</b> A case misread and then put right leaves the moves that put it
+ * right recorded against the case, and they solve it, so nothing in the moves says they were a
+ * scramble and a rebuild. What says so is that they happened once while the real answer happened
+ * more often. So a lone execution waits for its second before it is called theirs.
  */
 public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
@@ -167,54 +181,34 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    */
   private List<Turned> read(CaseExecutions.Spread spread) {
     List<Turned> read = new ArrayList<Turned>();
-    if (spread == null) {
-      return read;
-    }
-    for (CaseExecutions.Turned one : spread.getTurned()) {
-      String moves = CaseExecutions.asAlgorithm(caseCode, one.getMoves());
-      // Two executions written the same way are one row, or the counts on the rows drawn would not
-      // add up to the answers they were counted out of.
-      Turned already = named(read, moves);
-      if (already == null) {
-        read.add(new Turned(moves, LastLayerCaseAlgorithms.read(caseCode, one.getMoves()),
-            one.getTimes(), spread.getOf()));
-      } else {
-        already.times += one.getTimes();
-      }
+    for (CaseExecutions.Shown one : CaseExecutions.shownFrom(caseCode, spread)) {
+      read.add(new Turned(one.getMoves(),
+          LastLayerCaseAlgorithms.read(caseCode, one.getExecuted()), one.getTimes(), one.getOf()));
     }
     return read;
   }
 
-  private static Turned named(List<Turned> read, String moves) {
-    for (Turned one : read) {
-      if (one.moves.equals(moves)) {
-        return one;
-      }
-    }
-    return null;
-  }
-
   /**
-   * The listed algorithms in their own order, and above them what is theirs and not on the list:
+   * The listed algorithms in their own order, and under them what is theirs and not on the list:
    * an algorithm they typed in, and every execution of theirs that is none of the listed ones.
    * Nothing here depends on what is chosen or turned: those mark a row, they do not rearrange them.
    */
   private void refresh() {
     rows.removeAllViews();
     yours.removeAllViews();
-    List<Algorithm> listed = LastLayerCaseAlgorithms.forCase(caseCode);
+    List<Algorithm> listed = LastLayerCaseAlgorithms.foldedForCase(caseCode);
     List<String> shown = new ArrayList<String>();
     for (int i = 0; i < listed.size(); i++) {
       Algorithm algorithm = listed.get(i);
       rows.addView(row(algorithm.getMoves(), algorithm.isRecommended(), i == 0));
       shown.add(algorithm.getMoves());
     }
-    if (own != null && !shown.contains(own)) {
+    if (own != null && !listedAlready(shown, own)) {
       shown.add(own);
       yours.addView(row(own, false, false));
     }
     for (Turned one : turned) {
-      if (!shown.contains(one.moves)) {
+      if (!listedAlready(shown, one.moves)) {
         shown.add(one.moves);
         yours.addView(row(one.moves, false, false));
       }
@@ -224,10 +218,32 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     yours.setVisibility(any ? View.VISIBLE : View.GONE);
   }
 
-  /** What the solver turns for this row, or null where this is not one of their executions. */
+  /**
+   * Whether a row is already up, asked of the turning rather than of the text: a list that folds two
+   * spellings into one shows the folded one, and an algorithm of their own spelled the other way is
+   * that row rather than a second copy of it.
+   */
+  private boolean listedAlready(List<String> shown, String moves) {
+    for (String already : shown) {
+      if (LastLayerCaseAlgorithms.sameTurning(caseCode, already, moves)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * What the solver turns for this row, or null where this is not one of their executions.
+   *
+   * <p>By the turning, for the same reason the list is folded by it. An execution is written as
+   * the row of the table it matched, and the row the list draws is the one its fold is kept
+   * under, which need not be the same spelling — so comparing the two as text would leave the row
+   * unmarked while {@code listedAlready} had already counted the execution as being that row, and
+   * it would drop off the dialog altogether.
+   */
   private Turned turnedFor(String moves) {
     for (Turned one : turned) {
-      if (one.moves.equals(moves)) {
+      if (LastLayerCaseAlgorithms.sameTurning(caseCode, one.moves, moves)) {
         return one;
       }
     }
@@ -240,7 +256,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    * content of the list.
    */
   private View row(final String moves, boolean recommended, boolean top) {
-    boolean declared = moves.equals(chosen);
+    boolean declared = LastLayerCaseAlgorithms.sameTurning(caseCode, moves, chosen);
     Turned one = turnedFor(moves);
     boolean mine = declared || one != null; // theirs either way, said or done
 
@@ -366,7 +382,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   /** Tapping the one already kept lets it go, so a wrong tap is undone the same way it was made. */
   private void choose(String moves) {
-    chosen = moves.equals(chosen) ? null : moves;
+    chosen = LastLayerCaseAlgorithms.sameTurning(caseCode, moves, chosen) ? null : moves;
     Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
     refresh();
   }
@@ -418,8 +434,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private void keepOwn(String typed) {
     chosen = typed;
     Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
-    for (Algorithm algorithm : LastLayerCaseAlgorithms.forCase(caseCode)) {
-      if (algorithm.getMoves().equals(typed)) {
+    for (Algorithm algorithm : LastLayerCaseAlgorithms.foldedForCase(caseCode)) {
+      if (LastLayerCaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), typed)) {
         refresh();
         return;
       }

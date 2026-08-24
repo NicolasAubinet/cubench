@@ -368,15 +368,40 @@ public final class LastLayerCaseAlgorithms {
   private LastLayerCaseAlgorithms() {
   }
 
-  /** What to show for a case, most used first, or an empty list for a case with no algorithms. */
+  /**
+   * The table's rows for a case, most used first, or an empty list for a case with no algorithms.
+   *
+   * <p>Spelled as the table spells them, one row per spelling: this is what the case's picture is
+   * drawn from, and which spelling comes first decides which way round the layer is drawn. Anything
+   * showing a solver a list of algorithms wants {@link #foldedForCase} instead.
+   */
   public static List<Algorithm> forCase(String caseCode) {
     return forCase(caseCode, DEFAULT_MIN_SHARE);
   }
 
   /** @param minShare the share of the case's votes an algorithm needs, in percent */
   public static List<Algorithm> forCase(String caseCode, int minShare) {
+    return shownOf(every(caseCode), minShare);
+  }
+
+  /**
+   * What to show a solver for a case: the same rules, over one row per algorithm rather than one
+   * per spelling.
+   *
+   * <p>A list built from {@link #forCase} can hold the same algorithm twice — the wide saying what
+   * the slice said — which reads as a choice where there is none, and splits that algorithm's vote
+   * so that the row shown first need not be the one most people turn. Folding first fixes both, and
+   * lands each row on the spelling {@link #matching} rewrites an execution of it to, so a solver's
+   * own execution marks the row it is rather than falling out of the list as something else.
+   */
+  public static List<Algorithm> foldedForCase(String caseCode) {
+    return shownOf(folded(caseCode), DEFAULT_MIN_SHARE);
+  }
+
+  /** The few worth showing out of a case's algorithms, the most used one marked where it leads. */
+  private static List<Algorithm> shownOf(List<Algorithm> algorithms, int minShare) {
     List<Algorithm> all = new ArrayList<Algorithm>();
-    for (Algorithm algorithm : every(caseCode)) {
+    for (Algorithm algorithm : algorithms) {
       if (all.isEmpty() || (algorithm.getShare() >= minShare && all.size() < MOST_SHOWN)) {
         all.add(algorithm);
       }
@@ -608,6 +633,71 @@ public final class LastLayerCaseAlgorithms {
       }
     }
     return AlgorithmForm.withoutAlignment(turns).size(); // nothing it does names the case
+  }
+
+  /**
+   * An execution with what is not the algorithm taken off it: the turn that squared the case up to
+   * be read, whatever the last algorithm left over on the front, the one the next case wants on the
+   * back, and a regrip turned and turned again in the middle.
+   *
+   * <p>Only for an execution no algorithm of the case matches. One that does is shown as the row it
+   * matched, which is already spelled the way the case is drawn.
+   *
+   * <p><b>It never renames a face.</b> A case reads the same whichever way its layer is turned, so
+   * four of the 24 grips leave an execution still solving it and any of them could be called the
+   * frame the case is drawn in — but they name the same turning on four different faces, and
+   * choosing between them would hand a solver their own Sune back written on B. Only the opening
+   * rotation comes off, which is the regrip and not the algorithm; everything after it is left
+   * standing where the solver turned it.
+   *
+   * <p><b>And it checks its work.</b> A rotation in the middle of an algorithm is part of how it is
+   * spelled, and folding one away names every later turn from before it, which moves the layer off
+   * the top and makes a turn of it no longer alignment. So what comes out is held to still solving
+   * the case, and an execution it cannot tidy without changing what it does is handed straight back.
+   */
+  public static String tidied(String caseCode, String moves) {
+    if (moves == null) {
+      return null;
+    }
+    String tidy;
+    try {
+      tidy = written(AlgorithmForm.withoutAlignment(AlgorithmForm.of(withoutOpeningGrip(moves))));
+    } catch (RuntimeException e) {
+      return moves; // notation nothing can read is left the way the solver wrote it
+    }
+    return solves(caseCode, tidy) ? tidy : moves;
+  }
+
+  /** The moves from the first of them that turns a layer: what comes before is how it was picked up. */
+  private static String withoutOpeningGrip(String moves) {
+    String[] tokens = moves.trim().split("\\s+");
+    int from = 0;
+    while (from < tokens.length && "xyz".indexOf(tokens[from].charAt(0)) >= 0) {
+      from++;
+    }
+    StringBuilder turned = new StringBuilder();
+    for (int i = from; i < tokens.length; i++) {
+      turned.append(turned.length() == 0 ? "" : " ").append(tokens[i]);
+    }
+    return turned.toString();
+  }
+
+  /**
+   * Whether two spellings are the same algorithm turned, which is the only way to ask once a list
+   * can fold two of them into one row.
+   *
+   * <p>A solver's pick and an algorithm of their own are kept as the text they were, so a spelling
+   * that is later folded away would lose its star against any test that compares strings.
+   */
+  public static boolean sameTurning(String caseCode, String moves, String other) {
+    if (moves == null || other == null) {
+      return false;
+    }
+    if (moves.equals(other)) {
+      return true;
+    }
+    String key = keyAsDrawn(caseCode, moves);
+    return key != null && key.equals(keyAsDrawn(caseCode, other));
   }
 
   /**

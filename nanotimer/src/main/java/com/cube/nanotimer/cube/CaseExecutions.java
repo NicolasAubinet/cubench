@@ -91,16 +91,83 @@ public final class CaseExecutions {
 
   /**
    * How an execution is written where it is shown: the table's spelling where the two really are
-   * the same algorithm, since that is the one written the way the case is drawn, and the moves as
-   * they were turned where they are not. Calling an execution the nearest listed algorithm would be
-   * putting words in the solver's hands.
+   * the same algorithm, since that is the one written the way the case is drawn, and the execution
+   * tidied into that same form where they are not. Calling an execution the nearest listed
+   * algorithm would be putting words in the solver's hands.
+   *
+   * <p><b>Tidied, not replaced.</b> An execution comes back with the turn that squared the case up
+   * on the front, whatever the last algorithm left over on the back, and a regrip turned and turned
+   * again in the middle, so shown raw it reads as longer and stranger than what the solver did.
+   * {@link LastLayerCaseAlgorithms#tidied} takes those off without touching which pieces moved or
+   * which face any of them is named on, so an algorithm of their own still comes back theirs.
    */
   public static String asAlgorithm(String caseCode, String moves) {
     if (moves == null) {
       return null;
     }
     LastLayerCaseAlgorithms.Algorithm matched = LastLayerCaseAlgorithms.matching(caseCode, moves);
-    return matched == null ? moves : matched.getMoves();
+    return matched == null ? LastLayerCaseAlgorithms.tidied(caseCode, moves) : matched.getMoves();
+  }
+
+  /**
+   * A case's executions as a screen shows them: each named the way it will be written, any two that
+   * come out written alike added together, most turned first, and the ones turned only once left out.
+   *
+   * <p><b>A case answered once is not an algorithm the solver uses.</b> Misread a case, wreck the
+   * cube putting it right, and the moves that got there are recorded against the case all the same:
+   * they really did solve it, so nothing in the moves themselves says they were a scramble and a
+   * rebuild. What says so is that they happened once while the real answer happened more often,
+   * which is a thing counting can see and no reading of a move sequence can.
+   *
+   * <p>The one turned most is kept whatever its count, so a case with any answer at all still has
+   * one. The cost of the rest is deliberate and small: an algorithm just learnt waits for the second
+   * time the case comes up, and a solver with two real answers sees only the commoner one until the
+   * other repeats. One more solve fixes both. Being told they use something they turned once by
+   * accident is not fixed by anything.
+   *
+   * <p>{@link Spread#getOf} is left alone. "2 of your last 5" is what those five answers were,
+   * whether or not the other three earned a row.
+   */
+  public static List<Shown> shownFrom(String caseCode, Spread spread) {
+    List<Shown> shown = new ArrayList<Shown>();
+    if (spread == null) {
+      return shown;
+    }
+    for (Turned one : spread.getTurned()) {
+      String moves = asAlgorithm(caseCode, one.getMoves());
+      // Two executions written the same way are one row, or the counts on the rows drawn would not
+      // add up to the answers they were counted out of.
+      Shown already = writtenAs(shown, moves);
+      if (already == null) {
+        shown.add(new Shown(moves, one.getMoves(), one.getTimes(), spread.getOf()));
+      } else {
+        already.times += one.getTimes();
+      }
+    }
+    // Adding two together can carry a row past the one in front of it, and the row in front is the
+    // one the words go on.
+    Collections.sort(shown, new Comparator<Shown>() {
+      @Override
+      public int compare(Shown one, Shown other) {
+        return other.times - one.times;
+      }
+    });
+    List<Shown> kept = new ArrayList<Shown>();
+    for (Shown one : shown) {
+      if (kept.isEmpty() || one.times > 1) {
+        kept.add(one);
+      }
+    }
+    return kept;
+  }
+
+  private static Shown writtenAs(List<Shown> shown, String moves) {
+    for (Shown one : shown) {
+      if (one.moves.equals(moves)) {
+        return one;
+      }
+    }
+    return null;
   }
 
   /** One solve's cases, or none of them where it cannot be read again. */
@@ -218,6 +285,44 @@ public final class CaseExecutions {
 
     public int getTimes() {
       return times;
+    }
+  }
+
+  /**
+   * One answer a screen may show: how it is written there, the moves it was read from, and how many
+   * of the case's answers it was.
+   */
+  public static final class Shown {
+
+    private final String moves;
+    private final String executed;
+    private int times;
+    private final int of;
+
+    Shown(String moves, String executed, int times, int of) {
+      this.moves = moves;
+      this.executed = executed;
+      this.times = times;
+      this.of = of;
+    }
+
+    /** The way it is written where it is shown, which is the table's spelling where it has one. */
+    public String getMoves() {
+      return moves;
+    }
+
+    /** The moves as the solver turned them, which is what anything reading the execution wants. */
+    public String getExecuted() {
+      return executed;
+    }
+
+    public int getTimes() {
+      return times;
+    }
+
+    /** How many of the case's answers these were counted out of, the ones left out included. */
+    public int getOf() {
+      return of;
     }
   }
 
