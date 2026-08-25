@@ -495,6 +495,43 @@ public class RecordedBlindSolveTest {
     }
   }
 
+  /**
+   * A real solve whose edges are done in slices end to end, which is what a 3-style solve is made
+   * of and what every other fixture here happens not to be. The whole of it is held, names and all,
+   * because a slice-heavy solve is where a reading has the most room to go wrong: a slice rocks the
+   * core, so every state is read against all 24 rotations, and states stand a clean three-cycle
+   * from the last landing by coincidence far more often than face turns let them.
+   */
+  @Test
+  public void readsASolveMadeOfSlicesWithoutFollowingAShadowOfIt() {
+    replay(RecordedBlindSolve.SCRAMBLE_SLICES, RecordedBlindSolve.MOVES_SLICES, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete()); // four edges from home, and the solver could not see it
+    assertEquals(Arrays.asList("memo", "edges", "corners", "parity", "execution"), stepNames());
+    assertEquals(Arrays.asList("UF-DB-DF", "UF-DL-RU", "UF-RF-FL", "UF-RB-BL", "UF-DR-BL"),
+        subStepNames(1));
+    assertEquals(Arrays.asList("UFR-BDL-UBL", "UFR-RDB-FDL", "UFR-LUB-BUR"), subStepNames(2));
+    assertEquals(Arrays.asList("UFR-UBR + UF-UR"), subStepNames(3));
+  }
+
+  /** Every step of the solve, in order. */
+  private List<String> stepNames() {
+    List<String> names = new ArrayList<String>();
+    for (int step = 0; step < detector.stepCount(); step++) {
+      names.add(detector.stepName(step));
+    }
+    return names;
+  }
+
+  /** Every algorithm of one step, in order. */
+  private List<String> subStepNames(int step) {
+    List<String> names = new ArrayList<String>();
+    for (int part = 0; part < detector.subStepCount(step); part++) {
+      names.add(detector.subStepName(step, part));
+    }
+    return names;
+  }
+
   /** Every landing of the solve, in order. */
   private List<Long> landingTimes() {
     List<Long> times = new ArrayList<Long>();

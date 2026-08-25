@@ -371,6 +371,33 @@ final class RecordedBlindSolve {
           + "B@94536 U@94770 z'@95749 B'@95750 R'@95962 B@96094 U@96235 z@96383 B'@96383 U'@96500 "
           + "B'@96668 R@96752 B@96891 B@96989 U'@97117 B'@97285 U'@97505";
 
+  /**
+   * 2026-08-25: nine algorithms, a parity, and a DNF four edges from home. Slices everywhere, the
+   * opening move among them, and the detector from before landings were held open reads one
+   * algorithm of it and nothing else at all. That is what that change was for and what this holds
+   * it to; it is also the only solve here whose edges are done in slices end to end.
+   *
+   * <p>Its grip is written in because the gyro missed it: the session anchored a quarter turn out,
+   * so the solve was stored with no grip and read through the cube's own frame, giving UR and UBR
+   * for the owner's UF and UFR. The moves are otherwise the stream verbatim.
+   */
+  static final String SCRAMBLE_SLICES =
+      "F2 R2 B2 R2 D F2 D2 B2 U' L' U' L2 F R F L' R' U B' L2";
+  static final String MOVES_SLICES =
+      "[y] F@52472 B'@52484 z'@52485 R@52746 R@52850 F@53026 B'@53028 z'@53029 D@53241 D@53368 "
+          + "z'@53500 B'@53501 F@53756 B'@53774 z'@53775 z'@53820 F@53821 B'@55090 z'@55222 "
+          + "B'@55223 R@55436 L'@55447 x'@55448 D@55600 R@55758 y@55903 z@55903 D'@55903 "
+          + "R'@56088 L@56100 x@56101 x'@56339 B@56339 R'@56595 z@56947 B@56947 U'@57948 D@57949 "
+          + "y@57950 R'@58130 U@58223 R@58380 D'@58565 U@58610 y'@58611 F'@58741 U'@58897 "
+          + "F@58996 U@61244 D'@61252 y'@61253 L@61452 U@61624 L'@61750 D@61910 U'@61918 y@61919 "
+          + "F@62069 U'@62169 F'@62292 U'@62773 B'@63125 D@63282 U'@63283 y@63284 L@63405 "
+          + "L@63487 D'@63766 U@63768 y'@63769 B'@63964 U@64115 D'@64511 U@64527 B@64663 D@64736 "
+          + "B'@64864 U@65062 U@65214 B@65762 D'@66596 B'@66836 D@66999 U@67058 B@67760 D@67891 "
+          + "B'@68021 U'@68108 B@68217 D@68349 B'@68493 U@68692 B@68895 D@69205 D@69344 B'@70294 "
+          + "U@71046 B'@71295 U'@71380 B'@71496 D'@71618 B@71715 U@71815 B'@71893 D@72004 "
+          + "B@72106 B@72200 U'@72284 B@72596 U@72708 B'@72823 R'@72934 B@73049 U@73150 B'@73270 "
+          + "U'@73363 B'@73487 R@73563 B@73688 B@73764 U'@73840 B'@74004 U'@74144";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -378,5 +405,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_WRONG_TARGET, MOVES_WRONG_TARGET},
     {SCRAMBLE_PASSED_THROUGH, MOVES_PASSED_THROUGH},
     {SCRAMBLE_BROKE_IN, MOVES_BROKE_IN},
+    {SCRAMBLE_SLICES, MOVES_SLICES},
   };
 }

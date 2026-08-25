@@ -48,6 +48,15 @@ public class BlindStepDetectorTest {
   private static final String CORNER_CYCLE_A = "R' F R' B2 R F' R' B2 R2";
   private static final String CORNER_CYCLE_B = "U2 R' F R' B2 R F' R' B2 R2 U2";
 
+  /**
+   * A generated solve whose edge algorithms are slice commutators — the shape a 3-style solve is
+   * made of, and the one every other fixture here is written without. See the test that plays it.
+   */
+  private static final String SLICE_SOLVE =
+      "R L L F' B D D F B' B' F L' L' B F' D' D' R' U D' U' U D' R' L F R L' D U' U D L R' "
+          + "F' L' R U' R L' U D' R' U' D B F B' D' U R D U' B F' B' L R' F' L' U' R U L U' R' U F "
+          + "R' B B R F' R' B' B' R F R' R";
+
   /** Two corners and two edges swapped in one algorithm: exactly what a parity leaves to fix. */
   private static final String T_PERM = "R U R' U' R' F R2 U' R' U' R U R' F'";
 
@@ -367,6 +376,31 @@ public class BlindStepDetectorTest {
     assertEquals(BlindResidual.Shape.PARITY, detector.getResidual().getShape());
     assertNotNull(detector.getLostReading());
     assertNull(detector.getParityCheck());
+  }
+
+  /**
+   * Three edge algorithms made of slices and two corner ones, generated rather than written: the
+   * search that found them is {@code blind-landing-harness/SliceBlindSolvesTest.java}, and this is
+   * the first solve of two thousand it turned up that the reading settled wrongly.
+   *
+   * <p>The third edge algorithm opens on a slice, and the state one slice in stands a clean
+   * three-cycle from where the second one landed — a slice rocks the core, so every state is read
+   * against all 24 rotations and a coincidence like that is common where face turns make it rare.
+   * Settling there, the reading follows a shadow of the real one a slice out of phase for the rest
+   * of the solve: the second algorithm comes out renamed off a different buffer, and neither corner
+   * algorithm lands at all.
+   */
+  @Test
+  public void doesNotFollowAShadowOfASliceSolveASliceOutOfPhase() {
+    startFrom(SLICE_SOLVE);
+    play(SLICE_SOLVE);
+
+    assertTrue(detector.isComplete());
+    assertEquals(3, detector.subStepCount(1));
+    assertEquals("UB-BD-FD", detector.subStepName(1, 1)); // the shadow renamed this one UF-DF-DB
+    assertEquals("UB-DR-FU", detector.subStepName(1, 2));
+    assertEquals("corners", detector.stepName(2)); // the shadow never reached the corners at all
+    assertEquals(2, detector.subStepCount(2));
   }
 
   /** Scramble with the inverse of the whole solve, then start the timer and memorise. */
