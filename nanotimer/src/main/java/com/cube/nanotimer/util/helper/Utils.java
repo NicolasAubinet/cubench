@@ -44,6 +44,9 @@ public class Utils {
   private static final String PERMUTATION_ALGORITHM_PREFIX = "alg_";
   private static final String ORIENTATION_ALGORITHM_PREFIX = "ollalg_";
   private static final String SKIPPED_CASE = "skip";
+  /** The part of a last layer step that got back to the case it started from ("pllrestart"): one
+   * word for both families, since which step it happened in is already on the row above it. */
+  private static final String RESTART_CODE_SUFFIX = "restart";
   private static final String FLIP_CODE_PREFIX = "flip:", TWIST_CODE_PREFIX = "twist:";
   private static final String BREAK_IN_CODE_PREFIX = "breakin:";
   private static final String MEMO_CODE = "memo";
@@ -181,6 +184,9 @@ public class Utils {
     String turn = toSmartCubeTurnedName(context, code);
     if (turn != null) {
       return turn;
+    }
+    if (code != null && code.endsWith(RESTART_CODE_SUFFIX)) {
+      return context.getString(R.string.smartcube_step_restart);
     }
     if (code != null && code.startsWith(ORIENTATION_ALGORITHM_PREFIX)) {
       return context.getString(R.string.smartcube_step_oll_alg,

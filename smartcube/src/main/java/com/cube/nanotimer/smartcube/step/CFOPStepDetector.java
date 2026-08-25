@@ -20,6 +20,12 @@ import java.util.Locale;
  * and are dated by the run they were in when F2L completed (a slot broken and rebuilt counts from
  * the rebuild). A last layer step read right is one algorithm, and two looks are two.
  *
+ * <p>A last layer case can also be <em>left and turned back to</em>: the solver misreads it, wrecks
+ * the layer and rebuilds it to the case they started from. What was turned in between solved
+ * nothing, so it is cut out as a part of its own ("pllrestart") rather than left glued to the
+ * algorithm that followed — which would otherwise be read as one 60-move algorithm the solver uses.
+ * It is not a skip: the step was reached and worked at, it just got nowhere.
+ *
  * <p>The cross face is auto-detected. All six candidates are tracked, and F2L completion confirms
  * which one the solve was actually built on — so a cross that happens to be complete on some other
  * face (in the scramble, or in passing) is discarded rather than mistaken for the real one.
@@ -39,6 +45,11 @@ public final class CFOPStepDetector implements StepDetector {
    * because that code is already written in stored history as PLL's. */
   private static final String PERMUTATION_ALGORITHM_PREFIX = "alg_";
   private static final String ORIENTATION_ALGORITHM_PREFIX = "ollalg_";
+
+  /** Scrapped work, a family of its own: putting it in "alg_" would average moves that solved
+   * nothing into the mean of the algorithms that did. */
+  private static final String PERMUTATION_RESTART_CODE = "pllrestart";
+  private static final String ORIENTATION_RESTART_CODE = "ollrestart";
 
   /** The 4 slots F2L is built in. Each is coded by where it sits ({@link #SLOT_CODES}) and shown by
    * the order it was built, so there are no names to write here. */
@@ -314,16 +325,22 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   /** A last layer part is coded by the algorithm that was run ("alg_jb", "ollalg_21"), the way a
-   * pair is by its slot. */
+   * pair is by its slot, or as a restart for the moves that got back to where they started. */
   @Override
   public String subStepName(int step, int subStep) {
     if (step == OLL) {
-      return ORIENTATION_ALGORITHM_PREFIX + orientation.caseAt(subStep);
+      return partName(orientation.caseAt(subStep), ORIENTATION_ALGORITHM_PREFIX,
+          ORIENTATION_RESTART_CODE);
     }
     if (step == PLL) {
-      return PERMUTATION_ALGORITHM_PREFIX + permutation.caseAt(subStep);
+      return partName(permutation.caseAt(subStep), PERMUTATION_ALGORITHM_PREFIX,
+          PERMUTATION_RESTART_CODE);
     }
     return crossFace == null ? "pair" : SLOT_CODES[crossFace][subStep];
+  }
+
+  private static String partName(String executed, String prefix, String restartCode) {
+    return AlgorithmTrack.RESTART.equals(executed) ? restartCode : prefix + executed;
   }
 
   @Override
@@ -411,6 +428,9 @@ public final class CFOPStepDetector implements StepDetector {
    */
   private static final class AlgorithmTrack {
 
+    /** Stands where an algorithm's name would, for the moves that got back to where they started. */
+    static final String RESTART = "restart";
+
     /** Whether the step permutes the layer (a PLL) or orients it (an OLL). */
     private final boolean permutes;
 
@@ -457,8 +477,17 @@ public final class CFOPStepDetector implements StepDetector {
       String executed = permutes
           ? LastLayerCases.permutationAlgorithm(landedState, facelets, crossFace)
           : LastLayerCases.orientationAlgorithm(landedState, facelets, crossFace);
-      if (executed == null || LastLayerCases.SKIP.equals(executed)) {
-        return;
+      if (executed == null) {
+        return; // nothing nameable landed on: keep waiting
+      }
+      if (LastLayerCases.SKIP.equals(executed)) {
+        // Back at the case it left. Cut the scrapped moves off here so the algorithm that follows
+        // is measured from this point rather than from where the fumble started.
+        cases.add(RESTART);
+        times.add(Long.valueOf(timestampMs));
+        landedState = facelets;
+        leftTheCase = false;
+        return; // the case still stands, so the step cannot be done
       }
       cases.add(executed);
       times.add(Long.valueOf(timestampMs));

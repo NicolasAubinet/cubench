@@ -272,31 +272,33 @@ public class SolveAnalyzerTest {
   }
 
   @Test
-  public void countsATurnTakenStraightBackAsRecognition() {
-    // The solver turns an F and puts it back before starting the algorithm. The cube is where it was
-    // when they looked at it, so the case is still being read and the T perm's own first move starts
-    // the execution.
+  public void countsATurnTakenStraightBackAsExecutionAndNotAsRecognition() {
+    // The solver turns an F and puts it back before starting the algorithm. That leaves the case
+    // standing, so it is a restart, and a restart is a part of the step like any other: its turning
+    // is execution, because the solver was turning and not reading. Only the two thinks are
+    // recognition.
     startFrom(T_PERM);
 
-    play("F F'", 800, 100); // turned and undone: struck out of the reconstruction
+    play("F F'", 800, 100); // turned and undone: a restart, not part of reading the case
     play(T_PERM, 300, 100);
 
     StepTime pll = stepTimes().get(3);
-    assertEquals(800 + 100 + 300, pll.getRecognitionMs());
-    assertEquals(1400, pll.getExecutionMs()); // only the algorithm
+    assertEquals(800 + 300, pll.getRecognitionMs()); // the think before each run, and no turning
+    assertEquals(1400 + 100, pll.getExecutionMs()); // the algorithm, plus the restart's own span
   }
 
   @Test
-  public void countsAWholeRunUnwoundAsRecognition() {
-    // The same thing nested, however deep: this unwinds from the inside out, three pairs of it.
+  public void countsAWholeRunUnwoundAsExecutionAndNotAsRecognition() {
+    // The same thing nested, however deep: this unwinds from the inside out, three pairs of it. Six
+    // turns rather than two, and they land the same way round.
     startFrom(T_PERM);
 
     play("R F U U' F' R'", 800, 100);
     play(T_PERM, 300, 100);
 
     StepTime pll = stepTimes().get(3);
-    assertEquals(800 + 500 + 300, pll.getRecognitionMs());
-    assertEquals(1400, pll.getExecutionMs());
+    assertEquals(800 + 300, pll.getRecognitionMs());
+    assertEquals(1400 + 500, pll.getExecutionMs());
   }
 
   @Test

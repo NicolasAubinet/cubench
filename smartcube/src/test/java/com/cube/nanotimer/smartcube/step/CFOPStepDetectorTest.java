@@ -196,20 +196,24 @@ public class CFOPStepDetectorTest {
     assertEquals("alg_t", detector.subStepName(CFOPStepDetector.PLL, 0));
   }
 
+  /** A run that got back to the case it started from is never an algorithm — it solved nothing. It
+   * is a restart rather than nothing at all, so the moves do not land on the algorithm that follows. */
   @Test
-  public void countsNoAlgorithmForOneTheSolverTookBack() {
+  public void readsARunTheSolverTookBackAsARestartAndNotAsAnAlgorithm() {
     startFrom(T_PERM, SUNE, "R U' R'", "F'");
     play("F", "R U R'", ANTI_SUNE);
 
-    play("U", "U'"); // squaring the case up leaves it standing: not an algorithm
+    play("U", "U'"); // squaring the case up never leaves the layer: not even a restart
     assertEquals(0, detector.subStepCount(CFOPStepDetector.PLL));
 
     play(SEXY, SEXY, SEXY, SEXY, SEXY, SEXY); // started, then unwound: the same case again
-    assertEquals(0, detector.subStepCount(CFOPStepDetector.PLL));
+    assertEquals(1, detector.subStepCount(CFOPStepDetector.PLL));
+    assertEquals("pllrestart", detector.subStepName(CFOPStepDetector.PLL, 0));
 
     play(T_PERM);
-    assertEquals(1, detector.subStepCount(CFOPStepDetector.PLL));
-    assertEquals("alg_t", detector.subStepName(CFOPStepDetector.PLL, 0));
+    assertEquals(2, detector.subStepCount(CFOPStepDetector.PLL));
+    assertEquals("pllrestart", detector.subStepName(CFOPStepDetector.PLL, 0));
+    assertEquals("alg_t", detector.subStepName(CFOPStepDetector.PLL, 1));
   }
 
   @Test
