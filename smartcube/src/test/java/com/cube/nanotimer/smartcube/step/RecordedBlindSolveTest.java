@@ -473,18 +473,23 @@ public class RecordedBlindSolveTest {
   }
 
   /**
-   * A cycle that closes after one shot is said as the one target: the piece waiting at it is the
-   * buffer's own, and there is nothing after that to expect. Solve 3 of 2026-08-10 stops there —
-   * the buffer held the {@code FR} edge, its home sticker was {@code RF}, and the solver shot
-   * {@code UL}, which is where the whole solve went.
+   * A cycle that closes after one shot is said as that target and a break-in: the piece waiting at
+   * it is the buffer's own, so the algorithm owed lands one target and opens the next cycle with
+   * the other, at whichever piece the solver pleases. Solve 3 of 2026-08-10 stops there — the buffer
+   * held the {@code FR} edge, its home sticker was {@code RF}, and the solver shot {@code UL}, which
+   * is where the whole solve went.
+   *
+   * <p><b>Said as two pieces and nothing else it read as a parity</b>, which it is not: the cycle
+   * carrying the buffer having length two says nothing about the ones that do not, and here two
+   * more were still out. The break-in is what a solve does there.
    */
   @Test
-  public void saysTheOneTargetWhereTheCycleClosedAfterIt() {
+  public void saysTheOneTargetAndABreakInWhereTheCycleClosedAfterIt() {
     replay(RecordedBlindSolve.SCRAMBLE_WRONG_TARGET, RecordedBlindSolve.MOVES_WRONG_TARGET,
         Long.MAX_VALUE);
 
     assertEquals("UF-UL-DR", detector.subStepName(1, 3));
-    assertEquals("UF-RF", detector.subStepWantedName(1, 3));
+    assertEquals("breakin:UF-RF", detector.subStepWantedName(1, 3));
     // And a solve that came out is owed nothing anywhere: no algorithm of it carries red.
     RecordedBlindSolveTest solved = new RecordedBlindSolveTest();
     solved.replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
@@ -493,6 +498,27 @@ public class RecordedBlindSolveTest {
         assertNull(solved.detector.subStepWantedName(step, part));
       }
     }
+  }
+
+  /**
+   * The solve of 2026-08-25, and the one that shows a closing cycle is not a parity. Its third edge
+   * algorithm found the {@code UF} buffer holding the {@code UL} edge and {@code UL} holding the
+   * buffer's own, so the pair owed was {@code UL} and then a break-in — and the solver shot
+   * {@code RD}, which is where the solve went.
+   *
+   * <p><b>Two edge three-cycles were still out at that moment</b>, which is what says the pair is
+   * ordinary: the cube standing odd there is the parity this solve went on to do at the end, four
+   * algorithms later, and not something the two-piece cycle announced.
+   */
+  @Test
+  public void saysABreakInWhereOtherCyclesOfTheTypeAreStillOut() {
+    replay(RecordedBlindSolve.SCRAMBLE_BREAK_IN_OWED, RecordedBlindSolve.MOVES_BREAK_IN_OWED,
+        Long.MAX_VALUE);
+
+    assertEquals("UF-RD-LB", detector.subStepName(1, 2));
+    assertEquals("breakin:UF-UL", detector.subStepWantedName(1, 2));
+    assertEquals(5, detector.subStepCount(1)); // two edge algorithms follow it...
+    assertEquals("parity", detector.stepName(3)); // ...and the parity comes after the corners
   }
 
   /**

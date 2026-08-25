@@ -30,6 +30,9 @@ final class BlindTargets {
   /** What a name is prefixed with when the algorithm turned its pieces where they stand. */
   private static final String FLIP = "flip:", TWIST = "twist:";
 
+  /** What a wanted name is prefixed with when its second target was the solver's to choose. */
+  private static final String BREAK_IN = "breakin:";
+
   /** The order a piece's faces are said in, in pairs: U/D first, then F/B, then R/L. */
   private static final String SAID_ORDER = "UDFBRL";
 
@@ -160,10 +163,16 @@ final class BlindTargets {
    * cube rather than guessed at, since a shot that lands its piece home is the whole of what a
    * target means.
    *
-   * <p>Two targets, because that is what one algorithm shoots. Only one where the cycle closes after
-   * the first — the piece waiting there is the buffer's own — and none at all where the buffer
-   * already holds its own piece, which is a cycle closed and a break-in the solver is free to make
-   * anywhere.
+   * <p>Two targets, because that is what one algorithm shoots. None at all where the buffer already
+   * holds its own piece, which is a cycle closed and a break-in the solver is free to make anywhere.
+   *
+   * <p><b>Where the cycle closes on the first target the second is not the cube's to say.</b> The
+   * piece waiting at that target is the buffer's own, so the algorithm shooting it lands one target
+   * and breaks into a new cycle with the other, at whichever piece of the type the solver pleases —
+   * an ordinary cycle break, and no more a parity than any other. The name is marked for it rather
+   * than cut short at two, since an algorithm shoots three pieces however it is written. Cut short
+   * it stays only when the type has nothing left to break into, where what was owed really was the
+   * one target, for a last algorithm or a parity to carry.
    */
   String wantedName(String before, int buffer) {
     int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);
@@ -177,8 +186,20 @@ final class BlindTargets {
     int second = homeFacelet(before, first);
     if (second >= 0 && Cubies.slotOf(second) != buffer) {
       names.add(spellFrom(second));
+      return join(names);
     }
-    return join(names);
+    return (breaksIn(before, buffer, Cubies.slotOf(first)) ? BREAK_IN : "") + join(names);
+  }
+
+  /** Whether a cycle closing on that target leaves the solver a piece of the type to break into. */
+  private static boolean breaksIn(String before, int buffer, int first) {
+    for (int slot = 0; slot < Cubies.PIECES.length; slot++) {
+      if (slot != buffer && slot != first && Cubies.isEdge(slot) == Cubies.isEdge(buffer)
+          && !Cubies.inPlace(before, Cubies.PIECES[slot])) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** Where the sticker sitting on this facelet belongs, which is where shooting it would send it. */

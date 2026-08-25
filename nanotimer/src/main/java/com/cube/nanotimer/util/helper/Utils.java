@@ -45,6 +45,7 @@ public class Utils {
   private static final String ORIENTATION_ALGORITHM_PREFIX = "ollalg_";
   private static final String SKIPPED_CASE = "skip";
   private static final String FLIP_CODE_PREFIX = "flip:", TWIST_CODE_PREFIX = "twist:";
+  private static final String BREAK_IN_CODE_PREFIX = "breakin:";
   private static final String MEMO_CODE = "memo";
 
   public static final String LANGUAGE_PREFS_NAME = "language";
@@ -211,6 +212,19 @@ public class Utils {
           code.substring(TWIST_CODE_PREFIX.length()));
     }
     return null;
+  }
+
+  /**
+   * The cycle a blind algorithm was owed ("breakin:UF-UL"), said with the break-in that the marked
+   * ones end on: their second target closed the cycle, so it was any piece of the type still out and
+   * the cube cannot name it. The pieces are the code's own and are never translated.
+   */
+  public static String toSmartCubeWantedName(Context context, String code) {
+    if (code == null || !code.startsWith(BREAK_IN_CODE_PREFIX)) {
+      return code;
+    }
+    return context.getString(R.string.smartcube_wanted_break_in,
+        code.substring(BREAK_IN_CODE_PREFIX.length()));
   }
 
   /**

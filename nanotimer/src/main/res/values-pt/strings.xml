@@ -400,6 +400,7 @@
   <string name="smartcube_step_undo">Desfeito</string>
   <string name="smartcube_step_flip">%s (flip)</string>
   <string name="smartcube_step_twist">%s (twist)</string>
+  <string name="smartcube_wanted_break_in">%s + break-in</string>
   <string name="smartcube_step_gap">Paragem</string>
   <!-- What a blind solve was left in, said under its breakdown. -->
   <string name="blind_left_edge_cycle">Terminou num ciclo de 3 arestas: %s</string>

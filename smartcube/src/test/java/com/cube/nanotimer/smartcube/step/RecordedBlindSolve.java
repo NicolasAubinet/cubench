@@ -398,6 +398,35 @@ final class RecordedBlindSolve {
           + "B@72106 B@72200 U'@72284 B@72596 U@72708 B'@72823 R'@72934 B@73049 U@73150 B'@73270 "
           + "U'@73363 B'@73487 R@73563 B@73688 B@73764 U'@73840 B'@74004 U'@74144";
 
+  /**
+   * 2026-08-25, and the one owed a break-in. Ordinary 3-style, five edge algorithms then four corner
+   * ones and a parity, left four edges out.
+   *
+   * <p>Its third edge algorithm found the buffer's cycle already closing on a single target: the
+   * {@code UF} buffer held the {@code UL} edge, and {@code UL} held the buffer's own. So what it was
+   * owed was {@code UL} and then whichever piece the solver chose to break into, and it shot
+   * {@code RD} instead. <b>Not a parity</b>, though the cube stood odd at that moment: two edge
+   * three-cycles were still out, and the parity was done at the end.
+   */
+  static final String SCRAMBLE_BREAK_IN_OWED =
+      "D L2 U B2 U2 R2 B2 D2 L2 D R' D R2 D' B F R' F2 D2 B' R'";
+  static final String MOVES_BREAK_IN_OWED =
+      "[y] y@38155 U@38155 F@38400 D'@38621 U@38623 y'@38624 L'@38775 x'@38867 L'@38868 D@39071 "
+          + "U'@39072 y@39073 F@39296 U'@39607 z'@40013 F@40013 z'@40257 U@40257 z@41347 F'@41347 "
+          + "F'@41506 y@42386 x'@42386 L'@42386 R@43064 U@44479 y'@44611 U@44612 R'@44938 L@44940 "
+          + "x@44941 U'@45337 F'@45591 B'@47532 z'@47903 R@47903 U'@48095 D@48096 y@48097 x@48268 "
+          + "L@48269 L@48348 U@48485 D'@48486 y'@48487 B'@48652 B'@48738 R'@48896 B@49246 D@50533 "
+          + "U@50592 F@50926 U'@51127 D@51128 y@51129 R'@51339 R'@51448 U@51596 D'@51610 y'@51611 "
+          + "z'@51851 F@51852 U'@52078 D'@52227 z@52773 D'@52773 U@52787 F'@53151 D@53328 U'@53340 "
+          + "y@53341 R@53463 R@53578 D'@53744 U@53762 y'@53763 F'@53942 U'@54606 D@54617 U'@60003 "
+          + "B'@61053 U'@61180 B@61349 D'@61653 B'@61882 U@61981 U@62077 B@62175 D@62294 B'@62449 "
+          + "U'@62653 B@62765 U@63078 B@63493 D'@63631 U@63641 B'@63781 D@63898 B@64059 U'@64146 "
+          + "B'@64271 D'@64464 B@64637 D@65238 B'@65499 B@66234 D@66390 D@66501 B'@66632 U'@66726 "
+          + "B@66847 D'@66959 B'@67111 U@67226 B@67341 D'@67519 B'@68171 z'@69300 B'@69300 R@69451 "
+          + "L'@69471 B@69607 L@69697 B'@69827 R@70432 R@70562 B@70724 L'@70831 B'@70973 R@71216 "
+          + "L@71293 z@71519 B@71520 F@72300 U@72446 F'@72573 U'@72801 F@72956 R@73148 F'@73307 "
+          + "U'@73499 F@73652 U@73770 F@73954 R'@74049 F'@74155 z@74249 F'@74250 U@74506";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -406,5 +435,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_PASSED_THROUGH, MOVES_PASSED_THROUGH},
     {SCRAMBLE_BROKE_IN, MOVES_BROKE_IN},
     {SCRAMBLE_SLICES, MOVES_SLICES},
+    {SCRAMBLE_BREAK_IN_OWED, MOVES_BREAK_IN_OWED},
   };
 }

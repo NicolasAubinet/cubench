@@ -1109,6 +1109,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * against the pair it was shot. Exact rather than a guess, and left to stand as the one fact it
    * is — a sentence classifying the mistake on top of the red would be the sheet arguing with a
    * solver who can already see what happened.
+   *
+   * <p>Where the owed cycle closed on its first target the second one is said as a break-in, since
+   * which piece it was is the solver's own choice and not something the cube said.
    */
   private CharSequence withWanted(SolveStep part, CharSequence label) {
     if (part.getWantedName() == null) {
@@ -1116,7 +1119,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     SpannableStringBuilder text = new SpannableStringBuilder(label);
     int at = text.length();
-    text.append("\n").append(getString(R.string.blind_wanted, part.getWantedName()));
+    text.append("\n").append(getString(R.string.blind_wanted,
+        Utils.toSmartCubeWantedName(getActivity(), part.getWantedName())));
     text.setSpan(new ForegroundColorSpan(color(R.color.gray600)), at, text.length(),
         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     text.setSpan(new RelativeSizeSpan(0.9f), at, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
