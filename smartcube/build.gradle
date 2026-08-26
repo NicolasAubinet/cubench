@@ -18,6 +18,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+    sourceSets {
+        // The recorded blind solves are read from both modules' tests: the detectors name their
+        // algorithms here, and the reconstruction spells them there.
+        test.java.srcDirs += '../testfixtures/java'
+    }
     lint {
         targetSdk 36
     }

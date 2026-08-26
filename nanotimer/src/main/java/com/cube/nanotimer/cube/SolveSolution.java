@@ -47,6 +47,12 @@ import java.util.Set;
  * a token this drops and once as a wide it would believe. Believing it leaves the frame a quarter
  * turn out for the rest of the solve. See {@link #peekedWides}.
  *
+ * <p><b>Where the gyro leaves a reading open, the algorithm's own name settles it.</b> A slice it
+ * reported no spin for is left as two faces and a wide it invented is believed, and either one
+ * leaves the frame a quarter turn out for the rest of the solve. What the frame has to answer to is
+ * that a spelled algorithm shifts exactly the slots the detector named it for. See
+ * {@link BlindSpelling}.
+ *
  * <p><b>No other solve may be read this way.</b> Nothing guards the stored grip against a first
  * move that is <em>wide</em>, whose swing the gyro has already reported, and the scripted wide
  * drill stores a grip its own ground truth disowns. Spelling a sighted solve from the grip turns
@@ -87,17 +93,39 @@ public final class SolveSolution {
    */
   public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps,
       CubeMethod method) {
-    List<Move> moves = inSolversFrame(SolveMovesFormat.parse(storedMoves), null,
-        method == CubeMethod.BLIND ? gripOf(storedMoves) : null);
+    List<Move> stored = SolveMovesFormat.parse(storedMoves);
+    CubeRotation grip = method == CubeMethod.BLIND ? gripOf(storedMoves) : null;
+    BlindChoices choices = grip == null ? null : BlindChoices.of(peekedWides(stored));
+    // The name check holds a spelling to a name, which is only worth anything where the two are in
+    // one frame — so a solve recorded before its grip was kept, and spelled through no grip at all,
+    // is left with the reading its stream gives.
+    if (choices != null && solveSteps != null && SolveMovesFormat.pickupOf(storedMoves) != null) {
+      choices = BlindSpelling.arbitrate(stored, grip, choices, solveSteps);
+    }
+    List<Move> moves = inSolversFrame(stored, null, grip, choices);
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
       return new SolveSolution(new ArrayList<Step>(), 0, 0, 0);
     }
-    List<Step> steps = new ArrayList<Step>();
+    List<Step> steps = stepsOf(moves, solveSteps);
     int total = 0;
-    int taken = 0;
-    long boundaryMs = 0;
     long turningMs = 0;
     int parts = 0;
+    for (int i = 0; i < solveSteps.size(); i++) {
+      total += steps.get(i).getMoveCount();
+      if (solveSteps.get(i).getExecutionMs() > 0) { // a step that turned nothing has none: see getTps
+        turningMs += solveSteps.get(i).getTotalMs();
+      }
+      parts += solveSteps.get(i).getSubSteps().size();
+    }
+    markCancelled(steps);
+    return new SolveSolution(steps, total, parts, turningMs);
+  }
+
+  /** The moves of each step, split again at its parts — the shape a reconstruction is shown in. */
+  static List<Step> stepsOf(List<Move> moves, List<SolveStep> solveSteps) {
+    List<Step> steps = new ArrayList<Step>();
+    int taken = 0;
+    long boundaryMs = 0;
     for (int i = 0; i < solveSteps.size(); i++) {
       SolveStep solveStep = solveSteps.get(i);
       long stepStartMs = boundaryMs;
@@ -106,18 +134,16 @@ public final class SolveSolution {
       // nothing, which owns none. Memorisation ends the moment the cube is first turned, and that
       // turn is the first of the solving: shown under the memo it reads as a move made blind.
       int end = solveStep.getExecutionMs() > 0 ? endOf(moves, taken, boundaryMs) : taken;
-      Step step = new Step(i, solveStep.getName(),
-          groupsFor(moves, taken, end, solveStep.getSubSteps(), stepStartMs));
-      steps.add(step);
-      total += step.getMoveCount();
-      if (solveStep.getExecutionMs() > 0) { // a step that turned nothing has none: see getTps
-        turningMs += solveStep.getTotalMs();
-      }
-      parts += solveStep.getSubSteps().size();
+      steps.add(new Step(i, solveStep.getName(),
+          groupsFor(moves, taken, end, solveStep.getSubSteps(), stepStartMs)));
       taken = end;
     }
-    markCancelled(steps);
-    return new SolveSolution(steps, total, parts, turningMs);
+    return steps;
+  }
+
+  /** The stored stream spelled under one set of choices, for a reading that is weighing them. */
+  static List<Move> spell(List<Move> stored, CubeRotation grip, BlindChoices choices) {
+    return inSolversFrame(stored, null, grip, choices);
   }
 
   /**
@@ -129,7 +155,7 @@ public final class SolveSolution {
    * apart. Rotation tokens are kept, since the whole point of a replay is to turn with the solver.
    */
   public static List<Move> timedSolution(String storedMoves) {
-    return inSolversFrame(SolveMovesFormat.parse(storedMoves), null, null);
+    return inSolversFrame(SolveMovesFormat.parse(storedMoves), null, null, null);
   }
 
   /**
@@ -143,7 +169,7 @@ public final class SolveSolution {
    */
   public static List<FrameAt> framesOf(String storedMoves) {
     List<FrameAt> frames = new ArrayList<FrameAt>();
-    inSolversFrame(SolveMovesFormat.parse(storedMoves), frames, null);
+    inSolversFrame(SolveMovesFormat.parse(storedMoves), frames, null, null);
     return frames;
   }
 
@@ -183,9 +209,8 @@ public final class SolveSolution {
    *     class javadoc for what only a blind solve can promise.
    */
   private static List<Move> inSolversFrame(List<Move> stored, List<FrameAt> framesOut,
-      CubeRotation heldIn) {
+      CubeRotation heldIn, BlindChoices choices) {
     CubeRotation frame = heldIn != null ? heldIn : CubeRotation.byNotation("");
-    Set<Long> peeked = heldIn != null ? peekedWides(stored) : Collections.<Long>emptySet();
     List<Move> rewritten = new ArrayList<Move>(stored.size());
     if (heldIn != null && !heldIn.getNotation().isEmpty()) {
       rewritten.add(new Move(heldIn.getNotation(), 0)); // shown, so it follows from the scramble
@@ -196,7 +221,7 @@ public final class SolveSolution {
       String notation = move.getNotation();
       if (SolveMovesFormat.isRotation(notation)) {
         Move face = wideFace(stored, i);
-        if (face != null && !peeked.contains(move.getOffsetMs())) {
+        if (face != null && (choices == null || choices.believesWide(move.getOffsetMs()))) {
           // The solver did one wide move, named in their frame. As with a slice the spin is the
           // move itself rather than a grip change: not shown, but it still turns the frame.
           CubeRotation spin = CubeRotation.byNotation(notation).seenFrom(frame);
@@ -226,19 +251,21 @@ public final class SolveSolution {
         frame = frame.then(seen); // the solver-frame rotation: then() composes in that frame
         record(framesOut, move.getOffsetMs(), frame);
       } else {
-        Move spin = sliceCoreSpin(stored, i);
-        if (spin != null) {
-          // A sensed opposite-face pair with the core-spin the gyro reports for a slice: the
-          // solver did one M/E/S, named in their frame. The spin is the same physical event, not a
+        boolean sensed = sliceCoreSpin(stored, i) != null;
+        int far = sensed ? i + 1 : foldedFar(stored, i, choices);
+        if (far > i) {
+          // An opposite-face pair the gyro vouches for, or one the name check does: the solver did
+          // one M/E/S, named in their frame. The spin is the same physical event as the move, not a
           // grip change, so it is not shown — but it still turns the frame, because the core really
           // did rock and every later face the cube reports is measured from there.
-          Move next = stored.get(i + 1);
+          Move next = stored.get(far);
+          String spin = Slices.forPair(notation, next.getNotation())[1];
           String[] slice = Slices.forPair(
               relabelFace(frame, notation), relabelFace(frame, next.getNotation()));
           rewritten.add(new Move(slice[0], move.getOffsetMs()));
-          frame = frame.then(CubeRotation.byNotation(spin.getNotation()).seenFrom(frame));
+          frame = frame.then(CubeRotation.byNotation(spin).seenFrom(frame));
           record(framesOut, move.getOffsetMs(), frame);
-          i += 2;
+          i = sensed ? far + 1 : far; // the gyro's own spin token is spoken for too
         } else {
           rewritten.add(new Move(frame.mapFace(notation.charAt(0)) + notation.substring(1),
               move.getOffsetMs()));
@@ -266,7 +293,7 @@ public final class SolveSolution {
    * <p>Only a blind solve may be read this way. A solver who is looking at the cube turns it on
    * purpose, and a rotation that a wide happens to undo is two moves they meant.
    */
-  private static Set<Long> peekedWides(List<Move> stored) {
+  static Set<Long> peekedWides(List<Move> stored) {
     List<FrameStep> steps = frameSteps(stored);
     List<Peek> peeks = new ArrayList<Peek>();
     for (int i = 0; i < steps.size(); i++) {
@@ -440,7 +467,7 @@ public final class SolveSolution {
    * exactly — fold without it and the reconstruction no longer solves. So a cube with no gyro emits
    * no spin, nothing folds, and the raw faces stand: always replayable, just not as tidy.
    */
-  private static Move sliceCoreSpin(List<Move> stored, int i) {
+  static Move sliceCoreSpin(List<Move> stored, int i) {
     if (i + 2 >= stored.size()) {
       return null;
     }
@@ -463,7 +490,7 @@ public final class SolveSolution {
    * <p>Solves recorded before wides were read keep the long spelling: the readings that tell a wide
    * from a regrip are not stored, so only the dating carries the answer forward.
    */
-  private static Move wideFace(List<Move> stored, int i) {
+  static Move wideFace(List<Move> stored, int i) {
     if (i + 1 >= stored.size()) {
       return null;
     }
@@ -472,6 +499,31 @@ public final class SolveSolution {
         && face.getOffsetMs() == stored.get(i).getOffsetMs() + 1
         ? face
         : null;
+  }
+
+  /**
+   * The far half of a pair {@link BlindSpelling} settled was one slice, or {@code i} where the
+   * reading has no such answer. The gyro said nothing about this one — that is why it is in
+   * question — so what stands for its spin is the pair's own, which is the same turn either way.
+   */
+  private static int foldedFar(List<Move> stored, int i, BlindChoices choices) {
+    if (choices == null || !choices.foldsPair(stored.get(i).getOffsetMs())) {
+      return i;
+    }
+    int far = nextFace(stored, i + 1);
+    return far > i
+        && Slices.forPair(stored.get(i).getNotation(), stored.get(far).getNotation()) != null
+        ? far : i;
+  }
+
+  /** The next move that turns a face, the rotation tokens between skipped, or -1 where none does. */
+  static int nextFace(List<Move> stored, int from) {
+    for (int i = from; i < stored.size(); i++) {
+      if (!SolveMovesFormat.isRotation(stored.get(i).getNotation())) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /** The slice and spin for two moves close enough together to be one, or null. */

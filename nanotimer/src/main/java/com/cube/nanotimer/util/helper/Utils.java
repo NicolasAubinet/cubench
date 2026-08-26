@@ -15,6 +15,7 @@ import android.util.Log;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
+import com.cube.nanotimer.smartcube.step.AlgorithmSlots;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -377,16 +378,9 @@ public class Utils {
     return positions;
   }
 
-  /**
-   * The pieces a blind algorithm's code names, in the order they are said — the mark saying what was
-   * done to them taken off, and the rest split on everything a name joins pieces with. A code that
-   * names none comes back as itself, and nothing marks one: it carries no marks either.
-   */
+  /** The pieces a blind algorithm's code names, for a display that has to find them in a label. */
   public static String[] getSmartCubeNamedPieces(String code) {
-    if (code == null) {
-      return new String[0];
-    }
-    return code.substring(code.indexOf(':') + 1).split("-| \\+ ");
+    return AlgorithmSlots.pieces(code);
   }
 
   /** Standard WCA face colors. Decorative: the app never relies on them to identify a face. */

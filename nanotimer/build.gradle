@@ -23,6 +23,11 @@ android {
         }
     }
     namespace 'com.cube.nanotimer'
+    sourceSets {
+        // The recorded blind solves are read from both modules' tests: the detectors name their
+        // algorithms here, and the reconstruction spells them there.
+        test.java.srcDirs += '../testfixtures/java'
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
