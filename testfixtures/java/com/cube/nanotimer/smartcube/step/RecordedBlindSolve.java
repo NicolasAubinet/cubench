@@ -460,6 +460,95 @@ final class RecordedBlindSolve {
           + "B@62539 D@62636 B'@62747 D'@62872 B@62996 U@63100 B'@63204 D@63352 B@63508 D'@63596 "
           + "U@63651";
 
+  /**
+   * 2026-08-26, and the one no repair was allowed to reach. Nine algorithms, four edges left out,
+   * and two M-slice pairs the gyro reported no spin for — an {@code R' L} and an {@code R L'} that
+   * the stream therefore left standing as the two faces each was reported as.
+   *
+   * <p>Folding them was always within reach; what stopped it was the rule that a repair had to
+   * leave more of the solve standing than the reading it replaced, and enough of this one matched
+   * by coincidence through the wrong frame that it never did. Five of its nine algorithms were
+   * spelled as pieces they never touched.
+   */
+  static final String SCRAMBLE_SILENT_SLICES =
+      "L2 D R2 D' L2 R2 F2 U2 R' D' R2 F' L D B U' B2 R2 B R' U2";
+  static final String MOVES_SILENT_SLICES =
+      "[y] y@34112 D'@34112 U@34144 R'@34574 L@34597 y@34794 x@34794 U'@34794 R'@34925 "
+          + "U@35043 R@35143 L'@35153 x'@35154 z@35269 B'@35269 z'@35376 R@35376 z@35557 B@35557 "
+          + "U'@35841 D@35867 L@36673 R'@36676 x@36677 D@36854 F'@37073 B@37085 z@37086 R'@37223 "
+          + "F@37823 R@38010 B'@38159 F@38181 z'@38182 D'@38332 F'@38527 R@39224 L'@39228 x'@39229 "
+          + "U@40126 F'@41195 D'@41409 U@41415 y'@41416 L@41602 U'@41682 L'@41841 D@42272 U'@42274 "
+          + "y@42275 F@42453 U'@42888 B@43125 U'@43248 D@43309 y@43310 L'@43433 U'@43563 L@43681 "
+          + "D'@43803 U@43819 y'@43820 B'@43943 U@44145 U@44256 D@44664 R@45048 x'@45064 L'@45064 "
+          + "D'@45215 y'@45301 R@45301 y@45415 D@45415 R'@45600 L@45615 x@45616 B'@45768 z'@45910 "
+          + "R'@45910 z@46083 B@46083 D'@46514 B'@47368 U@47484 D'@47520 y'@47521 R@47651 U'@47746 "
+          + "R'@47887 D@48024 U'@48029 y@48030 B@48148 B@48260 D'@48355 U@48371 y'@48372 D'@48526 "
+          + "U@48534 y'@48535 F'@48687 U@48939 F@49160 D'@49321 U@49331 y'@49332 D'@49506 U@49525 "
+          + "y'@49526 B'@49738 U'@50789 D'@50893 B@51021 D'@51093 B'@51248 U@51406 U@51532 B@51652 "
+          + "D@51812 B'@52028 D@52705 U'@52706 U'@54442 D'@54513 B@54609 D@54717 B'@54847 U@54977 "
+          + "B@55117 D'@55414 B'@55593 D@55877 B@56091 U'@56217 B'@56402 D@56506 B'@56674 U@56762 "
+          + "B@56960 D'@57093 B'@57207 U'@57357 B@57457 B@57585 U@57732 B'@57849 R'@58076 L@58078 "
+          + "x@58079 F'@58251 U@58344 F@58502 U'@58616 U'@58825 U@59211 F@59281 U@59525 F'@59623 "
+          + "F@60204 U'@60371 F'@60557 F'@60949 U@61125 F@61686 U'@61806 F'@61928 F@62297 L'@62722 "
+          + "R@62725 x'@62726 R'@63239 L@63243 x@63244 F'@63517 F@64207 y@64625 F'@64625 F@64905 "
+          + "F'@65368 R'@66059 L@66077 x@66078";
+
+  /**
+   * 2026-08-26, and the one that needs the gyro doubted in both directions at once. Ten algorithms,
+   * an edge flip and a three-corner twist among them, left a DNF.
+   *
+   * <p>A real wide near the start was written off as half of a peek and has to be believed back,
+   * and a wide reported towards the end never happened and has to be dropped. Eight of the ten
+   * algorithms were spelled wrong without both.
+   */
+  static final String SCRAMBLE_PEEK_AND_A_WIDE =
+      "R2 D' F2 U2 L2 R2 B2 R2 D R2 F' L U2 R2 F' L' U R2 U2 B U";
+  static final String MOVES_PEEK_AND_A_WIDE =
+      "[y] y@28407 B@28407 U'@28643 B'@28830 z'@28925 B'@28925 R'@29038 L@29040 x@29041 "
+          + "y'@29228 U@29228 U@29326 R@29491 L'@29495 x'@29496 z@29852 U@29852 z'@30018 B'@30019 "
+          + "B'@30683 F@30887 z'@30888 B'@30889 F@30992 z'@30993 D@31097 B@31292 F'@31317 z@31318 "
+          + "R@31462 B'@31630 F@31634 z'@31635 D@31787 B@31921 F'@31938 z@31939 R@32144 F'@32688 "
+          + "B@32691 z@32692 U'@33237 D@33255 y@33256 R'@33507 U@33677 D'@33716 y'@33717 F@33874 "
+          + "U@34050 F'@34206 U'@34334 D@34336 y@34337 R@34507 y'@34741 D'@34742 U@36475 B'@36573 "
+          + "U'@36690 B'@36971 U@37085 B@37250 U@37402 B@37539 U@37699 B'@37897 U@38067 U@38174 "
+          + "U'@40019 D@40024 B@40363 D'@40506 U@40507 y'@40508 R'@40671 R'@40785 D@40915 U'@40923 "
+          + "y@40924 B@41071 D'@41209 U@41248 U'@41625 F@41794 D'@41956 U@41962 y'@41963 L'@42101 "
+          + "U'@42241 U'@42352 L@42492 U'@42582 D@42595 y@42596 F'@42849 L'@43182 R@43184 x'@43387 "
+          + "U@43387 y'@43497 U@43497 R'@43851 L@43873 x@43874 z@44114 F'@44114 F'@44244 U'@44416 "
+          + "z@45794 R@45794 R@45910 B@46050 L@46154 B'@46289 R@46401 R@46528 B@46658 L'@46902 "
+          + "z'@47614 B'@47615 B'@48175 U'@48337 B@48504 U@48606 B'@48721 D'@48819 B@48971 "
+          + "U'@49038 B'@49229 U@49451 D@49515 B@49832 U@50489 B'@50693 U'@50850 B@50990 U@51103 "
+          + "B'@51255 R'@51377 B@51495 U@51636 B'@52119 U'@52290 B'@52545 R@52917 B@53102 B@53250 "
+          + "U'@53440 U'@53582 D'@56086 B@56249 U@56416 B'@56581 D'@56745 B@56906 U'@57066 "
+          + "B'@57259 D'@57861 D'@58396 U@60780 B@61067 D@61263 D@61397 B@61507 U'@61637 B'@61790 "
+          + "D@61917 D@62042 B@62156 U@62341 z'@62461 B'@62462 B'@62538 U'@62625";
+
+  /**
+   * 2026-08-26, and the one that came out solved and was still read wrong end to end: the cube out
+   * at 68.75s, and eight of its nine algorithms spelled as pieces they never touched.
+   *
+   * <p>It exercises every reading at once — two real wides written off as peeks and believed back,
+   * one wide the gyro invented and dropped, and a slice pair it said nothing about folded. Coming
+   * out solved is why it is kept: nothing about a solve that worked says its reconstruction did.
+   */
+  static final String SCRAMBLE_SOLVED_AND_MISSPELLED =
+      "L2 D' F2 U2 F2 L2 D' R2 D' F2 L2 U' R' F' L' F2 L2 R' F2 L2 U'";
+  static final String MOVES_SOLVED_AND_MISSPELLED =
+      "[y] y@43721 U'@43721 B@43890 U'@43983 B@44203 F'@44233 z@44234 L@44453 B'@44587 "
+          + "L'@44693 F@44820 B'@44822 z'@44823 U@44965 U@45096 U'@45475 D@45479 y@45480 R'@45668 "
+          + "y'@45858 D'@45859 U@46122 F@46417 U@46607 F'@46727 D@46937 U'@46942 y@46943 R@47136 "
+          + "y'@47534 D'@47535 D'@48580 U@48617 F'@48813 U'@49388 B'@49752 F@49775 z'@49776 "
+          + "R@49969 F@50211 R'@50313 F'@50479 B@50496 z@50497 D@51034 U@51904 L@52247 R'@52249 "
+          + "x@52250 D@52411 R@52558 D'@52736 L'@53231 x'@53251 R@53251 F@53503 z'@53684 R'@53684 "
+          + "z@53804 F'@53805 U'@53968 z'@54434 F@54435 R@54628 B@54830 R@54927 L'@54933 x'@54934 "
+          + "D'@55153 D'@55254 R'@55444 L@55454 x@55455 B@55682 R'@55967 z@56206 F'@56207 D'@57306 "
+          + "B@57480 D@57577 B'@57698 D'@57796 B@57918 U@58022 B'@58152 D@58269 B@58469 U'@58638 "
+          + "D'@58674 B'@59159 D@59644 R@60218 B@60611 U'@60728 B@60842 D'@60950 B'@61158 U@61363 "
+          + "B@61526 D@61596 z'@61712 B'@61713 B'@61825 R'@62039 z@62577 B@62578 z@63024 R'@63024 "
+          + "z'@63189 B'@63190 U'@63340 B@63433 D@63529 B'@63664 U@63769 U@63883 B@64572 D'@64843 "
+          + "z'@65003 B'@65004 U'@65154 z@65320 B@65321 R@65716 B'@65944 F@66649 U@66861 F'@66949 "
+          + "U'@67162 F@67300 R@67488 F'@67567 U'@67753 F@67877 U@67971 z'@68136 F@68136 R'@68241 "
+          + "z@68333 F'@68333 F'@68420 U@68546";
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -470,5 +559,8 @@ final class RecordedBlindSolve {
     {SCRAMBLE_SLICES, MOVES_SLICES},
     {SCRAMBLE_BREAK_IN_OWED, MOVES_BREAK_IN_OWED},
     {SCRAMBLE_PEEKED_WIDE, MOVES_PEEKED_WIDE},
+    {SCRAMBLE_SILENT_SLICES, MOVES_SILENT_SLICES},
+    {SCRAMBLE_PEEK_AND_A_WIDE, MOVES_PEEK_AND_A_WIDE},
+    {SCRAMBLE_SOLVED_AND_MISSPELLED, MOVES_SOLVED_AND_MISSPELLED},
   };
 }

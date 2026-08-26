@@ -27,7 +27,7 @@ import sys
 import tempfile
 
 DB_NAME = "nanoTimerDB"
-LINE_WIDTH = 96
+MAX_LINE = 100  # what the Java sources wrap at
 
 
 def pull(package, into):
@@ -56,10 +56,17 @@ def solves(db, limit):
 
 
 def java_string(text, indent):
-    """A long line of moves as the concatenation the fixture file is written in."""
+    """A long line of moves as the concatenation the fixture file is written in.
+
+    The budget is what a source line has left once the longer of the two prefixes and both quotes
+    are on it, so every line comes out inside the limit whether it is the first or a continuation.
+    One more comes off for the space each line but the last ends in, which is what keeps the tokens
+    apart across the join.
+    """
+    budget = MAX_LINE - len(indent) - len('    + "') - len('"') - 1
     lines, line = [], ""
     for token in text.split():
-        if line and len(line) + len(token) + 1 > LINE_WIDTH - len(indent):
+        if line and len(line) + len(token) + 1 > budget:
             lines.append(line + " ")
             line = token
         else:
@@ -104,8 +111,15 @@ def main():
           " guessing.\n")
     for solve_id, time_ms, scramble, moves in found:
         name = name_of(solve_id, moves)
-        print("  /** Solve %d, %.2fs. */" % (solve_id, time_ms / 1000.0))
-        print("  static final String SCRAMBLE_%s = \"%s\";" % (name, scramble.strip()))
+        # A DNF is stored as SolveTime.DNF_TIME rather than as a duration.
+        timed = "DNF" if time_ms < 0 else "%.2fs" % (time_ms / 1000.0)
+        print("  /** Solve %d, %s. */" % (solve_id, timed))
+        declared = "  static final String SCRAMBLE_%s =" % name
+        quoted = '"%s";' % scramble.strip()
+        if len(declared) + 1 + len(quoted) > MAX_LINE:
+            print(declared + "\n      " + quoted)
+        else:
+            print(declared + " " + quoted)
         print("  static final String MOVES_%s =\n      %s;\n"
               % (name, java_string(moves.strip(), "      ")))
     print("  // and in ALL:")

@@ -76,7 +76,7 @@ public class SpelledAsNamedTest {
       checked += algorithms.size();
     }
     assertEquals("", mismatches.toString());
-    assertEquals(77, checked); // or the sweep passed by reading nothing
+    assertEquals(105, checked); // or the sweep passed by reading nothing
   }
 
   private static String mismatches(String scramble, String moves) {
