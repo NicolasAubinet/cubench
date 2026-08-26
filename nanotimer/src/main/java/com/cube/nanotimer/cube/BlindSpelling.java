@@ -6,6 +6,8 @@ import com.cube.nanotimer.smartcube.step.AlgorithmSlots;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,8 @@ import java.util.Map;
  * the name's and not the search's: the frame carries forward, so an algorithm read wrong takes the
  * rest of the solve with it, and there is no credit to be had for a reading that repairs seven
  * algorithms while leaving the one that broke them wrong. Where several readings spell an algorithm
- * right, the one that leaves the most of the solve standing is taken.
+ * right, the one whose own evidence was weakest is doubted first, and among equals the one that
+ * leaves the most of the solve standing is taken.
  *
  * <p>Nothing here needs the scramble or the gyro readings, neither of which is stored, so it repairs
  * blind solves already recorded as well as ones read live. See {@link AlgorithmSlots}.
@@ -42,6 +45,14 @@ final class BlindSpelling {
 
   /** Enough for a solve with a handful of ambiguities; past it the search is not worth its cost. */
   private static final int MAX_READINGS = 400;
+
+  /** Where two readings both put an algorithm right, the weaker evidence is the doubted one. */
+  private static final Comparator<Reading> LEAST_VOUCHED_FIRST = new Comparator<Reading>() {
+    @Override
+    public int compare(Reading a, Reading b) {
+      return a.vouching - b.vouching;
+    }
+  };
 
   private BlindSpelling() {
   }
@@ -77,13 +88,19 @@ final class BlindSpelling {
 
   /**
    * The fewest inversions of this algorithm's own readings that spell it as its name, or null where
-   * none does. Ties among them go to the reading that leaves the most of the whole solve standing,
-   * and a reading that spells this algorithm right by spelling another wrong is not one of them.
+   * none does. Among them the one that leaves the most of the whole solve standing wins.
+   *
+   * <p><b>It does not have to leave more standing than the reading it replaces.</b> That was the
+   * rule, and it holds a wrong frame in place: the incumbent spells this algorithm as something
+   * other than its name, and no count of coincidences elsewhere outweighs the one piece of evidence
+   * being asked for. The 2026-08-26 solve is what says so — dropping a real wide as a peek left its
+   * whole frame a quarter turn out, and the one algorithm that still happened to match through that
+   * frame was enough to block the repair.
    */
   private static BlindChoices settle(Weighing weighing, BlindChoices choices, Named algorithm) {
-    int standing = weighing.standing(choices);
     for (int size = 1; size <= AT_ONCE && size <= algorithm.readings.size(); size++) {
       BlindChoices best = null;
+      int standing = -1;
       for (int[] combination : combinations(algorithm.readings.size(), size)) {
         BlindChoices candidate = choices;
         for (int reading : combination) {
@@ -194,6 +211,7 @@ final class BlindSpelling {
     return named;
   }
 
+  /** The readings inside one algorithm, least-vouched first: the order they are tried in. */
   private static List<Reading> between(List<Reading> readings, long fromMs, long toMs) {
     List<Reading> inside = new ArrayList<Reading>();
     for (Reading reading : readings) {
@@ -201,12 +219,21 @@ final class BlindSpelling {
         inside.add(reading);
       }
     }
+    Collections.sort(inside, LEAST_VOUCHED_FIRST);
     return inside;
   }
 
   /**
-   * The readings the stream leaves open, walked the way the spelling walks it: a wide it believes
-   * on the gyro's word alone, and an opposite-face pair it leaves standing for want of a spin.
+   * The readings the stream leaves open, walked the way the spelling walks it: a wide shape the
+   * gyro's word alone decides, an opposite-face pair left standing for want of a spin, and a pair
+   * folded on the strength of one.
+   *
+   * <p><b>Every one of them is listed, whichever way the stream took it</b>, because the gyro is
+   * wrong in both directions: it reports a spin where the hands only rocked the cube, and it misses
+   * one where they really did turn a slice. Listing a reading the stream got right costs nothing —
+   * inverting it spells the algorithm wrong, and a spelling that does not answer to its name is
+   * never kept — and each carries how much the stream's own answer for it was worth, so that where
+   * two of them both put an algorithm right the weaker evidence is the one doubted.
    */
   private static List<Reading> ambiguities(List<Move> stored, BlindChoices choices) {
     List<Reading> readings = new ArrayList<Reading>();
@@ -216,20 +243,23 @@ final class BlindSpelling {
       if (SolveMovesFormat.isRotation(notation)) {
         Move face = SolveSolution.wideFace(stored, i);
         if (face != null && Wides.forFaceAndSpin(face.getNotation(), notation) != null) {
-          if (choices.believesWide(move.getOffsetMs())) {
-            readings.add(new Reading(move.getOffsetMs(), true));
-          }
+          // A peek is a rule of thumb about a rock that came back, not something the gyro said.
+          readings.add(new Reading(move.getOffsetMs(), Reading.WIDE,
+              choices.believesWide(move.getOffsetMs()) ? 2 : 0));
           i++; // the face is spoken for: it is half of the wide
         }
         continue;
       }
       if (SolveSolution.sliceCoreSpin(stored, i) != null) {
+        // A spin the gyro reported and two opposite faces corroborate: the strongest there is.
+        readings.add(new Reading(move.getOffsetMs(), Reading.SLICE, 3));
         i += 2;
         continue;
       }
       int far = SolveSolution.nextFace(stored, i + 1);
       if (far > i && Slices.forPair(notation, stored.get(far).getNotation()) != null) {
-        readings.add(new Reading(move.getOffsetMs(), false));
+        // No rock seen, which is also what the gyro reports when it missed one.
+        readings.add(new Reading(move.getOffsetMs(), Reading.PAIR, 1));
       }
     }
     return readings;
@@ -262,16 +292,24 @@ final class BlindSpelling {
   /** One reading of the stream that could have gone either way, and where the solve made it. */
   private static final class Reading {
 
-    private final long atMs;
-    private final boolean wide;
+    private static final int WIDE = 0, PAIR = 1, SLICE = 2;
 
-    private Reading(long atMs, boolean wide) {
+    private final long atMs;
+    private final int kind;
+    private final int vouching; // how much the stream's own answer for it is worth
+
+    private Reading(long atMs, int kind, int vouching) {
       this.atMs = atMs;
-      this.wide = wide;
+      this.kind = kind;
+      this.vouching = vouching;
     }
 
     private BlindChoices invertedIn(BlindChoices choices) {
-      return wide ? choices.withoutWide(atMs) : choices.withPairFolded(atMs);
+      switch (kind) {
+        case WIDE: return choices.withWideInverted(atMs);
+        case PAIR: return choices.withPairInverted(atMs);
+        default: return choices.withSliceInverted(atMs);
+      }
     }
   }
 

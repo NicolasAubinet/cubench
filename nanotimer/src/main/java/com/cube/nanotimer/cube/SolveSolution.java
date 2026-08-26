@@ -48,7 +48,8 @@ import java.util.Set;
  * turn out for the rest of the solve. See {@link #peekedWides}.
  *
  * <p><b>Where the gyro leaves a reading open, the algorithm's own name settles it.</b> A slice it
- * reported no spin for is left as two faces and a wide it invented is believed, and either one
+ * reported no spin for is left as two faces, a pair it did report one for is folded, a wide it
+ * invented is believed and a real one it wrote off as a peek is dropped — and every one of those
  * leaves the frame a quarter turn out for the rest of the solve. What the frame has to answer to is
  * that a spelled algorithm shifts exactly the slots the detector named it for. See
  * {@link BlindSpelling}.
@@ -251,7 +252,8 @@ public final class SolveSolution {
         frame = frame.then(seen); // the solver-frame rotation: then() composes in that frame
         record(framesOut, move.getOffsetMs(), frame);
       } else {
-        boolean sensed = sliceCoreSpin(stored, i) != null;
+        boolean sensed = sliceCoreSpin(stored, i) != null
+            && (choices == null || choices.foldsSlice(move.getOffsetMs()));
         int far = sensed ? i + 1 : foldedFar(stored, i, choices);
         if (far > i) {
           // An opposite-face pair the gyro vouches for, or one the name check does: the solver did

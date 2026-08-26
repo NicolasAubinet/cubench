@@ -427,6 +427,39 @@ final class RecordedBlindSolve {
           + "L@71293 z@71519 B@71520 F@72300 U@72446 F'@72573 U'@72801 F@72956 R@73148 F'@73307 "
           + "U'@73499 F@73652 U@73770 F@73954 R'@74049 F'@74155 z@74249 F'@74250 U@74506";
 
+  /**
+   * 2026-08-26, and the one the peek rule cost. Ordinary 3-style, five edge algorithms then two
+   * corner ones, a parity and a corner twist, left on two flipped edges the solver never turned.
+   *
+   * <p>Its first algorithm ends on a wide, and the gyro's rotation token four moves later cancels
+   * that wide's spin exactly — so the peek rule read the two as one swing of the cube and dropped
+   * both. The core really had rocked, the frame was a quarter turn out from the second algorithm
+   * on, and every name after it was spelled somewhere the solver never held the cube.
+   *
+   * <p>It is also the solve whose third edge algorithm closes one cycle and breaks into the next
+   * with its second target: the {@code UR} it broke into never came home, and blaming it for that
+   * reddened the one algorithm that was right.
+   */
+  static final String SCRAMBLE_PEEKED_WIDE =
+      "R2 D2 L2 B2 U' F2 R2 D L2 B2 L2 F R U2 L' B D' R' F2 R'";
+  static final String MOVES_PEEKED_WIDE =
+      "[y] U'@31282 D@31318 y@31319 y@31337 U'@31338 L'@31544 D@31694 U'@31702 y@31703 F@31832 "
+          + "F@31926 U@32020 D'@32023 y'@32024 L'@32243 U@32453 D'@32468 y'@32469 y'@32549 U@32550 "
+          + "F'@33980 U@34090 y@34333 F@34333 U'@34473 B'@34702 F@34725 z'@34726 R@34947 F'@35201 "
+          + "R'@35443 z@35877 B@35877 U'@36297 U'@36417 F@36635 U'@36730 D@36751 y@36752 R'@36963 "
+          + "U'@37078 R@37207 D'@37345 U@37369 y'@37370 F'@37524 U'@37764 D'@38519 z'@38972 "
+          + "B'@38973 R@39309 D@39533 U'@39540 y@39699 z@39699 L@39699 L@39788 U@39894 D'@39910 "
+          + "y'@39911 B'@40052 z'@40153 B'@40153 R'@40303 z@40487 B@40487 D@41123 F@41656 U'@41792 F'@41984 "
+          + "L'@42171 R@42173 x'@42174 y'@42405 U@42406 U@42513 R'@42721 L@42738 x@42739 F'@42937 "
+          + "U@43333 F'@43702 z@44780 B'@44780 z'@45273 D'@45273 z@45428 B@45428 B@45523 U'@45606 "
+          + "B'@45771 D@45853 B@46005 U@46118 B'@46275 D'@46440 B'@46635 D@47263 B@47855 D@50275 "
+          + "B@50509 U'@50931 D'@51103 B'@51257 U@51344 B@51424 D@51541 B'@51674 U'@51806 B@51952 "
+          + "U@52235 B'@52757 D'@55151 U@55610 B@55731 U'@55842 B@56067 U@56213 B'@56348 R'@56529 "
+          + "B@56613 U@56752 B'@56898 U'@56976 B'@57143 R@57214 B@57372 B@57476 U'@57614 B'@57860 "
+          + "B'@57976 U'@59176 U'@61576 B'@61825 D@61980 B@62119 U'@62182 B'@62292 D'@62416 "
+          + "B@62539 D@62636 B'@62747 D'@62872 B@62996 U@63100 B'@63204 D@63352 B@63508 D'@63596 "
+          + "U@63651";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -436,5 +469,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_BROKE_IN, MOVES_BROKE_IN},
     {SCRAMBLE_SLICES, MOVES_SLICES},
     {SCRAMBLE_BREAK_IN_OWED, MOVES_BREAK_IN_OWED},
+    {SCRAMBLE_PEEKED_WIDE, MOVES_PEEKED_WIDE},
   };
 }

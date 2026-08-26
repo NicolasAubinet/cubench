@@ -46,6 +46,25 @@ public class SpelledAsNamedTest {
         RecordedBlindSolve.MOVES_BREAK_IN_OWED, 1));
   }
 
+  /**
+   * The 2026-08-26 solve, whose opening algorithm ends on a wide the peek rule wrote off: its spin
+   * is cancelled four moves later by a rotation token, and nothing but the algorithm's own name
+   * says the core really did rock. Read without it the frame is a quarter turn out from the second
+   * algorithm to the last.
+   */
+  @Test
+  public void theSolveWhosePeekWasAWideIsSpelledAsItsNames() {
+    assertEquals("", mismatches(RecordedBlindSolve.SCRAMBLE_PEEKED_WIDE,
+        RecordedBlindSolve.MOVES_PEEKED_WIDE));
+  }
+
+  /** Which is to say its first algorithm ends on the wide, and not on the bare face turn. */
+  @Test
+  public void theWideThePeekRuleDroppedIsSpelledAsTheWideItTurned() {
+    assertEquals("y E' d' F' E' F2 E F' E d", algorithm(RecordedBlindSolve.SCRAMBLE_PEEKED_WIDE,
+        RecordedBlindSolve.MOVES_PEEKED_WIDE, 0));
+  }
+
   /** Every blind solve on record, so a reading that repairs one at the cost of another is caught. */
   @Test
   public void everyRecordedBlindSolveIsSpelledAsItsNames() {
@@ -57,7 +76,7 @@ public class SpelledAsNamedTest {
       checked += algorithms.size();
     }
     assertEquals("", mismatches.toString());
-    assertEquals(68, checked); // or the sweep passed by reading nothing
+    assertEquals(77, checked); // or the sweep passed by reading nothing
   }
 
   private static String mismatches(String scramble, String moves) {
