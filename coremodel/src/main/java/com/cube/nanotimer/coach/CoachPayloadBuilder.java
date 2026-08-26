@@ -22,11 +22,17 @@ import java.util.Set;
  * ({@link StepTallies}), and the two figures that are cut outright because they are artefacts.
  * A reader can only select and explain what survived this.
  *
- * <p>The two cuts, both measured on real history in 2026-08: the cross reads a recognition of zero
- * because the step is timed from its own first move, which means unmeasured and not instant; and an
- * F2L slot code is named relative to the cross face, so the same string means different slots for a
- * colour-neutral solver and the per-slot figures are not comparable. The F2L family survives both,
- * only its slots are dropped.
+ * <p>The cuts, measured on real history in 2026-08. The cross reads a recognition of zero because
+ * the step is timed from its own first move, which means unmeasured and not instant. And a case is
+ * only quoted where a drill could be dealt a scramble of it, which is orientation and permutation
+ * and nothing else: an F2L slot code is named relative to the cross face, so the same string means
+ * different slots for a colour-neutral solver; a last layer part names the algorithm that was run
+ * rather than the case that was dealt, so left in it ranks the same case twice and prescribes a
+ * drill under a code nothing can deal; and another method's sub-steps name neither. That last one
+ * is why this is written as what may be quoted rather than as what to drop — the payload builds
+ * from whatever the breakdown holds, so the list of things that are not cases is open-ended, and
+ * only the UI stands between a Roux sub-step and a card naming it. Only the per-case split is cut
+ * in each: the F2L family and the algorithm families both survive as parts.
  *
  * <p>One window cannot serve both layers. Families want to be recent, so they track the level the
  * user solves at now; cases want the length, because 21 PLLs and 57 OLLs spread thin over any
@@ -66,8 +72,10 @@ public class CoachPayloadBuilder {
   /** The code the whole solve's figures ride under, which is not a step and has no family. */
   public static final String SOLVE = "solve";
 
-  /** The part family whose codes name a slot rather than a case, and are cut for it. */
-  private static final String SLOT_FAMILY = "pair";
+  /** The families whose codes name a case a drill can be dealt a scramble of, which is the only
+   * kind worth quoting as one. An allowlist: what has to stay out is open-ended. */
+  private static final Set<String> CASE_FAMILIES = new LinkedHashSet<String>(
+      Arrays.asList("oll", "pll"));
 
   /** The step timed from its own first move, so it has no recognition to report. */
   private static final String CROSS_FAMILY = "cross";
@@ -206,11 +214,11 @@ public class CoachPayloadBuilder {
     return figures;
   }
 
-  /** Every case above its floor, worst cost first, the slot codes left out. */
+  /** Every case above its floor, worst cost first, from the families that name one. */
   private static List<StepFigure> caseFigures(MethodStatistics statistics, StepTallies tallies) {
     final List<StepFigure> figures = new ArrayList<StepFigure>();
     for (String family : familiesOf(statistics)) {
-      if (SLOT_FAMILY.equals(family)) {
+      if (!CASE_FAMILIES.contains(family)) {
         continue;
       }
       StepStats familyStats = statistics.getFamily(family);

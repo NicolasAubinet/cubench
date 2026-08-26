@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import com.cube.nanotimer.session.CaseKnowledge;
+import com.cube.nanotimer.session.MethodStatistics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +40,50 @@ public class CoachPayloadBuilderTest {
     Assert.assertNotNull(figure(payload.getParts(), "pair"));
     for (StepFigure stepCase : payload.getCases()) {
       Assert.assertFalse(stepCase.getCode(), stepCase.getCode().startsWith("pair_"));
+    }
+  }
+
+  /** A part names the algorithm run and not the case dealt, so it is no case to quote: the case it
+   * answers is already sent under its own step code, and there is no scramble to deal one from. */
+  @Test
+  public void testAnAlgorithmIsNotSentAsACase() {
+    CoachPayload payload = build();
+
+    Assert.assertNull(figure(payload.getCases(), "ollalg_45"));
+    Assert.assertNull(figure(payload.getCases(), "alg_gb"));
+    for (StepFigure stepCase : payload.getCases()) {
+      Assert.assertTrue(stepCase.getCode(),
+          stepCase.getCode().startsWith("oll_") || stepCase.getCode().startsWith("pll_"));
+    }
+  }
+
+  /** Only the per-case split is cut: what a last layer algorithm costs still rides as a part. */
+  @Test
+  public void testTheAlgorithmFamilySurvivesTheCut() {
+    CoachPayload payload = build();
+
+    Assert.assertNotNull(figure(payload.getParts(), "ollalg"));
+    Assert.assertNotNull(figure(payload.getParts(), "alg"));
+  }
+
+  /** A case is quoted only where a drill could be dealt one, and no other method's sub-step can. */
+  @Test
+  public void testAnotherMethodsSubStepIsNotSentAsACase() {
+    CoachPayload payload = build();
+
+    Assert.assertNull(figure(payload.getCases(), "lse_eo"));
+    Assert.assertNull(figure(payload.getCases(), "corner_dfr"));
+  }
+
+  /** A restart solved nothing, so it is no case either: its code is one word and names none. */
+  @Test
+  public void testARestartIsNotSentAsACase() {
+    CoachPayload payload = build();
+
+    Assert.assertNull(MethodStatistics.caseOfPart("pllrestart"));
+    Assert.assertNull(MethodStatistics.caseOfPart("ollrestart"));
+    for (StepFigure stepCase : payload.getCases()) {
+      Assert.assertFalse(stepCase.getCode(), stepCase.getCode().endsWith("restart"));
     }
   }
 
@@ -192,6 +237,17 @@ public class CoachPayloadBuilderTest {
     cases.addAll(steps("pll_t", 8, 1500, 700));
     cases.addAll(steps("oll_21", 4, 2000, 900));
     cases.addAll(steps("oll_33", 7, 1600, 700));
+    // the algorithms a last layer step took, each well clear of its own family's mean so that
+    // leaving them in would rank them above every real case, and two restarts beside them
+    cases.addAll(parts("ollalg_45", 6, 4200, 900));
+    cases.addAll(parts("ollalg_26", 8, 1500, 500));
+    cases.addAll(parts("alg_gb", 6, 4500, 900));
+    cases.addAll(parts("alg_t", 9, 1400, 500));
+    cases.addAll(parts("pllrestart", 6, 3000, 400));
+    cases.addAll(parts("ollrestart", 5, 2600, 300));
+    // sub-steps of other methods, which reach this builder unguarded: only the screen refuses them
+    cases.addAll(parts("lse_eo", 7, 3800, 800));
+    cases.addAll(parts("corner_dfr", 6, 3300, 700));
 
     List<StepSample> drills = new ArrayList<StepSample>();
     drills.addAll(steps("pll_gb", 8, 1700, 600));
@@ -242,6 +298,10 @@ public class CoachPayloadBuilderTest {
     if (solves > TWO_LOOKS) { // one algorithm, which is a solve that read the case in one look
       samples.add(new StepSample("ollalg_27", 1900, 700, true, TWO_LOOKS));
     }
+    for (int solve = 0; solve < Math.min(TWO_LOOKS, solves); solve++) { // a PLL that took two
+      samples.add(new StepSample("alg_ua", 1800, 700, true, solve));
+      samples.add(new StepSample("alg_t", 1600, 600, true, solve));
+    }
     return samples;
   }
 
@@ -251,6 +311,16 @@ public class CoachPayloadBuilderTest {
     for (int i = 0; i < count; i++) {
       long offset = (i % 2 == 0 ? 1 : -1) * (i + 1) * 20L;
       samples.add(new StepSample(code, meanMs + offset, recognitionMs, false, i));
+    }
+    return samples;
+  }
+
+  /** The same occurrences, flagged as the parts of a step rather than as steps of the method. */
+  private static List<StepSample> parts(String code, int count, long meanMs, long recognitionMs) {
+    List<StepSample> samples = new ArrayList<StepSample>();
+    for (StepSample sample : steps(code, count, meanMs, recognitionMs)) {
+      samples.add(new StepSample(sample.getCode(), sample.getTimeMs(), sample.getRecognitionMs(),
+          true, sample.getSolveId()));
     }
     return samples;
   }

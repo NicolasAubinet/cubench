@@ -65,10 +65,22 @@ public final class CaseKnowledgeStore {
     return known;
   }
 
-  /** Reads every case's status again from scratch, which is what makes the table safe to be wrong. */
+  /**
+   * Reads every case's status again from scratch, which is what makes the table safe to be wrong.
+   *
+   * <p>Throwing the rows away and reading them back is one transaction: it runs on a background
+   * thread against the database a screen reads on its own, and the two statements apart leave a
+   * window in which the table is empty and a reader takes that for "nothing is known".
+   */
   public static void rebuild(SQLiteDatabase db) {
-    db.delete(DB.TABLE_CASE_KNOWLEDGE, null, null);
-    update(db, casesWithEvidence(db));
+    db.beginTransaction();
+    try {
+      db.delete(DB.TABLE_CASE_KNOWLEDGE, null, null);
+      update(db, casesWithEvidence(db));
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
   }
 
   /** Re-reads only the named cases, for evidence that has just landed. */
