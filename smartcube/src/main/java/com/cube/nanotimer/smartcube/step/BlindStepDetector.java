@@ -965,14 +965,20 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * The slot a break-in put the buffer's own piece into, read off the cube: the one that comes out
-   * holding the piece the buffer belongs to. Not the second piece of the name, which is the target
-   * only while the name could be walked as a cycle at all — where it could not, the pieces are said
-   * in the order the cube stores them and the second of them is nobody in particular.
+   * The slot this algorithm broke into, read off the cube: the one it <em>parked the buffer's own
+   * piece in</em>, which is the whole of what breaking in is. Not the second piece of the name,
+   * which is the target only while the name could be walked as a cycle at all — where it could not,
+   * the pieces are said in the order the cube stores them and the second of them is nobody in
+   * particular.
+   *
+   * <p>Parked <b>by this algorithm</b>: the buffer's piece has to have arrived there, not merely to
+   * be sitting there. Every shot leaves it lying somewhere, so asked without that, every algorithm
+   * of the solve reads as a break-in.
    */
   private int brokeInto(Landing landing) {
     for (int slot = 0; slot < PIECES.length; slot++) {
-      if (slot != landing.buffer && Cubies.homeSlotOf(landing.after, slot) == landing.buffer) {
+      if (slot != landing.buffer && Cubies.homeSlotOf(landing.after, slot) == landing.buffer
+          && Cubies.homeSlotOf(landing.before, slot) != landing.buffer) {
         return slot;
       }
     }
@@ -990,6 +996,15 @@ public final class BlindStepDetector implements StepDetector {
    * Which piece it broke into is a question of its own, and {@link #brokeIntoASolvedPiece} asks it.
    * And except an algorithm the solver took back, whose effect on the cube is gone.
    *
+   * <p><b>And except the break-in an algorithm makes while it is still shooting.</b> A cycle can
+   * close on the first of the two targets — the piece waiting there is the buffer's own — and then
+   * the algorithm lands that one target and spends its second piece opening a fresh cycle, at
+   * whichever piece of the type the solver pleases. That second slot comes out holding the buffer's
+   * piece and so never comes home, which is what a break-in is and not a shot that missed; the cube
+   * says as much on the wanted line, which marks what it owed there {@code breakin:}. Reddening it
+   * anyway is the 2026-08-26 solve's complaint, where the algorithm was right and a flip the solver
+   * never did was what lost the cube.
+   *
    * <p>Only a cycle is asked, and only one whose buffer settled: a parity swaps and a flip turns, so
    * neither has a target to have missed, and a cycle its solver never memorised would otherwise be
    * laid at the door of the parity before it. Nothing is asked past the reading either, which is
@@ -1002,8 +1017,10 @@ public final class BlindStepDetector implements StepDetector {
       return blamed;
     }
     List<Integer> left = leftOut();
+    int brokeInto = brokeInto(landing);
     for (int slot : landing.named.slots) {
-      if (slot != landing.buffer && left.contains(slot) && !landing.gained.contains(slot)) {
+      if (slot != landing.buffer && slot != brokeInto && left.contains(slot)
+          && !landing.gained.contains(slot)) {
         blamed.add(slot);
       }
     }

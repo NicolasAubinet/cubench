@@ -522,6 +522,30 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * The break-in an algorithm makes while it is still shooting carries no red. Solve 3 of
+   * 2026-08-26 closes its {@code RF} cycle and opens the next at {@code UR} in the one algorithm:
+   * {@code UR} comes out holding the buffer's own piece and never comes home, and that is what a
+   * break-in is rather than a shot that missed. What lost the cube was a flip the solver never did,
+   * which the residual says and no algorithm is answerable for.
+   */
+  @Test
+  public void leavesTheBreakInOfAClosingCycleUnblamed() {
+    replay(RecordedBlindSolve.SCRAMBLE_PEEKED_WIDE, RecordedBlindSolve.MOVES_PEEKED_WIDE,
+        Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals("UF-RF-UR", detector.subStepName(1, 2));
+    assertEquals(Arrays.asList(TOUCHED, HOME, TOUCHED), detector.subStepPieceMarks(1, 2));
+    assertEquals(BlindResidual.Shape.FLIPPED, detector.getResidual().getShape());
+    assertEquals("UB, UR", detector.getResidual().getPieces());
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertFalse(detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
+  }
+
+  /**
    * A real solve whose edges are done in slices end to end, which is what a 3-style solve is made
    * of and what every other fixture here happens not to be. The whole of it is held, names and all,
    * because a slice-heavy solve is where a reading has the most room to go wrong: a slice rocks the
