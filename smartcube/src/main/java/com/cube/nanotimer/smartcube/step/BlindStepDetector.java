@@ -767,40 +767,66 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
+   * The stretch an algorithm that gained nothing opens, or null where it belongs to the one it is
+   * standing in. Nothing came home to say which piece type it was about, so the pieces it turned
+   * say it instead: a mistake taken back turns the ones the stretch it sits in is made of, while an
+   * algorithm that turned the other type's is that type's first, however little it put home.
+   */
+  private static String opensAStretch(Landing landing, Run running) {
+    List<Integer> moved = moved(landing.before, landing.after);
+    boolean edges = !ofType(moved, EDGES).isEmpty();
+    boolean corners = !ofType(moved, CORNERS).isEmpty();
+    if (edges == corners) {
+      return null; // both types, or neither: the turning says nothing about which stretch it is
+    }
+    String name = TYPE_NAMES[edges ? EDGES : CORNERS];
+    return running != null && name.equals(running.name) ? null : name;
+  }
+
+  /**
    * The solve as steps: memorisation, then a step per stretch of algorithms that worked on the same
    * piece type, with the parity — when there was one — standing apart wherever it was done.
    *
-   * <p>An algorithm that gained nothing belongs to the stretch it interrupted rather than to one of
-   * its own: undoing a mistake is part of solving that piece type, not a piece type of its own. One
-   * that comes before any stretch has begun — a cycle broken into on the very first algorithm, or a
-   * mistake made straight away — belongs to the stretch it <em>precedes</em>, for the same reason.
-   * Left to stand alone it would open the solve with a step that is not a piece type at all.
+   * <p><b>An algorithm that gained nothing is placed by the pieces it turned</b>, since nothing came
+   * home to place it by. A mistake taken back turns the pieces of the stretch it interrupted and
+   * stays in it — undoing a mistake is part of solving that piece type, not a piece type of its own
+   * — while one that turned the other type's pieces opens that type, whatever it was worth.
+   *
+   * <p>Which it has to be, because <b>the algorithm that opens a piece type routinely gains
+   * nothing</b>: breaking into a new cycle parks the buffer's own piece and takes a fresh one in,
+   * putting nothing home by definition. Placed by the stretch it followed instead, a solve whose
+   * corners open on a break-in read that algorithm — a corner commutator, spelled in corner stickers
+   * — as the last of the edges, and charged the edges its three seconds.
+   *
+   * <p>A landing whose turning says nothing — the pieces of both types, or of neither — falls back
+   * to the stretch it is standing in, or to the one it <em>precedes</em> where none has begun. Left
+   * to stand alone it would open the solve with a step that is not a piece type at all.
    */
   private List<Run> runs() {
     List<Run> runs = new ArrayList<>();
     List<Landing> beforeAnyRun = new ArrayList<>();
     for (Landing landing : landings) {
+      Run running = runs.isEmpty() ? null : runs.get(runs.size() - 1);
       String name = landing.type == PARITY_TYPE ? PARITY
-          : landing.type == NO_GAIN ? null : TYPE_NAMES[landing.type];
+          : landing.type == NO_GAIN ? opensAStretch(landing, running) : TYPE_NAMES[landing.type];
       if (name == null) {
-        if (runs.isEmpty()) {
+        if (running == null) {
           beforeAnyRun.add(landing);
         } else {
-          runs.get(runs.size() - 1).landings.add(landing);
+          running.landings.add(landing);
         }
         continue;
       }
-      Run last = runs.isEmpty() ? null : runs.get(runs.size() - 1);
-      if (last == null || !last.name.equals(name)) {
-        last = new Run(name);
-        runs.add(last);
+      if (running == null || !running.name.equals(name)) {
+        running = new Run(name);
+        runs.add(running);
       }
-      last.landings.addAll(beforeAnyRun); // whatever preceded the first stretch opens it
+      running.landings.addAll(beforeAnyRun); // whatever preceded the first stretch opens it
       beforeAnyRun.clear();
-      last.landings.add(landing);
+      running.landings.add(landing);
     }
     if (!beforeAnyRun.isEmpty()) {
-      // Nothing was ever put home: turning that reads as no piece type is all this solve has.
+      // Turning that reads as no piece type is all this solve has, and none of it named one.
       Run execution = new Run(EXECUTION);
       execution.landings.addAll(beforeAnyRun);
       runs.add(execution);
@@ -1190,8 +1216,10 @@ public final class BlindStepDetector implements StepDetector {
     }
     // Turning that put nothing home is not an algorithm, and a solve made only of it has nothing to
     // show for itself: the cube falling solved all at once is what a sighted solve looks like here.
-    for (Run run : runs()) {
-      if (!EXECUTION.equals(run.name)) {
+    // Asked of the landings rather than of the steps they are laid out as, which name a piece type
+    // off the pieces an algorithm turned whether or not it put any of them home.
+    for (Landing landing : landings) {
+      if (landing.type != NO_GAIN) {
         return true;
       }
     }

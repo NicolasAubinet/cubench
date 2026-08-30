@@ -549,6 +549,40 @@ final class RecordedBlindSolve {
           + "z'@65003 B'@65004 U'@65154 z@65320 B@65321 R@65716 B'@65944 F@66649 U@66861 F'@66949 "
           + "U'@67162 F@67300 R@67488 F'@67567 U'@67753 F@67877 U@67971 z'@68136 F@68136 R'@68241 "
           + "z@68333 F'@68333 F'@68420 U@68546";
+
+  /**
+   * 2026-08-30, and the solve whose corners open on a break-in: the buffer's own corner is parked in
+   * a new cycle and a fresh one taken in, so the algorithm puts nothing home. Read by what it gained
+   * it is of no piece type at all, and it went to the stretch it followed — a corner commutator,
+   * spelled in corner stickers, standing as the last algorithm of the edges and charging them its
+   * three seconds. It is the corners it opens, which is what the pieces it turned say.
+   *
+   * <p>The solve did not come out: an edge misfire early on leaves it a cycle short.
+   */
+  static final String SCRAMBLE_CORNERS_OPENED_ON_A_BREAK_IN =
+      "B2 U R2 U B2 R2 U L2 D L2 B' R2 U L U B2 R' D F' L R";
+  static final String MOVES_CORNERS_OPENED_ON_A_BREAK_IN =
+      "[y] y@27601 D@27601 B'@27837 F@27851 z'@27852 R@28051 x'@28220 F@28220 y'@28309 "
+          + "z'@28309 R'@28309 B@28479 F'@28551 z@28552 U@28718 z@28901 F'@28901 U'@29081 D'@29139 "
+          + "x'@29641 L'@29642 x'@29728 R@29729 D'@29883 R@29969 x@30155 D@30155 R'@30669 L@30671 "
+          + "x@30672 B'@30815 z'@30989 R'@30989 z@31158 B@31158 U@31517 B'@31674 U'@31784 F@32000 "
+          + "B'@32024 z'@32025 z'@32212 R@32212 z@32587 B@32587 R'@32709 B@32890 F'@32896 z@32897 "
+          + "U@33274 U@33399 F'@33690 B@33691 z@33692 x@34197 L@34197 B@34534 x'@34677 L'@34677 "
+          + "F@34881 B'@34909 z'@34910 U@35064 B'@35244 U@35755 B'@36290 F@36296 z'@36297 R@36499 "
+          + "F'@36641 R'@36830 B@37035 F'@37047 z@37048 U@37272 F@37468 U'@37616 F@38732 U'@38886 "
+          + "D@38936 y@38937 U'@39086 D@39093 y@39094 B'@39264 B'@39348 U@39457 D'@39461 y'@39462 "
+          + "R@39644 U@39804 R'@39916 U'@40033 D@40035 y@40036 B@40193 B@40324 U'@40461 D@40495 "
+          + "y@40496 U'@40636 D@40642 y@40643 F'@40887 U'@41241 U@42614 B@42822 B@42881 D'@42987 "
+          + "B'@43122 U@43273 U@43386 B@43483 D@43575 B'@43698 U@43825 U@43930 B'@44094 U'@44262 "
+          + "x@44569 L@44570 U'@44917 B'@45074 U@45192 F@45316 F@45417 U'@45539 B@45640 U@45811 "
+          + "F@46085 F@46205 L'@46861 x'@47413 U@47413 B'@47511 y'@47597 x'@47597 D'@47597 y@47735 "
+          + "z@47735 B@47735 U'@47820 B'@47943 D@48088 D@48198 B@48320 U@48418 B'@48526 D'@48697 "
+          + "B@48837 U'@49497 D@49838 U@49988 B'@50140 U'@50245 B'@50384 D@50445 B@50577 U@50663 "
+          + "B'@50754 D'@50876 B@51025 B@51153 U'@51956 D'@52023 U'@53820 D@54053 F'@54237 z@54330 "
+          + "F'@54330 U'@54419 z'@54575 F@54576 z'@54639 F@54640 U@54695 F'@54783 z2@54864 "
+          + "F'@54864 D'@55037 F@55199 z'@55278 F@55279 U@55369 z@55456 F'@55457 F'@55535 U'@55709 "
+          + "F@55873 F@55950";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -562,5 +596,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_SILENT_SLICES, MOVES_SILENT_SLICES},
     {SCRAMBLE_PEEK_AND_A_WIDE, MOVES_PEEK_AND_A_WIDE},
     {SCRAMBLE_SOLVED_AND_MISSPELLED, MOVES_SOLVED_AND_MISSPELLED},
+    {SCRAMBLE_CORNERS_OPENED_ON_A_BREAK_IN, MOVES_CORNERS_OPENED_ON_A_BREAK_IN},
   };
 }

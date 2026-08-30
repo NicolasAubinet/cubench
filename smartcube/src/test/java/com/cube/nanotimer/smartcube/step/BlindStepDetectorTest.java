@@ -294,6 +294,23 @@ public class BlindStepDetectorTest {
     assertEquals(detector.getStepTimestampMs(steps.size() - 1) - startMs, accounted);
   }
 
+  /**
+   * The same rule where there is no stretch yet to be placed against: a corner algorithm executed
+   * the wrong way round opens the solve, putting nothing home, and the corners are still what it
+   * turned. Placed by the stretch it precedes instead, the solve would open on a corner commutator
+   * filed under the edges that follow it.
+   */
+  @Test
+  public void opensOnThePieceTypeAWrongFirstAlgorithmTurned() {
+    startFrom(CORNER_CYCLE_A, EDGE_CYCLE_A);
+    play(invert(CORNER_CYCLE_A), EDGE_CYCLE_A);
+
+    assertEquals("corners", detector.stepName(1));
+    assertEquals(1, detector.subStepCount(1));
+    assertEquals("edges", detector.stepName(2));
+    assertEquals(1, detector.subStepCount(2));
+  }
+
   @Test
   public void doesNotMatchASolveThatFinishedBothTypesTogether() {
     // A scramble undone by its own inverse: the cube falls solved all at once, so neither piece type
@@ -411,7 +428,7 @@ public class BlindStepDetectorTest {
    *
    * <p>All three are red here. An algorithm that puts nothing home says nothing about which piece it
    * was shot from, so there is no buffer to leave unmarked and every piece it moved is its own
-   * doing. It also belongs to the stretch it precedes, and having none it joins the one before it.
+   * doing. It opens the corners all the same: it put nothing home, but corners are what it turned.
    */
   @Test
   public void marksTheTargetsOfTheAlgorithmThatLeftThemOut() {
@@ -422,8 +439,9 @@ public class BlindStepDetectorTest {
     assertNull("the last algorithm landed, so nothing went unread", detector.getLostReading());
     assertEquals(BlindResidual.Shape.CORNER_CYCLE, detector.getResidual().getShape());
 
-    assertEquals("UFR-UBL-UBR", detector.subStepName(1, 2));
-    assertEquals(Arrays.asList(WRONG, WRONG, WRONG), detector.subStepPieceMarks(1, 2));
+    assertEquals("corners", detector.stepName(2));
+    assertEquals("UFR-UBL-UBR", detector.subStepName(2, 0));
+    assertEquals(Arrays.asList(WRONG, WRONG, WRONG), detector.subStepPieceMarks(2, 0));
     // The edges were finished and stay finished: red is laid where a piece was lost, not everywhere.
     assertFalse(detector.subStepPieceMarks(1, 0).contains(WRONG));
     assertFalse(detector.subStepPieceMarks(1, 1).contains(WRONG));

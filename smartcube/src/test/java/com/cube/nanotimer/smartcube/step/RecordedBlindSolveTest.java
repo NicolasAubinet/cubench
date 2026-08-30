@@ -722,6 +722,26 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * The corners of this one open on a break-in — the buffer's own corner parked in a new cycle and a
+   * fresh one taken in — so the algorithm put nothing home and had no piece type of its own to be
+   * read by. It went to the stretch it followed, and a corner commutator spelled in corner stickers
+   * stood as the last algorithm of the edges, with its three seconds charged to them. What it turned
+   * says which stretch it is: nothing came home, but the pieces it moved were corners.
+   */
+  @Test
+  public void opensThePieceTypeAnAlgorithmThatGainedNothingBrokeInto() {
+    replay(RecordedBlindSolve.SCRAMBLE_CORNERS_OPENED_ON_A_BREAK_IN,
+        RecordedBlindSolve.MOVES_CORNERS_OPENED_ON_A_BREAK_IN, Long.MAX_VALUE);
+
+    assertEquals(6, detector.subStepCount(1));
+    assertEquals("flip:UF-UL", detector.subStepName(1, 5)); // the edges end where they came home
+    assertEquals(41241, (long) detector.getStepTimestampMs(1));
+    assertEquals("corners", detector.stepName(2));
+    assertEquals(4, detector.subStepCount(2));
+    assertEquals("UFR-LDB-RUB", detector.subStepName(2, 0));
+  }
+
+  /**
    * A cycle left on the cube is said as the shots that would fix it, so it names stickers: the edge
    * of solve 247 is owed to the L sticker of the FL slot, and {@code LF} and {@code FL} are two
    * different targets on a memo however much they are the same piece.
