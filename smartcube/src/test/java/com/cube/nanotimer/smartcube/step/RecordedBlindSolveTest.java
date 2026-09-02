@@ -52,9 +52,9 @@ public class RecordedBlindSolveTest {
     assertEquals(6, detector.subStepCount(1));
     assertEquals(4, detector.subStepCount(2));
     assertEquals("UF-DR-LU", detector.subStepName(1, 0));
-    // Three corners turned where they stand, the buffer among them: a twist moving as many pieces
-    // as a commutator, and read as one by what it left rather than by how many it touched.
-    assertEquals("twist:LUF-BUL-FUR", detector.subStepName(2, 3));
+    // Three corners turned where they stand, the buffer among them and said first: a twist moving
+    // as many pieces as a commutator, and read as one by what it left rather than what it touched.
+    assertEquals("twist:FUR-LUF-BUL", detector.subStepName(2, 3));
     // The corners end where the cube came out, not where they first happened to line up.
     assertEquals(SOLVED_AT_MS, (long) detector.getStepTimestampMs(2));
   }
@@ -93,6 +93,19 @@ public class RecordedBlindSolveTest {
     // them is the algorithm's doing and it is named, and the name says what was done to them.
     assertEquals("flip:UF-BL", detector.subStepName(1, 5)); // the two edges flipped in place
     assertEquals("twist:RUF-LDB", detector.subStepName(2, 3)); // the two corners twisted
+  }
+
+  /**
+   * The solve of 2026-08-31, whose last corner algorithm twists the buffer and two others: it opens
+   * on the buffer, and not wherever slot order happens to leave it.
+   */
+  @Test
+  public void opensATwistOnTheBufferItTurned() {
+    replay(RecordedBlindSolve.SCRAMBLE_TWIST_OFF_THE_BUFFER,
+        RecordedBlindSolve.MOVES_TWIST_OFF_THE_BUFFER, Long.MAX_VALUE);
+
+    assertEquals("UFR-DFL-UBR", detector.subStepName(2, 0)); // the buffer every other name opens on
+    assertEquals("twist:UFR-BUL-LDB", detector.subStepName(2, 4));
   }
 
   /**
@@ -265,7 +278,7 @@ public class RecordedBlindSolveTest {
     replay(RecordedBlindSolve.SCRAMBLE, RecordedBlindSolve.MOVES, Long.MAX_VALUE);
     assertEquals(BlindResidual.Shape.SOLVED, detector.getResidual().getShape());
     long lastLandingMs = detector.getSubStepTimestampMs(2, detector.subStepCount(2) - 2);
-    assertEquals("twist:LUF-BUL-FUR", detector.subStepName(2, detector.subStepCount(2) - 1));
+    assertEquals("twist:FUR-LUF-BUL", detector.subStepName(2, detector.subStepCount(2) - 1));
 
     RecordedBlindSolveTest stoppedShort = new RecordedBlindSolveTest();
     stoppedShort.replay(RecordedBlindSolve.SCRAMBLE, RecordedBlindSolve.MOVES, lastLandingMs);
@@ -294,7 +307,7 @@ public class RecordedBlindSolveTest {
 
     assertEquals("UFR-UBR-DBR", detector.subStepName(2, 2));
     assertEquals(Arrays.asList(TOUCHED, WRONG, WRONG), detector.subStepPieceMarks(2, 2));
-    assertEquals("twist:FUL-UFR", detector.subStepName(2, 3)); // the algorithm after it, and clean
+    assertEquals("twist:UFR-FUL", detector.subStepName(2, 3)); // the algorithm after it, and clean
     for (int step = 1; step < detector.stepCount(); step++) {
       for (int part = 0; part < detector.subStepCount(step); part++) {
         assertEquals("only the misfire is red: " + detector.subStepName(step, part),

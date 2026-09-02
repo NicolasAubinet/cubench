@@ -583,6 +583,35 @@ final class RecordedBlindSolve {
           + "F'@54864 D'@55037 F@55199 z'@55278 F@55279 U@55369 z@55456 F'@55457 F'@55535 U'@55709 "
           + "F@55873 F@55950";
 
+  /**
+   * The solve of 2026-08-31, which ends on a three-corner twist of the buffer and two others, and
+   * then stops owing its parity. Said in slot order the buffer came out in the middle of the name,
+   * where every other algorithm of the solve opens on it.
+   *
+   * <p>Not in {@link #ALL}, for the reason {@link #MOVES_MISFIRE} is not: the parity is still owed,
+   * so the buffer holds a foreign corner and the name has no direction to say for it.
+   */
+  static final String SCRAMBLE_TWIST_OFF_THE_BUFFER =
+      "L2 D2 F2 D B2 L2 F2 U2 F2 U' R D U B D U2 R B D2 L U";
+  static final String MOVES_TWIST_OFF_THE_BUFFER =
+      "[y] y@41206 R@41206 L'@41241 x'@41242 B@42001 U'@42314 F'@42479 B@42480 z@42481 "
+          + "L@42650 B'@42798 L'@42988 B'@43150 F@43155 z'@43156 U@43310 R'@43751 L@43752 x@43753 "
+          + "D@44585 B'@44881 F@44884 z'@44885 R@45058 F@45273 R'@45390 B@45630 F'@45722 z@45723 "
+          + "U@45909 F'@46085 U'@46323 D'@46412 R@48145 U'@48463 D@48513 y@48514 R'@48675 U@48760 "
+          + "R@48883 D'@49008 U@49034 y'@49035 F'@49194 U'@49315 z'@49489 F@49490 R'@49981 F@50839 "
+          + "B'@50853 z'@50854 R@51020 z@51232 B@51232 R'@51346 B'@51569 F@51666 z'@51667 B'@51687 "
+          + "F@51911 z'@51912 L@52105 B'@52246 L'@52360 F@52741 B'@52749 z'@52750 D'@53321 U@53347 "
+          + "R'@53621 L@53659 x@53800 U'@53800 y@53921 R'@53921 U@54009 L'@54114 R@54118 x'@54119 "
+          + "z@54248 B'@54248 z'@54326 R@54326 z@54492 B@54492 U'@55141 D@55143 z@57160 B@57160 "
+          + "L@57267 B'@57388 R@57481 R@57602 B@57765 L'@57863 B'@57995 R@58186 R@58285 z'@59070 "
+          + "L'@59070 x'@59357 B@59357 D'@59493 F@59563 D@59720 B@59822 B@59946 D'@60074 F'@60239 "
+          + "D@60374 B@60572 x@61624 L@61625 B@63215 U@63324 B'@63440 D@63517 B@63729 U'@64171 "
+          + "B@64339 D'@64504 B'@64663 U'@64770 B@64887 D@64979 B'@65109 U@65217 B'@65378 D'@66174 "
+          + "D@66670 B@66887 D@67028 B'@67146 U'@67219 B@67341 D@67454 D@67560 B'@67710 U@67817 "
+          + "B@67927 D@68118 B'@68312 D'@68761 U'@72003 D'@72092 B@72227 D@72395 B'@72627 U@72728 "
+          + "U@72850 B@72972 D'@73120 B'@73247 D@73599 U'@73609 U@75465 U@75679 B@76072 B@76156 "
+          + "D'@76271 B'@76442 U@76509 B@76605 D@76729 B'@76861 U'@77073 B'@77373 U@77508 U@77645";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},

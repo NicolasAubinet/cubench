@@ -592,8 +592,8 @@ public final class BlindStepDetector implements StepDetector {
           landings.remove(landings.size() - 1); // the halves are the one algorithm they compose
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
-        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned), from, steady,
-            gained));
+        landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned,
+            typeBuffer[type]), from, steady, gained));
         return true;
       }
       int previous = landings.size() - 1 - joined;

@@ -65,18 +65,23 @@ final class BlindTargets {
    * every piece it turned. Nothing was shot anywhere, so there is no target order to read and no
    * buffer to leave out — a buffer turned in place is as much of a memo item as any other piece.
    *
+   * <p>It opens on the buffer all the same, where it turned one, the way every other name does.
+   * Said in slot order the buffer lands wherever the cube happens to store it, and a name opening
+   * anywhere else reads as one shot from there.
+   *
    * <p>A twist has a direction, and the state before the algorithm carries it: a corner is said from
    * the face its U or D sticker was <em>sitting</em> on, so a corner belonging at UBL with white
    * turned onto its left reads {@code LUB}. A flip has no direction to tell, so an edge is said as
    * it stands.
    */
-  Named turnedName(String before, List<Integer> turned) {
-    boolean edges = Cubies.isEdge(turned.get(0));
-    List<String> names = new ArrayList<String>(turned.size());
-    for (int slot : turned) {
+  Named turnedName(String before, List<Integer> turned, int buffer) {
+    List<Integer> said = bufferFirst(turned, buffer);
+    boolean edges = Cubies.isEdge(said.get(0));
+    List<String> names = new ArrayList<String>(said.size());
+    for (int slot : said) {
       names.add(edges ? spell(slot) : spellFrom(twistedOnto(before, slot)));
     }
-    return new Named((edges ? FLIP : TWIST) + join(names), new ArrayList<Integer>(turned));
+    return new Named((edges ? FLIP : TWIST) + join(names), new ArrayList<Integer>(said));
   }
 
   /** The facelet a twisted piece's U or D sticker is sitting on, which is what says which way. */
