@@ -59,6 +59,7 @@ public class DB {
   public static final String COL_SMARTCUBE_SOLVESTEP_RECOGNITION = "recognition"; // execution time is the remainder of the step time
   public static final String COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID = "timehistory_id";
   public static final String IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY = "idx_smartcube_solvestep_timehistory";
+  public static final String IDX_SMARTCUBE_SOLVESTEP_NAME = "idx_smartcube_solvestep_name";
 
   public static final String TABLE_SESSION = "session";
   public static final String COL_SESSION_START = "start";

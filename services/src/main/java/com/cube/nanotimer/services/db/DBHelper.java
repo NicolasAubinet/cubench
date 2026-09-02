@@ -108,6 +108,11 @@ public class DBHelper extends SQLiteOpenHelper {
     db.execSQL("CREATE INDEX " + DB.IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY +
         " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (" + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + ");"
     );
+    // A case is looked up by name, once per case, so without this the whole table is walked.
+    // New installs only: a migration adding it later must say IF NOT EXISTS, one created at 30 has it.
+    db.execSQL("CREATE INDEX " + DB.IDX_SMARTCUBE_SOLVESTEP_NAME +
+        " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (" + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ");"
+    );
 
     db.execSQL("CREATE TABLE " + DB.TABLE_SESSION + "(" +
         DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
