@@ -263,10 +263,6 @@ final class RecordedBlindSolve {
    * The solve of 2026-08-10, 21:42: a corner commutator executed the other way round, with a corner
    * twist done after it. The one that says an algorithm has to answer for pieces something later
    * moved — the twist touched the buffer, and asking that nothing had is what let it off.
-   *
-   * <p>Not in {@link #ALL}: its twist is read off a buffer holding a foreign corner, and a twist is
-   * named from where the slot's <em>own</em> piece keeps its U or D sticker. That name means
-   * nothing here, so the naming invariants have nothing to say about it.
    */
   static final String SCRAMBLE_MISFIRE =
       "L2 B2 R2 B2 U' B2 D' R2 D' B2 R U L2 D R B' L2 F' R U' L";
@@ -587,9 +583,6 @@ final class RecordedBlindSolve {
    * The solve of 2026-08-31, which ends on a three-corner twist of the buffer and two others, and
    * then stops owing its parity. Said in slot order the buffer came out in the middle of the name,
    * where every other algorithm of the solve opens on it.
-   *
-   * <p>Not in {@link #ALL}, for the reason {@link #MOVES_MISFIRE} is not: the parity is still owed,
-   * so the buffer holds a foreign corner and the name has no direction to say for it.
    */
   static final String SCRAMBLE_TWIST_OFF_THE_BUFFER =
       "L2 D2 F2 D B2 L2 F2 U2 F2 U' R D U B D U2 R B D2 L U";
@@ -626,5 +619,7 @@ final class RecordedBlindSolve {
     {SCRAMBLE_PEEK_AND_A_WIDE, MOVES_PEEK_AND_A_WIDE},
     {SCRAMBLE_SOLVED_AND_MISSPELLED, MOVES_SOLVED_AND_MISSPELLED},
     {SCRAMBLE_CORNERS_OPENED_ON_A_BREAK_IN, MOVES_CORNERS_OPENED_ON_A_BREAK_IN},
+    {SCRAMBLE_MISFIRE, MOVES_MISFIRE},
+    {SCRAMBLE_TWIST_OFF_THE_BUFFER, MOVES_TWIST_OFF_THE_BUFFER},
   };
 }

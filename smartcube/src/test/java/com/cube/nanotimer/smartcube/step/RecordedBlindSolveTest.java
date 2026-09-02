@@ -105,7 +105,7 @@ public class RecordedBlindSolveTest {
         RecordedBlindSolve.MOVES_TWIST_OFF_THE_BUFFER, Long.MAX_VALUE);
 
     assertEquals("UFR-DFL-UBR", detector.subStepName(2, 0)); // the buffer every other name opens on
-    assertEquals("twist:UFR-BUL-LDB", detector.subStepName(2, 4));
+    assertEquals("twist:RUF-BUL-LDB", detector.subStepName(2, 4));
   }
 
   /**
@@ -780,10 +780,11 @@ public class RecordedBlindSolveTest {
    * edge's two faces are on different axes — so whichever one it is not, the other comes first. The
    * owner noticed it on the phone; it is the ordering showing through, not a coincidence.
    *
-   * <p><b>A twisted corner never begins with U or D.</b> It is said from the face its U/D sticker is
-   * sitting on, and a corner that is twisted is exactly one whose U/D sticker is off its U/D face.
-   * Which also catches the direction going unread: failing to find the sticker would fall back to
-   * the piece's own U/D facelet, and the name would open with a U or a D.
+   * <p><b>A twisted corner past the first never begins with U or D.</b> It is said from the face its
+   * U/D sticker is sitting on, and a corner in its own slot that is twisted is exactly one whose U/D
+   * sticker is off its U/D face. The piece a twist opens on is the buffer, which holds somebody
+   * else's corner from the first shot until the parity, and a foreign corner may sit any way up: the
+   * misfire twisted one that was already up, so its name reads {@code twist:UFR-FUL}.
    */
   @Test
   public void saysAFlipAndATwistFromAFaceThatMeansSomething() {
@@ -793,10 +794,11 @@ public class RecordedBlindSolveTest {
         if (!flip && !name.startsWith("twist:")) {
           continue;
         }
-        for (String piece : name.substring(name.indexOf(':') + 1).split("-")) {
+        String[] pieces = name.substring(name.indexOf(':') + 1).split("-");
+        for (int i = flip ? 0 : 1; i < pieces.length; i++) {
           String never = flip ? "RL" : "UD";
-          assertEquals(name + " says " + piece + " from a " + never + " face",
-              -1, never.indexOf(piece.charAt(0)));
+          assertEquals(name + " says " + pieces[i] + " from a " + never + " face",
+              -1, never.indexOf(pieces[i].charAt(0)));
         }
       }
     }

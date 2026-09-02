@@ -84,20 +84,25 @@ final class BlindTargets {
     return new Named((edges ? FLIP : TWIST) + join(names), new ArrayList<Integer>(said));
   }
 
-  /** The facelet a twisted piece's U or D sticker is sitting on, which is what says which way. */
+  /**
+   * The facelet a twisted piece's U or D sticker is sitting on, which is what says which way. It is
+   * the sticker of the piece <em>sitting</em> in the slot, not of the piece that belongs there: a
+   * corner carries exactly one of the two whatever slot it is in, and a blind solve holds a foreign
+   * corner in its buffer right up until the parity.
+   */
   private int twistedOnto(String before, int slot) {
-    for (int held : Cubies.PIECES[heldSlotOf(slot)]) {
-      if (SAID_ORDER.indexOf(Cubies.SOLVED.charAt(held)) > 1) {
-        continue; // not the U or D sticker: it says nothing about which way the piece was turned
-      }
-      char sticker = Cubies.SOLVED.charAt(FaceletRotations.apply(holding, held));
-      for (int facelet : Cubies.PIECES[slot]) {
-        if (before.charAt(facelet) == sticker) {
-          return facelet;
-        }
+    for (int facelet : Cubies.PIECES[slot]) {
+      char sticker = before.charAt(facelet);
+      if (sticker == heldColour(Cubies.U) || sticker == heldColour(Cubies.D)) {
+        return facelet;
       }
     }
     return Cubies.PIECES[slot][0];
+  }
+
+  /** The colour of one of the solver's faces, said as the face the cube reports it on. */
+  private char heldColour(int face) {
+    return Cubies.FACES.charAt(FaceletRotations.face(holding, face));
   }
 
   /**
