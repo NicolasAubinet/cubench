@@ -214,7 +214,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
   /**
    * Which cases the solver can execute in one algorithm on their own. A cache over the solves and
-   * drill reps and nothing more, so it is safe to throw away and read back — see
+   * drill reps and nothing more, so it is safe to throw away and read back, see
    * {@link CaseKnowledgeStore}.
    */
   private void createCaseKnowledgeTable(SQLiteDatabase db) {
@@ -438,11 +438,9 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     if (oldVersion < 30) {
-      // Which cases go in unaided. Filled from the history that is already there rather than left
-      // to build up, since a case turns up once in sixty solves and would take months to say
-      // anything otherwise.
+      // Which cases go in unaided. Created empty here: the code that reads the evidence back out of
+      // the history lives with the feature, so the build that owns it is the one that fills it.
       createCaseKnowledgeTable(db);
-      CaseKnowledgeStore.rebuild(db);
     }
 
 //    progressDialog.hide();
