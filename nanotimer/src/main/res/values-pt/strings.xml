@@ -1101,7 +1101,7 @@
   <string name="coach_basis_named">Casos com dados suficientes</string>
   <string name="coach_basis_known">Casos feitos num único algoritmo</string>
   <string name="coach_basis_hint">Um número demasiado escasso é omitido em vez de adivinhado: dez ocorrências para um passo do método, cinco para um caso.</string>
-  <string name="coach_uncited">%1$d números deste plano não estão no seu histórico e não são mostrados.</string>
+  <string name="coach_uncited">%1$d dados deste plano não estão no seu histórico e não são mostrados.</string>
   <string name="known_algorithms_title">Algoritmos que você conhece</string>
   <string name="known_algorithms_count">%1$d de %2$d num único algoritmo</string>
   <string name="known_algorithms_subtitle">Deduzido das suas resoluções e dos seus drills.</string>

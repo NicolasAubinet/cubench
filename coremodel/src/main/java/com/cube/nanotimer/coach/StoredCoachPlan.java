@@ -39,4 +39,9 @@ public class StoredCoachPlan {
   public List<Evidence> uncited() {
     return plan.uncited(payload);
   }
+
+  /** The cases and steps it is about that its own payload never mentioned. */
+  public List<String> unknownCodes() {
+    return plan.unknownCodes(payload);
+  }
 }

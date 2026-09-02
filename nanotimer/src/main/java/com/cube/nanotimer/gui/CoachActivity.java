@@ -169,7 +169,8 @@ public class CoachActivity extends NanoTimerActivity {
 
   /** Here for the plans this app did not write, which is every one of them. */
   private void showUncited(StoredCoachPlan stored) {
-    int invented = stored.uncited().size();
+    // A figure nobody sent and a case nobody has are the same complaint to a reader, so one line.
+    int invented = stored.uncited().size() + stored.unknownCodes().size();
     tvUncited.setVisibility(invented == 0 ? View.GONE : View.VISIBLE);
     tvUncited.setText(getString(R.string.coach_uncited, invented));
   }

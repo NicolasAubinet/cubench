@@ -194,10 +194,13 @@ public class CoachPayload {
    * The figure at a path, or null when the payload holds nothing there. Paths are how a plan cites
    * what it leans on: {@code solve.mean_ms}, {@code families.pll.recognition_ms},
    * {@code cases.pll_gb.time_lost_ms}, {@code comparisons.pll_gb.gap_ms}, {@code windows.cases},
-   * {@code two_look_count}, {@code to_learn_cases.count}.
+   * {@code two_look_count}, {@code to_learn_cases.count}, {@code to_learn_cases.oll_53}.
    *
-   * <p>A case set is reachable only by how many cases are in it. Which cases they are is a
-   * vocabulary and not a figure, so a sentence naming one cannot be checked here yet.
+   * <p>A case set answers how many cases are in it and whether a named one is among them, which is
+   * what lets a plan saying "learn this case" be checked rather than believed. A case that is not in
+   * the set answers nothing rather than zero: an absence is not evidence, and a payload written
+   * before a set existed carries it empty, which would otherwise read as every case being outside
+   * it.
    */
   public Double value(String path) {
     String[] segments = path.split("\\.");
@@ -211,9 +214,10 @@ public class CoachPayload {
     if (segments.length == 2 && "windows".equals(segments[0])) {
       return window(segments[1]);
     }
-    if (segments.length == 2 && "count".equals(segments[1])) {
-      List<String> set = caseSet(segments[0]);
-      return set == null ? null : Double.valueOf(set.size());
+    List<String> set = segments.length == 2 ? caseSet(segments[0]) : null;
+    if (set != null) {
+      return "count".equals(segments[1]) ? Double.valueOf(set.size())
+          : set.contains(segments[1]) ? Double.valueOf(1) : null;
     }
     if (segments.length != 3) {
       return null;
@@ -325,6 +329,20 @@ public class CoachPayload {
       return Double.valueOf(comparison.getDrillMeanMs());
     }
     return "gap_ms".equals(name) ? Double.valueOf(comparison.getGapMs()) : null;
+  }
+
+  /**
+   * Is this a code the payload speaks of at all? A plan names what it is about in
+   * {@link FocusArea#getCodes}, which is what the screen draws the card from, so a case nobody sent
+   * has to be catchable there and not only in the figures ({@link CoachPlan#unknownCodes}). A case
+   * with no timing behind it still counts as sent where a set holds it: that is exactly a case to
+   * learn, and it is the one a coach has most reason to name.
+   */
+  public boolean holds(String code) {
+    return figure(families, code) != null || figure(parts, code) != null
+        || figure(cases, code) != null || figure(drillCases, code) != null
+        || comparison(code) != null || knownCases.contains(code) || learningCases.contains(code)
+        || toLearnCases.contains(code);
   }
 
   /** Is there enough here to say anything at all? */

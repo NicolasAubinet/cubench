@@ -20,6 +20,10 @@ import org.json.JSONObject;
  * <p>Every claim carries the payload figure it rests on, so {@link #uncited} can throw out anything
  * that cites a number nobody sent. A plan whose evidence does not resolve is not a worse plan, it is
  * not a plan.
+ *
+ * <p>The numbers are only half of it. A card also names what it is about, and {@link #unknownCodes}
+ * throws out one naming a case the payload never mentioned, which is the invention the figures
+ * cannot catch: every number a card cites can resolve while the case it prescribes was made up.
  */
 public class CoachPlan {
 
@@ -95,6 +99,26 @@ public class CoachPlan {
       }
     }
     return invented;
+  }
+
+  /**
+   * The cases and steps this plan is about that the payload never mentioned. Separate from
+   * {@link #uncited} rather than folded into it because it is a different kind of invention and has
+   * nothing to return as evidence: a made-up case has no path and no value, only a name.
+   *
+   * <p>A code counted here is one no figure and no case set holds, so this stays as method-agnostic
+   * as the payload is: whatever the app recorded is what a plan may speak of.
+   */
+  public List<String> unknownCodes(CoachPayload payload) {
+    List<String> unknown = new ArrayList<String>();
+    for (FocusArea area : focus) {
+      for (String code : area.getCodes()) {
+        if (!payload.holds(code)) {
+          unknown.add(code);
+        }
+      }
+    }
+    return unknown;
   }
 
   public String toJson() {

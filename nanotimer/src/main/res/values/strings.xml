@@ -1139,7 +1139,7 @@
   <string name="coach_basis_named">Cases with enough behind them</string>
   <string name="coach_basis_known">Cases you do in one algorithm</string>
   <string name="coach_basis_hint">A figure thinner than its floor is left out rather than guessed at: ten occurrences for a step of the method, five for a case.</string>
-  <string name="coach_uncited">%1$d of this plan\'s figures are not in your history, and are not shown.</string>
+  <string name="coach_uncited">%1$d of this plan\'s claims are not in your history, and are not shown.</string>
   <!-- The cases the solver puts in unaided, and what they turn for each. -->
   <string name="known_algorithms_title">Algorithms you know</string>
   <string name="known_algorithms_count">%1$d of %2$d in one algorithm</string>

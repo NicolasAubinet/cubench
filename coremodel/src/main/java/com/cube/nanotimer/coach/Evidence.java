@@ -13,7 +13,9 @@ import org.json.JSONObject;
  *
  * <p>Paths read like the payload: {@code solve.mean_ms}, {@code families.pll.recognition_ms},
  * {@code cases.pll_gb.time_lost_ms}, {@code drill_cases.pll_gb.mean_ms},
- * {@code comparisons.pll_gb.gap_ms}.
+ * {@code comparisons.pll_gb.gap_ms}. A case set answers its size at {@code to_learn_cases.count}
+ * and a case's membership at {@code to_learn_cases.oll_53}, which is 1 or nothing, so telling
+ * someone to learn a case is a claim like any other rather than one nobody can check.
  */
 public class Evidence {
 
