@@ -1123,6 +1123,8 @@
   <string name="coach_case_rejected">%1$d%% of them thrown out</string>
   <string name="coach_recognition_body">%1$s: %2$s of %3$s goes before the first move.</string>
   <string name="coach_two_look_body">%1$d of the last %2$d solves took the last layer in two looks.</string>
+  <string name="coach_two_look_share">The last layer takes %1$s of your solve, where %2$s is usual in one look.</string>
+  <string name="coach_two_look_to_learn">Your solves show %1$d cases you do not yet put in with one algorithm.</string>
   <string name="coach_step_share_body">%1$s takes %2$s of your solve, where %3$s is usual.</string>
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_drill_case">Drill this case</string>
@@ -1130,8 +1132,7 @@
   <string name="coach_basis_title">What this is based on</string>
   <string name="coach_splits_title">Where your time goes</string>
   <string name="coach_split_value">%1$s, usually %2$s</string>
-  <string name="coach_split_set_aside">Set aside</string>
-  <string name="coach_splits_hint">Each step as a share of the steps compared, against what it usually takes. A last layer taken in two looks is set aside, because it runs over any one-look figure by nature.</string>
+  <string name="coach_splits_hint">Each step as a share of your whole solve, against what it usually takes.</string>
   <string name="coach_basis_solves">Solves read for steps</string>
   <string name="coach_basis_cases">Solves read for cases</string>
   <string name="coach_basis_drills">Drills read</string>

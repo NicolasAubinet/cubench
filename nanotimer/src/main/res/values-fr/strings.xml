@@ -1083,6 +1083,8 @@
   <string name="coach_case_rejected">%1$d%% d\'entre eux écartés</string>
   <string name="coach_recognition_body">%1$s : %2$s sur %3$s passent avant le premier mouvement.</string>
   <string name="coach_two_look_body">%1$d des %2$d dernières résolutions ont pris la dernière couche en deux regards.</string>
+  <string name="coach_two_look_share">La dernière couche prend %1$s de la résolution, là où %2$s est la norme en un regard.</string>
+  <string name="coach_two_look_to_learn">Vos résolutions montrent %1$d cas que vous ne placez pas encore en un seul algorithme.</string>
   <string name="coach_step_share_body">%1$s prend %2$s de votre résolution, alors que %3$s est habituel.</string>
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_drill_case">Travailler ce cas</string>
@@ -1090,8 +1092,7 @@
   <string name="coach_basis_title">Sur quoi ceci repose</string>
   <string name="coach_splits_title">Où passe votre temps</string>
   <string name="coach_split_value">%1$s, normalement %2$s</string>
-  <string name="coach_split_set_aside">Mis de côté</string>
-  <string name="coach_splits_hint">Chaque étape en part des étapes comparées, face à sa part habituelle. Une dernière couche prise en deux regards est mise de côté, car elle dépasse par nature toute valeur en un regard.</string>
+  <string name="coach_splits_hint">Chaque étape en part de toute la résolution, face à sa part habituelle.</string>
   <string name="coach_basis_solves">Résolutions lues pour les étapes</string>
   <string name="coach_basis_cases">Résolutions lues pour les cas</string>
   <string name="coach_basis_drills">Drills lus</string>

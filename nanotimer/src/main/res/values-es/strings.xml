@@ -1082,6 +1082,8 @@
   <string name="coach_case_rejected">%1$d%% de ellos descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s pasan antes del primer movimiento.</string>
   <string name="coach_two_look_body">%1$d de las últimas %2$d resoluciones tomaron la última capa en dos miradas.</string>
+  <string name="coach_two_look_share">La última capa ocupa %1$s de tu resolución, donde %2$s es lo normal en una mirada.</string>
+  <string name="coach_two_look_to_learn">Tus resoluciones muestran %1$d casos que aún no colocas con un solo algoritmo.</string>
   <string name="coach_step_share_body">%1$s ocupa el %2$s de tu resolución, cuando lo habitual es el %3$s.</string>
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_drill_case">Practicar este caso</string>
@@ -1089,8 +1091,7 @@
   <string name="coach_basis_title">En qué se basa esto</string>
   <string name="coach_splits_title">Adónde va tu tiempo</string>
   <string name="coach_split_value">%1$s, normalmente %2$s</string>
-  <string name="coach_split_set_aside">Apartado</string>
-  <string name="coach_splits_hint">Cada paso como parte de los pasos comparados, frente a la parte habitual. Una última capa tomada en dos miradas se aparta, porque por naturaleza supera cualquier valor de una mirada.</string>
+  <string name="coach_splits_hint">Cada paso como parte de toda tu resolución, frente a la parte habitual.</string>
   <string name="coach_basis_solves">Resoluciones leídas para los pasos</string>
   <string name="coach_basis_cases">Resoluciones leídas para los casos</string>
   <string name="coach_basis_drills">Drills leídos</string>

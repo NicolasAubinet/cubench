@@ -138,15 +138,42 @@ public class CoachPlanView {
       return activity.getString(R.string.coach_step_share_body,
           Utils.toSmartCubeStepLocalizedName(activity, code, 0), percent(took), percent(should));
     }
-    if (area.getReason() == FocusArea.Reason.TWO_LOOK_OLL) {
-      Double looks = payload.value("two_look_count");
-      Double solves = payload.value("windows.families");
-      if (looks == null || solves == null) {
-        return null;
-      }
-      return activity.getString(R.string.coach_two_look_body, looks.intValue(), solves.intValue());
+    if (area.getReason() == FocusArea.Reason.TWO_LOOK_OLL && !area.getCodes().isEmpty()) {
+      return twoLook(payload, area.getCodes().get(0));
     }
     return null;
+  }
+
+  /**
+   * What the last layer costs, how often it took two looks, and how many cases are behind that. The
+   * three read as one paragraph and any of them may be missing, so they are joined rather than
+   * formatted together.
+   */
+  private String twoLook(CoachPayload payload, String family) {
+    StringBuilder said = new StringBuilder();
+    StepShares shares = StepShares.of(payload);
+    if (overBaseline(shares, family)) {
+      said.append(activity.getString(R.string.coach_two_look_share,
+          percent(shares.actual(family)), percent(shares.expected(family))));
+    }
+    Double looks = payload.value("two_look_count");
+    Double solves = payload.value("windows.families");
+    if (looks != null && solves != null) {
+      append(said, activity.getString(R.string.coach_two_look_body, looks.intValue(),
+          solves.intValue()));
+    }
+    Double toLearn = payload.value("to_learn_cases.count");
+    if (toLearn != null && toLearn.intValue() > 0) {
+      append(said, activity.getString(R.string.coach_two_look_to_learn, toLearn.intValue()));
+    }
+    return said.length() == 0 ? null : said.toString();
+  }
+
+  private static void append(StringBuilder said, String sentence) {
+    if (said.length() > 0) {
+      said.append(' ');
+    }
+    said.append(sentence);
   }
 
   private View caseRow(LinearLayout parent, FocusArea area, CoachPayload payload, String code) {
@@ -249,8 +276,25 @@ public class CoachPlanView {
     return FormatterService.INSTANCE.formatSolveTime(Long.valueOf(Math.round(ms.doubleValue())));
   }
 
+  /**
+   * Whether the last layer is worth pricing, which is not the same question as whether it is taken
+   * twice: a solver can two-look half his solves and still land under the one-look baseline. Saying
+   * what it costs where it costs nothing reads as an accusation the figure beside it disproves.
+   *
+   * <p>The two shares must differ once rounded, since the sentence prints them rounded and "16%
+   * where 16% is usual" says nothing at all.
+   */
+  private static boolean overBaseline(StepShares shares, String family) {
+    Double took = shares.actual(family);
+    Double should = shares.expected(family);
+    return took != null && should != null && rounded(took) > rounded(should);
+  }
+
+  private static int rounded(Double share) {
+    return (int) Math.round(share.doubleValue() * 100);
+  }
+
   private String percent(Double share) {
-    return activity.getString(R.string.coach_percent,
-        Integer.valueOf((int) Math.round(share.doubleValue() * 100)));
+    return activity.getString(R.string.coach_percent, Integer.valueOf(rounded(share)));
   }
 }

@@ -46,29 +46,29 @@ public class StepSharesTest {
     Assert.assertTrue(StepShares.of(payload("roux", ONE_LOOK, 4000, 15000, 3000, 5000)).isEmpty());
   }
 
-  /** The last layer is over any one-look baseline by construction, so it is not measured at all. */
+  /** A two-looked last layer is a step like any other: one denominator, no special case. */
   @Test
-  public void testATwoLookedLastLayerIsLeftOutOfTheComparison() {
+  public void testATwoLookedLastLayerIsCompared() {
     StepShares shares = StepShares.of(payload("cfop", TWO_LOOK, 4000, 15000, 12000, 5000));
 
-    Assert.assertNull(shares.actual("oll"));
-    Assert.assertNull(shares.expected("oll"));
-    Assert.assertEquals(Arrays.asList("cross", "f2l", "pll"),
+    // 4+15+12+5 = 36 seconds, so the last layer took 12/36 against a 16.5% baseline.
+    Assert.assertEquals(12000d / 36000, shares.actual("oll").doubleValue(), EPSILON);
+    Assert.assertEquals(0.165, shares.expected("oll").doubleValue(), EPSILON);
+    Assert.assertEquals(Arrays.asList("cross", "f2l", "oll", "pll"),
         new ArrayList<String>(shares.families()));
   }
 
   /**
-   * The reason dropping it has to renormalize: a two-looker spends so long on OLL that every other
-   * step's share of the whole falls, and a cross that is genuinely slow would read as fine.
+   * What a big step does to the others, which is not a distortion but the truth: a solver spending a
+   * third of the solve orienting the last layer does spend proportionally less of it on the cross.
    */
   @Test
-  public void testDroppingTheLastLayerRenormalizesWhatIsLeft() {
+  public void testAStepIsAShareOfTheWholeSolveEvenWhenAnotherIsHuge() {
     StepShares shares = StepShares.of(payload("cfop", TWO_LOOK, 6000, 15000, 12000, 5000));
 
-    // Against the whole solve the cross is 6/38, under its 12%; against the rest it is 6/26, over it.
-    Assert.assertEquals(6000d / 26000, shares.actual("cross").doubleValue(), EPSILON);
-    Assert.assertEquals(0.12 / 0.835, shares.expected("cross").doubleValue(), EPSILON);
-    Assert.assertTrue(shares.actual("cross") > shares.expected("cross"));
+    Assert.assertEquals(6000d / 38000, shares.actual("cross").doubleValue(), EPSILON);
+    Assert.assertEquals(0.12, shares.expected("cross").doubleValue(), EPSILON);
+    Assert.assertTrue(shares.actual("oll") > shares.expected("oll"));
   }
 
   @Test

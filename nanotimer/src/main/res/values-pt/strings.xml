@@ -1085,6 +1085,8 @@
   <string name="coach_case_rejected">%1$d%% deles descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s passam antes do primeiro movimento.</string>
   <string name="coach_two_look_body">%1$d das últimas %2$d resoluções levaram a última camada em dois olhares.</string>
+  <string name="coach_two_look_share">A última camada leva %1$s da sua resolução, onde %2$s é o normal num olhar.</string>
+  <string name="coach_two_look_to_learn">As suas resoluções mostram %1$d casos que ainda não coloca com um só algoritmo.</string>
   <string name="coach_step_share_body">%1$s ocupa %2$s da sua resolução, quando o habitual é %3$s.</string>
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_drill_case">Treinar este caso</string>
@@ -1092,8 +1094,7 @@
   <string name="coach_basis_title">Em que isto se baseia</string>
   <string name="coach_splits_title">Para onde vai o seu tempo</string>
   <string name="coach_split_value">%1$s, normalmente %2$s</string>
-  <string name="coach_split_set_aside">Posto de lado</string>
-  <string name="coach_splits_hint">Cada passo como parte dos passos comparados, face à parte habitual. Uma última camada feita em dois olhares fica de lado, porque por natureza supera qualquer valor de um olhar.</string>
+  <string name="coach_splits_hint">Cada passo como parte de toda a sua resolução, face à parte habitual.</string>
   <string name="coach_basis_solves">Resoluções lidas para os passos</string>
   <string name="coach_basis_cases">Resoluções lidas para os casos</string>
   <string name="coach_basis_drills">Drills lidos</string>

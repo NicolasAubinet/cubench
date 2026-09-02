@@ -189,9 +189,6 @@ public class CoachActivity extends NanoTimerActivity {
       splitRow(family, getString(R.string.coach_split_value,
           percent(shares.actual(family)), percent(shares.expected(family))));
     }
-    if (shares.getExcluded() != null) {
-      splitRow(shares.getExcluded(), getString(R.string.coach_split_set_aside));
-    }
   }
 
   private void splitRow(String family, String value) {

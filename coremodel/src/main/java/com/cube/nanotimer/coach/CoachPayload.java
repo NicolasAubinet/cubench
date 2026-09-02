@@ -194,7 +194,10 @@ public class CoachPayload {
    * The figure at a path, or null when the payload holds nothing there. Paths are how a plan cites
    * what it leans on: {@code solve.mean_ms}, {@code families.pll.recognition_ms},
    * {@code cases.pll_gb.time_lost_ms}, {@code comparisons.pll_gb.gap_ms}, {@code windows.cases},
-   * {@code two_look_count}.
+   * {@code two_look_count}, {@code to_learn_cases.count}.
+   *
+   * <p>A case set is reachable only by how many cases are in it. Which cases they are is a
+   * vocabulary and not a figure, so a sentence naming one cannot be checked here yet.
    */
   public Double value(String path) {
     String[] segments = path.split("\\.");
@@ -207,6 +210,10 @@ public class CoachPayload {
     }
     if (segments.length == 2 && "windows".equals(segments[0])) {
       return window(segments[1]);
+    }
+    if (segments.length == 2 && "count".equals(segments[1])) {
+      List<String> set = caseSet(segments[0]);
+      return set == null ? null : Double.valueOf(set.size());
     }
     if (segments.length != 3) {
       return null;
@@ -227,6 +234,16 @@ public class CoachPayload {
       return Double.valueOf(caseWindow);
     }
     return "drills".equals(name) ? Double.valueOf(drillWindow) : null;
+  }
+
+  private List<String> caseSet(String name) {
+    if ("known_cases".equals(name)) {
+      return knownCases;
+    }
+    if ("learning_cases".equals(name)) {
+      return learningCases;
+    }
+    return "to_learn_cases".equals(name) ? toLearnCases : null;
   }
 
   private List<StepFigure> list(String name) {

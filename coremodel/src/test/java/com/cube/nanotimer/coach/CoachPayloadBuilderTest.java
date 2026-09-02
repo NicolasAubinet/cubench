@@ -190,7 +190,6 @@ public class CoachPayloadBuilderTest {
     Assert.assertEquals(1, payload.getSchemaVersion());
     Assert.assertNull(payload.getTwoLookCount());
     Assert.assertNull(payload.value("two_look_count")); // so the card that reads it stays quiet
-    Assert.assertFalse(StepShares.twoLooks(payload));
   }
 
   @Test
