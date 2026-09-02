@@ -193,10 +193,12 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
     }
     LayoutInflater inflater = LayoutInflater.from(this);
     TextView heading = (TextView) inflater.inflate(R.layout.known_algorithms_section, rows, false);
-    heading.setText(status == CaseKnowledge.Status.KNOWN ? R.string.known_algorithms_status_known
+    int name = status == CaseKnowledge.Status.KNOWN ? R.string.known_algorithms_status_known
         : status == CaseKnowledge.Status.NEEDS_REVIEW ? R.string.known_algorithms_status_review
         : status == CaseKnowledge.Status.TO_LEARN ? R.string.known_algorithms_status_to_learn
-        : R.string.known_algorithms_status_unseen);
+        : R.string.known_algorithms_status_unseen;
+    heading.setText(getString(R.string.known_algorithms_status_count, getString(name),
+        cases.size()));
     rows.addView(heading);
 
     ViewGroup group = (ViewGroup) inflater.inflate(R.layout.known_algorithms_group, rows, false);

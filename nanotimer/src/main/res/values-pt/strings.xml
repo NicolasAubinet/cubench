@@ -1109,6 +1109,7 @@
   <string name="known_algorithms_status_review">Para rever</string>
   <string name="known_algorithms_status_to_learn">Para aprender</string>
   <string name="known_algorithms_status_unseen">Nada a dizer</string>
+  <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Nenhum caso registrado</string>
   <string name="known_algorithms_hint">Toque num caso para ver os seus algoritmos. Um caso conta como conhecido na primeira vez que o faz com um único algoritmo numa resolução. Se voltar a fazê-lo em duas etapas, fica para rever; um que nunca fez com um único algoritmo fica para aprender.</string>
   <string name="known_algorithms_empty">Nada aqui ainda. Resolva com um smart cube conectado e os casos que você faz sem ajuda vão aparecer.</string>
