@@ -153,25 +153,37 @@ public final class BlindStepDetector implements StepDetector {
     final String before;
     final String after; // where it landed, which is where the solve stood one algorithm on
     final boolean shot; // whether a cycle was shot, and so may still be renamed
+    final boolean turned; // whether it turned its pieces where they stand: a flip or a twist
     final List<Integer> pieces;
     final List<Integer> gained; // what it put home, which says which of its name's pieces are solved
     BlindTargets.Named named;
     int buffer;
 
-    /** An algorithm with nothing left to settle: an undo, or a flip or a twist. */
+    /**
+     * An algorithm with nothing left to settle: an undo, or a flip or a twist. A flip shoots from
+     * nothing, so its buffer is only the one it was <em>named</em> against, held so that anything
+     * said about it later opens on the same piece its name does.
+     */
     Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
-        List<Integer> gained) {
-      this(timestampMs, type, named, before, after, false, null, BlindTargets.NO_BUFFER, gained);
+        boolean turned, int buffer, List<Integer> gained) {
+      this(timestampMs, type, named, before, after, false, turned, null, buffer, gained);
     }
 
     Landing(long timestampMs, int type, BlindTargets.Named named, String before, String after,
         boolean shot, List<Integer> pieces, int buffer, List<Integer> gained) {
+      this(timestampMs, type, named, before, after, shot, false, pieces, buffer, gained);
+    }
+
+    private Landing(long timestampMs, int type, BlindTargets.Named named, String before,
+        String after, boolean shot, boolean turned, List<Integer> pieces, int buffer,
+        List<Integer> gained) {
       this.timestampMs = timestampMs;
       this.type = type;
       this.named = named;
       this.before = before;
       this.after = after;
       this.shot = shot;
+      this.turned = turned;
       this.pieces = pieces;
       this.buffer = buffer;
       this.gained = gained;
@@ -660,7 +672,7 @@ public final class BlindStepDetector implements StepDetector {
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
         landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned,
-            typeBuffer[type]), from, steady, gained));
+            typeBuffer[type]), from, steady, true, typeBuffer[type], gained));
         return true;
       }
       int previous = landings.size() - 1 - joined;
@@ -682,7 +694,8 @@ public final class BlindStepDetector implements StepDetector {
       return false;
     }
     landings.add(new Landing(timestampMs, NO_GAIN,
-        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, steady, gained));
+        new BlindTargets.Named(UNDO, Collections.<Integer>emptyList()), landed, steady, false,
+        BlindTargets.NO_BUFFER, gained));
     return true;
   }
 
@@ -988,11 +1001,23 @@ public final class BlindStepDetector implements StepDetector {
    * solver memorised. A break-in is silent about where it went, the buffer holding its own piece
    * leaving the next cycle the solver's to open wherever they please — but not about what it owed
    * after that, which is a target like any other.
+   *
+   * <p>A flip or a twist is owed the pieces standing turned in front of it, and says so on the same
+   * terms: only where there are exactly as many as it turned, since more than that is several memo
+   * items and which of them to do first is the solver's own choice.
    */
   @Override
   public String subStepWantedName(int step, int subStep) {
     Landing landing = runs().get(step - 1).landings.get(subStep);
-    if (landing.buffer == BlindTargets.NO_BUFFER || blamedOn(landing).isEmpty()) {
+    if (blamedOn(landing).isEmpty()) {
+      return null;
+    }
+    if (landing.turned) {
+      List<Integer> owed = turnedInPlaceIn(landing.before, landing.type);
+      return owed.size() == landing.named.slots.size()
+          ? targets.turnedName(landing.before, owed, landing.buffer).name : null;
+    }
+    if (landing.buffer == BlindTargets.NO_BUFFER) {
       return null;
     }
     // A break-in the cube did not object to is said back as the solver made it, the target after it
@@ -1019,9 +1044,16 @@ public final class BlindStepDetector implements StepDetector {
    * ({@link #brokeIntoASolvedPiece}) or for having landed nothing with the one target a break-in
    * does have ({@link #brokeInAndLandedNothing}).
    *
+   * <p><b>And a flip or a twist answers for a piece it turned that never came home</b>
+   * ({@link #turnedThatNeverCameHome}), which is the same rule said of an algorithm that shoots
+   * nothing: its pieces are what it claims to have put right, and one of them still turned at the
+   * end is a pair read off the wrong letter. Reversing it proves nothing — a flip undone is the
+   * same flip — so nothing above ever reaches it.
+   *
    * <p>Neither blames an algorithm that did nothing wrong. A cycle left open and a parity never done
    * put pieces out that no shot ever claimed and that no reversal would fix: both are the verdict
-   * line's to explain, which says the shape without pointing at anyone.
+   * line's to explain, which says the shape without pointing at anyone. A flip never done at all is
+   * of that kind too, there being no algorithm there to carry it.
    */
   private List<Integer> blamedOn(Landing landing) {
     if (solvedMs != null) {
@@ -1031,6 +1063,9 @@ public final class BlindStepDetector implements StepDetector {
     if (reversed != null) {
       return reversed == landing
           ? whatItShouldHavePutHome(landing) : Collections.<Integer>emptyList();
+    }
+    if (landing.turned) {
+      return turnedThatNeverCameHome(landing);
     }
     List<Integer> brokeIn = brokeIntoASolvedPiece(landing);
     if (brokeIn.isEmpty()) {
@@ -1160,6 +1195,50 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     return blamed;
+  }
+
+  /**
+   * The pieces a flip or a twist turned that are still turned at the end, and that nothing after it
+   * put right: it claimed to have finished them, and one of them was somebody else.
+   *
+   * <p>Read against the end of the solve rather than against what it turned, since a flip is right
+   * about every piece it names or wrong about one — flipping the wrong second edge leaves the first
+   * one genuinely home, and reddening that would be the sheet arguing with a solver who can see it
+   * standing solved. What it did put home is its own doing and stands whatever happens later, the
+   * same as a shot's.
+   *
+   * <p><b>Only a piece that stood in its own slot</b>, which is the piece a flip can finish on its
+   * own. On an odd solve the buffer holds a foreign piece right up until the parity, so a flip of
+   * the buffer leaves it turned wherever it stands and only the parity can bring it home: blaming
+   * the flip for a parity never done would point at the algorithm that did its half.
+   *
+   * <p>And except one the solver took back, whose effect on the cube is gone.
+   */
+  private List<Integer> turnedThatNeverCameHome(Landing landing) {
+    List<Integer> blamed = new ArrayList<>();
+    if (wasTakenBack(landing)) {
+      return blamed;
+    }
+    List<Integer> left = leftOut();
+    for (int slot : landing.named.slots) {
+      if (Cubies.homeSlotOf(landing.before, slot) == slot && left.contains(slot)
+          && !landing.gained.contains(slot)) {
+        blamed.add(slot);
+      }
+    }
+    return blamed;
+  }
+
+  /** The pieces of one type standing in their own slot but turned, which is a flip or a twist owed. */
+  private static List<Integer> turnedInPlaceIn(String state, int type) {
+    List<Integer> turned = new ArrayList<>();
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      if ((Cubies.isEdge(slot) ? EDGES : CORNERS) == type && Cubies.homeSlotOf(state, slot) == slot
+          && !Cubies.inPlace(state, PIECES[slot])) {
+        turned.add(slot);
+      }
+    }
+    return turned;
   }
 
   /** Whether this algorithm found the buffer holding its own piece, which is a cycle closed. */

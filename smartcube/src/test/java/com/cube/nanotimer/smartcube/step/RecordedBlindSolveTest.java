@@ -1057,6 +1057,35 @@ public class RecordedBlindSolveTest {
     return names;
   }
 
+  /**
+   * The solve of 2026-09-03 13:24:39, lost on a flip of the wrong pair. Two edges stood turned in front of
+   * its last edge algorithm — the {@code UF} buffer and {@code UL} — and the solver flipped
+   * {@code UL} and {@code UR}, so one of the two letters was right and the other was somebody else.
+   *
+   * <p>The right letter keeps its green: {@code UL} really did come home, and it is still standing
+   * solved at the end. Only {@code UR} carries the red, and the wanted line says the pair that was
+   * owed — which is the whole of the mistake in two words.
+   */
+  @Test
+  public void reddensThePieceAFlipTurnedThatNeverCameHome() {
+    replay(RecordedBlindSolve.SCRAMBLE_FLIPPED_THE_WRONG_PAIR,
+        RecordedBlindSolve.MOVES_FLIPPED_THE_WRONG_PAIR, Long.MAX_VALUE);
+
+    assertEquals("flip:UL-UR", detector.subStepName(1, 5));
+    assertEquals(Arrays.asList(HOME, WRONG), detector.subStepPieceMarks(1, 5));
+    assertEquals("flip:UF-UL", detector.subStepWantedName(1, 5));
+    // And the cube says the same thing from the other end: the two it was left turned.
+    assertEquals(BlindResidual.Shape.FLIPPED, detector.getResidual().getShape());
+    assertEquals("UF, UR", detector.getResidual().getPieces());
+    // Nothing else carries any: every shot of the solve landed what it was aimed at.
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        assertEquals("only the flip is answerable: " + step + "." + part,
+            step == 1 && part == 5, detector.subStepPieceMarks(step, part).contains(WRONG));
+      }
+    }
+  }
+
   /** Every algorithm of a solve, memorisation aside, in the order they were executed. */
   private static List<String> algorithmsOf(String scramble, String moves) {
     RecordedBlindSolveTest solve = new RecordedBlindSolveTest();

@@ -665,6 +665,36 @@ final class RecordedBlindSolve {
           + "D'@88685 B@89097 D@89544 B@89697 U@90177 B'@90320 B'@90533 D'@90950 B@91160 B@91350 "
           + "U'@91623 U@92356 B'@92495 B'@92832 B@93099";
 
+  /**
+   * The solve of 2026-09-03 13:24:39, lost on the last of its edge algorithms. Two edges stood flipped in
+   * front of it — the buffer and {@code UL} — and the solver flipped {@code UL} and {@code UR}
+   * instead, which leaves {@code UL} genuinely home and two edges turned at the end.
+   *
+   * <p>Nothing was shot wrong anywhere in it, so it is the solve that says a flip answers for its
+   * pieces the way a shot answers for its targets.
+   */
+  static final String SCRAMBLE_FLIPPED_THE_WRONG_PAIR =
+      "U' F2 D B2 L2 D R2 D B2 R2 U' R2 B R U2 R' F U2 F2 D2 L";
+  static final String MOVES_FLIPPED_THE_WRONG_PAIR =
+      "[y] y@36949 D@36950 y@37222 R@37222 U'@37431 D@37448 y@37449 B'@37598 B'@37704 D'@37977 "
+          + "U@37987 y'@37988 R@38207 y'@38539 D'@38540 U@39060 U@39183 B@39402 F'@39439 z@39440 "
+          + "L'@39697 F@39928 L@40245 B'@40561 F@40583 z'@40584 U'@40869 F'@41230 U'@41872 "
+          + "U'@42556 D@42566 y@42567 L'@42766 L@43465 U@43804 D'@43823 y'@43824 B@44494 "
+          + "D'@44692 U@44705 y'@44706 U@44903 D'@44905 y'@44906 F'@45002 U'@45242 F@45343 "
+          + "D'@45532 U@45544 y'@45545 D'@45699 U@45701 y'@45702 B'@45830 U@46032 D'@46517 "
+          + "U@46610 F@46925 U'@47111 D@47137 y@47138 R'@47294 R'@47422 U@47544 D'@47554 F@47810 "
+          + "y'@48006 U'@48006 D@48052 U@48469 B@48655 F'@48691 z@48692 L@48860 F@48954 B'@48956 "
+          + "z'@48957 U@49229 U@49346 B@49474 F'@49519 z@49520 L@49745 B'@49882 F@49893 z'@49894 "
+          + "U'@50153 L@50609 R'@50617 x@50618 y@51072 U'@51073 R'@51196 U@51308 R@51430 L'@51440 "
+          + "x'@51441 B'@51548 x'@51631 R@51632 B@51776 U'@51856 F@51982 B'@51986 z'@51987 "
+          + "y'@52158 x@52158 R@52158 R@52303 B@52480 F'@52525 z@52526 U'@53116 B'@53989 B'@54170 "
+          + "D'@54471 B@54685 U'@54785 B'@54899 D@55052 B@55154 U@55344 B@55726 D'@56455 D'@56587 "
+          + "B@56757 U@56888 B'@57050 D'@57214 D'@57326 B@57456 U'@57581 B'@57703 D@57991 "
+          + "B@58206 U'@58380 D'@58516 B'@58673 U@58740 B@58849 D@58933 B'@59070 U'@59193 "
+          + "B@59309 U@59480 B'@59703 D'@59953 B'@60425 D@60614 B@60749 U@60834 B'@60929 "
+          + "U'@61017 B@61165 U@61267 B'@61380 D'@61460 B@61633 U'@61710 B'@61877 U@61980 "
+          + "B@62176 U'@62299";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -683,5 +713,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_TWIST_OFF_THE_BUFFER, MOVES_TWIST_OFF_THE_BUFFER},
     {SCRAMBLE_MISSED_AFTER_A_BREAK_IN, MOVES_MISSED_AFTER_A_BREAK_IN},
     {SCRAMBLE_OPENED_ON_A_CLOSED_CYCLE, MOVES_OPENED_ON_A_CLOSED_CYCLE},
+    {SCRAMBLE_FLIPPED_THE_WRONG_PAIR, MOVES_FLIPPED_THE_WRONG_PAIR},
   };
 }

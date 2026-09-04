@@ -225,8 +225,14 @@ public class Utils {
    * The cycle a blind algorithm was owed ("breakin:UF-UL"), said with the break-in that the marked
    * ones end on: their second target closed the cycle, so it was any piece of the type still out and
    * the cube cannot name it. The pieces are the code's own and are never translated.
+   *
+   * <p>What a flip or a twist was owed is a pair to turn ("flip:UF-UL") and reads as one.
    */
   public static String toSmartCubeWantedName(Context context, String code) {
+    String turned = toSmartCubeTurnedName(context, code);
+    if (turned != null) {
+      return turned;
+    }
     if (code == null || !code.startsWith(BREAK_IN_CODE_PREFIX)) {
       return code;
     }
