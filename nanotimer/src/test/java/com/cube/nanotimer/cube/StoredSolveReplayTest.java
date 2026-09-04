@@ -116,7 +116,9 @@ public class StoredSolveReplayTest {
    *
    * <p>Each piece type here is a five-cycle done in two algorithms. The first closes on a break-in,
    * landing its first target and leaving its second holding a piece that belongs elsewhere; the
-   * second closes the cycle and lands all three, the buffer included.
+   * second closes the cycle and lands all three, the buffer included. Neither leaves one piece out,
+   * so both are named by the buffer the one landed piece was sent from rather than said in slot
+   * order — which is what the second one reading as a cycle rather than as {@code UF-UB-DL} is.
    */
   @Test
   public void carriesThePiecesEachAlgorithmPutHomeOutOfTheReRead() {
@@ -126,7 +128,7 @@ public class StoredSolveReplayTest {
     List<SolveStep> edges = result.getSteps().get(1).getSubSteps();
     assertEquals("UF-UL-UB", edges.get(0).getName());
     assertEquals(Arrays.asList(TOUCHED, HOME, TOUCHED), edges.get(0).getPieceMarks());
-    assertEquals("UF-UB-DL", edges.get(1).getName());
+    assertEquals("UF-DL-UB", edges.get(1).getName());
     assertEquals(Arrays.asList(HOME, HOME, HOME), edges.get(1).getPieceMarks());
 
     // And there is one mark per piece the name says, which is what the sheet colours them by.

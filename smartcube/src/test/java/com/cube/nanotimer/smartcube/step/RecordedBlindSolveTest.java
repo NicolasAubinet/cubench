@@ -980,6 +980,23 @@ public class RecordedBlindSolveTest {
     }
   }
 
+  /**
+   * The corners of that same solve: one algorithm that breaks a cycle and one that closes it. The
+   * break leaves two pieces out and the close leaves none, so neither is the single piece left out
+   * that an ordinary shot is read from, and nothing after them settles the question either — they
+   * were said from {@code UFL}, which is only where the cube happens to store the first of them.
+   *
+   * <p>A shot sends the buffer's piece home, so the break was shot from the corner that was holding
+   * the one piece it landed, and the close follows from it.
+   */
+  @Test
+  public void readsTheBufferOffTheOnePieceAnAlgorithmLanded() {
+    replay(RecordedBlindSolve.SCRAMBLE_MISSED_AFTER_A_BREAK_IN,
+        RecordedBlindSolve.MOVES_MISSED_AFTER_A_BREAK_IN, Long.MAX_VALUE);
+
+    assertEquals(Arrays.asList("UFR-BUL-UFL", "UFR-BDL-LUF"), subStepNames(2));
+  }
+
   private static List<String> namesOf(BlindStepDetector detector) {
     List<String> names = new ArrayList<String>();
     for (int step = 1; step < detector.stepCount(); step++) {

@@ -479,6 +479,65 @@ public final class BlindStepDetector implements StepDetector {
     if (!best.tails.isEmpty()) {
       readAlgorithm(best.tails.get(0), best.tailMs.get(0));
     }
+    nameWhatNothingSettled();
+  }
+
+  /**
+   * The algorithms nothing ever settled a buffer for, read off what they landed: <b>a shot sends
+   * the buffer's piece home</b>, so one that put exactly one piece home was shot from the slot that
+   * was holding it, and the algorithms after it follow from that one.
+   *
+   * <p>Asked last and only of what is left, because it infers where {@link #nameWhatWaitedForIt}
+   * knows: an algorithm that misfired put its one piece home from somewhere that was not the buffer,
+   * and wherever a later algorithm of the type settles the question that reading is the true one.
+   * What is left is a piece type whose every algorithm hid it — the 2026-09-04 solve's corners are a
+   * cycle broken and then closed, one leaving two pieces out and the other none, so neither is the
+   * one-piece-left-out an ordinary shot is read from, and they were said from whichever corner the
+   * cube happened to store first.
+   */
+  private void nameWhatNothingSettled() {
+    int[] settled = {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
+    for (Landing landing : landings) {
+      if (!landing.shot) {
+        continue;
+      }
+      int type = Cubies.isEdge(landing.pieces.get(0)) ? EDGES : CORNERS;
+      if (landing.buffer != BlindTargets.NO_BUFFER) {
+        settled[type] = landing.buffer;
+        continue;
+      }
+      int shotFrom = landing.pieces.contains(settled[type]) ? settled[type]
+          : senderOfTheOnePieceItLanded(landing);
+      if (shotFrom == BlindTargets.NO_BUFFER) {
+        continue;
+      }
+      landing.buffer = shotFrom;
+      landing.named = targets.name(landing.before, landing.after, shotFrom, landing.pieces);
+      settled[type] = shotFrom;
+    }
+  }
+
+  /**
+   * The slot that was holding the one piece this algorithm put home, or nothing where it put a
+   * different number home. Nothing either where one of the pieces was already sitting in its own
+   * slot: that is a cycle closed, and an algorithm that breaks out of one lands its <em>second</em>
+   * target, so what came home was sent by the slot it broke into rather than by the buffer.
+   */
+  private int senderOfTheOnePieceItLanded(Landing landing) {
+    if (landing.gained.size() != 1) {
+      return BlindTargets.NO_BUFFER;
+    }
+    int sender = BlindTargets.NO_BUFFER;
+    for (int slot : landing.pieces) {
+      int home = Cubies.homeSlotOf(landing.before, slot);
+      if (home == slot) {
+        return BlindTargets.NO_BUFFER;
+      }
+      if (home == landing.gained.get(0)) {
+        sender = slot;
+      }
+    }
+    return sender;
   }
 
   /** How many moves the reading on show has made nothing of. */
