@@ -2203,8 +2203,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
   }
 
-  // Applies the "New record panel" setting: ANY shows all records, PB_ONLY keeps only the
-  // lifetime best single, NEVER shows nothing. Only gates the panel, not the in-table highlight.
+  // Applies the "New record announcement" setting: ANY passes every record, PB_ONLY only the
+  // lifetime best single, NEVER none. Gates the chip, the lit tile and the confetti, not the flash.
   private List<RecordInfo> filterRecordsForNotification(List<RecordInfo> records) {
     switch (Options.INSTANCE.getRecordNotificationMode()) {
       case NEVER:

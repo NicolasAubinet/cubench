@@ -100,15 +100,19 @@
   <string name="look_and_feel">Aparência</string>
   <string name="timer_screen">Tela do cronômetro</string>
   <string name="inspection_mode">Modo de inspeção</string>
+  <string name="inspection_mode_summary">O que inicia a inspeção, e o que inicia a resolução depois</string>
   <string name="hold_and_release_inspection_mode">Segurar e soltar: <i>Pressionar e soltar uma vez para iniciar</i></string>
   <string name="automatic_inspection_mode">Automático: <i>Início automático quando a inspeção termina</i></string>
   <string name="official_inspection_mode">Oficial: <i>Pressionar por 0,5s para iniciar, usa as regras oficiais de inspeção +2/DNF</i></string>
   <string name="inspection_time">Tempo de inspeção</string>
+  <string name="inspection_time_summary">Duração da contagem regressiva de inspeção</string>
   <string name="inspection_sounds">Sons de inspeção</string>
+  <string name="inspection_sounds_summary">Sons de aviso quando a inspeção está acabando</string>
   <string name="inspection_sounds_type">Tipo de avisos de inspeção</string>
   <string name="classic_inspection_sound_type">Clássico (aviso 3 segundos antes do fim)</string>
   <string name="official_inspection_sound_type">Oficial (avisos aos 8 e 12 segundos)</string>
   <string name="show_time_when_running">Mostrar o tempo durante a resolução</string>
+  <string name="show_time_when_running_summary">Desativado, o tempo fica oculto até o fim da resolução</string>
   <string name="keep_screen_on">Manter a tela ligada</string>
   <string name="keep_screen_on_summary">Quando o cronômetro não está rodando</string>
   <string name="high_precision_timer">Cronômetro de alta precisão</string>
@@ -187,7 +191,7 @@
   <string name="verdict_under_average">%1$s abaixo do seu Ao12</string>
   <string name="verdict_over_average">%1$s acima do seu Ao12</string>
 
-  <string name="record_notification_mode">Painel de recorde</string>
+  <string name="record_notification_mode">Anúncio de recorde</string>
   <string name="record_notif_any">Para qualquer recorde</string>
   <string name="record_notif_pb_only">Somente para um novo PB</string>
   <string name="record_notif_never">Nunca</string>

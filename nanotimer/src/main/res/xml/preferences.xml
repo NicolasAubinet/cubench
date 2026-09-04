@@ -10,6 +10,7 @@
     <SwitchPreference
        android:key="show_time_when_running"
        android:title="@string/show_time_when_running"
+       android:summary="@string/show_time_when_running_summary"
        android:defaultValue="@bool/show_time_when_running"/>
 
     <SwitchPreference
@@ -73,6 +74,7 @@
     <ListPreference
        android:key="inspection_mode"
        android:title="@string/inspection_mode"
+       android:summary="@string/inspection_mode_summary"
        android:entries="@array/entries_inspection_modes"
        android:entryValues="@array/entryvalues_inspection_modes"
        android:dialogTitle="@string/inspection_mode"
@@ -81,6 +83,7 @@
     <com.cube.nanotimer.gui.widget.preferences.NumberEntryDialog
        android:key="inspection_time"
        android:title="@string/inspection_time"
+       android:summary="@string/inspection_time_summary"
        android:defaultValue="@integer/inspection_time"
        custom:min="0"
        custom:max="600"
@@ -91,6 +94,7 @@
     <SwitchPreference
        android:key="inspection_sounds"
        android:title="@string/inspection_sounds"
+       android:summary="@string/inspection_sounds_summary"
        android:defaultValue="@bool/inspection_sounds"/>
 
     <ListPreference
