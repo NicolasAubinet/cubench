@@ -977,8 +977,9 @@ public final class BlindStepDetector implements StepDetector {
    *
    * <p><b>Only the blamed algorithm is asked</b>, and for the reason the ones after it carry no red:
    * past the first mistake the cube has moved on, so what it wants there is no longer what the
-   * solver memorised. A break-in is silent too, the buffer holding its own piece leaving the next
-   * cycle the solver's to open wherever they please.
+   * solver memorised. A break-in is silent about where it went, the buffer holding its own piece
+   * leaving the next cycle the solver's to open wherever they please — but not about what it owed
+   * after that, which is a target like any other.
    */
   @Override
   public String subStepWantedName(int step, int subStep) {
@@ -986,7 +987,11 @@ public final class BlindStepDetector implements StepDetector {
     if (landing.buffer == BlindTargets.NO_BUFFER || blamedOn(landing).isEmpty()) {
       return null;
     }
-    return targets.wantedName(landing.before, landing.buffer);
+    // A break-in the cube did not object to is said back as the solver made it, the target after it
+    // being all that was owed; anywhere else the cube names the whole cycle it was standing in.
+    return brokeInAndLandedNothing(landing).isEmpty()
+        ? targets.wantedName(landing.before, landing.buffer)
+        : targets.wantedAfterABreakIn(landing.before, landing.after, landing.buffer);
   }
 
   /**
@@ -1003,7 +1008,8 @@ public final class BlindStepDetector implements StepDetector {
    * ({@link #shotsThatNeverLanded}), all of them where there are several: nothing proved says which
    * was the mistake and which the memo carried out on a cube that had moved on. Or, where it shot
    * at nothing because the cycle had closed, for having broken into a piece that was already home
-   * ({@link #brokeIntoASolvedPiece}).
+   * ({@link #brokeIntoASolvedPiece}) or for having landed nothing with the one target a break-in
+   * does have ({@link #brokeInAndLandedNothing}).
    *
    * <p>Neither blames an algorithm that did nothing wrong. A cycle left open and a parity never done
    * put pieces out that no shot ever claimed and that no reversal would fix: both are the verdict
@@ -1019,6 +1025,9 @@ public final class BlindStepDetector implements StepDetector {
           ? whatItShouldHavePutHome(landing) : Collections.<Integer>emptyList();
     }
     List<Integer> brokeIn = brokeIntoASolvedPiece(landing);
+    if (brokeIn.isEmpty()) {
+      brokeIn = brokeInAndLandedNothing(landing);
+    }
     return brokeIn.isEmpty() ? shotsThatNeverLanded(landing) : brokeIn;
   }
 
@@ -1045,6 +1054,39 @@ public final class BlindStepDetector implements StepDetector {
     int target = brokeInto(landing);
     if (target >= 0 && Cubies.inPlace(landing.before, PIECES[target])) {
       blamed.add(target);
+    }
+    return blamed;
+  }
+
+  /**
+   * The other target of a break-in, where the break-in put nothing home. An algorithm made once a
+   * cycle has closed parks the buffer's own piece in a fresh cycle and takes a fresh piece in — and
+   * the piece it displaced doing so goes home, which is the one target such an algorithm has.
+   * Landing nothing says that target was shot at a sticker the piece did not belong on, whatever
+   * became of it afterwards, and it is not answered by {@link #shotsThatNeverLanded}: a piece a
+   * later algorithm happened to bring home is not out at the end to be counted there.
+   *
+   * <p>The break-in itself is not blamed. A buffer holding its own piece is free to open a new cycle
+   * at any piece of the type still out, turned or not — a recorded solve does exactly that with a
+   * flipped buffer and comes out — so where it went is the solver's own choice and not a target.
+   *
+   * <p>Not asked of an algorithm that broke into a piece already home, which puts nothing home by
+   * construction and is {@link #brokeIntoASolvedPiece}'s to judge.
+   */
+  private List<Integer> brokeInAndLandedNothing(Landing landing) {
+    List<Integer> blamed = new ArrayList<>();
+    if (!landing.shot || landing.buffer == BlindTargets.NO_BUFFER || wasTakenBack(landing)
+        || !brokeIntoANewCycle(landing) || !landing.gained.isEmpty()) {
+      return blamed;
+    }
+    int brokeInto = brokeInto(landing);
+    if (brokeInto < 0 || Cubies.inPlace(landing.before, PIECES[brokeInto])) {
+      return blamed;
+    }
+    for (int slot : landing.named.slots) {
+      if (slot != landing.buffer && slot != brokeInto) {
+        blamed.add(slot);
+      }
     }
     return blamed;
   }

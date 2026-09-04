@@ -201,6 +201,29 @@ final class BlindTargets {
     return (breaksIn(before, buffer, Cubies.slotOf(first)) ? BREAK_IN : "") + join(names);
   }
 
+  /**
+   * What the cube owed an algorithm that opened a new cycle: the break-in as the solver made it,
+   * and then the sticker the piece it takes into the buffer belongs on.
+   *
+   * <p>A closed cycle leaves the first target the solver's own — any piece of the type still out
+   * will do — so it is said back rather than named, and only the second is the cube's. Read off the
+   * state the algorithm found and the one it left, which is what says where the buffer's own piece
+   * was parked.
+   */
+  String wantedAfterABreakIn(String before, String after, int buffer) {
+    int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);
+    int first = sentTo(before, after, start);
+    int second = first < 0 ? -1 : homeFacelet(before, first);
+    if (second < 0) {
+      return null;
+    }
+    List<String> names = new ArrayList<String>(3);
+    names.add(spell(buffer));
+    names.add(spellFrom(first));
+    names.add(spellFrom(second));
+    return join(names);
+  }
+
   /** Whether a cycle closing on that target leaves the solver a piece of the type to break into. */
   private static boolean breaksIn(String before, int buffer, int first) {
     for (int slot = 0; slot < Cubies.PIECES.length; slot++) {

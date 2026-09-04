@@ -981,6 +981,39 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * The solve of 2026-09-04, whose fourth edge algorithm broke into a new cycle and then missed. The
+   * buffer held its own edge <em>flipped</em>, which is a cycle to break out of like any other — a
+   * recorded solve does it and comes out — so opening at {@code UB} is the solver's own choice and
+   * nothing is said against it. What the break-in displaces is a target all the same, and the cube
+   * owed that edge to {@code RD}: the algorithm sent it to {@code BL} instead.
+   *
+   * <p><b>Nothing else in the solve could say so.</b> Two algorithms later the {@code BL} edge came
+   * home, so it is not out at the end for a shot that never landed to be counted by, and reversing
+   * any one algorithm leaves the cube nowhere near solved. The algorithm that lost the solve carried
+   * no red at all, and the owner spotted the gap.
+   */
+  @Test
+  public void marksTheTargetABreakInMissed() {
+    replay(RecordedBlindSolve.SCRAMBLE_MISSED_AFTER_A_BREAK_IN,
+        RecordedBlindSolve.MOVES_MISSED_AFTER_A_BREAK_IN, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals("UF-UB-BL", detector.subStepName(1, 3));
+    assertEquals(Arrays.asList(TOUCHED, TOUCHED, WRONG), detector.subStepPieceMarks(1, 3));
+    // The break-in said back as the solver made it, and only the target after it named by the cube.
+    assertEquals("UF-UB-RD", detector.subStepWantedName(1, 3));
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        if (step != 1 || part != 3) {
+          assertFalse(detector.subStepName(step, part),
+              detector.subStepPieceMarks(step, part).contains(WRONG));
+          assertNull(detector.subStepName(step, part), detector.subStepWantedName(step, part));
+        }
+      }
+    }
+  }
+
+  /**
    * The corners of that same solve: one algorithm that breaks a cycle and one that closes it. The
    * break leaves two pieces out and the close leaves none, so neither is the single piece left out
    * that an ordinary shot is read from, and nothing after them settles the question either — they
