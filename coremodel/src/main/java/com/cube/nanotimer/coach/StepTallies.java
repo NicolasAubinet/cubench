@@ -23,8 +23,14 @@ import java.util.Map;
  */
 public class StepTallies {
 
-  /** Below this many occurrences a code's spread is not worth measuring, so nothing is dropped. */
-  private static final int MIN_SAMPLES_TO_FILTER = 5;
+  /**
+   * Below this many occurrences a code's spread is not worth measuring, so nothing is dropped.
+   *
+   * <p>{@link CoachPayloadBuilder#CASE_FLOOR} may never go under it: a figure quoted from fewer
+   * occurrences than this is one the outlier rule never looked at, so a single knocked cube would
+   * ride into the mean and take the top card.
+   */
+  static final int MIN_SAMPLES_TO_FILTER = 5;
 
   /** The modified z-score beyond which an occurrence is treated as junk (Iglewicz and Hoaglin). */
   private static final double MAX_Z = 3.5;

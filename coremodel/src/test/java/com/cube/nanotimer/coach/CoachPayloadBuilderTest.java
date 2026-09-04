@@ -24,6 +24,18 @@ public class CoachPayloadBuilderTest {
     Assert.assertNotNull(figure(payload.getFamilies(), "pll").getRecognitionMs());
   }
 
+  /**
+   * Why the floor cannot simply be lowered to buy a learner a case layer, which is what the figures
+   * look like they are asking for. Under {@link StepTallies#MIN_SAMPLES_TO_FILTER} a code's spread
+   * cannot be measured, so nothing is thrown out: a lower floor sends means the outlier rule never
+   * inspected, and one knocked cube in three occurrences is a third of the mean.
+   */
+  @Test
+  public void testTheCaseFloorCannotGoUnderWhatTheOutlierRuleNeeds() {
+    Assert.assertTrue(CoachPayloadBuilder.CASE_FLOOR + " < " + StepTallies.MIN_SAMPLES_TO_FILTER,
+        CoachPayloadBuilder.CASE_FLOOR >= StepTallies.MIN_SAMPLES_TO_FILTER);
+  }
+
   @Test
   public void testACaseUnderItsFloorIsNotSent() {
     CoachPayload payload = build();

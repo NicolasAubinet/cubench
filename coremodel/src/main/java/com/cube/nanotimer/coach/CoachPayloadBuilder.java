@@ -49,7 +49,21 @@ public class CoachPayloadBuilder {
   /** How many recorded drills the drill figures are read from. */
   public static final int DRILL_WINDOW = 50;
 
-  /** Below this many occurrences a case is not quoted, in a solve or in a drill. */
+  /**
+   * Below this many occurrences a case is not quoted, in a solve or in a drill.
+   *
+   * <p><b>It cannot go lower, and the reason is not the one it looks like.</b> Measured on synthetic
+   * solvers, this floor is expensive: with the set dealt evenly, no OLL is quotable at all until
+   * about 230 solves, and at 100 solves the whole case layer is PLL. That looked like an argument
+   * for lowering it until the outlier rule was read beside it, and
+   * {@link StepTallies#MIN_SAMPLES_TO_FILTER} is also 5: under five occurrences a code's spread
+   * cannot be measured, so nothing is thrown out and the mean is whatever happened, knocked cubes
+   * included. A lower floor would not send thinner figures, it would send uninspected ones, and a
+   * case is exactly where that bites since one bad occurrence in three is a third of the mean.
+   *
+   * <p>So the thinness of a young history is answered by the step layer and the two-look card,
+   * which have every solve behind them, and not by quoting cases nobody has seen enough of.
+   */
   public static final int CASE_FLOOR = 5;
 
   /** Below this many occurrences a step of the method is not quoted. */
