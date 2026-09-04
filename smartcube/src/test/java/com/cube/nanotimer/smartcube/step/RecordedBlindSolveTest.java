@@ -981,11 +981,11 @@ public class RecordedBlindSolveTest {
   }
 
   /**
-   * The solve of 2026-09-04, whose fourth edge algorithm broke into a new cycle and then missed. The
-   * buffer held its own edge <em>flipped</em>, which is a cycle to break out of like any other — a
-   * recorded solve does it and comes out — so opening at {@code UB} is the solver's own choice and
-   * nothing is said against it. What the break-in displaces is a target all the same, and the cube
-   * owed that edge to {@code RD}: the algorithm sent it to {@code BL} instead.
+   * The solve of 2026-09-04 16:32:41, whose fourth edge algorithm broke into a new cycle and then
+   * missed. The buffer held its own edge <em>flipped</em>, which is a cycle to break out of like any
+   * other — a recorded solve does it and comes out — so opening at {@code UB} is the solver's own
+   * choice and nothing is said against it. What the break-in displaces is a target all the same, and
+   * the cube owed that edge to {@code RD}: the algorithm sent it to {@code BL} instead.
    *
    * <p><b>Nothing else in the solve could say so.</b> Two algorithms later the {@code BL} edge came
    * home, so it is not out at the end for a shot that never landed to be counted by, and reversing

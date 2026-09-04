@@ -606,7 +606,7 @@ final class RecordedBlindSolve {
           + "D'@76271 B'@76442 U@76509 B@76605 D@76729 B'@76861 U'@77073 B'@77373 U@77508 U@77645";
 
   /**
-   * The solve of 2026-09-04, and the one that says a break-in has a target of its own. Its fourth
+   * The solve of 2026-09-04 16:32:41, and the one that says a break-in has a target of its own. Its fourth
    * edge algorithm found the buffer holding its own edge flipped, opened a new cycle at {@code UB}
    * — the solver's own choice, and a sound one — and then sent the edge it displaced to {@code BL}
    * where the cube owed it to {@code RD}. Nothing was left out by it that a later algorithm did not
@@ -638,7 +638,7 @@ final class RecordedBlindSolve {
           + "D'@68420 B@68518 U@68634 B'@68711 D@68801 B@68980 U'@69121 D'@69237 B'@69461";
 
   /**
-   * The solve of 2026-09-04 whose edges open on a cycle that was already closed. Its first algorithm
+   * The solve of 2026-09-04 16:39:12 whose edges open on a cycle that was already closed. Its first algorithm
    * puts all three of its pieces home and leaves nothing out, and its second then finds the buffer
    * holding its own piece — so neither says which piece the solve was shooting from, and the third
    * is the earliest anything can be read from. Said in the order the cube stores them the two are
