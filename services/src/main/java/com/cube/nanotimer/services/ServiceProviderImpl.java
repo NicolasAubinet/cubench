@@ -433,7 +433,9 @@ public class ServiceProviderImpl implements ServiceProvider {
       }
     }
     if (solveTime.hasSmartcubeBreakdown()) {
-      insertSmartcubeSteps(historyId, solveTime.getSmartcubeSteps());
+      // the solve is evidence about the cases it was dealt
+      CaseKnowledgeStore.update(db,
+          insertSmartcubeSteps(historyId, solveTime.getSmartcubeSteps()));
     }
     cachedTime.setSolveId((int) historyId);
     solveTime.setId((int) historyId);
@@ -766,7 +768,13 @@ public class ServiceProviderImpl implements ServiceProvider {
     return stepTimes;
   }
 
-  private void insertSmartcubeSteps(long historyId, List<SolveStep> steps) {
+  /**
+   * @return the step codes the breakdown was written under, which are the cases the solve is
+   *     evidence about. Handed back rather than acted on here: re-reading a case costs an aggregate
+   *     over the whole history of it, so one solve landing pays for it and a whole history being
+   *     rewritten must not pay it once per solve.
+   */
+  private List<String> insertSmartcubeSteps(long historyId, List<SolveStep> steps) {
     List<String> cases = new ArrayList<String>();
     for (SolveStep step : steps) {
       insertSmartcubeStep(historyId, step.getStepIndex(), null, step);
@@ -776,7 +784,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         insertSmartcubeStep(historyId, step.getStepIndex(), i, subSteps.get(i));
       }
     }
-    CaseKnowledgeStore.update(db, cases); // the solve is evidence about the cases it was dealt
+    return cases;
   }
 
   /** The step codes of one solve's breakdown, its parts included. */
@@ -1914,6 +1922,14 @@ public class ServiceProviderImpl implements ServiceProvider {
    * All of them or none: the whole rewrite is one transaction, so a solve type's history is never
    * left half under one method and half under another, whatever interrupts it. A crash or a kill
    * part way through rolls the journal back and leaves what was there.
+   *
+   * <p><b>What the solver knows is read back once at the end rather than per solve.</b> Re-reading
+   * one case is an aggregate over every occurrence of it, so doing it inside the loop is that
+   * aggregate times every solve of the history, with the exclusive lock held and the progress
+   * dialog already finished; and each status would be read from a history half rewritten, so a case
+   * whose code the re-read changes would keep a stale row under the old one. After the commit it is
+   * one pass over a settled history. The table is a cache, so a kill in the gap costs statuses that
+   * the next occurrence of each case rewrites anyway.
    */
   @Override
   public void saveSmartcubeBreakdowns(List<SolveTime> solveTimes) {
@@ -1935,6 +1951,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     } finally {
       db.endTransaction();
     }
+    CaseKnowledgeStore.rebuild(db);
   }
 
   /** The last drills that hold a rep, so a run of cross drills does not shrink how far back the figures reach. */

@@ -9,8 +9,10 @@ import com.cube.nanotimer.session.MethodStatistics;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -71,27 +73,55 @@ public final class CaseKnowledgeStore {
    * <p>Throwing the rows away and reading them back is one transaction: it runs on a background
    * thread against the database a screen reads on its own, and the two statements apart leave a
    * window in which the table is empty and a reader takes that for "nothing is known".
+   *
+   * <p><b>The reading happens before the transaction is opened, and that is the whole point of the
+   * shape.</b> A transaction here is {@code BEGIN EXCLUSIVE} on a single non-WAL connection, so
+   * everything else in the app queues behind it, and the reads are the entire cost: a whole CFOP
+   * history is around eighty cases, each an aggregate over every solve and drill rep of it. Held
+   * across the reads, a refresh dispatched at startup blocks the main screen's own queries for as
+   * long as it takes. The writes it is actually protecting are eighty small upserts.
    */
   public static void rebuild(SQLiteDatabase db) {
+    Map<String, List<Occurrence>> history = new LinkedHashMap<String, List<Occurrence>>();
+    for (String code : casesWithEvidence(db)) {
+      if (namesACase(code)) {
+        history.put(code, occurrences(db, code));
+      }
+    }
     db.beginTransaction();
     try {
       db.delete(DB.TABLE_CASE_KNOWLEDGE, null, null);
-      update(db, casesWithEvidence(db));
+      for (Map.Entry<String, List<Occurrence>> one : history.entrySet()) {
+        write(db, MethodStatistics.familyOf(one.getKey()), MethodStatistics.caseOf(one.getKey()),
+            one.getValue());
+      }
       db.setTransactionSuccessful();
     } finally {
       db.endTransaction();
     }
   }
 
-  /** Re-reads only the named cases, for evidence that has just landed. */
+  /**
+   * Re-reads only the named cases, for evidence that has just landed.
+   *
+   * <p>One case is one aggregate over the whole history of it, so this is for a solve or a rep that
+   * has just been recorded and not for a batch: rewriting a history calls {@link #rebuild} once
+   * instead, which is both cheaper and the only way to end up with statuses read from a settled
+   * history rather than from a half-rewritten one.
+   */
   public static void update(SQLiteDatabase db, Collection<String> codes) {
     for (String code : codes) {
-      String caseName = code == null ? null : MethodStatistics.caseOf(code);
-      if (caseName == null || SKIPPED.equals(caseName)) {
-        continue; // a step with no case to name, or one that was already solved on arrival
+      if (namesACase(code)) {
+        write(db, MethodStatistics.familyOf(code), MethodStatistics.caseOf(code),
+            occurrences(db, code));
       }
-      write(db, MethodStatistics.familyOf(code), caseName, occurrences(db, code));
     }
+  }
+
+  /** A step naming no case, or one already solved on arrival, is evidence about nothing. */
+  private static boolean namesACase(String code) {
+    String caseName = code == null ? null : MethodStatistics.caseOf(code);
+    return caseName != null && !SKIPPED.equals(caseName);
   }
 
   private static void write(SQLiteDatabase db, String caseSet, String caseName,
