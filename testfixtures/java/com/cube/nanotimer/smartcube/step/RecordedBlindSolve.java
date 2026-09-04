@@ -637,6 +637,34 @@ final class RecordedBlindSolve {
           + "U@66045 B'@66203 D'@66344 B@66513 U'@66720 B'@66870 D@67182 B@68017 D@68188 B'@68308 "
           + "D'@68420 B@68518 U@68634 B'@68711 D@68801 B@68980 U'@69121 D'@69237 B'@69461";
 
+  /**
+   * The solve of 2026-09-04 whose edges open on a cycle that was already closed. Its first algorithm
+   * puts all three of its pieces home and leaves nothing out, and its second then finds the buffer
+   * holding its own piece — so neither says which piece the solve was shooting from, and the third
+   * is the earliest anything can be read from. Said in the order the cube stores them the two are
+   * printed as cycles nobody shot, the first of them backwards.
+   *
+   * <p>Its corners are the shape the solve before it had: one algorithm that breaks a cycle and one
+   * that closes it, neither leaving the one piece out a shot is read from.
+   */
+  static final String SCRAMBLE_OPENED_ON_A_CLOSED_CYCLE =
+      "L2 U' L2 R2 D' U2 L2 B2 D2 R' F' L2 B2 U F2 R' U' B2 L'";
+  static final String MOVES_OPENED_ON_A_CLOSED_CYCLE =
+      "[y] y@59093 D'@59093 F@59362 B'@59398 z'@59399 R'@59573 B'@59829 R@59953 F'@60518 "
+          + "B@60528 z@60529 U'@60755 B@60902 U@61149 D@61158 U@61535 B'@61825 F@61827 z'@61828 "
+          + "R@62143 F@62544 B'@62564 z'@62565 D@62793 D@62895 B@63061 F'@63087 z@63088 R@63305 "
+          + "F'@63706 B@63710 z@63711 U'@64090 D'@64610 U@64641 F@64974 U'@65104 D@65122 y@65123 "
+          + "R'@65255 R'@65369 D'@65505 U@65513 y'@65514 F@65745 U'@65924 D@65946 F'@66210 z@66395 "
+          + "U'@66395 z'@66572 F@66572 R'@67184 L@67196 x@67197 D'@67451 F'@67588 D@67714 R@67859 "
+          + "L'@67869 x'@67870 F'@67997 U@68117 U@68263 F@68646 U'@71771 z'@72020 F@72021 F@72149 "
+          + "L'@73046 R@73048 x'@73308 U'@73308 y@73432 U'@73432 L@73589 R'@73593 x@73594 U@73937 "
+          + "y@74553 D@74554 R'@74807 D'@75198 U@75206 y'@75207 F@75381 z'@75449 F@75450 U'@75666 "
+          + "D@75675 y@75676 R'@75799 D'@76018 y'@76735 x@76735 U@76735 B'@76847 D'@76984 B@77123 "
+          + "U'@77324 B'@77400 D@77616 B@77740 U@78197 B@78767 U'@79063 B'@79272 D'@79378 B@79514 "
+          + "U@79621 U@79716 B'@79824 D@79918 B@80053 U'@80298 B'@80499 U'@84968 B'@87521 U'@88221 "
+          + "D'@88685 B@89097 D@89544 B@89697 U@90177 B'@90320 B'@90533 D'@90950 B@91160 B@91350 "
+          + "U'@91623 U@92356 B'@92495 B'@92832 B@93099";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -654,5 +682,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_MISFIRE, MOVES_MISFIRE},
     {SCRAMBLE_TWIST_OFF_THE_BUFFER, MOVES_TWIST_OFF_THE_BUFFER},
     {SCRAMBLE_MISSED_AFTER_A_BREAK_IN, MOVES_MISSED_AFTER_A_BREAK_IN},
+    {SCRAMBLE_OPENED_ON_A_CLOSED_CYCLE, MOVES_OPENED_ON_A_CLOSED_CYCLE},
   };
 }

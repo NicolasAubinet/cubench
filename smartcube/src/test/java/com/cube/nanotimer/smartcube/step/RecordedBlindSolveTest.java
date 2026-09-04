@@ -1030,6 +1030,23 @@ public class RecordedBlindSolveTest {
     assertEquals(Arrays.asList("UFR-BUL-UFL", "UFR-BDL-LUF"), subStepNames(2));
   }
 
+  /**
+   * The solve whose edges open on a cycle that was already closed. Its first algorithm leaves no
+   * piece out and its second finds the buffer holding its own piece, so neither says which piece it
+   * was shot from; the third does, and the two before it are the same solver's, shot from the same
+   * buffer. Left unnamed they printed as the pieces in the order the cube stores them, which reads
+   * as a cycle and is not one — the first of them ran backwards.
+   */
+  @Test
+  public void namesTheAlgorithmsBeforeTheOneThatSettledTheBuffer() {
+    replay(RecordedBlindSolve.SCRAMBLE_OPENED_ON_A_CLOSED_CYCLE,
+        RecordedBlindSolve.MOVES_OPENED_ON_A_CLOSED_CYCLE, Long.MAX_VALUE);
+
+    assertEquals(Arrays.asList("UF-BR-RD", "UF-UB-BD", "UF-FR-DF", "UF-FL-LU", "UF-UB-DL",
+        "UF-LB-DL"), subStepNames(1));
+    assertEquals(Arrays.asList("UFR-RDF-UBR", "UFR-RUB-RDB"), subStepNames(2));
+  }
+
   private static List<String> namesOf(BlindStepDetector detector) {
     List<String> names = new ArrayList<String>();
     for (int step = 1; step < detector.stepCount(); step++) {

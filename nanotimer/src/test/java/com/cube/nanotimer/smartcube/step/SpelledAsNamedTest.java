@@ -12,7 +12,7 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * The invariant nothing asserted before: a blind algorithm's spelled moves shift exactly the slots
+ * The invariant nothing asserted before: a blind algorithm's spelled moves shoot exactly the cycle
  * its own name names.
  *
  * <p>It is worth having because the two sides are arrived at independently — the name from the
@@ -76,7 +76,7 @@ public class SpelledAsNamedTest {
       checked += algorithms.size();
     }
     assertEquals("", mismatches.toString());
-    assertEquals(145, checked); // or the sweep passed by reading nothing
+    assertEquals(153, checked); // or the sweep passed by reading nothing
   }
 
   private static String mismatches(String scramble, String moves) {
@@ -92,6 +92,12 @@ public class SpelledAsNamedTest {
             .append(", which shifts ").append(Arrays.toString(
                 AlgorithmSlots.shiftedBy(algorithm.moves)))
             .append(" and not ").append(Arrays.toString(algorithm.named)).append('\n');
+      } else if (algorithm.cycle != null
+          && !Arrays.equals(algorithm.cycle, AlgorithmSlots.shotBy(algorithm.moves,
+              algorithm.cycle[0]))) {
+        mismatches.append(algorithm.name).append(" is spelled ").append(algorithm.moves)
+            .append(", which shoots ").append(Arrays.toString(
+                AlgorithmSlots.shotBy(algorithm.moves, algorithm.cycle[0]))).append('\n');
       }
     }
     return mismatches.toString();
@@ -116,11 +122,19 @@ public class SpelledAsNamedTest {
         int[] named = AlgorithmSlots.named(parts.get(p).getName());
         if (named != null) {
           algorithms.add(new Algorithm(parts.get(p).getName(), named,
-              solution.getSteps().get(s).getPartMoves(p)));
+              solution.getSteps().get(s).getPartMoves(p), cycleOf(parts.get(p).getName())));
         }
       }
     }
     return algorithms;
+  }
+
+  /**
+   * The pieces a name says in the order it says them, or null where it says no cycle: a flip, a
+   * twist and a parity turn or swap their pieces where they stand, and have no order to check.
+   */
+  private static String[] cycleOf(String name) {
+    return name.indexOf(':') >= 0 || name.indexOf('+') >= 0 ? null : AlgorithmSlots.pieces(name);
   }
 
   private static final class Algorithm {
@@ -128,11 +142,13 @@ public class SpelledAsNamedTest {
     private final String name;
     private final int[] named;
     private final String moves;
+    private final String[] cycle;
 
-    private Algorithm(String name, int[] named, String moves) {
+    private Algorithm(String name, int[] named, String moves, String[] cycle) {
       this.name = name;
       this.named = named;
       this.moves = moves;
+      this.cycle = cycle;
     }
   }
 }

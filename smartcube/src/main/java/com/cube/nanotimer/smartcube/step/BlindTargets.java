@@ -250,7 +250,7 @@ final class BlindTargets {
   }
 
   /** Where the sticker on this facelet ended up: a piece by its colours, a sticker by its own. */
-  private static int sentTo(String before, String after, int facelet) {
+  static int sentTo(String before, String after, int facelet) {
     int home = Cubies.homeSlotOf(before, Cubies.slotOf(facelet));
     if (home < 0) {
       return -1;
@@ -289,11 +289,15 @@ final class BlindTargets {
 
   /** The piece from this facelet round: the sticker shot to first, then the rest as it turns. */
   private String spellFrom(int facelet) {
-    int held = FaceletRotations.apply(reading, facelet);
-    int[] piece = Cubies.PIECES[Cubies.slotOf(held)];
+    return said(FaceletRotations.apply(reading, facelet));
+  }
+
+  /** The same, of a facelet already in the frame it is to be said in. */
+  static String said(int facelet) {
+    int[] piece = Cubies.PIECES[Cubies.slotOf(facelet)];
     int start = 0;
     for (int i = 0; i < piece.length; i++) {
-      if (piece[i] == held) {
+      if (piece[i] == facelet) {
         start = i;
       }
     }

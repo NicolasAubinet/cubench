@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The slots a blind algorithm's name says, against the slots its spelled moves really shift.
+ * The cycle a blind algorithm's name says, against the one its spelled moves really shoot.
  *
  * <p>The two are independent evidence. A name is the detector's word, and the detector reads cube
  * states and never sees the gyro; a spelling is the move stream's, resolved through the gyro's
@@ -51,14 +51,76 @@ public final class AlgorithmSlots {
     return slots;
   }
 
+  /** The slots the given moves shift, sorted. */
+  public static int[] shiftedBy(String moves) {
+    return shifted(eitherSideOf(moves));
+  }
+
+  private static int[] shifted(Sides sides) {
+    int[] shifted = new int[Cubies.PIECES.length];
+    int count = 0;
+    for (int slot = 0; slot < Cubies.PIECES.length; slot++) {
+      for (int facelet : Cubies.PIECES[slot]) {
+        if (sides.before.charAt(facelet) != sides.after.charAt(facelet)) {
+          shifted[count++] = slot;
+          break;
+        }
+      }
+    }
+    return Arrays.copyOf(shifted, count);
+  }
+
   /**
-   * The slots the given moves shift, sorted.
+   * The cycle the given moves shoot from the piece named, said the way a name says it, or null
+   * where they shoot none that comes back round to it.
+   *
+   * <p>Which is the whole of a name and not merely its slots: three slots shifted are one cycle
+   * said two ways round, and the sticker each target is said at is a third thing again. An
+   * algorithm nothing settled a buffer for is said as its pieces in the order the cube stores them,
+   * and that reads as a cycle nobody shot — which the slots alone cannot tell apart.
+   */
+  public static String[] shotBy(String moves, String from) {
+    Sides sides = eitherSideOf(moves);
+    int start = faceletSaid(from);
+    int[] shifted = shifted(sides);
+    if (start < 0 || shifted.length == 0) {
+      return null;
+    }
+    String[] said = new String[shifted.length];
+    said[0] = from;
+    int facelet = start;
+    for (int at = 1; at < said.length; at++) {
+      facelet = BlindTargets.sentTo(sides.before, sides.after, facelet);
+      // Round already, with slots still to account for: these moves shot more than one cycle, and
+      // the one through this piece is not the whole of what they did.
+      if (facelet < 0 || facelet == start) {
+        return null;
+      }
+      said[at] = BlindTargets.said(facelet);
+    }
+    return BlindTargets.sentTo(sides.before, sides.after, facelet) == start ? said : null;
+  }
+
+  /** The facelet a sticker name opens on, or -1 where nothing is said that way. */
+  private static int faceletSaid(String piece) {
+    for (int slot = 0; slot < Cubies.PIECES.length; slot++) {
+      for (int facelet : Cubies.PIECES[slot]) {
+        if (BlindTargets.said(facelet).equals(piece)) {
+          return facelet;
+        }
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * A solved cube either side of the given moves.
    *
    * <p>A rotation leading the sequence is the frame it is spelled in rather than turning the solver
-   * did — the grip a blind reconstruction opens on — so it is applied and not counted. Nothing
-   * later can be: a blind spelling carries no other rotation.
+   * did — the grip a blind reconstruction opens on — so it is applied to both sides and not counted
+   * as turning. Nothing later can be: a blind spelling carries no other rotation.
    */
-  public static int[] shiftedBy(String moves) {
+  private static Sides eitherSideOf(String moves) {
     String[] tokens = moves.trim().isEmpty() ? new String[0] : moves.trim().split("\\s+");
     int i = 0;
     String before = CubeState.SOLVED_FACELETS;
@@ -69,17 +131,19 @@ public final class AlgorithmSlots {
     for (; i < tokens.length; i++) {
       after = Notation.apply(after, tokens[i]);
     }
-    int[] shifted = new int[Cubies.PIECES.length];
-    int count = 0;
-    for (int slot = 0; slot < Cubies.PIECES.length; slot++) {
-      for (int facelet : Cubies.PIECES[slot]) {
-        if (before.charAt(facelet) != after.charAt(facelet)) {
-          shifted[count++] = slot;
-          break;
-        }
-      }
+    return new Sides(before, after);
+  }
+
+  /** The two states a sequence of moves is read between. */
+  private static final class Sides {
+
+    private final String before;
+    private final String after;
+
+    private Sides(String before, String after) {
+      this.before = before;
+      this.after = after;
     }
-    return Arrays.copyOf(shifted, count);
   }
 
   /** Every slot by the letters of its home colours, which name it whichever way it is said. */

@@ -494,10 +494,17 @@ public final class BlindStepDetector implements StepDetector {
    * cycle broken and then closed, one leaving two pieces out and the other none, so neither is the
    * one-piece-left-out an ordinary shot is read from, and they were said from whichever corner the
    * cube happened to store first.
+   *
+   * <p><b>What a buffer settles here it settles for the algorithms before it too</b>, the same way
+   * one settled while the solve was being read does. A piece type that opens on a closed cycle hides
+   * its buffer twice over — the first algorithm leaves nothing out and the second finds the buffer
+   * holding its own piece — so the earliest algorithm anything can be read from is the third, and
+   * the two before it are the solver's own opening.
    */
   private void nameWhatNothingSettled() {
     int[] settled = {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
-    for (Landing landing : landings) {
+    for (int i = 0; i < landings.size(); i++) {
+      Landing landing = landings.get(i);
       if (!landing.shot) {
         continue;
       }
@@ -513,6 +520,7 @@ public final class BlindStepDetector implements StepDetector {
       }
       landing.buffer = shotFrom;
       landing.named = targets.name(landing.before, landing.after, shotFrom, landing.pieces);
+      nameWhatWaitedForIt(i - 1, shotFrom);
       settled[type] = shotFrom;
     }
   }
@@ -573,7 +581,7 @@ public final class BlindStepDetector implements StepDetector {
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed, steady,
           shot, named, shotFrom, all));
       if (shot && shotFrom != BlindTargets.NO_BUFFER) {
-        nameWhatWaitedForIt(shotFrom);
+        nameWhatWaitedForIt(landings.size() - 2, shotFrom);
         // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
         buffer = all.contains(shotFrom) ? BlindTargets.NO_BUFFER : shotFrom;
         lastBuffer = shotFrom;
@@ -615,13 +623,13 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * The algorithms before this one that could not tell which piece they were shot from, now that it
-   * has been named. The first algorithm of a piece type is what needs this: breaking a cycle leaves
-   * two pieces it could have been shot from, and the one after it settles which — a buffer only
-   * stops being the buffer once something has brought it home.
+   * The algorithms up to {@code from} that could not tell which piece they were shot from, now that
+   * it has been named. The first algorithm of a piece type is what needs this: breaking a cycle
+   * leaves two pieces it could have been shot from, and the one after it settles which — a buffer
+   * only stops being the buffer once something has brought it home.
    */
-  private void nameWhatWaitedForIt(int shotFrom) {
-    for (int i = landings.size() - 2; i >= 0; i--) {
+  private void nameWhatWaitedForIt(int from, int shotFrom) {
+    for (int i = from; i >= 0; i--) {
       Landing landing = landings.get(i);
       if (!landing.shot) {
         continue; // nothing was shot here, so nothing here chose a buffer either
