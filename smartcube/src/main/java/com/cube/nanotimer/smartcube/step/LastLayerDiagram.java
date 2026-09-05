@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import com.cube.nanotimer.step.LastLayerAlgorithms;
 import java.util.List;
 
 /**

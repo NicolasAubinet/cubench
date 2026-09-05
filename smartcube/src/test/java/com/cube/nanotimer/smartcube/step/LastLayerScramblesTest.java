@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.model.CubeState;
+import com.cube.nanotimer.step.LastLayerAlgorithms;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;

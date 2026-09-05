@@ -1,23 +1,28 @@
-package com.cube.nanotimer.smartcube.step;
+package com.cube.nanotimer.step;
 
 /**
- * An algorithm for every last-layer case {@link LastLayerCases} can name. Naming a case and
+ * An algorithm for every last-layer case {@code LastLayerCases} can name. Naming a case and
  * scrambling one back up are the same vocabulary read in opposite directions, so both read this
  * table: the detector calls a state {@code pll_ga} because it matches the key here, and a scramble
  * that leaves a Ga is this row's algorithm undone.
  *
- * <p>{@code LastLayerCasesTest} applies every row and checks it lands on the case it is filed under,
- * and that the rows account for every last-layer state there is. A mistyped algorithm therefore lands
- * on some other case's key, which shows up as that case being claimed twice and another not at all.
+ * <p>It lives here rather than beside those two because a row is also the case vocabulary: the coach
+ * service reads this table to know which last-layer cases exist and which of them a drill can be
+ * dealt, without any of the cube machinery that naming and scrambling need.
+ *
+ * <p>{@code LastLayerCasesTest}, in smartcube, applies every row and checks it lands on the case it
+ * is filed under, and that the rows account for every last-layer state there is. A mistyped algorithm
+ * therefore lands on some other case's key, which shows up as that case being claimed twice and
+ * another not at all.
  */
-final class LastLayerAlgorithms {
+public final class LastLayerAlgorithms {
 
   /**
    * One row per PLL: its name, then the algorithms that solve it. The first is the everyday one and
    * the one scrambles are built from; the second, where a family's naming turns on it, comes from a
    * different source so that swapping two names cannot pass unnoticed.
    */
-  static final String[][] PERMUTATIONS = {
+  public static final String[][] PERMUTATIONS = {
     {"aa", "l' U R' D2 R U' R' D2 R2", "R' F R' B2 R F' R' B2 R2"},
     {"ab", "l U' R D2 R' U R D2 R2", "L F' L B2 L' F L B2 L2"},
     {"e", "x' R U' R' D R U R' D' R U R' D R U' R' D'",
@@ -45,7 +50,7 @@ final class LastLayerAlgorithms {
   };
 
   /** One row per OLL, in the standard 1-57 numbering. */
-  static final String[][] ORIENTATIONS = {
+  public static final String[][] ORIENTATIONS = {
     {"1", "R U2 R2 F R F' U2 R' F R F'"},
     {"2", "R U' R2 D' r U r' D R2 U R'"},
     {"3", "f R U R' U' f' U' F R U R' U' F'"},
@@ -109,7 +114,7 @@ final class LastLayerAlgorithms {
   }
 
   /** The everyday algorithm for a case, or null if the table does not hold that name. */
-  static String algorithm(String[][] cases, String name) {
+  public static String algorithm(String[][] cases, String name) {
     for (String[] row : cases) {
       if (row[0].equals(name)) {
         return row[1];

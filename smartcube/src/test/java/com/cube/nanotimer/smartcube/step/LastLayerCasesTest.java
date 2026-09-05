@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
+import com.cube.nanotimer.step.LastLayerAlgorithms;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.Test;
