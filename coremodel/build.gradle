@@ -1,4 +1,11 @@
 apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
+// A published contract, not a build number. The coach service must always run a coremodel at least
+// as new as the newest app on Play, because old clients keep sending old schema_version payloads for
+// years, so a breaking change here is a server-compatibility event rather than a refactor.
+group = 'com.cube.nanotimer'
+version = '0.1.0-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -12,4 +19,37 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20231013'
+}
+
+publishing {
+    publications {
+        coremodel(MavenPublication) {
+            from components.java
+            pom {
+                name = 'Cubench coremodel'
+                description = 'The coach payload, plan and vocabulary shared by the Cubench app and the coach service.'
+                url = 'https://github.com/NicolasAubinet/cubench'
+                licenses {
+                    license {
+                        name = 'GNU General Public License v3.0'
+                        url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        // GitHub Packages off the public repo, declared only when credentials are to hand so that a
+        // bare `publish` cannot fire by accident.
+        if (project.findProperty('githubPackagesUser') && project.findProperty('githubPackagesToken')) {
+            maven {
+                name = 'GitHubPackages'
+                url = 'https://maven.pkg.github.com/NicolasAubinet/cubench'
+                credentials {
+                    username = project.property('githubPackagesUser')
+                    password = project.property('githubPackagesToken')
+                }
+            }
+        }
+    }
 }
