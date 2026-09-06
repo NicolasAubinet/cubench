@@ -12,6 +12,7 @@ import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.LayerRotation;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.gui.widget.DrillCaseTable;
+import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
@@ -21,6 +22,7 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
+import com.cube.nanotimer.util.view.StepPalette;
 
 import java.util.List;
 
@@ -71,6 +73,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private String label;
   /** The face the user finishes on, which is the one the drawn cube has to stand on. */
   private String layerFace;
+  /** The one family this drill deals, whose colour the meter and the mean cell are written in. */
+  private int familyHue;
 
   /** The whole rep line, since the beat scales it and the hold is posted to it. */
   private View lastRepRow;
@@ -123,6 +127,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       showUnavailable(getString(R.string.drill_spec_unreadable));
       return;
     }
+    familyHue = StepPalette.cfop(this)
+        .colorFor(spec.getCases().isEmpty() ? null : spec.getCases().get(0));
     label = spec.getLabel() == null ? getString(R.string.drill_title) : spec.getLabel();
     setTitle(label);
     layerFace = getIntent().getStringExtra(EXTRA_LAYER_FACE);
@@ -388,6 +394,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     // a case is half of what a drill trains, and the half the target happens to name says nothing
     // about whether the other one is where the time went.
     ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
+    DrillStatCells.nameHalves(this, familyHue);
     ((TextView) findViewById(R.id.tvDrillMeanRecognition))
         .setText(FormatterService.INSTANCE.formatSolveTime(recognitionTotal / timed));
     ((TextView) findViewById(R.id.tvDrillMeanExecution))

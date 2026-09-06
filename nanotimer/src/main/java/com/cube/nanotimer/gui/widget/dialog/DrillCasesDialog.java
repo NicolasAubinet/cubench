@@ -28,6 +28,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.util.view.ViewSegments;
 
 import java.util.ArrayList;
@@ -258,8 +259,7 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
     SpannableString spanned = new SpannableString(text);
     int at = text.indexOf(count);
     if (at >= 0) {
-      spanned.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getActivity(),
-              family.startsWith("oll") ? R.color.step_oll : R.color.step_pll)),
+      spanned.setSpan(new ForegroundColorSpan(StepPalette.cfop(getActivity()).colorFor(family)),
           at, at + count.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
     tvCount.setText(spanned);
@@ -274,9 +274,8 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
    */
   private void refreshPresets(DrillCasePreset preset) {
     buPresets.setImageResource(preset == null ? R.drawable.ic_preset : R.drawable.ic_preset_on);
-    buPresets.setColorFilter(ContextCompat.getColor(getActivity(), preset != null
-        ? (family.startsWith("oll") ? R.color.step_oll : R.color.step_pll)
-        : R.color.secondary_text));
+    buPresets.setColorFilter(preset != null ? StepPalette.cfop(getActivity()).colorFor(family)
+        : ContextCompat.getColor(getActivity(), R.color.secondary_text));
   }
 
   private void markSegment(TextView segment, boolean on) {

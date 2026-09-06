@@ -162,13 +162,6 @@
   <color name="case_stage_stroke">@color/white_wash_10</color>
   <color name="case_off_edge">@color/white_wash_12</color>
 
-  <!-- A rep's two halves, on the bar under its name and on the mean cell that names them. One hue
-       each, so the bar says where the time went without a legend of its own. Cool for the looking
-       and warm for the turning, in that order, which is how the history row's step bar already
-       reads a solve. -->
-  <color name="drill_bar_recognition">@color/lightblue</color>
-  <color name="drill_bar_execution">@color/cube_orange</color>
-
   <!-- The progression graph's three lines: the solves themselves in the app's own accent, then the
        two running averages over them, warming as the window widens. The bar and frequency graphs
        draw a single series, which is the accent again. -->
@@ -193,7 +186,10 @@
   <color name="step_cross">@color/lightblue</color>
   <color name="step_f2l">@color/cube_green</color>
   <color name="step_oll">@color/cube_yellow</color>
-  <color name="step_pll">@color/cube_orange</color>
+  <!-- Its own literal rather than cube_orange, which it used to alias: the two last-layer steps
+       are always adjacent on the stacked bar and separated by only dE 14.4 against a floor of 15,
+       and cube_orange paints actual stickers, so the sticker orange stays where it is. -->
+  <color name="step_pll">#E0763A</color>
   <color name="step_5">@color/cube_red</color>
   <color name="step_6">#E88FD0</color>
   <color name="step_7">#9E92F0</color>

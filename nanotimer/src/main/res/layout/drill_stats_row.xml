@@ -60,7 +60,6 @@
          android:layout_height="wrap_content"
          android:fontFeatureSettings="tnum"
          android:singleLine="true"
-         android:textColor="@color/drill_bar_recognition"
          android:textSize="11sp"/>
 
       <com.cube.nanotimer.util.view.DrillSplitBarView
@@ -77,7 +76,6 @@
          android:layout_height="wrap_content"
          android:fontFeatureSettings="tnum"
          android:singleLine="true"
-         android:textColor="@color/drill_bar_execution"
          android:textSize="11sp"/>
     </LinearLayout>
   </LinearLayout>

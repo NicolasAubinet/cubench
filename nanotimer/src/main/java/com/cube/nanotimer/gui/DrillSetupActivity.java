@@ -36,6 +36,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.util.view.StepPalette;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -388,8 +389,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   }
 
   private int familyColour() {
-    return ContextCompat.getColor(this,
-        FAMILY_OLL.equals(family()) ? R.color.step_oll : R.color.step_pll);
+    return StepPalette.cfop(this).colorFor(family());
   }
 
   private String family() {

@@ -67,7 +67,7 @@
          android:layout_weight="1"
          android:orientation="vertical">
         <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanRecognition" style="@style/HeroStatValue"/>
-        <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:textColor="@color/drill_bar_recognition" android:text="@string/drill_summary_column_recognition"/>
+        <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanRecognitionLabel" style="@style/HeroStatSub" android:text="@string/drill_summary_column_recognition"/>
       </LinearLayout>
 
       <LinearLayout
@@ -77,7 +77,7 @@
          android:layout_marginLeft="6dp"
          android:orientation="vertical">
         <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanExecution" style="@style/HeroStatValue"/>
-        <com.cube.nanotimer.util.view.FontFitTextView style="@style/HeroStatSub" android:textColor="@color/drill_bar_execution" android:text="@string/drill_summary_column_execution"/>
+        <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvDrillMeanExecutionLabel" style="@style/HeroStatSub" android:text="@string/drill_summary_column_execution"/>
       </LinearLayout>
     </LinearLayout>
   </LinearLayout>

@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -21,6 +22,7 @@ import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
+import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
 
@@ -68,6 +70,8 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
   private LinearLayout rows;
   private final List<DrillCaseAttempt> attempts = new ArrayList<DrillCaseAttempt>();
   private final TimeColorScale[] scales = new TimeColorScale[VALUE_IDS.length];
+  /** The one family this screen ever reads, since it is reading one case of it. */
+  private int hue;
 
   @SuppressWarnings("unchecked") // the only thing this screen ever retains is its own attempts
   @Override
@@ -77,6 +81,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     setTitle(R.string.drill_case_stats_title);
 
     caseCode = getIntent().getStringExtra(EXTRA_CASE);
+    hue = StepPalette.cfop(this).colorFor(caseCode);
     window = DrillStatsWindow.of(getIntent().getStringExtra(EXTRA_WINDOW));
     rows = findViewById(R.id.llDrillCaseStatsRows);
 
@@ -229,6 +234,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
         reps == attempts.size() ? "" : getString(R.string.drill_summary_cell_of, attempts.size()));
 
     ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
+    DrillStatCells.nameHalves(this, hue);
     ((TextView) findViewById(R.id.tvDrillMeanRecognition))
         .setText(FormatterService.INSTANCE.formatSolveTime(recognition / reps));
     ((TextView) findViewById(R.id.tvDrillMeanExecution))
@@ -268,7 +274,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
 
     DrillSplitBarView bar = line.findViewById(R.id.vDrillAttemptBar);
     bar.setVisibility(rep.isAbandoned() ? View.INVISIBLE : View.VISIBLE);
-    bar.setSplit(rep.getRecognitionMs(), rep.getExecutionMs());
+    bar.setSplit(rep.getRecognitionMs(), rep.getExecutionMs(), hue);
 
     TextView note = line.findViewById(R.id.tvDrillAttemptNote);
     String text = note(rep);

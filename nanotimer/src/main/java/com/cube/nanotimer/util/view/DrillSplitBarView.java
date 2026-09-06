@@ -2,15 +2,12 @@ package com.cube.nanotimer.util.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
-
-import androidx.core.content.ContextCompat;
-
-import com.cube.nanotimer.R;
 
 /**
  * One rep drawn as a bar: what the looking took against what the turning took, each segment its
@@ -20,8 +17,9 @@ import com.cube.nanotimer.R;
  * one thing a reader had to work out for themselves. It is the shape of the rep rather than its
  * size, so the bar always fills its width and two reps of different lengths are still comparable.
  *
- * <p>The two colours are the ones the mean cell writes its own halves in, so the bar needs no legend
- * of its own.
+ * <p>Both halves are drawn in the family's own colour, the looking as a wash of it and the turning
+ * at full strength, which is the two colours the figures either side of the bar are written in, so
+ * the bar needs no legend of its own.
  */
 public class DrillSplitBarView extends View {
 
@@ -32,9 +30,7 @@ public class DrillSplitBarView extends View {
   private final RectF bounds = new RectF();
   private final Path rounded = new Path();
 
-  private final int recognitionColor;
-  private final int executionColor;
-
+  private int color = Color.TRANSPARENT;
   private long recognitionMs;
   private long executionMs;
 
@@ -44,14 +40,18 @@ public class DrillSplitBarView extends View {
 
   public DrillSplitBarView(Context context, AttributeSet attributes) {
     super(context, attributes);
-    recognitionColor = ContextCompat.getColor(context, R.color.drill_bar_recognition);
-    executionColor = ContextCompat.getColor(context, R.color.drill_bar_execution);
   }
 
-  /** The rep's two halves. A rep with nothing in either draws nothing at all. */
-  public void setSplit(long recognitionMs, long executionMs) {
+  /**
+   * The rep's two halves, in the colour of the family they belong to. A rep with nothing in either
+   * draws nothing at all.
+   *
+   * @param color the family's own colour, which the looking takes a wash of
+   */
+  public void setSplit(long recognitionMs, long executionMs, int color) {
     this.recognitionMs = Math.max(0, recognitionMs);
     this.executionMs = Math.max(0, executionMs);
+    this.color = color;
     invalidate();
   }
 
@@ -71,9 +71,9 @@ public class DrillSplitBarView extends View {
     canvas.save();
     canvas.clipPath(rounded);
     float split = getWidth() * (recognitionMs / (float) total);
-    paint.setColor(recognitionColor);
+    paint.setColor(StepPalette.wash(color));
     canvas.drawRect(0, 0, split, height, paint);
-    paint.setColor(executionColor);
+    paint.setColor(color);
     canvas.drawRect(split, 0, getWidth(), height, paint);
     canvas.restore();
   }

@@ -9,11 +9,13 @@ import android.widget.TextView;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.DrillStatsTable;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
 
 import java.util.ArrayList;
@@ -127,9 +129,13 @@ public class DrillStatsActivity extends NanoTimerActivity implements DrillStatsT
         });
   }
 
+  private String family() {
+    return family.getSelection() == FAMILY_PLL_SEGMENT ? FAMILY_PLL : FAMILY_OLL;
+  }
+
   /** The window's cases of the family being read. The query answers for both at once. */
   private List<DrillCaseStats> ofFamily(List<DrillCaseStats> all) {
-    String prefix = family.getSelection() == FAMILY_PLL_SEGMENT ? FAMILY_PLL : FAMILY_OLL;
+    String prefix = family();
     List<DrillCaseStats> picked = new ArrayList<DrillCaseStats>();
     for (DrillCaseStats caseStats : all) {
       if (caseStats.getCaseCode() != null && caseStats.getCaseCode().startsWith(prefix)) {
@@ -206,6 +212,7 @@ public class DrillStatsActivity extends NanoTimerActivity implements DrillStatsT
             caseStats.size()));
 
     ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
+    DrillStatCells.nameHalves(this, StepPalette.cfop(this).colorFor(family()));
     ((TextView) findViewById(R.id.tvDrillMeanRecognition))
         .setText(FormatterService.INSTANCE.formatSolveTime(recognition / reps));
     ((TextView) findViewById(R.id.tvDrillMeanExecution))

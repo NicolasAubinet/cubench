@@ -18,6 +18,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
+import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
@@ -112,6 +113,7 @@ public class DrillCaseTable {
   private final Set<DrillRep> deleted = new HashSet<DrillRep>();
   private final Map<DrillRep, View> lines = new LinkedHashMap<DrillRep, View>();
   private final TimeColorScale[] scales = new TimeColorScale[KEYS.length];
+  private final StepPalette palette;
   private final Listener listener;
 
   private int sortedColumn;
@@ -129,6 +131,7 @@ public class DrillCaseTable {
     this.activity = activity;
     this.listener = listener;
     this.rows = activity.findViewById(R.id.llDrillCaseRows);
+    this.palette = StepPalette.cfop(activity);
     this.reps = new ArrayList<DrillRep>(reps);
     this.dealt = new ArrayList<DrillRep>(reps);
     this.sortedColumn = type == DrillSpec.Type.CASE_RECOGNITION ? 1 : 2;
@@ -318,7 +321,7 @@ public class DrillCaseTable {
     // Where the rep's time went. A rep with no time to divide has no shape, so it shows none.
     DrillSplitBarView bar = line.findViewById(R.id.vDrillCaseBar);
     bar.setVisibility(rep.isAbandoned() ? View.INVISIBLE : View.VISIBLE);
-    bar.setSplit(rep.getRecognitionMs(), rep.getExecutionMs());
+    bar.setSplit(rep.getRecognitionMs(), rep.getExecutionMs(), palette.colorFor(code));
 
     TextView note = line.findViewById(R.id.tvDrillCaseNote);
     String text = note(rep, gone);

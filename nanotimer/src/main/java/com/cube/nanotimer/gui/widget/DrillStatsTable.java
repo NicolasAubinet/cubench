@@ -14,6 +14,7 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
+import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
 
 import java.util.ArrayList;
@@ -82,6 +83,7 @@ public class DrillStatsTable {
   private final List<DrillCaseStats> stats = new ArrayList<DrillCaseStats>();
   private final Map<DrillCaseStats, View> lines = new LinkedHashMap<DrillCaseStats, View>();
   private final TimeColorScale[] scales = new TimeColorScale[VALUE_IDS.length];
+  private final StepPalette palette;
 
   private int sortedColumn = DEFAULT_COLUMN;
   private boolean slowestFirst = true;
@@ -91,6 +93,7 @@ public class DrillStatsTable {
     this.activity = activity;
     this.listener = listener;
     this.rows = activity.findViewById(R.id.llDrillStatsRows);
+    this.palette = StepPalette.cfop(activity);
     for (int column = 0; column < HEADING_IDS.length; column++) {
       final int picked = column;
       activity.findViewById(HEADING_IDS[column]).setOnClickListener(new View.OnClickListener() {
@@ -195,12 +198,17 @@ public class DrillStatsTable {
       value.setTextColor(scales[column].colorFor(time, false));
     }
 
-    ((TextView) line.findViewById(R.id.tvDrillStatsRecognition))
-        .setText(FormatterService.INSTANCE.formatSolveTime(caseStats.getMeanRecognitionMs()));
-    ((TextView) line.findViewById(R.id.tvDrillStatsExecution))
-        .setText(FormatterService.INSTANCE.formatSolveTime(caseStats.getMeanExecutionMs()));
+    // One hue for the whole meter, so the line says which family it is even scrolled away from
+    // the family it was picked under.
+    int hue = palette.colorFor(caseStats.getCaseCode());
+    TextView recognition = line.findViewById(R.id.tvDrillStatsRecognition);
+    recognition.setText(FormatterService.INSTANCE.formatSolveTime(caseStats.getMeanRecognitionMs()));
+    recognition.setTextColor(StepPalette.dim(hue));
+    TextView execution = line.findViewById(R.id.tvDrillStatsExecution);
+    execution.setText(FormatterService.INSTANCE.formatSolveTime(caseStats.getMeanExecutionMs()));
+    execution.setTextColor(hue);
     ((DrillSplitBarView) line.findViewById(R.id.vDrillStatsBar))
-        .setSplit(caseStats.getMeanRecognitionMs(), caseStats.getMeanExecutionMs());
+        .setSplit(caseStats.getMeanRecognitionMs(), caseStats.getMeanExecutionMs(), hue);
   }
 
   /** What a column holds for a case, with the count read as a figure like the rest. */
