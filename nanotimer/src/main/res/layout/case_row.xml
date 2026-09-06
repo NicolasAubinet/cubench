@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case, on every screen that lists cases: how often it came up, its picture, its name, where
+     its time went, and three figures whose headings are the sort. Four screens wanted this line and
+     three of them had written it out separately, which is how the split bar ended up on two of them,
+     the chart at three different sizes, and the tap through to the case sheet on only some.
+
+     Everything but the name and the three figures is optional, because the differences between the
+     screens are which parts they have to say rather than how they say them: a rep has a number where
+     a case has a count, a step of the solve has a colour dot where a last-layer case has a chart,
+     and only a table whose rows lead somewhere carries the chevron. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llCaseRow"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:background="@drawable/history_row"
+   android:gravity="center_vertical"
+   android:minHeight="52dp"
+   android:orientation="horizontal"
+   android:paddingLeft="@dimen/space_xs"
+   android:paddingRight="@dimen/space_xs"
+   android:paddingTop="@dimen/space_s"
+   android:paddingBottom="@dimen/space_s">
+
+  <!-- How much is behind the figures, which is how much they are worth, or where a rep fell in its
+       drill. Left of the picture, so a reader hunting one line runs down a narrow column. -->
+  <TextView
+     android:id="@+id/tvCaseRowCount"
+     style="@style/DrillCasePosition"/>
+
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vCaseRowChart"
+     android:layout_width="36dp"
+     android:layout_height="36dp"/>
+
+  <!-- What a step of the solve carries instead of a chart: it has no picture, and a blank the width
+       of one would leave the names hanging off an empty column. -->
+  <View
+     android:id="@+id/vCaseRowDot"
+     android:layout_width="10dp"
+     android:layout_height="10dp"
+     android:layout_marginLeft="@dimen/space_xs"
+     android:layout_marginRight="@dimen/space_xs"
+     android:visibility="gone"/>
+
+  <LinearLayout
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginLeft="@dimen/space_m"
+     android:layout_marginRight="@dimen/space_xs"
+     android:orientation="vertical">
+
+    <!-- The chip rides on the name line: it turns up on a handful of rows and the meter under it
+         needs every pixel of the width. -->
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvCaseRowName"
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:ellipsize="end"
+         android:fontFamily="@font/roboto_medium"
+         android:maxLines="1"
+         android:textColor="@color/white"
+         android:textSize="15sp"/>
+
+      <TextView
+         android:id="@+id/tvCaseRowChip"
+         style="@style/RowChip"
+         android:layout_marginLeft="@dimen/space_s"
+         android:visibility="gone"/>
+    </LinearLayout>
+
+    <!-- What has to be said about the line before its figures are read. Two lines are allowed for
+         the rare one that has both to say, rather than losing the end of it. -->
+    <TextView
+       android:id="@+id/tvCaseRowNote"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:ellipsize="end"
+       android:maxLines="2"
+       android:textColor="@color/secondary_text"
+       android:textSize="11sp"
+       android:visibility="gone"/>
+
+    <!-- Where the time went, the looking against the turning, in the family's own hue. The columns
+         say how long the case takes; this is the only thing that says which half is the problem. -->
+    <LinearLayout
+       android:id="@+id/llCaseRowMeter"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="5dp"
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <TextView
+         android:id="@+id/tvCaseRowRecognition"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:fontFeatureSettings="tnum"
+         android:singleLine="true"
+         android:textSize="11sp"/>
+
+      <com.cube.nanotimer.util.view.DrillSplitBarView
+         android:id="@+id/vCaseRowBar"
+         android:layout_width="0dp"
+         android:layout_height="5dp"
+         android:layout_weight="1"
+         android:layout_marginLeft="5dp"
+         android:layout_marginRight="5dp"/>
+
+      <TextView
+         android:id="@+id/tvCaseRowExecution"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:fontFeatureSettings="tnum"
+         android:singleLine="true"
+         android:textSize="11sp"/>
+    </LinearLayout>
+  </LinearLayout>
+
+  <!-- The figures fit themselves to the column rather than being cut off: a ten second recognition
+       is rare but it is exactly the row worth reading, and at a large system font it is the one
+       that would have run out of column. -->
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvCaseRowValueOne"
+     style="@style/DrillCaseValue"/>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvCaseRowValueTwo"
+     style="@style/DrillCaseValue"/>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvCaseRowValueThree"
+     style="@style/DrillCaseValue"/>
+
+  <!-- Only on a table whose rows lead somewhere, where it is the promise that they do. -->
+  <ImageView
+     android:id="@+id/ivCaseRowChevron"
+     android:layout_width="16dp"
+     android:layout_height="16dp"
+     android:layout_marginLeft="@dimen/space_xs"
+     android:contentDescription="@null"
+     android:src="@drawable/ic_chevron_right"
+     android:visibility="gone"/>
+
+</LinearLayout>

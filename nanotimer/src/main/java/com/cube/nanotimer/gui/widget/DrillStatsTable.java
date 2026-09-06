@@ -3,17 +3,13 @@ package com.cube.nanotimer.gui.widget;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
-import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
 
@@ -57,56 +53,39 @@ public class DrillStatsTable {
     void onCasePicked(String caseCode);
   }
 
-  /** Ranks by how often the case came up rather than by what it cost. */
-  private static final int COUNT_COLUMN = 0;
   /** Where the table opens: the mean, slowest first, which is the case to work on next. */
   private static final int DEFAULT_COLUMN = 1;
 
-  private static final int[] HEADING_IDS = {R.id.tvDrillStatsSortCount, R.id.tvDrillStatsSortMean,
-      R.id.tvDrillStatsSortBest, R.id.tvDrillStatsSortWorst};
   private static final int[] HEADING_LABELS = {R.string.drill_stats_column_count,
       R.string.drill_summary_cell_mean, R.string.drill_summary_cell_best,
       R.string.drill_stats_column_worst};
-  private static final int[] VALUE_IDS = {R.id.tvDrillStatsMean, R.id.tvDrillStatsBest,
-      R.id.tvDrillStatsWorst};
-
-  /** Which way round the table is, said on the ranked heading. */
-  private static final String SLOWEST_FIRST = "▾";
-  private static final String QUICKEST_FIRST = "▴";
-
-  /** What a column that is not the ranked one is worth: still coloured, but standing back. */
-  private static final float UNRANKED_ALPHA = 0.6f;
+  // Every column opens at its own interesting end, which for a count is the case drilled most and
+  // for a time is the slowest.
+  private static final boolean[] OPENS_DESCENDING = {true, true, true, true};
 
   private final FragmentActivity activity;
   private final LinearLayout rows;
   private final Listener listener;
   private final List<DrillCaseStats> stats = new ArrayList<DrillCaseStats>();
-  private final Map<DrillCaseStats, View> lines = new LinkedHashMap<DrillCaseStats, View>();
-  private final TimeColorScale[] scales = new TimeColorScale[VALUE_IDS.length];
+  private final Map<DrillCaseStats, CaseRow> lines = new LinkedHashMap<DrillCaseStats, CaseRow>();
+  private final TimeColorScale[] scales = new TimeColorScale[CaseRow.COLUMNS];
   private final StepPalette palette;
-
-  private int sortedColumn = DEFAULT_COLUMN;
-  private boolean slowestFirst = true;
+  private final CaseTableHeadings headings;
 
   /** Binds the headings. The table stands empty until it is given a window's cases. */
   public DrillStatsTable(FragmentActivity activity, Listener listener) {
     this.activity = activity;
     this.listener = listener;
-    this.rows = activity.findViewById(R.id.llDrillStatsRows);
+    this.rows = activity.findViewById(R.id.llCaseTableRows);
     this.palette = StepPalette.cfop(activity);
-    for (int column = 0; column < HEADING_IDS.length; column++) {
-      final int picked = column;
-      activity.findViewById(HEADING_IDS[column]).setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          // The same heading again turns the table round; a fresh one opens at its biggest, which
-          // is the case drilled most for the count and the slowest case for a time.
-          slowestFirst = sortedColumn != picked || !slowestFirst;
-          sortedColumn = picked;
-          refresh();
-        }
-      });
-    }
+    this.headings = new CaseTableHeadings(activity.findViewById(R.id.llDrillStatsSection),
+        HEADING_LABELS, OPENS_DESCENDING, DEFAULT_COLUMN, new CaseTableHeadings.Listener() {
+          @Override
+          public void onRanked(int column, boolean descending) {
+            refresh();
+          }
+        });
+    this.headings.setLabel(R.string.drill_summary_cases);
   }
 
   /** Shows a window's cases, keeping whatever ranking the reader had put the table in. */
@@ -121,22 +100,23 @@ public class DrillStatsTable {
     // them, and a family is up to 57 of them.
     LayoutInflater inflater = LayoutInflater.from(activity);
     for (final DrillCaseStats caseStats : stats) {
-      View line = inflater.inflate(R.layout.drill_stats_row, rows, false);
+      View line = CaseRow.inflate(inflater, rows);
       line.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           listener.onCasePicked(caseStats.getCaseCode());
         }
       });
-      fill(line, caseStats);
-      lines.put(caseStats, line);
+      CaseRow row = new CaseRow(line);
+      fill(row, caseStats);
+      lines.put(caseStats, row);
     }
     refresh();
   }
 
   /** One gradient per column, over the cases the table is showing. */
   private void buildScales() {
-    for (int column = 0; column < VALUE_IDS.length; column++) {
+    for (int column = 0; column < CaseRow.COLUMNS; column++) {
       List<Long> times = new ArrayList<Long>();
       for (DrillCaseStats caseStats : stats) {
         times.add(value(caseStats, column + 1));
@@ -148,6 +128,8 @@ public class DrillStatsTable {
 
   /** Ranks the table as it now stands, draws it, and says on the columns which ranking that is. */
   private void refresh() {
+    final int sortedColumn = headings.column();
+    final boolean slowestFirst = headings.descending();
     Collections.sort(stats, new Comparator<DrillCaseStats>() {
       @Override
       public int compare(DrillCaseStats a, DrillCaseStats b) {
@@ -160,55 +142,27 @@ public class DrillStatsTable {
 
     rows.removeAllViews();
     for (DrillCaseStats caseStats : stats) {
-      View line = lines.get(caseStats);
-      // The ranked column at full strength and the others standing back, since the colours are the
-      // same gradient throughout and something has to say which one the list is in.
-      line.findViewById(R.id.tvDrillStatsCount)
-          .setAlpha(sortedColumn == COUNT_COLUMN ? 1f : UNRANKED_ALPHA);
-      for (int column = 0; column < VALUE_IDS.length; column++) {
-        line.findViewById(VALUE_IDS[column])
-            .setAlpha(column + 1 == sortedColumn ? 1f : UNRANKED_ALPHA);
-      }
-      rows.addView(line);
+      CaseRow row = lines.get(caseStats);
+      row.rank(sortedColumn);
+      rows.addView(row.view());
     }
-
-    for (int column = 0; column < HEADING_IDS.length; column++) {
-      TextView heading = activity.findViewById(HEADING_IDS[column]);
-      String label = activity.getString(HEADING_LABELS[column]);
-      boolean ranked = column == sortedColumn;
-      heading.setText(ranked ? activity.getString(R.string.drill_summary_column_sorted, label,
-          slowestFirst ? SLOWEST_FIRST : QUICKEST_FIRST) : label);
-      heading.setTextColor(color(ranked ? R.color.white : R.color.secondary_text));
-    }
+    headings.refresh();
   }
 
-  private void fill(View line, DrillCaseStats caseStats) {
-    ((LastLayerCaseView) line.findViewById(R.id.vDrillStatsChart))
-        .setDiagram(LastLayerDiagram.forCase(caseStats.getCaseCode()));
-    ((TextView) line.findViewById(R.id.tvDrillStatsName))
-        .setText(Utils.toSmartCubeCaseHeadline(activity, caseStats.getCaseCode()));
+  private void fill(CaseRow row, DrillCaseStats caseStats) {
+    row.count(String.valueOf(caseStats.getCount()))
+        .chart(caseStats.getCaseCode())
+        .name(Utils.toSmartCubeCaseHeadline(activity, caseStats.getCaseCode()))
+        // One hue for the whole meter, so the line says which family it is even scrolled away from
+        // the family it was picked under.
+        .meter(caseStats.getMeanRecognitionMs(), caseStats.getMeanExecutionMs(),
+            palette.colorFor(caseStats.getCaseCode()));
 
-    ((TextView) line.findViewById(R.id.tvDrillStatsCount))
-        .setText(String.valueOf(caseStats.getCount()));
-
-    for (int column = 0; column < VALUE_IDS.length; column++) {
-      TextView value = line.findViewById(VALUE_IDS[column]);
+    for (int column = 0; column < CaseRow.COLUMNS; column++) {
       long time = value(caseStats, column + 1);
-      value.setText(FormatterService.INSTANCE.formatSolveTime(time));
-      value.setTextColor(scales[column].colorFor(time, false));
+      row.value(column, FormatterService.INSTANCE.formatSolveTime(time),
+          scales[column].colorFor(time, false));
     }
-
-    // One hue for the whole meter, so the line says which family it is even scrolled away from
-    // the family it was picked under.
-    int hue = palette.colorFor(caseStats.getCaseCode());
-    TextView recognition = line.findViewById(R.id.tvDrillStatsRecognition);
-    recognition.setText(FormatterService.INSTANCE.formatSolveTime(caseStats.getMeanRecognitionMs()));
-    recognition.setTextColor(StepPalette.dim(hue));
-    TextView execution = line.findViewById(R.id.tvDrillStatsExecution);
-    execution.setText(FormatterService.INSTANCE.formatSolveTime(caseStats.getMeanExecutionMs()));
-    execution.setTextColor(hue);
-    ((DrillSplitBarView) line.findViewById(R.id.vDrillStatsBar))
-        .setSplit(caseStats.getMeanRecognitionMs(), caseStats.getMeanExecutionMs(), hue);
   }
 
   /** What a column holds for a case, with the count read as a figure like the rest. */
@@ -223,9 +177,5 @@ public class DrillStatsTable {
       default:
         return caseStats.getCount();
     }
-  }
-
-  private int color(int colorResId) {
-    return ContextCompat.getColor(activity, colorResId);
   }
 }

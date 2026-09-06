@@ -1,10 +1,8 @@
 package com.cube.nanotimer.gui.widget;
 
-import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -14,10 +12,8 @@ import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.drill.DrillSpec;
-import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
-import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
@@ -87,20 +83,13 @@ public class DrillCaseTable {
 
   private static final DrillRepOrder.Key[] KEYS = {
       DrillRepOrder.Key.RECOGNITION, DrillRepOrder.Key.EXECUTION, DrillRepOrder.Key.TOTAL};
-  private static final int[] HEADING_IDS = {R.id.tvDrillSortPosition,
-      R.id.tvDrillSortRecognition, R.id.tvDrillSortExecution, R.id.tvDrillSortTotal};
   private static final int[] HEADING_LABELS = {R.string.drill_summary_column_position,
       R.string.drill_summary_column_recognition, R.string.drill_summary_column_execution,
       R.string.drill_summary_column_total};
-  private static final int[] VALUE_IDS = {
-      R.id.tvDrillCaseRecognition, R.id.tvDrillCaseExecution, R.id.tvDrillCaseTotal};
+  // The number column opens counting up, unlike the times: a numbered column that starts at the
+  // bottom reads as a fault rather than as a choice.
+  private static final boolean[] OPENS_DESCENDING = {false, true, true, true};
 
-  /** Which way round the table is, said on the ranked heading. */
-  private static final String SLOWEST_FIRST = "▾";
-  private static final String QUICKEST_FIRST = "▴";
-
-  /** What a column that is not the ranked one is worth: still coloured, but standing back. */
-  private static final float UNRANKED_ALPHA = 0.6f;
   /** A thrown-out line: still legible, and plainly not one of the reps being read. */
   private static final float DELETED_ALPHA = 0.45f;
 
@@ -111,13 +100,12 @@ public class DrillCaseTable {
   private final List<DrillRep> dealt;
   private final Map<DrillRep, Integer> positions = new HashMap<DrillRep, Integer>();
   private final Set<DrillRep> deleted = new HashSet<DrillRep>();
-  private final Map<DrillRep, View> lines = new LinkedHashMap<DrillRep, View>();
+  private final Map<DrillRep, CaseRow> lines = new LinkedHashMap<DrillRep, CaseRow>();
   private final TimeColorScale[] scales = new TimeColorScale[KEYS.length];
   private final StepPalette palette;
   private final Listener listener;
 
-  private int sortedColumn;
-  private boolean slowestFirst = true;
+  private CaseTableHeadings headings;
 
   /**
    * Fills the case table of a finished drill.
@@ -130,11 +118,10 @@ public class DrillCaseTable {
       Listener listener) {
     this.activity = activity;
     this.listener = listener;
-    this.rows = activity.findViewById(R.id.llDrillCaseRows);
+    this.rows = activity.findViewById(R.id.llCaseTableRows);
     this.palette = StepPalette.cfop(activity);
     this.reps = new ArrayList<DrillRep>(reps);
     this.dealt = new ArrayList<DrillRep>(reps);
-    this.sortedColumn = type == DrillSpec.Type.CASE_RECOGNITION ? 1 : 2;
     for (int i = 0; i < dealt.size(); i++) {
       positions.put(dealt.get(i), i);
     }
@@ -142,7 +129,7 @@ public class DrillCaseTable {
 
     LayoutInflater inflater = LayoutInflater.from(activity);
     for (final DrillRep rep : this.reps) {
-      View line = inflater.inflate(R.layout.drill_case_row, rows, false);
+      View line = CaseRow.inflate(inflater, rows);
       line.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -161,22 +148,19 @@ public class DrillCaseTable {
           return askToDelete(rep);
         }
       });
-      lines.put(rep, line);
-      fill(line, rep);
+      CaseRow row = new CaseRow(line);
+      lines.put(rep, row);
+      fill(row, rep);
     }
-    for (int column = 0; column < HEADING_IDS.length; column++) {
-      final int picked = column;
-      activity.findViewById(HEADING_IDS[column]).setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          // The same heading again turns the table round. A fresh one opens at its own interesting
-          // end: the slowest rep for a figure column, the first rep for the #.
-          slowestFirst = sortedColumn == picked ? !slowestFirst : picked != POSITION_COLUMN;
-          sortedColumn = picked;
-          refresh();
-        }
-      });
-    }
+    headings = new CaseTableHeadings(activity.findViewById(R.id.llDrillCasesSection),
+        HEADING_LABELS, OPENS_DESCENDING, type == DrillSpec.Type.CASE_RECOGNITION ? 1 : 2,
+        new CaseTableHeadings.Listener() {
+          @Override
+          public void onRanked(int column, boolean descending) {
+            refresh();
+          }
+        });
+    headings.setLabel(R.string.drill_summary_cases);
     activity.findViewById(R.id.llDrillCasesSection)
         .setVisibility(this.reps.isEmpty() ? View.GONE : View.VISIBLE);
     refresh();
@@ -232,7 +216,7 @@ public class DrillCaseTable {
       deleted.remove(rep);
     }
     buildScales();
-    for (Map.Entry<DrillRep, View> line : lines.entrySet()) {
+    for (Map.Entry<DrillRep, CaseRow> line : lines.entrySet()) {
       fill(line.getValue(), line.getKey());
     }
     refresh();
@@ -257,6 +241,8 @@ public class DrillCaseTable {
 
   /** Ranks the table as it now stands, and says on the columns which ranking that is. */
   private void refresh() {
+    int sortedColumn = headings.column();
+    boolean slowestFirst = headings.descending();
     if (sortedColumn == POSITION_COLUMN) {
       reps.clear();
       reps.addAll(dealt);
@@ -268,75 +254,43 @@ public class DrillCaseTable {
     }
     rows.removeAllViews();
     for (DrillRep rep : reps) {
-      View line = lines.get(rep);
-      // The ranked column at full strength and the others standing back, since the colours are the
-      // same gradient throughout and something has to say which one the list is in.
-      line.findViewById(R.id.tvDrillCasePosition)
-          .setAlpha(sortedColumn == POSITION_COLUMN ? 1f : UNRANKED_ALPHA);
-      for (int column = 0; column < VALUE_IDS.length; column++) {
-        line.findViewById(VALUE_IDS[column])
-            .setAlpha(column == sortedColumn - 1 ? 1f : UNRANKED_ALPHA);
-      }
-      rows.addView(line);
+      CaseRow row = lines.get(rep);
+      row.rank(sortedColumn);
+      rows.addView(row.view());
     }
-    for (int column = 0; column < HEADING_IDS.length; column++) {
-      TextView heading = activity.findViewById(HEADING_IDS[column]);
-      String label = activity.getString(HEADING_LABELS[column]);
-      boolean ranked = column == sortedColumn;
-      heading.setText(ranked ? activity.getString(R.string.drill_summary_column_sorted, label,
-          slowestFirst ? SLOWEST_FIRST : QUICKEST_FIRST) : label);
-      heading.setTextColor(color(ranked ? R.color.white : R.color.secondary_text));
-    }
+    headings.refresh();
   }
 
-  private void fill(View line, DrillRep rep) {
+  private void fill(CaseRow row, DrillRep rep) {
     String code = rep.getCaseCode();
     boolean gone = deleted.contains(rep);
-    // Turned down whole rather than in parts. The chart's own dim is never used, here or for a
-    // skipped rep: it drops the chart's well, which on a row with no card leaves a smudge.
-    line.setAlpha(gone ? DELETED_ALPHA : 1f);
-    ((LastLayerCaseView) line.findViewById(R.id.vDrillCaseChart))
-        .setDiagram(LastLayerDiagram.forCase(code));
-    ((TextView) line.findViewById(R.id.tvDrillCasePosition)).setText(String.valueOf(number(rep)));
+    row.count(String.valueOf(number(rep)))
+        .chart(code)
+        .name(Utils.toSmartCubeCaseHeadline(activity, code))
+        .note(note(rep, gone))
+        .struck(gone, DELETED_ALPHA);
 
-    TextView name = line.findViewById(R.id.tvDrillCaseName);
-    name.setText(Utils.toSmartCubeCaseHeadline(activity, code));
-    strikeThrough(name, gone);
-
-    for (int column = 0; column < VALUE_IDS.length; column++) {
-      TextView value = line.findViewById(VALUE_IDS[column]);
-      strikeThrough(value, gone);
+    for (int column = 0; column < CaseRow.COLUMNS; column++) {
       // A rep given up on has no time worth printing, which is also why it is ranked nowhere. A
       // thrown-out one keeps its figures, being what it was judged on, but is out of the gradient.
       if (rep.isAbandoned()) {
-        value.setText(R.string.drill_case_no_time);
-        value.setTextColor(color(R.color.secondary_text));
+        row.value(column, activity.getString(R.string.drill_case_no_time),
+            color(R.color.secondary_text));
       } else {
         long time = DrillRepOrder.timeMs(rep, KEYS[column]);
-        value.setText(FormatterService.INSTANCE.formatSolveTime(time));
-        value.setTextColor(gone ? color(R.color.secondary_text) : scales[column].colorFor(time, false));
+        row.value(column, FormatterService.INSTANCE.formatSolveTime(time),
+            gone ? color(R.color.secondary_text) : scales[column].colorFor(time, false));
       }
     }
 
     // Where the rep's time went. A rep with no time to divide has no shape, so it shows none.
-    DrillSplitBarView bar = line.findViewById(R.id.vDrillCaseBar);
-    bar.setVisibility(rep.isAbandoned() ? View.INVISIBLE : View.VISIBLE);
-    bar.setSplit(rep.getRecognitionMs(), rep.getExecutionMs(), palette.colorFor(code));
-
-    TextView note = line.findViewById(R.id.tvDrillCaseNote);
-    String text = note(rep, gone);
-    note.setText(text);
-    note.setVisibility(text == null ? View.GONE : View.VISIBLE);
+    row.shape(rep.getRecognitionMs(), rep.getExecutionMs(), palette.colorFor(code))
+        .hideBar(rep.isAbandoned());
   }
 
   /** Where the rep fell in the drill, counted as a person counts: the first one is 1. */
   private int number(DrillRep rep) {
     return positions.get(rep) + 1;
-  }
-
-  private void strikeThrough(TextView view, boolean struck) {
-    view.setPaintFlags(struck ? view.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG
-        : view.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
   }
 
   /** What has to be said about a rep before its figures are read, or null when nothing has. */

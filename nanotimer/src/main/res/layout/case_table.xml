@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A list of cases with its headings, shared by every screen that draws one.
+
+     The section's own name shares the line with the three headings, which is all that is needed to
+     head a list: a heading strip of its own would have been a second row of chrome over rows that
+     already say what they are. The headings are also the sort, so what a column is called and which
+     one the list is ranked by are the same piece of text.
+
+     Which columns these are is set in code, since that is the only thing that differs between the
+     screens: a finished drill counts reps and a table in Analysis counts solves, and neither ever
+     mixes them. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+     android:paddingLeft="@dimen/space_xs"
+     android:paddingRight="@dimen/space_xs">
+
+    <TextView
+       android:id="@+id/tvCaseTableSortCount"
+       style="@style/DrillCasePositionColumn"/>
+
+    <TextView
+       android:id="@+id/tvCaseTableLabel"
+       style="@style/DialogSectionLabel"
+       android:layout_width="0dp"
+       android:layout_weight="1"/>
+
+    <TextView
+       android:id="@+id/tvCaseTableSortOne"
+       style="@style/DrillCaseColumn"/>
+
+    <TextView
+       android:id="@+id/tvCaseTableSortTwo"
+       style="@style/DrillCaseColumn"/>
+
+    <TextView
+       android:id="@+id/tvCaseTableSortThree"
+       style="@style/DrillCaseColumn"/>
+  </LinearLayout>
+
+  <View
+     android:layout_width="match_parent"
+     android:layout_height="1dp"
+     android:background="@color/hero_divider"/>
+
+  <!-- One case_row per line, filled in code. No card around them: a list of times on the ground
+       reads as a list, which is what the history screen already proves. -->
+  <LinearLayout
+     android:id="@+id/llCaseTableRows"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:divider="@drawable/stat_rule_h"
+     android:orientation="vertical"
+     android:showDividers="middle"/>
+
+</LinearLayout>

@@ -285,59 +285,11 @@
          android:orientation="vertical"
          android:visibility="gone">
 
-        <!-- The section's own name shares the line with the three headings, which is all that is
-             needed to head a list: a heading strip of its own would have been a second row of
-             chrome over rows that already say what they are. -->
-        <LinearLayout
+        <include
+           layout="@layout/case_table"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:layout_marginTop="22dp"
-           android:gravity="center_vertical"
-           android:orientation="horizontal"
-           android:paddingLeft="@dimen/space_xs"
-           android:paddingRight="@dimen/space_xs">
-
-          <TextView
-             android:id="@+id/tvDrillSortPosition"
-             style="@style/DrillCasePositionColumn"
-             android:text="@string/drill_summary_column_position"/>
-
-          <TextView
-             style="@style/DialogSectionLabel"
-             android:layout_width="0dp"
-             android:layout_weight="1"
-             android:text="@string/drill_summary_cases"/>
-
-          <TextView
-             android:id="@+id/tvDrillSortRecognition"
-             style="@style/DrillCaseColumn"
-             android:text="@string/drill_summary_column_recognition"/>
-
-          <TextView
-             android:id="@+id/tvDrillSortExecution"
-             style="@style/DrillCaseColumn"
-             android:text="@string/drill_summary_column_execution"/>
-
-          <TextView
-             android:id="@+id/tvDrillSortTotal"
-             style="@style/DrillCaseColumn"
-             android:text="@string/drill_summary_column_total"/>
-        </LinearLayout>
-
-        <View
-           android:layout_width="match_parent"
-           android:layout_height="1dp"
-           android:background="@color/hero_divider"/>
-
-        <!-- One drill_case_row per rep, filled in code. No card around them: a list of times on
-             the ground reads as a list, which is what the history screen already proves. -->
-        <LinearLayout
-           android:id="@+id/llDrillCaseRows"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:divider="@drawable/stat_rule_h"
-           android:orientation="vertical"
-           android:showDividers="middle"/>
+           android:layout_marginTop="22dp"/>
       </LinearLayout>
 
     </LinearLayout>

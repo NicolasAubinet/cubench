@@ -21,4 +21,10 @@
   <!-- The scramble dialog's diagram. Landscape overrides it: at the portrait height the dialog is
        taller than the screen, and a dialog cannot shrink a child that overflows it. -->
   <dimen name="scramble_dialog_diagram_height">240dp</dimen>
+  <!-- The colour dot a step of the solve carries where a last-layer case carries a chart. -->
+  <dimen name="case_row_dot_corner">3dp</dimen>
+  <!-- The meter on a row whose columns already print the two halves. Fixed rather than the row's
+       width: it is the shape of the rep and not its size, so every one is measured against the
+       same length, and at full width a dozen of them read as a dozen progress bars. -->
+  <dimen name="case_row_shape_width">96dp</dimen>
 </resources>
