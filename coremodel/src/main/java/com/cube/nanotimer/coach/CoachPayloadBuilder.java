@@ -87,9 +87,10 @@ public class CoachPayloadBuilder {
   public static final String SOLVE = "solve";
 
   /** The families whose codes name a case a drill can be dealt a scramble of, which is the only
-   * kind worth quoting as one. An allowlist: what has to stay out is open-ended. */
-  private static final Set<String> CASE_FAMILIES = new LinkedHashSet<String>(
-      Arrays.asList("oll", "pll"));
+   * kind worth quoting as one. An allowlist: what has to stay out is open-ended. Public because it
+   * is a contract the drill runner has to honour, and that is checked where the scrambles are. */
+  public static final Set<String> CASE_FAMILIES = Collections.unmodifiableSet(
+      new LinkedHashSet<String>(Arrays.asList("oll", "pll")));
 
   /** The step timed from its own first move, so it has no recognition to report. */
   private static final String CROSS_FAMILY = "cross";
