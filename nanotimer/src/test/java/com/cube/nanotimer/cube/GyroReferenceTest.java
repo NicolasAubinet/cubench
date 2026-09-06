@@ -100,6 +100,27 @@ public class GyroReferenceTest {
     assertEquals("y", reference.frameOver(readings.between(0, 11_000), 11_000).getNotation());
   }
 
+  /**
+   * The grip is what the solver settled into, not the pose they spent the most of the memorisation
+   * in. Shaped on the solve of 2026-09-06, which peeked one x forward in long blocks and passed back
+   * through its grip in short hops: the peek took 14.7 s of the 40 s memorisation and the grip
+   * 11.1 s, and every target came out a quarter turn from where the cube was held.
+   */
+  @Test
+  public void theGripIsTheOneSettledIntoAndNotTheOneMemorisedIn() {
+    GyroReference reference = anchoredAt(REST);
+    OrientationHistory readings = new OrientationHistory();
+    readings.onSample(aboutU(90), 0); // the grip, in hops of a second between the peeks
+    readings.onSample(REST, 1_000);
+    readings.onSample(aboutU(90), 5_000);
+    readings.onSample(REST, 6_000);
+    readings.onSample(aboutU(90), 12_000);
+    readings.onSample(REST, 13_000); // a peek held far longer than any single hop
+    readings.onSample(aboutU(90), 20_000); // and settled back into the grip before the first move
+
+    assertEquals("y", reference.frameOver(readings.between(0, 22_000), 22_000).getNotation());
+  }
+
   @Test
   public void aStretchWithNothingReadableInItHasNoFrame() {
     OrientationHistory readings = new OrientationHistory();

@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -73,13 +72,7 @@ public class DrillCaseVocabularyTest {
 
   /** Every last-layer case under the families the payload may quote, named as a solve names one. */
   private static List<String> allowedCases() {
-    List<String> cases = new ArrayList<String>();
-    for (String[] row : LastLayerAlgorithms.ORIENTATIONS) {
-      cases.add("oll_" + row[0]);
-    }
-    for (String[] row : LastLayerAlgorithms.PERMUTATIONS) {
-      cases.add("pll_" + row[0]);
-    }
+    List<String> cases = LastLayerAlgorithms.caseCodes();
     for (String code : cases) {
       Assert.assertTrue(code + " is not from a family the payload may quote",
           CoachPayloadBuilder.CASE_FAMILIES.contains(family(code)));

@@ -1,5 +1,9 @@
 package com.cube.nanotimer.step;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * An algorithm for every last-layer case {@code LastLayerCases} can name. Naming a case and
  * scrambling one back up are the same vocabulary read in opposite directions, so both read this
@@ -110,6 +114,10 @@ public final class LastLayerAlgorithms {
     {"57", "R U R' U' M' U R U' r'"},
   };
 
+  /** The step a row of each table is filed under, as a solve records it. */
+  private static final String ORIENTATION_STEP = "oll";
+  private static final String PERMUTATION_STEP = "pll";
+
   private LastLayerAlgorithms() {
   }
 
@@ -121,5 +129,51 @@ public final class LastLayerAlgorithms {
       }
     }
     return null;
+  }
+
+  /**
+   * The everyday algorithm for a case written the way a solve writes it, {@code "oll_21"} or
+   * {@code "pll_ga"}, or null when the code names no case this table holds.
+   *
+   * <p>This is the join between the two vocabularies, and it is here so that there is one of it. A
+   * scramble is this algorithm undone, a drill is dealt from that scramble, and a plan may only
+   * prescribe a case a drill can be dealt of: three readings of one table, which used to be three
+   * copies of this five-line mapping in three modules.
+   */
+  public static String forCaseCode(String caseCode) {
+    int split = caseCode == null ? -1 : caseCode.indexOf('_');
+    if (split < 0) {
+      return null;
+    }
+    String step = caseCode.substring(0, split);
+    String name = caseCode.substring(split + 1);
+    if (ORIENTATION_STEP.equals(step)) {
+      return algorithm(ORIENTATIONS, name);
+    }
+    return PERMUTATION_STEP.equals(step) ? algorithm(PERMUTATIONS, name) : null;
+  }
+
+  /**
+   * Whether this is a last-layer case the table holds, which is the same question as whether a drill
+   * of it can be dealt: a scramble is a row of this table undone, so a case that is here has one and
+   * a case that is not cannot have one.
+   *
+   * <p>It answers no to a family on its own. {@code oll} is a family this deals cases of and is not
+   * itself a case, so a drill asking for it is a button with nothing behind it just the same.
+   */
+  public static boolean dealsCase(String caseCode) {
+    return forCaseCode(caseCode) != null;
+  }
+
+  /** Every case in both tables, under the codes a solve records them with. */
+  public static List<String> caseCodes() {
+    List<String> codes = new ArrayList<String>();
+    for (String[] row : ORIENTATIONS) {
+      codes.add(ORIENTATION_STEP + "_" + row[0]);
+    }
+    for (String[] row : PERMUTATIONS) {
+      codes.add(PERMUTATION_STEP + "_" + row[0]);
+    }
+    return Collections.unmodifiableList(codes);
   }
 }

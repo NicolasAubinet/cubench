@@ -2,7 +2,6 @@ package com.cube.nanotimer.smartcube.step;
 
 import com.cube.nanotimer.step.LastLayerAlgorithms;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -20,23 +19,15 @@ import java.util.Random;
  */
 public final class LastLayerScrambles {
 
-  /** Step codes, as {@link CFOPStepDetector} writes them. Pinned by the test. */
-  private static final String ORIENTATION_STEP = "oll";
-  private static final String PERMUTATION_STEP = "pll";
-
   private LastLayerScrambles() {
   }
 
-  /** Every case a scramble can be asked for, under the codes a solve is recorded with. */
+  /**
+   * Every case a scramble can be asked for, under the codes a solve is recorded with, which is the
+   * algorithm table's own list: a scramble is a row of it undone, so the two cannot differ.
+   */
   public static List<String> cases() {
-    List<String> cases = new ArrayList<String>();
-    for (String[] row : LastLayerAlgorithms.ORIENTATIONS) {
-      cases.add(ORIENTATION_STEP + "_" + row[0]);
-    }
-    for (String[] row : LastLayerAlgorithms.PERMUTATIONS) {
-      cases.add(PERMUTATION_STEP + "_" + row[0]);
-    }
-    return Collections.unmodifiableList(cases);
+    return LastLayerAlgorithms.caseCodes();
   }
 
   /**
@@ -64,19 +55,7 @@ public final class LastLayerScrambles {
   }
 
   private static String algorithmFor(String caseCode) {
-    int split = caseCode == null ? -1 : caseCode.indexOf('_');
-    if (split < 0) {
-      return null;
-    }
-    String step = caseCode.substring(0, split);
-    String name = caseCode.substring(split + 1);
-    if (ORIENTATION_STEP.equals(step)) {
-      return LastLayerAlgorithms.algorithm(LastLayerAlgorithms.ORIENTATIONS, name);
-    }
-    if (PERMUTATION_STEP.equals(step)) {
-      return LastLayerAlgorithms.algorithm(LastLayerAlgorithms.PERMUTATIONS, name);
-    }
-    return null;
+    return LastLayerAlgorithms.forCaseCode(caseCode);
   }
 
   private static void alignment(List<Move> moves, int quarters) {

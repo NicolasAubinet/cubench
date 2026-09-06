@@ -1,5 +1,8 @@
 package com.cube.nanotimer.coach;
 
+import com.cube.nanotimer.drill.DrillSpec;
+import com.cube.nanotimer.step.LastLayerAlgorithms;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -119,6 +122,53 @@ public class CoachPlan {
       }
     }
     return unknown;
+  }
+
+  /**
+   * The drills this plan prescribes that cannot be dealt, which is the third way a card goes wrong
+   * and the one the other two cannot see.
+   *
+   * <p>{@link #uncited} reads the numbers a card cites and {@link #unknownCodes} reads the codes it
+   * names. <b>Neither reads the case list inside the card's drill spec</b>, so a card can cite only
+   * real figures, name only a real case, and still hand back a drill for something no scrambler has
+   * heard of. That is a button that opens a drill with nothing in it, and it arrives by a route the
+   * other two checks do not cover.
+   *
+   * <p>Two conditions, and a case has to meet both. It has to be one
+   * {@link LastLayerAlgorithms#dealsCase} holds, because a scramble is a row of that table undone,
+   * and it has to be one this payload sent, because a coach may only speak of what it was told. The
+   * first is what {@code oll} fails, being a family the app deals cases of and not itself a case;
+   * the second is what a case invented wholesale fails, and also what a real case belonging to
+   * somebody else's history fails.
+   *
+   * <p>It lives here rather than in whoever writes the plan for the same reason {@code uncited}
+   * does: two copies of a validation rule drift, and the app runs this over a plan read back out of
+   * its own database, which no writer is present for.
+   *
+   * @return the case codes that cannot be dealt, or the reason code of an area whose drill will not
+   *     parse at all, that one naming no cases to return; empty when every button has something
+   *     behind it
+   */
+  public List<String> undealableDrills(CoachPayload payload) {
+    List<String> undealable = new ArrayList<String>();
+    for (FocusArea area : focus) {
+      if (area.getDrill() == null) {
+        continue;
+      }
+      DrillSpec spec;
+      try {
+        spec = DrillSpec.fromJson(area.getDrill());
+      } catch (RuntimeException e) {
+        undealable.add(area.getReasonCode());
+        continue;
+      }
+      for (String code : spec.getCases()) {
+        if (!LastLayerAlgorithms.dealsCase(code) || !payload.holds(code)) {
+          undealable.add(code);
+        }
+      }
+    }
+    return undealable;
   }
 
   public String toJson() {

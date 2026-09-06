@@ -34,6 +34,9 @@ import java.util.Map;
  */
 public final class GyroReference {
 
+  /** How long before the first move the grip is read over. Why two seconds: {@link #frameOver}. */
+  private static final long GRIP_WINDOW_MS = 2000;
+
   // Volatile because the live mirror's page polls it from the WebView's own thread, while the
   // manager anchors it on the main one.
   private volatile CubeOrientation reference;
@@ -81,21 +84,43 @@ public final class GyroReference {
    * to. Measured over one blind memorisation, counting made the solving grip 39% of the window and
    * timing made it 47%.
    *
+   * <p>⚠️ <b>Read over the last {@link #GRIP_WINDOW_MS} of the stretch, not all of it.</b> A blind
+   * memorisation is spent peeking, and a solver peeks in long blocks and passes back through their
+   * grip in short hops between them — so the pose held longest over a whole memorisation is the one
+   * they <em>inspect</em> in, not the one they solve in. Measured on the memorisation that forced
+   * this: the peek took 36% of the 40 seconds and the grip 27%, and every target of the solve came
+   * out a quarter turn from where the solver held the cube. What they settle into before the first
+   * move is the grip, and two seconds of it is long enough that one settling reading cannot carry
+   * it and short enough that a peek cannot.
+   *
    * @param untilMs when the stretch ends, so the last reading is worth the time it actually stood
    */
   public CubeRotation frameOver(List<OrientationHistory.Sample> readings, long untilMs) {
+    CubeRotation settled = mostHeldOver(readings, untilMs - GRIP_WINDOW_MS, untilMs);
+    // A gyro silent through the window says nothing about the grip; the stretch before it may.
+    return settled != null ? settled : mostHeldOver(readings, Long.MIN_VALUE, untilMs);
+  }
+
+  /**
+   * The frame held longest between two moments. A reading stands until the next one, so one taken
+   * before the window still counts for the part of it that falls inside — a grip held without a
+   * fresh reading is held all the same.
+   */
+  private CubeRotation mostHeldOver(List<OrientationHistory.Sample> readings, long fromMs,
+      long untilMs) {
     Map<String, Long> held = new HashMap<String, Long>();
     CubeRotation best = null;
     long bestMs = -1;
     for (int i = 0; i < readings.size(); i++) {
-      CubeRotation frame = frameOf(readings.get(i).getOrientation());
+      long stands = Math.max(readings.get(i).getTimestampMs(), fromMs);
+      long until = Math.min(
+          i + 1 < readings.size() ? readings.get(i + 1).getTimestampMs() : untilMs, untilMs);
+      CubeRotation frame = until <= stands ? null : frameOf(readings.get(i).getOrientation());
       if (frame == null) {
         continue;
       }
-      long ends = i + 1 < readings.size() ? readings.get(i + 1).getTimestampMs() : untilMs;
       Long seen = held.get(frame.getNotation());
-      long ms = (seen == null ? 0 : seen)
-          + Math.max(0, ends - readings.get(i).getTimestampMs());
+      long ms = (seen == null ? 0 : seen) + until - stands;
       held.put(frame.getNotation(), ms);
       if (ms >= bestMs) { // ties to the later reading, the nearer to what the frame is wanted for
         best = frame;
