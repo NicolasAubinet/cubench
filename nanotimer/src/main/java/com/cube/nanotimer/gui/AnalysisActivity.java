@@ -143,6 +143,7 @@ public class AnalysisActivity extends NanoTimerActivity {
 
     tabs.setSelection(getIntent().getIntExtra(EXTRA_TAB, TAB_SOLVE));
     showTab(tabs.getSelection());
+    loadKnowledge();
     load();
   }
 
@@ -225,9 +226,14 @@ public class AnalysisActivity extends NanoTimerActivity {
         .setVisibility(measured && loaded && !readable ? View.VISIBLE : View.GONE);
   }
 
-  private void load() {
-    // No solves asked for: what the Cases tab wants from the history is the statuses, and the
-    // solves are only there for a screen that reads the moves back out of them.
+  /**
+   * What the solver knows, read once for the life of the screen. It does not depend on the window
+   * the figures are read over: whether a case goes in unaided is a fact about the solver.
+   *
+   * <p>No solves asked for. What the Cases tab wants from the history is the statuses, and the
+   * solves come along only for a screen that reads the moves back out of them.
+   */
+  private void loadKnowledge() {
     App.INSTANCE.getService().getCaseHistory(0, new DataCallback<CaseHistory>() {
       @Override
       public void onData(final CaseHistory history) {
@@ -240,6 +246,9 @@ public class AnalysisActivity extends NanoTimerActivity {
         });
       }
     });
+  }
+
+  private void load() {
     App.INSTANCE.getService().getMethodStatistics(solveType, method, window.solves(),
         new DataCallback<MethodStatistics>() {
           @Override

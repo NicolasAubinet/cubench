@@ -68,6 +68,7 @@
   </LinearLayout>
 
   <HorizontalScrollView
+     android:id="@+id/svAnalysisFamilies"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginTop="12dp"
@@ -81,6 +82,7 @@
   </HorizontalScrollView>
 
   <include
+     android:id="@+id/llAnalysisCaseTable"
      layout="@layout/case_table"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"

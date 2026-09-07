@@ -137,6 +137,7 @@
   </LinearLayout>
 
   <include
+     android:id="@+id/llAnalysisStepTable"
      layout="@layout/case_table"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"

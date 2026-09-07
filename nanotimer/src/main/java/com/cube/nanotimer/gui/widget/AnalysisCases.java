@@ -44,8 +44,8 @@ import java.util.Set;
  */
 public class AnalysisCases {
 
-  /** Where the table opens: what a case costs, dearest first, which is what the tab is for. */
-  private static final int DEFAULT_COLUMN = 3;
+  /** What a case costs, and the column the table opens ranked by: it is what the tab is for. */
+  private static final int COST_COLUMN = 3;
 
   private static final int[] HEADING_LABELS = {R.string.drill_stats_column_count,
       R.string.drill_summary_cell_mean, R.string.drill_summary_cell_best,
@@ -88,7 +88,7 @@ public class AnalysisCases {
     this.root = root;
     this.listener = listener;
     this.rows = root.findViewById(R.id.llCaseTableRows);
-    headings = new CaseTableHeadings(root, HEADING_LABELS, OPENS_DESCENDING, DEFAULT_COLUMN,
+    headings = new CaseTableHeadings(root, HEADING_LABELS, OPENS_DESCENDING, COST_COLUMN,
         new CaseTableHeadings.Listener() {
           @Override
           public void onRanked(int column, boolean descending) {
@@ -117,12 +117,14 @@ public class AnalysisCases {
     }
     findFamilies();
     boolean anything = !families.isEmpty();
+    // The heading strip goes with the rows it heads: an empty table still drew its label, four
+    // blank sort headings that were still tappable, and a rule under them.
     root.findViewById(R.id.llAnalysisKnowledgeCard)
         .setVisibility(anything ? View.VISIBLE : View.GONE);
-    root.findViewById(R.id.llAnalysisFamilies).setVisibility(anything ? View.VISIBLE : View.GONE);
-    TextView empty = root.findViewById(R.id.tvAnalysisCasesEmpty);
-    empty.setVisibility(anything ? View.GONE : View.VISIBLE);
-    empty.setText(R.string.analysis_cases_empty);
+    root.findViewById(R.id.svAnalysisFamilies).setVisibility(anything ? View.VISIBLE : View.GONE);
+    root.findViewById(R.id.llAnalysisCaseTable).setVisibility(anything ? View.VISIBLE : View.GONE);
+    root.findViewById(R.id.tvAnalysisCasesEmpty)
+        .setVisibility(anything ? View.GONE : View.VISIBLE);
     if (!anything) {
       rows.removeAllViews();
       root.findViewById(R.id.tvAnalysisDrillCostliest).setVisibility(View.GONE);
@@ -144,9 +146,9 @@ public class AnalysisCases {
    */
   private void findFamilies() {
     families.clear();
-    List<StepStats> steps = new ArrayList<StepStats>(statistics.getFamilies());
-    steps.addAll(statistics.getParts());
-    for (StepStats step : steps) {
+    // The method's own steps only. A part is coded by the algorithm that answered a case, so
+    // taking parts as well would list one case twice, once as dealt and once as answered.
+    for (StepStats step : statistics.getFamilies()) {
       if (!drawnCases(step.getCode()).isEmpty()) {
         families.add(step.getCode());
       }
@@ -224,7 +226,7 @@ public class AnalysisCases {
     View costing = addKey(keys, inflater, R.string.analysis_knowledge_costing, cost(totalCost()));
     costing.findViewById(R.id.vAnalysisKeySwatch).setVisibility(View.INVISIBLE);
     ((TextView) costing.findViewById(R.id.tvAnalysisKeyCount))
-        .setTextColor(ContextCompat.getColor(context, R.color.step_pll));
+        .setTextColor(ContextCompat.getColor(context, R.color.analysis_cost));
   }
 
   /** One of the ring's arcs, named and counted beside the swatch that is drawn in that arc. */
@@ -243,13 +245,22 @@ public class AnalysisCases {
     return key;
   }
 
-  /** The whole set of cases the picked family is drawn from, or nothing where it has no closed one. */
+  /**
+   * The whole set of cases the picked family is drawn from.
+   *
+   * <p><b>Read off the set itself, never off what the window happens to hold.</b> Whether a case
+   * goes in unaided is a fact about the solver rather than about their last hundred solves, so a
+   * ring counting only the families present in the window fell from "of 78" to "of 57" when a
+   * window with no PLL in it was picked, and the reader watched their own known fraction move
+   * because they touched a control about something else.
+   */
   private List<String> closedSet() {
+    if (ALL.equals(family)) {
+      return new ArrayList<String>(DRAWN);
+    }
     List<String> set = new ArrayList<String>();
-    Set<String> shown = new LinkedHashSet<String>(ALL.equals(family) ? families
-        : Collections.singletonList(family));
     for (String code : DRAWN) {
-      if (shown.contains(MethodStatistics.familyOf(code))) {
+      if (family.equals(MethodStatistics.familyOf(code))) {
         set.add(code);
       }
     }
@@ -263,6 +274,13 @@ public class AnalysisCases {
     Collections.sort(cases, new Comparator<StepStats>() {
       @Override
       public int compare(StepStats a, StepStats b) {
+        // A case with no cost to quote sits under the ones that have, whichever way round the
+        // column is turned: it is not a cheap case, it is a case nothing can be said about.
+        boolean quotableA = quotable(a, column);
+        boolean quotableB = quotable(b, column);
+        if (quotableA != quotableB) {
+          return quotableA ? -1 : 1;
+        }
         int order = Long.compare(value(a, column), value(b, column));
         return descending ? -order : order;
       }
@@ -274,7 +292,7 @@ public class AnalysisCases {
       String code = stepCase.getCode();
       int hue = palette.colorFor(MethodStatistics.familyOf(code));
       long lost = statistics.getTimeLostMs(code);
-      boolean enough = stepCase.getCount() >= CoachPayloadBuilder.CASE_FLOOR;
+      boolean enough = enough(stepCase);
       CaseRow row = new CaseRow(CaseRow.inflate(inflater, rows));
       row.count(String.valueOf(stepCase.getCount()))
           .chart(code)
@@ -286,7 +304,7 @@ public class AnalysisCases {
               ContextCompat.getColor(context, R.color.secondary_text))
           .value(2, enough ? cost(lost) : context.getString(R.string.analysis_cost_too_few),
               ContextCompat.getColor(context,
-                  enough && lost > 0 ? R.color.step_pll : R.color.secondary_text))
+                  enough && lost > 0 ? R.color.analysis_cost : R.color.secondary_text))
           .rank(column)
           .chevron();
       row.view().setOnClickListener(new View.OnClickListener() {
@@ -313,7 +331,7 @@ public class AnalysisCases {
       }
     });
     for (StepStats stepCase : byCost) {
-      if (costliest.size() < DRILL_CASES && stepCase.getCount() >= CoachPayloadBuilder.CASE_FLOOR
+      if (costliest.size() < DRILL_CASES && enough(stepCase)
           && statistics.getTimeLostMs(stepCase.getCode()) > 0) {
         costliest.add(stepCase.getCode());
       }
@@ -356,7 +374,7 @@ public class AnalysisCases {
   private long totalCost() {
     long lost = 0;
     for (StepStats stepCase : casesOf(family)) {
-      if (stepCase.getCount() >= CoachPayloadBuilder.CASE_FLOOR) {
+      if (enough(stepCase)) {
         lost += statistics.getTimeLostMs(stepCase.getCode());
       }
     }
@@ -368,16 +386,24 @@ public class AnalysisCases {
         .formatFloat(lostMs / 1000d, 1));
   }
 
+  /** Whether the column has a figure for this case at all, which only the cost column can lack. */
+  private boolean quotable(StepStats stepCase, int column) {
+    return column != COST_COLUMN || enough(stepCase);
+  }
+
+  /** Whether enough of the case has been seen for what it costs to be worth quoting. */
+  private boolean enough(StepStats stepCase) {
+    return stepCase.getCount() >= CoachPayloadBuilder.CASE_FLOOR;
+  }
+
   private long value(StepStats stepCase, int column) {
     switch (column) {
       case 1:
         return stepCase.getMeanMs();
       case 2:
         return stepCase.getBestMs();
-      case 3:
-        // A case with too little behind it has no cost to rank on, so it ranks below one that has.
-        return stepCase.getCount() >= CoachPayloadBuilder.CASE_FLOOR
-            ? statistics.getTimeLostMs(stepCase.getCode()) : -1;
+      case COST_COLUMN:
+        return enough(stepCase) ? statistics.getTimeLostMs(stepCase.getCode()) : 0;
       default:
         return stepCase.getCount();
     }

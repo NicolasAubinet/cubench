@@ -436,8 +436,18 @@ public class DrillSetupActivity extends NanoTimerActivity
     intent.putExtra(DrillActivity.EXTRA_LAYER_FACE, layerFace().name());
     intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-picked",
         DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL, cases,
-        DrillSpec.Selection.ROUND_ROBIN, cases.size(), 0, title).toJson());
+        DrillSpec.Selection.ROUND_ROBIN, repCount(cases.size()), 0, title).toJson());
     return intent;
+  }
+
+  /**
+   * How many reps a drill started from elsewhere runs: the reader's own standing choice, the same
+   * one this screen opens on. Dealing each case once would be a four-rep session, which is not a
+   * practice of anything; how long they like to drill for is theirs, as the face is.
+   */
+  private static int repCount(int cases) {
+    int chosen = Options.INSTANCE.getDrillChoice(KEY_REPS, DEFAULT_REP_CHOICE);
+    return chosen == REPS_ALL ? cases : REP_COUNTS[chosen];
   }
 
   private boolean isCrossDrill() {
