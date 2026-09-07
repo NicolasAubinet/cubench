@@ -2,12 +2,12 @@ package com.cube.nanotimer.gui;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
@@ -19,16 +19,20 @@ import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.StepBaseline;
 import com.cube.nanotimer.cube.SolveTypeMethod;
+import com.cube.nanotimer.gui.widget.AnalysisCases;
 import com.cube.nanotimer.gui.widget.CaseRow;
 import com.cube.nanotimer.gui.widget.CaseTableHeadings;
+import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DeltaBarView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.StepPalette;
+import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveType;
@@ -52,8 +56,11 @@ public class AnalysisActivity extends NanoTimerActivity {
   public static final String EXTRA_SOLVE_TYPE = "analysisSolveType";
   /** Which tab to open on, by ordinal, for a door that knows what it is pointing at. */
   public static final String EXTRA_TAB = "analysisTab";
+  /** The family the Cases tab opens narrowed to, for a door that knows which step it came from. */
+  public static final String EXTRA_FAMILY = "analysisFamily";
 
   private static final int TAB_SOLVE = 0;
+  private static final int TAB_CASES = 1;
 
   /** How the shares are written, which is a whole number of points either way. */
   private static final String PERCENT_FORMAT = "%d%%";
@@ -76,6 +83,10 @@ public class AnalysisActivity extends NanoTimerActivity {
   private MenuItem windowItem;
   private int tab = TAB_SOLVE;
   private boolean loaded;
+  private View solveRoot;
+  private AnalysisCases cases;
+  private MethodStatistics statistics;
+  private List<CaseKnowledge> known = Collections.emptyList();
 
   /** The steps as the query returned them, in solving order, and what the table is ranked on. */
   private final List<StepStats> steps = new ArrayList<StepStats>();
@@ -110,7 +121,8 @@ public class AnalysisActivity extends NanoTimerActivity {
             showTab(index);
           }
         });
-    headings = new CaseTableHeadings(findViewById(R.id.llAnalysisSolve), HEADING_LABELS,
+    solveRoot = findViewById(R.id.llAnalysisSolve);
+    headings = new CaseTableHeadings(solveRoot, HEADING_LABELS,
         OPENS_DESCENDING, 1, new CaseTableHeadings.Listener() {
           @Override
           public void onRanked(int column, boolean descending) {
@@ -118,6 +130,8 @@ public class AnalysisActivity extends NanoTimerActivity {
           }
         });
     headings.setLabel(R.string.analysis_column_step);
+    cases = new AnalysisCases(this, findViewById(R.id.llAnalysisCases), casesListener());
+    cases.setFamily(getIntent().getStringExtra(EXTRA_FAMILY));
     ((TextView) findViewById(R.id.tvAnalysisDeltaLabel))
         .setText(getString(R.string.analysis_delta_label, getString(SolveTypeMethod.nameOf(method))));
 
@@ -171,8 +185,20 @@ public class AnalysisActivity extends NanoTimerActivity {
   }
 
   private void showTab(int tab) {
+    boolean moved = this.tab != tab;
     this.tab = tab;
     showWhatIsReadable();
+    if (moved) {
+      // A tab is a different question, so it starts at its own first answer rather than at
+      // whatever depth the last one was left scrolled to.
+      final ScrollView scroll = findViewById(R.id.svAnalysis);
+      scroll.post(new Runnable() {
+        @Override
+        public void run() {
+          scroll.scrollTo(0, 0);
+        }
+      });
+    }
   }
 
   /**
@@ -184,15 +210,32 @@ public class AnalysisActivity extends NanoTimerActivity {
     // Only the Solve tab is built. The other two are drawn on their own, and until they are the
     // control still has to say what the hub will hold rather than pretend to two tabs.
     boolean solve = tab == TAB_SOLVE;
-    boolean readable = solve && !steps.isEmpty();
-    findViewById(R.id.llAnalysisSolve).setVisibility(readable ? View.VISIBLE : View.GONE);
+    boolean readable = loaded && !steps.isEmpty();
+    solveRoot.setVisibility(solve && readable ? View.VISIBLE : View.GONE);
+    findViewById(R.id.llAnalysisCases)
+        .setVisibility(tab == TAB_CASES && readable ? View.VISIBLE : View.GONE);
     TextView empty = findViewById(R.id.tvAnalysisEmpty);
+    boolean unbuilt = tab != TAB_SOLVE && tab != TAB_CASES;
     // Nothing at all until the first read lands, rather than a moment of "you have no solves".
-    empty.setVisibility(!readable && (loaded || !solve) ? View.VISIBLE : View.GONE);
-    empty.setText(solve ? R.string.analysis_empty : R.string.analysis_tab_soon);
+    empty.setVisibility(unbuilt || (loaded && !readable) ? View.VISIBLE : View.GONE);
+    empty.setText(unbuilt ? R.string.analysis_tab_soon : R.string.analysis_empty);
   }
 
   private void load() {
+    // No solves asked for: what the Cases tab wants from the history is the statuses, and the
+    // solves are only there for a screen that reads the moves back out of them.
+    App.INSTANCE.getService().getCaseHistory(0, new DataCallback<CaseHistory>() {
+      @Override
+      public void onData(final CaseHistory history) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            known = history.getCases();
+            showCases();
+          }
+        });
+      }
+    });
     App.INSTANCE.getService().getMethodStatistics(solveType, method, window.solves(),
         new DataCallback<MethodStatistics>() {
           @Override
@@ -208,6 +251,7 @@ public class AnalysisActivity extends NanoTimerActivity {
   }
 
   private void show(MethodStatistics statistics) {
+    this.statistics = statistics;
     steps.clear();
     steps.addAll(statistics.getFamilies());
     // The palette is the method's own step order, so a Roux first block is the colour a cross is.
@@ -220,7 +264,32 @@ public class AnalysisActivity extends NanoTimerActivity {
     }
     showHero(statistics);
     showDeltas();
+    // Before the step table: which families have cases is what decides a step row's chevron, and
+    // it is known from the statistics alone, so it does not wait on the case history.
+    showCases();
     showSteps();
+  }
+
+  /** The Cases tab, which waits on two reads and is drawn by whichever of them lands second. */
+  private void showCases() {
+    if (statistics != null) {
+      cases.show(statistics, known, palette);
+    }
+  }
+
+  private AnalysisCases.Listener casesListener() {
+    return new AnalysisCases.Listener() {
+      @Override
+      public void onCasePicked(String caseCode) {
+        CaseAlgorithmsDialog.newInstance(caseCode).show(getSupportFragmentManager(), "case");
+      }
+
+      @Override
+      public void onDrillPicked(List<String> caseCodes) {
+        startActivity(DrillSetupActivity.drillOf(AnalysisActivity.this, caseCodes,
+            getString(R.string.analysis_drill_title)));
+      }
+    };
   }
 
   /** The mean of the whole solve, and what it was made of. */
@@ -329,7 +398,7 @@ public class AnalysisActivity extends NanoTimerActivity {
   }
 
   private void showSteps() {
-    LinearLayout rows = findViewById(R.id.llCaseTableRows);
+    LinearLayout rows = solveRoot.findViewById(R.id.llCaseTableRows);
     rows.removeAllViews();
     lines.clear();
     LayoutInflater inflater = LayoutInflater.from(this);
@@ -346,6 +415,20 @@ public class AnalysisActivity extends NanoTimerActivity {
               ContextCompat.getColor(this, R.color.secondary_text))
           .value(2, FormatterService.INSTANCE.formatSolveTime(step.getWorstMs()),
               ContextCompat.getColor(this, R.color.secondary_text));
+      // The chevron is a promise, so only a step whose cases the next tab can list carries one.
+      if (cases.holds(step.getCode())) {
+        final String family = step.getCode();
+        row.chevron();
+        row.view().setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            cases.setFamily(family);
+            tabs.setSelection(TAB_CASES);
+            showTab(TAB_CASES);
+            showCases();
+          }
+        });
+      }
       lines.put(step, row);
     }
     rankSteps();
@@ -363,7 +446,7 @@ public class AnalysisActivity extends NanoTimerActivity {
         return descending ? -order : order;
       }
     });
-    LinearLayout rows = findViewById(R.id.llCaseTableRows);
+    LinearLayout rows = solveRoot.findViewById(R.id.llCaseTableRows);
     rows.removeAllViews();
     for (StepStats step : ranked) {
       CaseRow row = lines.get(step);

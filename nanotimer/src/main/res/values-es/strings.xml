@@ -1154,4 +1154,21 @@
   <string name="analysis_window_50">\u00daltimas 50</string>
   <string name="analysis_window_100">\u00daltimas 100</string>
   <string name="analysis_window_all">Todas</string>
+
+  <string name="analysis_column_case">Caso</string>
+  <string name="analysis_column_cost">Coste</string>
+  <string name="analysis_cost">%ss</string>
+  <string name="analysis_cost_too_few">muy pocos</string>
+  <string name="analysis_family_all">Todos</string>
+  <string name="analysis_knowledge_of">de %d</string>
+  <string name="analysis_knowledge_known">Sin ayuda</string>
+  <string name="analysis_knowledge_seen">Vistos, aún lentos</string>
+  <string name="analysis_knowledge_unseen">Nunca vistos</string>
+  <string name="analysis_knowledge_costing">Te cuestan</string>
+  <string name="analysis_cases_empty">Aún no se ha nombrado ningún caso. Resuelve con un smart cube conectado y los casos que lea se ordenarán aquí.</string>
+  <string name="analysis_drill_title">Casos más costosos</string>
+  <plurals name="analysis_drill_costliest">
+    <item quantity="one">Practicar el caso más costoso</item>
+    <item quantity="other">Practicar los %d más costosos</item>
+  </plurals>
 </resources>

@@ -1155,4 +1155,21 @@
   <string name="analysis_window_50">50 derni\u00e8res</string>
   <string name="analysis_window_100">100 derni\u00e8res</string>
   <string name="analysis_window_all">Toutes</string>
+
+  <string name="analysis_column_case">Cas</string>
+  <string name="analysis_column_cost">Coût</string>
+  <string name="analysis_cost">%ss</string>
+  <string name="analysis_cost_too_few">trop peu</string>
+  <string name="analysis_family_all">Tous</string>
+  <string name="analysis_knowledge_of">sur %d</string>
+  <string name="analysis_knowledge_known">Sans aide</string>
+  <string name="analysis_knowledge_seen">Vus, encore lents</string>
+  <string name="analysis_knowledge_unseen">Jamais vus</string>
+  <string name="analysis_knowledge_costing">Vous coûtent</string>
+  <string name="analysis_cases_empty">Aucun cas n\'a encore été nommé. Résolvez avec un smart cube connecté et les cas qu\'il lit seront classés ici.</string>
+  <string name="analysis_drill_title">Cas les plus coûteux</string>
+  <plurals name="analysis_drill_costliest">
+    <item quantity="one">Entraîner le cas le plus coûteux</item>
+    <item quantity="other">Entraîner les %d plus coûteux</item>
+  </plurals>
 </resources>

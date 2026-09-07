@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Which cases cost you: every one you have seen, ranked by what it costs, across every family.
+
+     Ranking across families is what removes the OLL-or-PLL control an earlier draft had above this
+     table. "What should I fix" does not care which family the answer is in, so the screen answers it
+     rather than asking; the family chips narrow a list that already holds the answer. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llAnalysisCases"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical">
+
+  <!-- How far through the set you are. A ring rather than a bar because this is progress through a
+       fixed set, not the composition of a duration: it is the one figure here with a "complete". -->
+  <LinearLayout
+     android:id="@+id/llAnalysisKnowledgeCard"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:background="@drawable/analysis_card"
+     android:baselineAligned="false"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+     android:padding="14dp">
+
+    <FrameLayout
+       android:layout_width="84dp"
+       android:layout_height="84dp">
+
+      <com.cube.nanotimer.util.view.KnowledgeRingView
+         android:id="@+id/vAnalysisKnowledgeRing"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"/>
+
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:gravity="center"
+         android:orientation="vertical">
+
+        <TextView
+           android:id="@+id/tvAnalysisKnowledgeKnown"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:fontFamily="@font/roboto_medium"
+           android:fontFeatureSettings="tnum"
+           android:includeFontPadding="false"
+           android:textColor="@color/white"
+           android:textSize="20sp"/>
+
+        <TextView
+           android:id="@+id/tvAnalysisKnowledgeOf"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="2dp"
+           android:fontFeatureSettings="tnum"
+           android:textColor="@color/secondary_text"
+           android:textSize="10sp"/>
+      </LinearLayout>
+    </FrameLayout>
+
+    <LinearLayout
+       android:id="@+id/llAnalysisKnowledgeKeys"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_marginLeft="14dp"
+       android:layout_weight="1"
+       android:orientation="vertical"/>
+  </LinearLayout>
+
+  <HorizontalScrollView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="12dp"
+     android:scrollbars="none">
+
+    <LinearLayout
+       android:id="@+id/llAnalysisFamilies"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:orientation="horizontal"/>
+  </HorizontalScrollView>
+
+  <include
+     layout="@layout/case_table"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="16dp"/>
+
+  <!-- Said under the table rather than over it: the table is the finding and this is what to do
+       about the top of it, which is only worth offering once the finding has been read. -->
+  <TextView
+     android:id="@+id/tvAnalysisDrillCostliest"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="16dp"
+     android:background="@drawable/dialog_action_button"
+     android:clickable="true"
+     android:focusable="true"
+     android:gravity="center"
+     android:paddingTop="12dp"
+     android:paddingBottom="12dp"
+     android:textColor="@color/white"
+     android:textSize="15sp"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisCasesEmpty"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="40dp"
+     android:gravity="center"
+     android:lineSpacingMultiplier="1.2"
+     android:paddingLeft="16dp"
+     android:paddingRight="16dp"
+     android:textColor="@color/secondary_text"
+     android:textSize="15sp"
+     android:visibility="gone"/>
+
+</LinearLayout>

@@ -1,5 +1,6 @@
 package com.cube.nanotimer.gui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -421,6 +422,22 @@ public class DrillSetupActivity extends NanoTimerActivity
     int defaultCross = Options.INSTANCE.getCrossFaceIndex(CrossFace.D.ordinal());
     return CrossFace.values()[Options.INSTANCE.getDrillChoice(KEY_LAYER_FACE,
         CrossFace.values()[defaultCross].opposite().ordinal())];
+  }
+
+  /**
+   * A drill of named cases, for a screen that has already worked out which ones are worth drilling
+   * and should not make the reader pick them again.
+   *
+   * <p>The cases ride in the spec rather than through the saved picks: what someone chose to drill
+   * is theirs, and a screen elsewhere in the app must not quietly rewrite it on its way past.
+   */
+  public static Intent drillOf(Context context, List<String> cases, String title) {
+    Intent intent = new Intent(context, DrillActivity.class);
+    intent.putExtra(DrillActivity.EXTRA_LAYER_FACE, layerFace().name());
+    intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-picked",
+        DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL, cases,
+        DrillSpec.Selection.ROUND_ROBIN, cases.size(), 0, title).toJson());
+    return intent;
   }
 
   private boolean isCrossDrill() {

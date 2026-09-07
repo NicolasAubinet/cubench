@@ -55,6 +55,8 @@
 
       <include layout="@layout/analysis_solve"/>
 
+      <include layout="@layout/analysis_cases"/>
+
     </LinearLayout>
   </ScrollView>
 

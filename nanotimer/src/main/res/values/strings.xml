@@ -1201,4 +1201,21 @@
   <string name="analysis_window_50">Last 50</string>
   <string name="analysis_window_100">Last 100</string>
   <string name="analysis_window_all">Every solve</string>
+
+  <string name="analysis_column_case">Case</string>
+  <string name="analysis_column_cost">Cost</string>
+  <string name="analysis_cost">%ss</string>
+  <string name="analysis_cost_too_few">too few</string>
+  <string name="analysis_family_all">All</string>
+  <string name="analysis_knowledge_of">of %d</string>
+  <string name="analysis_knowledge_known">Goes in unaided</string>
+  <string name="analysis_knowledge_seen">Seen, still slow</string>
+  <string name="analysis_knowledge_unseen">Not yet seen</string>
+  <string name="analysis_knowledge_costing">Costing you</string>
+  <string name="analysis_cases_empty">No case has been named yet. Solve with a smart cube connected and the cases it reads will be ranked here.</string>
+  <string name="analysis_drill_title">Costliest cases</string>
+  <plurals name="analysis_drill_costliest">
+    <item quantity="one">Drill the costliest case</item>
+    <item quantity="other">Drill the %d costliest</item>
+  </plurals>
 </resources>
