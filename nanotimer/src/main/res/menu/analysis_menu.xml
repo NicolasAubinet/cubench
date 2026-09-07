@@ -6,4 +6,11 @@
      android:title="@string/analysis_window_title"
      app:actionLayout="@layout/analysis_window_chip"
      app:showAsAction="always"/>
+
+  <!-- Nothing on this screen names its own unit, so the vocabulary lives behind the ? rather than
+       in captions the reader would carry on every visit. -->
+  <item android:id="@+id/itAnalysisHelp"
+     android:icon="@drawable/ic_help_outline"
+     android:title="@string/analysis_help_title"
+     app:showAsAction="always"/>
 </menu>

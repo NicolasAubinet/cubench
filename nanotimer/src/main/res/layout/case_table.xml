@@ -43,6 +43,14 @@
     <TextView
        android:id="@+id/tvCaseTableSortThree"
        style="@style/DrillCaseColumn"/>
+
+    <!-- The room the rows give their chevron, so a heading stands over the figures it names rather
+         than a chevron's width to the right of them. -->
+    <View
+       android:id="@+id/vCaseTableChevronSpace"
+       android:layout_width="20dp"
+       android:layout_height="1dp"
+       android:visibility="gone"/>
   </LinearLayout>
 
   <View

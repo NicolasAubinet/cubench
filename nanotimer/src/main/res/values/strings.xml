@@ -1204,10 +1204,9 @@
   <string name="analysis_column_case">Case</string>
   <string name="analysis_column_cost">Cost</string>
   <string name="analysis_cost">%ss</string>
-  <string name="analysis_cost_too_few">too few</string>
   <string name="analysis_family_all">All</string>
   <string name="analysis_knowledge_of">of %d</string>
-  <string name="analysis_knowledge_known">Goes in unaided</string>
+  <string name="analysis_knowledge_known">Known</string>
   <string name="analysis_knowledge_seen">Seen, still slow</string>
   <string name="analysis_knowledge_unseen">Not yet seen</string>
   <string name="analysis_knowledge_costing">Costing you</string>
@@ -1219,6 +1218,26 @@
   <string name="analysis_plan_point_three">Whether last week\'s work moved anything.</string>
   <string name="analysis_plan_cites">Written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>
   <string name="analysis_plan_not_yet">There is no plan here yet. Solve and Cases stay free whatever lands on this tab.</string>
+
+  <string name="analysis_help_title">About these figures</string>
+  <string name="analysis_help_solve_title">Where your time goes</string>
+  <string name="analysis_help_solve_body">These figures come from your own solves, the ones a cube read, over the window shown at the top.</string>
+  <string name="analysis_help_bar">The average solve</string>
+  <string name="analysis_help_bar_body">One block per step, as wide as its share of the time. Each block is pale where you were looking and solid where you were turning.</string>
+  <string name="analysis_help_delta">Against a typical solve</string>
+  <string name="analysis_help_delta_body">These are shares of one solve, so if one step is over, another has to be under. It shows which step is out of balance, not whether you are fast or slow.</string>
+  <string name="analysis_help_table">The step table</string>
+  <string name="analysis_help_table_body">Mean, best and worst for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
+  <string name="analysis_help_plan_title">A plan</string>
+  <string name="analysis_help_plan_body">Nothing here is measured. The tab shows what a plan would cover, and there is none to have yet. The figures a plan would use are on Solve and Cases, and those stay free.</string>
+  <string name="analysis_help_cases_title">Which cases cost you</string>
+  <string name="analysis_help_cases_body">Every case that came up over the window shown at the top, all steps in one list, so a common OLL can rank above a rarer PLL.</string>
+  <string name="analysis_help_cost">Cost</string>
+  <string name="analysis_help_cost_body">The time a case has cost you: how often it came up, times how much longer than usual it took. The table is sorted by this.</string>
+  <string name="analysis_help_too_few">N/A</string>
+  <string name="analysis_help_too_few_body">The case came up too few times to put a cost on. Widen the window at the top and more of them fill in.</string>
+  <string name="analysis_help_known">Known</string>
+  <string name="analysis_help_known_body">The case went in with one algorithm and no help. Taken from your solves, not from a list you tick. The ring counts every case in the set, not only the ones that came up.</string>
 
   <string name="analysis_drill_title">Costliest cases</string>
   <plurals name="analysis_drill_costliest">

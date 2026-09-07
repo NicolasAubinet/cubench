@@ -1157,10 +1157,9 @@
   <string name="analysis_column_case">Caso</string>
   <string name="analysis_column_cost">Coste</string>
   <string name="analysis_cost">%ss</string>
-  <string name="analysis_cost_too_few">muy pocos</string>
   <string name="analysis_family_all">Todos</string>
   <string name="analysis_knowledge_of">de %d</string>
-  <string name="analysis_knowledge_known">Sin ayuda</string>
+  <string name="analysis_knowledge_known">Sabido</string>
   <string name="analysis_knowledge_seen">Vistos, aún lentos</string>
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_knowledge_costing">Te cuestan</string>
@@ -1172,6 +1171,26 @@
   <string name="analysis_plan_point_three">Si el trabajo de la semana pasada cambió algo.</string>
   <string name="analysis_plan_cites">Escrito a partir de tus propias resoluciones, citando en cada afirmación una cifra que puedes comprobar en las otras dos pestañas.</string>
   <string name="analysis_plan_not_yet">Todavía no hay ningún plan aquí. Resolución y Casos siguen siendo gratis pase lo que pase con esta pestaña.</string>
+
+  <string name="analysis_help_title">Sobre estas cifras</string>
+  <string name="analysis_help_solve_title">Adónde va tu tiempo</string>
+  <string name="analysis_help_solve_body">Estas cifras vienen de tus propios resueltos, los que leyó un cubo, en la ventana indicada arriba.</string>
+  <string name="analysis_help_bar">El resuelto medio</string>
+  <string name="analysis_help_bar_body">Un bloque por paso, tan ancho como su parte del tiempo. Cada bloque es pálido donde mirabas y sólido donde girabas.</string>
+  <string name="analysis_help_delta">Frente a un resuelto típico</string>
+  <string name="analysis_help_delta_body">Son partes de un mismo resuelto: si un paso está por encima, otro tiene que estar por debajo. Muestra qué paso está desequilibrado, no si eres rápido o lento.</string>
+  <string name="analysis_help_table">La tabla de pasos</string>
+  <string name="analysis_help_table_body">Media, mejor y peor de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha y los abren.</string>
+  <string name="analysis_help_plan_title">Un plan</string>
+  <string name="analysis_help_plan_body">Aquí no se mide nada. La pestaña muestra qué cubriría un plan, y todavía no hay ninguno. Las cifras que usaría un plan están en Resolución y Casos, y esas siguen siendo gratis.</string>
+  <string name="analysis_help_cases_title">Qué casos te cuestan</string>
+  <string name="analysis_help_cases_body">Todos los casos que salieron en la ventana indicada arriba, todos los pasos en una sola lista, de modo que un OLL frecuente puede quedar por encima de un PLL más raro.</string>
+  <string name="analysis_help_cost">Coste</string>
+  <string name="analysis_help_cost_body">El tiempo que te ha costado un caso: con qué frecuencia salió, por lo que tardó de más de lo habitual. La tabla se ordena por esto.</string>
+  <string name="analysis_help_too_few">N/A</string>
+  <string name="analysis_help_too_few_body">El caso salió muy pocas veces para ponerle un coste. Amplía la ventana de arriba y se irán rellenando más.</string>
+  <string name="analysis_help_known">Sabido</string>
+  <string name="analysis_help_known_body">El caso salió con un solo algoritmo y sin ayuda. Sacado de tus resueltos, no de una lista que marcas. El anillo cuenta todos los casos del conjunto, no solo los que salieron.</string>
 
   <string name="analysis_drill_title">Casos más costosos</string>
   <plurals name="analysis_drill_costliest">

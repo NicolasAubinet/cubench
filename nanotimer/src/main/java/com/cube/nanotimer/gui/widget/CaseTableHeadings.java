@@ -72,6 +72,15 @@ public class CaseTableHeadings {
     }
   }
 
+  /**
+   * Keeps the chevron's width at the end of the strip, for a table whose rows carry one. Without
+   * it the headings sit a chevron to the right of the columns they name.
+   */
+  public void reserveChevron(boolean reserved) {
+    root.findViewById(R.id.vCaseTableChevronSpace)
+        .setVisibility(reserved ? View.INVISIBLE : View.GONE);
+  }
+
   /** Names the list itself, on the line the headings share. */
   public void setLabel(int label) {
     ((TextView) root.findViewById(R.id.tvCaseTableLabel)).setText(label);

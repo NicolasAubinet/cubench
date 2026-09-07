@@ -151,7 +151,18 @@ public class CaseRow {
 
   /** The promise that the row leads somewhere, on the tables whose rows do. */
   public CaseRow chevron() {
-    line.findViewById(R.id.ivCaseRowChevron).setVisibility(View.VISIBLE);
+    return chevron(true);
+  }
+
+  /**
+   * The chevron, or the space it would take. A table where only some rows lead somewhere has to
+   * keep the room on the others too, or its figure columns sit a chevron's width apart.
+   *
+   * @param leads whether this row opens anything
+   */
+  public CaseRow chevron(boolean leads) {
+    line.findViewById(R.id.ivCaseRowChevron)
+        .setVisibility(leads ? View.VISIBLE : View.INVISIBLE);
     return this;
   }
 

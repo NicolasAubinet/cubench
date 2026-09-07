@@ -96,6 +96,7 @@ public class AnalysisCases {
           }
         });
     headings.setLabel(R.string.analysis_column_case);
+    headings.reserveChevron(true); // every case opens its algorithms, so every row carries one
   }
 
   /** Opens on one family, for a reader who arrived by tapping that step rather than the tab. */
@@ -302,7 +303,7 @@ public class AnalysisCases {
               ContextCompat.getColor(context, R.color.white))
           .value(1, FormatterService.INSTANCE.formatSolveTime(stepCase.getBestMs()),
               ContextCompat.getColor(context, R.color.secondary_text))
-          .value(2, enough ? cost(lost) : context.getString(R.string.analysis_cost_too_few),
+          .value(2, enough ? cost(lost) : context.getString(R.string.NA),
               ContextCompat.getColor(context,
                   enough && lost > 0 ? R.color.analysis_cost : R.color.secondary_text))
           .rank(column)

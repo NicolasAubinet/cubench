@@ -20,6 +20,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.StepBaseline;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.gui.widget.AnalysisCases;
+import com.cube.nanotimer.gui.widget.AnalysisHelpDialog;
 import com.cube.nanotimer.gui.widget.CaseRow;
 import com.cube.nanotimer.gui.widget.CaseTableHeadings;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
@@ -28,6 +29,7 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DeltaBarView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
@@ -160,6 +162,15 @@ public class AnalysisActivity extends NanoTimerActivity {
     });
     showWindow();
     return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.itAnalysisHelp) {
+      DialogUtils.showFragment(this, AnalysisHelpDialog.newInstance(tab));
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   /** Which slice of history the figures are read from, on the same line as what they are about. */
@@ -431,6 +442,12 @@ public class AnalysisActivity extends NanoTimerActivity {
     rows.removeAllViews();
     lines.clear();
     LayoutInflater inflater = LayoutInflater.from(this);
+    // Whether any step opens its cases at all: where none does, no row keeps room for a chevron.
+    boolean anyOpens = false;
+    for (StepStats step : steps) {
+      anyOpens |= cases.holds(step.getCode());
+    }
+    headings.reserveChevron(anyOpens);
     for (StepStats step : steps) {
       CaseRow row = new CaseRow(CaseRow.inflate(inflater, rows));
       int hue = palette.colorFor(step.getCode());
@@ -445,9 +462,13 @@ public class AnalysisActivity extends NanoTimerActivity {
           .value(2, FormatterService.INSTANCE.formatSolveTime(step.getWorstMs()),
               ContextCompat.getColor(this, R.color.secondary_text));
       // The chevron is a promise, so only a step whose cases the next tab can list carries one.
-      if (cases.holds(step.getCode())) {
+      // The others keep its room, or the figures would not line up down the table.
+      boolean opens = cases.holds(step.getCode());
+      if (anyOpens) {
+        row.chevron(opens);
+      }
+      if (opens) {
         final String family = step.getCode();
-        row.chevron();
         row.view().setOnClickListener(new View.OnClickListener() {
           @Override
           public void onClick(View v) {
