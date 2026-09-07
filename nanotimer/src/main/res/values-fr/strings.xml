@@ -463,7 +463,16 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.0.0 <i>(Nouvelle version)</i></b></u><br/>
+    <u><b>v2.1.0 <i>(Nouvelle version)</i></b></u><br/>
+    <ul>
+      <li>Cubench peut maintenant tout sauvegarder dans un seul fichier, à restaurer sur un autre téléphone</li>
+      <li>Un +2 s\'affiche maintenant à côté du temps auquel il a été ajouté, et un DNF montre le temps qu\'il a remplacé</li>
+      <li>Nouveau type de mélange : deuxième bloc de Roux</li>
+      <li>Plusieurs réglages ont été renommés pour plus de clarté</li>
+      <li>Correction d\'écrans qui retombaient sur l\'écran principal après qu\'Android ait fermé l\'application en arrière-plan</li>
+      <li>Dans les barres de session, un DNF est dessiné à la hauteur du temps qu\'il a remplacé</li>
+    </ul>
+    <u><b>v2.0.0</b></u><br/>
     <b>Cubench a été redessiné de fond en comble.</b>
     <b>Chrono</b>
     <ul>

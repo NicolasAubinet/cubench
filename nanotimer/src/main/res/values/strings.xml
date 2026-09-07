@@ -478,7 +478,16 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.0.0 <i>(New version)</i></b></u><br/>
+    <u><b>v2.1.0 <i>(New version)</i></b></u><br/>
+    <ul>
+      <li>Cubench can now back up everything to a single file, to restore on another phone</li>
+      <li>A +2 now shows beside the time it was added to, and a DNF shows the time it replaced</li>
+      <li>New scramble type: Roux second block</li>
+      <li>Several settings have been renamed for clarity</li>
+      <li>Fixed screens dropping back to the main screen after Android had closed the app in the background</li>
+      <li>In the session bars, a DNF is drawn at the length of the time it replaced</li>
+    </ul>
+    <u><b>v2.0.0</b></u><br/>
     <b>Cubench has been redesigned from top to bottom.</b>
     <b>Timer</b>
     <ul>
