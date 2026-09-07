@@ -222,7 +222,7 @@
   <string name="export_csv_title">Exporter les temps en CSV</string>
   <string name="export_csv_caption">Les temps seulement, pour un tableur.</string>
   <string name="backup_everything">Tout sauvegarder</string>
-  <string name="backup_everything_caption">Résolutions, entraînements et réglages, à restaurer sur un autre téléphone.</string>
+  <string name="backup_everything_caption">Résolutions, sessions et réglages, à restaurer sur un autre téléphone.</string>
   <string name="backup_contents_line">%1$s, %2$s</string>
   <string name="backup_save">Enregistrer</string>
   <string name="backup_creating">Préparation de la sauvegarde...</string>
@@ -266,7 +266,7 @@
   <string name="import_times">Importer</string>
   <string name="export_help_title">À propos de l\'exportation</string>
   <string name="export_help_body">Cet écran écrit deux fichiers différents, et le contrôle en haut choisit lequel. Ce que les cartes ci-dessous ont sélectionné est ce qui part dans le CSV.</string>
-  <string name="export_help_backup_body">Un seul fichier qui contient tout : chaque temps, chaque entraînement, vos réglages et vos propres algorithmes. Seul Cubench le lit, et le restaurer remplace ce qui se trouve sur le téléphone.</string>
+  <string name="export_help_backup_body">Un seul fichier qui contient tout ce que l’application garde : chaque temps, chaque session et chaque réglage. Seul Cubench le lit, et le restaurer remplace ce qui se trouve sur le téléphone.</string>
   <string name="export_help_share">Passe le fichier directement à une autre application : un mail, une discussion, un espace en ligne.</string>
   <string name="export_help_save">L\'écrit où vous voulez sur cet appareil, pour le garder ou le déplacer vous-même.</string>
   <string name="export_help_columns">Ce que contient une ligne</string>
@@ -1030,7 +1030,7 @@
   <!-- Sauvegarde et restauration -->
   <string name="export_segment_backup">Sauvegarder</string>
   <string name="export_segment_csv">Temps en CSV</string>
-  <string name="backup_holds_everything">Une sauvegarde contient tous les puzzles, tous les entraînements et tous les réglages. Rien n’est à sélectionner ici, puisque rien n’est laissé de côté.</string>
+  <string name="backup_holds_everything">Une sauvegarde contient tous les puzzles, tous les temps et tous les réglages. Rien n’est à sélectionner ici, puisque rien n’est laissé de côté.</string>
   <string name="restore_restarts_the_app">Cubench se fermera et se rouvrira une fois terminé.</string>
   <string name="import_no_file_picker">Aucune application de ce téléphone ne peut choisir un fichier.</string>
   <string name="restore_reading">Lecture de la sauvegarde…</string>

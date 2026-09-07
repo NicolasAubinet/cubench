@@ -32,6 +32,7 @@ import android.view.MenuItem;
 import com.cube.nanotimer.gui.widget.ExportHelpDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.services.Service;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
@@ -596,11 +597,14 @@ public class ExportActivity extends NanoTimerActivity {
       return;
     }
     tvBackupContents.setVisibility(View.VISIBLE);
-    tvBackupContents.setText(getString(R.string.backup_contents_line,
-      getResources().getQuantityString(R.plurals.export_solves_count, backupCounts.getSolves(),
-        backupCounts.getSolves()),
-      getResources().getQuantityString(R.plurals.backup_drills_count, backupCounts.getDrills(),
-        backupCounts.getDrills())));
+    String solves = getResources().getQuantityString(R.plurals.export_solves_count,
+      backupCounts.getSolves(), backupCounts.getSolves());
+    // A build with no drills in it would count them anyway, and always reach zero.
+    tvBackupContents.setText(SmartCubeGate.ENABLED
+      ? getString(R.string.backup_contents_line, solves,
+        getResources().getQuantityString(R.plurals.backup_drills_count, backupCounts.getDrills(),
+          backupCounts.getDrills()))
+      : solves);
   }
 
   /**

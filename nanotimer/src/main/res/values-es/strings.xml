@@ -222,7 +222,7 @@
   <string name="export_csv_title">Exportar los tiempos a CSV</string>
   <string name="export_csv_caption">Solo los tiempos, para abrir en una hoja de cálculo.</string>
   <string name="backup_everything">Copia de seguridad completa</string>
-  <string name="backup_everything_caption">Resoluciones, entrenamientos y ajustes, para restaurar en otro teléfono.</string>
+  <string name="backup_everything_caption">Resoluciones, sesiones y ajustes, para restaurar en otro teléfono.</string>
   <string name="backup_contents_line">%1$s, %2$s</string>
   <string name="backup_save">Guardar</string>
   <string name="backup_creating">Preparando la copia de seguridad...</string>
@@ -266,7 +266,7 @@
   <string name="import_times">Importar</string>
   <string name="export_help_title">Sobre la exportación</string>
   <string name="export_help_body">Esta pantalla escribe dos archivos distintos, y el control de arriba elige cuál. Lo que hayas seleccionado en las tarjetas de abajo es lo que va al CSV.</string>
-  <string name="export_help_backup_body">Un solo archivo con todo: cada tiempo, cada entrenamiento, tus ajustes y tus propios algoritmos. Solo Cubench lo lee, y restaurarlo sustituye lo que hay en el teléfono.</string>
+  <string name="export_help_backup_body">Un solo archivo con todo lo que guarda la aplicación: cada tiempo, cada sesión y cada ajuste. Solo Cubench lo lee, y restaurarlo sustituye lo que hay en el teléfono.</string>
   <string name="export_help_share">Entrega el archivo directamente a otra aplicación: un correo, un chat, un espacio en la nube.</string>
   <string name="export_help_save">Lo escribe donde usted elija en este dispositivo, para guardarlo o moverlo usted mismo.</string>
   <string name="export_help_columns">Qué contiene una línea</string>
@@ -1029,7 +1029,7 @@
   <!-- Copia de seguridad y restauración -->
   <string name="export_segment_backup">Copia</string>
   <string name="export_segment_csv">Tiempos a CSV</string>
-  <string name="backup_holds_everything">Una copia contiene todos los puzles, todos los entrenamientos y todos los ajustes. Aquí no hay nada que seleccionar, porque no se deja nada fuera.</string>
+  <string name="backup_holds_everything">Una copia contiene todos los puzles, todos los tiempos y todos los ajustes. Aquí no hay nada que seleccionar, porque no se deja nada fuera.</string>
   <string name="restore_restarts_the_app">Cubench se cerrará y volverá a abrirse al terminar.</string>
   <string name="import_no_file_picker">Ninguna aplicación de este dispositivo puede elegir un archivo.</string>
   <string name="restore_reading">Leyendo la copia…</string>

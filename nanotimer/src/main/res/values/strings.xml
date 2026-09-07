@@ -234,7 +234,7 @@
   <string name="export_csv_title">Export times to CSV</string>
   <string name="export_csv_caption">Times only, to open in a spreadsheet.</string>
   <string name="backup_everything">Back up everything</string>
-  <string name="backup_everything_caption">Solves, drills and settings, to restore on another phone.</string>
+  <string name="backup_everything_caption">Solves, sessions and settings, to restore on another phone.</string>
   <string name="backup_contents_line">%1$s, %2$s</string>
   <string name="backup_save">Save</string>
   <string name="backup_creating">Preparing the backup...</string>
@@ -278,7 +278,7 @@
   <string name="import_times">Import</string>
   <string name="export_help_title">About exporting</string>
   <string name="export_help_body">This screen writes two different files, and the control at the top picks which. What the cards below have picked is what goes into the CSV.</string>
-  <string name="export_help_backup_body">One file holding everything: every solve, every drill, your settings and your own algorithms. Only Cubench reads it, and restoring one replaces what is on the phone.</string>
+  <string name="export_help_backup_body">One file holding everything the app keeps: every solve, every session and every setting. Only Cubench reads it, and restoring one replaces what is on the phone.</string>
   <string name="export_help_share">Hands the file straight to another app: a mail, a chat, a cloud drive.</string>
   <string name="export_help_save">Writes it where you choose on this device, to keep or move yourself.</string>
   <string name="export_help_columns">What a line holds</string>
@@ -1070,7 +1070,7 @@
   <!-- Backup and restore -->
   <string name="export_segment_backup">Back up</string>
   <string name="export_segment_csv">Times to CSV</string>
-  <string name="backup_holds_everything">A backup holds every puzzle, every drill and every setting. Nothing here is selectable, because nothing is left out.</string>
+  <string name="backup_holds_everything">A backup holds every puzzle, every solve and every setting. Nothing here is selectable, because nothing is left out.</string>
   <string name="restore_restarts_the_app">Cubench will close and reopen when it is done.</string>
   <string name="import_no_file_picker">No app on this device can pick a file.</string>
   <string name="restore_reading">Reading the backup…</string>

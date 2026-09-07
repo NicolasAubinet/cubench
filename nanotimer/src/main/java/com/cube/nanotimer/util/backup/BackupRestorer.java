@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -262,12 +263,15 @@ public class BackupRestorer {
     if (counts == null) {
       return "";
     }
-    return activity.getResources().getQuantityString(R.plurals.export_solves_count,
-        counts.getSolves(), counts.getSolves())
-      + "\n" + activity.getResources().getQuantityString(R.plurals.backup_drills_count,
-        counts.getDrills(), counts.getDrills())
-      + "\n" + activity.getResources().getQuantityString(R.plurals.backup_solve_types_count,
-        counts.getSolveTypes(), counts.getSolveTypes());
+    String lines = activity.getResources().getQuantityString(R.plurals.export_solves_count,
+        counts.getSolves(), counts.getSolves());
+    // A build with no drills in it counts them all the same, and always reaches zero.
+    if (SmartCubeGate.ENABLED) {
+      lines += "\n" + activity.getResources().getQuantityString(R.plurals.backup_drills_count,
+          counts.getDrills(), counts.getDrills());
+    }
+    return lines + "\n" + activity.getResources().getQuantityString(
+        R.plurals.backup_solve_types_count, counts.getSolveTypes(), counts.getSolveTypes());
   }
 
   private static void close(InputStream is) {
