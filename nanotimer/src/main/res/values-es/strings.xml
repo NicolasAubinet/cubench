@@ -1130,4 +1130,28 @@
   <string name="blind_buffers_prompt">Elige los búferes que usas</string>
   <string name="blind_buffers_why">Tus resoluciones a ciegas se reconstruyen a partir de ellos.</string>
   <string name="blind_buffers_changeable">Puedes cambiarlo más adelante en los ajustes.</string>
+
+  <!-- ================= Analysis hub ================= -->
+  <string name="analysis_title">An\u00e1lisis</string>
+  <string name="analysis_context">%1$s, %2$s</string>
+  <string name="analysis_tab_solve">Resoluci\u00f3n</string>
+  <string name="analysis_tab_cases">Casos</string>
+  <string name="analysis_tab_plan">Plan</string>
+  <string name="analysis_tab_soon">Esta pesta\u00f1a a\u00fan no est\u00e1 construida.</string>
+  <string name="analysis_empty">Ninguna resoluci\u00f3n de aqu\u00ed ha sido le\u00edda todav\u00eda por un cubo, as\u00ed que no hay pasos que desglosar.</string>
+  <string name="analysis_best">Mejor</string>
+  <plurals name="analysis_mean_of">
+    <item quantity="one">media de %d resoluci\u00f3n le\u00edda por el cubo</item>
+    <item quantity="other">media de %d resoluciones le\u00eddas por el cubo</item>
+  </plurals>
+  <string name="analysis_column_step">Paso</string>
+  <string name="analysis_delta_label">Frente a una resoluci\u00f3n %s t\u00edpica</string>
+  <string name="analysis_delta_over">+%s</string>
+  <string name="analysis_delta_under">\u2212%s</string>
+  <string name="analysis_delta_limit">Estas diferencias siempre se anulan, as\u00ed que dicen d\u00f3nde est\u00e1 tu tiempo, no que seas lento. Un \u00faltimo paso r\u00e1pido siempre har\u00e1 parecer un problema a uno anterior.</string>
+  <string name="analysis_window_title">Le\u00eddo sobre</string>
+  <string name="analysis_window_chip">%s \u25be</string>
+  <string name="analysis_window_50">\u00daltimas 50</string>
+  <string name="analysis_window_100">\u00daltimas 100</string>
+  <string name="analysis_window_all">Todas</string>
 </resources>

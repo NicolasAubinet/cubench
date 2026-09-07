@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One step measured against what that step usually takes, as a bar either side of a rule. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:gravity="center_vertical"
+   android:orientation="horizontal"
+   android:paddingTop="3dp"
+   android:paddingBottom="3dp">
+
+  <TextView
+     android:id="@+id/tvAnalysisDeltaName"
+     android:layout_width="52dp"
+     android:layout_height="wrap_content"
+     android:ellipsize="end"
+     android:maxLines="1"
+     android:textColor="@color/secondary_text"
+     android:textSize="12sp"/>
+
+  <com.cube.nanotimer.util.view.DeltaBarView
+     android:id="@+id/vAnalysisDeltaBar"
+     android:layout_width="0dp"
+     android:layout_height="12dp"
+     android:layout_weight="1"
+     android:layout_marginLeft="9dp"
+     android:layout_marginRight="9dp"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisDeltaValue"
+     android:layout_width="44dp"
+     android:layout_height="wrap_content"
+     android:fontFeatureSettings="tnum"
+     android:gravity="right"
+     android:textSize="12sp"/>
+</LinearLayout>

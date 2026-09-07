@@ -16,15 +16,17 @@ public class StepStats implements Serializable {
   private final long totalMs;
   private final long recognitionMs;
   private final long bestMs;
+  private final long worstMs;
   private final double sumOfSquares; // of the step times, for the spread
 
   public StepStats(String code, int count, long totalMs, long recognitionMs, long bestMs,
-      double sumOfSquares) {
+      long worstMs, double sumOfSquares) {
     this.code = code;
     this.count = count;
     this.totalMs = totalMs;
     this.recognitionMs = recognitionMs;
     this.bestMs = bestMs;
+    this.worstMs = worstMs;
     this.sumOfSquares = sumOfSquares;
   }
 
@@ -32,14 +34,15 @@ public class StepStats implements Serializable {
   public static StepStats merge(String code, StepStats a, StepStats b) {
     if (a == null) {
       return b == null ? null : new StepStats(code, b.count, b.totalMs, b.recognitionMs, b.bestMs,
-          b.sumOfSquares);
+          b.worstMs, b.sumOfSquares);
     }
     if (b == null) {
-      return new StepStats(code, a.count, a.totalMs, a.recognitionMs, a.bestMs, a.sumOfSquares);
+      return new StepStats(code, a.count, a.totalMs, a.recognitionMs, a.bestMs, a.worstMs,
+          a.sumOfSquares);
     }
     return new StepStats(code, a.count + b.count, a.totalMs + b.totalMs,
         a.recognitionMs + b.recognitionMs, Math.min(a.bestMs, b.bestMs),
-        a.sumOfSquares + b.sumOfSquares);
+        Math.max(a.worstMs, b.worstMs), a.sumOfSquares + b.sumOfSquares);
   }
 
   public String getCode() {
@@ -65,6 +68,11 @@ public class StepStats implements Serializable {
 
   public long getBestMs() {
     return bestMs;
+  }
+
+  /** The slowest the step ever went in the window, which is what a mean cannot say on its own. */
+  public long getWorstMs() {
+    return worstMs;
   }
 
   /**

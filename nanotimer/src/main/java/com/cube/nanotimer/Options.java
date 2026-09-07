@@ -65,6 +65,7 @@ public enum Options {
   public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
+  private static final String ANALYSIS_WINDOW_KEY = "analysisWindow";
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
@@ -272,6 +273,15 @@ public enum Options {
 
   public void setDrillChoice(String key, int value) {
     sharedPreferences.edit().putInt(DRILL_CHOICE_KEY_PREFIX + key, value).apply();
+  }
+
+  /** Which window the Analysis hub was last read in, by ordinal. Its own memory, like the above. */
+  public int getAnalysisWindow(int defaultValue) {
+    return sharedPreferences.getInt(ANALYSIS_WINDOW_KEY, defaultValue);
+  }
+
+  public void setAnalysisWindow(int ordinal) {
+    sharedPreferences.edit().putInt(ANALYSIS_WINDOW_KEY, ordinal).apply();
   }
 
   /**

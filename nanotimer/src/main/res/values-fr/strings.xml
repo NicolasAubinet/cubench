@@ -1131,4 +1131,28 @@
   <string name="blind_buffers_prompt">Choisissez les buffers que vous utilisez</string>
   <string name="blind_buffers_why">Vos résolutions en aveugle sont reconstruites à partir d\'eux.</string>
   <string name="blind_buffers_changeable">Vous pourrez changer cela plus tard dans les paramètres.</string>
+
+  <!-- ================= Analysis hub ================= -->
+  <string name="analysis_title">Analyse</string>
+  <string name="analysis_context">%1$s, %2$s</string>
+  <string name="analysis_tab_solve">R\u00e9solution</string>
+  <string name="analysis_tab_cases">Cas</string>
+  <string name="analysis_tab_plan">Plan</string>
+  <string name="analysis_tab_soon">Cet onglet n\'est pas encore construit.</string>
+  <string name="analysis_empty">Aucune r\u00e9solution ici n\'a encore \u00e9t\u00e9 lue par un cube, il n\'y a donc pas d\'\u00e9tapes \u00e0 d\u00e9tailler.</string>
+  <string name="analysis_best">Meilleur</string>
+  <plurals name="analysis_mean_of">
+    <item quantity="one">moyenne de %d r\u00e9solution lue par le cube</item>
+    <item quantity="other">moyenne de %d r\u00e9solutions lues par le cube</item>
+  </plurals>
+  <string name="analysis_column_step">\u00c9tape</string>
+  <string name="analysis_delta_label">Par rapport \u00e0 une r\u00e9solution %s typique</string>
+  <string name="analysis_delta_over">+%s</string>
+  <string name="analysis_delta_under">\u2212%s</string>
+  <string name="analysis_delta_limit">Ces \u00e9carts s\'annulent toujours : ils disent o\u00f9 passe votre temps, pas que vous \u00eates lent. Une derni\u00e8re \u00e9tape rapide fera toujours passer une \u00e9tape pr\u00e9c\u00e9dente pour un probl\u00e8me.</string>
+  <string name="analysis_window_title">Lu sur</string>
+  <string name="analysis_window_chip">%s \u25be</string>
+  <string name="analysis_window_50">50 derni\u00e8res</string>
+  <string name="analysis_window_100">100 derni\u00e8res</string>
+  <string name="analysis_window_all">Toutes</string>
 </resources>

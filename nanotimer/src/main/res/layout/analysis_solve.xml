@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- How the solve goes: what it is made of, whether that is in proportion, and one line per step.
+
+     Two charts rather than one, because neither can do the other's job. The bar says what the solve
+     is made of; the signed bars under it say whether that is in proportion, which the composition
+     cannot say without drawing the reference on itself as notches, and those are cumulative: one
+     over-long first step would shift every notch after it and three steps of four would read as
+     wrong. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llAnalysisSolve"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical">
+
+  <!-- The mean stands free at hero size rather than inside a chart, and the composition is the same
+       bar the main screen's hero card draws, which is the thing that was tapped to get here. -->
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:background="@drawable/analysis_card"
+     android:orientation="vertical"
+     android:padding="14dp">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:baselineAligned="false"
+       android:orientation="horizontal">
+
+      <LinearLayout
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:orientation="vertical">
+
+        <com.cube.nanotimer.util.view.FontFitTextView
+           android:id="@+id/tvAnalysisMean"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:fontFamily="@font/roboto_medium"
+           android:fontFeatureSettings="tnum"
+           android:includeFontPadding="false"
+           android:singleLine="true"
+           android:textColor="@color/white"
+           android:textSize="38sp"/>
+
+        <TextView
+           android:id="@+id/tvAnalysisMeanOf"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="4dp"
+           android:textColor="@color/secondary_text"
+           android:textSize="11.5sp"/>
+      </LinearLayout>
+
+      <LinearLayout
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:gravity="right"
+         android:orientation="vertical">
+
+        <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:letterSpacing="0.07"
+           android:text="@string/analysis_best"
+           android:textAllCaps="true"
+           android:textColor="@color/secondary_text"
+           android:textSize="10sp"/>
+
+        <TextView
+           android:id="@+id/tvAnalysisBest"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:fontFeatureSettings="tnum"
+           android:textColor="@color/secondary_text"
+           android:textSize="15sp"/>
+      </LinearLayout>
+    </LinearLayout>
+
+    <!-- Taller than the row's bar and no denser: the palette is the cube's own and is too bright to
+         cover area, so what grows is the length rather than the fill. -->
+    <com.cube.nanotimer.util.view.SolveStepBarView
+       android:id="@+id/vAnalysisComposition"
+       android:layout_width="match_parent"
+       android:layout_height="18dp"
+       android:layout_marginTop="12dp"/>
+
+    <!-- Always present, and every segment named on it: the lightness check is being relaxed rather
+         than passed, and a legend is part of what pays for that. -->
+    <LinearLayout
+       android:id="@+id/llAnalysisLegend"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="12dp"
+       android:baselineAligned="false"
+       android:orientation="horizontal"/>
+  </LinearLayout>
+
+  <LinearLayout
+     android:id="@+id/llAnalysisDeltaCard"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:background="@drawable/analysis_card"
+     android:orientation="vertical"
+     android:padding="14dp">
+
+    <TextView
+       android:id="@+id/tvAnalysisDeltaLabel"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginBottom="10dp"
+       android:letterSpacing="0.09"
+       android:textAllCaps="true"
+       android:textColor="@color/secondary_text"
+       android:textSize="11sp"/>
+
+    <LinearLayout
+       android:id="@+id/llAnalysisDeltaRows"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"/>
+
+    <!-- The honest limit, printed rather than left for the reader to work out: shares sum to a
+         hundred, so the four deltas always cancel and a quick last step will always print as a
+         problem with an earlier one. A reader who works that out alone trusts the next chart less. -->
+    <TextView
+       android:id="@+id/tvAnalysisDeltaLimit"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"
+       android:lineSpacingMultiplier="1.15"
+       android:text="@string/analysis_delta_limit"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+  </LinearLayout>
+
+  <include
+     layout="@layout/case_table"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="20dp"/>
+
+</LinearLayout>

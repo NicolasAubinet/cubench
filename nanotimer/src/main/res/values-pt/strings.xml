@@ -1133,4 +1133,28 @@
   <string name="blind_buffers_prompt">Escolha os buffers que você usa</string>
   <string name="blind_buffers_why">Suas resoluções às cegas são reconstruídas a partir deles.</string>
   <string name="blind_buffers_changeable">Você pode alterar isso depois nas configurações.</string>
+
+  <!-- ================= Analysis hub ================= -->
+  <string name="analysis_title">An\u00e1lise</string>
+  <string name="analysis_context">%1$s, %2$s</string>
+  <string name="analysis_tab_solve">Resolu\u00e7\u00e3o</string>
+  <string name="analysis_tab_cases">Casos</string>
+  <string name="analysis_tab_plan">Plano</string>
+  <string name="analysis_tab_soon">Este separador ainda n\u00e3o foi constru\u00eddo.</string>
+  <string name="analysis_empty">Nenhuma resolu\u00e7\u00e3o aqui foi ainda lida por um cubo, por isso n\u00e3o h\u00e1 etapas para detalhar.</string>
+  <string name="analysis_best">Melhor</string>
+  <plurals name="analysis_mean_of">
+    <item quantity="one">m\u00e9dia de %d resolu\u00e7\u00e3o lida pelo cubo</item>
+    <item quantity="other">m\u00e9dia de %d resolu\u00e7\u00f5es lidas pelo cubo</item>
+  </plurals>
+  <string name="analysis_column_step">Etapa</string>
+  <string name="analysis_delta_label">Face a uma resolu\u00e7\u00e3o %s t\u00edpica</string>
+  <string name="analysis_delta_over">+%s</string>
+  <string name="analysis_delta_under">\u2212%s</string>
+  <string name="analysis_delta_limit">Estas diferen\u00e7as anulam-se sempre, por isso dizem onde est\u00e1 o seu tempo, n\u00e3o que \u00e9 lento. Uma \u00faltima etapa r\u00e1pida far\u00e1 sempre parecer que h\u00e1 um problema numa anterior.</string>
+  <string name="analysis_window_title">Lido sobre</string>
+  <string name="analysis_window_chip">%s \u25be</string>
+  <string name="analysis_window_50">\u00daltimas 50</string>
+  <string name="analysis_window_100">\u00daltimas 100</string>
+  <string name="analysis_window_all">Todas</string>
 </resources>

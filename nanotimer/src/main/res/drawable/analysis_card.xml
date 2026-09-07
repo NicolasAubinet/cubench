@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A card on the Analysis hub, in the same shape and ground the hero card and the drill cells
+     already use: the hub is read straight after the main screen and should not look like a
+     different app. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/hero_card"/>
+  <corners android:radius="14dp"/>
+</shape>

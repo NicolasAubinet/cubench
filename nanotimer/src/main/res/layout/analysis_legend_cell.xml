@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One step on the composition bar's legend: its swatch and name, its share, and what that is in
+     seconds. Every segment gets one, always, which is part of what pays for a palette too bright
+     for the area it covers. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="0dp"
+   android:layout_height="wrap_content"
+   android:layout_weight="1"
+   android:orientation="vertical"
+   android:paddingRight="6dp">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:gravity="center_vertical"
+     android:orientation="horizontal">
+
+    <View
+       android:id="@+id/vAnalysisLegendSwatch"
+       android:layout_width="8dp"
+       android:layout_height="8dp"
+       android:layout_marginRight="5dp"/>
+
+    <TextView
+       android:id="@+id/tvAnalysisLegendName"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:ellipsize="end"
+       android:maxLines="1"
+       android:textColor="@color/secondary_text"
+       android:textSize="11sp"/>
+  </LinearLayout>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvAnalysisLegendShare"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="3dp"
+     android:fontFamily="@font/roboto_medium"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/white"
+     android:textSize="15sp"/>
+
+  <com.cube.nanotimer.util.view.FontFitTextView
+     android:id="@+id/tvAnalysisLegendTime"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/bluegray600"
+     android:textSize="10.5sp"/>
+</LinearLayout>

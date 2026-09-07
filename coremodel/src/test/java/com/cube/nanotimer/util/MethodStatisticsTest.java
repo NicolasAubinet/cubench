@@ -125,7 +125,7 @@ public class MethodStatisticsTest {
   @Test
   public void testRecognitionShareAndSpread() {
     // two solves of the same case: 1000 (400 looking) and 3000 (1600 looking)
-    StepStats step = new StepStats("pll_gb", 2, 4000, 2000, 1000,
+    StepStats step = new StepStats("pll_gb", 2, 4000, 2000, 1000, 3000,
         1000d * 1000 + 3000d * 3000);
     Assert.assertEquals(2000, step.getMeanMs());
     Assert.assertEquals(1000, step.getMeanRecognitionMs());
@@ -197,6 +197,7 @@ public class MethodStatisticsTest {
   /** A tally of one code: {@code count} solves totalling {@code totalMs}, evenly spread. */
   private StepStats tally(String code, int count, long totalMs) {
     long each = count == 0 ? 0 : totalMs / count;
-    return new StepStats(code, count, totalMs, totalMs / 2, each, (double) each * each * count);
+    return new StepStats(code, count, totalMs, totalMs / 2, each, each,
+        (double) each * each * count);
   }
 }

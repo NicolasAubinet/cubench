@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <item android:id="@+id/itAnalysisWindow"
+     android:title="@string/analysis_window_title"
+     app:actionLayout="@layout/analysis_window_chip"
+     app:showAsAction="always"/>
+</menu>

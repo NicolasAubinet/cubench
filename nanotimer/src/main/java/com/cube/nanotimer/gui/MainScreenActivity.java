@@ -127,7 +127,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private static final int MENU_SETTINGS = 0;
   private static final int MENU_SORT = 1;
   private static final int MENU_GRAPHS = 2;
-  private static final int MENU_COACH = 3;
+  private static final int MENU_ANALYSIS = 3;
   private static final int MENU_IMPORT_EXPORT = 4;
   private static final int MENU_CLEAR_HISTORY = 5;
   private static final int MENU_LANGUAGE = 6;
@@ -418,7 +418,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     List<String> shown = new ArrayList<>();
     List<Integer> entries = new ArrayList<>();
     for (int entry = 0; entry < labels.length; entry++) {
-      if (entry == MENU_COACH && !SmartCubeGate.ENABLED) {
+      if (entry == MENU_ANALYSIS && !SmartCubeGate.ENABLED) {
         continue; // it reads what a cube recorded: without one there is nothing for it to read
       }
       entries.add(entry);
@@ -431,9 +431,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     return shown.toArray(new String[0]);
   }
 
-  private void openCoach() {
-    Intent i = new Intent(this, CoachActivity.class);
-    i.putExtra("solveType", curSolveType);
+  private void openAnalysis() {
+    Intent i = new Intent(this, AnalysisActivity.class);
+    i.putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, curSolveType);
     startActivity(i);
   }
 
@@ -514,8 +514,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       case MENU_GRAPHS:
         openGraph();
         break;
-      case MENU_COACH:
-        openCoach();
+      case MENU_ANALYSIS:
+        openAnalysis();
         break;
       case MENU_IMPORT_EXPORT:
         ArrayList<String> items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.import_export)));
@@ -1184,8 +1184,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           case MENU_GRAPHS:
             imageResource = R.drawable.menu_graph;
             break;
-          case MENU_COACH:
-            imageResource = R.drawable.menu_coach;
+          case MENU_ANALYSIS:
+            imageResource = R.drawable.menu_analysis;
             break;
           case MENU_IMPORT_EXPORT:
             imageResource = R.drawable.menu_import_export;

@@ -70,6 +70,7 @@ public class StepTallies {
     long totalMs = 0;
     long recognitionMs = 0;
     long bestMs = Long.MAX_VALUE;
+    long worstMs = 0;
     double sumOfSquares = 0;
     for (StepSample sample : ofCode) {
       if (limit >= 0 && Math.abs(sample.getTimeMs() - median) > limit) {
@@ -83,13 +84,14 @@ public class StepTallies {
       if (sample.getTimeMs() > 0) {
         bestMs = Math.min(bestMs, sample.getTimeMs());
       }
+      worstMs = Math.max(worstMs, sample.getTimeMs());
       sumOfSquares += (double) sample.getTimeMs() * sample.getTimeMs();
     }
     if (bestMs == Long.MAX_VALUE) {
       bestMs = 0; // nothing but free occurrences: there is no best to report
     }
-    tallies.put(code, count == 0 ? new StepStats(code, 0, 0, 0, 0, 0)
-        : new StepStats(code, count, totalMs, recognitionMs, bestMs, sumOfSquares));
+    tallies.put(code, count == 0 ? new StepStats(code, 0, 0, 0, 0, 0, 0)
+        : new StepStats(code, count, totalMs, recognitionMs, bestMs, worstMs, sumOfSquares));
     rejected.put(code, dropped);
   }
 

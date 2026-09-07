@@ -184,7 +184,7 @@
     <item>@string/settings</item>
     <item>@string/show_best_times</item>
     <item>@string/graphs</item>
-    <item>@string/coach_title</item>
+    <item>@string/analysis_title</item>
     <item>@string/import_export</item>
     <item>@string/clear_history</item>
     <item>@string/language</item>

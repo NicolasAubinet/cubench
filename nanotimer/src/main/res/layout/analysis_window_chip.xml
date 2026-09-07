@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Which slice of history the hub is reading, on the app bar's own line: a scope is what the
+     screen is about rather than one more control stacked over the first number. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/tvAnalysisWindowChip"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"
+   android:layout_gravity="center_vertical"
+   android:background="@drawable/row_chip"
+   android:clickable="true"
+   android:focusable="true"
+   android:layout_marginRight="8dp"
+   android:paddingLeft="11dp"
+   android:paddingRight="11dp"
+   android:paddingTop="5dp"
+   android:paddingBottom="5dp"
+   android:singleLine="true"
+   android:textColor="@color/secondary_text"
+   android:textSize="12sp"/>

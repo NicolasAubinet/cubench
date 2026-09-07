@@ -1206,6 +1206,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , SUM(").append(total).append(")");
     q.append("     , SUM(r.").append(DB.COL_DRILL_REP_RECOGNITION).append(")");
     q.append("     , MIN(").append(total).append(")");
+    q.append("     , MAX(").append(total).append(")");
     q.append("     , SUM(1.0 * ").append(total).append(" * ").append(total).append(")");
     q.append("  FROM ").append(DB.TABLE_DRILL_REP).append(" r");
     q.append("  JOIN (").append(window).append(") d");
@@ -1222,7 +1223,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         stats.add(new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
-            cursor.getLong(3), cursor.getLong(4), cursor.getDouble(5)));
+            cursor.getLong(3), cursor.getLong(4), cursor.getLong(5), cursor.getDouble(6)));
       }
       cursor.close();
     }
@@ -1557,6 +1558,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
     q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION).append(")");
     q.append("     , MIN(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
+    q.append("     , MAX(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
     q.append("     , SUM(1.0 * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
     q.append("            * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
     // Whether the code is a step of the method or one of the parts a step was built in.
@@ -1580,8 +1582,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         StepStats stats = new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
-            cursor.getLong(3), cursor.getLong(4), cursor.getDouble(5));
-        (cursor.getInt(6) == 1 ? steps : parts).add(stats);
+            cursor.getLong(3), cursor.getLong(4), cursor.getLong(5), cursor.getDouble(6));
+        (cursor.getInt(7) == 1 ? steps : parts).add(stats);
       }
       cursor.close();
     }

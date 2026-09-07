@@ -101,7 +101,7 @@ public class StepSharesTest {
   }
 
   private static StepFigure family(String code, int count, long meanMs) {
-    return StepFigure.family(new StepStats(code, count, meanMs * count, 0, meanMs,
+    return StepFigure.family(new StepStats(code, count, meanMs * count, 0, meanMs, meanMs,
         (double) meanMs * meanMs * count), false, 0, null);
   }
 }

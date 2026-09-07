@@ -1176,4 +1176,29 @@
   <string name="blind_buffers_prompt">Select the buffers you use</string>
   <string name="blind_buffers_why">Your blindfolded solves are reconstructed from them.</string>
   <string name="blind_buffers_changeable">You can change this later in the settings.</string>
+
+  <!-- ================= Analysis hub ================= -->
+  <string name="analysis_title">Analysis</string>
+  <!-- The solve type and the method its solves are read as, on the app bar's second line. -->
+  <string name="analysis_context">%1$s, %2$s</string>
+  <string name="analysis_tab_solve">Solve</string>
+  <string name="analysis_tab_cases">Cases</string>
+  <string name="analysis_tab_plan">Plan</string>
+  <string name="analysis_tab_soon">This tab is not built yet.</string>
+  <string name="analysis_empty">No solve here was read by a cube yet, so there are no steps to break down.</string>
+  <string name="analysis_best">Best</string>
+  <plurals name="analysis_mean_of">
+    <item quantity="one">mean of %d cube-read solve</item>
+    <item quantity="other">mean of %d cube-read solves</item>
+  </plurals>
+  <string name="analysis_column_step">Step</string>
+  <string name="analysis_delta_label">Against a typical %s solve</string>
+  <string name="analysis_delta_over">+%s</string>
+  <string name="analysis_delta_under">\u2212%s</string>
+  <string name="analysis_delta_limit">These always cancel out, so this says where your time sits, not that you are slow. A quick last step will always show as a problem with an earlier one.</string>
+  <string name="analysis_window_title">Read over</string>
+  <string name="analysis_window_chip">%s \u25be</string>
+  <string name="analysis_window_50">Last 50</string>
+  <string name="analysis_window_100">Last 100</string>
+  <string name="analysis_window_all">Every solve</string>
 </resources>

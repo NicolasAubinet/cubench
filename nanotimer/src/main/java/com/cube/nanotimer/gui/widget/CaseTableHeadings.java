@@ -42,7 +42,9 @@ public class CaseTableHeadings {
 
   /**
    * @param root the view holding the strip, which is the screen or the table it was included in
-   * @param labels one string per heading: the count, then the three figure columns
+   * @param labels one string per heading: the count, then the three figure columns. A label of 0
+   *     is a column the rows do not carry, as {@link CaseRow#noCount()} leaves the count: it gets
+   *     no heading and cannot be ranked by.
    * @param opensDescending for each, which end it opens at when it is first ranked by
    * @param column the column the table opens ranked by
    */
@@ -55,8 +57,13 @@ public class CaseTableHeadings {
     this.column = column;
     this.descending = opensDescending[column];
     for (int i = 0; i < HEADING_IDS.length; i++) {
+      View heading = root.findViewById(HEADING_IDS[i]);
+      if (labels[i] == 0) {
+        heading.setVisibility(View.GONE);
+        continue;
+      }
       final int picked = i;
-      root.findViewById(HEADING_IDS[i]).setOnClickListener(new View.OnClickListener() {
+      heading.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           rank(picked);
@@ -81,6 +88,9 @@ public class CaseTableHeadings {
   /** Draws the headings as they now stand. Called once the table has been ranked and rebuilt. */
   public void refresh() {
     for (int i = 0; i < HEADING_IDS.length; i++) {
+      if (labels[i] == 0) {
+        continue;
+      }
       TextView heading = (TextView) root.findViewById(HEADING_IDS[i]);
       String label = root.getContext().getString(labels[i]);
       boolean ranked = i == column;

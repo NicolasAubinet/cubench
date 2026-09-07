@@ -49,6 +49,7 @@
   <color name="white_wash_10">#1AFFFFFF</color>
   <color name="white_wash_12">#1FFFFFFF</color>
   <color name="white_wash_20">#33FFFFFF</color>
+  <color name="white_wash_25">#40FFFFFF</color>
   <color name="white_wash_50">#80FFFFFF</color>
 
   <!-- ============================= Theme ============================= -->
