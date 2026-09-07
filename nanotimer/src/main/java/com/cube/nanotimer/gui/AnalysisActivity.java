@@ -61,6 +61,11 @@ public class AnalysisActivity extends NanoTimerActivity {
 
   private static final int TAB_SOLVE = 0;
   private static final int TAB_CASES = 1;
+  private static final int TAB_PLAN = 2;
+
+  /** What a plan says, in the order it says it, on a tab that cannot yet say any of it. */
+  private static final int[] PLAN_POINTS = {R.string.analysis_plan_point_one,
+      R.string.analysis_plan_point_two, R.string.analysis_plan_point_three};
 
   /** How the shares are written, which is a whole number of points either way. */
   private static final String PERCENT_FORMAT = "%d%%";
@@ -132,6 +137,7 @@ public class AnalysisActivity extends NanoTimerActivity {
     headings.setLabel(R.string.analysis_column_step);
     cases = new AnalysisCases(this, findViewById(R.id.llAnalysisCases), casesListener());
     cases.setFamily(getIntent().getStringExtra(EXTRA_FAMILY));
+    showPlanPoints();
     ((TextView) findViewById(R.id.tvAnalysisDeltaLabel))
         .setText(getString(R.string.analysis_delta_label, getString(SolveTypeMethod.nameOf(method))));
 
@@ -207,18 +213,16 @@ public class AnalysisActivity extends NanoTimerActivity {
    * lands while another is picked.
    */
   private void showWhatIsReadable() {
-    // Only the Solve tab is built. The other two are drawn on their own, and until they are the
-    // control still has to say what the hub will hold rather than pretend to two tabs.
-    boolean solve = tab == TAB_SOLVE;
+    // Plan is the one tab that reads nothing: it says what a plan is, and there are none to have.
+    boolean measured = tab == TAB_SOLVE || tab == TAB_CASES;
     boolean readable = loaded && !steps.isEmpty();
-    solveRoot.setVisibility(solve && readable ? View.VISIBLE : View.GONE);
+    solveRoot.setVisibility(tab == TAB_SOLVE && readable ? View.VISIBLE : View.GONE);
     findViewById(R.id.llAnalysisCases)
         .setVisibility(tab == TAB_CASES && readable ? View.VISIBLE : View.GONE);
-    TextView empty = findViewById(R.id.tvAnalysisEmpty);
-    boolean unbuilt = tab != TAB_SOLVE && tab != TAB_CASES;
+    findViewById(R.id.llAnalysisPlan).setVisibility(tab == TAB_PLAN ? View.VISIBLE : View.GONE);
     // Nothing at all until the first read lands, rather than a moment of "you have no solves".
-    empty.setVisibility(unbuilt || (loaded && !readable) ? View.VISIBLE : View.GONE);
-    empty.setText(unbuilt ? R.string.analysis_tab_soon : R.string.analysis_empty);
+    findViewById(R.id.tvAnalysisEmpty)
+        .setVisibility(measured && loaded && !readable ? View.VISIBLE : View.GONE);
   }
 
   private void load() {
@@ -268,6 +272,22 @@ public class AnalysisActivity extends NanoTimerActivity {
     // it is known from the statistics alone, so it does not wait on the case history.
     showCases();
     showSteps();
+  }
+
+  /**
+   * What a plan would say, which is all this tab can say. The three points are the shapes a plan
+   * takes, never an example of one: a plan the app did not write, drawn beside figures it did, is
+   * the one arrangement that can make a true number look invented.
+   */
+  private void showPlanPoints() {
+    LinearLayout points = findViewById(R.id.llAnalysisPlanPoints);
+    LayoutInflater inflater = LayoutInflater.from(this);
+    for (int i = 0; i < PLAN_POINTS.length; i++) {
+      View point = inflater.inflate(R.layout.analysis_plan_point, points, false);
+      ((TextView) point.findViewById(R.id.tvAnalysisPointRank)).setText(String.valueOf(i + 1));
+      ((TextView) point.findViewById(R.id.tvAnalysisPointText)).setText(PLAN_POINTS[i]);
+      points.addView(point);
+    }
   }
 
   /** The Cases tab, which waits on two reads and is drawn by whichever of them lands second. */

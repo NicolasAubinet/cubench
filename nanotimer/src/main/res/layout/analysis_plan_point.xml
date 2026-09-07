@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One of the things a plan says, numbered. The shape of the answer, never an answer: a plan the
+     app has not written must not be mocked up on the same screen as figures that are real. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:paddingTop="7dp"
+   android:paddingBottom="7dp">
+
+  <TextView
+     android:id="@+id/tvAnalysisPointRank"
+     android:layout_width="22dp"
+     android:layout_height="22dp"
+     android:layout_marginRight="12dp"
+     android:background="@drawable/analysis_plan_rank"
+     android:fontFeatureSettings="tnum"
+     android:gravity="center"
+     android:textColor="@color/lightblue"
+     android:textSize="11sp"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisPointText"
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:lineSpacingMultiplier="1.15"
+     android:textColor="@color/white"
+     android:textSize="13.5sp"/>
+</LinearLayout>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the coach does, on a tab that cannot yet do it.
+
+     Nothing in the app writes a plan, so this tab says what one is and shows none. It deliberately
+     does not mock one up: a plan the app did not write, rendered beside figures it did, is the one
+     arrangement that can make a true number look invented. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/llAnalysisPlan"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:background="@drawable/analysis_card"
+     android:orientation="vertical"
+     android:padding="16dp">
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:fontFamily="@font/roboto_medium"
+       android:text="@string/analysis_plan_headline"
+       android:textColor="@color/white"
+       android:textSize="17sp"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="6dp"
+       android:lineSpacingMultiplier="1.2"
+       android:text="@string/analysis_plan_body"
+       android:textColor="@color/secondary_text"
+       android:textSize="13.5sp"/>
+
+    <LinearLayout
+       android:id="@+id/llAnalysisPlanPoints"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="14dp"
+       android:orientation="vertical"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="14dp"
+       android:lineSpacingMultiplier="1.2"
+       android:text="@string/analysis_plan_cites"
+       android:textColor="@color/secondary_text"
+       android:textSize="12.5sp"/>
+  </LinearLayout>
+
+  <!-- The two honest lines: there is nothing to buy yet, and the other two tabs are not the bait. -->
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="16dp"
+     android:gravity="center"
+     android:lineSpacingMultiplier="1.2"
+     android:paddingLeft="12dp"
+     android:paddingRight="12dp"
+     android:text="@string/analysis_plan_not_yet"
+     android:textColor="@color/secondary_text"
+     android:textSize="12.5sp"/>
+
+</LinearLayout>

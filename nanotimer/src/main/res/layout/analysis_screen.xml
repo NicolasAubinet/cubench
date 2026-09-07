@@ -49,6 +49,7 @@
          android:lineSpacingMultiplier="1.2"
          android:paddingLeft="16dp"
          android:paddingRight="16dp"
+         android:text="@string/analysis_empty"
          android:textColor="@color/secondary_text"
          android:textSize="16sp"
          android:visibility="gone"/>
@@ -56,6 +57,8 @@
       <include layout="@layout/analysis_solve"/>
 
       <include layout="@layout/analysis_cases"/>
+
+      <include layout="@layout/analysis_plan"/>
 
     </LinearLayout>
   </ScrollView>

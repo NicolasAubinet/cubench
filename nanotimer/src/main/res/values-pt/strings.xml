@@ -1140,7 +1140,6 @@
   <string name="analysis_tab_solve">Resolu\u00e7\u00e3o</string>
   <string name="analysis_tab_cases">Casos</string>
   <string name="analysis_tab_plan">Plano</string>
-  <string name="analysis_tab_soon">Este separador ainda n\u00e3o foi constru\u00eddo.</string>
   <string name="analysis_empty">Nenhuma resolu\u00e7\u00e3o aqui foi ainda lida por um cubo, por isso n\u00e3o h\u00e1 etapas para detalhar.</string>
   <string name="analysis_best">Melhor</string>
   <plurals name="analysis_mean_of">
@@ -1169,6 +1168,14 @@
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_knowledge_costing">Custam-lhe</string>
   <string name="analysis_cases_empty">Nenhum caso foi nomeado ainda. Resolva com um smart cube ligado e os casos que ele ler serão ordenados aqui.</string>
+  <string name="analysis_plan_headline">O que um coach diria</string>
+  <string name="analysis_plan_body">Resolução e Casos dizem onde você está. Um plano diz o que fazer, e o plano seguinte diz se funcionou.</string>
+  <string name="analysis_plan_point_one">Quais poucos casos valem a sua semana, de tudo o que Casos ordena.</string>
+  <string name="analysis_plan_point_two">Qual etapa está fora de proporção, e se é o olhar ou o girar.</string>
+  <string name="analysis_plan_point_three">Se o trabalho da semana passada mudou alguma coisa.</string>
+  <string name="analysis_plan_cites">Escrito a partir das suas próprias resoluções, com cada afirmação a citar um número que pode conferir nos outros dois separadores.</string>
+  <string name="analysis_plan_not_yet">Ainda não há plano aqui. Resolução e Casos continuam gratuitos aconteça o que acontecer a este separador.</string>
+
   <string name="analysis_drill_title">Casos mais custosos</string>
   <plurals name="analysis_drill_costliest">
     <item quantity="one">Treinar o caso mais custoso</item>

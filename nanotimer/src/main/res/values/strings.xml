@@ -1184,7 +1184,6 @@
   <string name="analysis_tab_solve">Solve</string>
   <string name="analysis_tab_cases">Cases</string>
   <string name="analysis_tab_plan">Plan</string>
-  <string name="analysis_tab_soon">This tab is not built yet.</string>
   <string name="analysis_empty">No solve here was read by a cube yet, so there are no steps to break down.</string>
   <string name="analysis_best">Best</string>
   <plurals name="analysis_mean_of">
@@ -1213,6 +1212,14 @@
   <string name="analysis_knowledge_unseen">Not yet seen</string>
   <string name="analysis_knowledge_costing">Costing you</string>
   <string name="analysis_cases_empty">No case has been named yet. Solve with a smart cube connected and the cases it reads will be ranked here.</string>
+  <string name="analysis_plan_headline">What a coach would say</string>
+  <string name="analysis_plan_body">Solve and Cases say where you stand. A plan says what to do about it, and the plan after it says whether doing it worked.</string>
+  <string name="analysis_plan_point_one">Which few cases are worth your week, out of everything Cases ranks.</string>
+  <string name="analysis_plan_point_two">Which step is out of proportion, and whether it is the looking or the turning.</string>
+  <string name="analysis_plan_point_three">Whether last week\'s work moved anything.</string>
+  <string name="analysis_plan_cites">Written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>
+  <string name="analysis_plan_not_yet">There is no plan here yet. Solve and Cases stay free whatever lands on this tab.</string>
+
   <string name="analysis_drill_title">Costliest cases</string>
   <plurals name="analysis_drill_costliest">
     <item quantity="one">Drill the costliest case</item>

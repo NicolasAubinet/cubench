@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The numbered disc beside one of the things a plan says. Accent wash rather than a verdict
+     colour: these are the shapes an answer takes, and nothing here is good or bad news yet. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="oval">
+  <solid android:color="@color/chip_bg_selected"/>
+</shape>
