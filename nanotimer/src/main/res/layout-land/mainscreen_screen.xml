@@ -189,7 +189,7 @@
               <com.cube.nanotimer.util.view.SparklineView
                  android:id="@+id/sparkline"
                  android:layout_width="match_parent"
-                 android:layout_height="34dp"/>
+                 android:layout_height="24dp"/>
             </FrameLayout>
 
             <!-- Three windows, three cells, each showing the statistic it was last set to. Tapping
@@ -246,6 +246,28 @@
                 <com.cube.nanotimer.util.view.FontFitTextView android:id="@+id/tvStatValueThree" style="@style/HeroStatValue"/>
               </LinearLayout>
             </LinearLayout>
+
+            <!-- Where the average solve's time goes, in the same bar the Analysis screen draws.
+                 Tapping it opens that screen, which is the rest of the answer. -->
+            <FrameLayout
+               android:id="@+id/stepBarBlock"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="@dimen/space_xs"
+               android:paddingLeft="@dimen/space_xs"
+               android:paddingRight="@dimen/space_xs"
+               android:paddingTop="3dp"
+               android:paddingBottom="3dp"
+               android:background="@drawable/hero_sparkline"
+               android:clickable="true"
+               android:focusable="true"
+               android:visibility="gone">
+
+              <com.cube.nanotimer.util.view.SolveStepBarView
+                 android:id="@+id/heroStepBar"
+                 android:layout_width="match_parent"
+                 android:layout_height="11dp"/>
+            </FrameLayout>
 
             <!-- Shorter than the style's 54dp: the one place landscape cannot afford it. -->
             <androidx.appcompat.widget.AppCompatButton

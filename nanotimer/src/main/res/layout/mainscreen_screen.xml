@@ -230,6 +230,28 @@
             </LinearLayout>
           </LinearLayout>
 
+          <!-- Where the average solve's time goes, in the same bar the Analysis screen draws.
+               Tapping it opens that screen, which is the rest of the answer. -->
+          <FrameLayout
+             android:id="@+id/stepBarBlock"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="@dimen/space_s"
+             android:paddingLeft="@dimen/space_xs"
+             android:paddingRight="@dimen/space_xs"
+             android:paddingTop="5dp"
+             android:paddingBottom="5dp"
+             android:background="@drawable/hero_sparkline"
+             android:clickable="true"
+             android:focusable="true"
+             android:visibility="gone">
+
+            <com.cube.nanotimer.util.view.SolveStepBarView
+               android:id="@+id/heroStepBar"
+               android:layout_width="match_parent"
+               android:layout_height="14dp"/>
+          </FrameLayout>
+
         </LinearLayout>
 
       </androidx.cardview.widget.CardView>

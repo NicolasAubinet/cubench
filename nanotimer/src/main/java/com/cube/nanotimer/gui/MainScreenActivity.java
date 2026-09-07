@@ -37,6 +37,7 @@ import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeGate;
+import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.gui.widget.AboutDialog;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
@@ -49,6 +50,7 @@ import com.cube.nanotimer.gui.widget.SelectorListDialog;
 import com.cube.nanotimer.gui.widget.SolveNavigator;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.backup.BackupRestorer;
@@ -64,11 +66,14 @@ import com.cube.nanotimer.util.view.SolveTypeIcons;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.SparklineView;
+import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
+import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
 
 import java.io.IOException;
@@ -76,6 +81,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -94,6 +100,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private SparklineView sparkline;
   private View sparklineBlock;
   private View heroStatsRow;
+  private View stepBarBlock;
+  private SolveStepBarView heroStepBar;
   private View tvNoSolves;
   private Button buStart;
 
@@ -237,6 +245,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     sparkline = (SparklineView) findViewById(R.id.sparkline);
     sparklineBlock = findViewById(R.id.sparklineBlock);
     heroStatsRow = findViewById(R.id.heroStatsRow);
+    stepBarBlock = findViewById(R.id.stepBarBlock);
+    heroStepBar = (SolveStepBarView) findViewById(R.id.heroStepBar);
     tvNoSolves = findViewById(R.id.tvNoSolves);
 
     findViewById(R.id.cubeTypeRow).setOnClickListener(new OnClickListener() {
@@ -256,6 +266,13 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       public void onClick(View view) {
         // The graph opens on the same solves the line just drew: the trend, in full.
         openGraph(GraphActivity.Period.LAST_SOLVES);
+      }
+    });
+    stepBarBlock.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        // The screen that owns this bar, opened on the tab that draws it full size.
+        openAnalysis();
       }
     });
     for (int cell = 0; cell < STAT_CELL_IDS.length; cell++) {
@@ -720,6 +737,65 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       }
     });
     refreshStatCells();
+    refreshStepBar();
+  }
+
+  /**
+   * The average solve, split into its steps, in the same bar the Analysis screen draws full size.
+   * Only for a solve type a cube has read: a type with no breakdowns has no steps to split.
+   */
+  private void refreshStepBar() {
+    if (!SmartCubeGate.ENABLED || curSolveType == null) {
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          stepBarBlock.setVisibility(View.GONE);
+        }
+      });
+      return;
+    }
+    final SolveType solveType = curSolveType;
+    // The same window the hub reads over, so the bar and the screen it opens say the same thing.
+    int solves = AnalysisWindow
+        .of(Options.INSTANCE.getAnalysisWindow(AnalysisWindow.HUNDRED.ordinal())).solves();
+    App.INSTANCE.getService().getMethodStatistics(solveType, SolveTypeMethod.of(solveType), solves,
+      new DataCallback<MethodStatistics>() {
+        @Override
+        public void onData(final MethodStatistics statistics) {
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
+                return; // the user moved on while this was loading
+              }
+              showStepBar(statistics);
+            }
+          });
+        }
+      });
+  }
+
+  private void showStepBar(MethodStatistics statistics) {
+    List<StepStats> families = statistics.getFamilies();
+    stepBarBlock.setVisibility(families.isEmpty() ? View.GONE : View.VISIBLE);
+    if (families.isEmpty()) {
+      return;
+    }
+    List<String> codes = new ArrayList<>();
+    for (StepStats step : families) {
+      codes.add(step.getCode());
+    }
+    // The method's own step order, so a Roux first block is the colour a cross is.
+    StepPalette palette = StepPalette.of(this, codes);
+    List<SolveStep> segments = new ArrayList<>();
+    int[] colors = new int[families.size()];
+    for (int i = 0; i < families.size(); i++) {
+      StepStats step = families.get(i);
+      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs(), step.getMeanMs(),
+        Collections.<SolveStep>emptyList()));
+      colors[i] = palette.colorFor(step.getCode());
+    }
+    heroStepBar.setSteps(segments, colors);
   }
 
   /**
