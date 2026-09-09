@@ -76,7 +76,7 @@ public class SpelledAsNamedTest {
       checked += algorithms.size();
     }
     assertEquals("", mismatches.toString());
-    assertEquals(170, checked); // or the sweep passed by reading nothing
+    assertEquals(180, checked); // or the sweep passed by reading nothing
   }
 
   private static String mismatches(String scramble, String moves) {
@@ -115,7 +115,10 @@ public class SpelledAsNamedTest {
     if (read == null || read.getMethod() == null) {
       return algorithms; // a solve this cannot read again names no algorithm to check
     }
-    SolveSolution solution = SolveSolution.from(moves, read.getSteps(), CubeMethod.BLIND);
+    // The reading's own stream, carrying the grip its buffers settled on: a spelling and a name can
+    // only be held to each other where both stand in the one frame.
+    SolveSolution solution =
+        SolveSolution.from(read.getMoves(), read.getSteps(), CubeMethod.BLIND);
     for (int s = 0; s < read.getSteps().size(); s++) {
       List<SolveStep> parts = read.getSteps().get(s).getSubSteps();
       for (int p = 0; p < parts.size(); p++) {

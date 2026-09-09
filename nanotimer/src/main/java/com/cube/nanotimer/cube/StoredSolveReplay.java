@@ -1,5 +1,6 @@
 package com.cube.nanotimer.cube;
 
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
@@ -29,10 +30,19 @@ import java.util.List;
  * changes. Detectors read states and never move letters, so they are unaffected by this either way.
  *
  * <p>The one gyro answer that <em>is</em> kept is the grip the solve was picked up in, written in
- * front of the stored moves because a blind solve's targets are spelled through it and no move
- * token gives it back: every token is dated at a move, and a slice opening the solve has already
- * carried the core round by the time the first one is written. A blind solve recorded before the
- * grip was kept is read again by nobody, which is why one is refused rather than guessed at.
+ * front of the stored moves because no move token gives it back: every token is dated at a move, and
+ * a slice opening the solve has already carried the core round by the time the first one is written.
+ *
+ * <p><b>A blind solve no longer depends on it for its names.</b> Its frame is settled by the pieces
+ * it shot from ({@link com.cube.nanotimer.smartcube.step.BlindStepDetector}), so a grip the gyro got
+ * wrong is repaired rather than preserved, and the grip handed back is the one the reading settled
+ * on.
+ *
+ * <p>A solve carrying no grip at all is still refused, and for its <em>moves</em> rather than its
+ * names: those streams predate the record-time slice and grip fixes, so their rotation tokens
+ * cannot be folded again. Measured over the seven such fixtures — four of them come out spelled
+ * exactly as their names once the buffers settle the frame, and three do not, which is the older
+ * recording and not this. They can be let in the day that is worth fixing.
  *
  * <p><b>The one assumption it makes that the live reading does not.</b> Live, the analysis starts
  * from the state the cube reports; here it starts from the scramble applied to a solved cube. Those
@@ -48,6 +58,7 @@ public final class StoredSolveReplay {
 
   /** A breakdown read afresh: which method the moves fitted, and how far they got. */
   public static final class Result {
+    private final String moves;
     private final CubeMethod method;
     private final List<SolveStep> steps;
     private final Integer stoppedStep;
@@ -56,9 +67,10 @@ public final class StoredSolveReplay {
     private final ParityCheck parityCheck;
     private final boolean reachedSolved;
 
-    Result(CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
+    Result(String moves, CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
         BlindResidual residual, LostReading lostReading, ParityCheck parityCheck,
         boolean reachedSolved) {
+      this.moves = moves;
       this.method = method;
       this.steps = steps;
       this.stoppedStep = stoppedStep;
@@ -66,6 +78,15 @@ public final class StoredSolveReplay {
       this.lostReading = lostReading;
       this.parityCheck = parityCheck;
       this.reachedSolved = reachedSolved;
+    }
+
+    /**
+     * The stream to spell the solve from: the stored one, carrying the grip the reading settled on.
+     * A blind solve is named through its own buffers rather than through the gyro's grip, and the
+     * spelling has to stand in the same frame as the names or neither can be held to the other.
+     */
+    public String getMoves() {
+      return moves;
     }
 
     public CubeMethod getMethod() {
@@ -141,6 +162,8 @@ public final class StoredSolveReplay {
         apply(cube, token);
       }
       MethodAnalyzers analyzers = new MethodAnalyzers(expected);
+      analyzers.setBlindBuffers(
+          Options.INSTANCE.getBlindEdgeBuffer(), Options.INSTANCE.getBlindCornerBuffer());
       if (pickup != null) {
         analyzers.setPickupRotation(CubeRotation.byNotation(pickup));
       }
@@ -159,9 +182,10 @@ public final class StoredSolveReplay {
       }
       CubeMethod method = analyzers.resolve();
       if (method == null) {
-        return new Result(null, Collections.<SolveStep>emptyList(), null, null, null, null,
-            reachedSolved);
+        return new Result(storedMoves, null, Collections.<SolveStep>emptyList(), null, null, null,
+            null, reachedSolved);
       }
+      CubeRotation grip = analyzers.getPickupRotation();
       SolveAnalyzer analyzer = analyzers.get(method);
       Integer stoppedStep = analyzer.getStoppedStep();
       // A reading that says the solve ran to the end has to have reached solved. Where it did not,
@@ -171,7 +195,9 @@ public final class StoredSolveReplay {
       if (stoppedStep == null && !analyzer.isComplete()) {
         return null;
       }
-      return new Result(method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
+      String moves = grip == null ? storedMoves
+          : SolveMovesFormat.withPickup(storedMoves, grip.getNotation());
+      return new Result(moves, method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
           stoppedStep, analyzer.getResidual(), analyzer.getLostReading(),
           analyzer.getParityCheck(), reachedSolved);
     } catch (RuntimeException e) {

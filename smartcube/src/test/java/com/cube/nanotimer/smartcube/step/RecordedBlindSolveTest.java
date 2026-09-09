@@ -869,14 +869,14 @@ public class RecordedBlindSolveTest {
    * Solve 190 is the one whose grip the app read a quarter turn out. Read through the frame it was
    * really held in, its corners are four clean pairs, each shot from the buffer.
    *
-   * <p>What the wrong frame used to do was worse than misspell them: it printed an algorithm shot at
-   * a single target, and a corner named twice as though its own two stickers were two targets, since
-   * the buffer it was told of sat on a piece those algorithms never touched. Named as the cycle it
-   * shot, the same solve at the same wrong frame is still eleven three-cycles from one buffer — a
-   * wrong frame moves every letter and invents nothing, and only the frame itself can fix it.
+   * <p>Handed the wrong frame it now comes out right anyway: the buffers say how the cube was held,
+   * and the frame is theirs rather than the gyro's. What the wrong frame used to do was worse than
+   * misspell them — it printed an algorithm shot at a single target, and a corner named twice as
+   * though its own two stickers were two targets, since the buffer it was told of sat on a piece
+   * those algorithms never touched.
    */
   @Test
-  public void readsAWrongFrameAsTheWrongSpellingAndNotTheWrongAlgorithm() {
+  public void readsASolveThroughItsOwnBuffersAndNotTheFrameItIsHandled() {
     replay(RecordedBlindSolve.SCRAMBLE_190, RecordedBlindSolve.MOVES_190, Long.MAX_VALUE,
         Integer.valueOf(13)); // the grip the solve was really held in
 
@@ -888,7 +888,44 @@ public class RecordedBlindSolveTest {
     RecordedBlindSolveTest askew = new RecordedBlindSolveTest();
     askew.replay(RecordedBlindSolve.SCRAMBLE_190, RecordedBlindSolve.MOVES_190, Long.MAX_VALUE,
         Integer.valueOf(17)); // the frame the app derived from a first move taken mid-slice
-    List<String> names = namesOf(askew.detector);
+    assertEquals(namesOf(detector), namesOf(askew.detector));
+  }
+
+  /**
+   * The solve of 2026-09-09, whose stored grip is a quarter turn out because the gyro was asked
+   * which face was up while the cube rocked across the 45° line. Read through the grip it carries,
+   * every algorithm is shot from {@code DF} and {@code DFR}; read through the pieces it shot from,
+   * they are the owner's own {@code UF} and {@code UFR}, and the algorithms are ordinary 3-style.
+   */
+  @Test
+  public void readsTheSolveWhoseStoredGripWasTakenMidTilt() {
+    replay(RecordedBlindSolve.SCRAMBLE_TILTED_GRIP, RecordedBlindSolve.MOVES_TILTED_GRIP,
+        Long.MAX_VALUE);
+
+    for (String name : namesOf(detector)) {
+      // A twist says its buffer from the sticker the corner is turned onto, so the piece is what is
+      // asked for and not the letters in order.
+      char[] buffer = name.replaceAll("^(flip|twist|breakin):", "").split("-")[0].toCharArray();
+      java.util.Arrays.sort(buffer);
+      assertEquals(name, buffer.length == 2 ? "FU" : "FRU", new String(buffer));
+    }
+  }
+
+  /**
+   * And the repair is the declaration's doing and not a search's: told the solver shoots from
+   * {@code UB}/{@code UBR}, the same solve at the same wrong frame stays where it was put.
+   *
+   * <p>Which is what says a wrong frame cannot be spotted from the inside. Read at frame 17 the
+   * solve is still eleven three-cycles from one buffer, every algorithm named as the cycle it shot:
+   * a rotated frame moves every letter and invents nothing, so nothing but the solver saying which
+   * piece they shoot from can tell the two readings apart.
+   */
+  @Test
+  public void spellsTheSolveThroughWhateverBuffersItIsToldOf() {
+    detector.setBuffers("UB", "UBR");
+    replay(RecordedBlindSolve.SCRAMBLE_190, RecordedBlindSolve.MOVES_190, Long.MAX_VALUE,
+        Integer.valueOf(17));
+    List<String> names = namesOf(detector);
     assertEquals(11, names.size());
     for (String name : names) {
       String[] pieces = name.split("-");
@@ -1141,18 +1178,18 @@ public class RecordedBlindSolveTest {
   }
 
   /**
-   * With no frame established the names are spelled as the cube reports them: wrong about the
-   * holding frame and so about every letter, but it is all a solve can be read as when nothing says
-   * how the cube was picked up. Which cycle each algorithm shot is right either way — that is read
-   * off the cube and not off the grip.
+   * A solve that says nothing about how it was picked up is still named in the frame it was held
+   * in, because the pieces it shot from say. Read as the cube reports them these are
+   * {@code UBR-LUF-UBL} and {@code UR-UL-UB}, which is what a solve recorded before grips were kept
+   * used to come out as, and what no solver ever memorised.
    */
   @Test
-  public void spellsTheNamesAsReportedUntilTheFrameIsKnown() {
+  public void namesASolveThatCarriesNoGripThroughItsOwnBuffers() {
     replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE,
         Integer.valueOf(BlindTargets.UNKNOWN_FRAME));
 
-    assertEquals("UBR-LUF-UBL", detector.subStepName(2, 2)); // held, these are UFR-BUL-UBR
-    assertEquals("UR-UL-UB", detector.subStepName(1, 5));
+    assertEquals("UFR-BUL-UBR", detector.subStepName(2, 2));
+    assertEquals("UF-UB-UR", detector.subStepName(1, 5));
   }
 
   /**
@@ -1167,7 +1204,11 @@ public class RecordedBlindSolveTest {
 
   private void replay(String scramble, String moves, long lastOffsetMs, Integer frame) {
     if (frame != null) {
-      detector.setHoldingFrame(frame);
+      // Handed the way the app hands it, as the grip the gyro read. Set as a holding frame instead
+      // and the detector has nothing to fall back on, so the buffers settle every solve alike and a
+      // test that means to hand a wrong frame hands none.
+      detector.setPickupRotation(frame == BlindTargets.UNKNOWN_FRAME ? null
+          : FaceletRotations.rotationOf(FaceletRotations.inverse(frame)));
     }
     boolean turned = false;
     for (String token : moves.trim().split("\\s+")) {
@@ -1175,8 +1216,10 @@ public class RecordedBlindSolveTest {
       // the pick-up itself, rather than the frame at the first move that the tokens give.
       if (token.startsWith("[")) {
         if (frame == null) {
-          detector.setPickupRotation(
-              CubeRotation.byNotation(token.substring(1, token.indexOf(']'))));
+          // A grip of two tokens ("[y x']") is two words: it is read off the whole stream, not off
+          // the one this loop is standing on.
+          detector.setPickupRotation(CubeRotation.byNotation(
+              moves.substring(moves.indexOf('[') + 1, moves.indexOf(']'))));
         }
         turned = true;
         break;
@@ -1196,8 +1239,8 @@ public class RecordedBlindSolveTest {
     }
     detector.reset(new CubeState(cube.toFaceCube()), 0);
     for (String token : moves.trim().split("\\s+")) {
-      if (token.startsWith("[")) {
-        continue; // the grip, already read above: it has no offset, so it is not a move
+      if (token.indexOf('@') < 0) {
+        continue; // the grip, already read above: its tokens have no offset, so they are not moves
       }
       String notation = token.substring(0, token.indexOf('@'));
       long offsetMs = Long.parseLong(token.substring(token.indexOf('@') + 1));

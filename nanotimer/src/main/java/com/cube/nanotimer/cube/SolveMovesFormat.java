@@ -49,7 +49,10 @@ public final class SolveMovesFormat {
   public static String format(List<CubeMove> moves, List<RotationTracker.Rotation> rotations,
       long solveStartMs, String pickup) {
     StringBuilder sb = new StringBuilder();
-    if (pickup != null && !pickup.isEmpty()) {
+    if (pickup != null) {
+      // Written even when it is empty. An identity grip has no notation, and skipping the brackets
+      // there leaves a solve picked up square indistinguishable from one recorded before grips were
+      // kept, which is a solve nothing will read again.
       sb.append(PICKUP_OPEN).append(pickup).append(PICKUP_CLOSE);
     }
     int next = 0;
@@ -98,7 +101,16 @@ public final class SolveMovesFormat {
       return null;
     }
     int close = stored.indexOf(PICKUP_CLOSE);
-    return close <= 1 ? null : stored.substring(1, close);
+    return close < 1 ? null : stored.substring(1, close);
+  }
+
+  /** The same stream with a grip in front of it, in place of whatever it carried. */
+  public static String withPickup(String stored, String pickup) {
+    String moves = stored;
+    if (pickupOf(stored) != null) {
+      moves = stored.substring(stored.indexOf(PICKUP_CLOSE) + 1).trim();
+    }
+    return pickup == null ? moves : PICKUP_OPEN + pickup + PICKUP_CLOSE + " " + moves;
   }
 
   /** Parses the stored form back. Skips anything malformed rather than losing the whole solution. */

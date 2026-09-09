@@ -724,6 +724,37 @@ final class RecordedBlindSolve {
           + "U@44956 B'@45394 B@45782 U'@46964 B'@47179 D@47353 B@47528 U'@47662 B'@48116 "
           + "B@48284 U@48545 B'@48718 D@48975 B@49112 U@49323";
 
+
+  /**
+   * The solve of 2026-09-09, recorded through a grip the gyro got wrong: it stores {@code [y x']}
+   * where the cube was held at {@code y}, so every name came out an {@code x'} round and the owner's
+   * {@code UF}/{@code UFR} read as {@code DF}/{@code DFR}.
+   *
+   * <p>The gyro could not have done better. Over the last ten seconds of the memorisation the cube's
+   * up face flipped between {@code U}, {@code F} and {@code B} six times, tilting 40-47° each way,
+   * so the snap to the nearest of the 24 was riding the 45° line; moving the end of the grip window
+   * by 250 ms changes the answer. It is the fixture for the frame being the buffers' to settle.
+   */
+  static final String SCRAMBLE_TILTED_GRIP =
+      "L2 R2 D L2 R2 U2 B2 D' B2 D' R' F U B2 L2 B U2 L2 U R D'";
+  static final String MOVES_TILTED_GRIP =
+      "[y x'] y@28719 x'@28719 B@28719 L'@28961 B'@29179 F@29182 z'@29183 U'@29358 U'@29474 "
+          + "B@29726 F'@29787 z@29788 L'@29935 z'@30224 B'@30225 F@31160 B'@31170 z'@31171 "
+          + "R@31376 B'@31477 R'@31639 B@31817 F'@31877 z@31878 U@32192 B@32512 U'@32692 B@33077 "
+          + "F'@33222 z@33223 L@33310 L@33426 B@33527 F'@33583 z@33584 D'@33732 B'@33848 F@33863 "
+          + "z'@33864 L@33958 L@34066 F@34559 B'@34577 z'@34578 U@35113 U@35607 B@35797 U@35896 "
+          + "B'@35982 U'@36079 B'@36257 U'@36452 B'@36674 U@36940 B@37139 B'@38438 L@38639 "
+          + "L'@39063 B@39270 U'@39767 B'@40295 L@40860 B@41157 R'@41581 L@41607 x@41608 U'@41794 "
+          + "L'@41992 U@42147 L'@42315 R@42335 x'@42336 U@42566 U'@42959 F@43307 U@43926 D'@43930 "
+          + "y'@43931 L'@44072 U'@44230 U'@44350 L@44453 U'@44550 D@44577 y@44578 F'@44904 "
+          + "U'@45358 U'@45856 B@46019 U'@46369 D'@46510 B'@46676 U@46790 B@46853 D@46978 "
+          + "B'@47080 U'@47244 B@47333 U@47495 B'@47775 U@47959 B@48493 U@48631 B'@48744 B'@48803 "
+          + "D@48885 B@49043 B@49113 D'@49231 z'@49357 B'@49358 B'@49421 U'@49515 z@49653 B@49654 "
+          + "B@49732 D@49806 z'@49948 B'@49949 B'@50028 D'@50210 z@50483 B@50483 B@51212 D@51321 "
+          + "B'@51426 D'@51541 B@51650 U@51788 B'@51862 D@51974 B@52158 U'@52414 D'@52456 "
+          + "B'@53055 B@53466 U'@53552 B'@53712 U@54017 B@54220 D@54308 B'@54447 U'@54554 B@54658 "
+          + "U@54788 B'@54893 U'@55043 B@55179 D'@55444 B'@55670 U@55763";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -744,5 +775,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_OPENED_ON_A_CLOSED_CYCLE, MOVES_OPENED_ON_A_CLOSED_CYCLE},
     {SCRAMBLE_FLIPPED_THE_WRONG_PAIR, MOVES_FLIPPED_THE_WRONG_PAIR},
     {SCRAMBLE_STOPPED_MID_CORNERS, MOVES_STOPPED_MID_CORNERS},
+    {SCRAMBLE_TILTED_GRIP, MOVES_TILTED_GRIP},
   };
 }

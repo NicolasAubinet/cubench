@@ -192,9 +192,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
           fresh ? reread.getStoppedStep() : solveTime.getSmartcubeStoppedStep();
       // The tail is derived rather than stored, so it is added back here, before anything reads the
       // breakdown: the solution splits its moves by the same step windows the bar draws.
-      List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs,
-          solveTime.getSmartcubeMoves(), method);
-      buildBreakdown(v, steps, SolveSolution.from(solveTime.getSmartcubeMoves(), steps, method),
+      // The re-reading's own stream, which carries the grip it settled on: a blind solve is named
+      // through its buffers, and the spelling has to stand in the frame the names do.
+      String moves = fresh ? reread.getMoves() : solveTime.getSmartcubeMoves();
+      List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs, moves, method);
+      buildBreakdown(v, steps, SolveSolution.from(moves, steps, method),
           getString(R.string.breakdown), null, method);
       showResidual(v, fresh ? reread.getResidual() : null);
       showParityCheck(v, fresh ? reread.getParityCheck() : null);

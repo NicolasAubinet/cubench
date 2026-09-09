@@ -182,8 +182,8 @@ public final class CaseExecutions {
       return;
     }
     List<SolveStep> steps = SolveBreakdown.withTail(reread.getSteps(), reread.getStoppedStep(),
-        SolveBreakdown.solvingDurationMs(solve), solve.getSmartcubeMoves(), reread.getMethod());
-    SolveSolution solution = SolveSolution.from(solve.getSmartcubeMoves(), steps);
+        SolveBreakdown.solvingDurationMs(solve), reread.getMoves(), reread.getMethod());
+    SolveSolution solution = SolveSolution.from(reread.getMoves(), steps);
     for (int i = 0; i < steps.size() && i < solution.getSteps().size(); i++) {
       if (reread.getStoppedStep() != null && reread.getStoppedStep().intValue() == i) {
         continue; // the solve stopped inside it, so its moves are half of an answer

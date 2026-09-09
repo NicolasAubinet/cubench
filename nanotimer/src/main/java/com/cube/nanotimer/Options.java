@@ -25,6 +25,10 @@ public enum Options {
   /** What the timer screen draws under the scramble: the cube, the flat net, or nothing. */
   public enum StatePreview { CUBE, NET, NONE }
 
+  /** What a 3-styler shoots from, and so what to assume of a solver who has not said. */
+  public static final String DEFAULT_EDGE_BUFFER = "UF";
+  public static final String DEFAULT_CORNER_BUFFER = "UFR";
+
   private Context context;
   private SharedPreferences sharedPreferences;
 
@@ -54,6 +58,9 @@ public enum Options {
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
+  public static final String SMART_CUBE_EDGE_BUFFER_KEY = "smart_cube_edge_buffer";
+  public static final String SMART_CUBE_CORNER_BUFFER_KEY = "smart_cube_corner_buffer";
+  public static final String SMART_CUBE_BUFFERS_ASKED_KEY = "smart_cube_buffers_asked";
   public static final String SMART_CUBE_AUTO_STOP_KEY = "smart_cube_auto_stop";
   public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
@@ -470,6 +477,38 @@ public enum Options {
 
   public void setPreferredMethodAsked(boolean asked) {
     sharedPreferences.edit().putBoolean(SMART_CUBE_METHOD_ASKED_KEY, asked).apply();
+  }
+
+  /**
+   * The pieces the solver shoots from blindfolded, which is what a blind reconstruction is spelled
+   * through: the frame is the one that puts the piece every algorithm shot from at these. Defaults
+   * to the 3-style pair, the commonest by far, and is asked for once at the first blind solve.
+   *
+   * <p>Answered without preferences behind it, which is what the reconstruction tests read it
+   * through: they exercise the reading and not what the solver was asked.
+   */
+  public String getBlindEdgeBuffer() {
+    return sharedPreferences == null ? DEFAULT_EDGE_BUFFER
+        : sharedPreferences.getString(SMART_CUBE_EDGE_BUFFER_KEY, DEFAULT_EDGE_BUFFER);
+  }
+
+  public String getBlindCornerBuffer() {
+    return sharedPreferences == null ? DEFAULT_CORNER_BUFFER
+        : sharedPreferences.getString(SMART_CUBE_CORNER_BUFFER_KEY, DEFAULT_CORNER_BUFFER);
+  }
+
+  public void setBlindBuffers(String edge, String corner) {
+    sharedPreferences.edit().putString(SMART_CUBE_EDGE_BUFFER_KEY, edge)
+        .putString(SMART_CUBE_CORNER_BUFFER_KEY, corner).apply();
+  }
+
+  // Tracked apart from the values, which have defaults and so cannot say whether they were set.
+  public boolean areBlindBuffersAsked() {
+    return sharedPreferences.getBoolean(SMART_CUBE_BUFFERS_ASKED_KEY, false);
+  }
+
+  public void setBlindBuffersAsked(boolean asked) {
+    sharedPreferences.edit().putBoolean(SMART_CUBE_BUFFERS_ASKED_KEY, asked).apply();
   }
 
   // Whether the cube reading solved stops the timer by itself. Off leaves the solve to be stopped

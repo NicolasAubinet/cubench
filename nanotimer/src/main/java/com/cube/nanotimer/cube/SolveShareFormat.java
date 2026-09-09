@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import android.content.Context;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
@@ -18,7 +19,12 @@ import java.util.List;
  * The moves and the step rows are already the output of the frame reading, so a solve spelled
  * through the wrong frame shares that spelling and nothing that could contradict it. The gyro track
  * is the only stored thing the reading is derived <em>from</em>, so it goes too, kilobytes and all:
- * without it a wrongly-read solve cannot be told from a wrongly-turned one.
+ * without it a wrongly-read solve cannot be told from a wrongly-turned one. A blind solve's buffers
+ * go with it for the same reason: the frame is theirs to settle and they live in the settings rather
+ * than on the solve, so a paste without them cannot be read again the way it was read here.
+ *
+ * <p>The breakdown itself is read again rather than taken from the store, the way the solve sheet
+ * reads it, so what is pasted somewhere else is what the owner was looking at.
  */
 public final class SolveShareFormat {
 
@@ -28,17 +34,25 @@ public final class SolveShareFormat {
   /** @param gyroTrack the solve's stored track, read separately, or null where it has none */
   public static String smartcubeSection(Context context, SolveTime solveTime, String gyroTrack) {
     long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
-    CubeMethod method = solveTime.getSmartcubeMethod();
-    List<SolveStep> steps = SolveBreakdown.withTail(solveTime.getSmartcubeSteps(),
-        solveTime.getSmartcubeStoppedStep(), durationMs, solveTime.getSmartcubeMoves(), method);
+    // Read again rather than shared out of the store, so what is pasted somewhere else is what the
+    // solve sheet shows: the sheet re-reads too, and a blind solve read again is named through the
+    // frame its own buffers ask for rather than the one the gyro guessed at.
+    StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solveTime.getScramble(),
+        solveTime.getSmartcubeMoves(), SolveTypeMethod.of(solveTime.getSolveType()));
+    boolean fresh = reread != null && reread.getMethod() != null;
+    CubeMethod method = fresh ? reread.getMethod() : solveTime.getSmartcubeMethod();
+    String moves = fresh ? reread.getMoves() : solveTime.getSmartcubeMoves();
+    List<SolveStep> steps = SolveBreakdown.withTail(
+        fresh ? reread.getSteps() : solveTime.getSmartcubeSteps(),
+        fresh ? reread.getStoppedStep() : solveTime.getSmartcubeStoppedStep(), durationMs, moves,
+        method);
     StringBuilder sb = new StringBuilder();
     // Solves recorded before the method breakdown stopped being kept for a solve type with its own
     // steps still carry one. It is not shown anywhere, so it is not shared either.
     if (steps != null && !steps.isEmpty() && !solveTime.hasSteps()) {
-      appendBreakdown(context, sb, steps,
-          SolveSolution.from(solveTime.getSmartcubeMoves(), steps, method), method);
+      appendBreakdown(context, sb, steps, SolveSolution.from(moves, steps, method), method);
     }
-    appendRawData(context, sb, solveTime, gyroTrack);
+    appendRawData(context, sb, solveTime, gyroTrack, method);
     return sb.toString();
   }
 
@@ -105,9 +119,14 @@ public final class SolveShareFormat {
         ? solution.getSteps().get(stepIndex).getPartMoves(part) : "";
   }
 
-  /** The stored fields verbatim, not the derived display: what an offline replay starts from. */
+  /**
+   * The stored fields verbatim, not the derived display: what an offline replay starts from.
+   *
+   * @param method the method the breakdown above was read as, so the one input the reading takes
+   *     from outside the solve is shared where it means anything
+   */
   private static void appendRawData(Context context, StringBuilder sb, SolveTime solveTime,
-      String gyroTrack) {
+      String gyroTrack, CubeMethod method) {
     if (sb.length() > 0) {
       sb.append('\n');
     }
@@ -115,7 +134,15 @@ public final class SolveShareFormat {
     if (solveTime.getSmartcubeMethod() != null) {
       sb.append("method: ").append(solveTime.getSmartcubeMethod().getCode()).append('\n');
     }
+    // The stream as recorded, grip and all. Not the one the reading settled on: what the gyro made
+    // of the pick-up is the first thing to look at when a reconstruction is wrong.
     sb.append("moves: ").append(solveTime.getSmartcubeMoves()).append('\n');
+    // Which makes the buffers an input like the scramble, since a blind solve is named through them
+    // rather than through that grip. See BlindFrame.
+    if (method == CubeMethod.BLIND) {
+      sb.append("buffers: ").append(Options.INSTANCE.getBlindEdgeBuffer()).append(' ')
+          .append(Options.INSTANCE.getBlindCornerBuffer()).append('\n');
+    }
     if (solveTime.hasSmartcubeBreakdown()) {
       sb.append("steps: ").append(SolveStepsFormat.format(solveTime.getSmartcubeSteps())).append('\n');
     }

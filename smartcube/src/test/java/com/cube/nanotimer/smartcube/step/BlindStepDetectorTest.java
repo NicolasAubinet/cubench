@@ -64,7 +64,19 @@ public class BlindStepDetectorTest {
   private static final String T_PERM_ELSEWHERE = "U " + T_PERM + " U'";
 
   private final CubieCube cube = new CubieCube();
-  private final BlindStepDetector detector = new BlindStepDetector();
+  private final BlindStepDetector detector = detectorShootingFromTheseFixtures();
+
+  /**
+   * The fixtures below shoot from {@code UR} and {@code UFR} in the cube's own frame, so a solver of
+   * them holds the cube square and the names are the cube's own. Said out loud because the frame is
+   * otherwise the buffers' to settle, and a detector told nothing assumes a 3-styler's {@code UF}.
+   */
+  private static BlindStepDetector detectorShootingFromTheseFixtures() {
+    BlindStepDetector detector = new BlindStepDetector();
+    detector.setBuffers("UR", "UFR");
+    return detector;
+  }
+
   /** The solve is fed through the analyzer, which is how the app feeds it: it only forwards. */
   private final SolveAnalyzer analyzer = new SolveAnalyzer(detector);
 
@@ -144,6 +156,9 @@ public class BlindStepDetectorTest {
    * A solver may float their buffer, starting each cycle from whichever piece they please, so which
    * piece an algorithm was shot from is read off the cycle rather than configured. Here the two edge
    * cycles share no piece at all: no one buffer could name both, and each is said from its own.
+   *
+   * <p>Which is also what keeps the frame where it was: the edges settle no buffer to name it
+   * through, since no slot has a majority of them, so the cube's own letters stand.
    */
   @Test
   public void namesEachCycleFromThePieceItWasShotFrom() {

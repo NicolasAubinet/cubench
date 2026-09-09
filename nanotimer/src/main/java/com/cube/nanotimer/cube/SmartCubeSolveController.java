@@ -219,8 +219,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     solveMoves = SolveMovesFormat.format(analyzers.moves().getMoves(),
         rotationTracker.getRotations(
             sliceSpins.coreSpins(SmartCubeManager.INSTANCE::getOrientationAt)),
-        solveStartMs,
-        usedPickup == null ? null : usedPickup.getNotation());
+        solveStartMs, gripToStore());
     // The same window the moves cover, read off the buffer the gyro has been filling all along —
     // no sampling of our own during the solve, so recording costs nothing until it is over.
     gyroTrack = GyroTrackFormat.format(
@@ -228,6 +227,19 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
             solveStartMs, lastSolveMoveHostMs + GYRO_CATCHUP_MS),
         gyroReference.get(), solveStartMs);
     onRecorded.run();
+  }
+
+  /**
+   * The grip the stored stream carries: the one the analysis actually named the solve through, so
+   * reading it back gives the same names. A blind solve settles its own from the pieces it shot
+   * from, which is the answer wherever it has one; anything else keeps the gyro's.
+   */
+  private String gripToStore() {
+    CubeRotation settled = analyzers.getPickupRotation();
+    if (settled != null) {
+      return settled.getNotation();
+    }
+    return usedPickup == null ? null : usedPickup.getNotation();
   }
 
   /** Takes the verdict back down where the move that finishes the solve only just landed. */
@@ -528,6 +540,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     if (state == null) {
       return;
     }
+    // Asked here, at every solve, rather than once with the scramble: a solver who has only just
+    // been asked what they shoot from, or who has changed it in the settings, is answered on the
+    // very next solve and not on the one after it.
+    analyzers.setBlindBuffers(
+        Options.INSTANCE.getBlindEdgeBuffer(), Options.INSTANCE.getBlindCornerBuffer());
     analyzers.start(state, startTimestampMs);
     analyzing = true;
   }

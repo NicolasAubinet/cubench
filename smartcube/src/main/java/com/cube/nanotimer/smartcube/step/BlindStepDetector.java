@@ -76,6 +76,13 @@ import java.util.List;
  * every way at once reads all two thousand as well or better, and still reads more of 55 of the
  * three thousand face-turn ones.
  *
+ * <p><b>The frame the names are spelled in is the buffers' to settle, not the gyro's.</b> Which slot
+ * each algorithm was shot from is read off cube states, and the solver says which slot they shoot
+ * from, so the rotation between the two is how they were holding the cube. That is worth more than
+ * the grip: the gyro is asked which face is up over the two seconds before the first move, and a
+ * memorisation does not hold still enough to answer. See {@link BlindFrame}, which carries the
+ * measurement. The grip handed in still decides a solve whose own buffers do not settle it.
+ *
  * <p><b>An algorithm is a flip or a twist when its net effect leaves every piece it touched in the
  * slot that piece belongs to</b> — turned where it stands rather than cycled anywhere. Read off the
  * effect rather than off how many pieces moved, which is what a real solve demanded: two flips and a
@@ -94,6 +101,9 @@ public final class BlindStepDetector implements StepDetector {
   private static final int PARITY_TYPE = 2;
   /** A landing that gained nothing — an algorithm undone, or one that only moved the buffer on. */
   private static final int NO_GAIN = -1;
+
+  /** What a 3-styler shoots from, and so what to assume of a solver who has not said. */
+  private static final String DEFAULT_EDGE_BUFFER = "UF", DEFAULT_CORNER_BUFFER = "UFR";
 
   private static final String MEMO = "memo";
   private static final String PARITY = "parity";
@@ -269,6 +279,11 @@ public final class BlindStepDetector implements StepDetector {
   private final List<Landing> landings = new ArrayList<>();
 
   private BlindTargets targets = new BlindTargets(BlindTargets.UNKNOWN_FRAME);
+  private int holding = BlindTargets.UNKNOWN_FRAME; // the frame names are spelled in
+  private int given = BlindTargets.UNKNOWN_FRAME; // and the one handed in, which the buffers overrule
+  // The slots the solver says they shoot from, which is what settles the frame. See BlindFrame.
+  private final int[] declared =
+      {Cubies.slotNamed(DEFAULT_EDGE_BUFFER), Cubies.slotNamed(DEFAULT_CORNER_BUFFER)};
   private int buffer; // the piece the solve is shooting from, for as long as it stays out
   private int lastBuffer; // and the last one it shot from, kept after that one came home
   // The last piece each type was shot from. A parity swaps a pair of each and is said from both, so
@@ -295,8 +310,45 @@ public final class BlindStepDetector implements StepDetector {
    * cube reports it as, and names have to be spelled the other way round.
    */
   public void setPickupRotation(CubeRotation pickup) {
-    setHoldingFrame(pickup == null ? BlindTargets.UNKNOWN_FRAME
-        : FaceletRotations.inverse(FaceletRotations.of(pickup)));
+    int frame = pickup == null ? BlindTargets.UNKNOWN_FRAME
+        : FaceletRotations.inverse(FaceletRotations.of(pickup));
+    if (frame != given) {
+      given = frame;
+      rename(frame);
+    }
+  }
+
+  /**
+   * The grip the solve is being named through, which is the one the buffers asked for wherever they
+   * settled it and the one handed in otherwise. Null before anything has said. What is stored with
+   * the moves, since the names have to come out the same when they are read back.
+   */
+  public CubeRotation getPickupRotation() {
+    return holding == BlindTargets.UNKNOWN_FRAME ? null
+        : FaceletRotations.rotationOf(FaceletRotations.inverse(holding));
+  }
+
+  /**
+   * The pieces the solver shoots from, spelled as the faces they belong on ({@code UF}, {@code UFR}).
+   * A slot and not a sticker: which of a buffer's stickers the memo reads from is the solver's own
+   * business, and only where the piece sits says how they are holding the cube.
+   */
+  public void setBuffers(String edge, String corner) {
+    int edgeSlot = Cubies.slotNamed(edge);
+    int cornerSlot = Cubies.slotNamed(corner);
+    if (edgeSlot == declared[EDGES] && cornerSlot == declared[CORNERS]) {
+      return;
+    }
+    declared[EDGES] = edgeSlot;
+    declared[CORNERS] = cornerSlot;
+    rename(given);
+  }
+
+  /** Spell the solve so far again: a frame is not a thing the names can be moved to afterwards. */
+  private void rename(int frame) {
+    setHoldingFrame(frame);
+    builtFrom = null;
+    rebuild();
   }
 
   /**
@@ -304,6 +356,7 @@ public final class BlindStepDetector implements StepDetector {
    * spelled in it; left unknown they fall back to the reported frame.
    */
   void setHoldingFrame(int rotation) {
+    holding = rotation;
     targets = new BlindTargets(rotation);
   }
 
@@ -478,6 +531,16 @@ public final class BlindStepDetector implements StepDetector {
       return;
     }
     builtFrom = best.key();
+    read(best);
+    int settled = BlindFrame.of(shotFrom(), declared, given);
+    if (settled != holding) {
+      setHoldingFrame(settled);
+      read(best); // named again in the frame the pieces it shot from ask for
+    }
+  }
+
+  /** The landings of one reading, each named against the one before it, in the frame now held. */
+  private void read(Reading best) {
     landings.clear();
     parityFound = false;
     buffer = BlindTargets.NO_BUFFER;
@@ -492,6 +555,40 @@ public final class BlindStepDetector implements StepDetector {
       readAlgorithm(best.tails.get(0), best.tailMs.get(0));
     }
     nameWhatNothingSettled();
+  }
+
+  /**
+   * The slot each piece type was shot from, where <b>most</b> of its algorithms agree on one. A
+   * majority and not a plurality: one algorithm whose buffer was misread must not move the frame the
+   * rest of them are named in, and a solver who floats their buffer has no answer to give here at
+   * all — their solve keeps the frame it was handed.
+   *
+   * <p>A type read only once is its own majority, and does settle the frame. Deliberately: the
+   * alternative is the grip, which is a coin flip ({@link BlindFrame}), so one reading of where the
+   * solver shot from is worth more than none even where nothing corroborates it.
+   */
+  private int[] shotFrom() {
+    int[] shot = {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
+    for (int type = EDGES; type <= CORNERS; type++) {
+      int[] counts = new int[Cubies.PIECES.length];
+      int shots = 0;
+      int most = 0;
+      for (Landing landing : landings) {
+        if (!landing.shot || landing.buffer == BlindTargets.NO_BUFFER
+            || (Cubies.isEdge(landing.buffer) ? EDGES : CORNERS) != type) {
+          continue;
+        }
+        shots++;
+        if (++counts[landing.buffer] > most) {
+          most = counts[landing.buffer];
+          shot[type] = landing.buffer;
+        }
+      }
+      if (most * 2 <= shots) {
+        shot[type] = BlindTargets.NO_BUFFER;
+      }
+    }
+    return shot;
   }
 
   /**

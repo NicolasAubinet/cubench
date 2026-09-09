@@ -56,6 +56,21 @@ public final class MethodAnalyzers {
     }
   }
 
+  /** The pieces the solver shoots from, which is what settles a blind solve's grip. */
+  public void setBlindBuffers(String edge, String corner) {
+    if (blindDetector != null) {
+      blindDetector.setBuffers(edge, corner);
+    }
+  }
+
+  /**
+   * The grip a blind solve was read through, which is the one its buffers asked for rather than the
+   * one handed in. Null for any other method, and before anything has settled one.
+   */
+  public CubeRotation getPickupRotation() {
+    return blindDetector == null ? null : blindDetector.getPickupRotation();
+  }
+
   public void start(CubeState startState, long startTimestampMs) {
     for (SolveAnalyzer analyzer : analyzers.values()) {
       analyzer.start(startState, startTimestampMs);

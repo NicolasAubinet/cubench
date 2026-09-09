@@ -63,6 +63,28 @@ final class Cubies {
     return slot < EDGES.length;
   }
 
+  /**
+   * The slot a piece is called by, spelled as the faces it belongs on in any order: {@code UF} and
+   * {@code FU} are the same slot, since a slot is a place and not a sticker.
+   */
+  static int slotNamed(String name) {
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      if (PIECES[slot].length == name.length() && sameLetters(homeColoursOf(PIECES[slot]), name)) {
+        return slot;
+      }
+    }
+    return -1;
+  }
+
+  private static boolean sameLetters(String colours, String name) {
+    for (int i = 0; i < name.length(); i++) {
+      if (colours.indexOf(name.charAt(i)) < 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static int slotOf(int facelet) {
     for (int slot = 0; slot < PIECES.length; slot++) {
       for (int candidate : PIECES[slot]) {

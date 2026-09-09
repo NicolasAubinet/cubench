@@ -109,6 +109,16 @@ final class FaceletRotations {
     return IDENTITY;
   }
 
+  /** The same rotation as the gyro writes it: {@link #of} read backwards. */
+  static CubeRotation rotationOf(int rotation) {
+    for (CubeRotation candidate : CubeRotation.all()) {
+      if (of(candidate) == rotation) {
+        return candidate;
+      }
+    }
+    return CubeRotation.byNotation("");
+  }
+
   /** The rotations that leave the given face where it is — a quarter turn about it, and its powers. */
   static int[] about(int face) {
     int[] found = new int[4];

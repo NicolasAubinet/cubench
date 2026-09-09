@@ -43,7 +43,25 @@ public class SolveMovesFormatTest {
     assertNull(SolveMovesFormat.pickupOf("R@0 U'@200"));
     assertNull(SolveMovesFormat.pickupOf(""));
     assertNull(SolveMovesFormat.pickupOf(null));
-    assertNull(SolveMovesFormat.pickupOf("[] R@0")); // nothing between the brackets is nothing
+  }
+
+  /**
+   * Empty brackets are a grip and not the absence of one: a solve picked up square has no notation
+   * to write, and read back as nothing it would be a solve nobody can name again.
+   */
+  @Test
+  public void readsEmptyBracketsAsTheGripThatHasNoNotation() {
+    assertEquals("", SolveMovesFormat.pickupOf("[] R@0"));
+    assertEquals("[] R@0 U'@200 F@450", SolveMovesFormat.format(MOVES,
+        Collections.<RotationTracker.Rotation>emptyList(), 1_000, ""));
+  }
+
+  /** Re-gripping replaces whatever the stream carried, and adds one to a stream carrying none. */
+  @Test
+  public void writesAGripOverTheOneAStreamCarries() {
+    assertEquals("[y] R@0 U'@200", SolveMovesFormat.withPickup("[x2] R@0 U'@200", "y"));
+    assertEquals("[y] R@0 U'@200", SolveMovesFormat.withPickup("R@0 U'@200", "y"));
+    assertEquals("R@0 U'@200", SolveMovesFormat.withPickup("[x2] R@0 U'@200", null));
   }
 
   @Test
