@@ -1154,9 +1154,4 @@
   <string name="analysis_help_shape_body">Elija OLL y aparecerá al lado un botón Forma, con los grupos por los que se conocen sus casos: los dots, los fish, los L shapes. El número indica el tamaño del grupo. Tocar el encabezado Caso devuelve la lista al orden de los casos.</string>
   <string name="analysis_help_rest_body">Bajo la tabla, los casos de este paso de los que la ventana no tiene ninguna cifra, agrupados por dónde están. Eso se lee de todos tus resueltos y no de la ventana, así que un caso que conoces pero que no ha salido últimamente aparece ahí como conocido. Toca uno para ver sus algoritmos.</string>
 
-  <string name="analysis_drill_title">Casos más costosos</string>
-  <plurals name="analysis_drill_costliest">
-    <item quantity="one">Practicar el caso más costoso</item>
-    <item quantity="other">Practicar los %d más costosos</item>
-  </plurals>
 </resources>

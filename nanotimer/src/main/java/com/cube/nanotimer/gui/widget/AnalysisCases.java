@@ -74,9 +74,6 @@ public class AnalysisCases {
       R.string.analysis_column_cost};
   private static final boolean[] OPENS_DESCENDING = {true, true, true, true};
 
-  /** How many of the dearest cases the drill button offers, when there are that many to offer. */
-  private static final int DRILL_CASES = 4;
-
   private static final int OPAQUE = 255;
 
   /** Every shape, which is how a family opens once it has been picked. */
@@ -120,11 +117,9 @@ public class AnalysisCases {
     return order;
   }
 
-  /** Told which case the reader asked to see, and which ones they asked to drill. */
+  /** Told which case the reader asked to see. */
   public interface Listener {
     void onCasePicked(String caseCode);
-
-    void onDrillPicked(List<String> caseCodes);
   }
 
   private final Context context;
@@ -190,7 +185,6 @@ public class AnalysisCases {
         .setVisibility(anything ? View.VISIBLE : View.GONE);
     if (!anything) {
       rows.removeAllViews();
-      root.findViewById(R.id.tvAnalysisDrillCostliest).setVisibility(View.GONE);
       return;
     }
     redraw();
@@ -467,37 +461,6 @@ public class AnalysisCases {
       rows.addView(row.view());
     }
     headings.refresh();
-    showDrill(cases);
-  }
-
-  /** The dearest few, offered as one drill: the answer to the top of the table it sits under. */
-  private void showDrill(List<StepStats> cases) {
-    final List<String> costliest = new ArrayList<String>();
-    List<StepStats> byCost = new ArrayList<StepStats>(cases);
-    Collections.sort(byCost, new Comparator<StepStats>() {
-      @Override
-      public int compare(StepStats a, StepStats b) {
-        return Long.compare(statistics.getTimeLostMs(b.getCode()),
-            statistics.getTimeLostMs(a.getCode()));
-      }
-    });
-    for (StepStats stepCase : byCost) {
-      if (costliest.size() < DRILL_CASES && enough(stepCase)
-          && statistics.getTimeLostMs(stepCase.getCode()) > 0) {
-        costliest.add(stepCase.getCode());
-      }
-    }
-    TextView drill = root.findViewById(R.id.tvAnalysisDrillCostliest);
-    // Nothing to offer where no case is costing anything, which is a table worth being proud of.
-    drill.setVisibility(costliest.isEmpty() ? View.GONE : View.VISIBLE);
-    drill.setText(context.getResources().getQuantityString(R.plurals.analysis_drill_costliest,
-        costliest.size(), Integer.valueOf(costliest.size())));
-    drill.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        listener.onDrillPicked(costliest);
-      }
-    });
   }
 
   /**
@@ -513,9 +476,10 @@ public class AnalysisCases {
    * <p>A case with nothing behind it is grouped under the words the ring above already counts it
    * with, and never under anything reading as "you do not know this": absence is not evidence.
    *
-   * <p><b>Nothing here can be drilled from here.</b> The table's button is composed from a measured
-   * cost and is free on that ground; a button composed from what the solver has not learnt is the
-   * paid plan's own composition, and something meant to be sold must not ship free even once.
+   * <p><b>Nothing on this tab offers a drill.</b> A drill composed from a finding is the app saying
+   * what to do next, which is what the plan is for; this tab says where the solver stands and stops
+   * there. The case set is not withheld by it — every case is named, ranked and pictured, and the
+   * drill picker composes any set of them by hand — so what the plan sells is the choosing.
    */
   private void showRest() {
     List<String> rest = restOfSet();

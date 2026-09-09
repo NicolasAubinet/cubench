@@ -1201,9 +1201,4 @@
   <string name="analysis_help_shape_body">Pick OLL and a Shape button appears beside it, with the groups its cases are known by: the dots, the fish, the L shapes. The number beside each is how big the group is. Tapping the Case heading puts the list back in case order.</string>
   <string name="analysis_help_rest_body">Under the table, the cases of this step the window holds no figures for, grouped by where they stand. That is read from every solve rather than from the window, so a case you know but have not had lately is in there as known. Tap one for its algorithms.</string>
 
-  <string name="analysis_drill_title">Costliest cases</string>
-  <plurals name="analysis_drill_costliest">
-    <item quantity="one">Drill the costliest case</item>
-    <item quantity="other">Drill the %d costliest</item>
-  </plurals>
 </resources>

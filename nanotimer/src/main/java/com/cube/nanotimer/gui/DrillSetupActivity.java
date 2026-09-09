@@ -428,12 +428,27 @@ public class DrillSetupActivity extends NanoTimerActivity
    * A drill of named cases, for a screen that has already worked out which ones are worth drilling
    * and should not make the reader pick them again.
    *
+   * <p><b>No caller yet.</b> The Analysis hub's Cases tab called this and no longer does: composing
+   * a practice set out of a finding is the plan saying what to do next, so it belongs behind the
+   * subscription rather than on a free tab. This is kept as the way such a drill is launched once
+   * there is a plan to launch it from, since how it is launched was itself a ruling: the cases ride
+   * in the spec.
+   *
    * <p>The cases ride in the spec rather than through the saved picks: what someone chose to drill
    * is theirs, and a screen elsewhere in the app must not quietly rewrite it on its way past.
+   *
+   * <p><b>It runs casual, whatever the setup screen was last left on.</b> The rep count and the
+   * layer face are that screen's standing answers and are inherited; recording is not, because it
+   * is the one of the three that writes something down. A drill offered off a finding is a thing to
+   * try, and a rep whose algorithm had to be shown is evidence against the case, so recording one
+   * would let a suggestion the reader accepted count against them.
    */
   public static Intent drillOf(Context context, List<String> cases, String title) {
     Intent intent = new Intent(context, DrillActivity.class);
     intent.putExtra(DrillActivity.EXTRA_LAYER_FACE, layerFace().name());
+    // Never recorded. A drill somebody was sent to is not a set of reps they sat down to count,
+    // and a revealed rep in one would demote the very case that sent them there.
+    intent.putExtra(DrillScreenActivity.EXTRA_RECORDING, false);
     intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-picked",
         DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL, cases,
         DrillSpec.Selection.ROUND_ROBIN, repCount(cases.size()), 0, title).toJson());

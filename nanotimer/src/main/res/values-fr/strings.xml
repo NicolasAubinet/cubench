@@ -1155,9 +1155,4 @@
   <string name="analysis_help_shape_body">Choisissez OLL et un bouton Forme apparaît à côté, avec les groupes sous lesquels ses cas sont connus : les dots, les fish, les L shapes. Le nombre indique la taille du groupe. Toucher l\'en-tête Cas remet la liste dans l\'ordre des cas.</string>
   <string name="analysis_help_rest_body">Sous le tableau, les cas de cette étape dont la fenêtre n\'a aucun chiffre, groupés par où ils en sont. Cela est lu sur toutes vos résolutions et non sur la fenêtre, donc un cas que vous connaissez mais qui n\'est pas venu récemment y figure comme connu. Touchez-en un pour ses algorithmes.</string>
 
-  <string name="analysis_drill_title">Cas les plus coûteux</string>
-  <plurals name="analysis_drill_costliest">
-    <item quantity="one">Entraîner le cas le plus coûteux</item>
-    <item quantity="other">Entraîner les %d plus coûteux</item>
-  </plurals>
 </resources>

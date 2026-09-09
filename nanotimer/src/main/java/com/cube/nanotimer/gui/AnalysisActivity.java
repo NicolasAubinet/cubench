@@ -331,12 +331,6 @@ public class AnalysisActivity extends NanoTimerActivity {
       public void onCasePicked(String caseCode) {
         CaseAlgorithmsDialog.newInstance(caseCode).show(getSupportFragmentManager(), "case");
       }
-
-      @Override
-      public void onDrillPicked(List<String> caseCodes) {
-        startActivity(DrillSetupActivity.drillOf(AnalysisActivity.this, caseCodes,
-            getString(R.string.analysis_drill_title)));
-      }
     };
   }
 
