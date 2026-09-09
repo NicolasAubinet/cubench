@@ -88,7 +88,7 @@ public class AnalysisCases {
   private static Map<String, Integer> shapeSizes() {
     Map<String, Integer> sizes = new LinkedHashMap<String, Integer>();
     for (String code : DRAWN.keySet()) {
-      String name = LastLayerCaseNames.shape(code);
+      String name = LastLayerCaseNames.group(code);
       if (name != null) {
         Integer held = sizes.get(name);
         sizes.put(name, Integer.valueOf(held == null ? 1 : held.intValue() + 1));
@@ -249,9 +249,9 @@ public class AnalysisCases {
   /**
    * The groups to narrow to, biggest first, each with how many cases it holds.
    *
-   * <p>Size order is what puts the groups worth narrowing to at the top and sinks the seven that
-   * hold a single case, and the count beside each is what makes that order explain itself. Neither
-   * works in a scrolling row, which is the whole reason this is a list.
+   * <p>Size order puts the groups with the most in them at the top, and the count beside each is
+   * what makes that order explain itself. Neither works in a scrolling row, which is the whole
+   * reason this is a list.
    */
   private void pickShape() {
     final List<String> shapes = shapesOf(family);
@@ -286,7 +286,7 @@ public class AnalysisCases {
       return shapes;
     }
     for (StepStats stepCase : drawnCases(picked)) {
-      String name = LastLayerCaseNames.shape(stepCase.getCode());
+      String name = LastLayerCaseNames.group(stepCase.getCode());
       if (name != null && !shapes.contains(name)) {
         shapes.add(name);
       }
@@ -390,7 +390,7 @@ public class AnalysisCases {
     List<String> set = new ArrayList<String>();
     for (String code : DRAWN.keySet()) {
       if ((ALL.equals(family) || family.equals(MethodStatistics.familyOf(code)))
-          && (ANY.equals(shape) || shape.equals(LastLayerCaseNames.shape(code)))) {
+          && (ANY.equals(shape) || shape.equals(LastLayerCaseNames.group(code)))) {
         set.add(code);
       }
     }
@@ -485,7 +485,7 @@ public class AnalysisCases {
     for (String code : families) {
       if (ALL.equals(picked) || code.equals(picked)) {
         for (StepStats stepCase : drawnCases(code)) {
-          if (ANY.equals(shape) || shape.equals(LastLayerCaseNames.shape(stepCase.getCode()))) {
+          if (ANY.equals(shape) || shape.equals(LastLayerCaseNames.group(stepCase.getCode()))) {
             cases.add(stepCase);
           }
         }

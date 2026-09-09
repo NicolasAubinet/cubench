@@ -8,7 +8,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import org.junit.Test;
 
@@ -222,6 +224,30 @@ public class LastLayerDiagramTest {
     assertEquals("Ga", LastLayerCaseNames.shortName("pll_ga"));
     assertEquals("21", LastLayerCaseNames.shortName("oll_21"));
     assertEquals("Sune", LastLayerCaseNames.shape("oll_27"));
+    assertEquals("OCLL", LastLayerCaseNames.group("oll_27"));
+    assertEquals("Fish", LastLayerCaseNames.group("oll_9"));
+  }
+
+  /** A group is what a handful of cases are learnt as, so one holding a single case is not one. */
+  @Test
+  public void groupsHoldMoreThanOneCase() {
+    Map<String, Integer> sizes = new HashMap<String, Integer>();
+    for (String code : LastLayerScrambles.cases()) {
+      String group = LastLayerCaseNames.group(code);
+      if (!code.startsWith("oll_")) {
+        assertNull(code, group);
+        continue;
+      }
+      assertNotNull(code, group);
+      Integer held = sizes.get(group);
+      sizes.put(group, Integer.valueOf(held == null ? 1 : held.intValue() + 1));
+    }
+    int cases = 0;
+    for (Map.Entry<String, Integer> group : sizes.entrySet()) {
+      assertTrue(group.getKey() + " holds " + group.getValue(), group.getValue().intValue() > 1);
+      cases += group.getValue().intValue();
+    }
+    assertEquals(57, cases);
   }
 
   private static int moved(LastLayerDiagram diagram, int[] cells) {
