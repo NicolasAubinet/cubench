@@ -86,11 +86,6 @@ public class StepStats implements Serializable {
 
   /** How far the step swings around its mean: an uneven case is a different complaint from a slow one. */
   public long getStdDevMs() {
-    if (count == 0) {
-      return 0;
-    }
-    double mean = (double) totalMs / count;
-    double variance = sumOfSquares / count - mean * mean;
-    return variance <= 0 ? 0 : (long) Math.sqrt(variance);
+    return Deviation.of(count, totalMs, sumOfSquares);
   }
 }

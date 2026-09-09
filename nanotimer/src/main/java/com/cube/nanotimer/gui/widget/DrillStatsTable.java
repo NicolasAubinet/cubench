@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.cube.nanotimer.R;
@@ -22,7 +23,7 @@ import java.util.Map;
 
 /**
  * Every case that has been drilled in a window, one line each: how often it came up, what it
- * averaged, and the two ends it swung between.
+ * averaged, its best, and how far it swings around that average.
  *
  * <p>A line is the case and not the rep, which is the whole difference between this table and the
  * one a finished drill ends on. There a case dealt four times is four attempts and the reader is
@@ -40,11 +41,15 @@ import java.util.Map;
  * the only thing that says which half of it is the problem, and it is the reason a case can be read
  * here at all rather than only compared.
  *
- * <p>Each column is coloured on its own green to red gradient, since a best and a worst are
+ * <p>Each column is coloured on its own green to red gradient, since a best and a spread are
  * different sizes of number and one scale over the three would paint a column green and another red
  * for no reason but that. The ends are the window's own fastest and slowest rather than percentiles:
  * a set of cases is dozens of lines, and trimming outliers out of dozens leaves the worst case,
  * which is the one being hunted, looking ordinary.
+ *
+ * <p>The third column is the spread and not the worst attempt, the same column and the same reading
+ * as the Analysis step table's: a maximum is owned by one rep and never improves, and two tables a
+ * reader crosses between must not head one column two ways.
  */
 public class DrillStatsTable {
 
@@ -58,9 +63,9 @@ public class DrillStatsTable {
 
   private static final int[] HEADING_LABELS = {R.string.drill_stats_column_count,
       R.string.drill_summary_cell_mean, R.string.drill_summary_cell_best,
-      R.string.drill_stats_column_worst};
-  // Every column opens at its own interesting end, which for a count is the case drilled most and
-  // for a time is the slowest.
+      R.string.drill_stats_column_spread};
+  // Every column opens at its own interesting end, which for a count is the case drilled most, for
+  // a time the slowest and for the spread the widest.
   private static final boolean[] OPENS_DESCENDING = {true, true, true, true};
 
   private final FragmentActivity activity;
@@ -119,7 +124,9 @@ public class DrillStatsTable {
     for (int column = 0; column < CaseRow.COLUMNS; column++) {
       List<Long> times = new ArrayList<Long>();
       for (DrillCaseStats caseStats : stats) {
-        times.add(value(caseStats, column + 1));
+        if (quotable(caseStats, column + 1)) {
+          times.add(value(caseStats, column + 1));
+        }
       }
       scales[column] = new TimeColorScale(activity);
       scales[column].setTimes(times, false);
@@ -133,6 +140,13 @@ public class DrillStatsTable {
     Collections.sort(stats, new Comparator<DrillCaseStats>() {
       @Override
       public int compare(DrillCaseStats a, DrillCaseStats b) {
+        // A case that cannot quote the ranked column sits under the ones that can, whichever way
+        // round the column is turned: it is not a steady case, it is one nothing can be said about.
+        boolean quotableA = quotable(a, sortedColumn);
+        boolean quotableB = quotable(b, sortedColumn);
+        if (quotableA != quotableB) {
+          return quotableA ? -1 : 1;
+        }
         int order = Long.compare(value(a, sortedColumn), value(b, sortedColumn));
         // Cases that tie stay in the order the codes are in, which is the order they are learnt in.
         return order != 0 ? (slowestFirst ? -order : order)
@@ -160,9 +174,22 @@ public class DrillStatsTable {
 
     for (int column = 0; column < CaseRow.COLUMNS; column++) {
       long time = value(caseStats, column + 1);
-      row.value(column, FormatterService.INSTANCE.formatSolveTime(time),
-          scales[column].colorFor(time, false));
+      if (quotable(caseStats, column + 1)) {
+        row.value(column, FormatterService.INSTANCE.formatSolveTime(time),
+            scales[column].colorFor(time, false));
+      } else {
+        row.value(column, activity.getString(R.string.NA),
+            ContextCompat.getColor(activity, R.color.secondary_text));
+      }
     }
+  }
+
+  /**
+   * Whether a case can quote a column at all. A spread needs two reps to exist: one rep would read
+   * 0.00, which is the best figure in the column and paints green, for a case nobody has measured.
+   */
+  private static boolean quotable(DrillCaseStats caseStats, int column) {
+    return column != 3 || caseStats.getCount() >= 2;
   }
 
   /** What a column holds for a case, with the count read as a figure like the rest. */
@@ -173,7 +200,7 @@ public class DrillStatsTable {
       case 2:
         return caseStats.getBestMs();
       case 3:
-        return caseStats.getWorstMs();
+        return caseStats.getStdDevMs();
       default:
         return caseStats.getCount();
     }

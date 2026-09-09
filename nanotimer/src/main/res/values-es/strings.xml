@@ -913,7 +913,7 @@
   <string name="drill_case_remove">Quitar</string>
   <string name="drill_case_removed">Quitada, toque para restaurar</string>
   <string name="drill_stats_title">Estadísticas de entrenamiento</string>
-  <string name="drill_stats_column_worst">Peor</string>
+  <string name="drill_stats_column_spread">Desvío</string>
   <plurals name="drill_stats_cell_cases">
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>
@@ -1180,7 +1180,9 @@
   <string name="analysis_help_delta">Frente a un resuelto típico</string>
   <string name="analysis_help_delta_body">Son partes de un mismo resuelto: si un paso está por encima, otro tiene que estar por debajo. Muestra qué paso está desequilibrado, no si eres rápido o lento.</string>
   <string name="analysis_help_table">La tabla de pasos</string>
-  <string name="analysis_help_table_body">Media, mejor y peor de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha y los abren.</string>
+  <string name="analysis_help_table_body">Media, mejor y desvío de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha y los abren.</string>
+  <string name="analysis_help_spread">Desvío</string>
+  <string name="analysis_help_spread_body">Cuánto cambia el paso de una resolución a otra. Dos pasos con la misma media pueden ser uno que haces siempre igual y otro en el que a veces te atascas, y esto es lo que los distingue.</string>
   <string name="analysis_help_plan_title">Un plan</string>
   <string name="analysis_help_plan_body">Aquí no se mide nada. La pestaña muestra qué cubriría un plan, y todavía no hay ninguno. Las cifras que usaría un plan están en Resolución y Casos, y esas siguen siendo gratis.</string>
   <string name="analysis_help_cases_title">Qué casos te cuestan</string>

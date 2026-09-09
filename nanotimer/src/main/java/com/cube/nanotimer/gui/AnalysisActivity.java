@@ -52,6 +52,12 @@ import java.util.Map;
  *
  * <p>Everything here is a number the app measured, or a sort or a subtraction of one. Nothing on
  * this screen is a judgement about what those numbers mean.
+ *
+ * <p>The step table's third column is the spread and not the worst. A maximum is owned by one
+ * observation and never improves, so inside a window it only falls when the bad solve ages out and
+ * over every solve it can never fall at all; a best has the same fragility and keeps its column
+ * because a best is read as a record, where a worst is read as a description of how bad the step
+ * routinely gets, which is not what a maximum measures.
  */
 public class AnalysisActivity extends NanoTimerActivity {
 
@@ -78,7 +84,7 @@ public class AnalysisActivity extends NanoTimerActivity {
   // No count column: a step is reached in nearly every solve, so its count is the solve count and
   // ranking by it would rank nothing. The rows leave it out too.
   private static final int[] HEADING_LABELS = {0, R.string.drill_summary_cell_mean,
-      R.string.drill_summary_cell_best, R.string.drill_stats_column_worst};
+      R.string.drill_summary_cell_best, R.string.drill_stats_column_spread};
   private static final boolean[] OPENS_DESCENDING = {true, true, true, true};
 
   private SolveType solveType;
@@ -459,7 +465,8 @@ public class AnalysisActivity extends NanoTimerActivity {
               ContextCompat.getColor(this, R.color.white))
           .value(1, FormatterService.INSTANCE.formatSolveTime(step.getBestMs()),
               ContextCompat.getColor(this, R.color.secondary_text))
-          .value(2, FormatterService.INSTANCE.formatSolveTime(step.getWorstMs()),
+          .value(2, quotable(step, 3) ? FormatterService.INSTANCE.formatSolveTime(step.getStdDevMs())
+                  : getString(R.string.NA),
               ContextCompat.getColor(this, R.color.secondary_text));
       // The chevron is a promise, so only a step whose cases the next tab can list carries one.
       // The others keep its room, or the figures would not line up down the table.
@@ -492,6 +499,13 @@ public class AnalysisActivity extends NanoTimerActivity {
     Collections.sort(ranked, new java.util.Comparator<StepStats>() {
       @Override
       public int compare(StepStats a, StepStats b) {
+        // A step that cannot quote the ranked column sits under the ones that can, whichever way
+        // round the column is turned, as it does on the Cases tab.
+        boolean quotableA = quotable(a, column);
+        boolean quotableB = quotable(b, column);
+        if (quotableA != quotableB) {
+          return quotableA ? -1 : 1;
+        }
         int order = Long.compare(value(a, column), value(b, column));
         return descending ? -order : order;
       }
@@ -506,6 +520,11 @@ public class AnalysisActivity extends NanoTimerActivity {
     headings.refresh();
   }
 
+  /** A spread needs two solves to exist: off one, 0.00 would read as the steadiest step there is. */
+  private static boolean quotable(StepStats step, int column) {
+    return column != 3 || step.getCount() >= 2;
+  }
+
   private static long value(StepStats step, int column) {
     switch (column) {
       case 1:
@@ -513,7 +532,7 @@ public class AnalysisActivity extends NanoTimerActivity {
       case 2:
         return step.getBestMs();
       case 3:
-        return step.getWorstMs();
+        return step.getStdDevMs();
       default:
         return step.getCount();
     }

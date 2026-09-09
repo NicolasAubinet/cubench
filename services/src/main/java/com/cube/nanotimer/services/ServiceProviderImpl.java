@@ -1232,9 +1232,9 @@ public class ServiceProviderImpl implements ServiceProvider {
 
   /**
    * The same tally as {@link #getDrillCaseStatistics}, over a stretch of time rather than a count of
-   * drills, and carrying the slowest rep as well as the quickest. A reader picking a window picks
-   * "this week", never "my last twenty drills", and the worst attempt is what says a case is known
-   * but not recognised.
+   * drills, and carrying both ends and the spread as well as the mean. A reader picking a window
+   * picks "this week", never "my last twenty drills", and how far a case swings around its mean is
+   * what says it is known but not recognised.
    *
    * <p>Left out for the same reason as there: a rep given up on was never finished, a rep where the
    * algorithm was looked up was finished with the answer in front of the user, a restarted one was
@@ -1254,6 +1254,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , SUM(r.").append(DB.COL_DRILL_REP_RECOGNITION).append(")");
     q.append("     , MIN(").append(total).append(")");
     q.append("     , MAX(").append(total).append(")");
+    q.append("     , SUM(").append(total).append(" * ").append(total).append(")");
     q.append("  FROM ").append(DB.TABLE_DRILL_REP).append(" r");
     q.append("  JOIN ").append(DB.TABLE_DRILL).append(" d");
     q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
@@ -1271,7 +1272,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         stats.add(new DrillCaseStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
-            cursor.getLong(3), cursor.getLong(4), cursor.getLong(5)));
+            cursor.getLong(3), cursor.getLong(4), cursor.getLong(5), cursor.getDouble(6)));
       }
       cursor.close();
     }

@@ -1585,6 +1585,7 @@ public class ServiceProviderTest {
     assertEquals(1750, stats.get(1).getMeanExecutionMs());
     assertEquals(2000, stats.get(1).getBestMs());
     assertEquals(3000, stats.get(1).getWorstMs());
+    assertEquals(500, stats.get(1).getStdDevMs()); // 2000 and 3000, each 500 off the mean
   }
 
   @Test

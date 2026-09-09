@@ -914,7 +914,7 @@
   <string name="drill_case_remove">Retirer</string>
   <string name="drill_case_removed">Retiré, touchez pour rétablir</string>
   <string name="drill_stats_title">Stats d\'entraînement</string>
-  <string name="drill_stats_column_worst">Pire</string>
+  <string name="drill_stats_column_spread">Écart</string>
   <plurals name="drill_stats_cell_cases">
     <item quantity="one">%d cas</item>
     <item quantity="other">%d cas</item>
@@ -1181,7 +1181,9 @@
   <string name="analysis_help_delta">Face à une résolution typique</string>
   <string name="analysis_help_delta_body">Ce sont des parts d\'une même résolution : si une étape est au-dessus, une autre est forcément en dessous. Cela montre quelle étape est déséquilibrée, pas si vous êtes rapide ou lent.</string>
   <string name="analysis_help_table">Le tableau des étapes</string>
-  <string name="analysis_help_table_body">Moyenne, meilleur et pire pour chaque étape. Touchez un en-tête pour trier dessus. Les étapes qui ont des cas nommés, OLL et PLL, portent une flèche et les ouvrent.</string>
+  <string name="analysis_help_table_body">Moyenne, meilleur et écart pour chaque étape. Touchez un en-tête pour trier dessus. Les étapes qui ont des cas nommés, OLL et PLL, portent une flèche et les ouvrent.</string>
+  <string name="analysis_help_spread">Écart</string>
+  <string name="analysis_help_spread_body">De combien l\'étape change d\'une résolution à l\'autre. Deux étapes de même moyenne peuvent être une étape que vous faites toujours pareil et une où vous bloquez parfois, et c\'est ce qui les distingue.</string>
   <string name="analysis_help_plan_title">Un plan</string>
   <string name="analysis_help_plan_body">Rien ici n\'est mesuré. Cet onglet montre ce qu\'un plan couvrirait, et il n\'y en a pas encore. Les chiffres qu\'un plan utiliserait sont dans Résolution et Cas, et ceux-là restent gratuits.</string>
   <string name="analysis_help_cases_title">Quels cas vous coûtent</string>

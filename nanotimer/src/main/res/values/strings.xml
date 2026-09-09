@@ -954,7 +954,7 @@
   <!-- Drill stats: every recorded drill added up, case by case, and then one case's own attempts. -->
   <string name="drill_stats_title">Drill stats</string>
   <string name="drill_stats_column_count" translatable="false">n</string>
-  <string name="drill_stats_column_worst">Worst</string>
+  <string name="drill_stats_column_spread">Spread</string>
   <plurals name="drill_stats_cell_cases">
     <item quantity="one">%d case</item>
     <item quantity="other">%d cases</item>
@@ -1227,7 +1227,9 @@
   <string name="analysis_help_delta">Against a typical solve</string>
   <string name="analysis_help_delta_body">These are shares of one solve, so if one step is over, another has to be under. It shows which step is out of balance, not whether you are fast or slow.</string>
   <string name="analysis_help_table">The step table</string>
-  <string name="analysis_help_table_body">Mean, best and worst for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
+  <string name="analysis_help_table_body">Mean, best and spread for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
+  <string name="analysis_help_spread">Spread</string>
+  <string name="analysis_help_spread_body">How much the step changes from solve to solve. Two steps with the same mean can be one you do the same way every time and one you sometimes get stuck on, and this is what tells them apart.</string>
   <string name="analysis_help_plan_title">A plan</string>
   <string name="analysis_help_plan_body">Nothing here is measured. The tab shows what a plan would cover, and there is none to have yet. The figures a plan would use are on Solve and Cases, and those stay free.</string>
   <string name="analysis_help_cases_title">Which cases cost you</string>

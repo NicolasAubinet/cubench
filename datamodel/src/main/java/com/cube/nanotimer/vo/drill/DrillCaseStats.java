@@ -1,13 +1,14 @@
 package com.cube.nanotimer.vo.drill;
 
+import com.cube.nanotimer.vo.Deviation;
+
 /**
- * What one case has cost over a stretch of drills: how often it came up, what it averaged, and the
- * two ends it swung between.
+ * What one case has cost over a stretch of drills: how often it came up, what it averaged, how far
+ * it swung either side of that, and the two ends it reached.
  *
  * <p>Kept apart from {@link com.cube.nanotimer.vo.StepStats}, which is the same tally for a coach
- * reading drills and solves against each other, because a reader wants a figure that one does not
- * carry: the worst attempt. A case whose mean is fine and whose worst is four seconds is a case
- * that is known and is not recognised, and that is the whole complaint a drill is run to find.
+ * reading drills and solves against each other, because a drill rep and a step of a solve are not
+ * the same measurement and merging the two would let one window answer for the other.
  *
  * <p>Sums rather than means, so the figures of two windows could be added without a mean of means
  * weighting a case seen twice as heavily as one seen forty times.
@@ -23,20 +24,23 @@ public class DrillCaseStats {
   private final long recognitionMs;
   private final long bestMs;
   private final long worstMs;
+  private final double sumOfSquares; // of the whole reps, for the spread
 
   /**
    * @param caseCode the case as a solve records it, {@code oll_21} or {@code pll_ga}
    * @param totalMs recognition and execution together, over every rep
    * @param bestMs the quickest rep, and {@code worstMs} the slowest, both of them whole reps
+   * @param sumOfSquares each rep multiplied by itself, added up
    */
   public DrillCaseStats(String caseCode, int count, long totalMs, long recognitionMs, long bestMs,
-      long worstMs) {
+      long worstMs, double sumOfSquares) {
     this.caseCode = caseCode;
     this.count = count;
     this.totalMs = totalMs;
     this.recognitionMs = recognitionMs;
     this.bestMs = bestMs;
     this.worstMs = worstMs;
+    this.sumOfSquares = sumOfSquares;
   }
 
   public String getCaseCode() {
@@ -74,6 +78,11 @@ public class DrillCaseStats {
 
   public long getRecognitionMs() {
     return recognitionMs;
+  }
+
+  /** How far the case swings around its mean: an uneven case is a different complaint from a slow one. */
+  public long getStdDevMs() {
+    return Deviation.of(count, totalMs, sumOfSquares);
   }
 
   /** How much of the case is spent finding the answer rather than turning, from 0 to 1. */
