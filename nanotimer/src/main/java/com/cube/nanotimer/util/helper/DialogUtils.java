@@ -9,10 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.core.app.ShareCompat;
-import android.widget.Toast;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveShareFormat;
@@ -125,54 +128,13 @@ public class DialogUtils {
     }
   }
 
-  /** A cube-recorded solve first asks whether to include the breakdown and reconstruction —
-   * the long form hands over everything needed to look into a solve, but is noise for a plain
-   * "look at my time" share. */
-  public static void shareTime(final Activity activity, final SolveTime solveTime, final CubeType cubeType) {
-    if (!solveTime.hasSmartcubeMoves()) {
-      shareTime(activity, solveTime, cubeType, null, false);
-      return;
-    }
-    showYesNoConfirmation(activity, R.string.share_include_breakdown, new YesNoListener() {
-      @Override
-      public void onYes() {
-        shareWithSmartcubeData(activity, solveTime, cubeType);
-      }
-
-      @Override
-      public void onNo() {
-        shareTime(activity, solveTime, cubeType, null, false);
-      }
-    });
-  }
-
   /**
-   * The gyro track is fetched here rather than carried on the solve: it is kilobytes, and a history
-   * screen holds hundreds of solves it would never look at. A solve with none simply shares without.
+   * Shares one solve: the time and the scramble, and the step breakdown where a cube recorded one.
+   * Nothing is asked, because there is nothing to ask — the breakdown is the solve as the sheet
+   * tells it. The raw data underneath, which is for looking into a reading that came out wrong
+   * rather than for reading, has its own way out in {@link #reportReconstruction}.
    */
-  private static void shareWithSmartcubeData(final Activity activity, final SolveTime solveTime,
-      final CubeType cubeType) {
-    if (solveTime.getId() <= 0) {
-      shareTime(activity, solveTime, cubeType, null, true);
-      return;
-    }
-    App.INSTANCE.getService().getGyroTrack(solveTime.getId(), new DataCallback<String>() {
-      @Override
-      public void onData(final String gyroTrack) {
-        activity.runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            if (!activity.isFinishing()) {
-              shareTime(activity, solveTime, cubeType, gyroTrack, true);
-            }
-          }
-        });
-      }
-    });
-  }
-
-  private static void shareTime(Activity activity, SolveTime solveTime, CubeType cubeType,
-      String gyroTrack, boolean withSmartcubeData) {
+  public static void shareTime(Activity activity, SolveTime solveTime, CubeType cubeType) {
     String timeStr = FormatterService.INSTANCE.formatSolveTime(solveTime);
     String timestampStr = FormatterService.INSTANCE.formatExportDateTime(solveTime.getTimestamp());
     String subject = activity.getString(R.string.share_time_subject, timeStr);
@@ -192,10 +154,93 @@ public class DialogUtils {
     } else {
       text = activity.getString(R.string.share_time_text, cubeType.getName(), timeStr, scramble, timestampStr, playStorePage);
     }
-    if (withSmartcubeData) {
-      text += "\n\n" + SolveShareFormat.smartcubeSection(activity, solveTime, gyroTrack);
+    // Empty for a solve type carrying its own steps, whose breakdown is the one already shared above.
+    String breakdown = solveTime.hasSmartcubeMoves()
+        ? SolveShareFormat.smartcubeSection(activity, solveTime, null, false) : "";
+    if (!breakdown.isEmpty()) {
+      text += "\n\n" + breakdown;
     }
     shareData(activity, subject, text, null, "text/plain");
+  }
+
+  /**
+   * The other way out, from the breakdown's own "Reconstruction wrong?": says what will leave the
+   * phone, takes the one thing the data cannot say for itself, and sends the lot to the app's
+   * mailbox. A report has a reader of exactly one, so it is addressed rather than offered around.
+   */
+  public static void reportReconstruction(final Activity activity, final SolveTime solveTime,
+      final CubeType cubeType) {
+    View body = activity.getLayoutInflater().inflate(R.layout.report_reconstruction_dialog, null);
+    final EditText tfComment = (EditText) body.findViewById(R.id.tfReportComment);
+
+    new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.report_reconstruction)
+        .setView(body)
+        .setPositiveButton(R.string.share_send_report, new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface d, int which) {
+            withGyroTrack(activity, solveTime, cubeType, tfComment.getText().toString().trim());
+          }
+        })
+        .setNegativeButton(R.string.cancel, null)
+        .show();
+  }
+
+  /** The track is fetched here rather than carried on the solve: it is kilobytes, and a history
+   * screen holds hundreds of solves it would never look at. A solve with none reports without it. */
+  private static void withGyroTrack(final Activity activity, final SolveTime solveTime,
+      final CubeType cubeType, final String comment) {
+    if (solveTime.getId() <= 0) {
+      sendReport(activity, solveTime, cubeType, null, comment);
+      return;
+    }
+    App.INSTANCE.getService().getGyroTrack(solveTime.getId(), new DataCallback<String>() {
+      @Override
+      public void onData(final String gyroTrack) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (!activity.isFinishing()) {
+              sendReport(activity, solveTime, cubeType, gyroTrack, comment);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  /** Opens on what the user saw, typed or still to type. A phone with no mail app falls back to the
+   * chooser, where the same text goes by whatever it does have. */
+  private static void sendReport(Activity activity, SolveTime solveTime, CubeType cubeType,
+      String gyroTrack, String comment) {
+    String timeStr = FormatterService.INSTANCE.formatSolveTime(solveTime);
+    String opening = comment.isEmpty()
+        ? activity.getString(R.string.report_reconstruction_intro) + "\n\n\n" : comment;
+    String text = activity.getString(R.string.report_reconstruction_header) + "\n\n" + opening + "\n\n"
+        + activity.getString(R.string.report_reconstruction_environment,
+            Utils.getAppVersion(activity), Build.VERSION.RELEASE, Build.MODEL) + "\n"
+        + cubeType.getName() + " · " + timeStr + " · "
+        + FormatterService.INSTANCE.formatExportDateTime(solveTime.getTimestamp()) + "\n\n"
+        + activity.getString(R.string.scramble) + "\n"
+        + ScrambleFormatterService.INSTANCE.formatScrambleForExport(solveTime.getScramble(), cubeType)
+        + "\n\n" + SolveShareFormat.smartcubeSection(activity, solveTime, gyroTrack, true);
+    // Tagged and untranslated, so every report a mailbox rule has to catch looks alike.
+    String subject = activity.getString(R.string.report_reconstruction_subject, cubeType.getName(),
+        timeStr, Utils.getAppVersion(activity));
+
+    // A send rather than a mailto, because a mailto is addressed by its URI and Gmail then drops
+    // the subject and the body, which arrive as extras. The mail mime type keeps the list to apps
+    // that send mail; a phone with none of those falls back to sharing the same text anywhere.
+    Intent mail = new Intent(Intent.ACTION_SEND)
+        .setType("message/rfc822")
+        .putExtra(Intent.EXTRA_EMAIL, new String[] { activity.getString(R.string.email) })
+        .putExtra(Intent.EXTRA_SUBJECT, subject)
+        .putExtra(Intent.EXTRA_TEXT, text);
+    try {
+      activity.startActivity(Intent.createChooser(mail, activity.getString(R.string.send_via)));
+    } catch (ActivityNotFoundException e) {
+      shareData(activity, subject, text, null, "text/plain");
+    }
   }
 
   public static void copyScrambleToClipboard(Context context, String scramble) {

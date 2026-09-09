@@ -293,6 +293,24 @@
           </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Quiet, and under the breakdown rather than beside its label: it is only ever wanted by
+             someone already reading the steps and finding them wrong. -->
+        <TextView
+           android:id="@+id/tvReportReconstruction"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_gravity="right|end"
+           android:layout_marginTop="@dimen/space_xs"
+           android:paddingLeft="@dimen/space_s"
+           android:paddingRight="@dimen/space_s"
+           android:paddingTop="@dimen/space_xs"
+           android:paddingBottom="@dimen/space_xs"
+           android:background="?android:attr/selectableItemBackground"
+           android:text="@string/report_reconstruction"
+           android:textSize="12sp"
+           android:textColor="@color/lightblue"
+           android:visibility="gone"/>
+
       </LinearLayout>
 
       <!-- Averages -->

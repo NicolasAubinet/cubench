@@ -11,17 +11,22 @@ import com.cube.nanotimer.vo.SolveTime;
 import java.util.List;
 
 /**
- * The smart-cube section of a shared solve: the breakdown as readable text, then the raw fields
- * that let whoever receives it replay the solve offline — sharing one is how a user hands over
- * everything needed to look into a solve, which is the route a reconstruction bug report takes.
+ * The smart-cube section of a shared solve: the breakdown as readable text, and, when the sharer
+ * asks for it, the raw fields that let whoever receives it replay the solve offline.
  *
- * <p><b>The raw fields have to be enough to re-derive the breakdown, not merely to repeat it.</b>
- * The moves and the step rows are already the output of the frame reading, so a solve spelled
- * through the wrong frame shares that spelling and nothing that could contradict it. The gyro track
- * is the only stored thing the reading is derived <em>from</em>, so it goes too, kilobytes and all:
- * without it a wrongly-read solve cannot be told from a wrongly-turned one. A blind solve's buffers
- * go with it for the same reason: the frame is theirs to settle and they live in the settings rather
- * than on the solve, so a paste without them cannot be read again the way it was read here.
+ * <p><b>The two halves are shared on different terms.</b> The breakdown is what the owner was
+ * looking at, so it goes with every shared solve, unasked: it is the solve told in step times, the
+ * thing there was anything to share about. The raw fields are for one purpose only — looking into a
+ * reconstruction that came out wrong — and are noise, and kilobytes of it, to anybody else. They go
+ * only where the sharer ticked the box that says so.
+ *
+ * <p><b>Where they do go, they have to be enough to re-derive the breakdown, not merely to repeat
+ * it.</b> The moves and the step rows are already the output of the frame reading, so a solve
+ * spelled through the wrong frame shares that spelling and nothing that could contradict it. The
+ * gyro track is the only stored thing the reading is derived <em>from</em>, so it goes too: without
+ * it a wrongly-read solve cannot be told from a wrongly-turned one. A blind solve's buffers go with
+ * it for the same reason: the frame is theirs to settle and they live in the settings rather than on
+ * the solve, so a paste without them cannot be read again the way it was read here.
  *
  * <p>The breakdown itself is read again rather than taken from the store, the way the solve sheet
  * reads it, so what is pasted somewhere else is what the owner was looking at.
@@ -31,8 +36,12 @@ public final class SolveShareFormat {
   private SolveShareFormat() {
   }
 
-  /** @param gyroTrack the solve's stored track, read separately, or null where it has none */
-  public static String smartcubeSection(Context context, SolveTime solveTime, String gyroTrack) {
+  /**
+   * @param gyroTrack the solve's stored track, read separately, or null where it has none
+   * @param withDebug whether the sharer asked for the raw fields as well as the breakdown
+   */
+  public static String smartcubeSection(Context context, SolveTime solveTime, String gyroTrack,
+      boolean withDebug) {
     long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
     // Read again rather than shared out of the store, so what is pasted somewhere else is what the
     // solve sheet shows: the sheet re-reads too, and a blind solve read again is named through the
@@ -52,7 +61,9 @@ public final class SolveShareFormat {
     if (steps != null && !steps.isEmpty() && !solveTime.hasSteps()) {
       appendBreakdown(context, sb, steps, SolveSolution.from(moves, steps, method), method);
     }
-    appendRawData(context, sb, solveTime, gyroTrack, method);
+    if (withDebug) {
+      appendRawData(context, sb, solveTime, gyroTrack, method);
+    }
     return sb.toString();
   }
 

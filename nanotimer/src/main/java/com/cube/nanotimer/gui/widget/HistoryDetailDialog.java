@@ -228,6 +228,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     setUpScrambleTools(v, solveTime, cubeType);
     setUpReplay(v, solveTime, cubeType);
+    setUpReportLink(v, solveTime, cubeType);
     ((TextView) v.findViewById(R.id.tvDate))
         .setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
     tvTime.setText(FormatterService.INSTANCE.formatMarkedSolveTime(solveTime));
@@ -250,6 +251,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.breakdownResidual).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownParity).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownLost).setVisibility(View.GONE);
+    v.findViewById(R.id.tvReportReconstruction).setVisibility(View.GONE);
     v.findViewById(R.id.movesSwitchLabel).setVisibility(View.VISIBLE);
     SwitchCompat moves = (SwitchCompat) v.findViewById(R.id.swMoves);
     moves.setVisibility(View.VISIBLE);
@@ -570,6 +572,28 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         DialogUtils.showFragment(getActivity(), SolveReplayDialog.newInstance(
             puzzleId, cubingScramble, solveTime.getSmartcubeMoves(),
             SolveBreakdown.solvingDurationMs(solveTime), breakdownSteps, solveTime.getId()));
+      }
+    });
+  }
+
+  /**
+   * The way to say a reconstruction came out wrong, under the breakdown that says it. Shown only
+   * where the section is, which {@code setUpReplay} has already settled: a solve whose steps could
+   * not be drawn at all opens the section for the replay button alone, and a wrong reading is worth
+   * reporting there too.
+   */
+  private void setUpReportLink(View v, final SolveTime solveTime, final CubeType cubeType) {
+    View link = v.findViewById(R.id.tvReportReconstruction);
+    if (!solveTime.hasSmartcubeMoves()
+        || v.findViewById(R.id.breakdownSection).getVisibility() != View.VISIBLE) {
+      link.setVisibility(View.GONE);
+      return;
+    }
+    link.setVisibility(View.VISIBLE);
+    link.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        DialogUtils.reportReconstruction(getActivity(), solveTime, cubeType);
       }
     });
   }

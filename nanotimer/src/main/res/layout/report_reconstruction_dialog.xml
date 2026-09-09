@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- There is nothing to choose here: a solve is reported or it is not, and the field is the one
+     thing the data cannot say for itself. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="@dimen/space_l"
+   android:paddingRight="@dimen/space_l"
+   android:paddingTop="@dimen/space_s"
+   android:paddingBottom="@dimen/space_s">
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:text="@string/report_reconstruction_body"
+     android:textSize="14sp"
+     android:textColor="@color/white"/>
+
+  <EditText
+     android:id="@+id/tfReportComment"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/space_m"
+     android:background="@drawable/dialog_time_field"
+     android:paddingLeft="12dp"
+     android:paddingRight="12dp"
+     android:paddingTop="11dp"
+     android:paddingBottom="11dp"
+     android:gravity="top|start"
+     android:minLines="3"
+     android:maxLines="6"
+     android:hint="@string/report_reconstruction_hint"
+     android:textColor="@color/white"
+     android:textColorHint="@color/secondary_text"
+     android:textSize="15sp"
+     android:inputType="textMultiLine|textCapSentences"/>
+
+</LinearLayout>
