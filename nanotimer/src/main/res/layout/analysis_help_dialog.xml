@@ -113,6 +113,11 @@
           <TextView android:text="@string/analysis_help_known_body" style="@style/HelpTermText"/>
         </LinearLayout>
 
+        <LinearLayout style="@style/HelpTermRow">
+          <TextView android:text="@string/analysis_help_shape" style="@style/HelpTermName"/>
+          <TextView android:text="@string/analysis_help_shape_body" style="@style/HelpTermText"/>
+        </LinearLayout>
+
       </LinearLayout>
 
       <LinearLayout

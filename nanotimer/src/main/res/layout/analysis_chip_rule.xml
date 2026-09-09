@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The rule between the family chips and the shape picker. Both narrow the same list, but a shape
+     belongs to the family left of the rule rather than standing beside it, and the two controls are
+     different kinds of thing: the chips are the pick, the picker is a scope set on it. -->
+<View xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="1dp"
+   android:layout_height="20dp"
+   android:layout_gravity="center_vertical"
+   android:layout_marginRight="@dimen/space_s"
+   android:background="@color/hero_divider"/>

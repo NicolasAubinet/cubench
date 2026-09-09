@@ -1113,6 +1113,9 @@
   <string name="analysis_column_cost">Coût</string>
   <string name="analysis_cost">%ss</string>
   <string name="analysis_family_all">Tous</string>
+  <string name="analysis_shape_title">Forme</string>
+  <string name="analysis_shape_all">Toutes les formes</string>
+  <string name="analysis_shape_count">%1$s (%2$d)</string>
   <string name="analysis_knowledge_of">sur %d</string>
   <string name="analysis_knowledge_known">Connu</string>
   <string name="analysis_knowledge_seen">Vus, encore lents</string>
@@ -1148,6 +1151,8 @@
   <string name="analysis_help_too_few_body">Le cas est venu trop peu de fois pour lui donner un coût. Élargissez la fenêtre en haut et d\'autres se rempliront.</string>
   <string name="analysis_help_known">Connu</string>
   <string name="analysis_help_known_body">Le cas est passé en un seul algorithme, sans aide. Pris sur vos résolutions, pas sur une liste que vous cochez. L\'anneau compte tous les cas de l\'ensemble, pas seulement ceux qui sont venus.</string>
+  <string name="analysis_help_shape">Forme</string>
+  <string name="analysis_help_shape_body">Choisissez OLL et un bouton Forme apparaît à côté, avec les groupes sous lesquels ses cas sont connus : les dots, les fish, les L shapes. Le nombre indique la taille du groupe. Toucher l\'en-tête Cas remet la liste dans l\'ordre des cas.</string>
 
   <string name="analysis_drill_title">Cas les plus coûteux</string>
   <plurals name="analysis_drill_costliest">

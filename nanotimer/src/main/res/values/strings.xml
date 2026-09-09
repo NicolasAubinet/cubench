@@ -1159,6 +1159,9 @@
   <string name="analysis_column_cost">Cost</string>
   <string name="analysis_cost">%ss</string>
   <string name="analysis_family_all">All</string>
+  <string name="analysis_shape_title">Shape</string>
+  <string name="analysis_shape_all">All shapes</string>
+  <string name="analysis_shape_count">%1$s (%2$d)</string>
   <string name="analysis_knowledge_of">of %d</string>
   <string name="analysis_knowledge_known">Known</string>
   <string name="analysis_knowledge_seen">Seen, still slow</string>
@@ -1194,6 +1197,8 @@
   <string name="analysis_help_too_few_body">The case came up too few times to put a cost on. Widen the window at the top and more of them fill in.</string>
   <string name="analysis_help_known">Known</string>
   <string name="analysis_help_known_body">The case went in with one algorithm and no help. Taken from your solves, not from a list you tick. The ring counts every case in the set, not only the ones that came up.</string>
+  <string name="analysis_help_shape">Shape</string>
+  <string name="analysis_help_shape_body">Pick OLL and a Shape button appears beside it, with the groups its cases are known by: the dots, the fish, the L shapes. The number beside each is how big the group is. Tapping the Case heading puts the list back in case order.</string>
 
   <string name="analysis_drill_title">Costliest cases</string>
   <plurals name="analysis_drill_costliest">

@@ -1,17 +1,20 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
@@ -23,10 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The Analysis hub's Cases tab: every case the window holds, ranked by what it costs, across every
@@ -41,6 +42,17 @@ import java.util.Set;
  * <p>A cost is a margin times a count, so it is only quoted for a case seen at least
  * {@link CoachPayloadBuilder#CASE_FLOOR} times; the rest say so rather than showing a figure read
  * off two occurrences.
+ *
+ * <p><b>A case has two names, and each gets its own control.</b> A solve names a case by its number,
+ * but a solver learns it by its shape, so both have to stay reachable. Ordering by the case itself is
+ * the leftmost heading; narrowing to a shape is a picker beside the family chips. Neither can move
+ * the other, so the two names never compete.
+ *
+ * <p><b>The shape is a picker rather than more chips.</b> Drawn as chips on the family row, twenty
+ * groups read as twenty more families: same height, same fill, same line, with a rule carrying the
+ * whole parent-and-child distinction. The app already has the control this wants one row up, where
+ * the window chip opens a single-choice list, and a list is also the only place the groups can be
+ * ordered by size legibly, which is what keeps the seven single-case groups off the front.
  */
 public class AnalysisCases {
 
@@ -60,8 +72,38 @@ public class AnalysisCases {
   /** Every family, which is how the chip row opens and what it falls back to. */
   private static final String ALL = "";
 
-  /** Every case the app has a picture and a set for, which is what this table may list. */
-  private static final Set<String> DRAWN = new LinkedHashSet<String>(LastLayerScrambles.cases());
+  /** Every shape, which is how a family opens once it has been picked. */
+  private static final String ANY = "";
+
+  /**
+   * Every case the app has a picture and a set for, which is what this table may list, each against
+   * its place in the set: an OLL by its number, a PLL by its letter, which is the order every chart
+   * of them is printed in.
+   */
+  private static final Map<String, Integer> DRAWN = drawn();
+
+  /** How many cases each shape groups, which is a fact about the set and not about a window. */
+  private static final Map<String, Integer> SHAPE_SIZES = shapeSizes();
+
+  private static Map<String, Integer> shapeSizes() {
+    Map<String, Integer> sizes = new LinkedHashMap<String, Integer>();
+    for (String code : DRAWN.keySet()) {
+      String name = LastLayerCaseNames.shape(code);
+      if (name != null) {
+        Integer held = sizes.get(name);
+        sizes.put(name, Integer.valueOf(held == null ? 1 : held.intValue() + 1));
+      }
+    }
+    return sizes;
+  }
+
+  private static Map<String, Integer> drawn() {
+    Map<String, Integer> order = new LinkedHashMap<String, Integer>();
+    for (String code : LastLayerScrambles.cases()) {
+      order.put(code, Integer.valueOf(order.size()));
+    }
+    return order;
+  }
 
   /** Told which case the reader asked to see, and which ones they asked to drill. */
   public interface Listener {
@@ -82,6 +124,7 @@ public class AnalysisCases {
       new LinkedHashMap<String, CaseKnowledge.Status>();
   private final List<String> families = new ArrayList<String>();
   private String family = ALL;
+  private String shape = ANY;
 
   public AnalysisCases(Context context, View root, Listener listener) {
     this.context = context;
@@ -96,6 +139,7 @@ public class AnalysisCases {
           }
         });
     headings.setLabel(R.string.analysis_column_case);
+    headings.rankableLabel(false); // a set opens at its first case, which is OLL 1 and PLL Aa
     headings.reserveChevron(true); // every case opens its algorithms, so every row carries one
   }
 
@@ -131,6 +175,11 @@ public class AnalysisCases {
       root.findViewById(R.id.tvAnalysisDrillCostliest).setVisibility(View.GONE);
       return;
     }
+    redraw();
+  }
+
+  /** The chips, the ring and the table as the picked family and shape now leave them. */
+  private void redraw() {
     showFamilies();
     showKnowledge();
     showCases();
@@ -157,6 +206,9 @@ public class AnalysisCases {
     if (!families.contains(family)) {
       family = ALL; // the family arrived on is not one this window has anything to say about
     }
+    if (!ANY.equals(shape) && !shapesOf(family).contains(shape)) {
+      shape = ANY;
+    }
   }
 
   private void showFamilies() {
@@ -167,6 +219,86 @@ public class AnalysisCases {
     for (String code : families) {
       addChip(row, inflater, code, Utils.toSmartCubeStepLocalizedName(context, code, 0));
     }
+    showShapePicker(row, inflater);
+  }
+
+  /**
+   * The shape picker, offered after the family chips behind a rule.
+   *
+   * <p>Only under one family, and never beside them all: a shape is how one family's cases are
+   * recognised, so it says nothing about a PLL and nothing at all about a list holding both.
+   */
+  private void showShapePicker(LinearLayout row, LayoutInflater inflater) {
+    if (shapesOf(family).isEmpty()) {
+      return;
+    }
+    row.addView(inflater.inflate(R.layout.analysis_chip_rule, row, false));
+    TextView chip = (TextView) inflater.inflate(R.layout.analysis_family_chip, row, false);
+    chip.setText(context.getString(R.string.analysis_window_chip,
+        ANY.equals(shape) ? context.getString(R.string.analysis_shape_title) : shape));
+    chip.setSelected(!ANY.equals(shape));
+    chip.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        pickShape();
+      }
+    });
+    row.addView(chip);
+  }
+
+  /**
+   * The groups to narrow to, biggest first, each with how many cases it holds.
+   *
+   * <p>Size order is what puts the groups worth narrowing to at the top and sinks the seven that
+   * hold a single case, and the count beside each is what makes that order explain itself. Neither
+   * works in a scrolling row, which is the whole reason this is a list.
+   */
+  private void pickShape() {
+    final List<String> shapes = shapesOf(family);
+    String[] labels = new String[shapes.size() + 1];
+    labels[0] = context.getString(R.string.analysis_shape_all);
+    for (int i = 0; i < shapes.size(); i++) {
+      labels[i + 1] = context.getString(R.string.analysis_shape_count, shapes.get(i),
+          SHAPE_SIZES.get(shapes.get(i)));
+    }
+    // The window chip's own dialog, down to its theme: this is the same control one row up.
+    new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.analysis_shape_title)
+        .setSingleChoiceItems(labels, shapes.indexOf(shape) + 1,
+            new DialogInterface.OnClickListener() {
+              @Override
+              public void onClick(DialogInterface dialog, int which) {
+                shape = which == 0 ? ANY : shapes.get(which - 1);
+                dialog.dismiss();
+                redraw();
+              }
+            })
+        .show();
+  }
+
+  /**
+   * The shapes one family's cases in this window are grouped by, biggest group first and ties by
+   * name. Left in the cubing vocabulary the app already keeps its case names in.
+   */
+  private List<String> shapesOf(String picked) {
+    List<String> shapes = new ArrayList<String>();
+    if (ALL.equals(picked)) {
+      return shapes;
+    }
+    for (StepStats stepCase : drawnCases(picked)) {
+      String name = LastLayerCaseNames.shape(stepCase.getCode());
+      if (name != null && !shapes.contains(name)) {
+        shapes.add(name);
+      }
+    }
+    Collections.sort(shapes, new Comparator<String>() {
+      @Override
+      public int compare(String a, String b) {
+        int size = SHAPE_SIZES.get(b).compareTo(SHAPE_SIZES.get(a));
+        return size != 0 ? size : a.compareTo(b);
+      }
+    });
+    return shapes;
   }
 
   private void addChip(LinearLayout row, LayoutInflater inflater, final String code, String label) {
@@ -177,9 +309,8 @@ public class AnalysisCases {
       @Override
       public void onClick(View v) {
         family = code;
-        showFamilies();
-        showKnowledge();
-        showCases();
+        shape = ANY; // a shape narrows the family it belongs to, so it cannot outlive the pick
+        redraw();
       }
     });
     row.addView(chip);
@@ -256,12 +387,10 @@ public class AnalysisCases {
    * because they touched a control about something else.
    */
   private List<String> closedSet() {
-    if (ALL.equals(family)) {
-      return new ArrayList<String>(DRAWN);
-    }
     List<String> set = new ArrayList<String>();
-    for (String code : DRAWN) {
-      if (family.equals(MethodStatistics.familyOf(code))) {
+    for (String code : DRAWN.keySet()) {
+      if ((ALL.equals(family) || family.equals(MethodStatistics.familyOf(code)))
+          && (ANY.equals(shape) || shape.equals(LastLayerCaseNames.shape(code)))) {
         set.add(code);
       }
     }
@@ -350,12 +479,16 @@ public class AnalysisCases {
     });
   }
 
-  /** Every case of the picked family, or of all of them. */
+  /** Every case of the picked family, or of all of them, narrowed to the picked shape. */
   private List<StepStats> casesOf(String picked) {
     List<StepStats> cases = new ArrayList<StepStats>();
     for (String code : families) {
       if (ALL.equals(picked) || code.equals(picked)) {
-        cases.addAll(drawnCases(code));
+        for (StepStats stepCase : drawnCases(code)) {
+          if (ANY.equals(shape) || shape.equals(LastLayerCaseNames.shape(stepCase.getCode()))) {
+            cases.add(stepCase);
+          }
+        }
       }
     }
     return cases;
@@ -365,7 +498,7 @@ public class AnalysisCases {
   private List<StepStats> drawnCases(String family) {
     List<StepStats> drawn = new ArrayList<StepStats>();
     for (StepStats stepCase : statistics.getCases(family)) {
-      if (DRAWN.contains(stepCase.getCode())) {
+      if (DRAWN.containsKey(stepCase.getCode())) {
         drawn.add(stepCase);
       }
     }
@@ -398,6 +531,9 @@ public class AnalysisCases {
   }
 
   private long value(StepStats stepCase, int column) {
+    if (column == CaseTableHeadings.LABEL_COLUMN) {
+      return DRAWN.get(stepCase.getCode()).longValue();
+    }
     switch (column) {
       case 1:
         return stepCase.getMeanMs();

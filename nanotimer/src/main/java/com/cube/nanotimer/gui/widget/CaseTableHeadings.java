@@ -27,6 +27,12 @@ public class CaseTableHeadings {
   private static final int[] HEADING_IDS = {R.id.tvCaseTableSortCount, R.id.tvCaseTableSortOne,
       R.id.tvCaseTableSortTwo, R.id.tvCaseTableSortThree};
 
+  /**
+   * The list's own name, for a table that has called {@link #rankableLabel(boolean)}: the column
+   * after the ones the strip draws.
+   */
+  public static final int LABEL_COLUMN = HEADING_IDS.length;
+
   /** Told which ranking the reader has just asked for. */
   public interface Listener {
     void onRanked(int column, boolean descending);
@@ -39,6 +45,9 @@ public class CaseTableHeadings {
 
   private int column;
   private boolean descending;
+  private int label;
+  private boolean labelRankable;
+  private boolean labelOpensDescending;
 
   /**
    * @param root the view holding the strip, which is the screen or the table it was included in
@@ -73,6 +82,31 @@ public class CaseTableHeadings {
   }
 
   /**
+   * Makes the list's own name a ranking too, by whatever the rows are called.
+   *
+   * <p>The name is the one column a table of cases could not be put in order by, which matters
+   * where the rows are a set the reader knows the order of: a chip narrows a list to a group, and
+   * this is what puts it back into the order the case is written down in.
+   *
+   * @param opensDescending which end it opens at when it is first ranked by
+   */
+  public void rankableLabel(boolean opensDescending) {
+    labelRankable = true;
+    labelOpensDescending = opensDescending;
+    TextView name = root.findViewById(R.id.tvCaseTableLabel);
+    // The same tap target the figure headings get from their style, taken from one of them rather
+    // than repeated here.
+    int padding = root.findViewById(R.id.tvCaseTableSortOne).getPaddingTop();
+    name.setPadding(name.getPaddingLeft(), padding, name.getPaddingRight(), padding);
+    name.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        rank(LABEL_COLUMN);
+      }
+    });
+  }
+
+  /**
    * Keeps the chevron's width at the end of the strip, for a table whose rows carry one. Without
    * it the headings sit a chevron to the right of the columns they name.
    */
@@ -83,6 +117,7 @@ public class CaseTableHeadings {
 
   /** Names the list itself, on the line the headings share. */
   public void setLabel(int label) {
+    this.label = label;
     ((TextView) root.findViewById(R.id.tvCaseTableLabel)).setText(label);
   }
 
@@ -100,19 +135,27 @@ public class CaseTableHeadings {
       if (labels[i] == 0) {
         continue;
       }
-      TextView heading = (TextView) root.findViewById(HEADING_IDS[i]);
-      String label = root.getContext().getString(labels[i]);
-      boolean ranked = i == column;
-      heading.setText(ranked ? root.getContext().getString(R.string.drill_summary_column_sorted,
-          label, descending ? DESCENDING : ASCENDING) : label);
-      heading.setTextColor(ContextCompat.getColor(root.getContext(),
-          ranked ? R.color.white : R.color.secondary_text));
+      draw((TextView) root.findViewById(HEADING_IDS[i]),
+          root.getContext().getString(labels[i]), i == column);
     }
+    if (labelRankable && label != 0) {
+      draw((TextView) root.findViewById(R.id.tvCaseTableLabel),
+          root.getContext().getString(label), column == LABEL_COLUMN);
+    }
+  }
+
+  /** One heading as it now stands: named, turned the way the table is, and lit if it is the sort. */
+  private void draw(TextView heading, String name, boolean ranked) {
+    heading.setText(ranked ? root.getContext().getString(R.string.drill_summary_column_sorted,
+        name, descending ? DESCENDING : ASCENDING) : name);
+    heading.setTextColor(ContextCompat.getColor(root.getContext(),
+        ranked ? R.color.white : R.color.secondary_text));
   }
 
   private void rank(int picked) {
     // The same heading again turns the table round; a fresh one opens at its own interesting end.
-    descending = column == picked ? !descending : opensDescending[picked];
+    descending = column == picked ? !descending
+        : picked == LABEL_COLUMN ? labelOpensDescending : opensDescending[picked];
     column = picked;
     listener.onRanked(column, descending);
   }

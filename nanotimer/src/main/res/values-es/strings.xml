@@ -1112,6 +1112,9 @@
   <string name="analysis_column_cost">Coste</string>
   <string name="analysis_cost">%ss</string>
   <string name="analysis_family_all">Todos</string>
+  <string name="analysis_shape_title">Forma</string>
+  <string name="analysis_shape_all">Todas las formas</string>
+  <string name="analysis_shape_count">%1$s (%2$d)</string>
   <string name="analysis_knowledge_of">de %d</string>
   <string name="analysis_knowledge_known">Sabido</string>
   <string name="analysis_knowledge_seen">Vistos, aún lentos</string>
@@ -1147,6 +1150,8 @@
   <string name="analysis_help_too_few_body">El caso salió muy pocas veces para ponerle un coste. Amplía la ventana de arriba y se irán rellenando más.</string>
   <string name="analysis_help_known">Sabido</string>
   <string name="analysis_help_known_body">El caso salió con un solo algoritmo y sin ayuda. Sacado de tus resueltos, no de una lista que marcas. El anillo cuenta todos los casos del conjunto, no solo los que salieron.</string>
+  <string name="analysis_help_shape">Forma</string>
+  <string name="analysis_help_shape_body">Elija OLL y aparecerá al lado un botón Forma, con los grupos por los que se conocen sus casos: los dots, los fish, los L shapes. El número indica el tamaño del grupo. Tocar el encabezado Caso devuelve la lista al orden de los casos.</string>
 
   <string name="analysis_drill_title">Casos más costosos</string>
   <plurals name="analysis_drill_costliest">
