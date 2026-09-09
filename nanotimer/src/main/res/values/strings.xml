@@ -1158,7 +1158,6 @@
   <string name="analysis_column_case">Case</string>
   <string name="analysis_column_cost">Cost</string>
   <string name="analysis_cost">%ss</string>
-  <string name="analysis_family_all">All</string>
   <string name="analysis_shape_title">Shape</string>
   <string name="analysis_shape_all">All shapes</string>
   <string name="analysis_shape_count">%1$s (%2$d)</string>
@@ -1167,6 +1166,7 @@
   <string name="analysis_knowledge_seen">Seen, still slow</string>
   <string name="analysis_knowledge_unseen">Not yet seen</string>
   <string name="analysis_knowledge_costing">Costing you</string>
+  <string name="analysis_rest_title">The rest of the set</string>
   <string name="analysis_cases_empty">No case has been named yet. Solve with a smart cube connected and the cases it reads will be ranked here.</string>
   <string name="analysis_plan_headline">What a coach would say</string>
   <string name="analysis_plan_body">Solve and Cases say where you stand. A plan says what to do about it, and the plan after it says whether doing it worked.</string>
@@ -1190,7 +1190,7 @@
   <string name="analysis_help_plan_title">A plan</string>
   <string name="analysis_help_plan_body">Nothing here is measured. The tab shows what a plan would cover, and there is none to have yet. The figures a plan would use are on Solve and Cases, and those stay free.</string>
   <string name="analysis_help_cases_title">Which cases cost you</string>
-  <string name="analysis_help_cases_body">Every case that came up over the window shown at the top, all steps in one list, so a common OLL can rank above a rarer PLL.</string>
+  <string name="analysis_help_cases_body">One step at a time, ranked by what each case cost you over the window shown at the top. A case is only worth comparing with the cases of its own step, so the buttons above the table switch between them.</string>
   <string name="analysis_help_cost">Cost</string>
   <string name="analysis_help_cost_body">The time a case has cost you: how often it came up, times how much longer than usual it took. The table is sorted by this.</string>
   <string name="analysis_help_too_few">N/A</string>
@@ -1199,6 +1199,7 @@
   <string name="analysis_help_known_body">The case went in with one algorithm and no help. Taken from your solves, not from a list you tick. The ring counts every case in the set, not only the ones that came up.</string>
   <string name="analysis_help_shape">Shape</string>
   <string name="analysis_help_shape_body">Pick OLL and a Shape button appears beside it, with the groups its cases are known by: the dots, the fish, the L shapes. The number beside each is how big the group is. Tapping the Case heading puts the list back in case order.</string>
+  <string name="analysis_help_rest_body">Under the table, the cases of this step the window holds no figures for, grouped by where they stand. That is read from every solve rather than from the window, so a case you know but have not had lately is in there as known. Tap one for its algorithms.</string>
 
   <string name="analysis_drill_title">Costliest cases</string>
   <plurals name="analysis_drill_costliest">

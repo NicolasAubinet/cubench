@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case of the rest of the set: its picture and its number, which is all there is to say about
+     a case the window holds no figures for. Where it stands is said by the heading above it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:layout_width="52dp"
+   android:layout_height="wrap_content"
+   android:gravity="center_horizontal"
+   android:orientation="vertical">
+
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vAnalysisRestChart"
+     android:layout_width="52dp"
+     android:layout_height="52dp"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisRestName"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="3dp"
+     android:fontFamily="@font/roboto_medium"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/case_name"
+     android:textSize="11sp"
+     app:fontFamily="@font/roboto_medium"/>
+
+</LinearLayout>

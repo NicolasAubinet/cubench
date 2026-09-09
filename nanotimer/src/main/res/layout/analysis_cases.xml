@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Which cases cost you: every one you have seen, ranked by what it costs, across every family.
+<!-- Which cases cost you, one step at a time: the step's cases this window holds figures for,
+     ranked by what they cost, and under them the rest of its set.
 
-     Ranking across families is what removes the OLL-or-PLL control an earlier draft had above this
-     table. "What should I fix" does not care which family the answer is in, so the screen answers it
-     rather than asking; the family chips narrow a list that already holds the answer. -->
+     One step at a time because a case is only comparable to the cases of its own step. An OLL and a
+     PLL cost their time in different amounts and come up at different rates, so a single ranking of
+     the two answered "which of these is dearest" with a fact about which set is bigger. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:id="@+id/llAnalysisCases"
    android:layout_width="match_parent"
@@ -67,6 +68,8 @@
        android:orientation="vertical"/>
   </LinearLayout>
 
+  <!-- Which step, said as the segmented control every other toggle in the app uses: one of them is
+       always on, so this is a switch between them rather than a set of filters to be turned off. -->
   <HorizontalScrollView
      android:id="@+id/svAnalysisFamilies"
      android:layout_width="match_parent"
@@ -75,10 +78,21 @@
      android:scrollbars="none">
 
     <LinearLayout
-       android:id="@+id/llAnalysisFamilies"
+       android:id="@+id/llAnalysisFamilyRow"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
-       android:orientation="horizontal"/>
+       android:gravity="center_vertical"
+       android:orientation="horizontal">
+
+      <LinearLayout
+         android:id="@+id/llAnalysisFamilies"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginRight="@dimen/space_s"
+         android:background="@drawable/view_segment_group"
+         android:orientation="horizontal"
+         android:padding="3dp"/>
+    </LinearLayout>
   </HorizontalScrollView>
 
   <include
@@ -103,6 +117,17 @@
      android:paddingBottom="12dp"
      android:textColor="@color/white"
      android:textSize="15sp"/>
+
+  <!-- The rest of the step's set: the cases this window holds no figures for, under where each of
+       them stands. No columns, because there is nothing to put in them, and no label of its own over
+       the group headings, which already say what they are. What the section is read over, which is
+       every solve rather than the window the table above uses, is said on the help sheet. -->
+  <LinearLayout
+     android:id="@+id/llAnalysisRestGroups"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:orientation="vertical"/>
 
   <TextView
      android:id="@+id/tvAnalysisCasesEmpty"

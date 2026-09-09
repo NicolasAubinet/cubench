@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One family on the Cases filter row. A chip you scroll past rather than a gate you pass through:
-     the table is ranked across every family, so a family is a way to narrow what is already the
-     answer, not a question to be answered before the answer appears. -->
+<!-- The shape picker on the Cases step row, right of the rule. A chip rather than a segment: the
+     segments are the step, of which one is always on, and this is a scope set on that step which
+     can be off. It is the window chip's control a row down, which is why it opens a list. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="wrap_content"
    android:layout_height="wrap_content"

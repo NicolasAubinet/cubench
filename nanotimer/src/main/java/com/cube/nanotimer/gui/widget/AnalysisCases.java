@@ -15,11 +15,14 @@ import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
+import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.FlowLayout;
 import com.cube.nanotimer.util.view.KnowledgeRingView;
 import com.cube.nanotimer.util.view.StepPalette;
+import com.cube.nanotimer.util.view.ViewSegments;
 import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
@@ -30,29 +33,36 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Analysis hub's Cases tab: every case the window holds, ranked by what it costs, across every
- * family at once.
+ * The Analysis hub's Cases tab: one step's whole set, the cases the window holds figures for ranked
+ * by what they cost, and the rest of the set under them.
  *
- * <p><b>Ranking across families is what removes the OLL-or-PLL control.</b> "Which cases cost me"
- * does not care whether the answer is an OLL or a PLL, so a two-way segmented strip above the table
- * was making the reader answer a question in order to be shown the answer to theirs — and it implied
- * there were only two families, when Roux, blind and layer-by-layer each have their own. The family
- * is a chip that narrows a list already holding the answer.
+ * <p><b>One step at a time, which is why there is no "all" segment.</b> A single ranking across the
+ * families was drawn first and reads as a comparison it cannot make: an OLL and a PLL are different
+ * lengths of work drawn from sets of different sizes, so the top of a mixed list says more about
+ * which set has 57 cases in it than about which case to look at. Ranking is only meaningful inside
+ * one set, so the tab opens on the method's first step and the segments switch between them.
  *
  * <p>A cost is a margin times a count, so it is only quoted for a case seen at least
  * {@link CoachPayloadBuilder#CASE_FLOOR} times; the rest say so rather than showing a figure read
  * off two occurrences.
  *
+ * <p><b>The set is shown whole, in two parts, and they run on two different clocks.</b> The table is
+ * the window's cases and every figure in it is the window's; the section under it is the rest of the
+ * set, which the window has no figures for at all, and where each of those stands is read from every
+ * solve there has ever been. That is not a "never seen" list: a case known cold that did not come up
+ * in the last hundred solves is in it. Nothing there is ordered by what to learn first and nothing
+ * is recommended — the list is a sort over the solver's own history, which is all it claims to be.
+ *
  * <p><b>A case has two names, and each gets its own control.</b> A solve names a case by its number,
  * but a solver learns it by its shape, so both have to stay reachable. Ordering by the case itself is
- * the leftmost heading; narrowing to a shape is a picker beside the family chips. Neither can move
+ * the leftmost heading; narrowing to a shape is a picker beside the step segments. Neither can move
  * the other, so the two names never compete.
  *
- * <p><b>The shape is a picker rather than more chips.</b> Drawn as chips on the family row, twenty
- * groups read as twenty more families: same height, same fill, same line, with a rule carrying the
- * whole parent-and-child distinction. The app already has the control this wants one row up, where
- * the window chip opens a single-choice list, and a list is also the only place the groups can be
- * ordered by size legibly, which is what keeps the seven single-case groups off the front.
+ * <p><b>The shape is a picker rather than a second row of segments.</b> Drawn on the step row, twenty
+ * groups read as twenty more steps: same height, same fill, same line, with a rule carrying the whole
+ * parent-and-child distinction. The app already has the control this wants one row up, where the
+ * window chip opens a single-choice list, and a list is also the only place the groups can be ordered
+ * by size legibly, which is what keeps the seven single-case groups off the front.
  */
 public class AnalysisCases {
 
@@ -69,9 +79,6 @@ public class AnalysisCases {
 
   private static final int OPAQUE = 255;
 
-  /** Every family, which is how the chip row opens and what it falls back to. */
-  private static final String ALL = "";
-
   /** Every shape, which is how a family opens once it has been picked. */
   private static final String ANY = "";
 
@@ -84,6 +91,14 @@ public class AnalysisCases {
 
   /** How many cases each shape groups, which is a fact about the set and not about a window. */
   private static final Map<String, Integer> SHAPE_SIZES = shapeSizes();
+
+  /**
+   * The rest of the set, grouped in the order the known-algorithms screen already walks it: learnt,
+   * learnt and slipping, not learnt, then nothing said either way. Not a learning order, which is
+   * the one thing this section does not offer.
+   */
+  private static final CaseKnowledge.Status[] STANDINGS = {CaseKnowledge.Status.KNOWN,
+      CaseKnowledge.Status.NEEDS_REVIEW, CaseKnowledge.Status.TO_LEARN, null};
 
   private static Map<String, Integer> shapeSizes() {
     Map<String, Integer> sizes = new LinkedHashMap<String, Integer>();
@@ -123,7 +138,8 @@ public class AnalysisCases {
   private final Map<String, CaseKnowledge.Status> statuses =
       new LinkedHashMap<String, CaseKnowledge.Status>();
   private final List<String> families = new ArrayList<String>();
-  private String family = ALL;
+  /** The step being read, which is null only until the first read says what the steps are. */
+  private String family;
   private String shape = ANY;
 
   public AnalysisCases(Context context, View root, Listener listener) {
@@ -145,7 +161,7 @@ public class AnalysisCases {
 
   /** Opens on one family, for a reader who arrived by tapping that step rather than the tab. */
   public void setFamily(String family) {
-    this.family = family == null ? ALL : family;
+    this.family = family;
   }
 
   /** Whether this tab has cases of that family to show, which is what a step row's chevron says. */
@@ -170,6 +186,8 @@ public class AnalysisCases {
     root.findViewById(R.id.llAnalysisCaseTable).setVisibility(anything ? View.VISIBLE : View.GONE);
     root.findViewById(R.id.tvAnalysisCasesEmpty)
         .setVisibility(anything ? View.GONE : View.VISIBLE);
+    root.findViewById(R.id.llAnalysisRestGroups)
+        .setVisibility(anything ? View.VISIBLE : View.GONE);
     if (!anything) {
       rows.removeAllViews();
       root.findViewById(R.id.tvAnalysisDrillCostliest).setVisibility(View.GONE);
@@ -178,11 +196,12 @@ public class AnalysisCases {
     redraw();
   }
 
-  /** The chips, the ring and the table as the picked family and shape now leave them. */
+  /** The segments, the ring, the table and the rest of the set as the pick now leaves them. */
   private void redraw() {
     showFamilies();
     showKnowledge();
     showCases();
+    showRest();
   }
 
   /**
@@ -203,8 +222,10 @@ public class AnalysisCases {
         families.add(step.getCode());
       }
     }
-    if (!families.contains(family)) {
-      family = ALL; // the family arrived on is not one this window has anything to say about
+    if (!families.isEmpty() && !families.contains(family)) {
+      // Nothing was asked for, or what was asked for is not a step this window can say anything
+      // about. Either way the tab opens on the first step the method solves.
+      family = families.get(0);
     }
     if (!ANY.equals(shape) && !shapesOf(family).contains(shape)) {
       shape = ANY;
@@ -212,12 +233,14 @@ public class AnalysisCases {
   }
 
   private void showFamilies() {
-    LinearLayout row = root.findViewById(R.id.llAnalysisFamilies);
-    row.removeAllViews();
+    LinearLayout segments = root.findViewById(R.id.llAnalysisFamilies);
+    LinearLayout row = root.findViewById(R.id.llAnalysisFamilyRow);
+    segments.removeAllViews();
+    // The row is the segments plus whatever the shape picker last put after them.
+    row.removeViews(1, row.getChildCount() - 1);
     LayoutInflater inflater = LayoutInflater.from(context);
-    addChip(row, inflater, ALL, context.getString(R.string.analysis_family_all));
     for (String code : families) {
-      addChip(row, inflater, code, Utils.toSmartCubeStepLocalizedName(context, code, 0));
+      addSegment(segments, inflater, code, Utils.toSmartCubeStepLocalizedName(context, code, 0));
     }
     showShapePicker(row, inflater);
   }
@@ -233,7 +256,7 @@ public class AnalysisCases {
       return;
     }
     row.addView(inflater.inflate(R.layout.analysis_chip_rule, row, false));
-    TextView chip = (TextView) inflater.inflate(R.layout.analysis_family_chip, row, false);
+    TextView chip = (TextView) inflater.inflate(R.layout.analysis_shape_chip, row, false);
     chip.setText(context.getString(R.string.analysis_window_chip,
         ANY.equals(shape) ? context.getString(R.string.analysis_shape_title) : shape));
     chip.setSelected(!ANY.equals(shape));
@@ -282,9 +305,6 @@ public class AnalysisCases {
    */
   private List<String> shapesOf(String picked) {
     List<String> shapes = new ArrayList<String>();
-    if (ALL.equals(picked)) {
-      return shapes;
-    }
     for (StepStats stepCase : drawnCases(picked)) {
       String name = LastLayerCaseNames.group(stepCase.getCode());
       if (name != null && !shapes.contains(name)) {
@@ -301,19 +321,20 @@ public class AnalysisCases {
     return shapes;
   }
 
-  private void addChip(LinearLayout row, LayoutInflater inflater, final String code, String label) {
-    TextView chip = (TextView) inflater.inflate(R.layout.analysis_family_chip, row, false);
-    chip.setText(label);
-    chip.setSelected(code.equals(family));
-    chip.setOnClickListener(new View.OnClickListener() {
+  private void addSegment(LinearLayout segments, LayoutInflater inflater, final String code,
+      String label) {
+    TextView cell = (TextView) inflater.inflate(R.layout.analysis_family_segment, segments, false);
+    cell.setText(label);
+    ViewSegments.style(cell, code.equals(family));
+    cell.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         family = code;
-        shape = ANY; // a shape narrows the family it belongs to, so it cannot outlive the pick
+        shape = ANY; // a shape narrows the step it belongs to, so it cannot outlive the pick
         redraw();
       }
     });
-    row.addView(chip);
+    segments.addView(cell);
   }
 
   /**
@@ -389,7 +410,7 @@ public class AnalysisCases {
   private List<String> closedSet() {
     List<String> set = new ArrayList<String>();
     for (String code : DRAWN.keySet()) {
-      if ((ALL.equals(family) || family.equals(MethodStatistics.familyOf(code)))
+      if (family.equals(MethodStatistics.familyOf(code))
           && (ANY.equals(shape) || shape.equals(LastLayerCaseNames.group(code)))) {
         set.add(code);
       }
@@ -479,16 +500,100 @@ public class AnalysisCases {
     });
   }
 
-  /** Every case of the picked family, or of all of them, narrowed to the picked shape. */
+  /**
+   * The rest of the step's set: every case of it this window holds no figures for, grouped under
+   * where it stands.
+   *
+   * <p><b>Where a case stands is read over every solve, and the table above is read over the
+   * window.</b> Two clocks on one screen: a case the solver knows cold that has not come up in the
+   * last hundred solves belongs here, and it belongs here as known. This is not a list of cases they
+   * have never seen. That distinction was said in a line over the section and is now only on the
+   * help sheet, the headings being clear enough on their own to pay for the two rows it took.
+   *
+   * <p>A case with nothing behind it is grouped under the words the ring above already counts it
+   * with, and never under anything reading as "you do not know this": absence is not evidence.
+   *
+   * <p><b>Nothing here can be drilled from here.</b> The table's button is composed from a measured
+   * cost and is free on that ground; a button composed from what the solver has not learnt is the
+   * paid plan's own composition, and something meant to be sold must not ship free even once.
+   */
+  private void showRest() {
+    List<String> rest = restOfSet();
+    LinearLayout groups = root.findViewById(R.id.llAnalysisRestGroups);
+    groups.setVisibility(rest.isEmpty() ? View.GONE : View.VISIBLE);
+    groups.removeAllViews();
+    LayoutInflater inflater = LayoutInflater.from(context);
+    for (CaseKnowledge.Status standing : STANDINGS) {
+      List<String> group = new ArrayList<String>();
+      for (String code : rest) {
+        if (statuses.get(code) == standing) {
+          group.add(code);
+        }
+      }
+      if (!group.isEmpty()) {
+        groups.addView(restGroup(inflater, groups, standing, group));
+      }
+    }
+  }
+
+  /** One standing's cases, in the order the set is printed in. */
+  private View restGroup(LayoutInflater inflater, LinearLayout groups,
+      CaseKnowledge.Status standing, List<String> group) {
+    View view = inflater.inflate(R.layout.analysis_rest_group, groups, false);
+    ((TextView) view.findViewById(R.id.tvAnalysisRestGroup))
+        .setText(context.getString(R.string.known_algorithms_status_count,
+            context.getString(standingName(standing)), Integer.valueOf(group.size())));
+    FlowLayout cases = view.findViewById(R.id.flAnalysisRestCases);
+    for (final String code : group) {
+      View cell = inflater.inflate(R.layout.analysis_rest_cell, cases, false);
+      ((LastLayerCaseView) cell.findViewById(R.id.vAnalysisRestChart))
+          .setDiagram(LastLayerDiagram.forCase(code));
+      ((TextView) cell.findViewById(R.id.tvAnalysisRestName))
+          .setText(LastLayerCaseNames.shortName(code));
+      cell.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          listener.onCasePicked(code);
+        }
+      });
+      cases.addView(cell);
+    }
+    return view;
+  }
+
+  /**
+   * Where a case stands, in the words the known-algorithms screen already says it in, except for the
+   * cases nothing is known about: those take the ring's own label, because the ring on this screen
+   * counts exactly them in its third arc and two names for one set on one screen read as two sets.
+   * The known-algorithms screen calls them "nothing to say yet", which is truer of a case only ever
+   * drilled cleanly, but that screen has no ring beside it to disagree with.
+   */
+  private static int standingName(CaseKnowledge.Status standing) {
+    if (standing == CaseKnowledge.Status.KNOWN) {
+      return R.string.known_algorithms_status_known;
+    }
+    if (standing == CaseKnowledge.Status.NEEDS_REVIEW) {
+      return R.string.known_algorithms_status_review;
+    }
+    return standing == CaseKnowledge.Status.TO_LEARN ? R.string.known_algorithms_status_to_learn
+        : R.string.analysis_knowledge_unseen;
+  }
+
+  /** The set the segments and the picker leave, less every case the table above already holds. */
+  private List<String> restOfSet() {
+    List<String> rest = new ArrayList<String>(closedSet());
+    for (StepStats stepCase : casesOf(family)) {
+      rest.remove(stepCase.getCode());
+    }
+    return rest;
+  }
+
+  /** The picked family's cases that the window holds figures for, narrowed to the picked shape. */
   private List<StepStats> casesOf(String picked) {
     List<StepStats> cases = new ArrayList<StepStats>();
-    for (String code : families) {
-      if (ALL.equals(picked) || code.equals(picked)) {
-        for (StepStats stepCase : drawnCases(code)) {
-          if (ANY.equals(shape) || shape.equals(LastLayerCaseNames.group(stepCase.getCode()))) {
-            cases.add(stepCase);
-          }
-        }
+    for (StepStats stepCase : drawnCases(picked)) {
+      if (ANY.equals(shape) || shape.equals(LastLayerCaseNames.group(stepCase.getCode()))) {
+        cases.add(stepCase);
       }
     }
     return cases;

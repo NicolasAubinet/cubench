@@ -1111,7 +1111,6 @@
   <string name="analysis_column_case">Caso</string>
   <string name="analysis_column_cost">Coste</string>
   <string name="analysis_cost">%ss</string>
-  <string name="analysis_family_all">Todos</string>
   <string name="analysis_shape_title">Forma</string>
   <string name="analysis_shape_all">Todas las formas</string>
   <string name="analysis_shape_count">%1$s (%2$d)</string>
@@ -1120,6 +1119,7 @@
   <string name="analysis_knowledge_seen">Vistos, aún lentos</string>
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_knowledge_costing">Te cuestan</string>
+  <string name="analysis_rest_title">El resto del conjunto</string>
   <string name="analysis_cases_empty">Aún no se ha nombrado ningún caso. Resuelve con un smart cube conectado y los casos que lea se ordenarán aquí.</string>
   <string name="analysis_plan_headline">Lo que diría un coach</string>
   <string name="analysis_plan_body">Resolución y Casos dicen dónde estás. Un plan dice qué hacer al respecto, y el plan siguiente dice si funcionó.</string>
@@ -1143,7 +1143,7 @@
   <string name="analysis_help_plan_title">Un plan</string>
   <string name="analysis_help_plan_body">Aquí no se mide nada. La pestaña muestra qué cubriría un plan, y todavía no hay ninguno. Las cifras que usaría un plan están en Resolución y Casos, y esas siguen siendo gratis.</string>
   <string name="analysis_help_cases_title">Qué casos te cuestan</string>
-  <string name="analysis_help_cases_body">Todos los casos que salieron en la ventana indicada arriba, todos los pasos en una sola lista, de modo que un OLL frecuente puede quedar por encima de un PLL más raro.</string>
+  <string name="analysis_help_cases_body">Un paso a la vez, ordenado por lo que cada caso te ha costado en la ventana indicada arriba. Un caso solo se compara con los casos de su propio paso, así que los botones sobre la tabla cambian de uno a otro.</string>
   <string name="analysis_help_cost">Coste</string>
   <string name="analysis_help_cost_body">El tiempo que te ha costado un caso: con qué frecuencia salió, por lo que tardó de más de lo habitual. La tabla se ordena por esto.</string>
   <string name="analysis_help_too_few">N/A</string>
@@ -1152,6 +1152,7 @@
   <string name="analysis_help_known_body">El caso salió con un solo algoritmo y sin ayuda. Sacado de tus resueltos, no de una lista que marcas. El anillo cuenta todos los casos del conjunto, no solo los que salieron.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">Elija OLL y aparecerá al lado un botón Forma, con los grupos por los que se conocen sus casos: los dots, los fish, los L shapes. El número indica el tamaño del grupo. Tocar el encabezado Caso devuelve la lista al orden de los casos.</string>
+  <string name="analysis_help_rest_body">Bajo la tabla, los casos de este paso de los que la ventana no tiene ninguna cifra, agrupados por dónde están. Eso se lee de todos tus resueltos y no de la ventana, así que un caso que conoces pero que no ha salido últimamente aparece ahí como conocido. Toca uno para ver sus algoritmos.</string>
 
   <string name="analysis_drill_title">Casos más costosos</string>
   <plurals name="analysis_drill_costliest">
