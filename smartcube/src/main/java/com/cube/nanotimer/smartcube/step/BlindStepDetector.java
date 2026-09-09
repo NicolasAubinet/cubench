@@ -1177,8 +1177,8 @@ public final class BlindStepDetector implements StepDetector {
    *
    * <p>Only a cycle is asked, and only one whose buffer settled: a parity swaps and a flip turns, so
    * neither has a target to have missed, and a cycle its solver never memorised would otherwise be
-   * laid at the door of the parity before it. Nothing is asked past the reading either, which is
-   * what {@link #leftOut} answers with nothing.
+   * laid at the door of the parity before it. What is asked of {@link #leftOut} stops at the last
+   * landing, so turning past the reading takes nothing out on an algorithm's behalf.
    */
   private List<Integer> shotsThatNeverLanded(Landing landing) {
     List<Integer> blamed = new ArrayList<>();
@@ -1293,10 +1293,14 @@ public final class BlindStepDetector implements StepDetector {
     return Cubies.applyMotion(Cubies.motionBetween(landing.after, landing.before), landing.before);
   }
 
-  /** The pieces not home when the solve stopped, or none where there is nothing honest to read. */
+  /**
+   * The pieces not home at the last landing, of which a solve that came out has none. Counted there
+   * rather than at the stop, so that turning nothing was read from takes nothing out on an
+   * algorithm's behalf and a solve whose reading was lost can still say where it went wrong.
+   */
   private List<Integer> leftOut() {
     List<Integer> left = new ArrayList<>();
-    if (solvedMs != null || unread() > 0) {
+    if (solvedMs != null) {
       return left;
     }
     for (int slot = 0; slot < PIECES.length; slot++) {

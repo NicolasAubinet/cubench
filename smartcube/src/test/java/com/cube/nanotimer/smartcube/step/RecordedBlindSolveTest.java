@@ -987,10 +987,13 @@ public class RecordedBlindSolveTest {
    * choice and nothing is said against it. What the break-in displaces is a target all the same, and
    * the cube owed that edge to {@code RD}: the algorithm sent it to {@code BL} instead.
    *
-   * <p><b>Nothing else in the solve could say so.</b> Two algorithms later the {@code BL} edge came
-   * home, so it is not out at the end for a shot that never landed to be counted by, and reversing
-   * any one algorithm leaves the cube nowhere near solved. The algorithm that lost the solve carried
-   * no red at all, and the owner spotted the gap.
+   * <p><b>Only the break-in rule could say so.</b> Two algorithms later the {@code BL} edge came
+   * home, so no shot that never landed is counted by it, and reversing any one algorithm leaves the
+   * cube nowhere near solved.
+   *
+   * <p><b>Two later shots are marked as well</b>, executing the memo from a buffer the break-in had
+   * already put wrong — the same nothing-is-proved shape as the 2026-08-10 solve, and marked on the
+   * same terms. The corners, clean throughout, are not.
    */
   @Test
   public void marksTheTargetABreakInMissed() {
@@ -1002,9 +1005,13 @@ public class RecordedBlindSolveTest {
     assertEquals(Arrays.asList(TOUCHED, TOUCHED, WRONG), detector.subStepPieceMarks(1, 3));
     // The break-in said back as the solver made it, and only the target after it named by the cube.
     assertEquals("UF-UB-RD", detector.subStepWantedName(1, 3));
+    assertEquals("UF-RB-FL", detector.subStepName(1, 4));
+    assertEquals(Arrays.asList(TOUCHED, WRONG, HOME), detector.subStepPieceMarks(1, 4));
+    assertEquals("UF-DF-BL", detector.subStepName(1, 6));
+    assertEquals(Arrays.asList(HOME, WRONG, HOME), detector.subStepPieceMarks(1, 6));
     for (int step = 1; step < detector.stepCount(); step++) {
       for (int part = 0; part < detector.subStepCount(step); part++) {
-        if (step != 1 || part != 3) {
+        if (step != 1 || (part != 3 && part != 4 && part != 6)) {
           assertFalse(detector.subStepName(step, part),
               detector.subStepPieceMarks(step, part).contains(WRONG));
           assertNull(detector.subStepName(step, part), detector.subStepWantedName(step, part));
@@ -1028,6 +1035,40 @@ public class RecordedBlindSolveTest {
         RecordedBlindSolve.MOVES_MISSED_AFTER_A_BREAK_IN, Long.MAX_VALUE);
 
     assertEquals(Arrays.asList("UFR-BUL-UFL", "UFR-BDL-LUF"), subStepNames(2));
+  }
+
+  /**
+   * The solve of 2026-09-09 08:41:35, whose reading was lost and which still says what went wrong.
+   * Its fourth edge algorithm shot {@code RD} where the cube owed {@code LD}, taking back out an
+   * edge the second algorithm had put home and leaving the edges a three-cycle short.
+   *
+   * <p><b>The solver then turned on for forty moves nothing could be read from.</b> That tail used
+   * to blank the count of what was left out and with it every red the solve had, so the algorithm
+   * that lost it read the same grey as the six that were right — which is the owner's complaint.
+   * The count is taken at the last landing instead, a state the unread turning never reached.
+   */
+  @Test
+  public void marksTheWrongTargetOfASolveWhoseReadingWasLost() {
+    replay(RecordedBlindSolve.SCRAMBLE_STOPPED_MID_CORNERS,
+        RecordedBlindSolve.MOVES_STOPPED_MID_CORNERS, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals(5, detector.subStepCount(1));
+    assertEquals(2, detector.subStepCount(2));
+    assertEquals("UF-RD-BR", detector.subStepName(1, 3));
+    assertEquals(Arrays.asList(TOUCHED, WRONG, WRONG), detector.subStepPieceMarks(1, 3));
+    assertEquals("UF-LD-BR", detector.subStepWantedName(1, 3));
+    // The algorithm before it shot at RD too and landed it: its own doing stands, whatever came after.
+    assertEquals("UF-FD-RD", detector.subStepName(1, 1));
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        if (step != 1 || part != 3) {
+          assertFalse(detector.subStepName(step, part),
+              detector.subStepPieceMarks(step, part).contains(WRONG));
+          assertNull(detector.subStepName(step, part), detector.subStepWantedName(step, part));
+        }
+      }
+    }
   }
 
   /**

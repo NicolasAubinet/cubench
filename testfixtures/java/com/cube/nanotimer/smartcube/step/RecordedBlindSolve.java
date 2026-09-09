@@ -695,6 +695,35 @@ final class RecordedBlindSolve {
           + "U'@61017 B@61165 U@61267 B'@61380 D'@61460 B@61633 U'@61710 B'@61877 U@61980 "
           + "B@62176 U'@62299";
 
+  /**
+   * The solve of 2026-09-09 08:41:35, stopped part-way through its corners: its fourth edge
+   * algorithm shot {@code RD} where the cube owed {@code LD}, leaving an edge three-cycle, and the
+   * solver turned on for another forty moves nothing could be read from before giving up.
+   *
+   * <p>It is the solve that says a reading lost at the end still dates what went wrong before it.
+   * The trailing turning is unread, but the pieces are counted at the last landing, which is a
+   * state that turning never reached.
+   */
+  static final String SCRAMBLE_STOPPED_MID_CORNERS =
+      "D R2 U' R2 D2 U' L2 U' F2 B' D R' U L2 U' F' U2 L D' B' U'";
+  static final String MOVES_STOPPED_MID_CORNERS =
+      "[y] y@20217 F'@20217 U@20625 z'@20764 F@20765 F@20838 R@21088 L'@21112 x'@21113 "
+          + "U'@21211 U'@21323 y@21483 x@21483 L@21483 R'@21483 U'@21773 F@22024 U'@22322 "
+          + "L'@22610 R@22621 x'@22745 D'@22745 y'@22823 R'@22823 D@22997 L@23133 R'@23136 "
+          + "x@23137 z@23330 B'@23330 R@23381 z'@23504 B@23504 z@23823 U@23823 U'@24450 B'@24766 "
+          + "U@24845 D'@24888 y'@24889 R@25197 U'@25354 R'@25415 D@25619 U'@25711 y@25712 "
+          + "z'@26325 B@26325 z@26579 U@26579 U@26701 U'@27635 D'@27648 B'@27858 U@27994 "
+          + "B'@28226 F@28259 z'@28260 R'@28480 B@28638 R@28750 B@28911 F'@29035 z@29036 D@29295 "
+          + "U'@29686 U'@29806 F@29950 U'@30085 D@30149 y@30150 R'@30272 U'@30394 R@30490 "
+          + "U@30611 D'@30612 y'@30613 F'@30829 U'@31146 D@31686 D@31812 B@32164 B@32237 "
+          + "D'@32317 B'@32457 U'@32564 B@32645 D@32797 B'@32949 U@33122 B'@33267 D@33771 "
+          + "D@34071 U'@34727 B'@34857 B'@34908 D'@35047 B@35176 U@35300 U@35405 B'@35506 "
+          + "D@35587 B@35753 U@35919 U@36040 B@36203 U@36602 U'@37529 U@39377 U'@40216 D@40483 "
+          + "D'@41825 U@41894 U'@42181 B'@43221 U'@43334 B@43460 U@43574 B'@43706 D@43742 "
+          + "B@43855 U'@43937 B'@44094 U@44154 B@44327 U'@44401 B'@44545 D'@44670 B@44779 "
+          + "U@44956 B'@45394 B@45782 U'@46964 B'@47179 D@47353 B@47528 U'@47662 B'@48116 "
+          + "B@48284 U@48545 B'@48718 D@48975 B@49112 U@49323";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -714,5 +743,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_MISSED_AFTER_A_BREAK_IN, MOVES_MISSED_AFTER_A_BREAK_IN},
     {SCRAMBLE_OPENED_ON_A_CLOSED_CYCLE, MOVES_OPENED_ON_A_CLOSED_CYCLE},
     {SCRAMBLE_FLIPPED_THE_WRONG_PAIR, MOVES_FLIPPED_THE_WRONG_PAIR},
+    {SCRAMBLE_STOPPED_MID_CORNERS, MOVES_STOPPED_MID_CORNERS},
   };
 }
