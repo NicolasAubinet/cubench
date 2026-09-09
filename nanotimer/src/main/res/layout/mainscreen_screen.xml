@@ -157,9 +157,12 @@
                android:contentDescription="@null"/>
           </LinearLayout>
 
-          <!-- The shape of the last 50 solves. Tapping it opens the graph it previews. -->
-          <FrameLayout
+          <!-- The shape of the last 50 solves. Tapping it opens the graph it previews, and the
+               chevron is what says it can be. -->
+          <LinearLayout
              android:id="@+id/sparklineBlock"
+             android:orientation="horizontal"
+             android:gravity="center_vertical"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:layout_marginTop="@dimen/space_s"
@@ -171,9 +174,17 @@
 
             <com.cube.nanotimer.util.view.SparklineView
                android:id="@+id/sparkline"
-               android:layout_width="match_parent"
+               android:layout_width="0dp"
+               android:layout_weight="1"
                android:layout_height="46dp"/>
-          </FrameLayout>
+            <ImageView
+               android:layout_width="16dp"
+               android:layout_height="16dp"
+               android:layout_marginLeft="@dimen/space_xs"
+               android:layout_marginStart="@dimen/space_xs"
+               android:src="@drawable/ic_chevron_right"
+               android:contentDescription="@null"/>
+          </LinearLayout>
 
           <!-- Three windows, three cells, each showing the statistic it was last set to. Tapping
                one opens the picker; the choice is kept per kind of solve type. -->
@@ -231,9 +242,12 @@
           </LinearLayout>
 
           <!-- Where the average solve's time goes, in the same bar the Analysis screen draws.
-               Tapping it opens that screen, which is the rest of the answer. -->
-          <FrameLayout
+               Tapping it opens that screen, which is the rest of the answer, and the chevron is
+               what says it can be. -->
+          <LinearLayout
              android:id="@+id/stepBarBlock"
+             android:orientation="horizontal"
+             android:gravity="center_vertical"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:layout_marginTop="@dimen/space_s"
@@ -248,9 +262,17 @@
 
             <com.cube.nanotimer.util.view.SolveStepBarView
                android:id="@+id/heroStepBar"
-               android:layout_width="match_parent"
+               android:layout_width="0dp"
+               android:layout_weight="1"
                android:layout_height="14dp"/>
-          </FrameLayout>
+            <ImageView
+               android:layout_width="16dp"
+               android:layout_height="16dp"
+               android:layout_marginLeft="@dimen/space_xs"
+               android:layout_marginStart="@dimen/space_xs"
+               android:src="@drawable/ic_chevron_right"
+               android:contentDescription="@null"/>
+          </LinearLayout>
 
         </LinearLayout>
 
