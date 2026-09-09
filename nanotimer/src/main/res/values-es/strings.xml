@@ -1120,4 +1120,9 @@
   <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en dos pasos, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
+  <string name="blind_buffers">Búferes a ciegas</string>
+  <string name="blind_buffers_summary">Las piezas desde las que disparas a ciegas: %1$s y %2$s</string>
+  <string name="blind_buffers_prompt">Elige los búferes que usas</string>
+  <string name="blind_buffers_why">Tus resoluciones a ciegas se reconstruyen a partir de ellos.</string>
+  <string name="blind_buffers_changeable">Puedes cambiarlo más adelante en los ajustes.</string>
 </resources>

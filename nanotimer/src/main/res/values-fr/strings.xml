@@ -1121,4 +1121,9 @@
   <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas est connu dès que vous le faites en un seul algorithme dans une résolution. Si vous le reprenez en deux temps, il est à revoir ; un cas que vous n\'avez jamais fait en un seul algorithme reste à apprendre.</string>
   <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec un smart cube connecté et les cas que vous faites sans aide apparaîtront.</string>
   <string name="known_algorithms_reading">Lecture de vos résolutions...</string>
+  <string name="blind_buffers">Buffers en aveugle</string>
+  <string name="blind_buffers_summary">Les pièces depuis lesquelles vous tirez en aveugle : %1$s et %2$s</string>
+  <string name="blind_buffers_prompt">Choisissez les buffers que vous utilisez</string>
+  <string name="blind_buffers_why">Vos résolutions en aveugle sont reconstruites à partir d\'eux.</string>
+  <string name="blind_buffers_changeable">Vous pourrez changer cela plus tard dans les paramètres.</string>
 </resources>

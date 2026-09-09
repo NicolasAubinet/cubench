@@ -87,6 +87,27 @@
     <item name="android:textColor">@color/lightblue</item>
   </style>
 
+  <!-- A buffer wheel itself. The widget draws two rules across the row it has landed on, and the
+       picker marks that row with a band of its own, so the rules are taken out and the band left to
+       say it. The attribute is API 29 and up; below that the rules stay and the band reads through
+       them, which is busier and not broken. -->
+  <style name="BufferWheel">
+    <item name="android:selectionDividerHeight">0dp</item>
+  </style>
+
+  <!-- What one wheel of the blind buffer picker is a wheel of. Outside the well the values scroll
+       in, and in the accent, so it cannot be read as another value. -->
+  <style name="BufferWheelHeading">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:gravity">center</item>
+    <item name="android:textColor">@color/lightblue</item>
+    <item name="android:textSize">11sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:letterSpacing">0.12</item>
+    <item name="android:textAllCaps">true</item>
+  </style>
+
   <!-- One option of a segmented control (2D/3D, playback speed). Sits inside a container that says
        the options belong together, so it carries no background of its own until chosen. -->
   <style name="ViewSegment">

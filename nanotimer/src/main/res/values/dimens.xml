@@ -9,6 +9,15 @@
   <dimen name="smart_cube_row_gap">8dp</dimen>
   <!-- Between case tiles in the picker, and the pitch the grid rounds itself to. -->
   <dimen name="case_grid_spacing">8dp</dimen>
+  <!-- One row of a buffer wheel, and the three of them it shows. The height is set rather than
+       left to the widget so the band marking the selected row can be centred on it exactly. -->
+  <dimen name="buffer_wheel_row">46dp</dimen>
+  <dimen name="buffer_wheel_height">138dp</dimen>
+
+  <!-- Round the buffer picker where it stands alone in a preference dialog, which frames a view
+       without padding it. The prompt that shares the picker brings its own. -->
+  <dimen name="blind_buffers_dialog_padding">20dp</dimen>
+
   <!-- The scramble dialog's diagram. Landscape overrides it: at the portrait height the dialog is
        taller than the screen, and a dialog cannot shrink a child that overflows it. -->
   <dimen name="scramble_dialog_diagram_height">240dp</dimen>

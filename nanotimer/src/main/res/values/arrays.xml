@@ -114,6 +114,33 @@
     <item>Roux</item>
     <item>LBL</item>
   </string-array>
+  <!-- The pieces a blind solver may shoot from. Slots, not stickers, and spelled the same in every
+       language, so they are values and not translated entries. Top layer first, which opens the
+       wheel on the two commonest buffers without the rest being in no order. -->
+  <string-array name="entryvalues_edge_buffer" translatable="false">
+    <item>UF</item>
+    <item>UR</item>
+    <item>UB</item>
+    <item>UL</item>
+    <item>DF</item>
+    <item>DR</item>
+    <item>DB</item>
+    <item>DL</item>
+    <item>FR</item>
+    <item>FL</item>
+    <item>BR</item>
+    <item>BL</item>
+  </string-array>
+  <string-array name="entryvalues_corner_buffer" translatable="false">
+    <item>UFR</item>
+    <item>UFL</item>
+    <item>UBL</item>
+    <item>UBR</item>
+    <item>DFR</item>
+    <item>DFL</item>
+    <item>DBL</item>
+    <item>DBR</item>
+  </string-array>
   <string-array name="graph_periods">
     <item>@string/day</item>
     <item>@string/week</item>

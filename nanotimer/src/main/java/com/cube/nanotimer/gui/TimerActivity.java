@@ -57,6 +57,7 @@ import com.cube.nanotimer.gui.widget.SolveStepBar;
 import com.cube.nanotimer.gui.widget.StepSplitsView;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
+import com.cube.nanotimer.gui.widget.dialog.BlindBuffersPrompt;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.scrambler.ScramblerService;
@@ -189,6 +190,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   // The gap changes hands as a cube comes and goes. Added in onResume, which replays the current
   // connection at once, so the gap is settled before anything is drawn in it.
   private final CubeConnectionListener statePreviewOwner = c -> refreshStatePreviewOwner();
+  /** A blind reconstruction is named through the solver's buffers, so they are asked for once. */
+  private final CubeConnectionListener blindBuffersAsk = c -> askBlindBuffers();
   private boolean timerFocused; // the screen has stood down for a solve, so the preview has too
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
@@ -331,6 +334,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     liveCube.start();
     statePreview.start();
     SmartCubeManager.INSTANCE.addConnectionListener(statePreviewOwner);
+    SmartCubeManager.INSTANCE.addConnectionListener(blindBuffersAsk);
     applySessionStripChoice(); // both this and the coloring below may have changed in the settings
     renderStatePreview(); // and so may what the picture under the scramble is drawn as
     refreshSessionFields();
@@ -344,6 +348,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     liveCube.stop();
     statePreview.stop();
     SmartCubeManager.INSTANCE.removeConnectionListener(statePreviewOwner);
+    SmartCubeManager.INSTANCE.removeConnectionListener(blindBuffersAsk);
   }
 
   @Override
@@ -1881,6 +1886,23 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     statePreview.setReplaced(cubeHasGap);
     // The cube stands down for a solve like the panels around it, and whenever the gap is not its.
     liveCube.setSuppressed(timerFocused || !cubeHasGap);
+  }
+
+  /**
+   * The buffers, asked for the first time a blind solve type is opened with a cube on. Later than
+   * the method question, which the connect sheet asks, because this one only means anything for a
+   * blind solve type and most solvers never open one.
+   *
+   * <p>Skipped rather than queued where the timer is not idle: nothing marks it asked, so the next
+   * time the screen resumes it is asked again.
+   */
+  private void askBlindBuffers() {
+    // Never over a running attempt. A cube connecting mid-memorisation would otherwise put a modal
+    // dialog over the timer, and the tap meant to stop it would land on the dialog instead.
+    if (timerState == TimerState.STOPPED && solveType != null && solveType.isBlind()
+        && SmartCubeManager.INSTANCE.isConnected()) {
+      BlindBuffersPrompt.askOnce(this);
+    }
   }
 
   private void timerStarted() {

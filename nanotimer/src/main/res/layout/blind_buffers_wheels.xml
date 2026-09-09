@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The pieces a blind solver shoots from, as two wheels rather than twenty tiles: a buffer is one
+     value out of a list, and a wheel says so in a fraction of the height. Edges left, corners right.
+
+     Each wheel stands in its own well with the selected row marked as a chosen chip is, and the
+     heading sits outside the well in the accent — the two were the same grey at the same size when
+     this was first drawn, and the headings read as two more values in the list. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:baselineAligned="false">
+
+  <LinearLayout
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginEnd="7dp"
+     android:layout_marginRight="7dp"
+     android:orientation="vertical">
+
+    <TextView
+       style="@style/BufferWheelHeading"
+       android:text="@string/smartcube_step_edges"/>
+
+    <FrameLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="7dp"
+       android:background="@drawable/cube_stage"
+       android:padding="6dp">
+
+      <View
+         android:layout_width="match_parent"
+         android:layout_height="@dimen/buffer_wheel_row"
+         android:layout_gravity="center_vertical"
+         android:background="@drawable/buffer_wheel_band"/>
+
+      <NumberPicker
+         android:id="@+id/edgeBuffers"
+         style="@style/BufferWheel"
+         android:layout_width="match_parent"
+         android:layout_height="@dimen/buffer_wheel_height"/>
+
+    </FrameLayout>
+
+  </LinearLayout>
+
+  <LinearLayout
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginStart="7dp"
+     android:layout_marginLeft="7dp"
+     android:orientation="vertical">
+
+    <TextView
+       style="@style/BufferWheelHeading"
+       android:text="@string/smartcube_step_corners"/>
+
+    <FrameLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="7dp"
+       android:background="@drawable/cube_stage"
+       android:padding="6dp">
+
+      <View
+         android:layout_width="match_parent"
+         android:layout_height="@dimen/buffer_wheel_row"
+         android:layout_gravity="center_vertical"
+         android:background="@drawable/buffer_wheel_band"/>
+
+      <NumberPicker
+         android:id="@+id/cornerBuffers"
+         style="@style/BufferWheel"
+         android:layout_width="match_parent"
+         android:layout_height="@dimen/buffer_wheel_height"/>
+
+    </FrameLayout>
+
+  </LinearLayout>
+
+</LinearLayout>

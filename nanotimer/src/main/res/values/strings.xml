@@ -1162,4 +1162,9 @@
   <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case counts as known the first time you put it in with one algorithm in a solve. Take it in two looks again and it needs review; one you have never yet put in with a single algorithm is still to learn.</string>
   <string name="known_algorithms_empty">Nothing here yet. Solve with a smart cube connected and the cases you put in unaided will show up.</string>
   <string name="known_algorithms_reading">Reading your solves...</string>
+  <string name="blind_buffers">Blind buffers</string>
+  <string name="blind_buffers_summary">The pieces you shoot from blindfolded: %1$s and %2$s</string>
+  <string name="blind_buffers_prompt">Select the buffers you use</string>
+  <string name="blind_buffers_why">Your blindfolded solves are reconstructed from them.</string>
+  <string name="blind_buffers_changeable">You can change this later in the settings.</string>
 </resources>

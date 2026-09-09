@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The row of a buffer wheel the value is read off, marked the way a chosen chip is: an accent wash
+     inside an accent border. The wheel's own values scroll through it, so what is selected is what
+     is standing in it. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/chip_bg_selected"/>
+  <stroke android:width="1dp" android:color="@color/lightblue"/>
+  <corners android:radius="10dp"/>
+</shape>
