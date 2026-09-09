@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The mark on a segment that has something behind it, in the colour a verdict is already written
+     in. It says there is something there without saying what it costs, which is all that can
+     honestly be said while the tab holds a pitch and not a product. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="oval">
+  <size
+     android:width="6dp"
+     android:height="6dp"/>
+  <solid android:color="@color/warning"/>
+</shape>

@@ -134,6 +134,8 @@ public class AnalysisActivity extends NanoTimerActivity {
             showTab(index);
           }
         });
+    // The one tab that will cost money is otherwise the one with no sign on it.
+    tabs.setSegmentMarked(TAB_PLAN, true);
     solveRoot = findViewById(R.id.llAnalysisSolve);
     headings = new CaseTableHeadings(solveRoot, HEADING_LABELS,
         OPENS_DESCENDING, 1, new CaseTableHeadings.Listener() {

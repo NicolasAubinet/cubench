@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.view.ViewSegments;
 
@@ -58,6 +59,15 @@ public class SegmentedControl {
       container.addView(cell);
     }
     refresh();
+  }
+
+  /**
+   * Marks a cell, for a choice that leads to something the others do not. The mark rides at the
+   * cell's own edge rather than beside the label, so a marked segment is the same width as the rest.
+   */
+  public void setSegmentMarked(int index, boolean marked) {
+    cells.get(index).setCompoundDrawablesWithIntrinsicBounds(0, 0,
+        marked ? R.drawable.view_segment_marker : 0, 0);
   }
 
   /** Takes a cell out of the row, for a choice that does not apply to what is being set up. */
