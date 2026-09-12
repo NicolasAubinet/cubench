@@ -1254,7 +1254,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , SUM(r.").append(DB.COL_DRILL_REP_RECOGNITION).append(")");
     q.append("     , MIN(").append(total).append(")");
     q.append("     , MAX(").append(total).append(")");
-    q.append("     , SUM(").append(total).append(" * ").append(total).append(")");
+    q.append("     , SUM(1.0 * ").append(total).append(" * ").append(total).append(")");
     q.append("  FROM ").append(DB.TABLE_DRILL_REP).append(" r");
     q.append("  JOIN ").append(DB.TABLE_DRILL).append(" d");
     q.append("    ON d.").append(DB.COL_ID).append(" = r.").append(DB.COL_DRILL_REP_DRILL_ID);
