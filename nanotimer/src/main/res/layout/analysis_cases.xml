@@ -95,6 +95,8 @@
     </LinearLayout>
   </HorizontalScrollView>
 
+  <!-- The Solve tab includes this same table: see the note there. Ids inside are looked up
+       through this tab's own root, never through the activity. -->
   <include
      android:id="@+id/llAnalysisCaseTable"
      layout="@layout/case_table"

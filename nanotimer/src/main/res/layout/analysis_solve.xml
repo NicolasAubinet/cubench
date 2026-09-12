@@ -136,11 +136,58 @@
        android:textSize="12sp"/>
   </LinearLayout>
 
+  <!-- The Cases tab includes this same table, so every id inside it exists twice under this
+       activity. Look one up through the tab's own root (solveRoot / the Cases root), never through
+       the activity: an unscoped findViewById would silently bind the other tab's table. -->
   <include
      android:id="@+id/llAnalysisStepTable"
      layout="@layout/case_table"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginTop="20dp"/>
+
+  <!-- What there is to do about a screen full of somebody else's figures, at the foot of the tab
+       that read them rather than over them: the reader is shown the whole thing first. -->
+  <LinearLayout
+     android:id="@+id/llAnalysisSampleCta"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="20dp"
+     android:background="@drawable/analysis_lit_card"
+     android:orientation="vertical"
+     android:padding="14dp"
+     android:visibility="gone">
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:fontFamily="@font/roboto_medium"
+       android:text="@string/analysis_sample_cta_title"
+       android:textColor="@color/white"
+       android:textSize="15sp"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="4dp"
+       android:lineSpacingMultiplier="1.15"
+       android:text="@string/analysis_sample_cta_body"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buAnalysisSampleConnect"
+       android:layout_marginTop="14dp"
+       android:text="@string/analysis_sample_connect"
+       style="@style/DialogActionButton"/>
+
+    <!-- Quieter than the tonal button above it: staying is what the reader is already doing. -->
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buAnalysisSampleBrowse"
+       android:layout_marginTop="8dp"
+       android:background="@drawable/dialog_action_button_ghost"
+       android:text="@string/analysis_sample_browse"
+       style="@style/DialogActionButton"/>
+  </LinearLayout>
 
 </LinearLayout>

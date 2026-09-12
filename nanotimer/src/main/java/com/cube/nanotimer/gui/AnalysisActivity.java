@@ -25,6 +25,7 @@ import com.cube.nanotimer.gui.widget.CaseRow;
 import com.cube.nanotimer.gui.widget.CaseTableHeadings;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
+import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
@@ -35,6 +36,7 @@ import com.cube.nanotimer.util.view.DeltaBarView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.CaseHistory;
+import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveType;
@@ -58,6 +60,14 @@ import java.util.Map;
  * over every solve it can never fall at all; a best has the same fragility and keeps its column
  * because a best is read as a record, where a worst is read as a description of how bad the step
  * routinely gets, which is not what a maximum measures.
+ *
+ * <p><b>Where a reader has no cube-read solve anywhere, the screen reads {@link AnalysisSample}
+ * instead.</b> Someone who owns no cube cannot be told to go and do more solves with one, and a hub
+ * that answers them with one grey sentence sells neither the cube nor itself. The condition is
+ * about the reader and not about the window: a reader who owns a cube and has simply not used it on
+ * this solve type is told exactly that, since for them the example would be somebody else's figures
+ * standing over a screen they have a real version of. That is the arrangement never allowed here,
+ * because an invented figure beside a real one is what makes the true number look invented.
  */
 public class AnalysisActivity extends NanoTimerActivity {
 
@@ -67,9 +77,9 @@ public class AnalysisActivity extends NanoTimerActivity {
   /** The family the Cases tab opens narrowed to, for a door that knows which step it came from. */
   public static final String EXTRA_FAMILY = "analysisFamily";
 
-  private static final int TAB_SOLVE = 0;
+  public static final int TAB_SOLVE = 0;
   private static final int TAB_CASES = 1;
-  private static final int TAB_PLAN = 2;
+  public static final int TAB_PLAN = 2;
 
   /** What a plan says, in the order it says it, on a tab that cannot yet say any of it. */
   private static final int[] PLAN_POINTS = {R.string.analysis_plan_point_one,
@@ -101,6 +111,25 @@ public class AnalysisActivity extends NanoTimerActivity {
   private MethodStatistics statistics;
   private List<CaseKnowledge> known = Collections.emptyList();
 
+  /** What the query returned, kept apart from what is drawn: the sample stands in front of it. */
+  private MethodStatistics read;
+  private List<CaseKnowledge> readKnown = Collections.emptyList();
+  /**
+   * Whether a cube has ever read a solve of theirs, of any solve type. Null until that read lands.
+   * It is what separates the two readers an empty window otherwise looks the same to: one who owns
+   * no cube, for whom the example is the only way to see what the screen is, and one who owns one
+   * and has simply not used it here, for whom it is somebody else's figures over their own screen.
+   */
+  private Boolean hasOwnSolves;
+  /** Whether this solve type's scrambles make a whole solve, which is what a breakdown reads. */
+  private boolean wholeSolve;
+  /** Whether a smart cube can read this puzzle at all, which only a 3x3 can. */
+  private boolean readablePuzzle;
+  /** Whether they asked to see their own instead, which is an empty screen and honestly so. */
+  private boolean leftSample;
+  private boolean ctaDismissed;
+  private int[] chipPadding = {0, 0, 0, 0};
+
   /** The steps as the query returned them, in solving order, and what the table is ranked on. */
   private final List<StepStats> steps = new ArrayList<StepStats>();
   private final Map<StepStats, CaseRow> lines = new LinkedHashMap<StepStats, CaseRow>();
@@ -113,17 +142,15 @@ public class AnalysisActivity extends NanoTimerActivity {
 
     solveType = (SolveType) getIntent().getSerializableExtra(EXTRA_SOLVE_TYPE);
     method = SolveTypeMethod.of(solveType);
+    // A trainer's scramble sets up one step rather than a solve, so a solve of it has no cross to
+    // measure and no PLL to reach: read as a whole solve it would print a breakdown of nothing.
+    wholeSolve = solveType.getScrambleType() == null || solveType.getScrambleType().isDefault();
+    readablePuzzle = solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId();
     window = AnalysisWindow.of(Options.INSTANCE.getAnalysisWindow(
         AnalysisWindow.HUNDRED.ordinal()));
     palette = StepPalette.cfop(this);
 
-    ActionBar bar = getSupportActionBar();
-    if (bar != null) {
-      // The context is what the screen is about rather than a control, so it rides on the app bar.
-      bar.setSubtitle(getString(R.string.analysis_context,
-          Utils.toSolveTypeLocalizedName(this, solveType.getName()),
-          getString(SolveTypeMethod.nameOf(method))));
-    }
+    showContext();
 
     tabs = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llAnalysisTabs),
         new String[] {getString(R.string.analysis_tab_solve), getString(R.string.analysis_tab_cases),
@@ -148,12 +175,13 @@ public class AnalysisActivity extends NanoTimerActivity {
     cases = new AnalysisCases(this, findViewById(R.id.llAnalysisCases), casesListener());
     cases.setFamily(getIntent().getStringExtra(EXTRA_FAMILY));
     showPlanPoints();
-    ((TextView) findViewById(R.id.tvAnalysisDeltaLabel))
-        .setText(getString(R.string.analysis_delta_label, getString(SolveTypeMethod.nameOf(method))));
+    wireSample();
 
-    tabs.setSelection(getIntent().getIntExtra(EXTRA_TAB, TAB_SOLVE));
+    showTabStrip();
+    tabs.setSelection(onlySolve() ? TAB_SOLVE : getIntent().getIntExtra(EXTRA_TAB, TAB_SOLVE));
     showTab(tabs.getSelection());
     loadKnowledge();
+    loadOwnSolves();
     load();
   }
 
@@ -162,10 +190,17 @@ public class AnalysisActivity extends NanoTimerActivity {
     getMenuInflater().inflate(R.menu.analysis_menu, menu);
     windowItem = menu.findItem(R.id.itAnalysisWindow);
     TextView chip = (TextView) windowItem.getActionView();
+    // A background carries its own padding, and a shape has none, so the chip's is kept by hand.
+    chipPadding = new int[] {chip.getPaddingLeft(), chip.getPaddingTop(), chip.getPaddingRight(),
+        chip.getPaddingBottom()};
     chip.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        askForWindow();
+        if (sampleOffered()) {
+          askForMode();
+        } else {
+          askForWindow();
+        }
       }
     });
     showWindow();
@@ -175,17 +210,60 @@ public class AnalysisActivity extends NanoTimerActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itAnalysisHelp) {
-      DialogUtils.showFragment(this, AnalysisHelpDialog.newInstance(tab));
+      DialogUtils.showFragment(this, AnalysisHelpDialog.newInstance(tab, sampling()));
       return true;
     }
     return super.onOptionsItemSelected(item);
   }
 
-  /** Which slice of history the figures are read from, on the same line as what they are about. */
+  /**
+   * Which slice of history the figures are read from, on the same line as what they are about.
+   *
+   * <p>Over the sample it is whose figures they are instead. There is nothing to window: the sample
+   * is one hundred-solve tally rather than a hundred solves, so a control offering to read fifty of
+   * them would be promising a filter it cannot run.
+   */
   private void showWindow() {
-    if (windowItem != null) {
-      ((TextView) windowItem.getActionView())
-          .setText(getString(R.string.analysis_window_chip, getString(window.getLabelId())));
+    if (windowItem == null) {
+      return;
+    }
+    // A trainer has no window worth offering: no slice of it will ever hold a step.
+    windowItem.setVisible(readAsSolve());
+    if (!readAsSolve()) {
+      return;
+    }
+    boolean sampling = sampling();
+    TextView chip = (TextView) windowItem.getActionView();
+    int label;
+    if (sampleOffered()) {
+      label = sampling ? R.string.analysis_sample_chip : R.string.analysis_sample_mine;
+    } else {
+      label = window.getLabelId();
+    }
+    chip.setText(getString(R.string.analysis_window_chip, getString(label)));
+    chip.setBackgroundResource(sampling ? R.drawable.analysis_sample_chip : R.drawable.row_chip);
+    chip.setPadding(chipPadding[0], chipPadding[1], chipPadding[2], chipPadding[3]);
+    chip.setTextColor(ContextCompat.getColor(this,
+        sampling ? R.color.sample_ink : R.color.secondary_text));
+  }
+
+  /** What the screen is about, which over the sample is whose solves rather than which of theirs. */
+  private void showContext() {
+    ActionBar bar = getSupportActionBar();
+    if (bar == null) {
+      return;
+    }
+    // The context is what the screen is about rather than a control, so it rides on the app bar.
+    String name = Utils.toSolveTypeLocalizedName(this, solveType.getName());
+    if (sampling()) {
+      bar.setSubtitle(getString(R.string.analysis_sample_subtitle));
+    } else if (readAsSolve()) {
+      bar.setSubtitle(getString(R.string.analysis_context, name,
+          getString(SolveTypeMethod.nameOf(method))));
+    } else {
+      // Naming a method here would claim these solves are read as one, which is the whole point of
+      // what this screen is refusing to do for a trainer.
+      bar.setSubtitle(name);
     }
   }
 
@@ -205,6 +283,26 @@ public class AnalysisActivity extends NanoTimerActivity {
             Options.INSTANCE.setAnalysisWindow(window.ordinal());
             showWindow();
             load();
+          }
+        })
+        .show();
+  }
+
+  /**
+   * Whose figures the hub is reading. Offered only where their own window holds nothing, and their
+   * own is still one tap away, which is what stops the sample being something done to them.
+   */
+  private void askForMode() {
+    String[] labels = {getString(R.string.analysis_sample_chip),
+        getString(R.string.analysis_sample_mine)};
+    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.analysis_sample_showing)
+        .setSingleChoiceItems(labels, sampling() ? 0 : 1, new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            dialog.dismiss();
+            leftSample = which == 1;
+            draw();
           }
         })
         .show();
@@ -241,8 +339,69 @@ public class AnalysisActivity extends NanoTimerActivity {
         .setVisibility(tab == TAB_CASES && readable ? View.VISIBLE : View.GONE);
     findViewById(R.id.llAnalysisPlan).setVisibility(tab == TAB_PLAN ? View.VISIBLE : View.GONE);
     // Nothing at all until the first read lands, rather than a moment of "you have no solves".
-    findViewById(R.id.tvAnalysisEmpty)
-        .setVisibility(measured && loaded && !readable ? View.VISIBLE : View.GONE);
+    TextView empty = (TextView) findViewById(R.id.tvAnalysisEmpty);
+    empty.setVisibility(measured && loaded && !readable ? View.VISIBLE : View.GONE);
+    empty.setText(emptyLine());
+  }
+
+  /**
+   * Whether a solve of this type is something a cube reads end to end, which is what every figure
+   * on the Solve tab is a share of. A puzzle no cube turns and a scramble that sets up one step
+   * both fail it, and the screen says which rather than sending the reader off to solve more.
+   */
+  private boolean readAsSolve() {
+    return canAnalyse(solveType);
+  }
+
+  /**
+   * Whether this solve type has a breakdown to offer at all, asked before the screen is opened:
+   * the drawer leaves its row out for a type that fails it rather than opening a hub whose whole
+   * content is the reason it is empty.
+   *
+   * <p>Three ways to fail, and none of them is a matter of solving more. A cube only turns a 3x3.
+   * A trainer's scramble sets up one step, so there is no whole solve to take shares of. And a type
+   * that times its own steps already has a breakdown, the solver's own: reading a second one off
+   * the cube would put two different answers to one question in the same app.
+   */
+  public static boolean canAnalyse(SolveType solveType) {
+    return solveType != null
+        && solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId()
+        && (solveType.getScrambleType() == null || solveType.getScrambleType().isDefault())
+        && !solveType.hasSteps();
+  }
+
+  /** The strip goes away entirely where there is only one tab to pick. */
+  private void showTabStrip() {
+    boolean only = onlySolve();
+    findViewById(R.id.llAnalysisTabs).setVisibility(only ? View.GONE : View.VISIBLE);
+    if (only && tab != TAB_SOLVE) {
+      tabs.setSelection(TAB_SOLVE); // the control is hidden, not forgotten: it can come back
+      showTab(TAB_SOLVE);
+    }
+  }
+
+  /**
+   * Whether the hub is this solve type's Solve tab and nothing else. A blind solve is read as a
+   * memo and the pieces it solved: there is no set to deal a case from, so the Cases tab can only
+   * ever say so, and a plan is written out of cases. One tab is not a choice, so the strip goes.
+   */
+  private boolean onlySolve() {
+    return method == CubeMethod.BLIND;
+  }
+
+  /**
+   * Why there is nothing to show, in the order the reasons rule each other out. Every reason
+   * {@link #canAnalyse} refuses a type for has a line here, so a hub opened for one anyway says
+   * which rather than telling the reader to go and solve more, which could never help.
+   */
+  private int emptyLine() {
+    if (!readablePuzzle) {
+      return R.string.analysis_empty_puzzle;
+    }
+    if (!wholeSolve) {
+      return R.string.analysis_empty_scramble;
+    }
+    return solveType.hasSteps() ? R.string.analysis_empty_steps : R.string.analysis_empty;
   }
 
   /**
@@ -259,8 +418,31 @@ public class AnalysisActivity extends NanoTimerActivity {
         runOnUiThread(new Runnable() {
           @Override
           public void run() {
-            known = history.getCases();
-            showCases();
+            readKnown = history.getCases();
+            // Which read lands first is not fixed, and the sample owns both halves or neither.
+            if (!sampling()) {
+              known = readKnown;
+              showCases();
+            }
+          }
+        });
+      }
+    });
+  }
+
+  /** Asked once for the life of the screen: owning a cube is not a fact about the window. */
+  private void loadOwnSolves() {
+    App.INSTANCE.getService().hasAnySmartcubeSolve(new DataCallback<Boolean>() {
+      @Override
+      public void onData(final Boolean any) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            hasOwnSolves = any;
+            // Which read lands first is not fixed, and this one can turn the example off.
+            if (loaded) {
+              draw();
+            }
           }
         });
       }
@@ -283,13 +465,43 @@ public class AnalysisActivity extends NanoTimerActivity {
   }
 
   private void show(MethodStatistics statistics) {
-    this.statistics = statistics;
+    read = statistics;
+    loaded = true;
+    draw();
+  }
+
+  /**
+   * Whether the example is on offer at all. Three things have to hold: this solve type makes whole
+   * solves, its window holds none of them, and no cube has ever read one of theirs anywhere. The
+   * last is what keeps an invented figure away from anybody who has a real one to compare it with.
+   */
+  private boolean sampleOffered() {
+    return readAsSolve() && loaded && read != null && read.getFamilies().isEmpty()
+        && Boolean.FALSE.equals(hasOwnSolves);
+  }
+
+  /** Everything the figures decide, off whichever set of them is being read. */
+  private void draw() {
+    boolean sampling = sampling();
+    statistics = sampling ? AnalysisSample.statistics() : read;
+    known = sampling ? AnalysisSample.knowledge() : readKnown;
+    // The example solves CFOP whatever the reader's own type resolves to, and a figure keyed on
+    // the method has to name the solve being drawn rather than the one that is not there.
+    method = sampling ? CubeMethod.CFOP : SolveTypeMethod.of(solveType);
+    showTabStrip(); // the example solves CFOP, so it has the other two tabs even here
+    showContext();
+    showWindow();
+    showSample();
+    ((TextView) findViewById(R.id.tvAnalysisDeltaLabel)).setText(
+        getString(R.string.analysis_delta_label, getString(SolveTypeMethod.nameOf(method))));
+    ((TextView) findViewById(R.id.tvAnalysisDeltaLimit)).setText(
+        sampling ? R.string.analysis_delta_limit_sample : R.string.analysis_delta_limit);
+
     steps.clear();
     steps.addAll(statistics.getFamilies());
     // The palette is the method's own step order, so a Roux first block is the colour a cross is.
     palette = StepPalette.of(this, familyCodes());
 
-    loaded = true;
     showWhatIsReadable();
     if (steps.isEmpty()) {
       return;
@@ -300,6 +512,43 @@ public class AnalysisActivity extends NanoTimerActivity {
     // it is known from the statistics alone, so it does not wait on the case history.
     showCases();
     showSteps();
+  }
+
+  /** Whether the example is standing in for a window of the reader's that holds none. */
+  private boolean sampling() {
+    return sampleOffered() && !leftSample;
+  }
+
+  private void wireSample() {
+    findViewById(R.id.buAnalysisSampleConnect).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        DialogUtils.showFragment(AnalysisActivity.this, new SmartCubeConnectDialog());
+      }
+    });
+    findViewById(R.id.buAnalysisSampleBrowse).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        ctaDismissed = true;
+        showSample();
+      }
+    });
+  }
+
+  /**
+   * The badge and the one thing there is to do about it. The badge sits above the tabs and outside
+   * the scroll, because it is a caveat on every figure under it rather than a card among them.
+   */
+  private void showSample() {
+    boolean sampling = sampling();
+    findViewById(R.id.llAnalysisSampleBanner).setVisibility(sampling ? View.VISIBLE : View.GONE);
+    if (sampling) {
+      ((TextView) findViewById(R.id.tvAnalysisSampleBanner)).setText(
+          getString(R.string.analysis_sample_banner, statistics.getSolveCount()));
+    }
+    // At the foot of Solve, so the whole reading is walked before anything is asked for.
+    findViewById(R.id.llAnalysisSampleCta)
+        .setVisibility(sampling && !ctaDismissed ? View.VISIBLE : View.GONE);
   }
 
   /**
@@ -321,7 +570,7 @@ public class AnalysisActivity extends NanoTimerActivity {
   /** The Cases tab, which waits on two reads and is drawn by whichever of them lands second. */
   private void showCases() {
     if (statistics != null) {
-      cases.show(statistics, known, palette);
+      cases.show(statistics, known, palette, method);
     }
   }
 
@@ -356,8 +605,8 @@ public class AnalysisActivity extends NanoTimerActivity {
     int[] colors = new int[steps.size()];
     for (int i = 0; i < steps.size(); i++) {
       StepStats step = steps.get(i);
-      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs(), step.getMeanMs(),
-          Collections.<SolveStep>emptyList()));
+      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs(),
+          step.getMeanExecutionMs(), Collections.<SolveStep>emptyList()));
       colors[i] = palette.colorFor(step.getCode());
     }
     ((SolveStepBarView) findViewById(R.id.vAnalysisComposition)).setSteps(segments, colors);

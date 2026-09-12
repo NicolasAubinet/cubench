@@ -1088,11 +1088,18 @@
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">Analyse</string>
+  <string name="menu_section_smartcube">Cube connecté</string>
+  <string name="menu_drills">Entraînements</string>
+  <string name="menu_coaching">Coaching</string>
+  <string name="menu_premium_desc">Fonctionnalité payante</string>
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">R\u00e9solution</string>
   <string name="analysis_tab_cases">Cas</string>
   <string name="analysis_tab_plan">Plan</string>
-  <string name="analysis_empty">Aucune r\u00e9solution ici n\'a encore \u00e9t\u00e9 lue par un cube, il n\'y a donc pas d\'\u00e9tapes \u00e0 d\u00e9tailler.</string>
+  <string name="analysis_empty">Connectez un smart cube et faites quelques résolutions pour voir vos étapes apparaître ici.</string>
+  <string name="analysis_empty_scramble">Ce type de résolution met en place une seule étape et non une résolution entière, il n\'y a donc rien à détailler.</string>
+  <string name="analysis_empty_puzzle">Un smart cube ne lit que les résolutions de 3x3. Il n\'y a rien à détailler ici.</string>
+  <string name="analysis_empty_steps">Ce type de résolution chronomètre ses propres étapes, son détail est donc celui que vous tapez sur le chrono.</string>
   <string name="analysis_best">Meilleur</string>
   <plurals name="analysis_mean_of">
     <item quantity="one">moyenne de %d r\u00e9solution lue par le cube</item>
@@ -1103,6 +1110,7 @@
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
   <string name="analysis_delta_limit">Ces \u00e9carts s\'annulent toujours : ils disent o\u00f9 passe votre temps, pas que vous \u00eates lent. Une derni\u00e8re \u00e9tape rapide fera toujours passer une \u00e9tape pr\u00e9c\u00e9dente pour un probl\u00e8me.</string>
+  <string name="analysis_delta_limit_sample">Ces écarts s\'annulent toujours : ils disent où passe le temps de ce cubeur, pas qu\'il est lent. Une dernière étape rapide fera toujours passer une étape précédente pour un problème.</string>
   <string name="analysis_window_title">Lu sur</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">50 derni\u00e8res</string>
@@ -1122,14 +1130,26 @@
   <string name="analysis_knowledge_unseen">Jamais vus</string>
   <string name="analysis_knowledge_costing">Vous coûtent</string>
   <string name="analysis_rest_title">Le reste de l\'ensemble</string>
-  <string name="analysis_cases_empty">Aucun cas n\'a encore été nommé. Résolvez avec un smart cube connecté et les cas qu\'il lit seront classés ici.</string>
+  <string name="analysis_cases_empty">Connectez un smart cube et faites quelques résolutions pour voir les cas qu\'il lit classés ici.</string>
+  <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
+  <string name="analysis_cases_method">Seules les résolutions CFOP ont leurs cas nommés pour l\'instant, il n\'y a donc rien à classer ici.</string>
   <string name="analysis_plan_headline">Ce qu\'un coach dirait</string>
   <string name="analysis_plan_body">Résolution et Cas disent où vous en êtes. Un plan dit quoi y faire, et le plan suivant dit si ça a marché.</string>
   <string name="analysis_plan_point_one">Quels cas valent vraiment votre semaine, parmi tout ce que Cas classe.</string>
   <string name="analysis_plan_point_two">Quelle étape est hors proportion, et si c\'est le regard ou les mouvements.</string>
   <string name="analysis_plan_point_three">Si le travail de la semaine dernière a changé quelque chose.</string>
-  <string name="analysis_plan_cites">Écrit à partir de vos propres résolutions, chaque affirmation citant un chiffre que vous pouvez vérifier sur les deux autres onglets.</string>
+  <string name="analysis_plan_cites">Un plan est écrit à partir de vos propres résolutions, chaque affirmation citant un chiffre que vous pouvez vérifier sur les deux autres onglets.</string>
   <string name="analysis_plan_not_yet">Il n\'y a pas encore de plan ici. Résolution et Cas restent gratuits quoi qu\'il arrive à cet onglet.</string>
+
+  <string name="analysis_sample_subtitle">Pas vos résolutions</string>
+  <string name="analysis_sample_chip">Exemple</string>
+  <string name="analysis_sample_mine">Mes résolutions</string>
+  <string name="analysis_sample_showing">Affichage</string>
+  <string name="analysis_sample_banner">Données d\'exemple sur %d résolutions, pas les vôtres. Connectez un smart cube pour remplir cet écran.</string>
+  <string name="analysis_sample_cta_title">Voilà ce que votre cube dirait</string>
+  <string name="analysis_sample_cta_body">Cubench lit chaque mouvement d\'un smart cube, découpe la résolution en étapes et nomme le cas de chacune. Parcourez tout l\'exemple, puis connectez un cube pour voir les vôtres.</string>
+  <string name="analysis_sample_connect">Connecter un cube</string>
+  <string name="analysis_sample_browse">Continuer à regarder</string>
 
   <string name="analysis_help_title">À propos de ces chiffres</string>
   <string name="analysis_help_solve_title">Où passe votre temps</string>
@@ -1155,5 +1175,7 @@
   <string name="analysis_help_shape">Forme</string>
   <string name="analysis_help_shape_body">Choisissez OLL et un bouton Forme apparaît à côté, avec les groupes sous lesquels ses cas sont connus : les dots, les fish, les L shapes. Le nombre indique la taille du groupe. Toucher l\'en-tête Cas remet la liste dans l\'ordre des cas.</string>
   <string name="analysis_help_rest_body">Sous le tableau, les cas de cette étape dont la fenêtre n\'a aucun chiffre, groupés par où ils en sont. Cela est lu sur toutes vos résolutions et non sur la fenêtre, donc un cas que vous connaissez mais qui n\'est pas venu récemment y figure comme connu. Touchez-en un pour ses algorithmes.</string>
+  <string name="analysis_help_sample">Exemple</string>
+  <string name="analysis_help_sample_body">Rien sur ces onglets n\'est à vous. Ces chiffres sont inventés, et ils sont là pour que l\'écran ait quelque chose à montrer avant que vous ayez un smart cube. Connectez-en un et les vôtres prendront leur place.</string>
 
 </resources>

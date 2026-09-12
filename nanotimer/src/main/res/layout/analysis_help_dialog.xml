@@ -32,6 +32,34 @@
        android:layout_height="wrap_content"
        android:orientation="vertical">
 
+      <!-- Whose figures these are, before whatever the asking tab calls them: it is true of every
+           tab, so it is the one section that is not one of the three. -->
+      <LinearLayout
+         android:id="@+id/llAnalysisHelpSample"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginBottom="4dp"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="@string/analysis_help_sample"
+           android:textColor="@color/white"
+           android:textSize="20sp"
+           android:textStyle="bold"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="6dp"
+           android:layout_marginBottom="16dp"
+           android:text="@string/analysis_help_sample_body"
+           android:textColor="@color/secondary_text"
+           android:textSize="13.5sp"/>
+      </LinearLayout>
+
       <LinearLayout
          android:id="@+id/llAnalysisHelpSolve"
          android:layout_width="match_parent"
@@ -47,6 +75,7 @@
            android:textStyle="bold"/>
 
         <TextView
+           android:id="@+id/tvAnalysisHelpSolveBody"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:layout_marginTop="6dp"

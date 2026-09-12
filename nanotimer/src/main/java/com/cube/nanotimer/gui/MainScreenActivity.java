@@ -57,6 +57,7 @@ import com.cube.nanotimer.util.backup.BackupRestorer;
 import com.cube.nanotimer.util.exportimport.ErrorListener;
 import com.cube.nanotimer.util.exportimport.csvimport.CSVImporter;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.EnterAnimation;
@@ -128,21 +129,27 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private final Map<Integer, String> dayHeaders = new HashMap<>();
   private final Handler timeAgoHandler = new Handler();
   /**
-   * The drawer's entries, by their place in {@code R.array.mainscreen_menu_items}. Named because one
-   * of them is not always shown, and an index counted off the rows on screen would then mean a
-   * different entry depending on whether it was.
+   * The drawer's entries, by their place in {@code R.array.mainscreen_menu_items}. Named because the
+   * rows on screen are not these: a build without the smart cube drops three of them, and the
+   * section labels are rows that are no entry at all, so an index counted off the screen would mean
+   * a different entry depending on both.
    */
   private static final int MENU_SETTINGS = 0;
   private static final int MENU_SORT = 1;
   private static final int MENU_GRAPHS = 2;
   private static final int MENU_ANALYSIS = 3;
-  private static final int MENU_IMPORT_EXPORT = 4;
-  private static final int MENU_CLEAR_HISTORY = 5;
-  private static final int MENU_LANGUAGE = 6;
-  private static final int MENU_ABOUT = 7;
-  private static final int MENU_RATE = 8;
+  private static final int MENU_DRILLS = 4;
+  private static final int MENU_COACHING = 5;
+  private static final int MENU_IMPORT_EXPORT = 6;
+  private static final int MENU_CLEAR_HISTORY = 7;
+  private static final int MENU_LANGUAGE = 8;
+  private static final int MENU_ABOUT = 9;
+  private static final int MENU_RATE = 10;
 
-  /** Which entry each row of the drawer is, in order. */
+  /** A row that names the group under it rather than leading anywhere, and cannot be tapped. */
+  private static final int MENU_HEADER = -1;
+
+  /** Which entry each row of the drawer is, in order. {@link #MENU_HEADER} for a group label. */
   private int[] menuEntries;
 
   private HistoryListAdapter historyListAdapter;
@@ -334,20 +341,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     // holding its width in the bar, and the gate has to take the whole item away.
     MenuItem smartCubeItem = menu.findItem(R.id.itSmartCube);
     smartCubeChip.bind(smartCubeItem, smartCubeItem != null ? smartCubeItem.getActionView() : null);
-    MenuItem drillItem = menu.findItem(R.id.itDrill);
-    if (drillItem != null) {
-      drillItem.setVisible(SmartCubeGate.ENABLED); // a drill is run on a cube: the only way in
-    }
-
     return super.onCreateOptionsMenu(menu);
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == R.id.itDrill) {
-      startActivity(new Intent(this, DrillSetupActivity.class));
-      return true;
-    }
     if (item.getItemId() == R.id.itAppIcon) {
       DialogUtils.showFragment(this, AboutDialog.newInstance());
       return true;
@@ -434,9 +432,29 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     String[] labels = getResources().getStringArray(R.array.mainscreen_menu_items);
     List<String> shown = new ArrayList<>();
     List<Integer> entries = new ArrayList<>();
+    boolean sectionOpened = false;
     for (int entry = 0; entry < labels.length; entry++) {
-      if (entry == MENU_ANALYSIS && !SmartCubeGate.ENABLED) {
-        continue; // it reads what a cube recorded: without one there is nothing for it to read
+      if (isSmartCubeEntry(entry)) {
+        // The section shows whether or not a cube has ever been connected: it is how somebody who
+        // does not own one finds out the feature exists. Only a build without it drops the rows.
+        if (!SmartCubeGate.ENABLED) {
+          continue;
+        }
+        // Both rows open the hub, and a type it can say nothing about should not be a door into
+        // it. Drills stay: they are about cases rather than about this solve type.
+        if (entry != MENU_DRILLS && !AnalysisActivity.canAnalyse(curSolveType)) {
+          continue;
+        }
+        if (!sectionOpened) {
+          sectionOpened = true;
+          entries.add(MENU_HEADER);
+          shown.add(getString(R.string.menu_section_smartcube));
+        }
+      }
+      if (entry == MENU_IMPORT_EXPORT && SmartCubeGate.ENABLED) {
+        // A rule with no label, closing the section: without it the rows below read as part of it.
+        entries.add(MENU_HEADER);
+        shown.add("");
       }
       entries.add(entry);
       shown.add(labels[entry]);
@@ -448,9 +466,18 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     return shown.toArray(new String[0]);
   }
 
+  private static boolean isSmartCubeEntry(int entry) {
+    return entry == MENU_ANALYSIS || entry == MENU_DRILLS || entry == MENU_COACHING;
+  }
+
   private void openAnalysis() {
+    openAnalysis(AnalysisActivity.TAB_SOLVE);
+  }
+
+  private void openAnalysis(int tab) {
     Intent i = new Intent(this, AnalysisActivity.class);
     i.putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, curSolveType);
+    i.putExtra(AnalysisActivity.EXTRA_TAB, tab);
     startActivity(i);
   }
 
@@ -533,6 +560,13 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         break;
       case MENU_ANALYSIS:
         openAnalysis();
+        break;
+      case MENU_DRILLS:
+        startActivity(new Intent(this, DrillSetupActivity.class));
+        break;
+      case MENU_COACHING:
+        // The coach has no screen of its own: what it would say is the hub's third tab.
+        openAnalysis(AnalysisActivity.TAB_PLAN);
         break;
       case MENU_IMPORT_EXPORT:
         ArrayList<String> items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.import_export)));
@@ -745,7 +779,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
    * Only for a solve type a cube has read: a type with no breakdowns has no steps to split.
    */
   private void refreshStepBar() {
-    if (!SmartCubeGate.ENABLED || curSolveType == null) {
+    // The bar is a door into the hub, so it closes wherever the hub does.
+    if (!SmartCubeGate.ENABLED || !AnalysisActivity.canAnalyse(curSolveType)) {
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
@@ -791,8 +826,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     int[] colors = new int[families.size()];
     for (int i = 0; i < families.size(); i++) {
       StepStats step = families.get(i);
-      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs(), step.getMeanMs(),
-        Collections.<SolveStep>emptyList()));
+      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs(),
+          step.getMeanExecutionMs(), Collections.<SolveStep>emptyList()));
       colors[i] = palette.colorFor(step.getCode());
     }
     heroStepBar.setSteps(segments, colors);
@@ -1167,6 +1202,27 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private void setCurSolveType(SolveType solveType) {
     this.curSolveType = solveType;
     Utils.setCurrentSolveType(this, solveType);
+    refreshMenu(); // the hub's rows depend on which type is picked
+  }
+
+  /**
+   * The drawer rebuilt around the current pick. A new adapter rather than a cleared one: this one
+   * is backed by the array it was built from, which cannot be emptied. On the UI thread because the
+   * pick can land on the callback's own thread, and the rows and {@link #menuEntries} are read
+   * together.
+   */
+  private void refreshMenu() {
+    if (menuListAdapter == null) {
+      return;
+    }
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        menuListAdapter = new MenuListAdapter(MainScreenActivity.this, R.id.lvMenuItems,
+            buildMenu());
+        ((ListView) findViewById(R.id.lvMenuItems)).setAdapter(menuListAdapter);
+      }
+    });
   }
 
   /** Found by id rather than by position, so a solve deleted meanwhile cannot hand back its seat. */
@@ -1241,13 +1297,39 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       this.objects = objects;
     }
 
+    @Override
+    public int getViewTypeCount() {
+      return 2;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+      return menuEntries[position] == MENU_HEADER ? 1 : 0;
+    }
+
+    /** A group label leads nowhere, so it takes no touch and no highlight. */
+    @Override
+    public boolean isEnabled(int position) {
+      return menuEntries[position] != MENU_HEADER;
+    }
+
+    @Override
+    public boolean areAllItemsEnabled() {
+      return false;
+    }
+
     public View getView(final int position, View convertView, ViewGroup parent) {
+      if (menuEntries[position] == MENU_HEADER) {
+        return headerView(position, convertView, parent);
+      }
       View view = convertView;
       if (view == null) {
         view = inflater.inflate(R.layout.menu_item_with_icon, parent, false);
       }
 
       if (position >= 0 && position < objects.length) {
+        view.findViewById(R.id.imgMenuPremium)
+            .setVisibility(menuEntries[position] == MENU_COACHING ? View.VISIBLE : View.GONE);
         ImageView icon = (ImageView) view.findViewById(R.id.imgIcon);
         Integer imageResource = null;
         switch (menuEntries[position]) {
@@ -1262,6 +1344,12 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             break;
           case MENU_ANALYSIS:
             imageResource = R.drawable.menu_analysis;
+            break;
+          case MENU_DRILLS:
+            imageResource = R.drawable.ic_menu_drill;
+            break;
+          case MENU_COACHING:
+            imageResource = R.drawable.menu_coach;
             break;
           case MENU_IMPORT_EXPORT:
             imageResource = R.drawable.menu_import_export;
@@ -1294,6 +1382,25 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           tvName.setText(objects[position]);
         }
       }
+      return view;
+    }
+
+    /** A group label, or with no text the bare rule that closes the group above it. */
+    private View headerView(int position, View convertView, ViewGroup parent) {
+      View view = convertView;
+      if (view == null) {
+        view = inflater.inflate(R.layout.menu_section_header, parent, false);
+      }
+      String label = position < objects.length ? objects[position] : "";
+      TextView tvSection = (TextView) view.findViewById(R.id.tvMenuSection);
+      tvSection.setText(label);
+      tvSection.setVisibility(label.isEmpty() ? View.GONE : View.VISIBLE);
+      // With no label under it the rule keeps the gap the label would have filled, and sits closer
+      // to the group above than to the one below. Take that back so it sits between the two.
+      View rule = view.findViewById(R.id.vMenuSectionRule);
+      ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) rule.getLayoutParams();
+      params.bottomMargin = ScreenUtils.dipToPixels(label.isEmpty() ? 10 : 14);
+      rule.setLayoutParams(params);
       return view;
     }
   }

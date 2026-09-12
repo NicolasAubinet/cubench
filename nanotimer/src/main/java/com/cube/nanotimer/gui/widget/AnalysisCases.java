@@ -23,6 +23,7 @@ import com.cube.nanotimer.util.view.FlowLayout;
 import com.cube.nanotimer.util.view.KnowledgeRingView;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.util.view.ViewSegments;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
@@ -164,7 +165,8 @@ public class AnalysisCases {
     return families.contains(family);
   }
 
-  public void show(MethodStatistics statistics, List<CaseKnowledge> known, StepPalette palette) {
+  public void show(MethodStatistics statistics, List<CaseKnowledge> known, StepPalette palette,
+      CubeMethod method) {
     this.statistics = statistics;
     this.palette = palette;
     statuses.clear();
@@ -179,8 +181,9 @@ public class AnalysisCases {
         .setVisibility(anything ? View.VISIBLE : View.GONE);
     root.findViewById(R.id.svAnalysisFamilies).setVisibility(anything ? View.VISIBLE : View.GONE);
     root.findViewById(R.id.llAnalysisCaseTable).setVisibility(anything ? View.VISIBLE : View.GONE);
-    root.findViewById(R.id.tvAnalysisCasesEmpty)
-        .setVisibility(anything ? View.GONE : View.VISIBLE);
+    TextView empty = (TextView) root.findViewById(R.id.tvAnalysisCasesEmpty);
+    empty.setVisibility(anything ? View.GONE : View.VISIBLE);
+    empty.setText(emptyLine(method));
     root.findViewById(R.id.llAnalysisRestGroups)
         .setVisibility(anything ? View.VISIBLE : View.GONE);
     if (!anything) {
@@ -188,6 +191,20 @@ public class AnalysisCases {
       return;
     }
     redraw();
+  }
+
+  /**
+   * Why this tab is empty, which is three different things and only one of them is a matter of
+   * solving more. A blind solve has no set to be dealt from, and a method whose steps this app has
+   * no charts for cannot name a case however many solves it reads: telling either reader to go and
+   * solve with a cube connected is advice that will never work.
+   */
+  private int emptyLine(CubeMethod method) {
+    if (method == CubeMethod.BLIND) {
+      return R.string.analysis_cases_blind;
+    }
+    return method == CubeMethod.CFOP ? R.string.analysis_cases_empty
+        : R.string.analysis_cases_method;
   }
 
   /** The segments, the ring, the table and the rest of the set as the pick now leaves them. */

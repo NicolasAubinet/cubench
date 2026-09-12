@@ -195,6 +195,12 @@
   <!-- What a case costs, which is not a step and must not read as one: the step hues name which
        part of the solve a row belongs to, and a cost is a quantity on any of them. -->
   <color name="analysis_cost">#F0B570</color>
+
+  <!-- Sample mode, in the warning hue rather than the accent: the badge is a caveat on every figure
+       under it and not something to press. -->
+  <color name="sample_wash">#26FFAA00</color>
+  <color name="sample_edge">#59FFAA00</color>
+  <color name="sample_ink">#FFD98A</color>
   <color name="step_5">@color/cube_red</color>
   <color name="step_6">#E88FD0</color>
   <color name="step_7">#9E92F0</color>

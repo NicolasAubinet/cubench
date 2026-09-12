@@ -19,12 +19,23 @@
 
   <TextView
      android:id="@+id/tvText"
-     android:layout_width="match_parent"
+     android:layout_width="0dp"
      android:layout_height="wrap_content"
      android:layout_marginStart="18dp"
      android:layout_marginLeft="18dp"
+     android:layout_weight="1"
      android:singleLine="true"
      android:ellipsize="end"
      android:textSize="16sp"/>
+
+  <ImageView
+     android:id="@+id/imgMenuPremium"
+     android:layout_width="14dp"
+     android:layout_height="14dp"
+     android:layout_marginStart="10dp"
+     android:layout_marginLeft="10dp"
+     android:contentDescription="@string/menu_premium_desc"
+     android:src="@drawable/menu_premium"
+     android:visibility="gone"/>
 
 </LinearLayout>

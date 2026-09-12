@@ -1608,6 +1608,21 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
+  public boolean hasAnySmartcubeSolve() {
+    // EXISTS rather than a count: the answer is settled by the first row, however long the history.
+    Cursor cursor = db.rawQuery("SELECT EXISTS(SELECT 1 FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL)", null);
+    boolean any = false;
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        any = cursor.getInt(0) == 1;
+      }
+      cursor.close();
+    }
+    return any;
+  }
+
+  @Override
   public int getCoachSolveCount(SolveType solveType, CubeMethod method) {
     return getMethodSolvesCount(solveType, method, Integer.MAX_VALUE); // uncapped: it is a total, not a window
   }

@@ -1087,11 +1087,18 @@
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">An\u00e1lisis</string>
+  <string name="menu_section_smartcube">Cubo inteligente</string>
+  <string name="menu_drills">Entrenamientos</string>
+  <string name="menu_coaching">Coaching</string>
+  <string name="menu_premium_desc">Función de pago</string>
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">Resoluci\u00f3n</string>
   <string name="analysis_tab_cases">Casos</string>
   <string name="analysis_tab_plan">Plan</string>
-  <string name="analysis_empty">Ninguna resoluci\u00f3n de aqu\u00ed ha sido le\u00edda todav\u00eda por un cubo, as\u00ed que no hay pasos que desglosar.</string>
+  <string name="analysis_empty">Conecta un smart cube y haz algunas resoluciones para ver aquí tus pasos.</string>
+  <string name="analysis_empty_scramble">Este tipo de resolución prepara un solo paso y no una resolución entera, así que no hay nada que desglosar.</string>
+  <string name="analysis_empty_puzzle">Un smart cube solo lee resoluciones de 3x3. No hay nada que desglosar aquí.</string>
+  <string name="analysis_empty_steps">Este tipo de resolución cronometra sus propios pasos, así que su desglose es el que tocas en el cronómetro.</string>
   <string name="analysis_best">Mejor</string>
   <plurals name="analysis_mean_of">
     <item quantity="one">media de %d resoluci\u00f3n le\u00edda por el cubo</item>
@@ -1102,6 +1109,7 @@
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
   <string name="analysis_delta_limit">Estas diferencias siempre se anulan, as\u00ed que dicen d\u00f3nde est\u00e1 tu tiempo, no que seas lento. Un \u00faltimo paso r\u00e1pido siempre har\u00e1 parecer un problema a uno anterior.</string>
+  <string name="analysis_delta_limit_sample">Estas diferencias siempre se anulan, así que dicen dónde está el tiempo de este cubero, no que sea lento. Un último paso rápido siempre hará parecer un problema a uno anterior.</string>
   <string name="analysis_window_title">Le\u00eddo sobre</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">\u00daltimas 50</string>
@@ -1121,14 +1129,26 @@
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_knowledge_costing">Te cuestan</string>
   <string name="analysis_rest_title">El resto del conjunto</string>
-  <string name="analysis_cases_empty">Aún no se ha nombrado ningún caso. Resuelve con un smart cube conectado y los casos que lea se ordenarán aquí.</string>
+  <string name="analysis_cases_empty">Conecta un smart cube y haz algunas resoluciones para ver aquí ordenados los casos que lea.</string>
+  <string name="analysis_cases_blind">Una resolución a ciegas no tiene casos. Se lee como una memorización y las piezas resueltas.</string>
+  <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
   <string name="analysis_plan_headline">Lo que diría un coach</string>
   <string name="analysis_plan_body">Resolución y Casos dicen dónde estás. Un plan dice qué hacer al respecto, y el plan siguiente dice si funcionó.</string>
   <string name="analysis_plan_point_one">Qué pocos casos merecen tu semana, de todo lo que ordena Casos.</string>
   <string name="analysis_plan_point_two">Qué paso está desproporcionado, y si es el mirar o el girar.</string>
   <string name="analysis_plan_point_three">Si el trabajo de la semana pasada cambió algo.</string>
-  <string name="analysis_plan_cites">Escrito a partir de tus propias resoluciones, citando en cada afirmación una cifra que puedes comprobar en las otras dos pestañas.</string>
+  <string name="analysis_plan_cites">Un plan se escribe a partir de tus propias resoluciones, citando en cada afirmación una cifra que puedes comprobar en las otras dos pestañas.</string>
   <string name="analysis_plan_not_yet">Todavía no hay ningún plan aquí. Resolución y Casos siguen siendo gratis pase lo que pase con esta pestaña.</string>
+
+  <string name="analysis_sample_subtitle">No son tus tiempos</string>
+  <string name="analysis_sample_chip">Ejemplo</string>
+  <string name="analysis_sample_mine">Mis resoluciones</string>
+  <string name="analysis_sample_showing">Mostrando</string>
+  <string name="analysis_sample_banner">Datos de ejemplo de %d resoluciones, no las tuyas. Conecta un smart cube para llenar esto.</string>
+  <string name="analysis_sample_cta_title">Esto es lo que diría tu cubo</string>
+  <string name="analysis_sample_cta_body">Cubench lee cada giro de un smart cube, parte la resolución en sus pasos y nombra el caso de cada uno. Recorre todo el ejemplo y luego conecta un cubo para ver las tuyas.</string>
+  <string name="analysis_sample_connect">Conectar un cubo</string>
+  <string name="analysis_sample_browse">Seguir mirando</string>
 
   <string name="analysis_help_title">Sobre estas cifras</string>
   <string name="analysis_help_solve_title">Adónde va tu tiempo</string>
@@ -1154,5 +1174,7 @@
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">Elija OLL y aparecerá al lado un botón Forma, con los grupos por los que se conocen sus casos: los dots, los fish, los L shapes. El número indica el tamaño del grupo. Tocar el encabezado Caso devuelve la lista al orden de los casos.</string>
   <string name="analysis_help_rest_body">Bajo la tabla, los casos de este paso de los que la ventana no tiene ninguna cifra, agrupados por dónde están. Eso se lee de todos tus resueltos y no de la ventana, así que un caso que conoces pero que no ha salido últimamente aparece ahí como conocido. Toca uno para ver sus algoritmos.</string>
+  <string name="analysis_help_sample">Ejemplo</string>
+  <string name="analysis_help_sample_body">Nada de estas pestañas es tuyo. Estas cifras están inventadas, y están aquí para que la pantalla tenga algo que mostrar antes de que tengas un smart cube. Conecta uno y las tuyas ocuparán su lugar.</string>
 
 </resources>

@@ -12,6 +12,50 @@
    android:fitsSystemWindows="true"
    android:orientation="vertical">
 
+  <!-- Whose figures these are, above the tabs and outside the scroll: it is a caveat on everything
+       below it, so it may not be scrolled off the way a card at the top would be. -->
+  <LinearLayout
+     android:id="@+id/llAnalysisSampleBanner"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginLeft="16dp"
+     android:layout_marginRight="16dp"
+     android:layout_marginTop="10dp"
+     android:background="@drawable/analysis_sample_banner"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+     android:paddingLeft="11dp"
+     android:paddingRight="11dp"
+     android:paddingTop="8dp"
+     android:paddingBottom="8dp"
+     android:visibility="gone">
+
+    <TextView
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:background="@drawable/analysis_sample_tag"
+       android:letterSpacing="0.1"
+       android:paddingLeft="7dp"
+       android:paddingRight="7dp"
+       android:paddingTop="2dp"
+       android:paddingBottom="2dp"
+       android:text="@string/analysis_sample_chip"
+       android:textAllCaps="true"
+       android:textColor="@color/graybg"
+       android:textSize="10sp"
+       android:textStyle="bold"/>
+
+    <TextView
+       android:id="@+id/tvAnalysisSampleBanner"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_marginLeft="8dp"
+       android:layout_weight="1"
+       android:lineSpacingMultiplier="1.15"
+       android:textColor="@color/sample_ink"
+       android:textSize="12sp"/>
+  </LinearLayout>
+
   <LinearLayout
      android:id="@+id/llAnalysisTabs"
      android:layout_width="match_parent"

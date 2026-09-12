@@ -1133,12 +1133,19 @@
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">Analysis</string>
+  <string name="menu_section_smartcube">Smart cube</string>
+  <string name="menu_drills">Drills</string>
+  <string name="menu_coaching">Coaching</string>
+  <string name="menu_premium_desc">Paid feature</string>
   <!-- The solve type and the method its solves are read as, on the app bar's second line. -->
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">Solve</string>
   <string name="analysis_tab_cases">Cases</string>
   <string name="analysis_tab_plan">Plan</string>
-  <string name="analysis_empty">No solve here was read by a cube yet, so there are no steps to break down.</string>
+  <string name="analysis_empty">Connect a smart cube and do some solves to have your steps appear here.</string>
+  <string name="analysis_empty_scramble">This solve type sets up one step rather than a whole solve, so there is nothing to break down.</string>
+  <string name="analysis_empty_puzzle">A smart cube only reads 3x3 solves. There is nothing to break down here.</string>
+  <string name="analysis_empty_steps">This solve type times its own steps, so its breakdown is the one you tap on the timer.</string>
   <string name="analysis_best">Best</string>
   <plurals name="analysis_mean_of">
     <item quantity="one">mean of %d cube-read solve</item>
@@ -1149,6 +1156,7 @@
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
   <string name="analysis_delta_limit">These always cancel out, so this says where your time sits, not that you are slow. A quick last step will always show as a problem with an earlier one.</string>
+  <string name="analysis_delta_limit_sample">These always cancel out, so this says where this solver\'s time sits, not that they are slow. A quick last step will always show as a problem with an earlier one.</string>
   <string name="analysis_window_title">Read over</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">Last 50</string>
@@ -1168,14 +1176,29 @@
   <string name="analysis_knowledge_unseen">Not yet seen</string>
   <string name="analysis_knowledge_costing">Costing you</string>
   <string name="analysis_rest_title">The rest of the set</string>
-  <string name="analysis_cases_empty">No case has been named yet. Solve with a smart cube connected and the cases it reads will be ranked here.</string>
+  <string name="analysis_cases_empty">Connect a smart cube and do some solves to have the cases it reads ranked here.</string>
+  <string name="analysis_cases_blind">A blindfolded solve has no cases. It is read as a memo and the pieces it solved.</string>
+  <string name="analysis_cases_method">Only CFOP solves have their cases named so far, so there is nothing to rank here.</string>
   <string name="analysis_plan_headline">What a coach would say</string>
   <string name="analysis_plan_body">Solve and Cases say where you stand. A plan says what to do about it, and the plan after it says whether doing it worked.</string>
   <string name="analysis_plan_point_one">Which few cases are worth your week, out of everything Cases ranks.</string>
   <string name="analysis_plan_point_two">Which step is out of proportion, and whether it is the looking or the turning.</string>
   <string name="analysis_plan_point_three">Whether last week\'s work moved anything.</string>
-  <string name="analysis_plan_cites">Written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>
+  <string name="analysis_plan_cites">A plan is written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>
   <string name="analysis_plan_not_yet">There is no plan here yet. Solve and Cases stay free whatever lands on this tab.</string>
+
+  <!-- Example mode: the whole hub filled with an invented solver, for a reader no cube has ever
+       read a solve for. The solver has no name: the banner already says the figures are not the
+       reader's, and a name only adds a question the screen never answers. -->
+  <string name="analysis_sample_subtitle">Not your solves</string>
+  <string name="analysis_sample_chip">Example</string>
+  <string name="analysis_sample_mine">My solves</string>
+  <string name="analysis_sample_showing">Showing</string>
+  <string name="analysis_sample_banner">Example data from %d solves, not yours. Connect a smart cube to see your own.</string>
+  <string name="analysis_sample_cta_title">This is what your cube would say</string>
+  <string name="analysis_sample_cta_body">Cubench reads every turn off a smart cube, splits the solve into its steps and names the case each one was. Browse the whole example, then connect a cube to see your own.</string>
+  <string name="analysis_sample_connect">Connect a cube</string>
+  <string name="analysis_sample_browse">Keep looking around</string>
 
   <string name="analysis_help_title">About these figures</string>
   <string name="analysis_help_solve_title">Where your time goes</string>
@@ -1201,5 +1224,7 @@
   <string name="analysis_help_shape">Shape</string>
   <string name="analysis_help_shape_body">Pick OLL and a Shape button appears beside it, with the groups its cases are known by: the dots, the fish, the L shapes. The number beside each is how big the group is. Tapping the Case heading puts the list back in case order.</string>
   <string name="analysis_help_rest_body">Under the table, the cases of this step the window holds no figures for, grouped by where they stand. That is read from every solve rather than from the window, so a case you know but have not had lately is in there as known. Tap one for its algorithms.</string>
+  <string name="analysis_help_sample">Example</string>
+  <string name="analysis_help_sample_body">Nothing on these tabs is yours. These figures are made up, and they are here so the screen has something to show before you own a smart cube. Connect one and your own take their place.</string>
 
 </resources>

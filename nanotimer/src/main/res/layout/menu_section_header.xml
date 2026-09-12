@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A group label in the drawer. It names what the rows under it are, and is never itself a row
+     that can be tapped, which is why the list has to treat it as its own kind of item. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:orientation="vertical"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:paddingLeft="20dp"
+   android:paddingRight="20dp"
+   android:paddingTop="16dp"
+   android:paddingBottom="6dp">
+
+  <View
+     android:id="@+id/vMenuSectionRule"
+     android:layout_width="match_parent"
+     android:layout_height="1dp"
+     android:layout_marginBottom="14dp"
+     android:background="@color/hero_divider"/>
+
+  <TextView
+     android:id="@+id/tvMenuSection"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:letterSpacing="0.1"
+     android:singleLine="true"
+     android:textAllCaps="true"
+     android:textColor="@color/secondary_text"
+     android:textSize="11sp"
+     android:textStyle="bold"/>
+
+</LinearLayout>

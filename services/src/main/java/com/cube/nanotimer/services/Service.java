@@ -71,6 +71,13 @@ public interface Service {
   void getSmartcubeSolvesCount(SolveType solveType, DataCallback<Integer> callback);
 
   /**
+   * Whether a smart cube has ever driven a solve, of any solve type. Asked by a screen deciding
+   * whether the reader has figures of their own anywhere, which is not the same question as whether
+   * the one it is showing has any.
+   */
+  void hasAnySmartcubeSolve(DataCallback<Boolean> callback);
+
+  /**
    * A solve type's cube-driven solves, carrying what it takes to read them again: the scramble and
    * the move stream. Their stored breakdowns are left out, being the very thing a re-reading
    * replaces.

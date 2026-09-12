@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The window chip's shape in the sample's colours: same control, so it still opens a list, and a
+     different tint, so the app bar says what is being read before the banner has to. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/sample_wash"/>
+  <corners android:radius="20dp"/>
+</shape>

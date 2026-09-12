@@ -1090,11 +1090,18 @@
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">An\u00e1lise</string>
+  <string name="menu_section_smartcube">Cubo inteligente</string>
+  <string name="menu_drills">Treinos</string>
+  <string name="menu_coaching">Coaching</string>
+  <string name="menu_premium_desc">Funcionalidade paga</string>
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">Resolu\u00e7\u00e3o</string>
   <string name="analysis_tab_cases">Casos</string>
   <string name="analysis_tab_plan">Plano</string>
-  <string name="analysis_empty">Nenhuma resolu\u00e7\u00e3o aqui foi ainda lida por um cubo, por isso n\u00e3o h\u00e1 etapas para detalhar.</string>
+  <string name="analysis_empty">Ligue um smart cube e faça algumas resoluções para ver aqui as suas etapas.</string>
+  <string name="analysis_empty_scramble">Este tipo de resolução prepara apenas uma etapa e não uma resolução inteira, por isso não há nada para detalhar.</string>
+  <string name="analysis_empty_puzzle">Um smart cube só lê resoluções de 3x3. Não há nada para detalhar aqui.</string>
+  <string name="analysis_empty_steps">Este tipo de resolução cronometra as suas próprias etapas, por isso o seu detalhe é o que toca no cronómetro.</string>
   <string name="analysis_best">Melhor</string>
   <plurals name="analysis_mean_of">
     <item quantity="one">m\u00e9dia de %d resolu\u00e7\u00e3o lida pelo cubo</item>
@@ -1105,6 +1112,7 @@
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
   <string name="analysis_delta_limit">Estas diferen\u00e7as anulam-se sempre, por isso dizem onde est\u00e1 o seu tempo, n\u00e3o que \u00e9 lento. Uma \u00faltima etapa r\u00e1pida far\u00e1 sempre parecer que h\u00e1 um problema numa anterior.</string>
+  <string name="analysis_delta_limit_sample">Estas diferenças anulam-se sempre, por isso dizem onde está o tempo deste cubista, não que é lento. Uma última etapa rápida fará sempre parecer que há um problema numa anterior.</string>
   <string name="analysis_window_title">Lido sobre</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">\u00daltimas 50</string>
@@ -1124,14 +1132,26 @@
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_knowledge_costing">Custam-lhe</string>
   <string name="analysis_rest_title">O resto do conjunto</string>
-  <string name="analysis_cases_empty">Nenhum caso foi nomeado ainda. Resolva com um smart cube ligado e os casos que ele ler serão ordenados aqui.</string>
+  <string name="analysis_cases_empty">Ligue um smart cube e faça algumas resoluções para ver aqui ordenados os casos que ele ler.</string>
+  <string name="analysis_cases_blind">Uma resolução às cegas não tem casos. É lida como uma memorização e as peças resolvidas.</string>
+  <string name="analysis_cases_method">Por agora só as resoluções CFOP têm os seus casos nomeados, por isso não há nada para ordenar aqui.</string>
   <string name="analysis_plan_headline">O que um coach diria</string>
   <string name="analysis_plan_body">Resolução e Casos dizem onde você está. Um plano diz o que fazer, e o plano seguinte diz se funcionou.</string>
   <string name="analysis_plan_point_one">Quais poucos casos valem a sua semana, de tudo o que Casos ordena.</string>
   <string name="analysis_plan_point_two">Qual etapa está fora de proporção, e se é o olhar ou o girar.</string>
   <string name="analysis_plan_point_three">Se o trabalho da semana passada mudou alguma coisa.</string>
-  <string name="analysis_plan_cites">Escrito a partir das suas próprias resoluções, com cada afirmação a citar um número que pode conferir nos outros dois separadores.</string>
+  <string name="analysis_plan_cites">Um plano é escrito a partir das suas próprias resoluções, com cada afirmação a citar um número que pode conferir nos outros dois separadores.</string>
   <string name="analysis_plan_not_yet">Ainda não há plano aqui. Resolução e Casos continuam gratuitos aconteça o que acontecer a este separador.</string>
+
+  <string name="analysis_sample_subtitle">Não são seus tempos</string>
+  <string name="analysis_sample_chip">Exemplo</string>
+  <string name="analysis_sample_mine">As minhas resoluções</string>
+  <string name="analysis_sample_showing">A mostrar</string>
+  <string name="analysis_sample_banner">Dados de exemplo de %d resoluções, não as suas. Ligue um smart cube para preencher isto.</string>
+  <string name="analysis_sample_cta_title">É isto que o seu cubo diria</string>
+  <string name="analysis_sample_cta_body">O Cubench lê cada movimento de um smart cube, divide a resolução nas suas etapas e nomeia o caso de cada uma. Percorra o exemplo todo e depois ligue um cubo para ver as suas.</string>
+  <string name="analysis_sample_connect">Ligar um cubo</string>
+  <string name="analysis_sample_browse">Continuar a ver</string>
 
   <string name="analysis_help_title">Sobre estes números</string>
   <string name="analysis_help_solve_title">Para onde vai o teu tempo</string>
@@ -1157,5 +1177,7 @@
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">Escolha OLL e aparece ao lado um botão Forma, com os grupos pelos quais os seus casos são conhecidos: os dots, os fish, os L shapes. O número indica o tamanho do grupo. Tocar no cabeçalho Caso devolve a lista à ordem dos casos.</string>
   <string name="analysis_help_rest_body">Sob a tabela, os casos deste passo de que a janela não tem nenhum número, agrupados por onde estão. Isso é lido de todas as tuas resoluções e não da janela, por isso um caso que conheces mas que não apareceu ultimamente está lá como conhecido. Toca num para ver os seus algoritmos.</string>
+  <string name="analysis_help_sample">Exemplo</string>
+  <string name="analysis_help_sample_body">Nada nestes separadores é seu. Estes números são inventados, e estão aqui para que o ecrã tenha algo para mostrar antes de ter um smart cube. Ligue um e os seus tomam o lugar deles.</string>
 
 </resources>

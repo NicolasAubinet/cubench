@@ -185,6 +185,8 @@
     <item>@string/show_best_times</item>
     <item>@string/graphs</item>
     <item>@string/analysis_title</item>
+    <item>@string/menu_drills</item>
+    <item>@string/menu_coaching</item>
     <item>@string/import_export</item>
     <item>@string/clear_history</item>
     <item>@string/language</item>

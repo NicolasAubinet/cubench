@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The one word the banner is read by, solid so it survives being glanced at rather than read. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/warning"/>
+  <corners android:radius="999dp"/>
+</shape>
