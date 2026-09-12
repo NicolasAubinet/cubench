@@ -139,7 +139,7 @@ public class CoachPlanTest {
   }
 
   private static StepStats stats(String code, int count, long meanMs, long recognitionMs) {
-    return new StepStats(code, count, meanMs * count, recognitionMs * count, meanMs,
+    return new StepStats(code, count, meanMs * count, recognitionMs * count, meanMs, meanMs,
         (double) meanMs * meanMs * count);
   }
 }
