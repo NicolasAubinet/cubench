@@ -1107,6 +1107,7 @@
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">50 derni\u00e8res</string>
   <string name="analysis_window_100">100 derni\u00e8res</string>
+  <string name="analysis_window_1000">1000 dernières</string>
   <string name="analysis_window_all">Toutes</string>
 
   <string name="analysis_column_case">Cas</string>
