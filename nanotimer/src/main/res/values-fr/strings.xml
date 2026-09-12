@@ -1134,7 +1134,7 @@
   <string name="analysis_help_solve_title">Où passe votre temps</string>
   <string name="analysis_help_solve_body">Ces chiffres viennent de vos propres résolutions, celles qu\'un cube a lues, sur la fenêtre indiquée en haut.</string>
   <string name="analysis_help_bar">La résolution moyenne</string>
-  <string name="analysis_help_bar_body">Un bloc par étape, large comme sa part du temps. Chaque bloc est pâle là où vous regardiez et plein là où vous tourniez.</string>
+  <string name="analysis_help_bar_body">Un bloc par étape, large comme sa part du temps. Chaque bloc est pâle là où vous regardiez et plein là où vous tourniez. Une étape où l\'on ne tourne pas du tout, comme une mémorisation en aveugle, est pleine sur toute sa longueur.</string>
   <string name="analysis_help_delta">Face à une résolution typique</string>
   <string name="analysis_help_delta_body">Ce sont des parts d\'une même résolution : si une étape est au-dessus, une autre est forcément en dessous. Cela montre quelle étape est déséquilibrée, pas si vous êtes rapide ou lent.</string>
   <string name="analysis_help_table">Le tableau des étapes</string>

@@ -19,7 +19,8 @@ import android.view.View;
  *
  * <p>Both halves are drawn in the family's own colour, the looking as a wash of it and the turning
  * at full strength, which is the two colours the figures either side of the bar are written in, so
- * the bar needs no legend of its own.
+ * the bar needs no legend of its own. A rep with no turning in it is drawn whole at full strength:
+ * there is no second half to set the wash against, and on its own the wash reads as disabled.
  */
 public class DrillSplitBarView extends View {
 
@@ -70,7 +71,8 @@ public class DrillSplitBarView extends View {
     // and the two halves are one bar rather than two chips.
     canvas.save();
     canvas.clipPath(rounded);
-    float split = getWidth() * (recognitionMs / (float) total);
+    // Nothing turned means the bar has no second half to mark, and a lone wash reads as disabled.
+    float split = executionMs > 0 ? getWidth() * (recognitionMs / (float) total) : 0;
     paint.setColor(StepPalette.wash(color));
     canvas.drawRect(0, 0, split, height, paint);
     paint.setColor(color);

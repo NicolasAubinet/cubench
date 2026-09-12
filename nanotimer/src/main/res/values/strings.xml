@@ -1180,7 +1180,7 @@
   <string name="analysis_help_solve_title">Where your time goes</string>
   <string name="analysis_help_solve_body">These figures come from your own solves, the ones a cube read, over the window shown at the top.</string>
   <string name="analysis_help_bar">The average solve</string>
-  <string name="analysis_help_bar_body">One block per step, as wide as its share of the time. Each block is pale where you were looking and solid where you were turning.</string>
+  <string name="analysis_help_bar_body">One block per step, as wide as its share of the time. Each block is pale where you were looking and solid where you were turning. A step with no turning in it at all, like a blind memo, is solid throughout.</string>
   <string name="analysis_help_delta">Against a typical solve</string>
   <string name="analysis_help_delta_body">These are shares of one solve, so if one step is over, another has to be under. It shows which step is out of balance, not whether you are fast or slow.</string>
   <string name="analysis_help_table">The step table</string>

@@ -1133,7 +1133,7 @@
   <string name="analysis_help_solve_title">Adónde va tu tiempo</string>
   <string name="analysis_help_solve_body">Estas cifras vienen de tus propios resueltos, los que leyó un cubo, en la ventana indicada arriba.</string>
   <string name="analysis_help_bar">El resuelto medio</string>
-  <string name="analysis_help_bar_body">Un bloque por paso, tan ancho como su parte del tiempo. Cada bloque es pálido donde mirabas y sólido donde girabas.</string>
+  <string name="analysis_help_bar_body">Un bloque por paso, tan ancho como su parte del tiempo. Cada bloque es pálido donde mirabas y sólido donde girabas. Un paso en el que no se gira nada, como una memorización a ciegas, es sólido de principio a fin.</string>
   <string name="analysis_help_delta">Frente a un resuelto típico</string>
   <string name="analysis_help_delta_body">Son partes de un mismo resuelto: si un paso está por encima, otro tiene que estar por debajo. Muestra qué paso está desequilibrado, no si eres rápido o lento.</string>
   <string name="analysis_help_table">La tabla de pasos</string>

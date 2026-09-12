@@ -21,7 +21,8 @@ import java.util.List;
  * A solve drawn as a bar: one segment per step, its width its share of the solve. Each segment is
  * split into the parts the step was built in (the F2L slots, the two looks of an OLL), and each part
  * into a pale stretch of thinking and a solid one of turning — so the solve reads as think, turn,
- * think, turn.
+ * think, turn. A part with nothing turned in it is drawn solid: the pale tone marks the half of a
+ * block that was thinking, and a block that is only ever one thing has no half to mark.
  *
  * <p>A bar can also be shown part done, the steps not reached yet greyed out: that is a solve still
  * running, where what is left to do is as worth seeing as what is behind.
@@ -341,7 +342,11 @@ public class SolveStepBarView extends View {
       float partWidth = stepWidth * part.getTotalMs() / step.getTotalMs();
       boolean last = i == parts.size() - 1;
       float partRight = partLeft + partWidth - (last ? 0 : partGap); // the gap separates the parts
-      float split = partLeft + partWidth * part.getRecognitionMs() / Math.max(1, part.getTotalMs());
+      // Nothing turned in it means it is all thinking, and one pale block on its own reads as
+      // washed out rather than as one thing. A blind memo is the part that has this.
+      float split = part.getExecutionMs() > 0
+          ? partLeft + partWidth * part.getRecognitionMs() / Math.max(1, part.getTotalMs())
+          : partLeft;
 
       fill(canvas, color, (int) (RECOGNITION_ALPHA * alphaScale),
           partLeft, Math.min(split, partRight), height);

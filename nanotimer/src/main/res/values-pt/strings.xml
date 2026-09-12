@@ -1136,7 +1136,7 @@
   <string name="analysis_help_solve_title">Para onde vai o teu tempo</string>
   <string name="analysis_help_solve_body">Estes números vêm das tuas próprias resoluções, as que um cubo leu, na janela indicada em cima.</string>
   <string name="analysis_help_bar">A resolução média</string>
-  <string name="analysis_help_bar_body">Um bloco por passo, tão largo quanto a sua parte do tempo. Cada bloco é pálido onde estavas a olhar e sólido onde estavas a virar.</string>
+  <string name="analysis_help_bar_body">Um bloco por passo, tão largo quanto a sua parte do tempo. Cada bloco é pálido onde estavas a olhar e sólido onde estavas a virar. Uma etapa em que não se vira nada, como uma memorização às cegas, é sólida do princípio ao fim.</string>
   <string name="analysis_help_delta">Face a uma resolução típica</string>
   <string name="analysis_help_delta_body">São partes de uma mesma resolução: se um passo está acima, outro tem de estar abaixo. Mostra que passo está desequilibrado, não se és rápido ou lento.</string>
   <string name="analysis_help_table">A tabela de passos</string>
