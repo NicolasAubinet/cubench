@@ -92,8 +92,8 @@ public class VirtualCube implements GyroReferenceListener {
 
   /**
    * @param touchListener the host screen's own, forwarded so the cube is not a dead zone — a
-   *     WebView swallows presses, and {@code CLAUDE.md} requires a tap anywhere in the timer to
-   *     start or stop it. May be null where a press on the cube should do nothing.
+   *     WebView swallows presses, and the timer starts or stops on a tap anywhere in it. May be
+   *     null where a press on the cube should do nothing.
    */
   public VirtualCube(WebView webView, View.OnTouchListener touchListener,
       ReadyListener readyListener) {

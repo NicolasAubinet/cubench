@@ -93,7 +93,7 @@ public class LiveCubeView implements CubeConnectionListener, CubeMoveListener, C
 
   /**
    * @param touchListener the timer screen's own, forwarded so the cube is not a dead zone —
-   *     {@code CLAUDE.md} requires a tap anywhere in the timer to start or stop it, and a WebView
+   *     the timer screen must start or stop on a tap anywhere in it, and a WebView
    *     swallows presses. May be null outside the timer.
    */
   public LiveCubeView(View.OnTouchListener touchListener) {

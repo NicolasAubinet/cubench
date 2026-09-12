@@ -19,7 +19,8 @@
 
   <!-- The mark a blind attempt gets over the cube, centred on the cube's space. Nothing in here
        takes a touch — the timer screen has no dead zones, so a press lands on the WebView
-       underneath exactly as it would anywhere else (see CLAUDE.md).
+       underneath exactly as it would anywhere else: the timer starts and stops on a tap
+       anywhere in it.
 
        No background of its own: the screen's ground changes colour under a press, and a cover with
        its own colour stayed put and read as a rectangle that had missed the press. LiveCubeView

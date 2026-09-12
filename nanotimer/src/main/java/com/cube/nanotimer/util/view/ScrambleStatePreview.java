@@ -161,7 +161,7 @@ public class ScrambleStatePreview {
 
   /**
    * @param touchListener the timer screen's own, forwarded so the preview is not a dead zone —
-   *     {@code CLAUDE.md} requires a tap anywhere in the timer to start or stop it, and a WebView
+   *     the timer screen must start or stop on a tap anywhere in it, and a WebView
    *     swallows presses.
    */
   public ScrambleStatePreview(Context context, View.OnTouchListener touchListener) {
