@@ -151,6 +151,45 @@ public class TwoSolverTest {
     System.out.println("pruningOrient: " + getSize(TwoSolver.pruningOrient));
   }
 
+  /** The whole point of the generator: exactly the asked length, and it really does solve. */
+  @Test
+  public void testGeneratorIsExactlyAsLongAsAsked() {
+    TwoSolver.genTables();
+    TwoSolver solver = new TwoSolver();
+    java.util.Random random = new java.util.Random(7);
+    for (int i = 0; i < 200; i++) {
+      TwoCubeState cubeState = new TwoCubeState();
+      cubeState.permutations = new byte[7];
+      IndexConvertor.unpackPermutation(random.nextInt(TwoSolver.N_PERM), cubeState.permutations);
+      cubeState.orientations = new byte[7];
+      IndexConvertor.unpackOrientation(random.nextInt(TwoSolver.N_ORIENT), cubeState.orientations, (byte) 3);
+
+      String[] generator = solver.getGenerator(cubeState, RSTwoScrambler.SCRAMBLE_LENGTH);
+      Assert.assertNotNull("No generator of the scramble length for state " + i, generator);
+      Assert.assertEquals(RSTwoScrambler.SCRAMBLE_LENGTH, generator.length);
+
+      for (String name : generator) {
+        applyNamedMove(cubeState, name);
+      }
+      Assert.assertTrue("Generator left the cube unsolved: " + Arrays.toString(generator),
+          isSolved(cubeState));
+    }
+  }
+
+  /** Only the three base moves carry a permutation, so a half turn is that move applied twice. */
+  private void applyNamedMove(TwoCubeState state, String name) {
+    TwoSolver.Move base = TwoSolver.Move.valueOf(name.substring(0, 1));
+    int turns = name.endsWith("2") ? 2 : name.endsWith("'") ? 3 : 1;
+    for (int i = 0; i < turns; i++) {
+      applyMove(state, base);
+    }
+  }
+
+  private boolean isSolved(TwoCubeState state) {
+    return IndexConvertor.packPermutation(state.permutations) == 0
+        && IndexConvertor.packOrientation(state.orientations, 3) == 0;
+  }
+
   private void applyMove(TwoCubeState state, TwoSolver.Move move) {
     state.permutations = StateTables.getPermResult(state.permutations, move.corPerm);
     state.orientations = StateTables.getOrientResult(state.orientations, move.corPerm, move.corOrient, 3);

@@ -232,7 +232,7 @@ public enum ScramblerService {
   public static int getRSScrambleLength(CubeType cubeType) {
     switch (cubeType) {
       case TWO_BY_TWO:
-        return 11;
+        return RSTwoScrambler.SCRAMBLE_LENGTH;
       case THREE_BY_THREE:
         return 21;
       case PYRAMINX:

@@ -8,18 +8,26 @@ import java.util.Random;
 
 public class RSTwoScrambler implements RSScrambler {
 
+  /** The length of every official WCA 2x2 scramble, shared by the random-move fallback. */
+  public static final int SCRAMBLE_LENGTH = 11;
+
   private TwoSolver twoSolver = new TwoSolver();
 
+  /**
+   * A scramble of exactly the configured length, like the official ones.
+   *
+   * <p>The state is drawn first and uniformly, so the scramble is as random as a shortest one
+   * would be. It is just written out in more moves than it strictly needs, which is what keeps an
+   * easy state from announcing itself as a four-move scramble.
+   */
   @Override
   public String[] getNewScramble(ScrambleConfig config) {
-    String[] scramble;
-    do {
-      TwoCubeState randomState = getRandomState();
-//      Log.i("[NanoTimer]", "Random state:\n" + randomState.toString());
-      scramble = Utils.invertMoves(twoSolver.getSolution(randomState, config));
-//      Log.i("[NanoTimer]", "Scramble: " + Arrays.toString(scramble));
-    } while (scramble != null && scramble.length < 4);
-    return scramble;
+    int length = (config != null && config.getMaxLength() > 0) ? config.getMaxLength() : SCRAMBLE_LENGTH;
+    String[] generator;
+    do { // a state with no generator of exactly that length is answered with another state
+      generator = twoSolver.getGenerator(getRandomState(), length);
+    } while (generator == null && !twoSolver.isStopped());
+    return Utils.invertMoves(generator);
   }
 
   @Override
