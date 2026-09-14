@@ -50,6 +50,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_SOLVETYPE_METHOD + " TEXT, " +
         DB.COL_SOLVETYPE_SCRAMBLE_TYPE + " TEXT, " +
         DB.COL_SOLVETYPE_QUICK_ACTION + " INTEGER, " + // NULL to follow TimerQuickAction.getDefault
+        DB.COL_SOLVETYPE_COACH_STREAM + " TEXT, " +
         DB.COL_SOLVETYPE_CUBETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_SOLVETYPE_CUBETYPE_ID + ") REFERENCES " + DB.TABLE_CUBETYPE + " (" + DB.COL_ID + ") " +
       ");"
@@ -109,10 +110,7 @@ public class DBHelper extends SQLiteOpenHelper {
         " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (" + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + ");"
     );
     // A case is looked up by name, once per case, so without this the whole table is walked.
-    // New installs only: a migration adding it later must say IF NOT EXISTS, one created at 30 has it.
-    db.execSQL("CREATE INDEX " + DB.IDX_SMARTCUBE_SOLVESTEP_NAME +
-        " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (" + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ");"
-    );
+    createSolveStepNameIndex(db);
 
     db.execSQL("CREATE TABLE " + DB.TABLE_SESSION + "(" +
         DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -125,6 +123,13 @@ public class DBHelper extends SQLiteOpenHelper {
     createDrillTables(db);
     createCoachPlanTable(db);
     createCaseKnowledgeTable(db);
+  }
+
+  // A case is looked up by name, once per case, so without this the whole table is walked.
+  private void createSolveStepNameIndex(SQLiteDatabase db) {
+    db.execSQL("CREATE INDEX IF NOT EXISTS " + DB.IDX_SMARTCUBE_SOLVESTEP_NAME +
+        " ON " + DB.TABLE_SMARTCUBE_SOLVESTEP + " (" + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ");"
+    );
   }
 
   /**
@@ -441,6 +446,13 @@ public class DBHelper extends SQLiteOpenHelper {
       // Which cases go in unaided. Created empty here: the code that reads the evidence back out of
       // the history lives with the feature, so the build that owns it is the one that fills it.
       createCaseKnowledgeTable(db);
+    }
+
+    if (oldVersion < 31) {
+      db.execSQL("ALTER TABLE " + DB.TABLE_SOLVETYPE + " ADD COLUMN "
+          + DB.COL_SOLVETYPE_COACH_STREAM + " TEXT");
+      // Installs created at 30 already have it.
+      createSolveStepNameIndex(db);
     }
 
 //    progressDialog.hide();

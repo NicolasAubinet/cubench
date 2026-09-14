@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 30;
+  public static final int DB_VERSION = 31;
 
   public static final String COL_ID = "id";
 
@@ -19,6 +19,7 @@ public class DB {
   public static final String COL_SOLVETYPE_METHOD = "method";
   public static final String COL_SOLVETYPE_SCRAMBLE_TYPE = "scrambletype";
   public static final String COL_SOLVETYPE_QUICK_ACTION = "quickaction";
+  public static final String COL_SOLVETYPE_COACH_STREAM = "coach_stream"; // random UUID the coach service counts this solve type by, null until it is first coached
   public static final String COL_SOLVETYPE_CUBETYPE_ID = "cubetype_id";
 
   public static final String TABLE_TIMEHISTORY = "timehistory";
