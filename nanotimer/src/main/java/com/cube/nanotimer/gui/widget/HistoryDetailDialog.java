@@ -195,6 +195,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       // The re-reading's own stream, which carries the grip it settled on: a blind solve is named
       // through its buffers, and the spelling has to stand in the frame the names do.
       String moves = fresh ? reread.getMoves() : solveTime.getSmartcubeMoves();
+      breakdownMoves = moves;
       List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs, moves, method);
       buildBreakdown(v, steps, SolveSolution.from(moves, steps, method),
           getString(R.string.breakdown), null, method);
@@ -261,6 +262,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setHighlightedStep(-1);
     breakdownRows.clear();
     breakdownSteps = null;
+    breakdownMoves = null;
     pickedStep = -1;
 
     View scrambleCard = v.findViewById(R.id.scrambleCard);
@@ -569,9 +571,12 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       public void onClick(View view) {
         // The same length the breakdown steps were measured against, so the bar the replay
         // scrubs and the replay itself cannot disagree about how long the solve was.
+        boolean blind = solveTime.getSolveType().isBlind();
+        // A blind replay is spelled as the reconstruction is, so it takes the grip that re-reading settled.
+        String moves = blind && breakdownMoves != null ? breakdownMoves : solveTime.getSmartcubeMoves();
         DialogUtils.showFragment(getActivity(), SolveReplayDialog.newInstance(
-            puzzleId, cubingScramble, solveTime.getSmartcubeMoves(),
-            SolveBreakdown.solvingDurationMs(solveTime), breakdownSteps, solveTime.getId()));
+            puzzleId, cubingScramble, moves, SolveBreakdown.solvingDurationMs(solveTime),
+            breakdownSteps, solveTime.getId(), blind));
       }
     });
   }
@@ -876,6 +881,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
   private ArrayList<SolveStep> breakdownSteps; // what the bar in the sheet draws, and the replay scrubs
+  private String breakdownMoves; // the method breakdown's re-read stream, null under the user's steps
   private boolean showMoves;
 
   /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */

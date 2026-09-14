@@ -57,6 +57,9 @@ import java.util.List;
  * <p>The moves are the solver-frame stream ({@link SolveSolution#timedSolution}), so slices read as
  * {@code M/E/S} and the solver's own rotations turn the cube on screen. Playback is timed from the
  * stored offsets rather than a constant tempo: the pauses in a solve are the part worth watching.</p>
+ *
+ * <p>A blind solve is the exception: it plays {@link SolveSolution#timedBlindSolution}, held in its
+ * grip from the first frame and never rotated. Only the gyro track, when shown, moves it.</p>
  */
 public class SolveReplayDialog extends NanoTimerDialogFragment {
 
@@ -66,6 +69,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private static final String ARG_TIMED_MS = "timedMs";
   private static final String ARG_STEPS = "steps";
   private static final String ARG_SOLVE_ID = "solveId";
+  private static final String ARG_BLIND = "blind";
 
   private static final String BASE_URL =
       "https://appassets.androidplatform.net/assets/scramble/replay.html";
@@ -109,6 +113,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private boolean gyroShown; // remembered across replays, see Options.isReplayShowGyro
   private boolean pageReady;  // the page has defined its functions; before that, evaluate() is lost
   private String pendingGyroJs; // the track, waiting for the page if it got here first
+  private List<SolveSolution.FrameAt> frames; // the frame the played moves have the cube in
 
   private final Runnable hideProgressRunnable = new Runnable() {
     @Override
@@ -136,9 +141,10 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
    * @param steps     the solve's steps, drawn as the scrubber; null or empty for no scrubber.
    * @param solveId   the solve's id, which the gyro track is fetched by. The track is not carried
    *                  in with the solve: it is kilobytes, and only a replay ever wants it.
+   * @param blind     whether the solve type is blind, which plays the cube without any rotation.
    */
   public static SolveReplayDialog newInstance(String puzzleId, String scramble, String moves,
-      long timedMs, ArrayList<SolveStep> steps, int solveId) {
+      long timedMs, ArrayList<SolveStep> steps, int solveId, boolean blind) {
     SolveReplayDialog frag = new SolveReplayDialog();
     Bundle args = new Bundle();
     args.putString(ARG_PUZZLE, puzzleId);
@@ -147,13 +153,15 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     args.putLong(ARG_TIMED_MS, timedMs);
     args.putSerializable(ARG_STEPS, steps);
     args.putInt(ARG_SOLVE_ID, solveId);
+    args.putBoolean(ARG_BLIND, blind);
     frag.setArguments(args);
     return frag;
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Dialog onCreateDialog(Bundle savedInstanceState) {
-    final String scramble = getArguments().getString(ARG_SCRAMBLE);
+    String scramble = getArguments().getString(ARG_SCRAMBLE);
     final String puzzleId = getArguments().getString(ARG_PUZZLE);
 
     View view = LayoutInflater.from(getActivity()).inflate(R.layout.solvereplay_dialog, null);
@@ -172,8 +180,21 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     bar = view.findViewById(R.id.replayBar);
     fallbackText = getString(R.string.solve_replay_unavailable);
 
-    List<SolveMovesFormat.Move> moves =
-        SolveSolution.timedSolution(getArguments().getString(ARG_MOVES));
+    String stored = getArguments().getString(ARG_MOVES);
+    List<SolveMovesFormat.Move> moves;
+    if (getArguments().getBoolean(ARG_BLIND)) {
+      frames = new ArrayList<SolveSolution.FrameAt>();
+      moves = SolveSolution.timedBlindSolution(stored,
+          (ArrayList<SolveStep>) getArguments().getSerializable(ARG_STEPS), frames);
+      // The grip leads at 0: part of the starting state, not a turn to animate.
+      if (!moves.isEmpty() && SolveMovesFormat.isRotation(moves.get(0).getNotation())) {
+        String grip = moves.remove(0).getNotation();
+        scramble = scramble == null || scramble.isEmpty() ? scramble : scramble + " " + grip;
+      }
+    } else {
+      moves = SolveSolution.timedSolution(stored);
+      frames = SolveSolution.framesOf(stored);
+    }
     // Seeded here so the label reads sensibly even if the page never signals ready; the page owns
     // the timeline and overrides it in onReady. Measured from the first turn, as the page does —
     // a blind solve's memorisation is not part of what gets replayed.
@@ -329,8 +350,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     }
     // The reconstruction's own frame, cancelled out of the pose: the replay already animates the
     // solver's rotations, so the raw pose would turn the cube a second time.
-    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.posesOf(track,
-        SolveSolution.framesOf(getArguments().getString(ARG_MOVES)));
+    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.posesOf(track, frames);
     if (poses.isEmpty()) {
       return;
     }

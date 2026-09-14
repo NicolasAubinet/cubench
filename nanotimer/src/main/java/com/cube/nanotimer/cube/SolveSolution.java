@@ -96,13 +96,7 @@ public final class SolveSolution {
       CubeMethod method) {
     List<Move> stored = SolveMovesFormat.parse(storedMoves);
     CubeRotation grip = method == CubeMethod.BLIND ? gripOf(storedMoves) : null;
-    BlindChoices choices = grip == null ? null : BlindChoices.of(peekedWides(stored));
-    // The name check holds a spelling to a name, which is only worth anything where the two are in
-    // one frame — so a solve recorded before its grip was kept, and spelled through no grip at all,
-    // is left with the reading its stream gives.
-    if (choices != null && solveSteps != null && SolveMovesFormat.pickupOf(storedMoves) != null) {
-      choices = BlindSpelling.arbitrate(stored, grip, choices, solveSteps);
-    }
+    BlindChoices choices = grip == null ? null : blindChoices(storedMoves, stored, grip, solveSteps);
     List<Move> moves = inSolversFrame(stored, null, grip, choices);
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
       return new SolveSolution(new ArrayList<Step>(), 0, 0, 0);
@@ -157,6 +151,35 @@ public final class SolveSolution {
    */
   public static List<Move> timedSolution(String storedMoves) {
     return inSolversFrame(SolveMovesFormat.parse(storedMoves), null, null, null);
+  }
+
+  /**
+   * A blind solve's timed stream, spelled as its reconstruction is: the grip it was picked up in at
+   * offset 0, then no rotation token at all. The solver never turned the cube, so neither does a
+   * replay of it; the tokens a regrip leaves in the stream are the frame accounting, not turning.
+   *
+   * @param solveSteps the steps the reconstruction was split by, which settle the readings the gyro
+   *     left open; null to go by the stream alone
+   * @param framesOut  receives this spelling's frame over time, as {@link #framesOf} gives a sighted
+   *     one's, for lining a gyro track up against it
+   */
+  public static List<Move> timedBlindSolution(String storedMoves, List<SolveStep> solveSteps,
+      List<FrameAt> framesOut) {
+    List<Move> stored = SolveMovesFormat.parse(storedMoves);
+    CubeRotation grip = gripOf(storedMoves);
+    return inSolversFrame(stored, framesOut, grip,
+        blindChoices(storedMoves, stored, grip, solveSteps));
+  }
+
+  private static BlindChoices blindChoices(String storedMoves, List<Move> stored, CubeRotation grip,
+      List<SolveStep> solveSteps) {
+    BlindChoices choices = BlindChoices.of(peekedWides(stored));
+    // The name check holds a spelling to a name, only worth anything where the two share a frame:
+    // a solve recorded before its grip was kept is left with the reading its stream gives.
+    if (solveSteps != null && SolveMovesFormat.pickupOf(storedMoves) != null) {
+      choices = BlindSpelling.arbitrate(stored, grip, choices, solveSteps);
+    }
+    return choices;
   }
 
   /**

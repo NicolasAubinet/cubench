@@ -550,6 +550,25 @@ public class SolveSolutionTest {
     assertEquals("S' y U M'", displayed(stored));
   }
 
+  /** A blind replay turns no rotation past the grip, and its frames are the ones it was spelled in. */
+  @Test
+  public void aBlindReplayIsSpelledAsItsReconstructionIs() {
+    String stored = "[y] B'@0 F@2 z'@3 x@100 R@100 F@200 B'@202 z'@203";
+    List<SolveSolution.FrameAt> frames = new ArrayList<SolveSolution.FrameAt>();
+
+    List<SolveMovesFormat.Move> moves = SolveSolution.timedBlindSolution(stored,
+        Arrays.asList(step("execution", 0, 1000)), frames);
+
+    StringBuilder spelled = new StringBuilder();
+    for (SolveMovesFormat.Move move : moves) {
+      spelled.append(spelled.length() == 0 ? "" : " ").append(move.getNotation());
+    }
+    assertEquals("y M' U M'", spelled.toString());
+    assertEquals(0, moves.get(0).getOffsetMs());
+    assertEquals("y", frames.get(0).getFrame().getNotation());
+    assertTrue(frames.size() > 1);
+  }
+
   private static String marked(String stored) {
     return MarkedMoves.of(
         SolveSolution.from(stored, Arrays.asList(step("f2l", 0, 1000))).getSteps().get(0));
