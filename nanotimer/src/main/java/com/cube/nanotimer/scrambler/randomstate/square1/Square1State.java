@@ -5,6 +5,9 @@ import com.cube.nanotimer.scrambler.randomstate.WalterIndexMapping;
 import java.io.Serializable;
 
 public class Square1State implements Serializable {
+  // The value res/raw/square1_shapes.dat was written with, so the table no longer depends on the class shape.
+  private static final long serialVersionUID = 5972047542828316112L;
+
   public byte[] permutation;
 
   public Square1State(byte[] permutation) {

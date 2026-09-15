@@ -1,11 +1,16 @@
 package com.cube.nanotimer.scrambler.randomstate;
 
 import com.cube.nanotimer.scrambler.randomstate.square1.RSSquare1Scrambler;
+import com.cube.nanotimer.scrambler.randomstate.square1.Square1State;
+import com.cube.nanotimer.util.helper.FileUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.FileInputStream;
 import java.util.Arrays;
+import java.util.List;
 
 @RunWith(JUnit4.class)
 public class RandomStateSquare1Test {
@@ -35,6 +40,16 @@ public class RandomStateSquare1Test {
     }*/
 
     System.out.println(Arrays.toString(scramble1));
+  }
+
+  // The shipped table is read back through Java serialization, so it breaks silently if the class id drifts.
+  @Test
+  public void shippedShapesTableDeserializes() throws Exception {
+    List<?> shapes = (List<?>) FileUtils.loadCompressedGzipSerializable(
+        new FileInputStream("src/main/res/raw/square1_shapes.dat"));
+    Assert.assertNotNull(shapes);
+    Assert.assertFalse(shapes.isEmpty());
+    Assert.assertEquals(24, ((Square1State) shapes.get(0)).permutation.length);
   }
 
 }
