@@ -61,9 +61,10 @@
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>
     <activity android:name=".gui.CrossDrillActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"/>
+    <!-- Handles its own rotations, so asking a phone for landscape from onCreate does not create it twice. -->
     <activity android:name=".gui.GraphActivity"
-       android:theme="@style/NanoTimerThemeNoActionBar"
-       android:screenOrientation="landscape"/>
+       android:configChanges="orientation|screenSize|keyboard|keyboardHidden"
+       android:theme="@style/NanoTimerThemeNoActionBar"/>
     <activity
        android:name=".gui.SolveTypesActivity"
        android:configChanges="orientation|screenSize|keyboard|keyboardHidden"

@@ -2,6 +2,7 @@ package com.cube.nanotimer.gui;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.ActivityInfo;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -201,6 +202,10 @@ public class GraphActivity extends NanoTimerActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    // Asked here rather than in the manifest: a phone's width cannot hold the control row, a tablet's can.
+    if (getResources().getConfiguration().smallestScreenWidthDp < 600) {
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+    }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.graph_screen);
 
