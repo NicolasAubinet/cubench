@@ -55,7 +55,8 @@ public class CaseTableHeadings {
    *     is a column the rows do not carry, as {@link CaseRow#noCount()} leaves the count: it gets
    *     no heading and cannot be ranked by.
    * @param opensDescending for each, which end it opens at when it is first ranked by
-   * @param column the column the table opens ranked by
+   * @param column the column the table opens ranked by, which may be {@link #LABEL_COLUMN} for a
+   *     table that then calls {@link #rankableLabel(boolean)}
    */
   public CaseTableHeadings(View root, int[] labels, boolean[] opensDescending, int column,
       Listener listener) {
@@ -64,7 +65,7 @@ public class CaseTableHeadings {
     this.opensDescending = opensDescending;
     this.listener = listener;
     this.column = column;
-    this.descending = opensDescending[column];
+    this.descending = column != LABEL_COLUMN && opensDescending[column];
     for (int i = 0; i < HEADING_IDS.length; i++) {
       View heading = root.findViewById(HEADING_IDS[i]);
       if (labels[i] == 0) {
@@ -93,6 +94,9 @@ public class CaseTableHeadings {
   public void rankableLabel(boolean opensDescending) {
     labelRankable = true;
     labelOpensDescending = opensDescending;
+    if (column == LABEL_COLUMN) {
+      descending = opensDescending;
+    }
     TextView name = root.findViewById(R.id.tvCaseTableLabel);
     // The same tap target the figure headings get from their style, taken from one of them rather
     // than repeated here.

@@ -165,13 +165,14 @@ public class AnalysisActivity extends NanoTimerActivity {
     tabs.setSegmentMarked(TAB_PLAN, true);
     solveRoot = findViewById(R.id.llAnalysisSolve);
     headings = new CaseTableHeadings(solveRoot, HEADING_LABELS,
-        OPENS_DESCENDING, 1, new CaseTableHeadings.Listener() {
+        OPENS_DESCENDING, CaseTableHeadings.LABEL_COLUMN, new CaseTableHeadings.Listener() {
           @Override
           public void onRanked(int column, boolean descending) {
             rankSteps();
           }
         });
     headings.setLabel(R.string.analysis_column_step);
+    headings.rankableLabel(false); // by step is solving order, cross first, as the delta card reads
     cases = new AnalysisCases(this, findViewById(R.id.llAnalysisCases), casesListener());
     cases.setFamily(getIntent().getStringExtra(EXTRA_FAMILY));
     showPlanPoints();
@@ -770,7 +771,10 @@ public class AnalysisActivity extends NanoTimerActivity {
     return column != 3 || step.getCount() >= 2;
   }
 
-  private static long value(StepStats step, int column) {
+  private long value(StepStats step, int column) {
+    if (column == CaseTableHeadings.LABEL_COLUMN) {
+      return steps.indexOf(step); // the query returns the steps in solving order
+    }
     switch (column) {
       case 1:
         return step.getMeanMs();
