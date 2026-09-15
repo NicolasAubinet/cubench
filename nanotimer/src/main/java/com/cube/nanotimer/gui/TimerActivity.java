@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 
@@ -756,8 +757,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (root != null) {
       root.setBackgroundResource(colorRes);
     }
-    getWindow().setStatusBarColor(color);
-    getWindow().setNavigationBarColor(color);
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+      getWindow().setStatusBarColor(color);
+      getWindow().setNavigationBarColor(color);
+    }
   }
 
   /** True while a solve is being timed with the time itself kept back. */
