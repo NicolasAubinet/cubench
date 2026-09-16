@@ -84,6 +84,9 @@ public interface Service {
    */
   void getSmartcubeSolves(SolveType solveType, DataCallback<List<SolveTime>> callback);
 
+  /** The same, across every solve type, for the solves stored as read under the given method. */
+  void getSmartcubeSolves(CubeMethod method, DataCallback<List<SolveTime>> callback);
+
   /**
    * Writes the breakdowns of solves read again, all of them or none of them. A solve carrying no
    * method has its breakdown removed rather than replaced, which is what a solve that no longer

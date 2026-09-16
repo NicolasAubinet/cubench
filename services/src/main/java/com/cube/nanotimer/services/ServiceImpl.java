@@ -462,6 +462,17 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getSmartcubeSolves(final CubeMethod method,
+      final DataCallback<List<SolveTime>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getSmartcubeSolves(method));
+      }
+    });
+  }
+
+  @Override
   public void saveSmartcubeBreakdowns(final List<SolveTime> solveTimes,
       final DataCallback<Void> callback) {
     run(new Runnable() {

@@ -67,6 +67,7 @@ public enum Options {
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
   private static final String ANALYSIS_WINDOW_KEY = "analysisWindow";
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
+  public static final String CFOP_READING_KEY = "cfop_reading_version";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
   public static final String DRILL_PRESETS_KEY_PREFIX = "drill_case_presets_";
@@ -558,6 +559,15 @@ public enum Options {
 
   public void setCaseKnowledgeRuleVersion(int version) {
     sharedPreferences.edit().putInt(CASE_KNOWLEDGE_RULE_KEY, version).apply();
+  }
+
+  /** Which reading of CFOP solves the stored breakdowns were last written under. */
+  public int getCfopReadingVersion() {
+    return sharedPreferences.getInt(CFOP_READING_KEY, 0);
+  }
+
+  public void setCfopReadingVersion(int version) {
+    sharedPreferences.edit().putInt(CFOP_READING_KEY, version).apply();
   }
 
 }

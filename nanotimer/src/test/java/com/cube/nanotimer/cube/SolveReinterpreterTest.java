@@ -98,6 +98,26 @@ public class SolveReinterpreterTest {
     assertEquals(2, seen[1]);
   }
 
+  @Test
+  public void refreshRewritesASolveStillReadUnderItsMethod() {
+    SolveTime solve = solve(1, SCRAMBLE, MOVES);
+
+    List<SolveTime> rewritten =
+        SolveReinterpreter.refresh(Collections.singletonList(solve), CubeMethod.ROUX);
+
+    assertEquals(1, rewritten.size());
+    assertEquals(4, rewritten.get(0).getSmartcubeSteps().size());
+  }
+
+  /** The run nobody asked for leaves alone a solve the manual one would have emptied. */
+  @Test
+  public void refreshNeverEmptiesABreakdown() {
+    SolveTime solve = solve(1, SCRAMBLE, MOVES);
+
+    assertTrue(SolveReinterpreter.refresh(Collections.singletonList(solve), CubeMethod.LBL)
+        .isEmpty());
+  }
+
   private static SolveTime solve(int id, String scramble, String moves) {
     SolveTime solveTime = new SolveTime();
     solveTime.setId(id);

@@ -33,6 +33,13 @@ import java.util.List;
  */
 public final class SolveReinterpreter {
 
+  /**
+   * How stored CFOP breakdowns are read, bumped whenever a change to the reading should reach the
+   * solves already stored: 1 named each F2L pair by its case. The app reads the history again once
+   * per bump, through {@link #refresh}.
+   */
+  public static final int CFOP_READING_VERSION = 1;
+
   private SolveReinterpreter() {
   }
 
@@ -63,6 +70,21 @@ public final class SolveReinterpreter {
       }
       if (progress != null && !progress.onRead(i + 1, solves.size())) {
         return null;
+      }
+    }
+    return rewritten;
+  }
+
+  /**
+   * The solves to rewrite after the reading itself changed, rather than the method: only those still
+   * read under the method they were stored with. Nobody asked for this run, so it never empties a
+   * breakdown, even one the method no longer fits.
+   */
+  public static List<SolveTime> refresh(List<SolveTime> solves, CubeMethod method) {
+    List<SolveTime> rewritten = new ArrayList<SolveTime>();
+    for (SolveTime solve : reread(solves, method, null)) {
+      if (solve.getSmartcubeMethod() == method) {
+        rewritten.add(solve);
       }
     }
     return rewritten;
