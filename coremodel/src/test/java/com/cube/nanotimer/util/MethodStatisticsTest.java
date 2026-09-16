@@ -97,15 +97,15 @@ public class MethodStatisticsTest {
   @Test
   public void testACaseBarelyOverItsFamilyIsNotWorthNaming() {
     List<StepStats> steps = new ArrayList<StepStats>();
-    steps.add(tally("pair_fl", 93, 93 * 3470L));
-    steps.add(tally("pair_lb", 93, 93 * 3850L)); // 0.11s over the family, but seen every solve
-    steps.add(tally("pair_rb", 6, 6 * 5890L));   // 2.15s over, and seen a handful of times
+    steps.add(tally("pair_1_fl", 93, 93 * 3470L));
+    steps.add(tally("pair_2_lb", 93, 93 * 3850L)); // 0.11s over the family, but seen every solve
+    steps.add(tally("pair_3_rb", 6, 6 * 5890L));   // 2.15s over, and seen a handful of times
     MethodStatistics stats = new MethodStatistics(steps, 93);
 
-    Assert.assertTrue(stats.getTimeLostMs("pair_lb") > 0); // the arithmetic still says it costs time
+    Assert.assertTrue(stats.getTimeLostMs("pair_2") > 0); // the arithmetic still says it costs time
     List<StepStats> worst = stats.getWorstCases("pair", 5);
     Assert.assertEquals(1, worst.size());
-    Assert.assertEquals("pair_rb", worst.get(0).getCode());
+    Assert.assertEquals("pair_3", worst.get(0).getCode());
   }
 
   @Test
@@ -154,7 +154,7 @@ public class MethodStatisticsTest {
     steps.add(tally("f2l", 1, 8000));
     steps.add(tally("oll_21", 1, 2000));
     List<StepStats> parts = new ArrayList<StepStats>();
-    parts.add(tally("pair_rf", 4, 8000));
+    parts.add(tally("pair_27_rf", 4, 8000));
     parts.add(tally("corners", 1, 1000));
     MethodStatistics stats = new MethodStatistics(steps, parts, 1);
 
@@ -171,7 +171,48 @@ public class MethodStatisticsTest {
 
     // still reachable by name, and still splits into its cases
     Assert.assertEquals(2000, stats.getFamily("pair").getMeanMs());
-    Assert.assertEquals("pair_rf", stats.getCases("pair").get(0).getCode());
+    Assert.assertEquals("pair_27", stats.getCases("pair").get(0).getCode());
+  }
+
+  // A case is what the pair was handed, whichever slot it went into, so the slots add up to one.
+  @Test
+  public void testAPairCaseIsOneCaseAcrossSlots() {
+    List<StepStats> parts = new ArrayList<StepStats>();
+    parts.add(new StepStats("pair_27_rf", 2, 4000, 1000, 1500, 2500, 1500d * 1500 + 2500d * 2500));
+    parts.add(new StepStats("pair_27_bl", 1, 5000, 500, 5000, 5000, 5000d * 5000));
+    parts.add(tally("pair_5_rf", 3, 3000));
+    MethodStatistics stats = new MethodStatistics(new ArrayList<StepStats>(), parts, 3);
+
+    List<StepStats> cases = stats.getCases("pair");
+    Assert.assertEquals(2, cases.size());
+    StepStats merged = cases.get(0);
+    Assert.assertEquals("pair_27", merged.getCode());
+    Assert.assertEquals(3, merged.getCount());
+    Assert.assertEquals(3000, merged.getMeanMs());
+    Assert.assertEquals(500, merged.getMeanRecognitionMs());
+    Assert.assertEquals(1500, merged.getBestMs());
+    Assert.assertEquals(stats.getTimeLostMs("pair_27"), stats.getTimeLostMs("pair_27_bl"));
+  }
+
+  @Test
+  public void testAPairStoredWithOnlyItsSlotCountsButNamesNoCase() {
+    List<StepStats> parts = new ArrayList<StepStats>();
+    parts.add(tally("pair_rf", 1, 9000));
+    parts.add(tally("pair_27_rf", 1, 3000));
+    parts.add(tally("pair_skip_fl", 1, 0));
+    parts.add(tally("pair_skip", 1, 0)); // how a skipped pair is stored
+    MethodStatistics stats = new MethodStatistics(new ArrayList<StepStats>(), parts, 1);
+
+    Assert.assertEquals(2, stats.getFamily("pair").getCount());
+    Assert.assertEquals(6000, stats.getFamily("pair").getMeanMs());
+    Assert.assertEquals(1, stats.getCases("pair").size());
+    Assert.assertEquals("pair_27", stats.getCases("pair").get(0).getCode());
+    Assert.assertEquals(0, stats.getTimeLostMs("pair_rf"));
+    Assert.assertEquals(0.5, stats.getSkipRate("pair"), 0.001);
+    Assert.assertNull(MethodStatistics.caseCodeOf("pair_rf"));
+    Assert.assertEquals("pair_a1a", MethodStatistics.caseCodeOf("pair_a1a"));
+    Assert.assertEquals("oll_21", MethodStatistics.caseCodeOf("oll_21"));
+    Assert.assertNull(MethodStatistics.caseCodeOf("cross"));
   }
 
   @Test

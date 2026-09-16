@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * What a solve type's method has been costing over a stretch of solves, read from the step codes the
@@ -32,9 +33,15 @@ public class MethodStatistics implements Serializable {
    */
   private static final double MIN_MARGIN = 0.1;
 
+  /** The families whose codes end with where the case was met ({@code pair_27_rf}). */
+  private static final Set<String> PLACED_FAMILIES = Collections.singleton("pair");
+  /** A slot's two faces, which a pair stored before its case was read has in the case's place. */
+  private static final Pattern SLOT = Pattern.compile("[udfblr]{2}");
+
   private final int solveCount;
   private final Map<String, StepStats> families = new LinkedHashMap<String, StepStats>();
-  private final Map<String, List<StepStats>> cases = new LinkedHashMap<String, List<StepStats>>();
+  private final Map<String, Map<String, StepStats>> cases =
+      new LinkedHashMap<String, Map<String, StepStats>>();
   private final Map<String, StepStats> skips = new LinkedHashMap<String, StepStats>();
   private final Set<String> partFamilies = new LinkedHashSet<String>();
 
@@ -61,16 +68,18 @@ public class MethodStatistics implements Serializable {
       if (SKIP.equals(caseName)) {
         skips.put(family, StepStats.merge(family, skips.get(family), step));
         if (!cases.containsKey(family)) { // so a family that only ever skipped is still known
-          cases.put(family, new ArrayList<StepStats>());
+          cases.put(family, new LinkedHashMap<String, StepStats>());
         }
         continue;
       }
       families.put(family, StepStats.merge(family, families.get(family), step));
       if (!cases.containsKey(family)) {
-        cases.put(family, new ArrayList<StepStats>());
+        cases.put(family, new LinkedHashMap<String, StepStats>());
       }
-      if (caseName != null) {
-        cases.get(family).add(step);
+      String caseCode = caseCodeOf(step.getCode());
+      if (caseCode != null) {
+        Map<String, StepStats> familyCases = cases.get(family);
+        familyCases.put(caseCode, StepStats.merge(caseCode, familyCases.get(caseCode), step));
       }
     }
   }
@@ -93,6 +102,24 @@ public class MethodStatistics implements Serializable {
     }
     int qualifier = code.indexOf('_', separator + 1);
     return qualifier < 0 ? code.substring(separator + 1) : code.substring(separator + 1, qualifier);
+  }
+
+  /**
+   * The code a case is counted under wherever it was met, {@code pair_27} for both {@code pair_27_rf}
+   * and {@code pair_27_fl} (and for {@code pair_27} itself), or null for a code naming no case. A
+   * pair stored with only its slot ({@code pair_rf}) names none: a slot is where a pair went, not
+   * what it was handed.
+   */
+  public static String caseCodeOf(String code) {
+    String caseName = caseOf(code);
+    if (caseName == null) {
+      return null;
+    }
+    String family = familyOf(code);
+    if (PLACED_FAMILIES.contains(family) && SLOT.matcher(caseName).matches()) {
+      return null;
+    }
+    return family + "_" + caseName;
   }
 
   /** The families a last layer part is coded under, beside the step code that names the same case. */
@@ -176,13 +203,16 @@ public class MethodStatistics implements Serializable {
     return families.get(family);
   }
 
-  /** The cases of a family, slowest mean first. Empty when the family is not split into cases. */
+  /**
+   * The cases of a family, slowest mean first, each under its {@link #caseCodeOf case code}. Empty
+   * when the family is not split into cases.
+   */
   public List<StepStats> getCases(String family) {
-    List<StepStats> familyCases = cases.get(family);
+    Map<String, StepStats> familyCases = cases.get(family);
     if (familyCases == null) {
       return new ArrayList<StepStats>();
     }
-    List<StepStats> sorted = new ArrayList<StepStats>(familyCases);
+    List<StepStats> sorted = new ArrayList<StepStats>(familyCases.values());
     Collections.sort(sorted, new Comparator<StepStats>() {
       @Override
       public int compare(StepStats a, StepStats b) {
@@ -209,16 +239,14 @@ public class MethodStatistics implements Serializable {
    */
   public long getTimeLostMs(String code) {
     StepStats family = families.get(familyOf(code));
-    if (family == null) {
+    String caseCode = caseCodeOf(code);
+    StepStats stepCase = family == null || caseCode == null ? null
+        : cases.get(familyOf(code)).get(caseCode);
+    if (stepCase == null) {
       return 0;
     }
-    for (StepStats stepCase : cases.get(familyOf(code))) {
-      if (stepCase.getCode().equals(code)) {
-        long over = stepCase.getMeanMs() - family.getMeanMs();
-        return over <= 0 ? 0 : over * stepCase.getCount();
-      }
-    }
-    return 0;
+    long over = stepCase.getMeanMs() - family.getMeanMs();
+    return over <= 0 ? 0 : over * stepCase.getCount();
   }
 
   /**

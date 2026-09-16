@@ -1138,14 +1138,16 @@ public class ServiceProviderTest {
   public void testMethodStatisticsCountsThePartsOfAStepToo() {
     provider.deleteHistory();
     SolveStep f2l = new SolveStep(1, "f2l", 1000, 7000,
-        Arrays.asList(subStep(0, "pair_rf", 2000, 500), subStep(1, "pair_lb", 6000, 500)));
+        Arrays.asList(subStep(0, "pair_27_rf", 2000, 500), subStep(1, "pair_27_lb", 3000, 500),
+            subStep(2, "pair_5_fl", 7000, 500)));
     saveCubeSolve(CubeMethod.CFOP, null, step("cross", 2000, 500), f2l);
 
     MethodStatistics stats = provider.getMethodStatistics(solveType1, CubeMethod.CFOP, 50);
     assertEquals(8000, stats.getFamily("f2l").getMeanMs());
-    assertEquals(2, stats.getFamily("pair").getCount());
+    assertEquals(3, stats.getFamily("pair").getCount());
     assertEquals(4000, stats.getFamily("pair").getMeanMs());
-    assertEquals("pair_lb", stats.getCases("pair").get(0).getCode()); // the slower slot
+    assertEquals(2, stats.getCases("pair").size()); // one case, whichever slot it went into
+    assertEquals("pair_5", stats.getCases("pair").get(0).getCode());
 
     // the slots are parts of the F2L step, not steps sitting beside it
     assertEquals(2, stats.getFamilies().size());
