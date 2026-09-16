@@ -211,6 +211,32 @@ public class StoredSolveReplayTest {
   }
 
   /** The scramble that leaves a cube needing exactly these moves: the solve, taken backwards. */
+  /** A CFOP solve of the owner's, recorded 2026-07-18, whose first pair goes in with a cross edge
+   * still out: the pairs after it are read from where the cross came back. */
+  private static final String CFOP_SCRAMBLE = "B2 U' F2 D' L2 U2 L2 F2 U L2 U L' D2 B L' B U' R U L";
+  private static final String CFOP_MOVES =
+      "U@0 B@1104 D@1510 D@1737 F@2403 F@2508 L@3057 L@3133 D@4076 B@4198 B@4298 R@6952 "
+      + "D@7051 D@7133 R'@7301 D'@7387 D'@7686 R'@8081 D@8216 D@8327 R@8409 D'@9066 R@9673 F'@9750 "
+      + "R'@9815 F@9895 L@13078 D@13235 D@13335 D@14029 D@14270 D@14833 L'@14904 D'@15005 D'@15287 B@17755 "
+      + "D'@17812 D'@18136 B'@18380 D@18523 B@18614 D'@18734 B'@18892 D@19833 D@19942 D@20288 F'@20765 D@20905 "
+      + "D@21284 F@21416 D@21697 B@22256 R'@22303 B'@22385 R@22482 D'@24074 D'@24798 L@25229 D@25400 D@25507 "
+      + "L'@25620 D@25838 D@26637 L@26736 D'@26827 L'@27010 B@27436 D@27589 R@27721 D'@27817 R'@27917 B'@28219 "
+      + "D@29163 D@29331 F@30264 D'@30292 F@30713 D@30745 F@30782 D@31090 F@31209 D'@31266 F'@31452 D'@31569 "
+      + "F@31648 F@31694";
+
+  @Test
+  public void readsACaseForEveryPairOfARecordedCfopSolve() {
+    StoredSolveReplay.Result result =
+        StoredSolveReplay.reinterpret(CFOP_SCRAMBLE, CFOP_MOVES, CubeMethod.CFOP);
+
+    assertEquals(CubeMethod.CFOP, result.getMethod());
+    List<SolveStep> pairs = result.getSteps().get(1).getSubSteps();
+    assertEquals(4, pairs.size());
+    for (SolveStep pair : pairs) {
+      assertTrue(pair.getName(), pair.getName().matches("pair_[a-z0-9]+_[a-z]{2}"));
+    }
+  }
+
   private static String inverted(String moves) {
     String[] tokens = moves.split(" ");
     StringBuilder sb = new StringBuilder();

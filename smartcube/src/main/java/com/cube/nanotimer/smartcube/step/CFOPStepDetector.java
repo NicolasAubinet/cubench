@@ -82,7 +82,8 @@ public final class CFOPStepDetector implements StepDetector {
 
   private final Long[][] times = new Long[6][STEP_NAMES.length]; // [cross face][step]
   private final Long[][] slotTimes = new Long[6][SLOT_COUNT]; // [cross face][F2L slot]
-  private final String[][] slotStates = new String[6][SLOT_COUNT]; // what the next pair was handed
+  private final List<String> history = new ArrayList<>(); // every state, what a pair is read from
+  private final List<Long> historyTimes = new ArrayList<>();
   private final String[][] states = new String[6][STEP_NAMES.length]; // [cross face][step]
   private final Long[] reported = new Long[STEP_NAMES.length];
 
@@ -105,10 +106,11 @@ public final class CFOPStepDetector implements StepDetector {
     for (int face = 0; face < 6; face++) {
       Arrays.fill(times[face], null);
       Arrays.fill(slotTimes[face], null);
-      Arrays.fill(slotStates[face], null);
       Arrays.fill(states[face], null);
     }
     Arrays.fill(reported, null);
+    history.clear();
+    historyTimes.clear();
     orientation.reset();
     permutation.reset();
     crossFace = null;
@@ -140,6 +142,8 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   private void evaluate(String facelets, long timestampMs) {
+    history.add(facelets);
+    historyTimes.add(timestampMs);
     boolean solved = Cubies.SOLVED.equals(facelets);
     for (int face = 0; face < 6; face++) {
       boolean cross = Cubies.crossDone(facelets, face);
@@ -151,7 +155,7 @@ public final class CFOPStepDetector implements StepDetector {
       firstTwoLayers[face] = f2l;
       permutationOnly[face] = oll;
       for (int slot = 0; slot < SLOT_COUNT; slot++) {
-        markSlot(face, slot, slotDone(facelets, face, slot), facelets, timestampMs);
+        markSlot(face, slot, slotDone(facelets, face, slot), timestampMs);
       }
 
       markStep(face, CROSS, cross, facelets, timestampMs);
@@ -171,10 +175,9 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   /** Dated at its first completion, like a step: the pairs that follow disturb it in passing. */
-  private void markSlot(int face, int slot, boolean done, String facelets, long timestampMs) {
+  private void markSlot(int face, int slot, boolean done, long timestampMs) {
     if (done && slotTimes[face][slot] == null) {
       slotTimes[face][slot] = timestampMs;
-      slotStates[face][slot] = facelets;
     }
   }
 
@@ -353,22 +356,29 @@ public final class CFOPStepDetector implements StepDetector {
     return pairCase == null ? PAIR_FAMILY + "_" + faces : PAIR_FAMILY + "_" + pairCase + "_" + faces;
   }
 
-  /** The state the pair started from: the latest milestone before it, the cross or an earlier pair. */
+  /**
+   * The state the pair started from: the first with the cross in, from the latest milestone before
+   * the pair on. A pair can go in with a cross edge still out, a D turn or a keyhole away from home,
+   * and the next pair is only begun once it is back.
+   */
   private String handedState(int face, int slot) {
     Long doneMs = slotTimes[face][slot];
-    if (doneMs == null) {
+    Long startMs = times[face][CROSS];
+    if (doneMs == null || startMs == null) {
       return null;
     }
-    Long startMs = times[face][CROSS];
-    String state = states[face][CROSS];
     for (int other = 0; other < SLOT_COUNT; other++) {
       Long otherMs = slotTimes[face][other];
-      if (otherMs != null && otherMs < doneMs && (startMs == null || otherMs > startMs)) {
+      if (otherMs != null && otherMs < doneMs && otherMs > startMs) {
         startMs = otherMs;
-        state = slotStates[face][other];
       }
     }
-    return state;
+    for (int i = 0; i < history.size() && historyTimes.get(i) < doneMs; i++) {
+      if (historyTimes.get(i) >= startMs && Cubies.crossDone(history.get(i), face)) {
+        return history.get(i);
+      }
+    }
+    return null;
   }
 
   private static String partName(String executed, String prefix, String restartCode) {
