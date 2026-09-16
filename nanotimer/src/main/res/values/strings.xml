@@ -173,13 +173,7 @@
   <string name="clock_notation">Clock notation</string>
   <string name="clock_notation_summary">Choose the Clock notation system</string>
   <string name="last_layer_colour">Last layer colour</string>
-  <string name="last_layer_colour_summary">%s, for scramble types such as Last layer, PLL or F2L</string>
-  <string name="colour_white">White</string>
-  <string name="colour_yellow">Yellow</string>
-  <string name="colour_green">Green</string>
-  <string name="colour_blue">Blue</string>
-  <string name="colour_red">Red</string>
-  <string name="colour_orange">Orange</string>
+  <string name="last_layer_colour_summary">For scramble types such as Last layer, PLL or F2L</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>

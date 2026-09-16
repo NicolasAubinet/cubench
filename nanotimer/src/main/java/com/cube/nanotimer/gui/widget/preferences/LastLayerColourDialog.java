@@ -22,7 +22,6 @@ public class LastLayerColourDialog extends DialogPreference {
   public LastLayerColourDialog(Context context, AttributeSet attrs) {
     super(context, attrs);
     setWidgetLayoutResource(R.layout.preference_colour_chip);
-    showValue();
   }
 
   @Override
@@ -36,7 +35,6 @@ public class LastLayerColourDialog extends DialogPreference {
           @Override
           public void onFacePicked(CrossFace face) {
             Options.INSTANCE.setLastLayerFace(face.name());
-            showValue();
             notifyChanged(); // redraws the chip beside the summary
             getDialog().dismiss();
           }
@@ -64,21 +62,5 @@ public class LastLayerColourDialog extends DialogPreference {
 
   private static CrossFace current() {
     return CrossFace.valueOf(Options.INSTANCE.getLastLayerFace());
-  }
-
-  private void showValue() {
-    setSummary(getContext().getString(R.string.last_layer_colour_summary,
-        getContext().getString(colourName(current()))));
-  }
-
-  private static int colourName(CrossFace face) {
-    switch (face) {
-      case D: return R.string.colour_yellow;
-      case F: return R.string.colour_green;
-      case B: return R.string.colour_blue;
-      case R: return R.string.colour_red;
-      case L: return R.string.colour_orange;
-      default: return R.string.colour_white;
-    }
   }
 }

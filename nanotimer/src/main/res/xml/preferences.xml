@@ -199,6 +199,7 @@
     <com.cube.nanotimer.gui.widget.preferences.LastLayerColourDialog
        android:key="last_layer_face"
        android:title="@string/last_layer_colour"
+       android:summary="@string/last_layer_colour_summary"
        android:dialogTitle="@string/last_layer_colour"
        android:positiveButtonText="@null"
        android:negativeButtonText="@string/cancel"/>

@@ -161,13 +161,7 @@
   <string name="clock_notation">Notação do Clock</string>
   <string name="clock_notation_summary">Escolha o sistema de notação do Clock</string>
   <string name="last_layer_colour">Cor da última camada</string>
-  <string name="last_layer_colour_summary">%s, para tipos de scramble como Última camada, PLL ou F2L</string>
-  <string name="colour_white">Branco</string>
-  <string name="colour_yellow">Amarelo</string>
-  <string name="colour_green">Verde</string>
-  <string name="colour_blue">Azul</string>
-  <string name="colour_red">Vermelho</string>
-  <string name="colour_orange">Laranja</string>
+  <string name="last_layer_colour_summary">Para tipos de scramble como Última camada, PLL ou F2L</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>

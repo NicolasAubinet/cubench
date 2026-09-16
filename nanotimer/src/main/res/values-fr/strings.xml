@@ -161,13 +161,7 @@
   <string name="clock_notation">Notation Clock</string>
   <string name="clock_notation_summary">Choisissez le système de notation pour le Clock</string>
   <string name="last_layer_colour">Couleur de la dernière couche</string>
-  <string name="last_layer_colour_summary">%s, pour les types de mélange comme Last Layer, PLL ou F2L</string>
-  <string name="colour_white">Blanc</string>
-  <string name="colour_yellow">Jaune</string>
-  <string name="colour_green">Vert</string>
-  <string name="colour_blue">Bleu</string>
-  <string name="colour_red">Rouge</string>
-  <string name="colour_orange">Orange</string>
+  <string name="last_layer_colour_summary">Pour les types de mélange comme Last Layer, PLL ou F2L</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
