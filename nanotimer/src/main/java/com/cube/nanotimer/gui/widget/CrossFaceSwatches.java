@@ -1,7 +1,6 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
@@ -10,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
@@ -29,10 +27,6 @@ import java.util.List;
  * L is.
  */
 public class CrossFaceSwatches {
-
-  /** How much of a face is left on one that is not the answer, and how much of its letter. */
-  private static final float DIM = 0.58f;
-  private static final float DIM_LETTER = 0.85f;
 
   public interface Listener {
     void onFacePicked(CrossFace face);
@@ -98,15 +92,12 @@ public class CrossFaceSwatches {
       boolean primary = (face == selected);
       boolean partner = (paired != null && face == paired);
 
-      boolean answer = primary || partner;
-      // Down towards black, not faded: alpha over the app's grey ground pulls value, chroma and
-      // contrast down together and lands the yellow on olive, so the row stops naming colours.
-      int shown = answer ? faceColor : ColorUtils.blendARGB(Color.BLACK, faceColor, DIM);
-
+      // Every face in its own colour: the border alone says which is picked, since a dimmed yellow
+      // or white stops reading as that colour at all.
       GradientDrawable bg = new GradientDrawable();
       bg.setShape(GradientDrawable.RECTANGLE);
       bg.setCornerRadius(dp(8));
-      bg.setColor(shown);
+      bg.setColor(faceColor);
       if (primary) {
         bg.setStroke(dp(5), color(R.color.lightblue));
       } else if (partner) {
@@ -115,8 +106,7 @@ public class CrossFaceSwatches {
         bg.setStroke(dp(1), color(R.color.gray700));
       }
       swatch.setBackground(bg);
-      int letter = isLightColor(shown) ? 0xFF222222 : color(R.color.white);
-      swatch.setTextColor(answer ? letter : ColorUtils.blendARGB(shown, letter, DIM_LETTER));
+      swatch.setTextColor(isLightColor(faceColor) ? 0xFF222222 : color(R.color.white));
     }
   }
 
