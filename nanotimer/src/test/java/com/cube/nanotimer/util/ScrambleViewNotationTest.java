@@ -52,6 +52,13 @@ public class ScrambleViewNotationTest {
     assertEquals("R U F", convert(new String[] {"R\nU", "F"}, CubeType.THREE_BY_THREE));
   }
 
+  /** The Roux scrambles' slices: cubing.js draws a solved cube for an alg holding a lower-case one. */
+  @Test
+  public void writesAThreeByThreeSliceInUpperCase() {
+    assertEquals("R2 M2 u E' S", convert(new String[] {"R2", "m2", "u", "e'", "s"},
+        CubeType.THREE_BY_THREE));
+  }
+
   @Test
   public void megaminxElementsCollapseToOneLine() {
     // The Megaminx scrambler emits trailing spaces on each element and the raw
