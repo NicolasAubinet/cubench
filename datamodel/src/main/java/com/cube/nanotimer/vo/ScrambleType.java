@@ -74,6 +74,14 @@ public abstract class ScrambleType implements Serializable, NameHolder {
     return new byte[0];
   }
 
+  /**
+   * Whether the scramble keeps the D side solved and leaves a last layer on U, so that it can be
+   * turned onto the solver's own last layer colour by relabelling its faces.
+   */
+  public boolean hasLastLayer() {
+    return false;
+  }
+
   protected boolean mustHaveParity() {
     return false;
   }

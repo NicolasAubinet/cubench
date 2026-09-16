@@ -160,6 +160,14 @@
   <string name="big_cubes_notation_summary">Escolher o sistema de notação dos cubos grandes</string>
   <string name="clock_notation">Notação do Clock</string>
   <string name="clock_notation_summary">Escolha o sistema de notação do Clock</string>
+  <string name="last_layer_colour">Cor da última camada</string>
+  <string name="last_layer_colour_summary">%s, para tipos de scramble como Última camada, PLL ou F2L</string>
+  <string name="colour_white">Branco</string>
+  <string name="colour_yellow">Amarelo</string>
+  <string name="colour_green">Verde</string>
+  <string name="colour_blue">Azul</string>
+  <string name="colour_red">Vermelho</string>
+  <string name="colour_orange">Laranja</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -1009,7 +1017,6 @@
   <string name="drill_help_title">Sobre este treino</string>
   <string name="drill_help_body">O que um treino fixa antes de dar o primeiro caso.</string>
   <string name="drill_help_mode">Um conjunto treinado à pressa e depois contado como resultado tornaria o histórico menos útil do que não ter histórico, por isso o modo é escolhido antes do primeiro caso e fica. Para o mudar, pare este treino e comece outro.</string>
-  <string name="drill_cross_colour">Cor da cruz</string>
   <string name="drill_planning">Planeamento</string>
   <string name="drill_planning_limit">Limite de planeamento</string>
   <string name="drill_planning_seconds">segundos</string>
@@ -1033,7 +1040,6 @@
   <string name="drill_cross_rep_missed">Isso não era a cruz</string>
   <string name="drill_cross_summary_optimal">%1$d de %2$d encontraram a forma mais curta</string>
   <string name="drill_cross_summary_none_built">Nenhuma cruz foi terminada</string>
-  <string name="drill_layer_colour">Cor da última camada</string>
   <string name="drill_cross_start_position">Posição inicial</string>
   <string name="drill_cross_other_ways">Outras formas</string>
   <string name="drill_cross_panel_you">Seus movimentos</string>

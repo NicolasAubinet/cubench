@@ -160,6 +160,14 @@
   <string name="big_cubes_notation_summary">Choisir le système de notation des gros cubes</string>
   <string name="clock_notation">Notation Clock</string>
   <string name="clock_notation_summary">Choisissez le système de notation pour le Clock</string>
+  <string name="last_layer_colour">Couleur de la dernière couche</string>
+  <string name="last_layer_colour_summary">%s, pour les types de mélange comme Last Layer, PLL ou F2L</string>
+  <string name="colour_white">Blanc</string>
+  <string name="colour_yellow">Jaune</string>
+  <string name="colour_green">Vert</string>
+  <string name="colour_blue">Bleu</string>
+  <string name="colour_red">Rouge</string>
+  <string name="colour_orange">Orange</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -1007,7 +1015,6 @@
   <string name="drill_help_title">À propos de cet entraînement</string>
   <string name="drill_help_body">Ce qu\'un entraînement fixe avant de distribuer son premier cas.</string>
   <string name="drill_help_mode">Un ensemble travaillé à la légère puis compté comme un résultat rendrait l\'historique moins utile que pas d\'historique du tout, donc le mode est choisi avant le premier cas et ne bouge plus. Pour en changer, arrêtez cet entraînement et relancez-en un autre.</string>
-  <string name="drill_cross_colour">Couleur de la croix</string>
   <string name="drill_planning">Planification</string>
   <string name="drill_planning_limit">Temps de réflexion limité</string>
   <string name="drill_planning_seconds">secondes</string>
@@ -1031,7 +1038,6 @@
   <string name="drill_cross_rep_missed">Ce n\'était pas la croix</string>
   <string name="drill_cross_summary_optimal">%1$d sur %2$d ont trouvé la solution la plus courte</string>
   <string name="drill_cross_summary_none_built">Aucune croix n\'a été terminée</string>
-  <string name="drill_layer_colour">Couleur de la dernière face</string>
   <string name="drill_cross_start_position">Position de départ</string>
   <string name="drill_cross_other_ways">Autres solutions</string>
   <string name="drill_cross_panel_you">Vos mouvements</string>

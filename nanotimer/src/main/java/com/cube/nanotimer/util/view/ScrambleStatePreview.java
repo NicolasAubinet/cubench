@@ -404,8 +404,10 @@ public class ScrambleStatePreview {
    * Hands over the scramble to draw, or takes the drawing away.
    *
    * @param blind a blind solve type, for which nothing is ever drawn and nothing is ever built
+   * @param holding the whole-cube rotation the solver holds the scrambled cube in, empty for none.
+   *     Only the 3D picture turns with it: the net draws every face already.
    */
-  public void show(CubeType cubeType, String[] scramble, boolean blind) {
+  public void show(CubeType cubeType, String[] scramble, boolean blind, String holding) {
     // Read here rather than held: the setting can change while this screen is behind the options,
     // and every scramble comes back through here.
     StatePreview wanted = Options.INSTANCE.getStatePreview();
@@ -419,9 +421,9 @@ public class ScrambleStatePreview {
       renderKey = null;
     }
     key = renderKey;
-    moves = notation;
     puzzle3d = (renderKey == null || wanted != StatePreview.CUBE)
         ? null : ScrambleViewNotation.get3DPuzzleId(cubeType);
+    moves = puzzle3d == null || holding.isEmpty() ? notation : notation + " " + holding;
     minPicturePx = (int) (pictureRows(cubeType, puzzle3d != null) * MIN_ROW_DP
         * context.getResources().getDisplayMetrics().density);
     // Asked afresh for every scramble, which is what bounds how long an answer stands: room is not

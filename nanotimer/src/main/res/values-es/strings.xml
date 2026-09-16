@@ -160,6 +160,14 @@
   <string name="big_cubes_notation_summary">Elegir sistema de notación de cubos grandes</string>
   <string name="clock_notation">Notación de Clock</string>
   <string name="clock_notation_summary">Elegir sistema de notación de Clock</string>
+  <string name="last_layer_colour">Color de la última capa</string>
+  <string name="last_layer_colour_summary">%s, para tipos de mezcla como Última capa, PLL o F2L</string>
+  <string name="colour_white">Blanco</string>
+  <string name="colour_yellow">Amarillo</string>
+  <string name="colour_green">Verde</string>
+  <string name="colour_blue">Azul</string>
+  <string name="colour_red">Rojo</string>
+  <string name="colour_orange">Naranja</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -1006,7 +1014,6 @@
   <string name="drill_help_title">Sobre este entrenamiento</string>
   <string name="drill_help_body">Lo que un entrenamiento fija antes de repartir su primer caso.</string>
   <string name="drill_help_mode">Un conjunto entrenado a la ligera y luego contado como resultado haría que el historial valiera menos que no tener historial, así que el modo se elige antes del primer caso y no cambia. Para cambiarlo, para este entrenamiento y empieza otro.</string>
-  <string name="drill_cross_colour">Color de la cruz</string>
   <string name="drill_planning">Planificación</string>
   <string name="drill_planning_limit">Límite de planificación</string>
   <string name="drill_planning_seconds">segundos</string>
@@ -1030,7 +1037,6 @@
   <string name="drill_cross_rep_missed">Eso no era la cruz</string>
   <string name="drill_cross_summary_optimal">%1$d de %2$d encontraron la forma más corta</string>
   <string name="drill_cross_summary_none_built">No se completó ninguna cruz</string>
-  <string name="drill_layer_colour">Color de la última capa</string>
   <string name="drill_cross_start_position">Posición inicial</string>
   <string name="drill_cross_other_ways">Otras formas</string>
   <string name="drill_cross_panel_you">Tus movimientos</string>

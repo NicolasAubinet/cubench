@@ -135,20 +135,6 @@
        android:textColor="@color/secondary_text"
        android:textSize="13sp"/>
 
-    <!-- Which face the drill is worked on: the cross for a cross drill, the last layer for a case
-         one. Every drill has one, so the row is always here; only its name changes. -->
-    <TextView
-       android:id="@+id/tvDrillFaceLabel"
-       style="@style/DialogSectionLabel"
-       android:layout_marginTop="18dp"/>
-
-    <!-- Row of six colour swatches, populated in code, and the same row the cross solver uses. -->
-    <LinearLayout
-       android:id="@+id/llDrillCrossSwatches"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:orientation="horizontal"/>
-
     <!-- Only for a cross drill: how long there is to plan it. One row on a card rather than a
          checkbox with a field under it, so the limit and the seconds read as one setting. -->
     <LinearLayout
