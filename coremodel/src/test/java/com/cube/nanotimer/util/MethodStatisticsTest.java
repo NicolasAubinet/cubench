@@ -191,6 +191,8 @@ public class MethodStatisticsTest {
     Assert.assertEquals("oll", families.get(3).getCode());
     Assert.assertEquals("pll", families.get(4).getCode());
     Assert.assertEquals("rf", MethodStatistics.caseOf("pair_rf"));
+    Assert.assertEquals("27", MethodStatistics.caseOf("pair_27_rf"));
+    Assert.assertEquals("pair", MethodStatistics.familyOf("pair_27_rf"));
     Assert.assertNull(MethodStatistics.caseOf("cross"));
   }
 

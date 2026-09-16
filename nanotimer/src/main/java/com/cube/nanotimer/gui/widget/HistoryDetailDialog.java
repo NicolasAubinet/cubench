@@ -1069,13 +1069,25 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private TableRow subStepRow(SolveStep part, int position, String moveCount) {
     TableRow row = new TableRow(getActivity());
     row.addView(cell(R.style.BreakdownSubName, withWanted(part,
-        withPieceMarks(part, withSlotColors(part.getName(),
-            Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position))))));
+        withPieceMarks(part, withSlotColors(part.getName(), withPartCase(part.getName(),
+            Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position)))))));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
     row.addView(cell(R.style.BreakdownSubCell, moveCount));
     return row;
+  }
+
+  /** An F2L pair is shown with the case it was handed, in the lesser colour a step's case takes. */
+  private CharSequence withPartCase(String code, String label) {
+    String caseLabel = Utils.toSmartCubeCaseLabel(getActivity(), code);
+    if (caseLabel == null) {
+      return label;
+    }
+    SpannableStringBuilder text = new SpannableStringBuilder(label + " " + caseLabel);
+    text.setSpan(new ForegroundColorSpan(color(R.color.secondary_text)), label.length() + 1,
+        text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    return text;
   }
 
   /**
@@ -1173,12 +1185,12 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * of its slot are what says <em>which</em> piece it was. Solves recorded before the slot was
    * stored simply keep the label.
    */
-  private CharSequence withSlotColors(String code, String label) {
+  private CharSequence withSlotColors(String code, CharSequence label) {
     char[] faces = Utils.getSmartCubeSlotFaces(code);
     if (faces == null) {
       return label;
     }
-    SpannableStringBuilder text = new SpannableStringBuilder(" " + label);
+    SpannableStringBuilder text = new SpannableStringBuilder(" ").append(label);
     text.setSpan(new ImageSpan(slotSwatch(faces), ImageSpan.ALIGN_BASELINE),
         0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     return text;

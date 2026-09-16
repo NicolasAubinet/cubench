@@ -51,16 +51,18 @@ public final class CFOPStepDetector implements StepDetector {
   private static final String PERMUTATION_RESTART_CODE = "pllrestart";
   private static final String ORIENTATION_RESTART_CODE = "ollrestart";
 
-  /** The 4 slots F2L is built in. Each is coded by where it sits ({@link #SLOT_CODES}) and shown by
-   * the order it was built, so there are no names to write here. */
+  /** The 4 slots F2L is built in. Each pair is coded by its case and slot, and shown by the order it
+   * was built, so there are no names to write here. */
   private static final int SLOT_COUNT = 4;
 
   /** The 4 F2L slots of each cross face: a first-layer corner and the middle edge beside it. */
   private static final int[][] SLOT_CORNERS = new int[6][4];
   private static final int[][] SLOT_EDGES = new int[6][4];
 
-  /** Each slot's code, carrying the two faces it sits between ("pair_rf") so it can be told apart. */
-  private static final String[][] SLOT_CODES = new String[6][4];
+  /** Each slot's two faces ("rf"), which end a pair's code so its colours can be shown. */
+  private static final String[][] SLOT_FACES = new String[6][4];
+
+  private static final String PAIR_FAMILY = "pair";
 
   static {
     for (int face = 0; face < 6; face++) {
@@ -72,7 +74,7 @@ public final class CFOPStepDetector implements StepDetector {
         char[] sides = sideColours(Cubies.CORNERS[corner], face);
         SLOT_CORNERS[face][slot] = corner;
         SLOT_EDGES[face][slot] = edgeBetween(sides[0], sides[1]);
-        SLOT_CODES[face][slot] = ("pair_" + sides[0] + sides[1]).toLowerCase(Locale.US);
+        SLOT_FACES[face][slot] = ("" + sides[0] + sides[1]).toLowerCase(Locale.US);
         slot++;
       }
     }
@@ -80,6 +82,7 @@ public final class CFOPStepDetector implements StepDetector {
 
   private final Long[][] times = new Long[6][STEP_NAMES.length]; // [cross face][step]
   private final Long[][] slotTimes = new Long[6][SLOT_COUNT]; // [cross face][F2L slot]
+  private final String[][] slotStates = new String[6][SLOT_COUNT]; // what the next pair was handed
   private final String[][] states = new String[6][STEP_NAMES.length]; // [cross face][step]
   private final Long[] reported = new Long[STEP_NAMES.length];
 
@@ -102,6 +105,7 @@ public final class CFOPStepDetector implements StepDetector {
     for (int face = 0; face < 6; face++) {
       Arrays.fill(times[face], null);
       Arrays.fill(slotTimes[face], null);
+      Arrays.fill(slotStates[face], null);
       Arrays.fill(states[face], null);
     }
     Arrays.fill(reported, null);
@@ -147,7 +151,7 @@ public final class CFOPStepDetector implements StepDetector {
       firstTwoLayers[face] = f2l;
       permutationOnly[face] = oll;
       for (int slot = 0; slot < SLOT_COUNT; slot++) {
-        markSlot(face, slot, slotDone(facelets, face, slot), timestampMs);
+        markSlot(face, slot, slotDone(facelets, face, slot), facelets, timestampMs);
       }
 
       markStep(face, CROSS, cross, facelets, timestampMs);
@@ -167,9 +171,10 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   /** Dated at its first completion, like a step: the pairs that follow disturb it in passing. */
-  private void markSlot(int face, int slot, boolean done, long timestampMs) {
+  private void markSlot(int face, int slot, boolean done, String facelets, long timestampMs) {
     if (done && slotTimes[face][slot] == null) {
       slotTimes[face][slot] = timestampMs;
+      slotStates[face][slot] = facelets;
     }
   }
 
@@ -324,8 +329,8 @@ public final class CFOPStepDetector implements StepDetector {
     return track == null ? 0 : track.count();
   }
 
-  /** A last layer part is coded by the algorithm that was run ("alg_jb", "ollalg_21"), the way a
-   * pair is by its slot, or as a restart for the moves that got back to where they started. */
+  /** A last layer part is coded by the algorithm that was run ("alg_jb", "ollalg_21"), or as a
+   * restart for the moves that got back to where they started. A pair is coded by its case. */
   @Override
   public String subStepName(int step, int subStep) {
     if (step == OLL) {
@@ -336,7 +341,34 @@ public final class CFOPStepDetector implements StepDetector {
       return partName(permutation.caseAt(subStep), PERMUTATION_ALGORITHM_PREFIX,
           PERMUTATION_RESTART_CODE);
     }
-    return crossFace == null ? "pair" : SLOT_CODES[crossFace][subStep];
+    return crossFace == null ? PAIR_FAMILY : pairName(crossFace, subStep);
+  }
+
+  /** The case the pair was handed, then the slot its colours come from ({@code "pair_27_rf"}). Handed
+   * a state with the cross out, as a keyhole can leave one, it has no case and keeps the slot alone. */
+  private String pairName(int face, int slot) {
+    String pairCase = F2LCases.pairCase(handedState(face, slot), face,
+        SLOT_CORNERS[face][slot], SLOT_EDGES[face][slot]);
+    String faces = SLOT_FACES[face][slot];
+    return pairCase == null ? PAIR_FAMILY + "_" + faces : PAIR_FAMILY + "_" + pairCase + "_" + faces;
+  }
+
+  /** The state the pair started from: the latest milestone before it, the cross or an earlier pair. */
+  private String handedState(int face, int slot) {
+    Long doneMs = slotTimes[face][slot];
+    if (doneMs == null) {
+      return null;
+    }
+    Long startMs = times[face][CROSS];
+    String state = states[face][CROSS];
+    for (int other = 0; other < SLOT_COUNT; other++) {
+      Long otherMs = slotTimes[face][other];
+      if (otherMs != null && otherMs < doneMs && (startMs == null || otherMs > startMs)) {
+        startMs = otherMs;
+        state = slotStates[face][other];
+      }
+    }
+    return state;
   }
 
   private static String partName(String executed, String prefix, String restartCode) {

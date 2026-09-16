@@ -34,6 +34,8 @@ public class Utils {
   public static final char[] FORBIDDEN_NAME_CHARACTERS = new char[] { '"', ',', ';', '|', '=' };
 
   private static final String PAIR_CODE_PREFIX = "pair_";
+  /** A pair placed in a way no case is named for ("pair_other_rf"). */
+  private static final String UNNAMED_PAIR_CASE = "other";
 
   /** The parts that carry the slot they went into, which is shown as their order instead. */
   private static final String[] SLOT_CODE_PREFIXES = { PAIR_CODE_PREFIX, "corner_", "edge_" };
@@ -277,8 +279,9 @@ public class Utils {
   }
 
   /**
-   * How the last layer case a step's code carries is shown beside its name ("(case Ub)", "(case 8)"),
-   * or null for a step that carries none — including every solve recorded before the cases were read.
+   * How the case a code carries is shown beside its name ("(case Ub)", "(case 8)", a pair's
+   * "(case 27)"), or null for one that carries none, including every solve recorded before the
+   * cases were read.
    *
    * <p>Said as a case rather than as the bare name a speedcuber writes: "Ub" is plain enough to
    * someone who knows the case, and an OLL's number is a number on its own, which reads as anything.
@@ -286,6 +289,12 @@ public class Utils {
   public static String toSmartCubeCaseLabel(Context context, String code) {
     if (code == null) {
       return null;
+    }
+    if (code.startsWith(PAIR_CODE_PREFIX)) {
+      String[] fields = code.split("_");
+      boolean named = fields.length == 3 && !UNNAMED_PAIR_CASE.equals(fields[1])
+          && !SKIPPED_CASE.equals(fields[1]);
+      return named ? context.getString(R.string.smartcube_step_case, capitalized(fields[1])) : null;
     }
     for (String prefix : CASE_CODE_PREFIXES) {
       if (!code.startsWith(prefix)) {
@@ -344,9 +353,10 @@ public class Utils {
   }
 
   /**
-   * The faces a part shows in its own colours, from its slot code: an F2L pair's two ("pair_rf"), a
-   * first-layer corner's three ("corner_dfr"). Null for any other step, and for the pairs of solves
-   * recorded before the slot was stored.
+   * The faces a part shows in its own colours, from the end of its code: an F2L pair's two
+   * ("pair_27_rf", or "pair_rf" before the case was read), a first-layer corner's three
+   * ("corner_dfr"). Null for any other step, and for the pairs of solves recorded before the slot was
+   * stored.
    */
   public static char[] getSmartCubeSlotFaces(String code) {
     if (code == null) {
@@ -356,7 +366,7 @@ public class Utils {
       if (!code.startsWith(prefix)) {
         continue;
       }
-      String faces = code.substring(prefix.length()).toUpperCase(Locale.US);
+      String faces = code.substring(code.lastIndexOf('_') + 1).toUpperCase(Locale.US);
       return faces.length() >= 2 ? faces.toCharArray() : null;
     }
     return null;

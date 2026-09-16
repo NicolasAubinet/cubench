@@ -81,10 +81,18 @@ public class MethodStatistics implements Serializable {
     return separator < 0 ? code : code.substring(0, separator);
   }
 
-  /** The case a step code names, or null when the code is a family on its own. */
+  /**
+   * The case a step code names, or null when the code is a family on its own. What follows a second
+   * separator is where the case was met rather than which one it was, as an F2L pair's slot is in
+   * {@code pair_27_rf}, so it is not part of the case.
+   */
   public static String caseOf(String code) {
     int separator = code.indexOf('_');
-    return separator < 0 ? null : code.substring(separator + 1);
+    if (separator < 0) {
+      return null;
+    }
+    int qualifier = code.indexOf('_', separator + 1);
+    return qualifier < 0 ? code.substring(separator + 1) : code.substring(separator + 1, qualifier);
   }
 
   /** The families a last layer part is coded under, beside the step code that names the same case. */
