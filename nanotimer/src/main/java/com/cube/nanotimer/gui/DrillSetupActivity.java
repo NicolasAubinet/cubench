@@ -27,6 +27,7 @@ import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
+import com.cube.nanotimer.gui.widget.preferences.LastLayerColourDialog;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
@@ -55,9 +56,8 @@ import java.util.Set;
  * the choice is made before the first case and is fixed for the whole drill. Stopping and starting
  * another is how it changes.
  *
- * <p>What hangs below the three shared controls depends on the practice. A cross drill is the only
- * one with a colour to pick, and it picks it from the cross solver's own swatches rather than a
- * second set of colours that could drift from them.
+ * <p>What hangs below the three shared controls depends on the practice. The colour every drill
+ * deals onto is the last layer colour setting, offered here through that setting's own picker.
  *
  * <p><b>A case drill runs the cases the user picked, not the family.</b> Knowing eleven of the 57
  * OLLs is the normal state of learning them, and a drill that deals the other 46 spends the session
@@ -123,6 +123,19 @@ public class DrillSetupActivity extends NanoTimerActivity
     planningSeconds = findViewById(R.id.llDrillPlanningSeconds);
     tvPracticeHint = findViewById(R.id.tvDrillPracticeHint);
     tvModeHint = findViewById(R.id.tvDrillModeHint);
+    final View layerChip = findViewById(R.id.vColourChip);
+    LastLayerColourDialog.paintChip(layerChip);
+    findViewById(R.id.llDrillLayerColour).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        LastLayerColourDialog.pick(DrillSetupActivity.this, new Runnable() {
+          @Override
+          public void run() {
+            LastLayerColourDialog.paintChip(layerChip);
+          }
+        });
+      }
+    });
     swPlanning = findViewById(R.id.swDrillPlanning);
     etPlanningSeconds = findViewById(R.id.etDrillPlanningSeconds);
 

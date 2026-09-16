@@ -956,6 +956,7 @@
   <string name="drill_practice_hint_pll">Un PLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_oll">Un OLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_cross">Una mezcla completa, y la cruz más corta que encuentres en ella.</string>
+  <string name="drill_layer_colour_shared">También se usa en las mezclas de Última capa, PLL y F2L</string>
   <string name="drill_cases">Casos</string>
   <string name="drill_cases_choose">Elegir</string>
   <string name="drill_cases_count">%1$d de %2$d elegidos</string>
@@ -1004,7 +1005,6 @@
   <string name="drill_mode_recording">Serio</string>
   <string name="drill_mode_hint_casual">Una sesión suelta. No se guarda nada, así que parar a medias no cuesta nada.</string>
   <string name="drill_mode_hint_recording">Repeticiones que quieres que cuenten, hechas con atención.</string>
-  <string name="drill_mode_locked">El modo queda fijado para todo el entrenamiento.</string>
   <string name="drill_help_title">Sobre este entrenamiento</string>
   <string name="drill_help_body">Lo que un entrenamiento fija antes de repartir su primer caso.</string>
   <string name="drill_help_mode">Un conjunto entrenado a la ligera y luego contado como resultado haría que el historial valiera menos que no tener historial, así que el modo se elige antes del primer caso y no cambia. Para cambiarlo, para este entrenamiento y empieza otro.</string>

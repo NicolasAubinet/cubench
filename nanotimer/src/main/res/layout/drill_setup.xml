@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Picking a drill: what to practise, how many reps, and whether the reps count. The three
      controls above the fold are the ones every drill has; what a cross drill needs on top hangs
-     below them and is hidden for the others, so the screen never asks for a colour that has no
-     cross to go on. -->
+     below them and is hidden for the others. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
@@ -210,15 +209,47 @@
       </LinearLayout>
     </LinearLayout>
 
-    <!-- The one sentence that has to be on screen: the mode cannot be changed once the drill has
-         started, and why it works that way is in the help panel. -->
-    <TextView
+    <!-- The last layer colour setting, pickable here: every drill deals onto it, a cross drill
+         building its cross on the opposite face. Last, as the choice changed least often. -->
+    <LinearLayout
+       android:id="@+id/llDrillLayerColour"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="20dp"
-       android:text="@string/drill_mode_locked"
-       android:textColor="@color/secondary_text"
-       android:textSize="13sp"/>
+       android:layout_marginTop="18dp"
+       android:background="@drawable/choice_card"
+       android:gravity="center_vertical"
+       android:orientation="horizontal"
+       android:paddingLeft="12dp"
+       android:paddingRight="12dp"
+       android:paddingTop="10dp"
+       android:paddingBottom="10dp">
+
+      <LinearLayout
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_marginRight="12dp"
+         android:layout_weight="1"
+         android:orientation="vertical">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="@string/last_layer_colour"
+           android:textColor="@color/white"
+           android:textSize="15sp"/>
+
+        <!-- Says the pick is the app-wide setting, not this screen's own. -->
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="2dp"
+           android:text="@string/drill_layer_colour_shared"
+           android:textColor="@color/secondary_text"
+           android:textSize="13sp"/>
+      </LinearLayout>
+
+      <include layout="@layout/preference_colour_chip"/>
+    </LinearLayout>
 
     <!-- The accent, not the tonal button: it is the one thing on the screen you came to press, and
          beside a screen full of filled blue segments a tonal one reads as disabled. -->
