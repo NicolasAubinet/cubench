@@ -32,6 +32,15 @@ public class SolveStepBarsTest {
         SolveStepBars.colorSlots(steps("cross", "f2l", "oll", "pll")));
   }
 
+  /** A last layer scramble came with cross and F2L done: OLL and PLL keep their own colours. */
+  @Test
+  public void drawsAStepTheScrambleSkippedToInItsOwnColour() {
+    List<SolveStep> steps = new ArrayList<SolveStep>();
+    steps.add(new SolveStep(2, "oll", 0, 1000, Collections.<SolveStep>emptyList()));
+    steps.add(new SolveStep(3, "pll", 0, 1000, Collections.<SolveStep>emptyList()));
+    assertArrayEquals(new int[] {2, 3}, SolveStepBars.colorSlots(steps));
+  }
+
   /** Solve 227's shape: an edge flip remembered after the corners had begun. */
   @Test
   public void drawsEveryStretchOfAPieceTypeInThatTypesColour() {

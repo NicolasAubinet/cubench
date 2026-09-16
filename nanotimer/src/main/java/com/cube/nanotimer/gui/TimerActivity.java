@@ -68,6 +68,7 @@ import com.cube.nanotimer.scrambler.randomstate.RandomStateGenListener;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CubeSession;
 import com.cube.nanotimer.smartcube.cube.StopPenalty;
+import com.cube.nanotimer.smartcube.drill.LayerRotation;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScaleUtils;
@@ -139,6 +140,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private CubeType cubeType;
   private SolveType solveType;
   private String[] currentScramble;
+  private String currentHolding = ""; // the rotation that stands the scramble's last layer on top
   private SolveTime lastSolveTime;
   private List<SolveStep> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
   private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
@@ -1230,7 +1232,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           ? getString(R.string.scramble_view_clock_notation_hint) + "\n\n" + readable
           : readable;
       DialogUtils.showFragment(this, ScrambleViewDialog.newInstance(key, moves, fallback,
-          ScrambleViewNotation.get3DPuzzleId(cubeType)));
+          ScrambleViewNotation.get3DPuzzleId(cubeType), currentHolding));
     } else {
       DialogUtils.showShortInfoMessage(this, R.string.scramble_view_no_scramble);
     }
@@ -1841,7 +1843,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     boolean foundScramble = false;
     String[] scramble = ScramblerService.INSTANCE.getScramble(cubeType, solveType.getScrambleType(), fromFile);
     if (scramble != null) {
-      currentScramble = scramble;
+      String face = lastLayerFace();
+      currentScramble = LayerRotation.toFace(scramble, face);
+      currentHolding = LayerRotation.toTop(face);
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
@@ -1864,7 +1868,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * redrawing it per move would be a page rebuild per turn.
    */
   private void renderStatePreview() {
-    statePreview.show(cubeType, currentScramble, solveType.isBlind());
+    statePreview.show(cubeType, currentScramble, solveType.isBlind(), currentHolding);
+  }
+
+  /** Where this solve type's scramble leaves its last layer: U for any that leaves none. */
+  private String lastLayerFace() {
+    ScrambleType scrambleType = solveType.getScrambleType();
+    return scrambleType != null && scrambleType.hasLastLayer()
+        ? Options.INSTANCE.getLastLayerFace() : "U";
   }
 
   /**

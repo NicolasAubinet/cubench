@@ -11,6 +11,11 @@ public class ScrambleTypes {
     DEFAULT,
     new ScrambleType("f2l") {
       @Override
+      public boolean hasLastLayer() {
+        return true;
+      }
+
+      @Override
       protected byte[] getFixedEdgePermutationIndices() {
         return new byte[] { 8, 9, 10, 11 };
       }
@@ -21,6 +26,11 @@ public class ScrambleTypes {
       }
     },
     new ScrambleType("last_layer") {
+      @Override
+      public boolean hasLastLayer() {
+        return true;
+      }
+
       @Override
       protected byte[] getFixedCornerPermutationIndices() {
         return new byte[] { 4, 5, 6, 7 };
@@ -42,6 +52,11 @@ public class ScrambleTypes {
       }
     },
     new ScrambleType("pll") {
+      @Override
+      public boolean hasLastLayer() {
+        return true;
+      }
+
       @Override
       protected byte[] getFixedCornerPermutationIndices() {
         return new byte[] { 4, 5, 6, 7 };
@@ -85,6 +100,11 @@ public class ScrambleTypes {
       }
     },
     new ScrambleType("roux_second_block") {
+      @Override
+      public boolean hasLastLayer() {
+        return true;
+      }
+
       // the first block stays solved: the DBL and DFL corners, and the BL, FL and DL edges
       @Override
       protected byte[] getFixedCornerPermutationIndices() {
@@ -107,6 +127,11 @@ public class ScrambleTypes {
       }
     },
     new ScrambleType("roux_last_10_pieces") {
+      @Override
+      public boolean hasLastLayer() {
+        return true;
+      }
+
       @Override
       protected byte[] getFixedCornerPermutationIndices() {
         return new byte[] { 4, 5, 6, 7 };
@@ -153,6 +178,11 @@ public class ScrambleTypes {
       }
     },
     new ScrambleType("roux_last_6_edges") {
+      @Override
+      public boolean hasLastLayer() {
+        return true;
+      }
+
       @Override
       protected byte[] getFixedCornerPermutationIndices() {
         return new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 };

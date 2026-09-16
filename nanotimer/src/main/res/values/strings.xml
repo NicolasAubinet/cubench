@@ -172,6 +172,8 @@
   <string name="big_cubes_notation_summary">Choose the big cubes notation system</string>
   <string name="clock_notation">Clock notation</string>
   <string name="clock_notation_summary">Choose the Clock notation system</string>
+  <string name="last_layer_colour">Last layer colour</string>
+  <string name="last_layer_colour_summary">For scramble types such as Last layer, PLL or F2L</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -997,6 +999,7 @@
   <string name="drill_practice_hint_pll">One PLL after another, from the cases you pick.</string>
   <string name="drill_practice_hint_oll">One OLL after another, from the cases you pick.</string>
   <string name="drill_practice_hint_cross">A whole scramble, and the shortest cross you can find in it.</string>
+  <string name="drill_layer_colour_shared">Also used for Last layer, PLL and F2L scrambles</string>
   <string name="drill_cases">Cases</string>
   <string name="drill_cases_choose">Choose</string>
   <string name="drill_cases_count">%1$d of %2$d picked</string>
@@ -1047,11 +1050,9 @@
   <string name="drill_mode_recording">Focused</string>
   <string name="drill_mode_hint_casual">A loose run. Nothing is kept, so stopping halfway costs nothing.</string>
   <string name="drill_mode_hint_recording">Reps you mean to count, done with attention.</string>
-  <string name="drill_mode_locked">The mode is fixed for the whole drill.</string>
   <string name="drill_help_title">About this drill</string>
   <string name="drill_help_body">What a drill settles before it deals its first case.</string>
   <string name="drill_help_mode">A set drilled loosely and then counted as a result would make the drill history worth less than no history, so the mode is picked before the first case and stays. To change it, stop this drill and start another.</string>
-  <string name="drill_cross_colour">Cross colour</string>
   <string name="drill_planning">Planning</string>
   <string name="drill_planning_limit">Planning limit</string>
   <string name="drill_planning_seconds">seconds</string>
@@ -1075,7 +1076,6 @@
   <string name="drill_cross_rep_missed">That was not the cross</string>
   <string name="drill_cross_summary_optimal">%1$d of %2$d found the shortest way</string>
   <string name="drill_cross_summary_none_built">No cross was built</string>
-  <string name="drill_layer_colour">Last layer colour</string>
   <string name="drill_cross_start_position">Start position</string>
   <string name="drill_cross_other_ways">Other ways</string>
   <string name="drill_cross_panel_you">Your moves</string>

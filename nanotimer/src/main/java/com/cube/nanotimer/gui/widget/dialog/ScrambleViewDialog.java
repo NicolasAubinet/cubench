@@ -51,6 +51,7 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
   private static final String ARG_SCRAMBLE = "scramble";
   private static final String ARG_FALLBACK = "fallback";
   private static final String ARG_PUZZLE_3D = "puzzle3d";
+  private static final String ARG_HOLDING = "holding";
 
   private static final String BASE_URL = "https://appassets.androidplatform.net/assets/scramble/scramble.html";
 
@@ -66,6 +67,7 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
   private String key;
   private String scramble;
   private String puzzle3d;
+  private String holding;
   private boolean threeD;
   /** Whether the page has run its document, so {@code ntRender} exists to be called again. */
   private boolean pageLoaded;
@@ -87,12 +89,22 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
    */
   public static ScrambleViewDialog newInstance(String renderKey, String cubingScramble,
       String fallbackText, String puzzleId3d) {
+    return newInstance(renderKey, cubingScramble, fallbackText, puzzleId3d, "");
+  }
+
+  /**
+   * @param holding the whole-cube rotation the solver holds the scrambled cube in, empty for none.
+   *     Only the 3D view turns with it, as in the timer's own preview: the net draws every face.
+   */
+  public static ScrambleViewDialog newInstance(String renderKey, String cubingScramble,
+      String fallbackText, String puzzleId3d, String holding) {
     ScrambleViewDialog frag = new ScrambleViewDialog();
     Bundle args = new Bundle();
     args.putString(ARG_KEY, renderKey);
     args.putString(ARG_SCRAMBLE, cubingScramble);
     args.putString(ARG_FALLBACK, fallbackText);
     args.putString(ARG_PUZZLE_3D, puzzleId3d);
+    args.putString(ARG_HOLDING, holding);
     frag.setArguments(args);
     return frag;
   }
@@ -102,6 +114,7 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
     key = getArguments().getString(ARG_KEY);
     scramble = getArguments().getString(ARG_SCRAMBLE);
     puzzle3d = getArguments().getString(ARG_PUZZLE_3D);
+    holding = getArguments().getString(ARG_HOLDING, "");
     final String fallbackText = getArguments().getString(ARG_FALLBACK);
 
     View view = LayoutInflater.from(getActivity()).inflate(R.layout.scrambleview_dialog, null);
@@ -273,7 +286,8 @@ public class ScrambleViewDialog extends NanoTimerDialogFragment {
     if (webView == null) {
       return;
     }
-    String js = "window.ntRender(" + JSONObject.quote(key) + "," + JSONObject.quote(scramble)
+    String moves = threeD && !holding.isEmpty() ? scramble + " " + holding : scramble;
+    String js = "window.ntRender(" + JSONObject.quote(key) + "," + JSONObject.quote(moves)
         + "," + JSONObject.quote(threeD ? "3d" : "2d")
         + "," + (puzzle3d == null ? "null" : JSONObject.quote(puzzle3d)) + ");";
     webView.evaluateJavascript(js, null);

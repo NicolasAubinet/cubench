@@ -22,12 +22,12 @@ import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
-import com.cube.nanotimer.gui.widget.CrossFaceSwatches;
 import com.cube.nanotimer.gui.widget.DrillHelpDialog;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
+import com.cube.nanotimer.gui.widget.preferences.LastLayerColourDialog;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
@@ -56,9 +56,8 @@ import java.util.Set;
  * the choice is made before the first case and is fixed for the whole drill. Stopping and starting
  * another is how it changes.
  *
- * <p>What hangs below the three shared controls depends on the practice. A cross drill is the only
- * one with a colour to pick, and it picks it from the cross solver's own swatches rather than a
- * second set of colours that could drift from them.
+ * <p>What hangs below the three shared controls depends on the practice. The colour every drill
+ * deals onto is the last layer colour setting, offered here through that setting's own picker.
  *
  * <p><b>A case drill runs the cases the user picked, not the family.</b> Knowing eleven of the 57
  * OLLs is the normal state of learning them, and a drill that deals the other 46 spends the session
@@ -86,8 +85,6 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final String KEY_PRACTICE = "practice";
   private static final String KEY_REPS = "reps";
   private static final String KEY_RECORDING = "recording";
-  private static final String KEY_CROSS_FACE = "cross_face";
-  private static final String KEY_LAYER_FACE = "layer_face";
   private static final String KEY_PLANNING_ON = "planning_on";
   private static final String KEY_PLANNING_SECONDS = "planning_seconds";
 
@@ -97,7 +94,6 @@ public class DrillSetupActivity extends NanoTimerActivity
   private SegmentedControl practice;
   private SegmentedControl reps;
   private SegmentedControl mode;
-  private CrossFaceSwatches crossFaces;
   private SmartCubeChip smartCubeChip;
   private Switch swPlanning;
   private EditText etPlanningSeconds;
@@ -109,12 +105,6 @@ public class DrillSetupActivity extends NanoTimerActivity
   private LinearLayout llPicked;
   private View casesRow;
   private TextView tvModeHint;
-  private TextView tvFaceLabel;
-
-  /** The cross a cross drill builds, and the layer a case drill finishes on. Two choices, since a
-   * cross colour and a last layer colour are opposite faces for most solvers. */
-  private CrossFace crossFace;
-  private CrossFace layerFace;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -132,8 +122,20 @@ public class DrillSetupActivity extends NanoTimerActivity
     llPicked = findViewById(R.id.llDrillCasesPicked);
     planningSeconds = findViewById(R.id.llDrillPlanningSeconds);
     tvPracticeHint = findViewById(R.id.tvDrillPracticeHint);
-    tvFaceLabel = findViewById(R.id.tvDrillFaceLabel);
     tvModeHint = findViewById(R.id.tvDrillModeHint);
+    final View layerChip = findViewById(R.id.vColourChip);
+    LastLayerColourDialog.paintChip(layerChip);
+    findViewById(R.id.llDrillLayerColour).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        LastLayerColourDialog.pick(DrillSetupActivity.this, new Runnable() {
+          @Override
+          public void run() {
+            LastLayerColourDialog.paintChip(layerChip);
+          }
+        });
+      }
+    });
     swPlanning = findViewById(R.id.swDrillPlanning);
     etPlanningSeconds = findViewById(R.id.etDrillPlanningSeconds);
 
@@ -169,27 +171,6 @@ public class DrillSetupActivity extends NanoTimerActivity
           public void onSegmentPicked(int index) {
             Options.INSTANCE.setDrillChoice(KEY_RECORDING, index);
             refreshModeHint();
-          }
-        });
-
-    // The cross solver's own default is where the cross starts, and then keeps its own: a colour
-    // drilled to learn it is often not the colour that solver is set to. The last layer defaults to
-    // the opposite face, which is where a solver who builds that cross finishes.
-    int defaultCross = Options.INSTANCE.getCrossFaceIndex(CrossFace.D.ordinal());
-    crossFace = CrossFace.values()[Options.INSTANCE.getDrillChoice(KEY_CROSS_FACE, defaultCross)];
-    layerFace = layerFace();
-    crossFaces = new CrossFaceSwatches(this, (LinearLayout) findViewById(R.id.llDrillCrossSwatches),
-        new CrossFaceSwatches.Listener() {
-          @Override
-          public void onFacePicked(CrossFace picked) {
-            if (isCrossDrill()) {
-              crossFace = picked;
-              Options.INSTANCE.setDrillChoice(KEY_CROSS_FACE, picked.ordinal());
-            } else {
-              layerFace = picked;
-              Options.INSTANCE.setDrillChoice(KEY_LAYER_FACE, picked.ordinal());
-            }
-            crossFaces.setSelection(picked, null);
           }
         });
 
@@ -306,8 +287,6 @@ public class DrillSetupActivity extends NanoTimerActivity
     if (!cross) {
       refreshCasesCount();
     }
-    tvFaceLabel.setText(cross ? R.string.drill_cross_colour : R.string.drill_layer_colour);
-    crossFaces.setSelection(cross ? crossFace : layerFace, null);
   }
 
   @Override
@@ -413,15 +392,9 @@ public class DrillSetupActivity extends NanoTimerActivity
     return picked;
   }
 
-  /**
-   * Which way up a last-layer drill stands the cube, which is the user's own standing answer rather
-   * than anything a drill prescribes: a coach names the cases, never the hand holding them. Shared
-   * so a drill launched from a plan stands the cube where this screen last left it.
-   */
+  /** The face a case drill deals its last layer onto, which is the last layer colour setting's. */
   public static CrossFace layerFace() {
-    int defaultCross = Options.INSTANCE.getCrossFaceIndex(CrossFace.D.ordinal());
-    return CrossFace.values()[Options.INSTANCE.getDrillChoice(KEY_LAYER_FACE,
-        CrossFace.values()[defaultCross].opposite().ordinal())];
+    return CrossFace.valueOf(Options.INSTANCE.getLastLayerFace());
   }
 
   /**
@@ -465,10 +438,6 @@ public class DrillSetupActivity extends NanoTimerActivity
     return chosen == REPS_ALL ? cases : REP_COUNTS[chosen];
   }
 
-  private boolean isCrossDrill() {
-    return practice.getSelection() == PRACTICE_CROSS;
-  }
-
   private void refreshModeHint() {
     tvModeHint.setText(isRecording() ? R.string.drill_mode_hint_recording
         : R.string.drill_mode_hint_casual);
@@ -481,6 +450,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   private void start() {
     Intent intent;
     if (practice.getSelection() == PRACTICE_CROSS) {
+      CrossFace crossFace = layerFace().opposite(); // the cross is built under the last layer
       int repCount = REP_COUNTS[reps.getSelection()];
       int seconds = typedPlanningSeconds();
       Options.INSTANCE.setDrillChoice(KEY_PLANNING_SECONDS, seconds);
@@ -499,7 +469,7 @@ public class DrillSetupActivity extends NanoTimerActivity
       int repCount = reps.getSelection() == REPS_ALL ? cases.size()
           : REP_COUNTS[reps.getSelection()];
       intent = new Intent(this, DrillActivity.class);
-      intent.putExtra(DrillActivity.EXTRA_LAYER_FACE, layerFace.name());
+      intent.putExtra(DrillActivity.EXTRA_LAYER_FACE, layerFace().name());
       intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-" + family() + "picked",
           DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL, cases,
           DrillSpec.Selection.ROUND_ROBIN, repCount, 0,

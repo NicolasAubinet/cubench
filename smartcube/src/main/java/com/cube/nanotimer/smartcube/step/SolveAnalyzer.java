@@ -33,6 +33,7 @@ public final class SolveAnalyzer {
 
   private long solveStartMs;
   private CubeMove pendingMove;
+  private int givenSteps; // how many leading steps the start state already had done
 
   public SolveAnalyzer(StepDetector detector) {
     this.detector = detector;
@@ -44,6 +45,11 @@ public final class SolveAnalyzer {
     solveStartMs = startTimestampMs;
     pendingMove = null;
     detector.reset(startState, startTimestampMs);
+    givenSteps = 0;
+    while (givenSteps < detector.stepCount()
+        && detector.getStepTimestampMs(givenSteps) != null) {
+      givenSteps++;
+    }
   }
 
   public void onMove(CubeMove move) {
@@ -86,11 +92,16 @@ public final class SolveAnalyzer {
    * The steps reached, in order, ending in the one the solve stopped inside if it holds any finished
    * parts. On an unfinished solve they stop short of the whole: the turning after the last milestone
    * belongs to no step, and is left for the display to derive from {@link #getStoppedStep()}.
+   *
+   * <p>Steps the cube was handed already done are left out, so a last layer scramble reads as its
+   * last layer steps and nothing else. A step keeps its index either way, which is why the first one
+   * listed is not always step 0.
    */
   public List<StepTime> getStepTimes() {
     List<StepTime> times = new ArrayList<>();
     long previousCompleteMs = solveStartMs;
-    for (int step = 0; step < detector.stepCount(); step++) {
+    int firstStep = firstSolvedStep();
+    for (int step = firstStep; step < detector.stepCount(); step++) {
       Long completeMs = detector.getStepTimestampMs(step);
       if (completeMs == null) {
         StepTime partial = partialStep(step, previousCompleteMs);
@@ -101,12 +112,25 @@ public final class SolveAnalyzer {
       }
       List<StepTime> subSteps = splitSubSteps(step, previousCompleteMs, completeMs);
       times.add(subSteps.isEmpty()
-          ? timeFor(step, step, detector.stepName(step), previousCompleteMs, completeMs, step == 0,
-              subSteps, Collections.<PieceMark>emptyList(), null)
+          ? timeFor(step, step, detector.stepName(step), previousCompleteMs, completeMs,
+              step == firstStep, subSteps, Collections.<PieceMark>emptyList(), null)
           : sumOf(step, detector.stepName(step), subSteps, worthSplitting(subSteps), true));
       previousCompleteMs = completeMs;
     }
     return times;
+  }
+
+  /**
+   * The first step the solve had to do itself. A given step still dated at the start is skipped, and
+   * one a detector re-dated since (CFOP settling on another cross) was not given after all.
+   */
+  private int firstSolvedStep() {
+    int step = 0;
+    while (step < givenSteps
+        && Long.valueOf(solveStartMs).equals(detector.getStepTimestampMs(step))) {
+      step++;
+    }
+    return step;
   }
 
   /**
@@ -155,6 +179,7 @@ public final class SolveAnalyzer {
 
     List<StepTime> subSteps = new ArrayList<>();
     long previousMs = previousCompleteMs;
+    boolean opensSolve = step == firstSolvedStep();
     for (int i = 0; i < order.size(); i++) {
       int subStep = order.get(i);
       boolean last = i == order.size() - 1;
@@ -163,7 +188,7 @@ public final class SolveAnalyzer {
           ? completeMs
           : Math.max(previousMs, detector.getSubStepTimestampMs(step, subStep));
       subSteps.add(timeFor(step, subStep, detector.subStepName(step, subStep), previousMs,
-          subCompleteMs, step == 0 && i == 0, new ArrayList<>(),
+          subCompleteMs, opensSolve && i == 0, new ArrayList<>(),
           detector.subStepPieceMarks(step, subStep),
           detector.subStepWantedName(step, subStep)));
       previousMs = subCompleteMs;

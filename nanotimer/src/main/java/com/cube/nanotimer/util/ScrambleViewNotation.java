@@ -147,9 +147,23 @@ public final class ScrambleViewNotation {
       // default) is modern WCA notation and falls through to the pass-through below.
       return null;
     }
+    if (cubeType == CubeType.THREE_BY_THREE) {
+      scramble = withUpperCaseSlices(scramble);
+    }
     // Everything else: join the moves and collapse any whitespace/newlines (Megaminx
     // elements already include separators) into a single clean line.
     return joinAndCollapse(scramble);
+  }
+
+  /** A Roux scramble writes its slices as m, e and s, which cubing.js rejects, whole alg and all. */
+  private static String[] withUpperCaseSlices(String[] scramble) {
+    String[] moves = new String[scramble.length];
+    for (int i = 0; i < scramble.length; i++) {
+      String move = scramble[i];
+      moves[i] = move != null && !move.isEmpty() && "mes".indexOf(move.charAt(0)) >= 0
+          ? Character.toUpperCase(move.charAt(0)) + move.substring(1) : move;
+    }
+    return moves;
   }
 
   private static String joinAndCollapse(String[] scramble) {

@@ -50,6 +50,7 @@ public enum Options {
   public static final String RECORD_NOTIFICATION_MODE_KEY = "record_notification_mode";
   public static final String CROSS_NEUTRALITY_KEY = "cross_neutrality";
   public static final String CROSS_FACE_KEY = "cross_face";
+  public static final String LAST_LAYER_FACE_KEY = "last_layer_face";
   public static final String BREAKDOWN_SHOW_MOVES_KEY = "breakdown_show_moves";
   public static final String HERO_STAT_KEY_PREFIX = "hero_stat_";
   public static final String REPLAY_SHOW_GYRO_KEY = "replay_show_gyro";
@@ -261,6 +262,15 @@ public enum Options {
 
   public void setCrossFaceIndex(int faceIndex) {
     sharedPreferences.edit().putInt(CROSS_FACE_KEY, faceIndex).apply();
+  }
+
+  /** The face whose colour the solver finishes on, as its letter: U (white) unless they chose. */
+  public String getLastLayerFace() {
+    return sharedPreferences.getString(LAST_LAYER_FACE_KEY, "U");
+  }
+
+  public void setLastLayerFace(String face) {
+    sharedPreferences.edit().putString(LAST_LAYER_FACE_KEY, face).apply();
   }
 
   /**
