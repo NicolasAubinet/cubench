@@ -1232,7 +1232,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           ? getString(R.string.scramble_view_clock_notation_hint) + "\n\n" + readable
           : readable;
       DialogUtils.showFragment(this, ScrambleViewDialog.newInstance(key, moves, fallback,
-          ScrambleViewNotation.get3DPuzzleId(cubeType)));
+          ScrambleViewNotation.get3DPuzzleId(cubeType), currentHolding));
     } else {
       DialogUtils.showShortInfoMessage(this, R.string.scramble_view_no_scramble);
     }
