@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Picking a drill: what to practise, how many reps, and whether the reps count. The three
+<!-- Picking a drill: what to practise, how many reps, and whether the reps are recorded. The three
      controls above the fold are the ones every drill has; what a cross drill needs on top hangs
      below them and is hidden for the others. -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -113,26 +113,31 @@
        android:orientation="horizontal"
        android:padding="3dp"/>
 
-    <TextView
-       style="@style/DialogSectionLabel"
-       android:layout_marginTop="18dp"
-       android:text="@string/drill_mode"/>
-
+    <!-- Whether the reps are kept, as a plain switch: the choice is only ever on or off. -->
     <LinearLayout
-       android:id="@+id/llDrillMode"
+       android:id="@+id/llDrillRecord"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:background="@drawable/view_segment_group"
+       android:layout_marginTop="18dp"
+       android:background="@drawable/drill_note_card"
+       android:gravity="center_vertical"
        android:orientation="horizontal"
-       android:padding="3dp"/>
+       android:padding="12dp">
 
-    <TextView
-       android:id="@+id/tvDrillModeHint"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="6dp"
-       android:textColor="@color/secondary_text"
-       android:textSize="13sp"/>
+      <TextView
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:text="@string/drill_record"
+         android:textColor="@color/white"
+         android:textSize="15sp"/>
+
+      <Switch
+         android:id="@+id/swDrillRecord"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="12dp"/>
+    </LinearLayout>
 
     <!-- Only for a cross drill: how long there is to plan it. One row on a card rather than a
          checkbox with a field under it, so the limit and the seconds read as one setting. -->

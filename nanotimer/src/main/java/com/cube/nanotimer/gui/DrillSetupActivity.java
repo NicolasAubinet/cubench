@@ -51,7 +51,7 @@ import java.util.Set;
  * What the app used to run was one hard-coded set of every PLL, which was enough to build a runner
  * against and is not a way to practise anything in particular.
  *
- * <p><b>The mode is decided here because it cannot be decided later.</b> A set drilled loosely and
+ * <p><b>Recording is decided here because it cannot be decided later.</b> A set drilled loosely and
  * then claimed as a result at the end would make the drill history worth less than no history, so
  * the choice is made before the first case and is fixed for the whole drill. Stopping and starting
  * another is how it changes.
@@ -93,7 +93,7 @@ public class DrillSetupActivity extends NanoTimerActivity
 
   private SegmentedControl practice;
   private SegmentedControl reps;
-  private SegmentedControl mode;
+  private Switch swRecord;
   private SmartCubeChip smartCubeChip;
   private Switch swPlanning;
   private EditText etPlanningSeconds;
@@ -104,7 +104,6 @@ public class DrillSetupActivity extends NanoTimerActivity
   private TextView tvPickedLabel;
   private LinearLayout llPicked;
   private View casesRow;
-  private TextView tvModeHint;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +121,6 @@ public class DrillSetupActivity extends NanoTimerActivity
     llPicked = findViewById(R.id.llDrillCasesPicked);
     planningSeconds = findViewById(R.id.llDrillPlanningSeconds);
     tvPracticeHint = findViewById(R.id.tvDrillPracticeHint);
-    tvModeHint = findViewById(R.id.tvDrillModeHint);
     final View layerChip = findViewById(R.id.vColourChip);
     LastLayerColourDialog.paintChip(layerChip);
     findViewById(R.id.llDrillLayerColour).setOnClickListener(new View.OnClickListener() {
@@ -137,6 +135,7 @@ public class DrillSetupActivity extends NanoTimerActivity
       }
     });
     swPlanning = findViewById(R.id.swDrillPlanning);
+    swRecord = findViewById(R.id.swDrillRecord);
     etPlanningSeconds = findViewById(R.id.etDrillPlanningSeconds);
 
     practice = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llDrillPractice),
@@ -163,16 +162,18 @@ public class DrillSetupActivity extends NanoTimerActivity
           }
         });
 
-    mode = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llDrillMode),
-        new String[] {getString(R.string.drill_mode_casual),
-            getString(R.string.drill_mode_recording)},
-        new SegmentedControl.Listener() {
-          @Override
-          public void onSegmentPicked(int index) {
-            Options.INSTANCE.setDrillChoice(KEY_RECORDING, index);
-            refreshModeHint();
-          }
-        });
+    swRecord.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton button, boolean checked) {
+        Options.INSTANCE.setDrillChoice(KEY_RECORDING, checked ? 1 : 0);
+      }
+    });
+    findViewById(R.id.llDrillRecord).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        swRecord.toggle();
+      }
+    });
 
     swPlanning.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
       @Override
@@ -197,12 +198,11 @@ public class DrillSetupActivity extends NanoTimerActivity
     });
 
     practice.setSelection(Options.INSTANCE.getDrillChoice(KEY_PRACTICE, PRACTICE_PLL));
-    mode.setSelection(Options.INSTANCE.getDrillChoice(KEY_RECORDING, 1));
+    swRecord.setChecked(Options.INSTANCE.getDrillChoice(KEY_RECORDING, 1) == 1);
     swPlanning.setChecked(Options.INSTANCE.getDrillChoice(KEY_PLANNING_ON, 0) == 1);
     etPlanningSeconds.setText(String.valueOf(
         Options.INSTANCE.getDrillChoice(KEY_PLANNING_SECONDS, DEFAULT_PLANNING_SECONDS)));
     refreshPractice();
-    refreshModeHint();
   }
 
   /**
@@ -438,13 +438,8 @@ public class DrillSetupActivity extends NanoTimerActivity
     return chosen == REPS_ALL ? cases : REP_COUNTS[chosen];
   }
 
-  private void refreshModeHint() {
-    tvModeHint.setText(isRecording() ? R.string.drill_mode_hint_recording
-        : R.string.drill_mode_hint_casual);
-  }
-
   private boolean isRecording() {
-    return mode.getSelection() == 1;
+    return swRecord.isChecked();
   }
 
   private void start() {

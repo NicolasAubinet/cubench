@@ -523,7 +523,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   }
 
   private int modeName() {
-    return isRecording() ? R.string.drill_mode_recording : R.string.drill_mode_casual;
+    return isRecording() ? R.string.drill_summary_recorded : R.string.drill_summary_not_recorded;
   }
 
   /** Nothing to drill with. Said in place of the drill rather than over it. */

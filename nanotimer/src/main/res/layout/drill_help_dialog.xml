@@ -66,7 +66,7 @@
           <TextView
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
-             android:text="@string/drill_mode"
+             android:text="@string/drill_record"
              android:textColor="@color/white"
              android:textSize="14.5sp"
              android:textStyle="bold"/>
