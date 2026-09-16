@@ -185,7 +185,8 @@ public final class CaseExecutions {
         SolveBreakdown.solvingDurationMs(solve), reread.getMoves(), reread.getMethod());
     SolveSolution solution = SolveSolution.from(reread.getMoves(), steps);
     for (int i = 0; i < steps.size() && i < solution.getSteps().size(); i++) {
-      if (reread.getStoppedStep() != null && reread.getStoppedStep().intValue() == i) {
+      if (reread.getStoppedStep() != null
+          && reread.getStoppedStep().intValue() == steps.get(i).getStepIndex()) {
         continue; // the solve stopped inside it, so its moves are half of an answer
       }
       add(steps.get(i), solution.getSteps().get(i), answers);

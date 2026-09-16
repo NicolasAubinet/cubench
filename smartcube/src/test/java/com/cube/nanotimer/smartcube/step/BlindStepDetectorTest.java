@@ -2,6 +2,7 @@ package com.cube.nanotimer.smartcube.step;
 
 import static com.cube.nanotimer.smartcube.step.PieceMark.TOUCHED;
 import static com.cube.nanotimer.smartcube.step.PieceMark.WRONG;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -521,6 +522,30 @@ public class BlindStepDetectorTest {
         assertFalse(detector.subStepPieceMarks(step, part).contains(WRONG));
       }
     }
+  }
+
+  /** An edges-only scramble: the corners came solved, so the solve is a memo and its edges. */
+  @Test
+  public void readsAnEdgesOnlySolveAsItsEdgesAlone() {
+    assertStepNames(new String[] {"memo", "edges"}, EDGE_CYCLE_A, EDGE_CYCLE_B);
+  }
+
+  @Test
+  public void readsACornersOnlySolveAsItsCornersAlone() {
+    assertStepNames(new String[] {"memo", "corners"}, CORNER_CYCLE_A, CORNER_CYCLE_B);
+  }
+
+  private void assertStepNames(String[] expected, String... solve) {
+    startFrom(solve);
+    play(solve);
+    List<StepTime> steps = analyzer.getStepTimes();
+    String[] names = new String[steps.size()];
+    for (int i = 0; i < names.length; i++) {
+      names[i] = steps.get(i).getStepName();
+    }
+    assertArrayEquals(expected, names);
+    assertTrue(analyzer.matchesMethod());
+    assertNull(analyzer.getStoppedStep());
   }
 
   private long startFrom(String... solve) {

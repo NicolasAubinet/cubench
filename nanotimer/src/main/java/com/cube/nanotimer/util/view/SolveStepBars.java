@@ -40,11 +40,15 @@ public final class SolveStepBars {
    * steps belong together.
    *
    * <p>A method whose steps are all named differently is unaffected: each takes the next slot, which
-   * is what indexing by step position did.
+   * is what indexing by step position did. A solve whose scramble came with its first steps done
+   * starts as far along the palette, so its OLL is still drawn in OLL's colour.
    */
   public static int[] colorSlots(List<SolveStep> steps) {
     int[] slots = new int[steps.size()];
     List<String> named = new ArrayList<>();
+    for (int i = 0; !steps.isEmpty() && i < steps.get(0).getStepIndex(); i++) {
+      named.add(null); // a step the scramble gave keeps its colour, and nothing else takes it
+    }
     for (int i = 0; i < steps.size(); i++) {
       String name = steps.get(i).getName();
       boolean groupable = name != null && !name.isEmpty() && !Utils.isTailSegment(name);

@@ -161,10 +161,8 @@ public class StoredSolveReplayTest {
 
     assertNotNull(result);
     assertEquals(CubeMethod.CFOP, result.getMethod());
-    assertEquals("cross", result.getSteps().get(0).getName());
-    assertEquals("f2l", result.getSteps().get(1).getName());
-    assertEquals("oll_skip", result.getSteps().get(2).getName());
-    assertEquals("pll_t", result.getSteps().get(3).getName());
+    assertEquals(1, result.getSteps().size()); // the scramble came with everything else done
+    assertEquals("pll_t", result.getSteps().get(0).getName());
   }
 
   /**
@@ -181,13 +179,13 @@ public class StoredSolveReplayTest {
         StoredSolveReplay.reinterpret(ubPerm, moves, CubeMethod.CFOP);
 
     assertNotNull(result);
-    SolveStep pll = result.getSteps().get(3);
+    SolveStep pll = result.getSteps().get(0); // the only step the scramble left to do
     assertEquals("pll_ua", pll.getName()); // the case they were given
     assertEquals(2, pll.getSubSteps().size());
     assertEquals("alg_ub", pll.getSubSteps().get(0).getName()); // the algorithms they ran
     assertEquals("alg_ub", pll.getSubSteps().get(1).getName());
 
-    SolveSolution.Step step = SolveSolution.from(moves, result.getSteps()).getSteps().get(3);
+    SolveSolution.Step step = SolveSolution.from(moves, result.getSteps()).getSteps().get(0);
     assertEquals("R2 U R U R' U' R' U' R' U R'", step.getPartMoves(0));
     assertEquals("R2 U R U R' U' R' U' R' U R'", step.getPartMoves(1));
   }
