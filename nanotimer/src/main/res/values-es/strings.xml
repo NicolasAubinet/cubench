@@ -1005,7 +1005,7 @@
   <string name="drill_summary_not_recorded">Sin guardar</string>
   <string name="drill_help_title">Sobre este entrenamiento</string>
   <string name="drill_help_body">Lo que un entrenamiento fija antes de repartir su primer caso.</string>
-  <string name="drill_help_mode">Un conjunto entrenado a la ligera y luego contado como resultado haría que el historial valiera menos que no tener historial, así que guardar o no se elige antes del primer caso y no cambia. Para cambiarlo, para este entrenamiento y empieza otro.</string>
+  <string name="drill_help_record">Activado, cada repetición se guarda: su tiempo y si pediste ver el algoritmo. Esas repeticiones alimentan las Estadísticas de entrenamiento y «Algoritmos que conoces» en Análisis. Desactívalo para practicar sin afectarlos.</string>
   <string name="drill_planning">Planificación</string>
   <string name="drill_planning_limit">Límite de planificación</string>
   <string name="drill_planning_seconds">segundos</string>

@@ -1050,7 +1050,7 @@
   <string name="drill_summary_not_recorded">Not recorded</string>
   <string name="drill_help_title">About this drill</string>
   <string name="drill_help_body">What a drill settles before it deals its first case.</string>
-  <string name="drill_help_mode">A set drilled loosely and then counted as a result would make the drill history worth less than no history, so recording is chosen before the first case and stays. To change it, stop this drill and start another.</string>
+  <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps feed Drill stats and \"Algorithms you know\" in Analysis. Turn it off to practise without affecting them.</string>
   <string name="drill_planning">Planning</string>
   <string name="drill_planning_limit">Planning limit</string>
   <string name="drill_planning_seconds">seconds</string>
