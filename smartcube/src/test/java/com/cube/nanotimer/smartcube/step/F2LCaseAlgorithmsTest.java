@@ -4,8 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
 import org.junit.Test;
 
 public class F2LCaseAlgorithmsTest {
@@ -71,6 +75,36 @@ public class F2LCaseAlgorithmsTest {
     assertNull(F2LCaseAlgorithms.matching("4", "R U R' U R U' R'"));
     assertNull(F2LCaseAlgorithms.matching("4", "L' U' L")); // a mirror is not a grip
     assertNull(F2LCaseAlgorithms.matching("4", "garbage"));
+  }
+
+  @Test
+  public void listsACaseMostVotedFirst() {
+    Set<String> cases = new LinkedHashSet<>();
+    for (String[] row : F2LCaseAlgorithms.rows()) {
+      cases.add(row[0]);
+    }
+    for (String pairCase : cases) {
+      int previous = Integer.MAX_VALUE;
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(pairCase)) {
+        assertTrue(pairCase, algorithm.getShare() <= previous);
+        previous = algorithm.getShare();
+      }
+    }
+    assertEquals("U R U' R'", F2LCaseAlgorithms.forCase("1").get(0).getMoves());
+  }
+
+  @Test
+  public void holdsEachAlgorithmOnce() {
+    for (String[] row : F2LCaseAlgorithms.rows()) {
+      int turnings = 0;
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(row[0])) {
+        if (F2LCaseAlgorithms.indexOfTurning(row[0],
+            Collections.singletonList(AlgorithmForm.comparable(algorithm.getMoves())), row[1]) >= 0) {
+          turnings++;
+        }
+      }
+      assertEquals(row[1], 1, turnings);
+    }
   }
 
   @Test
