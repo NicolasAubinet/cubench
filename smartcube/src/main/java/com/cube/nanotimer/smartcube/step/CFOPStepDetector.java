@@ -347,6 +347,20 @@ public final class CFOPStepDetector implements StepDetector {
     return crossFace == null ? PAIR_FAMILY : pairName(crossFace, subStep);
   }
 
+  /**
+   * Every code a pair of the given case can be stored under, one per slot of every cross colour
+   * ({@code pair_27_rf}, {@code pair_27_fl}, ...), for finding the solves the case came up in.
+   */
+  public static List<String> pairCodes(String pairCase) {
+    List<String> codes = new ArrayList<>();
+    for (String[] faces : SLOT_FACES) {
+      for (String slot : faces) {
+        codes.add(PAIR_FAMILY + "_" + pairCase + "_" + slot);
+      }
+    }
+    return codes;
+  }
+
   /** The case the pair was handed, then the slot its colours come from ({@code "pair_27_rf"}). Handed
    * a state with the cross out, as a keyhole can leave one, it has no case and keeps the slot alone. */
   private String pairName(int face, int slot) {

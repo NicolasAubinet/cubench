@@ -17,6 +17,7 @@ import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
+import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
@@ -268,9 +269,9 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
   private static final class Shown {
 
     private final String moves;
-    private final LastLayerCaseAlgorithms.Execution execution;
+    private final AlgorithmExecution execution;
 
-    Shown(String moves, LastLayerCaseAlgorithms.Execution execution) {
+    Shown(String moves, AlgorithmExecution execution) {
       this.moves = moves;
       this.execution = execution;
     }

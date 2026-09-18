@@ -22,9 +22,9 @@ import com.cube.nanotimer.cube.CaseExecutions;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms.Algorithm;
-import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms.Execution;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -356,11 +356,11 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private static final class Turned {
 
     private final String moves;
-    private final Execution execution;
+    private final AlgorithmExecution execution;
     private int times;
     private final int of;
 
-    Turned(String moves, Execution execution, int times, int of) {
+    Turned(String moves, AlgorithmExecution execution, int times, int of) {
       this.moves = moves;
       this.execution = execution;
       this.times = times;

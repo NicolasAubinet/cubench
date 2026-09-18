@@ -93,8 +93,8 @@ public final class AlgorithmForm {
    * named {@code U} in that grip, which is not the alignment and not the same thing in each of the
    * 24. Stripping first is what makes the 24 a set the same turning always maps onto itself.
    * ⚠️ It still assumes the layer was up in the frame the moves were written in, which is true of
-   * the table and not of an execution; {@code LastLayerCaseAlgorithms.keyAsDrawn} is the one that
-   * finds the frame first, and this is its fallback.
+   * the table and not of an execution; {@link #keyAsDrawn} is the one that finds the frame first,
+   * and this is its fallback.
    */
   public static String keyFromAnyGrip(String algorithm) {
     List<String> turns;
@@ -113,7 +113,7 @@ public final class AlgorithmForm {
     return smallest;
   }
 
-  private static String written(List<String> turns) {
+  static String written(List<String> turns) {
     StringBuilder written = new StringBuilder();
     for (String turn : turns) {
       written.append(written.length() == 0 ? "" : " ").append(turn);
@@ -187,6 +187,80 @@ public final class AlgorithmForm {
       }
     }
     return -1;
+  }
+
+  /**
+   * The moves as they read from the frame their case is drawn in: named from the first grip that
+   * leaves them solving it, the cube as it was held tried first. Null where no grip does, and for
+   * notation nothing can read.
+   */
+  static List<String> asDrawn(String moves, Drawn drawn) {
+    List<String> turns;
+    try {
+      turns = of(moves);
+    } catch (RuntimeException e) {
+      return null;
+    }
+    for (char[] grip : grips()) {
+      List<String> stood = conjugatedBy(turns, grip);
+      if (drawn.solves(written(stood))) {
+        return stood;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * One string naming what an execution turned, from the frame its case is drawn in and with the
+   * alignment off both ends. Two executions of one algorithm come out equal however the solver was
+   * holding the cube and whichever way they left the layer facing, which is what makes counting how
+   * often each is turned mean anything.
+   *
+   * <p>Every grip that leaves the execution solving the case is tried, and the smallest key answers
+   * for all of them: a last layer case is drawn in four, one per way the layer faces. An execution
+   * that solves the case from no grip at all falls back to {@link #keyFromAnyGrip}, which is the
+   * same question asked without the case. Null for notation nothing can read.
+   */
+  static String keyAsDrawn(String moves, Drawn drawn) {
+    List<String> turns;
+    try {
+      turns = of(moves);
+    } catch (RuntimeException e) {
+      return null; // notation nothing can read groups with nothing, not with everything
+    }
+    String smallest = null;
+    for (char[] grip : grips()) {
+      List<String> stood = conjugatedBy(turns, grip);
+      if (!drawn.solves(written(stood))) {
+        continue;
+      }
+      String key = written(withoutAlignment(stood));
+      if (smallest == null || key.compareTo(smallest) < 0) {
+        smallest = key;
+      }
+    }
+    return smallest == null ? keyFromAnyGrip(moves) : smallest;
+  }
+
+  /**
+   * How many turns an execution takes, counted from the frame its case is drawn in with the
+   * alignment off both ends, or 0 for notation nothing can read.
+   *
+   * <p><b>Which frame is not a detail here.</b> A solver holds the cube where their hands want it,
+   * so the turns that align the layer only look like alignment once the cube is stood up the way
+   * the case is drawn. Counted anywhere else, the same eleven-move algorithm reads as ten or as
+   * thirteen depending on how it was held, and a solver is told their own algorithm is long.
+   */
+  static int lengthAsDrawn(String moves, Drawn drawn) {
+    List<String> stood = asDrawn(moves, drawn);
+    if (stood != null) {
+      return withoutAlignment(stood).size();
+    }
+    try {
+      return withoutAlignment(of(moves)).size(); // nothing it does names the case
+    } catch (RuntimeException e) {
+      return 0;
+    }
   }
 
   /** Whether moves, written in some grip, solve the case they are being matched against. */

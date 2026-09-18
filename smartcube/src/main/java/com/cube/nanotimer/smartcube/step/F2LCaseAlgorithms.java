@@ -758,10 +758,31 @@ public final class F2LCaseAlgorithms {
     for (String[] row : ALGORITHMS) {
       if (row[0].equals(pairCase)) {
         int share = votes == 0 ? 0 : Math.round(Integer.parseInt(row[3]) * 100f / votes);
-        algorithms.add(new Algorithm(row[1], row[2].isEmpty() ? null : row[2], share));
+        algorithms.add(new Algorithm(row[1], row[2].isEmpty() ? null : row[2], share, false));
       }
     }
     return Collections.unmodifiableList(algorithms);
+  }
+
+  /**
+   * What to show a solver for a case: the most voted algorithm, and beside it those with at least
+   * {@link LastLayerCaseAlgorithms#DEFAULT_MIN_SHARE} of the votes, by the same rules as a last
+   * layer case, including when the first is called the recommended one.
+   */
+  public static List<Algorithm> shownForCase(String pairCase) {
+    List<Algorithm> shown = new ArrayList<>();
+    for (Algorithm algorithm : forCase(pairCase)) {
+      if (shown.isEmpty() || (algorithm.getShare() >= LastLayerCaseAlgorithms.DEFAULT_MIN_SHARE
+          && shown.size() < LastLayerCaseAlgorithms.MOST_SHOWN)) {
+        shown.add(algorithm);
+      }
+    }
+    float lead = LastLayerCaseAlgorithms.CLEAR_LEAD;
+    if (shown.size() > 1 && shown.get(0).getShare() >= shown.get(1).getShare() * lead) {
+      Algorithm top = shown.get(0);
+      shown.set(0, new Algorithm(top.getMoves(), top.getEmptySlot(), top.getShare(), true));
+    }
+    return Collections.unmodifiableList(shown);
   }
 
   /**
@@ -776,25 +797,105 @@ public final class F2LCaseAlgorithms {
       return null;
     }
     List<Algorithm> algorithms = forCase(pairCase);
-    List<List<String>> forms = new ArrayList<>();
-    for (Algorithm algorithm : algorithms) {
-      forms.add(AlgorithmForm.comparable(algorithm.getMoves()));
-    }
-    int at = indexOfTurning(pairCase, forms, executedMoves);
+    int at = indexOfTurning(pairCase, formsOf(algorithms), executedMoves);
     return at < 0 ? null : algorithms.get(at);
   }
 
-  static int indexOfTurning(final String pairCase, List<List<String>> forms, String moves) {
-    return AlgorithmForm.indexOfTurning(forms, moves, new AlgorithmForm.Drawn() {
+  /**
+   * Whether the execution is one hardly anybody turns, and how long it is beside the shortest
+   * algorithm in use, by the same rules as {@link LastLayerCaseAlgorithms#read}.
+   */
+  public static AlgorithmExecution read(String pairCase, String executedMoves) {
+    if (pairCase == null || executedMoves == null || AlgorithmForm.key(executedMoves) == null) {
+      return new AlgorithmExecution(false, 0, 0);
+    }
+    List<Algorithm> algorithms = forCase(pairCase);
+    int at = indexOfTurning(pairCase, formsOf(algorithms), executedMoves);
+    boolean unusual = !algorithms.isEmpty() && (at < 0
+        || (at > 0 && algorithms.get(at).getShare() < LastLayerCaseAlgorithms.UNUSUAL_SHARE));
+    int shortest = 0;
+    for (int i = 0; i < algorithms.size(); i++) {
+      if (i > 0 && algorithms.get(i).getShare() < LastLayerCaseAlgorithms.UNUSUAL_SHARE) {
+        continue;
+      }
+      int length = AlgorithmForm.comparable(algorithms.get(i).getMoves()).size();
+      if (length > 0 && (shortest == 0 || length < shortest)) {
+        shortest = length;
+      }
+    }
+    return new AlgorithmExecution(unusual,
+        AlgorithmForm.lengthAsDrawn(executedMoves, drawn(pairCase)), shortest);
+  }
+
+  /**
+   * The moves as they read with the pair going into front right and the cross down, which is how
+   * every algorithm here is written, or null where they do not solve the case from any grip.
+   *
+   * <p>Unlike a last layer case, where four grips draw the case and none of them is more right than
+   * the others, exactly one grip stands a pair in front right, so renaming the faces loses nothing.
+   */
+  public static String asDrawn(String pairCase, String moves) {
+    List<String> stood = moves == null ? null : AlgorithmForm.asDrawn(moves, drawn(pairCase));
+    return stood == null ? null : AlgorithmForm.written(stood);
+  }
+
+  /** One string naming what an execution turned, the same from whichever slot it was turned in. */
+  public static String keyAsDrawn(String pairCase, String moves) {
+    return AlgorithmForm.keyAsDrawn(moves, drawn(pairCase));
+  }
+
+  /** Whether two spellings are the same algorithm turned, from whichever slot. */
+  public static boolean sameTurning(String pairCase, String moves, String other) {
+    if (moves == null || other == null) {
+      return false;
+    }
+    if (moves.equals(other)) {
+      return true;
+    }
+    String key = keyAsDrawn(pairCase, moves);
+    return key != null && key.equals(keyAsDrawn(pairCase, other));
+  }
+
+  /**
+   * The case held with the cross up and the pair going into up-front-left, in URFDLB facelets:
+   * turned over with a z2, which is how it is drawn, that is the cross down and the slot in front
+   * right. Read off the most voted algorithm, the one the picture has to agree with.
+   */
+  public static String crossUpFacelets(String pairCase) {
+    List<Algorithm> algorithms = forCase(pairCase);
+    return algorithms.isEmpty() ? null
+        : Notation.caseState("z2 " + algorithms.get(0).getMoves() + " z2");
+  }
+
+  private static AlgorithmForm.Drawn drawn(final String pairCase) {
+    return new AlgorithmForm.Drawn() {
       @Override
       public boolean solves(String stood) {
         return F2LCaseAlgorithms.solves(pairCase, stood);
       }
-    });
+    };
   }
 
-  /** Whether moves put the pair of the given case into front right, with the cross down. */
-  static boolean solves(String pairCase, String moves) {
+  private static List<List<String>> formsOf(List<Algorithm> algorithms) {
+    List<List<String>> forms = new ArrayList<>();
+    for (Algorithm algorithm : algorithms) {
+      forms.add(AlgorithmForm.comparable(algorithm.getMoves()));
+    }
+    return forms;
+  }
+
+  static int indexOfTurning(String pairCase, List<List<String>> forms, String moves) {
+    return AlgorithmForm.indexOfTurning(forms, moves, drawn(pairCase));
+  }
+
+  /**
+   * Whether moves put the pair of the given case into front right, with the cross down. Asked of
+   * the table by its test, and of anything a user types in before it is kept against a case.
+   */
+  public static boolean solves(String pairCase, String moves) {
+    if (pairCase == null || moves == null || moves.trim().isEmpty()) {
+      return false;
+    }
     try {
       return pairCase.equals(
           F2LCases.pairCase(Notation.caseState(moves), Cubies.D, Cubies.DFR, Cubies.FR));
@@ -812,11 +913,13 @@ public final class F2LCaseAlgorithms {
     private final String moves;
     private final String emptySlot;
     private final int share;
+    private final boolean recommended;
 
-    Algorithm(String moves, String emptySlot, int share) {
+    Algorithm(String moves, String emptySlot, int share, boolean recommended) {
       this.moves = moves;
       this.emptySlot = emptySlot;
       this.share = share;
+      this.recommended = recommended;
     }
 
     public String getMoves() {
@@ -831,6 +934,11 @@ public final class F2LCaseAlgorithms {
     /** The share of its case's votes this algorithm holds, in percent. */
     public int getShare() {
       return share;
+    }
+
+    /** The one to learn first, said only where the vote is not close. */
+    public boolean isRecommended() {
+      return recommended;
     }
   }
 }

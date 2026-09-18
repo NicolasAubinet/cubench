@@ -6,8 +6,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.smartcube.model.CubeState;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import org.junit.Test;
@@ -128,5 +130,59 @@ public class F2LCaseAlgorithmsTest {
     int corner = Cubies.slotNamed(("d" + slot).toUpperCase(Locale.US)) - Cubies.EDGES.length;
     int edge = Cubies.slotNamed(slot.toUpperCase(Locale.US));
     return Cubies.inPlace(state, Cubies.CORNERS[corner]) && Cubies.inPlace(state, Cubies.EDGES[edge]);
+  }
+
+  /** Shown by the last layer rules: case 7's top three hold 28, 22 and 21%, too close to call. */
+  @Test
+  public void showsTheAlgorithmsAtOrAboveTheFloorWithoutARecommendationOnACloseVote() {
+    List<F2LCaseAlgorithms.Algorithm> shown = F2LCaseAlgorithms.shownForCase("7");
+
+    assertEquals(3, shown.size());
+    assertEquals("U' R U2 R' U' R U2 R'", shown.get(0).getMoves());
+    assertFalse(shown.get(0).isRecommended());
+  }
+
+  @Test
+  public void showsOnlyTheMostVotedWhereNothingElseComesClose() {
+    assertEquals(1, F2LCaseAlgorithms.shownForCase("3").size());
+  }
+
+  /** A pair turned in another slot, with the gyro's rotations in it, written for front right. */
+  @Test
+  public void writesAnExecutionForFrontRight() {
+    assertEquals("U B U2 B' U' R U' R'",
+        F2LCaseAlgorithms.asDrawn("7", "y' U R U2 R' U' x U y' z U' R'"));
+    assertNull(F2LCaseAlgorithms.asDrawn("7", "R U R'"));
+  }
+
+  @Test
+  public void groupsOneWayOfTurningACaseWhicheverSlotItWasTurnedIn() {
+    assertTrue(F2LCaseAlgorithms.sameTurning("7", "y' U R U2 R' U' x U y' z U' R'",
+        "U' R U2 R' U' F U' y' R'"));
+    assertFalse(F2LCaseAlgorithms.sameTurning("7", "U' R U2 R' U' R U2 R'",
+        "U' R U2 R' U2 R U' R'"));
+  }
+
+  @Test
+  public void readsAnExecutionNoAlgorithmMatchesAsUnusual() {
+    assertTrue(F2LCaseAlgorithms.read("7", "U B U2 B' U' R U' R'").isUnusual());
+    assertFalse(F2LCaseAlgorithms.read("7", "U' R U2 R' U' R U2 R'").isUnusual());
+  }
+
+  /** The picture's state: turned over and solved with the case's own algorithm, it is solved. */
+  @Test
+  public void drawsTheCaseTheMostVotedAlgorithmSolves() {
+    String facelets = F2LCaseAlgorithms.crossUpFacelets("7");
+
+    assertEquals(CubeState.SOLVED_FACELETS,
+        Notation.apply(facelets, "z2 U' R U2 R' U' R U2 R' z2"));
+  }
+
+  @Test
+  public void keepsOnlyWhatSolvesTheCase() {
+    assertTrue(F2LCaseAlgorithms.solves("7", "U' R U2 R' U' R U2 R'"));
+    assertFalse(F2LCaseAlgorithms.solves("7", "R U R'"));
+    assertFalse(F2LCaseAlgorithms.solves("7", "R U 7"));
+    assertFalse(F2LCaseAlgorithms.solves("7", " "));
   }
 }
