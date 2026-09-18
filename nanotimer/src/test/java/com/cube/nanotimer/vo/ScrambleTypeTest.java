@@ -41,4 +41,20 @@ public class ScrambleTypeTest {
             "roux_last_10_pieces", "roux_last_6_edges", "parity")), endsSolved);
   }
 
+  // The Roux states belong to no other method, so they name it themselves rather than letting the
+  // preference fit a CFOP detector to a solve it can never match.
+  @Test
+  public void testOnlyTheRouxScramblesNameAMethod() {
+    Set<String> naming = new TreeSet<>();
+    for (ScrambleType scrambleType : ScrambleTypes.THREE_BY_THREE) {
+      CubeMethod method = scrambleType.getMethod();
+      if (method != null) {
+        assertEquals("Only Roux states belong to a single method", CubeMethod.ROUX, method);
+        naming.add(scrambleType.getName());
+      }
+    }
+
+    assertEquals(new TreeSet<>(Arrays.asList(
+        "roux_second_block", "roux_last_10_pieces", "roux_last_6_edges")), naming);
+  }
 }

@@ -107,6 +107,11 @@ public class ScrambleTypes {
     },
     new ScrambleType("roux_second_block") {
       @Override
+      public CubeMethod getMethod() {
+        return CubeMethod.ROUX;
+      }
+
+      @Override
       public boolean hasLastLayer() {
         return true;
       }
@@ -139,6 +144,11 @@ public class ScrambleTypes {
       }
     },
     new ScrambleType("roux_last_10_pieces") {
+      @Override
+      public CubeMethod getMethod() {
+        return CubeMethod.ROUX;
+      }
+
       @Override
       public boolean hasLastLayer() {
         return true;
@@ -190,6 +200,11 @@ public class ScrambleTypes {
       }
     },
     new ScrambleType("roux_last_6_edges") {
+      @Override
+      public CubeMethod getMethod() {
+        return CubeMethod.ROUX;
+      }
+
       @Override
       public boolean hasLastLayer() {
         return true;

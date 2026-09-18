@@ -98,6 +98,19 @@ public abstract class ScrambleType implements Serializable, NameHolder {
     return true;
   }
 
+  /**
+   * The method a solve from this scramble is necessarily done with, or null where the scramble says
+   * nothing and the solve type or the preference decides.
+   *
+   * <p>Only the states that belong to one method answer: a Roux block or its last pieces cannot be
+   * solved by anything else, so reading them as the preferred method would fit a detector to a solve
+   * it was never going to match. A last layer or an F2L is common to several methods and stays
+   * silent.
+   */
+  public CubeMethod getMethod() {
+    return null;
+  }
+
   protected boolean mustHaveParity() {
     return false;
   }

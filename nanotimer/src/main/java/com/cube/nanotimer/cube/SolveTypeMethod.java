@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.vo.CubeMethod;
+import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveType;
 
 /**
@@ -12,6 +13,9 @@ import com.cube.nanotimer.vo.SolveType;
  *
  * <p>It lives here rather than on {@link SolveType} because the answer needs {@link Options}, which
  * the model module cannot see.
+ *
+ * <p>Four things answer, strongest first: the blind flag, a method named on the type by hand, the
+ * one a scramble type implies (a Roux block belongs to no other method), then the preference.
  */
 public final class SolveTypeMethod {
 
@@ -33,6 +37,11 @@ public final class SolveTypeMethod {
       return CubeMethod.BLIND;
     }
     CubeMethod override = solveType.getMethodOverride();
-    return override != null ? override : Options.INSTANCE.getPreferredMethod();
+    if (override != null) {
+      return override; // a method named by hand outranks one merely implied
+    }
+    ScrambleType scrambleType = solveType.getScrambleType();
+    CubeMethod implied = scrambleType == null ? null : scrambleType.getMethod();
+    return implied != null ? implied : Options.INSTANCE.getPreferredMethod();
   }
 }
