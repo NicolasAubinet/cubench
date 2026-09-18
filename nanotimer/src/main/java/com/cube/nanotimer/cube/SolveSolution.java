@@ -98,6 +98,9 @@ public final class SolveSolution {
     CubeRotation grip = method == CubeMethod.BLIND ? gripOf(storedMoves) : null;
     BlindChoices choices = grip == null ? null : blindChoices(storedMoves, stored, grip, solveSteps);
     List<Move> moves = inSolversFrame(stored, null, grip, choices);
+    if (grip == null) { // a blind solve shows no rotations to fold
+      moves = RotationRoundTrips.fold(moves);
+    }
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
       return new SolveSolution(new ArrayList<Step>(), 0, 0, 0);
     }

@@ -114,7 +114,7 @@ public class RecordedGyroReplayTest {
     String shown = new RecordedGyroReplay("roux140.txt").display();
     int rotations = count(shown, "x") + count(shown, "y") + count(shown, "z");
 
-    assertEquals(shown, 19, rotations); // 24 before the wides were read
+    assertEquals(shown, 17, rotations); // 24 before the wides were read, 19 before tilts folded
     assertEquals(shown, 93, shown.split(" ").length - rotations);
   }
 

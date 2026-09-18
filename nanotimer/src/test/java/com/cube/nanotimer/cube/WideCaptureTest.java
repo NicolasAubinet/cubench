@@ -115,7 +115,7 @@ public class WideCaptureTest {
       }
     }
 
-    assertEquals(shown, 23, rotations); // the nine core spins are not among them
+    assertEquals(shown, 21, rotations); // the nine core spins are not among them, nor two tilts
   }
 
   private static int count(String shown) {
