@@ -221,7 +221,8 @@ public class ScrambleFollowerTest {
 
   @Test
   public void acceptsSlicesAndWidesButNotRotations() {
-    assertTrue(ScrambleFollower.canFollow(new String[] {"R", "U", "m'"}));
+    assertTrue(ScrambleFollower.canFollow(new String[] {"R", "U", "M'"}));
+    assertTrue(ScrambleFollower.canFollow(new String[] {"R", "U", "m'"})); // older scrambles' spelling
     assertTrue(ScrambleFollower.canFollow(new String[] {"R", "U", "r2"}));
     assertTrue(ScrambleFollower.canFollow(new String[] {"F", "e'", "s2", "u", "f'"})); // turned layer
     assertFalse(ScrambleFollower.canFollow(new String[] {"R", "U", "y"}));

@@ -176,20 +176,20 @@ public class ScrambleTypes {
 
       @Override
       public String[] finalizeScramble(String[] scramble) {
-        // add final "m" move so that the centers are not always aligned with the blocks
+        // add final "M" move so that the centers are not always aligned with the blocks
         int locResult = new Random().nextInt(4);
 
         if (locResult > 0) {
           String additionalMove = "";
           switch (locResult) {
             case 1:
-              additionalMove = "m";
+              additionalMove = "M";
               break;
             case 2:
-              additionalMove = "m'";
+              additionalMove = "M'";
               break;
             case 3:
-              additionalMove = "m2";
+              additionalMove = "M2";
               break;
           }
 

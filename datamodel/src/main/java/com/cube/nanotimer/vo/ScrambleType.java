@@ -137,65 +137,65 @@ public abstract class ScrambleType implements Serializable, NameHolder {
   }
 
   protected String[] addMoveToScramble(String[] scramble, String move) {
-    // add to scramble (and try to merge it with the last scramble move, like "R m" becomes "r")
+    // add to scramble (and try to merge it with the last scramble move, like "R M'" becomes "r")
     String lastMove = scramble[scramble.length - 1];
     if (lastMove.equals("R")) {
-      if (move.equals("m")) {
+      if (move.equals("M'")) {
         scramble[scramble.length - 1] = "r";
-      } else if (move.equals("m2")) {
+      } else if (move.equals("M2")) {
         scramble[scramble.length - 1] = "r";
-        scramble = appendToArray(scramble, "m");
+        scramble = appendToArray(scramble, "M'");
       } else {
         scramble = appendToArray(scramble, move);
       }
     } else if (lastMove.equals("R'")) {
-      if (move.equals("m'")) {
+      if (move.equals("M")) {
         scramble[scramble.length - 1] = "r'";
-      } else if (move.equals("m2")) {
+      } else if (move.equals("M2")) {
         scramble[scramble.length - 1] = "r'";
-        scramble = appendToArray(scramble, "m'");
+        scramble = appendToArray(scramble, "M");
       } else {
         scramble = appendToArray(scramble, move);
       }
     } else if (lastMove.equals("R2")) {
-      if (move.equals("m")) {
+      if (move.equals("M'")) {
         scramble[scramble.length - 1] = "R";
         scramble = appendToArray(scramble, "r");
-      } else if (move.equals("m'")) {
+      } else if (move.equals("M")) {
         scramble[scramble.length - 1] = "R'";
         scramble = appendToArray(scramble, "r'");
-      } else if (move.equals("m2")) {
+      } else if (move.equals("M2")) {
         scramble[scramble.length - 1] = "r2";
       } else {
         scramble = appendToArray(scramble, move);
       }
     } else if (lastMove.equals("L")) {
-      if (move.equals("m'")) {
+      if (move.equals("M")) {
         scramble[scramble.length - 1] = "l";
-      } else if (move.equals("m2")) {
+      } else if (move.equals("M2")) {
         scramble[scramble.length - 1] = "l";
-        scramble = appendToArray(scramble, "m'");
+        scramble = appendToArray(scramble, "M");
       } else {
         scramble = appendToArray(scramble, move);
       }
     } else if (lastMove.equals("L'")) {
-      if (move.equals("m")) {
+      if (move.equals("M'")) {
         scramble[scramble.length - 1] = "l'";
-      } else if (move.equals("m2")) {
+      } else if (move.equals("M2")) {
         scramble[scramble.length - 1] = "l'";
-        scramble = appendToArray(scramble, "m");
+        scramble = appendToArray(scramble, "M'");
       } else {
         scramble = appendToArray(scramble, move);
       }
     } else if (lastMove.equals("L2")) {
-      if (move.equals("m")) {
+      if (move.equals("M'")) {
         scramble[scramble.length - 1] = "L'";
         scramble = appendToArray(scramble, "l'");
-      } else if (move.equals("m'")) {
+      } else if (move.equals("M")) {
         scramble[scramble.length - 1] = "L";
         scramble = appendToArray(scramble, "l");
-      } else if (move.equals("m2")) {
-        scramble[scramble.length - 1] = "L2";
+      } else if (move.equals("M2")) {
+        scramble[scramble.length - 1] = "l2";
       } else {
         scramble = appendToArray(scramble, move);
       }
