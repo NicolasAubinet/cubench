@@ -319,7 +319,7 @@ public class LastLayerCaseAlgorithmsTest {
   @Test
   public void readsAnAlgorithmTheTableHasNotGotAsUnusual() {
     String twoSunes = "R U R' U R U2 R' U2 R U R' U R U2 R'";
-    LastLayerCaseAlgorithms.Execution execution = LastLayerCaseAlgorithms.read("oll_45", twoSunes);
+    AlgorithmExecution execution = LastLayerCaseAlgorithms.read("oll_45", twoSunes);
 
     assertTrue(execution.isUnusual());
     assertTrue(execution.isLonger());
@@ -330,7 +330,7 @@ public class LastLayerCaseAlgorithmsTest {
   /** Rare is not long: a spelling few people turn can be the shortest thing on the list. */
   @Test
   public void saysNothingAboutTheLengthOfAShortRareAlgorithm() {
-    LastLayerCaseAlgorithms.Execution execution =
+    AlgorithmExecution execution =
         LastLayerCaseAlgorithms.read("pll_jb", "R U2 R' U' R U2 L' U R' U' L");
 
     assertTrue(execution.isUnusual());
@@ -356,7 +356,7 @@ public class LastLayerCaseAlgorithmsTest {
     String jb = "R U2 R' U' R U2 L' U R' U' L";
     for (char[] grip : AlgorithmForm.grips()) {
       String stood = written(AlgorithmForm.conjugatedBy(AlgorithmForm.of(jb), grip));
-      LastLayerCaseAlgorithms.Execution execution = LastLayerCaseAlgorithms.read("pll_jb", stood);
+      AlgorithmExecution execution = LastLayerCaseAlgorithms.read("pll_jb", stood);
 
       assertEquals(stood, 11, execution.getMoves());
       assertFalse(stood, execution.isLonger());
@@ -381,7 +381,7 @@ public class LastLayerCaseAlgorithmsTest {
    */
   @Test
   public void saysNothingAboutNotationItCannotRead() {
-    LastLayerCaseAlgorithms.Execution execution = LastLayerCaseAlgorithms.read("oll_27", "R U 7");
+    AlgorithmExecution execution = LastLayerCaseAlgorithms.read("oll_27", "R U 7");
 
     assertFalse(execution.isUnusual());
     assertFalse(execution.isLonger());

@@ -1000,6 +1000,12 @@
   <string name="case_algorithm_add">Usar o seu próprio algoritmo</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Isso não resolve este caso. Verifique e tente novamente.</string>
+  <string name="case_title_f2l">Par F2L</string>
+  <string name="case_algorithms_order">Os recomendados primeiro. Toque no que utiliza.</string>
+  <string name="case_algorithm_empty_fl">Precisa do slot frontal esquerdo vazio</string>
+  <string name="case_algorithm_empty_br">Precisa do slot traseiro direito vazio</string>
+  <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
+  <string name="case_algorithms_pair_open">Algoritmos para este par</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Repetições</string>
   <string name="drill_reps_all">Todos</string>

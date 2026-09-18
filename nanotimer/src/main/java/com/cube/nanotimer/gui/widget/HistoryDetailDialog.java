@@ -12,6 +12,8 @@ import android.os.Bundle;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.FragmentManager;
 import android.util.TypedValue;
@@ -31,17 +33,21 @@ import android.widget.TextView;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.CaseExecutions;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.cube.StoredSolveReplay;
+import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.BlindResidual;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.F2LCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LostReading;
 import com.cube.nanotimer.smartcube.step.ParityCheck;
 import com.cube.nanotimer.util.helper.GUIUtils;
@@ -261,6 +267,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     ((TableLayout) v.findViewById(R.id.breakdownTable)).removeAllViews();
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setHighlightedStep(-1);
     breakdownRows.clear();
+    unlistedPairs.clear();
     breakdownSteps = null;
     breakdownMoves = null;
     pickedStep = -1;
@@ -687,8 +694,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
             subStepRow(parts.get(j), partPositions[i][j], partMoveCountOf(solution, i, j));
         table.addView(partRow);
         stepRows.partRows.add(partRow);
-        stepRows.partMoves.add(
-            movesRow(table, R.style.BreakdownSubMoves, dim(partGroupOf(solution, i, j))));
+        TextView partMoves =
+            movesRow(table, R.style.BreakdownSubMoves, dim(partGroupOf(solution, i, j)));
+        stepRows.partMoves.add(partMoves);
+        markUnlistedPair(parts.get(j).getName(), partMovesOf(solution, i, j), partRow, partMoves);
       }
       breakdownRows.add(stepRows);
       makePickable(v, row, i);
@@ -917,6 +926,60 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     });
   }
 
+  /** A bulb on an F2L pair turned with none of its case's algorithms; tapping the pair opens them.
+   * It ends the pair's moves, or the pair's own row while the moves are hidden. */
+  private void markUnlistedPair(String code, String moves, TableRow partRow, TextView partMoves) {
+    final String caseCode = CaseExecutions.caseOfPart(code);
+    if (!CaseAlgorithms.isPair(caseCode) || moves == null || moves.trim().isEmpty()
+        || F2LCaseAlgorithms.matching(CaseAlgorithms.pairCase(caseCode), moves) != null) {
+      return;
+    }
+    TextView name = (TextView) partRow.getChildAt(0);
+    UnlistedPair pair = new UnlistedPair(name, partMoves);
+    unlistedPairs.add(pair);
+    OnClickListener open = new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        DialogUtils.showFragment(getActivity(), CaseAlgorithmsDialog.newInstance(caseCode));
+      }
+    };
+    for (View target : new View[] {partRow, partMoves}) {
+      if (target != null) {
+        target.setOnClickListener(open);
+        ViewCompat.replaceAccessibilityAction(target, AccessibilityActionCompat.ACTION_CLICK,
+            getString(R.string.case_algorithms_pair_open), null);
+      }
+    }
+  }
+
+  /** The two places an unlisted pair's bulb can stand, as they read without it. */
+  private static final class UnlistedPair {
+    private final TextView name;
+    private final CharSequence plainName;
+    private final TextView moves;
+    private final CharSequence plainMoves;
+
+    private UnlistedPair(TextView name, TextView moves) {
+      this.name = name;
+      this.plainName = name.getText();
+      this.moves = moves;
+      this.plainMoves = moves == null ? null : moves.getText();
+    }
+  }
+
+  private final List<UnlistedPair> unlistedPairs = new ArrayList<UnlistedPair>();
+
+  /** Text with the bulb after it, drawn at the size of the text it ends. */
+  private CharSequence withBulb(CharSequence text, TextView view) {
+    Drawable bulb = ContextCompat.getDrawable(getActivity(), R.drawable.ic_case_idea);
+    int size = Math.round(view.getTextSize() * 1.15f);
+    bulb.setBounds(0, 0, size, size);
+    SpannableStringBuilder marked = new SpannableStringBuilder(text).append("  ");
+    marked.setSpan(new ImageSpan(bulb, ImageSpan.ALIGN_BOTTOM), marked.length() - 1,
+        marked.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    return marked;
+  }
+
   /**
    * A part's rows follow its step's fold; the moves rows follow the switch on top of that. A folded
    * step shows the moves of the whole step, an open one leaves them to its parts.
@@ -928,6 +991,13 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       for (int i = 0; i < step.partRows.size(); i++) {
         setVisible(step.partRows.get(i), step.expanded);
         setVisible(step.partMoves.get(i), step.expanded && showMoves);
+      }
+    }
+    for (UnlistedPair pair : unlistedPairs) {
+      boolean onMoves = showMoves && pair.moves != null;
+      pair.name.setText(onMoves ? pair.plainName : withBulb(pair.plainName, pair.name));
+      if (pair.moves != null) {
+        pair.moves.setText(onMoves ? withBulb(pair.plainMoves, pair.moves) : pair.plainMoves);
       }
     }
   }
@@ -1015,6 +1085,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private int moveCountAt(SolveSolution solution, int stepIndex) {
     return stepIndex < solution.getSteps().size()
         ? solution.getSteps().get(stepIndex).getMoveCount() : 0;
+  }
+
+  private String partMovesOf(SolveSolution solution, int stepIndex, int part) {
+    return stepIndex < solution.getSteps().size()
+        ? solution.getSteps().get(stepIndex).getPartMoves(part) : null;
   }
 
   private String partMoveCountOf(SolveSolution solution, int stepIndex, int part) {
@@ -1173,12 +1248,12 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * of its slot are what says <em>which</em> piece it was. Solves recorded before the slot was
    * stored simply keep the label.
    */
-  private CharSequence withSlotColors(String code, String label) {
+  private CharSequence withSlotColors(String code, CharSequence label) {
     char[] faces = Utils.getSmartCubeSlotFaces(code);
     if (faces == null) {
       return label;
     }
-    SpannableStringBuilder text = new SpannableStringBuilder(" " + label);
+    SpannableStringBuilder text = new SpannableStringBuilder(" ").append(label);
     text.setSpan(new ImageSpan(slotSwatch(faces), ImageSpan.ALIGN_BASELINE),
         0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     return text;

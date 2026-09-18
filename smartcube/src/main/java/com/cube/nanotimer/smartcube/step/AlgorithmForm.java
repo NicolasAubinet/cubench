@@ -112,8 +112,8 @@ public final class AlgorithmForm {
    * named {@code U} in that grip, which is not the alignment and not the same thing in each of the
    * 24. Stripping first is what makes the 24 a set the same turning always maps onto itself.
    * ⚠️ It still assumes the layer was up in the frame the moves were written in, which is true of
-   * the table and not of an execution; {@code LastLayerCaseAlgorithms.keyAsDrawn} is the one that
-   * finds the frame first, and this is its fallback.
+   * the table and not of an execution; {@link #keyAsDrawn} is the one that finds the frame first,
+   * and this is its fallback.
    */
   public static String keyFromAnyGrip(String algorithm) {
     List<String> turns;
@@ -132,7 +132,21 @@ public final class AlgorithmForm {
     return smallest;
   }
 
-  private static String written(List<String> turns) {
+  /** The moves from the first of them that turns a layer: what comes before is how it was picked up. */
+  static String withoutOpeningGrip(String moves) {
+    String[] tokens = moves.trim().split("\\s+");
+    int from = 0;
+    while (from < tokens.length && "xyz".indexOf(tokens[from].charAt(0)) >= 0) {
+      from++;
+    }
+    StringBuilder turned = new StringBuilder();
+    for (int i = from; i < tokens.length; i++) {
+      turned.append(turned.length() == 0 ? "" : " ").append(tokens[i]);
+    }
+    return turned.toString();
+  }
+
+  static String written(List<String> turns) {
     StringBuilder written = new StringBuilder();
     for (String turn : turns) {
       written.append(written.length() == 0 ? "" : " ").append(turn);
@@ -146,7 +160,7 @@ public final class AlgorithmForm {
     for (String turn : turns) {
       conjugated.add(rotated[indexOf(turn.charAt(0))] + turn.substring(1));
     }
-    return conjugated;
+    return folded(conjugated); // renaming can put two opposite faces the other way round
   }
 
   /**
@@ -163,6 +177,128 @@ public final class AlgorithmForm {
       to--;
     }
     return new ArrayList<String>(turns.subList(from, to));
+  }
+
+  /**
+   * An algorithm as two are compared: its form with the alignment off both ends, or nothing at all
+   * for notation that cannot be read, which nothing then matches.
+   */
+  static List<String> comparable(String algorithm) {
+    try {
+      return withoutAlignment(of(algorithm));
+    } catch (RuntimeException e) {
+      return new ArrayList<String>();
+    }
+  }
+
+  /**
+   * The first of the forms the moves turn, from whatever grip stands the cube the way the case is
+   * drawn, or -1. The cube as it was held is tried first, and an empty execution matches nothing.
+   *
+   * <p><b>Only a grip the case is drawn in counts.</b> Stood any other way, a face that is not the
+   * last layer ends up named {@code U}, and the alignment coming off both ends then takes a real turn
+   * of the algorithm with it, so two different algorithms can read as one.
+   */
+  static int indexOfTurning(List<List<String>> forms, String moves, Drawn drawn) {
+    List<String> turns;
+    try {
+      turns = of(moves);
+    } catch (RuntimeException e) {
+      return -1; // notation nothing can read is no algorithm of anything
+    }
+    for (char[] grip : grips()) {
+      List<String> stood = conjugatedBy(turns, grip);
+      List<String> executed = withoutAlignment(stood);
+      if (executed.isEmpty()) {
+        continue;
+      }
+      for (int i = 0; i < forms.size(); i++) {
+        // Asked only of a form that matches: building the state is the expensive half.
+        if (executed.equals(forms.get(i)) && drawn.solves(written(stood))) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * The moves as they read from the frame their case is drawn in: named from the first grip that
+   * leaves them solving it, the cube as it was held tried first. Null where no grip does, and for
+   * notation nothing can read.
+   */
+  static List<String> asDrawn(String moves, Drawn drawn) {
+    List<String> turns;
+    try {
+      turns = of(moves);
+    } catch (RuntimeException e) {
+      return null;
+    }
+    for (char[] grip : grips()) {
+      List<String> stood = conjugatedBy(turns, grip);
+      if (drawn.solves(written(stood))) {
+        return stood;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * One string naming what an execution turned, from the frame its case is drawn in and with the
+   * alignment off both ends. Two executions of one algorithm come out equal however the solver was
+   * holding the cube and whichever way they left the layer facing, which is what makes counting how
+   * often each is turned mean anything.
+   *
+   * <p>Every grip that leaves the execution solving the case is tried, and the smallest key answers
+   * for all of them: a last layer case is drawn in four, one per way the layer faces. An execution
+   * that solves the case from no grip at all falls back to {@link #keyFromAnyGrip}, which is the
+   * same question asked without the case. Null for notation nothing can read.
+   */
+  static String keyAsDrawn(String moves, Drawn drawn) {
+    List<String> turns;
+    try {
+      turns = of(moves);
+    } catch (RuntimeException e) {
+      return null; // notation nothing can read groups with nothing, not with everything
+    }
+    String smallest = null;
+    for (char[] grip : grips()) {
+      List<String> stood = conjugatedBy(turns, grip);
+      if (!drawn.solves(written(stood))) {
+        continue;
+      }
+      String key = written(withoutAlignment(stood));
+      if (smallest == null || key.compareTo(smallest) < 0) {
+        smallest = key;
+      }
+    }
+    return smallest == null ? keyFromAnyGrip(moves) : smallest;
+  }
+
+  /**
+   * How many turns an execution takes, counted from the frame its case is drawn in with the
+   * alignment off both ends, or 0 for notation nothing can read.
+   *
+   * <p><b>Which frame is not a detail here.</b> A solver holds the cube where their hands want it,
+   * so the turns that align the layer only look like alignment once the cube is stood up the way
+   * the case is drawn. Counted anywhere else, the same eleven-move algorithm reads as ten or as
+   * thirteen depending on how it was held, and a solver is told their own algorithm is long.
+   */
+  static int lengthAsDrawn(String moves, Drawn drawn) {
+    List<String> stood = asDrawn(moves, drawn);
+    if (stood != null) {
+      return withoutAlignment(stood).size();
+    }
+    try {
+      return withoutAlignment(of(moves)).size(); // nothing it does names the case
+    } catch (RuntimeException e) {
+      return 0;
+    }
+  }
+
+  /** Whether moves, written in some grip, solve the case they are being matched against. */
+  interface Drawn {
+    boolean solves(String moves);
   }
 
   /**

@@ -1911,22 +1911,41 @@ public class ServiceProviderImpl implements ServiceProvider {
 
   @Override
   public List<SolveTime> getSmartcubeSolves(SolveType solveType) {
+    List<SolveTime> solveTimes = readSmartcubeSolves(DB.COL_TIMEHISTORY_SOLVETYPE_ID,
+        String.valueOf(solveType.getId()));
+    for (SolveTime st : solveTimes) {
+      st.setSolveType(solveType);
+    }
+    return solveTimes;
+  }
+
+  @Override
+  public List<SolveTime> getSmartcubeSolves(CubeMethod method) {
+    List<SolveTime> solveTimes = readSmartcubeSolves(DB.COL_TIMEHISTORY_SMARTCUBE_METHOD,
+        toMethodCode(method));
+    for (SolveTime st : solveTimes) {
+      st.setSmartcubeMethod(method);
+    }
+    return solveTimes;
+  }
+
+  /** The replayable solves whose given column holds the value, oldest first. */
+  private List<SolveTime> readSmartcubeSolves(String column, String value) {
     StringBuilder q = new StringBuilder();
     q.append("SELECT ").append(DB.COL_ID);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SCRAMBLE);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
     q.append("  FROM ").append(DB.TABLE_TIMEHISTORY);
-    q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
+    q.append(" WHERE ").append(column).append(" = ?");
     q.append("   AND ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES).append(" IS NOT NULL");
     q.append(" ORDER BY ").append(DB.COL_TIMEHISTORY_TIMESTAMP);
 
     List<SolveTime> solveTimes = new ArrayList<SolveTime>();
-    Cursor cursor = db.rawQuery(q.toString(), getStringArray(solveType.getId()));
+    Cursor cursor = db.rawQuery(q.toString(), new String[] { value });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         SolveTime st = new SolveTime();
         st.setId(cursor.getInt(0));
-        st.setSolveType(solveType);
         st.setScramble(cursor.getString(1));
         st.setSmartcubeMoves(cursor.getString(2));
         solveTimes.add(st);

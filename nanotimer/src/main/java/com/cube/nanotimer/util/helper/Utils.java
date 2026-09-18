@@ -279,6 +279,7 @@ public class Utils {
   /**
    * How the last layer case a step's code carries is shown beside its name ("(case Ub)", "(case 8)"),
    * or null for a step that carries none — including every solve recorded before the cases were read.
+   * An F2L pair's case is never shown: its numbering is not an official one.
    *
    * <p>Said as a case rather than as the bare name a speedcuber writes: "Ub" is plain enough to
    * someone who knows the case, and an OLL's number is a number on its own, which reads as anything.
@@ -344,9 +345,10 @@ public class Utils {
   }
 
   /**
-   * The faces a part shows in its own colours, from its slot code: an F2L pair's two ("pair_rf"), a
-   * first-layer corner's three ("corner_dfr"). Null for any other step, and for the pairs of solves
-   * recorded before the slot was stored.
+   * The faces a part shows in its own colours, from the end of its code: an F2L pair's two
+   * ("pair_27_rf", or "pair_rf" before the case was read), a first-layer corner's three
+   * ("corner_dfr"). Null for any other step, and for the pairs of solves recorded before the slot was
+   * stored.
    */
   public static char[] getSmartCubeSlotFaces(String code) {
     if (code == null) {
@@ -356,7 +358,7 @@ public class Utils {
       if (!code.startsWith(prefix)) {
         continue;
       }
-      String faces = code.substring(prefix.length()).toUpperCase(Locale.US);
+      String faces = code.substring(code.lastIndexOf('_') + 1).toUpperCase(Locale.US);
       return faces.length() >= 2 ? faces.toCharArray() : null;
     }
     return null;

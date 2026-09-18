@@ -1,8 +1,8 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.session.MethodStatistics;
-import com.cube.nanotimer.smartcube.step.AlgorithmForm;
-import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -40,6 +40,9 @@ public final class CaseExecutions {
   /** How many of a case's answers are looked at. Enough to see which is the usual one. */
   private static final int PER_CASE = 5;
 
+  /** A pair placed in a way no case is named for ({@code pair_other_rf}). */
+  private static final String UNNAMED_PAIR = "other";
+
   private CaseExecutions() {
   }
 
@@ -57,12 +60,29 @@ public final class CaseExecutions {
 
   /**
    * @param solves the most recent solves, newest first, whatever they were solved as
-   * @return every distinct execution of each case there is an answer to, most turned first
+   * @return every distinct execution of each last layer case there is an answer to, most turned
+   *     first
    */
   public static Map<String, Spread> spreadFrom(List<SolveTime> solves) {
+    return spreadsOf(solves, null);
+  }
+
+  /**
+   * One case's executions, a last layer case or an F2L pair's ({@code pair_27}), or null where the
+   * solves hold no answer to it. Only that case is read: an F2L pair is four to a solve, and each
+   * of them is stood up 24 ways to be grouped.
+   *
+   * @param solves the most recent solves, newest first, whatever they were solved as
+   */
+  public static Spread spreadFrom(List<SolveTime> solves, String caseCode) {
+    return spreadsOf(solves, caseCode).get(caseCode);
+  }
+
+  /** @param only the one case to read, or null for every last layer case */
+  private static Map<String, Spread> spreadsOf(List<SolveTime> solves, String only) {
     Map<String, List<String>> answers = new LinkedHashMap<String, List<String>>();
     for (SolveTime solve : solves) {
-      collect(solve, answers);
+      collect(solve, answers, only);
     }
     Map<String, Spread> spreads = new LinkedHashMap<String, Spread>();
     for (Map.Entry<String, List<String>> answer : answers.entrySet()) {
@@ -72,14 +92,18 @@ public final class CaseExecutions {
   }
 
   /**
-   * What one case is recorded under, for asking the database which solves it came up in. Two codes:
-   * the step that was handed the case, and the part naming the algorithm that answers it, since a
-   * step taking more than one algorithm records all but the first under the part alone.
+   * What one case is recorded under, for asking the database which solves it came up in. For a
+   * last layer case, two codes: the step that was handed the case, and the part naming the
+   * algorithm that answers it, since a step taking more than one algorithm records all but the
+   * first under the part alone. For an F2L pair's, the pair in every slot it can go into.
    */
   public static List<String> codesFor(String caseCode) {
     List<String> codes = new ArrayList<String>();
     if (caseCode == null) {
       return codes;
+    }
+    if (CaseAlgorithms.isPair(caseCode)) {
+      return CFOPStepDetector.pairCodes(CaseAlgorithms.pairCase(caseCode));
     }
     codes.add(caseCode);
     String part = MethodStatistics.partOfCase(caseCode);
@@ -98,15 +122,11 @@ public final class CaseExecutions {
    * <p><b>Tidied, not replaced.</b> An execution comes back with the turn that squared the case up
    * on the front, whatever the last algorithm left over on the back, and a regrip turned and turned
    * again in the middle, so shown raw it reads as longer and stranger than what the solver did.
-   * {@link LastLayerCaseAlgorithms#tidied} takes those off without touching which pieces moved or
-   * which face any of them is named on, so an algorithm of their own still comes back theirs.
+   * {@link CaseAlgorithms#asAlgorithm} takes those off without touching which pieces moved, so an
+   * algorithm of their own still comes back theirs.
    */
   public static String asAlgorithm(String caseCode, String moves) {
-    if (moves == null) {
-      return null;
-    }
-    LastLayerCaseAlgorithms.Algorithm matched = LastLayerCaseAlgorithms.matching(caseCode, moves);
-    return matched == null ? LastLayerCaseAlgorithms.tidied(caseCode, moves) : matched.getMoves();
+    return CaseAlgorithms.asAlgorithm(caseCode, moves);
   }
 
   /**
@@ -171,7 +191,7 @@ public final class CaseExecutions {
   }
 
   /** One solve's cases, or none of them where it cannot be read again. */
-  private static void collect(SolveTime solve, Map<String, List<String>> answers) {
+  private static void collect(SolveTime solve, Map<String, List<String>> answers, String only) {
     CubeMethod method = SolveTypeMethod.of(solve.getSolveType());
     if (method != CubeMethod.CFOP) {
       return; // only CFOP is solved in these cases: nothing else would be read, it would be guessed
@@ -189,21 +209,36 @@ public final class CaseExecutions {
           && reread.getStoppedStep().intValue() == steps.get(i).getStepIndex()) {
         continue; // the solve stopped inside it, so its moves are half of an answer
       }
-      add(steps.get(i), solution.getSteps().get(i), answers);
+      add(steps.get(i), solution.getSteps().get(i), answers, only);
     }
   }
 
   private static void add(SolveStep step, SolveSolution.Step turned,
-      Map<String, List<String>> answers) {
+      Map<String, List<String>> answers, String only) {
     List<SolveStep> parts = step.getSubSteps();
     if (parts.isEmpty()) {
       // Nothing was recorded under it, which is how a step that took one algorithm is stored.
-      keep(answers, caseOfStep(step.getName()), turned.getPartMoves(0));
+      keep(answers, caseOfStep(step.getName()), turned.getPartMoves(0), only);
       return;
     }
     for (int i = 0; i < parts.size() && i < turned.getGroups().size(); i++) {
-      keep(answers, MethodStatistics.caseOfPart(parts.get(i).getName()), turned.getPartMoves(i));
+      keep(answers, caseOfPart(parts.get(i).getName()), turned.getPartMoves(i), only);
     }
+  }
+
+  /**
+   * The case a part answers, or null: a last layer algorithm's ({@code oll_45}), or the one an F2L
+   * pair was handed ({@code pair_27}), which a pair placed no named way or skipped has not.
+   */
+  public static String caseOfPart(String name) {
+    String lastLayer = MethodStatistics.caseOfPart(name);
+    if (lastLayer != null || !CaseAlgorithms.isPair(name)) {
+      return lastLayer;
+    }
+    String pair = MethodStatistics.caseCodeOf(name); // null for a pair stored with its slot alone
+    String caseName = pair == null ? null : CaseAlgorithms.pairCase(pair);
+    return caseName == null || UNNAMED_PAIR.equals(caseName)
+        || MethodStatistics.SKIP.equals(caseName) ? null : pair;
   }
 
   /** The case a last layer step was handed, or null for any other step. */
@@ -216,8 +251,12 @@ public final class CaseExecutions {
     return "oll".equals(family) || "pll".equals(family) ? name : null;
   }
 
-  private static void keep(Map<String, List<String>> answers, String caseCode, String moves) {
+  private static void keep(Map<String, List<String>> answers, String caseCode, String moves,
+      String only) {
     if (caseCode == null || moves == null || moves.trim().isEmpty()) {
+      return;
+    }
+    if (only == null ? CaseAlgorithms.isPair(caseCode) : !only.equals(caseCode)) {
       return;
     }
     List<String> kept = answers.get(caseCode);
@@ -241,7 +280,7 @@ public final class CaseExecutions {
     for (String moves : answers) {
       // From the frame the case is drawn in, so the same algorithm regripped between solves and
       // left facing another way is one answer rather than two or three.
-      String key = LastLayerCaseAlgorithms.keyAsDrawn(caseCode, moves);
+      String key = CaseAlgorithms.keyAsDrawn(caseCode, moves);
       if (key == null) {
         continue; // notation nothing can read groups with nothing, not with everything
       }

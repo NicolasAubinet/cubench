@@ -2,6 +2,7 @@ package com.cube.nanotimer;
 
 import android.content.Context;
 import com.cube.nanotimer.cube.SmartCubeManager;
+import com.cube.nanotimer.cube.SolveReinterpreter;
 import com.cube.nanotimer.gui.MainScreenActivity;
 import com.cube.nanotimer.gui.widget.ReleaseNotes;
 import com.cube.nanotimer.scrambler.ScramblerService;
@@ -14,8 +15,10 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
+import com.cube.nanotimer.vo.SolveTime;
 
 import java.util.List;
 import java.util.Map;
@@ -70,6 +73,7 @@ public enum App {
       });
 
       refreshCaseKnowledge();
+      rereadCfopSolves();
 
       if (dynamicTranslations == null) {
         dynamicTranslations = new DynamicTranslations();
@@ -103,6 +107,29 @@ public enum App {
       public void onData(Void data) {
         // Only once it has been read back, so a run killed part way through does it again.
         Options.INSTANCE.setCaseKnowledgeRuleVersion(CaseKnowledge.RULE_VERSION);
+      }
+    });
+  }
+
+  /**
+   * Reads the stored CFOP solves again once after the way they are read has changed, so the method
+   * figures, which come from the stored rows, follow. Off the main thread and in one transaction,
+   * and marked done only once written, so a run killed part way through starts over.
+   */
+  private void rereadCfopSolves() {
+    if (Options.INSTANCE.getCfopReadingVersion() == SolveReinterpreter.CFOP_READING_VERSION) {
+      return;
+    }
+    getService().getSmartcubeSolves(CubeMethod.CFOP, new DataCallback<List<SolveTime>>() {
+      @Override
+      public void onData(List<SolveTime> solves) {
+        List<SolveTime> rewritten = SolveReinterpreter.refresh(solves, CubeMethod.CFOP);
+        getService().saveSmartcubeBreakdowns(rewritten, new DataCallback<Void>() {
+          @Override
+          public void onData(Void data) {
+            Options.INSTANCE.setCfopReadingVersion(SolveReinterpreter.CFOP_READING_VERSION);
+          }
+        });
       }
     });
   }

@@ -1042,6 +1042,12 @@
   <string name="case_algorithm_add">Use your own algorithm</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">That does not solve this case. Check it and try again.</string>
+  <string name="case_title_f2l">F2L pair</string>
+  <string name="case_algorithms_order">Recommended first. Tap the one you use.</string>
+  <string name="case_algorithm_empty_fl">Needs the front-left slot empty</string>
+  <string name="case_algorithm_empty_br">Needs the back-right slot empty</string>
+  <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
+  <string name="case_algorithms_pair_open">Algorithms for this pair</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Reps</string>
   <string name="drill_reps_all">All</string>

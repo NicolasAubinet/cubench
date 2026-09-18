@@ -40,7 +40,7 @@ public final class LastLayerCaseAlgorithms {
   public static final int DEFAULT_MIN_SHARE = 20;
 
   /** However flat the vote, a case is not a catalogue. */
-  private static final int MOST_SHOWN = 4;
+  static final int MOST_SHOWN = 4;
 
   /**
    * The share of its case's folded votes an algorithm has to hold before it counts as one people
@@ -55,7 +55,7 @@ public final class LastLayerCaseAlgorithms {
    * again the next one's share. A case the world is split on has no recommendation to make, and
    * printing one on a 36-to-36 split would be inventing an answer out of a rounding difference.
    */
-  private static final float CLEAR_LEAD = 1.5f;
+  static final float CLEAR_LEAD = 1.5f;
 
   /** One row per algorithm: the case it solves, the algorithm, and the votes it holds. */
   private static final String[][] ALGORITHMS = {
@@ -463,10 +463,10 @@ public final class LastLayerCaseAlgorithms {
     for (String[] row : rowsOf(caseCode)) {
       int held = Integer.parseInt(row[2]);
       votes += held;
-      int at = turning(forms, row[1]);
+      int at = AlgorithmForm.indexOfTurning(forms, row[1], drawn(caseCode));
       if (at < 0) {
         folds.add(new Fold(row[1], held));
-        forms.add(formOf(row[1]));
+        forms.add(AlgorithmForm.comparable(row[1]));
       } else {
         folds.get(at).votes += held;
       }
@@ -524,7 +524,7 @@ public final class LastLayerCaseAlgorithms {
       return null;
     }
     List<Algorithm> algorithms = every(caseCode);
-    int at = turning(formsOf(algorithms), executedMoves);
+    int at = AlgorithmForm.indexOfTurning(formsOf(algorithms), executedMoves, drawn(caseCode));
     return at < 0 ? null : algorithms.get(at);
   }
 
@@ -541,57 +541,35 @@ public final class LastLayerCaseAlgorithms {
    * algorithms a case is usually taught with, not every algorithm that exists, so a spelling nobody
    * voted on is one this table has never heard of rather than one nobody should turn.
    */
-  public static Execution read(String caseCode, String executedMoves) {
+  public static AlgorithmExecution read(String caseCode, String executedMoves) {
     // Notation nothing can read is not an unusual algorithm, it is an unknown one, and the whole
     // point of the paragraph above is that this cannot say things about executions it has not read.
     if (caseCode == null || executedMoves == null || AlgorithmForm.key(executedMoves) == null) {
-      return new Execution(false, 0, 0);
+      return new AlgorithmExecution(false, 0, 0);
     }
     List<Algorithm> folded = folded(caseCode);
-    int at = turning(formsOf(folded), executedMoves);
+    int at = AlgorithmForm.indexOfTurning(formsOf(folded), executedMoves, drawn(caseCode));
     boolean unusual = !folded.isEmpty()
         && (at < 0 || (at > 0 && folded.get(at).getShare() < UNUSUAL_SHARE));
-    return new Execution(unusual, lengthOf(caseCode, executedMoves), shortestInUse(folded));
+    return new AlgorithmExecution(unusual,
+        AlgorithmForm.lengthAsDrawn(executedMoves, drawn(caseCode)), shortestInUse(folded));
+  }
+
+  private static AlgorithmForm.Drawn drawn(final String caseCode) {
+    return new AlgorithmForm.Drawn() {
+      @Override
+      public boolean solves(String moves) {
+        return LastLayerCaseAlgorithms.solves(caseCode, moves);
+      }
+    };
   }
 
   private static List<List<String>> formsOf(List<Algorithm> algorithms) {
     List<List<String>> forms = new ArrayList<List<String>>();
     for (Algorithm algorithm : algorithms) {
-      forms.add(formOf(algorithm.getMoves()));
+      forms.add(AlgorithmForm.comparable(algorithm.getMoves()));
     }
     return forms;
-  }
-
-  /** The first of the forms the moves are that algorithm turned, from whatever grip, or -1. */
-  private static int turning(List<List<String>> forms, String moves) {
-    List<String> turns;
-    try {
-      turns = AlgorithmForm.of(moves);
-    } catch (RuntimeException e) {
-      return -1; // notation nothing can read is no algorithm of anything
-    }
-    for (char[] grip : AlgorithmForm.grips()) { // the cube as it was held comes first
-      List<String> executed =
-          AlgorithmForm.withoutAlignment(AlgorithmForm.conjugatedBy(turns, grip));
-      if (executed.isEmpty()) {
-        continue;
-      }
-      for (int i = 0; i < forms.size(); i++) {
-        if (executed.equals(forms.get(i))) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
-
-  /** An algorithm as it is compared, or nothing at all for notation that cannot be read. */
-  private static List<String> formOf(String algorithm) {
-    try {
-      return AlgorithmForm.withoutAlignment(AlgorithmForm.of(algorithm));
-    } catch (RuntimeException e) {
-      return new ArrayList<String>(); // matched by nothing: an empty execution is skipped above
-    }
   }
 
   /**
@@ -600,39 +578,10 @@ public final class LastLayerCaseAlgorithms {
    * made of on both sides of the comparison, so an execution and an algorithm are counted alike.
    *
    * <p>Only for an algorithm out of the table, which is already written the way its case is drawn.
-   * An execution is not, and wants {@link #lengthOf}.
+   * An execution is not, and wants {@link AlgorithmForm#lengthAsDrawn}.
    */
   private static int length(String moves) {
-    return formOf(moves).size();
-  }
-
-  /**
-   * How many turns an execution takes, counted from the frame the case is drawn in.
-   *
-   * <p><b>Which frame is not a detail here.</b> A solver holds the cube where their hands want it,
-   * so their moves come back named from wherever the last layer happened to be, and the turns that
-   * align the layer at each end only look like alignment once the cube is stood up the way the case
-   * is drawn. Counted anywhere else, the same eleven-move algorithm reads as ten or as thirteen
-   * depending on how it was held, and a solver is told their own algorithm is long.
-   *
-   * <p>The frame is found by standing the cube every way and asking which one leaves the execution
-   * solving the case, which is exactly the question {@link #solves} answers. Four of the 24 do, the
-   * four that differ only by which way the layer faces, and alignment comes off all four alike.
-   */
-  private static int lengthOf(String caseCode, String moves) {
-    List<String> turns;
-    try {
-      turns = AlgorithmForm.of(moves);
-    } catch (RuntimeException e) {
-      return 0;
-    }
-    for (char[] grip : AlgorithmForm.grips()) { // the cube as it was held comes first
-      List<String> stood = AlgorithmForm.conjugatedBy(turns, grip);
-      if (solves(caseCode, written(stood))) {
-        return AlgorithmForm.withoutAlignment(stood).size();
-      }
-    }
-    return AlgorithmForm.withoutAlignment(turns).size(); // nothing it does names the case
+    return AlgorithmForm.comparable(moves).size();
   }
 
   /**
@@ -661,25 +610,12 @@ public final class LastLayerCaseAlgorithms {
     }
     String tidy;
     try {
-      tidy = written(AlgorithmForm.withoutAlignment(AlgorithmForm.of(withoutOpeningGrip(moves))));
+      tidy = AlgorithmForm.written(
+          AlgorithmForm.withoutAlignment(AlgorithmForm.of(AlgorithmForm.withoutOpeningGrip(moves))));
     } catch (RuntimeException e) {
       return moves; // notation nothing can read is left the way the solver wrote it
     }
     return solves(caseCode, tidy) ? tidy : moves;
-  }
-
-  /** The moves from the first of them that turns a layer: what comes before is how it was picked up. */
-  private static String withoutOpeningGrip(String moves) {
-    String[] tokens = moves.trim().split("\\s+");
-    int from = 0;
-    while (from < tokens.length && "xyz".indexOf(tokens[from].charAt(0)) >= 0) {
-      from++;
-    }
-    StringBuilder turned = new StringBuilder();
-    for (int i = from; i < tokens.length; i++) {
-      turned.append(turned.length() == 0 ? "" : " ").append(tokens[i]);
-    }
-    return turned.toString();
   }
 
   /**
@@ -701,43 +637,12 @@ public final class LastLayerCaseAlgorithms {
   }
 
   /**
-   * One string naming what an execution turned, from the frame its case is drawn in and with the
-   * alignment off both ends. Two executions of one algorithm come out equal however the solver was
-   * holding the cube and whichever way they left the layer facing, which is what makes counting how
-   * often each is turned mean anything.
-   *
-   * <p>Four of the 24 grips leave the execution solving the case, the four that differ only by
-   * which way the layer faces, and the smallest of those four answers for all of them. An execution
-   * that solves the case from no grip at all falls back to
-   * {@link AlgorithmForm#keyFromAnyGrip}, which is the same question asked without the case.
+   * One string naming what an execution turned, from the frame its case is drawn in: see
+   * {@link AlgorithmForm#keyAsDrawn}. Four of the 24 grips draw a last layer case, the four that
+   * differ only by which way the layer faces.
    */
   public static String keyAsDrawn(String caseCode, String moves) {
-    List<String> turns;
-    try {
-      turns = AlgorithmForm.of(moves);
-    } catch (RuntimeException e) {
-      return null; // notation nothing can read groups with nothing, not with everything
-    }
-    String smallest = null;
-    for (char[] grip : AlgorithmForm.grips()) {
-      List<String> stood = AlgorithmForm.conjugatedBy(turns, grip);
-      if (!solves(caseCode, written(stood))) {
-        continue;
-      }
-      String key = written(AlgorithmForm.withoutAlignment(stood));
-      if (smallest == null || key.compareTo(smallest) < 0) {
-        smallest = key;
-      }
-    }
-    return smallest == null ? AlgorithmForm.keyFromAnyGrip(moves) : smallest;
-  }
-
-  private static String written(List<String> turns) {
-    StringBuilder written = new StringBuilder();
-    for (String turn : turns) {
-      written.append(written.length() == 0 ? "" : " ").append(turn);
-    }
-    return written.toString();
+    return AlgorithmForm.keyAsDrawn(moves, drawn(caseCode));
   }
 
   /** The shortest algorithm people do use, which is what a long execution is measured against. */
@@ -814,40 +719,6 @@ public final class LastLayerCaseAlgorithms {
      */
     public boolean isRecommended() {
       return recommended;
-    }
-  }
-
-  /** How an execution stands against the algorithms its case is usually turned with. */
-  public static final class Execution {
-
-    private final boolean unusual;
-    private final int moves;
-    private final int usualMoves;
-
-    Execution(boolean unusual, int moves, int usualMoves) {
-      this.unusual = unusual;
-      this.moves = moves;
-      this.usualMoves = usualMoves;
-    }
-
-    /** Whether hardly anybody turns this: a rare spelling, or one the table has not got at all. */
-    public boolean isUnusual() {
-      return unusual;
-    }
-
-    /** How many turns it takes. */
-    public int getMoves() {
-      return moves;
-    }
-
-    /** How many the shortest algorithm in use takes, or 0 where there is nothing to compare with. */
-    public int getUsualMoves() {
-      return usualMoves;
-    }
-
-    /** Whether it takes more turns than the shortest algorithm people use: the actionable half. */
-    public boolean isLonger() {
-      return usualMoves > 0 && moves > usualMoves;
     }
   }
 }

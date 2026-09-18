@@ -76,6 +76,35 @@ public class CFOPStepDetectorTest {
   }
 
   @Test
+  public void namesEachPairByTheCaseItWasHandedAndItsSlot() {
+    startFrom(T_PERM, SUNE, "L' U L", "R U R' U'", "F'");
+    play("F", "U R U' R'", "L' U' L");
+
+    List<String> names = new ArrayList<>();
+    for (int slot = 0; slot < detector.subStepCount(CFOPStepDetector.F2L); slot++) {
+      if (detector.getSubStepTimestampMs(CFOPStepDetector.F2L, slot) != null) {
+        names.add(detector.subStepName(CFOPStepDetector.F2L, slot));
+      }
+    }
+    assertTrue(names.toString(), names.contains("pair_1_fr"));
+    assertTrue(names.toString(), names.contains("pair_3_lf")); // the mirror, turned to front right
+  }
+
+  @Test
+  public void datesAPairWhenTheCrossIsBackNotWhenItFirstSitsInItsSlot() {
+    startFrom(T_PERM, SUNE, "R' F R F'", "L");
+    play("L'", "F R' F' R"); // the pair is in after the F, with the cross edge it took out
+
+    Long pair = null;
+    for (int slot = 0; slot < detector.subStepCount(CFOPStepDetector.F2L); slot++) {
+      if (detector.subStepName(CFOPStepDetector.F2L, slot).startsWith("pair_2_")) {
+        pair = detector.getSubStepTimestampMs(CFOPStepDetector.F2L, slot);
+      }
+    }
+    assertEquals(Long.valueOf(500), pair);
+  }
+
+  @Test
   public void reachesTheStepsInOrderThroughASolve() {
     // Built backwards from solved, so the solve is: cross (F), an F2L pair, OLL, PLL.
     startFrom(T_PERM, SUNE, "R U' R'", "F'");

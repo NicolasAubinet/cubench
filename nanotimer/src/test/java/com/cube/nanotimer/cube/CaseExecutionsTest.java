@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -31,6 +32,8 @@ public class CaseExecutionsTest {
   /** Written in quarter turns, since that is what a cube reports and what a stored stream holds. */
   private static final String SUNE = "R U R' U R U U R'";
   private static final String TPERM = "R U R' U' R' F R R U' R' U' R U R' F'";
+  /** F2L case 4 into each slot in turn, front right first. */
+  private static final String PAIRS = "R U R' B U B' L U L' F U F'";
 
   @Test
   public void readsTheMovesTurnedForEachCaseOfASolve() {
@@ -166,7 +169,7 @@ public class CaseExecutionsTest {
   public void flagsAnExecutionHardlyAnybodyTurns() {
     Map<String, String> turned = CaseExecutions.readFrom(solves("R U R' F' U' F R U' R'"));
 
-    LastLayerCaseAlgorithms.Execution execution =
+    AlgorithmExecution execution =
         LastLayerCaseAlgorithms.read("oll_33", turned.get("oll_33"));
     assertTrue(execution.isUnusual());
     assertTrue(execution.isLonger());
@@ -245,6 +248,37 @@ public class CaseExecutionsTest {
 
     assertEquals("U " + TPERM + " U'", shown.getExecuted());
     assertEquals("R U R' U' R' F R2 U' R' U' R U R' F'", shown.getMoves());
+  }
+
+  /**
+   * Four pairs of one case, one into each slot, are one way of turning it four times over, and are
+   * read only when that case is asked for, never among the last layer cases.
+   */
+  @Test
+  public void readsAPairOnlyWhenItsCaseIsAskedFor() {
+    List<SolveTime> solves = solves(PAIRS + " " + SUNE + " " + TPERM);
+
+    CaseExecutions.Spread pair = CaseExecutions.spreadFrom(solves, "pair_4");
+    assertNotNull(pair);
+    assertEquals(4, pair.getTurned().get(0).getTimes());
+    assertEquals("R U R'", CaseExecutions.shownFrom("pair_4", pair).get(0).getMoves());
+    assertFalse(CaseExecutions.readFrom(solves).containsKey("pair_4"));
+  }
+
+  @Test
+  public void asksForAPairInEverySlotItCanGoInto() {
+    List<String> codes = CaseExecutions.codesFor("pair_27");
+
+    assertEquals(24, codes.size());
+    assertTrue(codes.contains("pair_27_rf"));
+  }
+
+  @Test
+  public void readsNoCaseOutOfAPairPlacedNoNamedWayOrSkipped() {
+    assertEquals("pair_27", CaseExecutions.caseOfPart("pair_27_rf"));
+    assertNull(CaseExecutions.caseOfPart("pair_other_rf"));
+    assertNull(CaseExecutions.caseOfPart("pair_skip"));
+    assertNull(CaseExecutions.caseOfPart("pair_rf"));
   }
 
   private static CaseExecutions.Turned turned(String moves, int times) {
