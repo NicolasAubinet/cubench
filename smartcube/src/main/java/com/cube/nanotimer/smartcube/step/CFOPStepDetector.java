@@ -376,6 +376,9 @@ public final class CFOPStepDetector implements StepDetector {
    */
   @Override
   public boolean matchesMethod() {
+    if (everyCrossWasGiven()) {
+      return false;
+    }
     Long cross = getStepTimestampMs(CROSS);
     if (cross == null) {
       return false;
@@ -385,6 +388,18 @@ public final class CFOPStepDetector implements StepDetector {
       return matchesOnFirstPair(cross);
     }
     return cross < f2l || f2l == solveStartMs;
+  }
+
+  /** Whether the scramble left every face holding a cross (it turned the corners alone), so the
+   * cross face and every case name hanging off it would be the tie-break's pick, not the solver's. */
+  private boolean everyCrossWasGiven() {
+    for (int face = 0; face < 6; face++) {
+      Long cross = times[face][CROSS];
+      if (cross == null || cross != solveStartMs) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

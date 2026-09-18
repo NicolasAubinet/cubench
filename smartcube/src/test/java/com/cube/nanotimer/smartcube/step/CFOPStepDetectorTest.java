@@ -20,6 +20,8 @@ public class CFOPStepDetectorTest {
   private static final String ANTI_SUNE = "R U2 R' U' R U' R'";
   private static final String UB_PERM = "R2 U R U R' U' R' U' R' U R'";
   private static final String SEXY = "R U R' U'";
+  private static final String NIKLAS = "R U' L' U R' U' L U"; // a pure corner 3-cycle
+  private static final String NIKLAS_INVERSE = "U' L' U R U' L U R'";
 
   private final CubieCube cube = new CubieCube();
   private final CFOPStepDetector detector = new CFOPStepDetector();
@@ -226,5 +228,30 @@ public class CFOPStepDetectorTest {
     // Solving also completes the D cross, 100ms in. The confirmed face is U, so it must not count.
     assertEquals(Face.U, detector.getCrossFace());
     assertEquals(Long.valueOf(0), detector.getStepTimestampMs(CFOPStepDetector.CROSS));
+  }
+
+  // A corner 3-cycle leaves every edge home, so all six crosses read done at the solve start and
+  // the cross face would be whichever the tie-break reached first.
+  @Test
+  public void readsNoMethodWhenTheScrambleGaveEveryFaceItsCross() {
+    startFrom(NIKLAS);
+    for (int face = 0; face < 6; face++) {
+      assertTrue("edges must all be home for this to be the corners-only case",
+          Cubies.crossDone(cube.toFaceCube(), face));
+    }
+
+    play(NIKLAS_INVERSE);
+    assertFalse(detector.matchesMethod());
+  }
+
+  // The guard must not catch the ordinary partial scramble, which hands over one cross, not six.
+  @Test
+  public void stillReadsAStateHandedOverWithASingleCross() {
+    startFrom(T_PERM);
+    assertTrue(Cubies.crossDone(cube.toFaceCube(), Cubies.FACES.indexOf('D')));
+    assertFalse(Cubies.crossDone(cube.toFaceCube(), Cubies.FACES.indexOf('U')));
+
+    play(T_PERM);
+    assertTrue(detector.matchesMethod());
   }
 }
