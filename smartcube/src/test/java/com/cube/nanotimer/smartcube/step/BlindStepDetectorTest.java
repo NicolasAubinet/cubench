@@ -48,6 +48,11 @@ public class BlindStepDetectorTest {
   /** Corner three-cycles: an A-perm, and the same one set up elsewhere. No edge moves. */
   private static final String CORNER_CYCLE_A = "R' F R' B2 R F' R' B2 R2";
   private static final String CORNER_CYCLE_B = "U2 R' F R' B2 R F' R' B2 R2 U2";
+  private static final String CORNER_CYCLE_U = "U " + CORNER_CYCLE_A + " U'";
+
+  /** UFR twisted one way and UBR the other, nothing else moved. */
+  private static final String TWIST_UFR_UBR = "R' D' R D R' D' R D U R' D' R D R' D' R D "
+      + "R' D' R D R' D' R D U'";
 
   /**
    * A generated solve whose edge algorithms are slice commutators — the shape a 3-style solve is
@@ -191,6 +196,32 @@ public class BlindStepDetectorTest {
     assertEquals("UF-UL-DR", detector.subStepName(1, 0));
     assertEquals("UF-DL-DR", detector.subStepName(1, 1));
     assertEquals("UF-DL-UR", detector.subStepName(1, 2));
+  }
+
+  /**
+   * A corner buffer only inferred from the one piece its cycle put home: the twist and the residual
+   * open on it, as the cycle's name does, rather than in slot order.
+   */
+  @Test
+  public void opensATwistAndTheResidualOnABufferOnlyInferred() {
+    startFrom(CORNER_CYCLE_U, CORNER_CYCLE_A, TWIST_UFR_UBR);
+    play(CORNER_CYCLE_U, TWIST_UFR_UBR);
+
+    assertEquals("UBR-UFL-UBL", detector.subStepName(1, 0));
+    assertEquals("twist:BUR-UFR", detector.subStepName(1, 1));
+    assertEquals("UBR-RUF-BUL", detector.getResidual().getPieces());
+  }
+
+  /**
+   * The one piece this cycle put home went home to the declared buffer, so it was the buffer's own
+   * piece and the slot that sent it was a target, not the buffer. Nothing is inferred from it.
+   */
+  @Test
+  public void infersNoBufferFromAPieceThatCameHomeToTheDeclaredOne() {
+    startFrom(CORNER_CYCLE_A, CORNER_CYCLE_U);
+    play(CORNER_CYCLE_A);
+
+    assertEquals("UFR-UBL-UBR", detector.subStepName(1, 0)); // said as it stands, not from UBR
   }
 
   @Test

@@ -632,6 +632,37 @@ public final class BlindStepDetector implements StepDetector {
       nameWhatWaitedForIt(i - 1, shotFrom);
       settled[type] = shotFrom;
     }
+    boolean[] inferred = new boolean[2];
+    for (int type = EDGES; type <= CORNERS; type++) {
+      if (typeBuffer[type] == BlindTargets.NO_BUFFER && settled[type] != BlindTargets.NO_BUFFER) {
+        typeBuffer[type] = settled[type];
+        inferred[type] = true;
+      }
+    }
+    if (inferred[EDGES] || inferred[CORNERS]) {
+      nameAgainstTheInferredBuffers(inferred);
+    }
+  }
+
+  /**
+   * The flips, twists and parity spelled before a type's buffer was inferred, spelled again so that
+   * they open on the same piece its cycles and the residual now do.
+   */
+  private void nameAgainstTheInferredBuffers(boolean[] inferred) {
+    for (Landing landing : landings) {
+      if (landing.turned && inferred[landing.type]) {
+        landing.buffer = typeBuffer[landing.type];
+        landing.named = targets.turnedName(landing.before,
+            turnedInPlace(landing.before, landing.after), landing.buffer);
+      } else if (landing.type == PARITY_TYPE) {
+        // A type not inferred keeps the piece its pair was already said from.
+        List<Integer> said = landing.named.slots;
+        List<Integer> moved = moved(landing.before, landing.after);
+        landing.named = targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES),
+            inferred[CORNERS] ? typeBuffer[CORNERS] : said.get(0),
+            inferred[EDGES] ? typeBuffer[EDGES] : said.get(SWAPPED_PAIR));
+      }
+    }
   }
 
   /**
@@ -642,6 +673,12 @@ public final class BlindStepDetector implements StepDetector {
    */
   private int senderOfTheOnePieceItLanded(Landing landing) {
     if (landing.gained.size() != 1) {
+      return BlindTargets.NO_BUFFER;
+    }
+    // Home to the declared buffer is a cycle closing on it, sent by its last target, not the buffer.
+    int declaredSlot = declared[Cubies.isEdge(landing.gained.get(0)) ? EDGES : CORNERS];
+    if (declaredSlot != BlindTargets.NO_BUFFER
+        && landing.gained.get(0) == targets.reportedSlotOf(declaredSlot)) {
       return BlindTargets.NO_BUFFER;
     }
     int sender = BlindTargets.NO_BUFFER;

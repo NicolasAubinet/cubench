@@ -287,6 +287,11 @@ final class BlindTargets {
     return Cubies.slotOf(FaceletRotations.apply(reading, Cubies.PIECES[slot][0]));
   }
 
+  /** The slot the cube reports for one the solver names: {@link #heldSlotOf} the other way. */
+  int reportedSlotOf(int heldSlot) {
+    return Cubies.slotOf(FaceletRotations.apply(holding, Cubies.PIECES[heldSlot][0]));
+  }
+
   /** The piece from this facelet round: the sticker shot to first, then the rest as it turns. */
   private String spellFrom(int facelet) {
     return said(FaceletRotations.apply(reading, facelet));
