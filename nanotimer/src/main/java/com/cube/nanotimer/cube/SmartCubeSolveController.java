@@ -178,8 +178,10 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     boolean readable = cubeDrove && SmartCubeManager.INSTANCE.isConnected();
     // The reading is taken whether or not this solve is judged on it: an unjudged practice state
     // still has a last move that can be late, and the window is what waits for it.
+    // The setting is read at the stop, not with the scramble: one changed in between must count.
     settle.onStop(readable ? StopPenalty.of(SmartCubeManager.INSTANCE.getCurrentState())
-        : StopPenalty.none(), endsSolved, System.currentTimeMillis());
+        : StopPenalty.none(), endsSolved && Options.INSTANCE.isSmartCubeAutoPenalty(),
+        System.currentTimeMillis());
     phase = Phase.INACTIVE; // the next setScramble (after a new scramble) re-activates follow
     if (!cubeDrove) {
       method = null;

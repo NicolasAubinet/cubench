@@ -1859,8 +1859,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
-              endsSolved() && Options.INSTANCE.isSmartCubeAutoPenalty(),
-              SolveTypeMethod.of(solveType));
+              endsSolved(), SolveTypeMethod.of(solveType));
           refreshStatePreviewOwner(); // the puzzle it is for is what decides whose gap it is
           renderStatePreview();
         }
