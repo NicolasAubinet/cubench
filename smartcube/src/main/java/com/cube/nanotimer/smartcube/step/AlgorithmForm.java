@@ -147,6 +147,43 @@ public final class AlgorithmForm {
   }
 
   /**
+   * An algorithm as two are compared: its form with the alignment off both ends, or nothing at all
+   * for notation that cannot be read, which nothing then matches.
+   */
+  static List<String> comparable(String algorithm) {
+    try {
+      return withoutAlignment(of(algorithm));
+    } catch (RuntimeException e) {
+      return new ArrayList<String>();
+    }
+  }
+
+  /**
+   * The first of the forms the moves turn, from whatever grip, or -1. The cube as it was held is
+   * tried first, and an empty execution matches nothing.
+   */
+  static int indexOfTurning(List<List<String>> forms, String moves) {
+    List<String> turns;
+    try {
+      turns = of(moves);
+    } catch (RuntimeException e) {
+      return -1; // notation nothing can read is no algorithm of anything
+    }
+    for (char[] grip : grips()) {
+      List<String> executed = withoutAlignment(conjugatedBy(turns, grip));
+      if (executed.isEmpty()) {
+        continue;
+      }
+      for (int i = 0; i < forms.size(); i++) {
+        if (executed.equals(forms.get(i))) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  /**
    * Every way the cube can be stood up, as the faces each letter would then name. Grown from the
    * three rotations rather than listed, which is what makes it all 24 of them and no repeats.
    *

@@ -463,10 +463,10 @@ public final class LastLayerCaseAlgorithms {
     for (String[] row : rowsOf(caseCode)) {
       int held = Integer.parseInt(row[2]);
       votes += held;
-      int at = turning(forms, row[1]);
+      int at = AlgorithmForm.indexOfTurning(forms, row[1]);
       if (at < 0) {
         folds.add(new Fold(row[1], held));
-        forms.add(formOf(row[1]));
+        forms.add(AlgorithmForm.comparable(row[1]));
       } else {
         folds.get(at).votes += held;
       }
@@ -524,7 +524,7 @@ public final class LastLayerCaseAlgorithms {
       return null;
     }
     List<Algorithm> algorithms = every(caseCode);
-    int at = turning(formsOf(algorithms), executedMoves);
+    int at = AlgorithmForm.indexOfTurning(formsOf(algorithms), executedMoves);
     return at < 0 ? null : algorithms.get(at);
   }
 
@@ -548,7 +548,7 @@ public final class LastLayerCaseAlgorithms {
       return new Execution(false, 0, 0);
     }
     List<Algorithm> folded = folded(caseCode);
-    int at = turning(formsOf(folded), executedMoves);
+    int at = AlgorithmForm.indexOfTurning(formsOf(folded), executedMoves);
     boolean unusual = !folded.isEmpty()
         && (at < 0 || (at > 0 && folded.get(at).getShare() < UNUSUAL_SHARE));
     return new Execution(unusual, lengthOf(caseCode, executedMoves), shortestInUse(folded));
@@ -557,41 +557,9 @@ public final class LastLayerCaseAlgorithms {
   private static List<List<String>> formsOf(List<Algorithm> algorithms) {
     List<List<String>> forms = new ArrayList<List<String>>();
     for (Algorithm algorithm : algorithms) {
-      forms.add(formOf(algorithm.getMoves()));
+      forms.add(AlgorithmForm.comparable(algorithm.getMoves()));
     }
     return forms;
-  }
-
-  /** The first of the forms the moves are that algorithm turned, from whatever grip, or -1. */
-  private static int turning(List<List<String>> forms, String moves) {
-    List<String> turns;
-    try {
-      turns = AlgorithmForm.of(moves);
-    } catch (RuntimeException e) {
-      return -1; // notation nothing can read is no algorithm of anything
-    }
-    for (char[] grip : AlgorithmForm.grips()) { // the cube as it was held comes first
-      List<String> executed =
-          AlgorithmForm.withoutAlignment(AlgorithmForm.conjugatedBy(turns, grip));
-      if (executed.isEmpty()) {
-        continue;
-      }
-      for (int i = 0; i < forms.size(); i++) {
-        if (executed.equals(forms.get(i))) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
-
-  /** An algorithm as it is compared, or nothing at all for notation that cannot be read. */
-  private static List<String> formOf(String algorithm) {
-    try {
-      return AlgorithmForm.withoutAlignment(AlgorithmForm.of(algorithm));
-    } catch (RuntimeException e) {
-      return new ArrayList<String>(); // matched by nothing: an empty execution is skipped above
-    }
   }
 
   /**
@@ -603,7 +571,7 @@ public final class LastLayerCaseAlgorithms {
    * An execution is not, and wants {@link #lengthOf}.
    */
   private static int length(String moves) {
-    return formOf(moves).size();
+    return AlgorithmForm.comparable(moves).size();
   }
 
   /**
