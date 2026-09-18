@@ -9,10 +9,9 @@ import java.util.List;
  * a last layer case ({@code oll_21}, {@code pll_jb}), {@link F2LCaseAlgorithms} for an F2L pair's
  * ({@code pair_27}). One set of rules for both, so a screen showing either never has to know which.
  *
- * <p>Where the two differ is how an execution that is none of the listed algorithms is written: a
- * last layer one is tidied but keeps the faces the solver turned, since four grips draw the case
- * equally well, while a pair's is written for front right like the list beside it, since only one
- * grip does.
+ * <p>An execution that is none of the listed algorithms keeps the faces the solver turned either
+ * way. A pair's may need one rotation in front of it, since a pair turned into another slot only
+ * solves the case as drawn, into front right, once the cube is stood that way.
  */
 public final class CaseAlgorithms {
 
@@ -54,16 +53,14 @@ public final class CaseAlgorithms {
     }
     if (isPair(caseCode)) {
       F2LCaseAlgorithms.Algorithm matched = F2LCaseAlgorithms.matching(pairCase(caseCode), moves);
-      return matched == null ? asDrawn(caseCode, moves) : matched.getMoves();
+      if (matched != null) {
+        return matched.getMoves();
+      }
+      String turned = F2LCaseAlgorithms.asTurned(pairCase(caseCode), moves);
+      return turned == null ? moves : turned;
     }
     LastLayerCaseAlgorithms.Algorithm matched = LastLayerCaseAlgorithms.matching(caseCode, moves);
     return matched == null ? LastLayerCaseAlgorithms.tidied(caseCode, moves) : matched.getMoves();
-  }
-
-  /** The moves written for front right, or unchanged where they do not solve the pair's case. */
-  private static String asDrawn(String caseCode, String moves) {
-    String drawn = F2LCaseAlgorithms.asDrawn(pairCase(caseCode), moves);
-    return drawn == null ? moves : drawn;
   }
 
   /** The slot ("fl", "br") that must be empty for the algorithm the moves are, or null for none. */

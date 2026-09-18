@@ -147,12 +147,17 @@ public class F2LCaseAlgorithmsTest {
     assertEquals(1, F2LCaseAlgorithms.shownForCase("3").size());
   }
 
-  /** A pair turned in another slot, with the gyro's rotations in it, written for front right. */
+  /** Into front left: the regrips folded into the faces turned, one rotation stands it in FR. */
   @Test
-  public void writesAnExecutionForFrontRight() {
-    assertEquals("U B U2 B' U' R U' R'",
-        F2LCaseAlgorithms.asDrawn("7", "y' U R U2 R' U' x U y' z U' R'"));
-    assertNull(F2LCaseAlgorithms.asDrawn("7", "R U R'"));
+  public void writesAPairTurnedInAnotherSlotInTheSolversOwnFaces() {
+    assertEquals("y U R U2 R' U' F U' F'",
+        F2LCaseAlgorithms.asTurned("7", "y' U R U2 R' U' x U y' z U' R'"));
+  }
+
+  @Test
+  public void writesAPairTurnedIntoFrontRightWithNoRotation() {
+    assertEquals("U R U2 R' U2 R U' R'", F2LCaseAlgorithms.asTurned("7", "y U R U2 R' U2 R U' R'"));
+    assertNull(F2LCaseAlgorithms.asTurned("7", "R U R'"));
   }
 
   @Test

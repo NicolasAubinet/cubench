@@ -113,6 +113,20 @@ public final class AlgorithmForm {
     return smallest;
   }
 
+  /** The moves from the first of them that turns a layer: what comes before is how it was picked up. */
+  static String withoutOpeningGrip(String moves) {
+    String[] tokens = moves.trim().split("\\s+");
+    int from = 0;
+    while (from < tokens.length && "xyz".indexOf(tokens[from].charAt(0)) >= 0) {
+      from++;
+    }
+    StringBuilder turned = new StringBuilder();
+    for (int i = from; i < tokens.length; i++) {
+      turned.append(turned.length() == 0 ? "" : " ").append(tokens[i]);
+    }
+    return turned.toString();
+  }
+
   static String written(List<String> turns) {
     StringBuilder written = new StringBuilder();
     for (String turn : turns) {

@@ -611,25 +611,11 @@ public final class LastLayerCaseAlgorithms {
     String tidy;
     try {
       tidy = AlgorithmForm.written(
-          AlgorithmForm.withoutAlignment(AlgorithmForm.of(withoutOpeningGrip(moves))));
+          AlgorithmForm.withoutAlignment(AlgorithmForm.of(AlgorithmForm.withoutOpeningGrip(moves))));
     } catch (RuntimeException e) {
       return moves; // notation nothing can read is left the way the solver wrote it
     }
     return solves(caseCode, tidy) ? tidy : moves;
-  }
-
-  /** The moves from the first of them that turns a layer: what comes before is how it was picked up. */
-  private static String withoutOpeningGrip(String moves) {
-    String[] tokens = moves.trim().split("\\s+");
-    int from = 0;
-    while (from < tokens.length && "xyz".indexOf(tokens[from].charAt(0)) >= 0) {
-      from++;
-    }
-    StringBuilder turned = new StringBuilder();
-    for (int i = from; i < tokens.length; i++) {
-      turned.append(turned.length() == 0 ? "" : " ").append(tokens[i]);
-    }
-    return turned.toString();
   }
 
   /**

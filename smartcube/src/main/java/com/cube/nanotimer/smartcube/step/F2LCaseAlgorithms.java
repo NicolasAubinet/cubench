@@ -743,6 +743,10 @@ public final class F2LCaseAlgorithms {
     {"a9a", "y R U2 R' U' L' U' L", "", "0"},
   };
 
+  /** The rotations tried in front of an execution, those keeping the cross down first. */
+  private static final String[] TILTS = {"", "z2", "x", "x'", "z", "z'"};
+  private static final String[] SPINS = {"", "y", "y'", "y2"};
+
   private F2LCaseAlgorithms() {
   }
 
@@ -828,15 +832,35 @@ public final class F2LCaseAlgorithms {
   }
 
   /**
-   * The moves as they read with the pair going into front right and the cross down, which is how
-   * every algorithm here is written, or null where they do not solve the case from any grip.
-   *
-   * <p>Unlike a last layer case, where four grips draw the case and none of them is more right than
-   * the others, exactly one grip stands a pair in front right, so renaming the faces loses nothing.
+   * The moves in the solver's own face letters, from the grip the pair was started in: the opening
+   * rotation off and any regrip after it folded into the faces turned. Where that does not solve the
+   * case as drawn, the one rotation that makes it is put in front, so a pair turned into another
+   * slot reads as the turns the solver made rather than renamed for front right. Null where no
+   * rotation does, and for notation nothing can read.
    */
-  public static String asDrawn(String pairCase, String moves) {
-    List<String> stood = moves == null ? null : AlgorithmForm.asDrawn(moves, drawn(pairCase));
-    return stood == null ? null : AlgorithmForm.written(stood);
+  public static String asTurned(String pairCase, String moves) {
+    if (moves == null) {
+      return null;
+    }
+    String turned;
+    try {
+      turned = AlgorithmForm.written(AlgorithmForm.of(AlgorithmForm.withoutOpeningGrip(moves)));
+    } catch (RuntimeException e) {
+      return null;
+    }
+    if (turned.isEmpty()) {
+      return null;
+    }
+    for (String tilt : TILTS) {
+      for (String spin : SPINS) {
+        String grip = (tilt + " " + spin).trim();
+        String held = grip.isEmpty() ? turned : grip + " " + turned;
+        if (solves(pairCase, held)) {
+          return held;
+        }
+      }
+    }
+    return null;
   }
 
   /** One string naming what an execution turned, the same from whichever slot it was turned in. */
