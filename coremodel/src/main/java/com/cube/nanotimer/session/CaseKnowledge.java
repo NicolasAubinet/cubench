@@ -92,7 +92,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 4;
+  public static final int RULE_VERSION = 5;
 
   /** What one occurrence of a case says about whether the solver knows it. */
   public enum Evidence {

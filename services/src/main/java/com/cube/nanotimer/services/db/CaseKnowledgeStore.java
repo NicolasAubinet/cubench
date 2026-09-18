@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.vo.ScrambleType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -174,6 +175,9 @@ public final class CaseKnowledgeStore {
    * anything, and a case can go a hundred solves between occurrences, so cutting the list short
    * would lose the last thing the solver actually did with the case.
    *
+   * <p>Solves count only from a full scramble: a special scramble's cases are dealt out of their
+   * usual flow, which says less about recognising them and times them off a different start.
+   *
    * <p>A rep that was abandoned or restarted is left out rather than counted against the case: it
    * says the rep was fumbled, and what is being answered here is whether the algorithm is known, not
    * how fluently it runs. A rep the solver asked to be shown counts however it ended, since asking
@@ -194,7 +198,11 @@ public final class CaseKnowledgeStore {
         + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + "  JOIN " + DB.TABLE_TIMEHISTORY + " h ON h." + DB.COL_ID
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "  JOIN " + DB.TABLE_SOLVETYPE + " t ON t." + DB.COL_ID
+        + "     = h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID
         + " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
+        + "   AND COALESCE(t." + DB.COL_SOLVETYPE_SCRAMBLE_TYPE + ", '') IN ('', '"
+        + ScrambleType.DEFAULT_NAME + "')"
         + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " = ?"
         + "   AND h." + DB.COL_TIMEHISTORY_TIME + " > 0"
         + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
