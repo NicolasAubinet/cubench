@@ -2,6 +2,7 @@ package com.cube.nanotimer.smartcube.step;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Locale;
@@ -53,6 +54,15 @@ public class F2LCaseAlgorithmsTest {
   public void matchesAPairTurnedIntoAnotherSlot() {
     assertEquals("R U R'", F2LCaseAlgorithms.matching("4", "F U F'").getMoves()); // front left
     assertEquals("R U R'", F2LCaseAlgorithms.matching("4", "y2 R U R'").getMoves());
+  }
+
+  @Test
+  public void matchesASliceAlgorithmTurnedFromEveryGrip() {
+    for (char[] grip : AlgorithmForm.grips()) {
+      String stood = String.join(" ",
+          AlgorithmForm.conjugatedBy(AlgorithmForm.of("M U r U' r' U' M'"), grip));
+      assertNotNull(stood, F2LCaseAlgorithms.matching("15", stood));
+    }
   }
 
   @Test

@@ -463,7 +463,7 @@ public final class LastLayerCaseAlgorithms {
     for (String[] row : rowsOf(caseCode)) {
       int held = Integer.parseInt(row[2]);
       votes += held;
-      int at = AlgorithmForm.indexOfTurning(forms, row[1]);
+      int at = AlgorithmForm.indexOfTurning(forms, row[1], drawn(caseCode));
       if (at < 0) {
         folds.add(new Fold(row[1], held));
         forms.add(AlgorithmForm.comparable(row[1]));
@@ -524,7 +524,7 @@ public final class LastLayerCaseAlgorithms {
       return null;
     }
     List<Algorithm> algorithms = every(caseCode);
-    int at = AlgorithmForm.indexOfTurning(formsOf(algorithms), executedMoves);
+    int at = AlgorithmForm.indexOfTurning(formsOf(algorithms), executedMoves, drawn(caseCode));
     return at < 0 ? null : algorithms.get(at);
   }
 
@@ -548,10 +548,19 @@ public final class LastLayerCaseAlgorithms {
       return new Execution(false, 0, 0);
     }
     List<Algorithm> folded = folded(caseCode);
-    int at = AlgorithmForm.indexOfTurning(formsOf(folded), executedMoves);
+    int at = AlgorithmForm.indexOfTurning(formsOf(folded), executedMoves, drawn(caseCode));
     boolean unusual = !folded.isEmpty()
         && (at < 0 || (at > 0 && folded.get(at).getShare() < UNUSUAL_SHARE));
     return new Execution(unusual, lengthOf(caseCode, executedMoves), shortestInUse(folded));
+  }
+
+  private static AlgorithmForm.Drawn drawn(final String caseCode) {
+    return new AlgorithmForm.Drawn() {
+      @Override
+      public boolean solves(String moves) {
+        return LastLayerCaseAlgorithms.solves(caseCode, moves);
+      }
+    };
   }
 
   private static List<List<String>> formsOf(List<Algorithm> algorithms) {

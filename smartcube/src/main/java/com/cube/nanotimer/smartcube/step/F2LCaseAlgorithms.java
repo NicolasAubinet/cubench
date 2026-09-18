@@ -818,9 +818,29 @@ public final class F2LCaseAlgorithms {
     for (Algorithm algorithm : algorithms) {
       forms.add(AlgorithmForm.comparable(algorithm.getMoves()));
     }
-    int at = AlgorithmForm.indexOfTurning(forms, executedMoves);
+    int at = indexOfTurning(pairCase, forms, executedMoves);
     return at < 0 ? null : algorithms.get(at);
   }
+
+  static int indexOfTurning(final String pairCase, List<List<String>> forms, String moves) {
+    return AlgorithmForm.indexOfTurning(forms, moves, new AlgorithmForm.Drawn() {
+      @Override
+      public boolean solves(String stood) {
+        return F2LCaseAlgorithms.solves(pairCase, stood);
+      }
+    });
+  }
+
+  /** Whether moves put the pair of the given case into front right, with the cross down. */
+  static boolean solves(String pairCase, String moves) {
+    try {
+      return pairCase.equals(
+          F2LCases.pairCase(Notation.caseState(moves), Cubies.D, Cubies.DFR, Cubies.FR));
+    } catch (RuntimeException e) {
+      return false; // unreadable, or a sequence that does not put the cube back down
+    }
+  }
+
 
   static String[][] rows() {
     return ALGORITHMS.clone();

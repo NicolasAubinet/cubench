@@ -127,7 +127,7 @@ public final class AlgorithmForm {
     for (String turn : turns) {
       conjugated.add(rotated[indexOf(turn.charAt(0))] + turn.substring(1));
     }
-    return conjugated;
+    return folded(conjugated); // renaming can put two opposite faces the other way round
   }
 
   /**
@@ -159,10 +159,14 @@ public final class AlgorithmForm {
   }
 
   /**
-   * The first of the forms the moves turn, from whatever grip, or -1. The cube as it was held is
-   * tried first, and an empty execution matches nothing.
+   * The first of the forms the moves turn, from whatever grip stands the cube the way the case is
+   * drawn, or -1. The cube as it was held is tried first, and an empty execution matches nothing.
+   *
+   * <p><b>Only a grip the case is drawn in counts.</b> Stood any other way, a face that is not the
+   * last layer ends up named {@code U}, and the alignment coming off both ends then takes a real turn
+   * of the algorithm with it, so two different algorithms can read as one.
    */
-  static int indexOfTurning(List<List<String>> forms, String moves) {
+  static int indexOfTurning(List<List<String>> forms, String moves, Drawn drawn) {
     List<String> turns;
     try {
       turns = of(moves);
@@ -170,17 +174,24 @@ public final class AlgorithmForm {
       return -1; // notation nothing can read is no algorithm of anything
     }
     for (char[] grip : grips()) {
-      List<String> executed = withoutAlignment(conjugatedBy(turns, grip));
+      List<String> stood = conjugatedBy(turns, grip);
+      List<String> executed = withoutAlignment(stood);
       if (executed.isEmpty()) {
         continue;
       }
       for (int i = 0; i < forms.size(); i++) {
-        if (executed.equals(forms.get(i))) {
+        // Asked only of a form that matches: building the state is the expensive half.
+        if (executed.equals(forms.get(i)) && drawn.solves(written(stood))) {
           return i;
         }
       }
     }
     return -1;
+  }
+
+  /** Whether moves, written in some grip, solve the case they are being matched against. */
+  interface Drawn {
+    boolean solves(String moves);
   }
 
   /**
