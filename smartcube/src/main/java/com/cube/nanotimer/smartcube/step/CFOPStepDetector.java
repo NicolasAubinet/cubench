@@ -155,7 +155,7 @@ public final class CFOPStepDetector implements StepDetector {
       firstTwoLayers[face] = f2l;
       permutationOnly[face] = oll;
       for (int slot = 0; slot < SLOT_COUNT; slot++) {
-        markSlot(face, slot, slotDone(facelets, face, slot), timestampMs);
+        markSlot(face, slot, cross && slotDone(facelets, face, slot), timestampMs);
       }
 
       markStep(face, CROSS, cross, facelets, timestampMs);

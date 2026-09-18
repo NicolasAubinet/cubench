@@ -89,6 +89,20 @@ public class CFOPStepDetectorTest {
   }
 
   @Test
+  public void datesAPairWhenTheCrossIsBackNotWhenItFirstSitsInItsSlot() {
+    startFrom(T_PERM, SUNE, "R' F R F'", "L");
+    play("L'", "F R' F' R"); // the pair is in after the F, with the cross edge it took out
+
+    Long pair = null;
+    for (int slot = 0; slot < detector.subStepCount(CFOPStepDetector.F2L); slot++) {
+      if (detector.subStepName(CFOPStepDetector.F2L, slot).startsWith("pair_2_")) {
+        pair = detector.getSubStepTimestampMs(CFOPStepDetector.F2L, slot);
+      }
+    }
+    assertEquals(Long.valueOf(500), pair);
+  }
+
+  @Test
   public void reachesTheStepsInOrderThroughASolve() {
     // Built backwards from solved, so the solve is: cross (F), an F2L pair, OLL, PLL.
     startFrom(T_PERM, SUNE, "R U' R'", "F'");
