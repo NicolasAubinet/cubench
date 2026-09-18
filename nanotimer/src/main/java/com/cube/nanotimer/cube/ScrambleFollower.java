@@ -18,7 +18,7 @@ import java.util.Map;
  * done or undone in either direction). When the cube leaves the scramble path the deviating
  * moves are remembered so their reverse can be shown. Pure and unit-testable — no Android or BLE.
  *
- * <p>A slice or wide token is followed as the outer turns the cube reports for it ({@code m} as
+ * <p>A slice or wide token is followed as the outer turns the cube reports for it ({@code M} as
  * {@code R L'}, {@code r} as {@code L}), since the cube measures every turn against its own
  * centres. Progress still counts tokens, which is what the scramble on screen is written in.
  */
@@ -85,7 +85,7 @@ public class ScrambleFollower {
   private static List<List<Step>> parse(String[] scramble) {
     String[] tokens = new String[scramble.length];
     for (int i = 0; i < tokens.length; i++) {
-      // The scramblers write a slice lower case, where standard notation reads a letter as a wide.
+      // Older scrambles, still cached and in the history, write a slice lower case.
       tokens[i] = scramble[i] == null ? "" : scramble[i].trim().replace('m', 'M')
           .replace('e', 'E').replace('s', 'S');
     }

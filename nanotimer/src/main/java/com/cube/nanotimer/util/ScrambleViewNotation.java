@@ -155,7 +155,7 @@ public final class ScrambleViewNotation {
     return joinAndCollapse(scramble);
   }
 
-  /** A Roux scramble writes its slices as m, e and s, which cubing.js rejects, whole alg and all. */
+  /** Older Roux scrambles, still in the history, write slices as m, e and s: cubing.js rejects them. */
   private static String[] withUpperCaseSlices(String[] scramble) {
     String[] moves = new String[scramble.length];
     for (int i = 0; i < scramble.length; i++) {
