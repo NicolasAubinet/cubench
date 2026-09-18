@@ -52,13 +52,32 @@ public final class AlgorithmForm {
    */
   static List<String> of(String algorithm) {
     List<String> turns = new ArrayList<String>();
-    char[] named = FACES.clone(); // which face of the starting frame each letter now names
-    for (String token : algorithm.trim().split("\\s+")) {
-      if (!token.isEmpty()) {
-        named = read(token, named, turns);
-      }
+    for (List<String> tokenTurns : perToken(algorithm.trim().split("\\s+"))) {
+      turns.addAll(tokenTurns);
     }
     return folded(turns);
+  }
+
+  /**
+   * Each token as the outer turns a smart cube reports for it, named from the frame the first token
+   * was turned in: a slice is two opposite faces, a wide one face, a rotation nothing, a blank
+   * nothing. Nothing is folded, so the lists line up one for one with the tokens.
+   *
+   * @param tokens any notation {@link Notation} reads
+   * @throws IllegalArgumentException if a token is not a turn
+   */
+  public static List<List<String>> perToken(String... tokens) {
+    List<List<String>> perToken = new ArrayList<List<String>>(tokens.length);
+    char[] named = FACES.clone(); // which face of the starting frame each letter now names
+    for (String token : tokens) {
+      List<String> turns = new ArrayList<String>(2);
+      String trimmed = token == null ? "" : token.trim();
+      if (!trimmed.isEmpty()) {
+        named = read(trimmed, named, turns);
+      }
+      perToken.add(turns);
+    }
+    return perToken;
   }
 
   /**

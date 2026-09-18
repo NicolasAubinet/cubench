@@ -4,6 +4,7 @@ import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
+import com.cube.nanotimer.smartcube.step.AlgorithmForm;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -16,16 +17,20 @@ import java.util.Map;
  * per-move target states (including the two mid-states of each half turn, so a double can be
  * done or undone in either direction). When the cube leaves the scramble path the deviating
  * moves are remembered so their reverse can be shown. Pure and unit-testable — no Android or BLE.
+ *
+ * <p>A slice or wide token is followed as the outer turns the cube reports for it ({@code m} as
+ * {@code R L'}, {@code r} as {@code L}), since the cube measures every turn against its own
+ * centres. Progress still counts tokens, which is what the scramble on screen is written in.
  */
 public class ScrambleFollower {
 
   private static final class Step {
     final Face face;
-    final int type; // +1 = cw, -1 = ccw, 2 = half turn
+    final int quarters; // clockwise: 1, 2 or 3
 
-    Step(Face face, int type) {
+    Step(Face face, int quarters) {
       this.face = face;
-      this.type = type;
+      this.quarters = quarters;
     }
   }
 
@@ -40,91 +45,105 @@ public class ScrambleFollower {
     }
   }
 
-  private final List<Step> steps = new ArrayList<>();
   private final Map<String, Integer> fullStates = new HashMap<>(); // facelets -> tokens complete
-  private final Map<String, Integer> halfStates = new HashMap<>(); // mid of a half turn -> token index
+  private final Map<String, Integer> partStates = new HashMap<>(); // mid-token -> its index
   private final CubieCube tracked = new CubieCube();
   private final Deque<Deviation> wrongMoves = new ArrayDeque<>(); // newest first: undo order
 
+  private int moveCount;
   private int doneCount;
   private boolean lost;
 
   public ScrambleFollower(String[] scramble) {
+    List<List<Step>> tokens = parse(scramble);
+    if (tokens == null) {
+      throw new IllegalArgumentException("Unsupported scramble: " + String.join(" ", scramble));
+    }
     CubieCube cube = new CubieCube();
     fullStates.put(cube.toFaceCube(), 0);
-    for (String token : scramble) {
-      Step step = parseToken(token);
-      if (step == null) {
-        if (token != null && !token.trim().isEmpty()) { // skipping it would track a different scramble
-          throw new IllegalArgumentException("Unsupported scramble move: " + token);
-        }
-        continue;
+    for (List<Step> turns : tokens) {
+      if (turns.isEmpty()) {
+        continue; // a blank: skipping it tracks the same scramble
       }
-      int index = steps.size();
-      steps.add(step);
-      if (step.type == 2) {
-        cube.applyMove(step.face, false);
-        halfStates.put(cube.toFaceCube(), index);
-        cube.applyMove(step.face, true);
-        cube.applyMove(step.face, true);
-        halfStates.put(cube.toFaceCube(), index);
-        cube.applyMove(step.face, false);
+      putPartStates(cube.toFaceCube(), turns, 0, new int[turns.size()], moveCount);
+      for (Step step : turns) {
+        applyStep(cube, step, step.quarters);
       }
-      applyStep(cube, step);
-      fullStates.put(cube.toFaceCube(), index + 1);
+      fullStates.put(cube.toFaceCube(), ++moveCount);
     }
   }
 
   /**
-   * True when every token is a plain face turn, the only notation the follower can track. Rules out
-   * the slice and wide moves some scramble types append (they also move the centres, which the
-   * facelet targets assume fixed).
+   * True when every token is a turn the cube can report: face turns, and the slices and wides some
+   * scramble types append, read as the outer turns they are made of.
    */
   public static boolean canFollow(String[] scramble) {
-    if (scramble == null) {
-      return false;
+    return scramble != null && parse(scramble) != null;
+  }
+
+  /** Each token's outer turns, or null if any token is not a turn the cube reports. */
+  private static List<List<Step>> parse(String[] scramble) {
+    String[] tokens = new String[scramble.length];
+    for (int i = 0; i < tokens.length; i++) {
+      // The scramblers write a slice lower case, where standard notation reads a letter as a wide.
+      tokens[i] = scramble[i] == null ? "" : scramble[i].trim().replace('m', 'M')
+          .replace('e', 'E').replace('s', 'S');
     }
-    for (String token : scramble) {
-      if (token != null && !token.trim().isEmpty() && parseToken(token) == null) {
-        return false;
+    List<List<String>> perToken;
+    try {
+      perToken = AlgorithmForm.perToken(tokens);
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+    List<List<Step>> parsed = new ArrayList<>();
+    for (int i = 0; i < tokens.length; i++) {
+      if (!tokens[i].isEmpty() && perToken.get(i).isEmpty()) {
+        return null; // a rotation turns nothing the cube can see, so it could never be followed
       }
+      List<Step> turns = new ArrayList<>();
+      for (String turn : perToken.get(i)) {
+        turns.add(parseToken(turn));
+      }
+      parsed.add(turns);
     }
-    return true;
+    return parsed;
   }
 
   private static Step parseToken(String token) {
-    if (token == null || token.trim().isEmpty()) {
-      return null;
-    }
-    token = token.trim();
-    Face face = parseFace(token.substring(0, 1));
-    if (face == null) {
-      return null;
-    }
+    Face face = Face.valueOf(token.substring(0, 1));
     String modifier = token.substring(1);
-    if (modifier.startsWith("'")) {
-      return new Step(face, -1);
-    } else if (modifier.startsWith("2")) {
-      return new Step(face, 2);
-    }
-    return new Step(face, 1);
+    return new Step(face, modifier.startsWith("'") ? 3 : modifier.startsWith("2") ? 2 : 1);
   }
 
-  private static Face parseFace(String letter) {
-    for (Face face : Face.values()) {
-      if (face.name().equals(letter)) {
-        return face;
+  /** Every state part-way through one token, its faces turned in any order (they share an axis). */
+  private void putPartStates(String start, List<Step> turns, int face, int[] quarters, int index) {
+    if (face == turns.size()) {
+      boolean untouched = true;
+      boolean done = true;
+      CubieCube cube = new CubieCube();
+      cube.fromFacelet(start);
+      for (int i = 0; i < turns.size(); i++) {
+        untouched &= quarters[i] == 0;
+        done &= quarters[i] == turns.get(i).quarters;
+        applyStep(cube, turns.get(i), quarters[i]);
+      }
+      if (!untouched && !done) {
+        partStates.put(cube.toFaceCube(), index);
+      }
+      return;
+    }
+    Step step = turns.get(face);
+    for (int turned = 0; turned < 4; turned++) {
+      if (turned == 0 || turned == step.quarters || step.quarters == 2) {
+        quarters[face] = turned;
+        putPartStates(start, turns, face + 1, quarters, index);
       }
     }
-    return null;
   }
 
-  private static void applyStep(CubieCube cube, Step step) {
-    if (step.type == 2) {
+  private static void applyStep(CubieCube cube, Step step, int quarters) {
+    for (int i = 0; i < quarters; i++) {
       cube.applyMove(step.face, false);
-      cube.applyMove(step.face, false);
-    } else {
-      cube.applyMove(step.face, step.type < 0);
     }
   }
 
@@ -149,13 +168,13 @@ public class ScrambleFollower {
     String prevReverse = getReverseMoves();
     boolean prevLost = lost;
     Integer full = fullStates.get(facelets);
-    Integer half = halfStates.get(facelets);
+    Integer part = partStates.get(facelets);
     if (full != null) {
       doneCount = full;
       wrongMoves.clear();
       lost = false;
-    } else if (half != null) {
-      doneCount = half;
+    } else if (part != null) {
+      doneCount = part;
       wrongMoves.clear();
       lost = false;
     } else if (move != null) {
@@ -227,10 +246,10 @@ public class ScrambleFollower {
   }
 
   public int getMoveCount() {
-    return steps.size();
+    return moveCount;
   }
 
   public boolean isComplete() {
-    return doneCount == steps.size() && wrongMoves.isEmpty();
+    return doneCount == moveCount && wrongMoves.isEmpty();
   }
 }

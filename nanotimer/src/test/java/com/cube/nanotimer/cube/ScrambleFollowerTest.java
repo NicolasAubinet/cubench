@@ -220,16 +220,72 @@ public class ScrambleFollowerTest {
   }
 
   @Test
-  public void rejectsScramblesWithSliceOrWideMoves() {
-    // roux_last_10_pieces appends a lowercase slice/wide move: the follower cannot track those.
-    assertFalse(ScrambleFollower.canFollow(new String[] {"R", "U", "m'"}));
-    assertFalse(ScrambleFollower.canFollow(new String[] {"R", "U", "r2"}));
+  public void acceptsSlicesAndWidesButNotRotations() {
+    assertTrue(ScrambleFollower.canFollow(new String[] {"R", "U", "m'"}));
+    assertTrue(ScrambleFollower.canFollow(new String[] {"R", "U", "r2"}));
+    assertTrue(ScrambleFollower.canFollow(new String[] {"F", "e'", "s2", "u", "f'"})); // turned layer
+    assertFalse(ScrambleFollower.canFollow(new String[] {"R", "U", "y"}));
     assertFalse(ScrambleFollower.canFollow(null));
     assertTrue(ScrambleFollower.canFollow(new String[] {"R", "", "U2"})); // blanks are harmless
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void refusesToBuildFromAnUnsupportedMove() {
-    new ScrambleFollower(new String[] {"R", "m", "U"});
+    new ScrambleFollower(new String[] {"R", "Q", "U"});
+  }
+
+  /** The cube reports m as R and L', in whichever order the hand turned them. */
+  @Test
+  public void followsASliceAsItsTwoOuterTurnsInEitherOrder() {
+    for (boolean rFirst : new boolean[] {true, false}) {
+      ScrambleFollower follower = new ScrambleFollower(new String[] {"U", "m"});
+      CubieCube mirror = new CubieCube();
+      turn(follower, mirror, Face.U, false);
+      assertEquals(1, follower.getDoneCount());
+      turn(follower, mirror, rFirst ? Face.R : Face.L, !rFirst);
+      assertFalse("half a slice is not a wrong move", follower.isWrong());
+      assertEquals(1, follower.getDoneCount());
+      turn(follower, mirror, rFirst ? Face.L : Face.R, rFirst);
+      assertEquals(2, follower.getDoneCount());
+      assertTrue(follower.isComplete());
+    }
+  }
+
+  @Test
+  public void followsASliceHalfTurnAnyWayRound() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"U", "m2"});
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.U, false);
+    turn(follower, mirror, Face.L, true);
+    turn(follower, mirror, Face.R, false);
+    turn(follower, mirror, Face.L, true);
+    assertFalse(follower.isWrong());
+    assertEquals(1, follower.getDoneCount());
+    turn(follower, mirror, Face.R, false);
+    assertTrue(follower.isComplete());
+    assertEquals(2, follower.getMoveCount());
+  }
+
+  /** A wide is one outer turn, the face opposite the one it is named after. */
+  @Test
+  public void followsAWideAsTheOppositeFace() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"F", "r'", "m"});
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.F, false);
+    turn(follower, mirror, Face.L, true);
+    assertEquals(2, follower.getDoneCount());
+    turn(follower, mirror, Face.R, false);
+    turn(follower, mirror, Face.L, true);
+    assertTrue(follower.isComplete());
+  }
+
+  @Test
+  public void aWrongFaceDuringASliceIsStillWrong() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"U", "m"});
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.U, false);
+    turn(follower, mirror, Face.R, true); // m wants R, not R'
+    assertTrue(follower.isWrong());
+    assertEquals("R", follower.getReverseMoves());
   }
 }

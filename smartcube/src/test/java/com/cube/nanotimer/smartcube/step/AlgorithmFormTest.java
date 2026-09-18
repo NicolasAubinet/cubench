@@ -69,6 +69,48 @@ public class AlgorithmFormTest {
   }
 
   @Test
+  public void perTokenLinesUpWithTheTokens() {
+    assertEquals(Arrays.asList(Arrays.asList("R"), new ArrayList<String>(), Arrays.asList("R", "L'"),
+        Arrays.asList("B")), AlgorithmForm.perToken("R", "", "M", "U"));
+    assertEquals(Arrays.asList(Arrays.asList("L"), Arrays.asList("F'")),
+        AlgorithmForm.perToken("r", "U'")); // r carries x, which stands F where U was
+  }
+
+  /** Checked against the turns themselves: the cube a scramble leaves, stood back on its centres. */
+  @Test
+  public void perTokenIsWhatTheCubeEndsOn() {
+    String[] scrambles = {"R U M", "U R' M'", "F r M", "U r' M'", "L r2", "D l", "B l' M",
+        "R2 R r", "L2 L l", "M U r' F", "E R S2 b"};
+    for (String scramble : scrambles) {
+      StringBuilder turns = new StringBuilder();
+      for (List<String> tokenTurns : AlgorithmForm.perToken(scramble.split(" "))) {
+        for (String turn : tokenTurns) {
+          turns.append(' ').append(turn);
+        }
+      }
+      assertEquals(scramble, Notation.apply(CubeState.SOLVED_FACELETS, turns.toString()),
+          standing(Notation.apply(CubeState.SOLVED_FACELETS, scramble)));
+    }
+  }
+
+  private static String standing(String facelets) {
+    for (int rotation = 0; rotation < FaceletRotations.COUNT; rotation++) {
+      char[] turned = new char[facelets.length()];
+      for (int facelet = 0; facelet < turned.length; facelet++) {
+        turned[FaceletRotations.apply(rotation, facelet)] = facelets.charAt(facelet);
+      }
+      boolean home = true;
+      for (int face = 0; face < 6; face++) {
+        home &= turned[face * 9 + 4] == CubeState.SOLVED_FACELETS.charAt(face * 9 + 4);
+      }
+      if (home) {
+        return new String(turned);
+      }
+    }
+    throw new IllegalStateException(facelets);
+  }
+
+  @Test
   public void aRotationIsNotWrittenDownButTheTurnsAfterItAreItsOwn() {
     assertEquals(new ArrayList<String>(), AlgorithmForm.of("y"));
     assertEquals(Arrays.asList("B"), AlgorithmForm.of("y R")); // y brings the back face to the right
