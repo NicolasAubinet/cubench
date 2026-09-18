@@ -82,6 +82,22 @@ public abstract class ScrambleType implements Serializable, NameHolder {
     return false;
   }
 
+  /**
+   * Whether the solve is over only once the whole cube is solved, which is what makes being stopped
+   * on an unsolved cube worth a penalty.
+   *
+   * <p>True of every scramble that leaves a piece set which <em>is</em> the end of the solve: a last
+   * layer, a PLL, the corners or the edges alone, the last of a Roux solve. False of the ones that
+   * leave an intermediate block, where stopping with the rest of the cube scrambled is the point of
+   * the drill rather than a mistake.
+   *
+   * <p>Not the same split as {@link #hasLastLayer()}, which cuts across this one in both directions:
+   * F2L leaves a last layer and does not end solved, corners-only ends solved and leaves none.
+   */
+  public boolean endsSolved() {
+    return true;
+  }
+
   protected boolean mustHaveParity() {
     return false;
   }

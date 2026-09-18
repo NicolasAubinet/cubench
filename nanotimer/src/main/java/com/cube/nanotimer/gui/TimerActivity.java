@@ -930,6 +930,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     return scrambleType == null || scrambleType.isDefault();
   }
 
+  /** Whether this solve type's solves are meant to finish on a solved cube. */
+  private boolean endsSolved() {
+    ScrambleType scrambleType = solveType.getScrambleType();
+    return scrambleType == null || scrambleType.endsSolved();
+  }
+
   @Override
   @SuppressLint("RestrictedApi")
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -1451,12 +1457,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   /**
    * What the cube's reading of the stop costs the solve, or nothing where it does not apply.
    *
-   * <p>Only a full scramble is judged. The other scramble types are practice states, and half of
-   * them are done with the cube still unsolved: a cross or an F2L drilled to its end would be
-   * called a DNF every time, by a rule written for solves that are meant to finish.
+   * <p>Only a solve meant to end solved is judged. The scramble types that leave an intermediate
+   * block are drilled to a stop with the rest of the cube scrambled, so they would be called a DNF
+   * every time by a rule written for solves that are meant to finish (see
+   * {@link ScrambleType#endsSolved()}).
    */
   private StopPenalty autoPenalty() {
-    if (!Options.INSTANCE.isSmartCubeAutoPenalty() || !scramblesTheWholeCube()) {
+    if (!Options.INSTANCE.isSmartCubeAutoPenalty() || !endsSolved()) {
       return StopPenalty.none();
     }
     return solveController.getStopPenalty();
@@ -1852,7 +1859,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
-              scramblesTheWholeCube(), SolveTypeMethod.of(solveType));
+              endsSolved(), SolveTypeMethod.of(solveType));
           refreshStatePreviewOwner(); // the puzzle it is for is what decides whose gap it is
           renderStatePreview();
         }

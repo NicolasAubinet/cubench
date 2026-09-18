@@ -15,6 +15,12 @@ public class ScrambleTypes {
         return true;
       }
 
+      // an F2L drill is meant to stop with the last layer still scrambled
+      @Override
+      public boolean endsSolved() {
+        return false;
+      }
+
       @Override
       protected byte[] getFixedEdgePermutationIndices() {
         return new byte[] { 8, 9, 10, 11 };
@@ -103,6 +109,12 @@ public class ScrambleTypes {
       @Override
       public boolean hasLastLayer() {
         return true;
+      }
+
+      // the same case as F2L: the block is the drill, CMLL and LSE are left untouched
+      @Override
+      public boolean endsSolved() {
+        return false;
       }
 
       // the first block stays solved: the DBL and DFL corners, and the BL, FL and DL edges
