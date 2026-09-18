@@ -46,6 +46,25 @@ public final class CubeStickering {
     return mask(edges, all(CORNERS, false), all(CENTERS, true));
   }
 
+  /**
+   * An F2L pair's case: the cross, the centres and the one pair going in, everything else grey, so
+   * the other slots say nothing the case does not.
+   *
+   * @param crossEdges the cross's four edges, as {@link #crossAndCentres} takes them
+   * @param corner the pair's corner, by the slot it belongs in, in the same numbering
+   * @param edge the pair's edge, likewise
+   */
+  public static String crossAndPair(int[] crossEdges, int corner, int edge) {
+    boolean[] edges = new boolean[EDGES];
+    for (int cross : crossEdges) {
+      edges[CubePatternFormat.playerEdge(cross)] = true;
+    }
+    edges[CubePatternFormat.playerEdge(edge)] = true;
+    boolean[] corners = new boolean[CORNERS];
+    corners[CubePatternFormat.playerCorner(corner)] = true;
+    return mask(edges, corners, all(CENTERS, true));
+  }
+
   private static boolean[] all(int count, boolean shown) {
     boolean[] pieces = new boolean[count];
     for (int i = 0; i < count; i++) {

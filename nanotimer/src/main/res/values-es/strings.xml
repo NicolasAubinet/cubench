@@ -994,6 +994,12 @@
   <string name="case_algorithm_add">Usar tu propio algoritmo</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Eso no resuelve este caso. Compruébalo e inténtalo de nuevo.</string>
+  <string name="case_title_f2l">Par F2L</string>
+  <string name="case_algorithms_order">Los recomendados primero. Toca el que uses.</string>
+  <string name="case_algorithm_empty_fl">Necesita el slot frontal izquierdo vacío</string>
+  <string name="case_algorithm_empty_br">Necesita el slot trasero derecho vacío</string>
+  <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
+  <string name="case_algorithms_pair_open">Algoritmos para este par</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Repeticiones</string>
   <string name="drill_reps_all">Todos</string>

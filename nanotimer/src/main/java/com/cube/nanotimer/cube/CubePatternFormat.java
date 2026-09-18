@@ -38,6 +38,11 @@ public final class CubePatternFormat {
     return EDGES[slot];
   }
 
+  /** The player's number for one of our corner slots, the same way round as {@link #playerEdge}. */
+  public static int playerCorner(int slot) {
+    return CORNERS[slot];
+  }
+
   /**
    * @param facelets the 54 sticker colours, faces in URFDLB order
    * @return the state as a KTransformation's data, or null where the facelets are not a cube

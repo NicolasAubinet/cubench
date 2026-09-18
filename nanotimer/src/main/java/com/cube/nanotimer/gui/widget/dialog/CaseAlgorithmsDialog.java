@@ -9,6 +9,7 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -19,12 +20,17 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CaseExecutions;
+import com.cube.nanotimer.cube.CubePatternFormat;
+import com.cube.nanotimer.cube.CubeStickering;
+import com.cube.nanotimer.cube.VirtualCube;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
-import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
-import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms.Algorithm;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms.Listed;
+import com.cube.nanotimer.smartcube.step.F2LCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -35,8 +41,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One last-layer case at a size worth looking at, with the algorithms it is solved with, and the
- * one this user solves it with marked.
+ * One case at a size worth looking at, with the algorithms it is solved with, and the one this user
+ * solves it with marked: a last layer case, or the case an F2L pair was handed.
+ *
+ * <p><b>An F2L pair's case is never named.</b> Its numbering is one website's rather than an
+ * official one, so the dialog is titled for the pair and the case is shown on the 3D cube instead,
+ * held cross down with only the cross and the pair in colour.
  *
  * <p>The list is in most-used order and says so once, at the bottom. Only a case whose top algorithm
  * is clearly ahead is given a recommendation: on a case the world is split down the middle, calling
@@ -88,6 +98,20 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   private static final String ARG_CASE = "case";
 
+  /** The cube's corner view, the drills' own: the top face and two sides, front a little ahead. */
+  private static final double VIEW_LATITUDE = 26;
+  private static final double VIEW_LONGITUDE = 30;
+  /** The scramble dialog's distance, measured for a well of about this size. */
+  private static final double CAMERA_DISTANCE = 5.2;
+
+  /**
+   * Where the case is drawn from: the cross on U, the pair going into up-front-left, which a z2
+   * turns into the cross down and the slot in front right. In the cube's own slot numbering.
+   */
+  private static final int[] CROSS_UP_EDGES = {0, 1, 2, 3};
+  private static final int CROSS_UP_PAIR_CORNER = 1;
+  private static final int CROSS_UP_PAIR_EDGE = 9;
+
   /**
    * How many of the case's own solves are read for the moves. Each one is replayed, so this is the
    * cost of opening the dialog, and it is deep enough to see which execution is the usual one.
@@ -102,6 +126,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private LinearLayout rows;
   private LinearLayout yours;
   private View yoursLabel;
+  private VirtualCube cube;
 
   public static CaseAlgorithmsDialog newInstance(String caseCode) {
     CaseAlgorithmsDialog frag = new CaseAlgorithmsDialog();
@@ -117,14 +142,22 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     chosen = Options.INSTANCE.getCaseAlgorithm(caseCode);
     own = Options.INSTANCE.getOwnCaseAlgorithm(caseCode);
     View view = LayoutInflater.from(getActivity()).inflate(R.layout.case_algorithms_dialog, null);
-
-    ((LastLayerCaseView) view.findViewById(R.id.vCaseChart))
-        .setDiagram(LastLayerDiagram.forCase(caseCode));
+    boolean pair = CaseAlgorithms.isPair(caseCode);
 
     TextView shape = view.findViewById(R.id.tvCaseShape);
-    String shapeName = LastLayerCaseNames.shape(caseCode);
-    shape.setText(shapeName == null ? "" : shapeName);
-    shape.setVisibility(shapeName == null ? View.GONE : View.VISIBLE);
+    if (pair) {
+      view.findViewById(R.id.vCaseChart).setVisibility(View.GONE);
+      shape.setVisibility(View.GONE);
+      view.findViewById(R.id.flCaseCube).setVisibility(View.VISIBLE);
+      showPairCase((WebView) view.findViewById(R.id.wvCaseCube));
+      ((TextView) view.findViewById(R.id.tvCaseSource)).setText(R.string.case_algorithms_order);
+    } else {
+      ((LastLayerCaseView) view.findViewById(R.id.vCaseChart))
+          .setDiagram(LastLayerDiagram.forCase(caseCode));
+      String shapeName = LastLayerCaseNames.shape(caseCode);
+      shape.setText(shapeName == null ? "" : shapeName);
+      shape.setVisibility(shapeName == null ? View.GONE : View.VISIBLE);
+    }
 
     rows = view.findViewById(R.id.llCaseAlgorithms);
     yours = view.findViewById(R.id.llCaseYours);
@@ -139,11 +172,57 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     readExecution();
 
     return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
-        .setTitle(getString(caseCode.startsWith("oll_") ? R.string.case_title_oll
-            : R.string.case_title_pll, LastLayerCaseNames.shortName(caseCode)))
+        .setTitle(pair ? getString(R.string.case_title_f2l)
+            : getString(caseCode.startsWith("oll_") ? R.string.case_title_oll
+                : R.string.case_title_pll, LastLayerCaseNames.shortName(caseCode)))
         .setView(view)
         .setPositiveButton(R.string.close, null)
         .create();
+  }
+
+  /**
+   * The case on the 3D cube, standing still: a picture of the case, not a mirror of the cube in the
+   * user's hands. The player's own drag still turns it round.
+   */
+  private void showPairCase(WebView webView) {
+    String facelets = F2LCaseAlgorithms.crossUpFacelets(CaseAlgorithms.pairCase(caseCode));
+    if (facelets == null) {
+      return;
+    }
+    cube = new VirtualCube(webView, null, () -> { });
+    cube.setGyroFollowing(false);
+    cube.setHold(CubeRotation.byNotation("z2").quaternion());
+    cube.setView(VIEW_LATITUDE, VIEW_LONGITUDE);
+    cube.setCameraDistance(CAMERA_DISTANCE);
+    cube.setNudge(0);
+    cube.setState(CubePatternFormat.format(facelets));
+    cube.setStickering(CubeStickering.crossAndPair(CROSS_UP_EDGES, CROSS_UP_PAIR_CORNER,
+        CROSS_UP_PAIR_EDGE));
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    if (cube != null) {
+      cube.onResume();
+    }
+  }
+
+  @Override
+  public void onPause() {
+    if (cube != null) {
+      cube.onPause();
+    }
+    super.onPause();
+  }
+
+  @Override
+  public void onDestroyView() {
+    if (cube != null) {
+      cube.destroy(); // a WebGL context outlives the dialog unless it is told not to
+      cube = null;
+    }
+    super.onDestroyView();
   }
 
   /**
@@ -156,7 +235,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(List<SolveTime> solves) {
-            final List<Turned> read = read(CaseExecutions.spreadFrom(solves).get(caseCode));
+            final List<Turned> read = read(CaseExecutions.spreadFrom(solves, caseCode));
             Activity activity = getActivity();
             if (activity == null) {
               return;
@@ -183,7 +262,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     List<Turned> read = new ArrayList<Turned>();
     for (CaseExecutions.Shown one : CaseExecutions.shownFrom(caseCode, spread)) {
       read.add(new Turned(one.getMoves(),
-          LastLayerCaseAlgorithms.read(caseCode, one.getExecuted()), one.getTimes(), one.getOf()));
+          CaseAlgorithms.read(caseCode, one.getExecuted()), one.getTimes(), one.getOf()));
     }
     return read;
   }
@@ -196,21 +275,23 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private void refresh() {
     rows.removeAllViews();
     yours.removeAllViews();
-    List<Algorithm> listed = LastLayerCaseAlgorithms.foldedForCase(caseCode);
+    List<Listed> listed = CaseAlgorithms.shown(caseCode);
     List<String> shown = new ArrayList<String>();
     for (int i = 0; i < listed.size(); i++) {
-      Algorithm algorithm = listed.get(i);
-      rows.addView(row(algorithm.getMoves(), algorithm.isRecommended(), i == 0));
+      Listed algorithm = listed.get(i);
+      rows.addView(row(algorithm.getMoves(), algorithm.isRecommended(), i == 0,
+          algorithm.getEmptySlot()));
       shown.add(algorithm.getMoves());
     }
     if (own != null && !listedAlready(shown, own)) {
       shown.add(own);
-      yours.addView(row(own, false, false));
+      yours.addView(row(own, false, false, CaseAlgorithms.emptySlotOf(caseCode, own)));
     }
     for (Turned one : turned) {
       if (!listedAlready(shown, one.moves)) {
         shown.add(one.moves);
-        yours.addView(row(one.moves, false, false));
+        yours.addView(
+            row(one.moves, false, false, CaseAlgorithms.emptySlotOf(caseCode, one.moves)));
       }
     }
     boolean any = yours.getChildCount() > 0;
@@ -225,7 +306,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    */
   private boolean listedAlready(List<String> shown, String moves) {
     for (String already : shown) {
-      if (LastLayerCaseAlgorithms.sameTurning(caseCode, already, moves)) {
+      if (CaseAlgorithms.sameTurning(caseCode, already, moves)) {
         return true;
       }
     }
@@ -243,7 +324,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    */
   private Turned turnedFor(String moves) {
     for (Turned one : turned) {
-      if (LastLayerCaseAlgorithms.sameTurning(caseCode, one.moves, moves)) {
+      if (CaseAlgorithms.sameTurning(caseCode, one.moves, moves)) {
         return one;
       }
     }
@@ -254,9 +335,11 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    * One algorithm. The first is set a size larger and heavier: it is first because it is the one
    * most people use, and a column of identical rows says nothing about an order that is the whole
    * content of the list.
+   *
+   * @param emptySlot the slot the algorithm needs empty ("fl", "br"), or null
    */
-  private View row(final String moves, boolean recommended, boolean top) {
-    boolean declared = LastLayerCaseAlgorithms.sameTurning(caseCode, moves, chosen);
+  private View row(final String moves, boolean recommended, boolean top, String emptySlot) {
+    boolean declared = CaseAlgorithms.sameTurning(caseCode, moves, chosen);
     Turned one = turnedFor(moves);
     boolean mine = declared || one != null; // theirs either way, said or done
 
@@ -336,6 +419,10 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       row.addView(note(getString(R.string.case_algorithm_longer, one.execution.getMoves(),
           one.execution.getUsualMoves())));
     }
+    if (emptySlot != null) {
+      row.addView(note(getString("fl".equals(emptySlot) ? R.string.case_algorithm_empty_fl
+          : R.string.case_algorithm_empty_br)));
+    }
     return row;
   }
 
@@ -382,7 +469,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   /** Tapping the one already kept lets it go, so a wrong tap is undone the same way it was made. */
   private void choose(String moves) {
-    chosen = LastLayerCaseAlgorithms.sameTurning(caseCode, moves, chosen) ? null : moves;
+    chosen = CaseAlgorithms.sameTurning(caseCode, moves, chosen) ? null : moves;
     Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
     refresh();
   }
@@ -396,7 +483,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     final EditText field = new EditText(getActivity());
     field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
     field.setSingleLine();
-    field.setHint(R.string.case_algorithm_hint);
+    field.setHint(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithm_hint_f2l
+        : R.string.case_algorithm_hint);
     field.setText(own == null ? "" : own);
     field.setTextColor(ContextCompat.getColor(getActivity(), R.color.white));
     int pad = dp(20);
@@ -416,7 +504,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       @Override
       public void onClick(View v) {
         String typed = field.getText().toString().trim().replaceAll("\\s+", " ");
-        if (!LastLayerCaseAlgorithms.solves(caseCode, typed)) {
+        if (!CaseAlgorithms.solves(caseCode, typed)) {
           DialogUtils.showInfoMessage(getActivity(), R.string.case_algorithm_wrong);
           return;
         }
@@ -434,8 +522,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private void keepOwn(String typed) {
     chosen = typed;
     Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
-    for (Algorithm algorithm : LastLayerCaseAlgorithms.foldedForCase(caseCode)) {
-      if (LastLayerCaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), typed)) {
+    for (Listed algorithm : CaseAlgorithms.shown(caseCode)) {
+      if (CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), typed)) {
         refresh();
         return;
       }

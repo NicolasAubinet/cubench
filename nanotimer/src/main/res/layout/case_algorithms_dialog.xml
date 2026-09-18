@@ -14,6 +14,23 @@
      android:layout_height="160dp"
      android:layout_gravity="center_horizontal"/>
 
+  <!-- An F2L pair's case, drawn on the 3D cube with only the cross and the pair in colour. A GONE
+       WebView is never laid out, so the dialog only shows this well for a pair. -->
+  <FrameLayout
+     android:id="@+id/flCaseCube"
+     android:layout_width="196dp"
+     android:layout_height="196dp"
+     android:layout_gravity="center_horizontal"
+     android:background="@drawable/cube_stage"
+     android:visibility="gone">
+
+    <WebView
+       android:id="@+id/wvCaseCube"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:background="@android:color/transparent"/>
+  </FrameLayout>
+
   <TextView
      android:id="@+id/tvCaseShape"
      style="@style/RowChip"
@@ -65,6 +82,7 @@
      android:textSize="14sp"/>
 
   <TextView
+     android:id="@+id/tvCaseSource"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginTop="14dp"
