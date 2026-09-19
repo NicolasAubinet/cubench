@@ -2,7 +2,9 @@ package com.cube.nanotimer.smartcube.step;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The algorithms F2L cases are usually solved with, for every case {@link F2LCases} names: the 41
@@ -752,52 +754,38 @@ public final class F2LCaseAlgorithms {
     {Cubies.DLF, Cubies.FL}, {Cubies.DBL, Cubies.BL}, {Cubies.DRB, Cubies.BR},
   };
 
+  private static final Map<String, AlgorithmList> LISTS = new HashMap<>();
+
   private F2LCaseAlgorithms() {
   }
 
-  /** The algorithms for a case, as {@link F2LCases} names it, most voted first. */
-  public static List<Algorithm> forCase(String pairCase) {
-    int votes = 0;
-    for (String[] row : ALGORITHMS) {
-      if (row[0].equals(pairCase)) {
-        votes += Integer.parseInt(row[3]);
-      }
-    }
-    List<Algorithm> algorithms = new ArrayList<>();
-    for (String[] row : ALGORITHMS) {
-      if (row[0].equals(pairCase)) {
-        int share = votes == 0 ? 0 : Math.round(Integer.parseInt(row[3]) * 100f / votes);
-        algorithms.add(new Algorithm(row[1], row[2].isEmpty() ? null : row[2], share, false));
-      }
-    }
-    return Collections.unmodifiableList(algorithms);
-  }
-
   /**
-   * What to show a solver for a case: the most voted algorithm, and beside it those with at least
-   * {@link LastLayerCaseAlgorithms#DEFAULT_MIN_SHARE} of the votes, by the same rules as a last
-   * layer case, including when the first is called the recommended one.
+   * The algorithms for a case, as {@link F2LCases} names it, one row per algorithm however many ways
+   * the table spells it, most voted first.
    */
-  public static List<Algorithm> shownForCase(String pairCase) {
-    List<Algorithm> shown = new ArrayList<>();
-    for (Algorithm algorithm : forCase(pairCase)) {
-      if (shown.isEmpty() || (algorithm.getShare() >= LastLayerCaseAlgorithms.DEFAULT_MIN_SHARE
-          && shown.size() < LastLayerCaseAlgorithms.MOST_SHOWN)) {
-        shown.add(algorithm);
-      }
+  public static List<Algorithm> forCase(String pairCase) {
+    List<Algorithm> all = new ArrayList<>();
+    for (AlgorithmList.Row row : listOf(pairCase).all()) {
+      all.add(new Algorithm(row.getMoves(), row.getEmptySlot(), row.getShare(), false));
     }
-    float lead = LastLayerCaseAlgorithms.CLEAR_LEAD;
-    if (shown.size() > 1 && shown.get(0).getShare() >= shown.get(1).getShare() * lead) {
-      Algorithm top = shown.get(0);
-      shown.set(0, new Algorithm(top.getMoves(), top.getEmptySlot(), top.getShare(), true));
+    return Collections.unmodifiableList(all);
+  }
+
+  /** What to show a solver for a case: the algorithms it is listed with, most voted first. */
+  public static List<Algorithm> listed(String pairCase) {
+    AlgorithmList list = listOf(pairCase);
+    List<Algorithm> listed = new ArrayList<>();
+    for (AlgorithmList.Row row : list.listed()) {
+      listed.add(new Algorithm(row.getMoves(), row.getEmptySlot(), row.getShare(),
+          listed.isEmpty() && list.leadIsClear()));
     }
-    return Collections.unmodifiableList(shown);
+    return Collections.unmodifiableList(listed);
   }
 
   /**
-   * Which of the case's algorithms an execution was, or null for none of them. Compared as
-   * {@link AlgorithmForm}s from every grip, so a back slot's pair, a regrip, the turn that set the
-   * pair up and moves turned and taken back all read as the algorithm they surround.
+   * Which of the case's algorithms an execution was, listed or not, or null for none of them.
+   * Compared as {@link AlgorithmForm}s from every grip, so a back slot's pair, a regrip, the turn
+   * that set the pair up and moves turned and taken back all read as the algorithm they surround.
    *
    * @param executedMoves the moves turned for the pair, in the solver's own frame
    */
@@ -805,49 +793,42 @@ public final class F2LCaseAlgorithms {
     if (pairCase == null || executedMoves == null) {
       return null;
     }
-    List<Algorithm> algorithms = forCase(pairCase);
-    int at = indexOfTurning(pairCase, formsOf(algorithms), executedMoves);
-    return at < 0 ? null : algorithms.get(at);
+    AlgorithmList.Row row = listOf(pairCase).matching(executedMoves);
+    return row == null ? null
+        : new Algorithm(row.getMoves(), row.getEmptySlot(), row.getShare(), false);
   }
 
   /**
-   * Whether the execution is one hardly anybody turns, and how long it is beside the shortest
-   * algorithm in use, by the same rules as {@link LastLayerCaseAlgorithms#read}. A pair built
-   * through another unsolved slot in no more turns than that is not unusual, listed or not: see
-   * {@link #usesFreeSlot}.
+   * Whether the execution is off the case's list, and how long it is, by the rules of
+   * {@link AlgorithmList}. A pair built through another unsolved slot in no more turns than the
+   * shortest listed algorithm is not off it, listed or not: see {@link #usesFreeSlot}.
    */
   public static AlgorithmExecution read(String pairCase, String executedMoves) {
-    if (pairCase == null || executedMoves == null || AlgorithmForm.key(executedMoves) == null) {
+    if (pairCase == null) {
       return new AlgorithmExecution(false, 0, 0);
     }
-    List<Algorithm> algorithms = forCase(pairCase);
-    int at = indexOfTurning(pairCase, formsOf(algorithms), executedMoves);
-    int shortest = 0;
-    for (int i = 0; i < algorithms.size(); i++) {
-      if (i > 0 && algorithms.get(i).getShare() < LastLayerCaseAlgorithms.UNUSUAL_SHARE) {
-        continue;
-      }
-      int length = AlgorithmForm.comparable(algorithms.get(i).getMoves()).size();
-      if (length > 0 && (shortest == 0 || length < shortest)) {
-        shortest = length;
-      }
+    AlgorithmExecution read = listOf(pairCase).read(executedMoves);
+    if (read.isUnusual() && !read.isLonger() && usesFreeSlot(pairCase, executedMoves)) {
+      return new AlgorithmExecution(false, read.getMoves(), read.getUsualMoves());
     }
-    int moves = AlgorithmForm.lengthAsDrawn(executedMoves, drawn(pairCase));
-    boolean unusual = !algorithms.isEmpty() && (at < 0
-        || (at > 0 && algorithms.get(at).getShare() < LastLayerCaseAlgorithms.UNUSUAL_SHARE));
-    if (unusual && at < 0 && moves <= shortest && usesFreeSlot(pairCase, executedMoves)) {
-      unusual = false;
-    }
-    return new AlgorithmExecution(unusual, moves, shortest);
+    return read;
   }
 
-  /**
-   * Whether a pair was turned with none of its case's algorithms, nor through a free slot in as few
-   * turns: the pairs worth pointing out.
-   */
-  public static boolean isUnlisted(String pairCase, String executedMoves) {
-    return matching(pairCase, executedMoves) == null
-        && read(pairCase, executedMoves).isUnusual();
+  private static AlgorithmList listOf(String pairCase) {
+    synchronized (LISTS) {
+      AlgorithmList list = LISTS.get(pairCase);
+      if (list == null) {
+        List<String[]> rows = new ArrayList<>();
+        for (String[] row : ALGORITHMS) {
+          if (row[0].equals(pairCase)) {
+            rows.add(new String[] {row[1], row[3], row[2]});
+          }
+        }
+        list = new AlgorithmList(rows, drawn(pairCase));
+        LISTS.put(pairCase, list);
+      }
+      return list;
+    }
   }
 
   /**
@@ -937,18 +918,6 @@ public final class F2LCaseAlgorithms {
         return F2LCaseAlgorithms.solves(pairCase, stood);
       }
     };
-  }
-
-  private static List<List<String>> formsOf(List<Algorithm> algorithms) {
-    List<List<String>> forms = new ArrayList<>();
-    for (Algorithm algorithm : algorithms) {
-      forms.add(AlgorithmForm.comparable(algorithm.getMoves()));
-    }
-    return forms;
-  }
-
-  static int indexOfTurning(String pairCase, List<List<String>> forms, String moves) {
-    return AlgorithmForm.indexOfTurning(forms, moves, drawn(pairCase));
   }
 
   /**

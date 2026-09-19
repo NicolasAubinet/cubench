@@ -2,8 +2,9 @@ package com.cube.nanotimer.smartcube.step;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The algorithms worth showing for a last-layer case, and how many of the people who voted on them
@@ -15,10 +16,8 @@ import java.util.List;
  * few algorithms a case is usually taught with rather than every algorithm that exists, so a share
  * here is a share of those, not of the whole world.
  *
- * <p><b>The share is what decides how many are shown.</b> A case where one algorithm has nine votes
- * in ten has one answer and showing three would invent a choice nobody is making; a case split three
- * ways genuinely has three, and the one in front is the one to learn first. So everything at or above
- * {@link #DEFAULT_MIN_SHARE} is shown, and the most used always is, whatever its share.
+ * <p><b>Which of them are listed</b>, and so which executions are worth pointing out, is decided by
+ * {@link AlgorithmList}, by the same rules as an F2L pair's.
  *
  * <p>Every algorithm of a case is written for the cube held the way the case is drawn. The most
  * used one turns it nowhere first and {@link LastLayerDiagram} reads the picture off that, so the
@@ -31,31 +30,6 @@ import java.util.List;
  * at all. A vote count cannot be checked that way and is only ever used for ordering.
  */
 public final class LastLayerCaseAlgorithms {
-
-  /**
-   * The share of a case's votes an algorithm needs before it is shown beside the most used one, in
-   * percent. Twenty rather than something finer: below about a fifth an algorithm is a minority
-   * habit rather than a real alternative, and a list of five is not a recommendation.
-   */
-  public static final int DEFAULT_MIN_SHARE = 20;
-
-  /** However flat the vote, a case is not a catalogue. */
-  static final int MOST_SHOWN = 4;
-
-  /**
-   * The share of its case's folded votes an algorithm has to hold before it counts as one people
-   * use, in percent. A flat floor rather than a running total of the shares above it: two rules
-   * would disagree on the cases the world is split across, and what a solver can act on is "hardly
-   * anybody turns this", which is a share of its own rather than a position in a queue.
-   */
-  public static final int UNUSUAL_SHARE = 6;
-
-  /**
-   * How far ahead the most used algorithm has to be before it is called the recommended one: half
-   * again the next one's share. A case the world is split on has no recommendation to make, and
-   * printing one on a 36-to-36 split would be inventing an answer out of a rounding difference.
-   */
-  static final float CLEAR_LEAD = 1.5f;
 
   /** One row per algorithm: the case it solves, the algorithm, and the votes it holds. */
   private static final String[][] ALGORITHMS = {
@@ -365,157 +339,54 @@ public final class LastLayerCaseAlgorithms {
     {"oll_57", "R U R' U' R' r U R U' r'", "7"},
   };
 
+  private static final Map<String, AlgorithmList> LISTS = new HashMap<String, AlgorithmList>();
+
   private LastLayerCaseAlgorithms() {
   }
 
   /**
-   * The table's rows for a case, most used first, or an empty list for a case with no algorithms.
-   *
-   * <p>Spelled as the table spells them, one row per spelling: this is what the case's picture is
-   * drawn from, and which spelling comes first decides which way round the layer is drawn. Anything
-   * showing a solver a list of algorithms wants {@link #foldedForCase} instead.
+   * The table's rows for a case, one per spelling and in the table's order, or an empty list for a
+   * case with no algorithms. This is what the case's picture is drawn from, and which spelling comes
+   * first decides which way round the layer is drawn. Anything showing a solver a list of algorithms
+   * wants {@link #listed} instead.
    */
   public static List<Algorithm> forCase(String caseCode) {
-    return forCase(caseCode, DEFAULT_MIN_SHARE);
-  }
-
-  /** @param minShare the share of the case's votes an algorithm needs, in percent */
-  public static List<Algorithm> forCase(String caseCode, int minShare) {
-    return shownOf(every(caseCode), minShare);
-  }
-
-  /**
-   * What to show a solver for a case: the same rules, over one row per algorithm rather than one
-   * per spelling.
-   *
-   * <p>A list built from {@link #forCase} can hold the same algorithm twice — the wide saying what
-   * the slice said — which reads as a choice where there is none, and splits that algorithm's vote
-   * so that the row shown first need not be the one most people turn. Folding first fixes both, and
-   * lands each row on the spelling {@link #matching} rewrites an execution of it to, so a solver's
-   * own execution marks the row it is rather than falling out of the list as something else.
-   */
-  public static List<Algorithm> foldedForCase(String caseCode) {
-    return shownOf(folded(caseCode), DEFAULT_MIN_SHARE);
-  }
-
-  /** The few worth showing out of a case's algorithms, the most used one marked where it leads. */
-  private static List<Algorithm> shownOf(List<Algorithm> algorithms, int minShare) {
-    List<Algorithm> all = new ArrayList<Algorithm>();
-    for (Algorithm algorithm : algorithms) {
-      if (all.isEmpty() || (algorithm.getShare() >= minShare && all.size() < MOST_SHOWN)) {
-        all.add(algorithm);
-      }
-    }
-    if (all.size() > 1 && all.get(0).getShare() >= all.get(1).getShare() * CLEAR_LEAD) {
-      all.set(0, new Algorithm(all.get(0).getMoves(), all.get(0).getShare(), true));
-    }
-    return Collections.unmodifiableList(all);
-  }
-
-  /** Every algorithm the table holds for a case, most used first, shown or not. */
-  private static List<Algorithm> every(String caseCode) {
-    List<String[]> rows = rowsOf(caseCode);
-    int votes = 0;
-    for (String[] row : rows) {
-      votes += Integer.parseInt(row[2]);
-    }
-    if (votes == 0) {
-      return Collections.emptyList();
-    }
-    List<Algorithm> all = new ArrayList<Algorithm>();
-    for (String[] row : rows) {
-      all.add(new Algorithm(row[1], Math.round(Integer.parseInt(row[2]) * 100f / votes), false));
-    }
-    return all;
-  }
-
-  /** The table's rows for one case, in the order it holds them. */
-  private static List<String[]> rowsOf(String caseCode) {
-    List<String[]> rows = new ArrayList<String[]>();
+    List<Algorithm> rows = new ArrayList<Algorithm>();
     for (String[] row : ALGORITHMS) {
       if (row[0].equals(caseCode)) {
-        rows.add(row);
+        rows.add(new Algorithm(row[1], 0, false));
       }
     }
-    return rows;
+    return Collections.unmodifiableList(rows);
   }
 
-  /**
-   * The case's algorithms with the rows that are one algorithm said twice folded into one, most used
-   * first, each holding the votes of every spelling of it.
-   *
-   * <p><b>Nothing may be read as rare before this is done.</b> A sixth of the table is a mirror
-   * behind a rotation, or a wide where another row writes a slice, so one algorithm's vote arrives
-   * split across its spellings and understates what it is: OLL 45's four rows are two algorithms,
-   * and the second reads as an eighth of the case until its spellings are added back up. Folded by
-   * the same test {@link #matching} recognises an execution with, so an execution and the row it
-   * reads as always land in the same place.
-   *
-   * <p><b>A mirror is not always a rotation and those rows stay apart.</b> The Z perm's four rows
-   * are two algorithms each written both ways round, and reflecting one is not something the cube
-   * can be stood up to do, so they are four here. That is a limit of what turning can tell, not an
-   * oversight: it costs nothing while each half still clears the floor on its own.
-   */
+  /** What to show a solver for a case: the algorithms it is listed with, most used first. */
+  public static List<Algorithm> listed(String caseCode) {
+    AlgorithmList list = listOf(caseCode);
+    List<Algorithm> listed = new ArrayList<Algorithm>();
+    for (AlgorithmList.Row row : list.listed()) {
+      listed.add(new Algorithm(row.getMoves(), row.getShare(),
+          listed.isEmpty() && list.leadIsClear()));
+    }
+    return Collections.unmodifiableList(listed);
+  }
+
+  /** Every algorithm of a case, one row per algorithm however many ways the table spells it. */
   public static List<Algorithm> folded(String caseCode) {
-    List<Fold> folds = new ArrayList<Fold>();
-    List<List<String>> forms = new ArrayList<List<String>>();
-    int votes = 0;
-    for (String[] row : rowsOf(caseCode)) {
-      int held = Integer.parseInt(row[2]);
-      votes += held;
-      int at = AlgorithmForm.indexOfTurning(forms, row[1], drawn(caseCode));
-      if (at < 0) {
-        folds.add(new Fold(row[1], held));
-        forms.add(AlgorithmForm.comparable(row[1]));
-      } else {
-        folds.get(at).votes += held;
-      }
-    }
-    if (votes == 0) {
-      return Collections.emptyList();
-    }
-    Collections.sort(folds, new Comparator<Fold>() {
-      @Override
-      public int compare(Fold one, Fold other) {
-        return other.votes - one.votes;
-      }
-    });
     List<Algorithm> all = new ArrayList<Algorithm>();
-    for (Fold fold : folds) {
-      all.add(new Algorithm(fold.moves, Math.round(fold.votes * 100f / votes), false));
+    for (AlgorithmList.Row row : listOf(caseCode).all()) {
+      all.add(new Algorithm(row.getMoves(), row.getShare(), false));
     }
     return Collections.unmodifiableList(all);
   }
 
-  /** One algorithm of a case and every spelling of it, while its votes are being added up. */
-  private static final class Fold {
-
-    private final String moves;
-    private int votes;
-
-    Fold(String moves, int votes) {
-      this.moves = moves;
-      this.votes = votes;
-    }
-  }
-
   /**
-   * Which algorithm an execution was, or null for one that is none of the case's.
+   * Which algorithm an execution was, listed or not, or null for one that is none of the case's.
    *
-   * <p>Compared as {@link AlgorithmForm}s rather than as text, and against every grip. A solver holds
-   * the cube where their hands want it, turns the layer to read it, and leaves it wherever the next
-   * case wants it, so an execution equals the table's spelling almost never and is the same turning
-   * constantly.
-   *
-   * <p>Matched against every row of the case rather than the few that are shown: the question is
-   * which algorithm this solver turns, and an algorithm a fifth of the world uses is still the one
-   * they learned.
-   *
-   * <p><b>A sixth of the table is one algorithm written twice</b>, the same turning spelled with the
-   * wide instead of the slice, or mirrored onto the other hand behind the rotation that puts it
-   * there. Those rows cannot be told apart here and deliberately are not tried: they turn the cube
-   * identically, and what separates them is how the solver was holding it, which is a rotation that
-   * as often as not was made in the step before this one. The most used of them answers.
+   * <p>Compared as {@link AlgorithmForm}s rather than as text, against every grip and its mirror. A
+   * solver holds the cube where their hands want it, turns the layer to read it, and leaves it
+   * wherever the next case wants it, so an execution equals the table's spelling almost never and
+   * is the same turning constantly.
    *
    * @param executedMoves the moves that were turned, in the solver's own frame
    */
@@ -523,36 +394,33 @@ public final class LastLayerCaseAlgorithms {
     if (caseCode == null || executedMoves == null) {
       return null;
     }
-    List<Algorithm> algorithms = every(caseCode);
-    int at = AlgorithmForm.indexOfTurning(formsOf(algorithms), executedMoves, drawn(caseCode));
-    return at < 0 ? null : algorithms.get(at);
+    AlgorithmList.Row row = listOf(caseCode).matching(executedMoves);
+    return row == null ? null : new Algorithm(row.getMoves(), row.getShare(), false);
   }
 
-  /**
-   * What there is to say about an execution beyond which algorithm it was: whether hardly anybody
-   * turns it, and how many turns it takes beside the algorithms people do.
-   *
-   * <p>An execution the table holds no algorithm for is unusual, and so is one holding less than
-   * {@link #UNUSUAL_SHARE} of its case's folded votes. <b>The most used algorithm of a case never
-   * is</b>, whatever its share: a case the world turns one way has one usual answer by definition,
-   * which is the rule {@link #forCase} already follows for what it shows.
-   *
-   * <p><b>It cannot say an execution is bad, and must not be made to.</b> The table ranks the few
-   * algorithms a case is usually taught with, not every algorithm that exists, so a spelling nobody
-   * voted on is one this table has never heard of rather than one nobody should turn.
-   */
+  /** Whether an execution is off the case's list, and how long it is: see {@link AlgorithmList}. */
   public static AlgorithmExecution read(String caseCode, String executedMoves) {
-    // Notation nothing can read is not an unusual algorithm, it is an unknown one, and the whole
-    // point of the paragraph above is that this cannot say things about executions it has not read.
-    if (caseCode == null || executedMoves == null || AlgorithmForm.key(executedMoves) == null) {
+    if (caseCode == null) {
       return new AlgorithmExecution(false, 0, 0);
     }
-    List<Algorithm> folded = folded(caseCode);
-    int at = AlgorithmForm.indexOfTurning(formsOf(folded), executedMoves, drawn(caseCode));
-    boolean unusual = !folded.isEmpty()
-        && (at < 0 || (at > 0 && folded.get(at).getShare() < UNUSUAL_SHARE));
-    return new AlgorithmExecution(unusual,
-        AlgorithmForm.lengthAsDrawn(executedMoves, drawn(caseCode)), shortestInUse(folded));
+    return listOf(caseCode).read(executedMoves);
+  }
+
+  private static AlgorithmList listOf(String caseCode) {
+    synchronized (LISTS) {
+      AlgorithmList list = LISTS.get(caseCode);
+      if (list == null) {
+        List<String[]> rows = new ArrayList<String[]>();
+        for (String[] row : ALGORITHMS) {
+          if (row[0].equals(caseCode)) {
+            rows.add(new String[] {row[1], row[2], ""});
+          }
+        }
+        list = new AlgorithmList(rows, drawn(caseCode));
+        LISTS.put(caseCode, list);
+      }
+      return list;
+    }
   }
 
   private static AlgorithmForm.Drawn drawn(final String caseCode) {
@@ -562,26 +430,6 @@ public final class LastLayerCaseAlgorithms {
         return LastLayerCaseAlgorithms.solves(caseCode, moves);
       }
     };
-  }
-
-  private static List<List<String>> formsOf(List<Algorithm> algorithms) {
-    List<List<String>> forms = new ArrayList<List<String>>();
-    for (Algorithm algorithm : algorithms) {
-      forms.add(AlgorithmForm.comparable(algorithm.getMoves()));
-    }
-    return forms;
-  }
-
-  /**
-   * How many turns something takes, counted as the outer turns it is made of once what cancels has
-   * cancelled and the alignment is off both ends. A wide and a slice come out as the turns they are
-   * made of on both sides of the comparison, so an execution and an algorithm are counted alike.
-   *
-   * <p>Only for an algorithm out of the table, which is already written the way its case is drawn.
-   * An execution is not, and wants {@link AlgorithmForm#lengthAsDrawn}.
-   */
-  private static int length(String moves) {
-    return AlgorithmForm.comparable(moves).size();
   }
 
   /**
@@ -643,21 +491,6 @@ public final class LastLayerCaseAlgorithms {
    */
   public static String keyAsDrawn(String caseCode, String moves) {
     return AlgorithmForm.keyAsDrawn(moves, drawn(caseCode));
-  }
-
-  /** The shortest algorithm people do use, which is what a long execution is measured against. */
-  private static int shortestInUse(List<Algorithm> folded) {
-    int shortest = 0;
-    for (int i = 0; i < folded.size(); i++) {
-      if (i > 0 && folded.get(i).getShare() < UNUSUAL_SHARE) {
-        continue;
-      }
-      int length = length(folded.get(i).getMoves());
-      if (length > 0 && (shortest == 0 || length < shortest)) {
-        shortest = length;
-      }
-    }
-    return shortest;
   }
 
   /**

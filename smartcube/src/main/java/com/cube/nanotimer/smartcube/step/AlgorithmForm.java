@@ -198,6 +198,10 @@ public final class AlgorithmForm {
    * <p><b>Only a grip the case is drawn in counts.</b> Stood any other way, a face that is not the
    * last layer ends up named {@code U}, and the alignment coming off both ends then takes a real turn
    * of the algorithm with it, so two different algorithms can read as one.
+   *
+   * <p><b>A mirror counts as the form it mirrors</b>, tried after every grip of the moves as turned
+   * and only for moves that solve the case: those are then that algorithm turned with the other hand,
+   * as the Z perm is with {@code U} and {@code U'} swapped.
    */
   static int indexOfTurning(List<List<String>> forms, String moves, Drawn drawn) {
     List<String> turns;
@@ -206,6 +210,21 @@ public final class AlgorithmForm {
     } catch (RuntimeException e) {
       return -1; // notation nothing can read is no algorithm of anything
     }
+    int at = indexAmongGrips(forms, turns, drawn);
+    return at >= 0 || !solvesFromSomeGrip(turns, drawn) ? at
+        : indexAmongGrips(forms, mirrored(turns), drawn);
+  }
+
+  private static boolean solvesFromSomeGrip(List<String> turns, Drawn drawn) {
+    for (char[] grip : grips()) {
+      if (drawn.solves(written(conjugatedBy(turns, grip)))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static int indexAmongGrips(List<List<String>> forms, List<String> turns, Drawn drawn) {
     for (char[] grip : grips()) {
       List<String> stood = conjugatedBy(turns, grip);
       List<String> executed = withoutAlignment(stood);
@@ -220,6 +239,40 @@ public final class AlgorithmForm {
       }
     }
     return -1;
+  }
+
+  /**
+   * An algorithm written as its mirror, token for token, so a wide stays a wide and a slice a slice.
+   * R and L trade places, and every turn goes the other way except those about their axis: seen in
+   * the mirror, M and x still turn the way they did.
+   */
+  static String mirroredNotation(String algorithm) {
+    StringBuilder mirrored = new StringBuilder();
+    for (String token : algorithm.trim().split("\s+")) {
+      if (token.isEmpty()) {
+        continue;
+      }
+      char letter = token.charAt(0);
+      String rest = token.substring(1);
+      char seen = letter == 'R' ? 'L' : letter == 'L' ? 'R' : letter == 'r' ? 'l'
+          : letter == 'l' ? 'r' : letter;
+      if (letter != 'M' && letter != 'x' && rest.indexOf('2') < 0) {
+        rest = rest.endsWith("'") ? rest.substring(0, rest.length() - 1) : rest + "'";
+      }
+      mirrored.append(mirrored.length() == 0 ? "" : " ").append(seen).append(rest);
+    }
+    return mirrored.toString();
+  }
+
+  /** The turns seen in a mirror standing to the right: R and L trade places, and every turn goes
+   * the other way. */
+  static List<String> mirrored(List<String> turns) {
+    List<String> mirrored = new ArrayList<String>(turns.size());
+    for (String turn : turns) {
+      char face = turn.charAt(0);
+      mirrored.add(write(face == 'R' ? 'L' : face == 'L' ? 'R' : face, -quartersOf(turn)));
+    }
+    return folded(mirrored);
   }
 
   /**
