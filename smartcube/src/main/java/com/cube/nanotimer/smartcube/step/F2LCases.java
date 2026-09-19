@@ -35,6 +35,9 @@ final class F2LCases {
   /** A placement neither set names. */
   static final String OTHER = "other";
 
+  /** How many cases the basic set names, "1" to "41". */
+  static final int BASIC = 41;
+
   /** The corner's slot and twist, then the edge's slot and flip, as {@link #key} writes them. */
   private static final Map<String, String> CASES = new HashMap<>();
 
@@ -135,6 +138,19 @@ final class F2LCases {
   }
 
   private F2LCases() {
+  }
+
+  /** Whether a case is one of the basic set's rather than an advanced one or no case at all. */
+  static boolean isBasic(String pairCase) {
+    if (pairCase.isEmpty()) {
+      return false;
+    }
+    for (int i = 0; i < pairCase.length(); i++) {
+      if (!Character.isDigit(pairCase.charAt(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

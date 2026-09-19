@@ -134,6 +134,20 @@ public class F2LCasesTest {
   }
 
   @Test
+  public void theBasicSetIsTheFortyOneNumberedCases() {
+    int basic = 0;
+    for (String[] row : CASES) {
+      if (F2LCases.isBasic(row[0])) {
+        basic++;
+      }
+    }
+    assertEquals(F2LCases.BASIC, basic);
+    assertTrue(F2LCases.isBasic("41"));
+    assertTrue(!F2LCases.isBasic("a20") && !F2LCases.isBasic(F2LCases.OTHER)
+        && !F2LCases.isBasic(F2LCases.SKIP));
+  }
+
+  @Test
   public void readsTheRepeatedCasesAsTheOnesTheyRepeat() {
     for (String[] row : SAME_AS) {
       assertEquals(row[2], row[0], caseOf(row));

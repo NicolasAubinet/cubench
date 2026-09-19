@@ -1139,6 +1139,12 @@
   <string name="analysis_knowledge_seen">Vistos, aún lentos</string>
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_knowledge_costing">Te cuestan</string>
+  <string name="analysis_algorithms_label">Algoritmos estándar</string>
+  <string name="analysis_algorithms_extra">Movimientos de más</string>
+  <string name="analysis_algorithms_count">%1$d de %2$d</string>
+  <string name="analysis_algorithms_standard">Estándar</string>
+  <string name="analysis_algorithms_not_standard">No estándar</string>
+  <string name="analysis_algorithms_not_seen">No vistos</string>
   <string name="analysis_rest_title">El resto del conjunto</string>
   <string name="analysis_cases_empty">Conecta un smart cube y haz algunas resoluciones para ver aquí ordenados los casos que lea.</string>
   <string name="analysis_cases_blind">Una resolución a ciegas no tiene casos. Se lee como una memorización y las piezas resueltas.</string>
@@ -1172,6 +1178,10 @@
   <string name="analysis_help_table_body">Media, mejor y desvío de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha y los abren.</string>
   <string name="analysis_help_spread">Desvío</string>
   <string name="analysis_help_spread_body">Cuánto cambia el paso de una resolución a otra. Dos pasos con la misma media pueden ser uno que haces siempre igual y otro en el que a veces te atascas, y esto es lo que los distingue.</string>
+  <string name="analysis_help_standard">Algoritmos estándar</string>
+  <string name="analysis_help_standard_body">Cada caso del paso cuenta una vez, tal como lo hiciste la última vez que salió en la ventana: con uno de los algoritmos con los que se suele enseñar, o no. Dos algoritmos para un caso, o un algoritmo propio, cuentan como no estándar. En F2L son sus 41 casos básicos.</string>
+  <string name="analysis_help_extra">Movimientos de más</string>
+  <string name="analysis_help_extra_body">Los giros que hiciste de más sobre el algoritmo habitual más corto de cada uno de esos casos, sumados. Un slice o un giro doble capa cuenta como los giros que lo forman. Un algoritmo más corto cuenta como cero.</string>
   <string name="analysis_help_plan_title">Un plan</string>
   <string name="analysis_help_plan_body">Aquí no se mide nada. La pestaña muestra qué cubriría un plan, y todavía no hay ninguno. Las cifras que usaría un plan están en Resolución y Casos, y esas siguen siendo gratis.</string>
   <string name="analysis_help_cases_title">Qué casos te cuestan</string>

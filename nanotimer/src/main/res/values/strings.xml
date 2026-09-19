@@ -1186,6 +1186,12 @@
   <string name="analysis_knowledge_seen">Seen, still slow</string>
   <string name="analysis_knowledge_unseen">Not yet seen</string>
   <string name="analysis_knowledge_costing">Costing you</string>
+  <string name="analysis_algorithms_label">Standard algorithms</string>
+  <string name="analysis_algorithms_extra">Extra moves</string>
+  <string name="analysis_algorithms_count">%1$d of %2$d</string>
+  <string name="analysis_algorithms_standard">Standard</string>
+  <string name="analysis_algorithms_not_standard">Not standard</string>
+  <string name="analysis_algorithms_not_seen">Not seen</string>
   <string name="analysis_rest_title">The rest of the set</string>
   <string name="analysis_cases_empty">Connect a smart cube and do some solves to have the cases it reads ranked here.</string>
   <string name="analysis_cases_blind">A blindfolded solve has no cases. It is read as a memo and the pieces it solved.</string>
@@ -1222,6 +1228,10 @@
   <string name="analysis_help_table_body">Mean, best and spread for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
   <string name="analysis_help_spread">Spread</string>
   <string name="analysis_help_spread_body">How much the step changes from solve to solve. Two steps with the same mean can be one you do the same way every time and one you sometimes get stuck on, and this is what tells them apart.</string>
+  <string name="analysis_help_standard">Standard algorithms</string>
+  <string name="analysis_help_standard_body">Each case of the step counted once, as you turned it the last time it came up in the window: with one of the algorithms it is usually taught with, or not. Two algorithms for one case, or an algorithm of your own, count as not standard. F2L counts its 41 basic cases.</string>
+  <string name="analysis_help_extra">Extra moves</string>
+  <string name="analysis_help_extra_body">The turns you took over the shortest usual algorithm for each of those cases, added up. Slices and wide turns count as the turns they are made of. A shorter algorithm counts as none.</string>
   <string name="analysis_help_plan_title">A plan</string>
   <string name="analysis_help_plan_body">Nothing here is measured. The tab shows what a plan would cover, and there is none to have yet. The figures a plan would use are on Solve and Cases, and those stay free.</string>
   <string name="analysis_help_cases_title">Which cases cost you</string>

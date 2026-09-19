@@ -20,9 +20,17 @@ public final class CaseAlgorithms {
   private CaseAlgorithms() {
   }
 
+  /** How many F2L cases the basic set holds, the ones with neither piece in another slot. */
+  public static final int BASIC_PAIR_CASES = F2LCases.BASIC;
+
   /** Whether the code names an F2L pair's case rather than a last layer one. */
   public static boolean isPair(String caseCode) {
     return caseCode != null && caseCode.startsWith(PAIR_PREFIX);
+  }
+
+  /** Whether the code names one of the {@link #BASIC_PAIR_CASES} F2L cases ({@code pair_27}). */
+  public static boolean isBasicPair(String caseCode) {
+    return isPair(caseCode) && F2LCases.isBasic(pairCase(caseCode));
   }
 
   /** The algorithms the case is listed with, most used first: see {@link AlgorithmList}. */

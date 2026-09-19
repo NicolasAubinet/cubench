@@ -191,7 +191,18 @@ public final class CaseExecutions {
   }
 
   /** One solve's cases, or none of them where it cannot be read again. */
-  private static void collect(SolveTime solve, Map<String, List<String>> answers, String only) {
+  private static void collect(SolveTime solve, final Map<String, List<String>> answers,
+      final String only) {
+    readSteps(solve, new StepReader() {
+      @Override
+      public void read(SolveStep step, SolveSolution.Step turned) {
+        add(step, turned, answers, only);
+      }
+    });
+  }
+
+  /** Each step of a CFOP solve read again from its scramble, with its moves; none otherwise. */
+  static void readSteps(SolveTime solve, StepReader reader) {
     CubeMethod method = SolveTypeMethod.of(solve.getSolveType());
     if (method != CubeMethod.CFOP) {
       return; // only CFOP is solved in these cases: nothing else would be read, it would be guessed
@@ -209,8 +220,13 @@ public final class CaseExecutions {
           && reread.getStoppedStep().intValue() == steps.get(i).getStepIndex()) {
         continue; // the solve stopped inside it, so its moves are half of an answer
       }
-      add(steps.get(i), solution.getSteps().get(i), answers, only);
+      reader.read(steps.get(i), solution.getSteps().get(i));
     }
+  }
+
+  /** One step of a solve, as {@link #readSteps} hands it over. */
+  interface StepReader {
+    void read(SolveStep step, SolveSolution.Step turned);
   }
 
   private static void add(SolveStep step, SolveSolution.Step turned,

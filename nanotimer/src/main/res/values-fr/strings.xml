@@ -1140,6 +1140,12 @@
   <string name="analysis_knowledge_seen">Vus, encore lents</string>
   <string name="analysis_knowledge_unseen">Jamais vus</string>
   <string name="analysis_knowledge_costing">Vous coûtent</string>
+  <string name="analysis_algorithms_label">Algorithmes standards</string>
+  <string name="analysis_algorithms_extra">Coups en trop</string>
+  <string name="analysis_algorithms_count">%1$d sur %2$d</string>
+  <string name="analysis_algorithms_standard">Standards</string>
+  <string name="analysis_algorithms_not_standard">Non standards</string>
+  <string name="analysis_algorithms_not_seen">Pas vus</string>
   <string name="analysis_rest_title">Le reste de l\'ensemble</string>
   <string name="analysis_cases_empty">Connectez un smart cube et faites quelques résolutions pour voir les cas qu\'il lit classés ici.</string>
   <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
@@ -1173,6 +1179,10 @@
   <string name="analysis_help_table_body">Moyenne, meilleur et écart pour chaque étape. Touchez un en-tête pour trier dessus. Les étapes qui ont des cas nommés, OLL et PLL, portent une flèche et les ouvrent.</string>
   <string name="analysis_help_spread">Écart</string>
   <string name="analysis_help_spread_body">De combien l\'étape change d\'une résolution à l\'autre. Deux étapes de même moyenne peuvent être une étape que vous faites toujours pareil et une où vous bloquez parfois, et c\'est ce qui les distingue.</string>
+  <string name="analysis_help_standard">Algorithmes standards</string>
+  <string name="analysis_help_standard_body">Chaque cas de l\'étape compté une fois, tel que vous l\'avez fait la dernière fois qu\'il est venu dans la fenêtre : avec l\'un des algorithmes qu\'on enseigne d\'habitude pour lui, ou non. Deux algorithmes pour un cas, ou un algorithme à vous, comptent comme non standards. En F2L, ce sont les 41 cas de base.</string>
+  <string name="analysis_help_extra">Coups en trop</string>
+  <string name="analysis_help_extra_body">Les mouvements faits en plus de l\'algorithme habituel le plus court, pour chacun de ces cas, additionnés. Une tranche ou un mouvement large compte pour les mouvements qui le composent. Un algorithme plus court compte pour zéro.</string>
   <string name="analysis_help_plan_title">Un plan</string>
   <string name="analysis_help_plan_body">Rien ici n\'est mesuré. Cet onglet montre ce qu\'un plan couvrirait, et il n\'y en a pas encore. Les chiffres qu\'un plan utiliserait sont dans Résolution et Cas, et ceux-là restent gratuits.</string>
   <string name="analysis_help_cases_title">Quels cas vous coûtent</string>

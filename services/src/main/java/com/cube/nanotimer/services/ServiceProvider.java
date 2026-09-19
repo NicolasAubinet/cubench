@@ -102,6 +102,9 @@ public interface ServiceProvider {
   /** The newest {@code solves} one case came up in, for the moves it was answered with. */
   List<SolveTime> getCaseSolves(List<String> codes, int solves);
 
+  /** The newest {@code lastSolves} solves a method's figures are read from, with their moves. */
+  List<SolveTime> getMethodSolves(SolveType solveType, CubeMethod method, int lastSolves);
+
   /** Reads every case's status again from the history behind it. */
   void refreshCaseKnowledge();
 

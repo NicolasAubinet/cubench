@@ -146,6 +146,60 @@
      android:layout_height="wrap_content"
      android:layout_marginTop="20dp"/>
 
+  <!-- Under the step table rather than above it: the table is what the tab is opened for, this is
+       the occasional look. Filled in when the solves have been read again, which takes a moment. -->
+  <LinearLayout
+     android:id="@+id/llAnalysisAlgorithmsCard"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="20dp"
+     android:background="@drawable/analysis_card"
+     android:orientation="vertical"
+     android:padding="14dp"
+     android:visibility="gone">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginBottom="8dp"
+       android:gravity="bottom"
+       android:orientation="horizontal">
+
+      <TextView
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_weight="1"
+         android:letterSpacing="0.09"
+         android:text="@string/analysis_algorithms_label"
+         android:textAllCaps="true"
+         android:textColor="@color/secondary_text"
+         android:textSize="11sp"/>
+
+      <TextView
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="8dp"
+         android:gravity="right"
+         android:letterSpacing="0.09"
+         android:text="@string/analysis_algorithms_extra"
+         android:textAllCaps="true"
+         android:textColor="@color/secondary_text"
+         android:textSize="11sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+       android:id="@+id/llAnalysisAlgorithmsRows"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"/>
+
+    <com.cube.nanotimer.util.view.FlowLayout
+       android:id="@+id/llAnalysisAlgorithmsKey"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"/>
+  </LinearLayout>
+
   <!-- What there is to do about a screen full of somebody else's figures, at the foot of the tab
        that read them rather than over them: the reader is shown the whole thing first. -->
   <LinearLayout

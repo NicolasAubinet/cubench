@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One step's cases against the algorithms each is usually taught with, and the moves over them. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:gravity="center_vertical"
+   android:orientation="horizontal"
+   android:paddingTop="4dp"
+   android:paddingBottom="4dp">
+
+  <TextView
+     android:id="@+id/tvAnalysisAlgorithmsName"
+     android:layout_width="52dp"
+     android:layout_height="wrap_content"
+     android:ellipsize="end"
+     android:maxLines="1"
+     android:textColor="@color/secondary_text"
+     android:textSize="12sp"/>
+
+  <com.cube.nanotimer.util.view.AlgorithmFiguresBarView
+     android:id="@+id/vAnalysisAlgorithmsBar"
+     android:layout_width="0dp"
+     android:layout_height="8dp"
+     android:layout_weight="1"
+     android:layout_marginLeft="9dp"
+     android:layout_marginRight="12dp"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisAlgorithmsCount"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:fontFeatureSettings="tnum"
+     android:minWidth="64dp"
+     android:textColor="@color/white"
+     android:textSize="13sp"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisAlgorithmsExtra"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:fontFeatureSettings="tnum"
+     android:gravity="right"
+     android:minWidth="40dp"
+     android:textColor="@color/white"
+     android:textSize="13sp"/>
+</LinearLayout>

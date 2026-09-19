@@ -290,7 +290,7 @@ public class CaseExecutionsTest {
   }
 
   /** One solve of the given moves, scrambled so that exactly they solve it. */
-  private static List<SolveTime> solves(String moves) {
+  static List<SolveTime> solves(String moves) {
     SolveType solveType = new SolveType(1, "3x3", false, null, CubeType.THREE_BY_THREE.getId());
     solveType.setMethod(CubeMethod.CFOP); // named, so nothing reaches for the preferred one
     SolveTime solve = new SolveTime();

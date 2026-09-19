@@ -673,6 +673,17 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getMethodSolves(final SolveType solveType, final CubeMethod method,
+      final int lastSolves, final DataCallback<List<SolveTime>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getMethodSolves(solveType, method, lastSolves));
+      }
+    });
+  }
+
+  @Override
   public void refreshCaseKnowledge(final DataCallback<Void> callback) {
     run(new Runnable() {
       @Override

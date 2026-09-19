@@ -103,6 +103,16 @@
           <TextView android:text="@string/analysis_help_spread_body" style="@style/HelpTermText"/>
         </LinearLayout>
 
+        <LinearLayout style="@style/HelpTermRow">
+          <TextView android:text="@string/analysis_help_standard" style="@style/HelpTermName"/>
+          <TextView android:text="@string/analysis_help_standard_body" style="@style/HelpTermText"/>
+        </LinearLayout>
+
+        <LinearLayout style="@style/HelpTermRow">
+          <TextView android:text="@string/analysis_help_extra" style="@style/HelpTermName"/>
+          <TextView android:text="@string/analysis_help_extra_body" style="@style/HelpTermText"/>
+        </LinearLayout>
+
       </LinearLayout>
 
       <LinearLayout

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One of the bar's three shares, named beside its swatch. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"
+   android:gravity="center_vertical"
+   android:orientation="horizontal">
+
+  <View
+     android:id="@+id/vAnalysisAlgorithmsKeySwatch"
+     android:layout_width="9dp"
+     android:layout_height="9dp"
+     android:layout_marginRight="6dp"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisAlgorithmsKeyName"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:textColor="@color/secondary_text"
+     android:textSize="11.5sp"/>
+</LinearLayout>

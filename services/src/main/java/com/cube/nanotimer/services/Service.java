@@ -167,6 +167,13 @@ public interface Service {
   void getCaseSolves(List<String> codes, int solves, DataCallback<List<SolveTime>> callback);
 
   /**
+   * The solves {@link #getMethodStatistics} reads over the same window, newest first, with the moves
+   * to read them again by.
+   */
+  void getMethodSolves(SolveType solveType, CubeMethod method, int lastSolves,
+      DataCallback<List<SolveTime>> callback);
+
+  /**
    * Works out every case's status again from the solves and drill reps behind it. The statuses are
    * a cache, so this only ever has to be asked for when the rule that reads them has changed.
    */

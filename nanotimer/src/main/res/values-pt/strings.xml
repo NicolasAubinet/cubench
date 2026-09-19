@@ -1142,6 +1142,12 @@
   <string name="analysis_knowledge_seen">Vistos, ainda lentos</string>
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_knowledge_costing">Custam-lhe</string>
+  <string name="analysis_algorithms_label">Algoritmos padrão</string>
+  <string name="analysis_algorithms_extra">Movimentos a mais</string>
+  <string name="analysis_algorithms_count">%1$d de %2$d</string>
+  <string name="analysis_algorithms_standard">Padrão</string>
+  <string name="analysis_algorithms_not_standard">Fora do padrão</string>
+  <string name="analysis_algorithms_not_seen">Não vistos</string>
   <string name="analysis_rest_title">O resto do conjunto</string>
   <string name="analysis_cases_empty">Ligue um smart cube e faça algumas resoluções para ver aqui ordenados os casos que ele ler.</string>
   <string name="analysis_cases_blind">Uma resolução às cegas não tem casos. É lida como uma memorização e as peças resolvidas.</string>
@@ -1175,6 +1181,10 @@
   <string name="analysis_help_table_body">Média, melhor e desvio de cada passo. Toca num cabeçalho para ordenar por ele. Os passos com casos com nome, OLL e PLL, têm uma seta e abrem-nos.</string>
   <string name="analysis_help_spread">Desvio</string>
   <string name="analysis_help_spread_body">Quanto o passo muda de uma resolução para outra. Dois passos com a mesma média podem ser um que faz sempre igual e outro em que às vezes fica preso, e é isto que os distingue.</string>
+  <string name="analysis_help_standard">Algoritmos padrão</string>
+  <string name="analysis_help_standard_body">Cada caso da etapa conta uma vez, tal como o fizeste da última vez que apareceu na janela: com um dos algoritmos com que costuma ser ensinado, ou não. Dois algoritmos para um caso, ou um algoritmo teu, contam como fora do padrão. No F2L contam os seus 41 casos básicos.</string>
+  <string name="analysis_help_extra">Movimentos a mais</string>
+  <string name="analysis_help_extra_body">Os movimentos que fizeste a mais sobre o algoritmo habitual mais curto de cada um desses casos, somados. Uma fatia ou um movimento largo conta como os movimentos que o compõem. Um algoritmo mais curto conta como zero.</string>
   <string name="analysis_help_plan_title">Um plano</string>
   <string name="analysis_help_plan_body">Aqui nada é medido. O separador mostra o que um plano cobriria, e ainda não há nenhum. Os números que um plano usaria estão em Resolução e Casos, e esses continuam gratuitos.</string>
   <string name="analysis_help_cases_title">Que casos te custam</string>
