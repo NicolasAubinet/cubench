@@ -3,10 +3,13 @@ package com.cube.nanotimer;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.view.HeroStat;
 import com.cube.nanotimer.util.view.TimerFont;
 import com.cube.nanotimer.vo.CubeMethod;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,6 +76,7 @@ public enum Options {
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
   public static final String DRILL_PRESETS_KEY_PREFIX = "drill_case_presets_";
   public static final String CASE_OWN_ALGORITHM_KEY_PREFIX = "case_own_alg_";
+  public static final String CASE_MUTED_ALGORITHMS_KEY_PREFIX = "case_muted_algs_";
 
   private static final int MAX_STEPS_COUNT = 8;
 
@@ -390,6 +394,25 @@ public enum Options {
       sharedPreferences.edit().remove(key).apply();
     } else {
       sharedPreferences.edit().putString(key, algorithm).apply();
+    }
+  }
+
+  /**
+   * The algorithms of a case the user asked not to be flagged for turning, as they turned them,
+   * oldest first. A list rather than one, since a case can have more than one answer.
+   */
+  public List<String> getMutedCaseAlgorithms(String caseCode) {
+    String stored = sharedPreferences.getString(CASE_MUTED_ALGORITHMS_KEY_PREFIX + caseCode, null);
+    return stored == null || stored.isEmpty() ? new ArrayList<String>()
+        : new ArrayList<String>(Arrays.asList(stored.split("\n")));
+  }
+
+  public void setMutedCaseAlgorithms(String caseCode, List<String> algorithms) {
+    String key = CASE_MUTED_ALGORITHMS_KEY_PREFIX + caseCode;
+    if (algorithms.isEmpty()) {
+      sharedPreferences.edit().remove(key).apply();
+    } else {
+      sharedPreferences.edit().putString(key, TextUtils.join("\n", algorithms)).apply();
     }
   }
 

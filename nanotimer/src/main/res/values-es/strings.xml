@@ -991,6 +991,8 @@
   <string name="case_algorithm_mine">El que usas</string>
   <string name="case_algorithm_unusual">Poco común</string>
   <string name="case_algorithm_used">Esta resolución</string>
+  <string name="case_algorithm_mute">No señalar este algoritmo</string>
+  <string name="case_algorithm_unmute">Volver a señalar este algoritmo</string>
   <string name="case_algorithm_of_last">%1$d de tus últimos %2$d</string>
   <string name="case_algorithm_longer">%1$d movimientos, el habitual tiene %2$d</string>
   <string name="case_algorithm_recommended">Recomendado</string>

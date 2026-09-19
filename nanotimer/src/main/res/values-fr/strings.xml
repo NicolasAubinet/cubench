@@ -992,6 +992,8 @@
   <string name="case_algorithm_mine">Celui que vous utilisez</string>
   <string name="case_algorithm_unusual">Inhabituel</string>
   <string name="case_algorithm_used">Cette résolution</string>
+  <string name="case_algorithm_mute">Ne plus signaler cet algorithme</string>
+  <string name="case_algorithm_unmute">Signaler à nouveau cet algorithme</string>
   <string name="case_algorithm_of_last">%1$d de vos %2$d derniers</string>
   <string name="case_algorithm_longer">%1$d mouvements, l\'habituel en compte %2$d</string>
   <string name="case_algorithm_recommended">Recommandé</string>

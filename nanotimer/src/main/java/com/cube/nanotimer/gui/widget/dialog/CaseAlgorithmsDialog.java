@@ -20,6 +20,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CaseExecutions;
+import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
 import com.cube.nanotimer.cube.VirtualCube;
@@ -98,6 +99,9 @@ import java.util.List;
  * the question asked there is about the moves on the screen, not about a habit.
  */
 public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
+
+  /** Sent to the fragment manager whenever what is pointed out for a case may have changed. */
+  public static final String FLAGS_CHANGED = "case_flags_changed";
 
   private static final String ARG_CASE = "case";
   private static final String ARG_USED = "used";
@@ -442,11 +446,38 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       row.addView(note(getString(R.string.case_algorithm_longer, one.execution.getMoves(),
           one.execution.getUsualMoves())));
     }
+    if (one != null && one.execution.isUnusual()) {
+      row.addView(muteToggle(one.moves));
+    }
     if (emptySlot != null) {
       row.addView(note(getString("fl".equals(emptySlot) ? R.string.case_algorithm_empty_fl
           : R.string.case_algorithm_empty_br)));
     }
     return row;
+  }
+
+  /**
+   * Stops an algorithm off the list being pointed out, or starts it again: for a solver who turns it
+   * on purpose. The algorithm alone, so another way of turning the case is still pointed out.
+   */
+  private TextView muteToggle(final String moves) {
+    final boolean muted = CaseFlags.isMuted(caseCode, moves);
+    TextView toggle = note(getString(muted ? R.string.case_algorithm_unmute
+        : R.string.case_algorithm_mute));
+    toggle.setTextColor(ContextCompat.getColor(getActivity(), R.color.color_accent));
+    toggle.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        CaseFlags.setMuted(caseCode, moves, !muted);
+        flagsChanged();
+        refresh();
+      }
+    });
+    return toggle;
+  }
+
+  private void flagsChanged() {
+    getParentFragmentManager().setFragmentResult(FLAGS_CHANGED, new Bundle());
   }
 
   /** A line under an algorithm, for what will not fit in a chip. */
@@ -494,6 +525,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private void choose(String moves) {
     chosen = CaseAlgorithms.sameTurning(caseCode, moves, chosen) ? null : moves;
     Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
+    flagsChanged();
     refresh();
   }
 
@@ -545,6 +577,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private void keepOwn(String typed) {
     chosen = typed;
     Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
+    flagsChanged();
     for (Listed algorithm : CaseAlgorithms.shown(caseCode)) {
       if (CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), typed)) {
         refresh();

@@ -34,6 +34,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CaseExecutions;
+import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
@@ -123,6 +124,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     setUpActions(view);
     setUpSwipe(view);
     bindSolve(view);
+    // A case muted or picked in its dialog stops being pointed out here at once.
+    getParentFragmentManager().setFragmentResultListener(CaseAlgorithmsDialog.FLAGS_CHANGED, this,
+        (key, result) -> refreshFlags());
     return dialog;
   }
 
@@ -943,7 +947,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     if (!CaseAlgorithms.isWorthPointingOut(caseCode, moves)) {
       return;
     }
-    flaggedCases.add(new FlaggedCase(row == null ? null : (TextView) row.getChildAt(0), movesView));
+    flaggedCases.add(new FlaggedCase(row == null ? null : (TextView) row.getChildAt(0), movesView,
+        caseCode, moves));
     OnClickListener open = new OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -961,19 +966,35 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
   }
 
-  /** The places a flagged case's bulb can stand, as they read without it; either may be null. */
+  /**
+   * A case turned off its list, and the places its bulb can stand, as they read without it; either
+   * may be null. It stays tappable while muted, since its dialog is where the mute is undone.
+   */
   private static final class FlaggedCase {
     private final TextView name;
     private final CharSequence plainName;
     private final TextView moves;
     private final CharSequence plainMoves;
+    private final String caseCode;
+    private final String turned;
+    private boolean shown;
 
-    private FlaggedCase(TextView name, TextView moves) {
+    private FlaggedCase(TextView name, TextView moves, String caseCode, String turned) {
       this.name = name;
       this.plainName = name == null ? null : name.getText();
       this.moves = moves;
       this.plainMoves = moves == null ? null : moves.getText();
+      this.caseCode = caseCode;
+      this.turned = turned;
+      this.shown = !CaseFlags.isTheirs(caseCode, turned);
     }
+  }
+
+  private void refreshFlags() {
+    for (FlaggedCase flagged : flaggedCases) {
+      flagged.shown = !CaseFlags.isTheirs(flagged.caseCode, flagged.turned);
+    }
+    applyRowVisibility();
   }
 
   private final List<FlaggedCase> flaggedCases = new ArrayList<FlaggedCase>();
@@ -1005,12 +1026,12 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     for (FlaggedCase flagged : flaggedCases) {
       boolean onMoves = showMoves && flagged.moves != null;
       if (flagged.name != null) {
-        flagged.name.setText(
-            onMoves ? flagged.plainName : withBulb(flagged.plainName, flagged.name));
+        flagged.name.setText(flagged.shown && !onMoves
+            ? withBulb(flagged.plainName, flagged.name) : flagged.plainName);
       }
       if (flagged.moves != null) {
-        flagged.moves.setText(
-            onMoves ? withBulb(flagged.plainMoves, flagged.moves) : flagged.plainMoves);
+        flagged.moves.setText(flagged.shown && onMoves
+            ? withBulb(flagged.plainMoves, flagged.moves) : flagged.plainMoves);
       }
     }
   }
