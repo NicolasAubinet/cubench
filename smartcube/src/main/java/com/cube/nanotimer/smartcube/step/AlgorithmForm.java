@@ -248,7 +248,7 @@ public final class AlgorithmForm {
    */
   static String mirroredNotation(String algorithm) {
     StringBuilder mirrored = new StringBuilder();
-    for (String token : algorithm.trim().split("\s+")) {
+    for (String token : algorithm.trim().split("\\s+")) {
       if (token.isEmpty()) {
         continue;
       }

@@ -99,7 +99,9 @@ public final class CaseAlgorithms {
       return null;
     }
     F2LCaseAlgorithms.Algorithm matched = F2LCaseAlgorithms.matching(pairCase(caseCode), moves);
-    return matched == null ? null : matched.getEmptySlot();
+    // A mirror empties the slot across from the one its algorithm names.
+    return matched == null || !sameTurning(caseCode, matched.getMoves(), moves) ? null
+        : matched.getEmptySlot();
   }
 
   /** @see AlgorithmList#read */
