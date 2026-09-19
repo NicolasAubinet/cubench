@@ -1005,6 +1005,7 @@
   <string name="case_algorithm_empty_br">Nécessite le slot arrière droit vide</string>
   <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
   <string name="case_algorithms_pair_open">Algorithmes pour cette paire</string>
+  <string name="case_algorithms_case_open">Algorithmes pour ce cas</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Essais</string>
   <string name="drill_reps_all">Tous</string>

@@ -47,7 +47,6 @@ import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.BlindResidual;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
-import com.cube.nanotimer.smartcube.step.F2LCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LostReading;
 import com.cube.nanotimer.smartcube.step.ParityCheck;
 import com.cube.nanotimer.util.helper.GUIUtils;
@@ -267,7 +266,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     ((TableLayout) v.findViewById(R.id.breakdownTable)).removeAllViews();
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setHighlightedStep(-1);
     breakdownRows.clear();
-    unlistedPairs.clear();
+    flaggedCases.clear();
     breakdownSteps = null;
     breakdownMoves = null;
     pickedStep = -1;
@@ -689,6 +688,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       stepRows.color = colors[slots[i] % colors.length];
       stepRows.moves = movesRow(table, R.style.BreakdownMoves, dim(groupsOf(solution, i)));
       List<SolveStep> parts = step.getSubSteps();
+      if (parts.isEmpty()) {
+        markCase(CaseExecutions.caseOfStep(step.getName()), partMovesOf(solution, i, 0), null,
+            stepRows.moves);
+      }
       for (int j = 0; j < parts.size(); j++) {
         TableRow partRow =
             subStepRow(parts.get(j), partPositions[i][j], partMoveCountOf(solution, i, j));
@@ -697,7 +700,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         TextView partMoves =
             movesRow(table, R.style.BreakdownSubMoves, dim(partGroupOf(solution, i, j)));
         stepRows.partMoves.add(partMoves);
-        markUnlistedPair(parts.get(j).getName(), partMovesOf(solution, i, j), partRow, partMoves);
+        markCase(CaseExecutions.caseOfPart(parts.get(j).getName()), partMovesOf(solution, i, j),
+            partRow, partMoves);
       }
       breakdownRows.add(stepRows);
       makePickable(v, row, i);
@@ -926,50 +930,53 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     });
   }
 
-  /** A bulb on an F2L pair turned with none of its case's algorithms; tapping the pair opens them
-   * beside the moves it turned. It ends the pair's moves, or the pair's own row while the moves are
-   * hidden. */
-  private void markUnlistedPair(String code, final String moves, TableRow partRow,
-      TextView partMoves) {
-    final String caseCode = CaseExecutions.caseOfPart(code);
-    if (!CaseAlgorithms.isPair(caseCode) || moves == null || moves.trim().isEmpty()
-        || !F2LCaseAlgorithms.isUnlisted(CaseAlgorithms.pairCase(caseCode), moves)) {
+  /**
+   * A bulb on a case turned in a way worth pointing out, an F2L pair or a last layer algorithm;
+   * tapping it opens the case's algorithms beside the moves it turned. It ends the moves, or the
+   * name while the moves are hidden. A whole step's name keeps its own tap, which picks the step,
+   * so its bulb lives on the moves alone.
+   *
+   * @param row the part's row, which the tap is given to, or null for a whole step
+   */
+  private void markCase(final String caseCode, final String moves, TableRow row,
+      TextView movesView) {
+    if (!CaseAlgorithms.isWorthPointingOut(caseCode, moves)) {
       return;
     }
-    TextView name = (TextView) partRow.getChildAt(0);
-    UnlistedPair pair = new UnlistedPair(name, partMoves);
-    unlistedPairs.add(pair);
+    flaggedCases.add(new FlaggedCase(row == null ? null : (TextView) row.getChildAt(0), movesView));
     OnClickListener open = new OnClickListener() {
       @Override
       public void onClick(View view) {
         DialogUtils.showFragment(getActivity(), CaseAlgorithmsDialog.newInstance(caseCode, moves));
       }
     };
-    for (View target : new View[] {partRow, partMoves}) {
+    String action = getString(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithms_pair_open
+        : R.string.case_algorithms_case_open);
+    for (View target : new View[] {row, movesView}) {
       if (target != null) {
         target.setOnClickListener(open);
         ViewCompat.replaceAccessibilityAction(target, AccessibilityActionCompat.ACTION_CLICK,
-            getString(R.string.case_algorithms_pair_open), null);
+            action, null);
       }
     }
   }
 
-  /** The two places an unlisted pair's bulb can stand, as they read without it. */
-  private static final class UnlistedPair {
+  /** The places a flagged case's bulb can stand, as they read without it; either may be null. */
+  private static final class FlaggedCase {
     private final TextView name;
     private final CharSequence plainName;
     private final TextView moves;
     private final CharSequence plainMoves;
 
-    private UnlistedPair(TextView name, TextView moves) {
+    private FlaggedCase(TextView name, TextView moves) {
       this.name = name;
-      this.plainName = name.getText();
+      this.plainName = name == null ? null : name.getText();
       this.moves = moves;
       this.plainMoves = moves == null ? null : moves.getText();
     }
   }
 
-  private final List<UnlistedPair> unlistedPairs = new ArrayList<UnlistedPair>();
+  private final List<FlaggedCase> flaggedCases = new ArrayList<FlaggedCase>();
 
   /** Text with the bulb after it, drawn at the size of the text it ends. */
   private CharSequence withBulb(CharSequence text, TextView view) {
@@ -995,11 +1002,15 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         setVisible(step.partMoves.get(i), step.expanded && showMoves);
       }
     }
-    for (UnlistedPair pair : unlistedPairs) {
-      boolean onMoves = showMoves && pair.moves != null;
-      pair.name.setText(onMoves ? pair.plainName : withBulb(pair.plainName, pair.name));
-      if (pair.moves != null) {
-        pair.moves.setText(onMoves ? withBulb(pair.plainMoves, pair.moves) : pair.plainMoves);
+    for (FlaggedCase flagged : flaggedCases) {
+      boolean onMoves = showMoves && flagged.moves != null;
+      if (flagged.name != null) {
+        flagged.name.setText(
+            onMoves ? flagged.plainName : withBulb(flagged.plainName, flagged.name));
+      }
+      if (flagged.moves != null) {
+        flagged.moves.setText(
+            onMoves ? withBulb(flagged.plainMoves, flagged.moves) : flagged.plainMoves);
       }
     }
   }

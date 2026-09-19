@@ -242,7 +242,7 @@ public final class CaseExecutions {
   }
 
   /** The case a last layer step was handed, or null for any other step. */
-  private static String caseOfStep(String name) {
+  public static String caseOfStep(String name) {
     String caseName = MethodStatistics.caseOf(name);
     if (caseName == null || MethodStatistics.SKIP.equals(caseName)) {
       return null;

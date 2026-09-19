@@ -78,6 +78,19 @@ public final class CaseAlgorithms {
         : LastLayerCaseAlgorithms.read(caseCode, moves);
   }
 
+  /**
+   * Whether an execution is worth pointing out: an F2L pair turned with none of its case's
+   * algorithms ({@link F2LCaseAlgorithms#isUnlisted}), or a last layer case turned with one hardly
+   * anybody uses ({@link LastLayerCaseAlgorithms#read}).
+   */
+  public static boolean isWorthPointingOut(String caseCode, String moves) {
+    if (caseCode == null || moves == null || moves.trim().isEmpty()) {
+      return false;
+    }
+    return isPair(caseCode) ? F2LCaseAlgorithms.isUnlisted(pairCase(caseCode), moves)
+        : LastLayerCaseAlgorithms.read(caseCode, moves).isUnusual();
+  }
+
   /** @see LastLayerCaseAlgorithms#sameTurning */
   public static boolean sameTurning(String caseCode, String moves, String other) {
     return isPair(caseCode) ? F2LCaseAlgorithms.sameTurning(pairCase(caseCode), moves, other)

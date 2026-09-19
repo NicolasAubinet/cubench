@@ -1049,6 +1049,7 @@
   <string name="case_algorithm_empty_br">Needs the back-right slot empty</string>
   <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
   <string name="case_algorithms_pair_open">Algorithms for this pair</string>
+  <string name="case_algorithms_case_open">Algorithms for this case</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Reps</string>
   <string name="drill_reps_all">All</string>

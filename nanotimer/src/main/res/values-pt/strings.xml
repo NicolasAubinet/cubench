@@ -1007,6 +1007,7 @@
   <string name="case_algorithm_empty_br">Precisa do slot traseiro direito vazio</string>
   <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
   <string name="case_algorithms_pair_open">Algoritmos para este par</string>
+  <string name="case_algorithms_case_open">Algoritmos para este caso</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Repetições</string>
   <string name="drill_reps_all">Todos</string>
