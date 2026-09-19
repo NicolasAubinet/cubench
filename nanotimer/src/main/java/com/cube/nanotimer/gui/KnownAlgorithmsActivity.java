@@ -12,6 +12,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.CaseExecutions;
+import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
@@ -238,7 +239,8 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
     ((TextView) row.findViewById(R.id.tvKnownAlgorithmsMoves))
         .setText(shown == null ? getString(R.string.known_algorithms_no_moves) : shown.moves);
 
-    boolean unusual = shown != null && shown.execution.isUnusual();
+    boolean unusual = shown != null && shown.execution.isUnusual()
+        && !CaseFlags.isTheirs(code, shown.moves);
     row.findViewById(R.id.tvKnownAlgorithmsUnusual)
         .setVisibility(unusual ? View.VISIBLE : View.GONE);
     TextView longer = row.findViewById(R.id.tvKnownAlgorithmsLonger);

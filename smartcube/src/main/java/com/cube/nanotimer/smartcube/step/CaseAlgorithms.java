@@ -25,18 +25,18 @@ public final class CaseAlgorithms {
     return caseCode != null && caseCode.startsWith(PAIR_PREFIX);
   }
 
-  /** The algorithms to show for the case, most used first. */
+  /** The algorithms the case is listed with, most used first: see {@link AlgorithmList}. */
   public static List<Listed> shown(String caseCode) {
     List<Listed> shown = new ArrayList<Listed>();
     if (isPair(caseCode)) {
       for (F2LCaseAlgorithms.Algorithm algorithm
-          : F2LCaseAlgorithms.shownForCase(pairCase(caseCode))) {
+          : F2LCaseAlgorithms.listed(pairCase(caseCode))) {
         shown.add(new Listed(algorithm.getMoves(), algorithm.isRecommended(),
             algorithm.getEmptySlot()));
       }
     } else {
       for (LastLayerCaseAlgorithms.Algorithm algorithm
-          : LastLayerCaseAlgorithms.foldedForCase(caseCode)) {
+          : LastLayerCaseAlgorithms.listed(caseCode)) {
         shown.add(new Listed(algorithm.getMoves(), algorithm.isRecommended(), null));
       }
     }
@@ -45,22 +45,52 @@ public final class CaseAlgorithms {
 
   /**
    * How an execution is written where it is shown: the table's spelling where it is one of the
-   * case's algorithms, and otherwise the execution itself, tidied.
+   * case's algorithms, and otherwise the execution itself, tidied. A mirror of a listed algorithm is
+   * that algorithm when it comes to reading it, but is shown the way it was turned.
    */
   public static String asAlgorithm(String caseCode, String moves) {
     if (moves == null) {
       return null;
     }
-    if (isPair(caseCode)) {
-      F2LCaseAlgorithms.Algorithm matched = F2LCaseAlgorithms.matching(pairCase(caseCode), moves);
-      if (matched != null) {
-        return matched.getMoves();
+    String matched = matchingMoves(caseCode, moves);
+    if (matched != null) {
+      if (sameTurning(caseCode, matched, moves)) {
+        return matched;
       }
+      String mirror = mirrorShown(caseCode, matched, moves);
+      if (mirror != null) {
+        return mirror;
+      }
+    }
+    if (isPair(caseCode)) {
       String turned = F2LCaseAlgorithms.asTurned(pairCase(caseCode), moves);
       return turned == null ? moves : turned;
     }
+    return LastLayerCaseAlgorithms.tidied(caseCode, moves);
+  }
+
+  /**
+   * The listed algorithm's mirror, where that is what the moves turned: with a turn of the cube in
+   * front where the mirror only solves the case stood another way, as an F2L pair's does.
+   */
+  private static String mirrorShown(String caseCode, String matched, String moves) {
+    String mirror = AlgorithmForm.mirroredNotation(matched);
+    for (String spin : new String[] {"", "y ", "y' ", "y2 "}) {
+      String held = spin + mirror;
+      if (solves(caseCode, held) && sameTurning(caseCode, held, moves)) {
+        return held;
+      }
+    }
+    return null;
+  }
+
+  private static String matchingMoves(String caseCode, String moves) {
+    if (isPair(caseCode)) {
+      F2LCaseAlgorithms.Algorithm matched = F2LCaseAlgorithms.matching(pairCase(caseCode), moves);
+      return matched == null ? null : matched.getMoves();
+    }
     LastLayerCaseAlgorithms.Algorithm matched = LastLayerCaseAlgorithms.matching(caseCode, moves);
-    return matched == null ? LastLayerCaseAlgorithms.tidied(caseCode, moves) : matched.getMoves();
+    return matched == null ? null : matched.getMoves();
   }
 
   /** The slot ("fl", "br") that must be empty for the algorithm the moves are, or null for none. */
@@ -69,13 +99,21 @@ public final class CaseAlgorithms {
       return null;
     }
     F2LCaseAlgorithms.Algorithm matched = F2LCaseAlgorithms.matching(pairCase(caseCode), moves);
-    return matched == null ? null : matched.getEmptySlot();
+    // A mirror empties the slot across from the one its algorithm names.
+    return matched == null || !sameTurning(caseCode, matched.getMoves(), moves) ? null
+        : matched.getEmptySlot();
   }
 
-  /** @see LastLayerCaseAlgorithms#read */
+  /** @see AlgorithmList#read */
   public static AlgorithmExecution read(String caseCode, String moves) {
     return isPair(caseCode) ? F2LCaseAlgorithms.read(pairCase(caseCode), moves)
         : LastLayerCaseAlgorithms.read(caseCode, moves);
+  }
+
+  /** Whether an execution is none of the algorithms its case is listed with: see {@link #read}. */
+  public static boolean isWorthPointingOut(String caseCode, String moves) {
+    return caseCode != null && moves != null && !moves.trim().isEmpty()
+        && read(caseCode, moves).isUnusual();
   }
 
   /** @see LastLayerCaseAlgorithms#sameTurning */

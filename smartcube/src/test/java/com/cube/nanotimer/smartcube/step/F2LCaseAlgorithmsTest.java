@@ -100,8 +100,9 @@ public class F2LCaseAlgorithmsTest {
     for (String[] row : F2LCaseAlgorithms.rows()) {
       int turnings = 0;
       for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(row[0])) {
-        if (F2LCaseAlgorithms.indexOfTurning(row[0],
-            Collections.singletonList(AlgorithmForm.comparable(algorithm.getMoves())), row[1]) >= 0) {
+        if (AlgorithmForm.indexOfTurning(
+            Collections.singletonList(AlgorithmForm.comparable(algorithm.getMoves())), row[1],
+            stood -> F2LCaseAlgorithms.solves(row[0], stood)) >= 0) {
           turnings++;
         }
       }
@@ -132,19 +133,19 @@ public class F2LCaseAlgorithmsTest {
     return Cubies.inPlace(state, Cubies.CORNERS[corner]) && Cubies.inPlace(state, Cubies.EDGES[edge]);
   }
 
-  /** Shown by the last layer rules: case 7's top three hold 28, 22 and 21%, too close to call. */
+  /** Listed by the last layer rules: case 7's top three hold 71%, so a fourth is needed for 80. */
   @Test
-  public void showsTheAlgorithmsAtOrAboveTheFloorWithoutARecommendationOnACloseVote() {
-    List<F2LCaseAlgorithms.Algorithm> shown = F2LCaseAlgorithms.shownForCase("7");
+  public void listsUntilMostVotesAreHeldWithoutARecommendationOnACloseVote() {
+    List<F2LCaseAlgorithms.Algorithm> shown = F2LCaseAlgorithms.listed("7");
 
-    assertEquals(3, shown.size());
+    assertEquals(4, shown.size());
     assertEquals("U' R U2 R' U' R U2 R'", shown.get(0).getMoves());
     assertFalse(shown.get(0).isRecommended());
   }
 
   @Test
   public void showsOnlyTheMostVotedWhereNothingElseComesClose() {
-    assertEquals(1, F2LCaseAlgorithms.shownForCase("3").size());
+    assertEquals(1, F2LCaseAlgorithms.listed("3").size());
   }
 
   /** Into front left: the regrips folded into the faces turned, one rotation stands it in FR. */
@@ -181,13 +182,13 @@ public class F2LCaseAlgorithmsTest {
     assertFalse(F2LCaseAlgorithms.read("6", "R' U' R U' F' U F").isUnusual());
     assertFalse(F2LCaseAlgorithms.read("5", "U' L U R L' U' R'").isUnusual());
     assertFalse(F2LCaseAlgorithms.read("7", "U B U2 B' U' R U' R'").isUnusual());
-    assertFalse(F2LCaseAlgorithms.isUnlisted("6", "R' U' R U' F' U F"));
+    assertFalse(CaseAlgorithms.isWorthPointingOut("pair_6", "R' U' R U' F' U F"));
   }
 
   @Test
   public void readsAPairBuiltThroughAFreeSlotInMoreTurnsAsUnusual() {
     assertTrue(F2LCaseAlgorithms.read("6", "F' U' F R' U R U F' U F").isUnusual());
-    assertTrue(F2LCaseAlgorithms.isUnlisted("6", "F' U' F R' U R U F' U F"));
+    assertTrue(CaseAlgorithms.isWorthPointingOut("pair_6", "F' U' F R' U R U F' U F"));
   }
 
   @Test

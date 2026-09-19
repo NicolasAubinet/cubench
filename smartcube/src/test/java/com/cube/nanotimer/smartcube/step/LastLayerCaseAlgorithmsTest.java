@@ -70,7 +70,7 @@ public class LastLayerCaseAlgorithmsTest {
   @Test
   public void putsTheMostUsedFirst() {
     for (String code : LastLayerScrambles.cases()) {
-      List<LastLayerCaseAlgorithms.Algorithm> shown = LastLayerCaseAlgorithms.forCase(code);
+      List<LastLayerCaseAlgorithms.Algorithm> shown = LastLayerCaseAlgorithms.listed(code);
       int previous = shown.get(0).getShare();
       for (int i = 1; i < shown.size(); i++) {
         assertFalse(code, shown.get(i).isRecommended());
@@ -83,12 +83,11 @@ public class LastLayerCaseAlgorithmsTest {
   /** A case the world is split on is not handed a recommendation it does not have. */
   @Test
   public void recommendsOnlyWhereTheVoteIsNotClose() {
-    // OLL 13's top two are level; OLL 5 and the Na are two to one.
-    assertFalse(LastLayerCaseAlgorithms.forCase("oll_13").get(0).isRecommended());
-    assertTrue(LastLayerCaseAlgorithms.forCase("oll_5").get(0).isRecommended());
-    assertTrue(LastLayerCaseAlgorithms.forCase("pll_na").get(0).isRecommended());
+    // OLL 13's top two are level; the Na's first is more than twice its second.
+    assertFalse(LastLayerCaseAlgorithms.listed("oll_13").get(0).isRecommended());
+    assertTrue(LastLayerCaseAlgorithms.listed("pll_na").get(0).isRecommended());
     // Nothing to be clearer than, so nothing is claimed.
-    List<LastLayerCaseAlgorithms.Algorithm> alone = LastLayerCaseAlgorithms.forCase("pll_jb");
+    List<LastLayerCaseAlgorithms.Algorithm> alone = LastLayerCaseAlgorithms.listed("pll_jb");
     assertEquals(1, alone.size());
     assertFalse(alone.get(0).isRecommended());
   }
@@ -117,32 +116,27 @@ public class LastLayerCaseAlgorithmsTest {
     }
   }
 
-  /** Nothing quiet is shown beside the most used one, and no case turns into a catalogue. */
+  /** Listed until most of the votes are held, and not one algorithm further. */
   @Test
-  public void showsOnlyTheAlgorithmsPeopleUse() {
+  public void listsTheFewestAlgorithmsHoldingMostOfTheVotes() {
     for (String code : LastLayerScrambles.cases()) {
-      List<LastLayerCaseAlgorithms.Algorithm> shown = LastLayerCaseAlgorithms.forCase(code);
-      assertTrue(code, shown.size() <= 4);
-      for (int i = 1; i < shown.size(); i++) {
-        assertTrue(code + " " + shown.get(i).getShare() + "%",
-            shown.get(i).getShare() >= LastLayerCaseAlgorithms.DEFAULT_MIN_SHARE);
+      List<LastLayerCaseAlgorithms.Algorithm> listed = LastLayerCaseAlgorithms.listed(code);
+      int held = 0;
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : listed) {
+        held += algorithm.getShare();
       }
+      int beforeLast = held - listed.get(listed.size() - 1).getShare();
+      assertTrue(code + " holds " + held, held >= AlgorithmList.COVERED_VOTES - 2); // rounding
+      assertTrue(code + " already held " + beforeLast, beforeLast < AlgorithmList.COVERED_VOTES + 2);
     }
   }
 
-  /** A case everyone solves the same way is shown one way, whatever else is on file. */
+  /** A case everyone solves the same way is listed one way, whatever else is on file. */
   @Test
-  public void showsOneAlgorithmForACaseWithOneAnswer() {
-    assertEquals(1, LastLayerCaseAlgorithms.forCase("pll_jb").size());
-    assertEquals(1, LastLayerCaseAlgorithms.forCase("oll_27").size());
-    assertTrue(LastLayerCaseAlgorithms.forCase("pll_ua").size() > 1);
-  }
-
-  @Test
-  public void raisingTheThresholdNarrowsTheChoice() {
-    assertEquals(1, LastLayerCaseAlgorithms.forCase("pll_ua", 100).size());
-    assertTrue(LastLayerCaseAlgorithms.forCase("pll_ua", 1).size()
-        >= LastLayerCaseAlgorithms.forCase("pll_ua").size());
+  public void listsOneAlgorithmForACaseWithOneAnswer() {
+    assertEquals(1, LastLayerCaseAlgorithms.listed("pll_jb").size());
+    assertEquals(1, LastLayerCaseAlgorithms.listed("oll_27").size());
+    assertTrue(LastLayerCaseAlgorithms.listed("pll_ua").size() > 1);
   }
 
   /**
@@ -191,7 +185,8 @@ public class LastLayerCaseAlgorithmsTest {
     List<String> missed = new ArrayList<String>();
     for (String[] row : LastLayerCaseAlgorithms.rows()) {
       LastLayerCaseAlgorithms.Algorithm matched = LastLayerCaseAlgorithms.matching(row[0], row[1]);
-      if (matched == null || !sameAlgorithm(matched.getMoves(), row[1])) {
+      if (matched == null || !(sameAlgorithm(matched.getMoves(), row[1])
+          || mirrorOf(matched.getMoves(), row[1]))) {
         missed.add(row[0] + " | " + row[1] + " | read as "
             + (matched == null ? "none of them" : matched.getMoves()));
       }
@@ -238,24 +233,23 @@ public class LastLayerCaseAlgorithmsTest {
   }
 
   /**
-   * The fold: OLL 45's four rows are two algorithms, so its second answer holds a sixth of the case
-   * rather than the eighth its own row shows. Every share is wrong until this is done.
+   * The fold: OLL 45's four rows are one algorithm, turned with either hand and with the wide or the
+   * slice, so the case has one answer rather than the two its rows suggest.
    */
   @Test
   public void foldsTheRowsThatAreOneAlgorithmSaidTwice() {
     List<LastLayerCaseAlgorithms.Algorithm> folded = LastLayerCaseAlgorithms.folded("oll_45");
 
     assertEquals(4, rowsFor("oll_45"));
-    assertEquals(2, folded.size());
+    assertEquals(1, folded.size());
     assertEquals("F R U R' U' F'", folded.get(0).getMoves());
-    assertEquals(84, folded.get(0).getShare());
-    assertEquals(16, folded.get(1).getShare());
+    assertEquals(100, folded.get(0).getShare());
   }
 
   /**
-   * How much of the table it is, pinned: 57 of the 304 rows are another row said differently. A new
-   * row changing these two numbers is expected; one changing only the second is a duplicate that
-   * was not spotted when it was added.
+   * How much of the table it is, pinned: 75 of the 304 rows are another row said differently, a
+   * mirror included. A new row changing these two numbers is expected; one changing only the second
+   * is a duplicate that was not spotted when it was added.
    */
   @Test
   public void foldsAwayASixthOfTheTable() {
@@ -265,7 +259,7 @@ public class LastLayerCaseAlgorithmsTest {
     }
 
     assertEquals(304, LastLayerCaseAlgorithms.rows().size());
-    assertEquals(247, folded);
+    assertEquals(229, folded);
   }
 
   /** Folding moves votes between spellings of a case and never in or out of it. */
@@ -287,22 +281,18 @@ public class LastLayerCaseAlgorithmsTest {
         .read("pll_jb", "R U R' F' R U R' U' R' F R2 U' R'").isUnusual());
     assertTrue(LastLayerCaseAlgorithms
         .read("pll_jb", "R U2 R' U' R U2 L' U R' U' L").isUnusual());
-    // Folded to a sixth of the case between them, so neither of the two below it is rare either.
-    assertFalse(LastLayerCaseAlgorithms
+    assertTrue(LastLayerCaseAlgorithms
         .read("pll_jb", "r' F R F' r U2 R' U R U2 R'").isUnusual());
   }
 
-  /**
-   * And a flat one: four spellings between a sixth and a third, none of them odd to turn. Four and
-   * not two, because the Z perm's pairs are reflections rather than the same turning from another
-   * grip, which is a limit of reading moves and costs nothing while each half clears the floor.
-   */
+  /** The Z perm's four rows are two algorithms, each also written with U and U' swapped: a mirror. */
   @Test
-  public void readsNothingOnACaseTheWorldIsSplitAcrossAsUnusual() {
-    assertEquals(4, LastLayerCaseAlgorithms.folded("pll_z").size());
-    for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded("pll_z")) {
-      assertFalse(algorithm.getMoves(),
-          LastLayerCaseAlgorithms.read("pll_z", algorithm.getMoves()).isUnusual());
+  public void foldsAMirrorIntoTheAlgorithmItMirrors() {
+    assertEquals(2, LastLayerCaseAlgorithms.folded("pll_z").size());
+    assertEquals(2, LastLayerCaseAlgorithms.listed("pll_z").size());
+    for (String z : new String[] {"M' U M2 U M2 U M' U2 M2", "M2 U' M2 U' M' U2 M2 U2 M'",
+        "M' U' M2 U' M2 U' M' U2 M2", "M2 U M2 U M' U2 M2 U2 M'"}) {
+      assertFalse(z, LastLayerCaseAlgorithms.read("pll_z", z).isUnusual());
     }
   }
 
@@ -406,6 +396,11 @@ public class LastLayerCaseAlgorithmsTest {
     return rows;
   }
 
+  private static boolean mirrorOf(String one, String other) {
+    String mirror = AlgorithmForm.written(AlgorithmForm.mirrored(AlgorithmForm.of(other)));
+    return AlgorithmForm.keyFromAnyGrip(one).equals(AlgorithmForm.keyFromAnyGrip(mirror));
+  }
+
   private static boolean sameAlgorithm(String one, String other) {
     return AlgorithmForm.withoutAlignment(AlgorithmForm.of(one))
         .equals(AlgorithmForm.withoutAlignment(AlgorithmForm.of(other)));
@@ -453,7 +448,7 @@ public class LastLayerCaseAlgorithmsTest {
   public void aFoldedListNeverShowsTheSameAlgorithmTwice() {
     int twiceUnfolded = 0;
     for (String code : LastLayerScrambles.cases()) {
-      assertFalse(code, saysOneAlgorithmTwice(code, LastLayerCaseAlgorithms.foldedForCase(code)));
+      assertFalse(code, saysOneAlgorithmTwice(code, LastLayerCaseAlgorithms.listed(code)));
       if (saysOneAlgorithmTwice(code, LastLayerCaseAlgorithms.forCase(code))) {
         twiceUnfolded++;
       }
@@ -466,7 +461,7 @@ public class LastLayerCaseAlgorithmsTest {
   public void foldingCanChangeWhichRowComesFirst() {
     int moved = 0;
     for (String code : LastLayerScrambles.cases()) {
-      List<LastLayerCaseAlgorithms.Algorithm> folded = LastLayerCaseAlgorithms.foldedForCase(code);
+      List<LastLayerCaseAlgorithms.Algorithm> folded = LastLayerCaseAlgorithms.folded(code);
       List<LastLayerCaseAlgorithms.Algorithm> unfolded = LastLayerCaseAlgorithms.forCase(code);
       if (!folded.isEmpty() && !unfolded.isEmpty()
           && !LastLayerCaseAlgorithms.sameTurning(code, folded.get(0).getMoves(),
@@ -558,7 +553,7 @@ public class LastLayerCaseAlgorithmsTest {
           continue;
         }
         for (LastLayerCaseAlgorithms.Algorithm drawn
-            : LastLayerCaseAlgorithms.foldedForCase(row[0])) {
+            : LastLayerCaseAlgorithms.listed(row[0])) {
           if (LastLayerCaseAlgorithms.sameTurning(row[0], drawn.getMoves(), written.getMoves())) {
             checked++;
             assertEquals(row[0] + " turned as " + executed,

@@ -1036,6 +1036,8 @@
   <string name="case_algorithm_mine">The one you use</string>
   <string name="case_algorithm_unusual">Unusual</string>
   <string name="case_algorithm_used">This solve</string>
+  <string name="case_algorithm_mute">Don\'t flag this algorithm</string>
+  <string name="case_algorithm_unmute">Flag this algorithm again</string>
   <string name="case_algorithm_of_last">%1$d of your last %2$d</string>
   <string name="case_algorithm_longer">%1$d moves, the usual one is %2$d</string>
   <string name="case_algorithm_recommended">Recommended</string>
@@ -1049,6 +1051,7 @@
   <string name="case_algorithm_empty_br">Needs the back-right slot empty</string>
   <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
   <string name="case_algorithms_pair_open">Algorithms for this pair</string>
+  <string name="case_algorithms_case_open">Algorithms for this case</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Reps</string>
   <string name="drill_reps_all">All</string>

@@ -994,6 +994,8 @@
   <string name="case_algorithm_mine">O que utiliza</string>
   <string name="case_algorithm_unusual">Pouco comum</string>
   <string name="case_algorithm_used">Esta resolução</string>
+  <string name="case_algorithm_mute">Não assinalar este algoritmo</string>
+  <string name="case_algorithm_unmute">Voltar a assinalar este algoritmo</string>
   <string name="case_algorithm_of_last">%1$d das suas últimas %2$d</string>
   <string name="case_algorithm_longer">%1$d movimentos, o habitual tem %2$d</string>
   <string name="case_algorithm_recommended">Recomendado</string>
@@ -1007,6 +1009,7 @@
   <string name="case_algorithm_empty_br">Precisa do slot traseiro direito vazio</string>
   <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
   <string name="case_algorithms_pair_open">Algoritmos para este par</string>
+  <string name="case_algorithms_case_open">Algoritmos para este caso</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Repetições</string>
   <string name="drill_reps_all">Todos</string>

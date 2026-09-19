@@ -992,6 +992,8 @@
   <string name="case_algorithm_mine">Celui que vous utilisez</string>
   <string name="case_algorithm_unusual">Inhabituel</string>
   <string name="case_algorithm_used">Cette résolution</string>
+  <string name="case_algorithm_mute">Ne plus signaler cet algorithme</string>
+  <string name="case_algorithm_unmute">Signaler à nouveau cet algorithme</string>
   <string name="case_algorithm_of_last">%1$d de vos %2$d derniers</string>
   <string name="case_algorithm_longer">%1$d mouvements, l\'habituel en compte %2$d</string>
   <string name="case_algorithm_recommended">Recommandé</string>
@@ -1005,6 +1007,7 @@
   <string name="case_algorithm_empty_br">Nécessite le slot arrière droit vide</string>
   <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
   <string name="case_algorithms_pair_open">Algorithmes pour cette paire</string>
+  <string name="case_algorithms_case_open">Algorithmes pour ce cas</string>
   <string name="drill_case_algorithm">Alg</string>
   <string name="drill_reps">Essais</string>
   <string name="drill_reps_all">Tous</string>
