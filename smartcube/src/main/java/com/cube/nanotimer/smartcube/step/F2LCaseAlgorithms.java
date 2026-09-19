@@ -747,6 +747,11 @@ public final class F2LCaseAlgorithms {
   private static final String[] TILTS = {"", "z2", "x", "x'", "z", "z'"};
   private static final String[] SPINS = {"", "y", "y'", "y2"};
 
+  /** The slots other than front right, as their corner and their edge. */
+  private static final int[][] OTHER_SLOTS = {
+    {Cubies.DLF, Cubies.FL}, {Cubies.DBL, Cubies.BL}, {Cubies.DRB, Cubies.BR},
+  };
+
   private F2LCaseAlgorithms() {
   }
 
@@ -807,7 +812,9 @@ public final class F2LCaseAlgorithms {
 
   /**
    * Whether the execution is one hardly anybody turns, and how long it is beside the shortest
-   * algorithm in use, by the same rules as {@link LastLayerCaseAlgorithms#read}.
+   * algorithm in use, by the same rules as {@link LastLayerCaseAlgorithms#read}. A pair built
+   * through another unsolved slot in no more turns than that is not unusual, listed or not: see
+   * {@link #usesFreeSlot}.
    */
   public static AlgorithmExecution read(String pairCase, String executedMoves) {
     if (pairCase == null || executedMoves == null || AlgorithmForm.key(executedMoves) == null) {
@@ -815,8 +822,6 @@ public final class F2LCaseAlgorithms {
     }
     List<Algorithm> algorithms = forCase(pairCase);
     int at = indexOfTurning(pairCase, formsOf(algorithms), executedMoves);
-    boolean unusual = !algorithms.isEmpty() && (at < 0
-        || (at > 0 && algorithms.get(at).getShare() < LastLayerCaseAlgorithms.UNUSUAL_SHARE));
     int shortest = 0;
     for (int i = 0; i < algorithms.size(); i++) {
       if (i > 0 && algorithms.get(i).getShare() < LastLayerCaseAlgorithms.UNUSUAL_SHARE) {
@@ -827,8 +832,42 @@ public final class F2LCaseAlgorithms {
         shortest = length;
       }
     }
-    return new AlgorithmExecution(unusual,
-        AlgorithmForm.lengthAsDrawn(executedMoves, drawn(pairCase)), shortest);
+    int moves = AlgorithmForm.lengthAsDrawn(executedMoves, drawn(pairCase));
+    boolean unusual = !algorithms.isEmpty() && (at < 0
+        || (at > 0 && algorithms.get(at).getShare() < LastLayerCaseAlgorithms.UNUSUAL_SHARE));
+    if (unusual && at < 0 && moves <= shortest && usesFreeSlot(pairCase, executedMoves)) {
+      unusual = false;
+    }
+    return new AlgorithmExecution(unusual, moves, shortest);
+  }
+
+  /**
+   * Whether a pair was turned with none of its case's algorithms, nor through a free slot in as few
+   * turns: the pairs worth pointing out.
+   */
+  public static boolean isUnlisted(String pairCase, String executedMoves) {
+    return matching(pairCase, executedMoves) == null
+        && read(pairCase, executedMoves).isUnusual();
+  }
+
+  /**
+   * Whether the execution leaves another slot changed, which it can only do by building the pair
+   * through a slot not yet solved. Such tricks are as many as the free slots around a case, so no
+   * sheet lists them all: one is read by what it does rather than looked up.
+   */
+  static boolean usesFreeSlot(String pairCase, String executedMoves) {
+    List<String> stood = AlgorithmForm.asDrawn(executedMoves, drawn(pairCase));
+    if (stood == null) {
+      return false;
+    }
+    String state = Notation.caseState(AlgorithmForm.written(stood));
+    for (int[] slot : OTHER_SLOTS) {
+      if (!Cubies.inPlace(state, Cubies.CORNERS[slot[0]])
+          || !Cubies.inPlace(state, Cubies.EDGES[slot[1]])) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

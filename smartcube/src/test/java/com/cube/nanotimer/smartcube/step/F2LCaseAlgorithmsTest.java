@@ -170,8 +170,30 @@ public class F2LCaseAlgorithmsTest {
 
   @Test
   public void readsAnExecutionNoAlgorithmMatchesAsUnusual() {
-    assertTrue(F2LCaseAlgorithms.read("7", "U B U2 B' U' R U' R'").isUnusual());
+    assertTrue(F2LCaseAlgorithms.read("4", "R U2 R' U' R U R'").isUnusual());
     assertFalse(F2LCaseAlgorithms.read("7", "U' R U2 R' U' R U2 R'").isUnusual());
+  }
+
+  /** Two pairs built through a free slot, both off every list and neither longer than the usual. */
+  @Test
+  public void readsAPairBuiltThroughAFreeSlotInAsFewTurnsAsUsual() {
+    assertNull(F2LCaseAlgorithms.matching("6", "R' U' R U' F' U F"));
+    assertFalse(F2LCaseAlgorithms.read("6", "R' U' R U' F' U F").isUnusual());
+    assertFalse(F2LCaseAlgorithms.read("5", "U' L U R L' U' R'").isUnusual());
+    assertFalse(F2LCaseAlgorithms.read("7", "U B U2 B' U' R U' R'").isUnusual());
+    assertFalse(F2LCaseAlgorithms.isUnlisted("6", "R' U' R U' F' U F"));
+  }
+
+  @Test
+  public void readsAPairBuiltThroughAFreeSlotInMoreTurnsAsUnusual() {
+    assertTrue(F2LCaseAlgorithms.read("6", "F' U' F R' U R U F' U F").isUnusual());
+    assertTrue(F2LCaseAlgorithms.isUnlisted("6", "F' U' F R' U R U F' U F"));
+  }
+
+  @Test
+  public void readsNoFreeSlotInAnAlgorithmThatLeavesTheOtherSlotsAlone() {
+    assertFalse(F2LCaseAlgorithms.usesFreeSlot("6", "d R' U' R U2 R' U R"));
+    assertTrue(F2LCaseAlgorithms.usesFreeSlot("6", "R' U' R U' F' U F"));
   }
 
   /** The picture's state: turned over and solved with the case's own algorithm, it is solved. */

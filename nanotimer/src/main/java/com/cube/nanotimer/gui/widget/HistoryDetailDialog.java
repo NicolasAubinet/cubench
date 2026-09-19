@@ -931,7 +931,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private void markUnlistedPair(String code, String moves, TableRow partRow, TextView partMoves) {
     final String caseCode = CaseExecutions.caseOfPart(code);
     if (!CaseAlgorithms.isPair(caseCode) || moves == null || moves.trim().isEmpty()
-        || F2LCaseAlgorithms.matching(CaseAlgorithms.pairCase(caseCode), moves) != null) {
+        || !F2LCaseAlgorithms.isUnlisted(CaseAlgorithms.pairCase(caseCode), moves)) {
       return;
     }
     TextView name = (TextView) partRow.getChildAt(0);
