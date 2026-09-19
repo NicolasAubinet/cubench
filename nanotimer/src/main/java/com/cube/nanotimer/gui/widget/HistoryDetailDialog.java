@@ -1063,15 +1063,15 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   /**
-   * A part turned in a way worth pointing out, an F2L pair or a last layer algorithm: its bulb
-   * shows, and both the bulb and the row open the case's algorithms beside the moves it turned.
+   * A part that answered a case, an F2L pair or a last layer algorithm: its row opens the case's
+   * algorithms beside the moves it turned. One turned in a way worth pointing out also shows its
+   * bulb, which opens the same.
    */
   private void markPart(final String caseCode, final String moves, TableRow row, ImageView bulb,
       int step) {
-    if (!CaseAlgorithms.isWorthPointingOut(caseCode, moves)) {
+    if (caseCode == null || moves == null || moves.trim().isEmpty()) {
       return;
     }
-    flaggedCases.add(new FlaggedCase(bulb, false, step, caseCode, moves));
     OnClickListener open = new OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -1080,8 +1080,14 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     };
     String action = getString(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithms_pair_open
         : R.string.case_algorithms_case_open);
-    bulb.setContentDescription(action);
-    for (View target : new View[] {row, bulb}) {
+    paintRowBackground(row, 0);
+    List<View> targets = new ArrayList<View>(Collections.<View>singletonList(row));
+    if (CaseAlgorithms.isWorthPointingOut(caseCode, moves)) {
+      flaggedCases.add(new FlaggedCase(bulb, false, step, caseCode, moves));
+      bulb.setContentDescription(action);
+      targets.add(bulb);
+    }
+    for (View target : targets) {
       target.setOnClickListener(open);
       ViewCompat.replaceAccessibilityAction(target, AccessibilityActionCompat.ACTION_CLICK,
           action, null);
