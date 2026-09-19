@@ -93,10 +93,14 @@ import java.util.List;
  * right recorded against the case, and they solve it, so nothing in the moves says they were a
  * scramble and a rebuild. What says so is that they happened once while the real answer happened
  * more often. So a lone execution waits for its second before it is called theirs.
+ *
+ * <p><b>Opened from one solve, it shows that solve's execution instead</b>, marked "this solve":
+ * the question asked there is about the moves on the screen, not about a habit.
  */
 public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   private static final String ARG_CASE = "case";
+  private static final String ARG_USED = "used";
 
   /** The cube's corner view, the drills' own: the top face and two sides, front a little ahead. */
   private static final double VIEW_LATITUDE = 26;
@@ -119,6 +123,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private static final int SOLVES_READ = 10;
 
   private String caseCode;
+  /** The moves turned for the case in the solve the dialog was opened from, or null. */
+  private String used;
   private String chosen;
   private String own;
   /** Everything they turn for the case, most turned first, empty until the solves have been read. */
@@ -129,9 +135,18 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private VirtualCube cube;
 
   public static CaseAlgorithmsDialog newInstance(String caseCode) {
+    return newInstance(caseCode, null);
+  }
+
+  /**
+   * @param used the moves one solve turned for the case: shown and marked in place of what the
+   *     solver's recent solves say they usually turn
+   */
+  public static CaseAlgorithmsDialog newInstance(String caseCode, String used) {
     CaseAlgorithmsDialog frag = new CaseAlgorithmsDialog();
     Bundle args = new Bundle();
     args.putString(ARG_CASE, caseCode);
+    args.putString(ARG_USED, used);
     frag.setArguments(args);
     return frag;
   }
@@ -139,6 +154,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     caseCode = getArguments().getString(ARG_CASE);
+    used = getArguments().getString(ARG_USED);
     chosen = Options.INSTANCE.getCaseAlgorithm(caseCode);
     own = Options.INSTANCE.getOwnCaseAlgorithm(caseCode);
     View view = LayoutInflater.from(getActivity()).inflate(R.layout.case_algorithms_dialog, null);
@@ -168,8 +184,14 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         askForAlgorithm();
       }
     });
-    refresh();
-    readExecution();
+    if (used != null) {
+      turned.add(new Turned(CaseAlgorithms.asAlgorithm(caseCode, used),
+          CaseAlgorithms.read(caseCode, used), 1, 1));
+      refresh();
+    } else {
+      refresh();
+      readExecution();
+    }
 
     return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
         .setTitle(pair ? getString(R.string.case_title_f2l)
@@ -390,7 +412,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     // Only the execution says this, and only the one they turn most: a tap says which one they mean
     // to use, not which one they do.
     if (one != null && one == turned.get(0)) {
-      marks.addView(chip(R.string.case_algorithm_mine, true));
+      marks.addView(chip(used != null ? R.string.case_algorithm_used : R.string.case_algorithm_mine,
+          true));
     }
     if (one != null && one.execution.isUnusual()) {
       marks.addView(chip(R.string.case_algorithm_unusual, false));

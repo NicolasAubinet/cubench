@@ -926,9 +926,11 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     });
   }
 
-  /** A bulb on an F2L pair turned with none of its case's algorithms; tapping the pair opens them.
-   * It ends the pair's moves, or the pair's own row while the moves are hidden. */
-  private void markUnlistedPair(String code, String moves, TableRow partRow, TextView partMoves) {
+  /** A bulb on an F2L pair turned with none of its case's algorithms; tapping the pair opens them
+   * beside the moves it turned. It ends the pair's moves, or the pair's own row while the moves are
+   * hidden. */
+  private void markUnlistedPair(String code, final String moves, TableRow partRow,
+      TextView partMoves) {
     final String caseCode = CaseExecutions.caseOfPart(code);
     if (!CaseAlgorithms.isPair(caseCode) || moves == null || moves.trim().isEmpty()
         || !F2LCaseAlgorithms.isUnlisted(CaseAlgorithms.pairCase(caseCode), moves)) {
@@ -940,7 +942,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     OnClickListener open = new OnClickListener() {
       @Override
       public void onClick(View view) {
-        DialogUtils.showFragment(getActivity(), CaseAlgorithmsDialog.newInstance(caseCode));
+        DialogUtils.showFragment(getActivity(), CaseAlgorithmsDialog.newInstance(caseCode, moves));
       }
     };
     for (View target : new View[] {partRow, partMoves}) {
