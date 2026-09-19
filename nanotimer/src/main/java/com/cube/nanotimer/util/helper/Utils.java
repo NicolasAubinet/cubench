@@ -285,18 +285,35 @@ public class Utils {
    * someone who knows the case, and an OLL's number is a number on its own, which reads as anything.
    */
   public static String toSmartCubeCaseLabel(Context context, String code) {
+    String name = caseNameOf(code);
+    if (name == null) {
+      return null;
+    }
+    return SKIPPED_CASE.equals(name) ? context.getString(R.string.smartcube_case_skip)
+        : context.getString(R.string.smartcube_step_case, capitalized(name));
+  }
+
+  /**
+   * The last layer case a step's code carries ("case Ub", "case 6"), for a chip beside the step's
+   * name, or null for a step that carries none.
+   */
+  public static String toSmartCubeCaseName(Context context, String code) {
+    String name = caseNameOf(code);
+    if (name == null) {
+      return null;
+    }
+    return SKIPPED_CASE.equals(name) ? context.getString(R.string.breakdown_case_skip)
+        : context.getString(R.string.breakdown_case_chip, capitalized(name));
+  }
+
+  private static String caseNameOf(String code) {
     if (code == null) {
       return null;
     }
     for (String prefix : CASE_CODE_PREFIXES) {
-      if (!code.startsWith(prefix)) {
-        continue;
+      if (code.startsWith(prefix)) {
+        return code.substring(prefix.length());
       }
-      String name = code.substring(prefix.length());
-      if (SKIPPED_CASE.equals(name)) {
-        return context.getString(R.string.smartcube_case_skip);
-      }
-      return context.getString(R.string.smartcube_step_case, capitalized(name));
     }
     return null;
   }
@@ -315,8 +332,8 @@ public class Utils {
 
   /**
    * A case as a headline, "PLL Ga" or "OLL 21", for a screen whose whole subject is the case.
-   * {@link #toSmartCubeCaseLabel} is parenthetical because it hangs off a step name in a breakdown;
-   * here there is no step name for it to hang off.
+   * {@link #toSmartCubeCaseLabel} is parenthetical because it hangs off a step name in a shared
+   * solve; here there is no step name for it to hang off.
    */
   public static String toSmartCubeCaseHeadline(Context context, String code) {
     if (code == null) {

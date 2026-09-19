@@ -365,6 +365,9 @@
   <string name="gyro">Gyro</string>
   <string name="replay_gyro_summary">Montrer comment le cube était tenu</string>
   <string name="breakdown_moves_count">%d mouvements</string>
+  <string name="breakdown_tape_moves">%d mvt</string>
+  <string name="breakdown_case_skip">skip</string>
+  <string name="breakdown_case_chip">cas %s</string>
   <string name="breakdown_tps">%s TPS</string>
   <string name="breakdown_algs">%d algos</string>
   <string name="smartcube_step_cross">Croix</string>

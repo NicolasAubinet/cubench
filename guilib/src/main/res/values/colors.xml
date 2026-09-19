@@ -62,6 +62,8 @@
   <!-- Ink for text sitting on the accent itself, where white would not hold. -->
   <color name="on_accent">#12181C</color>
   <color name="secondary_text">#AAAAAA</color>
+  <!-- A breakdown case chip's label: lighter than secondary text, short of a figure's white. -->
+  <color name="breakdown_chip_text">#D6DADC</color>
 
   <!-- ======================== Status and marks ======================= -->
 

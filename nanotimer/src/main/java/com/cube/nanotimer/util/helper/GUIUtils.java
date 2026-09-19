@@ -205,6 +205,19 @@ public class GUIUtils {
     return Typeface.defaultFromStyle(Typeface.NORMAL);
   }
 
+  /** The app's face at medium weight, which a style's textStyle cannot ask for. */
+  public static Typeface appMediumFont(Context c) {
+    try {
+      Typeface font = ResourcesCompat.getFont(c, R.font.roboto_medium);
+      if (font != null) {
+        return font;
+      }
+    } catch (RuntimeException e) {
+      Log.e("NanoTimer", "Unable to load the app font", e);
+    }
+    return appFont(c);
+  }
+
   /** Sets a text view's weight without losing the face it is set in. */
   public static void setWeight(TextView tv, int style) {
     tv.setTypeface(appFont(tv.getContext()), style);

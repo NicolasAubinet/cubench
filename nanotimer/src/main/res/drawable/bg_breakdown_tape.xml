@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The strip a moves line is recessed into, so it reads as a transcript rather than a row. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="#33000000"/>
+  <corners android:radius="6dp"/>
+</shape>

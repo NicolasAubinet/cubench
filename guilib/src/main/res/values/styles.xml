@@ -626,12 +626,37 @@
     <item name="android:paddingLeft">0dp</item>
   </style>
 
+  <!-- Plain and at medium weight: the dot before it carries the step's colour. -->
   <style name="BreakdownStepName" parent="BreakdownCell">
     <item name="android:gravity">left|center_vertical</item>
     <item name="android:paddingLeft">0dp</item>
     <item name="android:paddingTop">5dp</item>
+    <item name="android:paddingBottom">5dp</item>
+  </style>
+
+  <!-- The one number a step's row is read for. -->
+  <style name="BreakdownStepTotalCell" parent="BreakdownCell">
     <item name="android:textStyle">bold</item>
+  </style>
+
+  <!-- A last layer case beside its step's name. -->
+  <style name="BreakdownCaseChip">
+    <item name="android:textSize">12sp</item>
+    <item name="android:gravity">center</item>
+    <item name="android:paddingLeft">8dp</item>
+    <item name="android:paddingRight">8dp</item>
     <item name="android:drawablePadding">4dp</item>
+    <item name="android:includeFontPadding">false</item>
+  </style>
+
+  <!-- How many flagged parts a folded step holds, beside a bulb. -->
+  <style name="BreakdownRolledBulbs" parent="BreakdownCaseChip">
+    <item name="android:textSize">11sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textColor">@color/color_accent</item>
+    <item name="android:paddingLeft">6dp</item>
+    <item name="android:paddingRight">7dp</item>
+    <item name="android:drawablePadding">2dp</item>
   </style>
 
   <!-- Thinking recedes next to turning, as it does in the bar. -->
@@ -661,7 +686,12 @@
 
   <style name="BreakdownSubName" parent="BreakdownSubCell">
     <item name="android:gravity">left</item>
-    <item name="android:paddingLeft">12dp</item>
+    <item name="android:paddingLeft">16dp</item>
+    <item name="android:textColor">@color/breakdown_chip_text</item>
+  </style>
+
+  <style name="BreakdownSubTotalCell" parent="BreakdownSubCell">
+    <item name="android:textColor">@color/white</item>
   </style>
 
   <!-- The solve's totals, beside the switch they describe. A figure rather than a heading, so it
@@ -672,23 +702,20 @@
     <item name="android:fontFeatureSettings">tnum</item>
   </style>
 
-  <!-- The moves a step was spent on, under its row in the breakdown: a transcript to read, so it
-       runs the width of the table rather than sharing its columns. -->
+  <!-- The moves a step was spent on, on a tape under its row in the breakdown: a transcript to
+       read, so it runs the width of the table rather than sharing its columns. -->
   <style name="BreakdownMoves">
-    <item name="android:layout_width">match_parent</item>
-    <item name="android:layout_height">wrap_content</item>
     <item name="android:textSize">13sp</item>
     <item name="android:textColor">@color/white</item>
-    <item name="android:fontFamily">monospace</item>
     <item name="android:lineSpacingExtra">2dp</item>
-    <item name="android:paddingTop">1dp</item>
-    <item name="android:paddingBottom">7dp</item>
   </style>
 
-  <!-- A part's moves sit under its own row, so they indent with it. -->
-  <!-- Inherits the parent's white: grey is reserved for rotations, which are not moves. -->
-  <style name="BreakdownSubMoves" parent="BreakdownMoves">
-    <item name="android:paddingLeft">12dp</item>
+  <!-- A tape's move count, at its end. -->
+  <style name="BreakdownTapeCount">
+    <item name="android:textSize">12sp</item>
+    <item name="android:textColor">@color/gray600</item>
+    <item name="android:paddingLeft">10dp</item>
+    <item name="android:fontFeatureSettings">tnum</item>
   </style>
 
   <style name="TableCardView">

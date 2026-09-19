@@ -22,11 +22,15 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.RelativeSizeSpan;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -56,8 +60,10 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.ScrambleViewNotation;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.BreakdownTable;
 import com.cube.nanotimer.util.view.CancelledMoveSpan;
 import com.cube.nanotimer.util.view.FontFitTextView;
+import com.cube.nanotimer.util.view.GripSpan;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.SwipeSwitchLayout;
@@ -667,7 +673,6 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       return;
     }
     boolean split = userSteps == null;
-    boolean moves = !solution.isEmpty(); // a solve no cube saw has a column's worth of nothing to say
     breakdownSteps = new ArrayList<SolveStep>(steps);
     int[] colors = getStepColors();
     // The rows stand in the order the solve was executed, names repeating where it came back to a
@@ -676,44 +681,43 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     int[][] partPositions = Utils.getSmartCubeSubStepPositions(steps);
     ((SolveStepBarView) v.findViewById(R.id.breakdownBar)).setSteps(steps, colors);
 
-    TableLayout table = (TableLayout) v.findViewById(R.id.breakdownTable);
-    table.addView(headerRow(split, moves));
+    BreakdownTable table = (BreakdownTable) v.findViewById(R.id.breakdownTable);
+    table.addView(headerRow(split));
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
-      TextView name = cell(R.style.BreakdownStepName, stepName(step, i, userSteps));
-      name.setTextColor(Utils.isTailSegment(step.getName())
-          ? ContextCompat.getColor(getActivity(), R.color.gray600)
-          : colors[slots[i] % colors.length]);
-      TableRow row = stepRow(step, name, moves ? moveCountOf(solution, i) : null, split);
-      table.addView(row);
-
-      StepRows stepRows = new StepRows(name);
-      stepRows.row = row;
-      stepRows.color = colors[slots[i] % colors.length];
-      stepRows.moves = movesRow(table, R.style.BreakdownMoves, dim(groupsOf(solution, i)));
       List<SolveStep> parts = step.getSubSteps();
-      if (parts.isEmpty()) {
-        markCase(CaseExecutions.caseOfStep(step.getName()), partMovesOf(solution, i, 0), null,
-            stepRows.moves);
-      }
+      StepRows stepRows = new StepRows();
+      stepRows.color = colors[slots[i] % colors.length];
+      int dotColor = Utils.isTailSegment(step.getName()) ? color(R.color.gray600) : stepRows.color;
+      View dot = stepDot(dotColor);
+      TableRow row = stepRow(step, nameCell(v, step, i, userSteps, solution, dot, stepRows), split);
+      table.addView(row);
+      stepRows.row = row;
+      stepRows.moves = tape(table, dim(groupsOf(solution, i)), moveCountOf(solution, i));
+
+      List<View> ruled = new ArrayList<View>();
+      ruled.add(stepRows.moves);
       for (int j = 0; j < parts.size(); j++) {
-        TableRow partRow =
-            subStepRow(parts.get(j), partPositions[i][j], partMoveCountOf(solution, i, j));
+        ImageView bulb = bulbButton();
+        TableRow partRow = subStepRow(parts.get(j), partPositions[i][j], bulb);
         table.addView(partRow);
         stepRows.partRows.add(partRow);
-        TextView partMoves =
-            movesRow(table, R.style.BreakdownSubMoves, dim(partGroupOf(solution, i, j)));
+        View partMoves = tape(table, dim(partGroupOf(solution, i, j)),
+            partMoveCountOf(solution, i, j));
         stepRows.partMoves.add(partMoves);
-        markCase(CaseExecutions.caseOfPart(parts.get(j).getName()), partMovesOf(solution, i, j),
-            partRow, partMoves);
+        markPart(CaseExecutions.caseOfPart(parts.get(j).getName()), partMovesOf(solution, i, j),
+            partRow, bulb, i);
+        ruled.add(partRow);
+        ruled.add(partMoves);
       }
+      table.addRule(dot, dotColor, ruled);
       breakdownRows.add(stepRows);
       makePickable(v, row, i);
-      if (!stepRows.partRows.isEmpty()) {
-        setChevron(name, stepRows.expanded);
+      if (stepRows.chevron != null) {
+        setChevron(stepRows.chevron, stepRows.expanded);
       }
     }
-    addTotalRow(table, steps, solution, split, moves);
+    addTotalRow(table, steps, split);
     setUpBarPicking(v);
     buildMovesSwitch(v, solution, label, method);
     applyRowVisibility();
@@ -727,10 +731,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * <p>A blind solve's memorisation is left out of it: it is recognition of the whole solve, it
    * dwarfs every step after it, and the split the row is here for is the split of the turning.
    */
-  private void addTotalRow(TableLayout table, List<SolveStep> steps, SolveSolution solution,
-      boolean split, boolean moves) {
+  private void addTotalRow(TableLayout table, List<SolveStep> steps, boolean split) {
     long recognitionMs = 0, executionMs = 0, totalMs = 0;
-    int moveCount = 0, counted = 0;
+    int counted = 0;
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       if (Utils.isMemoStep(step.getName())) {
@@ -739,7 +742,6 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       recognitionMs += step.getRecognitionMs();
       executionMs += step.getExecutionMs();
       totalMs += step.getTotalMs();
-      moveCount += moveCountAt(solution, i);
       counted++;
     }
     if (counted < 2) {
@@ -753,9 +755,6 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       row.addView(cell(R.style.BreakdownTotalCell, formatTime(executionMs)));
     }
     row.addView(cell(R.style.BreakdownTotalCell, formatTime(totalMs)));
-    if (moves) {
-      row.addView(cell(R.style.BreakdownTotalRecognitionCell, String.valueOf(moveCount)));
-    }
     table.addView(row);
   }
 
@@ -824,8 +823,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       StepRows step = breakdownRows.get(i);
       step.expanded = picked < 0 || i == picked;
       paintRowBackground(step.row, i == picked ? step.color : 0);
-      if (!step.partRows.isEmpty()) {
-        setChevron(step.name, step.expanded);
+      if (step.chevron != null) {
+        setChevron(step.chevron, step.expanded);
       }
     }
     applyRowVisibility();
@@ -870,7 +869,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   /** A user step goes by the name it was given, or by its position when the steps changed since. */
   private CharSequence stepName(SolveStep step, int index, SolveTypeStep[] userSteps) {
     if (userSteps == null) {
-      return withCaseColor(step, index);
+      String name = Utils.toSmartCubeStepLocalizedName(getActivity(), step.getName(), index);
+      return step.isComplete() ? name : getString(R.string.smartcube_step_partial, name);
     }
     if (index < userSteps.length && userSteps[index].getName() != null) {
       return userSteps[index].getName();
@@ -879,21 +879,149 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   /**
+   * A step's name, plain, after a dot in its colour, then what hangs off it: the last layer case
+   * as a chip, the bulbs of its parts rolled up while it is folded, and the fold's chevron.
+   */
+  private View nameCell(final View v, SolveStep step, final int index, SolveTypeStep[] userSteps,
+      SolveSolution solution, View dot, StepRows stepRows) {
+    LinearLayout line = new LinearLayout(getActivity());
+    line.setGravity(Gravity.CENTER_VERTICAL);
+    line.addView(dot);
+    TextView name = cell(R.style.BreakdownStepName, stepName(step, index, userSteps));
+    name.setTypeface(GUIUtils.appMediumFont(getActivity()));
+    if (Utils.isTailSegment(step.getName())) {
+      name.setTextColor(color(R.color.gray600));
+    }
+    line.addView(name, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+
+    boolean hasParts = !step.getSubSteps().isEmpty();
+    String caseName = userSteps == null
+        ? Utils.toSmartCubeCaseName(getActivity(), step.getName()) : null;
+    if (caseName != null) {
+      String caseCode = CaseExecutions.caseOfStep(step.getName());
+      // A split step's case was answered by several algorithms, so no one execution stands for it.
+      String turned = hasParts ? null : partMovesOf(solution, index, 0);
+      line.addView(caseChip(caseName, caseCode, turned, index), pillParams());
+    }
+    if (hasParts) {
+      stepRows.rolled = rolledBulbs(v, index);
+      line.addView(stepRows.rolled, pillParams());
+      stepRows.chevron = new ImageView(getActivity());
+      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+          LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+      params.leftMargin = dp(4);
+      line.addView(stepRows.chevron, params);
+    }
+    return wrapCell(line);
+  }
+
+  /** The case as a chip that opens its algorithms, lit while this execution is flagged. */
+  private TextView caseChip(String caseName, final String caseCode, final String turned,
+      int index) {
+    TextView chip = cell(R.style.BreakdownCaseChip, caseName);
+    chip.setTypeface(GUIUtils.appMediumFont(getActivity()));
+    setChipLit(chip, false);
+    if (caseCode == null) {
+      return chip; // a skip: nothing was turned for the popup to hold it against
+    }
+    chip.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        DialogUtils.showFragment(getActivity(), CaseAlgorithmsDialog.newInstance(caseCode, turned));
+      }
+    });
+    ViewCompat.replaceAccessibilityAction(chip, AccessibilityActionCompat.ACTION_CLICK,
+        getString(R.string.case_algorithms_case_open), null);
+    if (turned != null && CaseAlgorithms.isWorthPointingOut(caseCode, turned)) {
+      flaggedCases.add(new FlaggedCase(chip, true, index, caseCode, turned));
+    }
+    return chip;
+  }
+
+  private void setChipLit(TextView chip, boolean lit) {
+    chip.setBackgroundResource(
+        lit ? R.drawable.bg_breakdown_chip_lit : R.drawable.bg_breakdown_chip);
+    chip.setTextColor(color(lit ? R.color.color_accent : R.color.breakdown_chip_text));
+    Drawable bulb = null;
+    if (lit) {
+      bulb = ContextCompat.getDrawable(getActivity(), R.drawable.ic_case_idea);
+      bulb.setBounds(0, 0, dp(13), dp(13));
+    }
+    chip.setCompoundDrawablesRelative(null, null, bulb, null);
+  }
+
+  /** A folded step's flagged parts, as one pill with their count; tapping it opens the step. */
+  private TextView rolledBulbs(final View v, final int index) {
+    TextView pill = cell(R.style.BreakdownRolledBulbs, "");
+    Drawable bulb = ContextCompat.getDrawable(getActivity(), R.drawable.ic_case_idea);
+    bulb.setBounds(0, 0, dp(13), dp(13));
+    pill.setCompoundDrawablesRelative(bulb, null, null, null);
+    pill.setBackgroundResource(R.drawable.bg_breakdown_bulb);
+    pill.setVisibility(View.GONE);
+    pill.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        pickStep(v, index, false);
+      }
+    });
+    return pill;
+  }
+
+  /** A part's bulb, its own button right after its name; shown only while the part is flagged. */
+  private ImageView bulbButton() {
+    ImageView bulb = new ImageView(getActivity());
+    bulb.setImageResource(R.drawable.ic_case_idea);
+    bulb.setScaleType(ImageView.ScaleType.FIT_CENTER);
+    bulb.setPadding(dp(6), dp(3), dp(6), dp(3));
+    bulb.setBackgroundResource(R.drawable.bg_breakdown_bulb);
+    bulb.setVisibility(View.GONE);
+    return bulb;
+  }
+
+  private LinearLayout.LayoutParams pillParams() {
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, dp(20));
+    params.leftMargin = dp(8);
+    return params;
+  }
+
+  private View stepDot(int color) {
+    View dot = new View(getActivity());
+    GradientDrawable shape = new GradientDrawable();
+    shape.setShape(GradientDrawable.OVAL);
+    shape.setColor(color);
+    dot.setBackground(shape);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(8), dp(8));
+    params.rightMargin = dp(8);
+    dot.setLayoutParams(params);
+    return dot;
+  }
+
+  /**
+   * A name cell's content held at its own width inside the column, so what follows the name sits
+   * right after it rather than at the column's far end, and the name gives way before it does.
+   */
+  private View wrapCell(LinearLayout line) {
+    FrameLayout cell = new FrameLayout(getActivity());
+    cell.addView(line, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
+        FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER_VERTICAL));
+    return cell;
+  }
+
+  /**
    * The rows of one step, so a change of switch or of fold can be applied to all of them at once.
    * A step's own moves stand in for its parts' while it is folded, and step it aside when it opens.
    */
   private static final class StepRows {
-    private final TextView name;
     private final List<TableRow> partRows = new ArrayList<TableRow>();
-    private final List<TextView> partMoves = new ArrayList<TextView>();
+    private final List<View> partMoves = new ArrayList<View>();
     private TableRow row;
     private int color;
-    private TextView moves;
+    private View moves;
+    private ImageView chevron;
+    private TextView rolled;
     private boolean expanded = true; // folding is for skimming; a solve opens fully told
-
-    private StepRows(TextView name) {
-      this.name = name;
-    }
   }
 
   private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
@@ -935,20 +1063,15 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   /**
-   * A bulb on a case turned in a way worth pointing out, an F2L pair or a last layer algorithm;
-   * tapping it opens the case's algorithms beside the moves it turned. It ends the moves, or the
-   * name while the moves are hidden. A whole step's name keeps its own tap, which picks the step,
-   * so its bulb lives on the moves alone.
-   *
-   * @param row the part's row, which the tap is given to, or null for a whole step
+   * A part turned in a way worth pointing out, an F2L pair or a last layer algorithm: its bulb
+   * shows, and both the bulb and the row open the case's algorithms beside the moves it turned.
    */
-  private void markCase(final String caseCode, final String moves, TableRow row,
-      TextView movesView) {
+  private void markPart(final String caseCode, final String moves, TableRow row, ImageView bulb,
+      int step) {
     if (!CaseAlgorithms.isWorthPointingOut(caseCode, moves)) {
       return;
     }
-    flaggedCases.add(new FlaggedCase(row == null ? null : (TextView) row.getChildAt(0), movesView,
-        caseCode, moves));
+    flaggedCases.add(new FlaggedCase(bulb, false, step, caseCode, moves));
     OnClickListener open = new OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -957,33 +1080,30 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     };
     String action = getString(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithms_pair_open
         : R.string.case_algorithms_case_open);
-    for (View target : new View[] {row, movesView}) {
-      if (target != null) {
-        target.setOnClickListener(open);
-        ViewCompat.replaceAccessibilityAction(target, AccessibilityActionCompat.ACTION_CLICK,
-            action, null);
-      }
+    bulb.setContentDescription(action);
+    for (View target : new View[] {row, bulb}) {
+      target.setOnClickListener(open);
+      ViewCompat.replaceAccessibilityAction(target, AccessibilityActionCompat.ACTION_CLICK,
+          action, null);
     }
   }
 
   /**
-   * A case turned off its list, and the places its bulb can stand, as they read without it; either
-   * may be null. It stays tappable while muted, since its dialog is where the mute is undone.
+   * A case turned off its list, and the mark that says so: a part's bulb or a step's case chip. It
+   * stays tappable while muted, since its dialog is where the mute is undone.
    */
   private static final class FlaggedCase {
-    private final TextView name;
-    private final CharSequence plainName;
-    private final TextView moves;
-    private final CharSequence plainMoves;
+    private final View mark;
+    private final boolean chip;
+    private final int step;
     private final String caseCode;
     private final String turned;
     private boolean shown;
 
-    private FlaggedCase(TextView name, TextView moves, String caseCode, String turned) {
-      this.name = name;
-      this.plainName = name == null ? null : name.getText();
-      this.moves = moves;
-      this.plainMoves = moves == null ? null : moves.getText();
+    private FlaggedCase(View mark, boolean chip, int step, String caseCode, String turned) {
+      this.mark = mark;
+      this.chip = chip;
+      this.step = step;
       this.caseCode = caseCode;
       this.turned = turned;
       this.shown = !CaseFlags.isTheirs(caseCode, turned);
@@ -999,39 +1119,32 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private final List<FlaggedCase> flaggedCases = new ArrayList<FlaggedCase>();
 
-  /** Text with the bulb after it, drawn at the size of the text it ends. */
-  private CharSequence withBulb(CharSequence text, TextView view) {
-    Drawable bulb = ContextCompat.getDrawable(getActivity(), R.drawable.ic_case_idea);
-    int size = Math.round(view.getTextSize() * 1.15f);
-    bulb.setBounds(0, 0, size, size);
-    SpannableStringBuilder marked = new SpannableStringBuilder(text).append("  ");
-    marked.setSpan(new ImageSpan(bulb, ImageSpan.ALIGN_BOTTOM), marked.length() - 1,
-        marked.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    return marked;
-  }
-
   /**
-   * A part's rows follow its step's fold; the moves rows follow the switch on top of that. A folded
-   * step shows the moves of the whole step, an open one leaves them to its parts.
+   * A part's rows follow its step's fold; the moves tapes follow the switch on top of that. A
+   * folded step shows the moves of the whole step, an open one leaves them to its parts, and rolls
+   * its parts' bulbs up onto its own row.
    */
   private void applyRowVisibility() {
-    for (StepRows step : breakdownRows) {
+    int[] rolled = new int[breakdownRows.size()];
+    for (FlaggedCase flagged : flaggedCases) {
+      if (flagged.chip) {
+        setChipLit((TextView) flagged.mark, flagged.shown);
+      } else {
+        setVisible(flagged.mark, flagged.shown);
+        rolled[flagged.step] += flagged.shown ? 1 : 0;
+      }
+    }
+    for (int s = 0; s < breakdownRows.size(); s++) {
+      StepRows step = breakdownRows.get(s);
       boolean hasParts = !step.partRows.isEmpty();
       setVisible(step.moves, showMoves && !(hasParts && step.expanded));
       for (int i = 0; i < step.partRows.size(); i++) {
         setVisible(step.partRows.get(i), step.expanded);
         setVisible(step.partMoves.get(i), step.expanded && showMoves);
       }
-    }
-    for (FlaggedCase flagged : flaggedCases) {
-      boolean onMoves = showMoves && flagged.moves != null;
-      if (flagged.name != null) {
-        flagged.name.setText(flagged.shown && !onMoves
-            ? withBulb(flagged.plainName, flagged.name) : flagged.plainName);
-      }
-      if (flagged.moves != null) {
-        flagged.moves.setText(flagged.shown && onMoves
-            ? withBulb(flagged.plainMoves, flagged.moves) : flagged.plainMoves);
+      if (step.rolled != null) {
+        step.rolled.setText(String.valueOf(rolled[s]));
+        setVisible(step.rolled, !step.expanded && rolled[s] > 0);
       }
     }
   }
@@ -1043,31 +1156,42 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   /**
-   * The moves go straight into the table rather than into a row of it, so they run its whole width
-   * instead of being squeezed into the name column. A step that turned nothing has no row at all.
+   * The moves as a transcript on a recessed tape, their count at its end. The tape goes straight
+   * into the table rather than into a row of it, so it runs the table's whole width instead of
+   * being squeezed into the name column. A step that turned nothing has no tape at all.
    */
-  private TextView movesRow(TableLayout table, int style, CharSequence moves) {
+  private View tape(TableLayout table, CharSequence moves, int moveCount) {
     if (moves.length() == 0) {
       return null;
     }
-    TextView view = cell(style, moves);
-    table.addView(view);
-    return view;
+    LinearLayout tape = new LinearLayout(getActivity());
+    tape.setBackgroundResource(R.drawable.bg_breakdown_tape);
+    tape.setPadding(dp(8), dp(4), dp(8), dp(4));
+    tape.addView(cell(R.style.BreakdownMoves, moves),
+        new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+    tape.addView(cell(R.style.BreakdownTapeCount,
+        getString(R.string.breakdown_tape_moves, moveCount)));
+    TableLayout.LayoutParams params = new TableLayout.LayoutParams(
+        TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT);
+    params.setMargins(dp(16), dp(2), 0, dp(4));
+    table.addView(tape, params);
+    return tape;
   }
 
   /**
-   * Greys the whole-cube rotations so the turns stand out from them. They are not moves and are
-   * not counted, and setting them apart also makes a habit visible at a glance — more than one
-   * rotation inside a single F2L pair, say.
+   * Draws each run of whole-cube rotations as one small grey grip mark, so the turns stand out
+   * from them. They are not moves and are not counted, and setting them apart also makes a habit
+   * visible at a glance: more than one regrip inside a single F2L pair, say.
    *
-   * <p>Moves that undid each other are greyed too and struck through on top of it: they were
-   * turned and they cost time, so they are shown, but the alg is what is left standing. A pair is
-   * struck only where this row holds both halves of it, so what is crossed out here always reads as
-   * one run — see {@link SolveSolution#cancelledIn}.
+   * <p>Moves that undid each other are greyed and struck through: they were turned and they cost
+   * time, so they are shown, but the alg is what is left standing. A pair is struck only where this
+   * row holds both halves of it, so what is crossed out here always reads as one run; see
+   * {@link SolveSolution#cancelledIn}.
    */
   private CharSequence dim(List<List<SolveSolution.Token>> groups) {
     SpannableStringBuilder text = new SpannableStringBuilder();
     int color = ContextCompat.getColor(getActivity(), R.color.gray600);
+    float density = getResources().getDisplayMetrics().density;
     Set<SolveSolution.Token> cancelled = SolveSolution.cancelledIn(groups);
     for (List<SolveSolution.Token> group : groups) {
       if (group.isEmpty()) { // a part built with no move of its own would show as a stray separator
@@ -1076,24 +1200,44 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       if (text.length() > 0) {
         text.append(SolveSolution.GROUP_SEPARATOR);
       }
+      int grip = -1; // where the run of rotations being gathered starts, or -1 outside one
       for (int i = 0; i < group.size(); i++) {
         SolveSolution.Token token = group.get(i);
+        boolean struck = cancelled.contains(token);
+        if (!struck && SolveMovesFormat.isRotation(token.getNotation())) {
+          if (grip >= 0) {
+            text.append(' '); // one mark: the line must not break inside it
+          } else {
+            if (i > 0) {
+              text.append(' ');
+            }
+            grip = text.length();
+          }
+          text.append(token.getNotation());
+          continue;
+        }
+        closeGrip(text, grip, color, density);
+        grip = -1;
         if (i > 0) {
           text.append(' ');
         }
         int start = text.length();
         text.append(token.getNotation());
-        boolean struck = cancelled.contains(token);
         if (struck) {
           text.setSpan(new CancelledMoveSpan(color), start, text.length(),
               Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        } else if (SolveMovesFormat.isRotation(token.getNotation())) {
-          text.setSpan(new ForegroundColorSpan(color), start, text.length(),
-              Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
       }
+      closeGrip(text, grip, color, density);
     }
     return text;
+  }
+
+  private void closeGrip(SpannableStringBuilder text, int start, int color, float density) {
+    if (start >= 0) {
+      text.setSpan(new GripSpan(color, density), start, text.length(),
+          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
   }
 
   private List<List<SolveSolution.Token>> groupsOf(SolveSolution solution, int stepIndex) {
@@ -1111,12 +1255,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         : Collections.<List<SolveSolution.Token>>emptyList();
   }
 
-  private String moveCountOf(SolveSolution solution, int stepIndex) {
-    return stepIndex < solution.getSteps().size()
-        ? String.valueOf(solution.getSteps().get(stepIndex).getMoveCount()) : "";
-  }
-
-  private int moveCountAt(SolveSolution solution, int stepIndex) {
+  private int moveCountOf(SolveSolution solution, int stepIndex) {
     return stepIndex < solution.getSteps().size()
         ? solution.getSteps().get(stepIndex).getMoveCount() : 0;
   }
@@ -1126,14 +1265,13 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         ? solution.getSteps().get(stepIndex).getPartMoves(part) : null;
   }
 
-  private String partMoveCountOf(SolveSolution solution, int stepIndex, int part) {
+  private int partMoveCountOf(SolveSolution solution, int stepIndex, int part) {
     return stepIndex < solution.getSteps().size()
-        ? String.valueOf(solution.getSteps().get(stepIndex).getPartMoveCount(part)) : "";
+        ? solution.getSteps().get(stepIndex).getPartMoveCount(part) : 0;
   }
 
-  private void setChevron(TextView name, boolean expanded) {
-    name.setCompoundDrawablesWithIntrinsicBounds(0, 0,
-        expanded ? R.drawable.ic_chevron_up : R.drawable.ic_chevron_down, 0);
+  private void setChevron(ImageView chevron, boolean expanded) {
+    chevron.setImageResource(expanded ? R.drawable.ic_chevron_up : R.drawable.ic_chevron_down);
   }
 
   private int[] getStepColors() {
@@ -1146,7 +1284,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     return colors;
   }
 
-  private TableRow headerRow(boolean split, boolean moves) {
+  private TableRow headerRow(boolean split) {
     TableRow row = new TableRow(getActivity());
     row.addView(cell(R.style.BreakdownHeaderName, getString(R.string.breakdown_step)));
     if (split) {
@@ -1154,55 +1292,38 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_execution)));
     }
     row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_total)));
-    if (moves) {
-      row.addView(cell(R.style.BreakdownHeaderCell, getString(R.string.breakdown_moves)));
-    }
     return row;
   }
 
-  /** @param moveCount null on a solve with no moves, which drops the column rather than empty it */
-  private TableRow stepRow(SolveStep step, TextView name, String moveCount, boolean split) {
+  /** The total is the figure the row is read for; its two halves recede beside it. */
+  private TableRow stepRow(SolveStep step, View name, boolean split) {
     TableRow row = new TableRow(getActivity());
+    row.setGravity(Gravity.CENTER_VERTICAL); // the name cell has no baseline to line up by
     row.addView(name);
     if (split) {
       row.addView(cell(R.style.BreakdownRecognitionCell, formatTime(step.getRecognitionMs())));
-      row.addView(cell(R.style.BreakdownCell, formatTime(step.getExecutionMs())));
+      row.addView(cell(R.style.BreakdownRecognitionCell, formatTime(step.getExecutionMs())));
     }
-    row.addView(cell(R.style.BreakdownCell, formatTime(step.getTotalMs())));
-    if (moveCount != null) {
-      row.addView(cell(R.style.BreakdownRecognitionCell, moveCount));
-    }
+    row.addView(cell(R.style.BreakdownStepTotalCell, formatTime(step.getTotalMs())));
     return row;
   }
 
-  private TableRow subStepRow(SolveStep part, int position, String moveCount) {
+  private TableRow subStepRow(SolveStep part, int position, ImageView bulb) {
     TableRow row = new TableRow(getActivity());
-    row.addView(cell(R.style.BreakdownSubName, withWanted(part,
+    row.setGravity(Gravity.CENTER_VERTICAL);
+    LinearLayout line = new LinearLayout(getActivity());
+    line.setGravity(Gravity.CENTER_VERTICAL);
+    line.addView(cell(R.style.BreakdownSubName, withWanted(part,
         withPieceMarks(part, withSlotColors(part.getName(),
-            Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position))))));
+            Utils.toSmartCubeStepLocalizedName(getActivity(), part.getName(), position))))),
+        new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+    line.addView(bulb, pillParams());
+    row.addView(wrapCell(line));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getRecognitionMs())));
     row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getExecutionMs())));
-    row.addView(cell(R.style.BreakdownSubCell, formatTime(part.getTotalMs())));
-    row.addView(cell(R.style.BreakdownSubCell, moveCount));
+    row.addView(cell(R.style.BreakdownSubTotalCell, formatTime(part.getTotalMs())));
     return row;
-  }
-
-  /**
-   * A last layer step is shown with the case it was left with, in the colour the table gives its
-   * lesser figures rather than the step's own: which case it was is a detail of the step, and the
-   * name is what the eye is running down the column for.
-   */
-  private CharSequence withCaseColor(SolveStep step, int index) {
-    String name = Utils.toSmartCubeStepDisplayName(getActivity(), step, index);
-    String caseLabel = Utils.toSmartCubeCaseLabel(getActivity(), step.getName());
-    int at = caseLabel == null ? -1 : name.indexOf(caseLabel);
-    if (at < 0) {
-      return name;
-    }
-    SpannableStringBuilder text = new SpannableStringBuilder(name);
-    text.setSpan(new ForegroundColorSpan(color(R.color.secondary_text)), at,
-        at + caseLabel.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    return text;
   }
 
   /**

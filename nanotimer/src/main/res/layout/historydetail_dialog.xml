@@ -285,7 +285,7 @@
                android:textColor="@color/secondary_text"
                android:visibility="gone"
                style="@style/BreakdownMeta"/>
-            <TableLayout
+            <com.cube.nanotimer.util.view.BreakdownTable
                android:id="@+id/breakdownTable"
                android:layout_width="match_parent"
                android:layout_height="wrap_content"

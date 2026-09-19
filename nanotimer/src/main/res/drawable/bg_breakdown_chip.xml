@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A last layer case beside its step's name: a quiet chip that opens the case's algorithms. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+   android:color="@color/accent_wash_30">
+  <item>
+    <shape android:shape="rectangle">
+      <solid android:color="#14FFFFFF"/>
+      <corners android:radius="10dp"/>
+    </shape>
+  </item>
+</ripple>
