@@ -53,12 +53,14 @@ final class AlgorithmList {
     for (String[] tableRow : tableRows) {
       int held = Integer.parseInt(tableRow[1]);
       total += held;
+      Spelling spelling = new Spelling(tableRow[0], tableRow[2].isEmpty() ? null : tableRow[2]);
       int at = AlgorithmForm.indexOfTurning(foldedForms, tableRow[0], drawn);
       if (at < 0) {
-        folded.add(new Row(tableRow[0], held, tableRow[2].isEmpty() ? null : tableRow[2]));
+        folded.add(new Row(spelling, held));
         foldedForms.add(AlgorithmForm.comparable(tableRow[0]));
       } else {
         folded.get(at).votes += held;
+        folded.get(at).spellings.add(spelling);
       }
     }
     Collections.sort(folded, new Comparator<Row>() {
@@ -71,7 +73,7 @@ final class AlgorithmList {
     this.votes = total;
     for (Row row : folded) {
       row.share = total == 0 ? 0 : Math.round(row.votes * 100f / total);
-      forms.add(AlgorithmForm.comparable(row.moves));
+      forms.add(AlgorithmForm.comparable(row.getMoves()));
     }
     this.listed = listedCount(folded, total);
   }
@@ -105,10 +107,59 @@ final class AlgorithmList {
     return listed > 1 && votes > 0 && rows.get(0).votes >= rows.get(1).votes * CLEAR_LEAD;
   }
 
-  /** Which algorithm the moves are, listed or not, or null for none of them. */
+  /**
+   * Which algorithm the moves are, listed or not, or null for none of them, written the way the
+   * table spells it for the hand it was turned in.
+   */
   Row matching(String moves) {
     int at = AlgorithmForm.indexOfTurning(forms, moves, drawn);
-    return at < 0 ? null : rows.get(at);
+    return at < 0 ? null : asTurned(rows.get(at), moves);
+  }
+
+  /**
+   * The row spelled the way the moves were turned, where one of its spellings was turned that way:
+   * the spelling naming the very faces the execution named first, and otherwise one that is the same
+   * turning from some other grip.
+   *
+   * <p><b>A row's spellings are not interchangeable to the solver.</b> They are one algorithm and so
+   * one row, but the table writes one of them from the other hand and another from another grip, and
+   * handing back the row's own spelling for either writes a solver's R moves on L. Nothing about the
+   * execution makes that reading wrong, and everything about the solver's hands does.
+   */
+  private Row asTurned(Row row, String moves) {
+    if (row.spellings.size() == 1) {
+      return row;
+    }
+    List<String> turned = AlgorithmForm.comparable(moves);
+    String key = AlgorithmForm.keyAsDrawn(moves, drawn);
+    Spelling sameFaces = null;
+    Spelling sameTurning = null;
+    for (Spelling spelling : row.spellings) {
+      if (!turned.isEmpty() && turned.equals(AlgorithmForm.comparable(spelling.moves))
+          && (sameFaces == null || rotations(spelling.moves) < rotations(sameFaces.moves))) {
+        sameFaces = spelling;
+      }
+      if (sameTurning == null && key != null
+          && key.equals(AlgorithmForm.keyAsDrawn(spelling.moves, drawn))) {
+        sameTurning = spelling;
+      }
+    }
+    Spelling spelled = sameFaces != null ? sameFaces : sameTurning;
+    return spelled == null ? row : row.spelled(spelled);
+  }
+
+  /**
+   * How many times a spelling turns the cube. Of two spellings of one turning, the one that turns
+   * the cube less writes more of it on the faces it is: a solver who turned R is shown R.
+   */
+  private static int rotations(String moves) {
+    int rotations = 0;
+    for (String token : moves.trim().split("\\s+")) {
+      if (!token.isEmpty() && "xyz".indexOf(token.charAt(0)) >= 0) {
+        rotations++;
+      }
+    }
+    return rotations;
   }
 
   /**
@@ -139,19 +190,17 @@ final class AlgorithmList {
   /** One algorithm and every spelling of it the table holds, as the most voted one spells it. */
   static final class Row {
 
-    private final String moves;
-    private final String emptySlot;
+    private final List<Spelling> spellings = new ArrayList<Spelling>();
     private int votes;
     private int share;
 
-    private Row(String moves, int votes, String emptySlot) {
-      this.moves = moves;
+    private Row(Spelling spelling, int votes) {
+      this.spellings.add(spelling);
       this.votes = votes;
-      this.emptySlot = emptySlot;
     }
 
     String getMoves() {
-      return moves;
+      return spellings.get(0).moves;
     }
 
     /** The share of its case's votes this algorithm holds, in percent. */
@@ -161,7 +210,28 @@ final class AlgorithmList {
 
     /** The slot ("fl", "br") an F2L algorithm needs empty, or null. */
     String getEmptySlot() {
-      return emptySlot;
+      return spellings.get(0).emptySlot;
+    }
+
+    /**
+     * The same algorithm written as one of its other spellings: see {@link AlgorithmList#asTurned}.
+     */
+    private Row spelled(Spelling spelling) {
+      Row row = new Row(spelling, votes);
+      row.share = share;
+      return row;
+    }
+  }
+
+  /** One of the ways the table writes an algorithm, with what that way of writing it needs. */
+  private static final class Spelling {
+
+    private final String moves;
+    private final String emptySlot;
+
+    private Spelling(String moves, String emptySlot) {
+      this.moves = moves;
+      this.emptySlot = emptySlot;
     }
   }
 }

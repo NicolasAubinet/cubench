@@ -23,8 +23,20 @@ public class CaseAlgorithmsTest {
 
   @Test
   public void showsAMirrorTheWayItWasTurned() {
-    assertEquals("M' U M2 U M2 U M' U2 M2",
+    assertEquals("y M' U M2 U M2 U M' U2 M2",
         CaseAlgorithms.asAlgorithm("pll_z", "M' U M2 U M2 U M' U2 M2"));
+  }
+
+  @Test
+  public void showsAMirrorFoldedIntoARowInTheHandItWasTurnedWith() {
+    assertEquals("y R U' R U R' D R D' R U' D R2 U R2 D' R2",
+        CaseAlgorithms.asAlgorithm("pll_v", "R U' R U R' D R D' R U' D R2 U R2 D' R2"));
+  }
+
+  @Test
+  public void showsASpellingFoldedIntoARowOnTheFacesItWasTurnedOn() {
+    assertEquals("R U B' U' R' U R B R'",
+        CaseAlgorithms.asAlgorithm("oll_32", "R U B' U' R' U R B R'"));
   }
 
   @Test

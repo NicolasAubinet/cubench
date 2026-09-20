@@ -525,21 +525,16 @@ public class LastLayerCaseAlgorithmsTest {
   }
 
   /**
-   * The two halves of the dialog have to agree about which row an execution is: it is written as
-   * the row {@link LastLayerCaseAlgorithms#matching} found and drawn as the row its fold is kept
-   * under, and anything that joins the two would lose the execution if those were different rows.
+   * An execution is written as one of the table's own spellings of the row it matched, and as one
+   * that was turned the way it was: never as the mirror of it, and never as text the table does not
+   * hold. A row is one algorithm and several spellings of it, and the spellings are not
+   * interchangeable to the solver — one of them is written for the other hand.
    *
-   * <p>They are the same row for every spelling in the table turned from every grip, and this is
-   * why: a fold only happens where two rows come out as the same turns written the same way, the
-   * wide saying what the slice said, so the two spellings share one form and the earlier of them
-   * answers for both wherever either is asked for. ⚠️ <b>A fold whose halves keep different forms</b>
-   * — a mirror reached by standing the cube up — <b>would break that</b>, since which of the two the
-   * match lands on would then depend on which grip came first. The dialog compares turnings rather
-   * than text throughout so that it survives one, and this test is what says whether the table has
-   * gained one.
+   * <p>The row it is written as need not be spelled the way the list draws it, and the dialog
+   * compares turnings rather than text throughout so that the two halves still meet.
    */
   @Test
-  public void theRowAnExecutionIsWrittenAsIsTheRowItIsDrawnAs() {
+  public void anExecutionIsWrittenAsASpellingOfItsOwnTurning() {
     int checked = 0;
     for (String[] row : LastLayerCaseAlgorithms.rows()) {
       for (char[] grip : AlgorithmForm.grips()) {
@@ -552,16 +547,22 @@ public class LastLayerCaseAlgorithmsTest {
           // leaves turns on it that no algorithm of the case has. Nothing is claimed about those.
           continue;
         }
-        for (LastLayerCaseAlgorithms.Algorithm drawn
-            : LastLayerCaseAlgorithms.listed(row[0])) {
-          if (LastLayerCaseAlgorithms.sameTurning(row[0], drawn.getMoves(), written.getMoves())) {
-            checked++;
-            assertEquals(row[0] + " turned as " + executed,
-                drawn.getMoves(), written.getMoves());
-          }
-        }
+        checked++;
+        assertTrue(row[0] + " turned as " + executed + " is written as " + written.getMoves(),
+            LastLayerCaseAlgorithms.sameTurning(row[0], executed, written.getMoves()));
+        assertTrue(written.getMoves() + " is no spelling the table holds",
+            holdsSpelling(row[0], written.getMoves()));
       }
     }
-    assertTrue("no row was both written and drawn, so this proves nothing", checked > 0);
+    assertTrue("no execution was written as a row, so this proves nothing", checked > 0);
+  }
+
+  private static boolean holdsSpelling(String caseCode, String moves) {
+    for (String[] row : LastLayerCaseAlgorithms.rows()) {
+      if (row[0].equals(caseCode) && row[1].equals(moves)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
