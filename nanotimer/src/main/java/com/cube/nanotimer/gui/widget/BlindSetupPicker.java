@@ -35,6 +35,22 @@ public class BlindSetupPicker {
     view.findViewById(R.id.blindSetupChangeable).setVisibility(asked ? View.VISIBLE : View.GONE);
   }
 
+  /** The way out for a reading that is wrong with both of these right. Hidden where nothing offers it. */
+  public void onReport(final Runnable report) {
+    View link = view.findViewById(R.id.blindSetupReport);
+    if (report == null) {
+      link.setVisibility(View.GONE);
+      return;
+    }
+    link.setVisibility(View.VISIBLE);
+    link.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View clicked) {
+        report.run();
+      }
+    });
+  }
+
   public View getView() {
     return view;
   }

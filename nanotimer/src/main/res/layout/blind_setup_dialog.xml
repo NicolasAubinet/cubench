@@ -75,6 +75,24 @@
        android:layout_height="wrap_content"
        android:layout_marginTop="10dp"/>
 
+    <!-- Opened from a reading that came out wrong: the way to report one that is wrong anyway,
+         under the two settings that are wrong far more often. -->
+    <TextView
+       android:id="@+id/blindSetupReport"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_gravity="center_horizontal"
+       android:layout_marginTop="@dimen/space_m"
+       android:paddingLeft="@dimen/space_s"
+       android:paddingRight="@dimen/space_s"
+       android:paddingTop="@dimen/space_xs"
+       android:paddingBottom="@dimen/space_xs"
+       android:background="?android:attr/selectableItemBackground"
+       android:text="@string/report_reconstruction"
+       android:textSize="12sp"
+       android:textColor="@color/lightblue"
+       android:visibility="gone"/>
+
     <!-- Only where this is the question being put: opened from the settings, it is already there. -->
     <TextView
        android:id="@+id/blindSetupChangeable"

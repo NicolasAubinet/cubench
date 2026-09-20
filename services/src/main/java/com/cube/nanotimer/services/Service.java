@@ -95,6 +95,13 @@ public interface Service {
   void saveSmartcubeBreakdowns(List<SolveTime> solveTimes, DataCallback<Void> callback);
 
   /**
+   * The moves of one solve, for a reading corrected where it was shown: a blind solve carries the
+   * grip it was named through in front of its moves, and a solver who says they held the cube
+   * another way is correcting that solve and no other.
+   */
+  void updateSmartcubeMoves(SolveTime solveTime, DataCallback<Void> callback);
+
+  /**
    * How many solves the coach has to read on this solve type, which is what says whether it can say
    * anything at all. Asked before a payload is built, so a history too young to speak from is told
    * so rather than made to press for an empty plan.

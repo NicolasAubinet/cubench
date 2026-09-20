@@ -247,7 +247,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     setUpScrambleTools(v, solveTime, cubeType);
     setUpReplay(v, solveTime, cubeType);
-    showBlindHold(v);
+    showBlindHold(v, solveTime, cubeType);
     setUpReportLink(v, solveTime, cubeType);
     ((TextView) v.findViewById(R.id.tvDate))
         .setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
@@ -284,6 +284,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     flaggedCases.clear();
     breakdownSteps = null;
     breakdownMoves = null;
+    blindHold = null; // or the solve swiped to keeps the last one's, and hides its own report link
     pickedStep = -1;
 
     View scrambleCard = v.findViewById(R.id.scrambleCard);
@@ -613,7 +614,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    * recorded under: changing the setting names the solves from here on, and leaves this one as it
    * was read.
    */
-  private void showBlindHold(View v) {
+  private void showBlindHold(final View v, final SolveTime solveTime,
+      final CubeType cubeType) {
     TextView line = (TextView) v.findViewById(R.id.tvBlindHold);
     if (blindHold == null
         || v.findViewById(R.id.breakdownSection).getVisibility() != View.VISIBLE) {
@@ -627,9 +629,49 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     line.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        BlindSetupPrompt.open(getActivity());
+        BlindSetupPrompt.open(getActivity(), new Runnable() {
+          @Override
+          public void run() {
+            reReadThroughTheDeclaration(v, solveTime);
+          }
+        }, new Runnable() {
+          @Override
+          public void run() {
+            DialogUtils.reportReconstruction(getActivity(), solveTime, cubeType);
+          }
+        });
       }
     });
+  }
+
+  /**
+   * A solve read again through the hold and buffers just declared, and kept that way.
+   *
+   * <p>Changing them from the sheet that shows the reading says the reading was wrong, so this one
+   * solve is rebased onto the declaration rather than left on the grip it was recorded with: the
+   * stored stream carries that grip in front of its moves, and rewriting it is what makes the
+   * correction survive the sheet closing. Only this solve, because only this one was said to be
+   * wrong; the rest of the history keeps what it was read through.
+   */
+  private void reReadThroughTheDeclaration(View v, SolveTime solveTime) {
+    if (!solveTime.hasSmartcubeMoves()) {
+      return;
+    }
+    solveTime.setSmartcubeMoves(
+        SolveMovesFormat.withPickup(solveTime.getSmartcubeMoves(), declaredGrip()));
+    App.INSTANCE.getService().updateSmartcubeMoves(solveTime, new DataCallback<Void>() {
+      @Override
+      public void onData(Void data) {
+      }
+    });
+    bindSolve(v);
+  }
+
+  /** The hold the solver declares, as the stored stream spells a grip. Empty for square on. */
+  private static String declaredGrip() {
+    CubeRotation declared = CubeRotation.holding(
+        Options.INSTANCE.getBlindUpFace().charAt(0), Options.INSTANCE.getBlindFrontFace().charAt(0));
+    return declared == null ? "" : declared.getNotation();
   }
 
   /**
@@ -640,7 +682,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    */
   private void setUpReportLink(View v, final SolveTime solveTime, final CubeType cubeType) {
     View link = v.findViewById(R.id.tvReportReconstruction);
-    if (!solveTime.hasSmartcubeMoves()
+    // A blind solve says it on the line above instead, which opens the two settings that name it
+    // and offers the report under them: one row on the sheet rather than two saying nearly the same.
+    if (!solveTime.hasSmartcubeMoves() || blindHold != null
         || v.findViewById(R.id.breakdownSection).getVisibility() != View.VISIBLE) {
       link.setVisibility(View.GONE);
       return;
