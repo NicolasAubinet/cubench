@@ -123,6 +123,21 @@ public class DBHelper extends SQLiteOpenHelper {
     createDrillTables(db);
     createCoachPlanTable(db);
     createCaseKnowledgeTable(db);
+    createSolveReadingTable(db);
+  }
+
+  /**
+   * What was turned for each case of a solve, cached because reading it means solving the scramble
+   * again and matching every execution against its case's algorithms. Keyed by the solve and
+   * cascaded with it: a reading outlives nothing it was read from.
+   */
+  private void createSolveReadingTable(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE " + DB.TABLE_SOLVE_READING + "(" +
+        DB.COL_SOLVE_READING_SOLVE_ID + " INTEGER PRIMARY KEY, " +
+        DB.COL_SOLVE_READING_VERSION + " INTEGER NOT NULL, " +
+        DB.COL_SOLVE_READING_READING + " TEXT NOT NULL" +
+      ");"
+    );
   }
 
   // A case is looked up by name, once per case, so without this the whole table is walked.
@@ -453,6 +468,12 @@ public class DBHelper extends SQLiteOpenHelper {
           + DB.COL_SOLVETYPE_COACH_STREAM + " TEXT");
       // Installs created at 30 already have it.
       createSolveStepNameIndex(db);
+    }
+
+    if (oldVersion < 32) {
+      // Created empty: a reading is read back out of its solve the first time it is wanted, so
+      // there is nothing here to fill and nothing lost by an install arriving without it.
+      createSolveReadingTable(db);
     }
 
 //    progressDialog.hide();

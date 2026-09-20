@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 31;
+  public static final int DB_VERSION = 32;
 
   public static final String COL_ID = "id";
 
@@ -129,5 +129,15 @@ public class DB {
   public static final String COL_CASE_KNOWLEDGE_LAST_SEEN = "last_seen"; // when the case last came up, in a solve or a drill
   public static final String COL_CASE_KNOWLEDGE_UPDATED = "updated";
   public static final String IDX_CASE_KNOWLEDGE_CASE = "idx_case_knowledge_case";
+
+  // What was turned for each case of one solve, read once and kept. Nothing stores a case's moves:
+  // they are a slice of the solve, so reading them means solving the scramble again and setting
+  // every execution against its case's algorithms, and the matching alone is four fifths of it.
+  // A cache and nothing more: a row is thrown away when it was written by an older reading, and
+  // whatever is missing is read again from the solve it belongs to.
+  public static final String TABLE_SOLVE_READING = "solve_reading";
+  public static final String COL_SOLVE_READING_SOLVE_ID = "solve_id";
+  public static final String COL_SOLVE_READING_VERSION = "version"; // SolveReading.VERSION when it was written: a newer reading ignores older rows rather than trusting them
+  public static final String COL_SOLVE_READING_READING = "reading"; // the executions as JSON text, so fields a later version adds survive being stored
 
 }
