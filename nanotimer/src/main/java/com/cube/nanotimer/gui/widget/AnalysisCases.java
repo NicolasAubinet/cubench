@@ -11,7 +11,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
@@ -34,8 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The Analysis hub's Cases tab: one step's whole set, the cases the window holds figures for ranked
- * by what they cost, and the rest of the set under them.
+ * The Analysis hub's Cases tab: one step's whole set, the cases the window holds figures for
+ * slowest first, and the rest of the set under them.
  *
  * <p><b>One step at a time, which is why there is no "all" segment.</b> A single ranking across the
  * families was drawn first and reads as a comparison it cannot make: an OLL and a PLL are different
@@ -43,9 +42,11 @@ import java.util.Map;
  * which set has 57 cases in it than about which case to look at. Ranking is only meaningful inside
  * one set, so the tab opens on the method's first step and the segments switch between them.
  *
- * <p>A cost is a margin times a count, so it is only quoted for a case seen at least
- * {@link CoachPayloadBuilder#CASE_FLOOR} times; the rest say so rather than showing a figure read
- * off two occurrences.
+ * <p><b>Every column here is a reading, and none of them is a verdict.</b> The table ranked by cost
+ * once, a margin over the step's mean times a count, which is a judgement about what is worth
+ * working on wearing a number's clothes. That ranking belongs to the coach, which still makes it
+ * out of {@link MethodStatistics#getTimeLostMs}. What is left says how often a case came up, how
+ * slow it runs, how good it has been and how steady it is, and the reader weighs them.
  *
  * <p><b>The set is shown whole, in two parts, and they run on two different clocks.</b> The table is
  * the window's cases and every figure in it is the window's; the section under it is the rest of the
@@ -67,12 +68,16 @@ import java.util.Map;
  */
 public class AnalysisCases {
 
-  /** What a case costs, and the column the table opens ranked by: it is what the tab is for. */
-  private static final int COST_COLUMN = 3;
+  /** The column the table opens ranked by: the slowest case of the set, first. */
+  private static final int MEAN_COLUMN = 1;
 
+  /** The spread, which is the one column a case can be too new to have a figure for. */
+  private static final int SPREAD_COLUMN = 3;
+
+  // The last three are the step table's own columns, so a reader crossing tabs reads them once.
   private static final int[] HEADING_LABELS = {R.string.drill_stats_column_count,
       R.string.drill_summary_cell_mean, R.string.drill_summary_cell_best,
-      R.string.analysis_column_cost};
+      R.string.drill_stats_column_spread};
   private static final boolean[] OPENS_DESCENDING = {true, true, true, true};
 
   private static final int OPAQUE = 255;
@@ -143,7 +148,7 @@ public class AnalysisCases {
     this.root = root;
     this.listener = listener;
     this.rows = root.findViewById(R.id.llCaseTableRows);
-    headings = new CaseTableHeadings(root, HEADING_LABELS, OPENS_DESCENDING, COST_COLUMN,
+    headings = new CaseTableHeadings(root, HEADING_LABELS, OPENS_DESCENDING, MEAN_COLUMN,
         new CaseTableHeadings.Listener() {
           @Override
           public void onRanked(int column, boolean descending) {
@@ -386,11 +391,6 @@ public class AnalysisCases {
         R.string.analysis_knowledge_seen, seenCount);
     addArcKey(keys, inflater, ContextCompat.getColor(context, R.color.hero_inset), OPAQUE,
         R.string.analysis_knowledge_unseen, set.size() - knownCount - seenCount);
-    // What the ring is about rather than one of its arcs, so it takes no swatch and its own colour.
-    View costing = addKey(keys, inflater, R.string.analysis_knowledge_costing, cost(totalCost()));
-    costing.findViewById(R.id.vAnalysisKeySwatch).setVisibility(View.INVISIBLE);
-    ((TextView) costing.findViewById(R.id.tvAnalysisKeyCount))
-        .setTextColor(ContextCompat.getColor(context, R.color.analysis_cost));
   }
 
   /** One of the ring's arcs, named and counted beside the swatch that is drawn in that arc. */
@@ -436,8 +436,8 @@ public class AnalysisCases {
     Collections.sort(cases, new Comparator<StepStats>() {
       @Override
       public int compare(StepStats a, StepStats b) {
-        // A case with no cost to quote sits under the ones that have, whichever way round the
-        // column is turned: it is not a cheap case, it is a case nothing can be said about.
+        // A case that cannot quote the ranked column sits under the ones that can, whichever way
+        // round it is turned, as it does on the step table.
         boolean quotableA = quotable(a, column);
         boolean quotableB = quotable(b, column);
         if (quotableA != quotableB) {
@@ -453,8 +453,6 @@ public class AnalysisCases {
     for (final StepStats stepCase : cases) {
       String code = stepCase.getCode();
       int hue = palette.colorFor(MethodStatistics.familyOf(code));
-      long lost = statistics.getTimeLostMs(code);
-      boolean enough = enough(stepCase);
       CaseRow row = new CaseRow(CaseRow.inflate(inflater, rows));
       row.count(String.valueOf(stepCase.getCount()))
           .chart(code)
@@ -464,9 +462,10 @@ public class AnalysisCases {
               ContextCompat.getColor(context, R.color.white))
           .value(1, FormatterService.INSTANCE.formatSolveTime(stepCase.getBestMs()),
               ContextCompat.getColor(context, R.color.secondary_text))
-          .value(2, enough ? cost(lost) : context.getString(R.string.NA),
-              ContextCompat.getColor(context,
-                  enough && lost > 0 ? R.color.analysis_cost : R.color.secondary_text))
+          .value(2, quotable(stepCase, SPREAD_COLUMN)
+                  ? FormatterService.INSTANCE.formatSolveTime(stepCase.getStdDevMs())
+                  : context.getString(R.string.NA),
+              ContextCompat.getColor(context, R.color.secondary_text))
           .rank(column)
           .chevron();
       row.view().setOnClickListener(new View.OnClickListener() {
@@ -591,29 +590,14 @@ public class AnalysisCases {
     return drawn;
   }
 
-  private long totalCost() {
-    long lost = 0;
-    for (StepStats stepCase : casesOf(family)) {
-      if (enough(stepCase)) {
-        lost += statistics.getTimeLostMs(stepCase.getCode());
-      }
-    }
-    return lost;
-  }
-
-  private String cost(long lostMs) {
-    return context.getString(R.string.analysis_cost, FormatterService.INSTANCE
-        .formatFloat(lostMs / 1000d, 1));
-  }
-
-  /** Whether the column has a figure for this case at all, which only the cost column can lack. */
+  /**
+   * Whether a figure of this case is worth ranking the table on. A case the window holds once has
+   * no spread at all, since 0.00 off one solve would read as the steadiest case there is, and its
+   * mean is that one solve, which would stand a fluke at the top of the table. Ordering by the case
+   * itself is exempt: a set is read in its own order, whether or not it has been seen.
+   */
   private boolean quotable(StepStats stepCase, int column) {
-    return column != COST_COLUMN || enough(stepCase);
-  }
-
-  /** Whether enough of the case has been seen for what it costs to be worth quoting. */
-  private boolean enough(StepStats stepCase) {
-    return stepCase.getCount() >= CoachPayloadBuilder.CASE_FLOOR;
+    return column == CaseTableHeadings.LABEL_COLUMN || stepCase.getCount() >= 2;
   }
 
   private long value(StepStats stepCase, int column) {
@@ -625,8 +609,8 @@ public class AnalysisCases {
         return stepCase.getMeanMs();
       case 2:
         return stepCase.getBestMs();
-      case COST_COLUMN:
-        return enough(stepCase) ? statistics.getTimeLostMs(stepCase.getCode()) : 0;
+      case SPREAD_COLUMN:
+        return stepCase.getStdDevMs();
       default:
         return stepCase.getCount();
     }

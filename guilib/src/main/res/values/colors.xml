@@ -195,10 +195,6 @@
        and cube_orange paints actual stickers, so the sticker orange stays where it is. -->
   <color name="step_pll">#E0763A</color>
 
-  <!-- What a case costs, which is not a step and must not read as one: the step hues name which
-       part of the solve a row belongs to, and a cost is a quantity on any of them. -->
-  <color name="analysis_cost">#F0B570</color>
-
   <!-- Sample mode, in the warning hue rather than the accent: the badge is a caveat on every figure
        under it and not something to press. -->
   <color name="sample_wash">#26FFAA00</color>

@@ -137,19 +137,17 @@
            android:textColor="@color/secondary_text"
            android:textSize="13.5sp"/>
 
+        <!-- Word for word what the Solve section says of it: one column, read once. -->
         <LinearLayout style="@style/HelpTermRow">
-          <TextView android:text="@string/analysis_help_cost" style="@style/HelpTermName"/>
-          <TextView android:text="@string/analysis_help_cost_body" style="@style/HelpTermText"/>
+          <TextView android:text="@string/analysis_help_spread" style="@style/HelpTermName"/>
+          <TextView android:text="@string/analysis_help_spread_body" style="@style/HelpTermText"/>
         </LinearLayout>
 
+        <!-- Every standing at once, since the rest of the set is grouped by them and a reader who
+             meets "To learn" as a heading has nowhere else to find out what it counts. -->
         <LinearLayout style="@style/HelpTermRow">
-          <TextView android:text="@string/analysis_help_too_few" style="@style/HelpTermName"/>
-          <TextView android:text="@string/analysis_help_too_few_body" style="@style/HelpTermText"/>
-        </LinearLayout>
-
-        <LinearLayout style="@style/HelpTermRow">
-          <TextView android:text="@string/analysis_help_known" style="@style/HelpTermName"/>
-          <TextView android:text="@string/analysis_help_known_body" style="@style/HelpTermText"/>
+          <TextView android:text="@string/analysis_help_standing" style="@style/HelpTermName"/>
+          <TextView android:text="@string/analysis_help_standing_body" style="@style/HelpTermText"/>
         </LinearLayout>
 
         <LinearLayout style="@style/HelpTermRow">

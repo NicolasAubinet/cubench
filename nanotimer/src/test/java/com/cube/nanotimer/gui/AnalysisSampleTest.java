@@ -3,7 +3,6 @@ package com.cube.nanotimer.gui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.StepBaseline;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
@@ -120,23 +119,23 @@ public class AnalysisSampleTest {
   }
 
   /**
-   * Enough cases over the floor for the cost column to be worth having, and not so many that a
-   * hundred solves look like a thousand. What the ring prints as costing her is these added up.
+   * Most of the example's cases came up more than once, so its spread column reads as a table of
+   * figures rather than a column of N/A: a case seen once has no spread and says so.
    */
   @Test
-  public void someCasesReachTheCostFloor() {
-    assertEquals(7160, costOf("oll"));
-    assertEquals(11300, costOf("pll"));
+  public void mostCasesHaveASpread() {
+    assertTrue("oll", withASpread("oll") * 2 > STATISTICS.getCases("oll").size());
+    assertTrue("pll", withASpread("pll") * 2 > STATISTICS.getCases("pll").size());
   }
 
-  private long costOf(String family) {
-    long lost = 0;
+  private int withASpread(String family) {
+    int seenTwice = 0;
     for (StepStats stepCase : STATISTICS.getCases(family)) {
-      if (stepCase.getCount() >= CoachPayloadBuilder.CASE_FLOOR) {
-        lost += STATISTICS.getTimeLostMs(stepCase.getCode());
+      if (stepCase.getCount() >= 2) {
+        seenTwice++;
       }
     }
-    return lost;
+    return seenTwice;
   }
 
   /**
