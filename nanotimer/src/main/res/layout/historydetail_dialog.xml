@@ -293,6 +293,24 @@
           </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- What a blind reading was named through, which is what it is wrong about when the names
+             are wrong. Stated rather than asked, so it says something to a solver whose reading is
+             right as well; the line below it is the way to report one that is wrong anyway. -->
+        <TextView
+           android:id="@+id/tvBlindHold"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_gravity="right|end"
+           android:layout_marginTop="@dimen/space_xs"
+           android:paddingLeft="@dimen/space_s"
+           android:paddingRight="@dimen/space_s"
+           android:paddingTop="@dimen/space_xs"
+           android:paddingBottom="@dimen/space_xs"
+           android:background="?android:attr/selectableItemBackground"
+           android:textSize="12sp"
+           android:textColor="@color/lightblue"
+           android:visibility="gone"/>
+
         <!-- Quiet, and under the breakdown rather than beside its label: it is only ever wanted by
              someone already reading the steps and finding them wrong. -->
         <TextView

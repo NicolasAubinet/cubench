@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Asked once, at the first blind solve with a cube connected: how the solver holds the cube, and
+     which pieces they shoot from. The body scrolls so that both pickers and the prose fit a short
+     screen.
+
+     The hold comes first because that is the order they happen in: the cube is picked up out of the
+     scramble, and only then is anything shot from anywhere. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingLeft="20dp"
+     android:paddingRight="20dp"
+     android:paddingTop="22dp"
+     android:paddingBottom="18dp">
+
+    <ImageView
+       android:layout_width="34dp"
+       android:layout_height="34dp"
+       android:layout_gravity="center_horizontal"
+       android:src="@drawable/ic_intro_breakdown"
+       android:tint="@color/lightblue"
+       android:contentDescription="@null"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"
+       android:gravity="center"
+       android:text="@string/blind_setup"
+       android:textColor="@color/white"
+       android:textSize="19sp"
+       android:textStyle="bold"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="8dp"
+       android:gravity="center"
+       android:text="@string/blind_setup_why"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+
+    <!-- What each picker is asking, in a sentence: the headings inside them label their columns. -->
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="18dp"
+       android:text="@string/blind_setup_hold"
+       android:textColor="@color/white"
+       android:textSize="15sp"/>
+
+    <!-- The pickers themselves, added in code: the settings rows show the very same ones. -->
+    <FrameLayout
+       android:id="@+id/orientationPicker"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:text="@string/blind_setup_shoot"
+       android:textColor="@color/white"
+       android:textSize="15sp"/>
+
+    <FrameLayout
+       android:id="@+id/bufferPicker"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"/>
+
+    <!-- Opened from a reading that came out wrong: the way to report one that is wrong anyway,
+         under the two settings that are wrong far more often. -->
+    <TextView
+       android:id="@+id/blindSetupReport"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_gravity="center_horizontal"
+       android:layout_marginTop="@dimen/space_m"
+       android:paddingLeft="@dimen/space_s"
+       android:paddingRight="@dimen/space_s"
+       android:paddingTop="@dimen/space_xs"
+       android:paddingBottom="@dimen/space_xs"
+       android:background="?android:attr/selectableItemBackground"
+       android:text="@string/report_reconstruction"
+       android:textSize="12sp"
+       android:textColor="@color/lightblue"
+       android:visibility="gone"/>
+
+    <!-- Only where this is the question being put: opened from the settings, it is already there. -->
+    <TextView
+       android:id="@+id/blindSetupChangeable"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="16dp"
+       android:gravity="center"
+       android:text="@string/blind_setup_changeable"
+       android:textColor="@color/gray600"
+       android:textSize="12sp"/>
+
+  </LinearLayout>
+
+</ScrollView>

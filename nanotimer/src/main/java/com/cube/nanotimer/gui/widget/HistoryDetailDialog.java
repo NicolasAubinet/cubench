@@ -44,6 +44,7 @@ import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.cube.StoredSolveReplay;
+import com.cube.nanotimer.gui.widget.dialog.BlindSetupPrompt;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
@@ -55,6 +56,7 @@ import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LostReading;
 import com.cube.nanotimer.smartcube.step.ParityCheck;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
@@ -211,6 +213,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       // through its buffers, and the spelling has to stand in the frame the names do.
       String moves = fresh ? reread.getMoves() : solveTime.getSmartcubeMoves();
       breakdownMoves = moves;
+      blindHold = fresh && method == CubeMethod.BLIND ? reread.getGrip() : null;
       List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs, moves, method);
       buildBreakdown(v, steps, SolveSolution.from(moves, steps, method),
           getString(R.string.breakdown), null, method);
@@ -244,6 +247,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     setUpScrambleTools(v, solveTime, cubeType);
     setUpReplay(v, solveTime, cubeType);
+    showBlindHold(v, solveTime, cubeType);
     setUpReportLink(v, solveTime, cubeType);
     ((TextView) v.findViewById(R.id.tvDate))
         .setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
@@ -267,6 +271,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.breakdownResidual).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownParity).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownLost).setVisibility(View.GONE);
+    v.findViewById(R.id.tvBlindHold).setVisibility(View.GONE);
     v.findViewById(R.id.tvReportReconstruction).setVisibility(View.GONE);
     v.findViewById(R.id.movesSwitchLabel).setVisibility(View.VISIBLE);
     SwitchCompat moves = (SwitchCompat) v.findViewById(R.id.swMoves);
@@ -279,6 +284,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     flaggedCases.clear();
     breakdownSteps = null;
     breakdownMoves = null;
+    blindHold = null; // or the solve swiped to keeps the last one's, and hides its own report link
     pickedStep = -1;
 
     View scrambleCard = v.findViewById(R.id.scrambleCard);
@@ -598,6 +604,77 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   }
 
   /**
+   * The hold a blind solve's names were read in, said in the colours the solver sees rather than in
+   * the cube's own letters, and tapped to change it.
+   *
+   * <p>On every blind reading and not only on a doubtful one. A solver whose names come out wrong
+   * has no way of knowing that a setting decided them, and this is the screen they are looking at
+   * when they find out; one whose names are right reads a line that agrees with them and learns the
+   * setting exists. It says what <em>this</em> solve was read with, which is the hold it was
+   * recorded under: changing the setting names the solves from here on, and leaves this one as it
+   * was read.
+   */
+  private void showBlindHold(final View v, final SolveTime solveTime,
+      final CubeType cubeType) {
+    TextView line = (TextView) v.findViewById(R.id.tvBlindHold);
+    if (blindHold == null
+        || v.findViewById(R.id.breakdownSection).getVisibility() != View.VISIBLE) {
+      line.setVisibility(View.GONE);
+      return;
+    }
+    line.setVisibility(View.VISIBLE);
+    line.setText(getString(R.string.blind_read_with,
+        getString(Utils.getFaceColourNameRes(blindHold.faceAt('U'))),
+        getString(Utils.getFaceColourNameRes(blindHold.faceAt('F')))));
+    line.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        BlindSetupPrompt.open(getActivity(), new Runnable() {
+          @Override
+          public void run() {
+            reReadThroughTheDeclaration(v, solveTime);
+          }
+        }, new Runnable() {
+          @Override
+          public void run() {
+            DialogUtils.reportReconstruction(getActivity(), solveTime, cubeType);
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * A solve read again through the hold and buffers just declared, and kept that way.
+   *
+   * <p>Changing them from the sheet that shows the reading says the reading was wrong, so this one
+   * solve is rebased onto the declaration rather than left on the grip it was recorded with: the
+   * stored stream carries that grip in front of its moves, and rewriting it is what makes the
+   * correction survive the sheet closing. Only this solve, because only this one was said to be
+   * wrong; the rest of the history keeps what it was read through.
+   */
+  private void reReadThroughTheDeclaration(View v, SolveTime solveTime) {
+    if (!solveTime.hasSmartcubeMoves()) {
+      return;
+    }
+    solveTime.setSmartcubeMoves(
+        SolveMovesFormat.withPickup(solveTime.getSmartcubeMoves(), declaredGrip()));
+    App.INSTANCE.getService().updateSmartcubeMoves(solveTime, new DataCallback<Void>() {
+      @Override
+      public void onData(Void data) {
+      }
+    });
+    bindSolve(v);
+  }
+
+  /** The hold the solver declares, as the stored stream spells a grip. Empty for square on. */
+  private static String declaredGrip() {
+    CubeRotation declared = CubeRotation.holding(
+        Options.INSTANCE.getBlindUpFace().charAt(0), Options.INSTANCE.getBlindFrontFace().charAt(0));
+    return declared == null ? "" : declared.getNotation();
+  }
+
+  /**
    * The way to say a reconstruction came out wrong, under the breakdown that says it. Shown only
    * where the section is, which {@code setUpReplay} has already settled: a solve whose steps could
    * not be drawn at all opens the section for the replay button alone, and a wrong reading is worth
@@ -605,7 +682,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
    */
   private void setUpReportLink(View v, final SolveTime solveTime, final CubeType cubeType) {
     View link = v.findViewById(R.id.tvReportReconstruction);
-    if (!solveTime.hasSmartcubeMoves()
+    // A blind solve says it on the line above instead, which opens the two settings that name it
+    // and offers the report under them: one row on the sheet rather than two saying nearly the same.
+    if (!solveTime.hasSmartcubeMoves() || blindHold != null
         || v.findViewById(R.id.breakdownSection).getVisibility() != View.VISIBLE) {
       link.setVisibility(View.GONE);
       return;
@@ -1027,6 +1106,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
   private ArrayList<SolveStep> breakdownSteps; // what the bar in the sheet draws, and the replay scrubs
   private String breakdownMoves; // the method breakdown's re-read stream, null under the user's steps
+  private CubeRotation blindHold; // the hold this solve's names were read in, null unless blind
   private boolean showMoves;
 
   /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */

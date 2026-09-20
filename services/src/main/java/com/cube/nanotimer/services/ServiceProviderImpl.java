@@ -1999,6 +1999,13 @@ public class ServiceProviderImpl implements ServiceProvider {
     CaseKnowledgeStore.rebuild(db);
   }
 
+  public void updateSmartcubeMoves(SolveTime solveTime) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES, solveTime.getSmartcubeMoves());
+    db.update(DB.TABLE_TIMEHISTORY, values, DB.COL_ID + " = ?",
+        getStringArray(solveTime.getId()));
+  }
+
   /** The last drills that hold a rep, so a run of cross drills does not shrink how far back the figures reach. */
   private static String drilledDrillsWindow(int lastDrills) {
     return "SELECT " + DB.COL_ID + " FROM " + DB.TABLE_DRILL

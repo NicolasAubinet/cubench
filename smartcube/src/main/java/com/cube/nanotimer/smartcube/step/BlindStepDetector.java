@@ -4,7 +4,6 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -282,8 +281,6 @@ public final class BlindStepDetector implements StepDetector {
   private BlindTargets targets = new BlindTargets(BlindTargets.UNKNOWN_FRAME);
   private int holding = BlindTargets.UNKNOWN_FRAME; // the frame names are spelled in
   private int given = BlindTargets.UNKNOWN_FRAME; // and the one handed in, which the buffers overrule
-  private int habit = BlindTargets.UNKNOWN_FRAME; // the frame this solver's own solves settle on
-  private boolean gripSettled; // whether the pieces pinned it, rather than it being fallen back on
   // The slots the solver says they shoot from, which is what settles the frame. See BlindFrame.
   private final int[] declared =
       {Cubies.slotNamed(DEFAULT_EDGE_BUFFER), Cubies.slotNamed(DEFAULT_CORNER_BUFFER)};
@@ -298,9 +295,6 @@ public final class BlindStepDetector implements StepDetector {
   private String landed; // the state at the last landing, with the drift taken out
   private String stopped; // the state the solve was left in, which says what went wrong with it
   private String builtFrom; // the reading the landings stand for, so they are built once
-  // How often each reported face was turned, URFDLB. Where the buffers leave more than one way up,
-  // this is what says which: see BlindFrame.
-  private final int[] turns = new int[6];
   private Long memoMs;
   private Long solvedMs;
   private long lastTimestampMs;
@@ -308,12 +302,17 @@ public final class BlindStepDetector implements StepDetector {
   private boolean parityFound;
 
   /**
-   * The whole-cube rotation the solver made picking the cube up, which the gyro already tracks for
-   * every solve — the scramble is turned green in front and a blind solve is turned in whatever
-   * grip the solver memorised in, and nothing rotates it after that.
+   * The whole-cube rotation the solver holds the cube in: the orientation they declare in the
+   * settings for a solve being read as it is turned, and the solve's own recorded grip where a
+   * stored one is being read back. A scramble is followed green in front, a blind solve is turned
+   * out of that into the grip it is memorised in, and nothing rotates it after that.
    *
    * <p>Its <em>inverse</em> is the frame: the rotation carries the solver's front onto the face the
    * cube reports it as, and names have to be spelled the other way round.
+   *
+   * <p>Overruled wherever the pieces the solve shot from settle a frame of their own, which is what
+   * makes a wrong declaration reach only the solves that had no answer at all. See
+   * {@link BlindFrame}.
    */
   public void setPickupRotation(CubeRotation pickup) {
     int frame = pickup == null ? BlindTargets.UNKNOWN_FRAME
@@ -321,30 +320,6 @@ public final class BlindStepDetector implements StepDetector {
     if (frame != given) {
       given = frame;
       rename(frame);
-    }
-  }
-
-  /**
-   * Whether the pieces this solve shot from pinned its grip outright, which is what says the grip is
-   * worth keeping as the solver's. False for one read through a habit, the turning or the gyro.
-   */
-  public boolean isGripSettled() {
-    return gripSettled;
-  }
-
-  /**
-   * The grip this solver's completed solves settled on, which their part-solves are read through
-   * too. A solve that reads both piece types pins its own frame outright and never consults it; one
-   * that reads a single type cannot, and the answer is the same solver's habit rather than a guess.
-   * Null where nothing has taught it yet.
-   */
-  public void setHabitualGrip(CubeRotation grip) {
-    int frame = grip == null ? BlindTargets.UNKNOWN_FRAME
-        : FaceletRotations.inverse(FaceletRotations.of(grip));
-    if (frame != habit) {
-      habit = frame;
-      builtFrom = null;
-      rebuild(); // the frame it settles may be the habit's to give now
     }
   }
 
@@ -400,8 +375,6 @@ public final class BlindStepDetector implements StepDetector {
     lastTimestampMs = startTimestampMs;
     start = startState.getFacelets();
     stopped = start;
-    gripSettled = false;
-    Arrays.fill(turns, 0);
     parity = Cubies.isOddPermutation(start);
     rebuild();
   }
@@ -417,9 +390,6 @@ public final class BlindStepDetector implements StepDetector {
     // Past the solved state nothing is read. A blind solver cannot see they are done and may turn on
     // thinking an orientation is still out; those turns are not the solve, and must not unfinish it.
     if (memoMs != null && solvedMs == null) {
-      if (lastMove != null) {
-        turns[Cubies.FACES.indexOf(lastMove.getFace().name())]++;
-      }
       stopped = state.getFacelets();
       readLanding(state.getFacelets(), lastTimestampMs, lastMove != null);
       rebuild();
@@ -567,8 +537,7 @@ public final class BlindStepDetector implements StepDetector {
     }
     builtFrom = best.key();
     read(best);
-    gripSettled = BlindFrame.settles(shotFrom(), declared);
-    int settled = BlindFrame.of(shotFrom(), declared, habit, given, turns);
+    int settled = BlindFrame.of(shotFrom(), declared, given);
     if (settled != holding) {
       setHoldingFrame(settled);
       read(best); // named again in the frame the pieces it shot from ask for

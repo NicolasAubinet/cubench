@@ -1,12 +1,8 @@
 package com.cube.nanotimer.smartcube.step;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.Test;
 
 /** The frame a blind solve is named through, settled by the pieces it shot from. */
@@ -19,17 +15,10 @@ public class BlindFrameTest {
 
   private static final int[] THREE_STYLE = {UF, UFR};
 
-  /** A solve nothing is known about the turning of, which is all the frame ever asked of before. */
-  private static final int[] NOTHING_TURNED = new int[6];
-
-  /** A solver none of whose solves has settled a grip yet. */
-  private static final int NO_HABIT = BlindTargets.UNKNOWN_FRAME;
-
   /** Both types settled leaves exactly one way to hold the cube, whatever frame was handed in. */
   @Test
   public void oneBufferOfEachTypeSettlesTheFrameOutright() {
-    int frame = BlindFrame.of(
-        new int[] {UR, UBR}, THREE_STYLE, NO_HABIT, FaceletRotations.IDENTITY, NOTHING_TURNED);
+    int frame = BlindFrame.of(new int[] {UR, UBR}, THREE_STYLE, FaceletRotations.IDENTITY);
 
     assertEquals(UF, heldSlotOf(frame, UR));
     assertEquals(UFR, heldSlotOf(frame, UBR));
@@ -39,7 +28,7 @@ public class BlindFrameTest {
   @Test
   public void overrulesTheFrameItIsGiven() {
     for (int given = 0; given < FaceletRotations.COUNT; given++) {
-      int frame = BlindFrame.of(new int[] {UR, UBR}, THREE_STYLE, NO_HABIT, given, NOTHING_TURNED);
+      int frame = BlindFrame.of(new int[] {UR, UBR}, THREE_STYLE, given);
       assertEquals("from frame " + given, UFR, heldSlotOf(frame, UBR));
     }
   }
@@ -50,7 +39,7 @@ public class BlindFrameTest {
     int askew = FaceletRotations.inverse(
         FaceletRotations.of(com.cube.nanotimer.smartcube.model.CubeRotation.byNotation("y x'")));
 
-    int frame = BlindFrame.of(new int[] {UR, UBR}, THREE_STYLE, NO_HABIT, askew, NOTHING_TURNED);
+    int frame = BlindFrame.of(new int[] {UR, UBR}, THREE_STYLE, askew);
 
     assertEquals("y", FaceletRotations.rotationOf(FaceletRotations.inverse(frame)).getNotation());
   }
@@ -61,8 +50,7 @@ public class BlindFrameTest {
    */
   @Test
   public void leavesAFrameThatAlreadyNamesTheDeclaredBuffersAlone() {
-    int frame = BlindFrame.of(
-        new int[] {UF, UFR}, THREE_STYLE, NO_HABIT, FaceletRotations.IDENTITY, NOTHING_TURNED);
+    int frame = BlindFrame.of(new int[] {UF, UFR}, THREE_STYLE, FaceletRotations.IDENTITY);
 
     assertEquals(FaceletRotations.IDENTITY, frame);
   }
@@ -72,118 +60,82 @@ public class BlindFrameTest {
   public void settlesWhatItCanFromOneTypeAlone() {
     int given = FaceletRotations.IDENTITY;
 
-    int frame = BlindFrame.of(
-        new int[] {UR, BlindTargets.NO_BUFFER}, THREE_STYLE, NO_HABIT, given, NOTHING_TURNED);
+    int frame = BlindFrame.of(new int[] {UR, BlindTargets.NO_BUFFER}, THREE_STYLE, given);
 
     assertEquals(UF, heldSlotOf(frame, UR));
   }
 
   /**
-   * One type alone leaves two ways up and no cube state tells them apart — the reading rotates with
-   * the frame and comes out just as consistent either way. The turning tells them apart: whichever
-   * of the two puts the quiet axis at front and back is the one the solve was held in, and it is
-   * taken whatever the gyro made of the pick-up.
+   * ⚠️ One type alone leaves two ways up and no cube state tells them apart: the whole reading
+   * rotates with the frame and comes out just as consistent either way. What the solver declares is
+   * what chooses between them, and an edge buffer read as {@code UF} either way is all the pieces
+   * themselves promise.
    */
   @Test
-  public void readsTheWayUpOffTheTurningWhereOnlyOneTypeWasRead() {
-    int[] edgesOnly = {UR, BlindTargets.NO_BUFFER};
-    List<Integer> waysUp = waysUp(UR, UF);
-    assertEquals(2, waysUp.size());
-
-    for (int wayUp : waysUp) {
-      for (int given = 0; given < FaceletRotations.COUNT; given++) {
-        assertEquals("from frame " + given, wayUp,
-            BlindFrame.of(edgesOnly, THREE_STYLE, NO_HABIT, given, turnedEverywhereBut(wayUp)));
-      }
-    }
-  }
-
-  /**
-   * The solver's own habit outranks both: a grip is a fact about them, so a solve that can settle
-   * only half of one is read through the frame their whole solves settled on. This is what stops a
-   * part-solve being a different reading from a normal one.
-   */
-  @Test
-  public void takesTheWayUpFromTheSolversHabitWhereOnlyOneTypeWasRead() {
-    int[] edgesOnly = {UR, BlindTargets.NO_BUFFER};
-    List<Integer> waysUp = waysUp(UR, UF);
-
-    for (int habit : waysUp) {
-      // The turning is pointed at the other way up, and the gyro at every way up in turn.
-      int[] against = turnedEverywhereBut(waysUp.get(0) == habit ? waysUp.get(1) : waysUp.get(0));
-      for (int given = 0; given < FaceletRotations.COUNT; given++) {
-        assertEquals("from frame " + given, habit,
-            BlindFrame.of(edgesOnly, THREE_STYLE, habit, given, against));
-      }
-    }
-  }
-
-  /** A habit that is not one of the ways up says nothing: a solver who has changed their hold. */
-  @Test
-  public void ignoresAHabitTheSolveCannotHaveBeenHeldIn() {
-    int[] edgesOnly = {UR, BlindTargets.NO_BUFFER};
-    int wayUp = waysUp(UR, UF).get(0);
-    int impossible = waysUp(UR, UB).get(0); // names the shot slot UB, not what was declared
-
-    assertEquals(wayUp, BlindFrame.of(edgesOnly, THREE_STYLE, impossible,
-        FaceletRotations.IDENTITY, turnedEverywhereBut(wayUp)));
-  }
-
-  /**
-   * And a solve that reads both types is untouched by it, which is the point: the habit is only ever
-   * the answer their own whole solves gave, so it can never contradict one.
-   */
-  @Test
-  public void neverOverrulesASolveThatSettlesItsOwnFrame() {
-    int wrongHabit = waysUp(UR, UB).get(0);
-
-    int frame = BlindFrame.of(new int[] {UR, UBR}, THREE_STYLE, wrongHabit,
-        FaceletRotations.IDENTITY, NOTHING_TURNED);
-
-    assertEquals(UF, heldSlotOf(frame, UR));
-    assertEquals(UFR, heldSlotOf(frame, UBR));
-  }
-
-  /** Which is also the only shape worth learning a habit from. */
-  @Test
-  public void saysOnlyASolveThatPinnedItsOwnFrameIsWorthLearningFrom() {
-    assertTrue(BlindFrame.settles(new int[] {UR, UBR}, THREE_STYLE));
-    assertFalse(BlindFrame.settles(new int[] {UR, BlindTargets.NO_BUFFER}, THREE_STYLE));
-    assertFalse(BlindFrame.settles(
-        new int[] {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER}, THREE_STYLE));
-  }
-
-  /** ⚠️ Habit silent and the turning unable to choose: the way up is the gyro's guess as before. */
-  @Test
-  public void leavesTheWayUpToTheGyroWhereTheTurningCannotChoose() {
+  public void leavesTheWayUpToTheDeclarationWhereOnlyOneTypeWasRead() {
     int[] edgesOnly = {UR, BlindTargets.NO_BUFFER};
 
-    int upright = BlindFrame.of(
-        edgesOnly, THREE_STYLE, NO_HABIT, FaceletRotations.IDENTITY, NOTHING_TURNED);
-    int over = BlindFrame.of(edgesOnly, THREE_STYLE, NO_HABIT,
-        FaceletRotations.of(com.cube.nanotimer.smartcube.model.CubeRotation.byNotation("x2")),
-        NOTHING_TURNED);
+    int upright = BlindFrame.of(edgesOnly, THREE_STYLE, FaceletRotations.IDENTITY);
+    int over = BlindFrame.of(edgesOnly, THREE_STYLE,
+        FaceletRotations.of(com.cube.nanotimer.smartcube.model.CubeRotation.byNotation("x2")));
 
     assertEquals(UF, heldSlotOf(upright, UR));
     assertEquals(UF, heldSlotOf(over, UR));
     assertTrue("the two ways up are told apart by the frame handed in", upright != over);
   }
 
-  /** A solver who floats their buffer settles nothing, and the gyro's answer stands. */
+  /**
+   * A solver who floats their buffer settles nothing of their own, and the orientation they declare
+   * is the whole answer. Which is the shape it has to serve: nothing else here has an opinion.
+   */
   @Test
   public void keepsTheFrameWhereNothingSettled() {
     int[] nothing = {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
 
-    assertEquals(7, BlindFrame.of(nothing, THREE_STYLE, NO_HABIT, 7, NOTHING_TURNED));
+    assertEquals(7, BlindFrame.of(nothing, THREE_STYLE, 7));
     assertEquals(BlindTargets.UNKNOWN_FRAME,
-        BlindFrame.of(nothing, THREE_STYLE, NO_HABIT, BlindTargets.UNKNOWN_FRAME, NOTHING_TURNED));
+        BlindFrame.of(nothing, THREE_STYLE, BlindTargets.UNKNOWN_FRAME));
+  }
+
+  /**
+   * And where the declaration is one of the ways up a single type leaves, it is taken as given, with
+   * nothing measured in between. This is the edges-only solve of 2026-09-19, whose every name came
+   * out mirrored because the gyro had guessed the other one.
+   */
+  @Test
+  public void takesTheWayUpTheSolverDeclaresWhereOnlyOneTypeWasRead() {
+    int[] edgesOnly = {UR, BlindTargets.NO_BUFFER};
+    int declarations = 0;
+
+    for (int declared = 0; declared < FaceletRotations.COUNT; declared++) {
+      if (heldSlotOf(declared, UR) != UF) {
+        continue; // a hold this solve cannot have been in: its buffer would not be where it is
+      }
+      declarations++;
+      assertEquals(declared, BlindFrame.of(edgesOnly, THREE_STYLE, declared));
+    }
+    assertEquals("an edge slot leaves two ways up", 2, declarations);
+  }
+
+  /**
+   * A solve that reads both types is untouched by it, which is what keeps a declaration left at a
+   * hold the solver has since changed off every solve that has an answer of its own.
+   */
+  @Test
+  public void neverOverrulesASolveThatSettlesItsOwnFrame() {
+    int askew = FaceletRotations.inverse(FaceletRotations.of(
+        com.cube.nanotimer.smartcube.model.CubeRotation.byNotation("z2")));
+
+    int frame = BlindFrame.of(new int[] {UR, UBR}, THREE_STYLE, askew);
+
+    assertEquals(UF, heldSlotOf(frame, UR));
+    assertEquals(UFR, heldSlotOf(frame, UBR));
   }
 
   /** And a solver who really does shoot from elsewhere is named from there. */
   @Test
   public void namesASolveThroughWhateverBuffersAreDeclared() {
-    int frame = BlindFrame.of(new int[] {UR, UBR}, new int[] {DF, DFR}, NO_HABIT,
-        FaceletRotations.IDENTITY, NOTHING_TURNED);
+    int frame = BlindFrame.of(new int[] {UR, UBR}, new int[] {DF, DFR}, FaceletRotations.IDENTITY);
 
     assertEquals(DF, heldSlotOf(frame, UR));
     assertEquals(DFR, heldSlotOf(frame, UBR));
@@ -194,27 +146,7 @@ public class BlindFrameTest {
   public void ignoresABufferItCannotName() {
     int[] unnamed = {Cubies.slotNamed("XY"), Cubies.slotNamed("XYZ")};
 
-    assertEquals(5, BlindFrame.of(new int[] {UB, UBR}, unnamed, NO_HABIT, 5, NOTHING_TURNED));
-  }
-
-  /** Every way of holding the cube that puts the slot a type shot from at the one declared. */
-  private static List<Integer> waysUp(int shot, int declared) {
-    List<Integer> ways = new ArrayList<Integer>();
-    for (int frame = 0; frame < FaceletRotations.COUNT; frame++) {
-      if (heldSlotOf(frame, shot) == declared) {
-        ways.add(frame);
-      }
-    }
-    return ways;
-  }
-
-  /** A solve that turned every face but the two a frame calls front and back. */
-  private static int[] turnedEverywhereBut(int frame) {
-    int[] turns = new int[6];
-    Arrays.fill(turns, 10);
-    turns[FaceletRotations.face(frame, Cubies.FACES.indexOf('F'))] = 0;
-    turns[FaceletRotations.face(frame, Cubies.FACES.indexOf('B'))] = 0;
-    return turns;
+    assertEquals(5, BlindFrame.of(new int[] {UB, UBR}, unnamed, 5));
   }
 
   private static int heldSlotOf(int frame, int slot) {

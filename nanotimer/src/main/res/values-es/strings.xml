@@ -1090,11 +1090,22 @@
   <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en dos pasos, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
-  <string name="blind_buffers">Búferes a ciegas</string>
-  <string name="blind_buffers_summary">Las piezas desde las que disparas a ciegas: %1$s y %2$s</string>
-  <string name="blind_buffers_prompt">Elige los búferes que usas</string>
-  <string name="blind_buffers_why">Tus resoluciones a ciegas se reconstruyen a partir de ellos.</string>
-  <string name="blind_buffers_changeable">Puedes cambiarlo más adelante en los ajustes.</string>
+  <string name="blind_setup_summary">%1$s, búferes %2$s y %3$s</string>
+  <string name="blind_setup">Resoluciones a ciegas</string>
+  <string name="blind_setup_why">Tus resoluciones a ciegas se reconstruyen a partir de estas dos respuestas.</string>
+  <string name="blind_setup_hold">Cómo sujetas el cubo</string>
+  <string name="blind_setup_shoot">Los búferes desde los que disparas</string>
+  <string name="blind_orientation_up">Cara superior</string>
+  <string name="blind_orientation_front">Cara frontal</string>
+  <string name="blind_orientation_summary">Cubo con %1$s arriba, %2$s delante</string>
+  <string name="blind_read_with">Leído con %1$s arriba, %2$s delante</string>
+  <string name="colour_white">blanco</string>
+  <string name="colour_yellow">amarillo</string>
+  <string name="colour_red">rojo</string>
+  <string name="colour_orange">naranja</string>
+  <string name="colour_green">verde</string>
+  <string name="colour_blue">azul</string>
+  <string name="blind_setup_changeable">Puedes cambiarlo más adelante en los ajustes.</string>
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">An\u00e1lisis</string>

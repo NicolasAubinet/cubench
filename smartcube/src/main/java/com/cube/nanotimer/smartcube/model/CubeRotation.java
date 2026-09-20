@@ -294,6 +294,38 @@ public final class CubeRotation {
         arc.getW() / norm, arc.getX() / norm, arc.getY() / norm, arc.getZ() / norm);
   }
 
+  /**
+   * The way of holding the cube that puts {@code upFace} on top and {@code frontFace} in front, both
+   * named as the cube reports them rather than as the solver sees them. A cube writes its state
+   * against its own centres, which no face turn moves, so those labels are a fixed colour: white is
+   * {@code U} and red {@code R}, and holding white up and red front is therefore the one rotation
+   * {@code holding('U', 'R')} returns.
+   *
+   * @return null where the two faces name no orientation, being the same face or opposite ones
+   */
+  public static CubeRotation holding(char upFace, char frontFace) {
+    for (CubeRotation rotation : ALL) {
+      if (rotation.mapFace(upFace) == 'U' && rotation.mapFace(frontFace) == 'F') {
+        return rotation;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The cube's own face this rotation holds at {@code position}, which is {@link #holding} read
+   * backwards: {@code byNotation("y").faceAt('F')} is {@code R}, the red face a {@code y} brings to
+   * the front.
+   */
+  public char faceAt(char position) {
+    for (char face : "URFDLB".toCharArray()) {
+      if (mapFace(face) == position) {
+        return face;
+      }
+    }
+    return position;
+  }
+
   /** The four ways to hold the cube with {@code face} on top: they differ only in yaw. */
   public static List<CubeRotation> withFaceUp(char face) {
     List<CubeRotation> candidates = new ArrayList<CubeRotation>();

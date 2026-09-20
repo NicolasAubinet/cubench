@@ -154,10 +154,9 @@
        android:dialogTitle="@string/preferred_method"
        android:defaultValue="CFOP"/>
 
-    <com.cube.nanotimer.gui.widget.preferences.BlindBuffersDialog
-       android:key="smart_cube_buffers"
-       android:title="@string/blind_buffers"
-       android:dialogTitle="@string/blind_buffers"
+    <com.cube.nanotimer.gui.widget.preferences.BlindSetupDialog
+       android:key="smart_cube_blind_setup"
+       android:title="@string/blind_setup"
        android:positiveButtonText="@string/ok"
        android:negativeButtonText="@string/cancel"/>
 
