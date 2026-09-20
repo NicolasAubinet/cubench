@@ -525,6 +525,21 @@ public class LastLayerCaseAlgorithmsTest {
   }
 
   /**
+   * A recorded Ua of 2026-09-03, whose gyro put a {@code y2} in the middle: every move after it is
+   * named from the solver's new frame, so keeping them is keeping the R moves they turned. Folded
+   * instead, the same execution came back written on L, which is the one thing a solver can tell is
+   * wrong about their own solve.
+   */
+  @Test
+  public void tidiesARegrippedExecutionOntoTheFacesItWasTurnedOn() {
+    assertEquals("R U' R U R U R U' R' U' R2", LastLayerCaseAlgorithms.tidied("pll_ua",
+        "x' U y2 R x B' x' R U R U R U' R' x B' R x' R"));
+    // The same algorithm turned without the regrip, which is what it has to agree with.
+    assertEquals("R U' R U R U R U' R' U' R2",
+        LastLayerCaseAlgorithms.tidied("pll_ua", "R U' R U R U R U' R' U' R2 U2"));
+  }
+
+  /**
    * An execution is written as one of the table's own spellings of the row it matched, and as one
    * that was turned the way it was: never as the mirror of it, and never as text the table does not
    * hold. A row is one algorithm and several spellings of it, and the spellings are not

@@ -81,6 +81,72 @@ public final class AlgorithmForm {
   }
 
   /**
+   * An execution on the faces the solver named, rather than on the faces a table spelling would put
+   * it: a rotation taken back is folded as ever, and one that is not ends a frame, so the moves
+   * after it stay on the letters they were written on.
+   *
+   * <p><b>A recorded execution is not a spelling.</b> Every move in it is named in the frame the
+   * gyro read for that move, so a rotation in the middle says the letters after it mean something
+   * else from here on, not that anything turned. Folding it the way a spelling's rotation is folded
+   * names those moves from before the regrip and writes a solver's R moves on L — the one thing the
+   * reconstruction must never do, since the solver knows which hand they used.
+   *
+   * <p>A rotation the solver takes back is a different thing and is still folded: it is how a tilt
+   * of the wrist gets written down, and only the moves inside it are named from the frame it opened
+   * ({@code x B' x'} is the {@code U'} the solver turned). What follows it is unaffected either way,
+   * the frame having come back.
+   *
+   * @throws IllegalArgumentException if a token is not a turn
+   */
+  static List<String> asHeld(String moves) {
+    String[] tokens = moves.trim().split("\\s+");
+    List<char[]> running = framesOf(tokens);
+    List<String> held = new ArrayList<String>();
+    char[] named = FACES.clone();
+    for (int i = 0; i < tokens.length; i++) {
+      String token = tokens[i].trim();
+      if (token.isEmpty()) {
+        continue;
+      }
+      named = read(token, named, held);
+      if (!comesBack(running, i)) {
+        named = FACES.clone(); // a regrip: from here the letters are the solver's again
+      }
+    }
+    return folded(held);
+  }
+
+  /** The frame each token leaves behind, read as a spelling would be: {@code frames.get(0)} is none. */
+  private static List<char[]> framesOf(String[] tokens) {
+    List<char[]> frames = new ArrayList<char[]>(tokens.length + 1);
+    char[] named = FACES.clone();
+    frames.add(named);
+    for (String token : tokens) {
+      String trimmed = token.trim();
+      if (!trimmed.isEmpty()) {
+        named = read(trimmed, named, new ArrayList<String>());
+      }
+      frames.add(named);
+    }
+    return frames;
+  }
+
+  /** Whether the frame a token left is ever the frame it found, which makes its turn of the cube a
+   * tilt rather than a regrip. */
+  private static boolean comesBack(List<char[]> frames, int token) {
+    char[] found = frames.get(token);
+    if (Arrays.equals(found, frames.get(token + 1))) {
+      return true; // it turned no frame at all
+    }
+    for (int later = token + 2; later < frames.size(); later++) {
+      if (Arrays.equals(found, frames.get(later))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * One string naming what was turned, for telling two executions of a case apart. Null for notation
    * nothing can read, which is not the same answer as turning nothing.
    */

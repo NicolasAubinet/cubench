@@ -185,6 +185,18 @@ public class AlgorithmFormTest {
     return all;
   }
 
+  /**
+   * A regrip in an execution says what the letters after it mean, and turns nothing: folding it
+   * writes the moves that follow on the opposite faces. One the solver takes back is a tilt of the
+   * wrist and is still folded, since only the moves inside it were named from the frame it opened.
+   */
+  @Test
+  public void keepsTheFacesTurnedAfterARegripAndFoldsATiltTakenBack() {
+    assertEquals(Arrays.asList("R", "U", "R'"), AlgorithmForm.asHeld("y2 R U R'"));
+    assertEquals(Arrays.asList("U'", "R"), AlgorithmForm.asHeld("x B' x' R"));
+    assertEquals(Arrays.asList("R", "U", "R'"), AlgorithmForm.asHeld("R U R'"));
+  }
+
   private static String written(List<String> turns) {
     StringBuilder sb = new StringBuilder();
     for (String turn : turns) {

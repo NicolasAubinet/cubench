@@ -447,6 +447,12 @@ public final class LastLayerCaseAlgorithms {
    * rotation comes off, which is the regrip and not the algorithm; everything after it is left
    * standing where the solver turned it.
    *
+   * <p><b>A regrip in the middle does not rename one either.</b> An execution names every move in
+   * the frame it was turned in, so a rotation the solver does not take back says what the letters
+   * after it mean from there on and turns nothing. {@link AlgorithmForm#asHeld} is the reading that
+   * keeps them, and it is tried first: folded instead, as a spelling's rotation is folded, a
+   * {@code y2} halfway through writes the rest of a solver's R moves on L.
+   *
    * <p><b>And it checks its work.</b> A rotation in the middle of an algorithm is part of how it is
    * spelled, and folding one away names every later turn from before it, which moves the layer off
    * the top and makes a turn of it no longer alignment. So what comes out is held to still solving
@@ -456,12 +462,18 @@ public final class LastLayerCaseAlgorithms {
     if (moves == null) {
       return null;
     }
+    String held;
     String tidy;
     try {
+      held = AlgorithmForm.written(AlgorithmForm.withoutAlignment(
+          AlgorithmForm.asHeld(AlgorithmForm.withoutOpeningGrip(moves))));
       tidy = AlgorithmForm.written(
           AlgorithmForm.withoutAlignment(AlgorithmForm.of(AlgorithmForm.withoutOpeningGrip(moves))));
     } catch (RuntimeException e) {
       return moves; // notation nothing can read is left the way the solver wrote it
+    }
+    if (solves(caseCode, held)) {
+      return held;
     }
     return solves(caseCode, tidy) ? tidy : moves;
   }
