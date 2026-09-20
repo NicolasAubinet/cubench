@@ -1110,6 +1110,8 @@
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">An\u00e1lisis</string>
   <string name="menu_section_smartcube">Cubo inteligente</string>
+  <string name="menu_section_data">Tus datos</string>
+  <string name="menu_section_app">Aplicación</string>
   <string name="menu_drills">Entrenamientos</string>
   <string name="menu_coaching">Coaching</string>
   <string name="menu_premium_desc">Función de pago</string>

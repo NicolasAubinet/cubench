@@ -1156,6 +1156,8 @@
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">Analysis</string>
   <string name="menu_section_smartcube">Smart cube</string>
+  <string name="menu_section_data">Your data</string>
+  <string name="menu_section_app">App</string>
   <string name="menu_drills">Drills</string>
   <string name="menu_coaching">Coaching</string>
   <string name="menu_premium_desc">Paid feature</string>

@@ -4,15 +4,67 @@
    android:fitsSystemWindows="true"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
+   android:background="@color/hero_card"
    android:animateLayoutChanges="true">
 
-  <!-- No banner: the top bar already carries the cube and the wordmark, and the drawer opens
-       right beside it. -->
+  <!-- The drawer covers the bar that carries the mark and the wordmark, so while it is open it
+       carries them itself, with the version on the same line. -->
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:paddingLeft="20dp"
+     android:paddingRight="20dp"
+     android:paddingTop="10dp"
+     android:paddingBottom="9dp">
+
+    <FrameLayout
+       android:layout_width="32dp"
+       android:layout_height="32dp"
+       android:background="@drawable/hero_glyph">
+
+      <ImageView
+         android:layout_width="19dp"
+         android:layout_height="19dp"
+         android:layout_gravity="center"
+         android:src="@drawable/ic_puzzle_3x3"
+         android:tint="@color/lightblue"
+         android:contentDescription="@null"/>
+    </FrameLayout>
+
+    <include
+       layout="@layout/app_wordmark"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginStart="12dp"
+       android:layout_marginLeft="12dp"/>
+
+    <TextView
+       android:id="@+id/tvDrawerVersion"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:layout_marginStart="@dimen/space_s"
+       android:layout_marginLeft="@dimen/space_s"
+       android:gravity="end"
+       android:textSize="11sp"
+       android:letterSpacing="0.06"
+       android:textColor="@color/secondary_text"
+       android:singleLine="true"/>
+
+  </LinearLayout>
+
+  <View
+     android:layout_width="match_parent"
+     android:layout_height="1dp"
+     android:background="@color/hero_divider"/>
+
   <ListView
      android:id="@+id/lvMenuItems"
      android:layout_width="match_parent"
      android:layout_height="match_parent"
-     android:paddingTop="@dimen/space_s"
+     android:paddingTop="@dimen/space_xs"
      android:divider="@null"
      android:dividerHeight="0dp"
      android:scrollbars="none"/>

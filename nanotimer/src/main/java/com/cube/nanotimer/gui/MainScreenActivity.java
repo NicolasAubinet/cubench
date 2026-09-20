@@ -57,7 +57,6 @@ import com.cube.nanotimer.util.backup.BackupRestorer;
 import com.cube.nanotimer.util.exportimport.ErrorListener;
 import com.cube.nanotimer.util.exportimport.csvimport.CSVImporter;
 import com.cube.nanotimer.util.helper.DialogUtils;
-import com.cube.nanotimer.util.helper.ScreenUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.EnterAnimation;
@@ -294,6 +293,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
     initHistoryList();
 
+    ((TextView) findViewById(R.id.tvDrawerVersion)).setText("v" + Utils.getAppVersion(this));
+
     menuListAdapter = new MenuListAdapter(this, R.id.lvMenuItems, buildMenu());
     ListView lvMenuItems = (ListView) findViewById(R.id.lvMenuItems);
     lvMenuItems.setAdapter(menuListAdapter);
@@ -451,10 +452,13 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           shown.add(getString(R.string.menu_section_smartcube));
         }
       }
-      if (entry == MENU_IMPORT_EXPORT && SmartCubeGate.ENABLED) {
-        // A rule with no label, closing the section: without it the rows below read as part of it.
+      if (entry == MENU_IMPORT_EXPORT) {
         entries.add(MENU_HEADER);
-        shown.add("");
+        shown.add(getString(R.string.menu_section_data));
+      }
+      if (entry == MENU_LANGUAGE) {
+        entries.add(MENU_HEADER);
+        shown.add(getString(R.string.menu_section_app));
       }
       entries.add(entry);
       shown.add(labels[entry]);
@@ -1371,7 +1375,15 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           icon.setImageResource(imageResource);
         }
 
+        boolean destructive = menuEntries[position] == MENU_CLEAR_HISTORY;
+        icon.setColorFilter(ContextCompat.getColor(MainScreenActivity.this,
+            destructive ? R.color.danger_text : R.color.lightblue));
+        view.findViewById(R.id.menuGlyphTile).setBackgroundResource(
+            destructive ? R.drawable.menu_glyph_danger : R.drawable.hero_glyph);
+
         TextView tvName = (TextView) view.findViewById(R.id.tvText);
+        tvName.setTextColor(ContextCompat.getColor(MainScreenActivity.this,
+            destructive ? R.color.danger_text : R.color.white));
         if (menuEntries[position] == MENU_SORT) {
           if (timesSort == TimesSort.TIMESTAMP) {
             tvName.setText(R.string.show_best_times);
@@ -1385,22 +1397,14 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       return view;
     }
 
-    /** A group label, or with no text the bare rule that closes the group above it. */
+    /** The label naming the group of rows under it. */
     private View headerView(int position, View convertView, ViewGroup parent) {
       View view = convertView;
       if (view == null) {
         view = inflater.inflate(R.layout.menu_section_header, parent, false);
       }
-      String label = position < objects.length ? objects[position] : "";
-      TextView tvSection = (TextView) view.findViewById(R.id.tvMenuSection);
-      tvSection.setText(label);
-      tvSection.setVisibility(label.isEmpty() ? View.GONE : View.VISIBLE);
-      // With no label under it the rule keeps the gap the label would have filled, and sits closer
-      // to the group above than to the one below. Take that back so it sits between the two.
-      View rule = view.findViewById(R.id.vMenuSectionRule);
-      ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) rule.getLayoutParams();
-      params.bottomMargin = ScreenUtils.dipToPixels(label.isEmpty() ? 10 : 14);
-      rule.setLayoutParams(params);
+      ((TextView) view.findViewById(R.id.tvMenuSection))
+          .setText(position < objects.length ? objects[position] : "");
       return view;
     }
   }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One row of the main screen's drawer. -->
+<!-- One row of the main screen's drawer. The mark sits in the same tile the hero card's puzzle
+     mark sits in, so a row here is built like a row there. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:orientation="horizontal"
    android:layout_width="match_parent"
@@ -7,22 +8,31 @@
    android:gravity="center_vertical"
    android:paddingLeft="20dp"
    android:paddingRight="20dp"
-   android:paddingTop="14dp"
-   android:paddingBottom="14dp"
+   android:paddingTop="8dp"
+   android:paddingBottom="8dp"
    android:background="?android:attr/selectableItemBackground">
 
-  <ImageView
-     android:id="@+id/imgIcon"
-     android:layout_width="22dp"
-     android:layout_height="22dp"
-     android:contentDescription="@null"/>
+  <FrameLayout
+     android:id="@+id/menuGlyphTile"
+     android:layout_width="32dp"
+     android:layout_height="32dp"
+     android:background="@drawable/hero_glyph">
+
+    <ImageView
+       android:id="@+id/imgIcon"
+       android:layout_width="19dp"
+       android:layout_height="19dp"
+       android:layout_gravity="center"
+       android:tint="@color/lightblue"
+       android:contentDescription="@null"/>
+  </FrameLayout>
 
   <TextView
      android:id="@+id/tvText"
      android:layout_width="0dp"
      android:layout_height="wrap_content"
-     android:layout_marginStart="18dp"
-     android:layout_marginLeft="18dp"
+     android:layout_marginStart="14dp"
+     android:layout_marginLeft="14dp"
      android:layout_weight="1"
      android:singleLine="true"
      android:ellipsize="end"

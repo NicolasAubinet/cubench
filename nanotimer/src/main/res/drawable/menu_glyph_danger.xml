@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tile behind the one drawer mark that destroys something: the accent wash, in the warning
+     hue instead. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="@color/danger_wash_15"/>
+  <corners android:radius="10dp"/>
+</shape>

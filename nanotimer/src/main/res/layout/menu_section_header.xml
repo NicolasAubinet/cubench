@@ -7,14 +7,14 @@
    android:layout_height="wrap_content"
    android:paddingLeft="20dp"
    android:paddingRight="20dp"
-   android:paddingTop="16dp"
-   android:paddingBottom="6dp">
+   android:paddingTop="12dp"
+   android:paddingBottom="5dp">
 
   <View
      android:id="@+id/vMenuSectionRule"
      android:layout_width="match_parent"
      android:layout_height="1dp"
-     android:layout_marginBottom="14dp"
+     android:layout_marginBottom="12dp"
      android:background="@color/hero_divider"/>
 
   <TextView

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!-- The logotype, in the slot every other screen puts a title in. It sits on the launcher screen
-     only: the app wears its face where you open it, and nowhere else.
+     only: the app wears its face where you open it, and nowhere else. The drawer includes it too,
+     since it covers this bar while it is open.
 
      Sized in dp, not sp: this is a mark rather than something to read, and two lines of it grown by
      a large font setting are cut off by the bottom of a bar whose height is fixed. -->
