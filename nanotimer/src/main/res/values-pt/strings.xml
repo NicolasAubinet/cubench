@@ -1116,7 +1116,7 @@
   <string name="menu_section_app">Aplicação</string>
   <string name="menu_drills">Treinos</string>
   <string name="menu_coaching">Coaching</string>
-  <string name="menu_premium_desc">Funcionalidade paga</string>
+  <string name="menu_premium_tag">Premium</string>
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">Resolu\u00e7\u00e3o</string>
   <string name="analysis_tab_cases">Casos</string>

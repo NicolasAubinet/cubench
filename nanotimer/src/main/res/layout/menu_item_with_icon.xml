@@ -38,14 +38,25 @@
      android:ellipsize="end"
      android:textSize="16sp"/>
 
-  <ImageView
-     android:id="@+id/imgMenuPremium"
-     android:layout_width="14dp"
-     android:layout_height="14dp"
+  <!-- The word itself, in the same pill the hub's example badge is written in: a drawer row has the
+       width for it, and a row that says what it costs needs no legend anywhere else. -->
+  <TextView
+     android:id="@+id/tvMenuPremium"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
      android:layout_marginStart="10dp"
      android:layout_marginLeft="10dp"
-     android:contentDescription="@string/menu_premium_desc"
-     android:src="@drawable/menu_premium"
+     android:background="@drawable/premium_tag"
+     android:letterSpacing="0.1"
+     android:paddingLeft="7dp"
+     android:paddingRight="7dp"
+     android:paddingTop="2dp"
+     android:paddingBottom="2dp"
+     android:text="@string/menu_premium_tag"
+     android:textAllCaps="true"
+     android:textColor="@color/graybg"
+     android:textSize="10sp"
+     android:textStyle="bold"
      android:visibility="gone"/>
 
 </LinearLayout>

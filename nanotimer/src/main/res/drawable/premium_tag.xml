@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The pill behind the word on anything that costs money. A word rather than a symbol wherever the
+     row is wide enough for one: a mark has to be learned before it means anything, and the drawer is
+     where it is met first. Where there is no room for the word, premium_mark stands in for it. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/warning"/>
+  <corners android:radius="999dp"/>
+</shape>

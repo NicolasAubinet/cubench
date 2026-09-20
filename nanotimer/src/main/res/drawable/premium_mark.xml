@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premium where the word will not fit, which is the hub's tab strip and nothing else so far. A bare
+     dot reads as "new" everywhere else a phone puts one, so this is a star; the drawer's premium_tag
+     is what teaches the reader that it means paid. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="13dp"
+    android:height="13dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M12,2.5 L15.1,8.8 L22,9.8 L17,14.7 L18.2,21.5 L12,18.3 L5.8,21.5 L7,14.7 L2,9.8 L8.9,8.8 Z"
+      android:fillColor="@color/warning" />
+</vector>

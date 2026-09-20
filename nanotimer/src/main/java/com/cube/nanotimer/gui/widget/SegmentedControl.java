@@ -62,12 +62,13 @@ public class SegmentedControl {
   }
 
   /**
-   * Marks a cell, for a choice that leads to something the others do not. The mark rides at the
-   * cell's own edge rather than beside the label, so a marked segment is the same width as the rest.
+   * Marks a cell as a paid one, with the same star the drawer puts on a paid row. The mark rides at
+   * the cell's own edge rather than beside the label, so a marked segment is the same width as the
+   * rest.
    */
   public void setSegmentMarked(int index, boolean marked) {
     cells.get(index).setCompoundDrawablesWithIntrinsicBounds(0, 0,
-        marked ? R.drawable.view_segment_marker : 0, 0);
+        marked ? R.drawable.premium_mark : 0, 0);
   }
 
   /** Takes a cell out of the row, for a choice that does not apply to what is being set up. */

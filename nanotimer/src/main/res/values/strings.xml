@@ -1159,7 +1159,7 @@
   <string name="menu_section_app">App</string>
   <string name="menu_drills">Drills</string>
   <string name="menu_coaching">Coaching</string>
-  <string name="menu_premium_desc">Paid feature</string>
+  <string name="menu_premium_tag">Premium</string>
   <!-- The solve type and the method its solves are read as, on the app bar's second line. -->
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">Solve</string>

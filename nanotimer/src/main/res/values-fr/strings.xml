@@ -1114,7 +1114,7 @@
   <string name="menu_section_app">Application</string>
   <string name="menu_drills">Entraînements</string>
   <string name="menu_coaching">Coaching</string>
-  <string name="menu_premium_desc">Fonctionnalité payante</string>
+  <string name="menu_premium_tag">Premium</string>
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">R\u00e9solution</string>
   <string name="analysis_tab_cases">Cas</string>

@@ -1397,7 +1397,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       }
 
       if (position >= 0 && position < objects.length) {
-        view.findViewById(R.id.imgMenuPremium)
+        view.findViewById(R.id.tvMenuPremium)
             .setVisibility(menuEntries[position] == MENU_COACHING ? View.VISIBLE : View.GONE);
         ImageView icon = (ImageView) view.findViewById(R.id.imgIcon);
         Integer imageResource = null;
