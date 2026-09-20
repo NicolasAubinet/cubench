@@ -66,10 +66,19 @@ public final class StoredSolveReplay {
     private final LostReading lostReading;
     private final ParityCheck parityCheck;
     private final boolean reachedSolved;
+    private final CubeRotation grip;
 
     Result(String moves, CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
         BlindResidual residual, LostReading lostReading, ParityCheck parityCheck,
         boolean reachedSolved) {
+      this(moves, method, steps, stoppedStep, residual, lostReading, parityCheck, reachedSolved,
+          null);
+    }
+
+    Result(String moves, CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
+        BlindResidual residual, LostReading lostReading, ParityCheck parityCheck,
+        boolean reachedSolved, CubeRotation grip) {
+      this.grip = grip;
       this.moves = moves;
       this.method = method;
       this.steps = steps;
@@ -125,6 +134,14 @@ public final class StoredSolveReplay {
      */
     public boolean reachedSolved() {
       return reachedSolved;
+    }
+
+    /**
+     * The way the cube was held to name this solve, or null where nothing named it. Said on the
+     * sheet, because a blind reading that comes out wrong is nearly always wrong about this.
+     */
+    public CubeRotation getGrip() {
+      return grip;
     }
   }
 
@@ -199,7 +216,7 @@ public final class StoredSolveReplay {
           : SolveMovesFormat.withPickup(storedMoves, grip.getNotation());
       return new Result(moves, method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
           stoppedStep, analyzer.getResidual(), analyzer.getLostReading(),
-          analyzer.getParityCheck(), reachedSolved);
+          analyzer.getParityCheck(), reachedSolved, grip);
     } catch (RuntimeException e) {
       return null; // a scramble in another puzzle's notation, a truncated stream: fall back
     }

@@ -44,6 +44,7 @@ import com.cube.nanotimer.cube.SolveMovesFormat;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.cube.StoredSolveReplay;
+import com.cube.nanotimer.gui.widget.dialog.BlindSetupPrompt;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
@@ -55,6 +56,7 @@ import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LostReading;
 import com.cube.nanotimer.smartcube.step.ParityCheck;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
@@ -211,6 +213,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       // through its buffers, and the spelling has to stand in the frame the names do.
       String moves = fresh ? reread.getMoves() : solveTime.getSmartcubeMoves();
       breakdownMoves = moves;
+      blindHold = fresh && method == CubeMethod.BLIND ? reread.getGrip() : null;
       List<SolveStep> steps = SolveBreakdown.withTail(read, stoppedStep, durationMs, moves, method);
       buildBreakdown(v, steps, SolveSolution.from(moves, steps, method),
           getString(R.string.breakdown), null, method);
@@ -244,6 +247,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     }
     setUpScrambleTools(v, solveTime, cubeType);
     setUpReplay(v, solveTime, cubeType);
+    showBlindHold(v);
     setUpReportLink(v, solveTime, cubeType);
     ((TextView) v.findViewById(R.id.tvDate))
         .setText(FormatterService.INSTANCE.formatDateTime(solveTime.getTimestamp()));
@@ -267,6 +271,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.breakdownResidual).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownParity).setVisibility(View.GONE);
     v.findViewById(R.id.breakdownLost).setVisibility(View.GONE);
+    v.findViewById(R.id.tvBlindHold).setVisibility(View.GONE);
     v.findViewById(R.id.tvReportReconstruction).setVisibility(View.GONE);
     v.findViewById(R.id.movesSwitchLabel).setVisibility(View.VISIBLE);
     SwitchCompat moves = (SwitchCompat) v.findViewById(R.id.swMoves);
@@ -593,6 +598,36 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         DialogUtils.showFragment(getActivity(), SolveReplayDialog.newInstance(
             puzzleId, cubingScramble, moves, SolveBreakdown.solvingDurationMs(solveTime),
             breakdownSteps, solveTime.getId(), blind));
+      }
+    });
+  }
+
+  /**
+   * The hold a blind solve's names were read in, said in the colours the solver sees rather than in
+   * the cube's own letters, and tapped to change it.
+   *
+   * <p>On every blind reading and not only on a doubtful one. A solver whose names come out wrong
+   * has no way of knowing that a setting decided them, and this is the screen they are looking at
+   * when they find out; one whose names are right reads a line that agrees with them and learns the
+   * setting exists. It says what <em>this</em> solve was read with, which is the hold it was
+   * recorded under: changing the setting names the solves from here on, and leaves this one as it
+   * was read.
+   */
+  private void showBlindHold(View v) {
+    TextView line = (TextView) v.findViewById(R.id.tvBlindHold);
+    if (blindHold == null
+        || v.findViewById(R.id.breakdownSection).getVisibility() != View.VISIBLE) {
+      line.setVisibility(View.GONE);
+      return;
+    }
+    line.setVisibility(View.VISIBLE);
+    line.setText(getString(R.string.blind_read_with,
+        getString(Utils.getFaceColourNameRes(blindHold.faceAt('U'))),
+        getString(Utils.getFaceColourNameRes(blindHold.faceAt('F')))));
+    line.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        BlindSetupPrompt.open(getActivity());
       }
     });
   }
@@ -1027,6 +1062,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
   private ArrayList<SolveStep> breakdownSteps; // what the bar in the sheet draws, and the replay scrubs
   private String breakdownMoves; // the method breakdown's re-read stream, null under the user's steps
+  private CubeRotation blindHold; // the hold this solve's names were read in, null unless blind
   private boolean showMoves;
 
   /** Shows the solve's move count and turn rate, and turns every moves row on or off at once. */

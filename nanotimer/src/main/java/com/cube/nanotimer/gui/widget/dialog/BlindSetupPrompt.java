@@ -29,15 +29,34 @@ public final class BlindSetupPrompt {
       return;
     }
     Options.INSTANCE.setBlindSetupAsked(true); // asked, whatever comes of it
-    final BlindSetupPicker picker = new BlindSetupPicker(activity, true);
-    new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
+    show(activity, true);
+  }
+
+  /**
+   * The same question again, whatever was answered before and whether or not it ever was. Put under
+   * a blind reconstruction, where a solver looking at names they did not memorise is looking at the
+   * one screen that says what this setting did.
+   */
+  public static void open(Activity activity) {
+    if (!activity.isFinishing()) {
+      show(activity, false);
+    }
+  }
+
+  /** @param asked whether this is the question being put, which alone says where to answer again */
+  private static void show(Activity activity, boolean asked) {
+    final BlindSetupPicker picker = new BlindSetupPicker(activity, asked);
+    AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
         .setView(picker.getView())
         .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
           @Override
           public void onClick(DialogInterface dialog, int which) {
             picker.save();
           }
-        })
-        .show();
+        });
+    if (!asked) {
+      builder.setNegativeButton(R.string.cancel, null); // opened to look, not only to answer
+    }
+    builder.show();
   }
 }

@@ -1099,6 +1099,7 @@
   <string name="blind_orientation_up">Face du haut</string>
   <string name="blind_orientation_front">Face avant</string>
   <string name="blind_orientation_summary">Cube tenu %1$s en haut, %2$s devant</string>
+  <string name="blind_read_with">Lu avec %1$s en haut, %2$s devant</string>
   <string name="colour_white">blanc</string>
   <string name="colour_yellow">jaune</string>
   <string name="colour_red">rouge</string>

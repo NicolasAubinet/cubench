@@ -1101,6 +1101,7 @@
   <string name="blind_orientation_up">Face de cima</string>
   <string name="blind_orientation_front">Face da frente</string>
   <string name="blind_orientation_summary">Cubo com %1$s em cima, %2$s à frente</string>
+  <string name="blind_read_with">Lido com %1$s em cima, %2$s à frente</string>
   <string name="colour_white">branco</string>
   <string name="colour_yellow">amarelo</string>
   <string name="colour_red">vermelho</string>

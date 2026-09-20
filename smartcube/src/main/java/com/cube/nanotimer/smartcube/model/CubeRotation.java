@@ -312,6 +312,20 @@ public final class CubeRotation {
     return null;
   }
 
+  /**
+   * The cube's own face this rotation holds at {@code position}, which is {@link #holding} read
+   * backwards: {@code byNotation("y").faceAt('F')} is {@code R}, the red face a {@code y} brings to
+   * the front.
+   */
+  public char faceAt(char position) {
+    for (char face : "URFDLB".toCharArray()) {
+      if (mapFace(face) == position) {
+        return face;
+      }
+    }
+    return position;
+  }
+
   /** The four ways to hold the cube with {@code face} on top: they differ only in yaw. */
   public static List<CubeRotation> withFaceUp(char face) {
     List<CubeRotation> candidates = new ArrayList<CubeRotation>();

@@ -1144,6 +1144,7 @@
   <string name="blind_orientation_up">Up face</string>
   <string name="blind_orientation_front">Front face</string>
   <string name="blind_orientation_summary">Cube held %1$s up, %2$s front</string>
+  <string name="blind_read_with">Read with %1$s up, %2$s front</string>
   <string name="colour_white">white</string>
   <string name="colour_yellow">yellow</string>
   <string name="colour_red">red</string>

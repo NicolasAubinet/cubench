@@ -92,16 +92,17 @@ public class RecordedBlindSolveTest {
   }
 
   /**
-   * And it is the declaration that decides: declared the other way up, the same solve reads the
-   * other way round. That other way is the {@code y' x'} the gyro guessed, yellow up and red front,
-   * so this is the reading its solver reported. A solve that reads both piece types is named the
-   * same whatever is declared, which is what keeps this to the solves that cannot say for
-   * themselves: see {@link BlindFrameTest}.
+   * And it is the declaration that decides. Its edge buffer leaves this solve exactly two ways up,
+   * measured: white up with red in front, and red up with white in front, which are {@code y} and
+   * the {@code y' x'} the gyro guessed. Declared the second, the solve reads the second, which is
+   * the mirrored reading its solver reported. A solve that reads both piece types is named the same
+   * whatever is declared, which is what keeps this to the solves that cannot say for themselves:
+   * see {@link BlindFrameTest}.
    */
   @Test
   public void readsAnEdgesOnlySolveTheOtherWayUpWhereTheOtherWayIsDeclared() {
     replay(RecordedBlindSolve.SCRAMBLE_EDGES_ONLY, RecordedBlindSolve.MOVES_EDGES_ONLY,
-        Long.MAX_VALUE, declaring('D', 'R'));
+        Long.MAX_VALUE, declaring('R', 'U'));
 
     assertEquals("y' x'", detector.getPickupRotation().getNotation());
     assertEquals("UF-LD-BL", detector.subStepName(1, 0));

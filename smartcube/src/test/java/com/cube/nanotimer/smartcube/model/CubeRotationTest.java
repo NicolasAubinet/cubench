@@ -64,6 +64,20 @@ public class CubeRotationTest {
     assertEquals(24, found.size());
   }
 
+  /** And read back: the faces a rotation holds up and in front are the ones it was asked for. */
+  @Test
+  public void saysBackTheFacesItHoldsUpAndInFront() {
+    for (char up : "URFDLB".toCharArray()) {
+      for (char front : "URFDLB".toCharArray()) {
+        CubeRotation holding = CubeRotation.holding(up, front);
+        if (holding != null) {
+          assertEquals("up of " + holding, up, holding.faceAt('U'));
+          assertEquals("front of " + holding, front, holding.faceAt('F'));
+        }
+      }
+    }
+  }
+
   @Test
   public void notationsAreMinimal() {
     for (CubeRotation rotation : CubeRotation.all()) {
