@@ -3,7 +3,6 @@ package com.cube.nanotimer.cube;
 import static com.cube.nanotimer.vo.PieceMark.HOME;
 import static com.cube.nanotimer.vo.PieceMark.TOUCHED;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -94,20 +93,24 @@ public class StoredSolveReplayTest {
   }
 
   /**
-   * The grip is the whole reason it is kept: read through a different one, the same solve is the
-   * same algorithms spelled at different pieces. Which is also why it is never guessed at.
+   * The stored grip does not spell the targets of a solve that says where it shot from — this one
+   * shoots from the cube's own {@code UR} and is read at the declared {@code UF} through either.
+   *
+   * <p>It used to, for the half of the answer its buffers do not pin: an edge slot leaves two ways
+   * to hold the cube and the grip chose between them. That is the bug of the 2026-09-19 edges-only
+   * solve, whose every name came out mirrored because the gyro had guessed the pick-up. The turning
+   * settles it now, so both grips land in the one frame.
    */
   @Test
-  public void spellsTheTargetsThroughTheStoredGripAndNotAnother() {
+  public void namesASolveTheSameThroughEitherGripOnceItSaysWhereItShotFrom() {
     String held = firstAlgorithm(StoredSolveReplay.reinterpret(
         BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND));
     String askew = firstAlgorithm(StoredSolveReplay.reinterpret(
         BLIND_SCRAMBLE, heldIn("x", BLIND_MOVES), CubeMethod.BLIND));
 
     assertNotNull(held);
-    assertEquals(3, held.split("-").length); // a cycle either way: only the letters move
-    assertEquals(3, askew.split("-").length);
-    assertNotEquals(held, askew);
+    assertEquals(3, held.split("-").length);
+    assertEquals(held, askew);
   }
 
   /**
@@ -118,7 +121,7 @@ public class StoredSolveReplayTest {
    * landing its first target and leaving its second holding a piece that belongs elsewhere; the
    * second closes the cycle and lands all three, the buffer included. Neither leaves one piece out,
    * so both are named by the buffer the one landed piece was sent from rather than said in slot
-   * order — which is what the second one reading as a cycle rather than as {@code UF-UB-DL} is.
+   * order — which is what the second one reading as a cycle rather than as {@code UF-DF-RB} is.
    */
   @Test
   public void carriesThePiecesEachAlgorithmPutHomeOutOfTheReRead() {
@@ -126,9 +129,9 @@ public class StoredSolveReplayTest {
         StoredSolveReplay.reinterpret(BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND);
 
     List<SolveStep> edges = result.getSteps().get(1).getSubSteps();
-    assertEquals("UF-UL-UB", edges.get(0).getName());
+    assertEquals("UF-RF-DF", edges.get(0).getName());
     assertEquals(Arrays.asList(TOUCHED, HOME, TOUCHED), edges.get(0).getPieceMarks());
-    assertEquals("UF-DL-UB", edges.get(1).getName());
+    assertEquals("UF-RB-DF", edges.get(1).getName());
     assertEquals(Arrays.asList(HOME, HOME, HOME), edges.get(1).getPieceMarks());
 
     // And there is one mark per piece the name says, which is what the sheet colours them by.

@@ -64,6 +64,7 @@ public enum Options {
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
   public static final String SMART_CUBE_EDGE_BUFFER_KEY = "smart_cube_edge_buffer";
   public static final String SMART_CUBE_CORNER_BUFFER_KEY = "smart_cube_corner_buffer";
+  public static final String SMART_CUBE_BLIND_GRIP_KEY = "smart_cube_blind_grip";
   public static final String SMART_CUBE_BUFFERS_ASKED_KEY = "smart_cube_buffers_asked";
   public static final String SMART_CUBE_AUTO_STOP_KEY = "smart_cube_auto_stop";
   public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
@@ -544,6 +545,20 @@ public enum Options {
   public void setBlindBuffers(String edge, String corner) {
     sharedPreferences.edit().putString(SMART_CUBE_EDGE_BUFFER_KEY, edge)
         .putString(SMART_CUBE_CORNER_BUFFER_KEY, corner).apply();
+  }
+
+  /**
+   * The grip the solver's last completed blind solve turned out to have been held in, learned rather
+   * than asked for: a solve that reads both piece types pins its own frame, and one that reads a
+   * single type cannot and is read through this instead. Null until a solve has taught it.
+   */
+  public String getBlindSettledGrip() {
+    return sharedPreferences == null ? null
+        : sharedPreferences.getString(SMART_CUBE_BLIND_GRIP_KEY, null);
+  }
+
+  public void setBlindSettledGrip(String grip) {
+    sharedPreferences.edit().putString(SMART_CUBE_BLIND_GRIP_KEY, grip).apply();
   }
 
   // Tracked apart from the values, which have defaults and so cannot say whether they were set.

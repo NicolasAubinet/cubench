@@ -21,15 +21,38 @@ import java.util.List;
  * piece that is, is a fact about them rather than about a solve. The detector reads the slot each
  * algorithm was shot from off cube states alone, and one buffer slot per type pins the frame: a
  * corner slot leaves three of the 24 rotations standing and an edge slot two, and no rotation but
- * one satisfies both. Measured over all 25 recorded blind solves, exactly one frame of 24 puts their
- * shot cycles at the owner's {@code UF}/{@code UFR}, and it is the grip they were recorded with
- * wherever they carry one.
+ * one satisfies both. Measured over all 26 recorded blind solves, exactly one frame of 24 puts the
+ * shot cycles of both types at the owner's {@code UF}/{@code UFR}, and it is the grip they were
+ * recorded with wherever they carry one.
  *
  * <p>It reads no gyro, so yaw drift, an unpinned session anchor and a cube held off square cannot
- * reach it. The one way left to be wrong is a buffer declared that the solver does not use, which is
- * why {@link #of} moves off the frame it is given only when the answer is <em>unique</em>.
+ * reach it. The one way left to be wrong is a buffer declared that the solver does not use.
+ *
+ * <p><b>Where one buffer is all the solve read.</b> A solve that stops before its second piece type
+ * — an edges-only session, or a 3BLD abandoned part way — leaves the two frames an edge slot admits
+ * (three for a corner slot), and they differ by a turn about the buffer's own axis. Nothing in any
+ * cube state tells them apart: the whole reading rotates with the frame and comes out just as
+ * consistent either way, so a wrong one is invisible and every name comes out mirrored. That is the
+ * solve of 2026-09-19, reported by its solver.
+ *
+ * <p><b>What answers is the solver's own habit.</b> A grip is a fact about them in the same way a
+ * buffer is: the scramble is followed in one orientation and the cube is picked up out of it the
+ * same way each time. Measured, all 19 recorded solves that read both piece types settle on
+ * {@code y}, and the solver says so himself. So the frame a completed solve settled on is kept, and
+ * a solve that can only settle half of one is read through it. This is not a second rule for
+ * part-solves: it is the answer their own whole solves already gave, which is why an edges-only
+ * solve comes out reading like any other.
+ *
+ * <p><b>Only where no solve has taught it yet</b> does the turning get a say: a cube is held with
+ * the faces the fingers reach up and down, and front and back are awkward. Counted in reported
+ * quarter turns over each recorded solve's edges alone — the shape this is for — the front-back axis
+ * is the quieter one in 18 of 20, by 1.22x at the tightest. Better than the coin flip it replaces
+ * and no more than that, which is why the habit is asked first and this second.
  */
 final class BlindFrame {
+
+  /** The faces a frame names front and back, as {@link FaceletRotations} indexes them. */
+  private static final int FRONT = 2, BACK = 5;
 
   private BlindFrame() {
   }
@@ -41,18 +64,61 @@ final class BlindFrame {
    * @param shotFrom the slot each piece type was shot from, in the frame the cube reports, or
    *     {@link BlindTargets#NO_BUFFER} for a type nothing settled
    * @param declared the slot the solver shoots that type from, or {@link BlindTargets#NO_BUFFER}
-   * @param frame the frame to keep where the buffers leave more than one way to hold the cube: the
-   *     gyro's answer, which still decides the yaw of a solve that only read one piece type
+   * @param habit the frame this solver's completed solves settled on, or
+   *     {@link BlindTargets#UNKNOWN_FRAME} where none has
+   * @param frame the gyro's answer, kept where nothing else has an opinion
+   * @param turns how often each reported face was turned, URFDLB
    */
-  static int of(int[] shotFrom, int[] declared, int frame) {
+  static int of(int[] shotFrom, int[] declared, int habit, int frame, int[] turns) {
     List<Integer> fits = fits(shotFrom, declared);
-    if (fits.isEmpty() || fits.contains(frame)) {
+    if (fits.isEmpty()) {
       return frame;
     }
     if (fits.size() == 1) {
       return fits.get(0);
     }
+    if (fits.contains(habit)) {
+      return habit;
+    }
+    int quietest = quietestFront(fits, turns);
+    if (quietest != BlindTargets.UNKNOWN_FRAME) {
+      return quietest;
+    }
+    if (fits.contains(frame)) {
+      return frame;
+    }
     return frame == BlindTargets.UNKNOWN_FRAME ? frame : closestTo(fits, frame);
+  }
+
+  /**
+   * The fit that puts the quietest axis at front and back, or {@link BlindTargets#UNKNOWN_FRAME}
+   * where two of them were turned exactly alike and the turning cannot choose.
+   */
+  private static int quietestFront(List<Integer> fits, int[] turns) {
+    int best = BlindTargets.UNKNOWN_FRAME;
+    int quietest = Integer.MAX_VALUE;
+    boolean alone = false;
+    for (int fit : fits) {
+      int turned =
+          turns[FaceletRotations.face(fit, FRONT)] + turns[FaceletRotations.face(fit, BACK)];
+      if (turned < quietest) {
+        quietest = turned;
+        best = fit;
+        alone = true;
+      } else if (turned == quietest) {
+        alone = false;
+      }
+    }
+    return alone ? best : BlindTargets.UNKNOWN_FRAME;
+  }
+
+  /**
+   * Whether the pieces alone leave one way to hold the cube, which is what makes a solve's own grip
+   * worth learning from: anything less is a fallback, and a habit taught by one would only confirm
+   * itself.
+   */
+  static boolean settles(int[] shotFrom, int[] declared) {
+    return fits(shotFrom, declared).size() == 1;
   }
 
   /** Every way of holding the cube that puts each settled buffer at the declared one. */

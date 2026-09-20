@@ -755,6 +755,27 @@ final class RecordedBlindSolve {
           + "B'@53055 B@53466 U'@53552 B'@53712 U@54017 B@54220 D@54308 B'@54447 U'@54554 B@54658 "
           + "U@54788 B'@54893 U'@55043 B@55179 D'@55444 B'@55670 U@55763";
 
+  /**
+   * The edges-only solve of 2026-09-19, reported by its solver: every name came out mirrored, and
+   * its stored grip is the {@code y' x'} the gyro guessed rather than the {@code y} it was held in.
+   *
+   * <p>It is the first one here that never reached its corners, which is why the bug stood: one
+   * buffer leaves two ways to hold the cube, no cube state tells them apart, and every solve on
+   * record before this read both types and so left {@link BlindFrame} nothing to choose.
+   */
+  static final String SCRAMBLE_EDGES_ONLY =
+      "B2 U B2 R2 D2 B2 U2 F2 D' L2 B' L R' B2 F2 U' B' D2 U2 B";
+  static final String MOVES_EDGES_ONLY =
+      "[y' x'] y@7350 D'@7350 B'@7569 F@7585 z'@7586 R'@7761 B'@7928 R@8014 F'@8556 B@8586 "
+          + "z@8587 U'@8791 B@8966 D@9249 U@9291 U@9643 B@9794 U'@9921 F@10166 B'@10170 z'@10171 "
+          + "R@10322 B'@10494 R'@10625 B@11186 F'@11219 z@11220 U@11516 F@11820 U@11939 F'@12137 "
+          + "B@12164 z@12165 L'@12419 F'@12578 L@12664 F@13058 B'@13068 z'@13069 U'@13278 U'@13433 "
+          + "F@13976 z'@14119 R'@14119 z@14248 F'@14248 R@14437 L'@14439 x'@14440 U@14624 R@14770 "
+          + "U'@14995 L@15379 R'@15396 x@15397 U@15852 F@16054 D'@16198 U@16222 y'@16223 L'@16340 "
+          + "U'@16526 L@16665 U'@16855 D@16871 y@16872 F'@16999 z@17471 F'@17472 F'@17679 R@17823 "
+          + "z'@18032 F@18033 z'@18119 F@18120 U'@18324 D@18368 y@18369 R'@18451 R'@18540 U@18699 "
+          + "D'@18717 y'@18718 z@19041 R'@19041 z'@19182 F@19183 F@19255";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -776,5 +797,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_FLIPPED_THE_WRONG_PAIR, MOVES_FLIPPED_THE_WRONG_PAIR},
     {SCRAMBLE_STOPPED_MID_CORNERS, MOVES_STOPPED_MID_CORNERS},
     {SCRAMBLE_TILTED_GRIP, MOVES_TILTED_GRIP},
+    {SCRAMBLE_EDGES_ONLY, MOVES_EDGES_ONLY},
   };
 }

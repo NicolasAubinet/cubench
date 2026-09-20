@@ -164,6 +164,10 @@ public final class StoredSolveReplay {
       MethodAnalyzers analyzers = new MethodAnalyzers(expected);
       analyzers.setBlindBuffers(
           Options.INSTANCE.getBlindEdgeBuffer(), Options.INSTANCE.getBlindCornerBuffer());
+      String habit = Options.INSTANCE.getBlindSettledGrip();
+      if (habit != null) {
+        analyzers.setHabitualGrip(CubeRotation.byNotation(habit));
+      }
       if (pickup != null) {
         analyzers.setPickupRotation(CubeRotation.byNotation(pickup));
       }

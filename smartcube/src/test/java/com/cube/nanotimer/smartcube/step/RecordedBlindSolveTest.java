@@ -71,6 +71,51 @@ public class RecordedBlindSolveTest {
     assertFalse(detector.isComplete());
   }
 
+  /**
+   * The edges-only solve of 2026-09-19, reported by its solver for reading every name mirrored. It
+   * never reached its corners, so one buffer was all it said, and the half turn about that buffer's
+   * own axis is a second way to hold the cube that no cube state disowns — the stored grip is the
+   * {@code y' x'} the gyro guessed, and it is that wrong way round. The turning says which way up
+   * it really was, so the frame comes out at the {@code y} it was held in and the first algorithm
+   * at the {@code UF-BR-RD} its solver shot.
+   */
+  @Test
+  public void readsTheEdgesOnlySolveTheWayUpItsTurningSaysAndNotItsGrip() {
+    replay(RecordedBlindSolve.SCRAMBLE_EDGES_ONLY, RecordedBlindSolve.MOVES_EDGES_ONLY,
+        Long.MAX_VALUE);
+
+    assertFalse("its corners were never turned", detector.isComplete());
+    assertEquals(6, detector.subStepCount(1));
+    assertEquals("UF-BR-RD", detector.subStepName(1, 0));
+    assertEquals("UF-RF-BU", detector.subStepName(1, 1));
+    assertEquals("y", detector.getPickupRotation().getNotation());
+  }
+
+  /**
+   * And the same solve read through the solver's habit, which is how it is read once any solve of
+   * theirs has settled one: the turning is a fallback for a history that has not taught it yet, and
+   * both land on the frame they were held in.
+   */
+  @Test
+  public void readsTheEdgesOnlySolveThroughTheGripItsOwnWholeSolvesSettle() {
+    detector.setHabitualGrip(CubeRotation.byNotation("y"));
+    replay(RecordedBlindSolve.SCRAMBLE_EDGES_ONLY, RecordedBlindSolve.MOVES_EDGES_ONLY,
+        Long.MAX_VALUE);
+
+    assertEquals("UF-BR-RD", detector.subStepName(1, 0));
+    assertEquals("y", detector.getPickupRotation().getNotation());
+    assertFalse("nothing it shot from pinned this one", detector.isGripSettled());
+  }
+
+  /** A whole solve pins its own, which is the only shape a habit is ever learned from. */
+  @Test
+  public void saysAWholeSolvePinnedItsOwnGrip() {
+    replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
+
+    assertTrue(detector.isGripSettled());
+    assertEquals("y", detector.getPickupRotation().getNotation());
+  }
+
   @Test
   public void readsASolveWithNoParityAsTwoPieceTypesAndNothingElse() {
     replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);

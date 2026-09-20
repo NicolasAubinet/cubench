@@ -233,6 +233,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         rotationTracker.getRotations(
             sliceSpins.coreSpins(SmartCubeManager.INSTANCE::getOrientationAt)),
         solveStartMs, gripToStore());
+    learnGrip();
     // The same window the moves cover, read off the buffer the gyro has been filling all along —
     // no sampling of our own during the solve, so recording costs nothing until it is over.
     gyroTrack = GyroTrackFormat.format(
@@ -253,6 +254,18 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       return settled.getNotation();
     }
     return usedPickup == null ? null : usedPickup.getNotation();
+  }
+
+  /**
+   * A blind solve that pinned its own grip from the pieces it shot from teaches it, so the solver's
+   * next part-solve is read through it rather than through the gyro. Only a solve that settled it
+   * outright, or a guess would keep confirming itself.
+   */
+  private void learnGrip() {
+    CubeRotation settled = analyzers.getPickupRotation();
+    if (settled != null && analyzers.isGripSettled()) {
+      Options.INSTANCE.setBlindSettledGrip(settled.getNotation());
+    }
   }
 
   /**
@@ -567,6 +580,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     // very next solve and not on the one after it.
     analyzers.setBlindBuffers(
         Options.INSTANCE.getBlindEdgeBuffer(), Options.INSTANCE.getBlindCornerBuffer());
+    String habit = Options.INSTANCE.getBlindSettledGrip();
+    analyzers.setHabitualGrip(habit == null ? null : CubeRotation.byNotation(habit));
     analyzers.start(state, startTimestampMs);
     analyzing = true;
   }

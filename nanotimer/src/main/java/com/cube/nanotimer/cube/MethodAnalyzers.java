@@ -56,6 +56,18 @@ public final class MethodAnalyzers {
     }
   }
 
+  /** The grip the solver's own completed solves settle on, for a solve that cannot settle its own. */
+  public void setHabitualGrip(CubeRotation grip) {
+    if (blindDetector != null) {
+      blindDetector.setHabitualGrip(grip);
+    }
+  }
+
+  /** Whether a blind solve pinned its own grip from the pieces, so it is worth learning from. */
+  public boolean isGripSettled() {
+    return blindDetector != null && blindDetector.isGripSettled();
+  }
+
   /** The pieces the solver shoots from, which is what settles a blind solve's grip. */
   public void setBlindBuffers(String edge, String corner) {
     if (blindDetector != null) {
