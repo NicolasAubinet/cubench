@@ -31,6 +31,9 @@ public enum Options {
   /** What a 3-styler shoots from, and so what to assume of a solver who has not said. */
   public static final String DEFAULT_EDGE_BUFFER = "UF";
   public static final String DEFAULT_CORNER_BUFFER = "UFR";
+  // The cube's own labels, so white up and green front: the orientation a scramble is followed in.
+  public static final String DEFAULT_UP_FACE = "U";
+  public static final String DEFAULT_FRONT_FACE = "F";
 
   private Context context;
   private SharedPreferences sharedPreferences;
@@ -64,8 +67,9 @@ public enum Options {
   public static final String SMART_CUBE_METHOD_ASKED_KEY = "smart_cube_method_asked";
   public static final String SMART_CUBE_EDGE_BUFFER_KEY = "smart_cube_edge_buffer";
   public static final String SMART_CUBE_CORNER_BUFFER_KEY = "smart_cube_corner_buffer";
-  public static final String SMART_CUBE_BLIND_GRIP_KEY = "smart_cube_blind_grip";
-  public static final String SMART_CUBE_BUFFERS_ASKED_KEY = "smart_cube_buffers_asked";
+  public static final String SMART_CUBE_UP_FACE_KEY = "smart_cube_blind_up_face";
+  public static final String SMART_CUBE_FRONT_FACE_KEY = "smart_cube_blind_front_face";
+  public static final String SMART_CUBE_BLIND_ASKED_KEY = "smart_cube_blind_asked";
   public static final String SMART_CUBE_AUTO_STOP_KEY = "smart_cube_auto_stop";
   public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
@@ -548,26 +552,45 @@ public enum Options {
   }
 
   /**
-   * The grip the solver's last completed blind solve turned out to have been held in, learned rather
-   * than asked for: a solve that reads both piece types pins its own frame, and one that reads a
-   * single type cannot and is read through this instead. Null until a solve has taught it.
+   * The faces the solver holds up and in front blindfolded, named as the cube reports them rather
+   * than by colour: a cube writes its state against its own centres, which no face turn moves, so
+   * those labels are a fixed colour and white up red front is {@code U} and {@code R}.
+   *
+   * <p>Declared rather than measured. It is the whole frame a blind solve's names are spelled in
+   * wherever the pieces it shot from cannot settle one themselves, which a solve that stops before
+   * its second piece type cannot: see {@code BlindFrame}. Defaults to the orientation the scramble
+   * was followed in, and is asked for once at the first blind solve.
+   *
+   * <p>Answered without preferences behind it, as the buffers are, so the reconstruction tests read
+   * the reading and not what the solver was asked.
    */
-  public String getBlindSettledGrip() {
-    return sharedPreferences == null ? null
-        : sharedPreferences.getString(SMART_CUBE_BLIND_GRIP_KEY, null);
+  public String getBlindUpFace() {
+    return face(SMART_CUBE_UP_FACE_KEY, DEFAULT_UP_FACE);
   }
 
-  public void setBlindSettledGrip(String grip) {
-    sharedPreferences.edit().putString(SMART_CUBE_BLIND_GRIP_KEY, grip).apply();
+  public String getBlindFrontFace() {
+    return face(SMART_CUBE_FRONT_FACE_KEY, DEFAULT_FRONT_FACE);
   }
 
-  // Tracked apart from the values, which have defaults and so cannot say whether they were set.
-  public boolean areBlindBuffersAsked() {
-    return sharedPreferences.getBoolean(SMART_CUBE_BUFFERS_ASKED_KEY, false);
+  // Never empty, so that reading the face off it needs no check of its own.
+  private String face(String key, String fallback) {
+    String stored = sharedPreferences == null ? null : sharedPreferences.getString(key, fallback);
+    return stored == null || stored.isEmpty() ? fallback : stored;
   }
 
-  public void setBlindBuffersAsked(boolean asked) {
-    sharedPreferences.edit().putBoolean(SMART_CUBE_BUFFERS_ASKED_KEY, asked).apply();
+  public void setBlindOrientation(String upFace, String frontFace) {
+    sharedPreferences.edit().putString(SMART_CUBE_UP_FACE_KEY, upFace)
+        .putString(SMART_CUBE_FRONT_FACE_KEY, frontFace).apply();
+  }
+
+  // Tracked apart from the values, which have defaults and so cannot say whether they were set. Its
+  // own key rather than the buffers' older one, so a solver who answered that is asked the pair.
+  public boolean isBlindSetupAsked() {
+    return sharedPreferences.getBoolean(SMART_CUBE_BLIND_ASKED_KEY, false);
+  }
+
+  public void setBlindSetupAsked(boolean asked) {
+    sharedPreferences.edit().putBoolean(SMART_CUBE_BLIND_ASKED_KEY, asked).apply();
   }
 
   // Whether the cube reading solved stops the timer by itself. Off leaves the solve to be stopped

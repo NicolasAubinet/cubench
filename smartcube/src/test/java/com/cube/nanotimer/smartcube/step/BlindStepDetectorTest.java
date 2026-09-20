@@ -201,19 +201,15 @@ public class BlindStepDetectorTest {
   /**
    * A corner buffer only inferred from the one piece its cycle put home: the twist and the residual
    * open on it, as the cycle's name does, rather than in slot order.
-   *
-   * <p>Nothing here hands the detector a grip, and one buffer leaves three ways up, so the frame is
-   * the turning's to settle ({@link BlindFrame}) — which is why the inferred buffer is spelled as
-   * the declared {@code UFR} rather than as the {@code UBR} the cube reports it at.
    */
   @Test
   public void opensATwistAndTheResidualOnABufferOnlyInferred() {
     startFrom(CORNER_CYCLE_U, CORNER_CYCLE_A, TWIST_UFR_UBR);
     play(CORNER_CYCLE_U, TWIST_UFR_UBR);
 
-    assertEquals("UFR-DBR-FDR", detector.subStepName(1, 0));
-    assertEquals("twist:UFR-UBR", detector.subStepName(1, 1));
-    assertEquals("UFR-RUB-DFR", detector.getResidual().getPieces());
+    assertEquals("UBR-UFL-UBL", detector.subStepName(1, 0));
+    assertEquals("twist:BUR-UFR", detector.subStepName(1, 1));
+    assertEquals("UBR-RUF-BUL", detector.getResidual().getPieces());
   }
 
   /**

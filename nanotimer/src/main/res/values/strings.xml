@@ -1136,11 +1136,21 @@
   <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case counts as known the first time you put it in with one algorithm in a solve. Take it in two looks again and it needs review; one you have never yet put in with a single algorithm is still to learn.</string>
   <string name="known_algorithms_empty">Nothing here yet. Solve with a smart cube connected and the cases you put in unaided will show up.</string>
   <string name="known_algorithms_reading">Reading your solves...</string>
-  <string name="blind_buffers">Blind buffers</string>
-  <string name="blind_buffers_summary">The pieces you shoot from blindfolded: %1$s and %2$s</string>
-  <string name="blind_buffers_prompt">Select the buffers you use</string>
-  <string name="blind_buffers_why">Your blindfolded solves are reconstructed from them.</string>
-  <string name="blind_buffers_changeable">You can change this later in the settings.</string>
+  <string name="blind_setup_summary">%1$s, buffers %2$s and %3$s</string>
+  <string name="blind_setup">Blindfolded solves</string>
+  <string name="blind_setup_why">Your blindfolded solves are reconstructed from these two.</string>
+  <string name="blind_setup_hold">How you hold the cube</string>
+  <string name="blind_setup_shoot">The buffers you shoot from</string>
+  <string name="blind_orientation_up">Up face</string>
+  <string name="blind_orientation_front">Front face</string>
+  <string name="blind_orientation_summary">Cube held %1$s up, %2$s front</string>
+  <string name="colour_white">white</string>
+  <string name="colour_yellow">yellow</string>
+  <string name="colour_red">red</string>
+  <string name="colour_orange">orange</string>
+  <string name="colour_green">green</string>
+  <string name="colour_blue">blue</string>
+  <string name="blind_setup_changeable">You can change this later in the settings.</string>
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">Analysis</string>

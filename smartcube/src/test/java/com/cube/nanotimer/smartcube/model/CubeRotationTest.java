@@ -35,6 +35,35 @@ public class CubeRotationTest {
     }
   }
 
+  /**
+   * The equation a declared orientation is: the cube's own labels are a fixed colour, so white up
+   * and red front ({@code U} up, {@code R} front) is the one rotation {@code y} and nothing else.
+   */
+  @Test
+  public void namesTheOneOrientationHoldingTwoGivenFacesUpAndInFront() {
+    assertEquals("y", CubeRotation.holding('U', 'R').getNotation());
+    assertEquals("", CubeRotation.holding('U', 'F').getNotation());
+    assertEquals("x", CubeRotation.holding('F', 'D').getNotation());
+  }
+
+  /** Every pair of faces that is not one axis twice names one of the 24, and each names its own. */
+  @Test
+  public void namesAnOrientationForEveryPairOfFacesThatIsNotOneAxisTwice() {
+    Set<String> found = new HashSet<String>();
+    for (char up : "URFDLB".toCharArray()) {
+      for (char front : "URFDLB".toCharArray()) {
+        CubeRotation holding = CubeRotation.holding(up, front);
+        if (holding == null) {
+          continue;
+        }
+        assertTrue("up and front on one axis: " + up + front, found.add(holding.getNotation()));
+        assertEquals('U', holding.mapFace(up));
+        assertEquals('F', holding.mapFace(front));
+      }
+    }
+    assertEquals(24, found.size());
+  }
+
   @Test
   public void notationsAreMinimal() {
     for (CubeRotation rotation : CubeRotation.all()) {

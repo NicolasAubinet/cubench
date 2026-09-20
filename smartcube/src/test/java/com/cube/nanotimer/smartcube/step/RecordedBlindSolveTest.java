@@ -74,15 +74,15 @@ public class RecordedBlindSolveTest {
   /**
    * The edges-only solve of 2026-09-19, reported by its solver for reading every name mirrored. It
    * never reached its corners, so one buffer was all it said, and the half turn about that buffer's
-   * own axis is a second way to hold the cube that no cube state disowns — the stored grip is the
-   * {@code y' x'} the gyro guessed, and it is that wrong way round. The turning says which way up
-   * it really was, so the frame comes out at the {@code y} it was held in and the first algorithm
-   * at the {@code UF-BR-RD} its solver shot.
+   * own axis is a second way to hold the cube that no cube state disowns. Its stored grip is the
+   * {@code y' x'} the gyro guessed, which is that wrong way round; the orientation its solver
+   * declares, white up and red front, is the {@code y} it was held in, and it is handed in here the
+   * way the app hands it.
    */
   @Test
-  public void readsTheEdgesOnlySolveTheWayUpItsTurningSaysAndNotItsGrip() {
+  public void readsAnEdgesOnlySolveThroughTheOrientationItsSolverDeclares() {
     replay(RecordedBlindSolve.SCRAMBLE_EDGES_ONLY, RecordedBlindSolve.MOVES_EDGES_ONLY,
-        Long.MAX_VALUE);
+        Long.MAX_VALUE, declaring('U', 'R'));
 
     assertFalse("its corners were never turned", detector.isComplete());
     assertEquals(6, detector.subStepCount(1));
@@ -92,28 +92,19 @@ public class RecordedBlindSolveTest {
   }
 
   /**
-   * And the same solve read through the solver's habit, which is how it is read once any solve of
-   * theirs has settled one: the turning is a fallback for a history that has not taught it yet, and
-   * both land on the frame they were held in.
+   * And it is the declaration that decides: declared the other way up, the same solve reads the
+   * other way round. That other way is the {@code y' x'} the gyro guessed, yellow up and red front,
+   * so this is the reading its solver reported. A solve that reads both piece types is named the
+   * same whatever is declared, which is what keeps this to the solves that cannot say for
+   * themselves: see {@link BlindFrameTest}.
    */
   @Test
-  public void readsTheEdgesOnlySolveThroughTheGripItsOwnWholeSolvesSettle() {
-    detector.setHabitualGrip(CubeRotation.byNotation("y"));
+  public void readsAnEdgesOnlySolveTheOtherWayUpWhereTheOtherWayIsDeclared() {
     replay(RecordedBlindSolve.SCRAMBLE_EDGES_ONLY, RecordedBlindSolve.MOVES_EDGES_ONLY,
-        Long.MAX_VALUE);
+        Long.MAX_VALUE, declaring('D', 'R'));
 
-    assertEquals("UF-BR-RD", detector.subStepName(1, 0));
-    assertEquals("y", detector.getPickupRotation().getNotation());
-    assertFalse("nothing it shot from pinned this one", detector.isGripSettled());
-  }
-
-  /** A whole solve pins its own, which is the only shape a habit is ever learned from. */
-  @Test
-  public void saysAWholeSolvePinnedItsOwnGrip() {
-    replay(RecordedBlindSolve.SCRAMBLE_163, RecordedBlindSolve.MOVES_163, Long.MAX_VALUE);
-
-    assertTrue(detector.isGripSettled());
-    assertEquals("y", detector.getPickupRotation().getNotation());
+    assertEquals("y' x'", detector.getPickupRotation().getNotation());
+    assertEquals("UF-LD-BL", detector.subStepName(1, 0));
   }
 
   @Test
@@ -1235,6 +1226,12 @@ public class RecordedBlindSolveTest {
 
     assertEquals("UFR-BUL-UBR", detector.subStepName(2, 2));
     assertEquals("UF-UB-UR", detector.subStepName(1, 5));
+  }
+
+  /** A declared orientation as the app hands it: the rotation that holds those two faces so. */
+  private static int declaring(char upFace, char frontFace) {
+    return FaceletRotations.inverse(
+        FaceletRotations.of(CubeRotation.holding(upFace, frontFace)));
   }
 
   /**

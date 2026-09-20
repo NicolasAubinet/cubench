@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The orientation a blind solver holds the cube in, as two rows of colours: the face held up and
+     the face held in front. Two rows rather than a drawn cube, which says the same thing in a
+     fraction of a dialog's height for a question most solvers answer once.
+
+     Shaped like the buffer wheels beside it: each row stands in its own well and its heading sits
+     outside in the accent, so the headings never read as one more value in the row. The pair is
+     spelled out in words underneath, since a red chip and an orange one are close enough that the
+     colours alone should not be the whole answer. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical">
+
+  <TextView
+     style="@style/BufferWheelHeading"
+     android:text="@string/blind_orientation_up"/>
+
+  <LinearLayout
+     android:id="@+id/upFaces"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="7dp"
+     android:background="@drawable/cube_stage"
+     android:orientation="horizontal"
+     android:padding="6dp"/>
+
+  <TextView
+     style="@style/BufferWheelHeading"
+     android:layout_marginTop="14dp"
+     android:text="@string/blind_orientation_front"/>
+
+  <LinearLayout
+     android:id="@+id/frontFaces"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="7dp"
+     android:background="@drawable/cube_stage"
+     android:orientation="horizontal"
+     android:padding="6dp"/>
+
+  <TextView
+     android:id="@+id/orientationSaid"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:gravity="center"
+     android:textColor="@color/white"
+     android:textSize="13sp"/>
+
+</LinearLayout>

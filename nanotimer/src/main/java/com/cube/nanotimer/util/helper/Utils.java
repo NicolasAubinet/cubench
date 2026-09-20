@@ -421,6 +421,18 @@ public class Utils {
     }
   }
 
+  /** The same six faces named as the solver sees them, for anything asking about a colour. */
+  public static int getFaceColourNameRes(char face) {
+    switch (face) {
+      case 'D': return R.string.colour_yellow;
+      case 'R': return R.string.colour_red;
+      case 'L': return R.string.colour_orange;
+      case 'F': return R.string.colour_green;
+      case 'B': return R.string.colour_blue;
+      default: return R.string.colour_white; // U, and anything that is no face of a cube
+    }
+  }
+
   public static String toSolveTypeLocalizedName(Context context, String solveTypeName) {
     String localizedName = solveTypeName;
     Integer locTranslationId = App.INSTANCE.getDynamicTranslations().getSolveTypeNameResourceId(localizedName);
