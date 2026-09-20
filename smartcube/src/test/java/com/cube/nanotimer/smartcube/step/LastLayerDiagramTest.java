@@ -20,6 +20,13 @@ import org.junit.Test;
  * facing up, a PLL shows a layer that is all one colour, and every arrow in one points at the place
  * the piece it names actually belongs. That the algorithms agree with it is
  * {@code LastLayerCaseAlgorithmsTest}'s business.
+ *
+ * <p>Which of the four turns of the layer a permutation is drawn at is pinned here by two tests
+ * together, because neither is enough alone. {@link #movesWhatEachPermutationIsKnownToMove} says the
+ * picture shows the case at the shape a cuber names it by, and {@link #showsAPictureItsAlgorithmsSolve}
+ * says the algorithms printed beside it solve what is drawn. A picture a quarter turn out fails the
+ * first as a Jb drawn with a G perm's three-and-three, and one drawn a whole rotation round passes
+ * that and fails the second. Nothing checked alignment at all before them.
  */
 public class LastLayerDiagramTest {
 
@@ -171,6 +178,37 @@ public class LastLayerDiagramTest {
       moved[round[cell]] = round[arrows[cell]];
     }
     return moved;
+  }
+
+  /** Bar the turn that puts the layer home, which is the solver's and is written into no algorithm. */
+  @Test
+  public void showsAPictureItsAlgorithmsSolve() {
+    String[] layerHome = {"", "U", "U2", "U'"};
+    for (String code : LastLayerScrambles.cases()) {
+      if (!code.startsWith("pll_")) {
+        continue;
+      }
+      String drawn = LastLayerDiagram.forCase(code).drawnState();
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.listed(code)) {
+        boolean solves = false;
+        for (String turn : layerHome) {
+          solves |= isSolved(Notation.apply(drawn, (algorithm.getMoves() + " " + turn).trim()));
+        }
+        assertTrue(code + ": " + algorithm.getMoves(), solves);
+      }
+    }
+  }
+
+  /** Solved whichever way round the algorithm left the cube standing. */
+  private static boolean isSolved(String facelets) {
+    for (int face = 0; face < 6; face++) {
+      for (int sticker = 1; sticker < 9; sticker++) {
+        if (facelets.charAt(face * 9 + sticker) != facelets.charAt(face * 9)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /** An oriented layer is one no arrow leaves, which is what a solved permutation looks like. */
