@@ -297,6 +297,9 @@
            android:requiresFadingEdge="vertical"
            android:fadingEdgeLength="20dp"/>
 
+        <!-- Over the list, not above it: the rows run behind it. -->
+        <include layout="@layout/history_sort_bar"/>
+
         <TextView
            android:id="@+id/tvNoSolves"
            android:layout_width="match_parent"

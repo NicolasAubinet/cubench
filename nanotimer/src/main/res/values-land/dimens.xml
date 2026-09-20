@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <dimen name="scramble_dialog_diagram_height">150dp</dimen>
+  <!-- The list is closer to the edge sideways, and its heading follows it. -->
+  <dimen name="history_bar_inset">12dp</dimen>
 </resources>

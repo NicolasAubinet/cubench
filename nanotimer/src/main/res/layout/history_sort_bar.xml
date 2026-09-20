@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- The history list's heading, pinned. It names the day the rows under it belong to, and carries
+     the one choice the list offers, which order it is in. The rows scroll behind it, and at the top
+     it stands exactly where the first row draws its own heading, so it costs the list no height. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/historySortBar"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="horizontal"
+   android:gravity="center_vertical"
+   android:background="@color/graybg"
+   android:paddingLeft="@dimen/history_bar_inset"
+   android:paddingRight="@dimen/history_bar_inset"
+   android:paddingTop="@dimen/space_m"
+   android:paddingBottom="@dimen/space_xs">
+
+  <TextView
+     android:id="@+id/tvHistoryGroup"
+     style="@style/HistoryGroupLabel"/>
+
+  <!-- In the accent, because everything else on this line is a label. Its touch area is grown in
+       code: the bar is as tall as a heading, which is shorter than a finger. -->
+  <LinearLayout
+     android:id="@+id/historySortToggle"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal"
+     android:gravity="center_vertical"
+     android:paddingLeft="@dimen/space_s"
+     android:paddingStart="@dimen/space_s"
+     android:clickable="true"
+     android:focusable="true">
+
+    <TextView
+       android:id="@+id/tvHistorySort"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:textSize="11sp"
+       android:textAllCaps="true"
+       android:letterSpacing="0.1"
+       android:singleLine="true"
+       android:textColor="@color/lightblue"/>
+
+    <ImageView
+       android:layout_width="12dp"
+       android:layout_height="12dp"
+       android:layout_marginLeft="5dp"
+       android:layout_marginStart="5dp"
+       android:src="@drawable/ic_sort_order"
+       android:tint="@color/lightblue"
+       android:contentDescription="@null"/>
+
+  </LinearLayout>
+
+</LinearLayout>

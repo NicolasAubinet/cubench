@@ -332,9 +332,8 @@
   <string name="graph_help_frequency">How many solves you did on each day.</string>
   <string name="graph_help_distribution">How many solves landed in each time range. The number under a bar is where its range starts.</string>
 
-  <string name="show_best_times">Sort by best times</string>
-  <string name="show_history">Sort by date</string>
   <string name="best_times">Best times</string>
+  <string name="sort_by_date">By date</string>
 
   <string name="add_time">Add time</string>
   <string name="select_time_to_add">Select time to add:</string>

@@ -189,7 +189,6 @@
   </array>
   <string-array name="mainscreen_menu_items">
     <item>@string/settings</item>
-    <item>@string/show_best_times</item>
     <item>@string/graphs</item>
     <item>@string/analysis_title</item>
     <item>@string/menu_drills</item>
