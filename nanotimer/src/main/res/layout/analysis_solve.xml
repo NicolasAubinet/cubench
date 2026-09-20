@@ -33,24 +33,28 @@
          android:layout_weight="1"
          android:orientation="vertical">
 
+        <!-- Over the figure rather than under it, and in the same small caps Best is labelled with:
+             below, a caption that far under a 38sp number reads as a footnote to the whole card. -->
+        <TextView
+           android:id="@+id/tvAnalysisMeanOf"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:letterSpacing="0.07"
+           android:textAllCaps="true"
+           android:textColor="@color/secondary_text"
+           android:textSize="10sp"/>
+
         <com.cube.nanotimer.util.view.FontFitTextView
            android:id="@+id/tvAnalysisMean"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
+           android:layout_marginTop="2dp"
            android:fontFamily="@font/roboto_medium"
            android:fontFeatureSettings="tnum"
            android:includeFontPadding="false"
            android:singleLine="true"
            android:textColor="@color/white"
            android:textSize="38sp"/>
-
-        <TextView
-           android:id="@+id/tvAnalysisMeanOf"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="4dp"
-           android:textColor="@color/secondary_text"
-           android:textSize="11.5sp"/>
       </LinearLayout>
 
       <LinearLayout
@@ -147,7 +151,7 @@
      android:layout_marginTop="20dp"/>
 
   <!-- Under the step table rather than above it: the table is what the tab is opened for, this is
-       the occasional look. Filled in when the solves have been read again, which takes a moment. -->
+       the occasional look. Its figures come from a second read of the window's solves. -->
   <LinearLayout
      android:id="@+id/llAnalysisAlgorithmsCard"
      android:layout_width="match_parent"
@@ -185,6 +189,33 @@
          android:textAllCaps="true"
          android:textColor="@color/secondary_text"
          android:textSize="11sp"/>
+    </LinearLayout>
+
+    <!-- Instead of the rows while the window is being replayed. The card takes its place under the
+         table from the moment the tab draws: appearing later is how a reader misses it. -->
+    <LinearLayout
+       android:id="@+id/llAnalysisAlgorithmsReading"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:gravity="center_vertical"
+       android:orientation="horizontal"
+       android:paddingTop="6dp"
+       android:paddingBottom="6dp"
+       android:visibility="gone">
+
+      <ProgressBar
+         style="?android:attr/progressBarStyleSmall"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"/>
+
+      <TextView
+         android:layout_width="0dp"
+         android:layout_height="wrap_content"
+         android:layout_marginLeft="10dp"
+         android:layout_weight="1"
+         android:text="@string/analysis_algorithms_reading"
+         android:textColor="@color/secondary_text"
+         android:textSize="13sp"/>
     </LinearLayout>
 
     <LinearLayout

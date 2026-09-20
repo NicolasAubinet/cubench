@@ -122,6 +122,8 @@ public class AnalysisActivity extends NanoTimerActivity {
   private List<CaseKnowledge> readKnown = Collections.emptyList();
   /** The standard-algorithms card's figures, null until the window's solves have been read again. */
   private Map<String, AlgorithmFigures> algorithmFigures;
+  /** Whether that read is on its way, which is what the card shows in place of its rows. */
+  private boolean algorithmsReading;
   /**
    * Whether a cube has ever read a solve of theirs, of any solve type. Null until that read lands.
    * It is what separates the two readers an empty window otherwise looks the same to: one who owns
@@ -480,10 +482,11 @@ public class AnalysisActivity extends NanoTimerActivity {
    */
   private void loadAlgorithmFigures() {
     algorithmFigures = null;
-    showAlgorithmFigures();
     final AnalysisWindow asked = window;
     CubeMethod solved = SolveTypeMethod.of(solveType);
-    if (solved != CubeMethod.CFOP || !readAsSolve()) {
+    algorithmsReading = solved == CubeMethod.CFOP && readAsSolve();
+    showAlgorithmFigures();
+    if (!algorithmsReading) {
       return;
     }
     App.INSTANCE.getService().getMethodSolves(solveType, solved, window.solves(),
@@ -500,6 +503,7 @@ public class AnalysisActivity extends NanoTimerActivity {
                   public void run() {
                     if (asked == window && !isFinishing()) {
                       algorithmFigures = figures;
+                      algorithmsReading = false;
                       showAlgorithmFigures();
                     }
                   }
@@ -519,12 +523,19 @@ public class AnalysisActivity extends NanoTimerActivity {
       }
     }
     // Never over the example: its steps are invented, and these would be the reader's own.
-    boolean shown = any && !sampling();
+    boolean shown = (any || algorithmsReading) && !sampling();
     card.setVisibility(shown ? View.VISIBLE : View.GONE);
-    if (!shown) {
+    LinearLayout rows = findViewById(R.id.llAnalysisAlgorithmsRows);
+    ViewGroup key = findViewById(R.id.llAnalysisAlgorithmsKey);
+    // The replay takes a moment, so the card waits in place rather than arriving under a table the
+    // reader has already scrolled past.
+    findViewById(R.id.llAnalysisAlgorithmsReading)
+        .setVisibility(algorithmsReading ? View.VISIBLE : View.GONE);
+    rows.setVisibility(algorithmsReading ? View.GONE : View.VISIBLE);
+    key.setVisibility(algorithmsReading ? View.GONE : View.VISIBLE);
+    if (!shown || algorithmsReading) {
       return;
     }
-    LinearLayout rows = findViewById(R.id.llAnalysisAlgorithmsRows);
     rows.removeAllViews();
     LayoutInflater inflater = LayoutInflater.from(this);
     for (Map.Entry<String, AlgorithmFigures> family : algorithmFigures.entrySet()) {
@@ -541,7 +552,6 @@ public class AnalysisActivity extends NanoTimerActivity {
       rows.addView(row);
     }
 
-    ViewGroup key = findViewById(R.id.llAnalysisAlgorithmsKey);
     key.removeAllViews();
     int hue = ContextCompat.getColor(this, R.color.lightblue);
     addAlgorithmsKey(key, inflater, hue, R.string.analysis_algorithms_standard);
@@ -588,8 +598,6 @@ public class AnalysisActivity extends NanoTimerActivity {
     showSample();
     ((TextView) findViewById(R.id.tvAnalysisDeltaLabel)).setText(
         getString(R.string.analysis_delta_label, getString(SolveTypeMethod.nameOf(method))));
-    ((TextView) findViewById(R.id.tvAnalysisDeltaLimit)).setText(
-        sampling ? R.string.analysis_delta_limit_sample : R.string.analysis_delta_limit);
 
     steps.clear();
     steps.addAll(statistics.getFamilies());
