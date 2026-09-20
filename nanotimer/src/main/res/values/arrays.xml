@@ -9,6 +9,13 @@
     <item>30</item>
     <item>60</item>
   </integer-array>
+  <!-- 15 is the official inspection; a cross planned from scratch usually wants longer. -->
+  <integer-array name="presets_planning_seconds">
+    <item>15</item>
+    <item>30</item>
+    <item>45</item>
+    <item>60</item>
+  </integer-array>
   <integer-array name="presets_color_sample_size">
     <item>50</item>
     <item>100</item>

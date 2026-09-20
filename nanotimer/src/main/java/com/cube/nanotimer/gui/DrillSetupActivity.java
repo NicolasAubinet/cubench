@@ -11,7 +11,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -28,6 +27,7 @@ import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.preferences.LastLayerColourDialog;
+import com.cube.nanotimer.gui.widget.preferences.NumberEntryDialog;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
@@ -77,6 +77,8 @@ public class DrillSetupActivity extends NanoTimerActivity
   /** Which segment a drill starts on, before the user has ever picked one. */
   private static final int DEFAULT_REP_CHOICE = 1;
   private static final int DEFAULT_PLANNING_SECONDS = 15;
+  private static final int MIN_PLANNING_SECONDS = 1;
+  private static final int MAX_PLANNING_SECONDS = 600;
 
   /** How many of the picked cases the row draws before it starts counting them instead. */
   private static final int PICKED_SHOWN = 6;
@@ -96,7 +98,8 @@ public class DrillSetupActivity extends NanoTimerActivity
   private Switch swRecord;
   private SmartCubeChip smartCubeChip;
   private Switch swPlanning;
-  private EditText etPlanningSeconds;
+  private TextView tvPlanningSeconds;
+  private int planningSecondsValue;
   private View crossOptions;
   private View planningSeconds;
   private TextView tvPracticeHint;
@@ -136,7 +139,13 @@ public class DrillSetupActivity extends NanoTimerActivity
     });
     swPlanning = findViewById(R.id.swDrillPlanning);
     swRecord = findViewById(R.id.swDrillRecord);
-    etPlanningSeconds = findViewById(R.id.etDrillPlanningSeconds);
+    tvPlanningSeconds = findViewById(R.id.tvDrillPlanningSeconds);
+    tvPlanningSeconds.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        pickPlanningSeconds();
+      }
+    });
 
     practice = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llDrillPractice),
         new String[] {getString(R.string.drill_practice_pll), getString(R.string.drill_practice_oll),
@@ -200,8 +209,8 @@ public class DrillSetupActivity extends NanoTimerActivity
     practice.setSelection(Options.INSTANCE.getDrillChoice(KEY_PRACTICE, PRACTICE_PLL));
     swRecord.setChecked(Options.INSTANCE.getDrillChoice(KEY_RECORDING, 1) == 1);
     swPlanning.setChecked(Options.INSTANCE.getDrillChoice(KEY_PLANNING_ON, 0) == 1);
-    etPlanningSeconds.setText(String.valueOf(
-        Options.INSTANCE.getDrillChoice(KEY_PLANNING_SECONDS, DEFAULT_PLANNING_SECONDS)));
+    setPlanningSeconds(
+        Options.INSTANCE.getDrillChoice(KEY_PLANNING_SECONDS, DEFAULT_PLANNING_SECONDS));
     refreshPractice();
   }
 
@@ -447,12 +456,10 @@ public class DrillSetupActivity extends NanoTimerActivity
     if (practice.getSelection() == PRACTICE_CROSS) {
       CrossFace crossFace = layerFace().opposite(); // the cross is built under the last layer
       int repCount = REP_COUNTS[reps.getSelection()];
-      int seconds = typedPlanningSeconds();
-      Options.INSTANCE.setDrillChoice(KEY_PLANNING_SECONDS, seconds);
       intent = new Intent(this, CrossDrillActivity.class);
       intent.putExtra(CrossDrillActivity.EXTRA_SPEC, DrillSpec
           .cross("local-cross-" + crossFace.name().toLowerCase(Locale.ROOT), crossFace.name(),
-              repCount, swPlanning.isChecked() ? seconds * 1000L : 0,
+              repCount, swPlanning.isChecked() ? planningSecondsValue * 1000L : 0,
               getString(R.string.drill_cross_title))
           .toJson());
     } else {
@@ -475,13 +482,23 @@ public class DrillSetupActivity extends NanoTimerActivity
     startActivity(intent);
   }
 
-  /** Whatever is in the field, kept whether the limit is on or not so it survives being toggled. */
-  private int typedPlanningSeconds() {
-    try {
-      return Math.max(1, Integer.parseInt(etPlanningSeconds.getText().toString().trim()));
-    } catch (NumberFormatException e) {
-      return DEFAULT_PLANNING_SECONDS;
-    }
+  /** The settings screen's number dialog, so a limit is picked here the way any other one is. */
+  private void pickPlanningSeconds() {
+    NumberEntryDialog.pick(this, R.string.drill_planning_limit, MIN_PLANNING_SECONDS,
+        MAX_PLANNING_SECONDS, 1, R.array.presets_planning_seconds, R.string.seconds,
+        planningSecondsValue, new NumberEntryDialog.Listener() {
+          @Override
+          public void onNumberPicked(int value) {
+            setPlanningSeconds(value);
+          }
+        });
+  }
+
+  /** The limit is kept whether it is switched on or not, so it survives being toggled. */
+  private void setPlanningSeconds(int seconds) {
+    planningSecondsValue = seconds;
+    Options.INSTANCE.setDrillChoice(KEY_PLANNING_SECONDS, seconds);
+    tvPlanningSeconds.setText(String.valueOf(seconds));
   }
 
   private static List<String> casesOf(String family) {
