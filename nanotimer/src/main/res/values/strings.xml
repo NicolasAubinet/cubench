@@ -862,6 +862,7 @@
   <string name="discard_solve_confirmation">The timer stopped and the time was saved. Discarding removes it.</string>
   <string name="discard_solve">Discard</string>
   <string name="keep_solve">Keep</string>
+  <string name="fast_solve_confirmation">Less than half your personal best of %1$s.</string>
   <string name="timer_session">Session</string>
   <string name="personal_best_label">Personal best</string>
   <string name="timer_best_value">best %1$s</string>

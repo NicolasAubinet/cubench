@@ -1,6 +1,7 @@
 package com.cube.nanotimer.gui;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
@@ -158,6 +159,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private String autoPenaltyReason; // why the cube marked the last solve, null when it did not
   private ValueAnimator solveFlourish; // the finish flash, kept so a late verdict can call it off
   private boolean skipRecordPanel; // suppress the record panel on the next refresh (a discard-bound stop, or a delete)
+  private boolean fastSolvePending; // the solve being saved beat half the PB, so it is asked about before it is celebrated
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -174,6 +176,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private ColorStateList secondaryTextColor;
   private ColorStateList defaultTimerTextColor;
   private static final int MIN_TIMES_FOR_RECORD_NOTIFICATION = 12;
+  private static final double FAST_SOLVE_RATIO = 0.5; // a time under this share of the PB is asked about
   private static final int MIN_WINDOW_SUCCESSES_FOR_VERDICT = 5;
 
   private final long REFRESH_INTERVAL = 30;
@@ -1063,6 +1066,38 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         });
   }
 
+  private boolean isSuspiciouslyFast(long time) {
+    Long best = (solveAverages == null) ? null : solveAverages.getBestOfLifetime();
+    return time > 0 && best != null && best > 0 && time < best * FAST_SOLVE_RATIO;
+  }
+
+  /**
+   * A time far under the PB is usually a start and stop by accident, so it is not celebrated until
+   * the user says it was real. Its averages were held back and are only shown with the answer.
+   */
+  private void confirmFastSolve() {
+    Long best = (prevSolveAverages == null) ? null : prevSolveAverages.getBestOfLifetime();
+    String message = getString(R.string.fast_solve_confirmation, FormatterService.INSTANCE.formatSolveTime(best));
+    AlertDialog dialog = DialogUtils.showDestructiveConfirmDialog(this, R.string.discard_solve_title, message,
+        R.string.discard_solve, R.string.keep_solve, new YesNoListener() {
+          @Override
+          public void onYes() {
+            deleteLastSolve();
+          }
+
+          @Override
+          public void onNo() {
+            keepFastSolve();
+          }
+        });
+    dialog.setOnCancelListener(d -> keepFastSolve());
+  }
+
+  private void keepFastSolve() {
+    // A solve already under way (a smart cube's first turn) will announce its own verdict.
+    refreshAvgFields(timerState == TimerState.STOPPED, true);
+  }
+
   private void deleteLastSolve() {
     if (lastSolveTime == null) {
       DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
@@ -1631,6 +1666,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
     }
     applyAutoPenalty(solveTime, penalty);
+    // A cross-button stop already asks; asking twice would be the same question.
+    fastSolvePending = !skipRecordPanel && isSuspiciouslyFast(solveTime.getTime());
 
     addTimeToUI(solveTime);
     App.INSTANCE.getService().saveTime(solveTime, solveAverageCallback);
@@ -2583,7 +2620,12 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               deleteLastSolve();
             }
           }
-          refreshAvgFields(showNotifications, data.getSolveTime() != null);
+          if (fastSolvePending && data.getSolveTime() != null) {
+            fastSolvePending = false;
+            confirmFastSolve(); // the fields refresh with the answer, so nothing is lit before it
+          } else {
+            refreshAvgFields(showNotifications, data.getSolveTime() != null);
+          }
         }
       });
     }

@@ -843,6 +843,7 @@
   <string name="discard_solve_confirmation">Le chronomètre s\'est arrêté et le temps a été enregistré. Le supprimer l\'effacera.</string>
   <string name="discard_solve">Supprimer</string>
   <string name="keep_solve">Garder</string>
+  <string name="fast_solve_confirmation">Moins de la moitié de votre record personnel de %1$s.</string>
   <string name="timer_session">Session</string>
   <string name="personal_best_label">Record perso</string>
   <string name="timer_best_value">record %1$s</string>
