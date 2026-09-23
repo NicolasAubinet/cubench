@@ -6,7 +6,9 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Reads a blindfolded solve as memorisation and then the algorithms it was executed in: which
@@ -292,6 +294,8 @@ public final class BlindStepDetector implements StepDetector {
   private String start; // the state the cube was memorised from, which the chain is read against
   // The readings still in the running, best first. See the class note on why there is more than one.
   private final List<Reading> readings = new ArrayList<>();
+  // The closest frame from each state the readings ask about to the one just arrived.
+  private final Map<String, Integer> framesToNow = new HashMap<>();
   private String landed; // the state at the last landing, with the drift taken out
   private String stopped; // the state the solve was left in, which says what went wrong with it
   private String builtFrom; // the reading the landings stand for, so they are built once
@@ -404,7 +408,7 @@ public final class BlindStepDetector implements StepDetector {
 
   /** One algorithm on from a state: a cycle, a pair turned where they stand, or a parity. */
   private boolean lands(String base, String facelets, boolean parityRead) {
-    int frame = closestFrame(base, facelets);
+    int frame = frameToNow(base, facelets);
     int touched = touched(base, facelets, frame);
     return touched == CYCLE || touched == FLIP
         || (parity && !parityRead && touched == PARITY_CYCLE
@@ -416,6 +420,7 @@ public final class BlindStepDetector implements StepDetector {
    * carries straight past this state are both kept: which of them was right is not knowable here.
    */
   private void readLanding(String facelets, long timestampMs, boolean turned) {
+    framesToNow.clear();
     List<Reading> grown = new ArrayList<>();
     for (Reading reading : readings) {
       settled(reading, facelets, timestampMs, grown);
@@ -508,7 +513,7 @@ public final class BlindStepDetector implements StepDetector {
    */
   private boolean repeatsATail(Reading reading, String facelets) {
     for (String tail : reading.tails) {
-      if (touched(tail, facelets, closestFrame(tail, facelets)) == 0) {
+      if (touched(tail, facelets, frameToNow(tail, facelets)) == 0) {
         return true;
       }
     }
@@ -518,7 +523,7 @@ public final class BlindStepDetector implements StepDetector {
   /** Keeps a state as somewhere the algorithm now running may have ended. */
   private void addTail(Reading reading, String facelets, long timestampMs) {
     String base = committed(reading);
-    reading.tails.add(withoutDrift(facelets, closestFrame(base, facelets)));
+    reading.tails.add(withoutDrift(facelets, frameToNow(base, facelets)));
     reading.tailMs.add(timestampMs);
     if (reading.tails.size() > MOST_TAILS) {
       reading.tails.remove(reading.tails.size() - 1); // the earliest ones are worth keeping
@@ -907,6 +912,16 @@ public final class BlindStepDetector implements StepDetector {
       return EDGES;
     }
     return gained[CORNERS].isEmpty() ? NO_GAIN : CORNERS;
+  }
+
+  /** {@link #closestFrame} to the state just arrived, which the readings ask of the same states. */
+  private int frameToNow(String base, String facelets) {
+    Integer frame = framesToNow.get(base);
+    if (frame == null) {
+      frame = closestFrame(base, facelets);
+      framesToNow.put(base, frame);
+    }
+    return frame;
   }
 
   /**
