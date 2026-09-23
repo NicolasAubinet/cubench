@@ -78,6 +78,7 @@ public class DBHelper extends SQLiteOpenHelper {
         "FOREIGN KEY (" + DB.COL_TIMEHISTORY_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
       ");"
     );
+    createTimeHistoryIndex(db);
 
     db.execSQL("CREATE TABLE " + DB.TABLE_SOLVETYPESTEP + "(" +
         DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -138,6 +139,14 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_SOLVE_READING_VERSION + " INTEGER NOT NULL, " +
         DB.COL_SOLVE_READING_READING + " TEXT NOT NULL" +
       ");"
+    );
+  }
+
+  // Every history and average query filters by solve type and sorts by timestamp.
+  private void createTimeHistoryIndex(SQLiteDatabase db) {
+    db.execSQL("CREATE INDEX IF NOT EXISTS " + DB.IDX_TIMEHISTORY_SOLVETYPE_TIMESTAMP +
+        " ON " + DB.TABLE_TIMEHISTORY + " (" + DB.COL_TIMEHISTORY_SOLVETYPE_ID + ", "
+        + DB.COL_TIMEHISTORY_TIMESTAMP + ");"
     );
   }
 
@@ -480,6 +489,10 @@ public class DBHelper extends SQLiteOpenHelper {
     if (oldVersion < 33) {
       db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN "
           + DB.COL_TIMEHISTORY_SMARTCUBE_CUBE + " TEXT");
+    }
+
+    if (oldVersion < 34) {
+      createTimeHistoryIndex(db);
     }
 
 //    progressDialog.hide();
