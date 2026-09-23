@@ -203,6 +203,7 @@
   <string name="could_not_find_market">Impossible de trouver l\'app du market</string>
   <string name="could_not_launch_market">Impossible de lancer le market</string>
   <string name="release_notes">Notes de version</string>
+  <string name="release_notes_hide_on_update">Ne plus afficher après les mises à jour</string>
   <string name="close">Fermer</string>
 
   <string name="edit_solve_types_dots">Éditer les types&#8230;</string>

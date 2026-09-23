@@ -19,11 +19,26 @@
      android:background="@drawable/dialog_action_button_ghost"
      style="@style/DialogActionButton"/>
 
+  <CheckBox
+     android:id="@+id/cbHideOnUpdate"
+     android:text="@string/release_notes_hide_on_update"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_above="@id/buClose"
+     android:layout_marginBottom="@dimen/space_s"
+     android:minHeight="40dp"
+     android:button="@drawable/release_notes_check"
+     android:background="@null"
+     android:paddingLeft="10dp"
+     android:paddingStart="10dp"
+     android:textColor="@color/secondary_text"
+     android:textSize="14sp"/>
+
   <ScrollView
      android:layout_width="match_parent"
      android:layout_height="match_parent"
      android:layout_below="@id/tvDialogTitle"
-     android:layout_above="@id/buClose"
+     android:layout_above="@id/cbHideOnUpdate"
      android:layout_marginTop="@dimen/space_m"
      android:layout_marginBottom="@dimen/space_m"
      android:scrollbars="none">

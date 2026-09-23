@@ -205,6 +205,7 @@
   <string name="could_not_find_market">Não foi possível encontrar o app da loja</string>
   <string name="could_not_launch_market">Não foi possível abrir a loja</string>
   <string name="release_notes">Notas da versão</string>
+  <string name="release_notes_hide_on_update">Não mostrar após as atualizações</string>
   <string name="close">Fechar</string>
 
   <string name="edit_solve_types_dots">Editar os tipos&#8230;</string>

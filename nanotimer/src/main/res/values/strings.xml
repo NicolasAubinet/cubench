@@ -215,6 +215,7 @@
   <string name="could_not_find_market">Could not find the market app</string>
   <string name="could_not_launch_market">Could not launch the market</string>
   <string name="release_notes">Release notes</string>
+  <string name="release_notes_hide_on_update">Don\'t show after updates</string>
   <string name="close">Close</string>
 
   <string name="edit_solve_types_dots">Edit solve types&#8230;</string>

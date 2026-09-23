@@ -10,6 +10,9 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
@@ -17,6 +20,7 @@ import com.cube.nanotimer.util.helper.Utils;
 public class ReleaseNotes {
 
   private static final String VERSION_KEY = "app_version";
+  private static final String HIDE_ON_UPDATE_KEY = "release_notes_hide_on_update";
 
   // The notes are authored as bare markup, one string per locale; their look lives here.
   private static final String STYLE =
@@ -46,8 +50,10 @@ public class ReleaseNotes {
       if (!prefVersion.equals(curVersion)) {
         // app upgrade
         editor.putString(VERSION_KEY, curVersion);
-        showReleaseNotesDialog(context);
         editor.apply();
+        if (!prefs.getBoolean(HIDE_ON_UPDATE_KEY, false)) {
+          showReleaseNotesDialog(context);
+        }
       }
     }
   }
@@ -64,6 +70,17 @@ public class ReleaseNotes {
     WebView wvInfo = (WebView) v.findViewById(R.id.wvInfo);
     GUIUtils.setWebViewText(wvInfo, "<html><head>" + STYLE + "</head><body>" +
         context.getString(R.string.release_notes_features_html) + "</body></html>");
+
+    // Also shown when opened from the options, so the choice can be undone there.
+    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    CheckBox cbHideOnUpdate = (CheckBox) v.findViewById(R.id.cbHideOnUpdate);
+    cbHideOnUpdate.setChecked(prefs.getBoolean(HIDE_ON_UPDATE_KEY, false));
+    cbHideOnUpdate.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        prefs.edit().putBoolean(HIDE_ON_UPDATE_KEY, isChecked).apply();
+      }
+    });
 
     Button buClose = (Button) v.findViewById(R.id.buClose);
     buClose.setOnClickListener(new OnClickListener() {
