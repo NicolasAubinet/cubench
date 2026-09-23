@@ -7,8 +7,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Reads a blindfolded solve as memorisation and then the algorithms it was executed in: which
@@ -95,6 +98,19 @@ import java.util.Map;
  * first of them can only take its pieces apart — so it gains nothing, and only the pair turns
  * anything. A landing that gained nothing therefore joins the one after it when the two together
  * turn pieces where they stand, and the flip reads as the one memo item it was.
+ *
+ * <p><b>An algorithm may swap two pieces rather than cycle three</b>, where the solver says they
+ * shoot that way ({@link #setSwaps}), as Old Pochmann and M2 do: the buffer traded with its target,
+ * and a second pair carried along that the method cannot help disturbing, a T perm's two corners or
+ * an M2's other two edges. Declared rather than read off the solve, as every method is. A swap and a
+ * parity are the same shape, four pieces in two exchanges, so a solve read for swaps reads no
+ * parity, and one read as 3-style no swap. Three-cycles are read either way, so a solver who mixes
+ * the two is read whole.
+ *
+ * <p><b>Which pair a swap aimed at is told by where the solve is shooting from, never by what came
+ * home</b>, since the carried pair solves pieces constantly. Until a buffer is known the swaps wait,
+ * said as all four pieces, for the one piece that runs through them all
+ * ({@link BlindSwaps#sharedPiece}).
  */
 public final class BlindStepDetector implements StepDetector {
 
@@ -161,13 +177,13 @@ public final class BlindStepDetector implements StepDetector {
    */
   private static final class Landing {
     final long timestampMs;
-    final int type;
+    int type; // a swap's, once the pair it aimed at is known
     final String before;
     final String after; // where it landed, which is where the solve stood one algorithm on
     final boolean shot; // whether a cycle was shot, and so may still be renamed
     final boolean turned; // whether it turned its pieces where they stand: a flip or a twist
-    final List<Integer> pieces;
-    final List<Integer> gained; // what it put home, which says which of its name's pieces are solved
+    List<Integer> pieces; // a swap's four, until the pair it aimed at is known
+    List<Integer> gained; // what it put home, which says which of its name's pieces are solved
     BlindTargets.Named named;
     int buffer;
 
@@ -201,6 +217,29 @@ public final class BlindStepDetector implements StepDetector {
       this.gained = gained;
     }
 
+    /** Whether it exchanged pieces rather than cycling three, which is a shot but not a cycle. */
+    boolean swapped() {
+      return shot && pieces.size() != CYCLE;
+    }
+
+    /**
+     * Narrows a swap still said as all four of its pieces to the pair holding the piece it turns
+     * out to have been shot from. False where neither pair holds it; anything else already says.
+     */
+    boolean aimFrom(int shotFrom) {
+      if (pieces.size() != BlindSwaps.PIECES) {
+        return true;
+      }
+      List<Integer> pair = BlindSwaps.pairWith(BlindSwaps.exchanges(before, after), shotFrom);
+      if (pair == null) {
+        return false;
+      }
+      pieces = pair;
+      gained = BlindSwaps.kept(gained, pair);
+      type = typeOfGain(gained);
+      return true;
+    }
+
     /**
      * What became of each piece this algorithm's name says it shot at, in the order they are said.
      * Home is this algorithm's own doing; wrong is the whole solve's verdict, and which algorithm
@@ -231,12 +270,76 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
+   * The pieces a solve is shooting from, as far as its algorithms so far have said, and so which
+   * of a swap's two pairs it could have been aimed at.
+   */
+  private static final class Buffers {
+    int current = BlindTargets.NO_BUFFER; // the one being shot from, for as long as it stays out
+    int last = BlindTargets.NO_BUFFER; // the last one shot from, kept after it came home
+    // The last piece each type was shot from: a parity is said from both, and by then the running
+    // buffer holds whichever type was solved last.
+    final int[] ofType = {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
+
+    /**
+     * Whether a four-piece state is one swap on from the last landing: a pair it could have been
+     * aimed at, and that pair holding the buffer, a piece put home or a piece type opened.
+     */
+    boolean landsASwap(String before, String after) {
+      List<List<Integer>> aimable = aimable(BlindSwaps.exchanges(before, after));
+      return !aimable.isEmpty()
+          && (holdingTheBuffer(aimable) != null || putsAnythingHome(before, after)
+              || opensAType(aimable));
+    }
+
+    /** The pairs of a swap that could have been aimed at: not one of a type shot from elsewhere. */
+    List<List<Integer>> aimable(List<List<Integer>> exchanges) {
+      List<List<Integer>> aimable = new ArrayList<>();
+      if (exchanges != null) {
+        for (List<Integer> pair : exchanges) {
+          int type = pieceType(pair.get(0));
+          if (!hasShot(type) || pair.contains(ofType[type])) {
+            aimable.add(pair);
+          }
+        }
+      }
+      return aimable;
+    }
+
+    /** The pair aimed at: the only one it could have been, or the one holding the buffer. */
+    List<Integer> aimedPair(List<List<Integer>> aimable) {
+      return aimable.size() == 1 ? aimable.get(0) : holdingTheBuffer(aimable);
+    }
+
+    private List<Integer> holdingTheBuffer(List<List<Integer>> pairs) {
+      List<Integer> holding = BlindSwaps.pairWith(pairs, current);
+      return holding != null ? holding : BlindSwaps.pairWith(pairs, last);
+    }
+
+    private boolean opensAType(List<List<Integer>> pairs) {
+      for (List<Integer> pair : pairs) {
+        if (!hasShot(pieceType(pair.get(0)))) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    boolean hasShot(int type) {
+      return ofType[type] != BlindTargets.NO_BUFFER;
+    }
+  }
+
+  /**
    * One way to read the solve so far: the landings it has settled on, the ways the algorithm now
    * running may already have ended, and the moves it has made nothing of.
    *
    * <p>The states carry the drift taken out against the landing before them, which is why they are
    * kept per reading rather than shared: a reading that commits a different landing normalises
    * everything after it differently.
+   *
+   * <p>Where swaps are read, a reading also carries what its algorithms were shot from, since whether
+   * a swap lands depends on it: read by {@link #nameWhatEachReadingShotFrom} whenever its landings
+   * move.
    */
   private static final class Reading {
     final List<String> chain = new ArrayList<>();
@@ -245,6 +348,11 @@ public final class BlindStepDetector implements StepDetector {
     final List<Long> tailMs = new ArrayList<>();
     int unread; // moves made since the last landing, which are moves nothing was read from
     boolean parityFound;
+    Buffers shotFrom = new Buffers();
+    // What shotFrom was read off: the landings and the first ending, all a naming reads.
+    List<String> shotFromChain = Collections.emptyList();
+    String shotFromTail;
+    private String key;
 
     Reading() {
     }
@@ -256,6 +364,9 @@ public final class BlindStepDetector implements StepDetector {
       tailMs.addAll(from.tailMs);
       unread = from.unread;
       parityFound = from.parityFound;
+      shotFrom = from.shotFrom;
+      shotFromChain = from.shotFromChain;
+      shotFromTail = from.shotFromTail;
     }
 
     /** How much of the solve this reading has made sense of, which is what readings compete on. */
@@ -272,9 +383,25 @@ public final class BlindStepDetector implements StepDetector {
       return times;
     }
 
-    /** What tells two readings apart, and all a reading of one is built out of. */
+    /**
+     * What tells two readings apart, and all a reading of one is built out of. Built once, and so
+     * asked only of a reading grown to its full length for the move.
+     */
     String key() {
-      return chain + "|" + chainMs + "|" + tails + "|" + tailMs;
+      if (key == null) {
+        key = chain + "|" + chainMs + "|" + tails + "|" + tailMs;
+      }
+      return key;
+    }
+
+    /** The first way the algorithm now running may have ended, or null. */
+    String firstTail() {
+      return tails.isEmpty() ? null : tails.get(0);
+    }
+
+    /** Whether shotFrom still stands for this reading, which it does until its naming changes. */
+    boolean shotFromStands() {
+      return chain.equals(shotFromChain) && Objects.equals(firstTail(), shotFromTail);
     }
   }
 
@@ -286,11 +413,7 @@ public final class BlindStepDetector implements StepDetector {
   // The slots the solver says they shoot from, which is what settles the frame. See BlindFrame.
   private final int[] declared =
       {Cubies.slotNamed(DEFAULT_EDGE_BUFFER), Cubies.slotNamed(DEFAULT_CORNER_BUFFER)};
-  private int buffer; // the piece the solve is shooting from, for as long as it stays out
-  private int lastBuffer; // and the last one it shot from, kept after that one came home
-  // The last piece each type was shot from. A parity swaps a pair of each and is said from both, so
-  // one running buffer is not enough: by then it holds whichever type was solved last.
-  private final int[] typeBuffer = new int[] {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
+  private Buffers buffers = new Buffers(); // what the reading being named is shooting from
   private String start; // the state the cube was memorised from, which the chain is read against
   // The readings still in the running, best first. See the class note on why there is more than one.
   private final List<Reading> readings = new ArrayList<>();
@@ -304,6 +427,7 @@ public final class BlindStepDetector implements StepDetector {
   private long lastTimestampMs;
   private boolean parity; // the scramble was an odd permutation, so one algorithm swaps two of each
   private boolean parityFound;
+  private boolean swaps; // whether the solver shoots by swapping pairs, which the method says
 
   /**
    * The whole-cube rotation the solver holds the cube in: the orientation they declare in the
@@ -351,6 +475,15 @@ public final class BlindStepDetector implements StepDetector {
     declared[EDGES] = edgeSlot;
     declared[CORNERS] = cornerSlot;
     rename(given);
+  }
+
+  /**
+   * Whether the solver shoots by swapping the buffer with each target, as Old Pochmann and M2 do,
+   * rather than by cycling three pieces. Their method says so; it is never read off the solve. Asked
+   * before the solve starts, since it decides what a reading may land on from the first move.
+   */
+  public void setSwaps(boolean swaps) {
+    this.swaps = swaps;
   }
 
   /** Spell the solve so far again: a frame is not a thing the names can be moved to afterwards. */
@@ -406,13 +539,22 @@ public final class BlindStepDetector implements StepDetector {
     return boundaries();
   }
 
-  /** One algorithm on from a state: a cycle, a pair turned where they stand, or a parity. */
-  private boolean lands(String base, String facelets, boolean parityRead) {
+  /**
+   * One algorithm on from a state: a cycle, a pair turned where they stand, and four pieces in two
+   * exchanges as the parity or, where the solver shoots that way, as a swap.
+   */
+  private boolean lands(String base, String facelets, Reading reading) {
     int frame = frameToNow(base, facelets);
     int touched = touched(base, facelets, frame);
-    return touched == CYCLE || touched == FLIP
-        || (parity && !parityRead && touched == PARITY_CYCLE
-            && exchangesTwoOfEach(base, withoutDrift(facelets, frame)));
+    if (touched == CYCLE || touched == FLIP) {
+      return true;
+    }
+    if (touched != PARITY_CYCLE) {
+      return false;
+    }
+    String steady = withoutDrift(facelets, frame);
+    return swaps ? reading.shotFrom.landsASwap(base, steady)
+        : parity && !reading.parityFound && BlindSwaps.exchangesTwoOfEach(base, steady);
   }
 
   /**
@@ -432,12 +574,15 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     keepTheBest(grown);
+    if (swaps) {
+      nameWhatEachReadingShotFrom();
+    }
   }
 
   /** The reading that takes this state as the solve having moved on from one of its open endings. */
   private void settled(Reading reading, String facelets, long timestampMs, List<Reading> grown) {
     for (int tail = 0; tail < reading.tails.size(); tail++) {
-      if (!lands(reading.tails.get(tail), facelets, reading.parityFound)) {
+      if (!lands(reading.tails.get(tail), facelets, reading)) {
         continue;
       }
       Reading settled = new Reading(reading);
@@ -457,7 +602,7 @@ public final class BlindStepDetector implements StepDetector {
   private void anotherEnding(Reading reading, String facelets, long timestampMs,
       List<Reading> grown) {
     if (repeatsATail(reading, facelets)
-        || !lands(committed(reading), facelets, reading.parityFound)) {
+        || !lands(committed(reading), facelets, reading)) {
       return;
     }
     Reading another = new Reading(reading);
@@ -483,23 +628,47 @@ public final class BlindStepDetector implements StepDetector {
       return;
     }
     Collections.sort(grown, BEST_FIRST);
-    List<String> seen = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
     readings.clear();
     for (Reading reading : grown) {
       if (readings.size() >= MOST_READINGS) {
         return;
       }
-      if (!seen.contains(reading.key())) {
-        seen.add(reading.key());
+      if (seen.add(reading.key())) {
         readings.add(reading);
       }
     }
   }
 
+  /**
+   * What each reading has shot from, read again wherever it moved, which is what the next swap it
+   * lands is judged by.
+   */
+  private void nameWhatEachReadingShotFrom() {
+    boolean named = false;
+    for (Reading reading : readings) {
+      if (!reading.shotFromStands()) {
+        readAlgorithms(reading); // a buffer only inferred must not rule a swap out
+        reading.shotFrom = buffers;
+        reading.shotFromChain = reading.chain;
+        reading.shotFromTail = reading.firstTail();
+        named = true;
+      }
+    }
+    if (named && best().key().equals(builtFrom)) {
+      read(best()); // the landings back to the best reading, in the frame it settled
+    }
+  }
+
+  /** The reading that makes most sense of the solve so far, which is the one shown. */
+  private Reading best() {
+    return readings.isEmpty() ? new Reading() : readings.get(0);
+  }
+
   /** Whether a landing is the parity: it exchanges two of each, which nothing else does. */
   private boolean isParity(String before, String after) {
     return parity && touched(before, after, FaceletRotations.IDENTITY) == PARITY_CYCLE
-        && exchangesTwoOfEach(before, after);
+        && BlindSwaps.exchangesTwoOfEach(before, after);
   }
 
   /** The last landing a reading has settled on, which every candidate tail is read against. */
@@ -536,7 +705,7 @@ public final class BlindStepDetector implements StepDetector {
    * the reading on show has not moved, which most moves of a solve do not move it.
    */
   private void rebuild() {
-    Reading best = readings.isEmpty() ? new Reading() : readings.get(0);
+    Reading best = best();
     if (best.key().equals(builtFrom)) {
       return;
     }
@@ -550,21 +719,23 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /** The landings of one reading, each named against the one before it, in the frame now held. */
-  private void read(Reading best) {
+  private void read(Reading reading) {
+    readAlgorithms(reading);
+    nameWhatNothingSettled();
+  }
+
+  /** The landings as the algorithms themselves say them, before anything is inferred of the rest. */
+  private void readAlgorithms(Reading reading) {
     landings.clear();
     parityFound = false;
-    buffer = BlindTargets.NO_BUFFER;
-    lastBuffer = BlindTargets.NO_BUFFER;
-    typeBuffer[EDGES] = BlindTargets.NO_BUFFER;
-    typeBuffer[CORNERS] = BlindTargets.NO_BUFFER;
+    buffers = new Buffers();
     landed = start;
-    for (int i = 0; i < best.chain.size(); i++) {
-      readAlgorithm(best.chain.get(i), best.chainMs.get(i));
+    for (int i = 0; i < reading.chain.size(); i++) {
+      readAlgorithm(reading.chain.get(i), reading.chainMs.get(i));
     }
-    if (!best.tails.isEmpty()) {
-      readAlgorithm(best.tails.get(0), best.tailMs.get(0));
+    if (!reading.tails.isEmpty()) {
+      readAlgorithm(reading.tails.get(0), reading.tailMs.get(0));
     }
-    nameWhatNothingSettled();
   }
 
   /**
@@ -634,7 +805,7 @@ public final class BlindStepDetector implements StepDetector {
       }
       int shotFrom = landing.pieces.contains(settled[type]) ? settled[type]
           : senderOfTheOnePieceItLanded(landing);
-      if (shotFrom == BlindTargets.NO_BUFFER) {
+      if (shotFrom == BlindTargets.NO_BUFFER || !landing.aimFrom(shotFrom)) {
         continue;
       }
       landing.buffer = shotFrom;
@@ -644,8 +815,8 @@ public final class BlindStepDetector implements StepDetector {
     }
     boolean[] inferred = new boolean[2];
     for (int type = EDGES; type <= CORNERS; type++) {
-      if (typeBuffer[type] == BlindTargets.NO_BUFFER && settled[type] != BlindTargets.NO_BUFFER) {
-        typeBuffer[type] = settled[type];
+      if (buffers.ofType[type] == BlindTargets.NO_BUFFER && settled[type] != BlindTargets.NO_BUFFER) {
+        buffers.ofType[type] = settled[type];
         inferred[type] = true;
       }
     }
@@ -661,16 +832,16 @@ public final class BlindStepDetector implements StepDetector {
   private void nameAgainstTheInferredBuffers(boolean[] inferred) {
     for (Landing landing : landings) {
       if (landing.turned && inferred[landing.type]) {
-        landing.buffer = typeBuffer[landing.type];
+        landing.buffer = buffers.ofType[landing.type];
         landing.named = targets.turnedName(landing.before,
             turnedInPlace(landing.before, landing.after), landing.buffer);
       } else if (landing.type == PARITY_TYPE) {
         // A type not inferred keeps the piece its pair was already said from.
         List<Integer> said = landing.named.slots;
-        List<Integer> moved = moved(landing.before, landing.after);
+        List<Integer> moved = Cubies.moved(landing.before, landing.after);
         landing.named = targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES),
-            inferred[CORNERS] ? typeBuffer[CORNERS] : said.get(0),
-            inferred[EDGES] ? typeBuffer[EDGES] : said.get(SWAPPED_PAIR));
+            inferred[CORNERS] ? buffers.ofType[CORNERS] : said.get(0),
+            inferred[EDGES] ? buffers.ofType[EDGES] : said.get(SWAPPED_PAIR));
       }
     }
   }
@@ -706,25 +877,27 @@ public final class BlindStepDetector implements StepDetector {
 
   /** How many moves the reading on show has made nothing of. */
   private int unread() {
-    return readings.isEmpty() ? 0 : readings.get(0).unread;
+    return best().unread;
   }
 
   /** One landing of the chain, read against the one before it, which is what {@code landed} holds. */
   private void readAlgorithm(String steady, long timestampMs) {
     int touched = touched(landed, steady, FaceletRotations.IDENTITY);
     List<Integer>[] gained = gained(landed, steady, FaceletRotations.IDENTITY);
-    boolean parityLanding = parity && !parityFound && touched == PARITY_CYCLE
-        && exchangesTwoOfEach(landed, steady);
+    boolean parityLanding = !swaps && parity && !parityFound && touched == PARITY_CYCLE
+        && BlindSwaps.exchangesTwoOfEach(landed, steady);
     parityFound |= parityLanding;
     List<Integer> all = new ArrayList<>(gained[EDGES]);
     all.addAll(gained[CORNERS]);
     // Undo first: it is the stricter claim of the two, the cube standing exactly where the previous
     // algorithm found it. A misfire taken straight back leaves pieces turned where they stand and
-    // would otherwise read as the flip it undid.
-    if (!readUndo(steady, timestampMs, all) && !readOrientation(steady, timestampMs, all)) {
+    // would otherwise read as the flip it undid. A swap before a turn: where a method shoots, a
+    // piece turned where it stands is two shots at its two stickers.
+    if (!readUndo(steady, timestampMs, all) && !readSwap(steady, timestampMs, all)
+        && !readOrientation(steady, timestampMs, all)) {
       // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
       boolean shot = touched == CYCLE;
-      List<Integer> moved = moved(landed, steady);
+      List<Integer> moved = Cubies.moved(landed, steady);
       // A cycle is said as all three of its pieces; anything else, as what it put home.
       List<Integer> named = shot || all.isEmpty() ? moved : all;
       int shotFrom = shot ? bufferOf(moved, all) : BlindTargets.NO_BUFFER;
@@ -732,19 +905,92 @@ public final class BlindStepDetector implements StepDetector {
       // slot it is still twisted in was swapped all the same, and is half of what was memorised.
       BlindTargets.Named name = parityLanding
           ? targets.swapName(ofType(moved, CORNERS), ofType(moved, EDGES),
-              typeBuffer[CORNERS], typeBuffer[EDGES])
+              buffers.ofType[CORNERS], buffers.ofType[EDGES])
           : targets.name(landed, steady, shotFrom, named);
       landings.add(new Landing(timestampMs, typeOf(gained, parityLanding), name, landed, steady,
           shot, named, shotFrom, all));
       if (shot && shotFrom != BlindTargets.NO_BUFFER) {
-        nameWhatWaitedForIt(landings.size() - 2, shotFrom);
-        // The buffer stays the buffer until an algorithm brings it home; then another is picked up.
-        buffer = all.contains(shotFrom) ? BlindTargets.NO_BUFFER : shotFrom;
-        lastBuffer = shotFrom;
-        typeBuffer[Cubies.isEdge(shotFrom) ? EDGES : CORNERS] = shotFrom;
+        settleBuffer(shotFrom, all);
       }
     }
     landed = steady;
+  }
+
+  /**
+   * A swap, if that is what landed here: the buffer traded with its target and a second pair carried
+   * along. Said as the pair it aimed at, which is the one holding the buffer; where nothing says
+   * yet, as all four pieces, until a later algorithm settles it ({@link Landing#aimFrom}).
+   */
+  private boolean readSwap(String steady, long timestampMs, List<Integer> gained) {
+    if (!swaps || !buffers.landsASwap(landed, steady)) {
+      return false;
+    }
+    List<List<Integer>> aimable = buffers.aimable(BlindSwaps.exchanges(landed, steady));
+    List<Integer> pair = buffers.aimedPair(aimable);
+    int shotFrom = BlindTargets.NO_BUFFER;
+    if (pair == null) {
+      shotFrom = sharedWithTheWaiting(aimable, steady);
+      pair = BlindSwaps.pairWith(aimable, shotFrom);
+    }
+    List<Integer> named = pair == null ? Cubies.moved(landed, steady) : pair;
+    // What the carried pair put home is nobody's target, and counts for nothing.
+    List<Integer> gains = pair == null ? gained : BlindSwaps.kept(gained, pair);
+    if (pair != null && shotFrom == BlindTargets.NO_BUFFER) {
+      shotFrom = bufferOf(pair, gains);
+    }
+    landings.add(new Landing(timestampMs, typeOfGain(gains),
+        targets.name(landed, steady, shotFrom, named), landed, steady, true, named, shotFrom, gains));
+    if (shotFrom != BlindTargets.NO_BUFFER) {
+      settleBuffer(shotFrom, gains);
+    }
+    return true;
+  }
+
+  /**
+   * The piece every algorithm since the last one that knew its buffer was shot from, where one
+   * alone runs through them all. See {@link BlindSwaps#sharedPiece}.
+   */
+  private int sharedWithTheWaiting(List<List<Integer>> aimable, String steady) {
+    List<BlindSwaps.Waiting> waiting = new ArrayList<>();
+    waiting.add(new BlindSwaps.Waiting(aimable, landed, steady));
+    for (int i = landings.size() - 1; i >= 0; i--) {
+      Landing landing = landings.get(i);
+      if (!landing.shot) {
+        continue;
+      }
+      if (landing.buffer != BlindTargets.NO_BUFFER) {
+        break;
+      }
+      List<List<Integer>> pairs = BlindSwaps.exchanges(landing.before, landing.after);
+      // A three-cycle has no pairs, but the buffer runs through it all the same: an M2 at a middle
+      // sticker is one of the run's algorithms too.
+      waiting.add(new BlindSwaps.Waiting(pairs == null ? Collections.singletonList(landing.pieces)
+          : buffers.aimable(pairs), landing.before, landing.after));
+    }
+    return waiting.size() < 2 ? BlindTargets.NO_BUFFER
+        : BlindSwaps.sharedPiece(waiting, declaredAsReported());
+  }
+
+  /** The buffers the solver declared, as the slots the cube reports them in. */
+  private List<Integer> declaredAsReported() {
+    List<Integer> slots = new ArrayList<>(declared.length);
+    for (int slot : declared) {
+      if (slot != BlindTargets.NO_BUFFER) {
+        slots.add(targets.reportedSlotOf(slot));
+      }
+    }
+    return slots;
+  }
+
+  /**
+   * An algorithm was shot from this piece: the ones before it that waited to be told are named,
+   * and the buffer stays the buffer until an algorithm brings it home.
+   */
+  private void settleBuffer(int shotFrom, List<Integer> gained) {
+    nameWhatWaitedForIt(landings.size() - 2, shotFrom);
+    buffers.current = gained.contains(shotFrom) ? BlindTargets.NO_BUFFER : shotFrom;
+    buffers.last = shotFrom;
+    buffers.ofType[pieceType(shotFrom)] = shotFrom;
   }
 
   /**
@@ -763,8 +1009,14 @@ public final class BlindStepDetector implements StepDetector {
    * in the order the cube stores them, which reads as the buffer landing anywhere in the name.
    */
   private int bufferOf(List<Integer> moved, List<Integer> gained) {
-    if (moved.contains(buffer)) {
-      return buffer;
+    if (moved.contains(buffers.current)) {
+      return buffers.current;
+    }
+    if (swaps && moved.size() == CYCLE && afterASwap()) {
+      // An M2 at a middle sticker leaves out the carried piece as much as the buffer: only the
+      // piece its type was shot from says, and until there is one it waits.
+      int typeBuffer = buffers.ofType[pieceType(moved.get(0))];
+      return moved.contains(typeBuffer) ? typeBuffer : BlindTargets.NO_BUFFER;
     }
     int left = BlindTargets.NO_BUFFER;
     int count = 0;
@@ -775,7 +1027,24 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     // A buffer of another type says nothing here: an algorithm moves pieces of one type only.
-    return count == 1 ? left : moved.contains(lastBuffer) ? lastBuffer : BlindTargets.NO_BUFFER;
+    return count == 1 ? left : moved.contains(buffers.last) ? buffers.last : BlindTargets.NO_BUFFER;
+  }
+
+  /**
+   * Whether a swap came since the last algorithm that knew its buffer, which says the solve is
+   * shooting: the three-cycles still waiting after one are its middle stickers, not commutators.
+   */
+  private boolean afterASwap() {
+    for (int i = landings.size() - 1; i >= 0; i--) {
+      Landing landing = landings.get(i);
+      if (landing.swapped()) {
+        return true;
+      }
+      if (landing.shot && landing.buffer != BlindTargets.NO_BUFFER) {
+        return false;
+      }
+    }
+    return false;
   }
 
   /**
@@ -790,7 +1059,8 @@ public final class BlindStepDetector implements StepDetector {
       if (!landing.shot) {
         continue; // nothing was shot here, so nothing here chose a buffer either
       }
-      if (landing.buffer != BlindTargets.NO_BUFFER || !landing.pieces.contains(shotFrom)) {
+      if (landing.buffer != BlindTargets.NO_BUFFER || !landing.pieces.contains(shotFrom)
+          || !landing.aimFrom(shotFrom)) {
         return;
       }
       landing.buffer = shotFrom;
@@ -816,7 +1086,7 @@ public final class BlindStepDetector implements StepDetector {
         }
         int type = Cubies.isEdge(turned.get(0)) ? EDGES : CORNERS;
         landings.add(new Landing(timestampMs, type, targets.turnedName(from, turned,
-            typeBuffer[type]), from, steady, true, typeBuffer[type], gained));
+            buffers.ofType[type]), from, steady, true, buffers.ofType[type], gained));
         return true;
       }
       int previous = landings.size() - 1 - joined;
@@ -827,6 +1097,9 @@ public final class BlindStepDetector implements StepDetector {
         // A mistake taken back is a finished statement, not half a turn: joining across one read a
         // misfire and the shot that replaced it as a single flip of the pair they both aimed at.
         return false;
+      }
+      if (landings.get(previous).swapped()) {
+        return false; // nor is a swap: two shots at a piece's two stickers are two memo items
       }
       from = landings.get(previous).before;
     }
@@ -843,21 +1116,6 @@ public final class BlindStepDetector implements StepDetector {
     return true;
   }
 
-  /** Whether the algorithm exchanged two corners and two edges, which is what a parity does. */
-  private static boolean exchangesTwoOfEach(String before, String after) {
-    List<Integer> moved = moved(before, after);
-    List<Integer> edges = ofType(moved, EDGES);
-    List<Integer> corners = ofType(moved, CORNERS);
-    return edges.size() == SWAPPED_PAIR && corners.size() == SWAPPED_PAIR
-        && exchanged(before, after, edges) && exchanged(before, after, corners);
-  }
-
-  /** Whether the two slots came out holding each other's piece. */
-  private static boolean exchanged(String before, String after, List<Integer> pair) {
-    return Cubies.homeSlotOf(before, pair.get(0)) == Cubies.homeSlotOf(after, pair.get(1))
-        && Cubies.homeSlotOf(before, pair.get(1)) == Cubies.homeSlotOf(after, pair.get(0));
-  }
-
   /**
    * The pieces the two states differ in, when every one of them is still the same piece afterwards
    * — turned where it stands rather than cycled anywhere. Null if any of them moved.
@@ -870,27 +1128,13 @@ public final class BlindStepDetector implements StepDetector {
    */
   private static List<Integer> turnedInPlace(String before, String after) {
     List<Integer> turned = new ArrayList<>();
-    for (int slot : moved(before, after)) {
+    for (int slot : Cubies.moved(before, after)) {
       if (Cubies.homeSlotOf(before, slot) != Cubies.homeSlotOf(after, slot)) {
         return null;
       }
       turned.add(slot);
     }
     return turned;
-  }
-
-  /** The pieces that read differently either side of an algorithm, however they differ. */
-  private static List<Integer> moved(String before, String after) {
-    List<Integer> moved = new ArrayList<>();
-    for (int slot = 0; slot < PIECES.length; slot++) {
-      for (int facelet : PIECES[slot]) {
-        if (before.charAt(facelet) != after.charAt(facelet)) {
-          moved.add(slot);
-          break;
-        }
-      }
-    }
-    return moved;
   }
 
   /** The edges among some pieces, or the corners: {@code type} is {@link #EDGES} or {@link #CORNERS}. */
@@ -902,6 +1146,26 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     return ofType;
+  }
+
+  private static int pieceType(int slot) {
+    return Cubies.isEdge(slot) ? EDGES : CORNERS;
+  }
+
+  /** What a swap counts as: the type of the pieces it put home, edges first, or nothing gained. */
+  private static int typeOfGain(List<Integer> gained) {
+    for (int slot : gained) {
+      if (Cubies.isEdge(slot)) {
+        return EDGES;
+      }
+    }
+    return gained.isEmpty() ? NO_GAIN : CORNERS;
+  }
+
+  /** Whether any piece is home after that was not before, of either type. */
+  private static boolean putsAnythingHome(String before, String after) {
+    List<Integer>[] gained = gained(before, after, FaceletRotations.IDENTITY);
+    return !gained[EDGES].isEmpty() || !gained[CORNERS].isEmpty();
   }
 
   private static int typeOf(List<Integer>[] gained, boolean parityLanding) {
@@ -974,10 +1238,13 @@ public final class BlindStepDetector implements StepDetector {
     return gained;
   }
 
-  /** Every piece home in some one way of holding the cube, which is what solved means. */
+  /**
+   * Every piece home in some one way of holding the cube, with the centres held that way too: a
+   * solve of slices can bring every piece home a middle turn away from solved, as an M2 does.
+   */
   private static boolean isSolved(String facelets) {
     for (int rotation = 0; rotation < FaceletRotations.COUNT; rotation++) {
-      boolean home = true;
+      boolean home = Cubies.centresInPlace(facelets, rotation);
       for (int[] piece : PIECES) {
         if (!Cubies.inPlace(facelets, piece, rotation)) {
           home = false;
@@ -1007,7 +1274,7 @@ public final class BlindStepDetector implements StepDetector {
    * algorithm that turned the other type's is that type's first, however little it put home.
    */
   private static String opensAStretch(Landing landing, Run running) {
-    List<Integer> moved = moved(landing.before, landing.after);
+    List<Integer> moved = Cubies.moved(landing.before, landing.after);
     boolean edges = !ofType(moved, EDGES).isEmpty();
     boolean corners = !ofType(moved, CORNERS).isEmpty();
     if (edges == corners) {
@@ -1506,7 +1773,7 @@ public final class BlindStepDetector implements StepDetector {
    */
   @Override
   public BlindResidual getResidual() {
-    return BlindResidual.of(stopped, targets, typeBuffer[EDGES], typeBuffer[CORNERS]);
+    return BlindResidual.of(stopped, targets, buffers.ofType[EDGES], buffers.ofType[CORNERS]);
   }
 
   /**

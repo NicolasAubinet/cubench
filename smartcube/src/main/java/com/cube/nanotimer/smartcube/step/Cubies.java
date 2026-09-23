@@ -2,8 +2,10 @@ package com.cube.nanotimer.smartcube.step;
 
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -280,6 +282,31 @@ final class Cubies {
       moved[motion[facelet]] = facelets.charAt(facelet);
     }
     return new String(moved);
+  }
+
+  /** The pieces that read differently in the two states, however they differ. */
+  static List<Integer> moved(String before, String after) {
+    List<Integer> moved = new ArrayList<>();
+    for (int slot = 0; slot < PIECES.length; slot++) {
+      for (int facelet : PIECES[slot]) {
+        if (before.charAt(facelet) != after.charAt(facelet)) {
+          moved.add(slot);
+          break;
+        }
+      }
+    }
+    return moved;
+  }
+
+  /** Whether every centre sits where the rotation puts it, without which no piece is home in it. */
+  static boolean centresInPlace(String facelets, int rotation) {
+    for (int face = 0; face < FACES.length(); face++) {
+      int centre = face * 9 + 4;
+      if (facelets.charAt(FaceletRotations.apply(rotation, centre)) != SOLVED.charAt(centre)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
