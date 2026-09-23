@@ -115,5 +115,6 @@ public interface ServiceProvider {
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);
   void updateSolveType(SolveType solveType, boolean recalculateAverages);
+  void updateSolveTypeBlindMethod(SolveType solveType);
   void deleteSolveType(SolveType solveType);
 }

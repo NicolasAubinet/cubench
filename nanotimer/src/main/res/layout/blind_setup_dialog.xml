@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Asked once, at the first blind solve with a cube connected: how the solver holds the cube, and
-     which pieces they shoot from. The body scrolls so that both pickers and the prose fit a short
-     screen.
+<!-- Asked once, at the first blind solve with a cube connected: how the solver holds the cube, how
+     they shoot, and which pieces they shoot from. The body scrolls so that the pickers and the
+     prose fit a short screen.
 
      The hold comes first because that is the order they happen in: the cube is picked up out of the
      scramble, and only then is anything shot from anywhere. -->
@@ -60,6 +60,24 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_marginTop="10dp"/>
+
+    <!-- Before the buffers, since each method keeps its own: picking one shows its buffers. -->
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="20dp"
+       android:text="@string/blind_setup_method"
+       android:textColor="@color/white"
+       android:textSize="15sp"/>
+
+    <LinearLayout
+       android:id="@+id/blindMethodPicker"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="10dp"
+       android:background="@drawable/view_segment_group"
+       android:orientation="horizontal"
+       android:padding="3dp"/>
 
     <TextView
        android:layout_width="match_parent"

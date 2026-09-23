@@ -300,6 +300,20 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void updateSolveTypeBlindMethod(final SolveType solveType,
+      final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.updateSolveTypeBlindMethod(solveType);
+        if (callback != null) {
+          callback.onData(null);
+        }
+      }
+    });
+  }
+
+  @Override
   public void deleteSolveType(final SolveType solveType, final DataCallback<Void> callback) {
     run(new Runnable() {
       @Override

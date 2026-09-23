@@ -39,6 +39,7 @@ import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.SolveTypeIcons;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -233,7 +234,8 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
       SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position,
           solveTypeName, solveType.isBlind(), solveType.hasInspection(), scrambleTypeName,
-          solveType.getQuickAction(), solveType.getMethodOverride());
+          solveType.getQuickAction(), solveType.getMethodOverride(),
+          solveType.getBlindMethodOverride());
       DialogUtils.showFragment(this, editDialog);
     } else if (action == ACTION_DELETE) {
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, liSolveTypes.get(position).getName());
@@ -334,20 +336,21 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     updatedSolveType.setSteps(oldSolveType.getSteps());
     updatedSolveType.setInspection(parseInspection(props));
     updatedSolveType.setMethod(parseMethod(props));
+    updatedSolveType.setBlindMethod(parseBlindMethod(props));
     updatedSolveType.setQuickAction(parseQuickAction(props));
     liSolveTypes.set(index, updatedSolveType);
 
     // The method a type is read as, which the override may follow rather than name: changing the
     // override to what was already being followed is not a change and asks nothing.
-    final CubeMethod methodBefore = SolveTypeMethod.of(oldSolveType);
-    final CubeMethod methodAfter = SolveTypeMethod.of(updatedSolveType);
+    final int readBefore = readingName(oldSolveType);
+    final int readAfter = readingName(updatedSolveType);
 
     App.INSTANCE.getService().updateSolveType(updatedSolveType, blindChanged, new DataCallback<Void>() {
       @Override
       public void onData(Void data) {
         refreshList();
-        if (methodBefore != methodAfter) {
-          offerToRereadSolves(updatedSolveType, methodBefore, methodAfter);
+        if (readBefore != readAfter) {
+          offerToRereadSolves(updatedSolveType, readBefore, readAfter);
         }
       }
     });
@@ -359,8 +362,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
    * again whenever it opens, so it needs no help; the list's bars and the method figures are drawn
    * from what is stored, and only this brings those up to date.
    */
-  private void offerToRereadSolves(final SolveType solveType, final CubeMethod before,
-      final CubeMethod after) {
+  private void offerToRereadSolves(final SolveType solveType, final int before, final int after) {
     App.INSTANCE.getService().getSmartcubeSolvesCount(solveType, new DataCallback<Integer>() {
       @Override
       public void onData(final Integer count) {
@@ -373,14 +375,14 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
             if (!alive()) {
               return;
             }
-            String message = getString(R.string.reread_solves_message, count,
-                getString(Utils.getMethodLabel(before)), getString(Utils.getMethodLabel(after)));
+            String message = getString(R.string.reread_solves_message, count, getString(before),
+                getString(after));
             DialogUtils.showConfirmCancelDialog(SolveTypesActivity.this,
                 R.string.reread_solves_title, message, R.string.reread_solves_confirm,
                 R.string.reread_solves_cancel, new YesNoListener() {
                   @Override
                   public void onYes() {
-                    rereadSolves(solveType, after);
+                    rereadSolves(solveType);
                   }
 
                   @Override
@@ -398,7 +400,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
    * history takes a while and a dialog that swallows back reads as the press having been missed —
    * and safe to cancel, since nothing is written until every solve has been read.
    */
-  private void rereadSolves(final SolveType solveType, final CubeMethod method) {
+  private void rereadSolves(final SolveType solveType) {
     if (rereading) {
       // One at a time: two runs would write the same history twice over. Said rather than simply
       // refused, since the run this stands aside for may have had its dialog dismissed long ago.
@@ -424,7 +426,8 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     App.INSTANCE.getService().getSmartcubeSolves(solveType, new DataCallback<List<SolveTime>>() {
       @Override
       public void onData(List<SolveTime> solves) {
-        final List<SolveTime> rewritten = SolveReinterpreter.reread(solves, method,
+        final List<SolveTime> rewritten = SolveReinterpreter.reread(solves,
+            SolveTypeMethod.of(solveType), SolveTypeMethod.blindMethodOf(solveType),
             new SolveReinterpreter.Progress() {
               @Override
               public boolean onRead(int done, int total) {
@@ -511,6 +514,16 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     return CubeMethod.fromCode(props.getProperty(SolveTypeAddDialog.KEY_METHOD, ""));
   }
 
+  private BlindMethod parseBlindMethod(Properties props) {
+    return BlindMethod.fromCode(props.getProperty(SolveTypeAddDialog.KEY_BLIND_METHOD, ""));
+  }
+
+  /** What a type's solves are read as, by name: a blind one's by how it shoots. */
+  private static int readingName(SolveType solveType) {
+    return solveType.isBlind() ? SolveTypeMethod.nameOf(SolveTypeMethod.blindMethodOf(solveType))
+        : Utils.getMethodLabel(SolveTypeMethod.of(solveType));
+  }
+
   // Which timer menu action the solve type overrides the default one with (null to follow it).
   private TimerQuickAction parseQuickAction(Properties props) {
     String id = props.getProperty(SolveTypeAddDialog.KEY_QUICK_ACTION, "");
@@ -528,6 +541,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
     SolveType st = new SolveType(name, blindMode, scrambleType, curCubeType.getId());
     st.setInspection(parseInspection(props));
     st.setMethod(parseMethod(props));
+    st.setBlindMethod(parseBlindMethod(props));
     st.setQuickAction(parseQuickAction(props));
 
     liSolveTypes.add(st);

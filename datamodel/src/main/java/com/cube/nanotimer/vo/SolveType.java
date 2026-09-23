@@ -13,6 +13,7 @@ public class SolveType implements Serializable, NameHolder {
   private boolean blind = false;
   private boolean inspection = true;
   private CubeMethod method; // null to follow the preferred method rather than name one here
+  private BlindMethod blindMethod; // likewise, for how a blind type's solves are shot
   private TimerQuickAction quickAction; // null to follow the default rather than freeze a copy of it
 
   public SolveType(String name, boolean blind, ScrambleType scrambleType, int cubeTypeId) {
@@ -82,6 +83,15 @@ public class SolveType implements Serializable, NameHolder {
     this.method = method;
   }
 
+  /** The blind method this type overrides the preferred one with, or null to follow it. */
+  public BlindMethod getBlindMethodOverride() {
+    return blindMethod;
+  }
+
+  public void setBlindMethod(BlindMethod blindMethod) {
+    this.blindMethod = blindMethod;
+  }
+
   /** The action this solve type puts in the timer's action bar, the default included. */
   public TimerQuickAction getQuickAction() {
     return quickAction != null ? quickAction : TimerQuickAction.getDefault(blind);
@@ -124,6 +134,7 @@ public class SolveType implements Serializable, NameHolder {
     if (blind != solveType.blind) return false;
     if (inspection != solveType.inspection) return false;
     if (method != solveType.method) return false;
+    if (blindMethod != solveType.blindMethod) return false;
     if (!name.equals(solveType.name)) return false;
     if (quickAction != solveType.quickAction) return false;
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
@@ -141,6 +152,7 @@ public class SolveType implements Serializable, NameHolder {
     result = 31 * result + (blind ? 1 : 0);
     result = 31 * result + (inspection ? 1 : 0);
     result = 31 * result + (method != null ? method.hashCode() : 0);
+    result = 31 * result + (blindMethod != null ? blindMethod.hashCode() : 0);
     result = 31 * result + (quickAction != null ? quickAction.hashCode() : 0);
     return result;
   }

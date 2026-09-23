@@ -827,6 +827,8 @@
   <string name="method_roux">Roux</string>
   <string name="method_lbl">Camada por camada</string>
   <string name="method_blind">Às cegas</string>
+  <string name="blind_method_3style">3-style</string>
+  <string name="blind_method_op_m2">OP/M2</string>
   <string name="method_default">Padrão (%1$s)</string>
   <string name="method_info">Sobre o método</string>
   <string name="method_info_message">Usado para reconstruir suas resoluções quando há um cubo inteligente conectado: diz ao aplicativo em quais etapas dividir uma resolução. Deixe no padrão para seguir o método preferido das configurações, ou indique o método que você realmente usa para este tipo de resolução.</string>
@@ -1099,10 +1101,11 @@
   <string name="known_algorithms_hint">Toque num caso para ver os seus algoritmos. Um caso conta como conhecido na primeira vez que o faz com um único algoritmo numa resolução. Se voltar a fazê-lo em duas etapas, fica para rever; um que nunca fez com um único algoritmo fica para aprender.</string>
   <string name="known_algorithms_empty">Nada aqui ainda. Resolva com um smart cube conectado e os casos que você faz sem ajuda vão aparecer.</string>
   <string name="known_algorithms_reading">Lendo suas resoluções...</string>
-  <string name="blind_setup_summary">%1$s, buffers %2$s e %3$s</string>
+  <string name="blind_setup_summary">%2$s, %1$s, buffers %3$s e %4$s</string>
   <string name="blind_setup">Resoluções às cegas</string>
-  <string name="blind_setup_why">Suas resoluções às cegas são reconstruídas a partir destas duas respostas.</string>
+  <string name="blind_setup_why">Suas resoluções às cegas são reconstruídas a partir destas respostas.</string>
   <string name="blind_setup_hold">Como você segura o cubo</string>
+  <string name="blind_setup_method">Como você dispara nos seus alvos</string>
   <string name="blind_setup_shoot">Os buffers de onde você dispara</string>
   <string name="blind_orientation_up">Face de cima</string>
   <string name="blind_orientation_front">Face da frente</string>

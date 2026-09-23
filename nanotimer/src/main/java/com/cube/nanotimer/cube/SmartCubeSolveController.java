@@ -14,7 +14,9 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.smartcube.step.StepTime;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
+import com.cube.nanotimer.vo.SolveType;
 import java.util.Collections;
 import java.util.List;
 
@@ -66,6 +68,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private List<StepTime> stepTimes = Collections.emptyList();
   private CubeMethod method; // which one the solve just finished fitted, null for none
   private CubeMethod expectedMethod; // what the solve type says its solves are, and the only one read
+  private SolveType solveType; // null until the first scramble
   private Integer stoppedStep;
   private String solveMoves = "";
   private String gyroTrack; // the solve's small physical rotations, null without a gyro to read them
@@ -114,14 +117,17 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    * @param expectedMethod the method the solve type is read as, already resolved against the
    *     preferred one. The solve is read as that method or as none: it is what the type says its
    *     solves are, not a guess to be overruled by whatever else the moves happen to fit.
+   * @param solveType the solve type, whose blind method is asked at each tap rather than here: the
+   *     blind setup prompt can change it between the scramble and the solve
    */
   public void setScramble(String[] scramble, boolean cubeDriven, boolean followable, boolean blind,
-      boolean endsSolved, CubeMethod expectedMethod) {
+      boolean endsSolved, CubeMethod expectedMethod, SolveType solveType) {
     this.scramble = scramble;
     this.cubeDriven = cubeDriven;
     this.followable = followable;
     this.blind = blind;
     this.endsSolved = endsSolved;
+    this.solveType = solveType;
     if (expectedMethod != this.expectedMethod) {
       this.expectedMethod = expectedMethod;
       analyzers = new MethodAnalyzers(expectedMethod); // another method is read by another detector
@@ -568,10 +574,13 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       return;
     }
     // Asked here, at every solve, rather than once with the scramble: a solver who has only just
-    // been asked what they shoot from, or who has changed it in the settings, is answered on the
+    // been asked how and what they shoot from, or who has changed it, is answered on the
     // very next solve and not on the one after it.
-    analyzers.setBlindBuffers(
-        Options.INSTANCE.getBlindEdgeBuffer(), Options.INSTANCE.getBlindCornerBuffer());
+    BlindMethod blindMethod = solveType == null ? BlindMethod.THREE_STYLE
+        : SolveTypeMethod.blindMethodOf(solveType);
+    analyzers.setBlindMethod(blindMethod);
+    analyzers.setBlindBuffers(Options.INSTANCE.getBlindEdgeBuffer(blindMethod),
+        Options.INSTANCE.getBlindCornerBuffer(blindMethod));
     analyzers.setPickupRotation(declaredGrip());
     analyzers.start(state, startTimestampMs);
     analyzing = true;

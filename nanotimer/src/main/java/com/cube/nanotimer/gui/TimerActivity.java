@@ -1901,7 +1901,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           boolean is3x3 = (cubeType == CubeType.THREE_BY_THREE);
           boolean followable = is3x3 && ScrambleFollower.canFollow(currentScramble);
           solveController.setScramble(currentScramble, is3x3, followable, solveType.isBlind(),
-              endsSolved(), SolveTypeMethod.of(solveType));
+              endsSolved(), SolveTypeMethod.of(solveType), solveType);
           refreshStatePreviewOwner(); // the puzzle it is for is what decides whose gap it is
           renderStatePreview();
         }
@@ -1964,7 +1964,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // dialog over the timer, and the tap meant to stop it would land on the dialog instead.
     if (timerState == TimerState.STOPPED && solveType != null && solveType.isBlind()
         && SmartCubeManager.INSTANCE.isConnected()) {
-      BlindSetupPrompt.askOnce(this);
+      BlindSetupPrompt.askOnce(this, solveType);
     }
   }
 

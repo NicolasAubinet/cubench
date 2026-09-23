@@ -1,5 +1,6 @@
 package com.cube.nanotimer.cube;
 
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -54,14 +55,16 @@ public final class SolveReinterpreter {
    * The solves whose stored breakdown should be replaced, each carrying the one it was read into,
    * or none where the solve no longer fits the method. Empty is a legitimate answer, and null says
    * the run was stopped part way and must be thrown away whole.
+   *
+   * @param blindMethod how the solves are shot, where {@code method} is blind
    */
   public static List<SolveTime> reread(List<SolveTime> solves, CubeMethod method,
-      Progress progress) {
+      BlindMethod blindMethod, Progress progress) {
     List<SolveTime> rewritten = new ArrayList<SolveTime>();
     for (int i = 0; i < solves.size(); i++) {
       SolveTime solve = solves.get(i);
       StoredSolveReplay.Result result = StoredSolveReplay.reinterpret(solve.getScramble(),
-          solve.getSmartcubeMoves(), method);
+          solve.getSmartcubeMoves(), method, blindMethod);
       if (result != null && (result.getMethod() != null || result.reachedSolved())) {
         solve.setSmartcubeMethod(result.getMethod());
         solve.setSmartcubeSteps(result.getMethod() == null
@@ -83,7 +86,7 @@ public final class SolveReinterpreter {
    */
   public static List<SolveTime> refresh(List<SolveTime> solves, CubeMethod method) {
     List<SolveTime> rewritten = new ArrayList<SolveTime>();
-    for (SolveTime solve : reread(solves, method, null)) {
+    for (SolveTime solve : reread(solves, method, BlindMethod.THREE_STYLE, null)) {
       if (solve.getSmartcubeMethod() == method) {
         rewritten.add(solve);
       }

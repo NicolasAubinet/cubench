@@ -211,7 +211,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       // them, so a solve type whose method changed shows its whole history under the method it now
       // reads as. Falls back to what was recorded whenever the solve cannot be read again.
       StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solveTime.getScramble(),
-          solveTime.getSmartcubeMoves(), SolveTypeMethod.of(solveTime.getSolveType()));
+          solveTime.getSmartcubeMoves(), SolveTypeMethod.of(solveTime.getSolveType()),
+          SolveTypeMethod.blindMethodOf(solveTime.getSolveType()));
       // A solve that was read and fitted nothing keeps what was recorded here, the same as one that
       // could not be read at all: emptying it is the re-reading pass's to do, once and on the store,
       // rather than something the sheet does silently every time it opens.
@@ -681,7 +682,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     line.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        BlindSetupPrompt.open(getActivity(), new Runnable() {
+        BlindSetupPrompt.open(getActivity(), solveTime.getSolveType(), new Runnable() {
           @Override
           public void run() {
             reReadThroughTheDeclaration(v, solveTime);

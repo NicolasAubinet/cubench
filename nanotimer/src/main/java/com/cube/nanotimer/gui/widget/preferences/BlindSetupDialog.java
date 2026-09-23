@@ -7,8 +7,8 @@ import android.view.View;
 import com.cube.nanotimer.gui.widget.BlindSetupPicker;
 
 /**
- * The settings row for how a blind solver holds the cube and what they shoot from: one row, and the
- * same popup the timer screen asks it in.
+ * The settings row for how a blind solver holds the cube, how they shoot and what from: one row, and
+ * the same popup the timer screen asks it in.
  */
 public class BlindSetupDialog extends DialogPreference {
 
@@ -24,7 +24,7 @@ public class BlindSetupDialog extends DialogPreference {
 
   @Override
   protected View onCreateDialogView() {
-    picker = new BlindSetupPicker(getContext(), false);
+    picker = new BlindSetupPicker(getContext(), false, null);
     return picker.getView();
   }
 

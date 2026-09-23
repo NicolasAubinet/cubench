@@ -8,6 +8,7 @@ import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
 import com.cube.nanotimer.smartcube.step.LblStepDetector;
 import com.cube.nanotimer.smartcube.step.RouxStepDetector;
 import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -53,6 +54,13 @@ public final class MethodAnalyzers {
   public void setPickupRotation(CubeRotation pickup) {
     if (blindDetector != null) {
       blindDetector.setPickupRotation(pickup);
+    }
+  }
+
+  /** How the solver shoots: OP/M2 swaps the buffer with each target, which 3-style never does. */
+  public void setBlindMethod(BlindMethod method) {
+    if (blindDetector != null) {
+      blindDetector.setSwaps(method == BlindMethod.OP_M2);
     }
   }
 

@@ -242,19 +242,14 @@
              android:gravity="start"
              style="@style/CustomSpinner"/>
 
-          <!-- Stands in for the spinner while blind mode owns the answer, saying what it is. -->
-          <TextView
-             android:id="@+id/tvMethodBlind"
+          <!-- Takes the spinner's place while blind mode is on: a blind type is read by how it shoots. -->
+          <Spinner
+             android:id="@+id/spBlindMethod"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
-             android:layout_gravity="center_vertical"
-             android:paddingLeft="4dp"
-             android:paddingTop="8dp"
-             android:paddingBottom="8dp"
-             android:text="@string/method_blind"
-             android:textColor="@color/secondary_text"
-             android:textSize="16sp"
-             android:visibility="gone"/>
+             android:gravity="start"
+             android:visibility="gone"
+             style="@style/CustomSpinner"/>
 
         </FrameLayout>
 

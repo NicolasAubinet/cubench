@@ -191,6 +191,8 @@ public interface Service {
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);
   void updateSolveType(SolveType solveType, boolean recalculateAverages, DataCallback<Void> callback);
+  /** Stores a blind type's method alone, for a caller holding only part of the type. */
+  void updateSolveTypeBlindMethod(SolveType solveType, DataCallback<Void> callback);
   void deleteSolveType(SolveType solveType, DataCallback<Void> callback);
 
   ServiceProvider getProviderAccess();

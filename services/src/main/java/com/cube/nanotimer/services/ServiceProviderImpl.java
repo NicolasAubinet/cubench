@@ -16,6 +16,7 @@ import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -176,7 +177,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         SolveType st = new SolveType(cursor.getInt(0), cursor.getString(1), (cursor.getInt(2) == 1), toScrambleType(cubeType, cursor.getString(3)), cursor.getInt(4));
         st.setQuickAction(cursor.isNull(5) ? null : TimerQuickAction.fromId(cursor.getInt(5)));
         st.setInspection(cursor.getInt(6) == 1);
-        st.setMethod(CubeMethod.fromCode(cursor.getString(7)));
+        setMethodCode(st, cursor.getString(7));
         st.setSteps(getSolveTypeSteps(st.getId()).toArray(new SolveTypeStep[0]));
         solveTypes.add(st);
       }
@@ -1440,7 +1441,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SOLVETYPE_CUBETYPE_ID, solveType.getCubeTypeId());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
-    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethodOverride()));
+    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType));
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
     values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType.getQuickActionOverride()));
     int id = (int) db.insert(DB.TABLE_SOLVETYPE, null, values);
@@ -1455,6 +1456,21 @@ public class ServiceProviderImpl implements ServiceProvider {
   /** Null for a type that follows the preferred method, which the column holds as NULL. */
   private static String toMethodCode(CubeMethod method) {
     return method == null ? null : method.getCode();
+  }
+
+  /** A blind type keeps its blind method in the method column, having no sighted one to put there. */
+  private static String toMethodCode(SolveType solveType) {
+    if (!solveType.isBlind()) {
+      return toMethodCode(solveType.getMethodOverride());
+    }
+    BlindMethod blindMethod = solveType.getBlindMethodOverride();
+    return blindMethod == null ? null : blindMethod.getCode();
+  }
+
+  /** The method column read back: the two kinds of code never clash, so each ignores the other. */
+  private static void setMethodCode(SolveType solveType, String code) {
+    solveType.setMethod(CubeMethod.fromCode(code));
+    solveType.setBlindMethod(BlindMethod.fromCode(code));
   }
 
   /** Likewise for a type that follows the default action rather than naming one. */
@@ -1481,12 +1497,19 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
+  public void updateSolveTypeBlindMethod(SolveType solveType) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType));
+    db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
+  }
+
+  @Override
   public void updateSolveType(SolveType solveType, boolean recalculateAverages) {
     ContentValues values = new ContentValues();
     values.put(DB.COL_SOLVETYPE_NAME, solveType.getName());
     values.put(DB.COL_SOLVETYPE_BLIND, solveType.isBlind() ? 1 : 0);
     values.put(DB.COL_SOLVETYPE_INSPECTION, solveType.hasInspection() ? 1 : 0);
-    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType.getMethodOverride()));
+    values.put(DB.COL_SOLVETYPE_METHOD, toMethodCode(solveType));
     values.put(DB.COL_SOLVETYPE_SCRAMBLE_TYPE, (solveType.getScrambleType() != null ? solveType.getScrambleType().getName() : ""));
     values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType.getQuickActionOverride()));
     db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
@@ -1827,7 +1850,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         SolveType solveType = new SolveType(cursor.getInt(8), cursor.getString(9),
             cursor.getInt(10) == 1, toScrambleType(CubeType.getCubeType(cubeTypeId),
             cursor.getString(11)), cubeTypeId);
-        solveType.setMethod(CubeMethod.fromCode(cursor.getString(13)));
+        setMethodCode(solveType, cursor.getString(13));
         st.setSolveType(solveType);
         history.add(st);
       }

@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.NumberPicker;
-import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 
 /**
@@ -24,18 +23,34 @@ import com.cube.nanotimer.R;
 public class BlindBufferPicker {
 
   private final View view;
+  private final NumberPicker edgeWheel;
+  private final NumberPicker cornerWheel;
+  private final String[] edges;
+  private final String[] corners;
   private String edge;
   private String corner;
 
   public BlindBufferPicker(Context context, ViewGroup parent, String edge, String corner) {
-    this.edge = edge;
-    this.corner = corner;
     LayoutInflater inflater = LayoutInflater.from(context);
-    String[] edges = context.getResources().getStringArray(R.array.entryvalues_edge_buffer);
-    String[] corners = context.getResources().getStringArray(R.array.entryvalues_corner_buffer);
+    edges = context.getResources().getStringArray(R.array.entryvalues_edge_buffer);
+    corners = context.getResources().getStringArray(R.array.entryvalues_corner_buffer);
     view = inflater.inflate(R.layout.blind_buffers_wheels, parent, false);
-    wheel((NumberPicker) view.findViewById(R.id.edgeBuffers), edges, true);
-    wheel((NumberPicker) view.findViewById(R.id.cornerBuffers), corners, false);
+    edgeWheel = (NumberPicker) view.findViewById(R.id.edgeBuffers);
+    cornerWheel = (NumberPicker) view.findViewById(R.id.cornerBuffers);
+    wheel(edgeWheel, edges, true);
+    wheel(cornerWheel, corners, false);
+    show(edge, corner);
+  }
+
+  /**
+   * Turns the wheels to these buffers. A stored buffer no list of ours holds is not one a wheel can
+   * show, so its first value takes over: confirming the dialog must write what it is showing.
+   */
+  public void show(String edge, String corner) {
+    this.edge = edges[Math.max(0, indexOf(edges, edge))];
+    this.corner = corners[Math.max(0, indexOf(corners, corner))];
+    edgeWheel.setValue(indexOf(edges, this.edge));
+    cornerWheel.setValue(indexOf(corners, this.corner));
   }
 
   public View getView() {
@@ -51,29 +66,17 @@ public class BlindBufferPicker {
   }
 
   /** One type as a wheel, wrapping round so the far end is a flick away rather than a scroll. */
-  private void wheel(NumberPicker picker, final String[] buffers, final boolean edges) {
+  private void wheel(NumberPicker picker, final String[] buffers, final boolean forEdges) {
     picker.setMinValue(0);
     picker.setMaxValue(buffers.length - 1);
     picker.setDisplayedValues(buffers);
-    // A stored buffer no list of ours holds is not one the wheel can show, so the wheel's own first
-    // value takes over: confirming the dialog must write what it is showing.
-    int at = indexOf(buffers, edges ? edge : corner);
-    if (at < 0) {
-      at = 0;
-      if (edges) {
-        edge = buffers[0];
-      } else {
-        corner = buffers[0];
-      }
-    }
-    picker.setValue(at);
     picker.setWrapSelectorWheel(true);
     // Or the middle cell is an EditText and tapping it raises the keyboard over the wheel.
     picker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
     picker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
       @Override
       public void onValueChange(NumberPicker changed, int was, int now) {
-        if (edges) {
+        if (forEdges) {
           edge = buffers[now];
         } else {
           corner = buffers[now];
@@ -89,10 +92,5 @@ public class BlindBufferPicker {
       }
     }
     return -1;
-  }
-
-  /** The buffers as they stand, for a picker whose dialog was confirmed. */
-  public void save() {
-    Options.INSTANCE.setBlindBuffers(edge, corner);
   }
 }

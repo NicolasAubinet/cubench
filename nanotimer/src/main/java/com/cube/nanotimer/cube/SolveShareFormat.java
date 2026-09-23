@@ -5,6 +5,7 @@ import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -48,7 +49,8 @@ public final class SolveShareFormat {
     // solve sheet shows: the sheet re-reads too, and a blind solve read again is named through the
     // frame its own buffers ask for rather than the one the gyro guessed at.
     StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solveTime.getScramble(),
-        solveTime.getSmartcubeMoves(), SolveTypeMethod.of(solveTime.getSolveType()));
+        solveTime.getSmartcubeMoves(), SolveTypeMethod.of(solveTime.getSolveType()),
+        SolveTypeMethod.blindMethodOf(solveTime.getSolveType()));
     boolean fresh = reread != null && reread.getMethod() != null;
     CubeMethod method = fresh ? reread.getMethod() : solveTime.getSmartcubeMethod();
     String moves = fresh ? reread.getMoves() : solveTime.getSmartcubeMoves();
@@ -155,8 +157,10 @@ public final class SolveShareFormat {
     // Which makes the buffers an input like the scramble, since a blind solve is named through them
     // rather than through that grip. See BlindFrame.
     if (method == CubeMethod.BLIND) {
-      sb.append("buffers: ").append(Options.INSTANCE.getBlindEdgeBuffer()).append(' ')
-          .append(Options.INSTANCE.getBlindCornerBuffer()).append('\n');
+      BlindMethod blindMethod = SolveTypeMethod.blindMethodOf(solveTime.getSolveType());
+      sb.append("blind_method: ").append(blindMethod.getCode()).append('\n');
+      sb.append("buffers: ").append(Options.INSTANCE.getBlindEdgeBuffer(blindMethod)).append(' ')
+          .append(Options.INSTANCE.getBlindCornerBuffer(blindMethod)).append('\n');
     }
     if (solveTime.hasSmartcubeBreakdown()) {
       sb.append("steps: ").append(SolveStepsFormat.format(solveTime.getSmartcubeSteps())).append('\n');

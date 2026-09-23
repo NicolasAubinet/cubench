@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveTime;
 import java.util.Arrays;
@@ -24,8 +25,8 @@ public class SolveReinterpreterTest {
   public void rewritesASolveThatFitsTheMethod() {
     SolveTime solve = solve(1, SCRAMBLE, MOVES);
 
-    List<SolveTime> rewritten =
-        SolveReinterpreter.reread(Collections.singletonList(solve), CubeMethod.ROUX, null);
+    List<SolveTime> rewritten = SolveReinterpreter.reread(Collections.singletonList(solve),
+        CubeMethod.ROUX, BlindMethod.THREE_STYLE, null);
 
     assertEquals(1, rewritten.size());
     assertEquals(CubeMethod.ROUX, rewritten.get(0).getSmartcubeMethod());
@@ -37,8 +38,8 @@ public class SolveReinterpreterTest {
     SolveTime solve = solve(1, SCRAMBLE, MOVES);
     solve.setSmartcubeMethod(CubeMethod.ROUX);
 
-    List<SolveTime> rewritten =
-        SolveReinterpreter.reread(Collections.singletonList(solve), CubeMethod.LBL, null);
+    List<SolveTime> rewritten = SolveReinterpreter.reread(Collections.singletonList(solve),
+        CubeMethod.LBL, BlindMethod.THREE_STYLE, null);
 
     assertEquals(1, rewritten.size());
     assertNull(rewritten.get(0).getSmartcubeMethod());
@@ -57,8 +58,8 @@ public class SolveReinterpreterTest {
     unreadable.setSmartcubeMethod(CubeMethod.CFOP);
     wrongStart.setSmartcubeMethod(CubeMethod.CFOP);
 
-    List<SolveTime> rewritten =
-        SolveReinterpreter.reread(Arrays.asList(unreadable, wrongStart), CubeMethod.LBL, null);
+    List<SolveTime> rewritten = SolveReinterpreter.reread(Arrays.asList(unreadable, wrongStart),
+        CubeMethod.LBL, BlindMethod.THREE_STYLE, null);
 
     assertTrue(rewritten.isEmpty());
     assertEquals(CubeMethod.CFOP, unreadable.getSmartcubeMethod());
@@ -70,7 +71,7 @@ public class SolveReinterpreterTest {
     List<SolveTime> solves = Arrays.asList(solve(1, SCRAMBLE, MOVES), solve(2, SCRAMBLE, MOVES));
 
     List<SolveTime> rewritten = SolveReinterpreter.reread(solves, CubeMethod.ROUX,
-        new SolveReinterpreter.Progress() {
+        BlindMethod.THREE_STYLE, new SolveReinterpreter.Progress() {
           @Override
           public boolean onRead(int done, int total) {
             return false; // stopped on the first one
@@ -85,14 +86,15 @@ public class SolveReinterpreterTest {
     final int[] seen = new int[2];
     List<SolveTime> solves = Arrays.asList(solve(1, SCRAMBLE, MOVES), solve(2, SCRAMBLE, MOVES));
 
-    SolveReinterpreter.reread(solves, CubeMethod.ROUX, new SolveReinterpreter.Progress() {
-      @Override
-      public boolean onRead(int done, int total) {
-        seen[0] = done;
-        seen[1] = total;
-        return true;
-      }
-    });
+    SolveReinterpreter.reread(solves, CubeMethod.ROUX, BlindMethod.THREE_STYLE,
+        new SolveReinterpreter.Progress() {
+          @Override
+          public boolean onRead(int done, int total) {
+            seen[0] = done;
+            seen[1] = total;
+            return true;
+          }
+        });
 
     assertEquals(2, seen[0]);
     assertEquals(2, seen[1]);

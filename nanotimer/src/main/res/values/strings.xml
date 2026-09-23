@@ -844,6 +844,8 @@
   <string name="method_roux">Roux</string>
   <string name="method_lbl">Layer by layer</string>
   <string name="method_blind">Blindfolded</string>
+  <string name="blind_method_3style">3-style</string>
+  <string name="blind_method_op_m2">OP/M2</string>
   <string name="method_default">Default (%1$s)</string>
   <string name="method_info">About the method</string>
   <string name="method_info_message">Used to reconstruct your solves when a smart cube is connected: it tells the app which steps to break a solve into. Leave it on the default to follow the preferred method from the settings, or set it to the method you actually use for this solve type.</string>
@@ -1142,10 +1144,11 @@
   <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case counts as known the first time you put it in with one algorithm in a solve. Take it in two looks again and it needs review; one you have never yet put in with a single algorithm is still to learn.</string>
   <string name="known_algorithms_empty">Nothing here yet. Solve with a smart cube connected and the cases you put in unaided will show up.</string>
   <string name="known_algorithms_reading">Reading your solves...</string>
-  <string name="blind_setup_summary">%1$s, buffers %2$s and %3$s</string>
+  <string name="blind_setup_summary">%2$s, %1$s, buffers %3$s and %4$s</string>
   <string name="blind_setup">Blindfolded solves</string>
-  <string name="blind_setup_why">Your blindfolded solves are reconstructed from these two.</string>
+  <string name="blind_setup_why">Your blindfolded solves are reconstructed from these answers.</string>
   <string name="blind_setup_hold">How you hold the cube</string>
+  <string name="blind_setup_method">How you shoot your targets</string>
   <string name="blind_setup_shoot">The buffers you shoot from</string>
   <string name="blind_orientation_up">Up face</string>
   <string name="blind_orientation_front">Front face</string>

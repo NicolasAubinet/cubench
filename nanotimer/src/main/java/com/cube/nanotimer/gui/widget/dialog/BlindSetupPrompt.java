@@ -6,15 +6,16 @@ import android.content.DialogInterface;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.BlindSetupPicker;
+import com.cube.nanotimer.vo.SolveType;
 
 /**
- * Asks, once, the two things a blindfolded reconstruction is named through: how the solver holds the
- * cube, and which pieces they shoot from.
+ * Asks, once, what a blindfolded reconstruction is named through: how the solver holds the cube, how
+ * they shoot, and which pieces they shoot from.
  *
  * <p>Put at the first blind solve with a cube connected, because that is the moment the answers
  * start to matter: before a cube nothing names any target.
  *
- * <p>Both have a default rather than a blank, and the dialog can be dismissed: a 3-styler's
+ * <p>Each has a default rather than a blank, and the dialog can be dismissed: a 3-styler's
  * {@code UF}/{@code UFR} held the way the scramble was followed is right for many solvers and is
  * what the app assumes anyway, so the question is a chance to correct it and not a gate. The
  * settings row opens this very dialog again for anyone who taps past it.
@@ -24,12 +25,13 @@ public final class BlindSetupPrompt {
   private BlindSetupPrompt() {
   }
 
-  public static void askOnce(Activity activity) {
+  /** @param solveType the blind type being opened, whose method the question starts on */
+  public static void askOnce(Activity activity, SolveType solveType) {
     if (activity.isFinishing() || Options.INSTANCE.isBlindSetupAsked()) {
       return;
     }
     Options.INSTANCE.setBlindSetupAsked(true); // asked, whatever comes of it
-    show(activity, true, null, null);
+    show(activity, true, solveType, null, null);
   }
 
   /**
@@ -37,16 +39,17 @@ public final class BlindSetupPrompt {
    * a blind reconstruction, where a solver looking at names they did not memorise is looking at the
    * one screen that says what this setting did.
    */
-  public static void open(Activity activity, Runnable onSaved, Runnable onReport) {
+  public static void open(Activity activity, SolveType solveType, Runnable onSaved,
+      Runnable onReport) {
     if (!activity.isFinishing()) {
-      show(activity, false, onSaved, onReport);
+      show(activity, false, solveType, onSaved, onReport);
     }
   }
 
   /** @param asked whether this is the question being put, which alone says where to answer again */
-  private static void show(Activity activity, boolean asked, final Runnable onSaved,
-      final Runnable onReport) {
-    final BlindSetupPicker picker = new BlindSetupPicker(activity, asked);
+  private static void show(Activity activity, boolean asked, SolveType solveType,
+      final Runnable onSaved, final Runnable onReport) {
+    final BlindSetupPicker picker = new BlindSetupPicker(activity, asked, solveType);
     AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
         .setView(picker.getView())
         .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {

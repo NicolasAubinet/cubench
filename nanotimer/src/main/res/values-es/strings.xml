@@ -824,6 +824,8 @@
   <string name="method_roux">Roux</string>
   <string name="method_lbl">Capa por capa</string>
   <string name="method_blind">A ciegas</string>
+  <string name="blind_method_3style">3-style</string>
+  <string name="blind_method_op_m2">OP/M2</string>
   <string name="method_default">Predeterminado (%1$s)</string>
   <string name="method_info">Acerca del método</string>
   <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un cubo inteligente conectado: le dice a la aplicación en qué pasos dividir una resolución. Déjalo en el valor predeterminado para seguir el método preferido de los ajustes, o indica el método que realmente usas para este tipo de resolución.</string>
@@ -1096,10 +1098,11 @@
   <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en dos pasos, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
-  <string name="blind_setup_summary">%1$s, búferes %2$s y %3$s</string>
+  <string name="blind_setup_summary">%2$s, %1$s, búferes %3$s y %4$s</string>
   <string name="blind_setup">Resoluciones a ciegas</string>
-  <string name="blind_setup_why">Tus resoluciones a ciegas se reconstruyen a partir de estas dos respuestas.</string>
+  <string name="blind_setup_why">Tus resoluciones a ciegas se reconstruyen a partir de estas respuestas.</string>
   <string name="blind_setup_hold">Cómo sujetas el cubo</string>
+  <string name="blind_setup_method">Cómo disparas a tus objetivos</string>
   <string name="blind_setup_shoot">Los búferes desde los que disparas</string>
   <string name="blind_orientation_up">Cara superior</string>
   <string name="blind_orientation_front">Cara frontal</string>

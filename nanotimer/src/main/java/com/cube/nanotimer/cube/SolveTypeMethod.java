@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveType;
@@ -16,6 +17,9 @@ import com.cube.nanotimer.vo.SolveType;
  *
  * <p>Four things answer, strongest first: the blind flag, a method named on the type by hand, the
  * one a scramble type implies (a Roux block belongs to no other method), then the preference.
+ *
+ * <p>A blind type is also shot some way, 3-style or OP/M2, resolved the same way: its own answer,
+ * then the preferred one.
  */
 public final class SolveTypeMethod {
 
@@ -43,5 +47,16 @@ public final class SolveTypeMethod {
     ScrambleType scrambleType = solveType.getScrambleType();
     CubeMethod implied = scrambleType == null ? null : scrambleType.getMethod();
     return implied != null ? implied : Options.INSTANCE.getPreferredMethod();
+  }
+
+  /** What the blind method is called. */
+  public static int nameOf(BlindMethod method) {
+    return method == BlindMethod.OP_M2 ? R.string.blind_method_op_m2 : R.string.blind_method_3style;
+  }
+
+  /** How a blind type's solves are shot. Never null, and meaningless for a sighted type. */
+  public static BlindMethod blindMethodOf(SolveType solveType) {
+    BlindMethod override = solveType.getBlindMethodOverride();
+    return override != null ? override : Options.INSTANCE.getPreferredBlindMethod();
   }
 }
