@@ -59,6 +59,7 @@ public interface ServiceProvider {
   List<ExportResult> getExportResults(List<Integer> solveTypeIds, int limit);
   SolveTime getSolveTime(int solveTimeId);
   String getGyroTrack(int solveTimeId);
+  String getSmartcubeCube(int solveTimeId);
   List<FrequencyData> getFrequencyData(SolveType solveType, Long from);
   MethodStatistics getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves);
   int getSmartcubeSolvesCount(SolveType solveType);

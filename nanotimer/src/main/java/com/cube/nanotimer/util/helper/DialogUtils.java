@@ -156,7 +156,7 @@ public class DialogUtils {
     }
     // Empty for a solve type carrying its own steps, whose breakdown is the one already shared above.
     String breakdown = solveTime.hasSmartcubeMoves()
-        ? SolveShareFormat.smartcubeSection(activity, solveTime, null, false) : "";
+        ? SolveShareFormat.smartcubeSection(activity, solveTime, null, null, false) : "";
     if (!breakdown.isEmpty()) {
       text += "\n\n" + breakdown;
     }
@@ -179,30 +179,35 @@ public class DialogUtils {
         .setPositiveButton(R.string.share_send_report, new DialogInterface.OnClickListener() {
           @Override
           public void onClick(DialogInterface d, int which) {
-            withGyroTrack(activity, solveTime, cubeType, tfComment.getText().toString().trim());
+            withStoredSmartcubeData(activity, solveTime, cubeType, tfComment.getText().toString().trim());
           }
         })
         .setNegativeButton(R.string.cancel, null)
         .show();
   }
 
-  /** The track is fetched here rather than carried on the solve: it is kilobytes, and a history
-   * screen holds hundreds of solves it would never look at. A solve with none reports without it. */
-  private static void withGyroTrack(final Activity activity, final SolveTime solveTime,
+  /** The track and the cube are fetched here rather than carried on the solve: the track is
+   * kilobytes, and a history screen holds hundreds of solves it would never look at. */
+  private static void withStoredSmartcubeData(final Activity activity, final SolveTime solveTime,
       final CubeType cubeType, final String comment) {
     if (solveTime.getId() <= 0) {
-      sendReport(activity, solveTime, cubeType, null, comment);
+      sendReport(activity, solveTime, cubeType, null, solveTime.getSmartcubeCube(), comment);
       return;
     }
     App.INSTANCE.getService().getGyroTrack(solveTime.getId(), new DataCallback<String>() {
       @Override
       public void onData(final String gyroTrack) {
-        activity.runOnUiThread(new Runnable() {
+        App.INSTANCE.getService().getSmartcubeCube(solveTime.getId(), new DataCallback<String>() {
           @Override
-          public void run() {
-            if (!activity.isFinishing()) {
-              sendReport(activity, solveTime, cubeType, gyroTrack, comment);
-            }
+          public void onData(final String cube) {
+            activity.runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                if (!activity.isFinishing()) {
+                  sendReport(activity, solveTime, cubeType, gyroTrack, cube, comment);
+                }
+              }
+            });
           }
         });
       }
@@ -212,18 +217,18 @@ public class DialogUtils {
   /** Opens on what the user saw, typed or still to type. A phone with no mail app falls back to the
    * chooser, where the same text goes by whatever it does have. */
   private static void sendReport(Activity activity, SolveTime solveTime, CubeType cubeType,
-      String gyroTrack, String comment) {
+      String gyroTrack, String cube, String comment) {
     String timeStr = FormatterService.INSTANCE.formatSolveTime(solveTime);
     String opening = comment.isEmpty()
         ? activity.getString(R.string.report_reconstruction_intro) + "\n\n\n" : comment;
     String text = activity.getString(R.string.report_reconstruction_header) + "\n\n" + opening + "\n\n"
         + activity.getString(R.string.report_reconstruction_environment,
-            Utils.getAppVersion(activity), Build.VERSION.RELEASE, Build.MODEL) + "\n"
+            Utils.getAppBuild(activity), Build.VERSION.RELEASE, Build.MODEL) + "\n"
         + cubeType.getName() + " · " + timeStr + " · "
         + FormatterService.INSTANCE.formatExportDateTime(solveTime.getTimestamp()) + "\n\n"
         + activity.getString(R.string.scramble) + "\n"
         + ScrambleFormatterService.INSTANCE.formatScrambleForExport(solveTime.getScramble(), cubeType)
-        + "\n\n" + SolveShareFormat.smartcubeSection(activity, solveTime, gyroTrack, true);
+        + "\n\n" + SolveShareFormat.smartcubeSection(activity, solveTime, gyroTrack, cube, true);
     // Tagged and untranslated, so every report a mailbox rule has to catch looks alike.
     String subject = activity.getString(R.string.report_reconstruction_subject, cubeType.getName(),
         timeStr, Utils.getAppVersion(activity));

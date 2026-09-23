@@ -71,6 +71,7 @@ import com.cube.nanotimer.session.CubeSession;
 import com.cube.nanotimer.smartcube.cube.StopPenalty;
 import com.cube.nanotimer.smartcube.drill.LayerRotation;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
+import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScaleUtils;
 import com.cube.nanotimer.util.ScrambleFormatterService;
@@ -146,6 +147,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private List<SolveStep> lastSolveSteps = Collections.emptyList(); // the cube's breakdown of lastSolveTime, if it saw it
   private String lastSolveMoves = ""; // its moves, which outlive the breakdown when no method matched
   private String lastSolveGyroTrack; // the small rotations it was turned with, null without a gyro
+  private String lastSolveCube; // the cube that recorded it, for reconstruction reports
   private CubeMethod lastSolveMethod; // the method its milestones fitted, null when they fitted none
   private Integer lastSolveStoppedStep; // the step it stopped in, null when the cube saw it finish
   // What the step bar and the line under it are showing, kept so a rotation can draw them again:
@@ -1314,6 +1316,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         lastSolveSteps = Collections.emptyList(); // a hand-entered time is now the last solve, and no cube saw it
         lastSolveMoves = "";
         lastSolveGyroTrack = null;
+        lastSolveCube = null;
         lastSolveMethod = null;
         lastSolveStoppedStep = null;
         long time = solveAverages.getSolveTime().getTime();
@@ -1612,6 +1615,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       lastSolveSteps = Collections.emptyList();
       lastSolveMoves = "";
       lastSolveGyroTrack = null;
+      lastSolveCube = null;
       lastSolveMethod = null;
       lastSolveStoppedStep = null;
       timerStartTs = 0;
@@ -1663,6 +1667,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       if (!lastSolveMoves.isEmpty()) { // the cube timed it, whether or not a method matched
         solveTime.setSmartcubeMoves(lastSolveMoves);
         solveTime.setSmartcubeGyroTrack(lastSolveGyroTrack); // null unless the cube has a gyro
+        solveTime.setSmartcubeCube(lastSolveCube);
       }
     }
     applyAutoPenalty(solveTime, penalty);
@@ -1971,6 +1976,16 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     applyFocus(true, standsInForDigits());
   }
 
+  /** The model, plus the Bluetooth name that tells two cubes of one model apart. */
+  private static String describeCube(DiscoveredCube cube) {
+    if (cube == null) {
+      return null;
+    }
+    String name = cube.getName();
+    return name == null || name.equals(cube.getModelName())
+        ? cube.getModelName() : cube.getModelName() + " (" + name + ")";
+  }
+
   /** @param solveDurationMs what the timer measured, before any penalty: a +2 is not solving time */
   private void showStepBreakdown(long solveDurationMs) {
     lastSolveSteps = SolveStepConverter.toSolveSteps(solveController.getStepTimes());
@@ -1978,6 +1993,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastSolveStoppedStep = solveController.getStoppedStep();
     lastSolveMoves = solveController.getSolveMoves(); // captured before the early return: a solve with no breakdown still has moves
     lastSolveGyroTrack = solveController.getGyroTrack();
+    lastSolveCube = describeCube(SmartCubeManager.INSTANCE.getConnectedDevice());
     if (solveType.hasSteps()) {
       showManualStepBreakdown(solveDurationMs);
       return;

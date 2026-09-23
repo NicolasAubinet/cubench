@@ -416,6 +416,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     if (solveTime.hasSmartcubeMoves()) { // kept even when no method matched: the breakdown is optional, the solution is not
       values.put(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES, solveTime.getSmartcubeMoves());
       values.put(DB.COL_TIMEHISTORY_SMARTCUBE_GYRO, solveTime.getSmartcubeGyroTrack()); // null unless the cube had a gyro
+      values.put(DB.COL_TIMEHISTORY_SMARTCUBE_CUBE, solveTime.getSmartcubeCube());
     }
     // Only alongside a breakdown: on its own there are no steps for it to point into.
     if (solveTime.hasSmartcubeBreakdown() && solveTime.getSmartcubeStoppedStep() != null) {
@@ -2199,6 +2200,21 @@ public class ServiceProviderImpl implements ServiceProvider {
       cursor.close();
     }
     return track;
+  }
+
+  /** The cube that recorded the solve, or null where it is not known. Only a report asks for it. */
+  public String getSmartcubeCube(int solveTimeId) {
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_TIMEHISTORY_SMARTCUBE_CUBE
+        + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_ID + " = ?", getStringArray(solveTimeId));
+    String cube = null;
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        cube = cursor.getString(0);
+      }
+      cursor.close();
+    }
+    return cube;
   }
 
   public SolveTime getSolveTime(int solveTimeId) {

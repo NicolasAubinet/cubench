@@ -25,6 +25,7 @@ public class SolveTime implements Serializable {
   private List<SolveStep> smartcubeSteps;
   private String smartcubeMoves;
   private String smartcubeGyroTrack;
+  private String smartcubeCube;
   private Integer smartcubeStoppedStep;
 
   public SolveTime() {
@@ -198,6 +199,15 @@ public class SolveTime implements Serializable {
 
   public void setSmartcubeGyroTrack(String smartcubeGyroTrack) {
     this.smartcubeGyroTrack = smartcubeGyroTrack;
+  }
+
+  /** The cube that recorded the moves, as its model and Bluetooth name. Set for saving only. */
+  public String getSmartcubeCube() {
+    return smartcubeCube;
+  }
+
+  public void setSmartcubeCube(String smartcubeCube) {
+    this.smartcubeCube = smartcubeCube;
   }
 
   /**

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -62,6 +63,18 @@ public class Utils {
   public static String getAppVersion(Context c) {
     try {
       return c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionName;
+    } catch (NameNotFoundException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
+
+  /** The version name with the version code, which tells apart builds sharing a name. */
+  @SuppressWarnings("deprecation")
+  public static String getAppBuild(Context c) {
+    try {
+      PackageInfo info = c.getPackageManager().getPackageInfo(c.getPackageName(), 0);
+      return info.versionName + " (" + info.versionCode + ")";
     } catch (NameNotFoundException e) {
       e.printStackTrace();
     }

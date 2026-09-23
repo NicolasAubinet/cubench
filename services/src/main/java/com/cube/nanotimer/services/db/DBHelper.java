@@ -72,6 +72,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_GYRO + " TEXT, " +
+        DB.COL_TIMEHISTORY_SMARTCUBE_CUBE + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " INTEGER, " +
         DB.COL_TIMEHISTORY_SOLVETYPE_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_TIMEHISTORY_SOLVETYPE_ID + ") REFERENCES " + DB.TABLE_SOLVETYPE + " (" + DB.COL_ID + ") " +
@@ -474,6 +475,11 @@ public class DBHelper extends SQLiteOpenHelper {
       // Created empty: a reading is read back out of its solve the first time it is wanted, so
       // there is nothing here to fill and nothing lost by an install arriving without it.
       createSolveReadingTable(db);
+    }
+
+    if (oldVersion < 33) {
+      db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN "
+          + DB.COL_TIMEHISTORY_SMARTCUBE_CUBE + " TEXT");
     }
 
 //    progressDialog.hide();

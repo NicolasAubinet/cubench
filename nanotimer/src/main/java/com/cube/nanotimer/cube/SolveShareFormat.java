@@ -38,10 +38,11 @@ public final class SolveShareFormat {
 
   /**
    * @param gyroTrack the solve's stored track, read separately, or null where it has none
+   * @param cube the cube that recorded the solve, read separately, or null where it is not known
    * @param withDebug whether the sharer asked for the raw fields as well as the breakdown
    */
   public static String smartcubeSection(Context context, SolveTime solveTime, String gyroTrack,
-      boolean withDebug) {
+      String cube, boolean withDebug) {
     long durationMs = SolveBreakdown.solvingDurationMs(solveTime);
     // Read again rather than shared out of the store, so what is pasted somewhere else is what the
     // solve sheet shows: the sheet re-reads too, and a blind solve read again is named through the
@@ -62,7 +63,7 @@ public final class SolveShareFormat {
       appendBreakdown(context, sb, steps, SolveSolution.from(moves, steps, method), method);
     }
     if (withDebug) {
-      appendRawData(context, sb, solveTime, gyroTrack, method);
+      appendRawData(context, sb, solveTime, gyroTrack, cube, method);
     }
     return sb.toString();
   }
@@ -137,11 +138,14 @@ public final class SolveShareFormat {
    *     from outside the solve is shared where it means anything
    */
   private static void appendRawData(Context context, StringBuilder sb, SolveTime solveTime,
-      String gyroTrack, CubeMethod method) {
+      String gyroTrack, String cube, CubeMethod method) {
     if (sb.length() > 0) {
       sb.append('\n');
     }
     sb.append(context.getString(R.string.share_smartcube_data)).append('\n');
+    if (cube != null) {
+      sb.append("cube: ").append(cube).append('\n');
+    }
     if (solveTime.getSmartcubeMethod() != null) {
       sb.append("method: ").append(solveTime.getSmartcubeMethod().getCode()).append('\n');
     }
