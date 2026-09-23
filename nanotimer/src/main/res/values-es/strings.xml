@@ -1102,7 +1102,7 @@
   <string name="blind_setup">Resoluciones a ciegas</string>
   <string name="blind_setup_why">Tus resoluciones a ciegas se reconstruyen a partir de estas respuestas.</string>
   <string name="blind_setup_hold">Cómo sujetas el cubo</string>
-  <string name="blind_setup_method">Cómo disparas a tus objetivos</string>
+  <string name="blind_setup_method">¿Qué método usas?</string>
   <string name="blind_setup_shoot">Los búferes desde los que disparas</string>
   <string name="blind_orientation_up">Cara superior</string>
   <string name="blind_orientation_front">Cara frontal</string>

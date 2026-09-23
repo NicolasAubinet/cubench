@@ -1148,7 +1148,7 @@
   <string name="blind_setup">Blindfolded solves</string>
   <string name="blind_setup_why">Your blindfolded solves are reconstructed from these answers.</string>
   <string name="blind_setup_hold">How you hold the cube</string>
-  <string name="blind_setup_method">How you shoot your targets</string>
+  <string name="blind_setup_method">Which method do you use?</string>
   <string name="blind_setup_shoot">The buffers you shoot from</string>
   <string name="blind_orientation_up">Up face</string>
   <string name="blind_orientation_front">Front face</string>

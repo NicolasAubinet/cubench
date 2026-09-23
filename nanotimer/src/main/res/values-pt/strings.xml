@@ -1105,7 +1105,7 @@
   <string name="blind_setup">Resoluções às cegas</string>
   <string name="blind_setup_why">Suas resoluções às cegas são reconstruídas a partir destas respostas.</string>
   <string name="blind_setup_hold">Como você segura o cubo</string>
-  <string name="blind_setup_method">Como você dispara nos seus alvos</string>
+  <string name="blind_setup_method">Qual método você usa?</string>
   <string name="blind_setup_shoot">Os buffers de onde você dispara</string>
   <string name="blind_orientation_up">Face de cima</string>
   <string name="blind_orientation_front">Face da frente</string>

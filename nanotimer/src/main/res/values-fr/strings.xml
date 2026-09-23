@@ -1103,7 +1103,7 @@
   <string name="blind_setup">Résolutions en aveugle</string>
   <string name="blind_setup_why">Vos résolutions en aveugle sont reconstruites à partir de ces réponses.</string>
   <string name="blind_setup_hold">Comment vous tenez le cube</string>
-  <string name="blind_setup_method">Comment vous tirez vos cibles</string>
+  <string name="blind_setup_method">Quelle méthode utilisez-vous ?</string>
   <string name="blind_setup_shoot">Les buffers depuis lesquels vous tirez</string>
   <string name="blind_orientation_up">Face du haut</string>
   <string name="blind_orientation_front">Face avant</string>
