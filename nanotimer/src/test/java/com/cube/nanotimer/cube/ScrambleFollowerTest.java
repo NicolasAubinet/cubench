@@ -289,4 +289,37 @@ public class ScrambleFollowerTest {
     assertTrue(follower.isWrong());
     assertEquals("R", follower.getReverseMoves());
   }
+
+  @Test
+  public void oppositeFacesMayLandInEitherOrder() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"U", "R", "L2", "F"});
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.U, false);
+    turn(follower, mirror, Face.L, true); // L2 started before R
+    assertFalse(follower.isWrong());
+    assertEquals(1, follower.getDoneCount());
+    turn(follower, mirror, Face.R, false);
+    assertEquals(2, follower.getDoneCount());
+    turn(follower, mirror, Face.L, true);
+    assertEquals(3, follower.getDoneCount());
+    turn(follower, mirror, Face.F, false);
+    assertTrue(follower.isComplete());
+  }
+
+  @Test
+  public void aWrongWayOppositeFaceIsStillWrong() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"R", "L", "F"});
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.L, true); // the pair wants L, not L'
+    assertTrue(follower.isWrong());
+    assertEquals("L", follower.getReverseMoves());
+  }
+
+  @Test
+  public void onlyTheNextTokenMayJumpTheQueue() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"R", "U", "L"});
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.L, false); // L commutes with R but not across U
+    assertTrue(follower.isWrong());
+  }
 }

@@ -59,11 +59,16 @@ public class ScrambleFollower {
     if (tokens == null) {
       throw new IllegalArgumentException("Unsupported scramble: " + String.join(" ", scramble));
     }
+    tokens.removeIf(List::isEmpty); // a blank: skipping it tracks the same scramble
     CubieCube cube = new CubieCube();
     fullStates.put(cube.toFaceCube(), 0);
-    for (List<Step> turns : tokens) {
-      if (turns.isEmpty()) {
-        continue; // a blank: skipping it tracks the same scramble
+    for (int i = 0; i < tokens.size(); i++) {
+      List<Step> turns = tokens.get(i);
+      if (i + 1 < tokens.size() && commute(turns, tokens.get(i + 1))) {
+        // Opposite faces turned together often land second-first: that is still this token.
+        List<Step> pair = new ArrayList<>(turns);
+        pair.addAll(tokens.get(i + 1));
+        putPartStates(cube.toFaceCube(), pair, 0, new int[pair.size()], moveCount);
       }
       putPartStates(cube.toFaceCube(), turns, 0, new int[turns.size()], moveCount);
       for (Step step : turns) {
@@ -113,6 +118,27 @@ public class ScrambleFollower {
     Face face = Face.valueOf(token.substring(0, 1));
     String modifier = token.substring(1);
     return new Step(face, modifier.startsWith("'") ? 3 : modifier.startsWith("2") ? 2 : 1);
+  }
+
+  /** True when two tokens turn different faces of one axis, so either can be done first. */
+  private static boolean commute(List<Step> first, List<Step> second) {
+    int axis = axis(first.get(0).face);
+    for (Step a : first) {
+      for (Step b : second) {
+        if (axis(a.face) != axis || axis(b.face) != axis || a.face == b.face) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  private static int axis(Face face) {
+    switch (face) {
+      case U: case D: return 0;
+      case L: case R: return 1;
+      default: return 2;
+    }
   }
 
   /** Every state part-way through one token, its faces turned in any order (they share an axis). */
