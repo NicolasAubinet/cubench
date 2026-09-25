@@ -776,6 +776,22 @@ final class RecordedBlindSolve {
           + "z'@18032 F@18033 z'@18119 F@18120 U'@18324 D@18368 y@18369 R'@18451 R'@18540 U@18699 "
           + "D'@18717 y'@18718 z@19041 R'@19041 z'@19182 F@19183 F@19255";
 
+  /**
+   * The corners-only solve of 2026-09-24 19:00:27, reported by its solver. Its first algorithm shot
+   * {@code FDL} where the cube owed {@code BDL}; the second happened to bring {@code FDL} home, so a
+   * rule asking only whether the target came home in the end left the first algorithm grey. The
+   * {@code BDL} corner it parked in {@code FDL} never came home, and the solve ended on that cycle.
+   */
+  static final String SCRAMBLE_MISSED_THEN_LANDED =
+      "L2 D B2 D' L2 U B2 R2 D' F2 U B R2 D' L2 D' U2 F D'";
+  static final String MOVES_MISSED_THEN_LANDED =
+      "[y] y@8106 U'@8106 D'@8188 D@8868 U@8892 U'@9916 D'@9967 B@10059 D'@10160 B'@10280 "
+          + "U@10615 U@10731 B@10824 D@10937 B'@11128 U'@11312 D@11312 D@12254 B'@12366 "
+          + "D'@12473 B@12613 U@12695 B'@12784 D@12905 B@13064 D'@13293 U'@13311 D'@13636 "
+          + "B@13780 U@13905 B'@14071 D@14195 B@14323 U'@14775 B'@15093 B'@15275 D@15413 "
+          + "B@15535 D'@15590 B'@15671 D@15801 B@15995 U'@16032 B'@16152 D'@16282 B@16407 "
+          + "D@16477 B'@16558 D'@16721 B@16838 U@16894";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -798,5 +814,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_STOPPED_MID_CORNERS, MOVES_STOPPED_MID_CORNERS},
     {SCRAMBLE_TILTED_GRIP, MOVES_TILTED_GRIP},
     {SCRAMBLE_EDGES_ONLY, MOVES_EDGES_ONLY},
+    {SCRAMBLE_MISSED_THEN_LANDED, MOVES_MISSED_THEN_LANDED},
   };
 }

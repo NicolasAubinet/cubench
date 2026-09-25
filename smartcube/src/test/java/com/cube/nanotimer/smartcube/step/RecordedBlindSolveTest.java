@@ -1146,6 +1146,25 @@ public class RecordedBlindSolveTest {
   }
 
   /**
+   * A target that missed is marked even where a later algorithm brought its slot home: the corner
+   * it parked there is the one the solve ended owing. The algorithms after it followed the memo on
+   * a cube that had moved on, and carry red of their own for the shots that missed there.
+   */
+  @Test
+  public void marksAMissedTargetALaterAlgorithmHappenedToLand() {
+    replay(RecordedBlindSolve.SCRAMBLE_MISSED_THEN_LANDED,
+        RecordedBlindSolve.MOVES_MISSED_THEN_LANDED, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals(BlindResidual.Shape.CORNER_CYCLE, detector.getResidual().getShape());
+    assertEquals("UFR-UBL-FDL", detector.subStepName(1, 0));
+    assertEquals(Arrays.asList(TOUCHED, HOME, WRONG), detector.subStepPieceMarks(1, 0));
+    assertEquals("UFR-UBL-BDL", detector.subStepWantedName(1, 0));
+    assertEquals("UFR-UBR-FDL", detector.subStepName(1, 1)); // lands FDL, the slot 1.0 missed
+    assertEquals(Arrays.asList(TOUCHED, WRONG, HOME), detector.subStepPieceMarks(1, 1));
+  }
+
+  /**
    * The solve whose edges open on a cycle that was already closed. Its first algorithm leaves no
    * piece out and its second finds the buffer holding its own piece, so neither says which piece it
    * was shot from; the third does, and the two before it are the same solver's, shot from the same
