@@ -249,10 +249,14 @@ public class DialogUtils {
   }
 
   public static void copyScrambleToClipboard(Context context, String scramble) {
+    copyToClipboard(context, "scramble", scramble, R.string.scramble_copied);
+  }
+
+  public static void copyToClipboard(Context context, String label, String text, int copiedMessageId) {
     ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
     if (clipboard != null) {
-      clipboard.setPrimaryClip(ClipData.newPlainText("scramble", scramble));
-      showShortInfoMessage(context, R.string.scramble_copied);
+      clipboard.setPrimaryClip(ClipData.newPlainText(label, text));
+      showShortInfoMessage(context, copiedMessageId);
     }
   }
 

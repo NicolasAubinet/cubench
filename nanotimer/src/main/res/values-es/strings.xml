@@ -18,6 +18,8 @@
   <string name="scramble">Mezcla</string>
   <string name="scrambleC">Mezcla:</string>
   <string name="scramble_copied">¡Mezcla copiada!</string>
+  <string name="copy_details">Copiar</string>
+  <string name="details_copied">¡Detalles copiados!</string>
   <string name="start">Comenzar</string>
 
   <string name="add">Añadir</string>

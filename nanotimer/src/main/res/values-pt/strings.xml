@@ -18,6 +18,8 @@
   <string name="scramble">Scramble</string>
   <string name="scrambleC">Scramble:</string>
   <string name="scramble_copied">Scramble copiado!</string>
+  <string name="copy_details">Copiar</string>
+  <string name="details_copied">Detalhes copiados!</string>
   <string name="start">Iniciar</string>
 
   <string name="add">Adicionar</string>

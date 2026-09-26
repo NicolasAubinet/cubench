@@ -38,6 +38,18 @@
        android:ellipsize="end"/>
 
     <ImageView
+       android:id="@+id/buSessionDetailCopy"
+       android:layout_width="30dp"
+       android:layout_height="30dp"
+       android:layout_marginRight="@dimen/space_xs"
+       android:layout_marginEnd="@dimen/space_xs"
+       android:scaleType="fitCenter"
+       android:padding="5dp"
+       android:background="?android:attr/selectableItemBackgroundBorderless"
+       android:src="@drawable/ic_content_copy"
+       android:contentDescription="@string/copy_details"/>
+
+    <ImageView
        android:id="@+id/buSessionDetailHelp"
        android:layout_width="30dp"
        android:layout_height="30dp"

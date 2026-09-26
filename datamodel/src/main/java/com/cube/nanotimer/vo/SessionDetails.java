@@ -1,11 +1,12 @@
 package com.cube.nanotimer.vo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SessionDetails {
 
   private int totalSolvesCount;
-  private List<Long> sessionTimes;
+  private List<SolveTime> solves = new ArrayList<SolveTime>(); // newest first
   private long sessionStart;
 
   public SessionDetails() {
@@ -19,16 +20,24 @@ public class SessionDetails {
     this.totalSolvesCount = totalSolvesCount;
   }
 
-  public List<Long> getSessionTimes() {
-    return sessionTimes;
+  public List<SolveTime> getSolves() {
+    return solves;
   }
 
-  public void setSessionTimes(List<Long> sessionTimes) {
-    this.sessionTimes = sessionTimes;
+  public void setSolves(List<SolveTime> solves) {
+    this.solves = solves;
+  }
+
+  public List<Long> getSessionTimes() {
+    List<Long> times = new ArrayList<Long>();
+    for (SolveTime solve : solves) {
+      times.add(solve.getTime());
+    }
+    return times;
   }
 
   public int getSessionSolvesCount() {
-    return (sessionTimes == null) ? 0 : sessionTimes.size();
+    return solves.size();
   }
 
   public long getSessionStart() {

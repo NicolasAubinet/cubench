@@ -2139,7 +2139,15 @@ public class ServiceProviderImpl implements ServiceProvider {
     long sessionStart = getSessionStart(solveType);
     sessionDetails.setSessionStart(sessionStart);
     if (sessionStart > 0) { // if a new session was created
-      sessionDetails.setSessionTimes(getSessionTimes(solveType, from, to, null).getTimes());
+      StringBuilder q = historySelect(false);
+      q.append("   AND ").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" >= ?");
+      if (to != null) {
+        q.append("   AND ").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" < ?");
+      }
+      q.append(" ORDER BY ").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" DESC, ").append(DB.COL_ID).append(" DESC");
+      long start = (from == null) ? sessionStart : from;
+      String[] params = (to == null) ? getStringArray(solveType.getId(), start) : getStringArray(solveType.getId(), start, to);
+      sessionDetails.setSolves(readHistoryTimes(solveType, q.toString(), params, false));
     }
     return sessionDetails;
   }
@@ -2160,15 +2168,10 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     OR (").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" = ? AND ").append(DB.COL_ID).append(" <= ?))");
     q.append(" ORDER BY ").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" DESC, ").append(DB.COL_ID).append(" DESC");
     q.append(" LIMIT ").append(count);
-    List<SolveTime> solves = readHistoryTimes(solveType, q.toString(), getStringArray(solveType.getId(),
-        solveTime.getTimestamp(), solveTime.getTimestamp(), solveTime.getId()), false);
-    List<Long> times = new ArrayList<Long>();
-    for (SolveTime st : solves) {
-      times.add(st.getTime());
-    }
     SessionDetails details = new SessionDetails();
     details.setTotalSolvesCount(getHistorySolvesCount(solveType));
-    details.setSessionTimes(times);
+    details.setSolves(readHistoryTimes(solveType, q.toString(), getStringArray(solveType.getId(),
+        solveTime.getTimestamp(), solveTime.getTimestamp(), solveTime.getId()), false));
     return details;
   }
 
