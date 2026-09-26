@@ -553,8 +553,10 @@ public final class BlindStepDetector implements StepDetector {
       return false;
     }
     String steady = withoutDrift(facelets, frame);
-    return swaps ? reading.shotFrom.landsASwap(base, steady)
-        : parity && !reading.parityFound && BlindSwaps.exchangesTwoOfEach(base, steady);
+    boolean parityHere = parity && !reading.parityFound
+        && BlindSwaps.exchangesTwoOfEach(base, steady)
+        && (!swaps || missesTheBuffers(base, steady));
+    return parityHere || swaps && reading.shotFrom.landsASwap(base, steady);
   }
 
   /**
@@ -668,7 +670,14 @@ public final class BlindStepDetector implements StepDetector {
   /** Whether a landing is the parity: it exchanges two of each, which nothing else does. */
   private boolean isParity(String before, String after) {
     return parity && touched(before, after, FaceletRotations.IDENTITY) == PARITY_CYCLE
-        && BlindSwaps.exchangesTwoOfEach(before, after);
+        && BlindSwaps.exchangesTwoOfEach(before, after)
+        && (!swaps || missesTheBuffers(before, after));
+  }
+
+  // Every OP/M2 shot swaps a buffer, so a two-and-two swap that leaves both alone is the parity.
+  private boolean missesTheBuffers(String before, String after) {
+    List<Integer> moved = Cubies.moved(before, after);
+    return !moved.contains(declared[EDGES]) && !moved.contains(declared[CORNERS]);
   }
 
   /** The last landing a reading has settled on, which every candidate tail is read against. */
@@ -884,8 +893,7 @@ public final class BlindStepDetector implements StepDetector {
   private void readAlgorithm(String steady, long timestampMs) {
     int touched = touched(landed, steady, FaceletRotations.IDENTITY);
     List<Integer>[] gained = gained(landed, steady, FaceletRotations.IDENTITY);
-    boolean parityLanding = !swaps && parity && !parityFound && touched == PARITY_CYCLE
-        && BlindSwaps.exchangesTwoOfEach(landed, steady);
+    boolean parityLanding = !parityFound && isParity(landed, steady);
     parityFound |= parityLanding;
     List<Integer> all = new ArrayList<>(gained[EDGES]);
     all.addAll(gained[CORNERS]);
@@ -893,7 +901,8 @@ public final class BlindStepDetector implements StepDetector {
     // algorithm found it. A misfire taken straight back leaves pieces turned where they stand and
     // would otherwise read as the flip it undid. A swap before a turn: where a method shoots, a
     // piece turned where it stands is two shots at its two stickers.
-    if (!readUndo(steady, timestampMs, all) && !readSwap(steady, timestampMs, all)
+    if (!readUndo(steady, timestampMs, all)
+        && (parityLanding || !readSwap(steady, timestampMs, all))
         && !readOrientation(steady, timestampMs, all)) {
       // Only a cycle was shot: a flip or a twist turns its pieces where they stand, a parity neither.
       boolean shot = touched == CYCLE;

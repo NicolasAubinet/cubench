@@ -249,6 +249,60 @@ public class BlindTwoCycleTest {
     return -1;
   }
 
+  /** The parity algorithm of an odd OP solve is one algorithm of its own, and not a mistake. */
+  @Test
+  public void readsTheParityAlgorithmOfAnOddSolve() {
+    Random random = new Random(20260926);
+    int odd = 0;
+    for (int attempt = 0; attempt < SCRAMBLES && odd < SCRAMBLES / 10; attempt++) {
+      String scramble = scramble(random);
+      SyntheticTwoCycleSolve solve = oldPochmannCornersFirst(scramble);
+      List<String> expected = names(solve);
+      int parityAt = 0; // the corner shots come first, and an odd count of them takes the parity
+      while (expected.get(parityAt).startsWith("UBL")) {
+        parityAt++;
+      }
+      if (parityAt % 2 == 0) {
+        continue;
+      }
+      odd++;
+      BlindStepDetector detector = read(scramble, solve, "UR", "UBL");
+
+      assertEquals(scramble, -1, firstRed(detector));
+      assertEquals(scramble, null, detector.getLostReading());
+      List<String> read = readNames(detector);
+      assertEquals(scramble, expected.size(), read.size());
+      assertEquals(scramble, "UFR-UBR + UL-UB", read.get(parityAt));
+    }
+    assertTrue(odd > 0);
+  }
+
+  private static List<String> readNames(StepDetector detector) {
+    List<String> names = new ArrayList<String>();
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++) {
+        names.add(detector.subStepName(step, part));
+      }
+    }
+    return names;
+  }
+
+  /**
+   * The order OP is taught in: everything memorised up front, so setups keep the algorithm's other
+   * pieces in place, corners first, and the Ra perm between the types when the counts are odd.
+   */
+  static SyntheticTwoCycleSolve oldPochmannCornersFirst(String scramble) {
+    SyntheticTwoCycleSolve solve = new SyntheticTwoCycleSolve();
+    solve.scramble(scramble);
+    solve.shootAll(SyntheticTwoCycleSolve.Y_PERM, SyntheticTwoCycleSolve.ULB_BUFFER, true);
+    if (solve.shots().size() % 2 == 1) {
+      solve.shoot(SyntheticTwoCycleSolve.RA_PERM, "");
+    }
+    solve.shootAll(SyntheticTwoCycleSolve.T_PERM, SyntheticTwoCycleSolve.UR_BUFFER, true);
+    assertTrue("the synthetic solve did not come out: " + solve.leftOver(), solve.isSolved());
+    return solve;
+  }
+
   /** Edges first: the corner algorithm's two edges cancel, the edge one's two corners are still out. */
   static SyntheticTwoCycleSolve oldPochmann(String scramble) {
     SyntheticTwoCycleSolve solve = new SyntheticTwoCycleSolve();

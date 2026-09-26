@@ -40,6 +40,8 @@ final class SyntheticTwoCycleSolve {
   static final String Y_PERM = "R U' R' U' R U R' F' R U R' U' R' F R";
 
   /** The U sticker of UR, the U sticker of ULB, the D sticker of DF: the buffers shot from. */
+  /** OP's parity: swaps UL/UB and UFR/UBR, undoing an odd corner count's edges for the T perms. */
+  static final String RA_PERM = "R U' R' U' R U R D R' U' R D' R' U2 R' U'";
   static final int UR_BUFFER = 5, ULB_BUFFER = 0, DF_BUFFER = 28;
 
   /**
@@ -286,10 +288,24 @@ final class SyntheticTwoCycleSolve {
    * setup.
    */
   void shootAll(String alg, int bufferFacelet) {
+    shootAll(alg, bufferFacelet, false);
+  }
+
+  /**
+   * As {@link #shootAll(String, int)}; {@code preserving} restricts the setups to those that leave
+   * the algorithm's other pieces in place, as a solver who memorised everything up front must.
+   */
+  void shootAll(String alg, int bufferFacelet, boolean preserving) {
     List<String> algMoves = Arrays.asList(alg.split(" "));
     int helper = imageOfSequence(algMoves)[bufferFacelet];
     int bufferSlot = Cubies.slotOf(bufferFacelet);
-    Map<Integer, List<String>> setups = setupsTo(helper, bufferSlot);
+    List<Integer> keep = new ArrayList<Integer>();
+    if (preserving) {
+      keep.addAll(Cubies.moved(Cubies.SOLVED, apply(Cubies.SOLVED, imageOfSequence(algMoves))));
+      keep.remove(Integer.valueOf(bufferSlot));
+      keep.remove(Integer.valueOf(Cubies.slotOf(helper)));
+    }
+    Map<Integer, List<String>> setups = setupsTo(helper, bufferSlot, keep);
     while (!typeSolved(state, bufferSlot)) {
       int target = homeFaceletOf(state, bufferFacelet);
       if (Cubies.slotOf(target) == bufferSlot) {
@@ -434,7 +450,21 @@ final class SyntheticTwoCycleSolve {
    * shortest turns that leave the buffer where it stands and carry the target onto the helper
    * sticker. Keyed by the target sticker, since where a piece is shot decides how it lands.
    */
-  private static Map<Integer, List<String>> setupsTo(int helper, int bufferSlot) {
+  private static final Map<String, Map<Integer, List<String>>> SETUPS =
+      new HashMap<String, Map<Integer, List<String>>>();
+
+  private static Map<Integer, List<String>> setupsTo(int helper, int bufferSlot,
+      List<Integer> keep) {
+    String key = helper + " " + bufferSlot + " " + keep;
+    if (!SETUPS.containsKey(key)) {
+      SETUPS.put(key, searchSetups(helper, bufferSlot, keep));
+    }
+    return SETUPS.get(key);
+  }
+
+  // Keeping pieces in place takes longer setups, face turns being all the model has.
+  private static Map<Integer, List<String>> searchSetups(int helper, int bufferSlot,
+      List<Integer> keep) {
     List<String> faces = new ArrayList<String>();
     for (char face : FACE_LETTERS) {
       if (Cubies.inPlace(apply(Cubies.SOLVED, MOVES.get(String.valueOf(face))),
@@ -446,7 +476,7 @@ final class SyntheticTwoCycleSolve {
     setups.put(helper, new ArrayList<String>());
     Deque<List<String>> queue = new ArrayDeque<List<String>>();
     queue.add(new ArrayList<String>());
-    for (int depth = 0; depth < 4; depth++) {
+    for (int depth = 0; depth < (keep.isEmpty() ? 4 : 6); depth++) {
       Deque<List<String>> next = new ArrayDeque<List<String>>();
       while (!queue.isEmpty()) {
         List<String> sequence = queue.poll();
@@ -459,7 +489,7 @@ final class SyntheticTwoCycleSolve {
             longer.add(face + suffix);
             int[] image = imageOfSequence(longer);
             for (int facelet = 0; facelet < FACELETS; facelet++) {
-              if (image[facelet] == helper && !setups.containsKey(facelet)) {
+              if (image[facelet] == helper && !setups.containsKey(facelet) && fixes(image, keep)) {
                 setups.put(facelet, longer);
               }
             }
@@ -470,6 +500,17 @@ final class SyntheticTwoCycleSolve {
       queue = next;
     }
     return setups;
+  }
+
+  private static boolean fixes(int[] image, List<Integer> slots) {
+    for (int slot : slots) {
+      for (int facelet : Cubies.PIECES[slot]) {
+        if (image[facelet] != facelet) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   private static int[] imageOfSequence(List<String> moves) {
