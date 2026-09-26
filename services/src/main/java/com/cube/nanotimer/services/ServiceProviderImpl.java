@@ -1537,6 +1537,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_TIMEHISTORY_AVG12);
     q.append("     , ").append(DB.COL_TIMEHISTORY_AVG50);
     q.append("     , ").append(DB.COL_TIMEHISTORY_AVG100);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_AVG_PB);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_ID).append(" = ?");
     Cursor cursor = db.rawQuery(q.toString(), getStringArray(solveTime.getId()));
@@ -1559,6 +1560,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         sta.setAvgOf50(v == null || v == -2 ? null : v);
         v = getCursorLong(cursor, 10);
         sta.setAvgOf100(v == null || v == -2 ? null : v);
+        boolean blind = solveTime.getSolveType() != null && solveTime.getSolveType().isBlind();
+        sta.setAverageRecords(AverageRecordsStore.sizes(cursor.getInt(11), blind));
         sta.setSolveType(solveTime.getSolveType());
       }
       cursor.close();

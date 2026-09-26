@@ -177,6 +177,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
               if (blind) {
                 ((TextView) v.findViewById(R.id.tvMeanOfThree)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5())); // avg5 contains mean of 3 for blind type (same DB column)
                 bindAverageOpening(v, R.id.trMeanOfThree, data.getAvgOf5(), 3);
+                if (data.getAverageRecords().contains(3)) {
+                  ((TextView) v.findViewById(R.id.tvMeanOfThreeLabel)).setTextColor(color(R.color.new_record));
+                  ((TextView) v.findViewById(R.id.tvMeanOfThree)).setTextColor(color(R.color.new_record));
+                }
               } else {
                 ((TextView) v.findViewById(R.id.tvAvgOfFive)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5(), "-"));
                 ((TextView) v.findViewById(R.id.tvAvgOfTwelve)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf12(), "-"));
@@ -186,6 +190,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
                 bindAverageOpening(v, R.id.avgTileTwelve, data.getAvgOf12(), 12);
                 bindAverageOpening(v, R.id.avgTileFifty, data.getAvgOf50(), 50);
                 bindAverageOpening(v, R.id.avgTileHundred, data.getAvgOf100(), 100);
+                markAveragePb(v, R.id.tvAvgKeyFive, R.id.tvAvgOfFive, 5, data);
+                markAveragePb(v, R.id.tvAvgKeyTwelve, R.id.tvAvgOfTwelve, 12, data);
+                markAveragePb(v, R.id.tvAvgKeyFifty, R.id.tvAvgOfFifty, 50, data);
+                markAveragePb(v, R.id.tvAvgKeyHundred, R.id.tvAvgOfHundred, 100, data);
               }
             }
             showVerdict(v, data, blind);
@@ -274,6 +282,16 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     });
   }
 
+  /** An average that was a new best when this solve was done wears the record colour, as in the history. */
+  private void markAveragePb(View v, int keyId, int valueId, int size, SolveTimeAverages data) {
+    if (data.getAverageRecords().contains(size)) {
+      TextView key = (TextView) v.findViewById(keyId);
+      key.setText(getString(R.string.record_label_average, String.valueOf(size)));
+      key.setTextColor(color(R.color.new_record));
+      ((TextView) v.findViewById(valueId)).setTextColor(color(R.color.new_record));
+    }
+  }
+
   /**
    * Puts every view a binding touches back to its layout default, so nothing of the solve leaving
    * the sheet is left showing under the one arriving.
@@ -286,6 +304,17 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       v.findViewById(tileId).setOnClickListener(null);
       v.findViewById(tileId).setClickable(false);
     }
+    int[] keyIds = { R.id.tvAvgKeyFive, R.id.tvAvgKeyTwelve, R.id.tvAvgKeyFifty, R.id.tvAvgKeyHundred };
+    int[] valueIds = { R.id.tvAvgOfFive, R.id.tvAvgOfTwelve, R.id.tvAvgOfFifty, R.id.tvAvgOfHundred };
+    int[] sizes = { 5, 12, 50, 100 };
+    for (int i = 0; i < sizes.length; i++) {
+      TextView key = (TextView) v.findViewById(keyIds[i]);
+      key.setText(String.valueOf(sizes[i]));
+      key.setTextColor(color(R.color.lightblue));
+      ((TextView) v.findViewById(valueIds[i])).setTextColor(color(R.color.white));
+    }
+    ((TextView) v.findViewById(R.id.tvMeanOfThreeLabel)).setTextColor(color(R.color.secondary_text));
+    ((TextView) v.findViewById(R.id.tvMeanOfThree)).setTextColor(color(R.color.white));
     v.findViewById(R.id.tvVerdict).setVisibility(View.GONE);
     v.findViewById(R.id.scrambleHeader).setVisibility(View.VISIBLE);
     v.findViewById(R.id.breakdownSection).setVisibility(View.GONE);
