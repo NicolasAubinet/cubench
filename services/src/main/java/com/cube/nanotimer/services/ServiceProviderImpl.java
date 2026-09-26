@@ -8,8 +8,10 @@ import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.StepSample;
 import com.cube.nanotimer.coach.StoredCoachPlan;
+import com.cube.nanotimer.services.db.AverageRecordsStore;
 import com.cube.nanotimer.services.db.CaseKnowledgeStore;
 import com.cube.nanotimer.services.db.DB;
+import com.cube.nanotimer.session.AverageRecords;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
@@ -230,6 +232,11 @@ public class ServiceProviderImpl implements ServiceProvider {
         progressListener.onProgress(++i);
       }
     }
+    long oldest = Long.MAX_VALUE;
+    for (SolveTime solveTime : solveTimes) {
+      oldest = Math.min(oldest, solveTime.getTimestamp());
+    }
+    AverageRecordsStore.update(db, solveType.getId(), oldest); // imported solves can be older than existing ones
     return updateAveragesAndPBCaches(solveType);
   }
 
@@ -391,6 +398,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     Long avg50 = getLastAvg(50);
     Long avg100 = getLastAvg(100);
 
+    int avgPb = newAverageRecords(solveTime, avg5, avg12, avg50, avg100);
+    solveTime.setAverageRecords(AverageRecordsStore.sizes(avgPb, currentSolveType.isBlind()));
     syncBestAveragesWithCurrent(avg5, avg12, avg50, avg100);
     if (isTimeBetter(cachedLifetimeBest, solveTime.getTime()) && cachedSolveTimes.size() >= MIN_TIMES_BEFORE_PB_FLAG) {
       solveTime.setPb(true);
@@ -406,6 +415,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_TIMEHISTORY_TIMESTAMP, solveTime.getTimestamp());
     values.put(DB.COL_TIMEHISTORY_PLUSTWO, solveTime.isPlusTwo() ? 1 : 0);
     values.put(DB.COL_TIMEHISTORY_PB, solveTime.isPb() ? 1 : 0);
+    values.put(DB.COL_TIMEHISTORY_AVG_PB, avgPb);
     values.put(DB.COL_TIMEHISTORY_AVG5, avg5);
     values.put(DB.COL_TIMEHISTORY_AVG12, avg12);
     values.put(DB.COL_TIMEHISTORY_AVG50, avg50);
@@ -569,6 +579,18 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
   }
 
+  /** The {@link AverageRecordsStore} bitmask of a new solve, computed before it is inserted. */
+  private int newAverageRecords(SolveTime solveTime, Long... averages) {
+    int[] cacheKeys = { 5, 12, 50, 100 }; // the avg5 column (Mo3 for blind) is cached under key 5
+    for (int i = 0; i < averages.length; i++) {
+      if (isTimeBetter(cachedBestAverages.get(cacheKeys[i]), averages[i])) { // query the warm-up count only when needed
+        AverageRecords records = AverageRecordsStore.recordsBefore(db, solveTime.getSolveType().getId(), solveTime.getTimestamp());
+        return AverageRecordsStore.mask(records.next(averages), currentSolveType.isBlind());
+      }
+    }
+    return 0;
+  }
+
   private void syncBestAveragesWithCurrent(Long avg5, Long avg12, Long avg50, Long avg100) {
     if (isTimeBetter(cachedBestAverages.get(5), avg5) || avg5 == null) {
       cachedBestAverages.put(5, avg5);
@@ -675,6 +697,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES);
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
     q.append("     , ").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
+    q.append("     , ").append(DB.COL_TIMEHISTORY_AVG_PB);
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
 
@@ -713,6 +736,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         st.setPlusTwo(cursor.getInt(5) == 1, false);
         st.setPb(cursor.getInt(6) == 1);
         st.setTimeBeforeDnf(getCursorLong(cursor, 10));
+        st.setAverageRecords(AverageRecordsStore.sizes(cursor.getInt(11), solveType.isBlind()));
         st.setSolveType(solveType);
         if (solveType.hasSteps()) {
           List<Long> stepTimes = getSolveTimeSteps(st.getId());
@@ -2350,6 +2374,7 @@ public class ServiceProviderImpl implements ServiceProvider {
 
       db.update(DB.TABLE_TIMEHISTORY, values, DB.COL_ID + " = ?", getStringArray(ct.getSolveId()));
     }
+    AverageRecordsStore.update(db, solveType.getId(), timestamp);
   }
 
   private List<CachedTime> getTimesAroundTs(long timestamp, SolveType solveType, boolean before) {

@@ -184,6 +184,7 @@
   <string name="generating_cube_scramble">Gerando scrambles %1$s&#8230;\n%2$d de %3$d</string>
   <string name="stopping_generation">Parando a geração&#8230;</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="record_label_average">%s PB</string>
   <string name="verdict_personal_best">Recorde pessoal, %1$s a menos que %2$s</string>
   <string name="verdict_record">Melhor %1$s, %2$s a menos que %3$s</string>
   <string name="verdict_window_best">Melhor dos últimos %1$d</string>

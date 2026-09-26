@@ -196,6 +196,7 @@
   <string name="generating_cube_scramble">%1$s scrambles generating&#8230;\n%2$d of %3$d</string>
   <string name="stopping_generation">Stopping generation&#8230;</string>
   <string name="record_label_lifetime">PB</string>
+  <string name="record_label_average">%s PB</string>
   <string name="verdict_personal_best">Personal best, %1$s under %2$s</string>
   <string name="verdict_record">Best %1$s, %2$s under %3$s</string>
   <string name="verdict_window_best">Best of the last %1$d</string>

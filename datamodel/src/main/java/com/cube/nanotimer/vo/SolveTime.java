@@ -2,6 +2,7 @@ package com.cube.nanotimer.vo;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class SolveTime implements Serializable {
@@ -17,6 +18,7 @@ public class SolveTime implements Serializable {
   private Long timeBeforeDnf;
   private boolean plusTwo;
   private boolean pb;
+  private List<Integer> averageRecords = Collections.emptyList(); // sizes of the averages that are new bests at this solve
   private String scramble;
   private String comment;
   private SolveType solveType;
@@ -73,6 +75,15 @@ public class SolveTime implements Serializable {
 
   public void setPb(boolean pb) {
     this.pb = pb;
+  }
+
+  /** Sizes of the averages ending at this solve that are new bests (5 for Ao5, 3 for Mo3). */
+  public List<Integer> getAverageRecords() {
+    return averageRecords;
+  }
+
+  public void setAverageRecords(List<Integer> averageRecords) {
+    this.averageRecords = averageRecords;
   }
 
   public String getScramble() {

@@ -1463,6 +1463,28 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     }
   }
 
+  /** "Ao5 · Ao12 PB" for the averages that are new bests at a solve, or "" if there are none. */
+  private String averageRecordsLabel(List<Integer> sizes) {
+    StringBuilder names = new StringBuilder();
+    for (int size : sizes) {
+      if (names.length() > 0) {
+        names.append(" · ");
+      }
+      names.append(getString(averageLabel(size)));
+    }
+    return names.length() == 0 ? "" : getString(R.string.record_label_average, names);
+  }
+
+  private static int averageLabel(int size) {
+    switch (size) {
+      case 3: return R.string.mo3_label;
+      case 12: return R.string.ao12_label;
+      case 50: return R.string.ao50_label;
+      case 100: return R.string.ao100_label;
+      default: return R.string.ao5_label;
+    }
+  }
+
   private class HistoryListAdapter extends ArrayAdapter<SolveTime> {
     private LayoutInflater inflater;
 
@@ -1508,6 +1530,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           // so recycled rows never keep a stale color.
           tvTime.setTextColor(st.isPb() ? recordColor : timeColorScale.colorFor(st));
           view.findViewById(R.id.tvPbChip).setVisibility(st.isPb() ? View.VISIBLE : View.GONE);
+          TextView tvAvgPb = (TextView) view.findViewById(R.id.tvAvgPbChip);
+          tvAvgPb.setVisibility(st.getAverageRecords().isEmpty() ? View.GONE : View.VISIBLE);
+          tvAvgPb.setText(averageRecordsLabel(st.getAverageRecords()));
 
           boolean commented = st.getComment() != null && !st.getComment().trim().isEmpty();
           view.findViewById(R.id.imgComment).setVisibility(commented ? View.VISIBLE : View.GONE);

@@ -77,6 +77,16 @@
        android:visibility="gone"
        style="@style/RowChip"/>
 
+    <!-- One chip for all the average PBs of this solve: "Ao5 · Ao12 PB". -->
+    <TextView
+       android:id="@+id/tvAvgPbChip"
+       android:layout_marginLeft="@dimen/space_s"
+       android:layout_marginStart="@dimen/space_s"
+       android:textColor="@color/new_record"
+       android:background="@drawable/pb_chip"
+       android:visibility="gone"
+       style="@style/RowChip"/>
+
     <ImageView
        android:id="@+id/imgComment"
        android:layout_width="15dp"

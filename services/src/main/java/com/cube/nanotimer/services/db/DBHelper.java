@@ -69,6 +69,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_TIMEHISTORY_AVG100 + " INTEGER, " +
         DB.COL_TIMEHISTORY_PLUSTWO + " INTEGER DEFAULT 0, " +
         DB.COL_TIMEHISTORY_PB + " INTEGER DEFAULT 0, " +
+        DB.COL_TIMEHISTORY_AVG_PB + " INTEGER DEFAULT 0, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " TEXT, " +
         DB.COL_TIMEHISTORY_SMARTCUBE_GYRO + " TEXT, " +
@@ -493,6 +494,12 @@ public class DBHelper extends SQLiteOpenHelper {
 
     if (oldVersion < 34) {
       createTimeHistoryIndex(db);
+    }
+
+    if (oldVersion < 35) {
+      db.execSQL("ALTER TABLE " + DB.TABLE_TIMEHISTORY + " ADD COLUMN "
+          + DB.COL_TIMEHISTORY_AVG_PB + " INTEGER DEFAULT 0");
+      AverageRecordsStore.updateAll(db);
     }
 
 //    progressDialog.hide();
