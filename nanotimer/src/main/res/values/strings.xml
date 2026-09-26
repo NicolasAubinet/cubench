@@ -434,6 +434,7 @@
   <string name="blind_left_edge_cycle">Ended on a 3-cycle of edges: %s</string>
   <string name="blind_left_corner_cycle">Ended on a 3-cycle of corners: %s</string>
   <string name="blind_left_parity">Ended on a parity: %s</string>
+  <string name="blind_left_swaps">Ended with two pairs swapped: %s</string>
   <string name="blind_left_flipped">Ended with edges flipped: %s</string>
   <string name="blind_left_twisted">Ended with corners twisted: %s</string>
   <string name="blind_left_turned">Ended with pieces turned in place: %s</string>

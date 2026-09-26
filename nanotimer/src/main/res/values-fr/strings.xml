@@ -419,6 +419,7 @@
   <string name="blind_left_edge_cycle">Terminé sur un cycle de 3 arêtes : %s</string>
   <string name="blind_left_corner_cycle">Terminé sur un cycle de 3 coins : %s</string>
   <string name="blind_left_parity">Terminé sur une parité : %s</string>
+  <string name="blind_left_swaps">Terminé avec deux paires échangées : %s</string>
   <string name="blind_left_flipped">Terminé avec des arêtes retournées : %s</string>
   <string name="blind_left_twisted">Terminé avec des coins tournés : %s</string>
   <string name="blind_left_turned">Terminé avec des pièces mal orientées : %s</string>

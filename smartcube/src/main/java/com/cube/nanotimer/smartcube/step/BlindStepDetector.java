@@ -1843,7 +1843,8 @@ public final class BlindStepDetector implements StepDetector {
    */
   @Override
   public BlindResidual getResidual() {
-    return BlindResidual.of(stopped, targets, buffers.ofType[EDGES], buffers.ofType[CORNERS]);
+    return BlindResidual.of(stopped, targets, buffers.ofType[EDGES], buffers.ofType[CORNERS],
+        swaps);
   }
 
   /**
@@ -1864,8 +1865,7 @@ public final class BlindStepDetector implements StepDetector {
   @Override
   public ParityCheck getParityCheck() {
     BlindResidual residual = getResidual();
-    // A solver who shoots is left the same two-and-two by a missed shot, and nothing tells them apart.
-    if (swaps || residual == null || residual.getShape() != BlindResidual.Shape.PARITY) {
+    if (residual == null || residual.getShape() != BlindResidual.Shape.PARITY) {
       return null;
     }
     if (!parity) {

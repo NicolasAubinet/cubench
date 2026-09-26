@@ -419,6 +419,7 @@
   <string name="blind_left_edge_cycle">Terminó en un ciclo de 3 aristas: %s</string>
   <string name="blind_left_corner_cycle">Terminó en un ciclo de 3 esquinas: %s</string>
   <string name="blind_left_parity">Terminó en una paridad: %s</string>
+  <string name="blind_left_swaps">Terminó con dos pares intercambiados: %s</string>
   <string name="blind_left_flipped">Terminó con aristas volteadas: %s</string>
   <string name="blind_left_twisted">Terminó con esquinas giradas: %s</string>
   <string name="blind_left_turned">Terminó con piezas mal orientadas: %s</string>

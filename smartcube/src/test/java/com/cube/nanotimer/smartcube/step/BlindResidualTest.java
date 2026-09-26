@@ -60,6 +60,23 @@ public class BlindResidualTest {
     assertEquals("UFR-UFL + UR-UF", residual.getPieces());
   }
 
+  @Test
+  public void twoEdgePairsReadAsSwapsWithTheBufferFirst() {
+    String left = swap(swap(Cubies.SOLVED, UR, UF), UL, UB);
+    assertEquals(BlindResidual.Shape.SWAPS, read(left).getShape());
+    BlindResidual residual = BlindResidual.of(left, targets, UB, BlindTargets.NO_BUFFER);
+    assertEquals("UB-UL + UR-UF", residual.getPieces());
+  }
+
+  /** With OP/M2 a missed swap leaves the parity's shape, so it is not called a parity. */
+  @Test
+  public void twoOfEachSwappedReadAsSwapsForOpM2() {
+    String left = swap(swap(Cubies.SOLVED, UR, UF), URF, UBL);
+    BlindResidual residual = BlindResidual.of(left, targets, UR, UBL, true);
+    assertEquals(BlindResidual.Shape.SWAPS, residual.getShape());
+    assertEquals("UBL-UFR + UR-UF", residual.getPieces());
+  }
+
   /** A cycle and an orientation are two mistakes, and the cycle is still the cycle it was. */
   @Test
   public void aCycleWithAnExtraTurnedPieceKeepsItsShapeAndSaysTheTurnedPieceApart() {

@@ -487,6 +487,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       case EDGE_CYCLE: text = getString(R.string.blind_left_edge_cycle, pieces); break;
       case CORNER_CYCLE: text = getString(R.string.blind_left_corner_cycle, pieces); break;
       case PARITY: text = getString(R.string.blind_left_parity, pieces); break;
+      case SWAPS: text = getString(R.string.blind_left_swaps, pieces); break;
       case FLIPPED: text = getString(R.string.blind_left_flipped, pieces); break;
       case TWISTED: text = getString(R.string.blind_left_twisted, pieces); break;
       case TURNED: text = getString(R.string.blind_left_turned, pieces); break;
