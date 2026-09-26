@@ -176,11 +176,16 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
             if (!stepped) { // a stepped solve shows its splits instead, and they are already set
               if (blind) {
                 ((TextView) v.findViewById(R.id.tvMeanOfThree)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5())); // avg5 contains mean of 3 for blind type (same DB column)
+                bindAverageOpening(v, R.id.trMeanOfThree, data.getAvgOf5(), 3);
               } else {
                 ((TextView) v.findViewById(R.id.tvAvgOfFive)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf5(), "-"));
                 ((TextView) v.findViewById(R.id.tvAvgOfTwelve)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf12(), "-"));
                 ((TextView) v.findViewById(R.id.tvAvgOfFifty)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf50(), "-"));
                 ((TextView) v.findViewById(R.id.tvAvgOfHundred)).setText(FormatterService.INSTANCE.formatSolveTime(data.getAvgOf100(), "-"));
+                bindAverageOpening(v, R.id.avgTileFive, data.getAvgOf5(), 5);
+                bindAverageOpening(v, R.id.avgTileTwelve, data.getAvgOf12(), 12);
+                bindAverageOpening(v, R.id.avgTileFifty, data.getAvgOf50(), 50);
+                bindAverageOpening(v, R.id.avgTileHundred, data.getAvgOf100(), 100);
               }
             }
             showVerdict(v, data, blind);
@@ -255,6 +260,20 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     tvTime.setTextColor(color(solveTime.isDNF() ? R.color.dnf_time : R.color.white));
   }
 
+  /** An average on record opens the solves it was taken over; one never filled has nothing to open. */
+  private void bindAverageOpening(View v, int tileId, Long average, final int size) {
+    if (average == null || average == -2) {
+      return;
+    }
+    final SolveTime solveTime = this.solveTime;
+    v.findViewById(tileId).setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        DialogUtils.showFragment(getActivity(), SessionDetailDialog.newInstance(solveTime, size));
+      }
+    });
+  }
+
   /**
    * Puts every view a binding touches back to its layout default, so nothing of the solve leaving
    * the sheet is left showing under the one arriving.
@@ -263,6 +282,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     v.findViewById(R.id.detailScroll).scrollTo(0, 0); // a solve arrives read from the top
     v.findViewById(R.id.averagesTable).setVisibility(View.VISIBLE);
     v.findViewById(R.id.trMeanOfThree).setVisibility(View.GONE);
+    for (int tileId : new int[] { R.id.trMeanOfThree, R.id.avgTileFive, R.id.avgTileTwelve, R.id.avgTileFifty, R.id.avgTileHundred }) {
+      v.findViewById(tileId).setOnClickListener(null);
+      v.findViewById(tileId).setClickable(false);
+    }
     v.findViewById(R.id.tvVerdict).setVisibility(View.GONE);
     v.findViewById(R.id.scrambleHeader).setVisibility(View.VISIBLE);
     v.findViewById(R.id.breakdownSection).setVisibility(View.GONE);

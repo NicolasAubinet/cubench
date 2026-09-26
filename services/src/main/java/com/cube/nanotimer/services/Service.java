@@ -57,6 +57,7 @@ public interface Service {
   void getSolveTimeAverages(SolveTime solveTime, DataCallback<SolveTimeAverages> callback);
   void getSessionDetails(SolveType solveType, DataCallback<SessionDetails> callback);
   void getSessionDetails(SolveType solveType, long from, long to, DataCallback<SessionDetails> callback);
+  void getAverageDetails(SolveTime solveTime, int count, DataCallback<SessionDetails> callback);
   void getSessionStarts(SolveType solveType, DataCallback<List<Long>> callback);
   void getSolvesCount(SolveType solveType, DataCallback<Integer> callback);
   void getExportFile(List<Integer> solveTypeIds, int limit, DataCallback<List<ExportResult>> callback);

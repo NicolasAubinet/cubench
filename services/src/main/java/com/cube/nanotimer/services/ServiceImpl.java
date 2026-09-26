@@ -359,6 +359,16 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getAverageDetails(final SolveTime solveTime, final int count, final DataCallback<SessionDetails> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getAverageDetails(solveTime, count));
+      }
+    });
+  }
+
+  @Override
   public void getSessionStarts(final SolveType solveType, final DataCallback<List<Long>> callback) {
     run(new Runnable() {
       @Override

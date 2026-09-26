@@ -19,6 +19,7 @@ import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.vo.SessionDetails;
+import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
 
   private static final int TIMES_PER_LINE = 4;
   private static final String ARG_SOLVETYPE = "solvetype";
+  private static final String ARG_SOLVETIME = "solvetime";
+  private static final String ARG_AVERAGE_SIZE = "averagesize";
 
   private LayoutInflater inflater;
   private Spinner spSessionsList;
@@ -37,6 +40,7 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
   private boolean sessionStartsInitialized;
   private List<Long> sessionTimes;
   private SolveType solveType;
+  private int averageSize; // 0 when showing a session
 
   public static SessionDetailDialog newInstance(SolveType solveType) {
     SessionDetailDialog sessionDetailDialog = new SessionDetailDialog();
@@ -46,12 +50,21 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
     return sessionDetailDialog;
   }
 
+  /** Shows the solves an average recorded on a solve was taken over, rather than a session. */
+  public static SessionDetailDialog newInstance(SolveTime solveTime, int averageSize) {
+    SessionDetailDialog sessionDetailDialog = newInstance(solveTime.getSolveType());
+    sessionDetailDialog.getArguments().putSerializable(ARG_SOLVETIME, solveTime);
+    sessionDetailDialog.getArguments().putInt(ARG_AVERAGE_SIZE, averageSize);
+    return sessionDetailDialog;
+  }
+
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     inflater = getActivity().getLayoutInflater();
     final View v = inflater.inflate(R.layout.sessiondetail_dialog, null);
     solveType = (SolveType) getArguments().getSerializable(ARG_SOLVETYPE);
-    App.INSTANCE.getService().getSessionDetails(solveType, new DataCallback<SessionDetails>() {
+    averageSize = getArguments().getInt(ARG_AVERAGE_SIZE);
+    DataCallback<SessionDetails> displayCallback = new DataCallback<SessionDetails>() {
       @Override
       public void onData(final SessionDetails data) {
         getActivity().runOnUiThread(new Runnable() {
@@ -61,9 +74,17 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
           }
         });
       }
-    });
+    };
     spSessionsList = (Spinner) v.findViewById(R.id.spSessionsList);
-    initSessionsList(v);
+    if (averageSize > 0) {
+      SolveTime solveTime = (SolveTime) getArguments().getSerializable(ARG_SOLVETIME);
+      ((TextView) v.findViewById(R.id.tvSessionTitle)).setText(averageLabel(averageSize));
+      spSessionsList.setVisibility(View.GONE);
+      App.INSTANCE.getService().getAverageDetails(solveTime, averageSize, displayCallback);
+    } else {
+      App.INSTANCE.getService().getSessionDetails(solveType, displayCallback);
+      initSessionsList(v);
+    }
 
     v.findViewById(R.id.buSessionDetailHelp).setOnClickListener(new View.OnClickListener() {
       @Override
@@ -124,6 +145,16 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
     }
   }
 
+  private int averageLabel(int size) {
+    switch (size) {
+      case 3: return R.string.mo3_label;
+      case 5: return R.string.ao5_label;
+      case 12: return R.string.ao12_label;
+      case 50: return R.string.ao50_label;
+      default: return R.string.ao100_label;
+    }
+  }
+
   private long getBestMeanOf(List<Long> times, int n) {
     long best = Long.MAX_VALUE;
     for (int i = 0; i <= times.size() - n; i++) {
@@ -137,6 +168,9 @@ public class SessionDetailDialog extends NanoTimerDialogFragment {
   }
 
   private long getBestAverageOf(List<Long> times, int n) {
+    if (averageSize > 0 && n >= averageSize) {
+      return -2; // inside an average, its own size would only repeat the headline
+    }
     long best = Long.MAX_VALUE;
     for (int i = 0; i <= times.size() - n; i++) {
       TimesStatistics session = new TimesStatistics(times.subList(i, Math.min(i + n, times.size())));

@@ -112,6 +112,7 @@
       <!-- Mean of 3 (blind solves) -->
       <LinearLayout
          android:id="@+id/trMeanOfThree"
+         android:background="?android:attr/selectableItemBackground"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:orientation="horizontal"
@@ -359,22 +360,34 @@
              android:showDividers="middle"
              android:dividerPadding="2dp">
 
-            <LinearLayout style="@style/DialogStatTile">
+            <LinearLayout
+               android:id="@+id/avgTileFive"
+               android:background="?android:attr/selectableItemBackground"
+               style="@style/DialogStatTile">
               <TextView android:text="5" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
               <TextView android:id="@+id/tvAvgOfFive" style="@style/DialogStatValueMinor"/>
             </LinearLayout>
 
-            <LinearLayout style="@style/DialogStatTile">
+            <LinearLayout
+               android:id="@+id/avgTileTwelve"
+               android:background="?android:attr/selectableItemBackground"
+               style="@style/DialogStatTile">
               <TextView android:text="12" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
               <TextView android:id="@+id/tvAvgOfTwelve" style="@style/DialogStatValueMinor"/>
             </LinearLayout>
 
-            <LinearLayout style="@style/DialogStatTile">
+            <LinearLayout
+               android:id="@+id/avgTileFifty"
+               android:background="?android:attr/selectableItemBackground"
+               style="@style/DialogStatTile">
               <TextView android:text="50" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
               <TextView android:id="@+id/tvAvgOfFifty" style="@style/DialogStatValueMinor"/>
             </LinearLayout>
 
-            <LinearLayout style="@style/DialogStatTile">
+            <LinearLayout
+               android:id="@+id/avgTileHundred"
+               android:background="?android:attr/selectableItemBackground"
+               style="@style/DialogStatTile">
               <TextView android:text="100" style="@style/DialogStatKey" android:textColor="@color/lightblue"/>
               <TextView android:id="@+id/tvAvgOfHundred" style="@style/DialogStatValueMinor"/>
             </LinearLayout>
