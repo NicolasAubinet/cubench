@@ -35,6 +35,18 @@
        android:layout_gravity="center"
        android:tint="@color/lightblue"
        android:contentDescription="@null"/>
+
+    <!-- Shown instead of the icon, for example an average's size. -->
+    <TextView
+       android:id="@+id/tvTileLabel"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_gravity="center"
+       android:textSize="13sp"
+       android:textStyle="bold"
+       android:fontFeatureSettings="tnum"
+       android:singleLine="true"
+       android:visibility="gone"/>
   </FrameLayout>
 
   <TextView
@@ -49,7 +61,7 @@
      android:singleLine="true"
      android:ellipsize="end"/>
 
-  <!-- The best single, wearing the record colour it wears everywhere else. -->
+  <!-- An optional value in the record colour, such as the best time or average in the sort picker. -->
   <TextView
      android:id="@+id/tvFigure"
      android:layout_width="wrap_content"

@@ -43,6 +43,7 @@ import com.cube.nanotimer.vo.drill.DrillEnd;
 import com.cube.nanotimer.vo.drill.DrillRecord;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -684,7 +685,6 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   public List<SolveTime> getHistoryTimes(SolveType solveType, Long from, boolean searchInPast, Integer pageSize, TimesSort timesSort) {
-    List<SolveTime> history = new ArrayList<SolveTime>();
     StringBuilder q = new StringBuilder();
     q.append("SELECT ").append(DB.COL_ID);
     q.append("     , ").append(DB.COL_TIMEHISTORY_TIME);
@@ -698,9 +698,18 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
     q.append("     , ").append(DB.COL_TIMEHISTORY_TIME_BEFORE_DNF);
     q.append("     , ").append(DB.COL_TIMEHISTORY_AVG_PB);
+    if (timesSort.isAverage()) {
+      for (String column : AverageRecordsStore.COLUMNS) {
+        q.append("     , ").append(column);
+      }
+    }
     q.append(" FROM ").append(DB.TABLE_TIMEHISTORY);
     q.append(" WHERE ").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID).append(" = ?");
 
+    if (timesSort.isAverage()) {
+      return readHistoryTimes(solveType, averageSortQuery(q, timesSort, from, pageSize),
+          getStringArray(solveType.getId()), true);
+    }
     String sortColumn = DB.COL_TIMEHISTORY_TIMESTAMP;
     if (timesSort == TimesSort.TIME) {
       sortColumn = DB.COL_TIMEHISTORY_TIME;
@@ -724,10 +733,39 @@ public class ServiceProviderImpl implements ServiceProvider {
       q.append(" LIMIT ").append(pageSize);
     }
     String[] params = (from == null) ? getStringArray(solveType.getId()) : getStringArray(solveType.getId(), from);
-    Cursor cursor = db.rawQuery(q.toString(), params);
+    return readHistoryTimes(solveType, q.toString(), params, false);
+  }
+
+  /**
+   * Best average first. Paged by offset ({@code from} is the number of rows already loaded), since
+   * paging by the last value would skip rows whose average equals it.
+   */
+  private String averageSortQuery(StringBuilder q, TimesSort timesSort, Long from, Integer pageSize) {
+    String column = AverageRecordsStore.COLUMNS[Arrays.asList(5, 12, 50, 100).indexOf(timesSort.getAverageSize())];
+    q.append("   AND ").append(column).append(" > 0");
+    q.append(" ORDER BY ").append(column).append(", ").append(DB.COL_TIMEHISTORY_TIMESTAMP);
+    q.append(" LIMIT ").append(pageSize == null ? -1 : pageSize);
+    q.append(" OFFSET ").append(from == null ? 0 : from);
+    return q.toString();
+  }
+
+  /** @param withAverages whether the query also selected the four average columns, after the others */
+  private List<SolveTime> readHistoryTimes(SolveType solveType, String query, String[] params, boolean withAverages) {
+    List<SolveTime> history = new ArrayList<SolveTime>();
+    Cursor cursor = db.rawQuery(query, params);
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        SolveTime st = new SolveTime();
+        SolveTime st;
+        if (withAverages) {
+          SolveTimeAverages sta = new SolveTimeAverages();
+          sta.setAvgOf5(getCursorLong(cursor, 12));
+          sta.setAvgOf12(getCursorLong(cursor, 13));
+          sta.setAvgOf50(getCursorLong(cursor, 14));
+          sta.setAvgOf100(getCursorLong(cursor, 15));
+          st = sta;
+        } else {
+          st = new SolveTime();
+        }
         st.setId(cursor.getInt(0));
         st.setTime(cursor.getInt(1));
         st.setTimestamp(cursor.getLong(2));

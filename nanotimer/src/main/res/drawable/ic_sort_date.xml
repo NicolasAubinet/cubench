@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sort picker row: a calendar page, for the history in date order. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M6.5,5.5 H17.5 A2.5,2.5 0 0 1 20,8 V17.5 A2.5,2.5 0 0 1 17.5,20 H6.5 A2.5,2.5 0 0 1 4,17.5 V8 A2.5,2.5 0 0 1 6.5,5.5 Z
+                        M4,10 H20
+                        M8.5,3.5 V7 M15.5,3.5 V7"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.8"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>

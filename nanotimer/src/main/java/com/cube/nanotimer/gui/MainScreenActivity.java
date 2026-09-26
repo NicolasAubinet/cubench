@@ -74,6 +74,7 @@ import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
+import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
@@ -122,6 +123,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private int solvesCount;
   private int currentOrientation;
   private TimesSort timesSort = TimesSort.TIMESTAMP;
+  private final List<TimesSort> sortOptions = new ArrayList<>(); // the rows of the open sort picker
   private boolean refreshingHistory;
 
   private final List<SolveTime> liHistory = new ArrayList<>();
@@ -169,6 +171,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   // per data load over the last N solves (N = Options.getColorSampleSize()).
   private TimeColorScale timeColorScale;
   private int recordColor;
+  private int whiteColor;
   private int[] stepColors;
 
   private Toast quitMessage;
@@ -179,6 +182,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private static final int ID_SOLVETYPE = 2;
   private static final int ID_IMPORTEXPORT = 3;
   private static final int ID_LANGUAGE = 4;
+  private static final int ID_SORT = 5;
   /** One id per statistics cell, so a pick comes back knowing which cell asked. */
   private static final int ID_STAT_CELL = 10;
 
@@ -248,6 +252,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     super.initViews();
     timeColorScale = new TimeColorScale(this);
     recordColor = ContextCompat.getColor(this, R.color.new_record);
+    whiteColor = ContextCompat.getColor(this, R.color.white);
     stepColors = SolveStepBars.stepColors(this);
 
     tvCubeType = (TextView) findViewById(R.id.tvCubeType);
@@ -531,7 +536,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           if (totalItemCount == lastVisibleItem && lastVisibleItem != previousLastItem) {
             previousLastItem = lastVisibleItem;
             long from;
-            if (timesSort == TimesSort.TIME) {
+            if (timesSort.isAverage()) {
+              from = liHistory.size(); // average sorts page by offset
+            } else if (timesSort == TimesSort.TIME) {
               from = liHistory.get(liHistory.size() - 1).getTime();
             } else {
               from = liHistory.get(liHistory.size() - 1).getTimestamp();
@@ -1028,7 +1035,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     toggle.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        setSortMode(timesSort == TimesSort.TIMESTAMP ? TimesSort.TIME : TimesSort.TIMESTAMP);
+        openSortPicker();
       }
     });
     // The toggle takes the whole height of the bar, measured on each layout: the bar starts out hidden.
@@ -1063,8 +1070,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         tvHistoryGroup.setText(group);
       }
     }
-    String order = getString(
-      timesSort == TimesSort.TIMESTAMP ? R.string.sort_by_date : R.string.best_times);
+    String order = sortLabel(timesSort);
     if (!order.contentEquals(tvHistorySort.getText())) {
       tvHistorySort.setText(order);
     }
@@ -1146,6 +1152,83 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     refreshSolveTypes();
   }
 
+  /** Date, best times, then the best averages: every average for a normal type, only the Mo3 for a blind one. */
+  private void openSortPicker() {
+    if (curSolveType == null) {
+      return;
+    }
+    boolean blind = curSolveType.isBlind();
+    sortOptions.clear();
+    sortOptions.addAll(Arrays.asList(TimesSort.TIMESTAMP, TimesSort.TIME, TimesSort.AVG5));
+    if (!blind) {
+      sortOptions.addAll(Arrays.asList(TimesSort.AVG12, TimesSort.AVG50, TimesSort.AVG100));
+    }
+    ArrayList<String> names = new ArrayList<>();
+    ArrayList<Integer> icons = new ArrayList<>();
+    ArrayList<Integer> colors = new ArrayList<>();
+    ArrayList<String> tileLabels = new ArrayList<>();
+    ArrayList<String> figures = new ArrayList<>();
+    for (TimesSort sort : sortOptions) {
+      names.add(sort == TimesSort.TIMESTAMP ? getString(R.string.sort_by_date) : sortLabel(sort));
+      icons.add(sort == TimesSort.TIMESTAMP ? R.drawable.ic_sort_date
+        : sort == TimesSort.TIME ? R.drawable.ic_sort_best : 0);
+      colors.add(sort == TimesSort.TIMESTAMP ? R.color.lightblue
+        : sort == TimesSort.TIME ? R.color.new_record : R.color.green_soft);
+      tileLabels.add(sort.isAverage() ? String.valueOf(shownSize(sort)) : "");
+      figures.add(sortRecord(sort));
+    }
+    DialogUtils.showFragment(this, SelectorListDialog
+      .newInstance(ID_SORT, names, null, icons, colors, sortOptions.indexOf(timesSort), null, 0, this)
+      .setTileLabels(tileLabels)
+      .setFigures(figures)
+      .setHeader(getString(R.string.sort_by), Utils.toSolveTypeLocalizedName(this, curSolveType.getName()),
+        SolveTypeIcons.forSolveType(curSolveType), SolveTypeIcons.colorForSolveType(curSolveType)));
+  }
+
+  /** The label of a sort in the sort bar and the picker: "By date", "Best times", "Best Ao12". */
+  private String sortLabel(TimesSort sort) {
+    if (sort.isAverage()) {
+      return getString(R.string.sort_best_average, getString(averageLabel(shownSize(sort))));
+    }
+    return getString(sort == TimesSort.TIMESTAMP ? R.string.sort_by_date : R.string.best_times);
+  }
+
+  /** The average size to display for a sort: the avg5 column holds the Mo3 on a blind type. */
+  private int shownSize(TimesSort sort) {
+    boolean blind = curSolveType != null && curSolveType.isBlind();
+    return blind && sort == TimesSort.AVG5 ? 3 : sort.getAverageSize();
+  }
+
+  /** The best value for a sort, shown in the picker, or "" if there is none yet. */
+  private String sortRecord(TimesSort sort) {
+    if (shownAverages == null || sort == TimesSort.TIMESTAMP) {
+      return "";
+    }
+    Long record;
+    switch (sort) {
+      case TIME: record = shownAverages.getBestOfLifetime(); break;
+      case AVG5: record = shownSize(sort) == 3 ? shownAverages.getBestOf3() : shownAverages.getBestOf5(); break;
+      case AVG12: record = shownAverages.getBestOf12(); break;
+      case AVG50: record = shownAverages.getBestOf50(); break;
+      default: record = shownAverages.getBestOf100(); break;
+    }
+    return record == null || record <= 0 ? "" : FormatterService.INSTANCE.formatSolveTime(record);
+  }
+
+  /** The average shown on a row in an average sort, null in the other sorts. */
+  private Long sortedAverage(SolveTime st) {
+    if (!timesSort.isAverage() || !(st instanceof SolveTimeAverages)) {
+      return null;
+    }
+    SolveTimeAverages sta = (SolveTimeAverages) st;
+    switch (timesSort) {
+      case AVG5: return sta.getAvgOf5();
+      case AVG12: return sta.getAvgOf12();
+      case AVG50: return sta.getAvgOf50();
+      default: return sta.getAvgOf100();
+    }
+  }
+
   private void setSortMode(TimesSort timesSort) {
     if (this.timesSort != timesSort) {
       this.timesSort = timesSort;
@@ -1172,6 +1255,10 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           Intent i = new Intent(this, SolveTypesActivity.class);
           i.putExtra("cubeType", curCubeType);
           startActivity(i);
+        }
+      } else if (id == ID_SORT) {
+        if (position < sortOptions.size()) {
+          setSortMode(sortOptions.get(position));
         }
       } else if (id >= ID_STAT_CELL && id < ID_STAT_CELL + STAT_CELL_IDS.length) {
         statPicked(id - ID_STAT_CELL, position);
@@ -1271,6 +1358,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private void setCurSolveType(SolveType solveType) {
     this.curSolveType = solveType;
+    if (solveType != null && solveType.isBlind() && timesSort.isAverage() && timesSort != TimesSort.AVG5) {
+      timesSort = TimesSort.TIMESTAMP; // a blind type is only sorted by its Mo3
+    }
     Utils.setCurrentSolveType(this, solveType);
     refreshMenu(); // the hub's rows depend on which type is picked
   }
@@ -1525,12 +1615,19 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
               : FormatterService.INSTANCE.formatSolveMoment(st.getTimestamp(), System.currentTimeMillis()));
 
           TextView tvTime = (TextView) view.findViewById(R.id.tvTime);
-          tvTime.setText(FormatterService.INSTANCE.formatRowSolveTime(st));
-          // A record wears the record colour, which the gradient never produces; everything else
-          // is colored green→white→red (fast→median→slow), and DNFs stay gray. Set on every bind
-          // so recycled rows never keep a stale color.
-          tvTime.setTextColor(st.isPb() ? recordColor : timeColorScale.colorFor(st));
-          view.findViewById(R.id.tvPbChip).setVisibility(st.isPb() ? View.VISIBLE : View.GONE);
+          Long average = sortedAverage(st);
+          if (average != null) {
+            // Average sort: show the average ending at this solve, in the record colour if it was a PB.
+            tvTime.setText(FormatterService.INSTANCE.formatSolveTime(average));
+            tvTime.setTextColor(st.getAverageRecords().contains(shownSize(timesSort)) ? recordColor : whiteColor);
+          } else {
+            tvTime.setText(FormatterService.INSTANCE.formatRowSolveTime(st));
+            // A record wears the record colour, which the gradient never produces; everything else
+            // is colored green→white→red (fast→median→slow), and DNFs stay gray. Set on every bind
+            // so recycled rows never keep a stale color.
+            tvTime.setTextColor(st.isPb() ? recordColor : timeColorScale.colorFor(st));
+          }
+          view.findViewById(R.id.tvPbChip).setVisibility(st.isPb() && average == null ? View.VISIBLE : View.GONE);
           TextView tvAvgPb = (TextView) view.findViewById(R.id.tvAvgPbChip);
           tvAvgPb.setVisibility(st.getAverageRecords().isEmpty() ? View.GONE : View.VISIBLE);
           tvAvgPb.setText(averageRecordsLabel(st.getAverageRecords()));

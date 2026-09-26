@@ -58,6 +58,8 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
   private static final String ARG_SELECTED = "selected";
   private static final String ARG_FOOTER = "footer";
   private static final String ARG_FOOTER_ICON = "footerIcon";
+  private static final String ARG_FIGURES = "figures";
+  private static final String ARG_TILE_LABELS = "tileLabels";
 
   private static final float ROW_RADIUS_DP = 10f;
   private static final float TILE_RADIUS_DP = 10f;
@@ -75,6 +77,8 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
   private List<Integer> colorIds;
   private String footerLabel;
   private int footerIcon;
+  private List<String> figures;
+  private List<String> tileLabels;
   private float density;
 
   /**
@@ -135,6 +139,18 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
     return this;
   }
 
+  /** A value per row in the record colour, before the count ("" for none), such as the row's best. */
+  public SelectorListDialog setFigures(ArrayList<String> figures) {
+    getArguments().putStringArrayList(ARG_FIGURES, figures);
+    return this;
+  }
+
+  /** Short text drawn in a row's tile instead of an icon, for the rows whose icon is 0 ("" for none). */
+  public SelectorListDialog setTileLabels(ArrayList<String> tileLabels) {
+    getArguments().putStringArrayList(ARG_TILE_LABELS, tileLabels);
+    return this;
+  }
+
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     density = getResources().getDisplayMetrics().density;
@@ -151,6 +167,8 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
     selectedIndex = args.getInt(ARG_SELECTED);
     footerLabel = args.getString(ARG_FOOTER);
     footerIcon = args.getInt(ARG_FOOTER_ICON);
+    figures = args.getStringArrayList(ARG_FIGURES);
+    tileLabels = args.getStringArrayList(ARG_TILE_LABELS);
 
     final List<String> rows = new ArrayList<>(names);
     if (footerLabel != null) {
@@ -227,6 +245,10 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
     return ContextCompat.getColor(getContext(), colorIds.get(position));
   }
 
+  private static String textAt(List<String> texts, int position) {
+    return texts == null || position >= texts.size() || texts.get(position) == null ? "" : texts.get(position);
+  }
+
   private static int withAlpha(int color, int alpha) {
     return (color & 0x00FFFFFF) | (alpha << 24);
   }
@@ -291,15 +313,26 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
       bar.setVisibility(isSelected ? View.VISIBLE : View.INVISIBLE);
 
       ImageView icon = (ImageView) view.findViewById(R.id.imgIcon);
+      TextView tvTileLabel = (TextView) view.findViewById(R.id.tvTileLabel);
       View tile = view.findViewById(R.id.iconTile);
       // Boxed on both branches: mixing int and Integer here would unbox the null one instead.
       Integer iconId = isFooter ? Integer.valueOf(footerIcon)
         : (iconIds == null ? null : iconIds.get(position));
+      String tileLabel = isFooter ? "" : textAt(tileLabels, position);
       if (iconId != null && iconId != 0) {
         icon.setImageResource(iconId);
         icon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        icon.setVisibility(View.VISIBLE);
+        tvTileLabel.setVisibility(View.GONE);
         // The trailing action is not one of the things being chosen, so it gets no tile.
         tile.setBackground(isFooter ? null : tile(color, isSelected));
+        tile.setVisibility(View.VISIBLE);
+      } else if (!tileLabel.isEmpty()) {
+        tvTileLabel.setText(tileLabel);
+        tvTileLabel.setTextColor(color);
+        tvTileLabel.setVisibility(View.VISIBLE);
+        icon.setVisibility(View.GONE);
+        tile.setBackground(tile(color, isSelected));
         tile.setVisibility(View.VISIBLE);
       } else {
         tile.setVisibility(View.GONE);
@@ -310,6 +343,13 @@ public class SelectorListDialog extends NanoTimerDialogFragment {
       tvName.setTextColor(isSelected || isFooter
         ? color : ContextCompat.getColor(getContext(), R.color.white));
       GUIUtils.setWeight(tvName, isSelected ? Typeface.BOLD : Typeface.NORMAL);
+
+      TextView tvFigure = (TextView) view.findViewById(R.id.tvFigure);
+      String figure = isFooter ? "" : textAt(figures, position);
+      tvFigure.setText(figure);
+      if (figures != null) { // the other pickers keep the empty slot they always had
+        tvFigure.setVisibility(figure.isEmpty() ? View.GONE : View.VISIBLE);
+      }
 
       TextView tvCount = (TextView) view.findViewById(R.id.tvCount);
       String count = (isFooter || counts == null) ? "" : counts.get(position);

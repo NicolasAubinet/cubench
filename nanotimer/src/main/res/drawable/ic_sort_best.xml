@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sort picker row: a trophy, for the history ranked by best time. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:pathData="M7.5,4 H16.5 V9 A4.5,4.5 0 0 1 7.5,9 Z
+                        M7.5,5.5 H4.5 V7 A3.5,3.5 0 0 0 8,10.5
+                        M16.5,5.5 H19.5 V7 A3.5,3.5 0 0 1 16,10.5
+                        M12,13.5 V17 M8.5,20 H15.5 M9.5,20 L10,17 H14 L14.5,20"
+      android:fillColor="#00000000"
+      android:strokeColor="#FFFFFFFF"
+      android:strokeWidth="1.8"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>
