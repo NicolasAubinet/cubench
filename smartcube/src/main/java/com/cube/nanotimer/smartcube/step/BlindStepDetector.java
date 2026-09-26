@@ -1441,6 +1441,9 @@ public final class BlindStepDetector implements StepDetector {
     if (landing.buffer == BlindTargets.NO_BUFFER) {
       return null;
     }
+    if (landing.swapped()) {
+      return targets.wantedSwap(landing.before, landing.buffer);
+    }
     // A break-in the cube did not object to is said back as the solver made it, the target after it
     // being all that was owed; anywhere else the cube names the whole cycle it was standing in.
     return brokeInAndLandedNothing(landing).isEmpty()
@@ -1492,7 +1495,18 @@ public final class BlindStepDetector implements StepDetector {
     if (brokeIn.isEmpty()) {
       brokeIn = brokeInAndLandedNothing(landing);
     }
-    return brokeIn.isEmpty() ? shotsThatNeverLanded(landing) : brokeIn;
+    List<Integer> blamed = brokeIn.isEmpty() ? shotsThatNeverLanded(landing) : brokeIn;
+    if (!swaps) {
+      return blamed;
+    }
+    List<Integer> carried = carriedAlongTheirOwnType();
+    List<Integer> kept = new ArrayList<>();
+    for (int slot : blamed) {
+      if (!movedAfter(landing, slot) && !carried.contains(slot)) {
+        kept.add(slot);
+      }
+    }
+    return kept;
   }
 
   /**
@@ -1619,6 +1633,63 @@ public final class BlindStepDetector implements StepDetector {
       }
     }
     return blamed;
+  }
+
+  // Pieces carried beside a swap's own pair and of its type, M2's: crossed until the next M2, so
+  // never judged. A T perm's corners are the other type's targets, and are.
+  private List<Integer> carriedAlongTheirOwnType() {
+    List<Integer> carried = new ArrayList<>();
+    for (Landing landing : landings) {
+      if (!landing.swapped() || landing.pieces.size() == BlindSwaps.PIECES) {
+        continue;
+      }
+      List<List<Integer>> pairs = BlindSwaps.exchanges(landing.before, landing.after);
+      for (List<Integer> pair : pairs == null ? Collections.<List<Integer>>emptyList() : pairs) {
+        if (!pair.containsAll(landing.pieces)
+            && Cubies.isEdge(pair.get(0)) == Cubies.isEdge(landing.pieces.get(0))) {
+          carried.addAll(pair);
+          carried.addAll(sliceOf(landing.buffer, pair));
+        }
+      }
+    }
+    return carried;
+  }
+
+  // The edges of the slice the buffer and a carried pair share: an M2 turns all four, the bare M2
+  // of an FU or BD algorithm leaving the fourth astray too.
+  private static List<Integer> sliceOf(int buffer, List<Integer> pair) {
+    List<Integer> slice = new ArrayList<>();
+    for (String axis : new String[] {"UD", "FB", "RL"}) {
+      if (offAxis(buffer, axis) && offAxis(pair.get(0), axis) && offAxis(pair.get(1), axis)) {
+        for (int slot = 0; slot < PIECES.length; slot++) {
+          if (Cubies.isEdge(slot) && offAxis(slot, axis)) {
+            slice.add(slot);
+          }
+        }
+      }
+    }
+    return slice;
+  }
+
+  private static boolean offAxis(int slot, String axis) {
+    for (int facelet : PIECES[slot]) {
+      if (axis.indexOf(Cubies.SOLVED.charAt(facelet)) >= 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Where the solver shoots, the helper and carried pair move constantly: a target a later algorithm
+  // moved says nothing of the one that aimed at it.
+  private boolean movedAfter(Landing landing, int slot) {
+    for (int i = landings.indexOf(landing) + 1; i < landings.size(); i++) {
+      Landing later = landings.get(i);
+      if (Cubies.moved(later.before, later.after).contains(slot)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1794,7 +1865,8 @@ public final class BlindStepDetector implements StepDetector {
   @Override
   public ParityCheck getParityCheck() {
     BlindResidual residual = getResidual();
-    if (residual == null || residual.getShape() != BlindResidual.Shape.PARITY) {
+    // A solver who shoots is left the same two-and-two by a missed shot, and nothing tells them apart.
+    if (swaps || residual == null || residual.getShape() != BlindResidual.Shape.PARITY) {
       return null;
     }
     if (!parity) {

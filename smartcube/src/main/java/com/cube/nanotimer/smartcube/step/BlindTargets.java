@@ -202,6 +202,22 @@ final class BlindTargets {
   }
 
   /**
+   * What the cube owed a swap: the buffer and the one sticker its piece belongs on. Null where the
+   * buffer holds its own piece, the next target then being wherever the solver breaks in.
+   */
+  String wantedSwap(String before, int buffer) {
+    int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);
+    int first = homeFacelet(before, start);
+    if (first < 0 || Cubies.slotOf(first) == buffer) {
+      return null;
+    }
+    List<String> names = new ArrayList<String>(2);
+    names.add(spell(buffer));
+    names.add(spellFrom(first));
+    return join(names);
+  }
+
+  /**
    * What the cube owed an algorithm that opened a new cycle: the break-in as the solver made it,
    * and then the sticker the piece it takes into the buffer belongs on.
    *

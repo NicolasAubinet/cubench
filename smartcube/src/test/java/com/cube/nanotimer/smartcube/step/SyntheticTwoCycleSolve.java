@@ -76,11 +76,13 @@ final class SyntheticTwoCycleSolve {
     final int targetFacelet; // in the solver's frame, which is the frame a detector spells in
     final String name; // what a detector should call it: the cycle the algorithm shot
     final List<String> reported;
+    final List<String> made; // the solver's own turns, slices and rotations included
 
-    Shot(int targetFacelet, String name, List<String> reported) {
+    Shot(int targetFacelet, String name, List<String> reported, List<String> made) {
       this.targetFacelet = targetFacelet;
       this.name = name;
       this.reported = reported;
+      this.made = made;
     }
   }
 
@@ -319,6 +321,14 @@ final class SyntheticTwoCycleSolve {
     record(DF_BUFFER, -1, block);
   }
 
+  /**
+   * Turns made exactly as given, for a solve that departs from its memo: an algorithm skipped,
+   * repeated or shot at the wrong target. Named from the buffer given, whatever they did.
+   */
+  void make(int bufferFacelet, List<String> turns) {
+    play(bufferFacelet, -1, turns);
+  }
+
   /** Play one algorithm, or the algorithms it turns out to be. */
   private void record(int bufferFacelet, int target, List<String> block) {
     for (List<String> part : parts(block)) {
@@ -357,7 +367,8 @@ final class SyntheticTwoCycleSolve {
       state = apply(state, MOVES.get(move));
       drift(); // throws unless the two accounts are still one cube seen from two angles
     }
-    shots.add(new Shot(target, cycleName(bufferFacelet, block), asReported));
+    shots.add(new Shot(target, cycleName(bufferFacelet, block), asReported,
+        new ArrayList<String>(block)));
     reported.addAll(asReported);
     if (shots.size() > 60) {
       throw new IllegalStateException("the synthetic solve is not converging");

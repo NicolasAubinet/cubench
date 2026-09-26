@@ -153,6 +153,90 @@ public class BlindTwoCycleTest {
     }
   }
 
+  /** Stopped short, every algorithm read was right: nothing red, and no parity said to be skipped. */
+  @Test
+  public void blamesNothingOnASolveStoppedShort() {
+    Random random = new Random(20260925);
+    for (int attempt = 0; attempt < SCRAMBLES / 3; attempt++) {
+      String scramble = scramble(random);
+      for (boolean op : new boolean[] {true, false}) {
+        List<List<String>> made = made(op ? oldPochmann(scramble) : m2(scramble));
+        for (int kept : new int[] {made.size() - 1, made.size() / 2}) {
+          BlindStepDetector detector = replay(scramble, made.subList(0, kept), op);
+
+          assertEquals(scramble, -1, firstRed(detector));
+          assertEquals(scramble, null, detector.getParityCheck());
+        }
+      }
+    }
+  }
+
+  /** A memo item skipped: the algorithms before it stay clean, whichever way the solver shoots. */
+  @Test
+  public void blamesNothingBeforeASkippedMemoItem() {
+    Random random = new Random(20260925);
+    for (int attempt = 0; attempt < SCRAMBLES / 3; attempt++) {
+      String scramble = scramble(random);
+      for (boolean op : new boolean[] {true, false}) {
+        List<List<String>> made = made(op ? oldPochmann(scramble) : m2(scramble));
+        int skipped = 1 + random.nextInt(made.size() - 2);
+        made.remove(skipped);
+        BlindStepDetector detector = replay(scramble, made, op);
+
+        int red = firstRed(detector);
+        assertTrue(scramble + " red at " + red, red < 0 || red >= skipped);
+      }
+    }
+  }
+
+  /** The shot that took a skipped item's turn is red, and says the one target the cube owed. */
+  @Test
+  public void namesTheSkippedTargetOnTheSwapThatMissedIt() {
+    String scramble = scramble(new Random(11));
+    SyntheticTwoCycleSolve solve = oldPochmann(scramble);
+    List<List<String>> made = made(solve);
+    made.remove(6);
+    BlindStepDetector detector = replay(scramble, made, true);
+
+    assertEquals(6, firstRed(detector));
+    assertEquals(solve.shots().get(6).name, detector.subStepWantedName(1, 6));
+  }
+
+  private static List<List<String>> made(SyntheticTwoCycleSolve solve) {
+    List<List<String>> made = new ArrayList<List<String>>();
+    for (SyntheticTwoCycleSolve.Shot shot : solve.shots()) {
+      made.add(shot.made);
+    }
+    return made;
+  }
+
+  /** Turns made as given, so the drift a skipped M2 would have left is left out too. */
+  private static BlindStepDetector replay(String scramble, List<List<String>> made, boolean op) {
+    SyntheticTwoCycleSolve solve = new SyntheticTwoCycleSolve();
+    solve.scramble(scramble);
+    for (List<String> turns : made) {
+      solve.make(SyntheticTwoCycleSolve.UR_BUFFER, turns);
+    }
+    BlindStepDetector detector = new BlindStepDetector();
+    detector.setBuffers(op ? "UR" : "DF", "ULB");
+    detector.setSwaps(true);
+    play(scrambled(scramble), detector, solve.reportedSolve().toArray(new String[0]));
+    return detector;
+  }
+
+  /** The first algorithm carrying red, counted across the steps, or -1. */
+  private static int firstRed(StepDetector detector) {
+    int index = 0;
+    for (int step = 1; step < detector.stepCount(); step++) {
+      for (int part = 0; part < detector.subStepCount(step); part++, index++) {
+        if (detector.subStepPieceMarks(step, part).contains(PieceMark.WRONG)) {
+          return index;
+        }
+      }
+    }
+    return -1;
+  }
+
   /** Edges first: the corner algorithm's two edges cancel, the edge one's two corners are still out. */
   static SyntheticTwoCycleSolve oldPochmann(String scramble) {
     SyntheticTwoCycleSolve solve = new SyntheticTwoCycleSolve();
