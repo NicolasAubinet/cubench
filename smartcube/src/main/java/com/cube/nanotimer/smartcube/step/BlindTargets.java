@@ -202,8 +202,8 @@ final class BlindTargets {
   }
 
   /**
-   * What the cube owed a swap: the buffer and the one sticker its piece belongs on. Null where the
-   * buffer holds its own piece, the next target then being wherever the solver breaks in.
+   * The swap that was due: the buffer and the sticker where the buffer's piece belongs. Null when
+   * the buffer holds its own piece, since the next target is then the solver's choice.
    */
   String wantedSwap(String before, int buffer) {
     int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);

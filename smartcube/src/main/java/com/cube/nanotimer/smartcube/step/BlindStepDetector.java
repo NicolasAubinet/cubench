@@ -1502,7 +1502,7 @@ public final class BlindStepDetector implements StepDetector {
     List<Integer> carried = carriedAlongTheirOwnType();
     List<Integer> kept = new ArrayList<>();
     for (int slot : blamed) {
-      if (!movedAfter(landing, slot) && !carried.contains(slot)) {
+      if (!changedAfter(landing, slot) && !carried.contains(slot)) {
         kept.add(slot);
       }
     }
@@ -1635,8 +1635,8 @@ public final class BlindStepDetector implements StepDetector {
     return blamed;
   }
 
-  // Pieces carried beside a swap's own pair and of its type, M2's: crossed until the next M2, so
-  // never judged. A T perm's corners are the other type's targets, and are.
+  // M2's extra swapped pair and the edges of its slice: they stay scrambled until the next M2, so
+  // they are never blamed. OP's extra pair is the other type, and is blamed as usual.
   private List<Integer> carriedAlongTheirOwnType() {
     List<Integer> carried = new ArrayList<>();
     for (Landing landing : landings) {
@@ -1655,8 +1655,7 @@ public final class BlindStepDetector implements StepDetector {
     return carried;
   }
 
-  // The edges of the slice the buffer and a carried pair share: an M2 turns all four, the bare M2
-  // of an FU or BD algorithm leaving the fourth astray too.
+  // The four edges of the slice that holds the buffer and the pair, which an M2 moves together.
   private static List<Integer> sliceOf(int buffer, List<Integer> pair) {
     List<Integer> slice = new ArrayList<>();
     for (String axis : new String[] {"UD", "FB", "RL"}) {
@@ -1680,12 +1679,12 @@ public final class BlindStepDetector implements StepDetector {
     return true;
   }
 
-  // Where the solver shoots, the helper and carried pair move constantly: a target a later algorithm
-  // moved says nothing of the one that aimed at it.
-  private boolean movedAfter(Landing landing, int slot) {
-    for (int i = landings.indexOf(landing) + 1; i < landings.size(); i++) {
-      Landing later = landings.get(i);
-      if (Cubies.moved(later.before, later.after).contains(slot)) {
+  // Whether the slot holds another piece at the end than this algorithm left in it. Only then can a
+  // later algorithm be the cause (OP's Y perm swaps UL and UB back and forth, changing nothing).
+  private boolean changedAfter(Landing landing, int slot) {
+    String last = landings.get(landings.size() - 1).after;
+    for (int facelet : PIECES[slot]) {
+      if (landing.after.charAt(facelet) != last.charAt(facelet)) {
         return true;
       }
     }

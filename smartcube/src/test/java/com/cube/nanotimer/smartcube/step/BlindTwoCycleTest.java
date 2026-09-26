@@ -202,6 +202,18 @@ public class BlindTwoCycleTest {
     assertEquals(solve.shots().get(6).name, detector.subStepWantedName(1, 6));
   }
 
+  /** The skipped item's piece goes to UL, which the Y perms swap with UB an even number of times. */
+  @Test
+  public void blamesASkipWhoseTargetTheCornerAlgorithmsMoveAndPutBack() {
+    String scramble = "L2 U2 R2 U B2 D' R2 D B2 L2 F L' D L' R2 U B2 F' R F' D'";
+    List<List<String>> made = made(oldPochmann(scramble));
+    made.remove(6);
+    BlindStepDetector detector = replay(scramble, made, true);
+
+    assertEquals(6, firstRed(detector));
+    assertEquals("UR-BD", detector.subStepWantedName(1, 6));
+  }
+
   private static List<List<String>> made(SyntheticTwoCycleSolve solve) {
     List<List<String>> made = new ArrayList<List<String>>();
     for (SyntheticTwoCycleSolve.Shot shot : solve.shots()) {
