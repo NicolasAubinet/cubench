@@ -1031,15 +1031,16 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         setSortMode(timesSort == TimesSort.TIMESTAMP ? TimesSort.TIME : TimesSort.TIMESTAMP);
       }
     });
-    // A line of headings is shorter than a finger, so the toggle takes the whole height of the bar.
-    historySortBar.post(new Runnable() {
+    // The toggle takes the whole height of the bar, measured on each layout: the bar starts out hidden.
+    historySortBar.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
       @Override
-      public void run() {
+      public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                                 int oldLeft, int oldTop, int oldRight, int oldBottom) {
         Rect hit = new Rect();
         toggle.getHitRect(hit);
         hit.top = 0;
-        hit.bottom = historySortBar.getHeight();
-        hit.right = historySortBar.getWidth();
+        hit.bottom = bottom - top;
+        hit.right = right - left;
         historySortBar.setTouchDelegate(new TouchDelegate(hit, toggle));
       }
     });

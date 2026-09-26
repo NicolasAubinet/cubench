@@ -2,7 +2,8 @@
 
 <!-- The history list's heading, pinned. It names the day the rows under it belong to, and carries
      the one choice the list offers, which order it is in. The rows scroll behind it, and at the top
-     it stands exactly where the first row draws its own heading, so it costs the list no height. -->
+     it stands exactly where the first row draws its own heading, so it costs the list no height.
+     Clickable so a tap on it never reaches the row underneath. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:id="@+id/historySortBar"
    android:layout_width="match_parent"
@@ -10,6 +11,7 @@
    android:orientation="horizontal"
    android:gravity="center_vertical"
    android:background="@color/graybg"
+   android:clickable="true"
    android:paddingLeft="@dimen/history_bar_inset"
    android:paddingRight="@dimen/history_bar_inset"
    android:paddingTop="@dimen/space_m"
