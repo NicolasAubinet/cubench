@@ -324,6 +324,38 @@ public class BlindTwoCycleTest {
     return held;
   }
 
+  /** A hybrid: one 3-style corner commutator from UBL among the Y perms, each name still read. */
+  @Test
+  public void readsACornerCommutatorAmongTheYPerms() {
+    List<String> commutator = Arrays.asList("L' U R U' L U R' U'".split(" ")); // [L', U R U']
+    Random random = new Random(20260927);
+    for (int attempt = 0; attempt < SCRAMBLES / 3; attempt++) {
+      String scramble = scramble(random);
+      SyntheticTwoCycleSolve solve = new SyntheticTwoCycleSolve();
+      solve.scramble(scramble);
+      solve.shootAll(SyntheticTwoCycleSolve.Y_PERM, SyntheticTwoCycleSolve.ULB_BUFFER, true, 2);
+      int at = solve.shots().size();
+      solve.make(SyntheticTwoCycleSolve.ULB_BUFFER, commutator);
+      solve.shootAll(SyntheticTwoCycleSolve.Y_PERM, SyntheticTwoCycleSolve.ULB_BUFFER, true);
+      int parityAt = -1;
+      if ((solve.shots().size() - 1) % 2 == 1) { // the commutator is even: only the Y perms count
+        parityAt = solve.shots().size();
+        solve.shoot(SyntheticTwoCycleSolve.RA_PERM, "");
+      }
+      solve.shootAll(SyntheticTwoCycleSolve.T_PERM, SyntheticTwoCycleSolve.UR_BUFFER, true);
+      assertTrue(solve.leftOver(), solve.isSolved());
+      List<String> expected = names(solve);
+      assertEquals(scramble, "UBL-RUB-FUL", expected.get(at));
+      if (parityAt >= 0) {
+        expected.set(parityAt, "UFR-UBR + UL-UB");
+      }
+      BlindStepDetector detector = read(scramble, solve, "UR", "UBL");
+
+      assertEquals(scramble, -1, firstRed(detector));
+      assertEquals(scramble, expected, readNames(detector));
+    }
+  }
+
   private static List<String> readNames(StepDetector detector) {
     List<String> names = new ArrayList<String>();
     for (int step = 1; step < detector.stepCount(); step++) {

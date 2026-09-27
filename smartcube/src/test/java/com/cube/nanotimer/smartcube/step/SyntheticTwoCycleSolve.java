@@ -296,6 +296,11 @@ final class SyntheticTwoCycleSolve {
    * the algorithm's other pieces in place, as a solver who memorised everything up front must.
    */
   void shootAll(String alg, int bufferFacelet, boolean preserving) {
+    shootAll(alg, bufferFacelet, preserving, Integer.MAX_VALUE);
+  }
+
+  /** As {@link #shootAll(String, int, boolean)}, stopping after {@code most} algorithms. */
+  void shootAll(String alg, int bufferFacelet, boolean preserving, int most) {
     List<String> algMoves = Arrays.asList(alg.split(" "));
     int helper = imageOfSequence(algMoves)[bufferFacelet];
     int bufferSlot = Cubies.slotOf(bufferFacelet);
@@ -306,7 +311,7 @@ final class SyntheticTwoCycleSolve {
       keep.remove(Integer.valueOf(Cubies.slotOf(helper)));
     }
     Map<Integer, List<String>> setups = setupsTo(helper, bufferSlot, keep);
-    while (!typeSolved(state, bufferSlot)) {
+    for (int shot = 0; shot < most && !typeSolved(state, bufferSlot); shot++) {
       int target = homeFaceletOf(state, bufferFacelet);
       if (Cubies.slotOf(target) == bufferSlot) {
         // The buffer holds its own piece, home or merely turned where it stands: a cycle has closed
