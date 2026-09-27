@@ -30,7 +30,11 @@ final class BlindSwaps {
 
   /** The two pairs an algorithm exchanged, or null where it did not exchange two pairs. */
   static List<List<Integer>> exchanges(String before, String after) {
-    List<Integer> moved = Cubies.moved(before, after);
+    return exchanges(before, after, Cubies.moved(before, after));
+  }
+
+  /** The same, of these pieces alone: against the solved cube, the pairs a state is left swapped in. */
+  static List<List<Integer>> exchanges(String before, String after, List<Integer> moved) {
     if (moved.size() != PIECES) {
       return null;
     }

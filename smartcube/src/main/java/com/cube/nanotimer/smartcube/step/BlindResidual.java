@@ -1,7 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -140,7 +139,7 @@ public final class BlindResidual {
       Shape shape = edges ? Shape.EDGE_CYCLE : Shape.CORNER_CYCLE;
       return new BlindResidual(shape, shotToFix(steady, cycle, targets), alsoTurned, count);
     }
-    List<List<Integer>> pairs = pairsOf(steady, misplaced);
+    List<List<Integer>> pairs = BlindSwaps.exchanges(Cubies.SOLVED, steady, misplaced);
     if (pairs != null) {
       boolean oneType = Cubies.isEdge(pairs.get(0).get(0)) == Cubies.isEdge(pairs.get(1).get(0));
       if (!oneType && !swaps) {
@@ -214,21 +213,6 @@ public final class BlindResidual {
     return slot == cycle.get(0) ? cycle : null;
   }
 
-  // The four pieces as two swapped pairs, or null if they are not.
-  private static List<List<Integer>> pairsOf(String steady, List<Integer> misplaced) {
-    if (misplaced.size() != 4) {
-      return null;
-    }
-    int slot = misplaced.get(0);
-    List<Integer> first = Arrays.asList(slot, Cubies.homeSlotOf(steady, slot));
-    List<Integer> second = new ArrayList<Integer>(misplaced);
-    second.removeAll(first);
-    if (second.size() != 2 || !swapped(steady, first) || !swapped(steady, second)) {
-      return null;
-    }
-    return Arrays.asList(first, second);
-  }
-
   // Corners first when the pairs are of both types, else the pair with the buffer first.
   private static String said(BlindTargets targets, List<List<Integer>> pairs, int edgeBuffer,
       int cornerBuffer) {
@@ -242,12 +226,6 @@ public final class BlindResidual {
       Collections.reverse(ordered);
     }
     return said(targets, ordered.get(0), "-") + " + " + said(targets, ordered.get(1), "-");
-  }
-
-  /** Whether the two slots hold each other's piece. */
-  private static boolean swapped(String steady, List<Integer> pair) {
-    return Cubies.homeSlotOf(steady, pair.get(0)) == pair.get(1)
-        && Cubies.homeSlotOf(steady, pair.get(1)) == pair.get(0);
   }
 
   private static String said(BlindTargets targets, List<Integer> slots, String separator) {
