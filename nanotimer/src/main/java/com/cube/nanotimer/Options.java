@@ -32,8 +32,8 @@ public enum Options {
   /** What a 3-styler shoots from, and so what to assume of a solver who has not said. */
   public static final String DEFAULT_EDGE_BUFFER = "UF";
   public static final String DEFAULT_CORNER_BUFFER = "UFR";
-  /** What Old Pochmann shoots from. An M2 solver moves the edge to DF. */
-  public static final String DEFAULT_OP_EDGE_BUFFER = "UR";
+  /** OP corners with M2 edges, the usual pairing: an OP edge solver moves the edge to UR. */
+  public static final String DEFAULT_OP_EDGE_BUFFER = "DF";
   public static final String DEFAULT_OP_CORNER_BUFFER = "UBL";
   // The cube's own labels, so white up and green front: the orientation a scramble is followed in.
   public static final String DEFAULT_UP_FACE = "U";
