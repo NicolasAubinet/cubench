@@ -280,6 +280,16 @@ public final class BlindStepDetector implements StepDetector {
     // buffer holds whichever type was solved last.
     final int[] ofType = {BlindTargets.NO_BUFFER, BlindTargets.NO_BUFFER};
 
+    Buffers() {
+    }
+
+    Buffers(Buffers from) {
+      current = from.current;
+      last = from.last;
+      ofType[EDGES] = from.ofType[EDGES];
+      ofType[CORNERS] = from.ofType[CORNERS];
+    }
+
     /**
      * Whether a four-piece state is one swap on from the last landing: a pair it could have been
      * aimed at, and that pair holding the buffer, a piece put home or a piece type opened.
@@ -651,7 +661,7 @@ public final class BlindStepDetector implements StepDetector {
     for (Reading reading : readings) {
       if (!reading.shotFromStands()) {
         readAlgorithms(reading); // a buffer only inferred must not rule a swap out
-        reading.shotFrom = buffers;
+        reading.shotFrom = new Buffers(buffers); // a copy: reading on moves the detector's own
         reading.shotFromChain = reading.chain;
         reading.shotFromTail = reading.firstTail();
         named = true;
