@@ -67,7 +67,10 @@ public class BlindSetupPicker {
         buffersOf.get(method)[1]);
     bufferHost.addView(buffers.getView());
     initMethods(context);
-    view.findViewById(R.id.blindSetupChangeable).setVisibility(asked ? View.VISIBLE : View.GONE);
+    // The settings row changes the preference, which a type with its own method does not follow.
+    boolean ownMethod = solveType != null && solveType.getBlindMethodOverride() != null;
+    view.findViewById(R.id.blindSetupChangeable)
+        .setVisibility(asked && !ownMethod ? View.VISIBLE : View.GONE);
   }
 
   private void initMethods(Context context) {
