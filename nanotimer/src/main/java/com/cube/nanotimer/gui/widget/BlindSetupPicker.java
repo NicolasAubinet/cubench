@@ -11,6 +11,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.SolveType;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -38,6 +39,8 @@ public class BlindSetupPicker {
   private final BlindBufferPicker buffers;
   // Each method's buffers as picked so far, so switching back and forth loses nothing.
   private final Map<BlindMethod, String[]> buffersOf = new EnumMap<>(BlindMethod.class);
+  // As they were read, so an untouched method keeps following the default rather than freezing it.
+  private final Map<BlindMethod, String[]> loaded = new EnumMap<>(BlindMethod.class);
   private final SolveType solveType;
   private BlindMethod method;
 
@@ -53,8 +56,9 @@ public class BlindSetupPicker {
         Options.INSTANCE.getBlindUpFace(), Options.INSTANCE.getBlindFrontFace());
     orientationHost.addView(orientation.getView());
     for (BlindMethod each : METHODS) {
-      buffersOf.put(each, new String[] {Options.INSTANCE.getBlindEdgeBuffer(each),
+      loaded.put(each, new String[] {Options.INSTANCE.getBlindEdgeBuffer(each),
           Options.INSTANCE.getBlindCornerBuffer(each)});
+      buffersOf.put(each, loaded.get(each).clone());
     }
     method = solveType == null ? Options.INSTANCE.getPreferredBlindMethod()
         : SolveTypeMethod.blindMethodOf(solveType);
@@ -113,7 +117,10 @@ public class BlindSetupPicker {
     orientation.save();
     keepBuffers();
     for (BlindMethod each : METHODS) {
-      Options.INSTANCE.setBlindBuffers(each, buffersOf.get(each)[0], buffersOf.get(each)[1]);
+      String[] picked = buffersOf.get(each);
+      if (!Arrays.equals(picked, loaded.get(each))) {
+        Options.INSTANCE.setBlindBuffers(each, picked[0], picked[1]);
+      }
     }
     saveMethod();
     Options.INSTANCE.setBlindSetupAsked(true);
