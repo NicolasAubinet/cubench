@@ -1122,6 +1122,7 @@
   <string name="menu_drills">Entraînements</string>
   <string name="menu_coaching">Coaching</string>
   <string name="menu_premium_tag">Premium</string>
+  <string name="menu_hub_unavailable">Uniquement en 3x3 classique</string>
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">R\u00e9solution</string>
   <string name="analysis_tab_cases">Cas</string>

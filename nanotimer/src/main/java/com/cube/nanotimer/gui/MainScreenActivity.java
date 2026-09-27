@@ -153,6 +153,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   /** A row that names the group under it rather than leading anywhere, and cannot be tapped. */
   private static final int MENU_HEADER = -1;
+  private static final float UNAVAILABLE_ROW_ALPHA = 0.4f;
 
   /** Which entry each row of the drawer is, in order. {@link #MENU_HEADER} for a group label. */
   private int[] menuEntries;
@@ -452,11 +453,6 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         if (!SmartCubeGate.ENABLED) {
           continue;
         }
-        // Both rows open the hub, and a type it can say nothing about should not be a door into
-        // it. Drills stay: they are about cases rather than about this solve type.
-        if (entry != MENU_DRILLS && !AnalysisActivity.canAnalyse(curSolveType)) {
-          continue;
-        }
         if (!sectionOpened) {
           sectionOpened = true;
           entries.add(MENU_HEADER);
@@ -487,6 +483,12 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private void openAnalysis() {
     openAnalysis(AnalysisActivity.TAB_SOLVE);
+  }
+
+  /** A hub row the current solve type cannot open: dimmed and untappable, but still listed. */
+  private boolean isUnavailableHubEntry(int entry) {
+    return (entry == MENU_ANALYSIS || entry == MENU_COACHING)
+        && !AnalysisActivity.canAnalyse(curSolveType);
   }
 
   private void openAnalysis(int tab) {
@@ -1467,10 +1469,10 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       return menuEntries[position] == MENU_HEADER ? 1 : 0;
     }
 
-    /** A group label leads nowhere, so it takes no touch and no highlight. */
+    /** A group label leads nowhere, so it takes no touch and no highlight; nor does a dimmed row. */
     @Override
     public boolean isEnabled(int position) {
-      return menuEntries[position] != MENU_HEADER;
+      return menuEntries[position] != MENU_HEADER && !isUnavailableHubEntry(menuEntries[position]);
     }
 
     @Override
@@ -1538,6 +1540,16 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         tvName.setTextColor(ContextCompat.getColor(MainScreenActivity.this,
             destructive ? R.color.danger_text : R.color.white));
         tvName.setText(objects[position]);
+
+        // Dimmed rather than left out, so the section does not change shape with the solve type.
+        boolean unavailable = isUnavailableHubEntry(menuEntries[position]);
+        float alpha = unavailable ? UNAVAILABLE_ROW_ALPHA : 1f;
+        tvName.setAlpha(alpha);
+        view.findViewById(R.id.menuGlyphTile).setAlpha(alpha);
+        view.findViewById(R.id.tvMenuPremium).setAlpha(alpha);
+        TextView tvSubtext = (TextView) view.findViewById(R.id.tvSubtext);
+        tvSubtext.setVisibility(unavailable ? View.VISIBLE : View.GONE);
+        tvSubtext.setText(R.string.menu_hub_unavailable);
       }
       return view;
     }

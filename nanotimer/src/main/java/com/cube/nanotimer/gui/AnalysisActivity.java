@@ -366,8 +366,8 @@ public class AnalysisActivity extends NanoTimerActivity {
 
   /**
    * Whether this solve type has a breakdown to offer at all, asked before the screen is opened:
-   * the drawer leaves its row out for a type that fails it rather than opening a hub whose whole
-   * content is the reason it is empty.
+   * the drawer dims its rows for a type that fails it rather than opening a hub whose whole content
+   * is the reason it is empty.
    *
    * <p>Three ways to fail, and none of them is a matter of solving more. A cube only turns a 3x3.
    * A trainer's scramble sets up one step, so there is no whole solve to take shares of. And a type
