@@ -479,7 +479,17 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.1.0 <i>(Nueva versión)</i></b></u><br/>
+    <u><b>v2.1.1 <i>(Nueva versión)</i></b></u><br/>
+    <ul>
+      <li>Las mezclas de 2x2 ahora tienen 11 movimientos, solo con R, U y F, como las oficiales</li>
+      <li>El historial ahora se puede ordenar por mejor Ao5, Ao12, Ao50 o Ao100</li>
+      <li>Al tocar una media en los detalles de una resolución se muestran las resoluciones que la forman</li>
+      <li>Una sesión o una media se puede copiar con la mezcla de cada resolución, para pegarla donde quieras</li>
+      <li>Un tiempo inferior a la mitad de tu mejor marca pide confirmación antes de guardarse como récord, por si el temporizador se detuvo por error</li>
+      <li>Nuevo ajuste «Color de la última capa» para tipos de mezcla como Última capa, PLL o F2L</li>
+      <li>Estas notas ya se pueden desactivar tras las actualizaciones</li>
+    </ul>
+    <u><b>v2.1.0</b></u><br/>
     <ul>
       <li>Cubench ya puede guardarlo todo en un solo archivo, para restaurarlo en otro teléfono</li>
       <li>Un +2 ahora se muestra junto al tiempo al que se sumó, y un DNF muestra el tiempo que sustituyó</li>

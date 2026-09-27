@@ -481,7 +481,17 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.1.0 <i>(Nova versão)</i></b></u><br/>
+    <u><b>v2.1.1 <i>(Nova versão)</i></b></u><br/>
+    <ul>
+      <li>Os scrambles de 2x2 têm agora 11 movimentos, só com R, U e F, como os oficiais</li>
+      <li>O histórico pode agora ser ordenado pela melhor Ao5, Ao12, Ao50 ou Ao100</li>
+      <li>Tocar numa média nos detalhes de uma resolução mostra as resoluções que a compõem</li>
+      <li>Uma sessão ou uma média pode ser copiada com o scramble de cada resolução, para colar onde quiser</li>
+      <li>Um tempo abaixo de metade do seu recorde pessoal pede confirmação antes de ser guardado como recorde, caso tenha parado o tempo por engano</li>
+      <li>Nova definição «Cor da última camada» para tipos de scramble como Última camada, PLL ou F2L</li>
+      <li>Estas notas podem agora ser desativadas após as atualizações</li>
+    </ul>
+    <u><b>v2.1.0</b></u><br/>
     <ul>
       <li>O Cubench já pode guardar tudo num único ficheiro, para restaurar noutro telemóvel</li>
       <li>Um +2 aparece agora ao lado do tempo a que foi somado, e um DNF mostra o tempo que substituiu</li>

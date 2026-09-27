@@ -498,7 +498,17 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.1.0 <i>(New version)</i></b></u><br/>
+    <u><b>v2.1.1 <i>(New version)</i></b></u><br/>
+    <ul>
+      <li>2x2 scrambles are now 11 moves using R, U and F only, like official ones</li>
+      <li>The history can now be sorted by best Ao5, Ao12, Ao50 or Ao100</li>
+      <li>Tapping an average in the solve details shows the solves it is made of</li>
+      <li>A session or an average can be copied with every solve\'s scramble, to paste anywhere</li>
+      <li>A time under half your personal best asks before it is saved as a record, in case the timer was stopped by mistake</li>
+      <li>New \"Last layer colour\" setting for scramble types such as Last layer, PLL or F2L</li>
+      <li>These notes can now be turned off after updates</li>
+    </ul>
+    <u><b>v2.1.0</b></u><br/>
     <ul>
       <li>Cubench can now back up everything to a single file, to restore on another phone</li>
       <li>A +2 now shows beside the time it was added to, and a DNF shows the time it replaced</li>
