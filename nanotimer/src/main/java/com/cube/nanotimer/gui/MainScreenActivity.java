@@ -142,8 +142,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
    */
   private static final int MENU_SETTINGS = 0;
   private static final int MENU_GRAPHS = 1;
-  private static final int MENU_ANALYSIS = 2;
-  private static final int MENU_DRILLS = 3;
+  private static final int MENU_DRILLS = 2;
+  private static final int MENU_ANALYSIS = 3;
   private static final int MENU_COACHING = 4;
   private static final int MENU_IMPORT_EXPORT = 5;
   private static final int MENU_CLEAR_HISTORY = 6;
