@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.fragment.app.DialogFragment;
@@ -246,6 +248,33 @@ public class DialogUtils {
     } catch (ActivityNotFoundException e) {
       shareData(activity, subject, text, null, "text/plain");
     }
+  }
+
+  /**
+   * Caps a dialog's body to the room its buttons leave. A dialog measures its view unbounded, so an
+   * overflowing body squeezes the button panel below it and clips the buttons instead of scrolling.
+   */
+  public static void fitToWindow(final AlertDialog dialog, final View body) {
+    body.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT; // the room may have grown
+    body.requestLayout();
+    body.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+      @Override
+      public void onGlobalLayout() {
+        body.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+        if (dialog.getWindow() == null || dialog.getButton(DialogInterface.BUTTON_POSITIVE) == null) {
+          return;
+        }
+        // The squeeze on the button panel is the overflow.
+        View buttonBar = (View) dialog.getButton(DialogInterface.BUTTON_POSITIVE).getParent();
+        View buttonPanel = (View) buttonBar.getParent();
+        int needed = buttonBar.getHeight() + buttonPanel.getPaddingTop() + buttonPanel.getPaddingBottom();
+        int overflow = needed - buttonPanel.getHeight();
+        if (overflow > 0) {
+          body.getLayoutParams().height = body.getHeight() - overflow;
+          body.requestLayout();
+        }
+      }
+    });
   }
 
   public static void copyScrambleToClipboard(Context context, String scramble) {

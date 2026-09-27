@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.BlindSetupPicker;
+import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.vo.SolveType;
 
 /**
@@ -65,6 +66,7 @@ public final class BlindSetupPrompt {
       builder.setNegativeButton(R.string.cancel, null); // opened to look, not only to answer
     }
     final AlertDialog dialog = builder.show();
+    DialogUtils.fitToWindow(dialog, picker.getView()); // a short screen scrolls the body, never the buttons off
     picker.onReport(onReport == null ? null : new Runnable() {
       @Override
       public void run() {

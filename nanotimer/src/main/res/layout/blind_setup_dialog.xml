@@ -15,12 +15,12 @@
      android:orientation="vertical"
      android:paddingLeft="20dp"
      android:paddingRight="20dp"
-     android:paddingTop="22dp"
-     android:paddingBottom="18dp">
+     android:paddingTop="16dp"
+     android:paddingBottom="12dp">
 
     <ImageView
-       android:layout_width="34dp"
-       android:layout_height="34dp"
+       android:layout_width="28dp"
+       android:layout_height="28dp"
        android:layout_gravity="center_horizontal"
        android:src="@drawable/ic_intro_breakdown"
        android:tint="@color/lightblue"
@@ -29,7 +29,7 @@
     <TextView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="10dp"
+       android:layout_marginTop="6dp"
        android:gravity="center"
        android:text="@string/blind_setup"
        android:textColor="@color/white"
@@ -39,7 +39,7 @@
     <TextView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="8dp"
+       android:layout_marginTop="4dp"
        android:gravity="center"
        android:text="@string/blind_setup_why"
        android:textColor="@color/secondary_text"
@@ -49,7 +49,7 @@
     <TextView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="18dp"
+       android:layout_marginTop="14dp"
        android:text="@string/blind_setup_hold"
        android:textColor="@color/white"
        android:textSize="15sp"/>
@@ -59,13 +59,13 @@
        android:id="@+id/orientationPicker"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="10dp"/>
+       android:layout_marginTop="8dp"/>
 
     <!-- Before the buffers, since each method keeps its own: picking one shows its buffers. -->
     <TextView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="20dp"
+       android:layout_marginTop="14dp"
        android:text="@string/blind_setup_method"
        android:textColor="@color/white"
        android:textSize="15sp"/>
@@ -74,7 +74,7 @@
        android:id="@+id/blindMethodPicker"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="10dp"
+       android:layout_marginTop="8dp"
        android:background="@drawable/view_segment_group"
        android:orientation="horizontal"
        android:padding="3dp"/>
@@ -82,7 +82,7 @@
     <TextView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="20dp"
+       android:layout_marginTop="14dp"
        android:text="@string/blind_setup_shoot"
        android:textColor="@color/white"
        android:textSize="15sp"/>
@@ -91,7 +91,7 @@
        android:id="@+id/bufferPicker"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="10dp"/>
+       android:layout_marginTop="8dp"/>
 
     <!-- Opened from a reading that came out wrong: the way to report one that is wrong anyway,
          under the two settings that are wrong far more often. -->
@@ -116,7 +116,7 @@
        android:id="@+id/blindSetupChangeable"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="16dp"
+       android:layout_marginTop="10dp"
        android:gravity="center"
        android:text="@string/blind_setup_changeable"
        android:textColor="@color/gray600"

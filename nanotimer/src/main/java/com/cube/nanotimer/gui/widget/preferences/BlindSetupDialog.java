@@ -1,10 +1,13 @@
 package com.cube.nanotimer.gui.widget.preferences;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.os.Bundle;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.View;
 import com.cube.nanotimer.gui.widget.BlindSetupPicker;
+import com.cube.nanotimer.util.helper.DialogUtils;
 
 /**
  * The settings row for how a blind solver holds the cube, how they shoot and what from: one row, and
@@ -26,6 +29,14 @@ public class BlindSetupDialog extends DialogPreference {
   protected View onCreateDialogView() {
     picker = new BlindSetupPicker(getContext(), false, null);
     return picker.getView();
+  }
+
+  @Override
+  protected void showDialog(Bundle state) {
+    super.showDialog(state);
+    if (getDialog() instanceof AlertDialog && picker != null) {
+      DialogUtils.fitToWindow((AlertDialog) getDialog(), picker.getView());
+    }
   }
 
   @Override

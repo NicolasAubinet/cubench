@@ -84,7 +84,7 @@ public class BlindOrientationPicker {
     for (int i = 0; i < FACES.length; i++) {
       final char face = FACES[i];
       View chip = new View(context);
-      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(context, 40), 1f);
+      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(context, 34), 1f);
       if (i > 0) {
         lp.leftMargin = dp(context, 6);
       }

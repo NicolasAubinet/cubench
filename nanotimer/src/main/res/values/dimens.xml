@@ -14,8 +14,8 @@
   <dimen name="case_grid_spacing">8dp</dimen>
   <!-- One row of a buffer wheel, and the three of them it shows. The height is set rather than
        left to the widget so the band marking the selected row can be centred on it exactly. -->
-  <dimen name="buffer_wheel_row">46dp</dimen>
-  <dimen name="buffer_wheel_height">138dp</dimen>
+  <dimen name="buffer_wheel_row">40dp</dimen>
+  <dimen name="buffer_wheel_height">120dp</dimen>
 
   <!-- Round the buffer picker where it stands alone in a preference dialog, which frames a view
        without padding it. The prompt that shares the picker brings its own. -->

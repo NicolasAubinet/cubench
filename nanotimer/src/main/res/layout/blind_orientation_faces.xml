@@ -27,7 +27,7 @@
 
   <TextView
      style="@style/BufferWheelHeading"
-     android:layout_marginTop="14dp"
+     android:layout_marginTop="10dp"
      android:text="@string/blind_orientation_front"/>
 
   <LinearLayout
@@ -43,7 +43,7 @@
      android:id="@+id/orientationSaid"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_marginTop="10dp"
+     android:layout_marginTop="6dp"
      android:gravity="center"
      android:textColor="@color/white"
      android:textSize="13sp"/>
