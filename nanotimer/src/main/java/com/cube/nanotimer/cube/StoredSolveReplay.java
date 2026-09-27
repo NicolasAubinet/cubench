@@ -146,11 +146,6 @@ public final class StoredSolveReplay {
     }
   }
 
-  /** A solve read as a sighted method, or as a 3-style blind one. */
-  public static Result reinterpret(String scramble, String storedMoves, CubeMethod expected) {
-    return reinterpret(scramble, storedMoves, expected, BlindMethod.THREE_STYLE);
-  }
-
   /**
    * Null when the solve cannot be read again at all — no moves, no scramble, a scramble that is not
    * a 3x3 one, a blind solve recorded before its grip was kept, or a walk that did not end where the

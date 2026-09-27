@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.Arrays;
@@ -41,7 +42,7 @@ public class StoredSolveReplayTest {
   @Test
   public void readsAStoredRouxSolveAsRoux() {
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.ROUX);
+        reinterpret(SCRAMBLE, MOVES, CubeMethod.ROUX);
 
     assertNotNull(result);
     assertEquals(CubeMethod.ROUX, result.getMethod());
@@ -57,7 +58,7 @@ public class StoredSolveReplayTest {
   @Test
   public void theStepsRunInOrderAndCoverTheSolve() {
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.ROUX);
+        reinterpret(SCRAMBLE, MOVES, CubeMethod.ROUX);
 
     long total = 0;
     for (int i = 0; i < result.getSteps().size(); i++) {
@@ -76,13 +77,13 @@ public class StoredSolveReplayTest {
    */
   @Test
   public void doesNotRereadABlindSolveRecordedWithoutItsGrip() {
-    assertNull(StoredSolveReplay.reinterpret(BLIND_SCRAMBLE, BLIND_MOVES, CubeMethod.BLIND));
+    assertNull(reinterpret(BLIND_SCRAMBLE, BLIND_MOVES, CubeMethod.BLIND));
   }
 
   @Test
   public void readsAStoredBlindSolveThroughTheGripItWasMemorisedIn() {
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND);
+        reinterpret(BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND);
 
     assertNotNull(result);
     assertEquals(CubeMethod.BLIND, result.getMethod());
@@ -99,9 +100,9 @@ public class StoredSolveReplayTest {
    */
   @Test
   public void spellsTheTargetsThroughTheStoredGripAndNotAnother() {
-    String held = firstAlgorithm(StoredSolveReplay.reinterpret(
+    String held = firstAlgorithm(reinterpret(
         BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND));
-    String askew = firstAlgorithm(StoredSolveReplay.reinterpret(
+    String askew = firstAlgorithm(reinterpret(
         BLIND_SCRAMBLE, heldIn("x", BLIND_MOVES), CubeMethod.BLIND));
 
     assertNotNull(held);
@@ -123,7 +124,7 @@ public class StoredSolveReplayTest {
   @Test
   public void carriesThePiecesEachAlgorithmPutHomeOutOfTheReRead() {
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND);
+        reinterpret(BLIND_SCRAMBLE, heldIn("y", BLIND_MOVES), CubeMethod.BLIND);
 
     List<SolveStep> edges = result.getSteps().get(1).getSubSteps();
     assertEquals("UF-UL-UB", edges.get(0).getName());
@@ -157,7 +158,7 @@ public class StoredSolveReplayTest {
   public void readsTheLastLayerCasesOfACfopSolve() {
     String tPerm = "R U R' U' R' F R R U' R' U' R U R' F'"; // its own inverse, so it is the scramble
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(tPerm, played(tPerm), CubeMethod.CFOP);
+        reinterpret(tPerm, played(tPerm), CubeMethod.CFOP);
 
     assertNotNull(result);
     assertEquals(CubeMethod.CFOP, result.getMethod());
@@ -176,7 +177,7 @@ public class StoredSolveReplayTest {
     String ubPerm = "R R U R U R' U' R' U' R' U R'";
     String moves = played(ubPerm + " " + ubPerm);
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(ubPerm, moves, CubeMethod.CFOP);
+        reinterpret(ubPerm, moves, CubeMethod.CFOP);
 
     assertNotNull(result);
     SolveStep pll = result.getSteps().get(0); // the only step the scramble left to do
@@ -225,7 +226,7 @@ public class StoredSolveReplayTest {
   @Test
   public void readsACaseForEveryPairOfARecordedCfopSolve() {
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(CFOP_SCRAMBLE, CFOP_MOVES, CubeMethod.CFOP);
+        reinterpret(CFOP_SCRAMBLE, CFOP_MOVES, CubeMethod.CFOP);
 
     assertEquals(CubeMethod.CFOP, result.getMethod());
     List<SolveStep> pairs = result.getSteps().get(1).getSubSteps();
@@ -251,15 +252,15 @@ public class StoredSolveReplayTest {
 
   @Test
   public void hasNothingToSayAboutASolveWithNoMoves() {
-    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, null, CubeMethod.CFOP));
-    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, "", CubeMethod.CFOP));
-    assertNull(StoredSolveReplay.reinterpret(null, MOVES, CubeMethod.CFOP));
+    assertNull(reinterpret(SCRAMBLE, null, CubeMethod.CFOP));
+    assertNull(reinterpret(SCRAMBLE, "", CubeMethod.CFOP));
+    assertNull(reinterpret(null, MOVES, CubeMethod.CFOP));
   }
 
   /** A scramble in another puzzle's notation must fall back, not bring the detail dialog down. */
   @Test
   public void fallsBackRatherThanThrowingOnAScrambleItCannotRead() {
-    assertNull(StoredSolveReplay.reinterpret("R++ D-- U'", MOVES, CubeMethod.CFOP));
+    assertNull(reinterpret("R++ D-- U'", MOVES, CubeMethod.CFOP));
   }
 
   /**
@@ -273,7 +274,7 @@ public class StoredSolveReplayTest {
     // answer is the walk's fault rather than the solve's is that it never came out solved, which is
     // the difference between "this solve does not fit the method" and "this reading proves nothing".
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(SCRAMBLE + " R", MOVES, CubeMethod.ROUX);
+        reinterpret(SCRAMBLE + " R", MOVES, CubeMethod.ROUX);
 
     assertTrue(result == null || result.getMethod() == null);
     assertTrue(result == null || !result.reachedSolved());
@@ -284,7 +285,7 @@ public class StoredSolveReplayTest {
   @Test
   public void readsASolveThatFitsNoMethodAsFittingNoMethod() {
     StoredSolveReplay.Result result =
-        StoredSolveReplay.reinterpret(SCRAMBLE, MOVES, CubeMethod.LBL);
+        reinterpret(SCRAMBLE, MOVES, CubeMethod.LBL);
 
     assertNotNull(result);
     assertNull(result.getMethod()); // a Roux solve is no layer-by-layer solve
@@ -294,8 +295,13 @@ public class StoredSolveReplayTest {
 
   @Test
   public void refusesASolveItCannotReplayAtAll() {
-    assertNull(StoredSolveReplay.reinterpret(null, MOVES, CubeMethod.ROUX));
-    assertNull(StoredSolveReplay.reinterpret(SCRAMBLE, null, CubeMethod.ROUX));
-    assertNull(StoredSolveReplay.reinterpret("R U Rw", MOVES, CubeMethod.ROUX));
+    assertNull(reinterpret(null, MOVES, CubeMethod.ROUX));
+    assertNull(reinterpret(SCRAMBLE, null, CubeMethod.ROUX));
+    assertNull(reinterpret("R U Rw", MOVES, CubeMethod.ROUX));
+  }
+
+  private static StoredSolveReplay.Result reinterpret(String scramble, String moves,
+      CubeMethod expected) {
+    return StoredSolveReplay.reinterpret(scramble, moves, expected, BlindMethod.THREE_STYLE);
   }
 }

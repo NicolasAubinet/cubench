@@ -99,12 +99,8 @@ public final class BlindResidual {
    * What was left in the state the solve stopped at, or null when there is no state to read. The
    * buffers are the pieces the solve was shooting each type from, so a cycle can be opened where the
    * solver's memo would open it; {@link BlindTargets#NO_BUFFER} where the solve never settled one.
+   * {@code swaps} when the solver uses OP/M2.
    */
-  static BlindResidual of(String facelets, BlindTargets targets, int edgeBuffer, int cornerBuffer) {
-    return of(facelets, targets, edgeBuffer, cornerBuffer, false);
-  }
-
-  /** As {@link #of(String, BlindTargets, int, int)}; {@code swaps} when the solver uses OP/M2. */
   static BlindResidual of(String facelets, BlindTargets targets, int edgeBuffer, int cornerBuffer,
       boolean swaps) {
     if (facelets == null) {

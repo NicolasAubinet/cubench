@@ -208,7 +208,7 @@ public final class CaseExecutions {
       return; // only CFOP is solved in these cases: nothing else would be read, it would be guessed
     }
     StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solve.getScramble(),
-        solve.getSmartcubeMoves(), method);
+        solve.getSmartcubeMoves(), method, SolveTypeMethod.blindMethodOf(solve.getSolveType()));
     if (reread == null) {
       return;
     }

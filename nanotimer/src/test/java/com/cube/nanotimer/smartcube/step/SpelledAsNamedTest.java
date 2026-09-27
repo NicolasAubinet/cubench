@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.StoredSolveReplay;
+import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class SpelledAsNamedTest {
   /** Every named algorithm of a stored solve, read again from its scramble and its moves. */
   private static List<Algorithm> algorithmsOf(String scramble, String moves) {
     StoredSolveReplay.Result read =
-        StoredSolveReplay.reinterpret(scramble, moves, CubeMethod.BLIND);
+        StoredSolveReplay.reinterpret(scramble, moves, CubeMethod.BLIND, BlindMethod.THREE_STYLE);
     List<Algorithm> algorithms = new ArrayList<Algorithm>();
     if (read == null || read.getMethod() == null) {
       return algorithms; // a solve this cannot read again names no algorithm to check
