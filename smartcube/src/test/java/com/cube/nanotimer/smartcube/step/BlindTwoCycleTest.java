@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
@@ -275,6 +276,50 @@ public class BlindTwoCycleTest {
       assertEquals(scramble, "UFR-UBR + UL-UB", read.get(parityAt));
     }
     assertTrue(odd > 0);
+  }
+
+  /** The same, held in y2: the cube reports F and B, R and L swapped, and names stay the solver's. */
+  @Test
+  public void readsTheParityAlgorithmOfAnOddSolveHeldInY2() {
+    Random random = new Random(20260926);
+    int odd = 0;
+    for (int attempt = 0; attempt < SCRAMBLES && odd < SCRAMBLES / 10; attempt++) {
+      String scramble = scramble(random);
+      SyntheticTwoCycleSolve solve = oldPochmannCornersFirst(scramble);
+      List<String> expected = names(solve);
+      int parityAt = 0;
+      while (expected.get(parityAt).startsWith("UBL")) {
+        parityAt++;
+      }
+      if (parityAt % 2 == 0) {
+        continue;
+      }
+      odd++;
+      BlindStepDetector detector = new BlindStepDetector();
+      detector.setBuffers("UR", "UBL");
+      detector.setSwaps(true);
+      detector.setPickupRotation(CubeRotation.byNotation("y2"));
+      play(scrambled(heldInY2(scramble)), detector, heldInY2(moves(solve)));
+
+      expected.set(parityAt, "UFR-UBR + UL-UB");
+      assertEquals(scramble, -1, firstRed(detector));
+      assertEquals(scramble, expected, readNames(detector));
+    }
+    assertTrue(odd > 0);
+  }
+
+  private static String heldInY2(String moves) {
+    return String.join(" ", heldInY2(moves.split(" ")));
+  }
+
+  private static String[] heldInY2(String[] moves) {
+    String[] held = new String[moves.length];
+    for (int i = 0; i < moves.length; i++) {
+      char face = moves[i].charAt(0);
+      int at = "FBRL".indexOf(face);
+      held[i] = (at < 0 ? face : "BFLR".charAt(at)) + moves[i].substring(1);
+    }
+    return held;
   }
 
   private static List<String> readNames(StepDetector detector) {

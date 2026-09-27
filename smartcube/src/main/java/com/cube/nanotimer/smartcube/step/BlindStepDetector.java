@@ -677,7 +677,12 @@ public final class BlindStepDetector implements StepDetector {
   // Every OP/M2 shot swaps a buffer, so a two-and-two swap that leaves both alone is the parity.
   private boolean missesTheBuffers(String before, String after) {
     List<Integer> moved = Cubies.moved(before, after);
-    return !moved.contains(declared[EDGES]) && !moved.contains(declared[CORNERS]);
+    for (int buffer : declaredAsReported()) {
+      if (moved.contains(buffer)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** The last landing a reading has settled on, which every candidate tail is read against. */

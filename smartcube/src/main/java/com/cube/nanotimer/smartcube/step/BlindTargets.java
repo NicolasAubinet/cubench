@@ -1,6 +1,7 @@
 package com.cube.nanotimer.smartcube.step;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -114,11 +115,18 @@ final class BlindTargets {
    * even though nothing was shot at it; said in slot order instead, half of them came out backwards.
    */
   Named swapName(List<Integer> corners, List<Integer> edges, int cornerBuffer, int edgeBuffer) {
-    List<Integer> saidCorners = bufferFirst(corners, cornerBuffer);
-    List<Integer> saidEdges = bufferFirst(edges, edgeBuffer);
+    List<Integer> saidCorners = bufferFirst(inHeldOrder(corners), cornerBuffer);
+    List<Integer> saidEdges = bufferFirst(inHeldOrder(edges), edgeBuffer);
     List<Integer> slots = new ArrayList<Integer>(saidCorners);
     slots.addAll(saidEdges);
     return new Named(join(spellAll(saidCorners)) + " + " + join(spellAll(saidEdges)), slots);
+  }
+
+  /** The pieces in the solver's slot order, which the cube's own order is not once it is turned. */
+  private List<Integer> inHeldOrder(List<Integer> pieces) {
+    List<Integer> ordered = new ArrayList<Integer>(pieces);
+    Collections.sort(ordered, (a, b) -> Integer.compare(heldSlotOf(a), heldSlotOf(b)));
+    return ordered;
   }
 
   /** The pair with its buffer at the front, or untouched where the buffer is not one of them. */
