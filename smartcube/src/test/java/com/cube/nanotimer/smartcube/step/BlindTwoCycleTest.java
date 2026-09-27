@@ -97,7 +97,9 @@ public class BlindTwoCycleTest {
     detector.setBuffers("UR", "ULB");
     play(scrambled(scramble), detector, moves(shots));
 
-    for (String name : read(detector)) {
+    List<String> read = read(detector);
+    assertTrue(read.toString(), read.size() >= shots.size()); // or the loop checks nothing
+    for (String name : read) {
       assertFalse(name, name.matches("UR-[A-Z]+"));
     }
   }
