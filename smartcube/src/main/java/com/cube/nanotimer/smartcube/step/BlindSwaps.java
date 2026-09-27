@@ -13,6 +13,15 @@ import java.util.Set;
  *
  * <p>Nothing here knows what a solve is shooting from. {@link BlindStepDetector} asks which pair was
  * aimed at; this only says what the pairs are.
+ *
+ * <p><b>Until a buffer is known, it is the piece running through every waiting algorithm</b>
+ * ({@link #sharedPiece}). The carried pair can run through them too: an M2's other two edges, a
+ * T perm's two corners wherever a setup leaves them. A piece exchanged with the same partner
+ * {@value #CARRIED_RUN} times over was carried, since shooting the same two pieces every time gets
+ * nowhere. Where that leaves more than one, the one the solver declared is the buffer. Failing
+ * that, once a run that long still leaves several, it is the one exchanged with more than one
+ * partner, and among those the one whose piece went home most: a shot sends it home every time but
+ * a cycle break, a carried piece only when its pair swaps back. Anything left tied waits.
  */
 final class BlindSwaps {
 
@@ -95,20 +104,8 @@ final class BlindSwaps {
   }
 
   /**
-   * The one piece every algorithm of a run was shot from, or {@link BlindTargets#NO_BUFFER} where
-   * nothing tells it apart yet.
-   *
-   * <p>The buffer runs through a pair of every algorithm, and so can the carried pair: an M2's
-   * other two edges, a T perm's two corners wherever a setup leaves them. A piece exchanged with
-   * the same partner {@value #CARRIED_RUN} times over was carried, since shooting the same two
-   * pieces every time gets nowhere. Where that leaves more than one, the one the solver declared
-   * is the buffer. Failing that, and once a run that long still leaves several, the buffer is the
-   * one exchanged with more than one partner, and among those the one whose piece went home most:
-   * a shot sends it home every time but a cycle break, a carried piece only when its pair swaps
-   * back. Anything left tied waits.
-   *
-   * @param run the algorithms waiting, the latest first
-   * @param declared the buffers the solver declared, as the cube reports them
+   * The one piece every algorithm of {@code run} (latest first) was shot from, or NO_BUFFER while
+   * nothing tells it apart; {@code declared} are the solver's buffers as the cube reports them.
    */
   static int sharedPiece(List<Waiting> run, List<Integer> declared) {
     List<Integer> candidates = new ArrayList<>();

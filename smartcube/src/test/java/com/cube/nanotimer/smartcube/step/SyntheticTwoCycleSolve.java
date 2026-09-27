@@ -171,7 +171,7 @@ final class SyntheticTwoCycleSolve {
    * Shoot every edge home the M2 way: the whole memo first, then one algorithm per item.
    *
    * <p><b>The memo cannot be re-read between algorithms</b>, the way Old Pochmann's can. The DF
-   * buffer sits in the middle layer, so every M2 carries the other two middle edges along with it —
+   * buffer sits in the middle layer, so every M2 carries the other two middle edges along with it:
    * a cube read halfway through says the buffer holds a piece it does not hold yet. The memo is
    * therefore taken from the cube before a single turn is made, as a solver's is, and the cube is
    * not consulted again.
@@ -182,7 +182,7 @@ final class SyntheticTwoCycleSolve {
    * assumed and the algorithm has to be swapped the same way for the item to land where the memo
    * put it. For every sticker but those two and their reverses that is the same algorithm twice
    * over, which is why the shift is a middle-layer affair. The odd items take the algorithm shooting
-   * at the carried pair's other sticker and the even ones the algorithm shooting at their own — the
+   * at the carried pair's other sticker and the even ones the algorithm shooting at their own; the
    * published table is written the odd way round, which is what crosses the four against it.
    */
   void shootAllM2() {

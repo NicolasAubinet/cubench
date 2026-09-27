@@ -58,6 +58,11 @@ import java.util.Set;
  * move that is <em>wide</em>, whose swing the gyro has already reported, and the scripted wide
  * drill stores a grip its own ground truth disowns. Spelling a sighted solve from the grip turns
  * every letter of it a quarter turn.
+ *
+ * <p><b>A slice turned slowly is still one slice.</b> Its halves can come too far apart for the gyro
+ * to vouch for it, and the core's spin is then written between them as a regrip. A blind solver does
+ * not regrip mid-slice by exactly that slice's spin, so the three read as the slice (an M2 seen
+ * split over 343 ms).
  */
 public final class SolveSolution {
 
@@ -518,11 +523,7 @@ public final class SolveSolution {
     return lone ? spin : null; // part of a bigger reorientation: leave it to the rotation path
   }
 
-  /**
-   * The far face of a slice whose two halves came too far apart for the gyro to vouch for it, so
-   * that the core's spin was written down between them as a regrip; or -1. It is a regrip of
-   * exactly that slice's spin, which a blind solver does not make mid-slice: an M2 turned slowly.
-   */
+  /** The far face of a slow slice whose core spin was logged between its halves, or -1. */
   static int straddledSlice(List<Move> stored, int i) {
     if (i + 2 >= stored.size()) {
       return -1;

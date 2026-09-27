@@ -103,9 +103,15 @@ import java.util.Set;
  * shoot that way ({@link #setSwaps}), as Old Pochmann and M2 do: the buffer traded with its target,
  * and a second pair carried along that the method cannot help disturbing, a T perm's two corners or
  * an M2's other two edges. Declared rather than read off the solve, as every method is. A swap and a
- * parity are the same shape, four pieces in two exchanges, so a solve read for swaps reads no
- * parity, and one read as 3-style no swap. Three-cycles are read either way, so a solver who mixes
- * the two is read whole.
+ * parity are the same shape, four pieces in two exchanges, so a solve read as 3-style reads no swap,
+ * and one read for swaps takes the parity to be the exchange that leaves both buffers alone, since
+ * every shot moves one. Three-cycles are read either way, so a solver who mixes the two is read
+ * whole.
+ *
+ * <p>The candidate readings each keep their own states, with the drift taken out against the
+ * landing before them, since committing a different landing normalises everything after it
+ * differently. Where swaps are read, each also keeps what its algorithms were shot from, which
+ * decides whether a swap lands.
  *
  * <p><b>Which pair a swap aimed at is told by where the solve is shooting from, never by what came
  * home</b>, since the carried pair solves pieces constantly. Until a buffer is known the swaps wait,
@@ -340,16 +346,8 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * One way to read the solve so far: the landings it has settled on, the ways the algorithm now
-   * running may already have ended, and the moves it has made nothing of.
-   *
-   * <p>The states carry the drift taken out against the landing before them, which is why they are
-   * kept per reading rather than shared: a reading that commits a different landing normalises
-   * everything after it differently.
-   *
-   * <p>Where swaps are read, a reading also carries what its algorithms were shot from, since whether
-   * a swap lands depends on it: read by {@link #nameWhatEachReadingShotFrom} whenever its landings
-   * move.
+   * One way to read the solve so far: its settled landings, the ways the running algorithm may
+   * have ended, and the moves it has made nothing of. Per reading; see the class Javadoc.
    */
   private static final class Reading {
     final List<String> chain = new ArrayList<>();
@@ -941,9 +939,8 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * A swap, if that is what landed here: the buffer traded with its target and a second pair carried
-   * along. Said as the pair it aimed at, which is the one holding the buffer; where nothing says
-   * yet, as all four pieces, until a later algorithm settles it ({@link Landing#aimFrom}).
+   * A swap, if that is what landed here, said as the pair holding the buffer; as all four pieces
+   * until a later algorithm settles which ({@link Landing#aimFrom}).
    */
   private boolean readSwap(String steady, long timestampMs, List<Integer> gained) {
     if (!swaps || !buffers.landsASwap(landed, steady)) {
