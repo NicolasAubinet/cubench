@@ -1247,6 +1247,14 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   @Override
+  public void onBlindMethodChanged(SolveType changed) {
+    if (changed.getId() == solveType.getId()) {
+      // Read again at the next solve's start.
+      solveType.setBlindMethod(changed.getBlindMethodOverride());
+    }
+  }
+
+  @Override
   public void onTimeDeleted(SolveTime solveTime) {
     runOnUiThread(new Runnable() {
       @Override

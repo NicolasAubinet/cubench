@@ -686,6 +686,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         BlindSetupPrompt.open(getActivity(), solveTime.getSolveType(), new Runnable() {
           @Override
           public void run() {
+            if (handler != null) {
+              handler.onBlindMethodChanged(solveTime.getSolveType());
+            }
             reReadThroughTheDeclaration(v, solveTime);
           }
         }, new Runnable() {

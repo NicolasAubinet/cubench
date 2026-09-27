@@ -1410,6 +1410,20 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   }
 
   @Override
+  public void onBlindMethodChanged(SolveType changed) {
+    List<SolveType> copies = new ArrayList<>(solveTypes);
+    copies.add(curSolveType);
+    for (SolveTime st : liHistory) {
+      copies.add(st.getSolveType());
+    }
+    for (SolveType copy : copies) {
+      if (copy != null && copy.getId() == changed.getId()) {
+        copy.setBlindMethod(changed.getBlindMethodOverride());
+      }
+    }
+  }
+
+  @Override
   public void onTimeDeleted(final SolveTime solveTime) {
     runOnUiThread(new Runnable() {
       @Override
