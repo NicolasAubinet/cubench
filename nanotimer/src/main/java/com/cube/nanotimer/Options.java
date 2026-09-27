@@ -558,25 +558,32 @@ public enum Options {
    * through: they exercise the reading and not what the solver was asked.
    */
   public String getBlindEdgeBuffer(BlindMethod method) {
-    boolean op = method == BlindMethod.OP_M2;
-    String fallback = op ? DEFAULT_OP_EDGE_BUFFER : DEFAULT_EDGE_BUFFER;
-    return sharedPreferences == null ? fallback : sharedPreferences.getString(
-        op ? SMART_CUBE_OP_EDGE_BUFFER_KEY : SMART_CUBE_EDGE_BUFFER_KEY, fallback);
+    return getBlindBuffer(method, true);
   }
 
   public String getBlindCornerBuffer(BlindMethod method) {
-    boolean op = method == BlindMethod.OP_M2;
-    String fallback = op ? DEFAULT_OP_CORNER_BUFFER : DEFAULT_CORNER_BUFFER;
-    return sharedPreferences == null ? fallback : sharedPreferences.getString(
-        op ? SMART_CUBE_OP_CORNER_BUFFER_KEY : SMART_CUBE_CORNER_BUFFER_KEY, fallback);
+    return getBlindBuffer(method, false);
+  }
+
+  private String getBlindBuffer(BlindMethod method, boolean edge) {
+    String fallback = method == BlindMethod.OP_M2
+        ? (edge ? DEFAULT_OP_EDGE_BUFFER : DEFAULT_OP_CORNER_BUFFER)
+        : (edge ? DEFAULT_EDGE_BUFFER : DEFAULT_CORNER_BUFFER);
+    return sharedPreferences == null ? fallback
+        : sharedPreferences.getString(blindBufferKey(method, edge), fallback);
   }
 
   public void setBlindBuffers(BlindMethod method, String edge, String corner) {
-    boolean op = method == BlindMethod.OP_M2;
     sharedPreferences.edit()
-        .putString(op ? SMART_CUBE_OP_EDGE_BUFFER_KEY : SMART_CUBE_EDGE_BUFFER_KEY, edge)
-        .putString(op ? SMART_CUBE_OP_CORNER_BUFFER_KEY : SMART_CUBE_CORNER_BUFFER_KEY, corner)
+        .putString(blindBufferKey(method, true), edge)
+        .putString(blindBufferKey(method, false), corner)
         .apply();
+  }
+
+  private static String blindBufferKey(BlindMethod method, boolean edge) {
+    return method == BlindMethod.OP_M2
+        ? (edge ? SMART_CUBE_OP_EDGE_BUFFER_KEY : SMART_CUBE_OP_CORNER_BUFFER_KEY)
+        : (edge ? SMART_CUBE_EDGE_BUFFER_KEY : SMART_CUBE_CORNER_BUFFER_KEY);
   }
 
   /**
