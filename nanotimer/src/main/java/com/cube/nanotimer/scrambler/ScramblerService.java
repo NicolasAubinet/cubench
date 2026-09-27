@@ -1,6 +1,7 @@
 package com.cube.nanotimer.scrambler;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import com.cube.nanotimer.scrambler.randomstate.AlreadyGeneratingException;
 import com.cube.nanotimer.scrambler.randomstate.RSScrambler;
@@ -40,6 +41,16 @@ public enum ScramblerService {
   private static final int MIN_CACHE_SIZE = 25;
   private static final int MAX_CACHE_SIZE = 50;
 
+  /**
+   * The puzzles whose cached scrambles went stale at each cache version, oldest first. Append a
+   * row when a generator changes: an install on an older version drops those puzzles' cache files.
+   */
+  private static final CubeType[][] STALE_CACHES = {
+      { CubeType.TWO_BY_TWO }, // 11-move RUF scrambles
+  };
+  private static final String CACHE_PREFS_NAME = "scramble_cache";
+  private static final String KEY_CACHE_VERSION = "version";
+
   private Context context;
   private SeedScrambles seedScrambles;
   private final Map<ScrambleCacheKey, LinkedList<String[]>> cachedScrambles = new HashMap<ScrambleCacheKey, LinkedList<String[]>>();
@@ -56,6 +67,34 @@ public enum ScramblerService {
   public void init(Context context) {
     this.context = context;
     this.seedScrambles = new SeedScrambles(context);
+    dropStaleCaches();
+  }
+
+  /** Deletes the cache files of the puzzles whose generator changed since this install last ran. */
+  private void dropStaleCaches() {
+    SharedPreferences prefs = context.getSharedPreferences(CACHE_PREFS_NAME, Context.MODE_PRIVATE);
+    int version = prefs.getInt(KEY_CACHE_VERSION, 0);
+    if (version >= STALE_CACHES.length) {
+      return;
+    }
+    String[] files = context.fileList();
+    synchronized (cacheFileHelper) {
+      for (int v = version; v < STALE_CACHES.length; v++) {
+        for (CubeType cubeType : STALE_CACHES[v]) {
+          for (String file : files) {
+            if (isCacheFileOf(file, cubeType)) {
+              context.deleteFile(file);
+            }
+          }
+        }
+      }
+    }
+    prefs.edit().putInt(KEY_CACHE_VERSION, STALE_CACHES.length).apply();
+  }
+
+  static boolean isCacheFileOf(String fileName, CubeType cubeType) {
+    String name = getFileName(cubeType, null);
+    return fileName.equals(name) || fileName.startsWith(name + "_");
   }
 
   public void checkScrambleCaches() {
@@ -399,7 +438,7 @@ public enum ScramblerService {
     return Arrays.asList(CubeType.THREE_BY_THREE, CubeType.TWO_BY_TWO, /*CubeType.SKEWB,*/ CubeType.PYRAMINX, CubeType.SQUARE1, CubeType.FTO);
   }
 
-  private String getFileName(CubeType cubeType, ScrambleType scrambleType) {
+  private static String getFileName(CubeType cubeType, ScrambleType scrambleType) {
     String fileName = "randomstate_scrambles_" + cubeType.getId();
     if (!isDefault(scrambleType)) {
       fileName += "_" + scrambleType.getName();
