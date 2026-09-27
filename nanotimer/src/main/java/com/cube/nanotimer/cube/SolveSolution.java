@@ -61,6 +61,9 @@ import java.util.Set;
  */
 public final class SolveSolution {
 
+  /** How far apart a straddled slice's halves may be: the one seen split was 343 ms. */
+  private static final long STRADDLED_SLICE_MS = 1000;
+
   /** Between the parts of a step, wherever they are shown as one run of moves. */
   public static final String GROUP_SEPARATOR = " · ";
 
@@ -280,7 +283,11 @@ public final class SolveSolution {
       } else {
         boolean sensed = sliceCoreSpin(stored, i) != null
             && (choices == null || choices.foldsSlice(move.getOffsetMs()));
-        int far = sensed ? i + 1 : foldedFar(stored, i, choices);
+        int straddled = sensed || heldIn == null ? -1 : straddledSlice(stored, i);
+        if (straddled > i && choices != null && !choices.foldsSlice(move.getOffsetMs())) {
+          straddled = -1;
+        }
+        int far = sensed ? i + 1 : straddled > i ? straddled : foldedFar(stored, i, choices);
         if (far > i) {
           // An opposite-face pair the gyro vouches for, or one the name check does: the solver did
           // one M/E/S, named in their frame. The spin is the same physical event as the move, not a
@@ -406,10 +413,11 @@ public final class SolveSolution {
       String notation = move.getNotation();
       if (!SolveMovesFormat.isRotation(notation)) {
         Move spin = sliceCoreSpin(stored, i);
-        if (spin != null) {
-          steps.add(FrameStep.slice(CubeRotation.byNotation(spin.getNotation()),
-              move.getOffsetMs()));
-          i += 2;
+        int straddled = spin == null ? straddledSlice(stored, i) : -1;
+        if (spin != null || straddled > i) {
+          String turned = spin != null ? spin.getNotation() : stored.get(i + 1).getNotation();
+          steps.add(FrameStep.slice(CubeRotation.byNotation(turned), move.getOffsetMs()));
+          i = spin != null ? i + 2 : straddled;
         }
         continue;
       }
@@ -508,6 +516,23 @@ public final class SolveSolution {
         || !SolveMovesFormat.isRotation(stored.get(i + 3).getNotation())
         || stored.get(i + 3).getOffsetMs() != spin.getOffsetMs();
     return lone ? spin : null; // part of a bigger reorientation: leave it to the rotation path
+  }
+
+  /**
+   * The far face of a slice whose two halves came too far apart for the gyro to vouch for it, so
+   * that the core's spin was written down between them as a regrip; or -1. It is a regrip of
+   * exactly that slice's spin, which a blind solver does not make mid-slice: an M2 turned slowly.
+   */
+  static int straddledSlice(List<Move> stored, int i) {
+    if (i + 2 >= stored.size()) {
+      return -1;
+    }
+    Move near = stored.get(i);
+    Move spin = stored.get(i + 1);
+    Move far = stored.get(i + 2);
+    String[] slice = Slices.forPair(near.getNotation(), far.getNotation());
+    return slice != null && spin.getNotation().equals(slice[1])
+        && far.getOffsetMs() - near.getOffsetMs() <= STRADDLED_SLICE_MS ? i + 2 : -1;
   }
 
   /**

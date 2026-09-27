@@ -256,6 +256,13 @@ final class BlindSpelling {
         i += 2;
         continue;
       }
+      int straddled = SolveSolution.straddledSlice(stored, i);
+      if (straddled > i) {
+        // The same spin, written down as a regrip between the halves: weaker, but still the gyro's.
+        readings.add(new Reading(move.getOffsetMs(), Reading.SLICE, 2));
+        i = straddled;
+        continue;
+      }
       int far = SolveSolution.nextFace(stored, i + 1);
       if (far > i && Slices.forPair(notation, stored.get(far).getNotation()) != null) {
         // No rock seen, which is also what the gyro reports when it missed one.
