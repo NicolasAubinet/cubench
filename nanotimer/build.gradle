@@ -103,6 +103,13 @@ android {
     }
 }
 
+// CoachGlossaryStringsTest reads the translations from disk, so a strings-only change must rerun it.
+tasks.withType(Test).configureEach {
+    inputs.files(fileTree('src/main/res') { include 'values*/strings.xml' },
+        fileTree('../datamodel/src/main/res') { include 'values*/strings.xml' })
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     androidTestImplementation('androidx.test.espresso:espresso-core:3.1.0', {
