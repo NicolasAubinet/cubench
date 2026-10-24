@@ -235,8 +235,8 @@
   <string name="backup_saved">Sauvegarde enregistrée</string>
   <string name="backup_failed">Impossible de créer la sauvegarde</string>
   <plurals name="backup_drills_count">
-    <item quantity="one">%d entraînement</item>
-    <item quantity="other">%d entraînements</item>
+    <item quantity="one">%d drill</item>
+    <item quantity="other">%d drills</item>
   </plurals>
   <plurals name="export_solves_count">
     <item quantity="one">%d résolution</item>
@@ -488,8 +488,8 @@
       <li>Chaque résolution est découpée en étapes (croix, paires F2L, OLL, PLL), avec les temps de recherche et d\'exécution et la reconstruction complète</li>
       <li>Chaque résolution peut être revue en 3D</li>
       <li>Nouvel écran Analyse : vos étapes et cas les plus lents, et les algorithmes que vous utilisez</li>
-      <li>Nouveaux entraînements, pour travailler des cas sur votre propre cube</li>
-      <li>Nouveau coach IA : un plan d\'entraînement chaque semaine, écrit à partir de vos résolutions</li>
+      <li>Nouveaux drills, pour travailler des cas sur votre propre cube</li>
+      <li>Nouveau coach IA : un plan de travail chaque semaine, écrit à partir de vos résolutions</li>
       <li>Le dernier cube peut se reconnecter automatiquement à l\'ouverture de l\'application</li>
     </ul>
     <u><b>v2.1.1</b></u><br/>
@@ -926,12 +926,12 @@
   <string name="verdict_slower">%1$s plus lent que votre %2$s</string>
 
   <string name="smartcube_case_headline">%1$s %2$s</string>
-  <string name="drill_title">Entraînement</string>
+  <string name="drill_title">Drill</string>
   <string name="drill_progress">Essai %1$d sur %2$d</string>
   <string name="drill_reset">Recommencer</string>
   <string name="drill_skip">Passer</string>
   <string name="drill_done">Terminé</string>
-  <string name="drill_finished">Entraînement terminé</string>
+  <string name="drill_finished">Drill terminé</string>
   <string name="drill_rep_skipped">Passé</string>
   <string name="drill_summary_nothing_timed">Rien n\'a été chronométré</string>
   <string name="drill_summary_cell_reps">Essais</string>
@@ -991,15 +991,15 @@
   <string name="drill_case_seconds">%1$s s</string>
   <string name="drill_case_remove">Retirer</string>
   <string name="drill_case_removed">Retiré, touchez pour rétablir</string>
-  <string name="drill_stats_title">Stats d\'entraînement</string>
+  <string name="drill_stats_title">Stats de drill</string>
   <string name="drill_stats_column_spread">Écart</string>
   <plurals name="drill_stats_cell_cases">
     <item quantity="one">%d cas</item>
     <item quantity="other">%d cas</item>
   </plurals>
   <string name="drill_stats_hint">Touchez un cas pour voir chacun de ses essais.</string>
-  <string name="drill_stats_empty">Rien d\'enregistré. Les entraînements faits en mode sérieux apparaissent ici, cas par cas.</string>
-  <string name="drill_stats_empty_window">Aucun entraînement sur cette période.</string>
+  <string name="drill_stats_empty">Rien d\'enregistré. Les drills faits en mode sérieux apparaissent ici, cas par cas.</string>
+  <string name="drill_stats_empty_window">Aucun drill sur cette période.</string>
   <string name="drill_stats_window_today">Aujourd\'hui</string>
   <string name="drill_stats_window_week">Semaine</string>
   <string name="drill_stats_window_month">Mois</string>
@@ -1019,13 +1019,13 @@
   </plurals>
   <string name="drill_case_stats_when">%1$s · essai %2$d</string>
   <string name="drill_case_stats_remove_message">%1$s, %2$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
-  <string name="drill_needs_cube">Connectez votre smart cube pour lancer un entraînement.</string>
-  <string name="drill_no_known_cases">Aucun cas de cet entraînement ne peut être mélangé par l\'application.</string>
-  <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un entraînement.</string>
-  <string name="drill_spec_unreadable">Cette version de l\'application ne peut pas lire cet entraînement.</string>
+  <string name="drill_needs_cube">Connectez votre smart cube pour lancer un drill.</string>
+  <string name="drill_no_known_cases">Aucun cas de ce drill ne peut être mélangé par l\'application.</string>
+  <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un drill.</string>
+  <string name="drill_spec_unreadable">Cette version de l\'application ne peut pas lire ce drill.</string>
 
   <!-- Choix de l\'entrainement -->
-  <string name="drill_setup_title">Nouvel entraînement</string>
+  <string name="drill_setup_title">Nouveau drill</string>
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
   <string name="drill_practice_cross">Croix</string>
@@ -1091,20 +1091,20 @@
   <string name="drill_record">Enregistrer les temps</string>
   <string name="drill_summary_recorded">Enregistré</string>
   <string name="drill_summary_not_recorded">Non enregistré</string>
-  <string name="drill_help_title">À propos de cet entraînement</string>
-  <string name="drill_help_body">Ce qu\'un entraînement fixe avant de distribuer son premier cas.</string>
-  <string name="drill_help_record">Activé, chaque essai est enregistré : son temps, et si vous avez demandé à voir l\'algorithme. Ces essais alimentent les Stats d\'entraînement et « Algorithmes connus » dans Analyse. Désactivez-le pour vous entraîner sans les modifier.</string>
+  <string name="drill_help_title">À propos de ce drill</string>
+  <string name="drill_help_body">Ce qu\'un drill fixe avant de distribuer son premier cas.</string>
+  <string name="drill_help_record">Activé, chaque essai est enregistré : son temps, et si vous avez demandé à voir l\'algorithme. Ces essais alimentent les Stats de drill et « Algorithmes connus » dans Analyse. Désactivez-le pour vous entraîner sans les modifier.</string>
   <string name="drill_planning_limit">Temps de réflexion limité</string>
   <string name="drill_planning_seconds">secondes</string>
   <string name="drill_planning_hint">Désactivé par défaut : apprendre la croix complète demande plus que les 15 secondes officielles.</string>
-  <string name="drill_start">Lancer l\'entraînement</string>
+  <string name="drill_start">Lancer le drill</string>
   <string name="drill_connect_cube">Connecter votre cube</string>
   <string name="drill_cases_family">Cas %1$s</string>
   <string name="drill_title_f2l">Paires</string>
   <string name="drill_title_cross">Croix la plus courte</string>
 
   <!-- Entrainement de croix -->
-  <string name="drill_cross_title">Entraînement de croix</string>
+  <string name="drill_cross_title">Drill de croix</string>
   <string name="drill_cross_done">Terminé</string>
   <string name="drill_cross_next">Suivant</string>
   <string name="drill_cross_dealing">Mélange en préparation</string>
@@ -1160,7 +1160,7 @@
   </plurals>
   <string name="known_algorithms_title">Algorithmes connus</string>
   <string name="known_algorithms_count">%1$d sur %2$d en un seul algorithme</string>
-  <string name="known_algorithms_subtitle">Déduit de vos résolutions et de vos entraînements.</string>
+  <string name="known_algorithms_subtitle">Déduit de vos résolutions et de vos drills.</string>
   <string name="known_algorithms_status_known">Connu</string>
   <string name="known_algorithms_status_review">À revoir</string>
   <string name="known_algorithms_status_to_learn">À apprendre</string>
@@ -1193,7 +1193,7 @@
   <string name="menu_section_smartcube">Smart cube</string>
   <string name="menu_section_data">Vos données</string>
   <string name="menu_section_app">Application</string>
-  <string name="menu_drills">Entraînements</string>
+  <string name="menu_drills">Drills</string>
   <string name="menu_coaching">Coaching</string>
   <string name="menu_premium_tag">Premium</string>
   <string name="menu_hub_unavailable">Uniquement en 3x3 classique</string>
@@ -1201,7 +1201,7 @@
   <string name="analysis_tab_solve">R\u00e9solution</string>
   <string name="analysis_tab_cases">Cas</string>
   <string name="analysis_tab_plan">Plan</string>
-  <string name="analysis_recommended_drills">Entraînements recommandés</string>
+  <string name="analysis_recommended_drills">Drills recommandés</string>
   <string name="analysis_empty">Connectez un smart cube et faites quelques résolutions pour voir vos étapes apparaître ici.</string>
   <string name="analysis_empty_scramble">Ce type de résolution met en place une seule étape et non une résolution entière, il n\'y a donc rien à détailler.</string>
   <string name="analysis_empty_puzzle">Un smart cube ne lit que les résolutions de 3x3. Il n\'y a rien à détailler ici.</string>
@@ -1243,7 +1243,7 @@
   <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
   <string name="analysis_cases_method">Seules les résolutions CFOP ont leurs cas nommés pour l\'instant, il n\'y a donc rien à classer ici.</string>
   <string name="analysis_plan_headline">Un plan chaque semaine</string>
-  <string name="analysis_plan_body">Lu dans vos propres résolutions : quoi travailler, l\'entraînement pour le faire, et si le travail de la semaine passée a changé quelque chose.</string>
+  <string name="analysis_plan_body">Lu dans vos propres résolutions : quoi travailler, le drill pour le faire, et si le travail de la semaine passée a changé quelque chose.</string>
   <string name="analysis_plan_point_plans">Un plan concret chaque semaine, tiré de vos résolutions</string>
   <string name="analysis_plan_point_practice">Entraînez les cas qui vous coûtent le plus de temps</string>
   <string name="analysis_plan_point_support">Soutenez le développement de Cubench</string>
@@ -1278,7 +1278,7 @@
   </plurals>
   <string name="coach_reminder_setting">Rappel de résolutions</string>
   <string name="coach_reminder_setting_summary">Une notification la veille de votre prochain plan, quand il lui manque encore des résolutions</string>
-  <string name="coach_sends_body">Une fois par semaine, en arrière-plan, Cubench envoie au coach les chiffres de vos résolutions %1$s et de vos entraînements, et il écrit un plan d\'entraînement fait pour vous.</string>
+  <string name="coach_sends_body">Une fois par semaine, en arrière-plan, Cubench envoie au coach les chiffres de vos résolutions %1$s et de vos drills, et il écrit un plan de travail fait pour vous.</string>
   <string name="coach_next_retry">Le coach n\'a pas pu écrire ce plan. Il sera redemandé le %1$s.</string>
   <string name="coach_writing">Écriture de votre plan, cela prend quelques minutes…</string>
   <string name="coach_strip_next">Prochain plan</string>
@@ -1405,7 +1405,7 @@
   <string name="coach_reason_unknown">Autre chose à travailler</string>
   <string name="coach_case_mean">%1$s contre %2$s pour les autres</string>
   <string name="coach_case_cost">%1$d fois, %2$s perdues</string>
-  <string name="coach_case_gap">%1$s en entraînement, %2$s de plus en résolution</string>
+  <string name="coach_case_gap">%1$s en drill, %2$s de plus en résolution</string>
   <string name="coach_case_rejected">%1$d%% d\'entre eux écartés</string>
   <string name="coach_recognition_body">%1$s : %2$s sur %3$s passent avant le premier mouvement.</string>
   <string name="coach_two_look_body">%1$s : 2-look dans %2$d des %3$d dernières résolutions.</string>
@@ -1466,7 +1466,7 @@
   <string name="coach_split_stopped">Bloqué %1$s</string>
   <string name="coach_bar_rest">Les autres</string>
   <string name="coach_bar_in_solve">En résolution</string>
-  <string name="coach_bar_drilled">En entraînement</string>
+  <string name="coach_bar_drilled">En drill</string>
   <string name="coach_bar_you">Vous</string>
   <string name="coach_bar_usual">D\'habitude</string>
   <string name="coach_bar_stuck">Coincées</string>
@@ -1478,7 +1478,7 @@
   <string name="coach_drill_case">Travailler ce cas</string>
   <string name="coach_drill_cases">Travailler ces cas</string>
   <string name="coach_learn_cases">Apprendre ces cas</string>
-  <string name="coach_practice_title">Entraînement libre</string>
+  <string name="coach_practice_title">Pratique libre</string>
   <string name="coach_practice_body">Toujours là, à côté du plan : les cas qui vous coûtent le plus, travaillés jusqu\'à battre leurs objectifs. Mis à jour au fil de vos résolutions.</string>
   <string name="coach_practice_set">Vos cas de %1$s les plus coûteux</string>
   <string name="coach_learn_next">Prochains OLL à apprendre</string>
@@ -1518,11 +1518,11 @@
   <string name="analysis_help_extra">Coups en trop</string>
   <string name="analysis_help_extra_body">Les coups que ces cas vous ont coûtés par rapport à l\'algorithme standard le plus court, additionnés.</string>
   <string name="analysis_help_plan_title">Votre plan</string>
-  <string name="analysis_help_plan_body">Les plans font partie du coach Cubench, une fonction payante. Le coach lit vos résolutions au smart cube, trouve ce qui vous coûte le plus de temps et en fait un plan pour la semaine, avec des entraînements pour vos points faibles.</string>
+  <string name="analysis_help_plan_body">Les plans font partie du coach Cubench, une fonction payante. Le coach lit vos résolutions au smart cube, trouve ce qui vous coûte le plus de temps et en fait un plan pour la semaine, avec des drills pour vos points faibles.</string>
   <string name="analysis_help_plan_cards">À travailler cette semaine</string>
   <string name="analysis_help_plan_cards_body">Jusqu\'à trois points à travailler, le plus rentable en premier. Chacun dit ce qui se passe, pourquoi, et une chose à faire.</string>
-  <string name="analysis_help_plan_drills">Entraînements</string>
-  <string name="analysis_help_plan_drills_body">Le bouton d\'un point ouvre un entraînement fait pour lui. Chaque cas quitte l\'entraînement une fois son objectif battu quelques fois.</string>
+  <string name="analysis_help_plan_drills">Drills</string>
+  <string name="analysis_help_plan_drills_body">Le bouton d\'un point ouvre un drill fait pour lui. Chaque cas quitte le drill une fois son objectif battu quelques fois.</string>
   <string name="analysis_help_plan_practice_body">Sous le plan, les cas qui vous coûtent le plus, prêts à travailler entre deux plans.</string>
   <string name="analysis_help_plan_new">Un nouveau plan</string>
   <string name="analysis_help_plan_new_body">Écrit à partir de vos 100 dernières résolutions au smart cube, le premier en demande donc autant. Ensuite un nouveau plan arrive chaque semaine, une fois 25 résolutions de plus faites et votre session terminée.</string>
@@ -1550,10 +1550,10 @@
   <string name="news_replay_body">Revoyez n\'importe quelle résolution en 3D, mouvement par mouvement, à la vitesse de votre choix.</string>
   <string name="news_analysis_title">Analyse</string>
   <string name="news_analysis_body">Vos étapes et cas les plus lents, et les algorithmes que vous utilisez vraiment.</string>
-  <string name="news_drills_title">Entraînements</string>
+  <string name="news_drills_title">Drills</string>
   <string name="news_drills_body">Travaillez vos cas les plus faibles sur votre propre cube, avec des objectifs qui vous font progresser.</string>
   <string name="news_coach_title">Coach IA</string>
-  <string name="news_coach_body">Un plan d\'entraînement écrit à partir de vos propres résolutions, chaque semaine.</string>
+  <string name="news_coach_body">Un plan de travail écrit à partir de vos propres résolutions, chaque semaine.</string>
   <string name="news_cubes">Compatible avec les smart cubes GAN, MoYu et QiYi.</string>
   <string name="news_all_notes">Toutes les notes de version</string>
   <string name="news_later">Plus tard</string>
@@ -1564,7 +1564,7 @@
   <string name="beta_coach_body">Je construis un coach IA pour les cubeurs CFOP, et j\'aimerais des testeurs pour le rendre vraiment bon. C\'est gratuit pour tous ceux qui participent.</string>
   <string name="beta_coach_plan_title">Un plan chaque semaine</string>
   <string name="beta_coach_plan_body">Ce qui va bien, et ce qu\'il faut travailler ensuite.</string>
-  <string name="beta_coach_drills_title">Des entraînements sur ce qui vous coûte le plus</string>
+  <string name="beta_coach_drills_title">Des drills sur ce qui vous coûte le plus</string>
   <string name="beta_coach_drills_body">Les cas qui vous coûtent le plus de temps.</string>
   <string name="beta_coach_learn_title">Quoi apprendre ensuite</string>
   <string name="beta_coach_learn_body">Les algorithmes qui rapportent le plus vite.</string>

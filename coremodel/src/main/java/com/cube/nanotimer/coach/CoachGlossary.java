@@ -155,9 +155,9 @@ public final class CoachGlossary {
         .never(Language.ES, "reconocimiento")
         .never(Language.PT, "reconhecimento"));
     terms.add(new Term("turning", "ex\u00e9cution", "girar", "execu\u00e7\u00e3o"));
-    terms.add(new Term("drill", "entra\u00eenement", "entrenamiento", "treino")
-        .never(Language.FR, "drill", "drills")
-        .never(Language.ES, "drill", "drills")
+    terms.add(new Term("drill", "drill", "drill", "treino")
+        .never(Language.FR, "entra\u00eenement", "entra\u00eenements")
+        .never(Language.ES, "entrenamiento", "entrenamientos")
         .never(Language.PT, "drill", "drills"));
     terms.add(new Term("reps", "essais", "repeticiones", "repeti\u00e7\u00f5es"));
     terms.add(new Term("scramble", "m\u00e9lange", "mezcla", "scramble")
