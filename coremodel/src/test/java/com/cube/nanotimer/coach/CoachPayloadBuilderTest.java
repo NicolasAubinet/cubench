@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.json.JSONObject;
 
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
@@ -229,6 +230,19 @@ public class CoachPayloadBuilderTest {
     Assert.assertTrue(payload.toJson().contains("\"language\":\"pt\""));
     Assert.assertEquals(payload.getSolve().getMeanMs(), read.getSolve().getMeanMs());
     Assert.assertEquals(payload.getPllLooks().size(), read.getPllLooks().size());
+  }
+
+  /** withLanguage copies every field by hand, so a field it forgets would vanish from requests. */
+  @Test
+  public void testSettingTheLanguageChangesNothingElse() throws Exception {
+    for (CoachPayload payload : Arrays.asList(build(), buildWithPlacedPairs(),
+        buildWithPairMoves(12, 400), buildWithLastLayerMoves(12), buildWithTurnings(20))) {
+      JSONObject before = new JSONObject(payload.toJson());
+      JSONObject after = new JSONObject(payload.withLanguage("fr").toJson());
+      after.remove("language");
+
+      Assert.assertTrue(before.toString(), before.similar(after));
+    }
   }
 
   /** A payload from before version 10, or one with no language set, is planned in English. */

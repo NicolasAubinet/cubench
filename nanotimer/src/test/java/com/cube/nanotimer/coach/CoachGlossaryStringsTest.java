@@ -125,6 +125,7 @@ public class CoachGlossaryStringsTest {
           String.valueOf((char) Integer.parseInt(m.group(1), 16))));
     }
     m.appendTail(out);
-    return out.toString().replace("\\'", "'").replace("\\\"", "\"");
+    return out.toString().replace("\\n", "\n").replace("\\t", "\t").replace("\\'", "'")
+        .replace("\\\"", "\"");
   }
 }
