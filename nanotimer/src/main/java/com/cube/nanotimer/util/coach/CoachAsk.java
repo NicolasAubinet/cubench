@@ -1,6 +1,7 @@
 package com.cube.nanotimer.util.coach;
 
 import com.cube.nanotimer.App;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
@@ -208,7 +209,8 @@ final class CoachAsk {
             App.INSTANCE.getService().getCoachStream(solveType, new DataCallback<String>() {
               @Override
               public void onData(String stream) {
-                String body = CoachClient.requestBody(payload, stream);
+                String body = CoachClient.requestBody(
+                    payload.withLanguage(Utils.appLanguage(App.INSTANCE.getContext())), stream);
                 // Kept before it leaves, so a request the process dies on is still the one resent.
                 Options.INSTANCE.setCoachPendingRequest(solveType.getId(), body);
                 send(body);

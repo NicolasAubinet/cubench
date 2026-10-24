@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.cube.nanotimer.App;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.coach.PairExecution;
@@ -138,8 +139,9 @@ public final class CoachPractice {
             new Thread(new Runnable() {
               @Override
               public void run() {
-                String reply = client.requestPractice(
-                    CoachClient.practiceBody(payload, Options.INSTANCE.getLearnedCases()));
+                String reply = client.requestPractice(CoachClient.practiceBody(
+                    payload.withLanguage(Utils.appLanguage(App.INSTANCE.getContext())),
+                    Options.INSTANCE.getLearnedCases()));
                 final List<Set> sets = parse(reply);
                 if (reply == null && !client.hasAccess()) {
                   main.post(new Runnable() {

@@ -491,9 +491,14 @@ public class Utils {
     System.exit(0);
   }
 
-  public static void updateContextWithPrefsLocale(Context context) {
+  /** The language code the app is drawn in: the user's pick, else the phone's. */
+  public static String appLanguage(Context context) {
     SharedPreferences prefs = context.getSharedPreferences(LANGUAGE_PREFS_NAME, 0);
-    String localeString = prefs.getString(LANGUAGE_PREF_KEY, Locale.getDefault().getLanguage());
+    return prefs.getString(LANGUAGE_PREF_KEY, Locale.getDefault().getLanguage());
+  }
+
+  public static void updateContextWithPrefsLocale(Context context) {
+    String localeString = appLanguage(context);
 
     Locale newLocale = new Locale(localeString);
     Locale.setDefault(newLocale);

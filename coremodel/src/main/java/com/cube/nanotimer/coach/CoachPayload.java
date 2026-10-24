@@ -31,9 +31,10 @@ public class CoachPayload {
    * the known set, 3 the cases to learn, 4 the F2L groups, 5 the F2L moves over the usual
    * algorithms and the window they were replayed from, 6 each step's moves and stalls and the last
    * layer's moves over the usual algorithms, 7 the OLL step split by one look and two, 8 the last
-   * plan and the solves since it, 9 the two-look PLL count and the PLL step split the same way; an
-   * older payload is still read, and is simply missing them. */
-  public static final int VERSION = 9;
+   * plan and the solves since it, 9 the two-look PLL count and the PLL step split the same way, 10
+   * the language the plan is to be written in; an older payload is still read, and is simply
+   * missing them. */
+  public static final int VERSION = 10;
 
   private final int schemaVersion;
   private final String puzzle;
@@ -64,6 +65,7 @@ public class CoachPayload {
   private final PreviousPlan previous;
   private final Integer twoLookPllCount;
   private final List<StepFigure> pllLooks;
+  private final String language;
 
   /**
    * @param solve the whole solve's figures, or null when the window holds too few to quote
@@ -220,6 +222,26 @@ public class CoachPayload {
       List<TurningFigure> turning, Integer turningWindow, List<MoveFigure> llMoves,
       List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
       PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks) {
+    this(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow, twoLookCount, solve,
+        families, parts, cases, drillCases, comparisons, knownCases, learningCases, toLearnCases,
+        f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning, turningWindow, llMoves, llHabits,
+        llMoveWindow, ollLooks, previous, twoLookPllCount, pllLooks, null);
+  }
+
+  /**
+   * As above, with the language the plan is to be written in ({@link #getLanguage}), a code such
+   * as "fr", or null for English.
+   */
+  public CoachPayload(int schemaVersion, String puzzle, String method, int familyWindow,
+      int caseWindow, int drillWindow, Integer twoLookCount, StepFigure solve,
+      List<StepFigure> families, List<StepFigure> parts, List<StepFigure> cases,
+      List<StepFigure> drillCases, List<CaseComparison> comparisons, List<String> knownCases,
+      List<String> learningCases, List<String> toLearnCases, List<StepFigure> f2lGroups,
+      MoveFigure f2lMoves, List<MoveFigure> f2lHabits, Integer f2lMoveWindow,
+      List<TurningFigure> turning, Integer turningWindow, List<MoveFigure> llMoves,
+      List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
+      PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks, String language) {
+    this.language = language == null ? null : CoachGlossary.Language.of(language).code();
     this.twoLookPllCount = twoLookPllCount;
     this.pllLooks = unmodifiable(pllLooks);
     this.previous = previous;
@@ -456,6 +478,28 @@ public class CoachPayload {
   /** The PLL step split the same way ({@code pll_looks}), empty before version 9. */
   public List<StepFigure> getPllLooks() {
     return pllLooks;
+  }
+
+  /**
+   * The language the plan is to be written in: the app's own language setting, the one the plan
+   * will be drawn among. English for a payload written before version 10, or for a language the
+   * app has no translation for, since the app then shows English.
+   */
+  public CoachGlossary.Language getLanguage() {
+    return CoachGlossary.Language.of(language);
+  }
+
+  /**
+   * This payload with the language the plan is to be written in, a code such as "fr" or "pt-BR".
+   * Set where the request is sent rather than where the figures are read, which knows nothing of
+   * the screen.
+   */
+  public CoachPayload withLanguage(String code) {
+    return new CoachPayload(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow,
+        twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
+        learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
+        turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
+        pllLooks, code);
   }
 
   /**
@@ -782,6 +826,9 @@ public class CoachPayload {
       if (previous != null) {
         json.put("previous", previous.toJson());
       }
+      if (language != null) {
+        json.put("language", language);
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write coach payload", e);
@@ -841,7 +888,7 @@ public class CoachPayload {
           json.has("previous") ? PreviousPlan.fromJson(json.getJSONObject("previous")) : null,
           json.has("two_look_pll_count")
               ? Integer.valueOf(json.getInt("two_look_pll_count")) : null,
-          figures(json, "pll_looks"));
+          figures(json, "pll_looks"), json.optString("language", null));
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a coach payload: " + e.getMessage(), e);
     }

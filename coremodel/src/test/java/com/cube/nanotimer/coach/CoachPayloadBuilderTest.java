@@ -221,6 +221,27 @@ public class CoachPayloadBuilderTest {
   }
 
   @Test
+  public void testTheLanguageSurvivesARoundTrip() {
+    CoachPayload payload = build().withLanguage("pt-BR");
+    CoachPayload read = CoachPayload.parse(payload.toJson());
+
+    Assert.assertEquals(CoachGlossary.Language.PT, read.getLanguage());
+    Assert.assertTrue(payload.toJson().contains("\"language\":\"pt\""));
+    Assert.assertEquals(payload.getSolve().getMeanMs(), read.getSolve().getMeanMs());
+    Assert.assertEquals(payload.getPllLooks().size(), read.getPllLooks().size());
+  }
+
+  /** A payload from before version 10, or one with no language set, is planned in English. */
+  @Test
+  public void testNoLanguageIsEnglish() {
+    CoachPayload payload = build();
+
+    Assert.assertFalse(payload.toJson().contains("\"language\""));
+    Assert.assertEquals(CoachGlossary.Language.EN, CoachPayload.parse(payload.toJson()).getLanguage());
+    Assert.assertEquals(CoachGlossary.Language.EN, payload.withLanguage("de").getLanguage());
+  }
+
+  @Test
   public void testAPayloadSurvivesARoundTrip() {
     CoachPayload payload = build();
     CoachPayload read = CoachPayload.parse(payload.toJson());
