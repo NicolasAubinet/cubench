@@ -1166,7 +1166,7 @@
   <string name="known_algorithms_status_unseen">Nada que decir</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Sin caso registrado</string>
-  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en dos pasos, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
+  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en 2-look, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
   <string name="blind_setup_summary">%2$s, %1$s, búferes %3$s y %4$s</string>
@@ -1242,7 +1242,7 @@
   <string name="analysis_cases_blind">Una resolución a ciegas no tiene casos. Se lee como una memorización y las piezas resueltas.</string>
   <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
   <string name="analysis_plan_headline">Un plan cada semana</string>
-  <string name="analysis_plan_body">Leído de tus propias resoluciones: qué trabajar, el drill para hacerlo, y si el trabajo de la semana pasada cambió algo.</string>
+  <string name="analysis_plan_body">Leído de tus propias resoluciones: qué trabajar, el entrenamiento para hacerlo, y si el trabajo de la semana pasada cambió algo.</string>
   <string name="analysis_plan_point_plans">Un plan semanal que puedes aplicar, a partir de tus resoluciones</string>
   <string name="analysis_plan_point_practice">Practica los casos que más tiempo te cuestan</string>
   <string name="analysis_plan_point_support">Apoya el desarrollo de Cubench</string>
@@ -1404,7 +1404,7 @@
   <string name="coach_reason_unknown">Otra cosa que trabajar</string>
   <string name="coach_case_mean">%1$s frente a %2$s del resto</string>
   <string name="coach_case_cost">%1$d veces, %2$s perdidos</string>
-  <string name="coach_case_gap">%1$s en drill, %2$s más al resolver</string>
+  <string name="coach_case_gap">%1$s en entrenamiento, %2$s más al resolver</string>
   <string name="coach_case_rejected">%1$d%% de ellos descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s pasan antes del primer movimiento.</string>
   <string name="coach_two_look_body">%1$s: 2-look en %2$d de las últimas %3$d resoluciones.</string>
@@ -1465,7 +1465,7 @@
   <string name="coach_split_stopped">Parado %1$s</string>
   <string name="coach_bar_rest">El resto</string>
   <string name="coach_bar_in_solve">Al resolver</string>
-  <string name="coach_bar_drilled">En drill</string>
+  <string name="coach_bar_drilled">En entrenamiento</string>
   <string name="coach_bar_you">Tú</string>
   <string name="coach_bar_usual">Habitual</string>
   <string name="coach_bar_stuck">Atrapados</string>
@@ -1517,11 +1517,11 @@
   <string name="analysis_help_extra">Movimientos de más</string>
   <string name="analysis_help_extra_body">Los giros que esos casos te han costado sobre el algoritmo estándar más corto, sumados.</string>
   <string name="analysis_help_plan_title">Tu plan</string>
-  <string name="analysis_help_plan_body">Los planes son parte del coach de Cubench, una función de pago. El coach lee tus resoluciones con smart cube, encuentra lo que más tiempo te cuesta y lo convierte en un plan para la semana, con drills para tus puntos débiles.</string>
+  <string name="analysis_help_plan_body">Los planes son parte del coach de Cubench, una función de pago. El coach lee tus resoluciones con smart cube, encuentra lo que más tiempo te cuesta y lo convierte en un plan para la semana, con entrenamientos para tus puntos débiles.</string>
   <string name="analysis_help_plan_cards">En qué centrarte</string>
   <string name="analysis_help_plan_cards_body">Hasta tres cosas que trabajar, la que más vale primero. Cada una dice qué pasa, por qué y una cosa que hacer.</string>
-  <string name="analysis_help_plan_drills">Drills</string>
-  <string name="analysis_help_plan_drills_body">El botón de cada punto abre un drill hecho para él. Cada caso sale del drill cuando has batido su objetivo unas cuantas veces.</string>
+  <string name="analysis_help_plan_drills">Entrenamientos</string>
+  <string name="analysis_help_plan_drills_body">El botón de cada punto abre un entrenamiento hecho para él. Cada caso sale del entrenamiento cuando has batido su objetivo unas cuantas veces.</string>
   <string name="analysis_help_plan_practice_body">Debajo del plan, los casos que más te cuestan, listos para practicar entre planes.</string>
   <string name="analysis_help_plan_new">Un plan nuevo</string>
   <string name="analysis_help_plan_new_body">Se escribe a partir de tus últimas 100 resoluciones con smart cube, así que el primero necesita esas. Después llega un plan nuevo cada semana, cuando hayas hecho 25 resoluciones más y tu sesión haya terminado.</string>
@@ -1544,7 +1544,7 @@
   <string name="news_scramble_title">Mezclas que te siguen</string>
   <string name="news_scramble_body">Cada movimiento se ilumina al hacerlo, y un giro equivocado se detecta y se corrige contigo.</string>
   <string name="news_breakdown_title">Cada resolución desglosada</string>
-  <string name="news_breakdown_body">Cruz, pares F2L, OLL y PLL: tiempos de reconocimiento y ejecución, y la reconstrucción completa.</string>
+  <string name="news_breakdown_body">Cruz, pares F2L, OLL y PLL: tiempos de búsqueda y de giro, y la reconstrucción completa.</string>
   <string name="news_replay_title">Repeticiones en 3D</string>
   <string name="news_replay_body">Vuelve a ver cualquier resolución en 3D, movimiento a movimiento, a la velocidad que elijas.</string>
   <string name="news_analysis_title">Análisis</string>

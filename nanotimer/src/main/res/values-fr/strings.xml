@@ -820,7 +820,7 @@
   <string name="smart_cube_intro_scramble_title">Des mélanges à suivre</string>
   <string name="smart_cube_intro_scramble_body">Cubench vous regarde appliquer le mélange, coche chaque mouvement au passage et vous dit quand vous êtes prêt.</string>
   <string name="smart_cube_intro_breakdown_title">Chaque résolution, détaillée</string>
-  <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL et PLL sont chronométrés séparément, avec le nombre de mouvements, la vitesse et la reconstruction complète.</string>
+  <string name="smart_cube_intro_breakdown_body">Croix, F2L, OLL et PLL sont chronométrés séparément, avec le nombre de mouvements, la vitesse et la reconstruction complète.</string>
   <string name="smart_cube_intro_continue">Appairer mon cube</string>
   <string name="smart_cube_help">Ce que fait un smart cube</string>
 
@@ -1160,14 +1160,14 @@
   </plurals>
   <string name="known_algorithms_title">Algorithmes connus</string>
   <string name="known_algorithms_count">%1$d sur %2$d en un seul algorithme</string>
-  <string name="known_algorithms_subtitle">Déduit de vos résolutions et de vos drills.</string>
+  <string name="known_algorithms_subtitle">Déduit de vos résolutions et de vos entraînements.</string>
   <string name="known_algorithms_status_known">Connu</string>
   <string name="known_algorithms_status_review">À revoir</string>
   <string name="known_algorithms_status_to_learn">À apprendre</string>
   <string name="known_algorithms_status_unseen">Rien à en dire</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Aucun cas enregistré</string>
-  <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas est connu dès que vous le faites en un seul algorithme dans une résolution. Si vous le reprenez en deux temps, il est à revoir ; un cas que vous n\'avez jamais fait en un seul algorithme reste à apprendre.</string>
+  <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas est connu dès que vous le faites en un seul algorithme dans une résolution. Si vous le reprenez en 2-look, il est à revoir ; un cas que vous n\'avez jamais fait en un seul algorithme reste à apprendre.</string>
   <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec un smart smart cube et les cas que vous faites sans aide apparaîtront.</string>
   <string name="known_algorithms_reading">Lecture de vos résolutions...</string>
   <string name="blind_setup_summary">%2$s, %1$s, buffers %3$s et %4$s</string>
@@ -1243,7 +1243,7 @@
   <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
   <string name="analysis_cases_method">Seules les résolutions CFOP ont leurs cas nommés pour l\'instant, il n\'y a donc rien à classer ici.</string>
   <string name="analysis_plan_headline">Un plan chaque semaine</string>
-  <string name="analysis_plan_body">Lu dans vos propres résolutions : quoi travailler, le drill pour le faire, et si le travail de la semaine passée a changé quelque chose.</string>
+  <string name="analysis_plan_body">Lu dans vos propres résolutions : quoi travailler, l\'entraînement pour le faire, et si le travail de la semaine passée a changé quelque chose.</string>
   <string name="analysis_plan_point_plans">Un plan concret chaque semaine, tiré de vos résolutions</string>
   <string name="analysis_plan_point_practice">Entraînez les cas qui vous coûtent le plus de temps</string>
   <string name="analysis_plan_point_support">Soutenez le développement de Cubench</string>
@@ -1405,7 +1405,7 @@
   <string name="coach_reason_unknown">Autre chose à travailler</string>
   <string name="coach_case_mean">%1$s contre %2$s pour les autres</string>
   <string name="coach_case_cost">%1$d fois, %2$s perdues</string>
-  <string name="coach_case_gap">%1$s en drill, %2$s de plus en résolution</string>
+  <string name="coach_case_gap">%1$s en entraînement, %2$s de plus en résolution</string>
   <string name="coach_case_rejected">%1$d%% d\'entre eux écartés</string>
   <string name="coach_recognition_body">%1$s : %2$s sur %3$s passent avant le premier mouvement.</string>
   <string name="coach_two_look_body">%1$s : 2-look dans %2$d des %3$d dernières résolutions.</string>
@@ -1466,7 +1466,7 @@
   <string name="coach_split_stopped">Bloqué %1$s</string>
   <string name="coach_bar_rest">Les autres</string>
   <string name="coach_bar_in_solve">En résolution</string>
-  <string name="coach_bar_drilled">En drill</string>
+  <string name="coach_bar_drilled">En entraînement</string>
   <string name="coach_bar_you">Vous</string>
   <string name="coach_bar_usual">D\'habitude</string>
   <string name="coach_bar_stuck">Coincées</string>
@@ -1518,11 +1518,11 @@
   <string name="analysis_help_extra">Coups en trop</string>
   <string name="analysis_help_extra_body">Les coups que ces cas vous ont coûtés par rapport à l\'algorithme standard le plus court, additionnés.</string>
   <string name="analysis_help_plan_title">Votre plan</string>
-  <string name="analysis_help_plan_body">Les plans font partie du coach Cubench, une fonction payante. Le coach lit vos résolutions au smart cube, trouve ce qui vous coûte le plus de temps et en fait un plan pour la semaine, avec des drills pour vos points faibles.</string>
+  <string name="analysis_help_plan_body">Les plans font partie du coach Cubench, une fonction payante. Le coach lit vos résolutions au smart cube, trouve ce qui vous coûte le plus de temps et en fait un plan pour la semaine, avec des entraînements pour vos points faibles.</string>
   <string name="analysis_help_plan_cards">À travailler cette semaine</string>
   <string name="analysis_help_plan_cards_body">Jusqu\'à trois points à travailler, le plus rentable en premier. Chacun dit ce qui se passe, pourquoi, et une chose à faire.</string>
-  <string name="analysis_help_plan_drills">Drills</string>
-  <string name="analysis_help_plan_drills_body">Le bouton d\'un point ouvre un drill fait pour lui. Chaque cas quitte le drill une fois son objectif battu quelques fois.</string>
+  <string name="analysis_help_plan_drills">Entraînements</string>
+  <string name="analysis_help_plan_drills_body">Le bouton d\'un point ouvre un entraînement fait pour lui. Chaque cas quitte l\'entraînement une fois son objectif battu quelques fois.</string>
   <string name="analysis_help_plan_practice_body">Sous le plan, les cas qui vous coûtent le plus, prêts à travailler entre deux plans.</string>
   <string name="analysis_help_plan_new">Un nouveau plan</string>
   <string name="analysis_help_plan_new_body">Écrit à partir de vos 100 dernières résolutions au smart cube, le premier en demande donc autant. Ensuite un nouveau plan arrive chaque semaine, une fois 25 résolutions de plus faites et votre session terminée.</string>
