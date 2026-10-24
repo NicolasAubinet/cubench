@@ -1399,7 +1399,7 @@
   <string name="coach_reason_slow_case">Casos que lhe custam tempo</string>
   <string name="coach_reason_slow_under_pressure">Conhecidos, mas lentos a resolver</string>
   <string name="coach_reason_recognition_heavy">Mais procura do que execução</string>
-  <string name="coach_reason_two_look_oll">Dois olhares à última camada</string>
+  <string name="coach_reason_two_look_oll">A última camada em 2-look</string>
   <string name="coach_reason_inconsistent_case">Casos que correm mal</string>
   <string name="coach_reason_slow_step">Ocupa mais resolução do que o habitual</string>
   <string name="coach_reason_stuck_pieces">Peças presas noutros slots</string>
@@ -1410,8 +1410,8 @@
   <string name="coach_case_gap">%1$s em drill, %2$s mais a resolver</string>
   <string name="coach_case_rejected">%1$d%% deles descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s passam antes do primeiro movimento.</string>
-  <string name="coach_two_look_body">%1$s: dois olhares em %2$d das últimas %3$d resoluções.</string>
-  <string name="coach_two_look_share">%1$s ocupa %2$s da sua resolução, quando o habitual num olhar é %3$s.</string>
+  <string name="coach_two_look_body">%1$s: 2-look em %2$d das últimas %3$d resoluções.</string>
+  <string name="coach_two_look_share">%1$s ocupa %2$s da sua resolução, quando o habitual em 1-look é %3$s.</string>
   <string name="coach_two_look_to_learn">As suas resoluções mostram %1$d casos que ainda não coloca com um só algoritmo.</string>
   <string name="coach_step_share_body">%1$s ocupa %2$s da sua resolução, quando o habitual é %3$s.</string>
   <string name="coach_stuck_body">%1$s dos seus pares começam com uma peça presa noutro slot. Esses levam %2$s, e os outros %3$s.</string>
@@ -1445,7 +1445,7 @@
   <string name="coach_fig_of_seconds">%1$s de %2$s segundos</string>
   <string name="coach_fig_solve_share">da sua resolução vai para o %1$s</string>
   <string name="coach_fig_usual_share">o habitual é %1$s</string>
-  <string name="coach_fig_two_looks">%1$s em dois passos</string>
+  <string name="coach_fig_two_looks">%1$s em 2-look</string>
   <plurals name="coach_fig_in_last_solves">
     <item quantity="one">na sua %1$d última resolução</item>
     <item quantity="other">nas suas últimas %1$d resoluções</item>
@@ -1531,7 +1531,7 @@
   <string name="analysis_help_cases_title">Caso a caso</string>
   <string name="analysis_help_cases_body">Os casos da etapa escolhida que resolveste com um só algoritmo, sobre a janela indicada em cima. Só contam essas resoluções: um tempo em dois looks fica de fora.</string>
   <string name="analysis_help_standing">Como está um caso</string>
-  <string name="analysis_help_standing_body">Conhecido: saiu com um só algoritmo, sem ajuda, e há pouco tempo para que isso ainda valha. Para rever: saía assim antes, mas levou dois olhares das duas últimas vezes. Para aprender: nunca saiu com um só algoritmo. Tudo é lido das tuas resoluções, não de uma lista que marcas.</string>
+  <string name="analysis_help_standing_body">Conhecido: saiu com um só algoritmo, sem ajuda, e há pouco tempo para que isso ainda valha. Para rever: saía assim antes, mas em 2-look nas duas últimas vezes. Para aprender: nunca saiu com um só algoritmo. Tudo é lido das tuas resoluções, não de uma lista que marcas.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">No OLL, um botão Forma reduz a tabela a um grupo de formas, com o tamanho de cada grupo ao lado.</string>
   <string name="analysis_help_rest_body">Sob a tabela, os casos que não resolveste com um só algoritmo na janela, agrupados por como estão em todas as tuas resoluções. Toca num deles para ver os seus algoritmos.</string>

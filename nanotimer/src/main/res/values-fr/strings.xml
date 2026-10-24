@@ -163,7 +163,7 @@
   <string name="clock_notation">Notation Clock</string>
   <string name="clock_notation_summary">Choisissez le système de notation pour le Clock</string>
   <string name="last_layer_colour">Couleur de la dernière couche</string>
-  <string name="last_layer_colour_summary">Pour les types de mélange comme Last Layer, PLL ou F2L</string>
+  <string name="last_layer_colour_summary">Pour les types de mélange comme Dernière couche, PLL ou F2L</string>
   <string name="r_u_f">r u f</string>
   <string name="rw_uw_fw">Rw Uw Fw</string>
   <string name="clock_UUdU_x_x">(UUdU, 2, -4)</string>
@@ -450,7 +450,7 @@
   <string name="share_time_text">Je viens de résoudre le cube %1$s en %2$s!\n\nMélange:\n%3$s\n\nChronométré le %4$s avec l\'application android Cubench:\n%5$s</string>
   <string name="share_time_steps_text">Je viens de résoudre le cube %1$s en %2$s avec les temps d\'étapes suivants:\n%3$s\nMélange:\n%4$s\n\nChonométré le %5$s avec l\'application android Cubench:\n%6$s</string>
   <string name="smart_cube_mac">MAC: %s</string>
-  <string name="share_smartcube_data">Données du cube connecté :</string>
+  <string name="share_smartcube_data">Données du smart cube :</string>
   <string name="share_send_report">Envoyer le rapport</string>
   <string name="report_reconstruction">Reconstruction incorrecte ?</string>
   <string name="report_reconstruction_body">Ceci envoie la résolution au développeur de l\'application pour que la lecture puisse être examinée.</string>
@@ -465,7 +465,7 @@
   <string name="name">Nom</string>
   <string name="scramble_type_default">Aléatoire</string>
   <string name="scramble_type_f2l">F2L</string>
-  <string name="scramble_type_last_layer">Last Layer</string>
+  <string name="scramble_type_last_layer">Dernière couche</string>
   <string name="scramble_type_pll">PLL</string>
   <string name="scramble_type_corners">Coins uniquement</string>
   <string name="scramble_type_edges">Arêtes uniquement</string>
@@ -485,7 +485,7 @@
       <li>Cubench se connecte maintenant aux smart cubes Bluetooth GAN, MoYu et QiYi</li>
       <li>Le chrono démarre à votre premier mouvement et s\'arrête quand le cube est résolu</li>
       <li>Le mélange suit vos mouvements, et une erreur est repérée et corrigée</li>
-      <li>Chaque résolution est découpée en étapes (croix, paires F2L, OLL, PLL), avec les temps de réflexion et d\'exécution et la reconstruction complète</li>
+      <li>Chaque résolution est découpée en étapes (croix, paires F2L, OLL, PLL), avec les temps de recherche et d\'exécution et la reconstruction complète</li>
       <li>Chaque résolution peut être revue en 3D</li>
       <li>Nouvel écran Analyse : vos étapes et cas les plus lents, et les algorithmes que vous utilisez</li>
       <li>Nouveaux entraînements, pour travailler des cas sur votre propre cube</li>
@@ -793,7 +793,7 @@
     ]]>
   </string>
 
-  <string name="smart_cube_title">Cube connecté</string>
+  <string name="smart_cube_title">Smart cube</string>
   <string name="smart_cube_disconnect">Déconnecter</string>
   <string name="smart_cube_scanning">Recherche…</string>
   <string name="smart_cube_connecting">Connexion à %s…</string>
@@ -854,7 +854,7 @@
   <string name="blind_method_op_m2">OP/M2</string>
   <string name="method_default">Par défaut (%1$s)</string>
   <string name="method_info">À propos de la méthode</string>
-  <string name="method_info_message">Sert à reconstruire vos résolutions lorsqu\'un cube connecté est utilisé : elle indique à l\'application en quelles étapes découper une résolution. Laissez la valeur par défaut pour suivre la méthode préférée des paramètres, ou indiquez la méthode que vous utilisez réellement pour ce type de résolution.</string>
+  <string name="method_info_message">Sert à reconstruire vos résolutions lorsqu\'un smart cube est utilisé : elle indique à l\'application en quelles étapes découper une résolution. Laissez la valeur par défaut pour suivre la méthode préférée des paramètres, ou indiquez la méthode que vous utilisez réellement pour ce type de résolution.</string>
   <string name="reread_solves_title">Relire les résolutions passées ?</string>
   <string name="reread_solves_message">%1$d résolutions de ce type ont été lues en %2$s. Elles peuvent être relues en %3$s, ce qui peut prendre un moment sur un long historique. Rien n\'est perdu : remettre la méthode et relire les restaure.</string>
   <string name="reread_solves_confirm">Relire</string>
@@ -982,7 +982,7 @@
   <string name="drill_summary_cell_planning">Réflexion</string>
   <string name="drill_summary_cell_average">en moyenne</string>
   <string name="drill_summary_cases">Cas</string>
-  <string name="drill_summary_column_recognition">Reco</string>
+  <string name="drill_summary_column_recognition">Recon</string>
   <string name="drill_summary_column_execution">Exéc</string>
   <string name="drill_summary_column_total">Total</string>
   <string name="drill_case_revealed">Consulté</string>
@@ -1019,7 +1019,7 @@
   </plurals>
   <string name="drill_case_stats_when">%1$s · essai %2$d</string>
   <string name="drill_case_stats_remove_message">%1$s, %2$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
-  <string name="drill_needs_cube">Connectez votre cube connecté pour lancer un entraînement.</string>
+  <string name="drill_needs_cube">Connectez votre smart cube pour lancer un entraînement.</string>
   <string name="drill_no_known_cases">Aucun cas de cet entraînement ne peut être mélangé par l\'application.</string>
   <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un entraînement.</string>
   <string name="drill_spec_unreadable">Cette version de l\'application ne peut pas lire cet entraînement.</string>
@@ -1168,7 +1168,7 @@
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Aucun cas enregistré</string>
   <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas est connu dès que vous le faites en un seul algorithme dans une résolution. Si vous le reprenez en deux temps, il est à revoir ; un cas que vous n\'avez jamais fait en un seul algorithme reste à apprendre.</string>
-  <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec un smart cube connecté et les cas que vous faites sans aide apparaîtront.</string>
+  <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec un smart smart cube et les cas que vous faites sans aide apparaîtront.</string>
   <string name="known_algorithms_reading">Lecture de vos résolutions...</string>
   <string name="blind_setup_summary">%2$s, %1$s, buffers %3$s et %4$s</string>
   <string name="blind_setup">Résolutions en aveugle</string>
@@ -1190,7 +1190,7 @@
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">Analyse</string>
-  <string name="menu_section_smartcube">Cube connecté</string>
+  <string name="menu_section_smartcube">Smart cube</string>
   <string name="menu_section_data">Vos données</string>
   <string name="menu_section_app">Application</string>
   <string name="menu_drills">Entraînements</string>
@@ -1251,7 +1251,7 @@
   <string name="analysis_plan_not_yet">Il n\'y a pas encore de plan ici. Résolution et Cas restent gratuits quoi qu\'il arrive à cet onglet.</string>
   <string name="coach_written">Analysé le %1$s</string>
   <string name="coach_uncited">%1$d éléments de ce plan ne figurent pas dans votre historique et ne sont pas affichés.</string>
-  <string name="coach_refused_thin">Il n\'y a pas encore assez à lire. Faites encore quelques résolutions avec votre cube connecté et redemandez.</string>
+  <string name="coach_refused_thin">Il n\'y a pas encore assez à lire. Faites encore quelques résolutions avec votre smart cube et redemandez.</string>
   <string name="coach_refused_cap">Vous avez déjà eu tous les plans de cette semaine, le prochain sera disponible le %1$s.</string>
   <string name="coach_refused_cap_undated">Vous avez déjà eu tous les plans de cette semaine.</string>
   <string name="coach_refused_busy">Trop de demandes en peu de temps. Réessayez dans quelques minutes.</string>
@@ -1391,13 +1391,13 @@
     <item quantity="other">Premier plan après encore %d résolutions</item>
   </plurals>
   <plurals name="coach_refused_too_few">
-    <item quantity="one">Un plan demande %1$d résolutions avec votre cube connecté, et vous en avez %2$d. Encore %3$d à faire.</item>
-    <item quantity="other">Un plan demande %1$d résolutions avec votre cube connecté, et vous en avez %2$d. Encore %3$d à faire.</item>
+    <item quantity="one">Un plan demande %1$d résolutions avec votre smart cube, et vous en avez %2$d. Encore %3$d à faire.</item>
+    <item quantity="other">Un plan demande %1$d résolutions avec votre smart cube, et vous en avez %2$d. Encore %3$d à faire.</item>
   </plurals>
   <string name="coach_reason_slow_case">Cas qui vous coûtent du temps</string>
   <string name="coach_reason_slow_under_pressure">Connus, mais lents en résolution</string>
   <string name="coach_reason_recognition_heavy">Plus de recherche que d\'exécution</string>
-  <string name="coach_reason_two_look_oll">Deux regards sur la dernière couche</string>
+  <string name="coach_reason_two_look_oll">La dernière couche en 2-look</string>
   <string name="coach_reason_inconsistent_case">Cas qui tournent mal</string>
   <string name="coach_reason_slow_step">Prend une plus grande part que la normale</string>
   <string name="coach_reason_stuck_pieces">Pièces coincées dans d\'autres slots</string>
@@ -1408,8 +1408,8 @@
   <string name="coach_case_gap">%1$s en drill, %2$s de plus en résolution</string>
   <string name="coach_case_rejected">%1$d%% d\'entre eux écartés</string>
   <string name="coach_recognition_body">%1$s : %2$s sur %3$s passent avant le premier mouvement.</string>
-  <string name="coach_two_look_body">%1$s : deux regards dans %2$d des %3$d dernières résolutions.</string>
-  <string name="coach_two_look_share">%1$s prend %2$s de votre résolution, alors que %3$s est habituel en un regard.</string>
+  <string name="coach_two_look_body">%1$s : 2-look dans %2$d des %3$d dernières résolutions.</string>
+  <string name="coach_two_look_share">%1$s prend %2$s de votre résolution, alors que %3$s est habituel en 1-look.</string>
   <string name="coach_two_look_to_learn">Vos résolutions montrent %1$d cas que vous ne placez pas encore en un seul algorithme.</string>
   <string name="coach_step_share_body">%1$s prend %2$s de votre résolution, alors que %3$s est habituel.</string>
   <string name="coach_stuck_body">%1$s de vos paires commencent avec une pièce coincée dans un autre slot. Elles prennent %2$s, contre %3$s pour les autres.</string>
@@ -1443,7 +1443,7 @@
   <string name="coach_fig_of_seconds">%1$s sur %2$s secondes</string>
   <string name="coach_fig_solve_share">de votre résolution va au %1$s</string>
   <string name="coach_fig_usual_share">%1$s d\'habitude</string>
-  <string name="coach_fig_two_looks">%1$s en deux temps</string>
+  <string name="coach_fig_two_looks">%1$s en 2-look</string>
   <plurals name="coach_fig_in_last_solves">
     <item quantity="one">sur votre %1$d dernière résolution</item>
     <item quantity="other">sur vos %1$d dernières résolutions</item>
@@ -1529,7 +1529,7 @@
   <string name="analysis_help_cases_title">Cas par cas</string>
   <string name="analysis_help_cases_body">Les cas de l\'étape choisie que vous avez faits en un seul algorithme, sur la fenêtre indiquée en haut. Seules ces résolutions comptent : un temps en deux looks est laissé de côté.</string>
   <string name="analysis_help_standing">Où en est un cas</string>
-  <string name="analysis_help_standing_body">Connu : passé en un seul algorithme, sans aide, et assez récemment pour que ce soit encore vrai. À revoir : il passait ainsi avant, mais a demandé deux regards les deux dernières fois. À apprendre : jamais passé en un seul algorithme. Tout cela est lu dans vos résolutions, pas dans une liste à cocher.</string>
+  <string name="analysis_help_standing_body">Connu : passé en un seul algorithme, sans aide, et assez récemment pour que ce soit encore vrai. À revoir : il passait ainsi avant, mais en 2-look les deux dernières fois. À apprendre : jamais passé en un seul algorithme. Tout cela est lu dans vos résolutions, pas dans une liste à cocher.</string>
   <string name="analysis_help_shape">Forme</string>
   <string name="analysis_help_shape_body">En OLL, un bouton Forme réduit le tableau à un groupe de formes, avec la taille de chaque groupe à côté.</string>
   <string name="analysis_help_rest_body">Sous le tableau, les cas qui ne sont pas passés en un seul algorithme dans la fenêtre, groupés selon où ils en sont sur toutes vos résolutions. Touchez-en un pour ses algorithmes.</string>
