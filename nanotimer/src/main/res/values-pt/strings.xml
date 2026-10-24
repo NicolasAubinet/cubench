@@ -135,8 +135,8 @@
   <string name="session_times_display_summary">Barras ou tempos, para os 12 últimos na tela do cronômetro</string>
   <string name="session_display_bars">Barras</string>
   <string name="session_display_times">Tempos</string>
-  <string name="state_preview">Visualização do embaralhamento</string>
-  <string name="state_preview_summary">A imagem abaixo do embaralhamento na tela do cronômetro</string>
+  <string name="state_preview">Visualização do scramble</string>
+  <string name="state_preview_summary">A imagem abaixo do scramble na tela do cronômetro</string>
   <string name="state_preview_cube">Cubo 3D</string>
   <string name="state_preview_net">Planificação</string>
   <string name="state_preview_none">Nenhuma</string>
@@ -144,10 +144,10 @@
   <string name="edit_solve_types">Editar os tipos de resolução</string>
   <string name="edit_solve_types_summary">Editar, adicionar e excluir tipos de resolução</string>
   <string name="solvetypes_help_title">Sobre os tipos de resolução</string>
-  <string name="solvetypes_help_body">Cada um guarda o seu próprio histórico neste quebra-cabeça, e o seletor do cronómetro lista-os pela ordem que têm aqui.</string>
+  <string name="solvetypes_help_body">Cada um mantém seu próprio histórico neste puzzle, e o seletor do cronômetro os lista na ordem em que estão aqui.</string>
   <string name="solvetypes_help_reorder">Reordenar</string>
-  <string name="solvetypes_help_edit_body">Toque numa linha para editar o nome e as definições, dar-lhe etapas ou apagá-la.</string>
-  <string name="solvetypes_help_reorder_body">Arraste uma linha pela pega à sua direita para a subir ou descer na lista.</string>
+  <string name="solvetypes_help_edit_body">Toque em uma linha para editar o nome e as configurações, adicionar etapas ou excluí-la.</string>
+  <string name="solvetypes_help_reorder_body">Arraste uma linha pela alça à direita para movê-la para cima ou para baixo na lista.</string>
   <string name="solvetypes_help_add_body">O + na barra cria outro, vazio no início.</string>
   <string name="solvetypes_steps_count">%1$d etapas</string>
   <string name="solvetypes_no_inspection">Sem inspeção</string>
@@ -217,7 +217,7 @@
   <string name="blind">Às cegas</string>
   <string name="blind_mode">Modo às cegas</string>
   <string name="blind_mode_summary">Registra a precisão e a média de 3</string>
-  <string name="inspection_summary">Contagem decrescente antes do início da resolução</string>
+  <string name="inspection_summary">Contagem regressiva antes do início da resolução</string>
   <string name="inspection_summary_blind">Não utilizada nas resoluções às cegas</string>
   <string name="edit_solvetype">Editar o tipo de resolução</string>
 
@@ -228,14 +228,14 @@
   <string name="export_selected">Seleção</string>
   <string name="export_nothing_selected">Nada selecionado</string>
   <string name="export_csv_title">Exportar os tempos em CSV</string>
-  <string name="export_csv_caption">Apenas os tempos, para abrir numa folha de cálculo.</string>
-  <string name="backup_everything">Cópia de segurança completa</string>
-  <string name="backup_everything_caption">Resoluções, sessões e definições, para restaurar noutro telemóvel.</string>
+  <string name="export_csv_caption">Apenas os tempos, para abrir em uma planilha.</string>
+  <string name="backup_everything">Backup completo</string>
+  <string name="backup_everything_caption">Resoluções, sessões e configurações, para restaurar em outro celular.</string>
   <string name="backup_contents_line">%1$s, %2$s</string>
-  <string name="backup_save">Guardar</string>
-  <string name="backup_creating">A preparar a cópia de segurança...</string>
-  <string name="backup_saved">Cópia de segurança guardada</string>
-  <string name="backup_failed">Não foi possível criar a cópia de segurança</string>
+  <string name="backup_save">Salvar</string>
+  <string name="backup_creating">Preparando o backup...</string>
+  <string name="backup_saved">Backup salvo</string>
+  <string name="backup_failed">Não foi possível criar o backup</string>
   <plurals name="backup_drills_count">
     <item quantity="one">%d treino</item>
     <item quantity="other">%d treinos</item>
@@ -256,25 +256,25 @@
     <item quantity="other">Mostrar %d puzzles sem resoluções</item>
   </plurals>
   <string name="export_hide_empty_puzzles">Ocultar os puzzles sem resoluções</string>
-  <string name="backup_mail_subject">Cópia de segurança do Cubench</string>
-  <string name="backup_mail_body">Cópia de segurança do Cubench de %1$s</string>
+  <string name="backup_mail_subject">Backup do Cubench</string>
+  <string name="backup_mail_body">Backup do Cubench de %1$s</string>
   <string name="export_mail_subject">Exportação de histórico Cubench</string>
   <string name="export_mail_body">Exportação de histórico a partir de %1$s</string>
   <string name="send_via">Enviar via:</string>
-  <string name="export_share">Partilhar</string>
-  <string name="export_save_to_file">Guardar num ficheiro</string>
-  <string name="export_saved">Histórico guardado</string>
-  <string name="export_saved_to">Histórico guardado em %1$s</string>
-  <string name="export_save_failed">Não foi possível guardar o ficheiro de histórico</string>
-  <string name="no_app_to_share">Nenhuma aplicação neste dispositivo consegue partilhar. Utilize antes «Guardar num ficheiro».</string>
+  <string name="export_share">Compartilhar</string>
+  <string name="export_save_to_file">Salvar em um arquivo</string>
+  <string name="export_saved">Histórico salvo</string>
+  <string name="export_saved_to">Histórico salvo em %1$s</string>
+  <string name="export_save_failed">Não foi possível salvar o arquivo de histórico</string>
+  <string name="no_app_to_share">Nenhum aplicativo neste aparelho consegue compartilhar. Use \"Salvar em um arquivo\".</string>
   <string name="no_data_to_export">Nenhum dado para exportar</string>
   <string name="select_at_least_one_solve_type">Selecione pelo menos um tipo de resolução para exportar</string>
   <string name="exporting_history">Exportando o histórico…</string>
 
   <string name="import_times">Importar</string>
   <string name="export_help_title">Sobre a exportação</string>
-  <string name="export_help_body">Este ecrã escreve dois ficheiros diferentes, e o controlo no topo escolhe qual. O que os cartões abaixo selecionaram é o que vai para o CSV.</string>
-  <string name="export_help_backup_body">Um único ficheiro com tudo o que a aplicação guarda: cada tempo, cada sessão e cada definição. Só o Cubench o lê, e restaurá-lo substitui o que está no telemóvel.</string>
+  <string name="export_help_body">Esta tela gera dois arquivos diferentes, e o controle no topo escolhe qual. O que os cartões abaixo selecionam é o que vai para o CSV.</string>
+  <string name="export_help_backup_body">Um único arquivo com tudo o que o aplicativo guarda: cada tempo, cada sessão e cada configuração. Só o Cubench o lê, e restaurá-lo substitui o que está no celular.</string>
   <string name="export_help_share">Entrega o arquivo direto para outro aplicativo: um e-mail, uma conversa, um espaço na nuvem.</string>
   <string name="export_help_save">Grava onde você escolher neste aparelho, para guardar ou mover você mesmo.</string>
   <string name="export_help_columns">O que uma linha contém</string>
@@ -284,7 +284,7 @@
   <string name="line">linha</string>
   <string name="error_in_line">Erro na linha %1$d</string>
   <string name="import_invalid_columns_count">Número de colunas inválido. Verifique o arquivo de importação ou tente exportar novamente.</string>
-  <string name="import_invalid_time_before_dnf">Tempo a restaurar inválido: %s</string>
+  <string name="import_invalid_time_before_dnf">Tempo inválido para restaurar: %s</string>
   <string name="import_error">Erro de importação</string>
   <string name="could_not_convert_time">Não foi possível converter o tempo \'%1$s\'</string>
   <string name="could_not_convert_date">Não foi possível converter a data \'%1$s\'</string>
@@ -416,11 +416,11 @@
   <string name="smartcube_step_flip">%s (flip)</string>
   <string name="smartcube_step_twist">%s (twist)</string>
   <string name="smartcube_wanted_break_in">%s + break-in</string>
-  <string name="smartcube_step_gap">Paragem</string>
+  <string name="smartcube_step_gap">Parada</string>
   <!-- What a blind solve was left in, said under its breakdown. -->
-  <string name="blind_left_edge_cycle">Terminou num ciclo de 3 arestas: %s</string>
-  <string name="blind_left_corner_cycle">Terminou num ciclo de 3 cantos: %s</string>
-  <string name="blind_left_parity">Terminou numa paridade: %s</string>
+  <string name="blind_left_edge_cycle">Terminou em um ciclo de 3 arestas: %s</string>
+  <string name="blind_left_corner_cycle">Terminou em um ciclo de 3 cantos: %s</string>
+  <string name="blind_left_parity">Terminou em uma paridade: %s</string>
   <string name="blind_left_swaps">Terminou com dois pares trocados: %s</string>
   <string name="blind_left_flipped">Terminou com arestas viradas: %s</string>
   <string name="blind_left_twisted">Terminou com cantos girados: %s</string>
@@ -429,9 +429,9 @@
   <string name="blind_left_also_turned">Também mal orientadas: %s</string>
   <string name="blind_parity_skipped">O scramble precisava de uma paridade, e nenhuma foi feita</string>
   <string name="blind_parity_needless">Foi feita uma paridade que o scramble não precisava</string>
-  <string name="blind_left_scattered">Terminou com %d peças por resolver</string>
+  <string name="blind_left_scattered">Terminou com %d peças não resolvidas</string>
   <!-- Where the reading stopped short of the turning. -->
-  <string name="blind_reading_lost">A leitura para depois de %1$s: %2$d movimentos por ler</string>
+  <string name="blind_reading_lost">A leitura para depois de %1$s: %2$d movimentos não lidos</string>
   <!-- The cycle the cube wanted, under a blind algorithm that shot the wrong one. -->
   <string name="blind_wanted">Esperado: %s</string>
   <string name="scramble_view_clock_notation_hint">O diagrama não está disponível para esta notação do Clock. Mude para a notação UR/DR/DL nas opções para vê-lo.</string>
@@ -452,10 +452,10 @@
   <string name="share_time_text">Acabei de resolver o cubo %1$s em %2$s!\n\nScramble:\n%3$s\n\nCronometrado em %4$s com o aplicativo Android Cubench:\n%5$s</string>
   <string name="share_time_steps_text">Acabei de resolver o cubo %1$s em %2$s com os seguintes tempos de etapa:\n%3$s\nScramble:\n%4$s\n\nCronometrado em %5$s com o aplicativo Android Cubench:\n%6$s</string>
   <string name="smart_cube_mac">MAC: %s</string>
-  <string name="share_smartcube_data">Dados do cubo inteligente:</string>
+  <string name="share_smartcube_data">Dados do smart cube:</string>
   <string name="share_send_report">Enviar relatório</string>
   <string name="report_reconstruction">Reconstrução incorreta?</string>
-  <string name="report_reconstruction_body">Isto envia a resolução ao programador da aplicação para que a leitura possa ser analisada.</string>
+  <string name="report_reconstruction_body">Isto envia a resolução ao desenvolvedor do aplicativo para que a leitura possa ser analisada.</string>
   <string name="report_reconstruction_hint">O que ficou errado?</string>
   <string name="report_reconstruction_intro">O que a reconstrução interpretou mal? Descreva aqui e envie. Os dados da resolução estão abaixo.</string>
   <string name="report_reconstruction_environment">Cubench %1$s, Android %2$s, %3$s</string>
@@ -486,8 +486,8 @@
     <ul>
       <li>O Cubench agora se conecta aos smart cubes Bluetooth GAN, MoYu e QiYi</li>
       <li>O cronômetro começa no seu primeiro giro e para quando o cubo é resolvido</li>
-      <li>O embaralhamento acompanha seus giros, e um movimento errado é detectado e corrigido</li>
-      <li>Cada resolução é dividida em etapas (cruz, pares F2L, OLL, PLL), com tempos de reconhecimento e execução e a reconstrução completa</li>
+      <li>O scramble acompanha seus giros, e um movimento errado é detectado e corrigido</li>
+      <li>Cada resolução é dividida em etapas (cruz, pares F2L, OLL, PLL), com tempos de procura e execução e a reconstrução completa</li>
       <li>Qualquer resolução pode ser revista em 3D</li>
       <li>Nova tela de Análise: suas etapas e casos mais lentos, e os algoritmos que você usa</li>
       <li>Novos treinos, para praticar casos no seu próprio cubo</li>
@@ -496,21 +496,21 @@
     </ul>
     <u><b>v2.1.1</b></u><br/>
     <ul>
-      <li>Os scrambles de 2x2 têm agora 11 movimentos, só com R, U e F, como os oficiais</li>
-      <li>O histórico pode agora ser ordenado pela melhor Ao5, Ao12, Ao50 ou Ao100</li>
-      <li>Tocar numa média nos detalhes de uma resolução mostra as resoluções que a compõem</li>
+      <li>Os scrambles de 2x2 agora têm 11 movimentos, só com R, U e F, como os oficiais</li>
+      <li>O histórico agora pode ser ordenado pela melhor Ao5, Ao12, Ao50 ou Ao100</li>
+      <li>Tocar em uma média nos detalhes de uma resolução mostra as resoluções que a compõem</li>
       <li>Uma sessão ou uma média pode ser copiada com o scramble de cada resolução, para colar onde quiser</li>
-      <li>Um tempo abaixo de metade do seu recorde pessoal pede confirmação antes de ser guardado como recorde, caso tenha parado o tempo por engano</li>
-      <li>Nova definição «Cor da última camada» para tipos de scramble como Última camada, PLL ou F2L</li>
-      <li>Estas notas podem agora ser desativadas após as atualizações</li>
+      <li>Um tempo abaixo da metade do seu recorde pessoal pede confirmação antes de ser registrado como recorde, caso você tenha parado o cronômetro por engano</li>
+      <li>Nova configuração “Cor da última camada” para tipos de scramble como Última camada, PLL ou F2L</li>
+      <li>Estas notas agora podem ser desativadas após as atualizações</li>
     </ul>
     <u><b>v2.1.0</b></u><br/>
     <ul>
-      <li>O Cubench já pode guardar tudo num único ficheiro, para restaurar noutro telemóvel</li>
-      <li>Um +2 aparece agora ao lado do tempo a que foi somado, e um DNF mostra o tempo que substituiu</li>
+      <li>O Cubench agora pode salvar tudo em um único arquivo, para restaurar em outro celular</li>
+      <li>Um +2 agora aparece ao lado do tempo ao qual foi somado, e um DNF mostra o tempo que substituiu</li>
       <li>Novo tipo de scramble: segundo bloco do Roux</li>
-      <li>Várias definições foram renomeadas para maior clareza</li>
-      <li>Corrigidos os ecrãs que caíam de volta ao ecrã principal depois de o Android fechar a aplicação em segundo plano</li>
+      <li>Várias configurações foram renomeadas para maior clareza</li>
+      <li>Corrigidas as telas que voltavam para a tela principal depois que o Android fechava o aplicativo em segundo plano</li>
       <li>Nas barras de sessão, um DNF é desenhado à altura do tempo que substituiu</li>
     </ul>
     <u><b>v2.0.0</b></u><br/>
@@ -518,7 +518,7 @@
     <b>Cronômetro</b>
     <ul>
       <li>O scramble agora aparece na própria tela do cronômetro, em 3D ou como diagrama plano (pode ser ocultado nas configurações)</li>
-      <li>Enquanto uma resolução corre, a tela não guarda nada além do tempo</li>
+      <li>Durante uma resolução, a tela não mostra nada além do tempo</li>
       <li>Os 12 últimos tempos são mostrados em barras (a tabela de tempos continua disponível pelas configurações)</li>
       <li>Os recordes agora são anunciados em uma linha em vez de uma janela, assim como o melhor e o pior dos seus 12 últimos tempos</li>
       <li>A inspeção agora pode ser ativada ou desativada por tipo de resolução</li>
@@ -553,7 +553,7 @@
       <li>Nova opção “Último tempo” no menu do cronômetro, que abre os detalhes do tempo, onde comentar e compartilhar agora ficam</li>
       <li>Corrigidos os dígitos do cronômetro que se moviam durante a cronometragem em alguns aparelhos</li>
       <li>Os scrambles de Megaminx não terminam mais com uma linha vazia</li>
-      <li>A exportação agora pode guardar o seu histórico diretamente num ficheiro, e a partilha funciona com mais aplicações</li>
+      <li>A exportação agora pode salvar seu histórico diretamente em um arquivo, e o compartilhamento funciona com mais aplicativos</li>
       <li>Pop-ups e listas suspensas renovados para combinar com o resto do aplicativo</li>
     </ul>
     <u><b>v1.4.2</b></u><br/>
@@ -795,13 +795,13 @@
     ]]>
   </string>
 
-  <string name="smart_cube_title">Cubo inteligente</string>
+  <string name="smart_cube_title">Smart cube</string>
   <string name="smart_cube_disconnect">Desconectar</string>
   <string name="smart_cube_scanning">Buscando…</string>
   <string name="smart_cube_connecting">Conectando a %s…</string>
   <string name="smart_cube_connected">Conectado</string>
   <string name="smart_cube_connect_failed">Falha na conexão: %s</string>
-  <string name="smart_cube_intro_body">Um cubo inteligente Bluetooth transmite ao Cubench cada movimento no instante em que você o faz. Depois que o seu estiver pareado, três coisas mudam.</string>
+  <string name="smart_cube_intro_body">Um smart cube Bluetooth transmite ao Cubench cada movimento no instante em que você o faz. Depois que o seu estiver pareado, três coisas mudam.</string>
   <string name="smart_cube_done">Pronto</string>
   <string name="smart_cube_auto_connect">Conectar este cubo ao abrir o aplicativo</string>
   <string name="smart_cube_resync">Reiniciar o estado</string>
@@ -816,15 +816,15 @@
   <string name="smart_cube_undo">Desfaça seus movimentos errados</string>
 
   <!-- Cubo inteligente: painel explicativo da primeira vez -->
-  <string name="smart_cube_intro_title">O que um cubo inteligente faz</string>
+  <string name="smart_cube_intro_title">O que um smart cube faz</string>
   <string name="smart_cube_intro_timing_title">O cronômetro se vira sozinho</string>
   <string name="smart_cube_intro_timing_body">Ele começa no seu primeiro movimento e para assim que o cubo fica resolvido. Sem tocar na tela, sem largadas perdidas.</string>
-  <string name="smart_cube_intro_scramble_title">Embaralhamentos que dá para seguir</string>
-  <string name="smart_cube_intro_scramble_body">O Cubench vê você aplicar o embaralhamento, marca cada movimento conforme acontece e avisa quando você está pronto.</string>
+  <string name="smart_cube_intro_scramble_title">Scrambles que dá para seguir</string>
+  <string name="smart_cube_intro_scramble_body">O Cubench vê você aplicar o scramble, marca cada movimento conforme acontece e avisa quando você está pronto.</string>
   <string name="smart_cube_intro_breakdown_title">Cada resolução, detalhada</string>
-  <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL e PLL são cronometrados separadamente, com contagem de movimentos, velocidade e a reconstrução completa.</string>
+  <string name="smart_cube_intro_breakdown_body">Cruz, F2L, OLL e PLL são cronometrados separadamente, com contagem de movimentos, velocidade e a reconstrução completa.</string>
   <string name="smart_cube_intro_continue">Parear meu cubo</string>
-  <string name="smart_cube_help">O que um cubo inteligente faz</string>
+  <string name="smart_cube_help">O que um smart cube faz</string>
 
   <!-- Cubo inteligente: estados de pareamento -->
   <string name="smart_cube_searching_title">Procurando seu cubo</string>
@@ -856,18 +856,18 @@
   <string name="blind_method_op_m2">OP/M2</string>
   <string name="method_default">Padrão (%1$s)</string>
   <string name="method_info">Sobre o método</string>
-  <string name="method_info_message">Usado para reconstruir suas resoluções quando há um cubo inteligente conectado: diz ao aplicativo em quais etapas dividir uma resolução. Deixe no padrão para seguir o método preferido das configurações, ou indique o método que você realmente usa para este tipo de resolução.</string>
+  <string name="method_info_message">Usado para reconstruir suas resoluções quando há um smart cube conectado: diz ao aplicativo em quais etapas dividir uma resolução. Deixe no padrão para seguir o método preferido das configurações, ou indique o método que você realmente usa para este tipo de resolução.</string>
   <string name="reread_solves_title">Reler as resoluções anteriores?</string>
-  <string name="reread_solves_message">%1$d resoluções deste tipo foram lidas como %2$s. Podem ser lidas de novo como %3$s, o que pode demorar um pouco num histórico longo. Nada se perde: repor o método e reler restaura-as.</string>
+  <string name="reread_solves_message">%1$d resoluções deste tipo foram lidas como %2$s. Elas podem ser lidas de novo como %3$s, o que pode demorar um pouco em um histórico longo. Nada se perde: voltar ao método anterior e reler as restaura.</string>
   <string name="reread_solves_confirm">Reler</string>
   <string name="reread_solves_cancel">Agora não</string>
-  <string name="reread_solves_progress">A reler as resoluções...</string>
-  <string name="reread_solves_running">Já existe uma releitura em curso</string>
+  <string name="reread_solves_progress">Relendo as resoluções...</string>
+  <string name="reread_solves_running">Já há uma releitura em andamento</string>
   <string name="reread_solves_done">%1$d resoluções relidas</string>
   <string name="preferred_method">Método preferido</string>
-  <string name="preferred_method_summary">O método com que os tipos de resolução são lidos, a menos que tenham o seu</string>
-  <string name="smart_cube_auto_stop">Paragem automática</string>
-  <string name="smart_cube_auto_stop_summary">Parar o cronómetro assim que o cubo fica resolvido, em vez de com um toque</string>
+  <string name="preferred_method_summary">O método com que os tipos de resolução são lidos, a menos que tenham um próprio</string>
+  <string name="smart_cube_auto_stop">Parada automática</string>
+  <string name="smart_cube_auto_stop_summary">Parar o cronômetro assim que o cubo fica resolvido, em vez de com um toque</string>
   <string name="smart_cube_auto_penalty">+2 e DNF automáticos</string>
   <string name="smart_cube_auto_penalty_summary">Dar um +2 a uma resolução parada a um movimento do resolvido, e um DNF a uma resolução parada mais longe</string>
   <string name="preferred_method_prompt">Com qual método você resolve? Ele é usado para dividir suas resoluções em etapas. Este é o padrão: cada tipo de resolução pode ter o seu.</string>
@@ -900,7 +900,7 @@
   <string name="history_help_rolling_body">Uma estatística com um número no nome cobre apenas essa quantidade dos seus tempos mais recentes, então ela muda a cada resolução.</string>
   <string name="history_help_all">Média total e Prec total</string>
   <string name="history_help_all_body">A média total é a média simples dos seus tempos, sem contar os DNF. A prec total, nos tipos às cegas, diz com que frequência você acertou. As duas cobrem todo o seu histórico para este tipo de resolução, até os últimos 1000 tempos.</string>
-  <string name="history_help_pb_body">O seu melhor tempo para este tipo de resolução, por mais antigo que seja.</string>
+  <string name="history_help_pb_body">Seu melhor tempo para este tipo de resolução, por mais antigo que seja.</string>
   <string name="history_help_average">Média ou média simples</string>
   <string name="history_help_average_body">Uma média tira o melhor e o pior, e faz a média do resto. Uma média simples não tira nada, então um único DNF entre os seus tempos a torna um DNF.</string>
   <string name="history_help_blind">Tipos às cegas</string>
@@ -914,15 +914,15 @@
   <string name="verdict_best_ever">Recorde pessoal</string>
   <string name="verdict_best_ever_by">Recorde pessoal, %1$s de vantagem</string>
   <string-array name="verdict_ranks">
-    <item>2.º melhor tempo</item>
-    <item>3.º melhor tempo</item>
-    <item>4.º melhor tempo</item>
-    <item>5.º melhor tempo</item>
-    <item>6.º melhor tempo</item>
-    <item>7.º melhor tempo</item>
-    <item>8.º melhor tempo</item>
-    <item>9.º melhor tempo</item>
-    <item>10.º melhor tempo</item>
+    <item>2º melhor tempo</item>
+    <item>3º melhor tempo</item>
+    <item>4º melhor tempo</item>
+    <item>5º melhor tempo</item>
+    <item>6º melhor tempo</item>
+    <item>7º melhor tempo</item>
+    <item>8º melhor tempo</item>
+    <item>9º melhor tempo</item>
+    <item>10º melhor tempo</item>
   </string-array>
   <string name="verdict_faster">%1$s mais rápido que a sua %2$s</string>
   <string name="verdict_slower">%1$s mais lento que a sua %2$s</string>
@@ -931,10 +931,10 @@
   <string name="drill_title">Treino</string>
   <string name="drill_progress">Repetição %1$d de %2$d</string>
   <string name="drill_reset">Recomeçar</string>
-  <string name="drill_skip">Saltar</string>
+  <string name="drill_skip">Pular</string>
   <string name="drill_done">Concluído</string>
   <string name="drill_finished">Treino terminado</string>
-  <string name="drill_rep_skipped">Saltada</string>
+  <string name="drill_rep_skipped">Pulada</string>
   <string name="drill_summary_nothing_timed">Nada foi cronometrado</string>
   <string name="drill_summary_cell_reps">Repetições</string>
   <string name="drill_summary_cell_of">de %d</string>
@@ -981,7 +981,7 @@
   <string name="drill_targets_column_wins">Acertos</string>
   <string name="drill_targets_column_target">Meta</string>
   <string name="drill_summary_cell_extra">Movimentos a mais</string>
-  <string name="drill_summary_cell_planning">Planeamento</string>
+  <string name="drill_summary_cell_planning">Planejamento</string>
   <string name="drill_summary_cell_average">em média</string>
   <string name="drill_summary_cases">Casos</string>
   <string name="drill_summary_column_recognition">Recon</string>
@@ -999,8 +999,8 @@
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>
   </plurals>
-  <string name="drill_stats_hint">Toque num caso para ver cada uma das suas tentativas.</string>
-  <string name="drill_stats_empty">Nada registado ainda. Os treinos feitos no modo concentrado aparecem aqui, caso a caso.</string>
+  <string name="drill_stats_hint">Toque em um caso para ver cada uma das suas tentativas.</string>
+  <string name="drill_stats_empty">Nada registrado ainda. Os treinos feitos no modo concentrado aparecem aqui, caso a caso.</string>
   <string name="drill_stats_empty_window">Nenhum treino neste período.</string>
   <string name="drill_stats_window_today">Hoje</string>
   <string name="drill_stats_window_week">Semana</string>
@@ -1012,7 +1012,7 @@
   <string name="drill_stats_window_all_long">Desde o início</string>
   <string name="drill_case_stats_title">Caso</string>
   <string name="drill_case_stats_attempts">Tentativas</string>
-  <string name="drill_case_stats_hint">Toque numa tentativa para os algoritmos, mantenha para a remover.</string>
+  <string name="drill_case_stats_hint">Toque em uma tentativa para ver os algoritmos, mantenha pressionado para removê-la.</string>
   <string name="drill_case_stats_empty">Nenhuma tentativa neste período.</string>
   <string name="drill_case_stats_cell_worst">Pior %s</string>
   <plurals name="drill_case_stats_resets">
@@ -1021,22 +1021,22 @@
   </plurals>
   <string name="drill_case_stats_when">%1$s · repetição %2$d</string>
   <string name="drill_case_stats_remove_message">%1$s, %2$s. Fica na lista, riscada, e não conta para nada.</string>
-  <string name="drill_needs_cube">Ligue o seu cubo inteligente para fazer um treino.</string>
-  <string name="drill_no_known_cases">A aplicação não sabe gerar nenhum dos casos deste treino.</string>
+  <string name="drill_needs_cube">Conecte seu smart cube para fazer um treino.</string>
+  <string name="drill_no_known_cases">O aplicativo não sabe gerar nenhum dos casos deste treino.</string>
   <string name="drill_no_cube_view">Este dispositivo não consegue desenhar o cubo de um treino.</string>
-  <string name="drill_spec_unreadable">Esta versão da aplicação não consegue ler esse treino.</string>
+  <string name="drill_spec_unreadable">Esta versão do aplicativo não consegue ler esse treino.</string>
 
   <!-- Escolha do treino -->
   <string name="drill_setup_title">Novo treino</string>
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
   <string name="drill_practice_cross">Cruz</string>
-  <string name="drill_practice_hint_pll">Um PLL a seguir ao outro, entre os casos que escolher.</string>
-  <string name="drill_practice_hint_oll">Um OLL a seguir ao outro, entre os casos que escolher.</string>
-  <string name="drill_practice_hint_cross">Uma mistura completa, e a cruz mais curta que lá encontrar.</string>
+  <string name="drill_practice_hint_pll">Um PLL depois do outro, entre os casos que você escolher.</string>
+  <string name="drill_practice_hint_oll">Um OLL depois do outro, entre os casos que você escolher.</string>
+  <string name="drill_practice_hint_cross">Um scramble completo, e a cruz mais curta que você encontrar nele.</string>
   <string name="drill_practice_f2l">F2L</string>
-  <string name="drill_practice_hint_f2l">Um par F2L a seguir ao outro, os casos comuns mais vezes.</string>
-  <string name="drill_layer_colour_shared">Também usada nas misturas de Última camada, PLL e F2L</string>
+  <string name="drill_practice_hint_f2l">Um par F2L depois do outro, com os casos comuns mais vezes.</string>
+  <string name="drill_layer_colour_shared">Também usada nos scrambles de Última camada, PLL e F2L</string>
   <string name="drill_cases_choose">Escolher</string>
   <string name="drill_cases_count">%1$d de %2$d escolhidos</string>
   <string name="drill_cases_title_oll">Casos OLL</string>
@@ -1044,7 +1044,7 @@
   <string name="drill_cases_all">Todos</string>
   <string name="drill_cases_none">Nenhum</string>
   <string name="drill_cases_empty">Escolha pelo menos um caso para praticar.</string>
-  <string name="drill_cases_hint">Mantenha premido um caso para ver os algoritmos.</string>
+  <string name="drill_cases_hint">Mantenha um caso pressionado para ver os algoritmos.</string>
   <string name="drill_cases_all_count">Os %d casos</string>
   <string name="drill_cases_count_preset">%1$d de %2$d · %3$s</string>
   <plurals name="drill_preset_and_count">
@@ -1053,11 +1053,11 @@
   </plurals>
   <string name="drill_presets">Seleções</string>
   <plurals name="drill_presets_save">
-    <item quantity="one">Guardar este caso</item>
-    <item quantity="other">Guardar estes %d casos</item>
+    <item quantity="one">Salvar este caso</item>
+    <item quantity="other">Salvar estes %d casos</item>
   </plurals>
-  <string name="drill_presets_empty">Guarde uma seleção à qual volta, e aplique-a novamente com um só toque.</string>
-  <string name="drill_presets_hint">Mantenha premida uma seleção para a atualizar, renomear ou eliminar.</string>
+  <string name="drill_presets_empty">Salve uma seleção à qual você volta, e aplique-a de novo com um só toque.</string>
+  <string name="drill_presets_hint">Mantenha uma seleção pressionada para atualizá-la, renomeá-la ou excluí-la.</string>
   <string name="drill_presets_update">Atualizar com os casos escolhidos</string>
   <string name="drill_presets_name">Nome da seleção</string>
   <string name="drill_presets_replace_confirm">Já existe uma seleção chamada \'%1$s\'. Substituí-la?</string>
@@ -1065,11 +1065,11 @@
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
   <string name="case_algorithms">Algoritmos</string>
-  <string name="case_algorithm_mine">O que utiliza</string>
+  <string name="case_algorithm_mine">O que você usa</string>
   <string name="case_algorithm_unusual">Pouco comum</string>
   <string name="case_algorithm_used">Esta resolução</string>
-  <string name="case_algorithm_mute">Não assinalar este algoritmo</string>
-  <string name="case_algorithm_unmute">Voltar a assinalar este algoritmo</string>
+  <string name="case_algorithm_mute">Não marcar este algoritmo</string>
+  <string name="case_algorithm_unmute">Voltar a marcar este algoritmo</string>
   <string name="case_algorithm_of_last">%1$d das suas últimas %2$d</string>
   <string name="case_algorithm_longer">%1$d movimentos, o habitual tem %2$d</string>
   <string name="case_algorithm_recommended">Recomendado</string>
@@ -1078,7 +1078,7 @@
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Isso não resolve este caso. Verifique e tente novamente.</string>
   <string name="case_title_f2l">Par F2L</string>
-  <string name="case_algorithms_order">Os recomendados primeiro. Toque no que utiliza.</string>
+  <string name="case_algorithms_order">Os recomendados primeiro. Toque no que você usa.</string>
   <string name="case_algorithm_empty_fl">Precisa do slot frontal esquerdo vazio</string>
   <string name="case_algorithm_empty_br">Precisa do slot traseiro direito vazio</string>
   <string name="case_algorithm_hint_f2l">"U' R U2 R' U R U' R'"</string>
@@ -1090,17 +1090,17 @@
   <string name="drill_f2l_advanced">Avançados</string>
   <string name="drill_f2l_both">Ambos</string>
   <string name="drill_reps_all">Todos</string>
-  <string name="drill_record">Guardar os tempos</string>
-  <string name="drill_summary_recorded">Guardado</string>
-  <string name="drill_summary_not_recorded">Não guardado</string>
+  <string name="drill_record">Salvar os tempos</string>
+  <string name="drill_summary_recorded">Salvo</string>
+  <string name="drill_summary_not_recorded">Não salvo</string>
   <string name="drill_help_title">Sobre este treino</string>
   <string name="drill_help_body">O que um treino fixa antes de dar o primeiro caso.</string>
-  <string name="drill_help_record">Ativado, cada repetição é guardada: o tempo e se pediu para ver o algoritmo. Essas repetições alimentam as Estatísticas de treino e «Algoritmos que você conhece» em Análise. Desative para treinar sem os alterar.</string>
-  <string name="drill_planning_limit">Limite de planeamento</string>
+  <string name="drill_help_record">Ativado, cada repetição é salva: o tempo e se você pediu para ver o algoritmo. Essas repetições alimentam as Estatísticas de treino e \"Algoritmos que você conhece\" em Análise. Desative para treinar sem alterá-los.</string>
+  <string name="drill_planning_limit">Limite de planejamento</string>
   <string name="drill_planning_seconds">segundos</string>
-  <string name="drill_planning_hint">Desligado por omissão: aprender a cruz completa leva mais do que os 15 segundos oficiais.</string>
+  <string name="drill_planning_hint">Desativado por padrão: aprender a cruz completa leva mais do que os 15 segundos oficiais.</string>
   <string name="drill_start">Começar treino</string>
-  <string name="drill_connect_cube">Ligue o seu cubo</string>
+  <string name="drill_connect_cube">Conecte seu cubo</string>
   <string name="drill_cases_family">Casos %1$s</string>
   <string name="drill_title_f2l">Pares</string>
   <string name="drill_title_cross">Cruz mais curta</string>
@@ -1108,10 +1108,10 @@
   <!-- Treino de cruz -->
   <string name="drill_cross_title">Treino de cruz</string>
   <string name="drill_cross_done">Concluído</string>
-  <string name="drill_cross_next">Seguinte</string>
-  <string name="drill_cross_dealing">A preparar uma mistura</string>
-  <string name="drill_cross_plan_it">Planeie a cruz e depois rode</string>
-  <string name="drill_cross_planning_left">%d segundos para planear</string>
+  <string name="drill_cross_next">Próximo</string>
+  <string name="drill_cross_dealing">Preparando um scramble</string>
+  <string name="drill_cross_plan_it">Planeje a cruz e depois gire</string>
+  <string name="drill_cross_planning_left">%d segundos para planejar</string>
   <string name="drill_cross_planning_over">Tempo esgotado, faça-a de memória</string>
   <string name="drill_cross_moves">%d movimentos</string>
   <string name="drill_cross_not_yet">%d movimentos, e ainda não é uma cruz</string>
@@ -1130,46 +1130,46 @@
   <string name="drill_cross_panel_shortest">Mais curto em %d</string>
   <string name="drill_cross_way_of">%1$d/%2$d</string>
   <string name="drill_cross_step_back">Movimento anterior</string>
-  <string name="drill_cross_step_forward">Movimento seguinte</string>
-  <string name="drill_cross_rep_times">Planeamento %1$s, execução %2$s</string>
+  <string name="drill_cross_step_forward">Próximo movimento</string>
+  <string name="drill_cross_rep_times">Planejamento %1$s, execução %2$s</string>
 
   <!-- Cópia de segurança e restauro -->
   <string name="export_segment_backup">Cópia</string>
   <string name="export_segment_csv">Tempos para CSV</string>
-  <string name="backup_holds_everything">Uma cópia contém todos os puzzles, todos os tempos e todas as definições. Não há nada para selecionar aqui, porque nada fica de fora.</string>
+  <string name="backup_holds_everything">Uma cópia contém todos os puzzles, todos os tempos e todas as configurações. Não há nada para selecionar aqui, porque nada fica de fora.</string>
   <string name="restore_restarts_the_app">O Cubench vai fechar e reabrir quando terminar.</string>
-  <string name="import_no_file_picker">Nenhuma aplicação deste dispositivo pode escolher um ficheiro.</string>
-  <string name="restore_reading">A ler a cópia…</string>
-  <string name="restore_running">A restaurar…</string>
+  <string name="import_no_file_picker">Nenhum aplicativo deste dispositivo pode escolher um arquivo.</string>
+  <string name="restore_reading">Lendo a cópia…</string>
+  <string name="restore_running">Restaurando…</string>
   <string name="restore_confirm_title">Restaurar esta cópia?</string>
-  <string name="restore_in_the_file">No ficheiro</string>
-  <string name="restore_on_this_phone">Neste telemóvel</string>
-  <string name="restore_made_on">Criada a %1$s</string>
-  <string name="restore_replaces_everything">Tudo o que está neste telemóvel é substituído pelo conteúdo do ficheiro. O Cubench guarda uma cópia do que substitui, por isso pode voltar a ela.</string>
-  <string name="undo_last_restore">Anular o último restauro</string>
+  <string name="restore_in_the_file">No arquivo</string>
+  <string name="restore_on_this_phone">Neste celular</string>
+  <string name="restore_made_on">Criada em %1$s</string>
+  <string name="restore_replaces_everything">Tudo o que está neste celular é substituído pelo conteúdo do arquivo. O Cubench salva uma cópia do que substitui, então você pode voltar a ela.</string>
+  <string name="undo_last_restore">Desfazer a última restauração</string>
   <string name="restore_confirm">Restaurar</string>
-  <string name="restore_failed">Não foi possível restaurar a cópia de segurança</string>
-  <string name="restore_failed_body">Algo correu mal ao ler ou escrever o ficheiro. Verifica se há espaço livre suficiente no telemóvel e tenta de novo.</string>
-  <string name="restore_rejected_not_a_backup">Este ficheiro não é uma cópia de segurança do Cubench.</string>
+  <string name="restore_failed">Não foi possível restaurar o backup</string>
+  <string name="restore_failed_body">Algo deu errado ao ler ou gravar o arquivo. Verifique se há espaço livre suficiente no celular e tente de novo.</string>
+  <string name="restore_rejected_not_a_backup">Este arquivo não é um backup do Cubench.</string>
   <string name="restore_rejected_damaged">Esta cópia está danificada e não pode ser lida.</string>
-  <string name="restore_rejected_newer_format">Esta cópia foi criada por uma versão mais recente do Cubench. Atualiza a aplicação e tenta de novo.</string>
-  <string name="restore_rejected_newer_db_version">Esta cópia contém dados de uma versão mais recente do Cubench. Atualiza a aplicação e tenta de novo.</string>
-  <string name="restore_rejected_wrong_app">Esta cópia pertence a outra aplicação.</string>
+  <string name="restore_rejected_newer_format">Esta cópia foi criada por uma versão mais recente do Cubench. Atualize o aplicativo e tente de novo.</string>
+  <string name="restore_rejected_newer_db_version">Esta cópia contém dados de uma versão mais recente do Cubench. Atualize o aplicativo e tente de novo.</string>
+  <string name="restore_rejected_wrong_app">Esta cópia pertence a outro aplicativo.</string>
   <string name="restore_rejected_corrupt_database">Os dados desta cópia estão danificados e não podem ser restaurados.</string>
   <plurals name="backup_solve_types_count">
     <item quantity="one">%d tipo de tempo</item>
     <item quantity="other">%d tipos de tempo</item>
   </plurals>
   <string name="known_algorithms_title">Algoritmos que você conhece</string>
-  <string name="known_algorithms_count">%1$d de %2$d num único algoritmo</string>
-  <string name="known_algorithms_subtitle">Deduzido das suas resoluções e dos seus drills.</string>
+  <string name="known_algorithms_count">%1$d de %2$d em um único algoritmo</string>
+  <string name="known_algorithms_subtitle">Deduzido das suas resoluções e dos seus treinos.</string>
   <string name="known_algorithms_status_known">Conhecido</string>
-  <string name="known_algorithms_status_review">Para rever</string>
+  <string name="known_algorithms_status_review">Para revisar</string>
   <string name="known_algorithms_status_to_learn">Para aprender</string>
   <string name="known_algorithms_status_unseen">Nada a dizer</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Nenhum caso registrado</string>
-  <string name="known_algorithms_hint">Toque num caso para ver os seus algoritmos. Um caso conta como conhecido na primeira vez que o faz com um único algoritmo numa resolução. Se voltar a fazê-lo em duas etapas, fica para rever; um que nunca fez com um único algoritmo fica para aprender.</string>
+  <string name="known_algorithms_hint">Toque em um caso para ver seus algoritmos. Um caso conta como conhecido na primeira vez que você o faz com um único algoritmo em uma resolução. Se você voltar a fazê-lo em 2-look, ele fica para rever; um que você nunca fez com um único algoritmo fica para aprender.</string>
   <string name="known_algorithms_empty">Nada aqui ainda. Resolva com um smart cube conectado e os casos que você faz sem ajuda vão aparecer.</string>
   <string name="known_algorithms_reading">Lendo suas resoluções...</string>
   <string name="blind_setup_summary">%2$s, %1$s, buffers %3$s e %4$s</string>
@@ -1180,8 +1180,8 @@
   <string name="blind_setup_shoot">Os buffers de onde você dispara</string>
   <string name="blind_orientation_up">Face de cima</string>
   <string name="blind_orientation_front">Face da frente</string>
-  <string name="blind_orientation_summary">Cubo com %1$s em cima, %2$s à frente</string>
-  <string name="blind_read_with">Lido com %1$s em cima, %2$s à frente</string>
+  <string name="blind_orientation_summary">Cubo com %1$s em cima, %2$s na frente</string>
+  <string name="blind_read_with">Lido com %1$s em cima, %2$s na frente</string>
   <string name="colour_white">branco</string>
   <string name="colour_yellow">amarelo</string>
   <string name="colour_red">vermelho</string>
@@ -1192,9 +1192,9 @@
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">An\u00e1lise</string>
-  <string name="menu_section_smartcube">Cubo inteligente</string>
-  <string name="menu_section_data">Os seus dados</string>
-  <string name="menu_section_app">Aplicação</string>
+  <string name="menu_section_smartcube">Smart cube</string>
+  <string name="menu_section_data">Seus dados</string>
+  <string name="menu_section_app">Aplicativo</string>
   <string name="menu_drills">Treinos</string>
   <string name="menu_coaching">Coaching</string>
   <string name="menu_premium_tag">Premium</string>
@@ -1204,20 +1204,20 @@
   <string name="analysis_tab_cases">Casos</string>
   <string name="analysis_tab_plan">Plano</string>
   <string name="analysis_recommended_drills">Treinos recomendados</string>
-  <string name="analysis_empty">Ligue um smart cube e faça algumas resoluções para ver aqui as suas etapas.</string>
+  <string name="analysis_empty">Conecte um smart cube e faça algumas resoluções para ver suas etapas aqui.</string>
   <string name="analysis_empty_scramble">Este tipo de resolução prepara apenas uma etapa e não uma resolução inteira, por isso não há nada para detalhar.</string>
   <string name="analysis_empty_puzzle">Um smart cube só lê resoluções de 3x3. Não há nada para detalhar aqui.</string>
-  <string name="analysis_empty_steps">Este tipo de resolução cronometra as suas próprias etapas, por isso o seu detalhe é o que toca no cronómetro.</string>
+  <string name="analysis_empty_steps">Este tipo de resolução cronometra suas próprias etapas, então o detalhe dele é o que você marca no cronômetro.</string>
   <string name="analysis_best">Melhor</string>
   <plurals name="analysis_mean_of">
     <item quantity="one">Média de %d resolução</item>
     <item quantity="other">Média de %d resoluções</item>
   </plurals>
   <string name="analysis_column_step">Etapa</string>
-  <string name="analysis_delta_label">Face a uma resolu\u00e7\u00e3o %s t\u00edpica</string>
+  <string name="analysis_delta_label">Em relação a uma resolu\u00e7\u00e3o %s t\u00edpica</string>
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
-  <string name="analysis_delta_limit">São partes de uma mesma resolução: se um passo está acima, outro tem de estar abaixo. Uma última etapa rápida fará sempre parecer que há um problema numa anterior.</string>
+  <string name="analysis_delta_limit">São partes de uma mesma resolução: se um passo está acima, outro tem que estar abaixo. Uma última etapa rápida sempre fará parecer que há um problema em uma anterior.</string>
   <string name="analysis_window_title">Lido sobre</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">\u00daltimas 50</string>
@@ -1241,52 +1241,52 @@
   <string name="analysis_algorithms_not_seen">Não vistos</string>
   <string name="analysis_algorithms_reading">Lendo suas resoluções…</string>
   <string name="analysis_rest_title">O resto do conjunto</string>
-  <string name="analysis_cases_empty">Ligue um smart cube e faça algumas resoluções para ver aqui ordenados os casos que ele ler.</string>
+  <string name="analysis_cases_empty">Conecte um smart cube e faça algumas resoluções para ver aqui, em ordem, os casos que ele ler.</string>
   <string name="analysis_cases_blind">Uma resolução às cegas não tem casos. É lida como uma memorização e as peças resolvidas.</string>
-  <string name="analysis_cases_method">Por agora só as resoluções CFOP têm os seus casos nomeados, por isso não há nada para ordenar aqui.</string>
+  <string name="analysis_cases_method">Por enquanto só as resoluções CFOP têm seus casos nomeados, então não há nada para ordenar aqui.</string>
   <string name="analysis_plan_headline">Um plano todas as semanas</string>
-  <string name="analysis_plan_body">Lido das suas próprias resoluções: o que trabalhar, o drill para isso, e se o trabalho da semana passada mudou alguma coisa.</string>
-  <string name="analysis_plan_point_plans">Um plano semanal que pode aplicar, a partir das suas resoluções</string>
-  <string name="analysis_plan_point_practice">Pratique os casos que mais tempo lhe custam</string>
+  <string name="analysis_plan_body">Lido das suas próprias resoluções: o que trabalhar, o treino para isso e se o trabalho da semana passada mudou alguma coisa.</string>
+  <string name="analysis_plan_point_plans">Um plano semanal que você pode aplicar, a partir das suas resoluções</string>
+  <string name="analysis_plan_point_practice">Pratique os casos que mais tomam seu tempo</string>
   <string name="analysis_plan_point_support">Apoie o desenvolvimento do Cubench</string>
-  <string name="analysis_plan_cites">Um plano é escrito a partir das suas próprias resoluções, com cada afirmação a citar um número que pode conferir nos outros dois separadores.</string>
-  <string name="analysis_plan_not_yet">Ainda não há plano aqui. Resolução e Casos continuam gratuitos aconteça o que acontecer a este separador.</string>
-  <string name="coach_written">Analisado a %1$s</string>
+  <string name="analysis_plan_cites">Um plano é escrito a partir das suas próprias resoluções, com cada afirmação citando um número que você pode conferir nas outras duas abas.</string>
+  <string name="analysis_plan_not_yet">Ainda não há plano aqui. Resolução e Casos continuam gratuitos, aconteça o que acontecer com esta aba.</string>
+  <string name="coach_written">Analisado em %1$s</string>
   <string name="coach_uncited">%1$d dados deste plano não estão no seu histórico e não são mostrados.</string>
-  <string name="coach_refused_thin">Ainda não há o suficiente para ler. Faça mais algumas resoluções com o cubo inteligente e peça novamente.</string>
-  <string name="coach_refused_cap">Já teve todos os planos desta semana, o próximo estará disponível a %1$s.</string>
-  <string name="coach_refused_cap_undated">Já teve todos os planos desta semana.</string>
-  <string name="coach_refused_busy">Demasiados pedidos em pouco tempo. Tente novamente dentro de alguns minutos.</string>
+  <string name="coach_refused_thin">Ainda não há o suficiente para ler. Faça mais algumas resoluções com o smart cube e peça novamente.</string>
+  <string name="coach_refused_cap">Você já recebeu todos os planos desta semana. O próximo estará disponível em %1$s.</string>
+  <string name="coach_refused_cap_undated">Você já recebeu todos os planos desta semana.</string>
+  <string name="coach_refused_busy">Muitos pedidos em pouco tempo. Tente novamente em alguns minutos.</string>
   <string name="coach_refused_unavailable">O coach não está disponível neste momento. Tente novamente mais tarde.</string>
-  <string name="coach_refused_unreachable">Não foi possível contactar o coach. Verifique a sua ligação e tente novamente.</string>
+  <string name="coach_refused_unreachable">Não foi possível falar com o coach. Verifique sua conexão e tente novamente.</string>
   <string name="coach_refused_rejected">O coach não conseguiu escrever um plano sustentado pelos seus números. Tente novamente.</string>
-  <string name="coach_refused_update">Esta versão do Cubench não consegue comunicar com o coach. Atualize a aplicação e tente novamente.</string>
+  <string name="coach_refused_update">Esta versão do Cubench não consegue se comunicar com o coach. Atualize o app e tente novamente.</string>
   <string name="coach_refused_device">Este dispositivo não está configurado para o coach.</string>
-  <string name="coach_subscription_ended">A sua subscrição do coach terminou, pelo que já não são escritos novos planos.</string>
+  <string name="coach_subscription_ended">Sua assinatura do coach terminou, então novos planos não são mais escritos.</string>
   <string name="coach_channel_plans">Planos do coach</string>
-  <string name="coach_plan_ready_title">O seu novo plano está pronto</string>
+  <string name="coach_plan_ready_title">Seu novo plano está pronto</string>
   <string name="coach_plan_ready_text">Veja em que trabalhar esta semana.</string>
   <string name="coach_channel_reminders">Lembretes do coach</string>
   <plurals name="coach_reminder_title">
-    <item quantity="one">Faça mais %d resolução para receber o seu próximo plano</item>
-    <item quantity="other">Faça mais %d resoluções para receber o seu próximo plano</item>
+    <item quantity="one">Faça mais %d resolução para receber seu próximo plano</item>
+    <item quantity="other">Faça mais %d resoluções para receber seu próximo plano</item>
   </plurals>
   <string name="coach_reminder_text">Resoluções com smart cube em %1$s.</string>
-  <string name="coach_reminder_due_tomorrow">O seu próximo plano chega amanhã</string>
-  <string name="coach_reminder_due_today">O seu próximo plano chega hoje</string>
+  <string name="coach_reminder_due_tomorrow">Seu próximo plano chega amanhã</string>
+  <string name="coach_reminder_due_today">Seu próximo plano chega hoje</string>
   <plurals name="coach_reminder_on_time">
     <item quantity="one">Faça mais %1$d resolução com smart cube em %2$s para recebê-lo a tempo.</item>
     <item quantity="other">Faça mais %1$d resoluções com smart cube em %2$s para recebê-lo a tempo.</item>
   </plurals>
   <string name="coach_reminder_setting">Lembrete de resoluções</string>
-  <string name="coach_reminder_setting_summary">Uma notificação na véspera do seu próximo plano, quando ainda lhe faltam resoluções</string>
-  <string name="coach_sends_body">Uma vez por semana, em segundo plano, o Cubench envia ao coach os números das suas resoluções de %1$s e dos seus treinos, e ele escreve um plano de treino feito para si.</string>
+  <string name="coach_reminder_setting_summary">Uma notificação na véspera do seu próximo plano, quando ainda faltam resoluções</string>
+  <string name="coach_sends_body">Uma vez por semana, em segundo plano, o Cubench envia ao coach os números das suas resoluções de %1$s e dos seus treinos, e ele escreve um plano de treino feito para você.</string>
   <string name="coach_next_retry">O coach não conseguiu escrever este plano. Será pedido de novo em %1$s.</string>
-  <string name="coach_writing">A escrever o seu plano, demora alguns minutos…</string>
+  <string name="coach_writing">Escrevendo seu plano, leva alguns minutos…</string>
   <string name="coach_strip_next">Próximo plano</string>
   <string name="coach_strip_first">Primeiro plano</string>
   <string name="coach_strip_session">quando esta sessão terminar</string>
-  <string name="coach_strip_waiting">à espera do coach</string>
+  <string name="coach_strip_waiting">esperando o coach</string>
   <string name="coach_gate_title">O coach abre às %1$d resoluções com smart cube</string>
   <string name="coach_gate_count">%1$d de %2$d</string>
   <plurals name="coach_gate_note">
@@ -1298,10 +1298,10 @@
   <string name="coach_offer_then">Depois %1$s ou %2$s.</string>
   <string name="coach_offer_then_less">Depois %1$s ou %2$s, %3$d%% menos para começar.</string>
   <string name="coach_offer_prices">%1$s ou %2$s.</string>
-  <string name="coach_ended_title">A sua subscrição do coach terminou</string>
-  <string name="coach_ended_title_access">O seu acesso ao coach terminou</string>
-  <string name="coach_ended_body">Não é escrito nenhum plano novo e já nada é enviado ao coach. O seu último plano continua aqui.</string>
-  <string name="coach_ended_button">Ver a subscrição</string>
+  <string name="coach_ended_title">Sua assinatura do coach terminou</string>
+  <string name="coach_ended_title_access">Seu acesso ao coach terminou</string>
+  <string name="coach_ended_body">Nenhum plano novo é escrito e nada mais é enviado ao coach. Seu último plano continua aqui.</string>
+  <string name="coach_ended_button">Ver a assinatura</string>
   <string name="coach_plan_yearly">Anual</string>
   <string name="coach_plan_monthly">Mensal</string>
   <string name="coach_price_yearly">%1$s por ano</string>
@@ -1329,9 +1329,9 @@
   </plurals>
   <string name="coach_sends_label">Como funciona</string>
   <string name="coach_purchase_start_free">Começar %1$s grátis</string>
-  <string name="coach_purchase_subscribe_for">Subscrever por %1$s</string>
-  <string name="coach_purchase_subscribe">Subscrever</string>
-  <string name="coach_purchase_note">Cancele quando quiser no Google Play. Ao subscrever, os planos semanais são ativados.</string>
+  <string name="coach_purchase_subscribe_for">Assinar por %1$s</string>
+  <string name="coach_purchase_subscribe">Assinar</string>
+  <string name="coach_purchase_note">Cancele quando quiser no Google Play. Ao assinar, os planos semanais são ativados.</string>
   <string name="coach_purchase_sub">A partir das suas próprias resoluções</string>
   <string name="coach_purchase_free">Grátis durante %1$s</string>
   <string name="coach_tile_first_year">o primeiro ano</string>
@@ -1341,8 +1341,8 @@
   <string name="coach_tile_month">por mês</string>
   <string name="coach_tile_every">a cada %1$s</string>
   <string name="coach_tile_then">depois %1$s</string>
-  <string name="coach_purchase_unavailable">Não é possível aceder ao Google Play neste momento. Tente mais tarde.</string>
-  <string name="coach_manage">Gerir a subscrição</string>
+  <string name="coach_purchase_unavailable">Não é possível acessar o Google Play neste momento. Tente mais tarde.</string>
+  <string name="coach_manage">Gerenciar a assinatura</string>
   <plurals name="coach_days">
     <item quantity="one">%d dia</item>
     <item quantity="other">%d dias</item>
@@ -1362,28 +1362,28 @@
   <string name="coach_id">ID do Coach</string>
   <string name="coach_id_copied">ID do Coach copiado</string>
   <string name="coach_code">Código de acesso</string>
-  <string name="coach_code_body">Insira o código que recebeu para usar o coach neste dispositivo.</string>
+  <string name="coach_code_body">Digite o código que você recebeu para usar o coach neste dispositivo.</string>
   <string name="coach_code_refused">Esse código não é válido ou já foi usado.</string>
   <string name="coach_code_granted">O acesso ao coach está ativado.</string>
   <string name="coach_code_on">Acesso ativado</string>
   <string name="coach_code_until">Acesso até %1$s</string>
   <string name="coach_plans_setting_summary">Escritos para %1$s</string>
-  <string name="coach_plans_setting_paused">Em pausa, sem tipo de resolução para os escrever</string>
-  <string name="coach_plans_move_title">Mover os seus planos semanais?</string>
-  <string name="coach_plans_move_body">Serão escritos a partir das suas resoluções de %1$s em vez de %2$s. O próximo plano continua a chegar uma semana depois do último.</string>
+  <string name="coach_plans_setting_paused">Em pausa, sem tipo de resolução para escrevê-los</string>
+  <string name="coach_plans_move_title">Mover seus planos semanais?</string>
+  <string name="coach_plans_move_body">Serão escritos a partir das suas resoluções de %1$s em vez de %2$s. O próximo plano continua chegando uma semana depois do último.</string>
   <string name="coach_plans_move_confirm">Mover os planos</string>
-  <string name="coach_guard_delete_move">Este tipo de resolução tem os seus planos semanais. O plano dele também é apagado. Depois poderá mover os planos para outro tipo de resolução.</string>
-  <string name="coach_guard_delete_pause">Este tipo de resolução tem os seus planos semanais, e nenhum outro os pode ter. O plano dele também é apagado, e os planos ficam em pausa até voltar a existir um tipo de resolução 3x3 em CFOP.</string>
+  <string name="coach_guard_delete_move">Este tipo de resolução tem seus planos semanais. O plano dele também é apagado. Depois você poderá mover os planos para outro tipo de resolução.</string>
+  <string name="coach_guard_delete_pause">Este tipo de resolução tem seus planos semanais, e nenhum outro pode tê-los. O plano dele também é apagado, e os planos ficam em pausa até existir de novo um tipo de resolução 3x3 em CFOP.</string>
   <string name="coach_guard_delete_move_confirm">Apagar e mover os planos</string>
   <string name="coach_guard_delete_pause_confirm">Apagar e pausar os planos</string>
   <string name="coach_guard_change_title">Alterar este tipo de resolução?</string>
-  <string name="coach_guard_change_move">Este tipo de resolução tem os seus planos semanais, e depois desta alteração não poderá ser escrito nenhum plano para ele. O último plano dele continua legível. Depois poderá mover os planos para outro tipo de resolução.</string>
-  <string name="coach_guard_change_pause">Este tipo de resolução tem os seus planos semanais, e depois desta alteração não poderá ser escrito nenhum plano para ele nem para nenhum outro. O último plano dele continua legível, e os planos ficam em pausa até voltar a existir um tipo de resolução 3x3 em CFOP.</string>
+  <string name="coach_guard_change_move">Este tipo de resolução tem seus planos semanais, e depois desta alteração nenhum plano poderá ser escrito para ele. O último plano dele continua legível. Depois você poderá mover os planos para outro tipo de resolução.</string>
+  <string name="coach_guard_change_pause">Este tipo de resolução tem seus planos semanais, e depois desta alteração nenhum plano poderá ser escrito para ele nem para nenhum outro. O último plano dele continua legível, e os planos ficam em pausa até existir de novo um tipo de resolução 3x3 em CFOP.</string>
   <string name="coach_guard_change_move_confirm">Alterar e mover os planos</string>
   <string name="coach_guard_change_pause_confirm">Alterar e pausar os planos</string>
   <string name="coach_guard_method_title">Alterar o método preferido?</string>
-  <string name="coach_guard_method_move">%1$s tem os seus planos semanais e segue o método preferido, e um plano só é escrito para resoluções em CFOP. O último plano dele continua legível. Depois poderá mover os planos para outro tipo de resolução.</string>
-  <string name="coach_guard_method_pause">%1$s tem os seus planos semanais e segue o método preferido, e um plano só é escrito para resoluções em CFOP. O último plano dele continua legível, e os planos ficam em pausa até voltar a existir um tipo de resolução 3x3 em CFOP.</string>
+  <string name="coach_guard_method_move">%1$s tem seus planos semanais e segue o método preferido, e um plano só é escrito para resoluções em CFOP. O último plano dele continua legível. Depois você poderá mover os planos para outro tipo de resolução.</string>
+  <string name="coach_guard_method_pause">%1$s tem seus planos semanais e segue o método preferido, e um plano só é escrito para resoluções em CFOP. O último plano dele continua legível, e os planos ficam em pausa até existir de novo um tipo de resolução 3x3 em CFOP.</string>
   <plurals name="coach_plans_move_floor">
     <item quantity="one">%1$s precisa de mais %2$d resolução com smart cube antes do primeiro plano.</item>
     <item quantity="other">%1$s precisa de mais %2$d resoluções com smart cube antes do primeiro plano.</item>
@@ -1393,33 +1393,33 @@
     <item quantity="other">Primeiro plano após mais %d resoluções</item>
   </plurals>
   <plurals name="coach_refused_too_few">
-    <item quantity="one">Um plano precisa de %1$d resoluções com o cubo inteligente, e tem %2$d. Falta %3$d.</item>
-    <item quantity="other">Um plano precisa de %1$d resoluções com o cubo inteligente, e tem %2$d. Faltam %3$d.</item>
+    <item quantity="one">Um plano precisa de %1$d resoluções com o smart cube, e você tem %2$d. Falta %3$d.</item>
+    <item quantity="other">Um plano precisa de %1$d resoluções com o smart cube, e você tem %2$d. Faltam %3$d.</item>
   </plurals>
-  <string name="coach_reason_slow_case">Casos que lhe custam tempo</string>
-  <string name="coach_reason_slow_under_pressure">Conhecidos, mas lentos a resolver</string>
+  <string name="coach_reason_slow_case">Casos que tomam seu tempo</string>
+  <string name="coach_reason_slow_under_pressure">Conhecidos, mas lentos na resolução</string>
   <string name="coach_reason_recognition_heavy">Mais procura do que execução</string>
   <string name="coach_reason_two_look_oll">A última camada em 2-look</string>
-  <string name="coach_reason_inconsistent_case">Casos que correm mal</string>
+  <string name="coach_reason_inconsistent_case">Casos que dão errado</string>
   <string name="coach_reason_slow_step">Ocupa mais resolução do que o habitual</string>
-  <string name="coach_reason_stuck_pieces">Peças presas noutros slots</string>
+  <string name="coach_reason_stuck_pieces">Peças presas em outros slots</string>
   <string name="coach_reason_slow_first_pair">Um primeiro par lento</string>
   <string name="coach_reason_unknown">Outra coisa para trabalhar</string>
-  <string name="coach_case_mean">%1$s contra %2$s dos restantes</string>
+  <string name="coach_case_mean">%1$s contra %2$s dos demais</string>
   <string name="coach_case_cost">%1$d vezes, %2$s perdidos</string>
-  <string name="coach_case_gap">%1$s em drill, %2$s mais a resolver</string>
+  <string name="coach_case_gap">%1$s no treino, %2$s a mais na resolução</string>
   <string name="coach_case_rejected">%1$d%% deles descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s passam antes do primeiro movimento.</string>
   <string name="coach_two_look_body">%1$s: 2-look em %2$d das últimas %3$d resoluções.</string>
   <string name="coach_two_look_share">%1$s ocupa %2$s da sua resolução, quando o habitual em 1-look é %3$s.</string>
-  <string name="coach_two_look_to_learn">As suas resoluções mostram %1$d casos que ainda não coloca com um só algoritmo.</string>
+  <string name="coach_two_look_to_learn">Suas resoluções mostram %1$d casos que você ainda não coloca com um só algoritmo.</string>
   <string name="coach_step_share_body">%1$s ocupa %2$s da sua resolução, quando o habitual é %3$s.</string>
-  <string name="coach_stuck_body">%1$s dos seus pares começam com uma peça presa noutro slot. Esses levam %2$s, e os outros %3$s.</string>
-  <string name="coach_first_pair_body">Procura durante %1$s antes do seu primeiro par, e %2$s antes de cada um dos seguintes.</string>
+  <string name="coach_stuck_body">%1$s dos seus pares começam com uma peça presa em outro slot. Esses levam %2$s, e os outros %3$s.</string>
+  <string name="coach_first_pair_body">Você procura por %1$s antes do seu primeiro par, e %2$s antes de cada um dos seguintes.</string>
   <string name="coach_reason_long_pair">Pares de F2L com movimentos a mais</string>
   <string name="coach_long_pair_body">Em %1$d resoluções, o seu F2L levou %2$s movimentos, onde os algoritmos habituais dos seus pares somam %3$s.</string>
-  <string name="coach_reason_stalling">Bloqueios a rodar</string>
-  <string name="coach_stalling_body">%1$s: %2$s bloqueios por resolução a rodar, que somam %3$s dos seus %4$s.</string>
+  <string name="coach_reason_stalling">Bloqueios ao girar</string>
+  <string name="coach_stalling_body">%1$s: %2$s bloqueios por resolução ao girar, que somam %3$s dos seus %4$s.</string>
   <string name="coach_reason_uneven_step">Irregular de resolução para resolução</string>
   <string name="coach_uneven_body">%1$s: média de %2$s, com uma variação de %3$s, e o seu melhor é %4$s.</string>
   <string name="coach_pair_extra">%1$s movimentos a mais em média</string>
@@ -1428,8 +1428,8 @@
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_plan_title">Em que se concentrar</string>
   <string name="coach_plan_loop">Vai dizer se o trabalho desta semana mudou alguma coisa.</string>
-  <string name="coach_preview_title">O seu plano seria assim</string>
-  <string name="coach_preview_when">Todas as semanas, a partir das suas resoluções</string>
+  <string name="coach_preview_title">Seu plano seria assim</string>
+  <string name="coach_preview_when">Toda semana, a partir das suas resoluções</string>
   <string name="coach_fig_seconds_lost">segundos perdidos</string>
   <plurals name="coach_fig_case_times">
     <item quantity="one">%1$s, %2$d vez</item>
@@ -1439,9 +1439,9 @@
     <item quantity="one">%1$d casos, %2$d vez</item>
     <item quantity="other">%1$d casos, %2$d vezes</item>
   </plurals>
-  <string name="coach_fig_slower_in_solve">segundos mais a resolver</string>
+  <string name="coach_fig_slower_in_solve">segundos a mais na resolução</string>
   <string name="coach_fig_thrown_out">deles descartados</string>
-  <string name="coach_fig_spent_looking">do seu %1$s passa-se a procurar</string>
+  <string name="coach_fig_spent_looking">do seu %1$s vai para a procura</string>
   <string name="coach_fig_of_seconds">%1$s de %2$s segundos</string>
   <string name="coach_fig_solve_share">da sua resolução vai para o %1$s</string>
   <string name="coach_fig_usual_share">o habitual é %1$s</string>
@@ -1466,9 +1466,9 @@
   <string name="coach_split_looking">Procura %1$s</string>
   <string name="coach_split_turning">Execução %1$s</string>
   <string name="coach_split_stopped">Parado %1$s</string>
-  <string name="coach_bar_rest">Os restantes</string>
-  <string name="coach_bar_in_solve">A resolver</string>
-  <string name="coach_bar_drilled">Em drill</string>
+  <string name="coach_bar_rest">Os demais</string>
+  <string name="coach_bar_in_solve">Na resolução</string>
+  <string name="coach_bar_drilled">No treino</string>
   <string name="coach_bar_you">Você</string>
   <string name="coach_bar_usual">Habitual</string>
   <string name="coach_bar_stuck">Presos</string>
@@ -1481,7 +1481,7 @@
   <string name="coach_drill_cases">Treinar estes casos</string>
   <string name="coach_learn_cases">Aprender estes casos</string>
   <string name="coach_practice_title">Treino livre</string>
-  <string name="coach_practice_body">Sempre aqui, à parte do plano: os casos que mais lhe custam, treinados até baterem as suas metas. Atualizado à medida que resolve.</string>
+  <string name="coach_practice_body">Sempre aqui, à parte do plano: os casos que mais custam para você, treinados até baterem suas metas. Atualizado conforme você resolve.</string>
   <string name="coach_practice_set">Os seus casos de %1$s mais custosos</string>
   <string name="coach_learn_next">Próximos OLL a aprender</string>
   <string name="coach_learn_next_pll">Próximos PLL a aprender</string>
@@ -1496,47 +1496,47 @@
 
   <string name="analysis_sample_subtitle">Não são seus tempos</string>
   <string name="analysis_sample_chip">Exemplo</string>
-  <string name="analysis_sample_mine">As minhas resoluções</string>
-  <string name="analysis_sample_showing">A mostrar</string>
-  <string name="analysis_sample_banner">Dados de exemplo de %d resoluções, não as suas. Ligue um smart cube para preencher isto.</string>
-  <string name="analysis_sample_cta_title">É isto que o seu cubo diria</string>
-  <string name="analysis_sample_cta_body">O Cubench lê cada movimento de um smart cube, divide a resolução nas suas etapas e nomeia o caso de cada uma. Percorra o exemplo todo e depois ligue um cubo para ver as suas.</string>
-  <string name="analysis_sample_connect">Ligar um cubo</string>
-  <string name="analysis_sample_browse">Continuar a ver</string>
+  <string name="analysis_sample_mine">Minhas resoluções</string>
+  <string name="analysis_sample_showing">Mostrando</string>
+  <string name="analysis_sample_banner">Dados de exemplo de %d resoluções, não as suas. Conecte um smart cube para preencher isto.</string>
+  <string name="analysis_sample_cta_title">É isso que seu cubo diria</string>
+  <string name="analysis_sample_cta_body">O Cubench lê cada movimento de um smart cube, divide a resolução em etapas e nomeia o caso de cada uma. Percorra o exemplo todo e depois conecte um cubo para ver as suas.</string>
+  <string name="analysis_sample_connect">Conectar um cubo</string>
+  <string name="analysis_sample_browse">Continuar vendo</string>
 
   <string name="analysis_help_title">Sobre estes números</string>
-  <string name="analysis_help_solve_title">Para onde vai o teu tempo</string>
-  <string name="analysis_help_solve_body">Estes números vêm das tuas próprias resoluções, as que um cubo leu, na janela indicada em cima.</string>
+  <string name="analysis_help_solve_title">Para onde vai seu tempo</string>
+  <string name="analysis_help_solve_body">Estes números vêm das suas próprias resoluções, as que um cubo leu, na janela indicada no topo.</string>
   <string name="analysis_help_bar">A resolução média</string>
-  <string name="analysis_help_bar_body">Um bloco por passo, tão largo quanto a sua parte do tempo. Cada bloco é pálido onde estavas a olhar e sólido onde estavas a virar.</string>
-  <string name="analysis_help_delta">Face a uma resolução típica</string>
-  <string name="analysis_help_delta_body">São partes de uma mesma resolução: se um passo está acima, outro tem de estar abaixo. Mostra que passo está desequilibrado.</string>
+  <string name="analysis_help_bar_body">Um bloco por etapa, tão largo quanto sua parte do tempo. Cada bloco é pálido onde você estava procurando e sólido onde estava girando.</string>
+  <string name="analysis_help_delta">Em relação a uma resolução típica</string>
+  <string name="analysis_help_delta_body">São partes de uma mesma resolução: se um passo está acima, outro tem que estar abaixo. Mostra qual passo está desequilibrado.</string>
   <string name="analysis_help_table">A tabela de passos</string>
-  <string name="analysis_help_table_body">Média, melhor e desvio de cada passo. Toca num cabeçalho para ordenar por ele. Os passos com casos com nome, OLL e PLL, têm uma seta e abrem-nos.</string>
+  <string name="analysis_help_table_body">Média, melhor e desvio de cada passo. Toque em um cabeçalho para ordenar por ele. Os passos com casos com nome, OLL e PLL, têm uma seta e os abrem.</string>
   <string name="analysis_help_spread">Desvio</string>
   <string name="analysis_help_spread_body">Quanto o tempo muda de uma resolução para outra. A mesma média pode vir de fazer sempre igual, ou de ficar preso de vez em quando.</string>
   <string name="analysis_help_standard">Algoritmos padrão</string>
-  <string name="analysis_help_standard_body">Como viraste cada caso do conjunto pela última vez: com um dos algoritmos listados para ele, o que é considerado padrão.</string>
+  <string name="analysis_help_standard_body">Como você girou cada caso do conjunto pela última vez: com um dos algoritmos listados para ele, o que é considerado padrão.</string>
   <string name="analysis_help_extra">Movimentos a mais</string>
-  <string name="analysis_help_extra_body">Os movimentos que esses casos te custaram face ao algoritmo padrão mais curto, somados.</string>
-  <string name="analysis_help_plan_title">O seu plano</string>
-  <string name="analysis_help_plan_body">Os planos fazem parte do coach do Cubench, uma funcionalidade paga. O coach lê as suas resoluções com smart cube, encontra o que lhe custa mais tempo e transforma isso num plano para a semana, com drills para os seus pontos fracos.</string>
+  <string name="analysis_help_extra_body">Os movimentos que esses casos custaram a você em relação ao algoritmo padrão mais curto, somados.</string>
+  <string name="analysis_help_plan_title">Seu plano</string>
+  <string name="analysis_help_plan_body">Os planos fazem parte do coach do Cubench, um recurso pago. O coach lê suas resoluções com smart cube, encontra o que mais toma seu tempo e transforma isso em um plano para a semana, com treinos para seus pontos fracos.</string>
   <string name="analysis_help_plan_cards">Em que se concentrar</string>
-  <string name="analysis_help_plan_cards_body">Até três coisas a trabalhar, a que vale mais primeiro. Cada uma diz o que se passa, porquê, e uma coisa a fazer.</string>
-  <string name="analysis_help_plan_drills">Drills</string>
-  <string name="analysis_help_plan_drills_body">O botão de cada ponto abre um drill feito para ele. Cada caso sai do drill depois de bater a sua meta algumas vezes.</string>
-  <string name="analysis_help_plan_practice_body">Por baixo do plano, os casos que mais lhe custam, prontos a treinar entre planos.</string>
+  <string name="analysis_help_plan_cards_body">Até três coisas para trabalhar, a que vale mais primeiro. Cada uma diz o que está acontecendo, por quê, e uma coisa a fazer.</string>
+  <string name="analysis_help_plan_drills">Treinos</string>
+  <string name="analysis_help_plan_drills_body">O botão de cada ponto abre um treino feito para ele. Cada caso sai do treino depois de bater sua meta algumas vezes.</string>
+  <string name="analysis_help_plan_practice_body">Abaixo do plano, os casos que mais custam para você, prontos para treinar entre planos.</string>
   <string name="analysis_help_plan_new">Um novo plano</string>
-  <string name="analysis_help_plan_new_body">Escrito a partir das suas últimas 100 resoluções com smart cube, por isso o primeiro precisa dessas. Depois chega um novo plano todas as semanas, quando tiver feito mais 25 resoluções e a sua sessão tiver terminado.</string>
+  <string name="analysis_help_plan_new_body">Escrito a partir das suas últimas 100 resoluções com smart cube, por isso o primeiro precisa delas. Depois chega um novo plano toda semana, quando você tiver feito mais 25 resoluções e sua sessão tiver terminado.</string>
   <string name="analysis_help_cases_title">Caso a caso</string>
-  <string name="analysis_help_cases_body">Os casos da etapa escolhida que resolveste com um só algoritmo, sobre a janela indicada em cima. Só contam essas resoluções: um tempo em dois looks fica de fora.</string>
+  <string name="analysis_help_cases_body">Os casos da etapa escolhida que você resolveu com um só algoritmo, na janela indicada no topo. Só contam essas resoluções: um tempo em 2-look fica de fora.</string>
   <string name="analysis_help_standing">Como está um caso</string>
-  <string name="analysis_help_standing_body">Conhecido: saiu com um só algoritmo, sem ajuda, e há pouco tempo para que isso ainda valha. Para rever: saía assim antes, mas em 2-look nas duas últimas vezes. Para aprender: nunca saiu com um só algoritmo. Tudo é lido das tuas resoluções, não de uma lista que marcas.</string>
+  <string name="analysis_help_standing_body">Conhecido: saiu com um só algoritmo, sem ajuda, e há pouco tempo para que isso ainda valha. Para revisar: saía assim antes, mas em 2-look nas duas últimas vezes. Para aprender: nunca saiu com um só algoritmo. Tudo é lido das suas resoluções, não de uma lista que você marca.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">No OLL, um botão Forma reduz a tabela a um grupo de formas, com o tamanho de cada grupo ao lado.</string>
-  <string name="analysis_help_rest_body">Sob a tabela, os casos que não resolveste com um só algoritmo na janela, agrupados por como estão em todas as tuas resoluções. Toca num deles para ver os seus algoritmos.</string>
+  <string name="analysis_help_rest_body">Abaixo da tabela, os casos que você não resolveu com um só algoritmo na janela, agrupados por como estão em todas as suas resoluções. Toque em um deles para ver seus algoritmos.</string>
   <string name="analysis_help_sample">Exemplo</string>
-  <string name="analysis_help_sample_body">Nada nestes separadores é seu. Estes números são inventados, e estão aqui para que o ecrã tenha algo para mostrar antes de ter um smart cube. Ligue um e os seus tomam o lugar deles.</string>
+  <string name="analysis_help_sample_body">Nada nestas abas é seu. Estes números são inventados e estão aqui para que a tela tenha algo para mostrar antes de você ter um smart cube. Conecte um e os seus tomam o lugar deles.</string>
 
   <!-- The smart-cube news sheet: shown once after updating into the smart cube -->
   <string name="news_pill">Novo</string>
@@ -1544,10 +1544,10 @@
   <string name="news_body">Conecte um smart cube Bluetooth e o Cubench lê cada giro que você faz. Sem tocar na tela, e cada resolução é destrinchada para você.</string>
   <string name="news_timing_title">Cronômetro sem as mãos</string>
   <string name="news_timing_body">O cronômetro começa no seu primeiro giro e para assim que o cubo é resolvido.</string>
-  <string name="news_scramble_title">Embaralhamentos que te acompanham</string>
+  <string name="news_scramble_title">Scrambles que acompanham você</string>
   <string name="news_scramble_body">Cada movimento acende quando você o faz, e um giro errado é detectado e corrigido com você.</string>
   <string name="news_breakdown_title">Cada resolução destrinchada</string>
-  <string name="news_breakdown_body">Cruz, pares F2L, OLL e PLL: tempos de reconhecimento e execução, e a reconstrução completa.</string>
+  <string name="news_breakdown_body">Cruz, pares F2L, OLL e PLL: tempos de procura e execução, e a reconstrução completa.</string>
   <string name="news_replay_title">Replays em 3D</string>
   <string name="news_replay_body">Reveja qualquer resolução em 3D, movimento a movimento, na velocidade que quiser.</string>
   <string name="news_analysis_title">Análise</string>
