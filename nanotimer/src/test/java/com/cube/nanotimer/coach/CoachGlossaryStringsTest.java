@@ -39,6 +39,7 @@ public class CoachGlossaryStringsTest {
     BOUND.put("2-look", "coach_fig_two_looks");
     BOUND.put("smart cube", "smart_cube_title");
     BOUND.put("cross", "smartcube_step_cross");
+    BOUND.put("solve", "analysis_tab_solve");
     BOUND.put("pair", "case_title_f2l");
     BOUND.put("looking", "coach_split_looking");
     BOUND.put("turning", "coach_split_turning");
@@ -108,10 +109,22 @@ public class CoachGlossaryStringsTest {
       Matcher m = STRING.matcher(xml);
       while (m.find()) {
         String name = m.group(2) != null ? m.group(2) : dir + "#" + m.start();
-        strings.put(name, m.group(3).replace("\\'", "'").replace("\\\"", "\""));
+        strings.put(name, unescape(m.group(3)));
       }
     }
     Assert.assertFalse("No strings read for " + language, strings.isEmpty());
     return strings;
+  }
+
+  /** The escapes Android resolves in a string resource: quotes, and some letters as backslash-u. */
+  private static String unescape(String text) {
+    Matcher m = Pattern.compile("\\\\u([0-9a-fA-F]{4})").matcher(text);
+    StringBuffer out = new StringBuffer();
+    while (m.find()) {
+      m.appendReplacement(out, Matcher.quoteReplacement(
+          String.valueOf((char) Integer.parseInt(m.group(1), 16))));
+    }
+    m.appendTail(out);
+    return out.toString().replace("\\'", "'").replace("\\\"", "\"");
   }
 }

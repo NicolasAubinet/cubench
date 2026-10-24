@@ -28,8 +28,8 @@ public final class CoachGlossary {
   public enum Language {
     EN("en", "you"),
     FR("fr", "vous"),
-    ES("es", "t\u00fa"),
-    PT("pt", "voc\u00ea");
+    ES("es", "tú"),
+    PT("pt", "você");
 
     private final String code;
     private final String address;
@@ -134,13 +134,13 @@ public final class CoachGlossary {
         .never(Language.ES, "dos miradas")
         .never(Language.PT, "dois olhares"));
     terms.add(kept("smart cube")
-        .never(Language.FR, "cube connect\u00e9", "cube intelligent")
+        .never(Language.FR, "cube connecté", "cube intelligent")
         .never(Language.ES, "cubo inteligente")
         .never(Language.PT, "cubo inteligente"));
     terms.add(kept("look-ahead")
         .never(Language.FR, "anticipation")
-        .never(Language.ES, "anticipaci\u00f3n")
-        .never(Language.PT, "antecipa\u00e7\u00e3o"));
+        .never(Language.ES, "anticipación")
+        .never(Language.PT, "antecipação"));
     terms.add(kept("finger tricks"));
     terms.add(kept("regrip"));
     terms.add(kept("TPS"));
@@ -149,23 +149,27 @@ public final class CoachGlossary {
         .never(Language.FR, "cross")
         .never(Language.ES, "cross")
         .never(Language.PT, "cross"));
+    terms.add(new Term("solve", "résolution", "resolución", "resolução")
+        .never(Language.FR, "solve", "solves")
+        .never(Language.ES, "solve", "solves")
+        .never(Language.PT, "solve", "solves"));
     terms.add(new Term("pair", "paire", "par", "par"));
     terms.add(new Term("looking", "recherche", "buscar", "procura")
         .never(Language.FR, "reconnaissance")
         .never(Language.ES, "reconocimiento")
         .never(Language.PT, "reconhecimento"));
-    terms.add(new Term("turning", "ex\u00e9cution", "girar", "execu\u00e7\u00e3o"));
+    terms.add(new Term("turning", "exécution", "girar", "execução"));
     terms.add(new Term("drill", "drill", "drill", "treino")
-        .never(Language.FR, "entra\u00eenement", "entra\u00eenements")
+        .never(Language.FR, "entraînement", "entraînements")
         .never(Language.ES, "entrenamiento", "entrenamientos")
         .never(Language.PT, "drill", "drills"));
-    terms.add(new Term("reps", "essais", "repeticiones", "repeti\u00e7\u00f5es"));
-    terms.add(new Term("scramble", "m\u00e9lange", "mezcla", "scramble")
+    terms.add(new Term("reps", "essais", "repeticiones", "repetições"));
+    terms.add(new Term("scramble", "mélange", "mezcla", "scramble")
         .never(Language.FR, "scramble", "scrambles")
         .never(Language.ES, "scramble", "scrambles")
         .never(Language.PT, "embaralhamento", "embaralhamentos"));
     terms.add(new Term("freezes", "blocages", "bloqueos", "bloqueios"));
-    terms.add(new Term("last layer", "derni\u00e8re couche", "\u00faltima capa", "\u00faltima camada"));
+    terms.add(new Term("last layer", "dernière couche", "última capa", "última camada"));
     terms.add(new Term("focus", "point", "punto", "ponto")
         .never(Language.FR, "axe de travail"));
     TERMS = Collections.unmodifiableList(terms);
