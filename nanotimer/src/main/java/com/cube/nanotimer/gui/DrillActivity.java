@@ -597,7 +597,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         || !clearedHere.add(code)) {
       return;
     }
-    Options.INSTANCE.addLearnedCase(code);
+    // The learn order these feed is OLL and PLL only; a pair has no use there.
+    if (!CaseAlgorithms.isPair(code)) {
+      Options.INSTANCE.addLearnedCase(code);
+    }
     String group = OllShapes.groupOf(code);
     if (!session.getSpec().isFromCoach() || group == null
         || Options.INSTANCE.isGroupCelebrated(group)) {
@@ -733,16 +736,15 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * The last layer cases of a learning drill whose algorithm was never kept on the cube, even with
-   * one to choose from: the choose step is where the algorithm is shown and repeated. A star from
-   * the case popup alone is only where it starts, since what is known is read from the solves.
+   * The cases of a learning drill whose algorithm was never kept on the cube, even with one to
+   * choose from: the choose step is where the algorithm is shown and repeated. A star from the case
+   * popup alone is only where it starts, since what is known is read from the solves.
    */
   private void collectCasesToChoose() {
     toChoose.clear();
     chooseIndex = 0;
     for (String code : session.getCases()) {
-      if ((code.startsWith("oll_") || code.startsWith("pll_"))
-          && !Options.INSTANCE.isAlgorithmKept(code)) {
+      if (!Options.INSTANCE.isAlgorithmKept(code)) {
         toChoose.add(code);
       }
     }
@@ -761,7 +763,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   /**
    * The algorithm a case's choose step starts on: the starred one, else the one a learning drill
-   * names, else the one the case popup recommends, else the first listed. Null when there is none.
+   * names (for a pair, the shortest listed, which its coach card names it by), else the one the
+   * case popup recommends, else the first listed. Null when there is none.
    */
   private String firstToTry(String code) {
     String starred = Options.INSTANCE.getCaseAlgorithm(code);
@@ -769,7 +772,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return starred;
     }
     boolean learning = session.getSpec().isLearning();
-    if (learning && session.getSpec().getCaseAlgorithm(code) != null) {
+    if (learning && (session.getSpec().getCaseAlgorithm(code) != null
+        || CaseAlgorithms.isPair(code))) {
       return learningAlgorithm(code);
     }
     String recommended = recommendedAlgorithm(code);
@@ -1088,7 +1092,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     LearningAlgorithmFade.show(practiceAlgorithmRow);
   }
 
-  /** The user's chosen algorithm, else the one the drill names if it solves the case, else the usual. */
+  /**
+   * The user's chosen algorithm, else the one the drill names if it solves the case, else the usual:
+   * for a pair the shortest listed, which its extra moves are counted against.
+   */
   private String learningAlgorithm(String code) {
     String chosen = Options.INSTANCE.getCaseAlgorithm(code);
     if (chosen != null) {
@@ -1098,7 +1105,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (named != null && CaseAlgorithms.solves(code, named)) {
       return named;
     }
-    return LastLayerAlgorithms.forCaseCode(code);
+    return CaseAlgorithms.isPair(code) ? CaseAlgorithms.shortestListed(code)
+        : LastLayerAlgorithms.forCaseCode(code);
   }
 
   /** Whether an algorithm is on screen for the case up: practice, or one shown again. */
