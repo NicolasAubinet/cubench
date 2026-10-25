@@ -212,7 +212,7 @@ public class DrillSpecTest {
         Arrays.asList("oll_26", "oll_27"), DrillSpec.Selection.ROUND_ROBIN, 40, 3, algorithms,
         null);
     DrillSpec read = DrillSpec.fromJson(spec.toJson());
-    assertEquals(DrillSpec.VERSION, read.getSpecVersion());
+    assertEquals("still readable by an app at 5", 5, read.getSpecVersion());
     assertTrue(read.isLearning());
     assertEquals("R U2 R' U' R U' R'", read.getCaseAlgorithm("oll_26"));
     assertNull("left out is the usual one", read.getCaseAlgorithm("oll_27"));
@@ -232,6 +232,35 @@ public class DrillSpecTest {
   public void refusesALearningDrillThatCannotRetire() {
     refuses("{\"spec_version\": 5, \"type\": \"case_execution\", \"delivery\": \"virtual\","
         + " \"cases\": [\"oll_26\"], \"reps\": 10, \"learn\": true}", "learning");
+  }
+
+  @Test
+  public void readsALookAheadDrillWithNoCases() {
+    DrillSpec spec = DrillSpec.fromJson("{\"spec_version\": 6, \"id\": \"coach-lookahead\","
+        + " \"type\": \"f2l_lookahead\", \"delivery\": \"virtual\", \"reps\": 12}");
+    assertEquals(DrillSpec.Type.F2L_LOOKAHEAD, spec.getType());
+    assertTrue(spec.getCases().isEmpty());
+    assertEquals(12, spec.getReps());
+    assertFalse(spec.retiresCases());
+  }
+
+  /** Written at 6, so an app at 5, which cannot deal two pairs, refuses it rather than misrun it. */
+  @Test
+  public void writesALookAheadDrillAtSix() {
+    DrillSpec read = DrillSpec.fromJson(DrillSpec.lookAhead("mine", 10, "Look-ahead").toJson());
+    assertEquals(6, read.getSpecVersion());
+    assertEquals(DrillSpec.Type.F2L_LOOKAHEAD, read.getType());
+    assertEquals(10, read.getReps());
+    assertEquals("Look-ahead", read.getLabel());
+    assertEquals(0, read.getTargetMs());
+  }
+
+  @Test
+  public void refusesALookAheadDrillThatRetiresOrLearns() {
+    refuses("{\"spec_version\": 6, \"type\": \"f2l_lookahead\", \"delivery\": \"virtual\","
+        + " \"reps\": 10, \"target_ms\": 3000, \"retire_after_wins\": 3}", "retire");
+    refuses("{\"spec_version\": 6, \"type\": \"f2l_lookahead\", \"delivery\": \"virtual\","
+        + " \"reps\": 10, \"retire_after_wins\": 3, \"learn\": true}", "learning");
   }
 
   @Test

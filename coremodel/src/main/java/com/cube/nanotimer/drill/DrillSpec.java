@@ -14,8 +14,9 @@ import org.json.JSONObject;
 
 /**
  * One drill: something to practise, a way of putting it in front of the user, and something to beat.
- * For every type but the cross that something is a set of named cases; a cross is a whole scramble
- * that no vocabulary names, so it carries a face instead of a list.
+ * For most types that something is a set of named cases; a cross is a whole scramble that no
+ * vocabulary names, so it carries a face instead of a list, and a look-ahead rep is two pairs dealt
+ * together, which no case names either.
  *
  * <p>This is the contract between the app and whatever prescribes a drill, so it is written to be
  * read by an app that has never heard of the sender and by a sender that has never heard of this
@@ -35,8 +36,8 @@ import org.json.JSONObject;
  */
 public final class DrillSpec {
 
-  /** The newest spec this app can run. 5 added the learning drill. */
-  public static final int VERSION = 5;
+  /** The newest spec this app can run. 5 added the learning drill, 6 the look-ahead drill. */
+  public static final int VERSION = 6;
 
   /** How the id of every drill the coach prescribes begins. */
   public static final String COACH_ID_PREFIX = "coach-";
@@ -52,6 +53,12 @@ public final class DrillSpec {
 
   /** The version a drill with a working set, and no learning, is written at. */
   private static final int VERSION_4 = 4;
+
+  /** The version a learning drill is written at. */
+  private static final int VERSION_5 = 5;
+
+  /** The version a look-ahead drill is written at, so an app that cannot deal one refuses it. */
+  private static final int VERSION_6 = 6;
 
   /**
    * What a rep is timed and judged on. The two case types are the same reps and only move the
@@ -71,7 +78,13 @@ public final class DrillSpec {
      * One F2L pair handed as a named case ({@code pair_a12}), the cross and the other slots in;
      * done when the pair is home. Timed on the whole rep.
      */
-    F2L_PAIR;
+    F2L_PAIR,
+    /**
+     * Two random F2L pairs out, the cross and the other two slots in; done when both are home.
+     * Trains the pause between the pairs, so it is judged from the case appearing to the second
+     * pair's first turn. Dealt from no case list, and with no targets yet.
+     */
+    F2L_LOOKAHEAD;
 
     public String code() {
       return name().toLowerCase(Locale.ROOT);
@@ -176,7 +189,7 @@ public final class DrillSpec {
    */
   public static DrillSpec learning(String id, Type type, List<String> cases, Selection selection,
       int reps, int winsToRetire, Map<String, String> algorithms, String label) {
-    return new DrillSpec(VERSION, id, DEFAULT_PUZZLE, DEFAULT_METHOD, type, Delivery.VIRTUAL,
+    return new DrillSpec(VERSION_5, id, DEFAULT_PUZZLE, DEFAULT_METHOD, type, Delivery.VIRTUAL,
         cases, selection, reps, 0, Collections.<String, Long>emptyMap(), winsToRetire,
         winsToRetire, label, null, 0, 0, true, algorithms, null);
   }
@@ -190,6 +203,14 @@ public final class DrillSpec {
     return new DrillSpec(VERSION_2, id, DEFAULT_PUZZLE, DEFAULT_METHOD, Type.CROSS,
         Delivery.VIRTUAL, Collections.<String>emptyList(), Selection.ROUND_ROBIN, reps, 0,
         Collections.<String, Long>emptyMap(), 0, 0, label, crossFace, planningMs, 0, false,
+        Collections.<String, String>emptyMap(), null);
+  }
+
+  /** A look-ahead drill this app wrote itself, which runs its reps out. */
+  public static DrillSpec lookAhead(String id, int reps, String label) {
+    return new DrillSpec(VERSION_6, id, DEFAULT_PUZZLE, DEFAULT_METHOD, Type.F2L_LOOKAHEAD,
+        Delivery.VIRTUAL, Collections.<String>emptyList(), Selection.ROUND_ROBIN, reps, 0,
+        Collections.<String, Long>emptyMap(), 0, 0, label, null, 0, 0, false,
         Collections.<String, String>emptyMap(), null);
   }
 
@@ -207,7 +228,7 @@ public final class DrillSpec {
       if (crossFace == null || FACES.indexOf(crossFace) < 0) {
         throw new IllegalArgumentException("A cross drill needs a face, not " + crossFace);
       }
-    } else if (cases == null || cases.isEmpty()) {
+    } else if (type != Type.F2L_LOOKAHEAD && (cases == null || cases.isEmpty())) {
       throw new IllegalArgumentException("A drill needs at least one case");
     }
     if (reps <= 0) {
@@ -238,14 +259,15 @@ public final class DrillSpec {
     if (workingSet < 0) {
       throw new IllegalArgumentException("A working set cannot be negative");
     }
-    if (learning && (winsToRetire == 0 || type == Type.CROSS)) {
-      throw new IllegalArgumentException("A learning drill retires its cases, and a cross has none");
+    if (learning && (winsToRetire == 0 || !hasCases(type))) {
+      throw new IllegalArgumentException("A learning drill retires its cases, and a "
+          + type.code() + " drill has none");
     }
     // A learning drill retires on reps turned without looking, so a case needs no time to beat.
     if (winsToRetire > 0 && !learning) {
       // A case with nothing to beat could never retire, so the drill would only ever hit its ceiling.
-      if (type == Type.CROSS) {
-        throw new IllegalArgumentException("A cross drill does not retire cases");
+      if (!hasCases(type)) {
+        throw new IllegalArgumentException("A " + type.code() + " drill does not retire cases");
       }
       for (String code : this.cases) {
         if (getTargetMs(code) <= 0) {
@@ -362,6 +384,11 @@ public final class DrillSpec {
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write drill spec", e);
     }
+  }
+
+  /** Whether a type deals named cases, which retiring and learning are counted on. */
+  private static boolean hasCases(Type type) {
+    return type != Type.CROSS && type != Type.F2L_LOOKAHEAD;
   }
 
   /** Empty rather than fatal when absent: whether a type may go without cases is the type's rule. */

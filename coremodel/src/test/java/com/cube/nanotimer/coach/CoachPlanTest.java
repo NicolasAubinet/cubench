@@ -81,6 +81,17 @@ public class CoachPlanTest {
     Assert.assertEquals(Collections.singletonList("pair_a99"), plan.undealableDrills(payload()));
   }
 
+  /** A look-ahead drill deals from no case list, so it has nothing to be undealable. */
+  @Test
+  public void testALookAheadDrillIsKept() {
+    CoachPlan plan = new CoachPlan(CoachPlan.VERSION, CoachPlan.Source.COACH, null,
+        Collections.singletonList(new FocusArea(FocusArea.Reason.RECOGNITION_HEAVY,
+            Collections.singletonList("f2l"), Collections.<Evidence>emptyList(), null,
+            DrillSpec.lookAhead("coach-lookahead", 12, null).toJson())));
+
+    Assert.assertEquals(Collections.<String>emptyList(), plan.undealableDrills(payload()));
+  }
+
   /** A card with no drill has no button to be wrong about. */
   @Test
   public void testACardWithNoDrillIsNothingToCheck() {
