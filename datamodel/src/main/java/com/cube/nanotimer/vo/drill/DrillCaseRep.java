@@ -26,6 +26,8 @@ public class DrillCaseRep {
   private final boolean abandoned;
   private final boolean practice;
   private boolean deleted;
+  private Long pairOneMs;
+  private Long pauseMs;
 
   /**
    * @param position where in the drill this rep fell, since the rows are written as they finish
@@ -60,6 +62,27 @@ public class DrillCaseRep {
     this(position, caseCode, scramble, moves, recognitionMs, executionMs, moveCount, resetCount,
         revealed, abandoned, practice);
     this.deleted = deleted;
+  }
+
+  /**
+   * A look-ahead rep's first pair and the pause after it, either null where the rep never got
+   * that far. Recognition stays the look before the first turn, and execution the first turn to
+   * the last, so a reader that knows nothing of these still reads the rep right.
+   */
+  public DrillCaseRep withPairTimes(Long pairOneMs, Long pauseMs) {
+    this.pairOneMs = pairOneMs;
+    this.pauseMs = pauseMs;
+    return this;
+  }
+
+  /** Null for any rep but a look-ahead one, and for one given up on before a pair was in. */
+  public Long getPairOneMs() {
+    return pairOneMs;
+  }
+
+  /** Null for any rep but a look-ahead one, and for one given up on before the pause ended. */
+  public Long getPauseMs() {
+    return pauseMs;
   }
 
   public int getPosition() {

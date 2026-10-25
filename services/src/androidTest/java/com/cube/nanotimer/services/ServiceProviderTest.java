@@ -36,6 +36,9 @@ import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.TimesSort;
 import com.cube.nanotimer.services.db.CaseKnowledgeStore;
 import com.cube.nanotimer.services.db.DB;
+import com.cube.nanotimer.services.db.DBUpgradeScripts;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
@@ -1507,6 +1510,71 @@ public class ServiceProviderTest {
     assertFalse(reps.get(1).isAbandoned());
   }
 
+  @Test
+  public void testALookAheadRepReadsBackItsPairAndPause() {
+    deleteDrills();
+    long drillId = provider.addDrill(drill("f2l_lookahead", 2));
+    provider.addDrillCaseRep(drillId, lookAheadRep(0, 600, 3100, 1300L, 900L));
+    provider.addDrillCaseRep(drillId, lookAheadRep(1, 700, 800, null, null));
+
+    List<DrillCaseRep> reps = provider.getDrillCaseReps(drillId);
+    assertEquals(DB.DRILL_REP_LOOKAHEAD_CASE, reps.get(0).getCaseCode());
+    assertEquals(Long.valueOf(1300), reps.get(0).getPairOneMs());
+    assertEquals(Long.valueOf(900), reps.get(0).getPauseMs());
+    assertEquals(600, reps.get(0).getRecognitionMs());
+    assertNull(reps.get(1).getPairOneMs());
+    assertNull(reps.get(1).getPauseMs());
+    long caseDrill = provider.addDrill(drill("case_execution", 1));
+    provider.addDrillCaseRep(caseDrill, caseRep(0, "pll_ga", 900, 1400, 13, 0, false, false));
+    assertNull(provider.getDrillCaseReps(caseDrill).get(0).getPauseMs());
+  }
+
+  // Its code reads as family f2l, case lookahead; it must not become an F2L case anywhere.
+  @Test
+  public void testLookAheadRepsStayOutOfEveryCaseFigure() {
+    deleteDrills();
+    long caseDrill = provider.addDrill(drill("case_execution", 1, 1000));
+    provider.addDrillCaseRep(caseDrill, caseRep(0, "pll_ga", 1000, 2000, 13, 0, false, false));
+    long lookAhead = provider.addDrill(drill("f2l_lookahead", 3, 2000));
+    for (int i = 0; i < 3; i++) {
+      provider.addDrillCaseRep(lookAhead, lookAheadRep(i, 600, 3100, 1300L, 900L));
+    }
+
+    List<StepStats> stats = provider.getDrillCaseStatistics(50);
+    assertEquals(1, stats.size());
+    assertEquals("pll_ga", stats.get(0).getCode());
+    assertEquals("the look-ahead drill takes no place in the window", "pll_ga",
+        provider.getDrillCaseStatistics(1).get(0).getCode());
+    List<DrillCaseStats> window = provider.getDrillCaseStats(0);
+    assertEquals(1, window.size());
+    CaseKnowledgeStore.rebuild(service.getWritableDatabase());
+    for (String code : knowledgeCodes()) {
+      assertFalse(code, code.contains("lookahead"));
+    }
+  }
+
+  // An install at 37 gets the two columns, null on the reps it already had.
+  @Test
+  public void testTheUpgradeAddsThePairTimesToOldReps() {
+    SQLiteDatabase old = SQLiteDatabase.create(null);
+    try {
+      old.execSQL("CREATE TABLE " + DB.TABLE_DRILL_REP + "(" + DB.COL_DRILL_REP_DRILL_ID
+          + " INTEGER NOT NULL, " + DB.COL_DRILL_REP_CASE + " TEXT NOT NULL)");
+      old.execSQL("INSERT INTO " + DB.TABLE_DRILL_REP + " VALUES (1, 'pll_ga')");
+
+      DBUpgradeScripts.addDrillRepPairTimes(old);
+
+      Cursor cursor = old.rawQuery("SELECT " + DB.COL_DRILL_REP_PAIR_ONE + ", "
+          + DB.COL_DRILL_REP_PAUSE + " FROM " + DB.TABLE_DRILL_REP, null);
+      assertTrue(cursor.moveToFirst());
+      assertTrue(cursor.isNull(0));
+      assertTrue(cursor.isNull(1));
+      cursor.close();
+    } finally {
+      old.close();
+    }
+  }
+
   // The two kinds of rep are in tables of their own, and neither answers for the other.
   @Test
   public void testDrillCrossRepsAreKeptApartFromCaseReps() {
@@ -1834,6 +1902,12 @@ public class ServiceProviderTest {
       int moveCount, int resetCount, boolean revealed, boolean abandoned) {
     return new DrillCaseRep(position, caseCode, SCRAMBLE, "R@0 U'@200", recognitionMs, executionMs,
         moveCount, resetCount, revealed, abandoned, false);
+  }
+
+  private DrillCaseRep lookAheadRep(int position, long beforeMs, long executionMs, Long pairOneMs,
+      Long pauseMs) {
+    return new DrillCaseRep(position, DB.DRILL_REP_LOOKAHEAD_CASE, SCRAMBLE, "R@0 U'@200",
+        beforeMs, executionMs, 20, 0, false, false, false).withPairTimes(pairOneMs, pauseMs);
   }
 
   private DrillCrossRep crossRep(int position, int moveCount, int optimalLength, boolean built) {

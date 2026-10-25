@@ -211,4 +211,12 @@ public class DBUpgradeScripts {
     return solveTypeIds;
   }
 
+  /** The look-ahead drill's two times, null on every rep stored before it, which had no pause. */
+  public static void addDrillRepPairTimes(SQLiteDatabase db) {
+    db.execSQL("ALTER TABLE " + DB.TABLE_DRILL_REP + " ADD COLUMN "
+        + DB.COL_DRILL_REP_PAIR_ONE + " INTEGER");
+    db.execSQL("ALTER TABLE " + DB.TABLE_DRILL_REP + " ADD COLUMN "
+        + DB.COL_DRILL_REP_PAUSE + " INTEGER");
+  }
+
 }

@@ -67,6 +67,10 @@ import java.util.UUID;
 
 public class ServiceProviderImpl implements ServiceProvider {
 
+  /** Keeps look-ahead reps out of the per-case figures: two pairs are not a case. */
+  private static final String NOT_LOOKAHEAD =
+      DB.COL_DRILL_REP_CASE + " <> '" + DB.DRILL_REP_LOOKAHEAD_CASE + "'";
+
   private SQLiteDatabase db;
 
   private SolveType currentSolveType;
@@ -1099,6 +1103,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_DRILL_REP_ABANDONED, rep.isAbandoned() ? 1 : 0);
     values.put(DB.COL_DRILL_REP_PRACTICE, rep.isPractice() ? 1 : 0);
     values.put(DB.COL_DRILL_REP_DELETED, rep.isDeleted() ? 1 : 0);
+    values.put(DB.COL_DRILL_REP_PAIR_ONE, rep.getPairOneMs());
+    values.put(DB.COL_DRILL_REP_PAUSE, rep.getPauseMs());
     db.insert(DB.TABLE_DRILL_REP, null, values);
     CaseKnowledgeStore.update(db, Collections.singletonList(rep.getCaseCode()));
   }
@@ -1232,6 +1238,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     // Thrown-out reps come back too, flagged. They are struck through where they are read, not
     // hidden: nine reps of which two were pruned is a different drill from seven.
     q.append("     , ").append(DB.COL_DRILL_REP_DELETED);
+    q.append("     , ").append(DB.COL_DRILL_REP_PAIR_ONE);
+    q.append("     , ").append(DB.COL_DRILL_REP_PAUSE);
     q.append("  FROM ").append(DB.TABLE_DRILL_REP);
     q.append(" WHERE ").append(DB.COL_DRILL_REP_DRILL_ID).append(" = ?");
     q.append(" ORDER BY ").append(DB.COL_DRILL_REP_POSITION);
@@ -1243,7 +1251,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         reps.add(new DrillCaseRep(cursor.getInt(0), cursor.getString(1), cursor.getString(2),
             cursor.getString(3), cursor.getLong(4), cursor.getLong(5), cursor.getInt(6),
             cursor.getInt(7), cursor.getInt(8) == 1, cursor.getInt(9) == 1, cursor.getInt(10) == 1,
-            cursor.getInt(11) == 1));
+            cursor.getInt(11) == 1).withPairTimes(getCursorLong(cursor, 12),
+            getCursorLong(cursor, 13)));
       }
       cursor.close();
     }
@@ -1303,7 +1312,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         + "                WHERE " + DB.COL_DRILL_REP_DRILL_ID
         + "                    = " + DB.TABLE_DRILL + "." + DB.COL_ID
         + "                  AND " + DB.COL_DRILL_REP_DELETED + " = 0"
-        + "                  AND " + DB.COL_DRILL_REP_PRACTICE + " = 0)"
+        + "                  AND " + DB.COL_DRILL_REP_PRACTICE + " = 0"
+        + "                  AND " + NOT_LOOKAHEAD + ")"
         + " ORDER BY " + DB.COL_DRILL_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastDrills);
     String total = "(r." + DB.COL_DRILL_REP_RECOGNITION + " + r." + DB.COL_DRILL_REP_EXECUTION + ")";
 
@@ -1323,6 +1333,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("   AND r.").append(DB.COL_DRILL_REP_RESET_COUNT).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_PRACTICE).append(" = 0");
+    q.append("   AND r.").append(NOT_LOOKAHEAD);
     q.append(" GROUP BY r.").append(DB.COL_DRILL_REP_CASE);
     q.append(" ORDER BY r.").append(DB.COL_DRILL_REP_CASE);
 
@@ -1372,6 +1383,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("   AND r.").append(DB.COL_DRILL_REP_RESET_COUNT).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_PRACTICE).append(" = 0");
+    q.append("   AND r.").append(NOT_LOOKAHEAD);
     q.append(" GROUP BY r.").append(DB.COL_DRILL_REP_CASE);
     q.append(" ORDER BY r.").append(DB.COL_DRILL_REP_CASE);
 
@@ -1948,7 +1960,10 @@ public class ServiceProviderImpl implements ServiceProvider {
       return null;
     }
     boolean cross = spec.getType() == DrillSpec.Type.CROSS;
-    if (!cross && spec.getCases().isEmpty()) {
+    // Every look-ahead rep is stored, and tallied, under the one code
+    List<String> cases = spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD
+        ? Collections.singletonList(DB.DRILL_REP_LOOKAHEAD_CASE) : spec.getCases();
+    if (!cross && cases.isEmpty()) {
       return null;
     }
     List<String> args = new ArrayList<String>();
@@ -1968,7 +1983,7 @@ public class ServiceProviderImpl implements ServiceProvider {
       q.append(" AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
       q.append(" AND r.").append(DB.COL_DRILL_REP_PRACTICE).append(" = 0");
       q.append(" AND r.").append(DB.COL_DRILL_REP_CASE).append(" IN (");
-      appendCases(q, args, spec.getCases());
+      appendCases(q, args, cases);
     }
 
     List<String> tallyArgs = new ArrayList<String>();
@@ -1982,7 +1997,7 @@ public class ServiceProviderImpl implements ServiceProvider {
       tallyArgs.add(DrillSpec.Type.CROSS.code());
     } else {
       tally.append(" AND ").append(DB.COL_DRILL_TALLY_CASE).append(" IN (");
-      appendCases(tally, tallyArgs, spec.getCases());
+      appendCases(tally, tallyArgs, cases);
     }
     return Integer.valueOf(count(q.toString(), args) + count(tally.toString(), tallyArgs));
   }
@@ -2281,6 +2296,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("   AND r.").append(DB.COL_DRILL_REP_RESET_COUNT).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_PRACTICE).append(" = 0");
+    q.append("   AND r.").append(NOT_LOOKAHEAD);
 
     List<StepSample> samples = new ArrayList<StepSample>();
     Cursor cursor = db.rawQuery(q.toString(), null);
@@ -2406,7 +2422,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         + "                WHERE " + DB.COL_DRILL_REP_DRILL_ID
         + "                    = " + DB.TABLE_DRILL + "." + DB.COL_ID
         + "                  AND " + DB.COL_DRILL_REP_DELETED + " = 0"
-        + "                  AND " + DB.COL_DRILL_REP_PRACTICE + " = 0)"
+        + "                  AND " + DB.COL_DRILL_REP_PRACTICE + " = 0"
+        + "                  AND " + NOT_LOOKAHEAD + ")"
         + " ORDER BY " + DB.COL_DRILL_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastDrills);
   }
 

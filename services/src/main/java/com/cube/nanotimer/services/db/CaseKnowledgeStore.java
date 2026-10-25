@@ -123,10 +123,14 @@ public final class CaseKnowledgeStore {
     }
   }
 
-  /** A step naming no case, or one already solved on arrival, is evidence about nothing. */
+  /**
+   * A step naming no case, or one already solved on arrival, is evidence about nothing; nor is a
+   * look-ahead rep, whose code reads like an F2L case and is two pairs.
+   */
   private static boolean namesACase(String code) {
     String caseName = code == null ? null : MethodStatistics.caseOf(code);
-    return caseName != null && !SKIPPED.equals(caseName);
+    return caseName != null && !SKIPPED.equals(caseName)
+        && !DB.DRILL_REP_LOOKAHEAD_CASE.equals(code);
   }
 
   private static void write(SQLiteDatabase db, String caseSet, String caseName,

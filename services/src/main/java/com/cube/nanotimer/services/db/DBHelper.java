@@ -190,6 +190,8 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_DRILL_REP_ABANDONED + " INTEGER NOT NULL DEFAULT 0, " +
         DB.COL_DRILL_REP_DELETED + " INTEGER NOT NULL DEFAULT 0, " +
         DB.COL_DRILL_REP_PRACTICE + " INTEGER NOT NULL DEFAULT 0, " +
+        DB.COL_DRILL_REP_PAIR_ONE + " INTEGER, " +
+        DB.COL_DRILL_REP_PAUSE + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_DRILL_REP_DRILL_ID + ") REFERENCES " + DB.TABLE_DRILL + " (" + DB.COL_ID + ") " +
       ");"
     );
@@ -527,6 +529,11 @@ public class DBHelper extends SQLiteOpenHelper {
 
     if (oldVersion < 37) {
       createDrillTallyTable(db);
+    }
+
+    // Not < 38: a database coming from below 27 was just handed the columns by createDrillTables.
+    if (oldVersion >= 27 && oldVersion < 38) {
+      DBUpgradeScripts.addDrillRepPairTimes(db);
     }
 
 //    progressDialog.hide();

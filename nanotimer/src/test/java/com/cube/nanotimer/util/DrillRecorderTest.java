@@ -286,6 +286,64 @@ public class DrillRecorderTest {
     assertEquals(Arrays.asList("1/true"), writer.tallyDeletions);
   }
 
+  @Test
+  public void aLookAheadRepIsStoredWithItsPairAndPause() {
+    Writer writer = new Writer();
+    DrillRecorder recorder = new DrillRecorder(writer, lookAheadSpec(), true);
+    DrillRep rep = lookAheadRep();
+    assertNotNull(rep.getPauseMs());
+
+    recorder.record(rep);
+    writer.openWith(7);
+
+    DrillCaseRep stored = writer.caseReps.get(0);
+    assertEquals(DrillSession.LOOKAHEAD_CASE, stored.getCaseCode());
+    assertEquals(rep.getPairOneMs(), stored.getPairOneMs());
+    assertEquals(rep.getPauseMs(), stored.getPauseMs());
+    assertEquals(rep.getRecognitionMs(), stored.getRecognitionMs());
+    assertEquals(rep.getExecutionMs(), stored.getExecutionMs());
+  }
+
+  @Test
+  public void aCasualLookAheadRepIsTalliedUnderItsType() {
+    Writer writer = new Writer();
+    DrillRecorder recorder = new DrillRecorder(writer, lookAheadSpec(), false);
+
+    recorder.record(lookAheadRep());
+
+    assertEquals(Arrays.asList("f2l_lookahead/f2l_lookahead"), writer.tallies);
+  }
+
+  @Test
+  public void anyOtherRepIsStoredWithNoPairTimes() {
+    Writer writer = new Writer();
+    DrillRecorder recorder = new DrillRecorder(writer, caseSpec(3), true);
+
+    recorder.record(solvedRep());
+    writer.openWith(7);
+
+    assertEquals(null, writer.caseReps.get(0).getPairOneMs());
+    assertEquals(null, writer.caseReps.get(0).getPauseMs());
+  }
+
+  private static DrillSpec lookAheadSpec() {
+    return DrillSpec.lookAhead("local-lookahead", 5, null);
+  }
+
+  private static DrillRep lookAheadRep() {
+    DrillSession session = new DrillSession(lookAheadSpec(), new Random(4), null, "U");
+    session.nextRep();
+    session.markCaseShown(SHOWN_AT_MS);
+    DrillRep rep = null;
+    for (CubeMove move : moves(inverse(session.getCurrentScramble()))) {
+      rep = session.onMove(move);
+      if (rep != null) {
+        break;
+      }
+    }
+    return rep;
+  }
+
   private static DrillSpec caseSpec(int reps) {
     return new DrillSpec("local-pllpicked", DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL,
         Arrays.asList("pll_ga"), DrillSpec.Selection.ROUND_ROBIN, reps, 0, "G perms");

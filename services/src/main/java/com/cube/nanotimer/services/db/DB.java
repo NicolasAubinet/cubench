@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 37;
+  public static final int DB_VERSION = 38;
 
   public static final String COL_ID = "id";
 
@@ -94,6 +94,11 @@ public class DB {
   public static final String COL_DRILL_REP_ABANDONED = "abandoned";
   public static final String COL_DRILL_REP_DELETED = "deleted"; // pruned by hand: kept for undo and for the coach, counted by nothing
   public static final String COL_DRILL_REP_PRACTICE = "practice"; // turned against an algorithm on screen: kept for the coach, counted by nothing
+  public static final String COL_DRILL_REP_PAIR_ONE = "pair_one_ms"; // look-ahead only: first turn to the first pair in
+  public static final String COL_DRILL_REP_PAUSE = "pause_ms"; // look-ahead only: first pair in to the next turn
+  /** The case code a look-ahead rep is stored under; its two pairs are not a case of any figure. */
+  public static final String DRILL_REP_LOOKAHEAD_CASE =
+      com.cube.nanotimer.drill.DrillSpec.Type.F2L_LOOKAHEAD.code();
   public static final String IDX_DRILL_REP_DRILL = "idx_drill_rep_drill";
   public static final String IDX_DRILL_REP_CASE = "idx_drill_rep_case";
 

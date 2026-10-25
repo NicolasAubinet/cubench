@@ -95,7 +95,8 @@ public class DrillRecorder {
     store(new DrillCaseRep(position++, rep.getCaseCode(), rep.getScramble(),
         SolveMovesFormat.format(rep.getMoves(), rep.getShownAtMs()), rep.getRecognitionMs(),
         rep.getExecutionMs(), rep.getMoveCount(), rep.getResetCount(),
-        rep.wasRevealed(), rep.isAbandoned(), rep.isPractice()));
+        rep.wasRevealed(), rep.isAbandoned(), rep.isPractice())
+        .withPairTimes(rep.getPairOneMs(), rep.getPauseMs()));
   }
 
   public synchronized void record(CrossDrillRep rep) {
