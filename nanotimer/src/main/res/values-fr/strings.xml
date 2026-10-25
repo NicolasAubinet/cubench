@@ -485,7 +485,7 @@
       <li>Cubench se connecte maintenant aux smart cubes Bluetooth GAN, MoYu et QiYi</li>
       <li>Le chrono démarre à votre premier mouvement et s\'arrête quand le cube est résolu</li>
       <li>Le mélange suit vos mouvements, et une erreur est repérée et corrigée</li>
-      <li>Chaque résolution est découpée en étapes (croix, paires F2L, OLL, PLL), avec les temps de recherche et d\'exécution et la reconstruction complète</li>
+      <li>Chaque résolution est découpée en étapes (croix, paires F2L, OLL, PLL), avec les temps de pause et d\'exécution et la reconstruction complète</li>
       <li>Chaque résolution peut être revue en 3D</li>
       <li>Nouvel écran Analyse : vos étapes et cas les plus lents, et les algorithmes que vous utilisez</li>
       <li>Nouveaux drills, pour travailler des cas sur votre propre cube</li>
@@ -968,10 +968,10 @@
   <string name="drill_summary_still_learning">Pas encore fait sans regarder : %s</string>
   <string name="drill_rep_other_alg">un autre algorithme</string>
   <string name="group_learned_label">Groupe appris</string>
-  <string name="group_learned_progress">%1$d OLL apprises sur %2$d</string>
+  <string name="group_learned_progress">%1$d OLL appris sur %2$d</string>
   <string name="group_learned_continue">Continuer</string>
   <plurals name="group_learned_body">
-    <item quantity="one">Vous connaissez la OLL %2$s. Dès que vous voyez cette forme, vous avez l\'algorithme.</item>
+    <item quantity="one">Vous connaissez l\'OLL %2$s. Dès que vous voyez cette forme, vous avez l\'algorithme.</item>
     <item quantity="other">Vous connaissez les %1$d OLL %2$s. Dès que vous voyez cette forme, vous avez l\'algorithme.</item>
   </plurals>
   <string name="drill_targets_column_case">Cas</string>
@@ -1029,8 +1029,8 @@
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
   <string name="drill_practice_cross">Croix</string>
-  <string name="drill_practice_hint_pll">Les PLL l\'une après l\'autre, parmi les cas que vous choisissez.</string>
-  <string name="drill_practice_hint_oll">Les OLL l\'une après l\'autre, parmi les cas que vous choisissez.</string>
+  <string name="drill_practice_hint_pll">Les PLL l\'un après l\'autre, parmi les cas que vous choisissez.</string>
+  <string name="drill_practice_hint_oll">Les OLL l\'un après l\'autre, parmi les cas que vous choisissez.</string>
   <string name="drill_practice_hint_cross">Un mélange complet, et la croix la plus courte que vous y trouvez.</string>
   <string name="drill_practice_f2l">F2L</string>
   <string name="drill_practice_hint_f2l">Les paires F2L l\'une après l\'autre, les cas fréquents plus souvent.</string>
@@ -1100,7 +1100,7 @@
   <string name="drill_start">Lancer le drill</string>
   <string name="drill_connect_cube">Connecter votre cube</string>
   <string name="drill_cases_family">Cas %1$s</string>
-  <string name="drill_title_f2l">Paires</string>
+  <string name="drill_title_f2l">F2L</string>
   <string name="drill_title_cross">Croix la plus courte</string>
 
   <!-- Entrainement de croix -->
@@ -1396,7 +1396,7 @@
   </plurals>
   <string name="coach_reason_slow_case">Cas qui vous coûtent du temps</string>
   <string name="coach_reason_slow_under_pressure">Connus, mais lents en résolution</string>
-  <string name="coach_reason_recognition_heavy">Plus de recherche que d\'exécution</string>
+  <string name="coach_reason_recognition_heavy">Plus de pause que d\'exécution</string>
   <string name="coach_reason_two_look_oll">La dernière couche en 2-look</string>
   <string name="coach_reason_inconsistent_case">Cas qui tournent mal</string>
   <string name="coach_reason_slow_step">Prend une plus grande part que la normale</string>
@@ -1415,7 +1415,7 @@
   <string name="coach_stuck_body">%1$s de vos paires commencent avec une pièce coincée dans un autre slot. Elles prennent %2$s, contre %3$s pour les autres.</string>
   <string name="coach_first_pair_body">Vous cherchez %1$s avant votre première paire, et %2$s avant chacune des suivantes.</string>
   <string name="coach_reason_long_pair">Des paires F2L en mouvements de trop</string>
-  <string name="coach_long_pair_body">Sur %1$d résolutions, votre F2L a pris %2$s mouvements, là où les algorithmes habituels de ses paires en comptent %3$s.</string>
+  <string name="coach_long_pair_body">Sur %1$d résolutions, vos F2L ont pris %2$s mouvements, là où les algorithmes habituels de leurs paires en comptent %3$s.</string>
   <string name="coach_reason_stalling">Des blocages en tournant</string>
   <string name="coach_stalling_body">%1$s : %2$s blocages par résolution en tournant, soit %3$s sur ses %4$s.</string>
   <string name="coach_reason_uneven_step">Irrégulier d\'une résolution à l\'autre</string>
@@ -1452,7 +1452,7 @@
   <string name="coach_fig_takes_longer">chacune prend %1$s de plus</string>
   <string name="coach_fig_first_pair">secondes de plus pour trouver la première paire</string>
   <string name="coach_fig_first_pair_sub">que pour chacune des suivantes</string>
-  <string name="coach_fig_extra_moves">mouvements en trop dans votre F2L</string>
+  <string name="coach_fig_extra_moves">mouvements en trop dans vos F2L</string>
   <plurals name="coach_fig_over_solves">
     <item quantity="one">sur %1$d résolution</item>
     <item quantity="other">sur %1$d résolutions</item>
@@ -1461,7 +1461,7 @@
   <string name="coach_fig_frozen_of">%1$s sur ses %2$s</string>
   <string name="coach_fig_spread">secondes d\'écart au %1$s</string>
   <string name="coach_fig_average">%1$s en moyenne</string>
-  <string name="coach_split_looking">Recherche %1$s</string>
+  <string name="coach_split_looking">Pause %1$s</string>
   <string name="coach_split_turning">Exécution %1$s</string>
   <string name="coach_split_stopped">Bloqué %1$s</string>
   <string name="coach_bar_rest">Les autres</string>
@@ -1545,7 +1545,7 @@
   <string name="news_scramble_title">Des mélanges qui vous suivent</string>
   <string name="news_scramble_body">Chaque mouvement s\'allume quand vous le faites, et une erreur est repérée et corrigée avec vous.</string>
   <string name="news_breakdown_title">Chaque résolution décortiquée</string>
-  <string name="news_breakdown_body">Croix, paires F2L, OLL et PLL : temps de réflexion et d\'exécution, et la reconstruction complète.</string>
+  <string name="news_breakdown_body">Croix, paires F2L, OLL et PLL : temps de pause et d\'exécution, et la reconstruction complète.</string>
   <string name="news_replay_title">Replays en 3D</string>
   <string name="news_replay_body">Revoyez n\'importe quelle résolution en 3D, mouvement par mouvement, à la vitesse de votre choix.</string>
   <string name="news_analysis_title">Analyse</string>

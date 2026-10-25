@@ -54,6 +54,24 @@ public class CoachGlossaryTest {
     }
   }
 
+  /** A phrasing that banned a glossary word would forbid the word the plan is told to write. */
+  @Test
+  public void aPhrasingNeverBansAGlossaryWord() {
+    for (Language language : Language.values()) {
+      for (CoachGlossary.Phrasing phrasing : CoachGlossary.phrasings(language)) {
+        for (String avoided : phrasing.avoided()) {
+          Assert.assertEquals(avoided, avoided.toLowerCase(Locale.ROOT), avoided);
+          for (Term term : CoachGlossary.terms()) {
+            Assert.assertNotEquals(language + " " + avoided, term.said(language), avoided);
+          }
+        }
+      }
+    }
+    Assert.assertTrue(CoachGlossary.phrasings(Language.EN).isEmpty());
+    Assert.assertTrue(CoachGlossary.never(Language.FR).contains("rentrer"));
+    Assert.assertTrue(CoachGlossary.never(Language.FR).contains("cross"));
+  }
+
   @Test
   public void termNamesAreUnique() {
     Set<String> seen = new HashSet<>();

@@ -84,12 +84,10 @@ public class CoachGlossaryStringsTest {
           continue;
         }
         String text = string.getValue().toLowerCase(Locale.ROOT);
-        for (Term term : CoachGlossary.terms()) {
-          for (String banned : term.never(language)) {
-            if (Pattern.compile("(?<![\\p{L}\\d-])" + Pattern.quote(banned) + "(?![\\p{L}\\d-])")
-                .matcher(text).find()) {
-              found.add(language + " " + string.getKey() + ": \"" + banned + "\"");
-            }
+        for (String banned : CoachGlossary.never(language)) {
+          if (Pattern.compile("(?<![\\p{L}\\d-])" + Pattern.quote(banned) + "(?![\\p{L}\\d-])")
+              .matcher(text).find()) {
+            found.add(language + " " + string.getKey() + ": \"" + banned + "\"");
           }
         }
       }
