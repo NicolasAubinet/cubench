@@ -23,6 +23,7 @@ import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.StepBaseline;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.cube.AlgorithmFiguresReader;
+import com.cube.nanotimer.cube.CrossPauses;
 import com.cube.nanotimer.cube.SolveReading;
 import com.cube.nanotimer.cube.SolveReadings;
 import com.cube.nanotimer.cube.SolveTypeMethod;
@@ -55,11 +56,11 @@ import com.cube.nanotimer.util.view.AlgorithmFiguresBarView;
 import com.cube.nanotimer.util.view.DeltaBarView;
 import com.cube.nanotimer.util.view.KnowledgeRingView;
 import com.cube.nanotimer.util.view.SolveStepBarView;
+import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.CubeMethod;
-import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.StepStats;
@@ -154,6 +155,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private boolean knownRead;
   /** The standard-algorithms card's figures, null until the window's solves have been read again. */
   private Map<String, AlgorithmFigures> algorithmFigures;
+  /** The cross's mean stops over the window, read with the algorithm figures; 0 until then. */
+  private long crossPauseMs;
   /** Whether that read is on its way, which is what the card shows in place of its rows. */
   private boolean algorithmsReading;
   /**
@@ -549,6 +552,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    */
   private void loadAlgorithmFigures() {
     algorithmFigures = null;
+    crossPauseMs = 0;
     final AnalysisWindow asked = window;
     CubeMethod solved = SolveTypeMethod.of(solveType);
     algorithmsReading = solved == CubeMethod.CFOP && readAsSolve();
@@ -567,6 +571,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
                     SolveReadings readings = new SolveReadings(kept);
                     final Map<String, AlgorithmFigures> figures =
                         AlgorithmFiguresReader.readFrom(solves, readings);
+                    final long crossPause = CrossPauses.meanOf(solves, readings);
                     App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
                         SolveReading.VERSION, null);
                     runOnUiThread(new Runnable() {
@@ -576,6 +581,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
                           algorithmFigures = figures;
                           algorithmsReading = false;
                           showAlgorithmFigures();
+                          crossPauseMs = crossPause;
+                          showComposition();
                         }
                       }
                     });
@@ -1062,16 +1069,22 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     ((TextView) findViewById(R.id.tvAnalysisBest))
         .setText(FormatterService.INSTANCE.formatSolveTime(best));
 
-    List<SolveStep> segments = new ArrayList<SolveStep>();
+    showComposition();
+    showLegend(total);
+  }
+
+  /** The bar of the steps' means, the cross's stops paled once its solves have been read. */
+  private void showComposition() {
+    if (steps.isEmpty()) {
+      return;
+    }
     int[] colors = new int[steps.size()];
     for (int i = 0; i < steps.size(); i++) {
-      StepStats step = steps.get(i);
-      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs(),
-          step.getMeanExecutionMs(), Collections.<SolveStep>emptyList()));
-      colors[i] = palette.colorFor(step.getCode());
+      colors[i] = palette.colorFor(steps.get(i).getCode());
     }
-    ((SolveStepBarView) findViewById(R.id.vAnalysisComposition)).setSteps(segments, colors);
-    showLegend(total);
+    // Never over the example: its steps are invented, and the stops would be the reader's own.
+    ((SolveStepBarView) findViewById(R.id.vAnalysisComposition)).setSteps(
+        SolveStepBars.averages(steps, sampling() ? 0 : crossPauseMs), colors);
   }
 
   /** Every segment named on the legend, which is part of what pays for the bright palette. */

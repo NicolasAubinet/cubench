@@ -6,11 +6,13 @@ import android.content.res.TypedArray;
 import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.CrossPauses;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
+import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -129,6 +131,26 @@ public final class SolveStepBars {
   public static ArrayList<long[]> firstStepPauses(SolveSolution solution) {
     return solution.getSteps().isEmpty() ? new ArrayList<long[]>()
         : new ArrayList<long[]>(solution.getSteps().get(0).getStallSpans());
+  }
+
+  /**
+   * A solve type's average steps as a bar draws them: each step's mean thinking, then its turning.
+   * The cross is planned in inspection, so its thinking is the mean of the stops inside it, the ones
+   * a solve's own bar pales; they come out of its turning, so no step's total changes.
+   *
+   * @param crossPauseMs the cross's mean stops, as {@link com.cube.nanotimer.cube.CrossPauses}
+   *     reads them; 0 for none
+   */
+  public static List<SolveStep> averages(List<StepStats> steps, long crossPauseMs) {
+    List<SolveStep> segments = new ArrayList<SolveStep>(steps.size());
+    for (int i = 0; i < steps.size(); i++) {
+      StepStats step = steps.get(i);
+      long pause = CrossPauses.CROSS.equals(step.getCode())
+          ? Math.min(crossPauseMs, step.getMeanExecutionMs()) : 0;
+      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs() + pause,
+          step.getMeanExecutionMs() - pause, Collections.<SolveStep>emptyList()));
+    }
+    return segments;
   }
 
   /** One colour per step, in step order, shared by every bar in the app. */

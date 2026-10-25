@@ -37,6 +37,7 @@ import android.widget.Toast;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.CrossPauses;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SolveTypeMethod;
@@ -69,10 +70,10 @@ import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.SolveStepBars;
 import com.cube.nanotimer.util.view.SparklineView;
 import com.cube.nanotimer.util.view.StepPalette;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
-import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
@@ -84,7 +85,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -105,6 +105,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private View heroStatsRow;
   private View stepBarBlock;
   private SolveStepBarView heroStepBar;
+  /** The cross's mean stops the bar last drew and for which type, so a refresh does not flicker. */
+  private long heroCrossPauseMs;
+  private long heroPauseSolveTypeId = -1;
   private View tvNoSolves;
   private Button buStart;
 
@@ -810,7 +813,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     // The same window the hub reads over, so the bar and the screen it opens say the same thing.
     int solves = AnalysisWindow
         .of(Options.INSTANCE.getAnalysisWindow(AnalysisWindow.HUNDRED.ordinal())).solves();
-    App.INSTANCE.getService().getMethodStatistics(solveType, SolveTypeMethod.of(solveType), solves,
+    final CubeMethod method = SolveTypeMethod.of(solveType);
+    App.INSTANCE.getService().getMethodStatistics(solveType, method, solves,
       new DataCallback<MethodStatistics>() {
         @Override
         public void onData(final MethodStatistics statistics) {
@@ -820,7 +824,27 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
               if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
                 return; // the user moved on while this was loading
               }
+              if (heroPauseSolveTypeId != solveType.getId()) {
+                heroCrossPauseMs = 0; // another type's stops say nothing about this one's
+              }
               showStepBar(statistics);
+            }
+          });
+          // Read after the bar is up: a solve not read before costs a replay
+          CrossPauses.read(solveType, method, solves, new DataCallback<Long>() {
+            @Override
+            public void onData(final Long pause) {
+              runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                  if (curSolveType == null || curSolveType.getId() != solveType.getId()) {
+                    return;
+                  }
+                  heroPauseSolveTypeId = solveType.getId();
+                  heroCrossPauseMs = pause.longValue();
+                  showStepBar(statistics);
+                }
+              });
             }
           });
         }
@@ -839,15 +863,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     }
     // The method's own step order, so a Roux first block is the colour a cross is.
     StepPalette palette = StepPalette.of(this, codes);
-    List<SolveStep> segments = new ArrayList<>();
     int[] colors = new int[families.size()];
     for (int i = 0; i < families.size(); i++) {
-      StepStats step = families.get(i);
-      segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs(),
-          step.getMeanExecutionMs(), Collections.<SolveStep>emptyList()));
-      colors[i] = palette.colorFor(step.getCode());
+      colors[i] = palette.colorFor(families.get(i).getCode());
     }
-    heroStepBar.setSteps(segments, colors);
+    heroStepBar.setSteps(SolveStepBars.averages(families, heroCrossPauseMs), colors);
   }
 
   /**

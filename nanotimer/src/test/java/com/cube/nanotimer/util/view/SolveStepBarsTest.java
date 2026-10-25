@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.vo.SolveStep;
+import com.cube.nanotimer.vo.StepStats;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -126,6 +127,21 @@ public class SolveStepBarsTest {
       accounted += entry.getTotalMs();
     }
     assertEquals(57350, accounted); // the whole solve, to the last millisecond
+  }
+
+  /** The cross's mean stops are drawn as its thinking, out of its turning; other steps keep theirs. */
+  @Test
+  public void palesTheCrossStopsInAnAverageBar() {
+    List<StepStats> stats = new ArrayList<StepStats>();
+    stats.add(new StepStats("cross", 2, 6000, 0, 2500, 3500, 0));
+    stats.add(new StepStats("f2l", 2, 20000, 4000, 9000, 11000, 0));
+    List<SolveStep> bar = SolveStepBars.averages(stats, 700);
+    assertEquals(700, bar.get(0).getRecognitionMs());
+    assertEquals(3000, bar.get(0).getTotalMs());
+    assertEquals(2000, bar.get(1).getRecognitionMs());
+    assertEquals(10000, bar.get(1).getTotalMs());
+    // Never more than the turning it comes out of
+    assertEquals(3000, SolveStepBars.averages(stats, 5000).get(0).getRecognitionMs());
   }
 
   private static SolveStep step(String name, long totalMs) {
