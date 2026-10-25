@@ -6,6 +6,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,8 +41,11 @@ import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.DrillRecorder;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.DrillRepParts;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.vo.drill.DrillEnd;
+
+import java.util.List;
 
 /**
  * What every drill screen is made of, whichever question it asks: a cube drawn from the connected
@@ -569,17 +573,23 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   }
 
   /**
-   * Where the drill's time went, drawn as the drill screen draws a rep, with both halves named.
+   * Where the drill's time went, drawn as the drill screen draws a rep, with every part named. Two
+   * parts are named at the bar's two ends; more are named in one line under it.
    *
+   * @param parts the mean rep's parts, from {@link DrillRepParts}
    * @param meanMs the whole mean, for a summary whose hero is not already it, or -1
    */
-  protected void setSummarySplit(long recognitionMs, long executionMs, long meanMs) {
-    ((DrillSplitBarView) findViewById(R.id.vDrillSummarySplit))
-        .setSplit(recognitionMs, executionMs, summaryHue);
-    ((TextView) findViewById(R.id.tvDrillSummaryRecognition)).setText(
-        legend(getString(R.string.drill_summary_column_recognition), recognitionMs));
-    ((TextView) findViewById(R.id.tvDrillSummaryExecution)).setText(
-        legend(getString(R.string.drill_summary_column_execution), executionMs));
+  protected void setSummarySplit(List<DrillRepParts.Part> parts, long meanMs) {
+    DrillRepParts.draw((DrillSplitBarView) findViewById(R.id.vDrillSummarySplit), parts);
+    boolean ends = parts.size() == 2;
+    TextView first = findViewById(R.id.tvDrillSummaryRecognition);
+    first.setText(DrillRepParts.words(this, ends ? parts.subList(0, 1) : parts));
+    first.setGravity(ends ? Gravity.START : Gravity.CENTER_HORIZONTAL);
+    TextView last = findViewById(R.id.tvDrillSummaryExecution);
+    last.setVisibility(ends ? View.VISIBLE : View.GONE);
+    if (ends) {
+      last.setText(DrillRepParts.words(this, parts.subList(1, 2)));
+    }
     TextView mean = findViewById(R.id.tvDrillSummaryMean);
     mean.setVisibility(meanMs < 0 ? View.GONE : View.VISIBLE);
     if (meanMs >= 0) {

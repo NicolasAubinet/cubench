@@ -1,5 +1,7 @@
 package com.cube.nanotimer.smartcube.drill;
 
+import com.cube.nanotimer.drill.DrillSpec;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -18,10 +20,17 @@ public final class DrillRepOrder {
   public enum Key {
     RECOGNITION,
     EXECUTION,
-    TOTAL
+    TOTAL,
+    /** A look-ahead rep's pause between its two pairs. */
+    PAUSE
   }
 
   private DrillRepOrder() {
+  }
+
+  /** The figure a drill's reps are read by: the pause for look-ahead, the whole rep otherwise. */
+  public static Key readBy(DrillSpec.Type type) {
+    return type == DrillSpec.Type.F2L_LOOKAHEAD ? Key.PAUSE : Key.TOTAL;
   }
 
   /** What the rep cost on that figure. */
@@ -31,6 +40,8 @@ public final class DrillRepOrder {
         return rep.getRecognitionMs();
       case EXECUTION:
         return rep.getExecutionMs();
+      case PAUSE:
+        return rep.getPauseMs() == null ? 0 : rep.getPauseMs(); // none only on a skipped rep
       default:
         return rep.getTotalMs();
     }

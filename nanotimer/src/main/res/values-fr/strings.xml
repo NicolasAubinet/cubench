@@ -938,6 +938,12 @@
   <string name="drill_summary_cell_of">sur %d</string>
   <string name="drill_summary_cell_mean">Moyenne</string>
   <string name="drill_summary_cell_best">Meilleur</string>
+  <string name="drill_lookahead_before">Avant</string>
+  <string name="drill_lookahead_pair">Paire</string>
+  <string name="drill_lookahead_pause">Pause</string>
+  <string name="drill_summary_cell_mean_pause">Pause moyenne</string>
+  <string name="drill_summary_cell_best_pause">Meilleure pause</string>
+  <string name="drill_summary_mean_pause">de pause en moyenne</string>
   <string name="drill_rep_under">%s de moins</string>
   <string name="drill_rep_over">%s de trop</string>
   <string name="drill_rep_not_counted">non compté</string>

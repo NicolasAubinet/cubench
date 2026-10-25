@@ -16,6 +16,7 @@ import android.util.Log;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SolveBreakdown;
+import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.step.AlgorithmSlots;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -355,6 +356,9 @@ public class Utils {
     }
     if (CaseAlgorithms.isPair(code)) {
       return context.getString(R.string.case_title_f2l); // F2L case numbers are never shown
+    }
+    if (DrillSession.isLookAheadCase(code)) {
+      return context.getString(R.string.drill_lookahead);
     }
     if (isAlgorithmCode(code)) {
       return toSmartCubeStepLocalizedName(context, code, 0); // already names its own case

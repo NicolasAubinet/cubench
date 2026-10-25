@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.util.TypedValue;
+import android.view.View;
 import android.widget.Button;
 
 import androidx.core.content.ContextCompat;
@@ -61,6 +62,9 @@ public final class DrillControlLabels {
   private static boolean fits(Button[] buttons, int[] words, float px, boolean withIcon) {
     for (int i = 0; i < buttons.length; i++) {
       Button button = buttons[i];
+      if (button.getVisibility() == View.GONE) {
+        continue; // a control the drill does not offer has no width to fit
+      }
       Paint paint = new Paint(button.getPaint());
       paint.setTextSize(px);
       String word = button.getContext().getString(words[i]);

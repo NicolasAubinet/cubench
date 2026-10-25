@@ -10,8 +10,11 @@ import android.widget.TextView;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.view.DrillRepParts;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
+
+import java.util.List;
 
 /**
  * One line of a case list, filled part by part.
@@ -112,8 +115,8 @@ public class CaseRow {
    * rather than the row's: it is the shape of the rep and not its size, so every one is measured
    * against the same length, and at the row's full width a dozen of them read as progress bars.
    */
-  public CaseRow shape(long recognitionMs, long executionMs, int hue) {
-    bar(recognitionMs, executionMs, hue);
+  public CaseRow shape(List<DrillRepParts.Part> parts) {
+    DrillRepParts.draw(bar(), parts);
     line.findViewById(R.id.tvCaseRowRecognition).setVisibility(View.GONE);
     line.findViewById(R.id.tvCaseRowExecution).setVisibility(View.GONE);
     View bar = line.findViewById(R.id.vCaseRowBar);
@@ -130,9 +133,8 @@ public class CaseRow {
    *
    * @param share this line's time over the longest one's, 0 to 1
    */
-  public CaseRow proportion(long recognitionMs, long executionMs, int hue, float share,
-      int heightPx) {
-    bar(recognitionMs, executionMs, hue);
+  public CaseRow proportion(List<DrillRepParts.Part> parts, float share, int heightPx) {
+    DrillRepParts.draw(bar(), parts);
     line.findViewById(R.id.vCaseRowChart).setVisibility(View.GONE);
     line.findViewById(R.id.vCaseRowDot).setVisibility(View.GONE);
     ((View) line.findViewById(R.id.tvCaseRowName).getParent()).setVisibility(View.GONE);
@@ -224,8 +226,11 @@ public class CaseRow {
   }
 
   private void bar(long recognitionMs, long executionMs, int hue) {
-    ((DrillSplitBarView) line.findViewById(R.id.vCaseRowBar))
-        .setSplit(recognitionMs, executionMs, hue);
+    bar().setSplit(recognitionMs, executionMs, hue);
+  }
+
+  private DrillSplitBarView bar() {
+    return line.findViewById(R.id.vCaseRowBar);
   }
 
   private CaseRow text(int id, CharSequence value, boolean shown) {

@@ -11,10 +11,12 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
+import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
+import com.cube.nanotimer.util.view.DrillRepParts;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
@@ -31,7 +33,8 @@ import java.util.Set;
 
 /**
  * A finished drill, rep by rep: one line per attempt with its number in the drill, its case chart,
- * the case's name and what the attempt cost in recognition, execution and both together.
+ * the case's name and what the attempt cost in recognition, execution and both together. A
+ * look-ahead drill's columns are the look before the first turn, the pause and the whole rep.
  *
  * <p>A line is the rep and not the case, so a case that came up four times has four lines. Averaging
  * them into one hid the two figures a drill is read for, which are the best of them and the worst,
@@ -82,10 +85,16 @@ public class DrillCaseTable {
   /** Ranks by the order the reps were dealt in rather than by any of their figures. */
   private static final int POSITION_COLUMN = 0;
 
-  private static final DrillRepOrder.Key[] KEYS = {
+  private static final DrillRepOrder.Key[] CASE_KEYS = {
       DrillRepOrder.Key.RECOGNITION, DrillRepOrder.Key.EXECUTION, DrillRepOrder.Key.TOTAL};
-  private static final int[] HEADING_LABELS = {R.string.drill_summary_column_position,
+  private static final int[] CASE_LABELS = {R.string.drill_summary_column_position,
       R.string.drill_summary_column_recognition, R.string.drill_summary_column_execution,
+      R.string.drill_summary_column_total};
+  /** A look-ahead rep's looking is split by its pairs, so the pause replaces the turning. */
+  private static final DrillRepOrder.Key[] LOOKAHEAD_KEYS = {
+      DrillRepOrder.Key.RECOGNITION, DrillRepOrder.Key.PAUSE, DrillRepOrder.Key.TOTAL};
+  private static final int[] LOOKAHEAD_LABELS = {R.string.drill_summary_column_position,
+      R.string.drill_lookahead_before, R.string.drill_lookahead_pause,
       R.string.drill_summary_column_total};
   // The number column opens counting up, unlike the times: a numbered column that starts at the
   // bottom reads as a fault rather than as a choice.
@@ -104,7 +113,9 @@ public class DrillCaseTable {
   private final Map<DrillRep, Integer> positions = new HashMap<DrillRep, Integer>();
   private final Set<DrillRep> deleted = new HashSet<DrillRep>();
   private final Map<DrillRep, CaseRow> lines = new LinkedHashMap<DrillRep, CaseRow>();
-  private final TimeColorScale[] scales = new TimeColorScale[KEYS.length];
+  /** What the three figure columns hold, by the drill's type. */
+  private final DrillRepOrder.Key[] keys;
+  private final TimeColorScale[] scales = new TimeColorScale[CaseRow.COLUMNS];
   private final StepPalette palette;
   private final Listener listener;
   /** The longest timed rep, which an F2L pair's bar is measured against. */
@@ -125,6 +136,8 @@ public class DrillCaseTable {
     this.listener = listener;
     this.rows = activity.findViewById(R.id.llCaseTableRows);
     this.palette = StepPalette.cfop(activity);
+    boolean lookAhead = type == DrillSpec.Type.F2L_LOOKAHEAD;
+    this.keys = lookAhead ? LOOKAHEAD_KEYS : CASE_KEYS;
     this.reps = new ArrayList<DrillRep>(reps);
     this.dealt = new ArrayList<DrillRep>(reps);
     long longest = 0;
@@ -147,7 +160,7 @@ public class DrillCaseTable {
           // Undoing is not destructive, so unlike throwing one out it asks nothing first.
           if (deleted.contains(rep)) {
             setDeleted(rep, false);
-          } else {
+          } else if (!DrillSession.isLookAheadCase(rep.getCaseCode())) {
             DialogUtils.showFragment(activity, CaseAlgorithmsDialog.newInstance(rep.getCaseCode()));
           }
         }
@@ -163,7 +176,8 @@ public class DrillCaseTable {
       fill(row, rep);
     }
     headings = new CaseTableHeadings(activity.findViewById(R.id.llDrillCasesSection),
-        HEADING_LABELS, OPENS_DESCENDING, type == DrillSpec.Type.CASE_RECOGNITION ? 1 : 2,
+        lookAhead ? LOOKAHEAD_LABELS : CASE_LABELS, OPENS_DESCENDING,
+        type == DrillSpec.Type.CASE_RECOGNITION ? 1 : 2,
         new CaseTableHeadings.Listener() {
           @Override
           public void onRanked(int column, boolean descending) {
@@ -171,7 +185,7 @@ public class DrillCaseTable {
           }
         });
     headings.setLabel(type == DrillSpec.Type.F2L_PAIR ? R.string.drill_summary_pairs
-        : R.string.drill_summary_cases);
+        : lookAhead ? R.string.drill_summary_cell_reps : R.string.drill_summary_cases);
     if (!this.reps.isEmpty()) {
       headings.setAccent(hueOf(this.reps.get(0).getCaseCode()));
     }
@@ -241,11 +255,11 @@ public class DrillCaseTable {
 
   /** One gradient per column, over the reps that count and have a time to be ranked among. */
   private void buildScales() {
-    for (int column = 0; column < KEYS.length; column++) {
+    for (int column = 0; column < keys.length; column++) {
       List<Long> times = new ArrayList<Long>();
       for (DrillRep rep : reps) {
         if (!rep.isAbandoned() && !deleted.contains(rep)) {
-          times.add(DrillRepOrder.timeMs(rep, KEYS[column]));
+          times.add(DrillRepOrder.timeMs(rep, keys[column]));
         }
       }
       scales[column] = new TimeColorScale(activity);
@@ -264,7 +278,7 @@ public class DrillCaseTable {
         Collections.reverse(reps);
       }
     } else {
-      DrillRepOrder.sort(reps, KEYS[sortedColumn - 1], slowestFirst);
+      DrillRepOrder.sort(reps, keys[sortedColumn - 1], slowestFirst);
     }
     rows.removeAllViews();
     for (DrillRep rep : reps) {
@@ -279,7 +293,8 @@ public class DrillCaseTable {
     String code = rep.getCaseCode();
     boolean gone = deleted.contains(rep);
     row.count(String.valueOf(number(rep)));
-    boolean pair = CaseAlgorithms.isPair(code);
+    // A pair, or a look-ahead rep's two, has no picture, and every one has the same name.
+    boolean pair = CaseAlgorithms.isPair(code) || DrillSession.isLookAheadCase(code);
     if (!pair) {
       row.chart(code);
     }
@@ -294,7 +309,7 @@ public class DrillCaseTable {
         row.value(column, activity.getString(R.string.drill_case_no_time),
             color(R.color.secondary_text));
       } else {
-        long time = DrillRepOrder.timeMs(rep, KEYS[column]);
+        long time = DrillRepOrder.timeMs(rep, keys[column]);
         row.value(column, FormatterService.INSTANCE.formatSolveTime(time),
             gone ? color(R.color.secondary_text) : scales[column].colorFor(time, false));
       }
@@ -302,19 +317,20 @@ public class DrillCaseTable {
 
     // Where the rep's time went. A rep with no time to divide has no shape, so it shows none. A
     // pair has no picture and every pair has the same name, so its bar is the line's picture.
+    List<DrillRepParts.Part> parts = DrillRepParts.of(activity, rep, hueOf(code));
     if (pair) {
-      row.proportion(rep.getRecognitionMs(), rep.getExecutionMs(), hueOf(code),
-          longestMs == 0 ? 0 : rep.getTotalMs() / (float) longestMs,
+      row.proportion(parts, longestMs == 0 ? 0 : rep.getTotalMs() / (float) longestMs,
           activity.getResources().getDimensionPixelSize(R.dimen.drill_pair_bar_height));
     } else {
-      row.shape(rep.getRecognitionMs(), rep.getExecutionMs(), hueOf(code));
+      row.shape(parts);
     }
     row.hideBar(rep.isAbandoned());
   }
 
   /** A pair's code names no step family, so it is given F2L's colour by hand. */
   private int hueOf(String code) {
-    return palette.colorFor(CaseAlgorithms.isPair(code) ? PAIR_FAMILY : code);
+    return palette.colorFor(CaseAlgorithms.isPair(code) || DrillSession.isLookAheadCase(code)
+        ? PAIR_FAMILY : code);
   }
 
   /** Where the rep fell in the drill, counted as a person counts: the first one is 1. */

@@ -966,6 +966,15 @@
   <string name="drill_summary_cell_of">of %d</string>
   <string name="drill_summary_cell_mean">Mean</string>
   <string name="drill_summary_cell_best">Best</string>
+  <!-- The look-ahead drill: two F2L pairs out, timed on the pause between them. Its name stays
+       English in every language. -->
+  <string name="drill_lookahead" translatable="false">Look-ahead</string>
+  <string name="drill_lookahead_before">Before</string>
+  <string name="drill_lookahead_pair">Pair</string>
+  <string name="drill_lookahead_pause">Pause</string>
+  <string name="drill_summary_cell_mean_pause">Mean pause</string>
+  <string name="drill_summary_cell_best_pause">Best pause</string>
+  <string name="drill_summary_mean_pause">mean pause</string>
   <string name="drill_rep_under">%s under</string>
   <string name="drill_rep_over">%s over</string>
   <string name="drill_rep_not_counted">not counted</string>

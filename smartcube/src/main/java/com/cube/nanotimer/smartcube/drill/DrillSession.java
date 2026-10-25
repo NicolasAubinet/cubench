@@ -56,6 +56,11 @@ public final class DrillSession {
    */
   public static final String LOOKAHEAD_CASE = DrillSpec.Type.F2L_LOOKAHEAD.code();
 
+  /** Whether a rep's code is a look-ahead rep's, which names no case and has no algorithms. */
+  public static boolean isLookAheadCase(String code) {
+    return LOOKAHEAD_CASE.equals(code);
+  }
+
   /** Deals tried before a look-ahead rep takes one with a piece stuck in the other slot. */
   private static final int MAX_LOOKAHEAD_DEALS = 50;
 

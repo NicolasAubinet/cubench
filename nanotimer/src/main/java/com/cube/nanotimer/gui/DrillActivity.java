@@ -7,9 +7,6 @@ import android.graphics.drawable.LayerDrawable;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -39,6 +36,7 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.drill.AlgorithmTimes;
 import com.cube.nanotimer.smartcube.drill.CaseTally;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
+import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.LayerRotation;
 import com.cube.nanotimer.smartcube.drill.PairWeights;
@@ -72,6 +70,7 @@ import com.cube.nanotimer.util.view.LearningAlgorithmFade;
 import com.cube.nanotimer.util.view.PracticeOfferPulse;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
 import com.cube.nanotimer.util.view.DrillControlLabels;
+import com.cube.nanotimer.util.view.DrillRepParts;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 
@@ -319,8 +318,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return;
     }
     // A pair's code names no step family, so F2L's colour is asked for by name.
-    familyHue = StepPalette.cfop(this).colorFor(spec.getType() == DrillSpec.Type.F2L_PAIR ? "f2l"
-        : spec.getCases().isEmpty() ? null : spec.getCases().get(0));
+    boolean lookAhead = spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD;
+    familyHue = StepPalette.cfop(this).colorFor(spec.getType() == DrillSpec.Type.F2L_PAIR
+        || lookAhead ? "f2l" : spec.getCases().isEmpty() ? null : spec.getCases().get(0));
+    if (lookAhead) {
+      findViewById(R.id.btDrillAlgorithm).setVisibility(View.GONE); // two pairs, no one algorithm
+    }
     label = spec.getLabel() == null ? getString(R.string.drill_title) : spec.getLabel();
     setTitle(label);
     layerFace = getIntent().getStringExtra(EXTRA_LAYER_FACE);
@@ -692,6 +695,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private void offerPractice(DrillRep rep) {
     hidePracticeOffer();
     if (!session.getSpec().isFromCoach() || rep.isPractice()
+        || DrillSession.isLookAheadCase(rep.getCaseCode())
         || !(isTurnedOffList(rep) || didNotStick(rep))) {
       return;
     }
@@ -1225,7 +1229,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     boolean retiring = session.getSpec().retiresCases();
     repVerdict.setVisibility(View.GONE);
     lastRep = rep.isPractice() ? null : rep;
-    DrillLiveCells.show(this, session.getReps());
+    DrillLiveCells.show(this, session.getReps(), session.getSpec().getType());
     if (retiring) {
       refreshCaseProgress(); // rings the case this line is about
     }
@@ -1238,10 +1242,16 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       showChooseRep(rep, name, colour, timed);
       return;
     }
-    setLastRep(name, colour, FormatterService.INSTANCE.formatSolveTime(rep.getTotalMs()), false,
-        splitWords(rep));
-    repSplit.setSplit(rep.getRecognitionMs(), rep.getExecutionMs(),
-        ContextCompat.getColor(this, colour));
+    // A look-ahead rep is read by its pause, so the line leads with that rather than its name.
+    DrillRepOrder.Key key = DrillRepOrder.readBy(session.getSpec().getType());
+    boolean pause = key == DrillRepOrder.Key.PAUSE;
+    List<DrillRepParts.Part> parts =
+        DrillRepParts.of(this, rep, ContextCompat.getColor(this, colour));
+    setLastRep(pause ? getString(R.string.drill_lookahead_pause) : name,
+        pause ? R.color.drill_pause : colour,
+        FormatterService.INSTANCE.formatSolveTime(DrillRepOrder.timeMs(rep, key)), false,
+        DrillRepParts.words(this, parts));
+    DrillRepParts.draw(repSplit, parts);
     repSplit.setVisibility(View.VISIBLE);
     if (retiring && !rep.isPractice()) {
       showVerdict(rep);
@@ -1260,25 +1270,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     }
   }
 
-  /** The split bar's two halves in words: each name quiet, its figure in white. */
-  private CharSequence splitWords(DrillRep rep) {
-    SpannableStringBuilder words = new SpannableStringBuilder();
-    appendHalf(words, R.string.drill_summary_column_recognition, rep.getRecognitionMs());
-    words.append("   ");
-    appendHalf(words, R.string.drill_summary_column_execution, rep.getExecutionMs());
-    return words;
-  }
-
-  private void appendHalf(SpannableStringBuilder words, int nameRes, long ms) {
-    words.append(getString(nameRes)).append(' ');
-    int start = words.length();
-    words.append(FormatterService.INSTANCE.formatSolveTime(ms));
-    words.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.white)), start,
-        words.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-  }
-
   private static int familyColour(String code) {
-    if (CaseAlgorithms.isPair(code)) {
+    if (CaseAlgorithms.isPair(code) || DrillSession.isLookAheadCase(code)) {
       return R.color.step_f2l;
     }
     return code != null && code.startsWith(FAMILY_OLL) ? R.color.step_oll : R.color.step_pll;
@@ -1408,42 +1401,42 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
     // Skipped reps are counted apart rather than folded into a mean, the same rule the case stats
     // follow: a case you gave up on is not a slow time.
-    long recognitionTotal = 0;
-    long executionTotal = 0;
+    DrillRepOrder.Key key = DrillRepOrder.readBy(spec.getType());
+    boolean pause = key == DrillRepOrder.Key.PAUSE;
+    List<List<DrillRepParts.Part>> timedParts = new ArrayList<List<DrillRepParts.Part>>();
+    long keyTotal = 0;
     DrillRep best = null;
-    int timed = 0;
     for (DrillRep rep : reps) {
       if (rep.isAbandoned()) {
         continue;
       }
-      recognitionTotal += rep.getRecognitionMs();
-      executionTotal += rep.getExecutionMs();
-      if (best == null || rep.getTotalMs() < best.getTotalMs()) {
+      timedParts.add(DrillRepParts.of(this, rep, familyHue));
+      keyTotal += DrillRepOrder.timeMs(rep, key);
+      if (best == null || DrillRepOrder.timeMs(rep, key) < DrillRepOrder.timeMs(best, key)) {
         best = rep;
       }
-      timed++;
     }
-    if (timed == 0) {
+    if (timedParts.isEmpty()) {
       showSummaryEmpty(R.string.drill_summary_nothing_timed);
       return;
     }
     showSummaryFigures(); // a drill pruned to nothing and then put back has these to get back
-    long recognition = recognitionTotal / timed;
-    long execution = executionTotal / timed;
+    long mean = keyTotal / timedParts.size();
     if (spec.retiresCases()) {
       // The hero is the cases cleared, so the mean goes under the bar between its two halves.
-      setSummarySplit(recognition, execution, recognition + execution);
+      setSummarySplit(DrillRepParts.mean(timedParts), mean);
       return;
     }
-    setSummaryHero(FormatterService.INSTANCE.formatSolveTime(recognition + execution), null,
-        getString(R.string.drill_summary_cell_average));
-    setSummarySplit(recognition, execution, -1);
+    setSummaryHero(FormatterService.INSTANCE.formatSolveTime(mean), null,
+        getString(pause ? R.string.drill_summary_mean_pause : R.string.drill_summary_cell_average));
+    setSummarySplit(DrillRepParts.mean(timedParts), -1);
     // The best rep says which it was: a time with no case attached could not be acted on. A pair
     // has no picture and no name of its own, so it is named by where it fell in the drill.
-    setSummaryCell(1, getString(R.string.drill_summary_cell_best),
-        FormatterService.INSTANCE.formatSolveTime(best.getTotalMs()), null);
+    setSummaryCell(1, getString(pause ? R.string.drill_summary_cell_best_pause
+            : R.string.drill_summary_cell_best),
+        FormatterService.INSTANCE.formatSolveTime(DrillRepOrder.timeMs(best, key)), null);
     setSummaryCellColor(1, ContextCompat.getColor(this, R.color.session_best));
-    if (pairs) {
+    if (pairs || pause) {
       setSummaryCellCase(null, getString(R.string.drill_summary_rep_number,
           session.getReps().indexOf(best) + 1));
     } else {

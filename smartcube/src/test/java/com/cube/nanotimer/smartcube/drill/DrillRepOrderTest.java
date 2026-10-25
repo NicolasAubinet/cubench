@@ -26,6 +26,19 @@ public class DrillRepOrderTest {
     assertEquals("pll_ga", reps.get(0).getCaseCode());
   }
 
+  @Test
+  public void aLookAheadDrillIsReadByItsPause() {
+    List<DrillRep> reps = list(lookAhead("a", 400), lookAhead("b", 1200), skipped("c"));
+
+    DrillRepOrder.sort(reps, DrillRepOrder.Key.PAUSE, true);
+    assertEquals(Arrays.asList("b", "a", "c"), codes(reps));
+    assertEquals(1200, DrillRepOrder.timeMs(reps.get(0), DrillRepOrder.Key.PAUSE));
+    assertEquals(DrillRepOrder.Key.PAUSE,
+        DrillRepOrder.readBy(com.cube.nanotimer.drill.DrillSpec.Type.F2L_LOOKAHEAD));
+    assertEquals(DrillRepOrder.Key.TOTAL,
+        DrillRepOrder.readBy(com.cube.nanotimer.drill.DrillSpec.Type.F2L_PAIR));
+  }
+
   /** It has no time to compare, so it is neither the fastest nor the slowest of anything. */
   @Test
   public void skippedRepsStayAtTheEndBothWaysRound() {
@@ -82,6 +95,11 @@ public class DrillRepOrderTest {
   private static DrillRep rep(String caseCode, long recognitionMs, long executionMs) {
     return new DrillRep(caseCode, "", Collections.<CubeMove>emptyList(), 0, recognitionMs,
         executionMs, 10, 0, false, false);
+  }
+
+  private static DrillRep lookAhead(String caseCode, long pauseMs) {
+    return new DrillRep(caseCode, "", Collections.<CubeMove>emptyList(), 0, 800, 5000, 20, 0, false,
+        false, false, false, 2000L, pauseMs);
   }
 
   private static DrillRep skipped(String caseCode) {

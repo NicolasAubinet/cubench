@@ -940,6 +940,12 @@
   <string name="drill_summary_cell_of">de %d</string>
   <string name="drill_summary_cell_mean">Média</string>
   <string name="drill_summary_cell_best">Melhor</string>
+  <string name="drill_lookahead_before">Antes</string>
+  <string name="drill_lookahead_pair">Par</string>
+  <string name="drill_lookahead_pause">Pausa</string>
+  <string name="drill_summary_cell_mean_pause">Pausa média</string>
+  <string name="drill_summary_cell_best_pause">Melhor pausa</string>
+  <string name="drill_summary_mean_pause">de pausa em média</string>
   <string name="drill_rep_under">%s abaixo</string>
   <string name="drill_rep_over">%s acima</string>
   <string name="drill_rep_not_counted">não conta</string>

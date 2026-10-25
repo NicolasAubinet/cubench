@@ -16,6 +16,7 @@
      android:paddingTop="7dp"
      android:paddingBottom="7dp">
     <com.cube.nanotimer.util.view.FontFitTextView
+       android:id="@+id/tvDrillLiveMeanKey"
        style="@style/HeroStatKey"
        android:text="@string/drill_summary_cell_mean"/>
     <com.cube.nanotimer.util.view.FontFitTextView
@@ -35,6 +36,7 @@
      android:paddingTop="7dp"
      android:paddingBottom="7dp">
     <com.cube.nanotimer.util.view.FontFitTextView
+       android:id="@+id/tvDrillLiveRecognitionKey"
        style="@style/HeroStatKey"
        android:text="@string/drill_summary_column_recognition"/>
     <com.cube.nanotimer.util.view.FontFitTextView
@@ -53,6 +55,7 @@
      android:paddingTop="7dp"
      android:paddingBottom="7dp">
     <com.cube.nanotimer.util.view.FontFitTextView
+       android:id="@+id/tvDrillLiveBestKey"
        style="@style/HeroStatKey"
        android:text="@string/drill_summary_cell_best"/>
     <com.cube.nanotimer.util.view.FontFitTextView
