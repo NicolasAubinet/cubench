@@ -15,6 +15,7 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LPairScrambles;
+import com.cube.nanotimer.smartcube.step.FaceTurns;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -943,6 +944,128 @@ public class DrillSessionTest {
     assertNull(lastLayer.getShownEdges());
   }
 
+  /**
+   * On every face, two pairs are dealt and undoing the scramble puts both in, F2L whole and the
+   * last layer still out. The case shown is the cross, the two slots in and the two dealt pairs.
+   */
+  @Test
+  public void aLookAheadRepEndsWhenBothPairsAreIn() {
+    for (String face : new String[] {"U", "D", "R", "L", "F", "B"}) {
+      Random random = new Random(face.hashCode());
+      for (int rep = 0; rep < 20; rep++) {
+        DrillSession session = new DrillSession(lookAheadSpec(1), random, null, face);
+        Hand hand = new Hand(session);
+        assertTrue(hand.next());
+        assertEquals(DrillSession.LOOKAHEAD_CASE, session.getCurrentCase());
+        assertEquals(face, 4 + 2 + 2, session.getShownEdges().length);
+        assertEquals(face, 2 + 2, session.getShownCorners().length);
+        String solution = inverse(session.getCurrentScramble());
+        DrillRep done = hand.execute(solution);
+        assertNotNull(face, done);
+        assertEquals(DrillSession.LOOKAHEAD_CASE, done.getCaseCode());
+        assertNotNull(done.getPauseMs());
+        assertTrue("the last layer is left", done.getMoves().size() < asReported(solution).size());
+        assertTrue(session.isFinished());
+      }
+    }
+  }
+
+  /**
+   * First version deals basic pairs only: exactly two slots out, the cross in, and no piece of
+   * either pair sitting in a slot, its own excepted. Read off the cube with the cross on D.
+   */
+  @Test
+  public void aLookAheadDealIsTwoBasicPairs() {
+    Random random = new Random(11);
+    for (int deal = 0; deal < 300; deal++) {
+      DrillSession session = new DrillSession(lookAheadSpec(1), random, null, "U");
+      assertTrue(session.nextRep());
+      CubieCube cube = new CubieCube();
+      FaceTurns.apply(cube, session.getCurrentScramble());
+      int[] cp = new int[8];
+      int[] co = new int[8];
+      int[] ep = new int[12];
+      int[] eo = new int[12];
+      cube.toPermutation(cp, co, ep, eo);
+      for (int edge = 4; edge < 8; edge++) {
+        assertTrue("cross edge " + edge, ep[edge] == edge && eo[edge] == 0);
+      }
+      int slotsIn = 0;
+      for (int slot = 0; slot < 4; slot++) {
+        int corner = 4 + slot; // DFR DLF DBL DRB, and FR FL BL BR in the same order
+        int edge = 8 + slot;
+        if (cp[corner] == corner && co[corner] == 0 && ep[edge] == edge && eo[edge] == 0) {
+          slotsIn++;
+        }
+        assertTrue("no other slot's corner in " + corner, cp[corner] == corner || cp[corner] < 4);
+        assertTrue("no other slot's edge in " + edge, ep[edge] == edge || ep[edge] < 4);
+      }
+      assertEquals(session.getCurrentScramble(), 2, slotsIn);
+    }
+  }
+
+  /**
+   * The four times of a rep with a known shape: a look of 700 ms, the first pair, a pause of
+   * 900 ms once it is in, then the second pair. They add up to the whole rep, and the drill is
+   * judged on everything up to the second pair's first turn.
+   */
+  @Test
+  public void aLookAheadRepTimesThePauseBetweenThePairs() {
+    DrillSession session = new DrillSession(lookAheadSpec(1), new Random(5), null, "U");
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    hand.pause(700);
+    DrillRep rep = hand.executeWithPause(inverse(session.getCurrentScramble()), 900);
+    assertNotNull(rep);
+    assertEquals(700, rep.getRecognitionMs());
+    assertEquals(GAP_MS + 900, rep.getPauseMs().longValue());
+    assertEquals(GAP_MS * (hand.turnsToFirstPair - 1), rep.getPairOneMs().longValue());
+    assertEquals(rep.getExecutionMs(),
+        rep.getPairOneMs() + rep.getPauseMs() + rep.getPairTwoMs());
+    assertEquals(700 + rep.getPairOneMs() + rep.getPauseMs(),
+        rep.getTimedMs(DrillSpec.Type.F2L_LOOKAHEAD));
+  }
+
+  /** Squaring the layer up first is part of the first pair, as in a solve's F2L, not the look. */
+  @Test
+  public void aLookAheadRepCountsALayerTurnInTheFirstPair() {
+    DrillSession session = new DrillSession(lookAheadSpec(1), new Random(5), null, "U");
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    hand.pause(500);
+    DrillRep rep = hand.execute("U U' " + inverse(session.getCurrentScramble()));
+    assertNotNull(rep);
+    assertEquals(500, rep.getRecognitionMs());
+  }
+
+  /** Given up on before a pair is in, there is no pair time and no pause to report. */
+  @Test
+  public void aLookAheadRepGivenUpEarlyHasNoPause() {
+    DrillSession session = new DrillSession(lookAheadSpec(2), new Random(5), null, "U");
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    assertNull(hand.execute("U"));
+    assertFalse(session.isFirstPairIn());
+    DrillRep rep = session.abandon();
+    assertTrue(rep.isAbandoned());
+    assertNull(rep.getPairOneMs());
+    assertNull(rep.getPauseMs());
+    assertNull(rep.getPairTwoMs());
+    assertEquals(rep.getTotalMs(), rep.getTimedMs(DrillSpec.Type.F2L_LOOKAHEAD));
+  }
+
+  /** Other drills carry none of the look-ahead times. */
+  @Test
+  public void otherDrillsHaveNoPairTimes() {
+    DrillSession session = new DrillSession(pairSpec("pair_12"), new Random(3), null, "U");
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    DrillRep rep = hand.execute(inverse(session.getCurrentScramble()));
+    assertNull(rep.getPairOneMs());
+    assertNull(rep.getPauseMs());
+    assertFalse(session.isFirstPairIn());
+  }
+
   /** Only the first few cases are dealt, and the next one comes in as one retires. */
   @Test
   public void aWorkingSetDealsFromTheHeaviestCasesFirst() {
@@ -981,6 +1104,10 @@ public class DrillSessionTest {
   private static DrillSpec pairSpec(String code) {
     return new DrillSpec("test", DrillSpec.Type.F2L_PAIR, DrillSpec.Delivery.VIRTUAL,
         Collections.singletonList(code), DrillSpec.Selection.ROUND_ROBIN, 1, 0, null);
+  }
+
+  private static DrillSpec lookAheadSpec(int reps) {
+    return DrillSpec.lookAhead("test", reps, null);
   }
 
   private static DrillSpec spec(String code, int reps) {
@@ -1385,6 +1512,29 @@ public class DrillSessionTest {
         DrillRep rep = session.onMove(timed);
         if (rep != null) {
           return rep;
+        }
+      }
+      return null;
+    }
+
+    /** Turns the moves needed to put the first look-ahead pair in, before the pause. */
+    int turnsToFirstPair;
+
+    /** {@link #execute}, stopping to look for {@code pauseMs} once the first pair is in. */
+    DrillRep executeWithPause(String algorithm, long pauseMs) {
+      int turns = 0;
+      for (CubeMove move : asReported(algorithm)) {
+        CubeMove timed = new CubeMove(move.getFace(), move.isPrime(), clock);
+        clock += GAP_MS;
+        turns++;
+        boolean wasIn = session.isFirstPairIn();
+        DrillRep rep = session.onMove(timed);
+        if (rep != null) {
+          return rep;
+        }
+        if (!wasIn && session.isFirstPairIn()) {
+          turnsToFirstPair = turns;
+          clock += pauseMs;
         }
       }
       return null;

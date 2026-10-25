@@ -31,6 +31,21 @@ public class F2LPairScramblesTest {
   }
 
   /** 41 basic and 51 advanced, the two sets the case reader names. */
+  /** The basic cases and the stuck ones split the list, and undoing alone is still the case. */
+  @Test
+  public void basicCasesAreTheOnesNotStuck() {
+    List<String> basic = F2LPairScrambles.basicCases();
+    assertEquals(F2LPairScrambles.cases().size(),
+        basic.size() + F2LPairScrambles.stuckCases().size());
+    Random random = new Random(2);
+    for (String code : basic) {
+      assertFalse(code, F2LPairScrambles.stuckCases().contains(code));
+      assertEquals(code, code.substring("pair_".length()), F2LCases.pairCase(
+          state(F2LPairScrambles.undoing(code, random)), Cubies.D, Cubies.DFR, Cubies.FR));
+    }
+    assertNull(F2LPairScrambles.undoing("pll_t", random));
+  }
+
   @Test
   public void dealsEveryNamedCase() {
     List<String> cases = F2LPairScrambles.cases();

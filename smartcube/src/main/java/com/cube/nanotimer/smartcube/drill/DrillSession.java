@@ -50,6 +50,15 @@ public final class DrillSession {
   /** Cases left below which cleared ones are mixed back in. */
   private static final int MIN_MIX = 3;
 
+  /**
+   * The case code every look-ahead rep carries: its two pairs are composed, so no case names them,
+   * and the rep is recorded under the drill's own type.
+   */
+  public static final String LOOKAHEAD_CASE = DrillSpec.Type.F2L_LOOKAHEAD.code();
+
+  /** Deals tried before a look-ahead rep takes one with a piece stuck in the other slot. */
+  private static final int MAX_LOOKAHEAD_DEALS = 50;
+
   /** The cross and the four slots with the cross on D, each slot as its corner and its edge. */
   private static final String[] CROSS_EDGES = {"DF", "DR", "DB", "DL"};
   private static final String[][] SLOTS = {{"DFR", "FR"}, {"DLF", "FL"}, {"DBL", "BL"},
@@ -75,6 +84,13 @@ public final class DrillSession {
   /** The current pair's corner and edge by the faces of their slot, as dealt. */
   private String pairCorner;
   private String pairEdge;
+  /** A look-ahead drill, whose rep is two pairs and ends when both are in. */
+  private final boolean lookAhead;
+  /** Every slot as {corner, edge}, the two dealt ones first. Null for any other drill. */
+  private String[][] lookAheadSlots;
+  /** When the first of the two pairs came in, and the turn after it, on the cube's clock. */
+  private long firstPairInMs = NOT_SHOWN;
+  private long pairTwoStartMs = NOT_SHOWN;
   private int[] shownEdges;
   private int[] shownCorners;
 
@@ -130,9 +146,14 @@ public final class DrillSession {
     this.weights = weights;
     this.layerFace = layerFace == null ? "U" : layerFace;
     this.pairs = spec.getType() == DrillSpec.Type.F2L_PAIR;
-    List<String> known = pairs ? F2LPairScrambles.cases() : LastLayerScrambles.cases();
-    for (String code : spec.getCases()) {
-      (known.contains(code) ? cases : unknownCases).add(code);
+    this.lookAhead = spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD;
+    if (lookAhead) {
+      cases.add(LOOKAHEAD_CASE); // dealt from no list, so any the spec names are not this drill's
+    } else {
+      List<String> known = pairs ? F2LPairScrambles.cases() : LastLayerScrambles.cases();
+      for (String code : spec.getCases()) {
+        (known.contains(code) ? cases : unknownCases).add(code);
+      }
     }
     if (spec.getWorkingSet() > 0 && weights != null) {
       // Heaviest first, so the working set opens on what is costing most; ties keep the spec's order.
@@ -217,7 +238,9 @@ public final class DrillSession {
 
   private void deal(String code) {
     currentCase = code;
-    if (pairs) {
+    if (lookAhead) {
+      dealTwoPairs();
+    } else if (pairs) {
       // A random slot, so the pair is not always read in the same place. Practice spins it by the
       // algorithm's leading y, so the moves after it run with no rotation.
       String atItsAngle = practiceCase != null && practiceAlgorithm != null
@@ -237,16 +260,125 @@ public final class DrillSession {
     }
     cube = new CubieCube();
     FaceTurns.apply(cube, currentScramble);
-    if (pairs) {
+    if (pairs || lookAhead) {
       readShownPieces();
     }
     moves.clear();
     firstMoveMs = 0;
     algStartMs = 0;
     lastMoveMs = 0;
+    firstPairInMs = NOT_SHOWN;
+    pairTwoStartMs = NOT_SHOWN;
     caseShownAtMs = NOT_SHOWN;
     resetCount = 0;
     revealed = false;
+  }
+
+  /**
+   * Two basic pairs in two random slots: one case's scramble, then a second case undone on top in
+   * another slot. The second undo can carry the first pair's top-layer pieces, so a deal that leaves
+   * a piece in the other pair's slot, or a slot already in, is dealt again.
+   */
+  private void dealTwoPairs() {
+    List<String> basic = F2LPairScrambles.basicCases();
+    for (int attempt = 1; ; attempt++) {
+      int first = random.nextInt(4);
+      int apart = 1 + random.nextInt(3);
+      String firstCase = basic.get(random.nextInt(basic.size()));
+      String secondCase = basic.get(random.nextInt(basic.size()));
+      String both = F2LPairScrambles.forCase(firstCase, random) + " "
+          + LayerRotation.spun(F2LPairScrambles.undoing(secondCase, random), apart);
+      currentScramble = LayerRotation.toFace(LayerRotation.spun(both, first), layerFace);
+      List<Integer> order = new ArrayList<Integer>();
+      order.add(first);
+      order.add((first + apart) % 4);
+      for (int quarters = 0; quarters < 4; quarters++) {
+        if (!order.contains(quarters)) {
+          order.add(quarters);
+        }
+      }
+      lookAheadSlots = new String[4][];
+      for (int i = 0; i < 4; i++) {
+        lookAheadSlots[i] = new String[] {LayerRotation.piece("DFR", order.get(i), layerFace),
+            LayerRotation.piece("FR", order.get(i), layerFace)};
+      }
+      cube = new CubieCube();
+      FaceTurns.apply(cube, currentScramble);
+      if (isFairDeal() || attempt >= MAX_LOOKAHEAD_DEALS) {
+        return;
+      }
+    }
+  }
+
+  /** Both dealt slots out, neither holding a piece of the other, and the rest of F2L in. */
+  private boolean isFairDeal() {
+    int[] cp = new int[8];
+    int[] co = new int[8];
+    int[] ep = new int[12];
+    int[] eo = new int[12];
+    cube.toPermutation(cp, co, ep, eo);
+    for (int i = 0; i < 4; i++) {
+      int corner = F2LPairScrambles.cornerIndex(lookAheadSlots[i][0]);
+      int edge = F2LPairScrambles.edgeIndex(lookAheadSlots[i][1]);
+      boolean in = cp[corner] == corner && co[corner] == 0 && ep[edge] == edge && eo[edge] == 0;
+      if (in != (i >= 2)) {
+        return false;
+      }
+    }
+    for (int i = 0; i < 2; i++) {
+      int otherCorner = F2LPairScrambles.cornerIndex(lookAheadSlots[1 - i][0]);
+      int otherEdge = F2LPairScrambles.edgeIndex(lookAheadSlots[1 - i][1]);
+      if (cp[otherCorner] == F2LPairScrambles.cornerIndex(lookAheadSlots[i][0])
+          || ep[otherEdge] == F2LPairScrambles.edgeIndex(lookAheadSlots[i][1])) {
+        return false;
+      }
+    }
+    for (String cross : CROSS_EDGES) {
+      int edge = F2LPairScrambles.edgeIndex(LayerRotation.piece(cross, 0, layerFace));
+      if (ep[edge] != edge || eo[edge] != 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * How many of the two dealt pairs are in, counting only while the cross and the other two slots
+   * are: a pair put in by breaking another slot is not one done.
+   */
+  private int lookAheadPairsIn(CubieCube state) {
+    String facelets = state.toFaceCube();
+    char crossFace = LayerRotation.piece("D", 0, layerFace).charAt(0);
+    for (int i = 2; i < 4; i++) {
+      if (!F2LPairScrambles.isPairIn(facelets, crossFace, lookAheadSlots[i][0],
+          lookAheadSlots[i][1])) {
+        return 0;
+      }
+    }
+    int in = 0;
+    for (int i = 0; i < 2; i++) {
+      if (F2LPairScrambles.isPairIn(facelets, crossFace, lookAheadSlots[i][0],
+          lookAheadSlots[i][1])) {
+        in++;
+      }
+    }
+    return in;
+  }
+
+  /** Marks the first pair in as of a turn's time; the first moment counts, whatever comes after. */
+  private void notePairsIn(long atMs) {
+    if (lookAhead && firstPairInMs == NOT_SHOWN && !moves.isEmpty()
+        && lookAheadPairsIn(cube) > 0) {
+      firstPairInMs = atMs;
+    }
+  }
+
+  /**
+   * Whether one of a look-ahead rep's two pairs has come in, which is where its pause starts. False
+   * for any other drill.
+   */
+  public boolean isFirstPairIn() {
+    return firstPairInMs != NOT_SHOWN;
   }
 
   /**
@@ -412,6 +544,8 @@ public final class DrillSession {
     firstMoveMs = 0;
     algStartMs = 0;
     lastMoveMs = 0;
+    firstPairInMs = NOT_SHOWN;
+    pairTwoStartMs = NOT_SHOWN;
     caseShownAtMs = NOT_SHOWN;
     resetCount++;
   }
@@ -460,9 +594,13 @@ public final class DrillSession {
     if (algStartMs == 0 && move.getFace() != Face.valueOf(layerFace)) {
       algStartMs = at;
     }
+    if (firstPairInMs != NOT_SHOWN && pairTwoStartMs == NOT_SHOWN) {
+      pairTwoStartMs = at; // the first turn after a pair came in ends the pause
+    }
     moves.add(move);
     lastMoveMs = at;
     cube.applyMove(move.getFace(), move.isPrime());
+    notePairsIn(at);
     return isCaseDone() ? complete(false) : null;
   }
 
@@ -494,6 +632,7 @@ public final class DrillSession {
       return Correction.NONE;
     }
     cube = cube.multiply(missed);
+    notePairsIn(lastMoveMs); // a missed turn has no time, so the last reported one stands in
     return new Correction(true, isCaseDone() ? complete(false) : null, missed);
   }
 
@@ -544,6 +683,9 @@ public final class DrillSession {
   }
 
   private boolean isCaseDone(CubieCube state) {
+    if (lookAhead) {
+      return lookAheadPairsIn(state) == 2;
+    }
     if (pairs) {
       return F2LPairScrambles.isPairIn(state.toFaceCube(),
           LayerRotation.piece("D", 0, layerFace).charAt(0), pairCorner, pairEdge);
@@ -607,8 +749,15 @@ public final class DrillSession {
         edges.add(edge);
       }
     }
-    corners.add(F2LPairScrambles.cornerIndex(pairCorner));
-    edges.add(F2LPairScrambles.edgeIndex(pairEdge));
+    if (lookAhead) {
+      for (int i = 0; i < 2; i++) {
+        corners.add(F2LPairScrambles.cornerIndex(lookAheadSlots[i][0]));
+        edges.add(F2LPairScrambles.edgeIndex(lookAheadSlots[i][1]));
+      }
+    } else {
+      corners.add(F2LPairScrambles.cornerIndex(pairCorner));
+      edges.add(F2LPairScrambles.edgeIndex(pairEdge));
+    }
     shownEdges = toArray(edges);
     shownCorners = toArray(corners);
   }
@@ -673,7 +822,8 @@ public final class DrillSession {
    * first turn as before.
    */
   private DrillRep complete(boolean abandoned) {
-    long algStart = algStartMs > 0 ? algStartMs : firstMoveMs;
+    // A look-ahead rep reads a turn of the layer as part of a pair, as a solve's F2L does.
+    long algStart = algStartMs > 0 && !lookAhead ? algStartMs : firstMoveMs;
     // On the cube's clock, not the host's: the turns are stamped on that one, and the offsets the
     // rep is stored with are measured from this.
     long shownAt = caseShownOnCubeClock();
@@ -683,9 +833,20 @@ public final class DrillSession {
     String taughtAlgorithm = taught.get(currentCase);
     boolean offTaught = spec.isLearning() && !practice && !abandoned && taughtAlgorithm != null
         && !CaseAlgorithms.sameTurning(currentCase, DrillRep.notation(moves), taughtAlgorithm);
+    Long pairOne = null;
+    Long pause = null;
+    if (lookAhead && firstPairInMs != NOT_SHOWN) {
+      pairOne = Math.max(0, firstPairInMs - firstMoveMs);
+      // Both pairs in on one turn leave no pause; given up on before the next turn, it never ended.
+      long pauseEnd = pairTwoStartMs != NOT_SHOWN ? pairTwoStartMs
+          : abandoned ? NOT_SHOWN : firstPairInMs;
+      if (pauseEnd != NOT_SHOWN) {
+        pause = Math.max(0, pauseEnd - firstPairInMs);
+      }
+    }
     DrillRep rep = new DrillRep(currentCase, currentScramble,
         new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
-        resetCount, revealed, abandoned, practice, offTaught);
+        resetCount, revealed, abandoned, practice, offTaught, pairOne, pause);
     // A practice rep is none of the drill's: it neither spends one nor counts towards retiring.
     if (!practice) {
       reps.add(rep);

@@ -55,17 +55,39 @@ public final class F2LPairScrambles {
     return Collections.unmodifiableList(codes);
   }
 
+  /** The cases with both pieces out of every other slot, which a look-ahead rep is dealt from. */
+  public static List<String> basicCases() {
+    List<String> codes = new ArrayList<String>();
+    for (String name : F2LCases.named()) {
+      if (F2LCases.isBasic(name)) {
+        codes.add(PAIR_PREFIX + name);
+      }
+    }
+    return Collections.unmodifiableList(codes);
+  }
+
   /**
    * A scramble leaving the given case at front right with the cross on D, or null if there is none
    * for it. Meant for a solved cube.
    */
   public static String forCase(String caseCode, Random random) {
+    if (algorithmFor(caseCode) == null) {
+      return null;
+    }
+    String layer = lastLayer(random); // drawn first, so a seeded deal is the one it always was
+    return layer + " " + undoing(caseCode, random);
+  }
+
+  /**
+   * The case's algorithm undone between two turns of U, with no last layer scramble before it:
+   * {@link #forCase} without its first half, for a case dealt on top of another.
+   */
+  public static String undoing(String caseCode, Random random) {
     String algorithm = algorithmFor(caseCode);
     if (algorithm == null) {
       return null;
     }
-    return lastLayer(random) + " "
-        + LastLayerScrambles.undoing(algorithm, random.nextInt(4), random.nextInt(4));
+    return LastLayerScrambles.undoing(algorithm, random.nextInt(4), random.nextInt(4));
   }
 
   /**

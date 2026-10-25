@@ -31,6 +31,8 @@ public final class DrillRep {
   private final boolean abandoned;
   private final boolean practice;
   private final boolean offTaught;
+  private final Long pairOneMs;
+  private final Long pauseMs;
 
   DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
       long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
@@ -49,7 +51,16 @@ public final class DrillRep {
   DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
       long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
       boolean abandoned, boolean practice, boolean offTaught) {
+    this(caseCode, scramble, moves, shownAtMs, recognitionMs, executionMs, moveCount, resetCount,
+        revealed, abandoned, practice, offTaught, null, null);
+  }
+
+  DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
+      long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
+      boolean abandoned, boolean practice, boolean offTaught, Long pairOneMs, Long pauseMs) {
     this.caseCode = caseCode;
+    this.pairOneMs = pairOneMs;
+    this.pauseMs = pauseMs;
     this.scramble = scramble;
     this.moves = Collections.unmodifiableList(moves);
     this.shownAtMs = shownAtMs;
@@ -151,15 +162,44 @@ public final class DrillRep {
     return offTaught;
   }
 
-  /** The half the drill's target applies to. */
+  /**
+   * A look-ahead rep's first pair: its first turn to the first slot coming in. Null for any other
+   * drill, and for a rep given up on before a slot was in.
+   */
+  public Long getPairOneMs() {
+    return pairOneMs;
+  }
+
+  /**
+   * A look-ahead rep's pause: the first slot coming in to the next turn, read as a solve reads the
+   * recognition before a pair. Null for any other drill, and for a rep given up on before that turn.
+   */
+  public Long getPauseMs() {
+    return pauseMs;
+  }
+
+  /** A look-ahead rep's second pair: the turn after the pause to the last turn. Null as the pause. */
+  public Long getPairTwoMs() {
+    return pairOneMs == null || pauseMs == null ? null
+        : Long.valueOf(Math.max(0, executionMs - pairOneMs - pauseMs));
+  }
+
+  /**
+   * The half the drill's target applies to. A look-ahead rep is judged from the case going up to
+   * the second pair's first turn, or on the whole rep where it never got that far.
+   */
   public long getTimedMs(DrillSpec.Type type) {
+    if (type == DrillSpec.Type.F2L_LOOKAHEAD) {
+      return pauseMs == null ? getTotalMs() : recognitionMs + pairOneMs + pauseMs;
+    }
     return type == DrillSpec.Type.CASE_RECOGNITION ? recognitionMs : executionMs;
   }
 
   @Override
   public String toString() {
     return caseCode + "(" + recognitionMs + "ms + " + executionMs + "ms, " + moveCount
-        + " moves" + (revealed ? ", revealed" : "") + (abandoned ? ", abandoned" : "")
+        + " moves" + (pauseMs != null ? ", pair " + pairOneMs + "ms, pause " + pauseMs + "ms" : "")
+        + (revealed ? ", revealed" : "") + (abandoned ? ", abandoned" : "")
         + (practice ? ", practice" : "")
         + (offTaught ? ", off the taught algorithm" : "") + ")";
   }
