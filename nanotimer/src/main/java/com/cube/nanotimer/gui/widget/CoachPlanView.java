@@ -938,7 +938,9 @@ public class CoachPlanView {
     button.setVisibility(View.VISIBLE);
     // A cross drill is named by no case at all, so counting its case list would label it "these cases".
     button.setText(withPlay(button, spec.getType() == DrillSpec.Type.CROSS
-        ? R.string.drill_cross_title : spec.isLearning() ? R.string.coach_learn_cases
+        ? R.string.drill_cross_title
+        : spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD ? R.string.coach_drill_lookahead
+        : spec.isLearning() ? R.string.coach_learn_cases
         : spec.getCases().size() == 1 ? R.string.coach_drill_case : R.string.coach_drill_cases));
     button.setOnClickListener(new View.OnClickListener() {
       @Override

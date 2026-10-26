@@ -1486,6 +1486,7 @@
   <string name="coach_drill_case">Treinar este caso</string>
   <string name="coach_drill_cases">Treinar estes casos</string>
   <string name="coach_learn_cases">Aprender estes casos</string>
+  <string name="coach_drill_lookahead">Treino de look-ahead</string>
   <string name="coach_practice_title">Treino livre</string>
   <string name="coach_practice_body">Sempre aqui, à parte do plano: os casos que mais custam para você, treinados até baterem suas metas. Atualizado conforme você resolve.</string>
   <string name="coach_practice_set">Os seus casos de %1$s mais custosos</string>

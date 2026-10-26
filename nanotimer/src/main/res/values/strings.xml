@@ -1532,6 +1532,7 @@
   <string name="coach_drill_case">Drill this case</string>
   <string name="coach_drill_cases">Drill these cases</string>
   <string name="coach_learn_cases">Learn these cases</string>
+  <string name="coach_drill_lookahead">Look-ahead drill</string>
   <string name="coach_practice_title">Practice any time</string>
   <string name="coach_practice_body">Always here, apart from the plan: the cases costing you the most, practised until they beat their targets. Refreshed as you solve.</string>
   <string name="coach_practice_set">Your costliest %1$s cases</string>

@@ -1484,6 +1484,7 @@
   <string name="coach_drill_case">Travailler ce cas</string>
   <string name="coach_drill_cases">Travailler ces cas</string>
   <string name="coach_learn_cases">Apprendre ces cas</string>
+  <string name="coach_drill_lookahead">Drill de look-ahead</string>
   <string name="coach_practice_title">Pratique libre</string>
   <string name="coach_practice_body">Toujours là, à côté du plan : les cas qui vous coûtent le plus, travaillés jusqu\'à battre leurs objectifs. Mis à jour au fil de vos résolutions.</string>
   <string name="coach_practice_set">Vos cas de %1$s les plus coûteux</string>

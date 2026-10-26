@@ -32,9 +32,13 @@ public class CoachPayload {
    * algorithms and the window they were replayed from, 6 each step's moves and stalls and the last
    * layer's moves over the usual algorithms, 7 the OLL step split by one look and two, 8 the last
    * plan and the solves since it, 9 the two-look PLL count and the PLL step split the same way, 10
-   * the language the plan is to be written in; an older payload is still read, and is simply
+   * the language the plan is to be written in, 11 nothing new but that the app runs a look-ahead
+   * drill ({@link #LOOKAHEAD_DRILL_VERSION}); an older payload is still read, and is simply
    * missing them. */
-  public static final int VERSION = 10;
+  public static final int VERSION = 11;
+
+  /** The first payload from an app that runs a look-ahead drill, which needs drill spec 6. */
+  public static final int LOOKAHEAD_DRILL_VERSION = 11;
 
   private final int schemaVersion;
   private final String puzzle;
