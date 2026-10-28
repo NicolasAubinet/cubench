@@ -280,9 +280,8 @@ public final class DrillSession {
   }
 
   /**
-   * Two basic pairs in two random slots: one case's scramble, then a second case undone on top in
-   * another slot. The second undo can carry the first pair's top-layer pieces, so a deal that leaves
-   * a piece in the other pair's slot, or a slot already in, is dealt again.
+   * One case's scramble, then a second case undone on top in another slot. The undo can move the
+   * first pair's pieces, so an unfair deal is dealt again.
    */
   private void dealTwoPairs() {
     List<String> basic = F2LPairScrambles.basicCases();

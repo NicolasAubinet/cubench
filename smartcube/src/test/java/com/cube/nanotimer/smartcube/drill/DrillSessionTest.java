@@ -1005,9 +1005,8 @@ public class DrillSessionTest {
   }
 
   /**
-   * The four times of a rep with a known shape: a look of 700 ms, the first pair, a pause of
-   * 900 ms once it is in, then the second pair. They add up to the whole rep, and the drill is
-   * judged on everything up to the second pair's first turn.
+   * A 700 ms look, the first pair, a 900 ms pause, the second pair: the four add up to the rep, and
+   * it is judged up to the second pair's first turn.
    */
   @Test
   public void aLookAheadRepTimesThePauseBetweenThePairs() {
