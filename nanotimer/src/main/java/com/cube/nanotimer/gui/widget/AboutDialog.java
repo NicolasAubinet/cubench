@@ -19,6 +19,12 @@ public class AboutDialog extends NanoTimerDialogFragment {
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     View v = getActivity().getLayoutInflater().inflate(R.layout.about_dialog, null);
     ((TextView) v.findViewById(R.id.tvAppVersion)).setText("v" + Utils.getAppVersion(getActivity()));
+    v.findViewById(R.id.tvAboutPrivacy).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Utils.openPrivacyPolicy(getActivity());
+      }
+    });
 
     final AlertDialog dialog = new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme).setView(v).create();
     dialog.setCanceledOnTouchOutside(true);

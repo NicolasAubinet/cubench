@@ -491,7 +491,7 @@
       <li>Qualquer resolução pode ser revista em 3D</li>
       <li>Nova tela de Análise: suas etapas e casos mais lentos, e os algoritmos que você usa</li>
       <li>Novos treinos, para praticar casos no seu próprio cubo</li>
-      <li>Novo coach com IA: um plano de treino semanal escrito a partir das suas resoluções</li>
+      <li>Novo coach, por assinatura: um plano de treino semanal escrito a partir das suas resoluções</li>
       <li>O último cubo pode se reconectar automaticamente ao abrir o aplicativo</li>
     </ul>
     <u><b>v2.1.1</b></u><br/>
@@ -1289,7 +1289,7 @@
   </plurals>
   <string name="coach_reminder_setting">Lembrete de resoluções</string>
   <string name="coach_reminder_setting_summary">Uma notificação na véspera do seu próximo plano, quando ainda faltam resoluções</string>
-  <string name="coach_sends_body">Uma vez por semana, em segundo plano, o Cubench envia ao coach os números das suas resoluções de %1$s e dos seus treinos, e ele escreve um plano de treino feito para você.</string>
+  <string name="coach_sends_body">Uma vez por semana, em segundo plano, o Cubench envia ao coach um resumo das suas resoluções de %1$s e dos seus treinos, e um modelo de IA escreve com ele um plano de treino feito para você. As suas resoluções em si ficam no seu celular.</string>
   <string name="coach_next_retry">O coach não conseguiu escrever este plano. Será pedido de novo em %1$s.</string>
   <string name="coach_writing">Escrevendo seu plano, leva alguns minutos…</string>
   <string name="coach_strip_next">Próximo plano</string>
@@ -1336,6 +1336,7 @@
     <item quantity="one">%d ano</item>
     <item quantity="other">%d anos</item>
   </plurals>
+  <string name="privacy_policy">Política de privacidade</string>
   <string name="coach_sends_label">Como funciona</string>
   <string name="coach_purchase_start_free">Começar %1$s grátis</string>
   <string name="coach_purchase_subscribe_for">Assinar por %1$s</string>
@@ -1564,8 +1565,8 @@
   <string name="news_analysis_body">Suas etapas e casos mais lentos, e os algoritmos que você realmente usa.</string>
   <string name="news_drills_title">Treinos</string>
   <string name="news_drills_body">Pratique seus casos mais fracos no seu próprio cubo, com metas que te deixam mais rápido.</string>
-  <string name="news_coach_title">Coach com IA</string>
-  <string name="news_coach_body">Um plano de treino escrito a partir das suas próprias resoluções, toda semana.</string>
+  <string name="news_coach_title">Coach</string>
+  <string name="news_coach_body">Um plano de treino escrito a partir das suas próprias resoluções, toda semana. Opcional, por assinatura.</string>
   <string name="news_cubes">Funciona com smart cubes GAN, MoYu e QiYi.</string>
   <string name="news_all_notes">Todas as notas de versão</string>
   <string name="news_later">Depois</string>

@@ -117,6 +117,16 @@ public class OptionsActivity extends NanoTimerActivity {
       });
       showCoachCode(findPreference("coach_code"));
       showCoachManage(coach, findPreference("coach_manage"));
+      Preference privacy = findPreference("coach_privacy");
+      if (privacy != null) {
+        privacy.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+          @Override
+          public boolean onPreferenceClick(Preference preference) {
+            Utils.openPrivacyPolicy(getActivity());
+            return true;
+          }
+        });
+      }
       if (!Options.INSTANCE.isCoachPlansOn()) {
         coach.removePreference(plansFor);
         coach.removePreference(nudge);

@@ -508,7 +508,7 @@
       <li>Any solve can be replayed in 3D</li>
       <li>New Analysis screen: your slowest steps and cases, and the algorithms you use</li>
       <li>New drills, to practise cases on your own cube</li>
-      <li>New AI coach: a weekly training plan written from your solves</li>
+      <li>New coach, by subscription: a weekly practice plan written from your solves</li>
       <li>The last cube can be reconnected automatically when the app opens</li>
     </ul>
     <u><b>v2.1.1</b></u><br/>
@@ -1334,7 +1334,7 @@
   </plurals>
   <string name="coach_reminder_setting">Solve reminder</string>
   <string name="coach_reminder_setting_summary">A notification the day before your next plan is due, when it still needs solves</string>
-  <string name="coach_sends_body">Once a week, in the background, Cubench sends the figures of your %1$s solves and drills to the coach, which writes a practice plan made for you.</string>
+  <string name="coach_sends_body">Once a week, in the background, Cubench sends a summary of your %1$s solves and drills to the coach, where an AI model writes a practice plan made for you. Your individual solves stay on your phone.</string>
   <string name="coach_next_retry">The coach could not write this plan. It will be asked again on %1$s.</string>
   <string name="coach_writing">Writing your plan, this takes a few minutes…</string>
   <string name="coach_strip_next">Next plan</string>
@@ -1381,6 +1381,7 @@
     <item quantity="one">%d year</item>
     <item quantity="other">%d years</item>
   </plurals>
+  <string name="privacy_policy">Privacy policy</string>
   <string name="coach_sends_label">How it works</string>
   <string name="coach_purchase_start_free">Start %1$s free</string>
   <string name="coach_purchase_subscribe_for">Subscribe for %1$s</string>
@@ -1614,8 +1615,8 @@
   <string name="news_analysis_body">Your slowest steps and cases, and the algorithms you really use.</string>
   <string name="news_drills_title">Drills</string>
   <string name="news_drills_body">Practise your weakest cases on your own cube, against targets that get you faster.</string>
-  <string name="news_coach_title">AI coach</string>
-  <string name="news_coach_body">A training plan written from your own solves, every week.</string>
+  <string name="news_coach_title">Coach</string>
+  <string name="news_coach_body">A practice plan written from your own solves, every week. Optional, by subscription.</string>
   <string name="news_cubes">Works with GAN, MoYu and QiYi smart cubes.</string>
   <string name="news_all_notes">All release notes</string>
   <string name="news_later">Later</string>

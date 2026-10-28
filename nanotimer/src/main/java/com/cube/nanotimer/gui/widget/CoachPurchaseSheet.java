@@ -76,6 +76,12 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
         pickType();
       }
     });
+    content.findViewById(R.id.tvCoachPurchasePrivacy).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Utils.openPrivacyPolicy(requireContext());
+      }
+    });
     content.findViewById(R.id.buCoachPurchase).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {

@@ -489,7 +489,7 @@
       <li>Chaque résolution peut être revue en 3D</li>
       <li>Nouvel écran Analyse : vos étapes et cas les plus lents, et les algorithmes que vous utilisez</li>
       <li>Nouveaux drills, pour travailler des cas sur votre propre cube</li>
-      <li>Nouveau coach IA : un plan de travail chaque semaine, écrit à partir de vos résolutions</li>
+      <li>Nouveau coach, par abonnement : un plan de travail chaque semaine, écrit à partir de vos résolutions</li>
       <li>Le dernier cube peut se reconnecter automatiquement à l\'ouverture de l\'application</li>
     </ul>
     <u><b>v2.1.1</b></u><br/>
@@ -1287,7 +1287,7 @@
   </plurals>
   <string name="coach_reminder_setting">Rappel de résolutions</string>
   <string name="coach_reminder_setting_summary">Une notification la veille de votre prochain plan, quand il lui manque encore des résolutions</string>
-  <string name="coach_sends_body">Une fois par semaine, en arrière-plan, Cubench envoie au coach les chiffres de vos résolutions %1$s et de vos drills, et il écrit un plan de travail fait pour vous.</string>
+  <string name="coach_sends_body">Une fois par semaine, en arrière-plan, Cubench envoie au coach un résumé de vos résolutions %1$s et de vos drills, et un modèle d\'IA en tire un plan de travail fait pour vous. Vos résolutions elles-mêmes restent sur votre téléphone.</string>
   <string name="coach_next_retry">Le coach n\'a pas pu écrire ce plan. Il sera redemandé le %1$s.</string>
   <string name="coach_writing">Écriture de votre plan, cela prend quelques minutes…</string>
   <string name="coach_strip_next">Prochain plan</string>
@@ -1334,6 +1334,7 @@
     <item quantity="one">%d an</item>
     <item quantity="other">%d ans</item>
   </plurals>
+  <string name="privacy_policy">Politique de confidentialité</string>
   <string name="coach_sends_label">Comment ça marche</string>
   <string name="coach_purchase_start_free">Démarrer l\'essai gratuit de %1$s</string>
   <string name="coach_purchase_subscribe_for">S\'abonner pour %1$s</string>
@@ -1562,8 +1563,8 @@
   <string name="news_analysis_body">Vos étapes et cas les plus lents, et les algorithmes que vous utilisez vraiment.</string>
   <string name="news_drills_title">Drills</string>
   <string name="news_drills_body">Travaillez vos cas les plus faibles sur votre propre cube, avec des objectifs qui vous font progresser.</string>
-  <string name="news_coach_title">Coach IA</string>
-  <string name="news_coach_body">Un plan de travail écrit à partir de vos propres résolutions, chaque semaine.</string>
+  <string name="news_coach_title">Coach</string>
+  <string name="news_coach_body">Un plan de travail écrit à partir de vos propres résolutions, chaque semaine. En option, par abonnement.</string>
   <string name="news_cubes">Compatible avec les smart cubes GAN, MoYu et QiYi.</string>
   <string name="news_all_notes">Toutes les notes de version</string>
   <string name="news_later">Plus tard</string>

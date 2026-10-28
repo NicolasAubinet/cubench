@@ -203,6 +203,10 @@
        android:key="coach_code"
        android:title="@string/coach_code"/>
 
+    <Preference
+       android:key="coach_privacy"
+       android:title="@string/privacy_policy"/>
+
   </PreferenceCategory>
 
   <PreferenceCategory

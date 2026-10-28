@@ -182,6 +182,12 @@
            android:lineSpacingMultiplier="1.2"
            android:textColor="@color/white"
            android:textSize="12.5sp"/>
+
+        <TextView
+           android:id="@+id/tvCoachPurchasePrivacy"
+           style="@style/PrivacyPolicyLink"
+           android:layout_marginTop="2dp"
+           android:text="@string/privacy_policy"/>
       </LinearLayout>
     </LinearLayout>
   </androidx.core.widget.NestedScrollView>

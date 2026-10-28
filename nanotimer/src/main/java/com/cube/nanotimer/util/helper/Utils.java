@@ -55,6 +55,8 @@ public class Utils {
   private static final String BREAK_IN_CODE_PREFIX = "breakin:";
   private static final String MEMO_CODE = "memo";
 
+  public static final String PRIVACY_POLICY_URL =
+      "https://github.com/NicolasAubinet/cubench/blob/master/privacy_policy.md";
   public static final String LANGUAGE_PREFS_NAME = "language";
   public static final String LANGUAGE_PREF_KEY = "picked";
 
@@ -152,6 +154,15 @@ public class Utils {
       DialogUtils.showInfoMessage(context, R.string.could_not_find_market);
     }
     return false;
+  }
+
+  /** Opens the privacy policy in the browser; does nothing on a device with no browser. */
+  public static void openPrivacyPolicy(Context context) {
+    try {
+      context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)));
+    } catch (ActivityNotFoundException e) {
+      // Nothing on the device opens a link.
+    }
   }
 
   public static boolean isCurrentlyCharging() {
