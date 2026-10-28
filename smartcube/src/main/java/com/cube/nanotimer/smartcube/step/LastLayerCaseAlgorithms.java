@@ -508,7 +508,7 @@ public final class LastLayerCaseAlgorithms {
    * differ only by which way the layer faces.
    */
   public static String keyAsDrawn(String caseCode, String moves) {
-    return AlgorithmForm.keyAsDrawn(moves, drawn(caseCode));
+    return KeyCache.keyAsDrawn(caseCode, moves, drawn(caseCode));
   }
 
   /**

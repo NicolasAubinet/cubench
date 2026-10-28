@@ -891,7 +891,7 @@ public final class F2LCaseAlgorithms {
 
   /** One string naming what an execution turned, the same from whichever slot it was turned in. */
   public static String keyAsDrawn(String pairCase, String moves) {
-    return AlgorithmForm.keyAsDrawn(moves, drawn(pairCase));
+    return KeyCache.keyAsDrawn("pair_" + pairCase, moves, drawn(pairCase));
   }
 
   /** Whether two spellings are the same algorithm turned, from whichever slot. */
