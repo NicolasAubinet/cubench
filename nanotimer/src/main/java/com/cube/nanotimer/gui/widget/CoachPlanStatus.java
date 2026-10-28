@@ -495,6 +495,7 @@ public class CoachPlanStatus {
   /** What the coach gives, for an install that could still buy it; the sentence once it has. */
   private void showPoints(boolean points) {
     tab.findViewById(R.id.llAnalysisPlanPoints).setVisibility(points ? View.VISIBLE : View.GONE);
+    tab.findViewById(R.id.tvAnalysisPlanPrivate).setVisibility(points ? View.VISIBLE : View.GONE);
     tab.findViewById(R.id.tvAnalysisPlanBody).setVisibility(points ? View.GONE : View.VISIBLE);
   }
 

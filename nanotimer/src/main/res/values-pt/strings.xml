@@ -1255,7 +1255,9 @@
   <string name="analysis_plan_body">Lido das suas próprias resoluções: o que trabalhar, o treino para isso e se o trabalho da semana passada mudou alguma coisa.</string>
   <string name="analysis_plan_point_plans">Um plano semanal que você pode aplicar, a partir das suas resoluções</string>
   <string name="analysis_plan_point_practice">Pratique os casos que mais tomam seu tempo</string>
+  <string name="analysis_plan_point_learn">Aprenda os algoritmos que dão resultado mais cedo</string>
   <string name="analysis_plan_point_support">Apoie o desenvolvimento do Cubench</string>
+  <string name="analysis_plan_private">Nada sai do seu celular a menos que você assine.</string>
   <string name="analysis_plan_cites">Um plano é escrito a partir das suas próprias resoluções, com cada afirmação citando um número que você pode conferir nas outras duas abas.</string>
   <string name="analysis_plan_not_yet">Ainda não há plano aqui. Resolução e Casos continuam gratuitos, aconteça o que acontecer com esta aba.</string>
   <string name="coach_written">Analisado em %1$s</string>

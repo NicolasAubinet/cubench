@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What to learn next, on the Plan tab's pitch. Material "school". -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+   android:width="18dp"
+   android:height="18dp"
+   android:viewportWidth="24"
+   android:viewportHeight="24">
+  <path
+     android:fillColor="@color/lightblue"
+     android:pathData="M5,13.18v4L12,21l7,-3.82v-4L12,17l-7,-3.82zM12,3L1,9l11,6l9,-4.91V17h2V9L12,3z"/>
+</vector>

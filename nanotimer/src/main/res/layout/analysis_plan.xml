@@ -318,6 +318,20 @@
            android:alpha="0.9"
            android:textSize="14sp"
            android:layout_marginTop="10dp"
+           android:drawableLeft="@drawable/ic_coach_point_learn"
+           android:drawableStart="@drawable/ic_coach_point_learn"
+           android:text="@string/analysis_plan_point_learn"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:drawablePadding="12dp"
+           android:gravity="center_vertical"
+           android:lineSpacingMultiplier="1.15"
+           android:textColor="@color/white"
+           android:alpha="0.9"
+           android:textSize="14sp"
+           android:layout_marginTop="10dp"
            android:drawableLeft="@drawable/ic_coach_point_support"
            android:drawableStart="@drawable/ic_coach_point_support"
            android:text="@string/analysis_plan_point_support"/>
@@ -415,6 +429,22 @@
            android:textSize="12sp"
            android:visibility="gone"/>
       </LinearLayout>
+
+      <!-- Shown with the points: the coach is the only thing that sends anything. -->
+      <TextView
+         android:id="@+id/tvAnalysisPlanPrivate"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_gravity="center_horizontal"
+         android:layout_marginTop="14dp"
+         android:drawablePadding="6dp"
+         android:drawableLeft="@drawable/ic_coach_private"
+         android:drawableStart="@drawable/ic_coach_private"
+         android:gravity="center_vertical"
+         android:text="@string/analysis_plan_private"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"
+         android:visibility="gone"/>
     </LinearLayout>
 
     <!-- For an install without the coach: the plan it would get, with nothing of it filled in. -->

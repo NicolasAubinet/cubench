@@ -1300,7 +1300,9 @@
   <string name="analysis_plan_body">Read from your own solves: what to work on, the drill for it, and whether last week\'s work moved anything.</string>
   <string name="analysis_plan_point_plans">A weekly plan you can act on, from your solves</string>
   <string name="analysis_plan_point_practice">Practice the cases costing you the most time</string>
+  <string name="analysis_plan_point_learn">Learn the algorithms that pay off soonest</string>
   <string name="analysis_plan_point_support">Support Cubench development</string>
+  <string name="analysis_plan_private">Nothing leaves your phone unless you subscribe.</string>
   <string name="analysis_plan_cites">A plan is written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>
   <string name="analysis_plan_not_yet">There is no plan here yet. Solve and Cases stay free whatever lands on this tab.</string>
   <string name="coach_written">Read on %1$s</string>

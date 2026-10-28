@@ -1253,7 +1253,9 @@
   <string name="analysis_plan_body">Lu dans vos propres résolutions : quoi travailler, le drill pour le faire, et si le travail de la semaine passée a changé quelque chose.</string>
   <string name="analysis_plan_point_plans">Un plan concret chaque semaine, tiré de vos résolutions</string>
   <string name="analysis_plan_point_practice">Entraînez les cas qui vous coûtent le plus de temps</string>
+  <string name="analysis_plan_point_learn">Apprenez les algorithmes qui rapportent le plus vite</string>
   <string name="analysis_plan_point_support">Soutenez le développement de Cubench</string>
+  <string name="analysis_plan_private">Rien ne quitte votre téléphone sans abonnement.</string>
   <string name="analysis_plan_cites">Un plan est écrit à partir de vos propres résolutions, chaque affirmation citant un chiffre que vous pouvez vérifier sur les deux autres onglets.</string>
   <string name="analysis_plan_not_yet">Il n\'y a pas encore de plan ici. Résolution et Cas restent gratuits quoi qu\'il arrive à cet onglet.</string>
   <string name="coach_written">Analysé le %1$s</string>
