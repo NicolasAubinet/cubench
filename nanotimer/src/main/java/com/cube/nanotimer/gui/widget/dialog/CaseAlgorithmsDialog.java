@@ -11,6 +11,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -24,10 +25,13 @@ import com.cube.nanotimer.cube.CaseExecutions;
 import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
+import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.VirtualCube;
 import com.cube.nanotimer.gui.DrillActivity;
+import com.cube.nanotimer.gui.DrillScreenActivity;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
+import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
@@ -38,10 +42,12 @@ import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.util.view.SmartCubeMarkLabel;
 import com.cube.nanotimer.vo.SolveTime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * One case at a size worth looking at, with the algorithms it is solved with, and the one this user
@@ -99,6 +105,10 @@ import java.util.List;
  *
  * <p><b>Opened from one solve, it shows that solve's execution instead</b>, marked "this solve":
  * the question asked there is about the moves on the screen, not about a habit.
+ *
+ * <p><b>Practice this case</b>, behind the smart cube mark, opens the case's choose step on the
+ * cube, from any screen but a drill. With no cube connected it opens the connect sheet instead.
+ * Either way the popup stays up, so Back comes back to it, showing what was kept.
  */
 public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
@@ -107,7 +117,6 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   private static final String ARG_CASE = "case";
   private static final String ARG_USED = "used";
-  private static final String ARG_PRACTICE = "practice";
 
   /** The cube's corner view, the drills' own: the top face and two sides, front a little ahead. */
   private static final double VIEW_LATITUDE = 26;
@@ -160,16 +169,6 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     return frag;
   }
 
-  /**
-   * As {@link #newInstance(String, String)}, with a button that opens the case's choose step on
-   * the cube. Only for a screen outside the drills: inside one, the drill's own Alg is the way.
-   */
-  public static CaseAlgorithmsDialog withPractice(String caseCode, String used) {
-    CaseAlgorithmsDialog frag = newInstance(caseCode, used);
-    frag.getArguments().putBoolean(ARG_PRACTICE, true);
-    return frag;
-  }
-
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     caseCode = getArguments().getString(ARG_CASE);
@@ -219,11 +218,37 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
                 : R.string.case_title_pll, LastLayerCaseNames.shortName(caseCode)))
         .setView(view)
         .setPositiveButton(R.string.close, null);
-    if (getArguments().getBoolean(ARG_PRACTICE) && DrillActivity.hasAlgorithmToTry(caseCode)) {
-      builder.setNeutralButton(R.string.case_algorithms_practice,
-          (dialog, which) -> startActivity(DrillActivity.chooseFor(getActivity(), caseCode)));
+    if (offersPractice()) {
+      builder.setNeutralButton(R.string.case_algorithms_practice, null); // wired in onStart
     }
     return builder.create();
+  }
+
+  /** Not inside a drill, where the drill's own Alg is the way, and two drills would share a cube. */
+  private boolean offersPractice() {
+    return !(getActivity() instanceof DrillScreenActivity);
+  }
+
+  /** Null where there is none: the dialog hands back a hidden neutral button even when unset. */
+  private Button practiceButton() {
+    return offersPractice() && getDialog() instanceof AlertDialog
+        ? ((AlertDialog) getDialog()).getButton(AlertDialog.BUTTON_NEUTRAL) : null;
+  }
+
+  private void showPracticeButton() {
+    Button button = practiceButton();
+    if (button == null) {
+      return;
+    }
+    button.setVisibility(DrillActivity.hasAlgorithmToTry(caseCode) ? View.VISIBLE : View.GONE);
+  }
+
+  private void practice() {
+    if (SmartCubeManager.INSTANCE.isConnected()) {
+      startActivity(DrillActivity.chooseFor(getActivity(), caseCode));
+    } else {
+      DialogUtils.showFragment(getActivity(), new SmartCubeConnectDialog());
+    }
   }
 
   /**
@@ -252,11 +277,27 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     if (cube != null) {
       cube.onResume();
     }
+    // Back from practice, where an algorithm may have been kept
+    String nowChosen = Options.INSTANCE.getCaseAlgorithm(caseCode);
+    String nowOwn = Options.INSTANCE.getOwnCaseAlgorithm(caseCode);
+    if (!Objects.equals(nowChosen, chosen) || !Objects.equals(nowOwn, own)) {
+      chosen = nowChosen;
+      own = nowOwn;
+      refresh();
+      flagsChanged();
+    }
   }
 
   @Override
   public void onStart() {
     super.onStart();
+    Button practice = practiceButton();
+    if (practice != null) {
+      practice.setText(SmartCubeMarkLabel.of(getActivity(),
+          getString(R.string.case_algorithms_practice), 20));
+      practice.setOnClickListener(v -> practice());
+      showPracticeButton();
+    }
     fit();
   }
 
@@ -363,6 +404,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     yoursLabel.setVisibility(any ? View.VISIBLE : View.GONE);
     yours.setVisibility(any ? View.VISIBLE : View.GONE);
     fit(); // the solves read later can add rows
+    showPracticeButton();
   }
 
   /**

@@ -1067,7 +1067,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onClick(View view) {
         DialogUtils.showFragment(getActivity(),
-            CaseAlgorithmsDialog.withPractice(caseCode, turned));
+            CaseAlgorithmsDialog.newInstance(caseCode, turned));
       }
     });
     ViewCompat.replaceAccessibilityAction(chip, AccessibilityActionCompat.ACTION_CLICK,
@@ -1217,7 +1217,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onClick(View view) {
         DialogUtils.showFragment(getActivity(),
-            CaseAlgorithmsDialog.withPractice(caseCode, moves));
+            CaseAlgorithmsDialog.newInstance(caseCode, moves));
       }
     };
     String action = getString(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithms_pair_open

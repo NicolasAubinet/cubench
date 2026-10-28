@@ -3,8 +3,6 @@ package com.cube.nanotimer.gui;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -14,7 +12,6 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.ImageSpan;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,6 +48,7 @@ import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.view.SmartCubeMarkLabel;
 import com.cube.nanotimer.util.view.StepPalette;
 
 import java.util.ArrayList;
@@ -318,50 +316,13 @@ public class DrillSetupActivity extends NanoTimerActivity
       btStart.setBackgroundResource(R.drawable.hero_start_button);
       btStart.setTextColor(ContextCompat.getColorStateList(this, R.color.on_accent_ink));
     } else {
-      btStart.setText(connectLabel());
+      btStart.setText(SmartCubeMarkLabel.of(this, getString(R.string.drill_connect_cube), 22));
       btStart.setBackgroundResource(R.drawable.connect_cube_button);
       btStart.setTextColor(ContextCompat.getColor(this, R.color.white));
     }
     // The outline stops above the 3dp kept for Start's shadow, so the label centres on the outline.
     btStart.setPadding(startPadding[0], startPadding[1], startPadding[2],
         startPadding[3] + (connected ? 0 : dp(3)));
-  }
-
-  /** "Connect your cube" behind the smart cube mark, both centred on the button. */
-  private CharSequence connectLabel() {
-    Drawable mark = ContextCompat.getDrawable(this, R.drawable.ic_smart_cube).mutate();
-    mark.setColorFilter(ContextCompat.getColor(this, R.color.lightblue), PorterDuff.Mode.SRC_IN);
-    int size = dp(22);
-    mark.setBounds(0, 0, size, size);
-    SpannableString label = new SpannableString("  " + getString(R.string.drill_connect_cube));
-    label.setSpan(new CentredImageSpan(mark), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    return label;
-  }
-
-  /** An icon centred on the text's own middle, without making the line any taller. */
-  private static class CentredImageSpan extends ImageSpan {
-
-    CentredImageSpan(Drawable drawable) {
-      super(drawable);
-    }
-
-    @Override
-    public int getSize(Paint paint, CharSequence text, int start, int end,
-        Paint.FontMetricsInt fm) {
-      return getDrawable().getBounds().right;
-    }
-
-    @Override
-    public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y,
-        int bottom, Paint paint) {
-      Drawable drawable = getDrawable();
-      Paint.FontMetricsInt metrics = paint.getFontMetricsInt();
-      float middle = y + (metrics.ascent + metrics.descent) / 2f;
-      canvas.save();
-      canvas.translate(x, middle - drawable.getBounds().height() / 2f);
-      drawable.draw(canvas);
-      canvas.restore();
-    }
   }
 
   private void buildPracticeTiles() {
