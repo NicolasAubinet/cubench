@@ -5,6 +5,9 @@
       <enum name="SCRAMBLE" value="0"/>
     </attr>
   </declare-styleable>
+  <declare-styleable name="MaxHeightScrollView">
+    <attr name="android:maxHeight"/>
+  </declare-styleable>
   <declare-styleable name="NumberLimit">
     <attr name="min" format="integer"/>
     <attr name="max" format="integer"/>

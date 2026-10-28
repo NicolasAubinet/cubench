@@ -213,17 +213,27 @@
        android:text="@string/drill_practice_offer"
        android:visibility="gone"/>
 
-    <!-- A learning drill's cases with no starred algorithm, before the first rep: the case's
-         algorithms, the one tapped being the one followed, and a way into the full popup. -->
-    <LinearLayout
-       android:id="@+id/llDrillChoose"
+    <!-- The choose step: the case's algorithms, the one tapped being the one followed, and a way
+         into the full popup. Capped at about four rows and a half, so a long list scrolls rather
+         than shrinking the cube. -->
+    <com.cube.nanotimer.gui.widget.MaxHeightScrollView
+       android:id="@+id/svDrillChoose"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_marginTop="10dp"
        android:background="@drawable/analysis_card"
-       android:orientation="vertical"
+       android:fadeScrollbars="false"
+       android:maxHeight="220dp"
        android:padding="4dp"
-       android:visibility="gone"/>
+       android:scrollbarStyle="insideOverlay"
+       android:visibility="gone">
+
+      <LinearLayout
+         android:id="@+id/llDrillChoose"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"/>
+    </com.cube.nanotimer.gui.widget.MaxHeightScrollView>
 
     <!-- The drill so far, on the app's own card: where it has got, the mode it cannot leave, and
          the figures the summary will open on. -->

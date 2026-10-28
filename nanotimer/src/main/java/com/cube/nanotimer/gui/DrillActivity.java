@@ -926,7 +926,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     setPracticing(on);
     findViewById(R.id.llDrillCard).setVisibility(on ? View.GONE : View.VISIBLE);
     findViewById(R.id.llDrillButtons).setVisibility(on ? View.GONE : View.VISIBLE);
-    chooseList.setVisibility(on ? View.VISIBLE : View.GONE);
+    findViewById(R.id.svDrillChoose).setVisibility(on ? View.VISIBLE : View.GONE);
     findViewById(R.id.llDrillChooseButtons).setVisibility(on ? View.VISIBLE : View.GONE);
     if (on) {
       // Sized once shown: hidden, the button has no width and its label got the smallest size
