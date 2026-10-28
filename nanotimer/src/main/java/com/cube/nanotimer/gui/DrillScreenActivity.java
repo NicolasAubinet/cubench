@@ -227,6 +227,16 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     });
   }
 
+  /** The bar's arrow is a back press, so it steps out of practice and ends on the summary too. */
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == android.R.id.home) {
+      getOnBackPressedDispatcher().onBackPressed();
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
   /**
    * Starts the drill, or waits at the door and starts it the moment a cube connects.
    *
