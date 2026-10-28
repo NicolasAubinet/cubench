@@ -1,5 +1,7 @@
 package com.cube.nanotimer.gui;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -112,6 +114,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The solve type whose recent solves lean an F2L pair drill's draw. Optional. */
   public static final String EXTRA_SOLVE_TYPE = "drillSolveType";
 
+  /** Runs only the spec's one case's choose step, and closes the screen when it is left. */
+  private static final String EXTRA_CHOOSE_ONLY = "drillChooseOnly";
+
   /**
    * How long the solved cube stays up before the next case replaces it.
    *
@@ -168,6 +173,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private String tryingAlgorithm;
   /** Choosing from the drill (Alg or the offer), rather than at a learning drill's start. */
   private boolean choosingToPractise;
+  /** Opened for one case's choose step alone, from outside any drill. */
+  private boolean chooseOnly;
   private LinearLayout chooseList;
   /** Greys the practised algorithm's moves as they are turned; null where there is none to follow. */
   private AlgorithmFollower algorithmFollower;
@@ -190,6 +197,30 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       endChoosing();
     }
   };
+
+  /**
+   * The choose step for one case on its own: its algorithms tried on the cube, the moves followed,
+   * until one is kept or the screen is left. Nothing is recorded, as with any look-up.
+   *
+   * @param caseCode an OLL, PLL or F2L pair case, for which {@link #hasAlgorithmToTry} holds
+   */
+  public static Intent chooseFor(Context context, String caseCode) {
+    Intent intent = new Intent(context, DrillActivity.class);
+    intent.putExtra(EXTRA_LAYER_FACE, DrillSetupActivity.layerFace().name());
+    intent.putExtra(EXTRA_RECORDING, false);
+    intent.putExtra(EXTRA_CHOOSE_ONLY, true);
+    intent.putExtra(EXTRA_SPEC, new DrillSpec("local-choose",
+        CaseAlgorithms.isPair(caseCode) ? DrillSpec.Type.F2L_PAIR : DrillSpec.Type.CASE_EXECUTION,
+        DrillSpec.Delivery.VIRTUAL, Collections.singletonList(caseCode),
+        DrillSpec.Selection.ROUND_ROBIN, 1, 0, null).toJson());
+    return intent;
+  }
+
+  /** Whether a case has an algorithm for its choose step to start on, outside a learning drill. */
+  public static boolean hasAlgorithmToTry(String caseCode) {
+    return Options.INSTANCE.getCaseAlgorithm(caseCode) != null
+        || !CaseAlgorithms.shown(caseCode).isEmpty();
+  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -327,6 +358,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     label = spec.getLabel() == null ? getString(R.string.drill_title) : spec.getLabel();
     setTitle(label);
     layerFace = getIntent().getStringExtra(EXTRA_LAYER_FACE);
+    chooseOnly = getIntent().getBooleanExtra(EXTRA_CHOOSE_ONLY, false);
     SolveType solveType = (SolveType) getIntent().getSerializableExtra(EXTRA_SOLVE_TYPE);
     if (spec.getType() == DrillSpec.Type.F2L_PAIR && solveType != null) {
       loadPairWeights(spec, solveType);
@@ -364,6 +396,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         loadKnownCases();
       }
       collectCasesToChoose();
+    }
+    if (chooseOnly) {
+      toChoose.addAll(spec.getCases());
     }
 
     if (!session.isRunnable()) {
@@ -758,7 +793,11 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private void chooseNext() {
     lastRepRow.removeCallbacks(showNextCase);
     if (chooseIndex >= toChoose.size()) {
-      endChoosing();
+      if (chooseOnly) {
+        finish();
+      } else {
+        endChoosing();
+      }
       return;
     }
     String code = toChoose.get(chooseIndex);

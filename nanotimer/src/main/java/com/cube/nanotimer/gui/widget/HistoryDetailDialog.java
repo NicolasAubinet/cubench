@@ -139,6 +139,13 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     return dialog;
   }
 
+  /** An algorithm kept in the case's choose step, opened from here, can put its bulb out. */
+  @Override
+  public void onResume() {
+    super.onResume();
+    refreshFlags();
+  }
+
   /**
    * Puts the solve on show. Everything it touches is put back to how the layout has it first, since
    * the same views are handed the next solve when the sheet is swiped along the list.
@@ -1059,7 +1066,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     chip.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View view) {
-        DialogUtils.showFragment(getActivity(), CaseAlgorithmsDialog.newInstance(caseCode, turned));
+        DialogUtils.showFragment(getActivity(),
+            CaseAlgorithmsDialog.withPractice(caseCode, turned));
       }
     });
     ViewCompat.replaceAccessibilityAction(chip, AccessibilityActionCompat.ACTION_CLICK,
@@ -1208,7 +1216,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     OnClickListener open = new OnClickListener() {
       @Override
       public void onClick(View view) {
-        DialogUtils.showFragment(getActivity(), CaseAlgorithmsDialog.newInstance(caseCode, moves));
+        DialogUtils.showFragment(getActivity(),
+            CaseAlgorithmsDialog.withPractice(caseCode, moves));
       }
     };
     String action = getString(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithms_pair_open

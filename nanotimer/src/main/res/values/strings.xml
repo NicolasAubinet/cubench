@@ -1124,6 +1124,7 @@
   <string name="case_algorithm_recommended">Recommended</string>
   <string name="case_algorithm_yours">Yours</string>
   <string name="case_algorithm_add">Use your own algorithm</string>
+  <string name="case_algorithms_practice">Practice this case</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">That does not solve this case. Check it and try again.</string>
   <string name="case_title_f2l">F2L pair</string>

@@ -1081,6 +1081,7 @@
   <string name="case_algorithm_recommended">Recomendado</string>
   <string name="case_algorithm_yours">O seu</string>
   <string name="case_algorithm_add">Usar o seu próprio algoritmo</string>
+  <string name="case_algorithms_practice">Praticar este caso</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Isso não resolve este caso. Verifique e tente novamente.</string>
   <string name="case_title_f2l">Par F2L</string>

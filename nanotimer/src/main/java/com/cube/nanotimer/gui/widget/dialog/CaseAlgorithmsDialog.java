@@ -25,6 +25,7 @@ import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
 import com.cube.nanotimer.cube.VirtualCube;
+import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -106,6 +107,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   private static final String ARG_CASE = "case";
   private static final String ARG_USED = "used";
+  private static final String ARG_PRACTICE = "practice";
 
   /** The cube's corner view, the drills' own: the top face and two sides, front a little ahead. */
   private static final double VIEW_LATITUDE = 26;
@@ -158,6 +160,16 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     return frag;
   }
 
+  /**
+   * As {@link #newInstance(String, String)}, with a button that opens the case's choose step on
+   * the cube. Only for a screen outside the drills: inside one, the drill's own Alg is the way.
+   */
+  public static CaseAlgorithmsDialog withPractice(String caseCode, String used) {
+    CaseAlgorithmsDialog frag = newInstance(caseCode, used);
+    frag.getArguments().putBoolean(ARG_PRACTICE, true);
+    return frag;
+  }
+
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     caseCode = getArguments().getString(ARG_CASE);
@@ -200,13 +212,18 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       readExecution();
     }
 
-    return new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
+        R.style.NanoTimerDialogTheme)
         .setTitle(pair ? getString(R.string.case_title_f2l)
             : getString(caseCode.startsWith("oll_") ? R.string.case_title_oll
                 : R.string.case_title_pll, LastLayerCaseNames.shortName(caseCode)))
         .setView(view)
-        .setPositiveButton(R.string.close, null)
-        .create();
+        .setPositiveButton(R.string.close, null);
+    if (getArguments().getBoolean(ARG_PRACTICE) && DrillActivity.hasAlgorithmToTry(caseCode)) {
+      builder.setNeutralButton(R.string.case_algorithms_practice,
+          (dialog, which) -> startActivity(DrillActivity.chooseFor(getActivity(), caseCode)));
+    }
+    return builder.create();
   }
 
   /**

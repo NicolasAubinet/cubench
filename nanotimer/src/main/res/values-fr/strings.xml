@@ -1079,6 +1079,7 @@
   <string name="case_algorithm_recommended">Recommandé</string>
   <string name="case_algorithm_yours">Le vôtre</string>
   <string name="case_algorithm_add">Utiliser votre propre algorithme</string>
+  <string name="case_algorithms_practice">Entraîner ce cas</string>
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Cela ne résout pas ce cas. Vérifiez et réessayez.</string>
   <string name="case_title_f2l">Paire F2L</string>
