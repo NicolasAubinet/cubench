@@ -52,6 +52,23 @@ public class CoachPayloadBuilderTest {
     Assert.assertNull(figure(payload.getCases(), "oll_21")); // seen four times
   }
 
+  @Test
+  public void testRecentMeanReadsOnlyTheLatestOccurrences() {
+    List<StepSample> cases = new ArrayList<StepSample>();
+    cases.addAll(steps("pll_t", CoachPayloadBuilder.RECENT_CASE_OCCURRENCES, 1500, 700));
+    cases.addAll(steps("pll_t", 20, 3000, 700)); // older and slower
+    cases.addAll(steps("pll_gb", 6, 2900, 1000));
+    CoachPayload payload = CoachPayload.parse(CoachPayloadBuilder.build("3x3", "cfop",
+        solveTimes(20), familySamples(20), cases, 40, Collections.<StepSample>emptyList(), 0,
+        knowledge()).toJson());
+
+    StepFigure trained = figure(payload.getCases(), "pll_t");
+    Assert.assertEquals(1500, trained.getRecentMeanMs().longValue(), 50);
+    Assert.assertTrue(trained.getMeanMs() > 2400);
+    Assert.assertEquals(figure(payload.getCases(), "pll_gb").getMeanMs(),
+        figure(payload.getCases(), "pll_gb").getRecentMeanMs().longValue());
+  }
+
   /** A slot is named relative to the cross face, so the family is worth sending and the slots are not. */
   @Test
   public void testF2lSlotsAreCutAndTheFamilySurvives() {

@@ -1799,13 +1799,14 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   /**
-   * The ids and stopped steps of a solve type's last solves in one method, binding the solve type
-   * then the method. The size is written in rather than bound: a bound value arrives as text, and
+   * The ids, timestamps and stopped steps of a solve type's last solves in one method, binding the
+   * solve type then the method. The size is written in rather than bound: a bound value arrives as text, and
    * LIMIT has no column affinity to turn it back into a number. Clamped at 0, since a negative LIMIT
    * is SQLite for "all of them".
    */
   private static String methodSolvesWindow(int lastSolves) {
-    return "SELECT " + DB.COL_ID + ", " + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+    return "SELECT " + DB.COL_ID + ", " + DB.COL_TIMEHISTORY_TIMESTAMP
+        + ", " + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
         + " FROM " + DB.TABLE_TIMEHISTORY
         + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
         + "   AND " + DB.COL_TIMEHISTORY_TIME + " > 0"
@@ -2248,7 +2249,10 @@ public class ServiceProviderImpl implements ServiceProvider {
     return times;
   }
 
-  /** Every step of the window's solves, unaggregated, filtered exactly as {@link #getMethodStatistics}. */
+  /**
+   * Every step of the window's solves, unaggregated, filtered exactly as {@link #getMethodStatistics},
+   * newest solve first.
+   */
   private List<StepSample> getMethodStepSamples(SolveType solveType, CubeMethod method,
       int lastSolves) {
     String window = methodSolvesWindow(lastSolves);
@@ -2266,6 +2270,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP).append(" IS NULL");
     q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
     q.append("    <> s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
+    q.append(" ORDER BY h.").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" DESC");
 
     List<StepSample> samples = new ArrayList<StepSample>();
     Cursor cursor = db.rawQuery(q.toString(),

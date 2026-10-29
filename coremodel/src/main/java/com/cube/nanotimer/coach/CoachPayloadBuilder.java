@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -45,6 +46,12 @@ public class CoachPayloadBuilder {
 
   /** How many solves the case figures are read from: long enough for 57 OLLs to be seen at all. */
   public static final int CASE_WINDOW = 500;
+
+  /**
+   * How many of a case's latest occurrences its recent mean is read from: enough for the outlier rule
+   * to work, few enough that a week of practice shows. Only the choice of cases to drill reads it.
+   */
+  public static final int RECENT_CASE_OCCURRENCES = 10;
 
   /** How many recorded drills the drill figures are read from. */
   public static final int DRILL_WINDOW = 50;
@@ -145,7 +152,8 @@ public class CoachPayloadBuilder {
    * @param method the method the solves were read as, "cfop"
    * @param solveTimes the whole times of the last {@link #FAMILY_WINDOW} solves
    * @param familySamples every step occurrence over that same window
-   * @param caseSamples every step occurrence over the longer {@link #CASE_WINDOW}
+   * @param caseSamples every step occurrence over the longer {@link #CASE_WINDOW}, newest solve
+   *     first, so each case's recent mean is read from its latest occurrences
    * @param caseSolveCount how many solves that longer window actually held, which is the window or
    *     everything there is of it
    * @param drillSamples every drilled case rep over the last {@link #DRILL_WINDOW} drills
@@ -190,9 +198,12 @@ public class CoachPayloadBuilder {
     StepTallies caseTallies = new StepTallies(caseSamples);
     MethodStatistics cases =
         new MethodStatistics(caseTallies.getSteps(), caseTallies.getParts(), caseSolveCount);
+    StepTallies recentTallies = new StepTallies(latestOfEachCase(caseSamples));
+    MethodStatistics recentCases = new MethodStatistics(recentTallies.getSteps(),
+        recentTallies.getParts(), caseSolveCount);
     StepTallies drillTallies = new StepTallies(drillSamples);
 
-    List<StepFigure> caseFigures = caseFigures(cases, caseTallies);
+    List<StepFigure> caseFigures = caseFigures(cases, caseTallies, recentCases);
     List<StepFigure> drillFigures = drillFigures(drillTallies);
     Set<String> sets = familiesOf(cases);
     MoveFigure f2lMoves = F2lHabits.total(pairs, FAMILY_FLOOR);
@@ -376,19 +387,22 @@ public class CoachPayloadBuilder {
   }
 
   /** Every case above its floor, worst cost first, from the families that name one. */
-  private static List<StepFigure> caseFigures(MethodStatistics statistics, StepTallies tallies) {
+  private static List<StepFigure> caseFigures(MethodStatistics statistics, StepTallies tallies,
+      MethodStatistics recent) {
     final List<StepFigure> figures = new ArrayList<StepFigure>();
     for (String family : familiesOf(statistics)) {
       if (!CASE_FAMILIES.contains(family)) {
         continue;
       }
       StepStats familyStats = statistics.getFamily(family);
+      Map<String, Long> recentMeans = meansByCode(recent.getCases(family));
       for (StepStats stepCase : statistics.getCases(family)) {
         if (stepCase.getCount() >= CASE_FLOOR) {
           figures.add(StepFigure.stepCase(stepCase, measuresRecognition(stepCase.getCode()),
               tallies.getRejectionRate(stepCase.getCode()),
               statistics.getTimeLostMs(stepCase.getCode()),
-              familyStats == null ? 0 : familyStats.getMeanMs()));
+              familyStats == null ? 0 : familyStats.getMeanMs(),
+              recentMeans.get(stepCase.getCode())));
         }
       }
     }
@@ -399,6 +413,33 @@ public class CoachPayloadBuilder {
       }
     });
     return figures;
+  }
+
+  /** Each case's newest {@link #RECENT_CASE_OCCURRENCES} occurrences, from samples newest first. */
+  static List<StepSample> latestOfEachCase(List<StepSample> newestFirst) {
+    Map<String, Integer> taken = new HashMap<String, Integer>();
+    List<StepSample> latest = new ArrayList<StepSample>();
+    for (StepSample sample : newestFirst) {
+      String caseCode = MethodStatistics.caseCodeOf(sample.getCode());
+      String key = caseCode == null ? sample.getCode() : caseCode;
+      Integer count = taken.get(key);
+      int already = count == null ? 0 : count.intValue();
+      if (already < RECENT_CASE_OCCURRENCES) {
+        latest.add(sample);
+        taken.put(key, Integer.valueOf(already + 1));
+      }
+    }
+    return latest;
+  }
+
+  private static Map<String, Long> meansByCode(List<StepStats> stats) {
+    Map<String, Long> means = new HashMap<String, Long>();
+    for (StepStats one : stats) {
+      if (one.getCount() > 0) {
+        means.put(one.getCode(), Long.valueOf(one.getMeanMs()));
+      }
+    }
+    return means;
   }
 
   /** The same cases as a drill runs them, slowest first, with no family to weigh them against. */

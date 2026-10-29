@@ -28,10 +28,11 @@ public class StepFigure {
   private final Long familyMeanMs;
   private final Double skipRate;
   private final Double share;
+  private final Long recentMeanMs;
 
   private StepFigure(String code, int count, long meanMs, Long recognitionMs, long stdDevMs,
       long bestMs, double rejectionRate, Long timeLostMs, Long familyMeanMs, Double skipRate,
-      Double share) {
+      Double share, Long recentMeanMs) {
     this.code = code;
     this.count = count;
     this.meanMs = meanMs;
@@ -43,6 +44,7 @@ public class StepFigure {
     this.familyMeanMs = familyMeanMs;
     this.skipRate = skipRate;
     this.share = share;
+    this.recentMeanMs = recentMeanMs;
   }
 
   /** A step of the method, or one of the parts a step was built from, with how often it was skipped. */
@@ -50,7 +52,7 @@ public class StepFigure {
       double rejectionRate, Double skipRate) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, null, null, skipRate, null);
+        rejectionRate, null, null, skipRate, null, null);
   }
 
   /**
@@ -60,9 +62,20 @@ public class StepFigure {
    */
   public static StepFigure stepCase(StepStats stats, boolean measuresRecognition,
       double rejectionRate, long timeLostMs, long familyMeanMs) {
+    return stepCase(stats, measuresRecognition, rejectionRate, timeLostMs, familyMeanMs, null);
+  }
+
+  /**
+   * As above, with the case's recent mean beside the window's.
+   *
+   * @param recentMeanMs the mean over the case's last occurrences only, or null for none
+   */
+  public static StepFigure stepCase(StepStats stats, boolean measuresRecognition,
+      double rejectionRate, long timeLostMs, long familyMeanMs, Long recentMeanMs) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, Long.valueOf(timeLostMs), Long.valueOf(familyMeanMs), null, null);
+        rejectionRate, Long.valueOf(timeLostMs), Long.valueOf(familyMeanMs), null, null,
+        recentMeanMs);
   }
 
   /** A figure with neither a family behind it nor cases under it: a whole solve, or a drilled case. */
@@ -70,7 +83,7 @@ public class StepFigure {
       double rejectionRate) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, null, null, null, null);
+        rejectionRate, null, null, null, null, null);
   }
 
   /**
@@ -80,7 +93,7 @@ public class StepFigure {
   public static StepFigure group(StepStats stats, double rejectionRate, Double share) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, true), stats.getStdDevMs(), stats.getBestMs(), rejectionRate, null,
-        null, null, share);
+        null, null, share, null);
   }
 
   /** A step timed from its own first move has nowhere to put recognition, and 0 there reads as instant. */
@@ -142,6 +155,15 @@ public class StepFigure {
     return share;
   }
 
+  /**
+   * A case's mean over only its last {@link CoachPayloadBuilder#RECENT_CASE_OCCURRENCES}
+   * occurrences in solves, so it follows practice sooner than {@link #getMeanMs()}; null for
+   * anything that is not a case, or a payload from an app that did not send it.
+   */
+  public Long getRecentMeanMs() {
+    return recentMeanMs;
+  }
+
   JSONObject toJson() throws JSONException {
     JSONObject json = new JSONObject();
     json.put("code", code);
@@ -165,6 +187,9 @@ public class StepFigure {
     if (share != null) {
       json.put("share", round(share.doubleValue()));
     }
+    if (recentMeanMs != null) {
+      json.put("recent_mean_ms", recentMeanMs.longValue());
+    }
     return json;
   }
 
@@ -175,7 +200,8 @@ public class StepFigure {
         json.has("time_lost_ms") ? Long.valueOf(json.getLong("time_lost_ms")) : null,
         json.has("family_mean_ms") ? Long.valueOf(json.getLong("family_mean_ms")) : null,
         json.has("skip_rate") ? Double.valueOf(json.getDouble("skip_rate")) : null,
-        json.has("share") ? Double.valueOf(json.getDouble("share")) : null);
+        json.has("share") ? Double.valueOf(json.getDouble("share")) : null,
+        json.has("recent_mean_ms") ? Long.valueOf(json.getLong("recent_mean_ms")) : null);
   }
 
   /** Rates go out at two decimals: the third is noise the model would read as precision. */
