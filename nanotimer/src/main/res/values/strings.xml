@@ -1071,6 +1071,9 @@
   <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>
   <string name="drill_no_known_cases">This drill has no case this app knows how to scramble.</string>
   <string name="drill_no_cube_view">This device cannot draw the cube a drill is run on.</string>
+  <string name="drill_straighten">Straighten the cube</string>
+  <string name="drill_straighten_hold">Hold %1$s on top, %2$s in front</string>
+  <string name="drill_straighten_wrong">Not straightened: hold %1$s on top</string>
   <string name="drill_spec_unreadable">This version of the app cannot read that drill.</string>
 
   <!-- Drill selection -->

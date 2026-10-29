@@ -1028,6 +1028,9 @@
   <string name="drill_needs_cube">Connectez votre smart cube pour lancer un drill.</string>
   <string name="drill_no_known_cases">Aucun cas de ce drill ne peut être mélangé par l\'application.</string>
   <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un drill.</string>
+  <string name="drill_straighten">Redresser le cube</string>
+  <string name="drill_straighten_hold">Tenez le %1$s en haut, le %2$s devant</string>
+  <string name="drill_straighten_wrong">Pas redressé : tenez le %1$s en haut</string>
   <string name="drill_spec_unreadable">Cette version de l\'application ne peut pas lire ce drill.</string>
 
   <!-- Choix de l\'entrainement -->

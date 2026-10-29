@@ -1027,6 +1027,9 @@
   <string name="drill_needs_cube">Conecta tu smart cube para hacer un drill.</string>
   <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este drill.</string>
   <string name="drill_no_cube_view">Este dispositivo no puede dibujar el cubo de un drill.</string>
+  <string name="drill_straighten">Enderezar el cubo</string>
+  <string name="drill_straighten_hold">Sostén el %1$s arriba y el %2$s delante</string>
+  <string name="drill_straighten_wrong">Sin enderezar: sostén el %1$s arriba</string>
   <string name="drill_spec_unreadable">Esta versión de la aplicación no puede leer ese drill.</string>
 
   <!-- Eleccion del entrenamiento -->

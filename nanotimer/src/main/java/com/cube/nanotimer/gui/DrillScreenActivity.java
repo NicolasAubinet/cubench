@@ -35,12 +35,14 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.DrillRecorder;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillRepParts;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.vo.drill.DrillEnd;
@@ -120,6 +122,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   private WebView webView;
   private SmartCubeChip smartCubeChip;
   private TextView gyroChip;
+  private MenuItem straightenItem;
 
   /** Whether the drawn cube follows the grip. The user's standing answer, kept between drills. */
   private boolean followGyro;
@@ -230,6 +233,10 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   /** The bar's arrow is a back press, so it steps out of practice and ends on the summary too. */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.itStraighten) {
+      straighten();
+      return true;
+    }
     if (item.getItemId() == android.R.id.home) {
       getOnBackPressedDispatcher().onBackPressed();
       return true;
@@ -349,8 +356,40 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
       cube.setGyroFollowing(followGyro);
     }
     gyroChip.setSelected(followGyro);
-    gyroChip.setVisibility(
-        SmartCubeManager.INSTANCE.getGyroReference().isSet() ? View.VISIBLE : View.GONE);
+    boolean gripped = SmartCubeManager.INSTANCE.getGyroReference().isSet();
+    gyroChip.setVisibility(gripped ? View.VISIBLE : View.GONE);
+    if (straightenItem != null) {
+      straightenItem.setVisible(gripped && followGyro && straightenUpFace() != 0);
+    }
+  }
+
+  /**
+   * The face the user holds on top when straightening the drawn cube, or 0 for a drill that offers
+   * no straightening: the cross drill is turned every which way, so no hold can be declared.
+   */
+  protected char straightenUpFace() {
+    return 0;
+  }
+
+  /**
+   * Takes the grip again from a declared hold, for a gyro that has drifted: nothing in the cube's
+   * data says which way it faces, so the user holds it a known way, green in front.
+   */
+  private void straighten() {
+    char up = straightenUpFace();
+    char front = up == 'F' || up == 'B' ? 'U' : 'F';
+    CubeRotation grip = CubeRotation.holding(up, front);
+    if (grip == null) {
+      return;
+    }
+    final String upName = getString(Utils.getFaceColourNameRes(up));
+    DialogUtils.showInfoMessage(this, getString(R.string.drill_straighten_hold, upName,
+        getString(Utils.getFaceColourNameRes(front))));
+    SmartCubeManager.INSTANCE.straightenTo(grip, held -> {
+      if (!held && !isFinishing()) {
+        DialogUtils.showInfoMessage(this, getString(R.string.drill_straighten_wrong, upName));
+      }
+    });
   }
 
   /** A grip taken or lost is what decides whether the chip has anything to offer. */
@@ -362,6 +401,8 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.drill_menu, menu);
+    straightenItem = menu.findItem(R.id.itStraighten);
+    refreshGyroChip();
     MenuItem item = menu.findItem(R.id.itSmartCube);
     smartCubeChip.bind(item != null ? item.getActionView() : null);
     return super.onCreateOptionsMenu(menu);

@@ -17,6 +17,7 @@ import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeMoveListener;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
@@ -101,6 +102,9 @@ public enum SmartCubeManager {
   private CubeOrientation stillCandidate; // main thread only, like the two below
   private long stillSince;
   private boolean anchoring;
+  /** The grip a straighten waiting on the cube to be still declared, or null for a plain anchor. */
+  private CubeRotation holdingGrip;
+  private StraightenListener holdingListener;
 
   private final CopyOnWriteArrayList<CubeConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
   private final CopyOnWriteArrayList<GyroReferenceListener> gyroReferenceListeners = new CopyOnWriteArrayList<>();
@@ -287,10 +291,34 @@ public enum SmartCubeManager {
     // Forced, this restarts a wait already under way rather than being swallowed by it: the solver
     // pressing the button a second after connecting means the grip they are in now, not that one.
     mainHandler.removeCallbacks(anchorWhenStill);
+    holdingGrip = null; // a plain anchor supersedes a straighten still waiting
+    holdingListener = null;
     anchoring = true;
     stillCandidate = null;
     stillSince = SystemClock.uptimeMillis();
     mainHandler.postDelayed(anchorWhenStill, STILL_POLL_MS);
+  }
+
+  /** Told whether a {@link #straightenTo} took: false when another face was on top, or no gyro. */
+  public interface StraightenListener {
+    void onStraightened(boolean held);
+  }
+
+  /**
+   * Takes the grip again as {@code grip}, once the cube is still: the solver is holding it that
+   * way. Exact however far the yaw has drifted, unlike {@link #reanchorGyro}, which only knows
+   * "square" and so cannot tell which way the cube faces once the drift passes 45°.
+   */
+  public void straightenTo(CubeRotation grip, StraightenListener listener) {
+    mainHandler.post(() -> {
+      mainHandler.removeCallbacks(anchorWhenStill);
+      holdingGrip = grip;
+      holdingListener = listener;
+      anchoring = true;
+      stillCandidate = null;
+      stillSince = SystemClock.uptimeMillis();
+      mainHandler.postDelayed(anchorWhenStill, STILL_POLL_MS);
+    });
   }
 
   /**
@@ -334,7 +362,22 @@ public enum SmartCubeManager {
         stillCandidate = reading;
         if (still || timedOut) {
           anchoring = false;
-          gyroReference.anchor(reading);
+          CubeRotation grip = holdingGrip;
+          StraightenListener listener = holdingListener;
+          holdingGrip = null;
+          holdingListener = null;
+          boolean held = true;
+          if (grip == null) {
+            gyroReference.anchor(reading);
+          } else {
+            held = gyroReference.anchorHolding(reading, grip);
+          }
+          if (listener != null) {
+            listener.onStraightened(held);
+          }
+          if (!held) {
+            return; // held another face up: the grip already standing is kept
+          }
           probe("ANCHOR " + System.currentTimeMillis() + " via=" + (still ? "still" : "timeout")
               + " " + reading.getW() + " " + reading.getX()
               + " " + reading.getY() + " " + reading.getZ());
@@ -343,6 +386,12 @@ public enum SmartCubeManager {
         }
       } else if (timedOut) {
         anchoring = false;
+        StraightenListener listener = holdingListener;
+        holdingGrip = null;
+        holdingListener = null;
+        if (listener != null) {
+          listener.onStraightened(false);
+        }
         return; // no gyro on this cube, or its stream never started: nothing to measure from
       }
       mainHandler.postDelayed(this, STILL_POLL_MS);
@@ -352,6 +401,8 @@ public enum SmartCubeManager {
   private void forgetGyroReference() {
     mainHandler.removeCallbacks(anchorWhenStill);
     anchoring = false;
+    holdingGrip = null;
+    holdingListener = null;
     if (gyroReference.isSet()) {
       gyroReference.restart();
       notifyGyroReferenceChanged();

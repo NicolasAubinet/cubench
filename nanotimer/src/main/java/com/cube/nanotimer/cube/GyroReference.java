@@ -53,6 +53,53 @@ public final class GyroReference {
     }
   }
 
+  /**
+   * The reference that reads {@code reading} as {@code grip} exactly, for a solver saying how they
+   * hold the cube. Unlike {@link #anchor} this fixes the yaw however far it has drifted, past 45°
+   * included: the declared front settles which quarter, and the reading gives the rest.
+   *
+   * @return false, anchoring nothing, when gravity puts another face on top than {@code grip} does
+   */
+  public boolean anchorHolding(CubeOrientation reading, CubeRotation grip) {
+    if (reading == null || grip == null) {
+      return false;
+    }
+    // Searched rather than solved, so it holds whatever the frame conventions: a whole-degree
+    // sweep, then narrowed to a hundredth. Raw, not uprighted: a tilt adds error at every yaw alike.
+    double best = 0;
+    double bestError = Double.MAX_VALUE;
+    for (double step = 1; step >= 0.01; step /= 10) {
+      double from = step == 1 ? -180 : best - 10 * step;
+      double to = step == 1 ? 180 : best + 10 * step;
+      for (double yaw = from; yaw <= to; yaw += step) {
+        double error = drawnError(yaw, reading, grip);
+        if (error < bestError) {
+          bestError = error;
+          best = yaw;
+        }
+      }
+    }
+    if (bestError > HOLDING_TOLERANCE_DEGREES) {
+      return false;
+    }
+    reference = aboutVertical(best);
+    return true;
+  }
+
+  /** Past this, no yaw draws the reading as the grip: another face is on top, not a hand's tilt. */
+  private static final double HOLDING_TOLERANCE_DEGREES = 40;
+
+  private static double drawnError(double yaw, CubeOrientation reading, CubeRotation grip) {
+    return CubeRotation.continuousFrame(aboutVertical(yaw), reading)
+        .angleToDegrees(grip.quaternion());
+  }
+
+  /** A turn about the gyro's vertical, its z axis. */
+  private static CubeOrientation aboutVertical(double degrees) {
+    double half = Math.toRadians(degrees) / 2;
+    return new CubeOrientation(Math.cos(half), 0, 0, Math.sin(half));
+  }
+
   /** Forget it: the gyro zero it was measured against went with the connection. */
   public void restart() {
     reference = null;

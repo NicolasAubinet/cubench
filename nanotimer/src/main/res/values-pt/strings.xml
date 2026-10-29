@@ -1030,6 +1030,9 @@
   <string name="drill_needs_cube">Conecte seu smart cube para fazer um treino.</string>
   <string name="drill_no_known_cases">O aplicativo não sabe gerar nenhum dos casos deste treino.</string>
   <string name="drill_no_cube_view">Este dispositivo não consegue desenhar o cubo de um treino.</string>
+  <string name="drill_straighten">Endireitar o cubo</string>
+  <string name="drill_straighten_hold">Segure o %1$s em cima e o %2$s à frente</string>
+  <string name="drill_straighten_wrong">Não endireitado: segure o %1$s em cima</string>
   <string name="drill_spec_unreadable">Esta versão do aplicativo não consegue ler esse treino.</string>
 
   <!-- Escolha do treino -->

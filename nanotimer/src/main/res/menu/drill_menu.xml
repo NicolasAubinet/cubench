@@ -4,6 +4,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
    xmlns:app="http://schemas.android.com/apk/res-auto">
 
+  <!-- Hidden until there is a gyro grip to straighten. -->
+  <item android:id="@+id/itStraighten"
+     android:title="@string/drill_straighten"
+     android:icon="@drawable/ic_drill_straighten"
+     android:visible="false"
+     app:showAsAction="always"/>
+
   <item android:id="@+id/itSmartCube"
      android:title="@string/smart_cube_title"
      app:actionLayout="@layout/smart_cube_chip"

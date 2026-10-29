@@ -458,6 +458,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     return true;
   }
 
+  /** The layer being drilled stays on top. */
+  @Override
+  protected char straightenUpFace() {
+    return layerFace == null || layerFace.isEmpty() ? 'U' : layerFace.charAt(0);
+  }
+
   /**
    * The layer stands on top, the way the user is holding their own cube.
    *
