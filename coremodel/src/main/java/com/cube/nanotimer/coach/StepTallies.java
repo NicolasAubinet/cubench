@@ -5,9 +5,13 @@ import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Per-occurrence step samples folded into the tallies the rest of the payload is written from, with
@@ -17,6 +21,11 @@ import java.util.Map;
  * stopped to think about something else. One of those must not move a mean, and no single cutoff
  * serves a vocabulary where 1.6s and 9s are both normal figures, so a sample is judged against its
  * own code's spread by a median-absolute-deviation rule (modified z-score, |z| &gt; 3.5).
+ *
+ * <p>A step thrown out as too long takes the next step of its solve with it. A step only ends when
+ * its milestone is reached, so a cross with two edges swapped runs on while the solver builds
+ * pairs, and the F2L after it is short by those pairs. Its parts stay: a pair made during the long
+ * cross is stored as a skip, and the pairs made after it were timed honestly.
  *
  * <p>The rejection rate is kept rather than hidden, because "this case is thrown out a fifth of the
  * time" is a diagnosis in its own right and not a measurement error.
@@ -41,6 +50,7 @@ public class StepTallies {
   private final Map<String, Integer> rejected = new LinkedHashMap<String, Integer>();
   private final Map<String, Boolean> parts = new LinkedHashMap<String, Boolean>();
 
+  /** @param samples in the order their codes should be listed in, first occurrence first */
   public StepTallies(List<StepSample> samples) {
     Map<String, List<StepSample>> byCode = new LinkedHashMap<String, List<StepSample>>();
     for (StepSample sample : samples) {
@@ -50,19 +60,77 @@ public class StepTallies {
         byCode.put(sample.getCode(), ofCode);
       }
       ofCode.add(sample);
-      parts.put(sample.getCode(), sample.isPart());
+      // A code ever met as a step of the method is one, as the screens always counted it.
+      Boolean wasPart = parts.get(sample.getCode());
+      parts.put(sample.getCode(), (wasPart == null || wasPart) && sample.isPart());
     }
+    Set<StepSample> dropped = Collections.newSetFromMap(new IdentityHashMap<StepSample, Boolean>());
+    List<StepSample> tooLong = new ArrayList<StepSample>();
+    for (List<StepSample> ofCode : byCode.values()) {
+      judge(ofCode, dropped, tooLong);
+    }
+    dropFollowers(samples, tooLong, dropped);
     for (Map.Entry<String, List<StepSample>> entry : byCode.entrySet()) {
-      tally(entry.getKey(), entry.getValue());
+      tally(entry.getKey(), entry.getValue(), dropped);
     }
   }
 
-  private void tally(String code, List<StepSample> ofCode) {
+  /** Adds the code's outliers to {@code dropped}, and the ones over its median to {@code tooLong}. */
+  private static void judge(List<StepSample> ofCode, Set<StepSample> dropped,
+      List<StepSample> tooLong) {
     // A skip is a step that never happened rather than a fast one, so there is no spread to judge.
-    boolean filter = ofCode.size() >= MIN_SAMPLES_TO_FILTER
-        && !MethodStatistics.SKIP.equals(MethodStatistics.caseOf(code));
-    boolean[] kept = filter ? kept(times(ofCode)) : null;
+    if (ofCode.size() < MIN_SAMPLES_TO_FILTER || isSkip(ofCode.get(0).getCode())) {
+      return;
+    }
+    double[] times = times(ofCode);
+    boolean[] kept = kept(times);
+    double median = median(times);
+    for (int i = 0; i < kept.length; i++) {
+      if (!kept[i]) {
+        dropped.add(ofCode.get(i));
+        if (times[i] > median) {
+          tooLong.add(ofCode.get(i));
+        }
+      }
+    }
+  }
 
+  /** Drops the step that came after each step thrown out as too long, in the same solve. */
+  private static void dropFollowers(List<StepSample> samples, List<StepSample> tooLong,
+      Set<StepSample> dropped) {
+    Map<Long, List<StepSample>> stepsBySolve = new HashMap<Long, List<StepSample>>();
+    for (StepSample sample : samples) {
+      if (!sample.isPart() && sample.getStepIndex() != null) {
+        List<StepSample> ofSolve = stepsBySolve.get(sample.getSolveId());
+        if (ofSolve == null) {
+          ofSolve = new ArrayList<StepSample>();
+          stepsBySolve.put(sample.getSolveId(), ofSolve);
+        }
+        ofSolve.add(sample);
+      }
+    }
+    for (StepSample longOne : tooLong) {
+      if (longOne.isPart() || longOne.getStepIndex() == null) {
+        continue;
+      }
+      StepSample next = null;
+      for (StepSample step : stepsBySolve.get(longOne.getSolveId())) {
+        int index = step.getStepIndex();
+        if (index > longOne.getStepIndex() && (next == null || index < next.getStepIndex())) {
+          next = step;
+        }
+      }
+      if (next != null && !isSkip(next.getCode())) {
+        dropped.add(next);
+      }
+    }
+  }
+
+  private static boolean isSkip(String code) {
+    return MethodStatistics.SKIP.equals(MethodStatistics.caseOf(code));
+  }
+
+  private void tally(String code, List<StepSample> ofCode, Set<StepSample> droppedSamples) {
     int count = 0;
     int dropped = 0;
     long totalMs = 0;
@@ -70,9 +138,8 @@ public class StepTallies {
     long bestMs = Long.MAX_VALUE;
     long worstMs = 0;
     double sumOfSquares = 0;
-    for (int i = 0; i < ofCode.size(); i++) {
-      StepSample sample = ofCode.get(i);
-      if (kept != null && !kept[i]) {
+    for (StepSample sample : ofCode) {
+      if (droppedSamples.contains(sample)) {
         dropped++;
         continue;
       }

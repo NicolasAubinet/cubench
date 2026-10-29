@@ -3,9 +3,8 @@ package com.cube.nanotimer.coach;
 /**
  * One occurrence of a step code: what a single solve, or a single drill rep, spent on it.
  *
- * <p>The tallies the screens read are computed in SQL, which cannot throw a junk occurrence out
- * because it never sees them one at a time. The coach payload has to, so it reads the occurrences
- * themselves and does its own arithmetic ({@link StepTallies}).
+ * <p>The screens and the coach payload both read occurrences one at a time rather than as a SQL sum,
+ * so that {@link StepTallies} can throw a junk one out.
  */
 public class StepSample {
 
@@ -15,6 +14,7 @@ public class StepSample {
   private final boolean part;
   private final long solveId;
   private final Integer partIndex;
+  private final Integer stepIndex;
 
   /**
    * @param code the step code as the breakdown stores it, {@code cross} or {@code pll_gb}
@@ -35,12 +35,22 @@ public class StepSample {
    */
   public StepSample(String code, long timeMs, long recognitionMs, boolean part, long solveId,
       Integer partIndex) {
+    this(code, timeMs, recognitionMs, part, solveId, partIndex, null);
+  }
+
+  /**
+   * @param stepIndex which step of its solve the occurrence is, or is a part of, 0 for the first;
+   *     null for a drill rep or anything not read from a solve
+   */
+  public StepSample(String code, long timeMs, long recognitionMs, boolean part, long solveId,
+      Integer partIndex, Integer stepIndex) {
     this.code = code;
     this.timeMs = timeMs;
     this.recognitionMs = recognitionMs;
     this.part = part;
     this.solveId = solveId;
     this.partIndex = partIndex;
+    this.stepIndex = stepIndex;
   }
 
   public String getCode() {
@@ -66,5 +76,10 @@ public class StepSample {
   /** Where the part came in its step, 0 for the first, or null when that is not known. */
   public Integer getPartIndex() {
     return partIndex;
+  }
+
+  /** Which step of its solve this is, or is a part of, or null when not read from a solve. */
+  public Integer getStepIndex() {
+    return stepIndex;
   }
 }

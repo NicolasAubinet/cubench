@@ -12,6 +12,7 @@ import com.cube.nanotimer.coach.PlanSchedule;
 import com.cube.nanotimer.coach.PreviousPlan;
 import com.cube.nanotimer.coach.StepTurning;
 import com.cube.nanotimer.coach.StepSample;
+import com.cube.nanotimer.coach.StepTallies;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.services.db.AverageRecordsStore;
@@ -1707,49 +1708,31 @@ public class ServiceProviderImpl implements ServiceProvider {
    * DNF's, which has no time to average, and the one step a solve stopped inside, which was stored
    * short of its own milestone while the steps before it were not.
    *
+   * <p>Far outliers are left out the same way the coach leaves them out ({@link StepTallies}), so
+   * a cross that ran on through two pairs does not move the screens' averages either.
+   *
    * @param lastSolves how many of the solve type's most recent solves to read, 0 for none
    */
   @Override
   public MethodStatistics getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves) {
     int windowSize = Math.max(0, lastSolves);
-    String window = methodSolvesWindow(lastSolves);
-
-    StringBuilder q = new StringBuilder();
-    q.append("SELECT s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
-    q.append("     , COUNT(*)");
-    q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION).append(")");
-    q.append("     , MIN(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    q.append("     , MAX(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    q.append("     , SUM(1.0 * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
-    q.append("            * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    // Whether the code is a step of the method or one of the parts a step was built in.
-    q.append("     , MAX(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NULL)");
-    q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
-    q.append("  JOIN (").append(window).append(") h");
-    q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
-    q.append(" WHERE s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NOT NULL");
-    q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP).append(" IS NULL");
-    q.append("    OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
-    q.append("    <> s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
-    q.append(" GROUP BY s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
-    q.append(" ORDER BY MIN(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX).append(")");
-    q.append("     , MIN(COALESCE(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(", -1))");
-    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
-
-    List<StepStats> steps = new ArrayList<StepStats>();
-    List<StepStats> parts = new ArrayList<StepStats>();
-    String[] args = new String[] { String.valueOf(solveType.getId()), method.getCode() };
-    Cursor cursor = db.rawQuery(q.toString(), args);
-    if (cursor != null) {
-      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        StepStats stats = new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
-            cursor.getLong(3), cursor.getLong(4), cursor.getLong(5), cursor.getDouble(6));
-        (cursor.getInt(7) == 1 ? steps : parts).add(stats);
+    List<StepSample> samples = getMethodStepSamples(solveType, method, lastSolves);
+    // StepTallies lists codes as first met, so meet them in the order a solve goes in.
+    Collections.sort(samples, new Comparator<StepSample>() {
+      @Override
+      public int compare(StepSample a, StepSample b) {
+        int byStep = Integer.compare(a.getStepIndex(), b.getStepIndex());
+        if (byStep != 0) {
+          return byStep;
+        }
+        int byPart = Integer.compare(a.getPartIndex() == null ? -1 : a.getPartIndex(),
+            b.getPartIndex() == null ? -1 : b.getPartIndex());
+        return byPart != 0 ? byPart : a.getCode().compareTo(b.getCode());
       }
-      cursor.close();
-    }
-    return new MethodStatistics(steps, parts, getMethodSolvesCount(solveType, method, windowSize));
+    });
+    StepTallies tallies = new StepTallies(samples);
+    return new MethodStatistics(tallies.getSteps(), tallies.getParts(),
+        getMethodSolvesCount(solveType, method, windowSize));
   }
 
   /**
@@ -2263,6 +2246,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION);
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX);
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
     q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
     q.append("  JOIN (").append(window).append(") h");
     q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
@@ -2279,7 +2263,8 @@ public class ServiceProviderImpl implements ServiceProvider {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         boolean part = !cursor.isNull(3); // its sub_index is where it came in its step
         samples.add(new StepSample(cursor.getString(0), cursor.getLong(1), cursor.getLong(2),
-            part, cursor.getLong(4), part ? Integer.valueOf(cursor.getInt(3)) : null));
+            part, cursor.getLong(4), part ? Integer.valueOf(cursor.getInt(3)) : null,
+            Integer.valueOf(cursor.getInt(5))));
       }
       cursor.close();
     }
