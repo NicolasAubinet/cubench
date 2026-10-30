@@ -1437,6 +1437,9 @@
   <string name="coach_stalling_body">%1$s: %2$s bloqueos por resolución; %3$s de sus %4$s sin girar.</string>
   <string name="coach_reason_uneven_step">Irregular de una resolución a otra</string>
   <string name="coach_uneven_body">%1$s: media de %2$s, con una variación de %3$s, y tu mejor es %4$s.</string>
+  <string name="coach_reason_f2l_rotations">Rotaciones del cubo en tu F2L</string>
+  <string name="coach_rotations_body">En %1$d resoluciones, rotaste el cubo en el %2$s de tus pares de F2L, y en el %3$s de los básicos.</string>
+  <string name="coach_rotations_cost">Cada rotación añade %1$s&#160;s entre dos giros.</string>
   <string name="coach_pair_extra">%1$s movimientos de más de media</string>
   <string name="coach_pair_off_list">%1$d veces, %2$d%% fuera de los algoritmos habituales</string>
   <string name="coach_pair_show">Ver el caso</string>
@@ -1478,9 +1481,13 @@
   <string name="coach_fig_frozen_of">%1$s de sus %2$s</string>
   <string name="coach_fig_spread">segundos de variación en %1$s</string>
   <string name="coach_fig_average">%1$s de media</string>
+  <string name="coach_fig_pairs_rotated">de tus pares llevan una rotación</string>
+  <string name="coach_fig_rotation_adds">cada rotación añade %1$s&#160;s</string>
   <string name="coach_split_looking">Buscar %1$s</string>
   <string name="coach_split_turning">Girar %1$s</string>
   <string name="coach_split_stopped">Parado %1$s</string>
+  <string name="coach_split_rotated">Con rotación %1$s</string>
+  <string name="coach_split_unrotated">Sin %1$s</string>
   <string name="coach_bar_rest">El resto</string>
   <string name="coach_bar_in_solve">Al resolver</string>
   <string name="coach_bar_drilled">En drill</string>

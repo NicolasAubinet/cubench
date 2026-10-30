@@ -723,6 +723,8 @@ public class CoachPlanView {
         return activity.getString(R.string.coach_reason_stalling);
       case UNEVEN_STEP:
         return activity.getString(R.string.coach_reason_uneven_step);
+      case F2L_ROTATIONS:
+        return activity.getString(R.string.coach_reason_f2l_rotations);
       default:
         return activity.getString(R.string.coach_reason_inconsistent_case);
     }
@@ -799,7 +801,30 @@ public class CoachPlanView {
           : activity.getString(R.string.coach_long_pair_body, solves.intValue(), moves(turned),
               moves(usual));
     }
+    if (area.getReason() == FocusArea.Reason.F2L_ROTATIONS) {
+      return rotations(payload);
+    }
     return null;
+  }
+
+  /** How often F2L pairs had a rotation, the basic ones apart, and what one costs where measured. */
+  private String rotations(CoachPayload payload) {
+    Double solves = payload.value("f2l_rotations.solves");
+    Double pairs = payload.value("f2l_rotations.pairs");
+    Double rotated = payload.value("f2l_rotations.rotated_pairs");
+    Double basic = payload.value("f2l_rotations.basic_pairs");
+    Double basicRotated = payload.value("f2l_rotations.basic_rotated_pairs");
+    if (solves == null || pairs == null || rotated == null || basic == null
+        || basicRotated == null || pairs <= 0 || basic <= 0) {
+      return null;
+    }
+    StringBuilder said = new StringBuilder(activity.getString(R.string.coach_rotations_body,
+        solves.intValue(), percent(rotated / pairs), percent(basicRotated / basic)));
+    Double excess = payload.value("f2l_rotations.excess_ms");
+    if (excess != null && excess > 0) {
+      append(said, activity.getString(R.string.coach_rotations_cost, time(excess)));
+    }
+    return said.toString();
   }
 
   /**

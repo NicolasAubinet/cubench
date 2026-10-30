@@ -69,7 +69,8 @@ final class CoachFocusFigure {
   static String familyOf(FocusArea area) {
     if (area.getReason() == FocusArea.Reason.STUCK_PIECES
         || area.getReason() == FocusArea.Reason.SLOW_FIRST_PAIR
-        || area.getReason() == FocusArea.Reason.LONG_PAIR) {
+        || area.getReason() == FocusArea.Reason.LONG_PAIR
+        || area.getReason() == FocusArea.Reason.F2L_ROTATIONS) {
       return "f2l";
     }
     if (area.getCodes().isEmpty()) {
@@ -109,6 +110,8 @@ final class CoachFocusFigure {
         return read.stalling(first(area));
       case UNEVEN_STEP:
         return read.uneven(first(area));
+      case F2L_ROTATIONS:
+        return read.rotations();
       default:
         return null;
     }
@@ -321,6 +324,28 @@ final class CoachFocusFigure {
           bars(new Bar(context.getString(R.string.coach_bar_average), mean, time(mean), true),
               new Bar(context.getString(R.string.coach_bar_best), best, time(best), false)),
           null, false);
+    }
+
+    CoachFocusFigure rotations() {
+      Double solves = value("f2l_rotations.solves");
+      Double pairs = value("f2l_rotations.pairs");
+      Double rotated = value("f2l_rotations.rotated_pairs");
+      Double excess = value("f2l_rotations.excess_ms");
+      if (solves == null || pairs == null || rotated == null || pairs <= 0 || rotated <= 0) {
+        return null;
+      }
+      double share = rotated / pairs;
+      double plain = 1 - share;
+      return new CoachFocusFigure(String.valueOf(rounded(share)), "%",
+          context.getString(R.string.coach_fig_pairs_rotated),
+          excess != null && excess > 0
+              ? context.getString(R.string.coach_fig_rotation_adds, time(excess))
+              : plural(R.plurals.coach_fig_over_solves, solves.intValue(), solves.intValue()),
+          null, Collections.<Bar>emptyList(), new Bar[] {
+              new Bar(context.getString(R.string.coach_split_rotated, percent(share)), share,
+                  percent(share), false),
+              new Bar(context.getString(R.string.coach_split_unrotated, percent(plain)), plain,
+                  percent(plain), true)}, false);
     }
 
     /** A case's mean against the rest of its family's. */

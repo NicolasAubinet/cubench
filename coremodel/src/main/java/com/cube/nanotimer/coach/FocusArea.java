@@ -54,7 +54,9 @@ public class FocusArea {
     /** A step ordinary on average and uneven from one solve to the next. */
     UNEVEN_STEP,
     /** The last layer's permutation taken in two looks where one would do. */
-    TWO_LOOK_PLL;
+    TWO_LOOK_PLL,
+    /** F2L pairs put in with a cube rotation that a rotationless algorithm would avoid. */
+    F2L_ROTATIONS;
 
     public String code() {
       return name().toLowerCase(Locale.ROOT);

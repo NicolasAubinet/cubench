@@ -1486,6 +1486,9 @@
   <string name="coach_stalling_body">%1$s: %2$s freezes a solve; %3$s of its %4$s spent not turning.</string>
   <string name="coach_reason_uneven_step">Uneven from solve to solve</string>
   <string name="coach_uneven_body">%1$s averages %2$s, give or take %3$s, and your best is %4$s.</string>
+  <string name="coach_reason_f2l_rotations">Cube rotations in your F2L</string>
+  <string name="coach_rotations_body">Over %1$d solves, you rotated the cube in %2$s of your F2L pairs, and in %3$s of the basic ones.</string>
+  <string name="coach_rotations_cost">Each rotation adds %1$s&#160;s between two turns.</string>
   <string name="coach_pair_extra">%1$s extra moves on average</string>
   <string name="coach_pair_off_list">%1$d times, %2$d%% off the usual algorithms</string>
   <string name="coach_pair_show">Show case</string>
@@ -1527,9 +1530,13 @@
   <string name="coach_fig_frozen_of">%1$s of its %2$s</string>
   <string name="coach_fig_spread">seconds of spread in %1$s</string>
   <string name="coach_fig_average">%1$s on average</string>
+  <string name="coach_fig_pairs_rotated">of your pairs have a rotation</string>
+  <string name="coach_fig_rotation_adds">each rotation adds %1$s&#160;s</string>
   <string name="coach_split_looking">Looking %1$s</string>
   <string name="coach_split_turning">Turning %1$s</string>
   <string name="coach_split_stopped">Stopped %1$s</string>
+  <string name="coach_split_rotated">Rotated %1$s</string>
+  <string name="coach_split_unrotated">Without %1$s</string>
   <string name="coach_bar_rest">The rest</string>
   <string name="coach_bar_in_solve">In a solve</string>
   <string name="coach_bar_drilled">Drilled</string>
