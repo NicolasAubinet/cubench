@@ -263,6 +263,19 @@ public class DrillSpecTest {
         + " \"reps\": 10, \"retire_after_wins\": 3, \"learn\": true}", "learning");
   }
 
+  /** Written at 7, so an app at 6, which deals pairs only into front right, refuses it. */
+  @Test
+  public void writesABackSlotLearningDrillAtSeven() {
+    DrillSpec spec = DrillSpec.learning("coach-f2l_rotations-f2l", DrillSpec.Type.F2L_BACK_SLOT,
+        Arrays.asList("pair_4", "pair_17"), DrillSpec.Selection.ROUND_ROBIN, 100, 5,
+        Collections.<String, String>emptyMap(), null);
+    DrillSpec read = DrillSpec.fromJson(spec.toJson());
+    assertEquals(7, read.getSpecVersion());
+    assertEquals(DrillSpec.Type.F2L_BACK_SLOT, read.getType());
+    assertEquals(Arrays.asList("pair_4", "pair_17"), read.getCases());
+    assertTrue(read.isLearning());
+  }
+
   @Test
   public void refusesTextThatIsNotADrill() {
     refuses("not json at all", "");

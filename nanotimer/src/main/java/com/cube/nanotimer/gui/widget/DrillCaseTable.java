@@ -184,7 +184,8 @@ public class DrillCaseTable {
             refresh();
           }
         });
-    headings.setLabel(type == DrillSpec.Type.F2L_PAIR ? R.string.drill_summary_pairs
+    headings.setLabel(type == DrillSpec.Type.F2L_PAIR || type == DrillSpec.Type.F2L_BACK_SLOT
+        ? R.string.drill_summary_pairs
         : lookAhead ? R.string.drill_summary_cell_reps : R.string.drill_summary_cases);
     if (!this.reps.isEmpty()) {
       headings.setAccent(hueOf(this.reps.get(0).getCaseCode()));

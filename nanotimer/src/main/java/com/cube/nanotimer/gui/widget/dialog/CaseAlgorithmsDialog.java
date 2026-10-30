@@ -37,11 +37,13 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms.Listed;
+import com.cube.nanotimer.smartcube.step.F2LBackSlotAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.SmartCubeMarkLabel;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -131,6 +133,11 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   private static final int[] CROSS_UP_EDGES = {0, 1, 2, 3};
   private static final int CROSS_UP_PAIR_CORNER = 1;
   private static final int CROSS_UP_PAIR_EDGE = 9;
+  /** Where a z2 puts a back-right pair (ULB and BL) and a back-left one (UBR and BR). */
+  private static final int CROSS_UP_BACK_RIGHT_CORNER = 2;
+  private static final int CROSS_UP_BACK_RIGHT_EDGE = 10;
+  private static final int CROSS_UP_BACK_LEFT_CORNER = 3;
+  private static final int CROSS_UP_BACK_LEFT_EDGE = 11;
 
   /**
    * How many of the case's own solves are read for the moves. Each one is replayed, so this is the
@@ -213,7 +220,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),
         R.style.NanoTimerDialogTheme)
-        .setTitle(pair ? getString(R.string.case_title_f2l)
+        .setTitle(pair ? Utils.toSmartCubeCaseHeadline(getActivity(), caseCode)
             : getString(caseCode.startsWith("oll_") ? R.string.case_title_oll
                 : R.string.case_title_pll, LastLayerCaseNames.shortName(caseCode)))
         .setView(view)
@@ -256,19 +263,28 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    * user's hands. The player's own drag still turns it round.
    */
   private void showPairCase(WebView webView) {
-    String facelets = F2LCaseAlgorithms.crossUpFacelets(CaseAlgorithms.pairCase(caseCode));
+    String backSlot = CaseAlgorithms.backSlotOf(caseCode);
+    boolean right = F2LBackSlotAlgorithms.BACK_RIGHT.equals(backSlot);
+    String facelets = backSlot == null
+        ? F2LCaseAlgorithms.crossUpFacelets(CaseAlgorithms.pairCase(caseCode))
+        : F2LBackSlotAlgorithms.crossUpFacelets(CaseAlgorithms.pairCase(caseCode), backSlot);
     if (facelets == null) {
       return;
     }
     cube = new VirtualCube(webView, null, () -> { });
     cube.setGyroFollowing(false);
     cube.setHold(CubeRotation.byNotation("z2").quaternion());
-    cube.setView(VIEW_LATITUDE, VIEW_LONGITUDE);
+    // A back slot's pair is behind the cube as it is drawn, so it is looked at from behind.
+    cube.setView(VIEW_LATITUDE, backSlot == null ? VIEW_LONGITUDE
+        : right ? VIEW_LONGITUDE + 180 : 180 - VIEW_LONGITUDE);
     cube.setCameraDistance(CAMERA_DISTANCE);
     cube.setNudge(0);
     cube.setState(CubePatternFormat.format(facelets));
-    cube.setStickering(CubeStickering.crossAndPair(CROSS_UP_EDGES, CROSS_UP_PAIR_CORNER,
-        CROSS_UP_PAIR_EDGE));
+    cube.setStickering(CubeStickering.crossAndPair(CROSS_UP_EDGES,
+        backSlot == null ? CROSS_UP_PAIR_CORNER : right ? CROSS_UP_BACK_RIGHT_CORNER
+            : CROSS_UP_BACK_LEFT_CORNER,
+        backSlot == null ? CROSS_UP_PAIR_EDGE : right ? CROSS_UP_BACK_RIGHT_EDGE
+            : CROSS_UP_BACK_LEFT_EDGE));
   }
 
   @Override

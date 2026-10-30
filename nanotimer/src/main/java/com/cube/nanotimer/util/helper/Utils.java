@@ -365,6 +365,11 @@ public class Utils {
     if (code == null) {
       return null;
     }
+    String backSlot = CaseAlgorithms.backSlotOf(code);
+    if (backSlot != null) {
+      return context.getString("br".equals(backSlot) ? R.string.case_title_f2l_back_right
+          : R.string.case_title_f2l_back_left);
+    }
     if (CaseAlgorithms.isPair(code)) {
       return context.getString(R.string.case_title_f2l); // F2L case numbers are never shown
     }

@@ -977,6 +977,7 @@
   <string name="drill_summary_over_target">Encore au-dessus de l\'objectif : %s</string>
   <string name="drill_summary_still_learning">Pas encore fait sans regarder : %s</string>
   <string name="drill_rep_other_alg">un autre algorithme</string>
+  <string name="drill_rep_rotated">avec une rotation</string>
   <string name="group_learned_label">Groupe appris</string>
   <string name="group_learned_progress">%1$d OLL appris sur %2$d</string>
   <string name="group_learned_continue">Continuer</string>
@@ -1090,6 +1091,8 @@
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Cela ne résout pas ce cas. Vérifiez et réessayez.</string>
   <string name="case_title_f2l">Paire F2L</string>
+  <string name="case_title_f2l_back_right">Paire F2L, arrière droit</string>
+  <string name="case_title_f2l_back_left">Paire F2L, arrière gauche</string>
   <string name="case_algorithms_order">Les recommandés d\'abord. Touchez celui que vous utilisez.</string>
   <string name="case_algorithm_empty_fl">Nécessite le slot avant gauche vide</string>
   <string name="case_algorithm_empty_br">Nécessite le slot arrière droit vide</string>
@@ -1504,6 +1507,7 @@
   <string name="coach_drill_cases">Travailler ces cas</string>
   <string name="coach_learn_cases">Apprendre ces cas</string>
   <string name="coach_drill_lookahead">Drill de look-ahead</string>
+  <string name="coach_drill_back_slots">Slots arrière sans rotation</string>
   <string name="coach_practice_title">Pratique libre</string>
   <string name="coach_practice_body">Toujours là, à côté du plan : les cas qui vous coûtent le plus, travaillés jusqu\'à battre leurs objectifs. Mis à jour au fil de vos résolutions.</string>
   <string name="coach_practice_set">Vos cas de %1$s les plus coûteux</string>

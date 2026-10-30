@@ -32,6 +32,8 @@ import com.cube.nanotimer.cube.AlgorithmFollower;
 import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
+import com.cube.nanotimer.cube.RepRotations;
+import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.MethodStatistics;
@@ -127,6 +129,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    * is charged to nobody.
    */
   private static final long REP_HOLD_MS = DrillRepFlourish.PLAY_BEAT_MS;
+  /** Gyro readings taken either side of a back-slot rep, for the poses at its two ends. */
+  private static final long ROTATION_LEAD_MS = 500;
 
   /** The family a case belongs to, which is the colour its name is written in everywhere. */
   private static final String FAMILY_OLL = "oll_";
@@ -351,7 +355,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     // A pair's code names no step family, so F2L's colour is asked for by name.
     boolean lookAhead = spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD;
     familyHue = StepPalette.cfop(this).colorFor(spec.getType() == DrillSpec.Type.F2L_PAIR
-        || lookAhead ? "f2l" : spec.getCases().isEmpty() ? null : spec.getCases().get(0));
+        || spec.getType() == DrillSpec.Type.F2L_BACK_SLOT || lookAhead ? "f2l"
+        : spec.getCases().isEmpty() ? null : spec.getCases().get(0));
     if (lookAhead) {
       findViewById(R.id.btDrillAlgorithm).setVisibility(View.GONE); // two pairs, no one algorithm
     }
@@ -388,6 +393,17 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   private void begin(DrillSpec spec, Map<String, Long> weights) {
     session = new DrillSession(spec, Utils.getRandom(), weights, layerFace);
+    if (spec.getType() == DrillSpec.Type.F2L_BACK_SLOT) {
+      final char layer = layerFace == null ? 'U' : layerFace.charAt(0);
+      session.setRotationReader((moves, shownHostMs, skewMs) -> {
+        CubeMove last = moves.get(moves.size() - 1);
+        long lastMs = last.getHostTimestampMs() != null ? last.getHostTimestampMs()
+            : last.getCubeTimestampMs() + skewMs;
+        return RepRotations.rotated(moves, shownHostMs, skewMs,
+            SmartCubeManager.INSTANCE.getOrientationsBetween(shownHostMs - ROTATION_LEAD_MS,
+                lastMs + ROTATION_LEAD_MS), layer);
+      });
+    }
     initRecording(spec);
     hidePracticeOffer();
     if (spec.isLearning()) {
@@ -757,9 +773,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         || !CaseAlgorithms.sameTurning(code, turned, learningAlgorithm(code));
   }
 
-  /** A learning rep looked up, reset, skipped or turned with another algorithm. */
+  /** A learning rep looked up, reset, skipped, turned with another algorithm or with a rotation. */
   private boolean didNotStick(DrillRep rep) {
-    return session.getSpec().isLearning() && (!CaseTally.isClean(rep) || rep.isOffTaught());
+    return session.getSpec().isLearning()
+        && (!CaseTally.isClean(rep) || rep.isOffTaught() || rep.isRotated());
   }
 
   /**
@@ -842,7 +859,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     firstAlgorithm = first;
     tryingAlgorithm = first;
     setTitle(getString(R.string.drill_choose_title, CaseAlgorithms.isPair(code)
-        ? getString(R.string.case_title_f2l)
+        ? Utils.toSmartCubeCaseHeadline(this, code)
         : getString(code.startsWith("oll_") ? R.string.case_title_oll : R.string.case_title_pll,
             LastLayerCaseNames.shortName(code))));
     session.startPractice(code, first);
@@ -1308,7 +1325,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     setLastRep(name, colour, FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs()), false,
         getString(R.string.drill_summary_column_execution));
     repSplit.setVisibility(View.INVISIBLE);
-    if (timed == AlgorithmTimes.Verdict.WRONG_MOVES) {
+    if (rep.isRotated()) {
+      setVerdict(getString(R.string.drill_rep_rotated), R.color.danger_text);
+    } else if (timed == AlgorithmTimes.Verdict.WRONG_MOVES) {
       setVerdict(getString(R.string.drill_choose_not_counted_moves), R.color.secondary_text);
     } else if (timed == AlgorithmTimes.Verdict.RESET) {
       setVerdict(getString(R.string.drill_choose_not_counted_reset), R.color.secondary_text);
@@ -1377,7 +1396,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     long target = session.getSpec().getTargetMs(rep.getCaseCode());
     String text;
     int colourRes;
-    if (rep.isOffTaught()) {
+    if (rep.isRotated()) {
+      text = getString(R.string.drill_rep_rotated);
+      colourRes = R.color.danger_text;
+    } else if (rep.isOffTaught()) {
       text = getString(R.string.drill_rep_other_alg);
       colourRes = R.color.danger_text;
     } else if (session.getSpec().isLearning() && CaseTally.isClean(rep)) {
@@ -1435,7 +1457,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The card over the table, from the reps that count. Redrawn whenever that stops being all. */
   private void showFigures(List<DrillRep> reps) {
     DrillSpec spec = session.getSpec();
-    boolean pairs = spec.getType() == DrillSpec.Type.F2L_PAIR;
+    boolean pairs = spec.getType() == DrillSpec.Type.F2L_PAIR
+        || spec.getType() == DrillSpec.Type.F2L_BACK_SLOT;
     if (spec.retiresCases()) {
       showTargets(reps);
     } else {
@@ -1523,7 +1546,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       note.append(getString(R.string.drill_summary_ceiling, spec.getReps()));
     }
     // Pairs all carry the same name, so naming those still over says nothing the rows do not.
-    if (!over.isEmpty() && spec.getType() != DrillSpec.Type.F2L_PAIR) {
+    if (!over.isEmpty() && spec.getType() != DrillSpec.Type.F2L_PAIR
+        && spec.getType() != DrillSpec.Type.F2L_BACK_SLOT) {
       note.append(note.length() == 0 ? "" : " ").append(getString(spec.isLearning()
           ? R.string.drill_summary_still_learning : R.string.drill_summary_over_target,
           joined(over)));

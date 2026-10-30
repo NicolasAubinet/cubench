@@ -979,6 +979,7 @@
   <string name="drill_summary_over_target">Ainda acima da meta: %s</string>
   <string name="drill_summary_still_learning">Ainda não feito sem olhar: %s</string>
   <string name="drill_rep_other_alg">outro algoritmo</string>
+  <string name="drill_rep_rotated">com uma rotação</string>
   <string name="group_learned_label">Grupo aprendido</string>
   <string name="group_learned_progress">%1$d de %2$d OLL aprendidos</string>
   <string name="group_learned_continue">Continuar</string>
@@ -1092,6 +1093,8 @@
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">Isso não resolve este caso. Verifique e tente novamente.</string>
   <string name="case_title_f2l">Par F2L</string>
+  <string name="case_title_f2l_back_right">Par F2L, traseiro direito</string>
+  <string name="case_title_f2l_back_left">Par F2L, traseiro esquerdo</string>
   <string name="case_algorithms_order">Os recomendados primeiro. Toque no que você usa.</string>
   <string name="case_algorithm_empty_fl">Precisa do slot frontal esquerdo vazio</string>
   <string name="case_algorithm_empty_br">Precisa do slot traseiro direito vazio</string>
@@ -1506,6 +1509,7 @@
   <string name="coach_drill_cases">Treinar estes casos</string>
   <string name="coach_learn_cases">Aprender estes casos</string>
   <string name="coach_drill_lookahead">Treino de look-ahead</string>
+  <string name="coach_drill_back_slots">Slots traseiros sem rotação</string>
   <string name="coach_practice_title">Treino livre</string>
   <string name="coach_practice_body">Sempre aqui, à parte do plano: os casos que mais custam para você, treinados até baterem suas metas. Atualizado conforme você resolve.</string>
   <string name="coach_practice_set">Os seus casos de %1$s mais custosos</string>

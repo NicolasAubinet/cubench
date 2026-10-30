@@ -539,6 +539,7 @@ public class CoachPlanView {
     // a step gets the charts. Not for a cross or a pair drill, which have no flat picture to show.
     if (drill != null && drill.getType() != DrillSpec.Type.CROSS
         && drill.getType() != DrillSpec.Type.F2L_PAIR
+        && drill.getType() != DrillSpec.Type.F2L_BACK_SLOT
         && (figure == null || !figure.coversCases)) {
       List<String> bare = new ArrayList<String>();
       boolean named = cases.getChildCount() > 0;
@@ -973,6 +974,7 @@ public class CoachPlanView {
     button.setText(withPlay(button, spec.getType() == DrillSpec.Type.CROSS
         ? R.string.drill_cross_title
         : spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD ? R.string.coach_drill_lookahead
+        : spec.getType() == DrillSpec.Type.F2L_BACK_SLOT ? R.string.coach_drill_back_slots
         : spec.isLearning() ? R.string.coach_learn_cases
         : spec.getCases().size() == 1 ? R.string.coach_drill_case : R.string.coach_drill_cases));
     button.setOnClickListener(new View.OnClickListener() {

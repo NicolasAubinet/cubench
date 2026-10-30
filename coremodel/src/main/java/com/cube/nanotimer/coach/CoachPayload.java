@@ -33,12 +33,16 @@ public class CoachPayload {
    * layer's moves over the usual algorithms, 7 the OLL step split by one look and two, 8 the last
    * plan and the solves since it, 9 the two-look PLL count and the PLL step split the same way, 10
    * the language the plan is to be written in, 11 nothing new but that the app runs a look-ahead
-   * drill ({@link #LOOKAHEAD_DRILL_VERSION}), 12 the F2L rotations of gyro solves; an older payload
+   * drill ({@link #LOOKAHEAD_DRILL_VERSION}), 12 the F2L rotations of gyro solves, 13 nothing new
+   * but that the app runs a back-slot drill ({@link #BACK_SLOT_DRILL_VERSION}); an older payload
    * is still read, and is simply missing them. */
-  public static final int VERSION = 12;
+  public static final int VERSION = 13;
 
   /** The first payload from an app that runs a look-ahead drill, which needs drill spec 6. */
   public static final int LOOKAHEAD_DRILL_VERSION = 11;
+
+  /** The first payload from an app that runs a back-slot drill, which needs drill spec 7. */
+  public static final int BACK_SLOT_DRILL_VERSION = 13;
 
   private final int schemaVersion;
   private final String puzzle;

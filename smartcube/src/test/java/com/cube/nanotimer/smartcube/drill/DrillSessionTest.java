@@ -1100,6 +1100,71 @@ public class DrillSessionTest {
     assertEquals(0, DrillSpec.fromJson(spec("pll_t", 1).toJson()).getWorkingSet());
   }
 
+  /** Each case is dealt as two of its own, one per back slot; a code with no scramble is dropped. */
+  @Test
+  public void aBackSlotDrillDealsEachCaseIntoBothBackSlots() {
+    DrillSession session = new DrillSession(backSlotSpec("pair_4", "pair_17", "pair_99"),
+        new Random(1));
+    assertEquals(Arrays.asList("pair_4_br", "pair_4_bl", "pair_17_br", "pair_17_bl"),
+        session.getCases());
+    assertEquals(Collections.singletonList("pair_99"), session.getUnknownCases());
+  }
+
+  /** The slot's own algorithm, turned from the grip the case is dealt in, puts the pair home. */
+  @Test
+  public void everyBackSlotAlgorithmFinishesItsDealtCase() {
+    for (String code : F2LPairScrambles.basicCases()) {
+      for (String slot : new String[] {"br", "bl"}) {
+        String backCode = CaseAlgorithms.inBackSlot(code, slot);
+        for (String face : new String[] {"U", "D"}) {
+          DrillSession session = new DrillSession(backSlotSpec(code), noAlignment(), null, face);
+          Hand hand = new Hand(session);
+          while (hand.next() && !backCode.equals(session.getCurrentCase())) {
+            session.abandon();
+          }
+          DrillRep rep = hand.execute(LayerRotation.toFace(
+              CaseAlgorithms.shortestListed(backCode), face));
+          assertNotNull(backCode + " on " + face, rep);
+          assertEquals(backCode, rep.getCaseCode());
+        }
+      }
+    }
+  }
+
+  /** Practice deals the case at the algorithm's own angle, so it is run straight away. */
+  @Test
+  public void aBackSlotCaseIsPractisedAtItsAlgorithmsAngle() {
+    for (String alg : new String[] {"d L U' L'", "U L U' L'"}) {
+      String code = alg.startsWith("d") ? "pair_1_br" : "pair_1_bl";
+      DrillSession session = new DrillSession(backSlotSpec("pair_1"), new Random(5));
+      Hand hand = new Hand(session);
+      hand.practise(code, alg);
+      DrillRep rep = hand.execute(alg);
+      assertNotNull(alg, rep);
+      assertTrue(rep.isPractice());
+    }
+  }
+
+  /** A rep the cube was turned in is solved, and counts towards nothing. */
+  @Test
+  public void aRotatedBackSlotRepIsNoWin() {
+    for (boolean turned : new boolean[] {false, true}) {
+      DrillSession session = new DrillSession(backSlotSpec("pair_4"), noAlignment());
+      session.setRotationReader((moves, shownHostMs, skewMs) -> turned);
+      Hand hand = new Hand(session);
+      assertTrue(hand.next());
+      DrillRep rep = hand.execute(CaseAlgorithms.shortestListed(session.getCurrentCase()));
+      assertNotNull(rep);
+      assertEquals(turned, rep.isRotated());
+      assertEquals(!turned, session.getTally().isWin(rep));
+    }
+  }
+
+  private static DrillSpec backSlotSpec(String... codes) {
+    return DrillSpec.learning("test", DrillSpec.Type.F2L_BACK_SLOT, Arrays.asList(codes),
+        DrillSpec.Selection.ROUND_ROBIN, 400, 5, Collections.<String, String>emptyMap(), null);
+  }
+
   private static DrillSpec pairSpec(String code) {
     return new DrillSpec("test", DrillSpec.Type.F2L_PAIR, DrillSpec.Delivery.VIRTUAL,
         Collections.singletonList(code), DrillSpec.Selection.ROUND_ROBIN, 1, 0, null);

@@ -77,9 +77,9 @@ public final class CaseTally {
    */
   public boolean isWin(DrillRep rep) {
     if (spec.isLearning()) {
-      return isClean(rep) && !rep.isOffTaught();
+      return isClean(rep) && !rep.isOffTaught() && !rep.isRotated();
     }
-    return isClean(rep) && rep.getTotalMs() <= spec.getTargetMs(rep.getCaseCode());
+    return isClean(rep) && !rep.isRotated() && rep.getTotalMs() <= spec.getTargetMs(rep.getCaseCode());
   }
 
   public int getShowings(String code) {

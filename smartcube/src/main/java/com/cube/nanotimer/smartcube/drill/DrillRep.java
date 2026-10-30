@@ -33,6 +33,7 @@ public final class DrillRep {
   private final boolean offTaught;
   private final Long pairOneMs;
   private final Long pauseMs;
+  private final boolean rotated;
 
   DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
       long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
@@ -58,6 +59,15 @@ public final class DrillRep {
   DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
       long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
       boolean abandoned, boolean practice, boolean offTaught, Long pairOneMs, Long pauseMs) {
+    this(caseCode, scramble, moves, shownAtMs, recognitionMs, executionMs, moveCount, resetCount,
+        revealed, abandoned, practice, offTaught, pairOneMs, pauseMs, false);
+  }
+
+  DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
+      long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
+      boolean abandoned, boolean practice, boolean offTaught, Long pairOneMs, Long pauseMs,
+      boolean rotated) {
+    this.rotated = rotated;
     this.caseCode = caseCode;
     this.pairOneMs = pairOneMs;
     this.pauseMs = pauseMs;
@@ -160,6 +170,11 @@ public final class DrillRep {
   /** Solved in a learning drill, but not with the algorithm being learned. */
   public boolean isOffTaught() {
     return offTaught;
+  }
+
+  /** A back-slot rep the cube was turned in, which the gyro saw. False where nothing could tell. */
+  public boolean isRotated() {
+    return rotated;
   }
 
   /**

@@ -8,10 +8,12 @@ import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.F2LBackSlotAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LPairScrambles;
 import com.cube.nanotimer.smartcube.step.FaceTurns;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -56,6 +58,17 @@ public final class DrillSession {
    */
   public static final String LOOKAHEAD_CASE = DrillSpec.Type.F2L_LOOKAHEAD.code();
 
+  /** Reads whether the cube was turned in the hand during a rep, which only a gyroscope can say. */
+  public interface RotationReader {
+
+    /**
+     * @param shownHostMs when the case went up, on the host's clock
+     * @param skewMs host clock minus cube clock, for a turn that carries only the cube's
+     * @return false where it cannot tell, as on a cube with no gyroscope
+     */
+    boolean rotated(List<CubeMove> moves, long shownHostMs, long skewMs);
+  }
+
   /** Whether a rep's code is a look-ahead rep's, which names no case and has no algorithms. */
   public static boolean isLookAheadCase(String code) {
     return LOOKAHEAD_CASE.equals(code);
@@ -63,6 +76,10 @@ public final class DrillSession {
 
   /** Deals tried before a look-ahead rep takes one with a piece stuck in the other slot. */
   private static final int MAX_LOOKAHEAD_DEALS = 50;
+
+  /** The back slots a back-slot drill deals into, and the y quarters that take front right there. */
+  private static final String[] BACK_SLOTS =
+      {F2LBackSlotAlgorithms.BACK_RIGHT, F2LBackSlotAlgorithms.BACK_LEFT};
 
   /** The cross and the four slots with the cross on D, each slot as its corner and its edge. */
   private static final String[] CROSS_EDGES = {"DF", "DR", "DB", "DL"};
@@ -86,6 +103,8 @@ public final class DrillSession {
 
   /** An F2L pair drill, whose case is a pair and whose rep ends when that pair is in. */
   private final boolean pairs;
+  /** A pair drill dealing into the back slots, each case once for each, as its own case. */
+  private final boolean backSlots;
   /** The current pair's corner and edge by the faces of their slot, as dealt. */
   private String pairCorner;
   private String pairEdge;
@@ -126,6 +145,7 @@ public final class DrillSession {
   private List<CarriedTurn> carried;
   /** Whether the rep up follows straight on from a practice rep, owning the turns made between. */
   private boolean followsOn;
+  private RotationReader rotationReader;
 
   public DrillSession(DrillSpec spec, Random random) {
     this(spec, random, null, "U");
@@ -150,10 +170,24 @@ public final class DrillSession {
     this.random = random;
     this.weights = weights;
     this.layerFace = layerFace == null ? "U" : layerFace;
-    this.pairs = spec.getType() == DrillSpec.Type.F2L_PAIR;
+    this.backSlots = spec.getType() == DrillSpec.Type.F2L_BACK_SLOT;
+    this.pairs = spec.getType() == DrillSpec.Type.F2L_PAIR || backSlots;
     this.lookAhead = spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD;
     if (lookAhead) {
       cases.add(LOOKAHEAD_CASE); // dealt from no list, so any the spec names are not this drill's
+    } else if (backSlots) {
+      List<String> known = F2LPairScrambles.cases();
+      for (String code : spec.getCases()) {
+        if (!known.contains(code)) {
+          unknownCases.add(code);
+          continue;
+        }
+        for (String slot : BACK_SLOTS) {
+          if (!CaseAlgorithms.shown(CaseAlgorithms.inBackSlot(code, slot)).isEmpty()) {
+            cases.add(CaseAlgorithms.inBackSlot(code, slot));
+          }
+        }
+      }
     } else {
       List<String> known = pairs ? F2LPairScrambles.cases() : LastLayerScrambles.cases();
       for (String code : spec.getCases()) {
@@ -173,6 +207,11 @@ public final class DrillSession {
 
   public DrillSpec getSpec() {
     return spec;
+  }
+
+  /** What tells a back-slot rep turned with a rotation from one without. Unset, none is. */
+  public void setRotationReader(RotationReader reader) {
+    rotationReader = reader;
   }
 
   /** The cases asked for that this app has no scramble for, dropped rather than run wrong. */
@@ -245,6 +284,18 @@ public final class DrillSession {
     currentCase = code;
     if (lookAhead) {
       dealTwoPairs();
+    } else if (backSlots) {
+      // Into its own slot, never spun: which slot it goes into is the question. Practice deals it
+      // at the algorithm's own turn of the layer, as a front pair's is.
+      String slot = CaseAlgorithms.backSlotOf(currentCase);
+      int spins = quartersTo(slot);
+      String atItsAngle = practiceCase != null && practiceAlgorithm != null
+          ? F2LPairScrambles.forAlgorithm(practiceAlgorithm, random) : null;
+      currentScramble = LayerRotation.toFace(atItsAngle != null ? atItsAngle
+          : LayerRotation.spun(F2LPairScrambles.forCase(CaseAlgorithms.frontCode(currentCase),
+              random), spins), layerFace);
+      pairCorner = LayerRotation.piece("DFR", spins, layerFace);
+      pairEdge = LayerRotation.piece("FR", spins, layerFace);
     } else if (pairs) {
       // A random slot, so the pair is not always read in the same place. Practice spins it by the
       // algorithm's leading y, so the moves after it run with no rotation.
@@ -277,6 +328,25 @@ public final class DrillSession {
     caseShownAtMs = NOT_SHOWN;
     resetCount = 0;
     revealed = false;
+  }
+
+  /** The y quarters a front-right pair's scramble is spun by to deal it into a back slot. */
+  private static int quartersTo(String slot) {
+    String corner = F2LBackSlotAlgorithms.BACK_RIGHT.equals(slot) ? "DRB" : "DBL";
+    for (int quarters = 0; quarters < 4; quarters++) {
+      if (sameLetters(LayerRotation.piece("DFR", quarters, "U"), corner)) {
+        return quarters;
+      }
+    }
+    throw new IllegalArgumentException("Not a back slot: " + slot);
+  }
+
+  private static boolean sameLetters(String piece, String other) {
+    char[] a = piece.toCharArray();
+    char[] b = other.toCharArray();
+    Arrays.sort(a);
+    Arrays.sort(b);
+    return Arrays.equals(a, b);
   }
 
   /**
@@ -848,9 +918,11 @@ public final class DrillSession {
         pause = Math.max(0, pauseEnd - firstPairInMs);
       }
     }
+    boolean rotated = backSlots && !abandoned && !moves.isEmpty() && rotationReader != null
+        && rotationReader.rotated(new ArrayList<CubeMove>(moves), caseShownAtMs, clockSkewMs);
     DrillRep rep = new DrillRep(currentCase, currentScramble,
         new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
-        resetCount, revealed, abandoned, practice, offTaught, pairOne, pause);
+        resetCount, revealed, abandoned, practice, offTaught, pairOne, pause, rotated);
     // A practice rep is none of the drill's: it neither spends one nor counts towards retiring.
     if (!practice) {
       reps.add(rep);

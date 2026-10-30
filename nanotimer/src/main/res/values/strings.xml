@@ -1008,6 +1008,7 @@
   <string name="drill_summary_over_target">Still over target: %s</string>
   <string name="drill_summary_still_learning">Not yet turned without looking: %s</string>
   <string name="drill_rep_other_alg">another algorithm</string>
+  <string name="drill_rep_rotated">with a rotation</string>
   <string name="group_learned_label">Shape group learned</string>
   <string name="group_learned_progress">%1$d of %2$d OLLs learned</string>
   <string name="group_learned_continue">Keep going</string>
@@ -1135,6 +1136,8 @@
   <string name="case_algorithm_hint">"R U R' U' R' F R2 U' R' U' R U R' F'"</string>
   <string name="case_algorithm_wrong">That does not solve this case. Check it and try again.</string>
   <string name="case_title_f2l">F2L pair</string>
+  <string name="case_title_f2l_back_right">F2L pair, back right</string>
+  <string name="case_title_f2l_back_left">F2L pair, back left</string>
   <string name="case_algorithms_order">Recommended first. Tap the one you use.</string>
   <string name="case_algorithm_empty_fl">Needs the front-left slot empty</string>
   <string name="case_algorithm_empty_br">Needs the back-right slot empty</string>
@@ -1552,6 +1555,7 @@
   <string name="coach_drill_cases">Drill these cases</string>
   <string name="coach_learn_cases">Learn these cases</string>
   <string name="coach_drill_lookahead">Look-ahead drill</string>
+  <string name="coach_drill_back_slots">Back slots without rotating</string>
   <string name="coach_practice_title">Practice any time</string>
   <string name="coach_practice_body">Always here, apart from the plan: the cases costing you the most, practised until they beat their targets. Refreshed as you solve.</string>
   <string name="coach_practice_set">Your costliest %1$s cases</string>

@@ -36,8 +36,11 @@ import org.json.JSONObject;
  */
 public final class DrillSpec {
 
-  /** The newest spec this app can run. 5 added the learning drill, 6 the look-ahead drill. */
-  public static final int VERSION = 6;
+  /**
+   * The newest spec this app can run. 5 added the learning drill, 6 the look-ahead drill, 7 the
+   * back-slot drill.
+   */
+  public static final int VERSION = 7;
 
   /** How the id of every drill the coach prescribes begins. */
   public static final String COACH_ID_PREFIX = "coach-";
@@ -59,6 +62,9 @@ public final class DrillSpec {
 
   /** The version a look-ahead drill is written at, so an app that cannot deal one refuses it. */
   private static final int VERSION_6 = 6;
+
+  /** The version a back-slot drill is written at, so an app that cannot deal one refuses it. */
+  private static final int VERSION_7 = 7;
 
   /**
    * What a rep is timed and judged on. The two case types are the same reps and only move the
@@ -84,7 +90,13 @@ public final class DrillSpec {
      * Trains the pause between the pairs, so it is judged from the case appearing to the second
      * pair's first turn. Dealt from no case list, and with no targets yet.
      */
-    F2L_LOOKAHEAD;
+    F2L_LOOKAHEAD,
+    /**
+     * One F2L pair handed as a named case ({@code pair_a12}) and dealt into a back slot, each case
+     * into back right and back left in turn; done when the pair is home and the cube was not turned
+     * on the way, which needs a gyroscope to tell.
+     */
+    F2L_BACK_SLOT;
 
     public String code() {
       return name().toLowerCase(Locale.ROOT);
@@ -234,7 +246,7 @@ public final class DrillSpec {
     if (reps <= 0) {
       throw new IllegalArgumentException("A drill needs at least one rep, not " + reps);
     }
-    this.specVersion = specVersion;
+    this.specVersion = type == Type.F2L_BACK_SLOT ? Math.max(VERSION_7, specVersion) : specVersion;
     this.id = id;
     this.puzzle = puzzle;
     this.method = method;
