@@ -9,7 +9,9 @@ import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The smart-cube section of a shared solve: the breakdown as readable text, and, when the sharer
@@ -48,9 +50,7 @@ public final class SolveShareFormat {
     // Read again rather than shared out of the store, so what is pasted somewhere else is what the
     // solve sheet shows: the sheet re-reads too, and a blind solve read again is named through the
     // frame its own buffers ask for rather than the one the gyro guessed at.
-    StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solveTime.getScramble(),
-        solveTime.getSmartcubeMoves(), SolveTypeMethod.of(solveTime.getSolveType()),
-        SolveTypeMethod.blindMethodOf(solveTime.getSolveType()));
+    StoredSolveReplay.Result reread = reread(solveTime);
     boolean fresh = reread != null && reread.getMethod() != null;
     CubeMethod method = fresh ? reread.getMethod() : solveTime.getSmartcubeMethod();
     String moves = fresh ? reread.getMoves() : solveTime.getSmartcubeMoves();
@@ -145,32 +145,60 @@ public final class SolveShareFormat {
       sb.append('\n');
     }
     sb.append(context.getString(R.string.share_smartcube_data)).append('\n');
+    for (Map.Entry<String, String> field : rawFields(solveTime, gyroTrack, cube, method).entrySet()) {
+      sb.append(field.getKey()).append(": ").append(field.getValue()).append('\n');
+    }
+  }
+
+  /**
+   * The stored fields a report carries, keyed as the shared text names them, in that order.
+   *
+   * @param gyroTrack the solve's stored track, read separately, or null where it has none
+   * @param cube the cube that recorded the solve, read separately, or null where it is not known
+   */
+  public static Map<String, String> rawFields(SolveTime solveTime, String gyroTrack, String cube) {
+    StoredSolveReplay.Result reread = reread(solveTime);
+    boolean fresh = reread != null && reread.getMethod() != null;
+    return rawFields(solveTime, gyroTrack, cube,
+        fresh ? reread.getMethod() : solveTime.getSmartcubeMethod());
+  }
+
+  private static Map<String, String> rawFields(SolveTime solveTime, String gyroTrack, String cube,
+      CubeMethod method) {
+    Map<String, String> fields = new LinkedHashMap<String, String>();
     if (cube != null) {
-      sb.append("cube: ").append(cube).append('\n');
+      fields.put("cube", cube);
     }
     if (solveTime.getSmartcubeMethod() != null) {
-      sb.append("method: ").append(solveTime.getSmartcubeMethod().getCode()).append('\n');
+      fields.put("method", solveTime.getSmartcubeMethod().getCode());
     }
     // The stream as recorded, grip and all. Not the one the reading settled on: what the gyro made
     // of the pick-up is the first thing to look at when a reconstruction is wrong.
-    sb.append("moves: ").append(solveTime.getSmartcubeMoves()).append('\n');
+    fields.put("moves", solveTime.getSmartcubeMoves());
     // Which makes the buffers an input like the scramble, since a blind solve is named through them
     // rather than through that grip. See BlindFrame.
     if (method == CubeMethod.BLIND) {
       BlindMethod blindMethod = SolveTypeMethod.blindMethodOf(solveTime.getSolveType());
-      sb.append("blind_method: ").append(blindMethod.getCode()).append('\n');
-      sb.append("buffers: ").append(Options.INSTANCE.getBlindEdgeBuffer(blindMethod)).append(' ')
-          .append(Options.INSTANCE.getBlindCornerBuffer(blindMethod)).append('\n');
+      fields.put("blind_method", blindMethod.getCode());
+      fields.put("buffers", Options.INSTANCE.getBlindEdgeBuffer(blindMethod) + " "
+          + Options.INSTANCE.getBlindCornerBuffer(blindMethod));
     }
     if (solveTime.hasSmartcubeBreakdown()) {
-      sb.append("steps: ").append(SolveStepsFormat.format(solveTime.getSmartcubeSteps())).append('\n');
+      fields.put("steps", SolveStepsFormat.format(solveTime.getSmartcubeSteps()));
     }
     if (solveTime.getSmartcubeStoppedStep() != null) {
-      sb.append("stopped_step: ").append(solveTime.getSmartcubeStoppedStep()).append('\n');
+      fields.put("stopped_step", String.valueOf(solveTime.getSmartcubeStoppedStep()));
     }
     // Last, being the one field nobody reads and by far the longest.
     if (gyroTrack != null && !gyroTrack.isEmpty()) {
-      sb.append("gyro: ").append(gyroTrack).append('\n');
+      fields.put("gyro", gyroTrack);
     }
+    return fields;
+  }
+
+  private static StoredSolveReplay.Result reread(SolveTime solveTime) {
+    return StoredSolveReplay.reinterpret(solveTime.getScramble(), solveTime.getSmartcubeMoves(),
+        SolveTypeMethod.of(solveTime.getSolveType()),
+        SolveTypeMethod.blindMethodOf(solveTime.getSolveType()));
   }
 }

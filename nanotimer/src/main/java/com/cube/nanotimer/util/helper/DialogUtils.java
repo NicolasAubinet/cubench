@@ -26,14 +26,18 @@ import androidx.core.app.ShareCompat;
 import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.ReconstructionReport;
 import com.cube.nanotimer.cube.SolveShareFormat;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.ScrambleFormatterService;
+import com.cube.nanotimer.util.coach.CoachClient;
+import com.cube.nanotimer.util.coach.ReportUploadWorker;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTypeStep;
+import java.io.IOException;
 
 public class DialogUtils {
 
@@ -173,13 +177,19 @@ public class DialogUtils {
 
   /**
    * The other way out, from the breakdown's own "Reconstruction wrong?": says what will leave the
-   * phone, takes the one thing the data cannot say for itself, and sends the lot to the app's
-   * mailbox. A report has a reader of exactly one, so it is addressed rather than offered around.
+   * phone, takes the one thing the data cannot say for itself, and sends the lot to the developer.
+   * It goes straight to the coach service, kept on the phone until it arrives; a build without a
+   * coach address mails it instead, which is the only place the mail route is left.
    */
   public static void reportReconstruction(final Activity activity, final SolveTime solveTime,
       final CubeType cubeType) {
     View body = activity.getLayoutInflater().inflate(R.layout.report_reconstruction_dialog, null);
     final EditText tfComment = (EditText) body.findViewById(R.id.tfReportComment);
+    final EditText tfEmail = (EditText) body.findViewById(R.id.tfReportEmail);
+    final boolean byPost = CoachClient.configured(activity) != null;
+    if (!byPost) {
+      tfEmail.setVisibility(View.GONE); // a mail already says who sent it
+    }
 
     final AlertDialog dialog = new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
         .setTitle(R.string.report_reconstruction)
@@ -187,14 +197,76 @@ public class DialogUtils {
         .setPositiveButton(R.string.share_send_report, null)
         .setNegativeButton(R.string.close, null)
         .show();
-    // Send leaves the dialog up until an app is picked, so backing out of the chooser keeps the comment.
-    closeOnAppChosen(activity, dialog);
+    if (!byPost) {
+      // Send leaves the dialog up until an app is picked, so backing out of the chooser keeps the comment.
+      closeOnAppChosen(activity, dialog);
+    }
     dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        withStoredSmartcubeData(activity, solveTime, cubeType, tfComment.getText().toString().trim(), dialog);
+        final String comment = tfComment.getText().toString().trim();
+        final String email = tfEmail.getText().toString().trim();
+        if (!email.isEmpty() && !email.contains("@")) {
+          tfEmail.setError(activity.getString(R.string.report_reconstruction_email_invalid));
+          return;
+        }
+        withStoredSmartcubeData(activity, solveTime, dialog, new StoredSmartcubeData() {
+          @Override
+          public void with(String gyroTrack, String cube) {
+            if (byPost) {
+              postReport(activity, solveTime, cubeType, gyroTrack, cube, comment, email, dialog);
+            } else {
+              sendReport(activity, solveTime, cubeType, gyroTrack, cube, comment);
+            }
+          }
+        });
       }
     });
+  }
+
+  /**
+   * Builds the report off the main thread, since reading the solve again replays it, keeps it on
+   * the phone and closes. The upload happens in the background, so "sent" is said at once.
+   */
+  private static void postReport(final Activity activity, final SolveTime solveTime,
+      final CubeType cubeType, final String gyroTrack, final String cube, final String comment,
+      final String email, final AlertDialog dialog) {
+    final Button btSend = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+    btSend.setEnabled(false);
+    final Context appContext = activity.getApplicationContext();
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        boolean kept;
+        try {
+          ReportUploadWorker.send(appContext, ReconstructionReport.build(activity, solveTime,
+              cubeType, gyroTrack, cube, comment, email));
+          kept = true;
+        } catch (IOException e) {
+          kept = false;
+        }
+        final boolean sent = kept;
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (sent) {
+              if (dialog.isShowing() && !activity.isFinishing()) {
+                dialog.dismiss(); // the screen may have been left while the report was built
+              }
+              Toast.makeText(appContext, R.string.report_reconstruction_sent, Toast.LENGTH_SHORT).show();
+            } else {
+              btSend.setEnabled(true);
+              Toast.makeText(appContext, R.string.report_reconstruction_not_kept, Toast.LENGTH_LONG).show();
+            }
+          }
+        });
+      }
+    }, "report").start();
+  }
+
+  /** Runs on the main thread once a solve's stored track and cube are read. */
+  private interface StoredSmartcubeData {
+    void with(String gyroTrack, String cube);
   }
 
   private static String reportAppChosenAction(Context context) {
@@ -225,9 +297,9 @@ public class DialogUtils {
   /** The track and the cube are fetched here rather than carried on the solve: the track is
    * kilobytes, and a history screen holds hundreds of solves it would never look at. */
   private static void withStoredSmartcubeData(final Activity activity, final SolveTime solveTime,
-      final CubeType cubeType, final String comment, final AlertDialog dialog) {
+      final AlertDialog dialog, final StoredSmartcubeData then) {
     if (solveTime.getId() <= 0) {
-      sendReport(activity, solveTime, cubeType, null, solveTime.getSmartcubeCube(), comment);
+      then.with(null, solveTime.getSmartcubeCube());
       return;
     }
     final Button btSend = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
@@ -243,7 +315,7 @@ public class DialogUtils {
               public void run() {
                 btSend.setEnabled(true);
                 if (!activity.isFinishing()) {
-                  sendReport(activity, solveTime, cubeType, gyroTrack, cube, comment);
+                  then.with(gyroTrack, cube);
                 }
               }
             });

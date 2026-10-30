@@ -468,8 +468,12 @@
   <string name="share_smartcube_data">Smart cube data:</string>
   <string name="share_send_report">Send report</string>
   <string name="report_reconstruction">Reconstruction wrong?</string>
-  <string name="report_reconstruction_body">This sends the solve to the app\'s developer so the reading can be looked into.</string>
+  <string name="report_reconstruction_body">This sends the solve and your comment to the app\'s developer so the reading can be looked into.</string>
   <string name="report_reconstruction_hint">What did it get wrong?</string>
+  <string name="report_reconstruction_email_hint">Your email (optional, only to reply)</string>
+  <string name="report_reconstruction_email_invalid">That is not an email address</string>
+  <string name="report_reconstruction_sent">Report sent, thanks</string>
+  <string name="report_reconstruction_not_kept">The report could not be saved. Please try again.</string>
   <!-- Never translated and never reworded: the owner filters his mailbox on the tag, so a
        report from a Spanish phone has to carry the same subject as one from an English phone. -->
   <string name="report_reconstruction_subject" translatable="false">[Cubench recon] %1$s %2$s (v%3$s)</string>
@@ -1305,7 +1309,7 @@
   <string name="analysis_plan_point_practice">Practice the cases costing you the most time</string>
   <string name="analysis_plan_point_learn">Learn the algorithms that pay off soonest</string>
   <string name="analysis_plan_point_support">Support Cubench development</string>
-  <string name="analysis_plan_private">Nothing leaves your phone unless you subscribe.</string>
+  <string name="analysis_plan_private">Nothing leaves your phone unless you subscribe or send a report.</string>
   <string name="analysis_plan_cites">A plan is written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>
   <string name="analysis_plan_not_yet">There is no plan here yet. Solve and Cases stay free whatever lands on this tab.</string>
   <string name="coach_written">Read on %1$s</string>

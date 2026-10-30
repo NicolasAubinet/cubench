@@ -41,6 +41,7 @@ public final class CoachClient {
   private final String planUrl;
   private final String practiceUrl;
   private final String redeemUrl;
+  private final String reportUrl;
   private final String token;
   private final String coachId;
   private final CoachAccess access;
@@ -50,6 +51,7 @@ public final class CoachClient {
     this.planUrl = base + "/v1/plan";
     this.practiceUrl = base + "/v1/practice";
     this.redeemUrl = base + "/v1/redeem";
+    this.reportUrl = base + "/v1/reconstruction-report";
     this.token = token;
     this.coachId = coachId;
     this.access = access;
@@ -149,6 +151,39 @@ public final class CoachClient {
     }
   }
 
+  /** What the service said to a report: its status, and the wait it asked for on a 429. */
+  public static final class ReportAnswer {
+    public final int status;
+    /** 0 when the service asked for no particular wait. */
+    public final int retryAfterS;
+
+    ReportAnswer(int status, int retryAfterS) {
+      this.status = status;
+      this.retryAfterS = retryAfterS;
+    }
+  }
+
+  /**
+   * Sends a reconstruction report, which every install may do, subscriber or not. Blocks, like
+   * {@link #requestPlan}.
+   *
+   * @throws IOException when the service could not be reached, which is worth another try
+   */
+  public ReportAnswer postReport(String report) throws IOException {
+    // A report needs no access, so it carries none: the Coach ID is all the policy says it sends.
+    Answer answer = post(reportUrl, report, PRACTICE_READ_TIMEOUT_MS, false);
+    int retryAfterS = 0;
+    if (answer.body != null) {
+      try {
+        JSONObject error = new JSONObject(answer.body).optJSONObject("error");
+        retryAfterS = error == null ? 0 : error.optInt("retry_after_s", 0);
+      } catch (JSONException e) {
+        // Not the service's own answer, so no wait was asked for.
+      }
+    }
+    return new ReportAnswer(answer.status, retryAfterS);
+  }
+
   /**
    * Keeps a "no access" against the purchase that was sent, which is what stops the asking. An
    * install nothing lets in has also lost whatever a code gave it.
@@ -180,6 +215,12 @@ public final class CoachClient {
   }
 
   private Answer post(String url, String requestBody, int readTimeoutMs) throws IOException {
+    return post(url, requestBody, readTimeoutMs, true);
+  }
+
+  /** @param withAccess false sends the Coach ID alone, without the build token or the purchase */
+  private Answer post(String url, String requestBody, int readTimeoutMs, boolean withAccess)
+      throws IOException {
     HttpURLConnection connection = null;
     try {
       byte[] body = requestBody.getBytes(StandardCharsets.UTF_8);
@@ -189,11 +230,11 @@ public final class CoachClient {
       connection.setRequestMethod("POST");
       connection.setDoOutput(true);
       connection.setFixedLengthStreamingMode(body.length);
-      if (!token.isEmpty()) {
+      if (withAccess && !token.isEmpty()) {
         connection.setRequestProperty("Authorization", "Bearer " + token);
       }
       connection.setRequestProperty("Coach-Id", coachId);
-      String purchase = access.getPurchaseToken();
+      String purchase = withAccess ? access.getPurchaseToken() : null;
       if (!CoachAccess.sendable(purchase)) {
         purchase = null;
       }

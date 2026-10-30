@@ -455,8 +455,12 @@
   <string name="share_smartcube_data">Dados do smart cube:</string>
   <string name="share_send_report">Enviar relatório</string>
   <string name="report_reconstruction">Reconstrução incorreta?</string>
-  <string name="report_reconstruction_body">Isto envia a resolução ao desenvolvedor do aplicativo para que a leitura possa ser analisada.</string>
+  <string name="report_reconstruction_body">Isto envia a resolução e o seu comentário ao desenvolvedor do aplicativo para que a leitura possa ser analisada.</string>
   <string name="report_reconstruction_hint">O que ficou errado?</string>
+  <string name="report_reconstruction_email_hint">Seu e-mail (opcional, só para responder)</string>
+  <string name="report_reconstruction_email_invalid">Isso não é um endereço de e-mail</string>
+  <string name="report_reconstruction_sent">Relatório enviado, obrigado</string>
+  <string name="report_reconstruction_not_kept">Não foi possível salvar o relatório. Tente novamente.</string>
   <string name="report_reconstruction_intro">O que a reconstrução interpretou mal? Descreva aqui e envie. Os dados da resolução estão abaixo.</string>
   <string name="report_reconstruction_environment">Cubench %1$s, Android %2$s, %3$s</string>
   <string name="comment">Comentar</string>
@@ -1260,7 +1264,7 @@
   <string name="analysis_plan_point_practice">Pratique os casos que mais tomam seu tempo</string>
   <string name="analysis_plan_point_learn">Aprenda os algoritmos que dão resultado mais cedo</string>
   <string name="analysis_plan_point_support">Apoie o desenvolvimento do Cubench</string>
-  <string name="analysis_plan_private">Nada sai do seu celular a menos que você assine.</string>
+  <string name="analysis_plan_private">Nada sai do seu celular a menos que você assine ou envie um relatório.</string>
   <string name="analysis_plan_cites">Um plano é escrito a partir das suas próprias resoluções, com cada afirmação citando um número que você pode conferir nas outras duas abas.</string>
   <string name="analysis_plan_not_yet">Ainda não há plano aqui. Resolução e Casos continuam gratuitos, aconteça o que acontecer com esta aba.</string>
   <string name="coach_written">Analisado em %1$s</string>
