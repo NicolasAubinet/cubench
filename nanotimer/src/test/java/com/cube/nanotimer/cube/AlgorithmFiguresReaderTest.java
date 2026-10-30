@@ -43,6 +43,16 @@ public class AlgorithmFiguresReaderTest {
     assertTrue(oll.getExtraMoves() > 0);
   }
 
+  /** A turn begun and taken back before the algorithm is a false start, not a second algorithm. */
+  @Test
+  public void countsACaseStartedFalselyAsStandard() {
+    AlgorithmFigures oll = AlgorithmFiguresReader
+        .readFrom(CaseExecutionsTest.solves("F F' " + SUNE + " " + TPERM))
+        .get(AlgorithmFiguresReader.OLL);
+
+    assertFigures(oll, 57, 1, 0);
+  }
+
   @Test
   public void countsACaseOnceHoweverOftenItCameUp() {
     AlgorithmFigures f2l = AlgorithmFiguresReader

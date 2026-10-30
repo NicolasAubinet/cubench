@@ -44,9 +44,12 @@ public final class SolveReading {
    * added each step's turning, version 3 reads the standard OLL 41 and 42 as one algorithm,
    * version 4 makes stall_ms all the time not turning and adds stop_ms, the long pauses in it,
    * version 5 the F2L rotations of a gyro solve, version 6 reads them again now that the solves
-   * come with their gyro tracks (version 5 rows hold none).
+   * come with their gyro tracks (version 5 rows hold none), version 7 stops counting a last layer
+   * false start as one of the step's algorithms.
    */
-  public static final int VERSION = 6;
+  public static final int VERSION = 7;
+
+  private static final String RESTART_PART_SUFFIX = "restart";
 
   /** The F2L step, whose parts are read a pair at a time where a last layer step is read whole. */
   public static final String F2L = "f2l";
@@ -292,7 +295,18 @@ public final class SolveReading {
     AlgorithmExecution read = CaseAlgorithms.read(caseCode, turnedMoves);
     executions.add(new Execution(MethodStatistics.familyOf(caseCode),
         caseCode, step.getTotalMs(), read.getMoves(), read.getUsualMoves(), !read.isUnusual(),
-        Math.max(1, step.getSubSteps().size())));
+        Math.max(1, algorithmsOf(step))));
+  }
+
+  /** The parts that were algorithms: a false start ("ollrestart", "pllrestart") is not one. */
+  private static int algorithmsOf(SolveStep step) {
+    int algorithms = 0;
+    for (SolveStep part : step.getSubSteps()) {
+      if (part.getName() == null || !part.getName().endsWith(RESTART_PART_SUFFIX)) {
+        algorithms++;
+      }
+    }
+    return algorithms;
   }
 
   /** A pair that happened but can be set against nothing: it still counts as a pair. */
