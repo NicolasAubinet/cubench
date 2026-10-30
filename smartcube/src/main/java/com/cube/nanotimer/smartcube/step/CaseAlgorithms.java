@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import com.cube.nanotimer.step.F2lPairCases;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,8 +21,6 @@ import java.util.List;
 public final class CaseAlgorithms {
 
   private static final String PAIR_PREFIX = "pair_";
-  private static final String[] BACK_SLOTS =
-      {F2LBackSlotAlgorithms.BACK_RIGHT, F2LBackSlotAlgorithms.BACK_LEFT};
 
   private CaseAlgorithms() {
   }
@@ -41,20 +40,12 @@ public final class CaseAlgorithms {
 
   /** The back slot a pair is dealt into to be put in without a rotation, or null for none. */
   public static String backSlotOf(String caseCode) {
-    if (!isPair(caseCode)) {
-      return null;
-    }
-    for (String slot : BACK_SLOTS) {
-      if (caseCode.endsWith("_" + slot)) {
-        return slot;
-      }
-    }
-    return null;
+    return F2lPairCases.backSlotOf(caseCode);
   }
 
   /** The pair's case dealt into a back slot, {@code pair_27_br} for {@code pair_27}. */
   public static String inBackSlot(String pairCode, String slot) {
-    return pairCode + "_" + slot;
+    return F2lPairCases.inBackSlot(pairCode, slot);
   }
 
   /** The case a back-slot code deals, {@code pair_27} for {@code pair_27_br}; others unchanged. */

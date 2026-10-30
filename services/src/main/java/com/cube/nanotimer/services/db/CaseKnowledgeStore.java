@@ -1,5 +1,6 @@
 package com.cube.nanotimer.services.db;
 
+import com.cube.nanotimer.step.F2lPairCases;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -130,7 +131,7 @@ public final class CaseKnowledgeStore {
   private static boolean namesACase(String code) {
     String caseName = code == null ? null : MethodStatistics.caseOf(code);
     return caseName != null && !SKIPPED.equals(caseName)
-        && !DB.DRILL_REP_LOOKAHEAD_CASE.equals(code);
+        && !DB.DRILL_REP_LOOKAHEAD_CASE.equals(code) && F2lPairCases.backSlotOf(code) == null;
   }
 
   private static void write(SQLiteDatabase db, String caseSet, String caseName,

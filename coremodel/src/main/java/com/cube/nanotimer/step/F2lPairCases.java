@@ -1,6 +1,7 @@
 package com.cube.nanotimer.step;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,6 +43,31 @@ public final class F2lPairCases {
 
   public static boolean isCase(String code) {
     return ALL.contains(code);
+  }
+
+  /** The back slots a pair is dealt into to be put in without a rotation, as a code spells them. */
+  public static final List<String> BACK_SLOTS =
+      Collections.unmodifiableList(Arrays.asList("br", "bl"));
+
+  /**
+   * A case dealt into a back slot, {@code pair_27_br}: a drill's case of its own, never a solve's,
+   * so no per-case figure or case knowledge is read from one.
+   */
+  public static String inBackSlot(String code, String slot) {
+    return code + "_" + slot;
+  }
+
+  /** The back slot a code deals its pair into, or null for any other code. */
+  public static String backSlotOf(String code) {
+    if (code == null || !code.startsWith(PREFIX)) {
+      return null;
+    }
+    for (String slot : BACK_SLOTS) {
+      if (code.endsWith("_" + slot)) {
+        return slot;
+      }
+    }
+    return null;
   }
 
   private static List<String> stuck() {
