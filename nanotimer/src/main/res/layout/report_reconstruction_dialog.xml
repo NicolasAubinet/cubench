@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- There is nothing to choose here: a solve is reported or it is not, and the field is the one
+<!-- There is nothing to choose here: a solve is reported or it is not, and the comment is the one
      thing the data cannot say for itself. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
@@ -36,5 +36,22 @@
      android:textColorHint="@color/secondary_text"
      android:textSize="15sp"
      android:inputType="textMultiLine|textCapSentences"/>
+
+  <EditText
+     android:id="@+id/tfReportEmail"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/space_s"
+     android:background="@drawable/dialog_time_field"
+     android:paddingLeft="12dp"
+     android:paddingRight="12dp"
+     android:paddingTop="11dp"
+     android:paddingBottom="11dp"
+     android:maxLines="1"
+     android:hint="@string/report_reconstruction_email_hint"
+     android:textColor="@color/white"
+     android:textColorHint="@color/secondary_text"
+     android:textSize="15sp"
+     android:inputType="textEmailAddress"/>
 
 </LinearLayout>

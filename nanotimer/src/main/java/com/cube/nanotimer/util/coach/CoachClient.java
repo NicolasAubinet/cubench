@@ -41,6 +41,7 @@ public final class CoachClient {
   private final String planUrl;
   private final String practiceUrl;
   private final String redeemUrl;
+  private final String reportUrl;
   private final String token;
   private final String coachId;
   private final CoachAccess access;
@@ -50,6 +51,7 @@ public final class CoachClient {
     this.planUrl = base + "/v1/plan";
     this.practiceUrl = base + "/v1/practice";
     this.redeemUrl = base + "/v1/redeem";
+    this.reportUrl = base + "/v1/reconstruction-report";
     this.token = token;
     this.coachId = coachId;
     this.access = access;
@@ -147,6 +149,38 @@ public final class CoachClient {
     } catch (JSONException e) {
       throw new IllegalStateException(e); // a string always goes into an object
     }
+  }
+
+  /** What the service said to a report: its status, and the wait it asked for on a 429. */
+  public static final class ReportAnswer {
+    public final int status;
+    /** 0 when the service asked for no particular wait. */
+    public final int retryAfterS;
+
+    ReportAnswer(int status, int retryAfterS) {
+      this.status = status;
+      this.retryAfterS = retryAfterS;
+    }
+  }
+
+  /**
+   * Sends a reconstruction report, which every install may do, subscriber or not. Blocks, like
+   * {@link #requestPlan}.
+   *
+   * @throws IOException when the service could not be reached, which is worth another try
+   */
+  public ReportAnswer postReport(String report) throws IOException {
+    Answer answer = post(reportUrl, report, PRACTICE_READ_TIMEOUT_MS);
+    int retryAfterS = 0;
+    if (answer.body != null) {
+      try {
+        JSONObject error = new JSONObject(answer.body).optJSONObject("error");
+        retryAfterS = error == null ? 0 : error.optInt("retry_after_s", 0);
+      } catch (JSONException e) {
+        // Not the service's own answer, so no wait was asked for.
+      }
+    }
+    return new ReportAnswer(answer.status, retryAfterS);
   }
 
   /**

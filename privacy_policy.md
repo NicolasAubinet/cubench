@@ -2,7 +2,7 @@
 
 Cubench (formerly Nano Timer) is a free and open source Android app developed by Nicolas Aubinet. The source code is available on GitHub under the GNU GPL v3.0 license. The app is also available on Google Play.
 
-**In short: everything you record stays on your phone. The only exception is the optional paid coach: if you subscribe, a summary of your solve statistics is sent once a week so a practice plan can be written for you. If you do not subscribe, nothing is sent.**
+**In short: everything you record stays on your phone, with two exceptions. If you subscribe to the optional paid coach, a summary of your solve statistics is sent once a week so a practice plan can be written for you. If you report a wrong reconstruction, that one solve is sent. Otherwise nothing is sent.**
 
 # Data on your phone
 
@@ -10,11 +10,19 @@ Your solves, times, smart cube recordings and settings are stored on your device
 
 **Bluetooth and location.** The app uses Bluetooth only to connect to a smart cube. On Android 11 and older, Android requires the location permission for any Bluetooth scan; the app never reads or stores your location.
 
-**Reporting a wrong reconstruction.** If you tap "Reconstruction wrong?", the app prepares an email with that solve's data, which you can read before sending it from your own mail app. I use it only to look into the reconstruction.
+# Reconstruction reports
+
+If a smart cube solve was read wrong, you can tap "Reconstruction wrong?" on it and then Send report. Nothing is sent until you tap Send.
+
+**What is sent.** That one solve: its time, scramble, date and solve type name, its smart cube recording (the moves, their timing and the cube's orientation during the solve), the breakdown as the app showed it, and the name of the cube model. With it go the comment you typed, your email address if you gave one (it is optional, and only used to reply to you), the app version, your phone's model and Android version, and your Coach ID.
+
+**Who processes it, and for how long.** The report goes to the same server as the coach (Google Cloud in Belgium, database by Neon in Germany), which keeps it for 12 months and emails it to my inbox at nanotimercube@gmail.com (Gmail, Google). If the phone is offline, the app keeps the report and sends it when it can; one not sent after 14 days is deleted. Your IP address is handled as for the coach, below. Reports are never sent to Anthropic. I use them only to fix how solves are read, including as test cases for the app.
+
+**Why (legal basis).** You choose to send it (your consent, article 6(1)(a) of the GDPR).
 
 # The coach (optional, paid)
 
-The coach reads your solve statistics and writes you a practice plan every week. It runs on a server, so it is the one part of the app that sends data over the internet. **Nothing is sent unless you subscribe, start the free trial, or enter an access code.** When your subscription or access ends, sending stops.
+The coach reads your solve statistics and writes you a practice plan every week. It runs on a server, which it shares with reconstruction reports; apart from those, it is the one part of the app that sends data over the internet. **Nothing is sent unless you subscribe, start the free trial, or enter an access code.** When your subscription or access ends, sending stops.
 
 **When.** Once a week, in the background, when a new plan is due. Also when you open the Plan tab, to refresh your practice sets.
 
@@ -32,10 +40,10 @@ The coach reads your solve statistics and writes you a practice plan every week.
 
 # Your rights
 
-You can ask for a copy of the data the server holds about you, or for its deletion, by emailing me your Coach ID (Settings, Coach). Everything is deleted after 14 days in any case. You can also file a complaint with your data protection authority.
+You can ask for a copy of the data the server holds about you, or for its deletion, by emailing me your Coach ID (Settings, Coach). Coach data is deleted after 14 days and reconstruction reports after 12 months in any case. You can also file a complaint with your data protection authority.
 
 # Contact
 
 If you have any questions about this privacy policy, you can contact me by email: nanotimercube@gmail.com
 
-Last updated: October 28, 2026
+Last updated: October 30, 2026
