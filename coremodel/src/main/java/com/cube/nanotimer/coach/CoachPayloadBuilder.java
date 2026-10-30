@@ -305,6 +305,18 @@ public class CoachPayloadBuilder {
   }
 
   /**
+   * The F2L rotations figure for {@link CoachPayload#withF2lRotations}, or null under
+   * {@link #SOLVE_FLOOR} gyro solves. Its time excess needs {@link #FAMILY_FLOOR} rotations behind
+   * it, and a case {@link #CASE_FLOOR} pairs.
+   *
+   * @param pairs every F2L pair of the {@link #F2L_MOVE_WINDOW}'s gyro solves; a solve without a
+   *     gyro has none here
+   */
+  public static F2lRotationFigure f2lRotations(List<PairRotation> pairs) {
+    return F2lRotationFigure.of(pairs, SOLVE_FLOOR, FAMILY_FLOOR, CASE_FLOOR);
+  }
+
+  /**
    * The cases standing at any of the given statuses, as codes. Kept to the sets this method's own
    * steps are made
    * of: a payload for one method has no business carrying what the solver knows of another's, and a

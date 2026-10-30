@@ -1,5 +1,6 @@
 package com.cube.nanotimer.cube;
 
+import com.cube.nanotimer.coach.PairRotation;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.AlgorithmForm;
@@ -41,9 +42,10 @@ public final class SolveReading {
    * Bump on any change to how a solve is read: the stepping, the algorithm lists, or what counts
    * as one of them. Rows written by another version are read again rather than believed. Version 2
    * added each step's turning, version 3 reads the standard OLL 41 and 42 as one algorithm,
-   * version 4 makes stall_ms all the time not turning and adds stop_ms, the long pauses in it.
+   * version 4 makes stall_ms all the time not turning and adds stop_ms, the long pauses in it,
+   * version 5 the F2L rotations of a gyro solve.
    */
-  public static final int VERSION = 4;
+  public static final int VERSION = 5;
 
   /** The F2L step, whose parts are read a pair at a time where a last layer step is read whole. */
   public static final String F2L = "f2l";
@@ -51,6 +53,7 @@ public final class SolveReading {
   private final List<Execution> executions;
   private final List<Turning> turnings;
   private final boolean whole;
+  private final List<PairRotation> rotations;
 
   /**
    * @param turnings each step as it was turned, in solving order
@@ -58,9 +61,16 @@ public final class SolveReading {
    *     a solve stopped inside a step leaves that step out
    */
   public SolveReading(List<Execution> executions, List<Turning> turnings, boolean whole) {
+    this(executions, turnings, whole, Collections.<PairRotation>emptyList());
+  }
+
+  /** @param rotations each F2L pair's rotations, empty for a solve with no gyro track */
+  public SolveReading(List<Execution> executions, List<Turning> turnings, boolean whole,
+      List<PairRotation> rotations) {
     this.executions = Collections.unmodifiableList(new ArrayList<Execution>(executions));
     this.turnings = Collections.unmodifiableList(new ArrayList<Turning>(turnings));
     this.whole = whole;
+    this.rotations = Collections.unmodifiableList(new ArrayList<PairRotation>(rotations));
   }
 
   /** Executions alone, with no step read. */
@@ -78,6 +88,11 @@ public final class SolveReading {
 
   public boolean isWhole() {
     return whole;
+  }
+
+  /** Each F2L pair's rotations ({@link F2lRotations}), empty where the solve has no gyro track. */
+  public List<PairRotation> getRotations() {
+    return rotations;
   }
 
   public boolean isEmpty() {
@@ -214,7 +229,8 @@ public final class SolveReading {
   public static SolveReading read(SolveTime solve) {
     final List<Execution> executions = new ArrayList<Execution>();
     final List<Turning> turnings = new ArrayList<Turning>();
-    boolean whole = CaseExecutions.readSteps(solve, new CaseExecutions.StepReader() {
+    CaseExecutions.Replay replay = CaseExecutions.replay(solve);
+    boolean whole = CaseExecutions.readSteps(replay, new CaseExecutions.StepReader() {
       @Override
       public void read(SolveStep step, SolveSolution.Step turned) {
         if (!SolveBreakdown.UNFINISHED_STEP.equals(step.getName())) { // after a stop inside PLL
@@ -229,7 +245,11 @@ public final class SolveReading {
         }
       }
     });
-    return new SolveReading(executions, turnings, whole);
+    List<PairRotation> rotations = !whole || solve.getSmartcubeGyroTrack() == null
+        ? Collections.<PairRotation>emptyList()
+        : F2lRotations.read(solve.getId(), replay.getMoves(), replay.getSteps(),
+            GyroTrackFormat.parse(solve.getSmartcubeGyroTrack()));
+    return new SolveReading(executions, turnings, whole, rotations);
   }
 
   private static void readPairs(SolveStep step, SolveSolution.Step turned,
@@ -310,6 +330,21 @@ public final class SolveReading {
       json.put("executions", executions);
       json.put("steps", steps);
       json.put("whole", reading.whole);
+      if (!reading.rotations.isEmpty()) {
+        JSONArray rotations = new JSONArray();
+        for (PairRotation pair : reading.rotations) {
+          JSONObject one = new JSONObject();
+          if (pair.getCaseCode() != null) {
+            one.put("case", pair.getCaseCode());
+          }
+          one.put("basic", pair.isBasic());
+          one.put("rotations", pair.getRotations());
+          one.put("start", gaps(pair.getStart()));
+          one.put("inside", gaps(pair.getInside()));
+          rotations.put(one);
+        }
+        json.put("rotations", rotations);
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write a solve reading", e);
@@ -321,6 +356,11 @@ public final class SolveReading {
    *     solve again rather than by failing: a reading is a cache and never the only copy
    */
   public static SolveReading parse(String text) {
+    return parse(text, 0);
+  }
+
+  /** As above, for the solve the reading was kept for, whose id its pairs' rotations carry. */
+  public static SolveReading parse(String text, long solveId) {
     List<Execution> executions = new ArrayList<Execution>();
     List<Turning> turnings = new ArrayList<Turning>();
     try {
@@ -339,10 +379,27 @@ public final class SolveReading {
             json.getInt("moves"), json.getInt("stalls"), json.getLong("stall_ms"),
             json.getLong("stop_ms")));
       }
-      return new SolveReading(executions, turnings, reading.getBoolean("whole"));
+      List<PairRotation> rotations = new ArrayList<PairRotation>();
+      array = reading.optJSONArray("rotations");
+      for (int i = 0; array != null && i < array.length(); i++) {
+        JSONObject json = array.getJSONObject(i);
+        rotations.add(new PairRotation(solveId, json.optString("case", null),
+            json.getBoolean("basic"), json.getInt("rotations"),
+            gaps(json.getJSONArray("start")), gaps(json.getJSONArray("inside"))));
+      }
+      return new SolveReading(executions, turnings, reading.getBoolean("whole"), rotations);
     } catch (JSONException e) {
       return null;
     }
+  }
+
+  private static JSONArray gaps(PairRotation.Gaps gaps) {
+    return new JSONArray().put(gaps.getRotated()).put(gaps.getRotatedMs()).put(gaps.getPlain())
+        .put(gaps.getPlainMs());
+  }
+
+  private static PairRotation.Gaps gaps(JSONArray json) throws JSONException {
+    return new PairRotation.Gaps(json.getInt(0), json.getLong(1), json.getInt(2), json.getLong(3));
   }
 
 }

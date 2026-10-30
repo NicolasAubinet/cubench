@@ -6,9 +6,11 @@ import com.cube.nanotimer.Options;
 import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.PairExecution;
+import com.cube.nanotimer.coach.PairRotation;
 import com.cube.nanotimer.coach.StepTurning;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.cube.F2lHabitReader;
+import com.cube.nanotimer.cube.F2lRotationReader;
 import com.cube.nanotimer.cube.LastLayerHabitReader;
 import com.cube.nanotimer.cube.SolveReading;
 import com.cube.nanotimer.cube.SolveReadings;
@@ -176,7 +178,8 @@ final class CoachAsk {
    */
   private void read() {
     if (method != CubeMethod.CFOP) {
-      build(Collections.<PairExecution>emptyList(), Collections.<StepTurning>emptyList());
+      build(Collections.<PairExecution>emptyList(), Collections.<StepTurning>emptyList(),
+          Collections.<PairRotation>emptyList());
       return;
     }
     App.INSTANCE.getService().getMethodSolves(solveType, method,
@@ -192,16 +195,18 @@ final class CoachAsk {
                     List<PairExecution> executions = F2lHabitReader.readFrom(solves, readings);
                     executions.addAll(LastLayerHabitReader.readFrom(solves, readings));
                     List<StepTurning> turnings = TurningReader.readFrom(solves, readings);
+                    List<PairRotation> rotations = F2lRotationReader.readFrom(solves, readings);
                     App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
                         SolveReading.VERSION, null);
-                    build(executions, turnings);
+                    build(executions, turnings, rotations);
                   }
                 });
           }
         });
   }
 
-  private void build(List<PairExecution> executions, List<StepTurning> turnings) {
+  private void build(List<PairExecution> executions, List<StepTurning> turnings,
+      final List<PairRotation> rotations) {
     App.INSTANCE.getService().getCoachPayload(solveType, method, executions, turnings,
         new DataCallback<CoachPayload>() {
           @Override
@@ -210,7 +215,9 @@ final class CoachAsk {
               @Override
               public void onData(String stream) {
                 String body = CoachClient.requestBody(
-                    payload.withLanguage(Utils.appLanguage(App.INSTANCE.getContext())), stream);
+                    payload.withLanguage(Utils.appLanguage(App.INSTANCE.getContext()))
+                        .withF2lRotations(CoachPayloadBuilder.f2lRotations(rotations)),
+                    stream);
                 // Kept before it leaves, so a request the process dies on is still the one resent.
                 Options.INSTANCE.setCoachPendingRequest(solveType.getId(), body);
                 send(body);

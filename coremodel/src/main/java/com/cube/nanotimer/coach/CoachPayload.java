@@ -33,9 +33,9 @@ public class CoachPayload {
    * layer's moves over the usual algorithms, 7 the OLL step split by one look and two, 8 the last
    * plan and the solves since it, 9 the two-look PLL count and the PLL step split the same way, 10
    * the language the plan is to be written in, 11 nothing new but that the app runs a look-ahead
-   * drill ({@link #LOOKAHEAD_DRILL_VERSION}); an older payload is still read, and is simply
-   * missing them. */
-  public static final int VERSION = 11;
+   * drill ({@link #LOOKAHEAD_DRILL_VERSION}), 12 the F2L rotations of gyro solves; an older payload
+   * is still read, and is simply missing them. */
+  public static final int VERSION = 12;
 
   /** The first payload from an app that runs a look-ahead drill, which needs drill spec 6. */
   public static final int LOOKAHEAD_DRILL_VERSION = 11;
@@ -70,6 +70,7 @@ public class CoachPayload {
   private final Integer twoLookPllCount;
   private final List<StepFigure> pllLooks;
   private final String language;
+  private final F2lRotationFigure f2lRotations;
 
   /**
    * @param solve the whole solve's figures, or null when the window holds too few to quote
@@ -245,6 +246,27 @@ public class CoachPayload {
       List<TurningFigure> turning, Integer turningWindow, List<MoveFigure> llMoves,
       List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
       PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks, String language) {
+    this(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow, twoLookCount, solve,
+        families, parts, cases, drillCases, comparisons, knownCases, learningCases, toLearnCases,
+        f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning, turningWindow, llMoves, llHabits,
+        llMoveWindow, ollLooks, previous, twoLookPllCount, pllLooks, language, null);
+  }
+
+  /**
+   * As above, with the F2L rotations of the window's gyro solves ({@link #getF2lRotations}), or null
+   * where there were too few.
+   */
+  public CoachPayload(int schemaVersion, String puzzle, String method, int familyWindow,
+      int caseWindow, int drillWindow, Integer twoLookCount, StepFigure solve,
+      List<StepFigure> families, List<StepFigure> parts, List<StepFigure> cases,
+      List<StepFigure> drillCases, List<CaseComparison> comparisons, List<String> knownCases,
+      List<String> learningCases, List<String> toLearnCases, List<StepFigure> f2lGroups,
+      MoveFigure f2lMoves, List<MoveFigure> f2lHabits, Integer f2lMoveWindow,
+      List<TurningFigure> turning, Integer turningWindow, List<MoveFigure> llMoves,
+      List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
+      PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks, String language,
+      F2lRotationFigure f2lRotations) {
+    this.f2lRotations = f2lRotations;
     this.language = language == null ? null : CoachGlossary.Language.of(language).code();
     this.twoLookPllCount = twoLookPllCount;
     this.pllLooks = unmodifiable(pllLooks);
@@ -503,7 +525,28 @@ public class CoachPayload {
         twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
         learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
         turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
-        pllLooks, code);
+        pllLooks, code, f2lRotations);
+  }
+
+  /**
+   * This payload with the F2L rotations of the move window's gyro solves, built by
+   * {@link CoachPayloadBuilder#f2lRotations}. Added after the build because only the app can read a
+   * gyro track, as with the pairs.
+   */
+  public CoachPayload withF2lRotations(F2lRotationFigure rotations) {
+    return new CoachPayload(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow,
+        twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
+        learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
+        turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
+        pllLooks, language, rotations);
+  }
+
+  /**
+   * How often the solver rotates during F2L and what it costs them, or null: too few gyro solves,
+   * a cube with no gyro, or a payload written before version 12. Not measured, and never none.
+   */
+  public F2lRotationFigure getF2lRotations() {
+    return f2lRotations;
   }
 
   /**
@@ -533,7 +576,8 @@ public class CoachPayload {
    * {@code f2l_moves.extra_moves}, {@code f2l_habits.pair_27.off_list_rate},
    * {@code turning.cross.stall_ms}, {@code turning.solve.moves}, {@code ll_moves.pll.extra_moves},
    * {@code ll_habits.pll_rb.off_list_rate}, {@code oll_looks.two_look.mean_ms},
-   * {@code pll_looks.one_look.mean_ms}, and under
+   * {@code pll_looks.one_look.mean_ms}, {@code f2l_rotations.rotated_pairs},
+   * {@code f2l_rotation_cases.pair_27.rotated}, and under
    * {@code previous.} what {@link PreviousPlan#value} answers.
    *
    * <p>A case set answers how many cases are in it and whether a named one is among them, which is
@@ -554,6 +598,9 @@ public class CoachPayload {
     }
     if (segments.length == 2 && "solve".equals(segments[0])) {
       return solve == null ? null : field(solve, segments[1]);
+    }
+    if (segments.length == 2 && "f2l_rotations".equals(segments[0])) {
+      return f2lRotations == null ? null : f2lRotations.field(segments[1]);
     }
     if (segments.length == 2 && "f2l_moves".equals(segments[0])) {
       return f2lMoves == null ? null : f2lMoves.field(segments[1]);
@@ -576,6 +623,11 @@ public class CoachPayload {
     if ("comparisons".equals(segments[0])) {
       CaseComparison comparison = comparison(segments[1]);
       return comparison == null ? null : field(comparison, segments[2]);
+    }
+    if ("f2l_rotation_cases".equals(segments[0])) {
+      F2lRotationFigure.Case rotated =
+          f2lRotations == null ? null : f2lRotations.getCase(segments[1]);
+      return rotated == null ? null : rotated.field(segments[2]);
     }
     if ("f2l_habits".equals(segments[0])) {
       MoveFigure habit = move(f2lHabits, segments[1]);
@@ -752,7 +804,8 @@ public class CoachPayload {
         || figure(cases, code) != null || figure(drillCases, code) != null
         || comparison(code) != null || knownCases.contains(code) || learningCases.contains(code)
         || toLearnCases.contains(code) || figure(f2lGroups, code) != null
-        || move(f2lHabits, code) != null || move(llHabits, code) != null;
+        || move(f2lHabits, code) != null || move(llHabits, code) != null
+        || f2lRotations != null && f2lRotations.getCase(code) != null;
   }
 
   /** Is there enough here to say anything at all? */
@@ -833,6 +886,9 @@ public class CoachPayload {
       if (language != null) {
         json.put("language", language);
       }
+      if (f2lRotations != null) {
+        json.put("f2l_rotations", f2lRotations.toJson());
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write coach payload", e);
@@ -892,7 +948,9 @@ public class CoachPayload {
           json.has("previous") ? PreviousPlan.fromJson(json.getJSONObject("previous")) : null,
           json.has("two_look_pll_count")
               ? Integer.valueOf(json.getInt("two_look_pll_count")) : null,
-          figures(json, "pll_looks"), json.optString("language", null));
+          figures(json, "pll_looks"), json.optString("language", null),
+          json.has("f2l_rotations")
+              ? F2lRotationFigure.fromJson(json.getJSONObject("f2l_rotations")) : null);
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a coach payload: " + e.getMessage(), e);
     }

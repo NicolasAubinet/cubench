@@ -210,18 +210,32 @@ public final class CaseExecutions {
    *     was read adds up to the whole solve
    */
   static boolean readSteps(SolveTime solve, StepReader reader) {
+    return readSteps(replay(solve), reader);
+  }
+
+  /** The solve read again as CFOP, or null where it is not a CFOP solve or cannot be read. */
+  static Replay replay(SolveTime solve) {
     CubeMethod method = SolveTypeMethod.of(solve.getSolveType());
     if (method != CubeMethod.CFOP) {
       // only CFOP is solved in these cases: nothing else would be read, it would be guessed
-      return false;
+      return null;
     }
     StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solve.getScramble(),
         solve.getSmartcubeMoves(), method, SolveTypeMethod.blindMethodOf(solve.getSolveType()));
     if (reread == null) {
+      return null;
+    }
+    return new Replay(reread, SolveBreakdown.withTail(reread.getSteps(), reread.getStoppedStep(),
+        SolveBreakdown.solvingDurationMs(solve), reread.getMoves(), reread.getMethod()));
+  }
+
+  /** As above, from a replay already made, or none read where it is null. */
+  static boolean readSteps(Replay replay, StepReader reader) {
+    if (replay == null) {
       return false;
     }
-    List<SolveStep> steps = SolveBreakdown.withTail(reread.getSteps(), reread.getStoppedStep(),
-        SolveBreakdown.solvingDurationMs(solve), reread.getMoves(), reread.getMethod());
+    StoredSolveReplay.Result reread = replay.reread;
+    List<SolveStep> steps = replay.steps;
     SolveSolution solution = SolveSolution.from(reread.getMoves(), steps);
     for (int i = 0; i < steps.size() && i < solution.getSteps().size(); i++) {
       if (reread.getStoppedStep() != null
@@ -270,6 +284,26 @@ public final class CaseExecutions {
     /** Whether it went in with one of the case's listed algorithms. */
     boolean isListed() {
       return !execution.isUnusual();
+    }
+  }
+
+  /** A solve read again, with its steps as they are displayed. */
+  static final class Replay {
+
+    private final StoredSolveReplay.Result reread;
+    private final List<SolveStep> steps;
+
+    private Replay(StoredSolveReplay.Result reread, List<SolveStep> steps) {
+      this.reread = reread;
+      this.steps = steps;
+    }
+
+    String getMoves() {
+      return reread.getMoves();
+    }
+
+    List<SolveStep> getSteps() {
+      return steps;
     }
   }
 

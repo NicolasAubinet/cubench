@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.coach.PairExecution;
+import com.cube.nanotimer.coach.PairRotation;
 import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -126,6 +127,35 @@ public class SolveReadingTest {
     assertEquals(1, round.size());
     assertTrue(round.get(0).isListed());
     assertEquals(2, round.get(0).getAlgorithms());
+  }
+
+  /** A gyro solve's rotations come back with the solve they were kept for. */
+  @Test
+  public void keepsEachPairsRotationsUnderItsSolve() {
+    PairRotation kept = new PairRotation(0, "pair_27", true, 2,
+        new PairRotation.Gaps(1, 1100, 0, 0), new PairRotation.Gaps(1, 600, 5, 900));
+    SolveReading round = SolveReading.parse(SolveReading.toJson(new SolveReading(
+        Collections.<SolveReading.Execution>emptyList(),
+        Collections.<SolveReading.Turning>emptyList(), true, Collections.singletonList(kept))), 42);
+
+    assertEquals(1, round.getRotations().size());
+    PairRotation pair = round.getRotations().get(0);
+    assertEquals(42, pair.getSolveId());
+    assertEquals("pair_27", pair.getCaseCode());
+    assertTrue(pair.isBasic());
+    assertEquals(2, pair.getRotations());
+    assertEquals(1100, pair.getStart().getRotatedMs());
+    assertEquals(5, pair.getInside().getPlain());
+    assertEquals(900, pair.getInside().getPlainMs());
+  }
+
+  /** A solve with no gyro track keeps no rotations, which is not a solve of none. */
+  @Test
+  public void keepsNoRotationsForASolveWithoutAGyro() {
+    SolveReading fresh = SolveReading.read(solves().get(0));
+
+    assertTrue(fresh.getRotations().isEmpty());
+    assertFalse(SolveReading.toJson(fresh).contains("rotations"));
   }
 
   @Test
