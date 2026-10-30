@@ -2035,7 +2035,7 @@ public class ServiceProviderImpl implements ServiceProvider {
    */
   @Override
   public CaseHistory getCaseHistory(int solves) {
-    return new CaseHistory(CaseKnowledgeStore.read(db), smartcubeSolves(null, null, solves));
+    return new CaseHistory(CaseKnowledgeStore.read(db), smartcubeSolves(null, null, solves, false));
   }
 
   /**
@@ -2059,15 +2059,16 @@ public class ServiceProviderImpl implements ServiceProvider {
       where.append(i == 0 ? "?" : ",?");
     }
     where.append("))");
-    return smartcubeSolves(where.toString(), codes.toArray(new String[0]), solves);
+    return smartcubeSolves(where.toString(), codes.toArray(new String[0]), solves, false);
   }
 
+  /** With their gyro tracks: a solve's reading counts its F2L rotations from the track. */
   @Override
   public List<SolveTime> getMethodSolves(SolveType solveType, CubeMethod method, int lastSolves) {
     String and = " AND h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
         + " AND h." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?";
     return smartcubeSolves(and, new String[] { String.valueOf(solveType.getId()), method.getCode() },
-        Math.max(0, lastSolves));
+        Math.max(0, lastSolves), true);
   }
 
   @Override
@@ -2086,8 +2087,11 @@ public class ServiceProviderImpl implements ServiceProvider {
    * <p><b>They come without their recorded steps.</b> What is wanted from them is the moves, and a
    * caller reading those reads the breakdown again from the scramble anyway; fetching the stored
    * steps would be a query per solve for something nothing here looks at.
+   *
+   * @param withGyro whether to load each solve's gyro track too, about 5 KB a solve
    */
-  private List<SolveTime> smartcubeSolves(String and, String[] args, int solves) {
+  private List<SolveTime> smartcubeSolves(String and, String[] args, int solves,
+      boolean withGyro) {
     StringBuilder q = new StringBuilder();
     q.append("SELECT h.").append(DB.COL_ID);
     q.append("     , h.").append(DB.COL_TIMEHISTORY_TIME);
@@ -2103,6 +2107,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , t.").append(DB.COL_SOLVETYPE_SCRAMBLE_TYPE);
     q.append("     , t.").append(DB.COL_SOLVETYPE_CUBETYPE_ID);
     q.append("     , t.").append(DB.COL_SOLVETYPE_METHOD);
+    if (withGyro) {
+      q.append("     , h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_GYRO);
+    }
     q.append("  FROM ").append(DB.TABLE_TIMEHISTORY).append(" h");
     q.append("  JOIN ").append(DB.TABLE_SOLVETYPE).append(" t");
     q.append("    ON t.").append(DB.COL_ID).append(" = h.").append(DB.COL_TIMEHISTORY_SOLVETYPE_ID);
@@ -2134,6 +2141,9 @@ public class ServiceProviderImpl implements ServiceProvider {
             cursor.getString(11)), cubeTypeId);
         setMethodCode(solveType, cursor.getString(13));
         st.setSolveType(solveType);
+        if (withGyro && !cursor.isNull(14)) {
+          st.setSmartcubeGyroTrack(cursor.getString(14));
+        }
         history.add(st);
       }
       cursor.close();

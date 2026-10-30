@@ -43,9 +43,10 @@ public final class SolveReading {
    * as one of them. Rows written by another version are read again rather than believed. Version 2
    * added each step's turning, version 3 reads the standard OLL 41 and 42 as one algorithm,
    * version 4 makes stall_ms all the time not turning and adds stop_ms, the long pauses in it,
-   * version 5 the F2L rotations of a gyro solve.
+   * version 5 the F2L rotations of a gyro solve, version 6 reads them again now that the solves
+   * come with their gyro tracks (version 5 rows hold none).
    */
-  public static final int VERSION = 5;
+  public static final int VERSION = 6;
 
   /** The F2L step, whose parts are read a pair at a time where a last layer step is read whole. */
   public static final String F2L = "f2l";
