@@ -1416,6 +1416,7 @@
   <string name="coach_reason_stuck_pieces">Pièces coincées dans d\'autres slots</string>
   <string name="coach_reason_slow_first_pair">Une première paire lente</string>
   <string name="coach_reason_unknown">Autre chose à travailler</string>
+  <string name="coach_update_app">Mettre à jour Cubench pour tout voir</string>
   <string name="coach_case_mean">%1$s contre %2$s pour les autres</string>
   <string name="coach_case_cost">%1$d fois, %2$s perdues</string>
   <string name="coach_case_gap">%1$s en drill, %2$s de plus en résolution</string>

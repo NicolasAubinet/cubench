@@ -1,10 +1,12 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
@@ -74,6 +76,9 @@ import com.cube.nanotimer.util.view.StepPalette;
  * than whatever is sending to it, and a card that refused would take the whole plan down.
  */
 public class CoachPlanView {
+
+  /** The id the store knows the app by, whatever suffix this build carries. */
+  private static final String RELEASE_PACKAGE = "com.cube.nanotimer";
 
   /** What the teaser draws: the families the service sends sets for, at a full set's size. */
   private static final String[] TEASER_FAMILIES = {"oll", "pll"};
@@ -527,6 +532,9 @@ public class CoachPlanView {
     }
 
     DrillSpec drill = bindDrill(card, area, undealable);
+    if (drill == null && needsUpdate(area)) {
+      bindUpdate(card);
+    }
     // Every case the drill deals is shown: a card naming some gets rows for the rest, a card about
     // a step gets the charts. Not for a cross or a pair drill, which have no flat picture to show.
     if (drill != null && drill.getType() != DrillSpec.Type.CROSS
@@ -949,6 +957,50 @@ public class CoachPlanView {
       }
     });
     return spec;
+  }
+
+  /** Whether the card was written for a newer app: a focus or a drill this one cannot read. */
+  private static boolean needsUpdate(FocusArea area) {
+    if (area.getReason() == null) {
+      return true;
+    }
+    if (area.getDrill() == null) {
+      return false;
+    }
+    try {
+      DrillSpec.fromJson(area.getDrill());
+      return false;
+    } catch (IllegalArgumentException e) {
+      return true; // the server parses its drills as this class does, so a refusal is a newer drill
+    }
+  }
+
+  /** The drill button turned into a way to the store page. */
+  private void bindUpdate(View card) {
+    Button button = card.findViewById(R.id.buCoachAreaDrill);
+    button.setVisibility(View.VISIBLE);
+    button.setText(withMark(button, R.drawable.ic_app_update, R.string.coach_update_app));
+    button.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        openStorePage();
+      }
+    });
+  }
+
+  /** The store app where there is one, its web page otherwise. */
+  private void openStorePage() {
+    try {
+      activity.startActivity(new Intent(Intent.ACTION_VIEW,
+          Uri.parse("market://details?id=" + RELEASE_PACKAGE)));
+    } catch (ActivityNotFoundException e) {
+      try {
+        activity.startActivity(new Intent(Intent.ACTION_VIEW,
+            Uri.parse("https://play.google.com/store/apps/details?id=" + RELEASE_PACKAGE)));
+      } catch (ActivityNotFoundException none) {
+        DialogUtils.showInfoMessage(activity, R.string.could_not_launch_market);
+      }
+    }
   }
 
   /**
