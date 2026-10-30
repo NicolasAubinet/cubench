@@ -186,7 +186,7 @@ public final class SolveSolution {
    * A stumble only adds slow gaps, so it barely moves this. Gaps under the floor are turns made
    * at once.
    */
-  static long turnMsOf(List<Move> moves) {
+  public static long turnMsOf(List<Move> moves) {
     List<Long> gaps = new ArrayList<Long>();
     Move previous = null;
     for (Move move : moves) {

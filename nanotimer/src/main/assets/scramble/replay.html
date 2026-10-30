@@ -8,9 +8,10 @@
   3D; scramble.html forces visualization="2D" for its diagrams.
 
   Java -> JS surface:
-    ntReplayLoad(puzzle, setupAlg, moves, solveMs)
+    ntReplayLoad(puzzle, setupAlg, moves, solveMs, turnMs)
         moves   = [{m:"R'", t:180}, ...], t = ms from solve start
         solveMs = the length the position is reported against (see displayMs)
+        turnMs  = how long one of this solve's turns takes, as its step bar draws them
     ntReplayPlay()  ntReplayPause()  ntReplaySpeed(x)
     ntReplaySeek(ms)  ms is a moment of the SOLVE, as onState reports it, never the
                       replay's own clock: the two are not the same scale
@@ -64,21 +65,19 @@
 <div id="host"></div>
 <script>
 (function () {
-  // No turn is drawn slower than this, however long the solver thought before it. A turn ends on
-  // its timestamp, so this is also how much of the preceding recognition it occupies: too generous
-  // a cap and a short recognition shows no pause at all. Real quarter turns land near 150 ms.
-  var MAX_TURN_MS = 160;
-  // ...and none faster than this, however quickly it was really made: a turn given 20 ms is a
+  // How long a turn is drawn: the solve's own turn time, the one its step bar draws turns with
+  // (SolveSolution.turnMsOf), so the cube moves exactly where the bar is solid. Set on load.
+  var turnMs = 150;
+  // No turn is drawn faster than this, however quickly it was really made: a turn given 20 ms is a
   // flicker nobody can read.
   var MIN_TURN_MS = 90;
   // A whole-cube rotation moves every piece at once and needs longer to read than a face turn.
   // It is also the case that most needs the room: a rotation is recorded hard against the move it
-  // precedes, so by its raw offsets it would get almost none and simply snap.
+  // precedes, so by its raw offsets it would get almost none and simply snap. The bar gives it two
+  // turn times.
   var MIN_ROTATION_MS = 170;
-  // A rotation is a bigger motion and is allowed a little longer than a face turn.
-  var MAX_ROTATION_MS = 220;
   // A beat on the solved cube at the end, so the last turn is not the final frame.
-  var TAIL_MS = MAX_TURN_MS;
+  var TAIL_MS = 160;
   // How often the position is handed to the app. Crossing into Java is the one costly thing in the
   // render loop, measured at ~0.8 ms a call, so this is not every frame; but the app shows the
   // position to hundredths, and the old 100 ms let it step by no less than 0.10.
@@ -442,9 +441,16 @@
       totalMs = 0;
       return;
     }
+    var caps = [];
     var floors = [];
     for (var i = 0; i < n; i++) {
-      floors.push(isRotation(tokens[i]) ? MIN_ROTATION_MS : MIN_TURN_MS);
+      var rotation = isRotation(tokens[i]);
+      caps.push(rotation ? Math.max(2 * turnMs, MIN_ROTATION_MS) : Math.max(turnMs, MIN_TURN_MS));
+      // A turn stamped with the rotation before it gets its whole turn time, as on the bar; the
+      // rotation's room then comes from the slack before both.
+      var afterRotation = !rotation && i > 0 && isRotation(tokens[i - 1])
+          && realMs[i - 1] === realMs[i];
+      floors.push(rotation ? MIN_ROTATION_MS : afterRotation ? caps[i] : MIN_TURN_MS);
       realAt.push(realMs[i] - realMs[0]);
     }
     var at = realAt.slice();
@@ -457,8 +463,7 @@
     var lead = floors[0]; // the first turn needs room of its own to run into
     for (var k = 0; k < n; k++) {
       doneAt.push(at[k] - at[0] + lead);
-      var cap = isRotation(tokens[k]) ? MAX_ROTATION_MS : MAX_TURN_MS;
-      anims.push(Math.min(k === 0 ? lead : at[k] - at[k - 1], cap));
+      anims.push(Math.min(k === 0 ? lead : at[k] - at[k - 1], caps[k]));
     }
     totalMs = doneAt[n - 1] + TAIL_MS;
   }
@@ -472,7 +477,8 @@
     }
   }
 
-  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs) {
+  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs, solveTurnMs) {
+    turnMs = solveTurnMs > 0 ? solveTurnMs : 150;
     pause();
     readyNotified = false;
     poses = []; // the previous solve's, if the dialog is reused; the new one's arrive separately

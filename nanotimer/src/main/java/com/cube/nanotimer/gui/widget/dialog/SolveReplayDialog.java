@@ -458,8 +458,9 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     } catch (JSONException e) {
       return; // nothing sane to play; the spinner times out and the cube stays at the scramble
     }
+    // The turn time the step bar draws with, so the cube turns where the bar is solid.
     evaluate("window.ntReplayLoad(" + JSONObject.quote(puzzleId) + "," + JSONObject.quote(scramble)
-        + "," + arr + "," + solveMs + ");");
+        + "," + arr + "," + solveMs + "," + SolveSolution.turnMsOf(moves) + ");");
   }
 
   /** BuildConfig is not generated for this module, and the manifest flag says the same thing. */
