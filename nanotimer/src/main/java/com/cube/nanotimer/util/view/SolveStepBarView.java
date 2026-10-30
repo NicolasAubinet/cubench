@@ -249,7 +249,9 @@ public class SolveStepBarView extends View {
     float x = xAt(Math.max(0f, Math.min(1f, playhead)));
     paint.setColor(Color.WHITE);
     paint.setAlpha(255);
-    canvas.drawRect(Math.min(x, getWidth() - w), 0, Math.min(x + w, getWidth()), height, paint);
+    // Centred on the moment: drawn from it, the strip read ~70 ms ahead, wider than a turn's zone.
+    float left = Math.max(0f, Math.min(x - w / 2, getWidth() - w));
+    canvas.drawRect(left, 0, left + w, height, paint);
   }
 
   private float xAt(float fraction) {
