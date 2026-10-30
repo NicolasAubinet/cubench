@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The cross's mean stops over a window's solves, for the bars that draw a solve type's averages:
- * the stops a solve's own bar pales inside its cross, averaged. Read off the kept readings the
+ * The cross's mean pause time over a window's solves, for the bars that draw a solve type's
+ * averages: what a solve's own bar pales inside its cross, averaged. Read off the kept readings the
  * coach's stall figures come from, so a solve already read costs nothing.
  */
 public final class CrossPauses {

@@ -93,10 +93,11 @@ public class SolveStepBarView extends View {
   }
 
   /**
-   * Pales the stops inside the first step's turning, as its thinking. The first step was planned
-   * in inspection, so a stop in it is where the plan ran out: the cross's own recognition.
+   * Pales the time between turns inside the first step, as its thinking. The first step was
+   * planned in inspection, so time not turning in it is where the plan ran out: the cross's own
+   * recognition.
    *
-   * @param pauses each stop as {from, to}, in milliseconds since the solve started, in order
+   * @param pauses each pause as {from, to}, in milliseconds since the solve started, in order
    */
   public void setFirstStepPauses(List<long[]> pauses) {
     this.firstStepPauses = pauses;

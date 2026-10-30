@@ -1479,7 +1479,7 @@
   <string name="coach_reason_long_pair">F2L pairs taking extra moves</string>
   <string name="coach_long_pair_body">Over %1$d solves, your F2L took %2$s moves where the usual algorithms for its pairs add up to %3$s.</string>
   <string name="coach_reason_stalling">Freezes while turning</string>
-  <string name="coach_stalling_body">%1$s: %2$s freezes a solve while turning, adding up to %3$s of its %4$s.</string>
+  <string name="coach_stalling_body">%1$s: %2$s freezes a solve; %3$s of its %4$s spent not turning.</string>
   <string name="coach_reason_uneven_step">Uneven from solve to solve</string>
   <string name="coach_uneven_body">%1$s averages %2$s, give or take %3$s, and your best is %4$s.</string>
   <string name="coach_pair_extra">%1$s extra moves on average</string>

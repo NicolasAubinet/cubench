@@ -460,6 +460,7 @@ public class CoachPayloadBuilderTest {
     Assert.assertEquals(8, cross.getMoves(), 1e-9);
     Assert.assertEquals(1, cross.getStalls(), 1e-9);
     Assert.assertEquals(600, cross.getStallMs());
+    Assert.assertEquals(400, cross.getStopMs());
   }
 
   /** A skipped PLL turned nothing of its own, and counted in it would read as efficiency. */
@@ -482,6 +483,16 @@ public class CoachPayloadBuilderTest {
     Assert.assertEquals(2489, solve.getStallMs());
   }
 
+  /** An app older than stop_ms sent whole gaps over 400 ms as stall_ms, which is its stop time. */
+  @Test
+  public void testAnOlderAppsStallTimeIsReadAsItsStopTime() throws Exception {
+    TurningFigure figure = TurningFigure.fromJson(new JSONObject(
+        "{\"code\":\"cross\",\"count\":20,\"moves\":8,\"stalls\":1,\"stall_ms\":700,"
+            + "\"rejection_rate\":0}"));
+
+    Assert.assertEquals(700, figure.getStopMs());
+  }
+
   @Test
   public void testTurningUnderTheFloorIsNotSent() {
     CoachPayload payload = buildWithTurnings(CoachPayloadBuilder.FAMILY_FLOOR - 1);
@@ -498,6 +509,7 @@ public class CoachPayloadBuilderTest {
 
     Assert.assertEquals(CoachPayload.VERSION, payload.getSchemaVersion());
     Assert.assertEquals(600, payload.value("turning.cross.stall_ms"), 1e-9);
+    Assert.assertEquals(400, payload.value("turning.cross.stop_ms"), 1e-9);
     Assert.assertEquals(58.9, payload.value("turning.solve.moves"), 1e-9);
     Assert.assertEquals(3.8, payload.value("turning.solve.stalls"), 1e-9);
     Assert.assertEquals(20, payload.value("windows.turning"), 1e-9);
@@ -697,14 +709,14 @@ public class CoachPayloadBuilderTest {
     List<StepTurning> turnings = new ArrayList<StepTurning>();
     for (int solve = 0; solve < solves; solve++) {
       boolean whole = solve % 10 != 9;
-      turnings.add(new StepTurning(solve, "cross", 3000, 8, 1, 600, whole));
-      turnings.add(new StepTurning(solve, "f2l", 12000, 30, 2, 1500, whole));
-      turnings.add(new StepTurning(solve, "oll_21", 2500, 10, 0, 0, whole));
+      turnings.add(new StepTurning(solve, "cross", 3000, 8, 1, 600, 400, whole));
+      turnings.add(new StepTurning(solve, "f2l", 12000, 30, 2, 1500, 1500, whole));
+      turnings.add(new StepTurning(solve, "oll_21", 2500, 10, 0, 0, 0, whole));
       if (!whole) {
         continue;
       }
-      turnings.add(solve % 5 == 0 ? new StepTurning(solve, "pll_skip", 400, 0, 0, 0, true)
-          : new StepTurning(solve, "pll_t", 2000, 14, 1, 500, true));
+      turnings.add(solve % 5 == 0 ? new StepTurning(solve, "pll_skip", 400, 0, 0, 0, 0, true)
+          : new StepTurning(solve, "pll_t", 2000, 14, 1, 500, 500, true));
     }
     return CoachPayloadBuilder.build("3x3", "cfop", solveTimes(solves), familySamples(solves),
         familySamples(solves), solves, Collections.<StepSample>emptyList(), 0,

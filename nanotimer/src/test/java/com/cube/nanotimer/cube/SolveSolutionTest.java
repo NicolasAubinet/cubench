@@ -633,56 +633,114 @@ public class SolveSolutionTest {
         .getSteps().get(0).getMoves();
   }
 
-  /** A stop mid-execution is a gap between two turns over the analyzer's line for having stopped. */
+  /** A pause over two turns long is a stop; the shorter ones still count as time not turning. */
   @Test
   public void countsAStopBetweenTwoTurnsOfTheCross() {
     SolveSolution.Step cross = SolveSolution.from(moves("R@0", "U@200", "F@900", "L@1100"),
         Arrays.asList(step("cross", 0, 1100))).getSteps().get(0);
 
-    assertEquals(1, cross.getStalls());
-    assertEquals(700, cross.getStallMs());
-    assertArrayEquals(new long[] {200, 900}, cross.getStallSpans().get(0));
+    assertEquals(1, cross.getStops());
+    assertEquals(50 + 550 + 50, cross.getPauseMs());
+  }
+
+  /**
+   * Each turn takes its time up to its timestamp, and a rotation twice that before its turn; the
+   * rest of every gap is a pause. The cross of the 21.55 of Oct 30 2026 turned R, L', F and U
+   * 400-760 ms apart, and whole-gap stops paled all of it but the first and last turns.
+   */
+  @Test
+  public void pausesAreTheGapsLessEachTurnsOwnTime() {
+    SolveSolution.Step cross = SolveSolution.from(
+        moves("F@0", "R@183", "y@738", "L'@738", "F@1496", "U@1948", "B@2359", "B@2517"),
+        Arrays.asList(step("cross", 0, 2517))).getSteps().get(0);
+
+    List<long[]> pauses = cross.getPauseSpans();
+    assertEquals(6, pauses.size());
+    assertArrayEquals(new long[] {0, 33}, pauses.get(0));
+    assertArrayEquals(new long[] {183, 288}, pauses.get(1)); // the y took 300 ms before L'
+    assertArrayEquals(new long[] {738, 1346}, pauses.get(2));
+    assertArrayEquals(new long[] {2359, 2367}, pauses.get(5)); // B B, one half turn
+    assertEquals(33 + 105 + 608 + 302 + 261 + 8, cross.getPauseMs());
+    assertEquals(2, cross.getStops());
+    assertEquals(608 + 302, cross.getStopMs());
+  }
+
+  /** Turns closer than a turn's time overlap: U at 0 and R at 50 are 200 ms of turning. */
+  @Test
+  public void overlappingTurnsLeaveNoPause() {
+    SolveSolution.Step pll = SolveSolution.from(moves("U@0", "R@50", "U'@100", "R'@400"),
+        Arrays.asList(step("pll", 0, 400))).getSteps().get(0);
+
+    assertEquals(150, pll.getPauseMs()); // R' started at 250
   }
 
   /** The wait before a step's turning is its recognition, AUF and all, and is counted there. */
   @Test
-  public void doesNotCountTheRecognitionBeforeAStepAsAStall() {
+  public void doesNotCountTheRecognitionBeforeAStepAsAPause() {
     SolveSolution.Step oll = SolveSolution.from(
         moves("U@0", "R@1000", "U@1150", "R'@1300"),
         Arrays.asList(step("oll", 1000, 300))).getSteps().get(0);
 
-    assertEquals(0, oll.getStalls());
-    assertEquals(0, oll.getStallMs());
+    assertEquals(0, oll.getStops());
+    assertEquals(0, oll.getPauseMs());
   }
 
-  /** Each part starts over at its own recognition, so only the stops inside a pair are stalls. */
+  /** Each part starts over at its own recognition, so only what is inside a pair is a pause. */
   @Test
-  public void readsEachPartsStallsAfterItsOwnRecognition() {
+  public void readsEachPartsPausesAfterItsOwnRecognition() {
     SolveSolution.Step f2l = SolveSolution.from(
         moves("R@500", "U@700", "R'@1500", "U@2300", "R@2500", "U'@3000"),
         Arrays.asList(step("f2l", 1300, 1700, step("pair", 500, 1000), step("pair", 800, 700))))
         .getSteps().get(0);
 
-    assertEquals(2, f2l.getStalls()); // 800 ms inside the first pair, 500 inside the second
-    assertEquals(1300, f2l.getStallMs());
+    assertEquals(2, f2l.getStops()); // 650 ms inside the first pair, 350 inside the second
+    assertEquals(50 + 650 + 50 + 350, f2l.getPauseMs());
   }
 
-  /** Rotating the cube is not turning it, so a stop around a rotation is still a stop. */
+  /** A rotation is the hands working, so it takes time out of the pause around it. */
   @Test
-  public void readsAStopAcrossARotationAsOneStall() {
+  public void givesARotationItsOwnTime() {
     SolveSolution.Step f2l = SolveSolution.from(moves("R@0", "y@300", "U@900"),
         Arrays.asList(step("f2l", 0, 900))).getSteps().get(0);
 
-    assertEquals(1, f2l.getStalls());
-    assertEquals(900, f2l.getStallMs());
+    assertEquals(450, f2l.getPauseMs());
+    assertEquals(1, f2l.getStops());
   }
 
   /** Turning at a steady rhythm is not stopping, however slow the rhythm. */
   @Test
-  public void countsNoStallInTurningThatNeverStops() {
+  public void countsNoStopInTurningThatNeverStops() {
     SolveSolution.Step pll = SolveSolution.from(moves("R@0", "U@400", "R'@800", "U'@1200"),
         Arrays.asList(step("pll", 0, 1200))).getSteps().get(0);
 
-    assertEquals(0, pll.getStalls());
+    assertEquals(0, pll.getStops());
+    assertEquals(3 * 250, pll.getPauseMs());
+  }
+
+  /** A turn's time is the fastest quarter of the solve's gaps, so a stumble barely moves it. */
+  @Test
+  public void readsTheTurnTimeFromTheSolvesOwnRhythm() {
+    List<String> turns = new ArrayList<String>();
+    long at = 0;
+    for (int i = 0; i < 30; i++) {
+      at += i % 5 == 4 ? 2000 : 110; // a long stop every fifth gap
+      turns.add((i % 2 == 0 ? "R" : "U") + "@" + at);
+    }
+    assertEquals(110, SolveSolution.turnMsOf(SolveMovesFormat.parse(join(turns))));
+  }
+
+  /** Too few gaps to read a rhythm from, and a slow one, both fall back to bounds. */
+  @Test
+  public void boundsTheTurnTime() {
+    assertEquals(150, SolveSolution.turnMsOf(SolveMovesFormat.parse(moves("R@0", "U@100"))));
+    List<String> slow = new ArrayList<String>();
+    for (int i = 0; i < 30; i++) {
+      slow.add((i % 2 == 0 ? "R" : "U") + "@" + (i * 600));
+    }
+    assertEquals(200, SolveSolution.turnMsOf(SolveMovesFormat.parse(join(slow))));
+  }
+
+  private static String join(List<String> moves) {
+    return moves(moves.toArray(new String[0]));
   }
 }

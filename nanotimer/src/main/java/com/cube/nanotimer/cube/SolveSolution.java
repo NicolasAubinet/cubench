@@ -3,7 +3,6 @@ package com.cube.nanotimer.cube;
 import com.cube.nanotimer.cube.SolveMovesFormat.Move;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmSlots;
-import com.cube.nanotimer.smartcube.step.SolveAnalyzer;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
@@ -95,6 +94,16 @@ public final class SolveSolution {
   /** Between the parts of a step, wherever they are shown as one run of moves. */
   public static final String GROUP_SEPARATOR = " · ";
 
+  // How long a turn takes, read per solve (see turnMsOf) within these bounds; the cube reports a
+  // turn when it ends. The default is for a solve too short to read it from.
+  private static final long MIN_TURN_MS = 80;
+  private static final long MAX_TURN_MS = 200;
+  private static final long DEFAULT_TURN_MS = 150;
+  private static final int MIN_TURN_GAPS = 20;
+
+  /** A pause longer than this many turns is a stop: the solver froze rather than turned slowly. */
+  private static final int STOP_TURNS = 2;
+
   private final List<Step> steps;
   private final int moveCount;
   private final int partCount;
@@ -153,6 +162,7 @@ public final class SolveSolution {
   /** The moves of each step, split again at its parts — the shape a reconstruction is shown in. */
   static List<Step> stepsOf(List<Move> moves, List<SolveStep> solveSteps) {
     List<Step> steps = new ArrayList<Step>();
+    long turnMs = turnMsOf(moves);
     int taken = 0;
     long boundaryMs = 0;
     for (int i = 0; i < solveSteps.size(); i++) {
@@ -165,27 +175,51 @@ public final class SolveSolution {
       int end = solveStep.getExecutionMs() > 0 ? endOf(moves, taken, boundaryMs) : taken;
       steps.add(new Step(i, solveStep.getName(),
           groupsFor(moves, taken, end, solveStep.getSubSteps(), stepStartMs),
-          stallsOf(moves, taken, end, solveStep, stepStartMs)));
+          pausesOf(moves, taken, end, solveStep, stepStartMs, turnMs), STOP_TURNS * turnMs));
       taken = end;
     }
     return steps;
   }
 
   /**
-   * The stops inside a step's execution: gaps between two turns of the same part longer than the
-   * analyzer's own line for having stopped. A gap before a part's first turn is its recognition and
-   * is already counted there, so only the gaps after it are read, which is where an unplanned cross
-   * and a forgotten algorithm show up. Rotations are not turns, so a pause around one still counts.
-   *
-   * @return each stop as {from, to}, in milliseconds since the solve started
+   * How long one turn takes this solver: the fastest quarter of the gaps between their turns.
+   * A stumble only adds slow gaps, so it barely moves this. Gaps under the floor are turns made
+   * at once.
    */
-  private static List<long[]> stallsOf(List<Move> moves, int from, int to, SolveStep step,
-      long stepStartMs) {
-    List<long[]> stalls = new ArrayList<long[]>();
+  static long turnMsOf(List<Move> moves) {
+    List<Long> gaps = new ArrayList<Long>();
+    Move previous = null;
+    for (Move move : moves) {
+      if (SolveMovesFormat.isRotation(move.getNotation())) {
+        continue;
+      }
+      if (previous != null && move.getOffsetMs() - previous.getOffsetMs() >= MIN_TURN_MS) {
+        gaps.add(move.getOffsetMs() - previous.getOffsetMs());
+      }
+      previous = move;
+    }
+    if (gaps.size() < MIN_TURN_GAPS) {
+      return DEFAULT_TURN_MS;
+    }
+    Collections.sort(gaps);
+    return Math.min(MAX_TURN_MS, gaps.get(gaps.size() / 4));
+  }
+
+  /**
+   * The time inside a step's execution when the solver was not turning. Each turn takes
+   * {@code turnMs} up to its timestamp, and a rotation twice that before the turn it is stamped
+   * with; what no turn covers is a pause. The wait before a part's first turn is its recognition,
+   * so only the gaps after it are read.
+   *
+   * @return each pause as {from, to}, in milliseconds since the solve started
+   */
+  private static List<long[]> pausesOf(List<Move> moves, int from, int to, SolveStep step,
+      long stepStartMs, long turnMs) {
+    List<long[]> pauses = new ArrayList<long[]>();
     List<SolveStep> parts = step.getSubSteps();
     if (parts.isEmpty()) {
-      addStalls(moves, from, to, stepStartMs + step.getRecognitionMs(), stalls);
-      return stalls;
+      addPauses(moves, from, to, stepStartMs + step.getRecognitionMs(), turnMs, pauses);
+      return pauses;
     }
     long boundaryMs = stepStartMs;
     int taken = from;
@@ -193,26 +227,31 @@ public final class SolveSolution {
       long executionStartMs = boundaryMs + part.getRecognitionMs();
       boundaryMs += part.getTotalMs();
       int end = Math.min(endOf(moves, taken, boundaryMs), to);
-      addStalls(moves, taken, end, executionStartMs, stalls);
+      addPauses(moves, taken, end, executionStartMs, turnMs, pauses);
       taken = end;
     }
-    return stalls;
+    return pauses;
   }
 
-  private static void addStalls(List<Move> moves, int from, int to, long executionStartMs,
-      List<long[]> stalls) {
-    Move previous = null;
+  private static void addPauses(List<Move> moves, int from, int to, long executionStartMs,
+      long turnMs, List<long[]> pauses) {
+    Long turnedUntil = null; // null until the part's first turn
+    boolean rotated = false;
     for (int i = from; i < to; i++) {
       Move move = moves.get(i);
-      if (move.getOffsetMs() < executionStartMs
-          || SolveMovesFormat.isRotation(move.getNotation())) {
+      if (move.getOffsetMs() < executionStartMs) {
         continue;
       }
-      long gapMs = previous == null ? 0 : move.getOffsetMs() - previous.getOffsetMs();
-      if (gapMs > SolveAnalyzer.LOOKAHEAD_PAUSE_MS) {
-        stalls.add(new long[] {previous.getOffsetMs(), move.getOffsetMs()});
+      if (SolveMovesFormat.isRotation(move.getNotation())) {
+        rotated = true;
+        continue;
       }
-      previous = move;
+      long busyFrom = move.getOffsetMs() - turnMs - (rotated ? 2 * turnMs : 0);
+      if (turnedUntil != null && busyFrom > turnedUntil) {
+        pauses.add(new long[] {turnedUntil, busyFrom});
+      }
+      turnedUntil = move.getOffsetMs();
+      rotated = false;
     }
   }
 
@@ -1009,18 +1048,28 @@ public final class SolveSolution {
     private final String name;
     private final List<List<Token>> groups;
     private final int moveCount;
-    private final List<long[]> stalls;
-    private final long stallMs;
+    private final List<long[]> pauses;
+    private final long pauseMs;
+    private final int stops;
+    private final long stopMs;
 
-    Step(int index, String name, List<List<Token>> groups, List<long[]> stalls) {
+    Step(int index, String name, List<List<Token>> groups, List<long[]> pauses, long stopLineMs) {
       this.index = index;
       this.name = name;
-      this.stalls = Collections.unmodifiableList(stalls);
-      long stallMs = 0;
-      for (long[] stall : stalls) {
-        stallMs += stall[1] - stall[0];
+      this.pauses = Collections.unmodifiableList(pauses);
+      long pauseMs = 0;
+      int stops = 0;
+      long stopMs = 0;
+      for (long[] pause : pauses) {
+        pauseMs += pause[1] - pause[0];
+        if (pause[1] - pause[0] > stopLineMs) {
+          stops++;
+          stopMs += pause[1] - pause[0];
+        }
       }
-      this.stallMs = stallMs;
+      this.pauseMs = pauseMs;
+      this.stops = stops;
+      this.stopMs = stopMs;
       List<List<Token>> parts = new ArrayList<List<Token>>(groups.size());
       for (List<Token> group : groups) {
         parts.add(Collections.unmodifiableList(group));
@@ -1082,21 +1131,26 @@ public final class SolveSolution {
     }
 
     /**
-     * How many times the solver stopped mid-execution, a gap between two turns of one part over
-     * {@link SolveAnalyzer#LOOKAHEAD_PAUSE_MS}. Recognition is not in it: see {@link #stallsOf}.
+     * When the execution was not turning, between two turns of one part ({@link #pausesOf}). Each
+     * one {from, to}, in milliseconds since the solve started.
      */
-    public int getStalls() {
-      return stalls.size();
+    public List<long[]> getPauseSpans() {
+      return pauses;
     }
 
-    /** Where those stops were: each one {from, to}, in milliseconds since the solve started. */
-    public List<long[]> getStallSpans() {
-      return stalls;
+    /** What those pauses came to. */
+    public long getPauseMs() {
+      return pauseMs;
     }
 
-    /** What those stops came to, gap for whole gap. */
-    public long getStallMs() {
-      return stallMs;
+    /** How many of those pauses were long enough to be a stop rather than slow turning. */
+    public int getStops() {
+      return stops;
+    }
+
+    /** What those stops came to. */
+    public long getStopMs() {
+      return stopMs;
     }
 
     /**

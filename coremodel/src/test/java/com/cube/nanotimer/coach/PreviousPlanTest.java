@@ -159,7 +159,7 @@ public class PreviousPlanTest {
   private static List<StepTurning> turnings(int solves) {
     List<StepTurning> turnings = new ArrayList<StepTurning>();
     for (int solve = 0; solve < solves; solve++) {
-      turnings.add(new StepTurning(solve, "cross", 3000, 8, 1, 900, true));
+      turnings.add(new StepTurning(solve, "cross", 3000, 8, 1, 900, 900, true));
     }
     return turnings;
   }

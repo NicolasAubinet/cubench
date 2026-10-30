@@ -21,10 +21,9 @@ public final class SolveAnalyzer {
   /**
    * A gap this long after a move means the solver stopped rather than turned on. Execution runs at
    * 150-250 ms a move even for a modest solver, so this is well clear of turning; it is meant to
-   * catch a deliberate second look, not the rhythm of an algorithm. Public because a stop inside
-   * execution is measured against the same line (a stall, {@code SolveSolution.Step#getStalls}).
+   * catch a deliberate second look, not the rhythm of an algorithm.
    */
-  public static final long LOOKAHEAD_PAUSE_MS = 400;
+  private static final long LOOKAHEAD_PAUSE_MS = 400;
 
   /** The family whose parts can come free: a slot the cross or an earlier pair solved in passing. */
   private static final String SLOT_FAMILY = "pair";

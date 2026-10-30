@@ -40,9 +40,10 @@ public final class SolveReading {
   /**
    * Bump on any change to how a solve is read: the stepping, the algorithm lists, or what counts
    * as one of them. Rows written by another version are read again rather than believed. Version 2
-   * added each step's turning, version 3 reads the standard OLL 41 and 42 as one algorithm.
+   * added each step's turning, version 3 reads the standard OLL 41 and 42 as one algorithm,
+   * version 4 makes stall_ms all the time not turning and adds stop_ms, the long pauses in it.
    */
-  public static final int VERSION = 3;
+  public static final int VERSION = 4;
 
   /** The F2L step, whose parts are read a pair at a time where a last layer step is read whole. */
   public static final String F2L = "f2l";
@@ -84,8 +85,9 @@ public final class SolveReading {
   }
 
   /**
-   * How one step of a solve was turned, whatever case it was: how many moves, and how often the
-   * solver stopped between two of them ({@link SolveSolution.Step#getStalls}).
+   * How one step of a solve was turned, whatever case it was: how many moves, how long the solver
+   * was not turning between them, and how many of those pauses were stops and what they came to
+   * ({@link SolveSolution.Step#getPauseMs}, {@link SolveSolution.Step#getStops}).
    */
   public static final class Turning {
 
@@ -94,17 +96,19 @@ public final class SolveReading {
     private final int moves;
     private final int stalls;
     private final long stallMs;
+    private final long stopMs;
 
     /**
      * @param code the step as the breakdown names it, {@code cross}, {@code f2l}, {@code pll_ja} or
      *     {@code oll_skip}, so a skip can be told from a step that was turned
      */
-    public Turning(String code, long timeMs, int moves, int stalls, long stallMs) {
+    public Turning(String code, long timeMs, int moves, int stalls, long stallMs, long stopMs) {
       this.code = code;
       this.timeMs = timeMs;
       this.moves = moves;
       this.stalls = stalls;
       this.stallMs = stallMs;
+      this.stopMs = stopMs;
     }
 
     public String getCode() {
@@ -125,6 +129,10 @@ public final class SolveReading {
 
     public long getStallMs() {
       return stallMs;
+    }
+
+    public long getStopMs() {
+      return stopMs;
     }
   }
 
@@ -211,7 +219,8 @@ public final class SolveReading {
       public void read(SolveStep step, SolveSolution.Step turned) {
         if (!SolveBreakdown.UNFINISHED_STEP.equals(step.getName())) { // after a stop inside PLL
           turnings.add(new Turning(step.getName(), step.getTotalMs(),
-              turned.getMoveCount(), turned.getStalls(), turned.getStallMs()));
+              turned.getMoveCount(), turned.getStops(), turned.getPauseMs(),
+              turned.getStopMs()));
         }
         if (F2L.equals(step.getName())) {
           readPairs(step, turned, executions);
@@ -294,6 +303,7 @@ public final class SolveReading {
         json.put("moves", turning.moves);
         json.put("stalls", turning.stalls);
         json.put("stall_ms", turning.stallMs);
+        json.put("stop_ms", turning.stopMs);
         steps.put(json);
       }
       JSONObject json = new JSONObject();
@@ -326,7 +336,8 @@ public final class SolveReading {
       for (int i = 0; i < array.length(); i++) {
         JSONObject json = array.getJSONObject(i);
         turnings.add(new Turning(json.getString("code"), json.getLong("time_ms"),
-            json.getInt("moves"), json.getInt("stalls"), json.getLong("stall_ms")));
+            json.getInt("moves"), json.getInt("stalls"), json.getLong("stall_ms"),
+            json.getLong("stop_ms")));
       }
       return new SolveReading(executions, turnings, reading.getBoolean("whole"));
     } catch (JSONException e) {

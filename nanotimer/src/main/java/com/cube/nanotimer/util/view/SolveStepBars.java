@@ -124,21 +124,22 @@ public final class SolveStepBars {
   }
 
   /**
-   * The stops inside a solve's first step, which a bar pales as that step's thinking (see
-   * {@link SolveStepBarView#setFirstStepPauses}). One rule for every bar of a method's breakdown,
-   * so the timer and the solve's sheet pale the same stops. Empty where the solution has no steps.
+   * The time inside a solve's first step when no turn was being made, which a bar pales as
+   * thinking (see {@link SolveStepBarView#setFirstStepPauses}). One rule for every bar of a
+   * method's breakdown, so the timer and the solve's sheet pale the same time. Empty where the
+   * solution has no steps.
    */
   public static ArrayList<long[]> firstStepPauses(SolveSolution solution) {
     return solution.getSteps().isEmpty() ? new ArrayList<long[]>()
-        : new ArrayList<long[]>(solution.getSteps().get(0).getStallSpans());
+        : new ArrayList<long[]>(solution.getSteps().get(0).getPauseSpans());
   }
 
   /**
    * A solve type's average steps as a bar draws them: each step's mean thinking, then its turning.
-   * The cross is planned in inspection, so its thinking is the mean of the stops inside it, the ones
-   * a solve's own bar pales; they come out of its turning, so no step's total changes.
+   * The cross is planned in inspection, so its thinking is the mean of the pauses inside it, the
+   * ones a solve's own bar pales; they come out of its turning, so no step's total changes.
    *
-   * @param crossPauseMs the cross's mean stops, as {@link com.cube.nanotimer.cube.CrossPauses}
+   * @param crossPauseMs the cross's mean pause time, as {@link com.cube.nanotimer.cube.CrossPauses}
    *     reads them; 0 for none
    */
   public static List<SolveStep> averages(List<StepStats> steps, long crossPauseMs) {

@@ -29,7 +29,7 @@ final class Turnings {
       if (turning.isWholeSolve()) {
         long[] solve = wholeSolves.get(Long.valueOf(turning.getSolveId()));
         if (solve == null) {
-          solve = new long[4];
+          solve = new long[5];
           wholeSolves.put(Long.valueOf(turning.getSolveId()), solve);
         }
         add(solve, turning);
@@ -43,7 +43,7 @@ final class Turnings {
         ofFamily = new ArrayList<long[]>();
         byCode.put(family, ofFamily);
       }
-      long[] step = new long[4];
+      long[] step = new long[5];
       add(step, turning);
       ofFamily.add(step);
     }
@@ -58,12 +58,13 @@ final class Turnings {
     return figures;
   }
 
-  /** Time, moves, stalls and stall time, added up. */
+  /** Time, moves, stalls, stall time and stop time, added up. */
   private static void add(long[] into, StepTurning turning) {
     into[0] += turning.getTimeMs();
     into[1] += turning.getMoves();
     into[2] += turning.getStalls();
     into[3] += turning.getStallMs();
+    into[4] += turning.getStopMs();
   }
 
   private static TurningFigure figure(String code, List<long[]> occurrences, int floor) {
@@ -76,18 +77,21 @@ final class Turnings {
     double moves = 0;
     double stalls = 0;
     double stallMs = 0;
+    double stopMs = 0;
     for (int i = 0; i < kept.length; i++) {
       if (kept[i]) {
         count++;
         moves += occurrences.get(i)[1];
         stalls += occurrences.get(i)[2];
         stallMs += occurrences.get(i)[3];
+        stopMs += occurrences.get(i)[4];
       }
     }
     if (count < floor || count == 0) {
       return null;
     }
     return new TurningFigure(code, count, moves / count, stalls / count,
-        Math.round(stallMs / count), (double) (kept.length - count) / kept.length);
+        Math.round(stallMs / count), Math.round(stopMs / count),
+        (double) (kept.length - count) / kept.length);
   }
 }

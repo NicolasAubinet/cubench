@@ -1430,7 +1430,7 @@
   <string name="coach_reason_long_pair">Pares de F2L con movimientos de más</string>
   <string name="coach_long_pair_body">En %1$d resoluciones, tu F2L llevó %2$s movimientos, donde los algoritmos habituales de sus pares suman %3$s.</string>
   <string name="coach_reason_stalling">Bloqueos al girar</string>
-  <string name="coach_stalling_body">%1$s: %2$s bloqueos por resolución al girar, que suman %3$s de sus %4$s.</string>
+  <string name="coach_stalling_body">%1$s: %2$s bloqueos por resolución; %3$s de sus %4$s sin girar.</string>
   <string name="coach_reason_uneven_step">Irregular de una resolución a otra</string>
   <string name="coach_uneven_body">%1$s: media de %2$s, con una variación de %3$s, y tu mejor es %4$s.</string>
   <string name="coach_pair_extra">%1$s movimientos de más de media</string>

@@ -159,6 +159,7 @@ public class SolveReadingTest {
       assertEquals(a.getMoves(), b.getMoves());
       assertEquals(a.getStalls(), b.getStalls());
       assertEquals(a.getStallMs(), b.getStallMs());
+      assertEquals(a.getStopMs(), b.getStopMs());
     }
   }
 

@@ -29,7 +29,8 @@ public final class TurningReader {
       SolveReading reading = readings.readingOf(solve);
       for (SolveReading.Turning turning : reading.getTurnings()) {
         turnings.add(new StepTurning(solve.getId(), turning.getCode(), turning.getTimeMs(),
-            turning.getMoves(), turning.getStalls(), turning.getStallMs(), reading.isWhole()));
+            turning.getMoves(), turning.getStalls(), turning.getStallMs(), turning.getStopMs(),
+            reading.isWhole()));
       }
     }
     return turnings;
