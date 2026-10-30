@@ -250,7 +250,9 @@ public class DialogUtils {
           @Override
           public void run() {
             if (sent) {
-              dialog.dismiss();
+              if (dialog.isShowing() && !activity.isFinishing()) {
+                dialog.dismiss(); // the screen may have been left while the report was built
+              }
               Toast.makeText(appContext, R.string.report_reconstruction_sent, Toast.LENGTH_SHORT).show();
             } else {
               btSend.setEnabled(true);

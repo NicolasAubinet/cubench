@@ -170,7 +170,8 @@ public final class CoachClient {
    * @throws IOException when the service could not be reached, which is worth another try
    */
   public ReportAnswer postReport(String report) throws IOException {
-    Answer answer = post(reportUrl, report, PRACTICE_READ_TIMEOUT_MS);
+    // A report needs no access, so it carries none: the Coach ID is all the policy says it sends.
+    Answer answer = post(reportUrl, report, PRACTICE_READ_TIMEOUT_MS, false);
     int retryAfterS = 0;
     if (answer.body != null) {
       try {
@@ -214,6 +215,12 @@ public final class CoachClient {
   }
 
   private Answer post(String url, String requestBody, int readTimeoutMs) throws IOException {
+    return post(url, requestBody, readTimeoutMs, true);
+  }
+
+  /** @param withAccess false sends the Coach ID alone, without the build token or the purchase */
+  private Answer post(String url, String requestBody, int readTimeoutMs, boolean withAccess)
+      throws IOException {
     HttpURLConnection connection = null;
     try {
       byte[] body = requestBody.getBytes(StandardCharsets.UTF_8);
@@ -223,11 +230,11 @@ public final class CoachClient {
       connection.setRequestMethod("POST");
       connection.setDoOutput(true);
       connection.setFixedLengthStreamingMode(body.length);
-      if (!token.isEmpty()) {
+      if (withAccess && !token.isEmpty()) {
         connection.setRequestProperty("Authorization", "Bearer " + token);
       }
       connection.setRequestProperty("Coach-Id", coachId);
-      String purchase = access.getPurchaseToken();
+      String purchase = withAccess ? access.getPurchaseToken() : null;
       if (!CoachAccess.sendable(purchase)) {
         purchase = null;
       }

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -30,7 +31,7 @@ import org.json.JSONObject;
  * <p>A report is written to {@code pending_reports} before anything is sent, so a dead network or a
  * crash loses nothing, and it stays there until the service has it. A resend carries the same
  * {@code report_id}, which the service keeps once. A report the service refuses for what it is
- * (any 4xx but 429) is dropped, since sending it again cannot change the answer, and so is one
+ * (400, 413) is dropped, since sending it again cannot change the answer, and so is one
  * still waiting after two weeks.
  */
 public final class ReportUploadWorker extends Worker {
@@ -39,6 +40,8 @@ public final class ReportUploadWorker extends Worker {
   private static final String WORK_LATER = "recon_reports_later";
   private static final String DIR = "pending_reports";
   private static final long KEPT_MS = TimeUnit.DAYS.toMillis(14);
+  /** The refusals no resend can change: not a report or too new to read (400), too large (413). */
+  private static final List<Integer> NEVER_KEPT = Arrays.asList(400, 413);
 
   public ReportUploadWorker(@NonNull Context context, @NonNull WorkerParameters parameters) {
     super(context, parameters);
@@ -90,10 +93,10 @@ public final class ReportUploadWorker extends Worker {
         enqueue(getApplicationContext(), WORK_LATER, Math.max(answer.retryAfterS, 300));
         return Result.success();
       }
-      if (answer.status >= 500) {
-        retry = true;
+      if (answer.status / 100 == 2 || NEVER_KEPT.contains(answer.status)) {
+        file.delete();
       } else {
-        file.delete(); // 2xx is kept by the service; any other 4xx never will be
+        retry = true; // 5xx, a 408, a redirect: worth another try
       }
     }
     return retry ? Result.retry() : Result.success();
