@@ -965,11 +965,14 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private void buildChooseRows() {
     chooseList.removeAllViews();
     List<String> shown = new ArrayList<String>();
+    String own = Options.INSTANCE.getOwnCaseAlgorithm(choosing);
     addIfNew(shown, firstAlgorithm);
     for (CaseAlgorithms.Listed listed : CaseAlgorithms.shown(choosing)) {
-      addIfNew(shown, listed.getMoves());
+      // Their own spelling of a listed algorithm stands in its place
+      addIfNew(shown, CaseAlgorithms.sameTurning(choosing, listed.getMoves(), own) ? own
+          : listed.getMoves());
     }
-    addIfNew(shown, Options.INSTANCE.getOwnCaseAlgorithm(choosing));
+    addIfNew(shown, own);
     addIfNew(shown, Options.INSTANCE.getCaseAlgorithm(choosing));
     addIfNew(shown, tryingAlgorithm);
     AlgorithmTimes times = loadTimes(choosing);

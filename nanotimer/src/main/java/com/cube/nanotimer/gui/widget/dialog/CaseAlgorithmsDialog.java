@@ -401,9 +401,11 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     List<String> shown = new ArrayList<String>();
     for (int i = 0; i < listed.size(); i++) {
       Listed algorithm = listed.get(i);
-      rows.addView(row(algorithm.getMoves(), algorithm.isRecommended(), i == 0,
-          algorithm.getEmptySlot()));
-      shown.add(algorithm.getMoves());
+      // Their own spelling of a listed algorithm stands in its place
+      String moves = CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), own) ? own
+          : algorithm.getMoves();
+      rows.addView(row(moves, algorithm.isRecommended(), i == 0, algorithm.getEmptySlot()));
+      shown.add(moves);
     }
     if (own != null && !listedAlready(shown, own)) {
       shown.add(own);
@@ -636,9 +638,6 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     final EditText field = new EditText(getActivity());
     field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
     field.setSingleLine();
-    field.setHint(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithm_hint_f2l
-        : R.string.case_algorithm_hint);
-    field.setText(own == null ? "" : own);
     field.setTextColor(ContextCompat.getColor(getActivity(), R.color.white));
     int pad = dp(20);
     field.setPadding(pad, dp(8), pad, dp(8));
@@ -668,22 +667,15 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   }
 
   /**
-   * Keeps what was typed and starts using it. Only kept as theirs when it is not already on the
-   * list: an algorithm typed out in full that happens to be the one most people use is that row,
-   * not a second copy of it above the list.
+   * Keeps what was typed and starts using it. One that turns like a listed algorithm takes that
+   * row's place in the spelling it was typed in, rather than vanishing into the list's spelling.
    */
   private void keepOwn(String typed) {
     chosen = typed;
-    Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
-    flagsChanged();
-    for (Listed algorithm : CaseAlgorithms.shown(caseCode)) {
-      if (CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), typed)) {
-        refresh();
-        return;
-      }
-    }
     own = typed;
+    Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
     Options.INSTANCE.setOwnCaseAlgorithm(caseCode, own);
+    flagsChanged();
     refresh();
   }
 
