@@ -104,6 +104,9 @@ public final class SolveSolution {
   /** A pause longer than this many turns is a stop: the solver froze rather than turned slowly. */
   private static final int STOP_TURNS = 2;
 
+  /** Shorter gaps are the uneven rhythm of turning, not a pause. */
+  private static final long MIN_PAUSE_MS = 250;
+
   private final List<Step> steps;
   private final int moveCount;
   private final int partCount;
@@ -208,8 +211,8 @@ public final class SolveSolution {
   /**
    * The time inside a step's execution when the solver was not turning. Each turn takes
    * {@code turnMs} up to its timestamp, and a rotation twice that before the turn it is stamped
-   * with; what no turn covers is a pause. The wait before a part's first turn is its recognition,
-   * so only the gaps after it are read.
+   * with; what no turn covers for at least {@link #MIN_PAUSE_MS} is a pause. The wait before a
+   * part's first turn is its recognition, so only the gaps after it are read.
    *
    * @return each pause as {from, to}, in milliseconds since the solve started
    */
@@ -247,7 +250,7 @@ public final class SolveSolution {
         continue;
       }
       long busyFrom = move.getOffsetMs() - turnMs - (rotated ? 2 * turnMs : 0);
-      if (turnedUntil != null && busyFrom > turnedUntil) {
+      if (turnedUntil != null && busyFrom - turnedUntil >= MIN_PAUSE_MS) {
         pauses.add(new long[] {turnedUntil, busyFrom});
       }
       turnedUntil = move.getOffsetMs();

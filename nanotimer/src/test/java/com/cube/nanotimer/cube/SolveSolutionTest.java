@@ -633,20 +633,20 @@ public class SolveSolutionTest {
         .getSteps().get(0).getMoves();
   }
 
-  /** A pause over two turns long is a stop; the shorter ones still count as time not turning. */
+  /** A pause over two turns long is a stop; a gap under 250 ms is no pause at all. */
   @Test
   public void countsAStopBetweenTwoTurnsOfTheCross() {
     SolveSolution.Step cross = SolveSolution.from(moves("R@0", "U@200", "F@900", "L@1100"),
         Arrays.asList(step("cross", 0, 1100))).getSteps().get(0);
 
     assertEquals(1, cross.getStops());
-    assertEquals(50 + 550 + 50, cross.getPauseMs());
+    assertEquals(550, cross.getPauseMs());
   }
 
   /**
    * Each turn takes its time up to its timestamp, and a rotation twice that before its turn; the
-   * rest of every gap is a pause. The cross of the 21.55 of Oct 30 2026 turned R, L', F and U
-   * 400-760 ms apart, and whole-gap stops paled all of it but the first and last turns.
+   * rest of a gap is a pause from 250 ms. The cross of the 21.55 of Oct 30 2026 turned R, L', F and
+   * U 400-760 ms apart, and whole-gap stops paled all of it but the first and last turns.
    */
   @Test
   public void pausesAreTheGapsLessEachTurnsOwnTime() {
@@ -655,12 +655,11 @@ public class SolveSolutionTest {
         Arrays.asList(step("cross", 0, 2517))).getSteps().get(0);
 
     List<long[]> pauses = cross.getPauseSpans();
-    assertEquals(6, pauses.size());
-    assertArrayEquals(new long[] {0, 33}, pauses.get(0));
-    assertArrayEquals(new long[] {183, 288}, pauses.get(1)); // the y took 300 ms before L'
-    assertArrayEquals(new long[] {738, 1346}, pauses.get(2));
-    assertArrayEquals(new long[] {2359, 2367}, pauses.get(5)); // B B, one half turn
-    assertEquals(33 + 105 + 608 + 302 + 261 + 8, cross.getPauseMs());
+    assertEquals(3, pauses.size()); // not F R (33 ms), the y (105) nor B B (8)
+    assertArrayEquals(new long[] {738, 1346}, pauses.get(0));
+    assertArrayEquals(new long[] {1496, 1798}, pauses.get(1));
+    assertArrayEquals(new long[] {1948, 2209}, pauses.get(2));
+    assertEquals(608 + 302 + 261, cross.getPauseMs());
     assertEquals(2, cross.getStops());
     assertEquals(608 + 302, cross.getStopMs());
   }
@@ -668,10 +667,10 @@ public class SolveSolutionTest {
   /** Turns closer than a turn's time overlap: U at 0 and R at 50 are 200 ms of turning. */
   @Test
   public void overlappingTurnsLeaveNoPause() {
-    SolveSolution.Step pll = SolveSolution.from(moves("U@0", "R@50", "U'@100", "R'@400"),
-        Arrays.asList(step("pll", 0, 400))).getSteps().get(0);
+    SolveSolution.Step pll = SolveSolution.from(moves("U@0", "R@50", "U'@100", "R'@600"),
+        Arrays.asList(step("pll", 0, 600))).getSteps().get(0);
 
-    assertEquals(150, pll.getPauseMs()); // R' started at 250
+    assertEquals(350, pll.getPauseMs()); // R' started at 450
   }
 
   /** The wait before a step's turning is its recognition, AUF and all, and is counted there. */
@@ -694,7 +693,7 @@ public class SolveSolutionTest {
         .getSteps().get(0);
 
     assertEquals(2, f2l.getStops()); // 650 ms inside the first pair, 350 inside the second
-    assertEquals(50 + 650 + 50 + 350, f2l.getPauseMs());
+    assertEquals(650 + 350, f2l.getPauseMs());
   }
 
   /** A rotation is the hands working, so it takes time out of the pause around it. */
@@ -705,6 +704,16 @@ public class SolveSolutionTest {
 
     assertEquals(450, f2l.getPauseMs());
     assertEquals(1, f2l.getStops());
+  }
+
+  /** A gap 1 ms short of a 250 ms pause is none; the next, 250 ms, is one. */
+  @Test
+  public void dropsPausesShorterThanTheMinimum() {
+    SolveSolution.Step pll = SolveSolution.from(moves("R@0", "U@399", "R'@799"),
+        Arrays.asList(step("pll", 0, 799))).getSteps().get(0);
+
+    assertEquals(1, pll.getPauseSpans().size());
+    assertEquals(250, pll.getPauseMs());
   }
 
   /** Turning at a steady rhythm is not stopping, however slow the rhythm. */

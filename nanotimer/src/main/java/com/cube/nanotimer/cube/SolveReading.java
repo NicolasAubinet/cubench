@@ -45,9 +45,9 @@ public final class SolveReading {
    * version 4 makes stall_ms all the time not turning and adds stop_ms, the long pauses in it,
    * version 5 the F2L rotations of a gyro solve, version 6 reads them again now that the solves
    * come with their gyro tracks (version 5 rows hold none), version 7 stops counting a last layer
-   * false start as one of the step's algorithms.
+   * false start as one of the step's algorithms, version 8 drops pauses under 250 ms.
    */
-  public static final int VERSION = 7;
+  public static final int VERSION = 8;
 
   private static final String RESTART_PART_SUFFIX = "restart";
 
