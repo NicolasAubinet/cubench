@@ -15,6 +15,7 @@ import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.content.ContextCompat;
@@ -123,6 +124,8 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   private SmartCubeChip smartCubeChip;
   private TextView gyroChip;
   private MenuItem straightenItem;
+  /** Cancelled before the next one, so repeated taps don't queue up a run of the same message. */
+  private Toast straightenToast;
 
   /** Whether the drawn cube follows the grip. The user's standing answer, kept between drills. */
   private boolean followGyro;
@@ -383,13 +386,21 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
       return;
     }
     final String upName = getString(Utils.getFaceColourNameRes(up));
-    DialogUtils.showInfoMessage(this, getString(R.string.drill_straighten_hold, upName,
+    showStraightenToast(getString(R.string.drill_straighten_hold, upName,
         getString(Utils.getFaceColourNameRes(front))));
     SmartCubeManager.INSTANCE.straightenTo(grip, held -> {
       if (!held && !isFinishing()) {
-        DialogUtils.showInfoMessage(this, getString(R.string.drill_straighten_wrong, upName));
+        showStraightenToast(getString(R.string.drill_straighten_wrong, upName));
       }
     });
+  }
+
+  private void showStraightenToast(String message) {
+    if (straightenToast != null) {
+      straightenToast.cancel();
+    }
+    straightenToast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+    straightenToast.show();
   }
 
   /** A grip taken or lost is what decides whether the chip has anything to offer. */
