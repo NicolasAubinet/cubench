@@ -57,6 +57,7 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.backup.BackupRestorer;
+import com.cube.nanotimer.util.coach.CoachPlans;
 import com.cube.nanotimer.util.exportimport.ErrorListener;
 import com.cube.nanotimer.util.exportimport.csvimport.CSVImporter;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -493,9 +494,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     if (entry != MENU_ANALYSIS && entry != MENU_COACHING) {
       return false;
     }
-    // A blind hub has a Solve tab only: the coach plans out of cases, which a blind solve has none of.
-    return !AnalysisActivity.canAnalyse(curSolveType)
-        || (entry == MENU_COACHING && curSolveType.isBlind());
+    // The coach plans two-handed CFOP only, so it also dims for a blind, Roux, LBL or one-handed type.
+    return entry == MENU_COACHING ? !CoachPlans.eligible(curSolveType)
+        : !AnalysisActivity.canAnalyse(curSolveType);
   }
 
   private void openAnalysis(int tab) {
@@ -1587,7 +1588,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         view.findViewById(R.id.tvMenuPremium).setAlpha(alpha);
         TextView tvSubtext = (TextView) view.findViewById(R.id.tvSubtext);
         tvSubtext.setVisibility(unavailable ? View.VISIBLE : View.GONE);
-        tvSubtext.setText(R.string.menu_hub_unavailable);
+        tvSubtext.setText(menuEntries[position] == MENU_COACHING ? R.string.menu_coach_unavailable
+            : R.string.menu_hub_unavailable);
       }
       return view;
     }

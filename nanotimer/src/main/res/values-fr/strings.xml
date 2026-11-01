@@ -1221,6 +1221,7 @@
   <string name="menu_coaching">Coaching</string>
   <string name="menu_premium_tag">Premium</string>
   <string name="menu_hub_unavailable">Uniquement en 3x3 classique</string>
+  <string name="menu_coach_unavailable">Uniquement en 3x3 classique, méthode CFOP</string>
   <string name="analysis_context">%1$s, %2$s</string>
   <string name="analysis_tab_solve">R\u00e9solution</string>
   <string name="analysis_tab_cases">Cas</string>
@@ -1267,6 +1268,9 @@
   <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
   <string name="analysis_cases_method">Seules les résolutions CFOP ont leurs cas nommés pour l\'instant, il n\'y a donc rien à classer ici.</string>
   <string name="analysis_plan_headline">Un plan chaque semaine</string>
+  <string name="analysis_plan_for_cfop">Pour la méthode CFOP</string>
+  <string name="analysis_plan_cfop_only">Le coach écrit des plans pour le CFOP uniquement, pas pour %1$s.</string>
+  <string name="analysis_plan_two_handed_only">Le coach écrit des plans pour les résolutions à deux mains uniquement.</string>
   <string name="analysis_plan_body">Lu dans vos propres résolutions : quoi travailler, le drill pour le faire, et si le travail de la semaine passée a changé quelque chose.</string>
   <string name="analysis_plan_point_plans">Un plan concret chaque semaine, tiré de vos résolutions</string>
   <string name="analysis_plan_point_practice">Entraînez les cas qui vous coûtent le plus de temps</string>

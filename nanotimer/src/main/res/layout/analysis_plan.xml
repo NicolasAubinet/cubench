@@ -261,6 +261,25 @@
          android:textSize="19sp"
          android:textStyle="bold"/>
 
+      <TextView
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="2dp"
+         android:text="@string/analysis_plan_for_cfop"
+         android:textColor="@color/lightblue"
+         android:textSize="13sp"/>
+
+      <!-- Why no plan is written for the solve type on screen, when its method is the reason. -->
+      <TextView
+         android:id="@+id/tvAnalysisPlanCfopOnly"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="10dp"
+         android:lineSpacingMultiplier="1.2"
+         android:textColor="@color/white"
+         android:textSize="13.5sp"
+         android:visibility="gone"/>
+
       <!-- For an install that has the coach and waits for a first plan. -->
       <TextView
          android:id="@+id/tvAnalysisPlanBody"

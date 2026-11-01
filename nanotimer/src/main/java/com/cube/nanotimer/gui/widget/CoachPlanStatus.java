@@ -20,6 +20,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.PlanSchedule;
 import com.cube.nanotimer.cube.SolveTypeMethod;
+import com.cube.nanotimer.gui.AnalysisActivity;
 import com.cube.nanotimer.gui.SolveTypesActivity;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.coach.CoachAccess;
@@ -99,6 +100,7 @@ public class CoachPlanStatus {
 
   /** Reads the access and the schedule again and redraws. Main thread only. */
   public void refresh() {
+    showMethodLine();
     if (client == null) {
       hide();
       showNoOffer();
@@ -489,6 +491,23 @@ public class CoachPlanStatus {
     noteView.setText(note);
     noteView.setVisibility(note == null ? View.GONE : View.VISIBLE);
     billing.readPlans(false);
+  }
+
+  /** Says why a 3x3 type gets no plan when its method or hands are the reason. */
+  private void showMethodLine() {
+    TextView line = tab.findViewById(R.id.tvAnalysisPlanCfopOnly);
+    CubeMethod method = SolveTypeMethod.of(solveType);
+    String text = null;
+    if (solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId() && !solveType.isBlind()
+        && method != CubeMethod.CFOP && method != CubeMethod.BLIND) {
+      text = activity.getString(R.string.analysis_plan_cfop_only,
+          activity.getString(Utils.getMethodLabel(method)));
+    } else if (AnalysisActivity.canAnalyse(solveType) && !solveType.isBlind()
+        && !CoachPlans.eligible(solveType)) {
+      text = activity.getString(R.string.analysis_plan_two_handed_only); // CFOP, but one-handed
+    }
+    line.setText(text);
+    line.setVisibility(text == null ? View.GONE : View.VISIBLE);
   }
 
   /** For an install with the coach, or with no coach to have. */
