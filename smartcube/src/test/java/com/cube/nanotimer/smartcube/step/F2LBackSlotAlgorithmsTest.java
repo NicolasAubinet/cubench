@@ -18,9 +18,9 @@ public class F2LBackSlotAlgorithmsTest {
   }
 
   @Test
-  public void noRowTurnsTheCubeOrTheBackFace() {
+  public void noRowTurnsTheCubeAboutTheVertical() {
     for (String[] row : F2LBackSlotAlgorithms.rows()) {
-      assertFalse(row[2], row[2].matches(".*[xyzB].*"));
+      assertFalse(row[2], row[2].matches(".*[xyzuE].*"));
     }
   }
 
