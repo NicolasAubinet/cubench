@@ -515,6 +515,11 @@
       <li>New coach, by subscription: a weekly practice plan written from your solves</li>
       <li>The last cube can be reconnected automatically when the app opens</li>
     </ul>
+    <b>Also new</b>
+    <ul>
+      <li>After a solve, the timer now says where the time ranks among all your solves, as the solve details do</li>
+      <li>The Portuguese translation has been rewritten in Brazilian Portuguese</li>
+    </ul>
     <u><b>v2.1.1</b></u><br/>
     <ul>
       <li>2x2 scrambles are now 11 moves using R, U and F only, like official ones</li>
