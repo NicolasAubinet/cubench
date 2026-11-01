@@ -202,8 +202,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   // The gap changes hands as a cube comes and goes. Added in onResume, which replays the current
   // connection at once, so the gap is settled before anything is drawn in it.
   private final CubeConnectionListener statePreviewOwner = c -> refreshStatePreviewOwner();
-  /** A blind reading is named through how the cube is held and what it shot from: asked once. */
-  private final CubeConnectionListener blindSetupAsk = c -> askBlindSetup();
   private boolean timerFocused; // the screen has stood down for a solve, so the preview has too
   private SmartCubeSolveController solveController;
   private SolveStepBar solveStepBar;
@@ -346,7 +344,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     liveCube.start();
     statePreview.start();
     SmartCubeManager.INSTANCE.addConnectionListener(statePreviewOwner);
-    SmartCubeManager.INSTANCE.addConnectionListener(blindSetupAsk);
+    askBlindSetup();
     applySessionStripChoice(); // both this and the coloring below may have changed in the settings
     renderStatePreview(); // and so may what the picture under the scramble is drawn as
     refreshSessionFields();
@@ -360,7 +358,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     liveCube.stop();
     statePreview.stop();
     SmartCubeManager.INSTANCE.removeConnectionListener(statePreviewOwner);
-    SmartCubeManager.INSTANCE.removeConnectionListener(blindSetupAsk);
   }
 
   @Override
@@ -1974,8 +1971,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    * with a cube on. Later than the method question, which the connect sheet asks, because these
    * only mean anything for a blind solve type and most solvers never open one.
    *
-   * <p>Skipped rather than queued where the timer is not idle: nothing marks it asked, so the next
-   * time the screen resumes it is asked again.
+   * <p>Asked as the screen opens, never when a cube connects while it is open: an auto-connect
+   * landing then would put the dialog under the hand about to start. A skip is asked next time.
    */
   private void askBlindSetup() {
     // Never over a running attempt. A cube connecting mid-memorisation would otherwise put a modal
