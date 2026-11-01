@@ -1268,7 +1268,7 @@
   <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
   <string name="analysis_cases_method">Seules les résolutions CFOP ont leurs cas nommés pour l\'instant, il n\'y a donc rien à classer ici.</string>
   <string name="analysis_plan_headline">Un plan chaque semaine</string>
-  <string name="analysis_plan_for_cfop">Pour la méthode CFOP</string>
+  <string name="analysis_plan_for_cfop">CFOP uniquement pour l\'instant</string>
   <string name="analysis_plan_cfop_only">Le coach écrit des plans pour le CFOP uniquement, pas pour %1$s.</string>
   <string name="analysis_plan_two_handed_only">Le coach écrit des plans pour les résolutions à deux mains uniquement.</string>
   <string name="analysis_plan_body">Lu dans vos propres résolutions : quoi travailler, le drill pour le faire, et si le travail de la semaine passée a changé quelque chose.</string>
@@ -1315,8 +1315,8 @@
   <string name="coach_strip_first">Premier plan</string>
   <string name="coach_strip_session">à la fin de cette session</string>
   <string name="coach_strip_waiting">en attente du coach</string>
-  <string name="coach_retry_unreachable">Impossible de joindre le coach. Il réessaiera tout seul une fois en ligne.</string>
-  <string name="coach_retry_unavailable">Le coach n\'est pas disponible pour le moment. Il réessaiera tout seul.</string>
+  <string name="coach_retry_unreachable">Impossible de joindre le coach. Nouvel essai automatique dès que vous serez connecté.</string>
+  <string name="coach_retry_unavailable">Le coach n\'est pas disponible pour le moment. Nouvel essai automatique un peu plus tard.</string>
   <string name="coach_gate_title">Le coach s\'ouvre à %1$d résolutions au smart cube</string>
   <string name="coach_gate_count">%1$d sur %2$d</string>
   <plurals name="coach_gate_note">

@@ -1270,7 +1270,7 @@
   <string name="analysis_cases_blind">Uma resolução às cegas não tem casos. É lida como uma memorização e as peças resolvidas.</string>
   <string name="analysis_cases_method">Por enquanto só as resoluções CFOP têm seus casos nomeados, então não há nada para ordenar aqui.</string>
   <string name="analysis_plan_headline">Um plano todas as semanas</string>
-  <string name="analysis_plan_for_cfop">Para o método CFOP</string>
+  <string name="analysis_plan_for_cfop">Só CFOP por enquanto</string>
   <string name="analysis_plan_cfop_only">O coach escreve planos só para CFOP, não para %1$s.</string>
   <string name="analysis_plan_two_handed_only">O coach escreve planos só para resoluções com duas mãos.</string>
   <string name="analysis_plan_body">Lido das suas próprias resoluções: o que trabalhar, o treino para isso e se o trabalho da semana passada mudou alguma coisa.</string>

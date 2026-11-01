@@ -1315,7 +1315,7 @@
   <string name="analysis_cases_blind">A blindfolded solve has no cases. It is read as a memo and the pieces it solved.</string>
   <string name="analysis_cases_method">Only CFOP solves have their cases named so far, so there is nothing to rank here.</string>
   <string name="analysis_plan_headline">A plan every week</string>
-  <string name="analysis_plan_for_cfop">For CFOP solvers</string>
+  <string name="analysis_plan_for_cfop">CFOP only for now</string>
   <string name="analysis_plan_cfop_only">The coach writes plans for CFOP solves only, not %1$s.</string>
   <string name="analysis_plan_two_handed_only">The coach writes plans for two-handed solves only.</string>
   <string name="analysis_plan_body">Read from your own solves: what to work on, the drill for it, and whether last week\'s work moved anything.</string>
