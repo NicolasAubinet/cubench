@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
@@ -1142,6 +1143,37 @@ public class DrillSessionTest {
       DrillRep rep = hand.execute(alg);
       assertNotNull(alg, rep);
       assertTrue(rep.isPractice());
+    }
+  }
+
+  /** Held a quarter round, as a d leaves it, the case goes behind the hand and its algorithm counts. */
+  @Test
+  public void aBackSlotCaseIsDealtIntoTheSlotOfTheGripHeld() {
+    for (String face : new String[] {"U", "D"}) {
+      for (CubeRotation grip : CubeRotation.withFaceUp(LayerRotation.piece("U", 0, face).charAt(0))) {
+        int turned = 0;
+        while (LayerRotation.piece("F", turned, face).charAt(0) != grip.faceAt('F')) {
+          turned++;
+        }
+        for (String code : new String[] {"pair_1", "pair_4", "pair_17", "pair_33"}) {
+          for (String slot : new String[] {"br", "bl"}) {
+            String backCode = CaseAlgorithms.inBackSlot(code, slot);
+            DrillSession session = new DrillSession(backSlotSpec(code), noAlignment(), null, face);
+            session.setGripReader(() -> grip);
+            Hand hand = new Hand(session);
+            while (hand.next() && !backCode.equals(session.getCurrentCase())) {
+              session.abandon();
+            }
+            String alg = CaseAlgorithms.shortestListed(backCode);
+            session.setTaughtAlgorithm(backCode, alg);
+            DrillRep rep = hand.execute(
+                LayerRotation.toFace(LayerRotation.spun(alg, turned), face));
+            String what = backCode + " on " + face + " held " + grip;
+            assertNotNull(what, rep);
+            assertFalse(what, rep.isOffTaught());
+          }
+        }
+      }
     }
   }
 

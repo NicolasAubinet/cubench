@@ -5,6 +5,7 @@ import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.cube.CubeTwin;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
@@ -67,6 +68,13 @@ public final class DrillSession {
      * @return false where it cannot tell, as on a cube with no gyroscope
      */
     boolean rotated(List<CubeMove> moves, long shownHostMs, long skewMs);
+  }
+
+  /** How the user holds the cube right now, as the gyro reads it. */
+  public interface GripReader {
+
+    /** @return the cube's faces to where they are held, or null where it cannot tell */
+    CubeRotation grip();
   }
 
   /** Whether a rep's code is a look-ahead rep's, which names no case and has no algorithms. */
@@ -146,6 +154,9 @@ public final class DrillSession {
   /** Whether the rep up follows straight on from a practice rep, owning the turns made between. */
   private boolean followsOn;
   private RotationReader rotationReader;
+  private GripReader gripReader;
+  /** The y quarters a back-slot case was dealt off the usual grip, to follow the user's. */
+  private int gripQuarters;
 
   public DrillSession(DrillSpec spec, Random random) {
     this(spec, random, null, "U");
@@ -212,6 +223,14 @@ public final class DrillSession {
   /** What tells a back-slot rep turned with a rotation from one without. Unset, none is. */
   public void setRotationReader(RotationReader reader) {
     rotationReader = reader;
+  }
+
+  /**
+   * What tells a back-slot drill how the cube is held, so a case goes into the back slot of that
+   * grip: a d leaves the centres a quarter round, and the next case must not need a rotation back.
+   */
+  public void setGripReader(GripReader reader) {
+    gripReader = reader;
   }
 
   /** The cases asked for that this app has no scramble for, dropped rather than run wrong. */
@@ -288,12 +307,13 @@ public final class DrillSession {
       // Into its own slot, never spun: which slot it goes into is the question. Practice deals it
       // at the algorithm's own turn of the layer, as a front pair's is.
       String slot = CaseAlgorithms.backSlotOf(currentCase);
-      int spins = quartersTo(slot);
+      gripQuarters = gripQuartersTo(slot);
+      int spins = quartersTo(slot) + gripQuarters;
       String atItsAngle = practiceCase != null && practiceAlgorithm != null
           ? F2LPairScrambles.forAlgorithm(practiceAlgorithm, random) : null;
-      currentScramble = LayerRotation.toFace(atItsAngle != null ? atItsAngle
+      currentScramble = LayerRotation.toFace(LayerRotation.spun(atItsAngle != null ? atItsAngle
           : LayerRotation.spun(F2LPairScrambles.forCase(CaseAlgorithms.frontCode(currentCase),
-              random), spins), layerFace);
+              random), quartersTo(slot)), gripQuarters), layerFace);
       pairCorner = LayerRotation.piece("DFR", spins, layerFace);
       pairEdge = LayerRotation.piece("FR", spins, layerFace);
     } else if (pairs) {
@@ -339,6 +359,49 @@ public final class DrillSession {
       }
     }
     throw new IllegalArgumentException("Not a back slot: " + slot);
+  }
+
+  /**
+   * The extra y quarters that put the slot behind the hand as the cube is held now: 0 for the usual
+   * grip, and for one the gyro cannot read, or that has another face on top.
+   */
+  private int gripQuartersTo(String slot) {
+    CubeRotation grip = gripReader == null ? null : gripReader.grip();
+    if (grip == null) {
+      return 0;
+    }
+    String held = F2LBackSlotAlgorithms.BACK_RIGHT.equals(slot) ? "DRB" : "DBL";
+    for (int quarters = 0; quarters < 4; quarters++) {
+      String corner = LayerRotation.piece("DFR", quartersTo(slot) + quarters, layerFace);
+      StringBuilder at = new StringBuilder();
+      for (char face : corner.toCharArray()) {
+        at.append(grip.mapFace(face));
+      }
+      if (sameLetters(at.toString(), held)) {
+        return quarters;
+      }
+    }
+    return 0;
+  }
+
+  /** The rep's turns named as the user's grip sees them, the way the case's algorithms are written. */
+  private String turnsAsHeld() {
+    StringBuilder turned = new StringBuilder();
+    for (CubeMove move : moves) {
+      String notation = move.getNotation();
+      turned.append(turned.length() == 0 ? "" : " ")
+          .append(asHeld(notation.charAt(0))).append(notation.substring(1));
+    }
+    return turned.toString();
+  }
+
+  private char asHeld(char face) {
+    for (char held : "URFDLB".toCharArray()) {
+      if (LayerRotation.piece(String.valueOf(held), gripQuarters, layerFace).charAt(0) == face) {
+        return held;
+      }
+    }
+    return face;
   }
 
   private static boolean sameLetters(String piece, String other) {
@@ -906,7 +969,8 @@ public final class DrillSession {
     boolean practice = practiceCase != null;
     String taughtAlgorithm = taught.get(currentCase);
     boolean offTaught = spec.isLearning() && !practice && !abandoned && taughtAlgorithm != null
-        && !CaseAlgorithms.sameTurning(currentCase, DrillRep.notation(moves), taughtAlgorithm);
+        && !CaseAlgorithms.sameTurning(currentCase,
+            backSlots ? turnsAsHeld() : DrillRep.notation(moves), taughtAlgorithm);
     Long pairOne = null;
     Long pause = null;
     if (lookAhead && firstPairInMs != NOT_SHOWN) {

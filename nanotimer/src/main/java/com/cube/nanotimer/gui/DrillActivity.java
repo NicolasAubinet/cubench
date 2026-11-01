@@ -131,6 +131,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private static final long REP_HOLD_MS = DrillRepFlourish.PLAY_BEAT_MS;
   /** Gyro readings taken either side of a back-slot rep, for the poses at its two ends. */
   private static final long ROTATION_LEAD_MS = 500;
+  /** How far back the grip a back-slot case is dealt into is read, so a settling reading can't win. */
+  private static final long GRIP_READ_MS = 1000;
 
   /** The family a case belongs to, which is the colour its name is written in everywhere. */
   private static final String FAMILY_OLL = "oll_";
@@ -402,6 +404,11 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         return RepRotations.rotated(moves, shownHostMs, skewMs,
             SmartCubeManager.INSTANCE.getOrientationsBetween(shownHostMs - ROTATION_LEAD_MS,
                 lastMs + ROTATION_LEAD_MS), layer);
+      });
+      session.setGripReader(() -> {
+        long now = System.currentTimeMillis();
+        return SmartCubeManager.INSTANCE.getGyroReference().frameOver(
+            SmartCubeManager.INSTANCE.getOrientationsBetween(now - GRIP_READ_MS, now), now);
       });
     }
     initRecording(spec);
