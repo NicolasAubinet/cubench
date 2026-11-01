@@ -29,6 +29,7 @@ import com.cube.nanotimer.util.coach.CoachOffers;
 import com.cube.nanotimer.util.coach.CoachPlanWorker;
 import com.cube.nanotimer.util.coach.CoachPlans;
 import com.cube.nanotimer.util.coach.CoachRead;
+import com.cube.nanotimer.util.coach.CoachReply;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -272,6 +273,12 @@ public class CoachPlanStatus {
             sentence = activity.getString(R.string.coach_next_retry,
                 DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                     .format(new Date(heldUntil)));
+          } else if (CoachRead.of(solveType).getState() == CoachRead.State.FAILED) {
+            // Retried on its own, so the line says why it waits rather than spinning forever.
+            boolean offline = CoachRead.of(solveType).getFailure().getKind()
+                == CoachReply.Kind.UNREACHABLE;
+            sentence = activity.getString(offline ? R.string.coach_retry_unreachable
+                : R.string.coach_retry_unavailable);
           } else {
             value = activity.getString(R.string.coach_strip_waiting);
             waiting = true;

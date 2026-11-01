@@ -1302,6 +1302,8 @@
   <string name="coach_strip_first">Premier plan</string>
   <string name="coach_strip_session">à la fin de cette session</string>
   <string name="coach_strip_waiting">en attente du coach</string>
+  <string name="coach_retry_unreachable">Impossible de joindre le coach. Il réessaiera tout seul une fois en ligne.</string>
+  <string name="coach_retry_unavailable">Le coach n\'est pas disponible pour le moment. Il réessaiera tout seul.</string>
   <string name="coach_gate_title">Le coach s\'ouvre à %1$d résolutions au smart cube</string>
   <string name="coach_gate_count">%1$d sur %2$d</string>
   <plurals name="coach_gate_note">

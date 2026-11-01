@@ -1349,6 +1349,8 @@
   <string name="coach_strip_first">First plan</string>
   <string name="coach_strip_session">when this session ends</string>
   <string name="coach_strip_waiting">waiting for the coach</string>
+  <string name="coach_retry_unreachable">Couldn\'t reach the coach. It will try again by itself once you\'re online.</string>
+  <string name="coach_retry_unavailable">The coach isn\'t available right now. It will try again by itself.</string>
   <string name="coach_gate_title">The coach opens at %1$d smart cube solves</string>
   <string name="coach_gate_count">%1$d of %2$d</string>
   <plurals name="coach_gate_note">
