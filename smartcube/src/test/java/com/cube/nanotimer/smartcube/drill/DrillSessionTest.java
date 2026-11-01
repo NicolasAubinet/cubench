@@ -1171,6 +1171,8 @@ public class DrillSessionTest {
             String what = backCode + " on " + face + " held " + grip;
             assertNotNull(what, rep);
             assertFalse(what, rep.isOffTaught());
+            assertTrue(what, CaseAlgorithms.sameTurning(backCode, rep.getTurned(), alg));
+            assertFalse(what, CaseAlgorithms.isWorthPointingOut(backCode, rep.getTurned()));
           }
         }
       }

@@ -34,6 +34,8 @@ public final class DrillRep {
   private final Long pairOneMs;
   private final Long pauseMs;
   private final boolean rotated;
+  /** The turns named from the grip they were turned in, where the case was dealt off the usual one. */
+  private final String turned;
 
   DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
       long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
@@ -60,14 +62,15 @@ public final class DrillRep {
       long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
       boolean abandoned, boolean practice, boolean offTaught, Long pairOneMs, Long pauseMs) {
     this(caseCode, scramble, moves, shownAtMs, recognitionMs, executionMs, moveCount, resetCount,
-        revealed, abandoned, practice, offTaught, pairOneMs, pauseMs, false);
+        revealed, abandoned, practice, offTaught, pairOneMs, pauseMs, false, null);
   }
 
   DrillRep(String caseCode, String scramble, List<CubeMove> moves, long shownAtMs,
       long recognitionMs, long executionMs, int moveCount, int resetCount, boolean revealed,
       boolean abandoned, boolean practice, boolean offTaught, Long pairOneMs, Long pauseMs,
-      boolean rotated) {
+      boolean rotated, String turned) {
     this.rotated = rotated;
+    this.turned = turned;
     this.caseCode = caseCode;
     this.pairOneMs = pairOneMs;
     this.pauseMs = pauseMs;
@@ -101,10 +104,11 @@ public final class DrillRep {
 
   /**
    * The turns as notation, the way the cube reported them, for the algorithm matcher: it reads a
-   * slice arriving as two outer turns and a regrip it never saw.
+   * slice arriving as two outer turns and a regrip it never saw. A back-slot rep's are named from
+   * the grip it was dealt to, so they read as the algorithm turned from there.
    */
   public String getTurned() {
-    return notation(moves);
+    return turned != null ? turned : notation(moves);
   }
 
   static String notation(List<CubeMove> moves) {

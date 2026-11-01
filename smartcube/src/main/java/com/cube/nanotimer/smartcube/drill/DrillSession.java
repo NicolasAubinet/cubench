@@ -968,9 +968,9 @@ public final class DrillSession {
     long execution = moves.isEmpty() ? 0 : Math.max(0, lastMoveMs - algStart);
     boolean practice = practiceCase != null;
     String taughtAlgorithm = taught.get(currentCase);
+    String turned = backSlots ? turnsAsHeld() : DrillRep.notation(moves);
     boolean offTaught = spec.isLearning() && !practice && !abandoned && taughtAlgorithm != null
-        && !CaseAlgorithms.sameTurning(currentCase,
-            backSlots ? turnsAsHeld() : DrillRep.notation(moves), taughtAlgorithm);
+        && !CaseAlgorithms.sameTurning(currentCase, turned, taughtAlgorithm);
     Long pairOne = null;
     Long pause = null;
     if (lookAhead && firstPairInMs != NOT_SHOWN) {
@@ -986,7 +986,7 @@ public final class DrillSession {
         && rotationReader.rotated(new ArrayList<CubeMove>(moves), caseShownAtMs, clockSkewMs);
     DrillRep rep = new DrillRep(currentCase, currentScramble,
         new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
-        resetCount, revealed, abandoned, practice, offTaught, pairOne, pause, rotated);
+        resetCount, revealed, abandoned, practice, offTaught, pairOne, pause, rotated, turned);
     // A practice rep is none of the drill's: it neither spends one nor counts towards retiring.
     if (!practice) {
       reps.add(rep);
