@@ -827,7 +827,7 @@
   <string name="smart_cube_connecting">Connecting to %s…</string>
   <string name="smart_cube_connected">Connected</string>
   <string name="smart_cube_connect_failed">Connection failed: %s</string>
-  <string name="smart_cube_intro_body">A Bluetooth smart cube reports every turn to Cubench as you make it. Once yours is paired, three things change.</string>
+  <string name="smart_cube_intro_body">A Bluetooth smart cube reports every turn to Cubench as you make it. Once yours is paired, here is what it adds.</string>
   <string name="smart_cube_done">Done</string>
   <string name="smart_cube_auto_connect">Connect to this cube when the app opens</string>
   <string name="smart_cube_resync">Reset state</string>
@@ -848,7 +848,11 @@
   <string name="smart_cube_intro_scramble_title">Scrambles you can follow</string>
   <string name="smart_cube_intro_scramble_body">Cubench watches you apply the scramble, marks off each move as it lands, and says when you are ready to go.</string>
   <string name="smart_cube_intro_breakdown_title">Every solve, broken down</string>
-  <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL and PLL are timed separately, with move counts, turn speed and the full reconstruction.</string>
+  <string name="smart_cube_intro_breakdown_body">Each step of your method is timed separately, with move counts, turn speed and the full reconstruction to replay in 3D.</string>
+  <string name="smart_cube_intro_analysis_title">What slows you down</string>
+  <string name="smart_cube_intro_analysis_body">Your slowest steps and cases, and the algorithms you really use.</string>
+  <string name="smart_cube_intro_drills_title">Drills and new algorithms</string>
+  <string name="smart_cube_intro_drills_body">Practise your weakest cases on your own cube, and learn new algorithms with the cube checking every turn.</string>
   <string name="smart_cube_intro_continue">Pair my cube</string>
   <string name="smart_cube_help">What a smart cube does</string>
 

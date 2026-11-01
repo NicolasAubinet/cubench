@@ -333,6 +333,76 @@
           </LinearLayout>
         </LinearLayout>
 
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:layout_marginTop="16dp">
+          <ImageView
+             android:layout_width="24dp"
+             android:layout_height="24dp"
+             android:layout_marginEnd="14dp"
+             android:layout_marginRight="14dp"
+             android:layout_marginTop="1dp"
+             android:src="@drawable/menu_analysis"
+             android:tint="@color/lightblue"
+             android:contentDescription="@null"/>
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical">
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/smart_cube_intro_analysis_title"
+               android:textColor="@color/white"
+               android:textSize="14.5sp"
+               android:textStyle="bold"/>
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="1dp"
+               android:text="@string/smart_cube_intro_analysis_body"
+               android:textColor="@color/secondary_text"
+               android:textSize="12.5sp"/>
+          </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="horizontal"
+           android:layout_marginTop="16dp">
+          <ImageView
+             android:layout_width="24dp"
+             android:layout_height="24dp"
+             android:layout_marginEnd="14dp"
+             android:layout_marginRight="14dp"
+             android:layout_marginTop="1dp"
+             android:src="@drawable/ic_menu_drill"
+             android:tint="@color/lightblue"
+             android:contentDescription="@null"/>
+          <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical">
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/smart_cube_intro_drills_title"
+               android:textColor="@color/white"
+               android:textSize="14.5sp"
+               android:textStyle="bold"/>
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="1dp"
+               android:text="@string/smart_cube_intro_drills_body"
+               android:textColor="@color/secondary_text"
+               android:textSize="12.5sp"/>
+          </LinearLayout>
+        </LinearLayout>
+
       </LinearLayout>
 
     </FrameLayout>

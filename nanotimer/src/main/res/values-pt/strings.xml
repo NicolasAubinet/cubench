@@ -810,7 +810,7 @@
   <string name="smart_cube_connecting">Conectando a %s…</string>
   <string name="smart_cube_connected">Conectado</string>
   <string name="smart_cube_connect_failed">Falha na conexão: %s</string>
-  <string name="smart_cube_intro_body">Um smart cube Bluetooth transmite ao Cubench cada movimento no instante em que você o faz. Depois que o seu estiver pareado, três coisas mudam.</string>
+  <string name="smart_cube_intro_body">Um smart cube Bluetooth transmite ao Cubench cada movimento no instante em que você o faz. Depois que o seu estiver pareado, veja o que ele traz.</string>
   <string name="smart_cube_done">Pronto</string>
   <string name="smart_cube_auto_connect">Conectar este cubo ao abrir o aplicativo</string>
   <string name="smart_cube_resync">Reiniciar o estado</string>
@@ -831,7 +831,11 @@
   <string name="smart_cube_intro_scramble_title">Scrambles que dá para seguir</string>
   <string name="smart_cube_intro_scramble_body">O Cubench vê você aplicar o scramble, marca cada movimento conforme acontece e avisa quando você está pronto.</string>
   <string name="smart_cube_intro_breakdown_title">Cada resolução, detalhada</string>
-  <string name="smart_cube_intro_breakdown_body">Cruz, F2L, OLL e PLL são cronometrados separadamente, com contagem de movimentos, velocidade e a reconstrução completa.</string>
+  <string name="smart_cube_intro_breakdown_body">Cada etapa do seu método é cronometrada separadamente, com contagem de movimentos, velocidade e a reconstrução completa, para rever em 3D.</string>
+  <string name="smart_cube_intro_analysis_title">O que te atrasa</string>
+  <string name="smart_cube_intro_analysis_body">Suas etapas e casos mais lentos, e os algoritmos que você realmente usa.</string>
+  <string name="smart_cube_intro_drills_title">Treinos e algoritmos novos</string>
+  <string name="smart_cube_intro_drills_body">Pratique seus casos mais fracos no seu próprio cubo e aprenda algoritmos novos, com o cubo conferindo cada giro.</string>
   <string name="smart_cube_intro_continue">Parear meu cubo</string>
   <string name="smart_cube_help">O que um smart cube faz</string>
 

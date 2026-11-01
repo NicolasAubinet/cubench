@@ -808,7 +808,7 @@
   <string name="smart_cube_connecting">Connexion à %s…</string>
   <string name="smart_cube_connected">Connecté</string>
   <string name="smart_cube_connect_failed">Échec de la connexion: %s</string>
-  <string name="smart_cube_intro_body">Un smart cube Bluetooth transmet à Cubench chacun de vos mouvements au moment où vous le faites. Une fois le vôtre appairé, trois choses changent.</string>
+  <string name="smart_cube_intro_body">Un smart cube Bluetooth transmet à Cubench chacun de vos mouvements au moment où vous le faites. Une fois le vôtre appairé, voici ce qu\'il apporte.</string>
   <string name="smart_cube_done">Terminé</string>
   <string name="smart_cube_auto_connect">Se connecter à ce cube à l\'ouverture de l\'application</string>
   <string name="smart_cube_resync">Réinitialiser l\'état</string>
@@ -829,7 +829,11 @@
   <string name="smart_cube_intro_scramble_title">Des mélanges à suivre</string>
   <string name="smart_cube_intro_scramble_body">Cubench vous regarde appliquer le mélange, coche chaque mouvement au passage et vous dit quand vous êtes prêt.</string>
   <string name="smart_cube_intro_breakdown_title">Chaque résolution, détaillée</string>
-  <string name="smart_cube_intro_breakdown_body">Croix, F2L, OLL et PLL sont chronométrés séparément, avec le nombre de mouvements, la vitesse et la reconstruction complète.</string>
+  <string name="smart_cube_intro_breakdown_body">Chaque étape de votre méthode est chronométrée séparément, avec le nombre de mouvements, la vitesse et la reconstruction complète, à revoir en 3D.</string>
+  <string name="smart_cube_intro_analysis_title">Ce qui vous ralentit</string>
+  <string name="smart_cube_intro_analysis_body">Vos étapes et cas les plus lents, et les algorithmes que vous utilisez vraiment.</string>
+  <string name="smart_cube_intro_drills_title">Drills et nouveaux algorithmes</string>
+  <string name="smart_cube_intro_drills_body">Travaillez vos cas les plus faibles sur votre propre cube, et apprenez de nouveaux algorithmes, le cube vérifiant chaque mouvement.</string>
   <string name="smart_cube_intro_continue">Appairer mon cube</string>
   <string name="smart_cube_help">Ce que fait un smart cube</string>
 
