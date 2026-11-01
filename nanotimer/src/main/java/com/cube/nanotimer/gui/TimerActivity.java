@@ -60,6 +60,7 @@ import com.cube.nanotimer.gui.widget.StepSplitsView;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
 import com.cube.nanotimer.gui.widget.dialog.BlindSetupPrompt;
+import com.cube.nanotimer.gui.widget.dialog.PreferredMethodPrompt;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
 import com.cube.nanotimer.scrambler.ScramblerService;
@@ -344,7 +345,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     liveCube.start();
     statePreview.start();
     SmartCubeManager.INSTANCE.addConnectionListener(statePreviewOwner);
-    askBlindSetup();
+    askCubeQuestions();
     applySessionStripChoice(); // both this and the coloring below may have changed in the settings
     renderStatePreview(); // and so may what the picture under the scramble is drawn as
     refreshSessionFields();
@@ -1967,19 +1968,24 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
-   * How the cube is held and what is shot from, asked the first time a blind solve type is opened
-   * with a cube on. Later than the method question, which the connect sheet asks, because these
-   * only mean anything for a blind solve type and most solvers never open one.
+   * The one-time questions a cube's readings need: the method for a sighted type, if the connect
+   * sheet missed asking it, and how the cube is held and shot from for a blind one, which most
+   * solvers never open.
    *
    * <p>Asked as the screen opens, never when a cube connects while it is open: an auto-connect
    * landing then would put the dialog under the hand about to start. A skip is asked next time.
    */
-  private void askBlindSetup() {
+  private void askCubeQuestions() {
     // Never over a running attempt. A cube connecting mid-memorisation would otherwise put a modal
     // dialog over the timer, and the tap meant to stop it would land on the dialog instead.
-    if (timerState == TimerState.STOPPED && solveType != null && solveType.isBlind()
-        && SmartCubeManager.INSTANCE.isConnected()) {
+    if (timerState != TimerState.STOPPED || solveType == null
+        || !SmartCubeManager.INSTANCE.isConnected()) {
+      return;
+    }
+    if (solveType.isBlind()) {
       BlindSetupPrompt.askOnce(this, solveType);
+    } else {
+      PreferredMethodPrompt.askOnce(this);
     }
   }
 

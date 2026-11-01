@@ -1,6 +1,5 @@
 package com.cube.nanotimer.gui.widget;
 
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,6 +30,7 @@ import com.cube.nanotimer.cube.SmartCubeAutoConnect;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.SmartCubeScanListener;
 import com.cube.nanotimer.cube.VirtualCube;
+import com.cube.nanotimer.gui.widget.dialog.PreferredMethodPrompt;
 import com.cube.nanotimer.smartcube.model.CubeBatteryListener;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.model.CubeState;
@@ -38,9 +38,7 @@ import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.coach.CoachBetaInvite;
 import com.cube.nanotimer.util.helper.DialogUtils;
-import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
-import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,10 +71,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private Button btnResync;
   private Button btnDisconnect;
   private CheckBox cbAutoConnect;
-
-  /** The sighted methods a solve can be broken down into, in order of how common they are. */
-  private static final CubeMethod[] METHOD_CHOICES =
-      {CubeMethod.CFOP, CubeMethod.ROUX, CubeMethod.LBL};
 
   private final List<DiscoveredCube> discovered = new ArrayList<>();
   private boolean scanning;
@@ -377,7 +371,9 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onConnected() {
         updateUi();
-        askPreferredMethod();
+        if (isAdded()) {
+          PreferredMethodPrompt.askOnce(requireActivity());
+        }
       }
 
       @Override
@@ -388,83 +384,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
         showConnectFailed(e);
       }
     });
-  }
-
-  /**
-   * Asks, once, which method the solver uses. It is put at the first connection because that is the
-   * moment the answer starts to matter — before a cube, nothing reads a solve's steps.
-   *
-   * <p>The answer is kept in the one place rather than copied onto the solve types, so it holds for
-   * the types that predate the question as well as the ones made after it, and changing it later
-   * re-reads every type that did not override it.
-   *
-   * <p>It is not dismissible, and there is no "work it out yourself" option: reading the method off
-   * the solve is a guess, and a wrong guess breaks a solve down into steps it never had.
-   */
-  private void askPreferredMethod() {
-    if (!isAdded() || Options.INSTANCE.isPreferredMethodAsked()) {
-      return;
-    }
-    View content = getLayoutInflater().inflate(R.layout.preferred_method_dialog, null);
-    LinearLayout choices = content.findViewById(R.id.methodChoices);
-    AlertDialog dialog = new AlertDialog.Builder(requireContext(), R.style.NanoTimerDialogTheme)
-        .setView(content)
-        .setCancelable(false)
-        .create();
-    for (CubeMethod method : METHOD_CHOICES) {
-      choices.addView(methodCard(method, choices, dialog));
-    }
-    dialog.show();
-  }
-
-  /** A method as a card: what it is called, and the steps it will be read as. */
-  private View methodCard(CubeMethod method, LinearLayout parent, AlertDialog dialog) {
-    View card = getLayoutInflater().inflate(R.layout.preferred_method_item, parent, false);
-    ((ImageView) card.findViewById(R.id.imgMethod)).setImageResource(methodIcon(method));
-    ((TextView) card.findViewById(R.id.tvMethodName)).setText(Utils.getMethodLabel(method));
-
-    LinearLayout steps = card.findViewById(R.id.methodSteps);
-    for (int step : methodSteps(method)) {
-      TextView chip = (TextView) getLayoutInflater().inflate(R.layout.method_step_chip, steps, false);
-      chip.setText(step);
-      steps.addView(chip);
-    }
-
-    if (parent.getChildCount() > 0) {
-      ((LinearLayout.LayoutParams) card.getLayoutParams()).topMargin =
-          getResources().getDimensionPixelSize(R.dimen.smart_cube_row_gap);
-    }
-    card.setOnClickListener(view -> {
-      choosePreferredMethod(method);
-      dialog.dismiss();
-    });
-    return card;
-  }
-
-  /** The step names the breakdown uses, so the card shows what picking the method buys. */
-  private static int[] methodSteps(CubeMethod method) {
-    if (method == CubeMethod.ROUX) {
-      return new int[] {R.string.smartcube_step_fb, R.string.smartcube_step_sb,
-          R.string.smartcube_step_cmll, R.string.smartcube_step_lse};
-    }
-    if (method == CubeMethod.LBL) {
-      return new int[] {R.string.smartcube_step_cross, R.string.smartcube_step_layer1,
-          R.string.smartcube_step_layer2, R.string.smartcube_step_ll};
-    }
-    return new int[] {R.string.smartcube_step_cross, R.string.smartcube_step_f2l,
-        R.string.smartcube_step_oll, R.string.smartcube_step_pll};
-  }
-
-  private static int methodIcon(CubeMethod method) {
-    if (method == CubeMethod.ROUX) {
-      return R.drawable.ic_method_roux;
-    }
-    return method == CubeMethod.LBL ? R.drawable.ic_method_lbl : R.drawable.ic_method_cfop;
-  }
-
-  private void choosePreferredMethod(CubeMethod method) {
-    Options.INSTANCE.setPreferredMethodAsked(true);
-    Options.INSTANCE.setPreferredMethod(method);
   }
 
   /** Re-renders whichever state the sheet is in. Connection callbacks can land at any moment. */
