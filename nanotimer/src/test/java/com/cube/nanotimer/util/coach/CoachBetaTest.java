@@ -82,6 +82,13 @@ public class CoachBetaTest {
   }
 
   @Test
+  public void aMemberDoesNotSendAPurchaseTheCoachRefused() {
+    Assert.assertFalse(CoachClient.sendsPurchase(true, true));
+    Assert.assertTrue(CoachClient.sendsPurchase(true, false));
+    Assert.assertTrue(CoachClient.sendsPurchase(false, true));
+  }
+
+  @Test
   public void aPlanCarriesTheServicesId() {
     CoachReply reply = CoachReply.parse(200, "{\"status\":\"ready\",\"plan_id\":\"abc\","
         + "\"plan\":{\"plan_version\":1,\"source\":\"heuristic\",\"headline\":\"h\","

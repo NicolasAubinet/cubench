@@ -322,6 +322,14 @@ public final class CoachClient {
     return call(url, requestBody, readTimeoutMs, withAccess);
   }
 
+  /**
+   * The service reads a purchase before the beta and refuses one that buys nothing, so a member
+   * sending a lapsed purchase would never reach their place in the beta.
+   */
+  static boolean sendsPurchase(boolean purchaseEnded, boolean betaLetsIn) {
+    return !(purchaseEnded && betaLetsIn);
+  }
+
   /** A GET carrying the Coach ID alone. */
   private Answer get(String url, int readTimeoutMs) throws IOException {
     return call(url, null, readTimeoutMs, false);
@@ -348,7 +356,8 @@ public final class CoachClient {
         connection.setRequestProperty("Authorization", "Bearer " + token);
       }
       connection.setRequestProperty("Coach-Id", coachId);
-      String purchase = withAccess ? access.getPurchaseToken() : null;
+      String purchase = withAccess
+          && sendsPurchase(access.hasEnded(), beta.letsIn()) ? access.getPurchaseToken() : null;
       if (!CoachAccess.sendable(purchase)) {
         purchase = null;
       }
