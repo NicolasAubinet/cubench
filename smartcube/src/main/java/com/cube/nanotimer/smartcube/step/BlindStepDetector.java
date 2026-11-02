@@ -1454,6 +1454,11 @@ public final class BlindStepDetector implements StepDetector {
     if (blamedOn(landing).isEmpty()) {
       return null;
     }
+    // A miss proved on the corrected replay is owed what the cube stood owing there.
+    Map<Landing, String> wrongTargets = lostByReversal() == null ? lostByWrongTargets() : null;
+    if (wrongTargets != null) {
+      return targets.wantedName(wrongTargets.get(landing), landing.buffer);
+    }
     if (landing.turned) {
       List<Integer> owed = turnedInPlaceIn(landing.before, landing.type);
       return owed.size() == landing.named.slots.size()
@@ -1487,6 +1492,10 @@ public final class BlindStepDetector implements StepDetector {
    * below: the algorithms after a misfire take pieces out executing the memo faithfully on a cube
    * the misfire had already moved on, and reddening them points at the wrong one.
    *
+   * <p><b>So is an algorithm shot at a wrong target</b>, proved by replaying the solve with each miss
+   * replaced by the cycle the cube owed it ({@link #lostByWrongTargets}): where that comes out, the
+   * misses answer for what they missed and the faithful algorithms between them for nothing.
+   *
    * <p><b>Otherwise an algorithm answers for a target it shot at and never brought home</b>
    * ({@link #shotsThatNeverLanded}), all of them where there are several: nothing proved says which
    * was the mistake and which the memo carried out on a cube that had moved on. Or, where it shot
@@ -1513,6 +1522,11 @@ public final class BlindStepDetector implements StepDetector {
     if (reversed != null) {
       return reversed == landing
           ? whatItShouldHavePutHome(landing) : Collections.<Integer>emptyList();
+    }
+    Map<Landing, String> wrongTargets = lostByWrongTargets();
+    if (wrongTargets != null) {
+      return wrongTargets.containsKey(landing)
+          ? missedFrom(landing, wrongTargets.get(landing)) : Collections.<Integer>emptyList();
     }
     if (landing.turned) {
       return turnedThatNeverCameHome(landing);
@@ -1813,6 +1827,59 @@ public final class BlindStepDetector implements StepDetector {
   private boolean wouldHaveSolvedItReversed(Landing landing) {
     return isSolved(Cubies.applyMotion(Cubies.motionBetween(landing.after, stopped),
         executedTheOtherWayRound(landing)));
+  }
+
+  /**
+   * The solve replayed with each algorithm that missed replaced by the cycle the cube owed it, every
+   * turn after kept as made: the cube each later algorithm would have found had the earlier misses
+   * not happened. Proved where that replay comes out, and then the algorithms that missed on it are
+   * the mistakes, each keyed to the state it found there; the rest followed the memo. Null where it
+   * does not come out, where a miss was not a plain shot, or where the method shoots swaps.
+   */
+  private Map<Landing, String> lostByWrongTargets() {
+    if (swaps || landings.isEmpty()) {
+      return null;
+    }
+    Map<Landing, String> missed = new HashMap<>();
+    String was = landings.get(0).before;
+    String state = was;
+    for (Landing landing : landings) {
+      String before = state;
+      state = Cubies.applyMotion(Cubies.motionBetween(was, landing.after), state);
+      was = landing.after;
+      if (UNDO.equals(landing.named.name) || wasTakenBack(landing)
+          || missedOn(landing, state).isEmpty()) {
+        continue;
+      }
+      String owed = !landing.shot || landing.turned || landing.swapped()
+          || landing.buffer == BlindTargets.NO_BUFFER
+          ? null : targets.withTheOwedCycle(before, landing.buffer);
+      if (owed == null) {
+        return null;
+      }
+      missed.put(landing, before);
+      state = owed;
+    }
+    state = Cubies.applyMotion(Cubies.motionBetween(was, stopped), state);
+    return missed.isEmpty() || !isSolved(state) ? null : missed;
+  }
+
+  // The pieces of its name an algorithm left out of place, a break-in parking the buffer's piece aside.
+  private List<Integer> missedOn(Landing landing, String after) {
+    List<Integer> missed = new ArrayList<>();
+    for (int slot : landing.named.slots) {
+      if (slot != landing.buffer && !Cubies.inPlace(after, PIECES[slot])
+          && Cubies.homeSlotOf(after, slot) != landing.buffer) {
+        missed.add(slot);
+      }
+    }
+    return missed;
+  }
+
+  // What an algorithm proved to have missed did from the corrected state it found.
+  private List<Integer> missedFrom(Landing landing, String before) {
+    return missedOn(landing, Cubies.applyMotion(
+        Cubies.motionBetween(landing.before, landing.after), before));
   }
 
   /** The state this algorithm would have left had it been executed the other way round. */

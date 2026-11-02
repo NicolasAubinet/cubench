@@ -1148,8 +1148,8 @@ public class RecordedBlindSolveTest {
 
   /**
    * A target that missed is marked even where a later algorithm brought its slot home: the corner
-   * it parked there is the one the solve ended owing. The algorithms after it followed the memo on
-   * a cube that had moved on, and carry red of their own for the shots that missed there.
+   * it parked there is the one the solve ended owing. Shooting the owed cycle instead brings the
+   * cube out, which proves the algorithm after it followed the memo, so it carries no red.
    */
   @Test
   public void marksAMissedTargetALaterAlgorithmHappenedToLand() {
@@ -1162,10 +1162,13 @@ public class RecordedBlindSolveTest {
     assertEquals(Arrays.asList(TOUCHED, HOME, WRONG), detector.subStepPieceMarks(1, 0));
     assertEquals("UFR-UBL-BDL", detector.subStepWantedName(1, 0));
     assertEquals("UFR-UBR-FDL", detector.subStepName(1, 1)); // lands FDL, the slot 1.0 missed
-    assertEquals(Arrays.asList(TOUCHED, WRONG, HOME), detector.subStepPieceMarks(1, 1));
+    assertOnlyRedOn(1, 0);
   }
 
-  /** The same, where the missed target was the one that closed the cycle on the buffer. */
+  /**
+   * The same, where the missed target was the one that closed the cycle on the buffer. A second slip
+   * comes later, and replayed with both corrected the cube comes out, so the two between are clean.
+   */
   @Test
   public void marksAMissedClosingTargetALaterAlgorithmHappenedToLand() {
     replay(RecordedBlindSolve.SCRAMBLE_MISSED_THE_CLOSING_TARGET,
@@ -1176,7 +1179,21 @@ public class RecordedBlindSolveTest {
     assertEquals(Arrays.asList(TOUCHED, HOME, WRONG), detector.subStepPieceMarks(1, 1));
     assertEquals("UF-UL-BR", detector.subStepWantedName(1, 1));
     assertEquals("UF-DL-RU", detector.subStepName(1, 3)); // lands DL, the slot 1.1 missed
-    assertFalse(detector.subStepPieceMarks(1, 0).contains(WRONG));
+    assertEquals("UF-BL-UB", detector.subStepName(1, 4)); // shot UB where the cube owed BU
+    assertEquals("UF-BL-BU", detector.subStepWantedName(1, 4));
+    assertOnlyRedOn(1, 1, 4);
+  }
+
+  // Red and a "Was:" line on these algorithms of one step and nowhere else in the solve.
+  private void assertOnlyRedOn(int step, Integer... parts) {
+    for (int s = 1; s < detector.stepCount(); s++) {
+      for (int p = 0; p < detector.subStepCount(s); p++) {
+        boolean blamed = s == step && Arrays.asList(parts).contains(p);
+        assertEquals(detector.subStepName(s, p), blamed,
+            detector.subStepPieceMarks(s, p).contains(WRONG));
+        assertEquals(detector.subStepName(s, p), blamed, detector.subStepWantedName(s, p) != null);
+      }
+    }
   }
 
   /**

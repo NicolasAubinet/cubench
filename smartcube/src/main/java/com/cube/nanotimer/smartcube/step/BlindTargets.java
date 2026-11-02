@@ -210,6 +210,35 @@ final class BlindTargets {
   }
 
   /**
+   * The state {@link #wantedName}'s three-cycle would have left: the buffer's piece and the one at
+   * its target both home, the piece at the second target carried into the buffer. Null where the
+   * cycle closes before a second target, which leaves the algorithm partly the solver's choice.
+   */
+  String withTheOwedCycle(String before, int buffer) {
+    int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);
+    int first = homeFacelet(before, start);
+    int second = first < 0 ? -1 : homeFacelet(before, first);
+    if (second < 0 || Cubies.slotOf(first) == buffer || Cubies.slotOf(second) == buffer) {
+      return null;
+    }
+    int[] motion = new int[before.length()];
+    for (int facelet = 0; facelet < motion.length; facelet++) {
+      motion[facelet] = facelet;
+    }
+    for (int facelet : Cubies.PIECES[buffer]) {
+      motion[facelet] = homeFacelet(before, facelet);
+    }
+    for (int facelet : Cubies.PIECES[Cubies.slotOf(first)]) {
+      motion[facelet] = homeFacelet(before, facelet);
+    }
+    // The second piece closes the cycle, each sticker onto the buffer sticker it came round from.
+    for (int facelet : Cubies.PIECES[buffer]) {
+      motion[motion[motion[facelet]]] = facelet;
+    }
+    return Cubies.applyMotion(motion, before);
+  }
+
+  /**
    * The swap that was due: the buffer and the sticker where the buffer's piece belongs. Null when
    * the buffer holds its own piece, since the next target is then the solver's choice.
    */

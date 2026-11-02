@@ -795,7 +795,8 @@ final class RecordedBlindSolve {
   /**
    * The edges-only solve of 2026-11-02 12:15:41 (solve 6582), reported by its solver. Its second
    * algorithm shot {@code DL} where the cube owed {@code BR}, the slot holding the buffer's piece, so
-   * the cycle closed one target late; a later algorithm landed {@code DL} and it went unmarked.
+   * the cycle closed one target late; a later algorithm landed {@code DL} and it went unmarked. Its
+   * last shot {@code UB} where the cube owed {@code BU}, leaving two edges flipped.
    */
   static final String SCRAMBLE_MISSED_THE_CLOSING_TARGET =
       "L2 U' B2 R2 U' L2 R2 U' L2 U2 L' R U' L2 R' U' R' B2 U' F' L'";
