@@ -792,6 +792,25 @@ final class RecordedBlindSolve {
           + "B@15535 D'@15590 B'@15671 D@15801 B@15995 U'@16032 B'@16152 D'@16282 B@16407 "
           + "D@16477 B'@16558 D'@16721 B@16838 U@16894";
 
+  /**
+   * The edges-only solve of 2026-11-02 12:15:41 (solve 6582), reported by its solver. Its second
+   * algorithm shot {@code DL} where the cube owed {@code BR}, the slot holding the buffer's piece, so
+   * the cycle closed one target late; a later algorithm landed {@code DL} and it went unmarked.
+   */
+  static final String SCRAMBLE_MISSED_THE_CLOSING_TARGET =
+      "L2 U' B2 R2 U' L2 R2 U' L2 U2 L' R U' L2 R' U' R' B2 U' F' L'";
+  static final String MOVES_MISSED_THE_CLOSING_TARGET =
+      "[y] y@7656 B'@7656 B'@7728 R@7842 z'@7996 B@7996 z@8039 B@8039 D'@8144 U@8190 y'@8331 "
+          + "R'@8331 R'@8414 U'@8536 D@8565 y@8566 R'@9486 B@9653 B@9723 F@10274 U'@10401 "
+          + "F@10579 R@10668 L'@10691 x'@10692 y'@10829 U'@10829 y@10902 U'@10902 L@11035 "
+          + "R'@11048 x@11197 F@11197 U@11354 F'@11689 F@14797 U'@15259 F@15414 F@15519 R@15713 "
+          + "L'@15738 x'@15739 y'@15894 U'@15894 U'@15985 y@16076 x@16076 L@16076 R'@16076 "
+          + "U@16498 F'@17115 z'@17746 B'@17747 B'@17810 R@18006 L'@18035 x'@18036 D@18191 "
+          + "y@18356 R@18356 D'@18413 L@18555 R'@18555 x@18556 z'@18800 B@18800 R'@18952 "
+          + "B@19154 F'@19630 z@19631 U@20249 F@20444 F@20501 R@20638 L'@20680 x'@20681 "
+          + "y'@20796 U'@20796 y@20897 U'@20897 L@21038 R'@21053 x@21267 U'@21267 z'@21444 "
+          + "F@21445";
+
   static final String[][] ALL = {
     {SCRAMBLE, MOVES}, {SCRAMBLE_163, MOVES_163}, {SCRAMBLE_164, MOVES_164},
     {SCRAMBLE_165, MOVES_165}, {SCRAMBLE_184, MOVES_184}, {SCRAMBLE_185, MOVES_185},
@@ -815,5 +834,6 @@ final class RecordedBlindSolve {
     {SCRAMBLE_TILTED_GRIP, MOVES_TILTED_GRIP},
     {SCRAMBLE_EDGES_ONLY, MOVES_EDGES_ONLY},
     {SCRAMBLE_MISSED_THEN_LANDED, MOVES_MISSED_THEN_LANDED},
+    {SCRAMBLE_MISSED_THE_CLOSING_TARGET, MOVES_MISSED_THE_CLOSING_TARGET},
   };
 }

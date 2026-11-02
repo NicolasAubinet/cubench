@@ -1620,8 +1620,9 @@ public final class BlindStepDetector implements StepDetector {
    * The targets this algorithm shot at that it did not put home and that nothing put right after it:
    * a target is where a piece was meant to arrive, so one that never arrived is a shot that missed.
    *
-   * <p><b>Or that a later algorithm landed, where the piece parked there never came home</b> and was
-   * not a closing cycle's, which the solver may break in with anywhere: the 2026-09-24 solve.
+   * <p><b>Or that a later algorithm landed, where the piece parked there never came home</b>: the
+   * 2026-09-24 solve. That holds for a cycle's closing piece too, whose one target is the slot
+   * holding the buffer's piece; the free break-in comes only after it (the 2026-11-02 solve).
    *
    * <p><b>Except a break-in</b>, which is the algorithm made once a cycle has closed: with its own
    * piece in the buffer there is nothing left to shoot, so all it can do is put that piece into a
@@ -1761,11 +1762,10 @@ public final class BlindStepDetector implements StepDetector {
     return turned;
   }
 
-  /** Whether the piece shot into this slot never reached its own, and was no early break-in. */
+  /** Whether the piece shot into this slot never reached its own by the end of the solve. */
   private boolean missedOutright(Landing landing, int slot) {
     int home = Cubies.homeSlotOf(landing.after, slot);
-    return solvedMs == null && home >= 0 && Cubies.homeSlotOf(landed, home) != home
-        && Cubies.homeSlotOf(landing.before, home) != landing.buffer;
+    return solvedMs == null && home >= 0 && Cubies.homeSlotOf(landed, home) != home;
   }
 
   /** Whether this algorithm found the buffer holding its own piece, which is a cycle closed. */

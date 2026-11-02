@@ -399,7 +399,8 @@ public class RecordedBlindSolveTest {
     assertEquals("UF-UL-DR", detector.subStepName(1, 3)); // shot at UL with FR in the buffer
     assertEquals(Arrays.asList(TOUCHED, WRONG, HOME), detector.subStepPieceMarks(1, 3));
     assertEquals("UF-UL-DR", detector.subStepName(1, 4)); // and again, the same algorithm twice
-    assertEquals(Arrays.asList(TOUCHED, WRONG, TOUCHED), detector.subStepPieceMarks(1, 4));
+    // The repeat also took the DR edge 1.3 had put home back out, and a stranger never left it.
+    assertEquals(Arrays.asList(TOUCHED, WRONG, WRONG), detector.subStepPieceMarks(1, 4));
     assertEquals("UF-DR-LB", detector.subStepName(1, 5));
     assertEquals(Arrays.asList(TOUCHED, HOME, WRONG), detector.subStepPieceMarks(1, 5));
     assertEquals("UF-DF-UL", detector.subStepName(1, 6)); // UL again, and left flipped in place
@@ -1162,6 +1163,20 @@ public class RecordedBlindSolveTest {
     assertEquals("UFR-UBL-BDL", detector.subStepWantedName(1, 0));
     assertEquals("UFR-UBR-FDL", detector.subStepName(1, 1)); // lands FDL, the slot 1.0 missed
     assertEquals(Arrays.asList(TOUCHED, WRONG, HOME), detector.subStepPieceMarks(1, 1));
+  }
+
+  /** The same, where the missed target was the one that closed the cycle on the buffer. */
+  @Test
+  public void marksAMissedClosingTargetALaterAlgorithmHappenedToLand() {
+    replay(RecordedBlindSolve.SCRAMBLE_MISSED_THE_CLOSING_TARGET,
+        RecordedBlindSolve.MOVES_MISSED_THE_CLOSING_TARGET, Long.MAX_VALUE);
+
+    assertFalse(detector.isComplete());
+    assertEquals("UF-UL-DL", detector.subStepName(1, 1));
+    assertEquals(Arrays.asList(TOUCHED, HOME, WRONG), detector.subStepPieceMarks(1, 1));
+    assertEquals("UF-UL-BR", detector.subStepWantedName(1, 1));
+    assertEquals("UF-DL-RU", detector.subStepName(1, 3)); // lands DL, the slot 1.1 missed
+    assertFalse(detector.subStepPieceMarks(1, 0).contains(WRONG));
   }
 
   /**
