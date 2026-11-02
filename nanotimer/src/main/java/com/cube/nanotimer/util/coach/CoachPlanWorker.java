@@ -105,6 +105,15 @@ public final class CoachPlanWorker extends Worker {
         .enqueueUniqueWork(ONCE, ExistingWorkPolicy.KEEP, once(0, Data.EMPTY));
   }
 
+  /**
+   * A beta member rated the plan the next one waited on, so whatever wait the service's refusal
+   * set is over.
+   */
+  public static void onRated(Context context) {
+    Options.INSTANCE.setCoachAskAgainAt(0);
+    check(context);
+  }
+
   /** Checks now, for a solver who is looking at the Plan tab: a first plan does not wait. */
   public static void checkFromScreen(Context context) {
     Data onScreen = new Data.Builder().putBoolean(ON_SCREEN, true).build();

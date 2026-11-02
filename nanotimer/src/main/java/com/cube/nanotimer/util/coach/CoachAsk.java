@@ -239,6 +239,8 @@ final class CoachAsk {
             App.INSTANCE.getService().saveCoachPlan(solveType, stored, new DataCallback<Void>() {
               @Override
               public void onData(Void unused) {
+                CoachBeta.of(App.INSTANCE.getContext()).planReceived(reply.getPlanId(),
+                    solveType.getId(), stored.getWrittenAt());
                 Options.INSTANCE.setCoachPendingRequest(solveType.getId(), null);
                 Options.INSTANCE.setCoachLastPlanAt(stored.getWrittenAt());
                 answer(null);

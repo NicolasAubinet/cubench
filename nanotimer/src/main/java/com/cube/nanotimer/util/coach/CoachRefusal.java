@@ -26,6 +26,14 @@ public enum CoachRefusal {
   PLAN_REJECTED,
   UPSTREAM_UNAVAILABLE,
   STORE_UNAVAILABLE,
+  /** A beta member's last plan has no stars yet, and the next one waits on them. */
+  FEEDBACK_OWED,
+  /** Every seat of the beta is taken. */
+  BETA_FULL,
+  /** The beta takes nobody new, or has ended. */
+  BETA_CLOSED,
+  /** No plan of this install's has the id asked about. */
+  NOT_FOUND,
   UNKNOWN;
 
   static CoachRefusal of(String code) {

@@ -42,19 +42,27 @@ public final class CoachClient {
   private final String practiceUrl;
   private final String redeemUrl;
   private final String reportUrl;
+  private final String betaUrl;
+  private final String joinUrl;
+  private final String plansUrl;
   private final String token;
   private final String coachId;
   private final CoachAccess access;
+  private final CoachBeta beta;
 
-  CoachClient(String baseUrl, String token, String coachId, CoachAccess access) {
+  CoachClient(String baseUrl, String token, String coachId, CoachAccess access, CoachBeta beta) {
     String base = baseUrl.replaceAll("/+$", "");
     this.planUrl = base + "/v1/plan";
     this.practiceUrl = base + "/v1/practice";
     this.redeemUrl = base + "/v1/redeem";
     this.reportUrl = base + "/v1/reconstruction-report";
+    this.betaUrl = base + "/v1/beta";
+    this.joinUrl = base + "/v1/beta/join";
+    this.plansUrl = base + "/v1/plans/";
     this.token = token;
     this.coachId = coachId;
     this.access = access;
+    this.beta = beta;
   }
 
   /**
@@ -65,16 +73,30 @@ public final class CoachClient {
     String url = context.getString(R.string.coach_url);
     String token = context.getString(R.string.coach_token);
     return url.isEmpty() ? null
-        : new CoachClient(url, token, Options.INSTANCE.getCoachId(), CoachAccess.of(context));
+        : new CoachClient(url, token, Options.INSTANCE.getCoachId(), CoachAccess.of(context),
+            CoachBeta.of(context));
   }
 
   /**
    * Whether this install has the coach, as far as the app can tell: a build token, a purchase the
-   * coach has not ended, or an entered code that still runs. The coach decides at every request;
-   * this is what the app offers and shows.
+   * coach has not ended, an entered code that still runs, or a place in the running beta. The coach
+   * decides at every request; this is what the app offers and shows.
    */
   public boolean hasAccess() {
+    return paidAccess() || beta.letsIn();
+  }
+
+  /**
+   * Whether this install has the coach by something other than the beta. The service reads those
+   * first, so such an install is never held for a rating and is not offered the beta.
+   */
+  public boolean paidAccess() {
     return !token.isEmpty() || access.letsIn(System.currentTimeMillis());
+  }
+
+  /** Whether the next plan waits for the last one's stars. */
+  public boolean owesRating() {
+    return !paidAccess() && beta.owesRating();
   }
 
   /**
@@ -151,6 +173,79 @@ public final class CoachClient {
     }
   }
 
+  /**
+   * Asks where the beta stands for this install and keeps the answer. Blocks, like
+   * {@link #requestPlan}.
+   */
+  public CoachBetaReply checkBeta() {
+    return betaCall(false);
+  }
+
+  /** Joins the beta, keeping the status it answers with. Blocks, like {@link #requestPlan}. */
+  public CoachBetaReply joinBeta() {
+    return betaCall(true);
+  }
+
+  private CoachBetaReply betaCall(boolean join) {
+    CoachBetaReply reply;
+    try {
+      // The beta is joined by the install, so it goes by the Coach ID alone.
+      Answer answer = join ? post(joinUrl, "{}", PRACTICE_READ_TIMEOUT_MS, false)
+          : get(betaUrl, PRACTICE_READ_TIMEOUT_MS);
+      reply = answer.body == null ? CoachBetaReply.unreadable()
+          : CoachBetaReply.parse(answer.status, answer.body);
+    } catch (IOException e) {
+      reply = CoachBetaReply.unreachable();
+    }
+    beta.noted(reply, System.currentTimeMillis());
+    if (join && reply.getKind() == CoachBetaReply.Kind.REFUSED) {
+      beta.statusDoubted();
+    }
+    return reply;
+  }
+
+  /** How a feedback sending ended. */
+  public enum FeedbackOutcome {
+    /** The service kept it. */
+    SENT,
+    /** The service will never take it as it is: a plan it does not know, or a body it refused. */
+    REFUSED,
+    /** Worth sending again later. */
+    FAILED
+  }
+
+  /**
+   * Sends what the solver said about a plan, replacing what was sent before. Blocks, like
+   * {@link #requestPlan}.
+   *
+   * @param body what {@link CoachPlanFeedback#toBody} wrote
+   */
+  public FeedbackOutcome sendFeedback(String planId, String body) {
+    try {
+      Answer answer = post(plansUrl + planId + "/feedback", body, PRACTICE_READ_TIMEOUT_MS);
+      if (answer.status == 200) {
+        beta.rated(planId);
+        return FeedbackOutcome.SENT;
+      }
+      CoachReply reply = answer.body == null ? CoachReply.unreadable()
+          : CoachReply.parse(answer.status, answer.body);
+      noteRefusal(reply, answer);
+      if (reply.getKind() == CoachReply.Kind.REFUSED) {
+        switch (reply.getRefusal()) {
+          case NOT_FOUND:
+          case PAYLOAD_INVALID:
+          case PAYLOAD_TOO_LARGE:
+            return FeedbackOutcome.REFUSED;
+          default:
+            break;
+        }
+      }
+      return FeedbackOutcome.FAILED;
+    } catch (IOException e) {
+      return FeedbackOutcome.FAILED;
+    }
+  }
+
   /** What the service said to a report: its status, and the wait it asked for on a 429. */
   public static final class ReportAnswer {
     public final int status;
@@ -196,8 +291,11 @@ public final class CoachClient {
       // The coach reads a code's access before a purchase, so it had none to read.
       access.codeEnded();
       access.refused(answer.purchaseSent, System.currentTimeMillis());
+      beta.statusDoubted(); // the beta may have ended since it was last checked
     } else if (reply.getRefusal() == CoachRefusal.UNAUTHORIZED) {
       access.codeEnded();
+    } else if (reply.getRefusal() == CoachRefusal.FEEDBACK_OWED) {
+      beta.ratingOwed();
     }
   }
 
@@ -221,15 +319,31 @@ public final class CoachClient {
   /** @param withAccess false sends the Coach ID alone, without the build token or the purchase */
   private Answer post(String url, String requestBody, int readTimeoutMs, boolean withAccess)
       throws IOException {
+    return call(url, requestBody, readTimeoutMs, withAccess);
+  }
+
+  /** A GET carrying the Coach ID alone. */
+  private Answer get(String url, int readTimeoutMs) throws IOException {
+    return call(url, null, readTimeoutMs, false);
+  }
+
+  /** @param requestBody null for a GET */
+  private Answer call(String url, String requestBody, int readTimeoutMs, boolean withAccess)
+      throws IOException {
     HttpURLConnection connection = null;
     try {
-      byte[] body = requestBody.getBytes(StandardCharsets.UTF_8);
       connection = (HttpURLConnection) new URL(url).openConnection();
       connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
       connection.setReadTimeout(readTimeoutMs);
-      connection.setRequestMethod("POST");
-      connection.setDoOutput(true);
-      connection.setFixedLengthStreamingMode(body.length);
+      byte[] body = null;
+      if (requestBody != null) {
+        body = requestBody.getBytes(StandardCharsets.UTF_8);
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setFixedLengthStreamingMode(body.length);
+      } else {
+        connection.setRequestMethod("GET");
+      }
       if (withAccess && !token.isEmpty()) {
         connection.setRequestProperty("Authorization", "Bearer " + token);
       }
@@ -241,9 +355,11 @@ public final class CoachClient {
       if (purchase != null) {
         connection.setRequestProperty("Purchase-Token", purchase);
       }
-      connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-      try (OutputStream out = connection.getOutputStream()) {
-        out.write(body);
+      if (body != null) {
+        connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        try (OutputStream out = connection.getOutputStream()) {
+          out.write(body);
+        }
       }
       int status = connection.getResponseCode();
       InputStream in = status >= 400 ? connection.getErrorStream() : connection.getInputStream();

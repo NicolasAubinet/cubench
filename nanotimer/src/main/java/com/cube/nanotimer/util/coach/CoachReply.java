@@ -29,12 +29,19 @@ public final class CoachReply {
   private final CoachPlan plan;
   private final CoachRefusal refusal;
   private final int retryAfterSeconds;
+  private final String planId;
 
   private CoachReply(Kind kind, CoachPlan plan, CoachRefusal refusal, int retryAfterSeconds) {
+    this(kind, plan, refusal, retryAfterSeconds, null);
+  }
+
+  private CoachReply(Kind kind, CoachPlan plan, CoachRefusal refusal, int retryAfterSeconds,
+      String planId) {
     this.kind = kind;
     this.plan = plan;
     this.refusal = refusal;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.planId = planId;
   }
 
   static CoachReply unreachable() {
@@ -62,8 +69,9 @@ public final class CoachReply {
       if (httpStatus != 200 || !"ready".equals(json.optString("status"))) {
         return unreadable();
       }
+      String planId = json.optString("plan_id", "");
       return new CoachReply(Kind.PLAN, CoachPlan.parse(json.getJSONObject("plan").toString()),
-          null, 0);
+          null, 0, planId.isEmpty() ? null : planId);
     } catch (JSONException | IllegalArgumentException e) {
       return unreadable();
     }
@@ -76,6 +84,11 @@ public final class CoachReply {
   /** The plan, only for {@link Kind#PLAN}. */
   public CoachPlan getPlan() {
     return plan;
+  }
+
+  /** The service's id for the plan, which its feedback is sent against; null when it sent none. */
+  public String getPlanId() {
+    return planId;
   }
 
   /** Why the service declined, only for {@link Kind#REFUSED}. */
