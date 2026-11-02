@@ -87,6 +87,8 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private long timerStartMs; // when the tap started the solve, on the cube's (host-fitted) clock
   private long lastSolveMoveHostMs; // host clock at the solve's latest move, 0 before the first
   private Runnable pendingRecord; // set while the stopped solve is still waiting on the cube
+  // The last state the callbacks delivered, in step with the moves; the manager's runs ahead of them.
+  private CubeState deliveredState;
 
   public SmartCubeSolveController(Listener listener) {
     this.listener = listener;
@@ -368,6 +370,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
   private void onConnection(CubeConnection connection) {
     if (connection != this.connection) {
       this.connection = connection;
+      deliveredState = null; // another connection's state says nothing about this one
       reevaluate();
     }
   }
@@ -416,6 +419,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   @Override
   public void onState(CubeState state) {
+    deliveredState = state;
     long nowMs = System.currentTimeMillis();
     // Past the window the cube is being handled, and a state from there would let the detectors
     // mark milestones the solve itself never reached.
@@ -499,7 +503,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         if (analyzing) {
           analyzers.onMove(move);
         } else {
-          beginAnalysis(move); // the cube is still scrambled here: the move has not been applied yet
+          beginAnalysis(move); // the delivered state is still the scrambled one: its state comes next
         }
         listener.onCubeAutoStart(); // scramble is done; any move starts the solve
         break;
@@ -567,9 +571,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     lastSolveMoveHostMs = System.currentTimeMillis();
   }
 
-  /** Anchor the breakdown on the state the cube is in now, dated at the given moment. */
+  // Anchors on the delivered state: the manager's already holds the opening move, so a PLL opened
+  // with R started from a broken cross and drew cross, F2L and OLL as solved during the solve.
   private void beginAnalysis(long startTimestampMs) {
-    CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
+    CubeState state = deliveredState != null ? deliveredState
+        : SmartCubeManager.INSTANCE.getCurrentState();
     if (state == null) {
       return;
     }
