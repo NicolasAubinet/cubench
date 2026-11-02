@@ -210,9 +210,8 @@ final class BlindTargets {
   }
 
   /**
-   * The state {@link #wantedName}'s three-cycle would have left: the buffer's piece and the one at
-   * its target both home, the piece at the second target carried into the buffer. Null where the
-   * cycle closes before a second target, which leaves the algorithm partly the solver's choice.
+   * The state {@link #wantedName}'s three-cycle would have left. Null where the cycle closes before
+   * a second target, leaving part of the algorithm the solver's choice.
    */
   String withTheOwedCycle(String before, int buffer) {
     int start = FaceletRotations.apply(holding, Cubies.PIECES[heldSlotOf(buffer)][0]);

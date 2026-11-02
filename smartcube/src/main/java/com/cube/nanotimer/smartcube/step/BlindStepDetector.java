@@ -1830,25 +1830,26 @@ public final class BlindStepDetector implements StepDetector {
   }
 
   /**
-   * The solve replayed with each algorithm that missed replaced by the cycle the cube owed it, every
-   * turn after kept as made: the cube each later algorithm would have found had the earlier misses
-   * not happened. Proved where that replay comes out, and then the algorithms that missed on it are
-   * the mistakes, each keyed to the state it found there; the rest followed the memo. Null where it
-   * does not come out, where a miss was not a plain shot, or where the method shoots swaps.
+   * The solve replayed with each missed algorithm swapped for the cycle the cube owed it: the misses
+   * and the state each found, where that comes out solved with fewer misses than clean algorithms.
    */
   private Map<Landing, String> lostByWrongTargets() {
     if (swaps || landings.isEmpty()) {
       return null;
     }
     Map<Landing, String> missed = new HashMap<>();
+    int clean = 0;
     String was = landings.get(0).before;
     String state = was;
     for (Landing landing : landings) {
       String before = state;
       state = Cubies.applyMotion(Cubies.motionBetween(was, landing.after), state);
       was = landing.after;
-      if (UNDO.equals(landing.named.name) || wasTakenBack(landing)
-          || missedOn(landing, state).isEmpty()) {
+      if (UNDO.equals(landing.named.name) || wasTakenBack(landing)) {
+        continue;
+      }
+      if (missedOn(landing, state).isEmpty()) {
+        clean++;
         continue;
       }
       String owed = !landing.shot || landing.turned || landing.swapped()
@@ -1861,7 +1862,7 @@ public final class BlindStepDetector implements StepDetector {
       state = owed;
     }
     state = Cubies.applyMotion(Cubies.motionBetween(was, stopped), state);
-    return missed.isEmpty() || !isSolved(state) ? null : missed;
+    return missed.isEmpty() || missed.size() >= clean || !isSolved(state) ? null : missed;
   }
 
   // The pieces of its name an algorithm left out of place, a break-in parking the buffer's piece aside.
@@ -1876,7 +1877,7 @@ public final class BlindStepDetector implements StepDetector {
     return missed;
   }
 
-  // What an algorithm proved to have missed did from the corrected state it found.
+  // What a proved miss left out, replayed from the corrected state it found.
   private List<Integer> missedFrom(Landing landing, String before) {
     return missedOn(landing, Cubies.applyMotion(
         Cubies.motionBetween(landing.before, landing.after), before));
