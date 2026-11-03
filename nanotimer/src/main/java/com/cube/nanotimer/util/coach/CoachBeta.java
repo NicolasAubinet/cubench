@@ -99,6 +99,7 @@ public final class CoachBeta {
   private static final String DRAFT_KEY_PREFIX = "draft_";
   private static final String MODE_KEY = "feedback_mode";
   private static final String END_SEEN_KEY = "end_seen";
+  private static final String INVITATION_SHOWN_KEY = "invitation_shown";
   private static final String DEBUG_PHASE_KEY = "debug_phase";
   private static final String DEBUG_MEMBER_KEY = "debug_member";
   private static final String DEBUG_MODE_KEY = "debug_mode";
@@ -168,6 +169,7 @@ public final class CoachBeta {
         .putString(DEBUG_MODE_KEY, mode == null ? null : mode.code())
         .putString(DEBUG_SEATS_KEY, seatsLeft == null ? null : seatsLeft.toString())
         .remove(END_SEEN_KEY)
+        .remove(INVITATION_SHOWN_KEY)
         .commit();
     changed();
   }
@@ -363,6 +365,15 @@ public final class CoachBeta {
   public synchronized void endSeen() {
     preferences.edit().putBoolean(END_SEEN_KEY, true).commit();
     changed();
+  }
+
+  /** Whether the beta's invitation opened by itself. Only ever once. */
+  public synchronized boolean isInvitationShown() {
+    return preferences.getBoolean(INVITATION_SHOWN_KEY, false);
+  }
+
+  public synchronized void invitationShown() {
+    preferences.edit().putBoolean(INVITATION_SHOWN_KEY, true).commit();
   }
 
   /** Whether the stars of this plan reached the service. */

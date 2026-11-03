@@ -17,6 +17,9 @@ import android.os.Handler;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +45,7 @@ import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.gui.widget.AboutDialog;
+import com.cube.nanotimer.gui.widget.CoachPurchaseSheet;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.HistoryHelpDialog;
@@ -58,6 +62,7 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.backup.BackupRestorer;
 import com.cube.nanotimer.util.coach.CoachBeta;
+import com.cube.nanotimer.util.coach.CoachBetaInvitation;
 import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlans;
@@ -152,6 +157,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private static final int MENU_DRILLS = 2;
   private static final int MENU_ANALYSIS = 3;
   private static final int MENU_COACHING = 4;
+  private static final String BETA_INVITE_TAG = "coach_beta_invite";
   private static final int MENU_IMPORT_EXPORT = 5;
   private static final int MENU_CLEAR_HISTORY = 6;
   private static final int MENU_LANGUAGE = 7;
@@ -178,9 +184,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       if (menuListAdapter != null) {
         menuListAdapter.notifyDataSetChanged();
       }
+      maybeInviteToBeta();
     }
   };
   private SmartCubeChip smartCubeChip;
+  private boolean betaInviteCounting;
 
   private int previousLastItem = 0;
 
@@ -658,6 +666,54 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     }
   }
 
+  /** Opens the beta's join sheet by itself, once, when {@link CoachBetaInvitation} says it's time. */
+  private void maybeInviteToBeta() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        final CoachClient coach = CoachClient.configured(MainScreenActivity.this);
+        final CoachBeta beta = CoachBeta.of(MainScreenActivity.this);
+        final SolveType solveType = curSolveType;
+        if (betaInviteCounting || coach == null
+            || !CoachBetaInvitation.mayInvite(coach, beta, solveType)) {
+          return;
+        }
+        betaInviteCounting = true;
+        App.INSTANCE.getService().getCoachSolveCount(solveType, CubeMethod.CFOP,
+            new DataCallback<Integer>() {
+              @Override
+              public void onData(final Integer count) {
+                runOnUiThread(new Runnable() {
+                  @Override
+                  public void run() {
+                    betaInviteCounting = false;
+                    if (CoachBetaInvitation.due(count) && canInviteNow()
+                        && CoachBetaInvitation.mayInvite(coach, beta, curSolveType)) {
+                      beta.invitationShown();
+                      CoachPurchaseSheet.newInstance(curSolveType)
+                          .show(getSupportFragmentManager(), BETA_INVITE_TAG);
+                    }
+                  }
+                });
+              }
+            });
+      }
+    });
+  }
+
+  /** On screen, and with no other sheet or dialog up that the invitation would land on. */
+  private boolean canInviteNow() {
+    if (!getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
+      return false;
+    }
+    for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+      if (fragment instanceof DialogFragment) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Override
   protected void onPause() {
     super.onPause();
@@ -774,6 +830,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           setCurSolveType(newCurSolveType);
           refreshHero();
           refreshHistory();
+          maybeInviteToBeta();
         }
       });
     } else {
