@@ -140,14 +140,30 @@
          android:layout_weight="1"
          android:orientation="vertical">
 
-        <TextView
+        <!-- Beta beside the title while the coach is in beta, so a plan that misses reads as a
+             beta miss. -->
+        <LinearLayout
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:fontFamily="@font/roboto"
-           android:text="@string/coach_plan_title"
-           android:textColor="@color/white"
-           android:textSize="20sp"
-           android:textStyle="bold"/>
+           android:gravity="center_vertical"
+           android:orientation="horizontal">
+
+          <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:fontFamily="@font/roboto"
+             android:text="@string/coach_plan_title"
+             android:textColor="@color/white"
+             android:textSize="20sp"
+             android:textStyle="bold"/>
+
+          <TextView
+             android:id="@+id/tvAnalysisPlanHeroTag"
+             style="@style/CoachBetaTag"
+             android:layout_marginStart="8dp"
+             android:layout_marginLeft="8dp"
+             android:visibility="gone"/>
+        </LinearLayout>
 
         <TextView
            android:id="@+id/tvAnalysisPlanDate"

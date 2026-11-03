@@ -6,6 +6,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -24,6 +25,7 @@ import com.cube.nanotimer.gui.AnalysisActivity;
 import com.cube.nanotimer.gui.SolveTypesActivity;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.coach.CoachAccess;
+import com.cube.nanotimer.util.coach.CoachBeta;
 import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.coach.CoachBilling;
 import com.cube.nanotimer.util.coach.CoachClient;
@@ -70,6 +72,9 @@ public class CoachPlanStatus {
   /** Where the card sits on its own, and where it moves while a written plan is on screen. */
   private final int homeIndex;
   private ViewGroup dock;
+  private Runnable rateNow;
+  /** The end-of-beta thanks, once drawn. */
+  private View endCard;
 
   /**
    * @param tab the Plan tab's own layout
@@ -102,6 +107,7 @@ public class CoachPlanStatus {
   /** Reads the access and the schedule again and redraws. Main thread only. */
   public void refresh() {
     showMethodLine();
+    showBetaEnd();
     if (client == null) {
       hide();
       showNoOffer();
@@ -132,7 +138,7 @@ public class CoachPlanStatus {
     } else if (client.accessEnded() || Options.INSTANCE.isCoachPlansOn()) {
       // Weekly plans that are on with nothing to let the install in: it was let in before.
       showNoOffer();
-      if (cfop) {
+      if (cfop && endCard == null) { // a member reads the thanks card instead
         showEnded();
       } else {
         hide();
@@ -289,8 +295,24 @@ public class CoachPlanStatus {
           break;
       }
     }
+    // Required mode, last plan unrated: the next one waits on the stars, and the row says so.
+    CoachBetaLook look = CoachBetaLook.of(activity);
+    boolean held = !writing && look != null && look.holds() && client.owesRating();
+    boolean due = held && schedule.getState() != PlanSchedule.State.NOT_DUE
+        && schedule.getState() != PlanSchedule.State.NEEDS_SOLVES;
+    if (held && schedule.getState() == PlanSchedule.State.NOT_DUE) {
+      value = lit(quantity(R.plurals.coach_fb_next_in, schedule.getDaysUntilDue()));
+    } else if (due) {
+      SpannableString amber = new SpannableString(activity.getString(R.string.coach_fb_due_held));
+      amber.setSpan(new ForegroundColorSpan(ContextCompat.getColor(activity, R.color.warning)), 0,
+          amber.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      value = amber;
+      sentence = null;
+      waiting = false;
+    }
     showCard(false);
     place(true);
+    showRateNow(held, due);
     TextView label = status.findViewById(R.id.tvCoachPlanStatusLabel);
     label.setVisibility(value == null ? View.GONE : View.VISIBLE);
     label.setText(schedule.isFirst() ? R.string.coach_strip_first : R.string.coach_strip_next);
@@ -308,6 +330,59 @@ public class CoachPlanStatus {
       checked = true;
       CoachPlanWorker.checkFromScreen(activity);
     }
+  }
+
+  /**
+   * The thanks at the end of the beta, for a member, once: it counts as seen when first drawn, and
+   * stays for the rest of this screen. Its button opens the purchase.
+   */
+  private void showBetaEnd() {
+    CoachBetaLook look = client == null ? null : CoachBetaLook.of(activity);
+    if (endCard == null && look != null && look.endCard()) {
+      endCard = LayoutInflater.from(activity).inflate(R.layout.coach_beta_end, tab, false);
+      endCard.findViewById(R.id.buCoachBetaEnd).setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+          openPurchase(solveType);
+        }
+      });
+      tab.addView(endCard, 0);
+      CoachBeta.of(activity).endSeen();
+    }
+  }
+
+  /** Where "Rate now" scrolls to: the stars' card at the end of the tab. */
+  public void setRateNow(Runnable rateNow) {
+    this.rateNow = rateNow;
+  }
+
+  /**
+   * The line under the docked row: what the next plan will answer, or, while it waits on a
+   * rating, when to rate and a "Rate now" that scrolls to the stars.
+   */
+  private void showRateNow(boolean held, boolean due) {
+    TextView loop = status.findViewById(R.id.tvCoachPlanStatusLoop);
+    if (!held) {
+      loop.setText(R.string.coach_plan_loop);
+      loop.setOnClickListener(null);
+      loop.setClickable(false);
+      return;
+    }
+    String said = activity.getString(due ? R.string.coach_fb_due_held_body
+        : R.string.coach_fb_rate_before);
+    String link = activity.getString(R.string.coach_fb_rate_now);
+    SpannableString text = new SpannableString(said + " " + link);
+    text.setSpan(new ForegroundColorSpan(ContextCompat.getColor(activity, R.color.lightblue)),
+        said.length() + 1, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    loop.setText(text);
+    loop.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (rateNow != null) {
+          rateNow.run();
+        }
+      }
+    });
   }
 
   /** How many of the solves the next plan waits for are done, while it waits for any. */
@@ -412,7 +487,7 @@ public class CoachPlanStatus {
     if (status.getParent() != target) {
       ((ViewGroup) status.getParent()).removeView(status);
       if (target == tab) {
-        tab.addView(status, homeIndex);
+        tab.addView(status, homeIndex + (endCard != null ? 1 : 0)); // under the end card
       } else {
         target.addView(status);
       }

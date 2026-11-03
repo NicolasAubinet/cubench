@@ -31,6 +31,7 @@ import com.cube.nanotimer.gui.widget.AnalysisCases;
 import com.cube.nanotimer.gui.widget.AnalysisHelpDialog;
 import com.cube.nanotimer.gui.widget.CaseRow;
 import com.cube.nanotimer.gui.widget.CaseTableHeadings;
+import com.cube.nanotimer.gui.widget.CoachPlanFeedbackView;
 import com.cube.nanotimer.gui.widget.CoachPlanStatus;
 import com.cube.nanotimer.gui.widget.CoachPlanView;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
@@ -133,6 +134,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private View solveRoot;
   private AnalysisCases cases;
   private CoachPlanView planView;
+  private CoachPlanFeedbackView feedbackView;
   /** Null in a build made without a coach to ask. */
   private CoachClient coachClient;
   private CoachRead.Listener readListener;
@@ -224,6 +226,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     cases.setFamily(getIntent().getStringExtra(EXTRA_FAMILY));
     planView = new CoachPlanView(this, (LinearLayout) findViewById(R.id.llAnalysisPlanAreas),
         solveType);
+    feedbackView = new CoachPlanFeedbackView(this, solveType);
     wireRead();
     wireSample();
 
@@ -746,6 +749,12 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     billing = CoachBilling.of(this);
     planStatus = new CoachPlanStatus(this, (ViewGroup) findViewById(R.id.llAnalysisPlan), solveType,
         coachClient, billing);
+    planStatus.setRateNow(new Runnable() {
+      @Override
+      public void run() {
+        feedbackView.scrollToRate();
+      }
+    });
     final CoachRead read = CoachRead.of(solveType);
     readListener = new CoachRead.Listener() {
       @Override
@@ -1034,10 +1043,14 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     findViewById(R.id.llAnalysisPlanAreas).setVisibility(written);
     findViewById(R.id.llAnalysisPlanAbout).setVisibility(stored == null ? View.VISIBLE : View.GONE);
     if (stored == null) {
+      feedbackView.show(null, (LinearLayout) findViewById(R.id.llAnalysisPlanAreas),
+          findViewById(R.id.llAnalysisPlanWritten));
       findViewById(R.id.tvAnalysisPlanUncited).setVisibility(View.GONE);
       return;
     }
     planView.setHero(findViewById(R.id.llAnalysisPlanWritten), stored);
+    feedbackView.show(stored, (LinearLayout) findViewById(R.id.llAnalysisPlanAreas),
+        findViewById(R.id.llAnalysisPlanWritten));
     // A figure nobody sent and a case nobody has are the same complaint to a reader, so one line.
     int invented = stored.uncited().size() + stored.unknownCodes().size();
     TextView tvUncited = findViewById(R.id.tvAnalysisPlanUncited);

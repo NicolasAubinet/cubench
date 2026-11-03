@@ -1723,6 +1723,7 @@
   <string name="coach_fb_pick_stars">Pick the stars first</string>
   <string name="coach_fb_thanks">Thanks for rating</string>
   <string name="coach_fb_thanks_sub">You can change it until the next plan.</string>
+  <string name="coach_fb_thanks_toast">Thank you for helping make the coach better</string>
   <plurals name="coach_fb_next_in">
     <item quantity="one">In %d day, once rated</item>
     <item quantity="other">In %d days, once rated</item>

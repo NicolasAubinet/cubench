@@ -1671,6 +1671,7 @@
   <string name="coach_fb_pick_stars">Choisissez d\'abord les étoiles</string>
   <string name="coach_fb_thanks">Merci pour votre note</string>
   <string name="coach_fb_thanks_sub">Vous pouvez la changer jusqu\'au prochain plan.</string>
+  <string name="coach_fb_thanks_toast">Merci de m\'aider à améliorer le coach</string>
   <plurals name="coach_fb_next_in">
     <item quantity="one">Dans %d jour, une fois noté</item>
     <item quantity="other">Dans %d jours, une fois noté</item>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- On the plan after one: whether last week's was worked on, under the win line where last week
+     is already the subject. "A bit" and "Not really" open what got in the way. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:layout_marginTop="10dp"
+   android:background="@drawable/coach_beta_loop_bg"
+   android:orientation="vertical"
+   android:padding="12dp">
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:text="@string/coach_fb_last_week"
+     android:textColor="@color/white"
+     android:textSize="14sp"/>
+
+  <LinearLayout
+     android:id="@+id/llFbChoice"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="8dp"
+     android:orientation="horizontal"/>
+
+  <EditText
+     android:id="@+id/etFbLastWeekText"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="8dp"
+     android:background="@drawable/coach_purchase_field"
+     android:hint="@string/coach_fb_in_the_way"
+     android:inputType="textCapSentences|textMultiLine"
+     android:maxLength="2000"
+     android:padding="10dp"
+     android:textColor="@color/white"
+     android:textColorHint="@color/secondary_text"
+     android:textSize="13.5sp"
+     android:visibility="gone"/>
+</LinearLayout>

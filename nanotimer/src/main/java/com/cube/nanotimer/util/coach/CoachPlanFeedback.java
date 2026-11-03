@@ -80,6 +80,7 @@ public final class CoachPlanFeedback {
   private int stars;
   private String text;
   private LastWeek lastWeek;
+  private String lastWeekText;
   private long firstOpenedAt;
   private long ratedAfterMs = -1;
   private final Map<Integer, FocusAnswer> focuses = new TreeMap<Integer, FocusAnswer>();
@@ -124,6 +125,25 @@ public final class CoachPlanFeedback {
 
   public void setLastWeek(LastWeek lastWeek) {
     this.lastWeek = lastWeek;
+    if (lastWeek == LastWeek.MOSTLY) {
+      lastWeekText = null;
+    }
+  }
+
+  /** What got in the way of last week's plan, kept only with "a bit" or "not really". */
+  public String getLastWeekText() {
+    return lastWeekText;
+  }
+
+  public void setLastWeekText(String text) {
+    lastWeekText = clean(text);
+  }
+
+  /** Picks the one thing off with a focus, in place of any picked before. */
+  public void pickReason(int focusIndex, Reason reason) {
+    FocusAnswer focus = focus(focusIndex);
+    focus.reasons.clear();
+    focus.reasons.add(reason);
   }
 
   /** Keeps the first opening only. */
@@ -134,8 +154,8 @@ public final class CoachPlanFeedback {
   }
 
   /** The focus at this index in the plan was scrolled into view. */
-  public void seen(int focusIndex) {
-    focusesSeen.add(focusIndex);
+  public boolean seen(int focusIndex) {
+    return focusesSeen.add(focusIndex);
   }
 
   /** The drill reps run on this focus's drill since the plan arrived. */
@@ -258,6 +278,7 @@ public final class CoachPlanFeedback {
       feedback.stars = stars >= 1 && stars <= 5 ? stars : 0;
       feedback.text = clean(json.optString("text", null));
       feedback.lastWeek = valueOf(LastWeek.class, json.optString("last_week", null));
+      feedback.lastWeekText = clean(json.optString("last_week_text", null));
       feedback.firstOpenedAt = json.optLong("first_opened_at", 0);
       feedback.ratedAfterMs = json.optLong("rated_after_ms", -1);
       JSONArray answers = json.optJSONArray("focuses");
@@ -298,6 +319,9 @@ public final class CoachPlanFeedback {
     }
     if (lastWeek != null) {
       json.put("last_week", lastWeek.code());
+    }
+    if (lastWeekText != null) {
+      json.put("last_week_text", lastWeekText);
     }
     return json;
   }
