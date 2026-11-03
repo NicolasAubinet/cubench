@@ -20,6 +20,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.util.coach.CoachBetaInvite;
+import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.EnterAnimation;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
@@ -129,6 +130,10 @@ public class SmartCubeNewsSheet extends NanoTimerBottomSheetFragment {
     } else {
       rows.add(addRow(inflater, features, COACH_FEATURE));
     }
+    // Read when drawn, so a beta that has ended takes its line away.
+    CoachBetaLook look = CoachBetaLook.of(requireContext());
+    v.findViewById(R.id.llNewsCoachBeta).setVisibility(
+        !beta && look != null && look.newsLine() ? View.VISIBLE : View.GONE);
 
     v.findViewById(R.id.tvNewsAllNotes).setOnClickListener(view -> {
       dismiss();

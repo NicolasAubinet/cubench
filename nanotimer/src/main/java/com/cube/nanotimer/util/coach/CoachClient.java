@@ -181,6 +181,22 @@ public final class CoachClient {
     return betaCall(false);
   }
 
+  /**
+   * Asks where the beta stands, on a thread of its own, when the last answer is stale. A screen
+   * showing a beta part calls it on opening; the answer redraws it through {@link CoachBeta.Listener}.
+   */
+  public void checkBetaIfStale() {
+    if (!beta.isStale(System.currentTimeMillis())) {
+      return;
+    }
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        checkBeta();
+      }
+    }, "coach-beta-status").start();
+  }
+
   /** Joins the beta, keeping the status it answers with. Blocks, like {@link #requestPlan}. */
   public CoachBetaReply joinBeta() {
     return betaCall(true);

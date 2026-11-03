@@ -10,8 +10,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -20,10 +22,14 @@ import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.services.db.DataCallback;
+import com.cube.nanotimer.util.coach.CoachBeta;
+import com.cube.nanotimer.util.coach.CoachBetaLook;
+import com.cube.nanotimer.util.coach.CoachBetaReply;
 import com.cube.nanotimer.util.coach.CoachBilling;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachOffers;
 import com.cube.nanotimer.util.coach.CoachPlans;
+import com.cube.nanotimer.util.coach.CoachRefusal;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveType;
@@ -37,7 +43,7 @@ import java.util.List;
  * the purchase and are written for the solve type the text names.
  */
 public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
-    implements CoachBilling.Listener {
+    implements CoachBilling.Listener, CoachBeta.Listener {
 
   private static final String ARG_SOLVE_TYPE = "solveType";
   private static final String STATE_PLAN = "plan";
@@ -85,7 +91,17 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     content.findViewById(R.id.buCoachPurchase).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        buy();
+        if (sheet() == CoachBetaLook.Sheet.JOIN) {
+          join();
+        } else {
+          buy();
+        }
+      }
+    });
+    content.findViewById(R.id.buCoachBetaClose).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        dismiss();
       }
     });
     showSends();
@@ -109,6 +125,7 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
       return;
     }
     billing.addListener(this);
+    CoachBeta.addListener(this);
     billing.readPlans(true);
     onBillingChanged();
   }
@@ -118,6 +135,7 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     if (billing != null) {
       billing.removeListener(this);
     }
+    CoachBeta.removeListener(this);
     super.onStop();
   }
 
@@ -134,6 +152,14 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
       return;
     }
     showPlans();
+  }
+
+  /** A new beta status, which may turn the sheet from the beta to the purchase or back. */
+  @Override
+  public void onBetaChanged() {
+    if (isAdded()) {
+      onBillingChanged();
+    }
   }
 
   /** The solve types the plans can be written for, the one offered first kept when it is one. */
@@ -201,6 +227,9 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
 
   /** The base plans as Play lists them, or that Play is being asked, or that it could not say. */
   private void showPlans() {
+    if (showBeta(sheet())) {
+      return;
+    }
     List<CoachOffers.Offer> plans = billing == null ? null : billing.getPlans();
     LinearLayout rows = content.findViewById(R.id.llCoachPurchasePlans);
     rows.removeAllViews();
@@ -252,6 +281,132 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     setOrHide(free, text.free(selected));
     button.setEnabled(true);
     button.setText(text.button(selected));
+  }
+
+  /** Which sheet the last beta status calls for: the purchase, Join, or a full beta. */
+  private CoachBetaLook.Sheet sheet() {
+    CoachBetaLook look = CoachBetaLook.of(requireContext());
+    return look == null ? CoachBetaLook.Sheet.PAID : look.sheet();
+  }
+
+  /**
+   * While the coach is in beta: one Free tile in place of the prices, and Join, or a full beta
+   * with only Close. Every part is set both ways, so a status that ends the beta while the sheet is
+   * open turns it back into the purchase.
+   *
+   * @return whether the beta was drawn, leaving nothing for the prices to do
+   */
+  private boolean showBeta(CoachBetaLook.Sheet sheet) {
+    boolean beta = sheet != CoachBetaLook.Sheet.PAID;
+    boolean join = sheet == CoachBetaLook.Sheet.JOIN;
+    content.findViewById(R.id.flCoachBetaTile).setVisibility(beta ? View.VISIBLE : View.GONE);
+    content.findViewById(R.id.llCoachBetaLoop).setVisibility(join ? View.VISIBLE : View.GONE);
+    content.findViewById(R.id.tvCoachBetaLoopNote).setVisibility(join ? View.VISIBLE : View.GONE);
+    content.findViewById(R.id.llCoachBetaMeanwhile)
+        .setVisibility(beta && !join ? View.VISIBLE : View.GONE);
+    content.findViewById(R.id.llCoachPurchaseHow)
+        .setVisibility(beta && !join ? View.GONE : View.VISIBLE);
+    content.findViewById(R.id.tvCoachPurchaseNote).setVisibility(beta ? View.GONE : View.VISIBLE);
+    content.findViewById(R.id.buCoachBetaClose)
+        .setVisibility(beta && !join ? View.VISIBLE : View.GONE);
+    TextView button = content.findViewById(R.id.buCoachPurchase);
+    button.setVisibility(beta && !join ? View.GONE : View.VISIBLE);
+    content.findViewById(R.id.llCoachPurchasePlans).setVisibility(beta ? View.GONE : View.VISIBLE);
+    if (!beta) {
+      return false;
+    }
+    ((LinearLayout) content.findViewById(R.id.llCoachPurchasePlans)).removeAllViews();
+    content.findViewById(R.id.pbCoachPurchase).setVisibility(View.GONE);
+    content.findViewById(R.id.tvCoachPurchaseUnavailable).setVisibility(View.GONE);
+    content.findViewById(R.id.tvCoachPurchaseFree).setVisibility(View.GONE);
+    // The tile and its badge are lit for an open beta and greyed for a full one.
+    content.findViewById(R.id.llCoachBetaTile).setSelected(join);
+    content.findViewById(R.id.tvCoachBetaBadge).setSelected(join);
+    TextView title = content.findViewById(R.id.tvCoachBetaTileTitle);
+    title.setText(join ? R.string.coach_beta_free : R.string.coach_beta_full_title);
+    title.setTextSize(join ? 30 : 21);
+    ((TextView) content.findViewById(R.id.tvCoachBetaTileSub))
+        .setText(join ? R.string.coach_beta_free_while : R.string.coach_beta_full_body);
+    content.findViewById(R.id.tvCoachBetaTileNothing)
+        .setVisibility(join ? View.VISIBLE : View.GONE);
+    showLoop();
+    button.setText(R.string.coach_beta_join);
+    button.setEnabled(true);
+    return true;
+  }
+
+  /** Get your plan, practise, rate it, next plan, with the rating lit in amber. */
+  private void showLoop() {
+    LinearLayout loop = content.findViewById(R.id.llCoachBetaLoop);
+    if (loop.getChildCount() > 0) {
+      return;
+    }
+    int[][] steps = {{R.drawable.ic_coach_point_plan, R.string.coach_beta_loop_plan},
+        {R.drawable.ic_coach_point_practice, R.string.coach_beta_loop_practise},
+        {R.drawable.ic_coach_point_star, R.string.coach_beta_loop_rate},
+        {R.drawable.ic_coach_loop_next, R.string.coach_beta_loop_next}};
+    LayoutInflater inflater = LayoutInflater.from(requireContext());
+    for (int i = 0; i < steps.length; i++) {
+      if (i > 0) {
+        TextView arrow = new TextView(requireContext());
+        arrow.setText("→");
+        arrow.setTextColor(ContextCompat.getColor(requireContext(), R.color.secondary_text));
+        arrow.setTextSize(13);
+        arrow.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        loop.addView(arrow);
+      }
+      View step = inflater.inflate(R.layout.coach_beta_loop_step, loop, false);
+      ((ImageView) step.findViewById(R.id.imgCoachBetaStep)).setImageResource(steps[i][0]);
+      TextView word = step.findViewById(R.id.tvCoachBetaStep);
+      word.setText(steps[i][1]);
+      if (steps[i][1] == R.string.coach_beta_loop_rate) {
+        word.setTextColor(ContextCompat.getColor(requireContext(), R.color.warning));
+        word.setTypeface(word.getTypeface(), android.graphics.Typeface.BOLD);
+      }
+      loop.addView(step);
+    }
+  }
+
+  /**
+   * Joins the beta. Joining is agreeing to the weekly summary, as subscribing is, so the plans turn
+   * on for the solve type the card names. A beta that filled or closed meanwhile is asked again,
+   * which redraws the sheet as full.
+   */
+  private void join() {
+    final TextView button = content.findViewById(R.id.buCoachPurchase);
+    button.setEnabled(false);
+    final SolveType forType = picked;
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        final CoachBetaReply reply = client.joinBeta();
+        if (reply.getKind() == CoachBetaReply.Kind.REFUSED) {
+          client.checkBeta();
+        }
+        final Activity activity = getActivity();
+        if (activity == null) {
+          return;
+        }
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (reply.getKind() == CoachBetaReply.Kind.STATUS && reply.isMember()) {
+              if (forType != null && CoachPlans.eligible(forType)) {
+                CoachPlans.moveTo(forType);
+              }
+              CoachPlans.turnOn(activity.getApplicationContext(), forType, null);
+            } else if (reply.getKind() != CoachBetaReply.Kind.REFUSED
+                || (reply.getRefusal() != CoachRefusal.BETA_FULL
+                    && reply.getRefusal() != CoachRefusal.BETA_CLOSED)) {
+              Toast.makeText(activity, R.string.coach_beta_join_failed, Toast.LENGTH_LONG).show();
+            }
+            if (isAdded()) {
+              onBillingChanged();
+            }
+          }
+        });
+      }
+    }, "coach-beta-join").start();
   }
 
   private void buy() {

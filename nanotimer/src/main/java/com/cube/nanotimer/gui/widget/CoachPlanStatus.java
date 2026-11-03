@@ -24,6 +24,7 @@ import com.cube.nanotimer.gui.AnalysisActivity;
 import com.cube.nanotimer.gui.SolveTypesActivity;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.coach.CoachAccess;
+import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.coach.CoachBilling;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachOffers;
@@ -474,19 +475,23 @@ public class CoachPlanStatus {
     showPoints(true);
     tab.findViewById(R.id.llCoachGate).setVisibility(View.GONE);
     tab.findViewById(R.id.llCoachOffer).setVisibility(View.VISIBLE);
+    // During the beta the same card offers it, free: no price may show before a sheet that says so.
+    CoachBetaLook look = CoachBetaLook.of(activity);
+    boolean beta = look != null && look.pitchIsBeta();
     // Without Play's prices the button still opens the sheet, which says they could not be read.
     List<CoachOffers.Offer> plans = billing.getPlans();
     CoachPriceText text = new CoachPriceText(activity.getResources());
     TextView button = tab.findViewById(R.id.buCoachOffer);
-    button.setText(plans == null ? activity.getString(R.string.coach_offer_try)
-        : text.offerButton(plans));
+    button.setText(beta ? activity.getString(R.string.coach_beta_offer_join)
+        : plans == null ? activity.getString(R.string.coach_offer_try) : text.offerButton(plans));
     button.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         openPurchase(offered);
       }
     });
-    String note = plans == null ? null : text.offerNote(plans);
+    String note = beta ? activity.getString(R.string.coach_beta_offer_note)
+        : plans == null ? null : text.offerNote(plans);
     TextView noteView = tab.findViewById(R.id.tvCoachOfferNote);
     noteView.setText(note);
     noteView.setVisibility(note == null ? View.GONE : View.VISIBLE);
@@ -523,6 +528,16 @@ public class CoachPlanStatus {
     tab.findViewById(R.id.llAnalysisPlanPoints).setVisibility(points ? View.VISIBLE : View.GONE);
     tab.findViewById(R.id.tvAnalysisPlanPrivate).setVisibility(points ? View.VISIBLE : View.GONE);
     tab.findViewById(R.id.tvAnalysisPlanBody).setVisibility(points ? View.GONE : View.VISIBLE);
+    // The beta pitch or the paid one, as the last status says: tag, last point and privacy line.
+    CoachBetaLook look = CoachBetaLook.of(activity);
+    boolean beta = points && look != null && look.pitchIsBeta();
+    tab.findViewById(R.id.tvAnalysisPlanBetaTag).setVisibility(beta ? View.VISIBLE : View.GONE);
+    TextView support = tab.findViewById(R.id.tvAnalysisPlanPointSupport);
+    int icon = beta ? look.pitchPointIcon() : R.drawable.ic_coach_point_support;
+    support.setCompoundDrawablesRelativeWithIntrinsicBounds(icon, 0, 0, 0);
+    support.setText(beta ? look.pitchPointText() : R.string.analysis_plan_point_support);
+    ((TextView) tab.findViewById(R.id.tvAnalysisPlanPrivate))
+        .setText(beta ? look.pitchPrivateText() : R.string.analysis_plan_private);
   }
 
   private void openPurchase(SolveType offered) {

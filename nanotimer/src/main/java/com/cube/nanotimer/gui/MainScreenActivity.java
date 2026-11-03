@@ -57,6 +57,9 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.backup.BackupRestorer;
+import com.cube.nanotimer.util.coach.CoachBeta;
+import com.cube.nanotimer.util.coach.CoachBetaLook;
+import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlans;
 import com.cube.nanotimer.util.exportimport.ErrorListener;
 import com.cube.nanotimer.util.exportimport.csvimport.CSVImporter;
@@ -168,6 +171,15 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
 
   private HistoryListAdapter historyListAdapter;
   private MenuListAdapter menuListAdapter;
+  /** Redraws the drawer's Coaching row when a new beta status arrives. */
+  private final CoachBeta.Listener betaListener = new CoachBeta.Listener() {
+    @Override
+    public void onBetaChanged() {
+      if (menuListAdapter != null) {
+        menuListAdapter.notifyDataSetChanged();
+      }
+    }
+  };
   private SmartCubeChip smartCubeChip;
 
   private int previousLastItem = 0;
@@ -639,11 +651,17 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     refreshCubeTypes();
 
     startTimeAgoTicks();
+    CoachBeta.addListener(betaListener);
+    CoachClient coach = CoachClient.configured(this);
+    if (coach != null) {
+      coach.checkBetaIfStale(); // a newcomer learns of the beta from the drawer's Coaching row
+    }
   }
 
   @Override
   protected void onPause() {
     super.onPause();
+    CoachBeta.removeListener(betaListener);
     smartCubeChip.stop();
     timeAgoHandler.removeCallbacksAndMessages(null);
   }
@@ -1488,6 +1506,24 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     });
   }
 
+  /** The Coaching row's tag as the last beta status says, PREMIUM in a build with no coach. */
+  private CoachBetaLook.Drawer drawerTag() {
+    CoachBetaLook look = CoachBetaLook.of(this);
+    return look == null ? CoachBetaLook.Drawer.PREMIUM : look.drawer();
+  }
+
+  /** Light-blue "Beta" while the coach is free in beta, amber "Premium" otherwise. */
+  private void showCoachTag(TextView pill, CoachBetaLook.Drawer tag) {
+    pill.setVisibility(tag == null ? View.GONE : View.VISIBLE);
+    if (tag == null) {
+      return;
+    }
+    boolean beta = tag != CoachBetaLook.Drawer.PREMIUM;
+    pill.setBackgroundResource(beta ? R.drawable.beta_tag : R.drawable.premium_tag);
+    pill.setText(beta ? R.string.coach_beta_tag : R.string.menu_premium_tag);
+    pill.setTextColor(ContextCompat.getColor(this, beta ? R.color.on_accent : R.color.graybg));
+  }
+
   private class MenuListAdapter extends ArrayAdapter<String> {
     private LayoutInflater inflater;
     private String[] objects;
@@ -1529,8 +1565,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       }
 
       if (position >= 0 && position < objects.length) {
-        view.findViewById(R.id.tvMenuPremium)
-            .setVisibility(menuEntries[position] == MENU_COACHING ? View.VISIBLE : View.GONE);
+        boolean coaching = menuEntries[position] == MENU_COACHING;
+        CoachBetaLook.Drawer tag = coaching ? drawerTag() : null;
+        showCoachTag((TextView) view.findViewById(R.id.tvMenuPremium), tag);
         ImageView icon = (ImageView) view.findViewById(R.id.imgIcon);
         Integer imageResource = null;
         switch (menuEntries[position]) {
@@ -1587,9 +1624,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         view.findViewById(R.id.menuGlyphTile).setAlpha(alpha);
         view.findViewById(R.id.tvMenuPremium).setAlpha(alpha);
         TextView tvSubtext = (TextView) view.findViewById(R.id.tvSubtext);
-        tvSubtext.setVisibility(unavailable ? View.VISIBLE : View.GONE);
-        tvSubtext.setText(menuEntries[position] == MENU_COACHING ? R.string.menu_coach_unavailable
-            : R.string.menu_hub_unavailable);
+        // A dimmed row says why; otherwise the beta says it is free, to a newcomer only.
+        boolean free = tag == CoachBetaLook.Drawer.BETA_FREE;
+        tvSubtext.setVisibility(unavailable || free ? View.VISIBLE : View.GONE);
+        tvSubtext.setText(unavailable ? coaching ? R.string.menu_coach_unavailable
+            : R.string.menu_hub_unavailable : R.string.coach_beta_drawer_free);
       }
       return view;
     }

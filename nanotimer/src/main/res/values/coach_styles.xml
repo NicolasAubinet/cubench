@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <!-- "Beta" in its light-blue pill, wherever the coach shows it during the free beta: the drawer,
+       the Plan tab's pitch and the plan's own card. -->
+  <style name="CoachBetaTag">
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:background">@drawable/beta_tag</item>
+    <item name="android:fontFamily">@font/roboto_medium</item>
+    <item name="android:letterSpacing">0.1</item>
+    <item name="android:paddingLeft">7dp</item>
+    <item name="android:paddingRight">7dp</item>
+    <item name="android:paddingTop">2dp</item>
+    <item name="android:paddingBottom">2dp</item>
+    <item name="android:text">@string/coach_beta_tag</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:textColor">@color/on_accent</item>
+    <item name="android:textSize">10sp</item>
+    <item name="android:textStyle">bold</item>
+  </style>
+
+</resources>

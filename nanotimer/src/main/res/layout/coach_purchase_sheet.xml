@@ -85,6 +85,138 @@
          android:clipToPadding="false"
          android:orientation="horizontal"/>
 
+      <!-- While the coach is in beta: one tile in place of the prices, "Free", with no price
+           anywhere, and the weekly loop that makes rating a step of the week. A full beta keeps
+           the tile and says so, with nothing to buy. -->
+      <FrameLayout
+         android:id="@+id/flCoachBetaTile"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="12dp"
+         android:clipChildren="false"
+         android:visibility="gone">
+
+        <LinearLayout
+           android:id="@+id/llCoachBetaTile"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="10dp"
+           android:background="@drawable/coach_purchase_plan"
+           android:gravity="center_horizontal"
+           android:orientation="vertical"
+           android:paddingLeft="12dp"
+           android:paddingRight="12dp"
+           android:paddingTop="18dp"
+           android:paddingBottom="14dp">
+
+          <TextView
+             android:id="@+id/tvCoachBetaTileTitle"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:fontFamily="@font/roboto"
+             android:gravity="center"
+             android:textColor="@color/white"
+             android:textSize="30sp"
+             android:textStyle="bold"/>
+
+          <TextView
+             android:id="@+id/tvCoachBetaTileSub"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="2dp"
+             android:gravity="center"
+             android:lineSpacingMultiplier="1.15"
+             android:textColor="@color/secondary_text"
+             android:textSize="13sp"/>
+
+          <TextView
+             android:id="@+id/tvCoachBetaTileNothing"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="2dp"
+             android:gravity="center"
+             android:text="@string/coach_beta_free_nothing"
+             android:textColor="@color/secondary_text"
+             android:textSize="13sp"/>
+        </LinearLayout>
+
+        <TextView
+           android:id="@+id/tvCoachBetaBadge"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_gravity="top|center_horizontal"
+           android:background="@drawable/coach_purchase_badge"
+           android:fontFamily="@font/roboto_medium"
+           android:letterSpacing="0.1"
+           android:paddingLeft="9dp"
+           android:paddingRight="9dp"
+           android:paddingTop="2dp"
+           android:paddingBottom="2dp"
+           android:text="@string/coach_beta_tag"
+           android:textAllCaps="true"
+           android:textColor="@color/coach_purchase_badge_text"
+           android:textSize="11sp"/>
+      </FrameLayout>
+
+      <!-- Get your plan, practise, rate it, next plan: the rating is the step that is lit. -->
+      <LinearLayout
+         android:id="@+id/llCoachBetaLoop"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="12dp"
+         android:background="@drawable/coach_beta_loop_bg"
+         android:gravity="center_vertical"
+         android:orientation="horizontal"
+         android:paddingLeft="6dp"
+         android:paddingRight="6dp"
+         android:paddingTop="10dp"
+         android:paddingBottom="10dp"
+         android:visibility="gone"/>
+
+      <TextView
+         android:id="@+id/tvCoachBetaLoopNote"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="8dp"
+         android:gravity="center"
+         android:lineSpacingMultiplier="1.2"
+         android:text="@string/coach_beta_loop_note"
+         android:textColor="@color/white"
+         android:textSize="12.5sp"
+         android:visibility="gone"/>
+
+      <!-- A full beta: what stays free meanwhile. Takes the place of "How it works". -->
+      <LinearLayout
+         android:id="@+id/llCoachBetaMeanwhile"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="12dp"
+         android:background="@drawable/coach_purchase_card"
+         android:orientation="vertical"
+         android:padding="14dp"
+         android:visibility="gone">
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:fontFamily="@font/roboto_medium"
+           android:letterSpacing="0.08"
+           android:text="@string/coach_beta_meanwhile_label"
+           android:textAllCaps="true"
+           android:textColor="@color/secondary_text"
+           android:textSize="11.5sp"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="6dp"
+           android:alpha="0.85"
+           android:lineSpacingMultiplier="1.2"
+           android:text="@string/coach_beta_meanwhile"
+           android:textColor="@color/white"
+           android:textSize="12.5sp"/>
+      </LinearLayout>
+
       <!-- While Play is asked for the prices. -->
       <ProgressBar
          android:id="@+id/pbCoachPurchase"
@@ -126,6 +258,7 @@
          android:visibility="gone"/>
 
       <LinearLayout
+         android:id="@+id/llCoachPurchaseHow"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:layout_marginTop="12dp"
@@ -199,12 +332,21 @@
      android:enabled="false"
      android:text="@string/coach_purchase_subscribe"/>
 
+  <!-- A full beta has nothing to buy or join: only this. -->
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/buCoachBetaClose"
+     style="@style/AccentGhostButton"
+     android:layout_marginTop="14dp"
+     android:text="@string/close"
+     android:visibility="gone"/>
+
   <TextView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginTop="8dp"
      android:gravity="center"
      android:lineSpacingMultiplier="1.2"
+     android:id="@+id/tvCoachPurchaseNote"
      android:text="@string/coach_purchase_note"
      android:textColor="@color/secondary_text"
      android:textSize="12sp"/>

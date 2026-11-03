@@ -87,6 +87,46 @@
          android:textColor="@color/secondary_text"
          android:textSize="14sp"/>
 
+      <!-- While the coach's beta runs: one line, not tappable, promising no place since seats are
+           limited. The invitation itself comes once the solver can use the coach. -->
+      <LinearLayout
+         android:id="@+id/llNewsCoachBeta"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="14dp"
+         android:background="@drawable/coach_beta_loop_bg"
+         android:gravity="center_vertical"
+         android:orientation="horizontal"
+         android:paddingLeft="10dp"
+         android:paddingRight="12dp"
+         android:paddingTop="9dp"
+         android:paddingBottom="9dp"
+         android:visibility="gone">
+
+        <ImageView
+           android:layout_width="30dp"
+           android:layout_height="30dp"
+           android:background="@drawable/coach_hero_icon_tile"
+           android:importantForAccessibility="no"
+           android:padding="6dp"
+           android:src="@drawable/ic_coach_target"/>
+
+        <TextView
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_marginStart="10dp"
+           android:layout_marginLeft="10dp"
+           android:layout_weight="1"
+           android:text="@string/coach_beta_news_line"
+           android:textColor="@color/white"
+           android:textSize="13.5sp"/>
+
+        <TextView
+           style="@style/CoachBetaTag"
+           android:layout_marginStart="8dp"
+           android:layout_marginLeft="8dp"/>
+      </LinearLayout>
+
       <!-- The coach's free offer, in a coach beta build only. -->
       <LinearLayout
          android:id="@+id/newsCoachCard"

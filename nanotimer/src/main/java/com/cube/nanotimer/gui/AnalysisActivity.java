@@ -44,6 +44,7 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.coach.CoachAccess;
+import com.cube.nanotimer.util.coach.CoachBeta;
 import com.cube.nanotimer.util.coach.CoachBilling;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlanWorker;
@@ -144,6 +145,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private CoachPlanStatus planStatus;
   private CoachBilling billing;
   private CoachBilling.Listener billingListener;
+  private CoachBeta.Listener betaListener;
   private MethodStatistics statistics;
   private List<StepStats> oneAlgorithmCases = Collections.emptyList();
   private List<CaseKnowledge> known = Collections.emptyList();
@@ -238,6 +240,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   protected void onResume() {
     super.onResume();
     planStatus.refresh(); // days pass, and the solve types may have changed behind this screen
+    if (coachClient != null) {
+      coachClient.checkBetaIfStale();
+    }
     if (practiceAsked && !learnedAtAsk.equals(Options.INSTANCE.getLearnedCases())) {
       practiceAsked = false; // a learning drill cleared a case, so the next ones are due
       showRead();
@@ -248,6 +253,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   protected void onDestroy() {
     super.onDestroy();
     CoachRead.of(solveType).removeListener(readListener);
+    CoachBeta.removeListener(betaListener);
     if (billing != null) {
       billing.removeListener(billingListener);
     }
@@ -758,6 +764,16 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         CoachPlanWorker.askNow(AnalysisActivity.this, solveType);
       }
     });
+    // The beta's pitch, questions and tags are drawn from the last status, so a new one redraws.
+    betaListener = new CoachBeta.Listener() {
+      @Override
+      public void onBetaChanged() {
+        if (!isFinishing()) {
+          loadPlan();
+        }
+      }
+    };
+    CoachBeta.addListener(betaListener);
     wireBilling();
   }
 
