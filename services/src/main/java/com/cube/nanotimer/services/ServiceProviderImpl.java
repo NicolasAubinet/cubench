@@ -1905,13 +1905,18 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
     // The solve times come newest first, so the solves since the plan are the head of the window.
     int window = Math.min(solvesSince, solveTimes.size());
-    List<Integer> drillReps = new ArrayList<Integer>();
-    for (FocusArea area : last.getPlan().getFocus()) {
-      drillReps.add(getDrillRepsSince(area.getDrill(), last.getWrittenAt()));
-    }
     return CoachPayloadBuilder.previous(last, methodCode, solvesSince,
         solveTimes.subList(0, window), getMethodStepSamples(solveType, method, window), turnings,
-        drillReps);
+        getPlanDrillReps(last));
+  }
+
+  @Override
+  public List<Integer> getPlanDrillReps(StoredCoachPlan plan) {
+    List<Integer> drillReps = new ArrayList<Integer>();
+    for (FocusArea area : plan.getPlan().getFocus()) {
+      drillReps.add(getDrillRepsSince(area.getDrill(), plan.getWrittenAt()));
+    }
+    return drillReps;
   }
 
   /** How many solves of the method were done after the given time. */

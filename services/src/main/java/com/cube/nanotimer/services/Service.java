@@ -153,6 +153,11 @@ public interface Service {
   /** The newest plan kept for the solve type, whoever wrote it, or null where none has been. */
   void getCoachPlan(SolveType solveType, DataCallback<StoredCoachPlan> callback);
   /**
+   * The reps done on each focus's drill since the plan was written, in the plan's order: its cases
+   * in any drill, or any cross for a cross drill, recorded or not. Null where a focus has no drill.
+   */
+  void getPlanDrillReps(StoredCoachPlan plan, DataCallback<List<Integer>> callback);
+  /**
    * The opaque id the coach service counts this solve type by, made the first time it is asked for.
    * A random UUID, never the solve type's id or name, so it says nothing about the user.
    */

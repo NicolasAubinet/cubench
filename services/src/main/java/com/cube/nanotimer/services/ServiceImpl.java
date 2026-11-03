@@ -614,6 +614,17 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void getPlanDrillReps(final StoredCoachPlan plan,
+      final DataCallback<List<Integer>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getPlanDrillReps(plan));
+      }
+    });
+  }
+
+  @Override
   public void getCoachPlan(final SolveType solveType, final DataCallback<StoredCoachPlan> callback) {
     run(new Runnable() {
       @Override

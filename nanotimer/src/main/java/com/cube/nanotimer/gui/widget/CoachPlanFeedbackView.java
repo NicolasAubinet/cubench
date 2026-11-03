@@ -22,8 +22,10 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
+import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.StoredCoachPlan;
+import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.coach.CoachBeta;
 import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.coach.CoachClient;
@@ -321,7 +323,26 @@ public class CoachPlanFeedbackView {
     sending = true;
     bindRate(true);
     final String id = planId;
-    final String body = feedback.toBody(stored.getPlan());
+    final StoredCoachPlan plan = stored;
+    App.INSTANCE.getService().getPlanDrillReps(plan, new DataCallback<List<Integer>>() {
+      @Override
+      public void onData(final List<Integer> reps) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            for (int i = 0; i < reps.size(); i++) {
+              if (reps.get(i) != null) {
+                feedback.setDrillReps(i, reps.get(i));
+              }
+            }
+            post(client, id, feedback.toBody(plan.getPlan()));
+          }
+        });
+      }
+    });
+  }
+
+  private void post(final CoachClient client, final String id, final String body) {
     new Thread(new Runnable() {
       @Override
       public void run() {

@@ -83,6 +83,7 @@ public interface ServiceProvider {
   void saveSolveReadings(Map<Long, String> readings, int version);
   void saveCoachPlan(SolveType solveType, StoredCoachPlan plan);
   StoredCoachPlan getCoachPlan(SolveType solveType);
+  List<Integer> getPlanDrillReps(StoredCoachPlan plan);
   String getCoachStream(SolveType solveType);
   Map<CubeType, List<ScrambleType>> getAllUsedScrambleTypes();
 
