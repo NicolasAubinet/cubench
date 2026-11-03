@@ -1601,23 +1601,6 @@
   <string name="news_all_notes">Toutes les notes de version</string>
   <string name="news_later">Plus tard</string>
   <string name="news_connect">Connecter mon cube</string>
-  <!-- The coach beta invitation, in internal testing builds only -->
-  <string name="beta_coach_pill">Bêta-testeurs</string>
-  <string name="beta_coach_title">Aidez à façonner le coach IA CFOP</string>
-  <string name="beta_coach_body">Je construis un coach IA pour les cubeurs CFOP, et j\'aimerais des testeurs pour le rendre vraiment bon. C\'est gratuit pour tous ceux qui participent.</string>
-  <string name="beta_coach_plan_title">Un plan chaque semaine</string>
-  <string name="beta_coach_plan_body">Ce qui va bien, et ce qu\'il faut travailler ensuite.</string>
-  <string name="beta_coach_drills_title">Des drills sur ce qui vous coûte le plus</string>
-  <string name="beta_coach_drills_body">Les cas qui vous coûtent le plus de temps.</string>
-  <string name="beta_coach_learn_title">Quoi apprendre ensuite</string>
-  <string name="beta_coach_learn_body">Les algorithmes qui rapportent le plus vite.</string>
-  <string name="beta_coach_needs">Premier plan après 100 résolutions, et un formulaire de 2 minutes après chaque plan.</string>
-  <string name="beta_coach_apply">Rejoindre la bêta du coach</string>
-  <string name="beta_coach_no_payment">Aucune information de paiement demandée</string>
-  <string name="beta_coach_not_now">Pas maintenant</string>
-  <string name="beta_coach_also_new">Aussi nouveau avec un smart cube</string>
-  <string name="beta_coach_reopen">Coach gratuit pour les bêta-testeurs</string>
-  <string name="beta_coach_later_hint">À retrouver via l\'icône Bluetooth, puis l\'icône cadeau.</string>
 
   <!-- The coach's free beta: its sheet, the Plan tab card, the plan questions, and its end. -->
   <string name="coach_beta_tag">Bêta</string>

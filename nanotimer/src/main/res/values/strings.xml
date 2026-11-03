@@ -1653,23 +1653,6 @@
   <string name="news_all_notes">All release notes</string>
   <string name="news_later">Later</string>
   <string name="news_connect">Connect my cube</string>
-  <!-- The coach beta invitation, in internal testing builds only -->
-  <string name="beta_coach_pill">Beta testers</string>
-  <string name="beta_coach_title">Help shape the AI CFOP coach</string>
-  <string name="beta_coach_body">I\'m building an AI coach for CFOP solvers, and I\'d love testers to help make it good. It\'s free for everyone helping out.</string>
-  <string name="beta_coach_plan_title">A plan every week</string>
-  <string name="beta_coach_plan_body">What is going well, and what to work on next.</string>
-  <string name="beta_coach_drills_title">Drills on what costs you most</string>
-  <string name="beta_coach_drills_body">The cases costing you the most time.</string>
-  <string name="beta_coach_learn_title">What to learn next</string>
-  <string name="beta_coach_learn_body">The algorithms that pay off soonest.</string>
-  <string name="beta_coach_needs">First plan after 100 solves, and a 2-minute form after each plan.</string>
-  <string name="beta_coach_apply">Join the coach beta</string>
-  <string name="beta_coach_no_payment">No payment information needed</string>
-  <string name="beta_coach_not_now">Not now</string>
-  <string name="beta_coach_also_new">Also new with a smart cube</string>
-  <string name="beta_coach_reopen">Free coach for beta testers</string>
-  <string name="beta_coach_later_hint">Find it again any time: Bluetooth icon, then the gift icon.</string>
 
   <!-- The coach's free beta: its sheet, the Plan tab card, the plan questions, and its end. -->
   <string name="coach_beta_tag">Beta</string>

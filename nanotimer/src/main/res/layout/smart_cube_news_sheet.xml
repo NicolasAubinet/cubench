@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The smart cube's arrival: what it brings, after an update. In a coach beta build the coach's
-     free offer leads instead, and the smart cube's features follow it. -->
+<!-- The smart cube's arrival: what it brings, after an update. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
@@ -126,61 +125,6 @@
            android:layout_marginStart="8dp"
            android:layout_marginLeft="8dp"/>
       </LinearLayout>
-
-      <!-- The coach's free offer, in a coach beta build only. -->
-      <LinearLayout
-         android:id="@+id/newsCoachCard"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="14dp"
-         android:background="@drawable/coach_offer_card"
-         android:orientation="vertical"
-         android:paddingLeft="16dp"
-         android:paddingRight="16dp"
-         android:paddingTop="0dp"
-         android:paddingBottom="12dp"
-         android:visibility="gone">
-        <LinearLayout
-           android:id="@+id/newsCoachPoints"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="vertical"/>
-        <TextView
-           android:id="@+id/tvNewsCoachNeeds"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="12dp"
-           android:text="@string/beta_coach_needs"
-           android:textColor="@color/secondary_text"
-           android:textSize="12.5sp"/>
-        <androidx.appcompat.widget.AppCompatButton
-           android:id="@+id/buNewsCoachApply"
-           android:layout_width="match_parent"
-           android:layout_marginTop="12dp"
-           android:text="@string/beta_coach_apply"
-           style="@style/AccentActionButton"/>
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="6dp"
-           android:gravity="center"
-           android:text="@string/beta_coach_no_payment"
-           android:textColor="@color/secondary_text"
-           android:textSize="12sp"/>
-      </LinearLayout>
-
-      <TextView
-         android:id="@+id/tvNewsFeaturesLabel"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="22dp"
-         android:text="@string/beta_coach_also_new"
-         android:textAllCaps="true"
-         android:textColor="@color/secondary_text"
-         android:textSize="11.5sp"
-         android:textStyle="bold"
-         android:letterSpacing="0.08"
-         android:visibility="gone"/>
 
       <LinearLayout
          android:id="@+id/newsFeatures"
