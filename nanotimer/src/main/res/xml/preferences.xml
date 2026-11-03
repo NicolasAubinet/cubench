@@ -203,6 +203,11 @@
        android:key="coach_code"
        android:title="@string/coach_code"/>
 
+    <!-- Debug builds only: forces the beta phase, membership and feedback mode. -->
+    <Preference
+       android:key="coach_beta_debug"
+       android:title="Coach beta (debug)"/>
+
     <Preference
        android:key="coach_privacy"
        android:title="@string/privacy_policy"/>

@@ -94,9 +94,9 @@ public final class CoachClient {
     return !token.isEmpty() || access.letsIn(System.currentTimeMillis());
   }
 
-  /** Whether the next plan waits for the last one's stars. */
+  /** Whether the next plan waits for the last one's stars, which only required mode does. */
   public boolean owesRating() {
-    return !paidAccess() && beta.owesRating();
+    return beta.owesRating();
   }
 
   /**
@@ -189,9 +189,9 @@ public final class CoachClient {
   private CoachBetaReply betaCall(boolean join) {
     CoachBetaReply reply;
     try {
-      // The beta is joined by the install, so it goes by the Coach ID alone.
-      Answer answer = join ? post(joinUrl, "{}", PRACTICE_READ_TIMEOUT_MS, false)
-          : get(betaUrl, PRACTICE_READ_TIMEOUT_MS);
+      // Joined by the Coach ID. The token and purchase go too, only for the feedback mode.
+      Answer answer = join ? post(joinUrl, "{}", PRACTICE_READ_TIMEOUT_MS, true)
+          : call(betaUrl, null, PRACTICE_READ_TIMEOUT_MS, true);
       reply = answer.body == null ? CoachBetaReply.unreadable()
           : CoachBetaReply.parse(answer.status, answer.body);
     } catch (IOException e) {

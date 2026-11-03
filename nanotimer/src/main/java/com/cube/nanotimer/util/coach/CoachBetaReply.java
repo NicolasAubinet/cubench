@@ -23,22 +23,24 @@ public final class CoachBetaReply {
   private final boolean member;
   private final int seatsLeft;
   private final CoachRefusal refusal;
+  private final CoachBeta.FeedbackMode feedbackMode;
 
   private CoachBetaReply(Kind kind, CoachBeta.Phase phase, boolean member, int seatsLeft,
-      CoachRefusal refusal) {
+      CoachBeta.FeedbackMode feedbackMode, CoachRefusal refusal) {
     this.kind = kind;
     this.phase = phase;
     this.member = member;
     this.seatsLeft = seatsLeft;
     this.refusal = refusal;
+    this.feedbackMode = feedbackMode;
   }
 
   static CoachBetaReply unreachable() {
-    return new CoachBetaReply(Kind.UNREACHABLE, null, false, 0, null);
+    return new CoachBetaReply(Kind.UNREACHABLE, null, false, 0, null, null);
   }
 
   static CoachBetaReply unreadable() {
-    return new CoachBetaReply(Kind.UNREADABLE, null, false, 0, null);
+    return new CoachBetaReply(Kind.UNREADABLE, null, false, 0, null, null);
   }
 
   static CoachBetaReply parse(int httpStatus, String body) {
@@ -46,7 +48,7 @@ public final class CoachBetaReply {
       JSONObject json = new JSONObject(body);
       JSONObject error = json.optJSONObject("error");
       if (error != null) {
-        return new CoachBetaReply(Kind.REFUSED, null, false, 0,
+        return new CoachBetaReply(Kind.REFUSED, null, false, 0, null,
             CoachRefusal.of(error.optString("code")));
       }
       CoachBeta.Phase phase = CoachBeta.Phase.of(json.optString("phase"));
@@ -54,7 +56,8 @@ public final class CoachBetaReply {
         return unreadable();
       }
       return new CoachBetaReply(Kind.STATUS, phase, json.getBoolean("member"),
-          Math.max(0, json.optInt("seats_left", 0)), null);
+          Math.max(0, json.optInt("seats_left", 0)),
+          CoachBeta.FeedbackMode.of(json.optString("feedback_mode", null)), null);
     } catch (JSONException e) {
       return unreadable();
     }
@@ -77,6 +80,14 @@ public final class CoachBetaReply {
   /** 0 unless the beta is open. */
   public int getSeatsLeft() {
     return seatsLeft;
+  }
+
+  /**
+   * The mode the service gave this install, or null from a service older than modes, or one this
+   * app does not know.
+   */
+  public CoachBeta.FeedbackMode getFeedbackMode() {
+    return feedbackMode;
   }
 
   /** Why the service declined, only for {@link Kind#REFUSED}. */

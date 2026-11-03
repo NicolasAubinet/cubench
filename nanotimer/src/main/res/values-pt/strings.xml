@@ -1620,4 +1620,67 @@
   <string name="beta_coach_also_new">Também novo com um smart cube</string>
   <string name="beta_coach_reopen">Coach grátis para beta testers</string>
   <string name="beta_coach_later_hint">Está sempre no ícone de Bluetooth e depois no presente.</string>
+
+  <!-- The coach's free beta: its sheet, the Plan tab card, the plan questions, and its end. -->
+  <string name="coach_beta_tag">Beta</string>
+  <string name="coach_beta_free">Grátis</string>
+  <string name="coach_beta_free_while">enquanto o coach estiver em beta</string>
+  <string name="coach_beta_free_nothing">Nada é cobrado quando terminar</string>
+  <string name="coach_beta_loop_plan">Receba seu plano</string>
+  <string name="coach_beta_loop_practise">Pratique</string>
+  <string name="coach_beta_loop_rate">Avalie</string>
+  <string name="coach_beta_loop_next">Próximo plano</string>
+  <string name="coach_beta_loop_note">Avaliar leva poucos toques e libera seu próximo plano semanal.</string>
+  <string name="coach_beta_join">Entrar no beta</string>
+  <string name="coach_beta_join_failed">Não consegui falar com o coach. Tente de novo daqui a pouco.</string>
+  <string name="coach_beta_full_title">O beta está cheio por enquanto</string>
+  <string name="coach_beta_full_body">Todas as vagas gratuitas estão ocupadas. Vou abrir mais se puder.</string>
+  <string name="coach_beta_meanwhile_label">Enquanto isso</string>
+  <string name="coach_beta_meanwhile">Resolução e Casos continuam grátis, assim como os treinos.</string>
+  <string name="coach_beta_point_ratings">Suas avaliações moldam o coach</string>
+  <string name="coach_beta_offer_join">Entrar no beta, grátis</string>
+  <string name="coach_beta_offer_note">Grátis enquanto o coach estiver em beta. Nada é cobrado quando terminar.</string>
+  <string name="coach_beta_private">Nada sai do seu celular a menos que você entre no beta ou envie um relatório.</string>
+  <string name="coach_beta_drawer_free">Grátis durante o beta</string>
+  <string name="coach_beta_news_line">E um coach com IA, grátis enquanto estiver em beta</string>
+  <string name="coach_beta_end_title">Obrigado por testar o coach</string>
+  <string name="coach_beta_end_sub">O beta terminou</string>
+  <string name="coach_beta_end_body">Como agradecimento, seus dois primeiros meses no plano mensal saem pela metade do preço se quiser continuar.</string>
+  <string name="coach_beta_end_button">Ficar com o coach: 2 meses com 50% off</string>
+  <string name="coach_fb_focus_question">Isso está certo para você?</string>
+  <string name="coach_fb_yes">Sim</string>
+  <string name="coach_fb_not_quite">Não muito</string>
+  <string name="coach_fb_a_bit">Um pouco</string>
+  <string name="coach_fb_not_really">Na verdade, não</string>
+  <string name="coach_fb_whats_off">O que está errado?</string>
+  <string name="coach_fb_reason_wrong">Errado sobre minhas resoluções</string>
+  <string name="coach_fb_reason_already">Eu já faço isso</string>
+  <string name="coach_fb_reason_unclear">Não está claro o que fazer</string>
+  <string name="coach_fb_reason_not_worth">Não vale o tempo</string>
+  <string name="coach_fb_tell_more">Conte mais (opcional)</string>
+  <string name="coach_fb_stars_title">Quão útil é este plano?</string>
+  <string name="coach_fb_stars_held">Avaliar libera seu próximo plano semanal.</string>
+  <string name="coach_fb_stars_free">Suas respostas me ajudam a melhorar o coach.</string>
+  <string name="coach_fb_anything_else">Mais alguma coisa? (opcional)</string>
+  <string name="coach_fb_send">Enviar</string>
+  <string name="coach_fb_send_failed">Não consegui enviar. Tente de novo daqui a pouco.</string>
+  <string name="coach_fb_answer_one">Responda primeiro \"%1$s\"</string>
+  <string name="coach_fb_answer_two">Responda primeiro \"%1$s\" e \"%2$s\"</string>
+  <plurals name="coach_fb_answer_many">
+    <item quantity="one">%d ponto ainda está sem resposta</item>
+    <item quantity="other">%d pontos ainda estão sem resposta</item>
+  </plurals>
+  <string name="coach_fb_pick_stars">Escolha as estrelas primeiro</string>
+  <string name="coach_fb_thanks">Obrigado pela avaliação</string>
+  <string name="coach_fb_thanks_sub">Você pode mudá-la até o próximo plano.</string>
+  <plurals name="coach_fb_next_in">
+    <item quantity="one">Em %d dia, depois de avaliado</item>
+    <item quantity="other">Em %d dias, depois de avaliado</item>
+  </plurals>
+  <string name="coach_fb_rate_before">Avalie este plano quando quiser até lá.</string>
+  <string name="coach_fb_rate_now">Avaliar ↓</string>
+  <string name="coach_fb_due_held">Previsto agora, aguardando sua avaliação</string>
+  <string name="coach_fb_due_held_body">O coach o escreve assim que você avaliar este.</string>
+  <string name="coach_fb_last_week">Você trabalhou no plano da semana passada?</string>
+  <string name="coach_fb_in_the_way">O que atrapalhou? (opcional)</string>
 </resources>

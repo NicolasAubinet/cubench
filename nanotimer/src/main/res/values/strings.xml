@@ -1670,4 +1670,67 @@
   <string name="beta_coach_also_new">Also new with a smart cube</string>
   <string name="beta_coach_reopen">Free coach for beta testers</string>
   <string name="beta_coach_later_hint">Find it again any time: Bluetooth icon, then the gift icon.</string>
+
+  <!-- The coach's free beta: its sheet, the Plan tab card, the plan questions, and its end. -->
+  <string name="coach_beta_tag">Beta</string>
+  <string name="coach_beta_free">Free</string>
+  <string name="coach_beta_free_while">while the coach is in beta</string>
+  <string name="coach_beta_free_nothing">Nothing is charged when it ends</string>
+  <string name="coach_beta_loop_plan">Get your plan</string>
+  <string name="coach_beta_loop_practise">Practise</string>
+  <string name="coach_beta_loop_rate">Rate it</string>
+  <string name="coach_beta_loop_next">Next plan</string>
+  <string name="coach_beta_loop_note">Rating takes a few taps, and unlocks your next weekly plan.</string>
+  <string name="coach_beta_join">Join the beta</string>
+  <string name="coach_beta_join_failed">I couldn\'t reach the coach. Try again in a moment.</string>
+  <string name="coach_beta_full_title">The beta is full for now</string>
+  <string name="coach_beta_full_body">Every free place is taken. I\'ll open more if I can.</string>
+  <string name="coach_beta_meanwhile_label">Meanwhile</string>
+  <string name="coach_beta_meanwhile">Solve and Cases stay free, and so do drills.</string>
+  <string name="coach_beta_point_ratings">Your ratings shape the coach</string>
+  <string name="coach_beta_offer_join">Join the beta, free</string>
+  <string name="coach_beta_offer_note">Free while the coach is in beta. Nothing is charged when it ends.</string>
+  <string name="coach_beta_private">Nothing leaves your phone unless you join or send a report.</string>
+  <string name="coach_beta_drawer_free">Free while in beta</string>
+  <string name="coach_beta_news_line">And an AI coach, free while it\'s in beta</string>
+  <string name="coach_beta_end_title">Thank you for testing the coach</string>
+  <string name="coach_beta_end_sub">The beta has ended</string>
+  <string name="coach_beta_end_body">As thanks, your first two months on the monthly plan are half price if you\'d like to keep going.</string>
+  <string name="coach_beta_end_button">Keep the coach: 2 months at 50% off</string>
+  <string name="coach_fb_focus_question">Is this right for you?</string>
+  <string name="coach_fb_yes">Yes</string>
+  <string name="coach_fb_not_quite">Not quite</string>
+  <string name="coach_fb_a_bit">A bit</string>
+  <string name="coach_fb_not_really">Not really</string>
+  <string name="coach_fb_whats_off">What\'s off?</string>
+  <string name="coach_fb_reason_wrong">Wrong about my solves</string>
+  <string name="coach_fb_reason_already">I already do this</string>
+  <string name="coach_fb_reason_unclear">Not clear what to do</string>
+  <string name="coach_fb_reason_not_worth">Not worth the time</string>
+  <string name="coach_fb_tell_more">Tell me more (optional)</string>
+  <string name="coach_fb_stars_title">How useful is this plan?</string>
+  <string name="coach_fb_stars_held">Rating unlocks your next weekly plan.</string>
+  <string name="coach_fb_stars_free">Your answers help me make the coach better.</string>
+  <string name="coach_fb_anything_else">Anything else? (optional)</string>
+  <string name="coach_fb_send">Send</string>
+  <string name="coach_fb_send_failed">I couldn\'t send it. Try again in a moment.</string>
+  <string name="coach_fb_answer_one">Answer \"%1$s\" first</string>
+  <string name="coach_fb_answer_two">Answer \"%1$s\" and \"%2$s\" first</string>
+  <plurals name="coach_fb_answer_many">
+    <item quantity="one">%d focus is still unanswered</item>
+    <item quantity="other">%d focuses are still unanswered</item>
+  </plurals>
+  <string name="coach_fb_pick_stars">Pick the stars first</string>
+  <string name="coach_fb_thanks">Thanks for rating</string>
+  <string name="coach_fb_thanks_sub">You can change it until the next plan.</string>
+  <plurals name="coach_fb_next_in">
+    <item quantity="one">In %d day, once rated</item>
+    <item quantity="other">In %d days, once rated</item>
+  </plurals>
+  <string name="coach_fb_rate_before">Rate this plan any time before then.</string>
+  <string name="coach_fb_rate_now">Rate now ↓</string>
+  <string name="coach_fb_due_held">Due now, waiting for your rating</string>
+  <string name="coach_fb_due_held_body">The coach writes it as soon as you\'ve rated this one.</string>
+  <string name="coach_fb_last_week">Did you work on last week\'s plan?</string>
+  <string name="coach_fb_in_the_way">What got in the way? (optional)</string>
 </resources>

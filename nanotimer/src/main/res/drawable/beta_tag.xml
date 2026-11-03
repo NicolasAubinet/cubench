@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The pill behind "Beta" while the coach is free in beta: light blue, so it never reads as the
+     amber premium_tag it stands in for. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/lightblue"/>
+  <corners android:radius="999dp"/>
+</shape>

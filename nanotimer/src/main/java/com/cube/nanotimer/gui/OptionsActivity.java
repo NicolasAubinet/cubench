@@ -1,6 +1,7 @@
 package com.cube.nanotimer.gui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
@@ -21,6 +22,7 @@ import com.cube.nanotimer.gui.widget.dialog.CoachCodeDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.coach.CoachAccess;
+import com.cube.nanotimer.util.coach.CoachBeta;
 import com.cube.nanotimer.util.coach.CoachBilling;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlans;
@@ -117,6 +119,7 @@ public class OptionsActivity extends NanoTimerActivity {
       });
       showCoachCode(findPreference("coach_code"));
       showCoachManage(coach, findPreference("coach_manage"));
+      showBetaDebug(coach, findPreference("coach_beta_debug"));
       Preference privacy = findPreference("coach_privacy");
       if (privacy != null) {
         privacy.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -142,6 +145,53 @@ public class OptionsActivity extends NanoTimerActivity {
               showPlansFor(plansFor);
             }
           });
+          return true;
+        }
+      });
+    }
+
+    /**
+     * Debug builds only: draws the coach as if the service said one of these, so the beta and paid
+     * screens can both be checked on one install.
+     */
+    private void showBetaDebug(PreferenceCategory coach, final Preference row) {
+      if (row == null) {
+        return;
+      }
+      final CoachBeta beta = CoachBeta.of(getActivity());
+      if (!beta.isDebuggable()) {
+        coach.removePreference(row);
+        return;
+      }
+      String forced = beta.describeDebug();
+      row.setSummary(forced == null ? "Server (no override)" : forced);
+      row.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        @Override
+        public boolean onPreferenceClick(Preference preference) {
+          final String[] names = {"Server (no override)", "Open, newcomer", "Open, full",
+              "Closed, newcomer", "Open, member (required)", "Open, optional", "Open, hidden",
+              "Ended, member", "Ended, newcomer"};
+          new AlertDialog.Builder(getActivity(), R.style.NanoTimerDialogTheme)
+              .setTitle("Coach beta (debug)")
+              .setItems(names, (dialog, which) -> {
+                CoachBeta.Phase open = CoachBeta.Phase.OPEN;
+                CoachBeta.Phase ended = CoachBeta.Phase.ENDED;
+                CoachBeta.FeedbackMode hidden = CoachBeta.FeedbackMode.HIDDEN;
+                switch (which) {
+                  case 1: beta.forceForDebug(open, false, hidden, 40); break;
+                  case 2: beta.forceForDebug(open, false, hidden, 0); break;
+                  case 3: beta.forceForDebug(CoachBeta.Phase.CLOSED, false, hidden, 0); break;
+                  case 4: beta.forceForDebug(open, true, CoachBeta.FeedbackMode.REQUIRED, 40); break;
+                  case 5: beta.forceForDebug(open, false, CoachBeta.FeedbackMode.OPTIONAL, 40); break;
+                  case 6: beta.forceForDebug(open, false, hidden, 40); break;
+                  case 7: beta.forceForDebug(ended, true, hidden, 0); break;
+                  case 8: beta.forceForDebug(ended, false, hidden, 0); break;
+                  default: beta.forceForDebug(null, null, null, null); break;
+                }
+                String now = beta.describeDebug();
+                row.setSummary(now == null ? names[0] : now);
+              })
+              .show();
           return true;
         }
       });
