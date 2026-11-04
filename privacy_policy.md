@@ -16,7 +16,7 @@ If a smart cube solve was read wrong, you can tap "Reconstruction wrong?" on it 
 
 **What is sent.** That one solve: its time, scramble, date and solve type name, its smart cube recording (the moves, their timing and the cube's orientation during the solve), the breakdown as the app showed it, and the name of the cube model. With it go the comment you typed, your email address if you gave one (it is optional, and only used to reply to you), the app version, your phone's model and Android version, and your Coach ID.
 
-**Who processes it, and for how long.** The report goes to the same server as the coach (Google Cloud in Belgium, database by Neon in Germany), which keeps it for 12 months and emails it to my inbox at nanotimercube@gmail.com (Gmail, Google). If the phone is offline, the app keeps the report and sends it when it can; one not sent after 14 days is deleted. Your IP address is handled as for the coach, below. Reports are never sent to Anthropic. I use them only to fix how solves are read, including as test cases for the app.
+**Who processes it, and for how long.** The report goes to the same server as the coach (Google Cloud in Belgium), which emails it to my inbox at nanotimercube@gmail.com (Gmail, Google) and does not keep it. The server keeps only a note of the report: its id, your Coach ID and when it arrived, for two days (database by Neon in Germany), to limit how many reports can be sent in a day. If the phone is offline, the app keeps the report and sends it when it can; one not sent after 14 days is deleted. Your IP address is handled as for the coach, below. Reports are never sent to Anthropic. I use them only to fix how solves are read, including as test cases for the app.
 
 **Why (legal basis).** You choose to send it (your consent, article 6(1)(a) of the GDPR).
 
@@ -44,7 +44,7 @@ The coach reads your solve statistics and writes you a practice plan every week.
 
 # Your rights
 
-You can ask for a copy of the data the server holds about you, or for its deletion, by emailing me your Coach ID (Settings, Coach). Coach summaries and plans are deleted after 14 days, and plan ratings and reconstruction reports after 12 months, in any case. You can also file a complaint with your data protection authority.
+You can ask for a copy of the data the server holds about you, or for its deletion, by emailing me your Coach ID (Settings, Coach). Coach summaries and plans are deleted after 14 days, and plan ratings after 12 months, in any case. You can also file a complaint with your data protection authority.
 
 # Contact
 
