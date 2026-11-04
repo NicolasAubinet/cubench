@@ -7,7 +7,8 @@
    android:paddingLeft="20dp"
    android:paddingRight="20dp"
    android:paddingTop="8dp"
-   android:paddingBottom="14dp">
+   android:paddingBottom="14dp"
+   android:clipToPadding="false">
 
   <View
      android:layout_width="32dp"
@@ -15,11 +16,22 @@
      android:layout_gravity="center_horizontal"
      android:background="@drawable/bottomsheet_drag_handle"/>
 
+  <!-- The bar sits in the sheet's side margin, clear of the text, and never fades. -->
   <androidx.core.widget.NestedScrollView
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
-     android:layout_marginTop="4dp">
+     android:layout_marginTop="4dp"
+     android:layout_marginRight="-12dp"
+     android:layout_marginEnd="-12dp"
+     android:paddingRight="12dp"
+     android:paddingEnd="12dp"
+     android:scrollbars="vertical"
+     android:fadeScrollbars="false"
+     android:scrollbarStyle="outsideOverlay"
+     android:scrollbarSize="4dp"
+     android:scrollbarThumbVertical="@drawable/sheet_scroll_thumb"
+     android:scrollbarTrackVertical="@drawable/sheet_scroll_track">
 
     <LinearLayout
        android:layout_width="match_parent"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A sheet's always-shown scrollbar, so a list taller than the sheet reads as one. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+  <solid android:color="#66FFFFFF"/>
+  <corners android:radius="2dp"/>
+</shape>
