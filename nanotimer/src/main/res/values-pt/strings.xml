@@ -1308,7 +1308,7 @@
     <item quantity="one">Faça mais %1$d resolução com smart cube em %2$s para recebê-lo a tempo.</item>
     <item quantity="other">Faça mais %1$d resoluções com smart cube em %2$s para recebê-lo a tempo.</item>
   </plurals>
-  <string name="coach_reminder_rate_first">Avalie primeiro seu plano atual: o coach escreve o próximo assim que você fizer isso.</string>
+  <string name="coach_reminder_rate_first">Avalie seu plano atual agora para não atrasar o próximo.</string>
   <plurals name="coach_reminder_rate_on_time">
     <item quantity="one">Avalie seu plano atual e faça mais %1$d resolução com smart cube em %2$s para recebê-lo a tempo.</item>
     <item quantity="other">Avalie seu plano atual e faça mais %1$d resoluções com smart cube em %2$s para recebê-lo a tempo.</item>
@@ -1649,6 +1649,8 @@
   <string name="coach_fb_reason_wrong">Errado sobre minhas resoluções</string>
   <string name="coach_fb_reason_already">Eu já faço isso</string>
   <string name="coach_fb_reason_unclear">Não está claro o que fazer</string>
+  <string name="coach_fb_reason_too_hard">Difícil demais</string>
+  <string name="coach_fb_reason_too_boring">Chato demais</string>
   <string name="coach_fb_reason_not_worth">Não vale o tempo</string>
   <string name="coach_fb_tell_more">Conte mais (opcional)</string>
   <string name="coach_fb_stars_title">Quão útil é este plano?</string>

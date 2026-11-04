@@ -1353,7 +1353,7 @@
     <item quantity="one">Do %1$d more smart cube solve on %2$s to get it on time.</item>
     <item quantity="other">Do %1$d more smart cube solves on %2$s to get it on time.</item>
   </plurals>
-  <string name="coach_reminder_rate_first">Rate your current plan first: the coach writes the next one as soon as you have.</string>
+  <string name="coach_reminder_rate_first">Rate your current plan now to avoid delaying the next one.</string>
   <plurals name="coach_reminder_rate_on_time">
     <item quantity="one">Rate your current plan and do %1$d more smart cube solve on %2$s to get it on time.</item>
     <item quantity="other">Rate your current plan and do %1$d more smart cube solves on %2$s to get it on time.</item>
@@ -1699,6 +1699,8 @@
   <string name="coach_fb_reason_wrong">Wrong about my solves</string>
   <string name="coach_fb_reason_already">I already do this</string>
   <string name="coach_fb_reason_unclear">Not clear what to do</string>
+  <string name="coach_fb_reason_too_hard">Too difficult</string>
+  <string name="coach_fb_reason_too_boring">Too boring</string>
   <string name="coach_fb_reason_not_worth">Not worth the time</string>
   <string name="coach_fb_tell_more">Tell me more (optional)</string>
   <string name="coach_fb_stars_title">How useful is this plan?</string>

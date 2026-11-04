@@ -175,7 +175,8 @@ public class CoachPlanFeedbackView {
     reasons.removeAllViews();
     final CoachPlanFeedback.Reason[] all = CoachPlanFeedback.Reason.values();
     int[] words = {R.string.coach_fb_reason_wrong, R.string.coach_fb_reason_already,
-        R.string.coach_fb_reason_unclear, R.string.coach_fb_reason_not_worth};
+        R.string.coach_fb_reason_unclear, R.string.coach_fb_reason_too_hard,
+        R.string.coach_fb_reason_too_boring, R.string.coach_fb_reason_not_worth};
     for (int i = 0; i < all.length; i++) {
       RadioButton option = new RadioButton(activity);
       option.setId(View.generateViewId());

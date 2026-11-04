@@ -1306,7 +1306,7 @@
     <item quantity="one">Encore %1$d résolution au smart cube sur %2$s pour l\'avoir à temps.</item>
     <item quantity="other">Encore %1$d résolutions au smart cube sur %2$s pour l\'avoir à temps.</item>
   </plurals>
-  <string name="coach_reminder_rate_first">Notez d\'abord votre plan actuel : le coach écrit le suivant dès que c\'est fait.</string>
+  <string name="coach_reminder_rate_first">Notez votre plan actuel dès maintenant pour ne pas retarder le suivant.</string>
   <plurals name="coach_reminder_rate_on_time">
     <item quantity="one">Notez votre plan actuel et faites encore %1$d résolution au smart cube sur %2$s pour l\'avoir à temps.</item>
     <item quantity="other">Notez votre plan actuel et faites encore %1$d résolutions au smart cube sur %2$s pour l\'avoir à temps.</item>
@@ -1647,6 +1647,8 @@
   <string name="coach_fb_reason_wrong">Faux sur mes résolutions</string>
   <string name="coach_fb_reason_already">Je le fais déjà</string>
   <string name="coach_fb_reason_unclear">Je ne vois pas quoi faire</string>
+  <string name="coach_fb_reason_too_hard">Trop difficile</string>
+  <string name="coach_fb_reason_too_boring">Trop ennuyeux</string>
   <string name="coach_fb_reason_not_worth">Ne vaut pas le temps</string>
   <string name="coach_fb_tell_more">Dites-m\'en plus (facultatif)</string>
   <string name="coach_fb_stars_title">Ce plan vous est-il utile ?</string>
