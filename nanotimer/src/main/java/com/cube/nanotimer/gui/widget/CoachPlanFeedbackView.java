@@ -186,7 +186,8 @@ public class CoachPlanFeedbackView {
     final CoachPlanFeedback.Reason[] all = CoachPlanFeedback.Reason.values();
     int[] words = {R.string.coach_fb_reason_wrong, R.string.coach_fb_reason_already,
         R.string.coach_fb_reason_unclear, R.string.coach_fb_reason_too_hard,
-        R.string.coach_fb_reason_too_boring, R.string.coach_fb_reason_not_worth};
+        R.string.coach_fb_reason_too_boring, R.string.coach_fb_reason_not_worth,
+        R.string.coach_fb_reason_other};
     bindFold(block, index, answer, all, words);
     for (int i = 0; i < all.length; i++) {
       RadioButton option = new RadioButton(activity);
@@ -207,16 +208,57 @@ public class CoachPlanFeedbackView {
         if (at >= 0) {
           feedback.pickReason(index, all[at]);
           save();
+          EditText field = block.findViewById(R.id.etFbFocusText);
+          hintText(field, all[at]);
+          if (all[at] == CoachPlanFeedback.Reason.OTHER) {
+            field.requestFocus();
+            ((InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE))
+                .showSoftInput(field, InputMethodManager.SHOW_IMPLICIT);
+          }
         }
       }
     });
     EditText text = block.findViewById(R.id.etFbFocusText);
+    hintText(text, answer.getReasons().contains(CoachPlanFeedback.Reason.OTHER)
+        ? CoachPlanFeedback.Reason.OTHER : null);
     bindText(text, answer.getText(), new Typed() {
       @Override
       public void typed(String value) {
         feedback.setFocusText(index, value);
+        if (flagged == index && !value.trim().isEmpty()) {
+          flagged = -1; // the outline goes on the next redraw
+        }
+        refreshSend();
       }
     });
+  }
+
+  /** Send looks on only once nothing is left to answer, though a tap always says what is. */
+  private void refreshSend() {
+    if (rateCard == null) {
+      return;
+    }
+    rateCard.findViewById(R.id.buFbSend).setAlpha(
+        missing().isEmpty() && otherUnsaid() == -1 && feedback.isRated() && !sending ? 1f : 0.45f);
+  }
+
+  /** One field for both: optional detail, or the reason itself once "Other" is picked. */
+  private void hintText(EditText field, CoachPlanFeedback.Reason reason) {
+    field.setHint(reason == CoachPlanFeedback.Reason.OTHER ? R.string.coach_fb_say_what
+        : R.string.coach_fb_tell_more);
+  }
+
+  /** The first focus whose "Other" has no words yet, -1 when none; asked in every mode. */
+  private int otherUnsaid() {
+    for (int i = 0; i < focusBlocks.size(); i++) {
+      CoachPlanFeedback.FocusAnswer answer = feedback.getFocus(i);
+      if (answer != null && answer.getAnswer() == CoachPlanFeedback.Answer.NOT_QUITE
+          && answer.getReasons().contains(CoachPlanFeedback.Reason.OTHER)
+          && (answer.getText() == null || answer.getText().trim().isEmpty())) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /** The reasons' header: tapping it folds them to one line naming the picked one, or opens them. */
@@ -227,6 +269,10 @@ public class CoachPlanFeedbackView {
       if (answer.getReasons().contains(all[i])) {
         picked = activity.getString(words[i]);
       }
+    }
+    String said = answer.getText() == null ? "" : answer.getText().trim();
+    if (answer.getReasons().contains(CoachPlanFeedback.Reason.OTHER) && !said.isEmpty()) {
+      picked = said; // their own words say more than "Other"
     }
     Boolean choice = folded.get(index);
     final boolean fold = choice != null ? choice
@@ -283,7 +329,7 @@ public class CoachPlanFeedbackView {
         feedback.setText(value);
       }
     });
-    send.setAlpha(missing().isEmpty() && feedback.isRated() && !sending ? 1f : 0.45f);
+    refreshSend();
     send.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -351,6 +397,18 @@ public class CoachPlanFeedbackView {
       flagged = missing.get(0);
       bindFocus(focusBlocks.get(flagged), flagged);
       scrollTo(focusBlocks.get(flagged));
+      return;
+    }
+    int unsaid = otherUnsaid();
+    if (unsaid != -1) {
+      Toast.makeText(activity, activity.getString(R.string.coach_fb_say_what_for,
+          focusTitle(unsaid)), Toast.LENGTH_SHORT).show();
+      folded.put(unsaid, false);
+      flagged = unsaid;
+      View block = focusBlocks.get(unsaid);
+      bindFocus(block, unsaid);
+      scrollTo(block);
+      block.findViewById(R.id.etFbFocusText).requestFocus();
       return;
     }
     if (!feedback.isRated()) {

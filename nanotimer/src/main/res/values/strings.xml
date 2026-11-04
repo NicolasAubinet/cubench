@@ -1702,7 +1702,10 @@
   <string name="coach_fb_reason_too_hard">Too difficult</string>
   <string name="coach_fb_reason_too_boring">Too boring</string>
   <string name="coach_fb_reason_not_worth">Not worth the time</string>
+  <string name="coach_fb_reason_other">Other</string>
   <string name="coach_fb_tell_more">Tell me more (optional)</string>
+  <string name="coach_fb_say_what">Tell me what\'s off</string>
+  <string name="coach_fb_say_what_for">Tell me what\'s off for \"%1$s\" first</string>
   <string name="coach_fb_stars_title">How useful is this plan?</string>
   <string name="coach_fb_stars_held">Rating unlocks your next weekly plan.</string>
   <string name="coach_fb_stars_free">Your answers help me make the coach better.</string>

@@ -39,7 +39,7 @@ public final class CoachPlanFeedback {
 
   /** Why a focus was "not quite" right. */
   public enum Reason {
-    WRONG_ABOUT_SOLVES, ALREADY_DO, NOT_CLEAR, TOO_HARD, TOO_BORING, NOT_WORTH;
+    WRONG_ABOUT_SOLVES, ALREADY_DO, NOT_CLEAR, TOO_HARD, TOO_BORING, NOT_WORTH, OTHER;
 
     String code() {
       return name().toLowerCase(Locale.ROOT);
