@@ -61,15 +61,52 @@
        android:layout_marginLeft="12dp"
        android:orientation="vertical">
 
-      <TextView
-         android:layout_width="wrap_content"
+      <!-- Folds the reasons to this one line, with the picked one beside the label. -->
+      <LinearLayout
+         android:id="@+id/llFbWhyHead"
+         android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:fontFamily="@font/roboto_medium"
-         android:letterSpacing="0.1"
-         android:text="@string/coach_fb_whats_off"
-         android:textAllCaps="true"
-         android:textColor="@color/secondary_text"
-         android:textSize="11sp"/>
+         android:minHeight="32dp"
+         android:background="?android:attr/selectableItemBackground"
+         android:gravity="center_vertical"
+         android:orientation="horizontal">
+
+        <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:fontFamily="@font/roboto_medium"
+           android:letterSpacing="0.1"
+           android:text="@string/coach_fb_whats_off"
+           android:textAllCaps="true"
+           android:textColor="@color/secondary_text"
+           android:textSize="11sp"/>
+
+        <TextView
+           android:id="@+id/tvFbWhyPicked"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_weight="1"
+           android:layout_marginStart="10dp"
+           android:layout_marginLeft="10dp"
+           android:ellipsize="end"
+           android:maxLines="1"
+           android:textColor="@color/white"
+           android:textSize="13.5sp"/>
+
+        <ImageView
+           android:id="@+id/ivFbWhyFold"
+           android:layout_width="20dp"
+           android:layout_height="20dp"
+           android:importantForAccessibility="no"
+           android:src="@drawable/ic_chevron_down"
+           android:tint="@color/secondary_text"/>
+      </LinearLayout>
+
+      <LinearLayout
+         android:id="@+id/llFbWhyBody"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical">
 
       <RadioGroup
          android:id="@+id/rgFbWhy"
@@ -90,6 +127,7 @@
          android:textColor="@color/white"
          android:textColorHint="@color/secondary_text"
          android:textSize="13.5sp"/>
+      </LinearLayout>
     </LinearLayout>
   </LinearLayout>
 </LinearLayout>

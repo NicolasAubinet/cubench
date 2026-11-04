@@ -12,7 +12,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -34,7 +36,9 @@ import com.cube.nanotimer.util.coach.CoachPlanWorker;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What the solver is asked about the plan on screen, drawn over {@link CoachPlanView}'s cards: an
@@ -70,6 +74,8 @@ public class CoachPlanFeedbackView {
   /** The focus outlined in amber after a tap on Send that it was missing for. */
   private int flagged = -1;
   private boolean sending;
+  /** Each focus's reasons folded or not, by index; unset is folded once anything is picked. */
+  private final Map<Integer, Boolean> folded = new HashMap<Integer, Boolean>();
 
   public CoachPlanFeedbackView(Activity activity, SolveType solveType) {
     this.activity = activity;
@@ -116,6 +122,9 @@ public class CoachPlanFeedbackView {
         || !beta.isLastPlan(solveType.getId(), stored.getWrittenAt())) {
       return;
     }
+    if (!beta.getPlanId().equals(planId)) {
+      folded.clear();
+    }
     planId = beta.getPlanId();
     feedback = beta.getFeedback(planId);
     feedback.opened(System.currentTimeMillis());
@@ -156,6 +165,7 @@ public class CoachPlanFeedbackView {
           public void picked(int which) {
             feedback.answer(index, which == 0 ? CoachPlanFeedback.Answer.YES
                 : CoachPlanFeedback.Answer.NOT_QUITE);
+            folded.put(index, false); // being answered: a redraw must not fold it
             feedback.seen(index);
             if (flagged == index) {
               flagged = -1;
@@ -177,6 +187,7 @@ public class CoachPlanFeedbackView {
     int[] words = {R.string.coach_fb_reason_wrong, R.string.coach_fb_reason_already,
         R.string.coach_fb_reason_unclear, R.string.coach_fb_reason_too_hard,
         R.string.coach_fb_reason_too_boring, R.string.coach_fb_reason_not_worth};
+    bindFold(block, index, answer, all, words);
     for (int i = 0; i < all.length; i++) {
       RadioButton option = new RadioButton(activity);
       option.setId(View.generateViewId());
@@ -204,6 +215,36 @@ public class CoachPlanFeedbackView {
       @Override
       public void typed(String value) {
         feedback.setFocusText(index, value);
+      }
+    });
+  }
+
+  /** The reasons' header: tapping it folds them to one line naming the picked one, or opens them. */
+  private void bindFold(final View block, final int index, CoachPlanFeedback.FocusAnswer answer,
+      CoachPlanFeedback.Reason[] all, int[] words) {
+    String picked = "";
+    for (int i = 0; i < all.length; i++) {
+      if (answer.getReasons().contains(all[i])) {
+        picked = activity.getString(words[i]);
+      }
+    }
+    Boolean choice = folded.get(index);
+    final boolean fold = choice != null ? choice
+        : !picked.isEmpty() || (answer.getText() != null && !answer.getText().isEmpty());
+    block.findViewById(R.id.llFbWhyBody).setVisibility(fold ? View.GONE : View.VISIBLE);
+    TextView pickedView = block.findViewById(R.id.tvFbWhyPicked);
+    pickedView.setText(fold ? picked : "");
+    ((ImageView) block.findViewById(R.id.ivFbWhyFold))
+        .setImageResource(fold ? R.drawable.ic_chevron_down : R.drawable.ic_chevron_up);
+    block.findViewById(R.id.llFbWhyHead).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (!fold) {
+          ((InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE))
+              .hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+        folded.put(index, !fold);
+        bindFocus(block, index);
       }
     });
   }
@@ -355,6 +396,7 @@ public class CoachPlanFeedbackView {
             if (outcome == CoachClient.FeedbackOutcome.SENT
                 || outcome == CoachClient.FeedbackOutcome.GONE) {
               editing = false;
+              folded.clear();
               CoachPlanWorker.onRated(activity);
               Toast.makeText(activity, R.string.coach_fb_thanks_toast, Toast.LENGTH_SHORT).show();
               // The rating's own change notice redraws the tab, collapsed to the thanks.
