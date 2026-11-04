@@ -1657,7 +1657,6 @@
   <string name="coach_fb_anything_else">Autre chose ? (facultatif)</string>
   <string name="coach_fb_send">Envoyer</string>
   <string name="coach_fb_send_failed">Je n\'ai pas pu l\'envoyer. Réessayez dans un instant.</string>
-  <string name="coach_fb_plan_gone">Le coach n\'a plus ce plan, donc le suivant ne l\'attendra pas.</string>
   <string name="coach_fb_answer_one">Répondez d\'abord à « %1$s »</string>
   <string name="coach_fb_answer_two">Répondez d\'abord à « %1$s » et « %2$s »</string>
   <plurals name="coach_fb_answer_many">

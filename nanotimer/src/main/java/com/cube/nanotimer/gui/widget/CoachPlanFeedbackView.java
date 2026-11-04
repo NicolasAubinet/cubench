@@ -356,9 +356,7 @@ public class CoachPlanFeedbackView {
                 || outcome == CoachClient.FeedbackOutcome.GONE) {
               editing = false;
               CoachPlanWorker.onRated(activity);
-              Toast.makeText(activity, outcome == CoachClient.FeedbackOutcome.SENT
-                  ? R.string.coach_fb_thanks_toast : R.string.coach_fb_plan_gone,
-                  Toast.LENGTH_LONG).show();
+              Toast.makeText(activity, R.string.coach_fb_thanks_toast, Toast.LENGTH_SHORT).show();
               // The rating's own change notice redraws the tab, collapsed to the thanks.
             } else {
               Toast.makeText(activity, R.string.coach_fb_send_failed, Toast.LENGTH_LONG).show();
