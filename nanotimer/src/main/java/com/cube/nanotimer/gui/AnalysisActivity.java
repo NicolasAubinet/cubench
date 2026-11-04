@@ -266,6 +266,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   @Override
   protected void onDestroy() {
     super.onDestroy();
+    if (isFinishing() && planStatus != null) {
+      planStatus.leave();
+    }
     CoachRead.of(solveType).removeListener(readListener);
     CoachBeta.removeListener(betaListener);
     if (billing != null) {

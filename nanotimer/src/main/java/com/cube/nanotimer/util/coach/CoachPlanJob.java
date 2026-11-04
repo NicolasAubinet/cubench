@@ -88,7 +88,9 @@ final class CoachPlanJob {
     long now = System.currentTimeMillis();
     long lastPlanAt = CoachPlans.lastPlanAt(now);
     if (owesRating) { // rating the plan runs the job again
-      remind(context, solveType, schedule(solveType, lastPlanAt, now), now, true);
+      SolveType rated = byId(CoachBeta.of(context).getPlanSolveTypeId());
+      remind(context, rated != null ? rated : solveType, schedule(solveType, lastPlanAt, now), now,
+          true);
       return Outcome.DONE;
     }
     if (!debug) {
@@ -156,6 +158,15 @@ final class CoachPlanJob {
 
   private static SolveType flagged() throws InterruptedException {
     return CoachPlans.flagged(solveTypes());
+  }
+
+  private static SolveType byId(int solveTypeId) throws InterruptedException {
+    for (SolveType solveType : solveTypes()) {
+      if (solveType.getId() == solveTypeId) {
+        return solveType;
+      }
+    }
+    return null;
   }
 
   private static SolveType eligible(int solveTypeId) throws InterruptedException {

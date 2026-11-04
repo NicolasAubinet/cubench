@@ -44,7 +44,7 @@ public final class CoachBetaLook {
   private final Boolean feedbackChoice;
 
   /**
-   * @param phase null when this install never heard, which draws the paid screens
+   * @param phase null for a phase this app does not know, which draws the paid screens
    * @param paid whether the install has the coach by a token, a purchase or a code
    * @param endSeen whether the end-of-beta thanks was already shown and closed
    */

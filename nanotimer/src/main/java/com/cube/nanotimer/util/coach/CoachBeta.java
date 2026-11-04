@@ -322,6 +322,11 @@ public final class CoachBeta {
     editor.commit();
   }
 
+  /** The solve type the last plan was written for, -1 when there is none. */
+  public synchronized int getPlanSolveTypeId() {
+    return preferences.getInt(PLAN_SOLVE_TYPE_KEY, -1);
+  }
+
   /** The service's id for the last plan, null when there is none or it came without one. */
   public synchronized String getPlanId() {
     return preferences.getString(PLAN_ID_KEY, null);

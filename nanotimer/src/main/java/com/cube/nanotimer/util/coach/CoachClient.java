@@ -224,7 +224,9 @@ public final class CoachClient {
   public enum FeedbackOutcome {
     /** The service kept it. */
     SENT,
-    /** The service will never take it as it is: a plan it does not know, or a body it refused. */
+    /** The service no longer has the plan, so nothing holds on it: released here too. */
+    GONE,
+    /** The service will never take it as it is: a body it refused. */
     REFUSED,
     /** Worth sending again later. */
     FAILED
@@ -249,6 +251,8 @@ public final class CoachClient {
       if (reply.getKind() == CoachReply.Kind.REFUSED) {
         switch (reply.getRefusal()) {
           case NOT_FOUND:
+            beta.rated(planId); // the service holds nothing on a plan it lost, so neither may the app
+            return FeedbackOutcome.GONE;
           case PAYLOAD_INVALID:
           case PAYLOAD_TOO_LARGE:
             return FeedbackOutcome.REFUSED;
@@ -312,6 +316,7 @@ public final class CoachClient {
       access.codeEnded();
     } else if (reply.getRefusal() == CoachRefusal.FEEDBACK_OWED) {
       beta.ratingOwed();
+      beta.statusDoubted(); // the mode may have turned required since it was last checked
     }
   }
 

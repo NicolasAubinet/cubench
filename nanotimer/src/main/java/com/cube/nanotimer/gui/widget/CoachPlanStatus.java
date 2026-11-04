@@ -333,8 +333,8 @@ public class CoachPlanStatus {
   }
 
   /**
-   * The thanks at the end of the beta, for a member, once: it counts as seen when first drawn, and
-   * stays for the rest of this screen. Its button opens the purchase.
+   * The thanks at the end of the beta, for a member, once: it counts as seen when the screen that
+   * drew it closes ({@link #leave}), so a rotation keeps it. Its button opens the purchase.
    */
   private void showBetaEnd() {
     CoachBetaLook look = client == null ? null : CoachBetaLook.of(activity);
@@ -347,6 +347,12 @@ public class CoachPlanStatus {
         }
       });
       tab.addView(endCard, 0);
+    }
+  }
+
+  /** The screen is closing for good. */
+  public void leave() {
+    if (endCard != null) {
       CoachBeta.of(activity).endSeen();
     }
   }
@@ -378,11 +384,35 @@ public class CoachPlanStatus {
     loop.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (rateNow != null) {
+        int planType = CoachBeta.of(activity).getPlanSolveTypeId();
+        if (planType != -1 && planType != solveType.getId()) {
+          openPlanOf(planType); // the plans moved since: the rating is on the other type's tab
+        } else if (rateNow != null) {
           rateNow.run();
         }
       }
     });
+  }
+
+  private void openPlanOf(final int solveTypeId) {
+    App.INSTANCE.getService().getSolveTypes(CubeType.THREE_BY_THREE,
+        new DataCallback<List<SolveType>>() {
+          @Override
+          public void onData(final List<SolveType> types) {
+            activity.runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                for (SolveType type : types) {
+                  if (type.getId() == solveTypeId && !activity.isFinishing()) {
+                    activity.startActivity(new Intent(activity, AnalysisActivity.class)
+                        .putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, type)
+                        .putExtra(AnalysisActivity.EXTRA_TAB, AnalysisActivity.TAB_PLAN));
+                  }
+                }
+              }
+            });
+          }
+        });
   }
 
   /** How many of the solves the next plan waits for are done, while it waits for any. */

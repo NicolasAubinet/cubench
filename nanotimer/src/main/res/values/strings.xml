@@ -1709,6 +1709,7 @@
   <string name="coach_fb_anything_else">Anything else? (optional)</string>
   <string name="coach_fb_send">Send</string>
   <string name="coach_fb_send_failed">I couldn\'t send it. Try again in a moment.</string>
+  <string name="coach_fb_plan_gone">The coach no longer has this plan, so your next one won\'t wait for it.</string>
   <string name="coach_fb_answer_one">Answer \"%1$s\" first</string>
   <string name="coach_fb_answer_two">Answer \"%1$s\" and \"%2$s\" first</string>
   <plurals name="coach_fb_answer_many">
