@@ -22,7 +22,7 @@ public final class CoachBetaInvitation {
   /** Whether the solves are worth counting, which is everything but their number. */
   public static boolean mayInvite(CoachClient client, CoachBeta beta, SolveType solveType) {
     return solveType != null
-        && may(beta.isInvitationShown(), beta.offersJoin(), client.paidAccess(),
+        && may(beta.isInvitationShown(), beta.isHeard() && beta.offersJoin(), client.paidAccess(),
             SmartCubeManager.INSTANCE.isConnected(), CoachPlans.eligible(solveType));
   }
 

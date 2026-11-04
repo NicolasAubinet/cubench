@@ -127,10 +127,27 @@ public final class CoachBeta {
     return instance;
   }
 
-  /** Where the beta stood at the last check, null when this install never heard. */
+  /**
+   * The phase drawn until the service first answers, so an install that has never been online
+   * still shows the beta. Set it to ENDED in the first release after the beta ends.
+   */
+  static final Phase UNHEARD_PHASE = Phase.OPEN;
+
+  /**
+   * Where the beta stood at the last check, {@link #UNHEARD_PHASE} when this install never heard,
+   * null for a phase this app does not know.
+   */
   public synchronized Phase getPhase() {
     String forced = debug(DEBUG_PHASE_KEY);
+    if (forced == null && !isHeard()) {
+      return UNHEARD_PHASE;
+    }
     return Phase.of(forced != null ? forced : preferences.getString(PHASE_KEY, null));
+  }
+
+  /** Whether the service ever answered this install about the beta. */
+  public synchronized boolean isHeard() {
+    return preferences.contains(PHASE_KEY);
   }
 
   /** Whether this install joined, even once the beta has ended. */
@@ -141,6 +158,9 @@ public final class CoachBeta {
 
   public synchronized int getSeatsLeft() {
     String forced = debug(DEBUG_SEATS_KEY);
+    if (forced == null && !isHeard()) {
+      return 1; // assumed open until told: joining asks the service anyway
+    }
     return forced != null ? Integer.parseInt(forced) : preferences.getInt(SEATS_LEFT_KEY, 0);
   }
 
