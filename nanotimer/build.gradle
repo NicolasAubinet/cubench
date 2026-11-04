@@ -61,7 +61,7 @@ android {
         minSdkVersion 21
         compileSdkVersion 36
         targetSdkVersion 36
-        versionCode 78
+        versionCode 79
         versionName project.property('cubenchVersion')
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
