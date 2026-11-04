@@ -372,6 +372,12 @@ public class CrossDrillActivity extends DrillScreenActivity {
     return rotation == null ? null : rotation.quaternion();
   }
 
+  /** Cross on the bottom, so the face opposite it is held on top. */
+  @Override
+  protected char straightenUpFace() {
+    return face == null ? 0 : face.opposite().name().charAt(0);
+  }
+
   private void nextRep() {
     betweenReps = false;
     solutions = null;

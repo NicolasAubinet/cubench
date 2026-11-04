@@ -368,7 +368,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
 
   /**
    * The face the user holds on top when straightening the drawn cube, or 0 for a drill that offers
-   * no straightening: the cross drill is turned every which way, so no hold can be declared.
+   * no straightening.
    */
   protected char straightenUpFace() {
     return 0;
