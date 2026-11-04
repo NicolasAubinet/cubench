@@ -1644,20 +1644,20 @@
   <string name="coach_fb_reason_other">Autre</string>
   <string name="coach_fb_tell_more">Dites-m\'en plus (facultatif)</string>
   <string name="coach_fb_say_what">Dites-moi ce qui ne va pas</string>
-  <string name="coach_fb_say_what_for">Dites-moi d\'abord ce qui ne va pas pour « %1$s »</string>
+  <string name="coach_fb_say_what_for">Merci de me dire ce qui ne va pas pour « %1$s »</string>
   <string name="coach_fb_stars_title">Ce plan vous est-il utile ?</string>
   <string name="coach_fb_stars_held">Noter débloque votre plan de la semaine suivante.</string>
   <string name="coach_fb_stars_free">Vos réponses m\'aident à améliorer le coach.</string>
   <string name="coach_fb_anything_else">Autre chose ? (facultatif)</string>
   <string name="coach_fb_send">Envoyer</string>
   <string name="coach_fb_send_failed">Je n\'ai pas pu l\'envoyer. Réessayez dans un instant.</string>
-  <string name="coach_fb_answer_one">Répondez d\'abord à « %1$s »</string>
-  <string name="coach_fb_answer_two">Répondez d\'abord à « %1$s » et « %2$s »</string>
+  <string name="coach_fb_answer_one">Merci de répondre à « %1$s »</string>
+  <string name="coach_fb_answer_two">Merci de répondre à « %1$s » et « %2$s »</string>
   <plurals name="coach_fb_answer_many">
     <item quantity="one">%d point est encore sans réponse</item>
     <item quantity="other">%d points sont encore sans réponse</item>
   </plurals>
-  <string name="coach_fb_pick_stars">Choisissez d\'abord les étoiles</string>
+  <string name="coach_fb_pick_stars">Merci de choisir les étoiles</string>
   <string name="coach_fb_thanks">Merci pour votre note</string>
   <string name="coach_fb_thanks_sub">Vous pouvez la changer jusqu\'au prochain plan.</string>
   <string name="coach_fb_thanks_toast">Merci de m\'aider à améliorer le coach</string>
