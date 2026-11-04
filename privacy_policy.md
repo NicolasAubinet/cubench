@@ -2,7 +2,7 @@
 
 Cubench (formerly Nano Timer) is a free and open source Android app developed by Nicolas Aubinet. The source code is available on GitHub under the GNU GPL v3.0 license. The app is also available on Google Play.
 
-**In short: everything you record stays on your phone, with two exceptions. If you use the optional coach (by subscription, or free while it is in beta), a summary of your solve statistics is sent once a week so a practice plan can be written for you. If you report a wrong reconstruction, that one solve is sent. Otherwise nothing is sent.**
+**In short: everything you record stays on your phone, with two exceptions. If you use the optional coach (by subscription, or free while it is in beta), a summary of your solve statistics is sent once a week so a practice plan can be written for you. If you report a wrong reconstruction, that one solve is sent. Otherwise nothing about you is sent.**
 
 # Data on your phone
 
@@ -22,7 +22,9 @@ If a smart cube solve was read wrong, you can tap "Reconstruction wrong?" on it 
 
 # The coach (optional, paid, free while in beta)
 
-The coach reads your solve statistics and writes you a practice plan every week. It runs on a server, which it shares with reconstruction reports; apart from those, it is the one part of the app that sends data over the internet. **Nothing is sent unless you subscribe, start the free trial, join the beta, or enter an access code.** When your subscription, the beta or your access ends, sending stops.
+The coach reads your solve statistics and writes you a practice plan every week. It runs on a server, which it shares with reconstruction reports; apart from those, it is the one part of the app that sends data over the internet. **Nothing about you is sent unless you subscribe, start the free trial, join the beta, or enter an access code.** When your subscription, the beta or your access ends, sending stops.
+
+**Beta status.** While the beta runs, the app asks the server about once a day whether it still has places, so it can offer it to you. If you have not joined, that request carries nothing about you: no Coach ID, no statistics. Like any request over the internet, it shows the server your IP address, which is handled as described below. Once the beta has ended, the app stops asking.
 
 **When.** Once a week, in the background, when a new plan is due. Also when you open the Plan tab, at most once a day, to refresh your practice sets, and when you send a plan rating.
 
