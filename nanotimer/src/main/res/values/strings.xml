@@ -843,16 +843,6 @@
 
   <!-- Smart cube: the first-run explanation panel -->
   <string name="smart_cube_intro_title">What a smart cube does</string>
-  <string name="smart_cube_intro_timing_title">The timer runs itself</string>
-  <string name="smart_cube_intro_timing_body">It starts on your first turn and stops the moment the cube is solved. No tapping, no missed starts.</string>
-  <string name="smart_cube_intro_scramble_title">Scrambles you can follow</string>
-  <string name="smart_cube_intro_scramble_body">Cubench watches you apply the scramble, marks off each move as it lands, and says when you are ready to go.</string>
-  <string name="smart_cube_intro_breakdown_title">Every solve, broken down</string>
-  <string name="smart_cube_intro_breakdown_body">Each step of your method is timed separately, with move counts, turn speed and the full reconstruction to replay in 3D.</string>
-  <string name="smart_cube_intro_analysis_title">What slows you down</string>
-  <string name="smart_cube_intro_analysis_body">Your slowest steps and cases, and the algorithms you really use.</string>
-  <string name="smart_cube_intro_drills_title">Drills and new algorithms</string>
-  <string name="smart_cube_intro_drills_body">Practise your weakest cases on your own cube, and learn new algorithms with the cube checking every turn.</string>
   <string name="smart_cube_intro_continue">Pair my cube</string>
   <string name="smart_cube_help">What a smart cube does</string>
 

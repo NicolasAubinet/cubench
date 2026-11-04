@@ -194,7 +194,7 @@
 
       </LinearLayout>
 
-      <!-- ===== Intro panel: what a smart cube is for ===== -->
+      <!-- ===== Intro panel: what a smart cube is for, told as the news sheet tells it ===== -->
       <LinearLayout
          android:id="@+id/smartCubeIntroPanel"
          android:layout_width="match_parent"
@@ -202,208 +202,43 @@
          android:orientation="vertical"
          android:visibility="gone">
 
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:text="@string/smart_cube_intro_title"
-           android:textColor="@color/white"
-           android:textSize="20sp"
-           android:textStyle="bold"/>
+        <include layout="@layout/smart_cube_hero"/>
 
         <TextView
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:layout_marginTop="6dp"
+           android:gravity="center"
+           android:text="@string/smart_cube_intro_title"
+           android:textColor="@color/white"
+           android:textSize="24sp"
+           android:textStyle="bold"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="8dp"
+           android:gravity="center"
+           android:lineSpacingMultiplier="1.15"
            android:text="@string/smart_cube_intro_body"
            android:textColor="@color/secondary_text"
-           android:textSize="13.5sp"/>
+           android:textSize="14sp"/>
 
-        <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal"
-           android:layout_marginTop="18dp">
-          <ImageView
-             android:layout_width="24dp"
-             android:layout_height="24dp"
-             android:layout_marginEnd="14dp"
-             android:layout_marginRight="14dp"
-             android:layout_marginTop="1dp"
-             android:src="@drawable/ic_intro_timing"
-             android:contentDescription="@null"/>
-          <LinearLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="vertical">
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:text="@string/smart_cube_intro_timing_title"
-               android:textColor="@color/white"
-               android:textSize="14.5sp"
-               android:textStyle="bold"/>
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="1dp"
-               android:text="@string/smart_cube_intro_timing_body"
-               android:textColor="@color/secondary_text"
-               android:textSize="12.5sp"/>
-          </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal"
-           android:layout_marginTop="16dp">
-          <ImageView
-             android:layout_width="24dp"
-             android:layout_height="24dp"
-             android:layout_marginEnd="14dp"
-             android:layout_marginRight="14dp"
-             android:layout_marginTop="1dp"
-             android:src="@drawable/ic_intro_scramble"
-             android:contentDescription="@null"/>
-          <LinearLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="vertical">
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:text="@string/smart_cube_intro_scramble_title"
-               android:textColor="@color/white"
-               android:textSize="14.5sp"
-               android:textStyle="bold"/>
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="1dp"
-               android:text="@string/smart_cube_intro_scramble_body"
-               android:textColor="@color/secondary_text"
-               android:textSize="12.5sp"/>
-          </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal"
-           android:layout_marginTop="16dp">
-          <ImageView
-             android:layout_width="24dp"
-             android:layout_height="24dp"
-             android:layout_marginEnd="14dp"
-             android:layout_marginRight="14dp"
-             android:layout_marginTop="1dp"
-             android:src="@drawable/ic_intro_breakdown"
-             android:contentDescription="@null"/>
-          <LinearLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="vertical">
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:text="@string/smart_cube_intro_breakdown_title"
-               android:textColor="@color/white"
-               android:textSize="14.5sp"
-               android:textStyle="bold"/>
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="1dp"
-               android:text="@string/smart_cube_intro_breakdown_body"
-               android:textColor="@color/secondary_text"
-               android:textSize="12.5sp"/>
-          </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal"
-           android:layout_marginTop="16dp">
-          <ImageView
-             android:layout_width="24dp"
-             android:layout_height="24dp"
-             android:layout_marginEnd="14dp"
-             android:layout_marginRight="14dp"
-             android:layout_marginTop="1dp"
-             android:src="@drawable/menu_analysis"
-             android:tint="@color/lightblue"
-             android:contentDescription="@null"/>
-          <LinearLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="vertical">
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:text="@string/smart_cube_intro_analysis_title"
-               android:textColor="@color/white"
-               android:textSize="14.5sp"
-               android:textStyle="bold"/>
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="1dp"
-               android:text="@string/smart_cube_intro_analysis_body"
-               android:textColor="@color/secondary_text"
-               android:textSize="12.5sp"/>
-          </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal"
-           android:layout_marginTop="16dp">
-          <ImageView
-             android:layout_width="24dp"
-             android:layout_height="24dp"
-             android:layout_marginEnd="14dp"
-             android:layout_marginRight="14dp"
-             android:layout_marginTop="1dp"
-             android:src="@drawable/ic_menu_drill"
-             android:tint="@color/lightblue"
-             android:contentDescription="@null"/>
-          <LinearLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="vertical">
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:text="@string/smart_cube_intro_drills_title"
-               android:textColor="@color/white"
-               android:textSize="14.5sp"
-               android:textStyle="bold"/>
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="1dp"
-               android:text="@string/smart_cube_intro_drills_body"
-               android:textColor="@color/secondary_text"
-               android:textSize="12.5sp"/>
-          </LinearLayout>
-        </LinearLayout>
-
+        <include layout="@layout/smart_cube_features"/>
       </LinearLayout>
 
     </FrameLayout>
   </androidx.core.widget.NestedScrollView>
 
   <!-- Actions. Only one of the two rows is on screen at a time, matching the panel above it. -->
-  <Button
+  <androidx.appcompat.widget.AppCompatButton
      android:id="@+id/buSmartCubeIntroContinue"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginTop="18dp"
      android:text="@string/smart_cube_intro_continue"
      android:visibility="gone"
-     style="@style/DialogActionButton"/>
+     style="@style/AccentActionButton"/>
 
   <LinearLayout
      android:id="@+id/smartCubePairActions"

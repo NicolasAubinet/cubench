@@ -114,6 +114,9 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     View v = inflater.inflate(R.layout.smart_cube_connect_dialog, container, false);
 
     introPanel = v.findViewById(R.id.smartCubeIntroPanel);
+    SmartCubeFeatures.fill(introPanel, inflater);
+    // The rings are the news sheet's look, not a scan: nothing scans behind the intro.
+    ((SmartCubeRadarView) introPanel.findViewById(R.id.smartCubeHeroRadar)).showSearching();
     pairPanel = v.findViewById(R.id.smartCubePairPanel);
     btnIntroContinue = v.findViewById(R.id.buSmartCubeIntroContinue);
     pairActions = v.findViewById(R.id.smartCubePairActions);

@@ -823,16 +823,6 @@
 
   <!-- Cubo inteligente: panel explicativo de la primera vez -->
   <string name="smart_cube_intro_title">Qué hace un smart cube</string>
-  <string name="smart_cube_intro_timing_title">El cronómetro se encarga solo</string>
-  <string name="smart_cube_intro_timing_body">Arranca con tu primer movimiento y se detiene en cuanto el cubo queda resuelto. Sin tocar la pantalla, sin salidas fallidas.</string>
-  <string name="smart_cube_intro_scramble_title">Mezclas que puedes seguir</string>
-  <string name="smart_cube_intro_scramble_body">Cubench te ve aplicar la mezcla, marca cada movimiento sobre la marcha y te avisa cuando estás listo.</string>
-  <string name="smart_cube_intro_breakdown_title">Cada resolución, desglosada</string>
-  <string name="smart_cube_intro_breakdown_body">Cada paso de tu método se cronometra por separado, con número de movimientos, velocidad y la reconstrucción completa, para volver a verla en 3D.</string>
-  <string name="smart_cube_intro_analysis_title">Lo que te frena</string>
-  <string name="smart_cube_intro_analysis_body">Tus pasos y casos más lentos, y los algoritmos que de verdad usas.</string>
-  <string name="smart_cube_intro_drills_title">Drills y algoritmos nuevos</string>
-  <string name="smart_cube_intro_drills_body">Practica tus casos más débiles en tu propio cubo y aprende algoritmos nuevos, con el cubo comprobando cada giro.</string>
   <string name="smart_cube_intro_continue">Vincular mi cubo</string>
   <string name="smart_cube_help">Qué hace un smart cube</string>
 

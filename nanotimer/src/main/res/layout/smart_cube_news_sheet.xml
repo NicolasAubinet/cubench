@@ -26,28 +26,7 @@
        android:layout_height="wrap_content"
        android:orientation="vertical">
 
-      <FrameLayout
-         android:id="@+id/newsHero"
-         android:layout_width="120dp"
-         android:layout_height="120dp"
-         android:layout_gravity="center_horizontal">
-        <View
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
-           android:background="@drawable/news_hero_glow"/>
-        <com.cube.nanotimer.util.view.SmartCubeRadarView
-           android:id="@+id/newsRadar"
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"/>
-        <ImageView
-           android:id="@+id/imgNewsGlyph"
-           android:layout_width="40dp"
-           android:layout_height="40dp"
-           android:layout_gravity="center"
-           android:src="@drawable/ic_smart_cube"
-           android:tint="@color/lightblue"
-           android:contentDescription="@null"/>
-      </FrameLayout>
+      <include layout="@layout/smart_cube_hero"/>
 
       <TextView
          android:id="@+id/tvNewsPill"
@@ -86,62 +65,8 @@
          android:textColor="@color/secondary_text"
          android:textSize="14sp"/>
 
-      <!-- While the coach's beta runs: one line, not tappable, promising no place since seats are
-           limited. The invitation itself comes once the solver can use the coach. -->
-      <LinearLayout
-         android:id="@+id/llNewsCoachBeta"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="14dp"
-         android:background="@drawable/coach_beta_loop_bg"
-         android:gravity="center_vertical"
-         android:orientation="horizontal"
-         android:paddingLeft="10dp"
-         android:paddingRight="12dp"
-         android:paddingTop="9dp"
-         android:paddingBottom="9dp"
-         android:visibility="gone">
+      <include layout="@layout/smart_cube_features"/>
 
-        <ImageView
-           android:layout_width="30dp"
-           android:layout_height="30dp"
-           android:background="@drawable/coach_hero_icon_tile"
-           android:importantForAccessibility="no"
-           android:padding="6dp"
-           android:src="@drawable/ic_coach_target"/>
-
-        <TextView
-           android:layout_width="0dp"
-           android:layout_height="wrap_content"
-           android:layout_marginStart="10dp"
-           android:layout_marginLeft="10dp"
-           android:layout_weight="1"
-           android:text="@string/coach_beta_news_line"
-           android:textColor="@color/white"
-           android:textSize="13.5sp"/>
-
-        <TextView
-           style="@style/CoachBetaTag"
-           android:layout_marginStart="8dp"
-           android:layout_marginLeft="8dp"/>
-      </LinearLayout>
-
-      <LinearLayout
-         android:id="@+id/newsFeatures"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="4dp"
-         android:orientation="vertical"/>
-
-      <TextView
-         android:id="@+id/tvNewsCubes"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="18dp"
-         android:gravity="center"
-         android:text="@string/news_cubes"
-         android:textColor="@color/secondary_text"
-         android:textSize="12.5sp"/>
 
       <TextView
          android:id="@+id/tvNewsAllNotes"

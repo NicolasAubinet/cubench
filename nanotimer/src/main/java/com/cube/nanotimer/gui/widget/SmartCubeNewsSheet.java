@@ -8,19 +8,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SmartCubeManager;
-import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.EnterAnimation;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,16 +29,6 @@ public class SmartCubeNewsSheet extends NanoTimerBottomSheetFragment {
 
   // The rows arrive once the sheet has risen, not behind it.
   private static final long ENTER_LEAD_MS = 220;
-
-  /** The smart cube's features, icon, title and sentence, in the order they are listed. */
-  private static final int[][] FEATURES = {
-      {R.drawable.ic_intro_timing, R.string.news_timing_title, R.string.news_timing_body},
-      {R.drawable.ic_intro_scramble, R.string.news_scramble_title, R.string.news_scramble_body},
-      {R.drawable.ic_intro_breakdown, R.string.news_breakdown_title, R.string.news_breakdown_body},
-      {R.drawable.ic_solve_replay, R.string.news_replay_title, R.string.news_replay_body},
-      {R.drawable.menu_analysis, R.string.news_analysis_title, R.string.news_analysis_body},
-      {R.drawable.ic_menu_drill, R.string.news_drills_title, R.string.news_drills_body},
-      {R.drawable.menu_coach, R.string.news_coach_title, R.string.news_coach_body}};
 
   /**
    * Shows the sheet if this launch calls for it.
@@ -78,15 +64,7 @@ public class SmartCubeNewsSheet extends NanoTimerBottomSheetFragment {
     ((TextView) v.findViewById(R.id.tvNewsTitle)).setText(R.string.news_title);
     ((TextView) v.findViewById(R.id.tvNewsBody)).setText(R.string.news_body);
 
-    List<View> rows = new ArrayList<View>();
-    LinearLayout features = v.findViewById(R.id.newsFeatures);
-    for (int[] feature : FEATURES) {
-      rows.add(addRow(inflater, features, feature));
-    }
-    // Read when drawn, so a beta that has ended takes its line away.
-    CoachBetaLook look = CoachBetaLook.of(requireContext());
-    v.findViewById(R.id.llNewsCoachBeta).setVisibility(
-        look != null && look.newsLine() ? View.VISIBLE : View.GONE);
+    List<View> rows = SmartCubeFeatures.fill(v, inflater);
 
     v.findViewById(R.id.tvNewsAllNotes).setOnClickListener(view -> {
       dismiss();
@@ -106,17 +84,8 @@ public class SmartCubeNewsSheet extends NanoTimerBottomSheetFragment {
       });
     }
 
-    ((SmartCubeRadarView) v.findViewById(R.id.newsRadar)).showSearching();
+    ((SmartCubeRadarView) v.findViewById(R.id.smartCubeHeroRadar)).showSearching();
     EnterAnimation.stagger(ENTER_LEAD_MS, rows.toArray(new View[0]));
     return v;
-  }
-
-  private static View addRow(LayoutInflater inflater, LinearLayout parent, int[] row) {
-    View view = inflater.inflate(R.layout.smart_cube_news_row, parent, false);
-    ((ImageView) view.findViewById(R.id.imgNewsRow)).setImageResource(row[0]);
-    ((TextView) view.findViewById(R.id.tvNewsRowTitle)).setText(row[1]);
-    ((TextView) view.findViewById(R.id.tvNewsRowBody)).setText(row[2]);
-    parent.addView(view);
-    return view;
   }
 }

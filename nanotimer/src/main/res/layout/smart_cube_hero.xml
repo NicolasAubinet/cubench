@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The smart cube's mark: the Bluetooth glyph over a glow and the radar rings. Shared by the news
+     sheet and the connect dialog's intro. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/smartCubeHero"
+   android:layout_width="120dp"
+   android:layout_height="120dp"
+   android:layout_gravity="center_horizontal">
+  <View
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:background="@drawable/news_hero_glow"/>
+  <com.cube.nanotimer.util.view.SmartCubeRadarView
+     android:id="@+id/smartCubeHeroRadar"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"/>
+  <ImageView
+     android:id="@+id/imgSmartCubeHeroGlyph"
+     android:layout_width="40dp"
+     android:layout_height="40dp"
+     android:layout_gravity="center"
+     android:src="@drawable/ic_smart_cube"
+     android:tint="@color/lightblue"
+     android:contentDescription="@null"/>
+</FrameLayout>
