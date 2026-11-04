@@ -512,6 +512,12 @@ public class Utils {
   }
 
   /** The language code the app is drawn in: the user's pick, else the phone's. */
+  /** The flag of each app language, in the order of R.array.language_codes. */
+  public static int[] languageFlags() {
+    return new int[] {R.drawable.flag_uk, R.drawable.flag_france, R.drawable.flag_spain,
+        R.drawable.flag_portugal};
+  }
+
   public static String appLanguage(Context context) {
     SharedPreferences prefs = context.getSharedPreferences(LANGUAGE_PREFS_NAME, 0);
     return prefs.getString(LANGUAGE_PREF_KEY, Locale.getDefault().getLanguage());

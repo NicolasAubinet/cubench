@@ -105,6 +105,14 @@ public class SelectorFragmentDialog extends NanoTimerDialogFragment {
   }
 
   @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    if (handler == null && context instanceof SelectionHandler) {
+      handler = (SelectionHandler) context; // the field is lost when the activity is recreated
+    }
+  }
+
+  @Override
   public void show(FragmentManager manager, String tag) {
     if (manager.findFragmentByTag(tag) == null) {
       super.show(manager, tag);

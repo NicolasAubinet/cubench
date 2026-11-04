@@ -39,6 +39,8 @@ import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
+import com.cube.nanotimer.gui.widget.SelectionHandler;
+import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.CaseKnowledge;
@@ -71,6 +73,7 @@ import com.cube.nanotimer.vo.StepStats;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -99,7 +102,10 @@ import java.util.Set;
  * standing over a screen they have a real version of. That is the arrangement never allowed here,
  * because an invented figure beside a real one is what makes the true number look invented.
  */
-public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDialog.Listener {
+public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDialog.Listener,
+    SelectionHandler {
+
+  private static final int ID_PLAN_LANGUAGE = 1;
 
   public static final String EXTRA_SOLVE_TYPE = "analysisSolveType";
   /** Which tab to open on, by ordinal, for a door that knows what it is pointing at. */
@@ -423,37 +429,33 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
 
   /** Which language the next plans are written in, the app's own first. */
   private void askForPlanLanguage() {
-    final String[] codes = getResources().getStringArray(R.array.language_codes);
+    String[] codes = getResources().getStringArray(R.array.language_codes);
     String[] names = getResources().getStringArray(R.array.languages);
-    String app = Utils.appLanguage(this);
-    String appName = app;
+    int[] flags = Utils.languageFlags();
+    int app = Math.max(0, Arrays.asList(codes).indexOf(Utils.appLanguage(this)));
+    ArrayList<String> labels = new ArrayList<>();
+    ArrayList<Integer> icons = new ArrayList<>();
+    labels.add(getString(R.string.coach_plan_language_app, names[app]));
+    icons.add(flags[app]);
     for (int i = 0; i < codes.length; i++) {
-      if (codes[i].equals(app)) {
-        appName = names[i];
-      }
+      labels.add(names[i]);
+      icons.add(flags[i]);
     }
-    String[] labels = new String[codes.length + 1];
-    labels[0] = getString(R.string.coach_plan_language_app, appName);
-    System.arraycopy(names, 0, labels, 1, names.length);
-    String picked = Options.INSTANCE.getCoachPlanLanguage();
-    int checked = 0;
-    for (int i = 0; i < codes.length; i++) {
-      if (codes[i].equals(picked)) {
-        checked = i + 1;
-      }
+    int picked = Arrays.asList(codes).indexOf(Options.INSTANCE.getCoachPlanLanguage());
+    DialogUtils.showFragment(this, SelectorFragmentDialog
+        .newInstance(ID_PLAN_LANGUAGE, labels, icons, getString(R.string.coach_menu_plan_language),
+            true, this)
+        .setSelection(picked + 1));
+  }
+
+  @Override
+  public void itemSelected(int id, int position) {
+    if (id != ID_PLAN_LANGUAGE || position < 0) {
+      return;
     }
-    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.coach_menu_plan_language)
-        .setSingleChoiceItems(labels, checked, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            dialog.dismiss();
-            Options.INSTANCE.setCoachPlanLanguage(which == 0 ? null : codes[which - 1]);
-            Toast.makeText(AnalysisActivity.this, R.string.coach_plan_language_next,
-                Toast.LENGTH_SHORT).show();
-          }
-        })
-        .show();
+    String[] codes = getResources().getStringArray(R.array.language_codes);
+    Options.INSTANCE.setCoachPlanLanguage(position == 0 ? null : codes[position - 1]);
+    Toast.makeText(this, R.string.coach_plan_language_next, Toast.LENGTH_SHORT).show();
   }
 
   private void showTab(int tab) {
