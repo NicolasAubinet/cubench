@@ -1353,6 +1353,16 @@
     <item quantity="one">Do %1$d more smart cube solve on %2$s to get it on time.</item>
     <item quantity="other">Do %1$d more smart cube solves on %2$s to get it on time.</item>
   </plurals>
+  <string name="coach_reminder_rate_first">Rate your current plan first: the coach writes the next one as soon as you have.</string>
+  <plurals name="coach_reminder_rate_on_time">
+    <item quantity="one">Rate your current plan and do %1$d more smart cube solve on %2$s to get it on time.</item>
+    <item quantity="other">Rate your current plan and do %1$d more smart cube solves on %2$s to get it on time.</item>
+  </plurals>
+  <string name="coach_reminder_held_title">Your next plan is waiting for your rating</string>
+  <plurals name="coach_reminder_rate_and_solve">
+    <item quantity="one">Rate your current plan and do %1$d more smart cube solve on %2$s to get it.</item>
+    <item quantity="other">Rate your current plan and do %1$d more smart cube solves on %2$s to get it.</item>
+  </plurals>
   <string name="coach_reminder_setting">Solve reminder</string>
   <string name="coach_reminder_setting_summary">A notification the day before your next plan is due, when it still needs solves</string>
   <string name="coach_sends_body">Once a week, in the background, Cubench sends a summary of your %1$s solves and drills to the coach, where an AI model writes a practice plan made for you. Your individual solves stay on your phone.</string>

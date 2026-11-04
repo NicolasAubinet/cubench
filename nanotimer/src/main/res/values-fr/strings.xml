@@ -1306,6 +1306,16 @@
     <item quantity="one">Encore %1$d résolution au smart cube sur %2$s pour l\'avoir à temps.</item>
     <item quantity="other">Encore %1$d résolutions au smart cube sur %2$s pour l\'avoir à temps.</item>
   </plurals>
+  <string name="coach_reminder_rate_first">Notez d\'abord votre plan actuel : le coach écrit le suivant dès que c\'est fait.</string>
+  <plurals name="coach_reminder_rate_on_time">
+    <item quantity="one">Notez votre plan actuel et faites encore %1$d résolution au smart cube sur %2$s pour l\'avoir à temps.</item>
+    <item quantity="other">Notez votre plan actuel et faites encore %1$d résolutions au smart cube sur %2$s pour l\'avoir à temps.</item>
+  </plurals>
+  <string name="coach_reminder_held_title">Votre prochain plan attend votre note</string>
+  <plurals name="coach_reminder_rate_and_solve">
+    <item quantity="one">Notez votre plan actuel et faites encore %1$d résolution au smart cube sur %2$s pour l\'obtenir.</item>
+    <item quantity="other">Notez votre plan actuel et faites encore %1$d résolutions au smart cube sur %2$s pour l\'obtenir.</item>
+  </plurals>
   <string name="coach_reminder_setting">Rappel de résolutions</string>
   <string name="coach_reminder_setting_summary">Une notification la veille de votre prochain plan, quand il lui manque encore des résolutions</string>
   <string name="coach_sends_body">Une fois par semaine, en arrière-plan, Cubench envoie au coach un résumé de vos résolutions %1$s et de vos drills, et un modèle d\'IA en tire un plan de travail fait pour vous. Vos résolutions elles-mêmes restent sur votre téléphone.</string>

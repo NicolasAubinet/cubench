@@ -1305,6 +1305,16 @@
     <item quantity="one">Haz %1$d resolución más con smart cube en %2$s para recibirlo a tiempo.</item>
     <item quantity="other">Haz %1$d resoluciones más con smart cube en %2$s para recibirlo a tiempo.</item>
   </plurals>
+  <string name="coach_reminder_rate_first">Valora primero tu plan actual: el coach escribe el siguiente en cuanto lo hagas.</string>
+  <plurals name="coach_reminder_rate_on_time">
+    <item quantity="one">Valora tu plan actual y haz %1$d resolución más con smart cube en %2$s para recibirlo a tiempo.</item>
+    <item quantity="other">Valora tu plan actual y haz %1$d resoluciones más con smart cube en %2$s para recibirlo a tiempo.</item>
+  </plurals>
+  <string name="coach_reminder_held_title">Tu próximo plan espera tu valoración</string>
+  <plurals name="coach_reminder_rate_and_solve">
+    <item quantity="one">Valora tu plan actual y haz %1$d resolución más con smart cube en %2$s para recibirlo.</item>
+    <item quantity="other">Valora tu plan actual y haz %1$d resoluciones más con smart cube en %2$s para recibirlo.</item>
+  </plurals>
   <string name="coach_reminder_setting">Recordatorio de resoluciones</string>
   <string name="coach_reminder_setting_summary">Una notificación el día antes de tu próximo plan, cuando aún le faltan resoluciones</string>
   <string name="coach_sends_body">Una vez por semana, en segundo plano, Cubench envía al coach un resumen de tus resoluciones de %1$s y de tus drills, y un modelo de IA escribe con él un plan de práctica hecho para ti. Tus resoluciones en sí se quedan en tu teléfono.</string>

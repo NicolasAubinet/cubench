@@ -132,6 +132,20 @@ public class PlanScheduleTest {
     Assert.assertFalse(schedule(SINCE, now).nudgeOwed(0));
   }
 
+  /** A plan held for a rating is worth telling with enough solves too, still once per plan. */
+  @Test
+  public void testAnOwedRatingIsToldEvenWithEnoughSolves() {
+    long now = PLAN + 6 * DAY + MINUTE;
+    Assert.assertTrue(schedule(SINCE, now).nudgeDue(0, true));
+    Assert.assertTrue(schedule(5, now).nudgeDue(0, true));
+    Assert.assertFalse(schedule(SINCE, PLAN + 6 * DAY - 1).nudgeDue(0, true));
+    Assert.assertFalse(schedule(SINCE, now).nudgeDue(PLAN + 6 * DAY, true));
+    Assert.assertFalse(PlanSchedule.of(0, 300, 0, DAY, now).nudgeDue(0, true));
+    PlanSchedule inSession = PlanSchedule.of(PLAN, 300, SINCE, now - MINUTE, now);
+    Assert.assertFalse(inSession.nudgeDue(0, true));
+    Assert.assertTrue(inSession.nudgeOwed(0, true));
+  }
+
   /** After the clock is set back, the week runs from now. The caller stores now for it to hold. */
   @Test
   public void testAPlanDatedAheadOfTheClockCountsFromNow() {

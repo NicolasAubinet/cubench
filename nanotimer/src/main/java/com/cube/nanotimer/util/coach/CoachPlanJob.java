@@ -80,15 +80,17 @@ final class CoachPlanJob {
     if (CoachBeta.of(context).isStale(System.currentTimeMillis())) {
       client.checkBeta();
     }
-    if (!debug && client.owesRating()) {
-      return Outcome.DONE; // rating the plan runs the job again
-    }
+    boolean owesRating = !debug && client.owesRating();
     SolveType solveType = debug ? eligible(debugSolveTypeId) : flagged();
     if (solveType == null) {
       return Outcome.DONE;
     }
     long now = System.currentTimeMillis();
     long lastPlanAt = CoachPlans.lastPlanAt(now);
+    if (owesRating) { // rating the plan runs the job again
+      remind(context, solveType, schedule(solveType, lastPlanAt, now), now, true);
+      return Outcome.DONE;
+    }
     if (!debug) {
       if (held(Options.INSTANCE.getCoachAskAgainAt(), now)) {
         return Outcome.DONE;
@@ -98,7 +100,7 @@ final class CoachPlanJob {
         if (schedule.getState() == PlanSchedule.State.QUIET) {
           CoachPlanWorker.runIn(context, schedule.getQuietUntil() - now); // the session is still on
         }
-        remind(context, solveType, schedule, now);
+        remind(context, solveType, schedule, now, false);
         return Outcome.DONE;
       }
     }
@@ -181,15 +183,16 @@ final class CoachPlanJob {
 
   /**
    * Tells the solver once per plan, the day before the next one is due, how many solves it still
-   * needs. A session holds it back, so the job comes back when the session is over.
+   * needs, or that it waits for the last plan's rating. A session holds it back, so the job comes
+   * back when the session is over.
    */
   private static void remind(Context context, SolveType solveType, PlanSchedule schedule,
-      long now) {
+      long now, boolean owesRating) {
     long lastNudgeAt = Options.INSTANCE.getCoachLastNudgeAt();
-    if (!Options.INSTANCE.isCoachNudgeOn() || !schedule.nudgeOwed(lastNudgeAt)) {
+    if (!Options.INSTANCE.isCoachNudgeOn() || !schedule.nudgeOwed(lastNudgeAt, owesRating)) {
       return;
     }
-    if (!schedule.nudgeDue(lastNudgeAt)) {
+    if (!schedule.nudgeDue(lastNudgeAt, owesRating)) {
       CoachPlanWorker.runIn(context, schedule.getQuietUntil() - now);
       return;
     }
@@ -207,7 +210,18 @@ final class CoachPlanJob {
     if (days == 0 || days == 1) {
       title = context.getString(days == 0 ? R.string.coach_reminder_due_today
           : R.string.coach_reminder_due_tomorrow);
-      text = res.getQuantityString(R.plurals.coach_reminder_on_time, needed, needed, type);
+      if (!owesRating) {
+        text = res.getQuantityString(R.plurals.coach_reminder_on_time, needed, needed, type);
+      } else if (needed > 0) {
+        text = res.getQuantityString(R.plurals.coach_reminder_rate_on_time, needed, needed, type);
+      } else {
+        text = context.getString(R.string.coach_reminder_rate_first);
+      }
+    } else if (owesRating) {
+      title = context.getString(R.string.coach_reminder_held_title);
+      text = needed > 0
+          ? res.getQuantityString(R.plurals.coach_reminder_rate_and_solve, needed, needed, type)
+          : context.getString(R.string.coach_fb_due_held_body);
     } else {
       // Past due (a session held the reminder back), or a clock change: no day to name.
       title = res.getQuantityString(R.plurals.coach_reminder_title, needed, needed);

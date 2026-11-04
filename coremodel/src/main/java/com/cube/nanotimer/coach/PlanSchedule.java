@@ -113,13 +113,26 @@ public final class PlanSchedule {
    * @param lastNudgeAt when the solver was last told, 0 when never
    */
   public boolean nudgeDue(long lastNudgeAt) {
-    return nudgeOwed(lastNudgeAt) && !inSession();
+    return nudgeDue(lastNudgeAt, false);
+  }
+
+  /**
+   * As {@link #nudgeDue(long)}, but with the next plan also held for the last one's rating, which
+   * is worth telling even with enough solves.
+   */
+  public boolean nudgeDue(long lastNudgeAt, boolean ratingOwed) {
+    return nudgeOwed(lastNudgeAt, ratingOwed) && !inSession();
   }
 
   /** Whether the solver is still to be told, whether or not a session holds it back for now. */
   public boolean nudgeOwed(long lastNudgeAt) {
-    return !isFirst() && solvesNeeded > 0 && now >= lastPlanAt + NUDGE_AFTER_MS
-        && lastNudgeAt < lastPlanAt;
+    return nudgeOwed(lastNudgeAt, false);
+  }
+
+  /** As {@link #nudgeOwed(long)}, with the next plan held for the last one's rating or not. */
+  public boolean nudgeOwed(long lastNudgeAt, boolean ratingOwed) {
+    return !isFirst() && (solvesNeeded > 0 || ratingOwed)
+        && now >= lastPlanAt + NUDGE_AFTER_MS && lastNudgeAt < lastPlanAt;
   }
 
   private boolean inSession() {
