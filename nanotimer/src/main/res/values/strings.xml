@@ -827,7 +827,6 @@
   <string name="smart_cube_connecting">Connecting to %s…</string>
   <string name="smart_cube_connected">Connected</string>
   <string name="smart_cube_connect_failed">Connection failed: %s</string>
-  <string name="smart_cube_intro_body">A Bluetooth smart cube reports every turn to Cubench as you make it. Once yours is paired, here is what it adds.</string>
   <string name="smart_cube_done">Done</string>
   <string name="smart_cube_auto_connect">Connect to this cube when the app opens</string>
   <string name="smart_cube_resync">Reset state</string>

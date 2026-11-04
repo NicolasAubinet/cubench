@@ -220,7 +220,7 @@
            android:layout_marginTop="8dp"
            android:gravity="center"
            android:lineSpacingMultiplier="1.15"
-           android:text="@string/smart_cube_intro_body"
+           android:text="@string/news_body"
            android:textColor="@color/secondary_text"
            android:textSize="14sp"/>
 
