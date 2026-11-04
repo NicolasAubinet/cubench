@@ -69,6 +69,57 @@ public class CoachOffersTest {
     Assert.assertNull(CoachOffers.pick(offers, "monthly").getOfferId());
   }
 
+  /** As Play lists them once the members' offer exists: to everybody, its eligibility being ours. */
+  private static List<CoachOffers.Offer> withMembersOffer(String... tags) {
+    List<CoachOffers.Offer> offers = newBuyer();
+    offers.add(0, offer("monthly", "post-coach", tags));
+    return offers;
+  }
+
+  @Test
+  public void aMemberTakesTheMembersOfferInsteadOfTheLaunchOne() {
+    Assert.assertEquals("monthly/post-coach",
+        CoachOffers.pick(withMembersOffer("beta-thanks"), "monthly", true).getOfferToken());
+  }
+
+  @Test
+  public void anyoneElseNeverTakesTheMembersOffer() {
+    Assert.assertEquals("monthly/launch",
+        CoachOffers.pick(withMembersOffer("beta-thanks"), "monthly", false).getOfferToken());
+    // Even tagged as the launch offer by mistake, or with no tag at all.
+    Assert.assertEquals("monthly/launch",
+        CoachOffers.pick(withMembersOffer("launch"), "monthly", false).getOfferToken());
+  }
+
+  @Test
+  public void theMembersOfferIsKnownByItsIdWithoutTheTag() {
+    Assert.assertEquals("monthly/post-coach",
+        CoachOffers.pick(withMembersOffer(), "monthly", true).getOfferToken());
+  }
+
+  /** It is set on the monthly plan only: a member buying yearly gets what everybody gets. */
+  @Test
+  public void aMemberBuyingYearlyTakesTheLaunchOffer() {
+    Assert.assertEquals("yearly/launch",
+        CoachOffers.pick(withMembersOffer("beta-thanks"), "yearly", true).getOfferToken());
+  }
+
+  /** As set in Play Console: half the monthly price, paid twice, then the monthly price. */
+  @Test
+  public void theMembersOfferIsHalfOffForTwoMonths() {
+    CoachOffers.Phase half = new CoachOffers.Phase("€2.50", 2_500_000, "P1M", 2);
+    CoachOffers.Offer offer = new CoachOffers.Offer("monthly", "post-coach",
+        Collections.<String>emptyList(), "token",
+        Arrays.asList(half, new CoachOffers.Phase("€4.99", 4_990_000, "P1M", 0)));
+    Assert.assertSame(half, offer.getIntro());
+    Assert.assertTrue(half.isRepeated());
+    Assert.assertEquals(2, half.getSpan().getCount());
+    Assert.assertEquals('M', half.getSpan().getUnit());
+    Assert.assertEquals(1, half.getPeriod().getCount());
+    Assert.assertEquals(50, offer.getPercentOff());
+    Assert.assertFalse(offer.getRegular().isRepeated());
+  }
+
   @Test
   public void aBasePlanPlayDoesNotListCannotBeBought() {
     Assert.assertNull(CoachOffers.pick(newBuyer(), "weekly"));

@@ -15,6 +15,13 @@ public final class CoachOffers {
   /** In the order they are wanted. Play lists an offer only to a buyer who may have it. */
   static final String[] TAGS = {"launch", "trial"};
 
+  /**
+   * The thanks to beta members, on the monthly plan. Play lists it to everybody (its eligibility is
+   * the developer's), so it is taken only for a member, and then instead of any other offer.
+   */
+  static final String MEMBERS_TAG = "beta-thanks";
+  static final String MEMBERS_OFFER_ID = "post-coach";
+
   /** A length of time as Play writes one: a count of days, weeks, months or years. */
   public static final class Period {
     private static final Pattern ISO = Pattern.compile("P(\\d+)([DWMY])");
@@ -49,24 +56,41 @@ public final class CoachOffers {
     private final String price;
     private final long micros;
     private final Period period;
+    private final int cycles;
 
     /**
      * @param price as Play formats it for the buyer's country
      * @param period as Play writes it, such as P1M
+     * @param cycles how many times it is paid, 0 or 1 for once or for good
      */
-    Phase(String price, long micros, String period) {
+    Phase(String price, long micros, String period, int cycles) {
       this.price = price;
       this.micros = micros;
       this.period = Period.parse(period);
+      this.cycles = Math.max(cycles, 1);
+    }
+
+    Phase(String price, long micros, String period) {
+      this(price, micros, period, 1);
     }
 
     public String getPrice() {
       return price;
     }
 
-    /** Null when Play wrote a length this app does not read. */
+    /** What one payment covers. Null when Play wrote a length this app does not read. */
     public Period getPeriod() {
       return period;
+    }
+
+    /** How long the whole phase lasts: two months for a monthly price paid twice. */
+    public Period getSpan() {
+      return period == null ? null : new Period(period.count * cycles, period.unit);
+    }
+
+    /** Whether it is paid more than once, so its price is per payment, not for the span. */
+    public boolean isRepeated() {
+      return cycles > 1;
     }
   }
 
@@ -147,16 +171,28 @@ public final class CoachOffers {
   private CoachOffers() {
   }
 
-  /**
-   * The offer to buy the base plan with: the first wanted tag Play lists for it, else the plain
-   * base plan, else null when Play lists no way of buying it.
-   */
   static Offer pick(List<Offer> offers, String basePlan) {
+    return pick(offers, basePlan, false);
+  }
+
+  /**
+   * The offer to buy the base plan with: for a member, the members' offer when Play lists it on
+   * this base plan; else the first wanted tag Play lists for it, else the plain base plan, else
+   * null when Play lists no way of buying it.
+   */
+  static Offer pick(List<Offer> offers, String basePlan, boolean member) {
+    if (member) {
+      for (Offer offer : offers) {
+        if (offer.basePlan.equals(basePlan) && forMembers(offer)) {
+          return offer;
+        }
+      }
+    }
     for (String tag : TAGS) {
       for (Offer offer : offers) {
         // A base plan's own tags are listed on its plain entry too, which is no offer.
         if (offer.basePlan.equals(basePlan) && offer.offerId != null
-            && offer.tags.contains(tag)) {
+            && offer.tags.contains(tag) && !forMembers(offer)) {
           return offer;
         }
       }
@@ -167,5 +203,11 @@ public final class CoachOffers {
       }
     }
     return null;
+  }
+
+  /** Known by its tag or its id, so a tag forgotten in Play Console never opens it to everybody. */
+  private static boolean forMembers(Offer offer) {
+    return offer.offerId != null
+        && (offer.tags.contains(MEMBERS_TAG) || MEMBERS_OFFER_ID.equals(offer.offerId));
   }
 }

@@ -48,6 +48,7 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
   private static final String ARG_SOLVE_TYPE = "solveType";
   private static final String STATE_PLAN = "plan";
   private static final String STATE_PICKED = "picked";
+  private static final String ARG_PLAN = "basePlan";
 
   private CoachBilling billing;
   private CoachClient client;
@@ -58,9 +59,15 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
 
   /** @param solveType the solve type the plans are offered for first, when it can carry them */
   public static CoachPurchaseSheet newInstance(SolveType solveType) {
+    return newInstance(solveType, CoachBilling.YEARLY);
+  }
+
+  /** @param basePlan the base plan picked when the sheet opens */
+  public static CoachPurchaseSheet newInstance(SolveType solveType, String basePlan) {
     CoachPurchaseSheet sheet = new CoachPurchaseSheet();
     Bundle bundle = new Bundle();
     bundle.putSerializable(ARG_SOLVE_TYPE, solveType);
+    bundle.putString(ARG_PLAN, basePlan);
     sheet.setArguments(bundle);
     return sheet;
   }
@@ -72,6 +79,7 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     billing = CoachBilling.of(requireContext());
     client = CoachClient.configured(requireContext());
     picked = (SolveType) requireArguments().getSerializable(ARG_SOLVE_TYPE);
+    basePlan = requireArguments().getString(ARG_PLAN, basePlan);
     if (savedInstanceState != null) {
       basePlan = savedInstanceState.getString(STATE_PLAN, basePlan);
       picked = (SolveType) savedInstanceState.getSerializable(STATE_PICKED);

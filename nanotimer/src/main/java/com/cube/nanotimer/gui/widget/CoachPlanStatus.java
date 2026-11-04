@@ -343,7 +343,7 @@ public class CoachPlanStatus {
       endCard.findViewById(R.id.buCoachBetaEnd).setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-          openPurchase(solveType);
+          openPurchase(solveType, CoachBilling.MONTHLY); // the members' offer is on it
         }
       });
       tab.addView(endCard, 0);
@@ -646,8 +646,12 @@ public class CoachPlanStatus {
   }
 
   private void openPurchase(SolveType offered) {
+    openPurchase(offered, CoachBilling.YEARLY);
+  }
+
+  private void openPurchase(SolveType offered, String basePlan) {
     if (activity.getSupportFragmentManager().findFragmentByTag(SHEET_TAG) == null) {
-      CoachPurchaseSheet.newInstance(offered)
+      CoachPurchaseSheet.newInstance(offered, basePlan)
           .show(activity.getSupportFragmentManager(), SHEET_TAG);
     }
   }

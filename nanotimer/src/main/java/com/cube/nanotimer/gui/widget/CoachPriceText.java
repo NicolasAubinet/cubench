@@ -33,6 +33,11 @@ final class CoachPriceText {
     if (period == null) {
       return null;
     }
+    if (intro != null && intro.isRepeated()) {
+      // "a month for 2 months"
+      return resources.getString(R.string.coach_price_first, each(period),
+          length(intro.getSpan()));
+    }
     boolean one = period.getCount() == 1;
     if (one && period.getUnit() == 'Y') {
       return resources.getString(intro != null ? R.string.coach_tile_first_year
@@ -96,10 +101,12 @@ final class CoachPriceText {
     String yearly = regular(plans.get(0));
     String monthly = regular(plans.get(1));
     boolean free = false;
-    int off = 0;
+    int off = plans.get(0).getPercentOff();
     for (CoachOffers.Offer plan : plans) {
       free |= length(plan.getFreePeriod()) != null;
-      off = Math.max(off, plan.getPercentOff());
+      if (plan.getPercentOff() != off) {
+        off = 0; // one figure would be wrong for the other plan, so none is said
+      }
     }
     if (!free) {
       return resources.getString(R.string.coach_offer_prices, monthly, yearly);
@@ -110,7 +117,22 @@ final class CoachPriceText {
 
   /** "€54.99 a year": what the base plan costs once any offer is over. */
   private String regular(CoachOffers.Offer offer) {
-    CoachOffers.Phase phase = offer.getRegular();
+    return perPeriod(offer.getRegular());
+  }
+
+  /** "a month", or "every 3 months" when the period isn't one month or one year. */
+  private String each(CoachOffers.Period period) {
+    if (period.getCount() == 1 && period.getUnit() == 'Y') {
+      return resources.getString(R.string.coach_tile_year);
+    }
+    if (period.getCount() == 1 && period.getUnit() == 'M') {
+      return resources.getString(R.string.coach_tile_month);
+    }
+    return resources.getString(R.string.coach_tile_every, length(period));
+  }
+
+  /** "€4.99 a month": a price with what each payment covers. */
+  private String perPeriod(CoachOffers.Phase phase) {
     CoachOffers.Period period = phase.getPeriod();
     if (period == null) {
       return phase.getPrice();
@@ -133,6 +155,11 @@ final class CoachPriceText {
     CoachOffers.Period period = intro.getPeriod();
     if (period == null) {
       return intro.getPrice();
+    }
+    if (intro.isRepeated()) {
+      // "€2.50 a month for 2 months"
+      return resources.getString(R.string.coach_price_first, perPeriod(intro),
+          length(intro.getSpan()));
     }
     if (period.getCount() == 1 && period.getUnit() == 'Y') {
       return resources.getString(R.string.coach_price_first_year, intro.getPrice());

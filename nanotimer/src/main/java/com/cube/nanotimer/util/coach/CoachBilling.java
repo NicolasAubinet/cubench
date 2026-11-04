@@ -150,7 +150,7 @@ public final class CoachBilling {
         if (details != null) {
           List<CoachOffers.Offer> offers = offers(details);
           for (String basePlan : new String[] {YEARLY, MONTHLY}) {
-            CoachOffers.Offer offer = CoachOffers.pick(offers, basePlan);
+            CoachOffers.Offer offer = CoachOffers.pick(offers, basePlan, thanked());
             if (offer != null && offer.getRegular() != null) {
               read.add(offer);
             }
@@ -196,7 +196,7 @@ public final class CoachBilling {
         if (details == null) {
           return;
         }
-        CoachOffers.Offer offer = CoachOffers.pick(offers(details), basePlan);
+        CoachOffers.Offer offer = CoachOffers.pick(offers(details), basePlan, thanked());
         if (offer == null) {
           say(what + ": Play lists no such base plan");
           return;
@@ -264,6 +264,13 @@ public final class CoachBilling {
     });
   }
 
+  /** A beta member once the beta is over, who never bought here: the members' offer is theirs. */
+  private boolean thanked() {
+    CoachBeta beta = CoachBeta.of(context);
+    return beta.getPhase() == CoachBeta.Phase.ENDED && beta.isMember()
+        && access.getPurchaseToken() == null;
+  }
+
   private static List<CoachOffers.Offer> offers(ProductDetails details) {
     List<CoachOffers.Offer> offers = new ArrayList<CoachOffers.Offer>();
     List<ProductDetails.SubscriptionOfferDetails> listed = details.getSubscriptionOfferDetails();
@@ -274,7 +281,7 @@ public final class CoachBilling {
       List<CoachOffers.Phase> phases = new ArrayList<CoachOffers.Phase>();
       for (ProductDetails.PricingPhase phase : offer.getPricingPhases().getPricingPhaseList()) {
         phases.add(new CoachOffers.Phase(phase.getFormattedPrice(), phase.getPriceAmountMicros(),
-            phase.getBillingPeriod()));
+            phase.getBillingPeriod(), phase.getBillingCycleCount()));
       }
       offers.add(new CoachOffers.Offer(offer.getBasePlanId(), offer.getOfferId(),
           offer.getOfferTags(), offer.getOfferToken(), phases));
