@@ -1446,7 +1446,7 @@
   <string name="coach_plans_resume_here">Write them for %1$s</string>
   <string name="coach_plans_for">Plans for</string>
   <string name="coach_plans_for_title">Choose a solve type</string>
-  <string name="coach_plans_for_note">Your plan is written from this solve type\'s smart cube solves. The number is how many it has.</string>
+  <string name="coach_plans_for_note">Your plan is written from this solve type\'s smart cube solves.</string>
   <string name="coach_settings_title">Coach</string>
   <string name="coach_plans_setting">Weekly plans</string>
   <string name="coach_id">Coach ID</string>

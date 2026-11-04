@@ -1401,7 +1401,7 @@
   <string name="coach_plans_resume_here">Escrevê-los para %1$s</string>
   <string name="coach_plans_for">Planos para</string>
   <string name="coach_plans_for_title">Escolha um tipo de resolução</string>
-  <string name="coach_plans_for_note">Seu plano é escrito a partir das resoluções com smart cube deste tipo. O número indica quantas ele tem.</string>
+  <string name="coach_plans_for_note">Seu plano é escrito a partir das resoluções com smart cube deste tipo.</string>
   <string name="coach_settings_title">Coach</string>
   <string name="coach_plans_setting">Planos semanais</string>
   <string name="coach_id">ID do Coach</string>
