@@ -88,6 +88,8 @@ public enum Options {
   private static final String COACH_PENDING_KEY_PREFIX = "coach_pending_";
   private static final String COACH_PENDING_AT_KEY_PREFIX = "coach_pending_at_";
   private static final String COACH_PRACTICE_KEY_PREFIX = "coach_practice_";
+  private static final String COACH_PRACTICE_AT_KEY_PREFIX = "coach_practice_at_";
+  private static final String COACH_PRACTICE_WITH_KEY_PREFIX = "coach_practice_with_";
   private static final String LEARN_NEXT_COUNT_KEY = "learn_next_count";
   private static final int DEFAULT_LEARN_NEXT_COUNT = 3;
   private static final String COACH_ID_KEY = "coach_id";
@@ -361,8 +363,22 @@ public enum Options {
     return sharedPreferences.getString(COACH_PRACTICE_KEY_PREFIX + solveTypeId, null);
   }
 
-  public void setCoachPractice(int solveTypeId, String reply) {
-    sharedPreferences.edit().putString(COACH_PRACTICE_KEY_PREFIX + solveTypeId, reply).apply();
+  /** When the kept practice sets were asked for, or 0 for never. */
+  public long getCoachPracticeAt(int solveTypeId) {
+    return sharedPreferences.getLong(COACH_PRACTICE_AT_KEY_PREFIX + solveTypeId, 0);
+  }
+
+  /** What the kept practice sets were asked with: the cleared and drilled cases, or null. */
+  public String getCoachPracticeWith(int solveTypeId) {
+    return sharedPreferences.getString(COACH_PRACTICE_WITH_KEY_PREFIX + solveTypeId, null);
+  }
+
+  public void setCoachPractice(int solveTypeId, String reply, long askedAt, String askedWith) {
+    sharedPreferences.edit()
+        .putString(COACH_PRACTICE_KEY_PREFIX + solveTypeId, reply)
+        .putLong(COACH_PRACTICE_AT_KEY_PREFIX + solveTypeId, askedAt)
+        .putString(COACH_PRACTICE_WITH_KEY_PREFIX + solveTypeId, askedWith)
+        .apply();
   }
 
   /** How many OLLs the "learn next" practice set shows, as the solver picked it. */

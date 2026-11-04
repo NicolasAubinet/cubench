@@ -949,8 +949,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   }
 
   /**
-   * The standing practice under the plan: the sets last kept at once, then asked for afresh once a
-   * screen, which costs the service no model call.
+   * The standing practice under the plan: the sets last kept at once, then asked for afresh when
+   * {@link CoachPractice#refresh} finds them due, once a day or when the cases they leave out change.
    */
   private void showPractice(boolean offered) {
     View preview = findViewById(R.id.llAnalysisPlanPreview);

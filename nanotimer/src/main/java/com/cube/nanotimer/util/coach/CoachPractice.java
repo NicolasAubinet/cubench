@@ -6,19 +6,23 @@ import android.os.Looper;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.coach.CoachPayload;
+import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.PairExecution;
 import com.cube.nanotimer.coach.StepTurning;
+import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +33,10 @@ import org.json.JSONObject;
  * or OLLs to learn next while either is not fully known, chosen by the coach service with no model
  * behind it. Cached as the service sent them, so the section draws at once and a failed refresh
  * keeps the last answer.
+ *
+ * <p>Asked for once a day per solve type, on the first visit of the day, and at once when the cases
+ * cleared in a learning drill or the plan's drills change, since those change the answer. Each ask
+ * wakes the service's database for minutes, and a day's new solves are what move the sets anyway.
  */
 public final class CoachPractice {
 
@@ -121,15 +129,98 @@ public final class CoachPractice {
   }
 
   /**
-   * Asks the service afresh. Only the case figures matter here, so the payload is built without the
-   * replayed pairs and turnings a plan waits on.
+   * Asks the service afresh when the kept sets are due ({@link #due}). Only the case figures matter
+   * here, so the payload is built without the replayed pairs and turnings a plan waits on.
    */
   public static void refresh(final CoachClient client, final SolveType solveType,
-      CubeMethod method, final Listener listener) {
+      final CubeMethod method, final Listener listener) {
     if (!client.hasAccess()) {
       return;
     }
+    App.INSTANCE.getService().getCoachPlan(solveType, new DataCallback<StoredCoachPlan>() {
+      @Override
+      public void onData(StoredCoachPlan stored) {
+        List<String> drilled = drilledCases(stored);
+        List<String> learned = new ArrayList<String>(Options.INSTANCE.getLearnedCases());
+        String with = askedWith(learned, drilled);
+        int id = solveType.getId();
+        if (!due(Options.INSTANCE.getCoachPractice(id), Options.INSTANCE.getCoachPracticeAt(id),
+            Options.INSTANCE.getCoachPracticeWith(id), System.currentTimeMillis(), with,
+            TimeZone.getDefault())) {
+          return;
+        }
+        ask(client, solveType, method, learned, drilled, with, listener);
+      }
+    });
+  }
+
+  /**
+   * Whether the kept sets should be asked for again: none kept, kept on an earlier local day, or
+   * asked with other cleared or drilled cases than now.
+   */
+  static boolean due(String kept, long askedAt, String askedWith, long now, String with,
+      TimeZone zone) {
+    return kept == null || askedAt <= 0 || !with.equals(askedWith)
+        || !sameDay(askedAt, now, zone);
+  }
+
+  /** The cleared and drilled cases, sorted, as one string to compare an earlier ask by. */
+  static String askedWith(Collection<String> learned, Collection<String> drilled) {
+    List<String> l = new ArrayList<String>(learned);
+    List<String> d = new ArrayList<String>(drilled);
+    Collections.sort(l);
+    Collections.sort(d);
+    return join(l) + "|" + join(d);
+  }
+
+  /** The cases the stored plan's drills run, which the practice sets leave to them. */
+  static List<String> drilledCases(StoredCoachPlan stored) {
+    List<String> cases = new ArrayList<String>();
+    if (stored == null) {
+      return cases;
+    }
+    for (FocusArea area : stored.getPlan().getFocus()) {
+      if (area.getDrill() == null) {
+        continue;
+      }
+      try {
+        for (String code : DrillSpec.fromJson(area.getDrill()).getCases()) {
+          if (!cases.contains(code)) {
+            cases.add(code);
+          }
+        }
+      } catch (RuntimeException e) {
+        // A drill this app cannot read has no button either, so it holds no case back.
+      }
+    }
+    return cases;
+  }
+
+  private static String join(List<String> codes) {
+    StringBuilder joined = new StringBuilder();
+    for (String code : codes) {
+      if (joined.length() > 0) {
+        joined.append(',');
+      }
+      joined.append(code);
+    }
+    return joined.toString();
+  }
+
+  private static boolean sameDay(long a, long b, TimeZone zone) {
+    Calendar first = Calendar.getInstance(zone);
+    first.setTimeInMillis(a);
+    Calendar second = Calendar.getInstance(zone);
+    second.setTimeInMillis(b);
+    return first.get(Calendar.YEAR) == second.get(Calendar.YEAR)
+        && first.get(Calendar.DAY_OF_YEAR) == second.get(Calendar.DAY_OF_YEAR);
+  }
+
+  private static void ask(final CoachClient client, final SolveType solveType, CubeMethod method,
+      final List<String> learned, final List<String> drilled, final String with,
+      final Listener listener) {
     final Handler main = new Handler(Looper.getMainLooper());
+    final long askedAt = System.currentTimeMillis();
     App.INSTANCE.getService().getCoachPayload(solveType, method,
         Collections.<PairExecution>emptyList(), Collections.<StepTurning>emptyList(),
         new DataCallback<CoachPayload>() {
@@ -140,7 +231,7 @@ public final class CoachPractice {
               public void run() {
                 String reply = client.requestPractice(CoachClient.practiceBody(
                     payload.withLanguage(CoachAsk.planLanguage()),
-                    Options.INSTANCE.getLearnedCases()));
+                    learned, drilled));
                 final List<Set> sets = parse(reply);
                 if (reply == null && !client.hasAccess()) {
                   main.post(new Runnable() {
@@ -153,7 +244,7 @@ public final class CoachPractice {
                 if (reply == null || (sets.isEmpty() && !answersEmpty(reply))) {
                   return;
                 }
-                Options.INSTANCE.setCoachPractice(solveType.getId(), reply);
+                Options.INSTANCE.setCoachPractice(solveType.getId(), reply, askedAt, with);
                 main.post(new Runnable() {
                   @Override
                   public void run() {

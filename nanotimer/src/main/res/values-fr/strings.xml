@@ -1523,7 +1523,7 @@
   <string name="coach_drill_lookahead">Drill de look-ahead</string>
   <string name="coach_drill_back_slots">Slots arrière sans rotation</string>
   <string name="coach_practice_title">Pratique libre</string>
-  <string name="coach_practice_body">Toujours là, à côté du plan : les cas qui vous coûtent le plus, travaillés jusqu\'à battre leurs objectifs. Mis à jour au fil de vos résolutions.</string>
+  <string name="coach_practice_body">Toujours là, à côté du plan : les cas qui vous coûtent le plus, travaillés jusqu\'à battre leurs objectifs. Mis à jour chaque jour avec vos dernières résolutions.</string>
   <string name="coach_practice_set">Vos cas de %1$s les plus coûteux</string>
   <string name="coach_learn_next">Prochains OLL à apprendre</string>
   <string name="coach_learn_next_pll">Prochains PLL à apprendre</string>
