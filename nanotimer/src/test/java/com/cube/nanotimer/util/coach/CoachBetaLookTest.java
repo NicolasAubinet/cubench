@@ -123,4 +123,24 @@ public class CoachBetaLookTest {
     Assert.assertEquals(FeedbackMode.REQUIRED, CoachBeta.modeOf(member));
     Assert.assertEquals(FeedbackMode.HIDDEN, CoachBeta.modeOf(ended));
   }
+
+  @Test
+  public void theSolversChoiceShowsOrHidesFeedbackUnlessItIsRequired() {
+    CoachBetaLook paidAfter = new CoachBetaLook(Phase.ENDED, false, FeedbackMode.HIDDEN, 0, true,
+        false, true);
+    Assert.assertTrue(paidAfter.asksFeedback());
+    Assert.assertFalse(paidAfter.holds());
+    Assert.assertFalse(paidAfter.planTag());
+    Assert.assertTrue(paidAfter.offersFeedbackChoice());
+
+    CoachBetaLook optionalOff = new CoachBetaLook(Phase.OPEN, false, FeedbackMode.OPTIONAL, 40,
+        true, false, false);
+    Assert.assertFalse(optionalOff.asksFeedback());
+    Assert.assertTrue(optionalOff.planTag());
+
+    CoachBetaLook required = new CoachBetaLook(Phase.OPEN, true, FeedbackMode.REQUIRED, 40, false,
+        false, false);
+    Assert.assertTrue(required.asksFeedback());
+    Assert.assertFalse(required.offersFeedbackChoice());
+  }
 }

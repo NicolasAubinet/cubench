@@ -2,6 +2,7 @@ package com.cube.nanotimer.util.coach;
 
 import android.content.Context;
 
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 
 /**
@@ -40,6 +41,7 @@ public final class CoachBetaLook {
   private final int seatsLeft;
   private final boolean paid;
   private final boolean endSeen;
+  private final Boolean feedbackChoice;
 
   /**
    * @param phase null when this install never heard, which draws the paid screens
@@ -48,12 +50,22 @@ public final class CoachBetaLook {
    */
   public CoachBetaLook(CoachBeta.Phase phase, boolean member, CoachBeta.FeedbackMode mode,
       int seatsLeft, boolean paid, boolean endSeen) {
+    this(phase, member, mode, seatsLeft, paid, endSeen, null);
+  }
+
+  /**
+   * @param feedbackChoice whether the solver chose to see the plan feedback, null when they never
+   *     chose. Required mode ignores it.
+   */
+  public CoachBetaLook(CoachBeta.Phase phase, boolean member, CoachBeta.FeedbackMode mode,
+      int seatsLeft, boolean paid, boolean endSeen, Boolean feedbackChoice) {
     this.phase = phase;
     this.member = member;
     this.mode = mode == null ? CoachBeta.FeedbackMode.HIDDEN : mode;
     this.seatsLeft = seatsLeft;
     this.paid = paid;
     this.endSeen = endSeen;
+    this.feedbackChoice = feedbackChoice;
   }
 
   /** As the install stands now. Null in a build with no coach. */
@@ -64,7 +76,8 @@ public final class CoachBetaLook {
     }
     CoachBeta beta = CoachBeta.of(context);
     return new CoachBetaLook(beta.getPhase(), beta.isMember(), beta.getFeedbackMode(),
-        beta.getSeatsLeft(), client.paidAccess(), beta.isEndSeen());
+        beta.getSeatsLeft(), client.paidAccess(), beta.isEndSeen(),
+        Options.INSTANCE.getCoachFeedbackChoice());
   }
 
   private boolean running() {
@@ -109,7 +122,15 @@ public final class CoachBetaLook {
 
   /** Whether the plan is asked about at all: each focus, the stars, last week's work. */
   public boolean asksFeedback() {
-    return mode != CoachBeta.FeedbackMode.HIDDEN;
+    if (holds() || feedbackChoice == null) {
+      return mode != CoachBeta.FeedbackMode.HIDDEN;
+    }
+    return feedbackChoice;
+  }
+
+  /** Whether the solver may show or hide the feedback: anyone not required to give it. */
+  public boolean offersFeedbackChoice() {
+    return !holds();
   }
 
   /** Whether every question must be answered before the stars go, and the next plan waits. */
@@ -123,7 +144,7 @@ public final class CoachBetaLook {
 
   /** The Beta tag on the plan's own card, so a plan that misses reads as a beta miss. */
   public boolean planTag() {
-    return running() && asksFeedback();
+    return running() && mode != CoachBeta.FeedbackMode.HIDDEN;
   }
 
   /** The once-only thanks, with the members' offer, at the top of the Plan tab. */

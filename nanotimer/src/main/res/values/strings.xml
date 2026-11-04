@@ -1725,6 +1725,11 @@
   <string name="coach_fb_rate_now">Rate now ↓</string>
   <string name="coach_fb_due_held">Due now, waiting for your rating</string>
   <string name="coach_fb_due_held_body">The coach writes it as soon as you\'ve rated this one.</string>
+  <string name="coach_menu_feedback_show">Show plan feedback</string>
+  <string name="coach_menu_feedback_hide">Hide plan feedback</string>
+  <string name="coach_menu_plan_language">Plan language</string>
+  <string name="coach_plan_language_app">App language (%s)</string>
+  <string name="coach_plan_language_next">Used from your next plan.</string>
   <string name="coach_fb_last_week">Did you work on last week\'s plan?</string>
   <string name="coach_fb_in_the_way">What got in the way? (optional)</string>
 </resources>

@@ -13,4 +13,15 @@
      android:icon="@drawable/ic_help_outline"
      android:title="@string/analysis_help_title"
      app:showAsAction="always"/>
+
+  <!-- Plan tab only: shown by AnalysisActivity.showPlanMenu. -->
+  <item android:id="@+id/itAnalysisPlanFeedback"
+     android:title="@string/coach_menu_feedback_show"
+     android:visible="false"
+     app:showAsAction="never"/>
+
+  <item android:id="@+id/itAnalysisPlanLanguage"
+     android:title="@string/coach_menu_plan_language"
+     android:visible="false"
+     app:showAsAction="never"/>
 </menu>

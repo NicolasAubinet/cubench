@@ -1673,6 +1673,11 @@
   <string name="coach_fb_rate_now">Noter ↓</string>
   <string name="coach_fb_due_held">Prévu maintenant, en attente de votre note</string>
   <string name="coach_fb_due_held_body">Le coach l\'écrit dès que vous avez noté celui-ci.</string>
+  <string name="coach_menu_feedback_show">Donner votre avis sur les plans</string>
+  <string name="coach_menu_feedback_hide">Masquer l\'avis sur les plans</string>
+  <string name="coach_menu_plan_language">Langue des plans</string>
+  <string name="coach_plan_language_app">Langue de l\'app (%s)</string>
+  <string name="coach_plan_language_next">Appliquée à partir de votre prochain plan.</string>
   <string name="coach_fb_last_week">Avez-vous travaillé le plan de la semaine dernière ?</string>
   <string name="coach_fb_in_the_way">Qu\'est-ce qui vous en a empêché ? (facultatif)</string>
 </resources>

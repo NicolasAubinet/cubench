@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -46,6 +47,7 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.coach.CoachAccess;
 import com.cube.nanotimer.util.coach.CoachBeta;
+import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.coach.CoachBilling;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlanWorker;
@@ -129,6 +131,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private CaseTableHeadings headings;
   private StepPalette palette;
   private MenuItem windowItem;
+  private MenuItem feedbackItem;
+  private MenuItem languageItem;
+  private boolean planShown;
   private int tab = TAB_SOLVE;
   private boolean loaded;
   private View solveRoot;
@@ -280,6 +285,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         }
       }
     });
+    feedbackItem = menu.findItem(R.id.itAnalysisPlanFeedback);
+    languageItem = menu.findItem(R.id.itAnalysisPlanLanguage);
+    showPlanMenu();
     showWindow();
     return super.onCreateOptionsMenu(menu);
   }
@@ -288,6 +296,18 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itAnalysisHelp) {
       DialogUtils.showFragment(this, AnalysisHelpDialog.newInstance(tab, sampling()));
+      return true;
+    }
+    if (item.getItemId() == R.id.itAnalysisPlanFeedback) {
+      CoachBetaLook look = CoachBetaLook.of(this);
+      if (look != null) {
+        Options.INSTANCE.setCoachFeedbackChoice(!look.asksFeedback());
+        loadPlan();
+      }
+      return true;
+    }
+    if (item.getItemId() == R.id.itAnalysisPlanLanguage) {
+      askForPlanLanguage();
       return true;
     }
     return super.onOptionsItemSelected(item);
@@ -385,10 +405,62 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         .show();
   }
 
+  /** The Plan tab's overflow: plan feedback for whoever isn't required to give it, and language. */
+  private void showPlanMenu() {
+    if (feedbackItem == null) {
+      return;
+    }
+    boolean coach = tab == TAB_PLAN && CoachClient.configured(this) != null;
+    CoachBetaLook look = coach ? CoachBetaLook.of(this) : null;
+    boolean choice = look != null && planShown && look.offersFeedbackChoice();
+    feedbackItem.setVisible(choice);
+    if (choice) {
+      feedbackItem.setTitle(look.asksFeedback() ? R.string.coach_menu_feedback_hide
+          : R.string.coach_menu_feedback_show);
+    }
+    languageItem.setVisible(coach);
+  }
+
+  /** Which language the next plans are written in, the app's own first. */
+  private void askForPlanLanguage() {
+    final String[] codes = getResources().getStringArray(R.array.language_codes);
+    String[] names = getResources().getStringArray(R.array.languages);
+    String app = Utils.appLanguage(this);
+    String appName = app;
+    for (int i = 0; i < codes.length; i++) {
+      if (codes[i].equals(app)) {
+        appName = names[i];
+      }
+    }
+    String[] labels = new String[codes.length + 1];
+    labels[0] = getString(R.string.coach_plan_language_app, appName);
+    System.arraycopy(names, 0, labels, 1, names.length);
+    String picked = Options.INSTANCE.getCoachPlanLanguage();
+    int checked = 0;
+    for (int i = 0; i < codes.length; i++) {
+      if (codes[i].equals(picked)) {
+        checked = i + 1;
+      }
+    }
+    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.coach_menu_plan_language)
+        .setSingleChoiceItems(labels, checked, new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            dialog.dismiss();
+            Options.INSTANCE.setCoachPlanLanguage(which == 0 ? null : codes[which - 1]);
+            Toast.makeText(AnalysisActivity.this, R.string.coach_plan_language_next,
+                Toast.LENGTH_SHORT).show();
+          }
+        })
+        .show();
+  }
+
   private void showTab(int tab) {
     boolean moved = this.tab != tab;
     this.tab = tab;
     showWhatIsReadable();
+    showPlanMenu();
     if (moved) {
       // A tab is a different question, so it starts at its own first answer rather than at
       // whatever depth the last one was left scrolled to.
@@ -1034,6 +1106,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    * it was a true reading when written, and its date says as of when.
    */
   private void showPlan(StoredCoachPlan stored) {
+    planShown = stored != null;
+    showPlanMenu();
     // A written plan's card takes the countdown to the next one.
     planStatus.dockIn(stored == null ? null : (ViewGroup) findViewById(R.id.llAnalysisPlanDock));
     showRead();

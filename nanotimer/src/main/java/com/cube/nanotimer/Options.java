@@ -97,6 +97,8 @@ public enum Options {
   private static final String COACH_ASK_AGAIN_KEY = "coach_ask_again_at";
   private static final String COACH_NUDGE_ON_KEY = "coach_nudge_on";
   private static final String COACH_LAST_NUDGE_KEY = "coach_last_nudge_at";
+  private static final String COACH_FEEDBACK_CHOICE_KEY = "coach_feedback_choice";
+  private static final String COACH_PLAN_LANGUAGE_KEY = "coach_plan_language";
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
   public static final String CFOP_READING_KEY = "cfop_reading_version";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
@@ -434,6 +436,25 @@ public enum Options {
 
   public void setCoachLastNudgeAt(long nudgedAt) {
     sharedPreferences.edit().putLong(COACH_LAST_NUDGE_KEY, nudgedAt).apply();
+  }
+
+  /** Whether the solver chose to see the plan feedback, null when they never chose. */
+  public Boolean getCoachFeedbackChoice() {
+    return sharedPreferences.contains(COACH_FEEDBACK_CHOICE_KEY)
+        ? sharedPreferences.getBoolean(COACH_FEEDBACK_CHOICE_KEY, false) : null;
+  }
+
+  public void setCoachFeedbackChoice(boolean shown) {
+    sharedPreferences.edit().putBoolean(COACH_FEEDBACK_CHOICE_KEY, shown).apply();
+  }
+
+  /** The language plans are written in, null for the app's own. */
+  public String getCoachPlanLanguage() {
+    return sharedPreferences.getString(COACH_PLAN_LANGUAGE_KEY, null);
+  }
+
+  public void setCoachPlanLanguage(String code) {
+    sharedPreferences.edit().putString(COACH_PLAN_LANGUAGE_KEY, code).apply();
   }
 
   /**

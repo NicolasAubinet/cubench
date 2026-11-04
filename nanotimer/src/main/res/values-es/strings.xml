@@ -1672,6 +1672,11 @@
   <string name="coach_fb_rate_now">Valorar ↓</string>
   <string name="coach_fb_due_held">Toca ahora, a la espera de tu valoración</string>
   <string name="coach_fb_due_held_body">El coach lo escribe en cuanto hayas valorado este.</string>
+  <string name="coach_menu_feedback_show">Opinar sobre los planes</string>
+  <string name="coach_menu_feedback_hide">Ocultar la opinión sobre los planes</string>
+  <string name="coach_menu_plan_language">Idioma de los planes</string>
+  <string name="coach_plan_language_app">Idioma de la app (%s)</string>
+  <string name="coach_plan_language_next">Se usa a partir de tu próximo plan.</string>
   <string name="coach_fb_last_week">¿Trabajaste el plan de la semana pasada?</string>
   <string name="coach_fb_in_the_way">¿Qué te lo impidió? (opcional)</string>
 </resources>

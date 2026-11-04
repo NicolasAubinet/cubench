@@ -205,6 +205,12 @@ final class CoachAsk {
         });
   }
 
+  /** The language the solver picked for plans, or the app's own. */
+  static String planLanguage() {
+    String picked = Options.INSTANCE.getCoachPlanLanguage();
+    return picked != null ? picked : Utils.appLanguage(App.INSTANCE.getContext());
+  }
+
   private void build(List<PairExecution> executions, List<StepTurning> turnings,
       final List<PairRotation> rotations) {
     App.INSTANCE.getService().getCoachPayload(solveType, method, executions, turnings,
@@ -215,7 +221,7 @@ final class CoachAsk {
               @Override
               public void onData(String stream) {
                 String body = CoachClient.requestBody(
-                    payload.withLanguage(Utils.appLanguage(App.INSTANCE.getContext()))
+                    payload.withLanguage(planLanguage())
                         .withF2lRotations(CoachPayloadBuilder.f2lRotations(rotations)),
                     stream);
                 // Kept before it leaves, so a request the process dies on is still the one resent.
