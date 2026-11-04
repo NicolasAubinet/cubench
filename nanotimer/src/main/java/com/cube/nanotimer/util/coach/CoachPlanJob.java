@@ -77,7 +77,7 @@ final class CoachPlanJob {
     if (!debug && client.accessEnded()) {
       return Outcome.DONE; // no plan is coming, so no reminder of the solves one needs either
     }
-    if (CoachBeta.of(context).isStale(System.currentTimeMillis())) {
+    if (CoachBeta.of(context).isStale(System.currentTimeMillis(), false)) {
       client.checkBeta();
     }
     boolean owesRating = !debug && client.owesRating();

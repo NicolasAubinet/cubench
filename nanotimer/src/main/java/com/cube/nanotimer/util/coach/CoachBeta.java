@@ -84,6 +84,8 @@ public final class CoachBeta {
 
   /** How long a status is trusted before the app asks again. */
   static final long STALE_MS = 6L * 60 * 60 * 1000;
+  /** For an install that never joined: the beta's seats move slowly, and every user asks this. */
+  static final long ANONYMOUS_STALE_MS = 24L * 60 * 60 * 1000;
 
   private static final String FILE = "coach_beta";
   private static final String PHASE_KEY = "phase";
@@ -256,13 +258,31 @@ public final class CoachBeta {
     return phase == Phase.OPEN || phase == Phase.CLOSED;
   }
 
-  /** Whether the last status is old enough to ask again. A time ahead of the clock is old. */
-  public synchronized boolean isStale(long now) {
-    return stale(preferences.getLong(CHECKED_AT_KEY, 0), now);
+  /**
+   * Whether the last status is old enough to ask again. A time ahead of the clock is old.
+   *
+   * @param anonymous whether this install asks without saying who it is ({@code CoachClient})
+   */
+  public synchronized boolean isStale(long now, boolean anonymous) {
+    return due(preferences.getLong(CHECKED_AT_KEY, 0), now, anonymous,
+        preferences.contains(PHASE_KEY)
+            && Phase.of(preferences.getString(PHASE_KEY, null)) == Phase.ENDED);
+  }
+
+  /**
+   * @param heardEnded whether the service last said the beta has ended: a beta never comes back,
+   *     so an install that never joined has nothing more to ask, ever
+   */
+  static boolean due(long checkedAt, long now, boolean anonymous, boolean heardEnded) {
+    if (anonymous && heardEnded) {
+      return false;
+    }
+    long maxAge = anonymous ? ANONYMOUS_STALE_MS : STALE_MS;
+    return checkedAt == 0 || checkedAt > now || now - checkedAt >= maxAge;
   }
 
   static boolean stale(long checkedAt, long now) {
-    return checkedAt == 0 || checkedAt > now || now - checkedAt >= STALE_MS;
+    return due(checkedAt, now, false, false);
   }
 
   /** Keeps a status the service sent. Anything else is no news, and the last status stands. */

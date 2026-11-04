@@ -54,6 +54,35 @@ public class CoachBetaTest {
     Assert.assertTrue(CoachBeta.stale(NOW + 1, NOW));
   }
 
+  /** An install that never joined asks once a day, and never again once it heard the end. */
+  @Test
+  public void anInstallThatNeverJoinedAsksOnceADayUntilTheEnd() {
+    Assert.assertFalse(CoachBeta.due(NOW, NOW + CoachBeta.STALE_MS, true, false));
+    Assert.assertFalse(CoachBeta.due(NOW, NOW + CoachBeta.ANONYMOUS_STALE_MS - 1, true, false));
+    Assert.assertTrue(CoachBeta.due(NOW, NOW + CoachBeta.ANONYMOUS_STALE_MS, true, false));
+    Assert.assertTrue(CoachBeta.due(0, NOW, true, false));
+    Assert.assertFalse(CoachBeta.due(NOW, NOW + 30 * CoachBeta.ANONYMOUS_STALE_MS, true, true));
+    Assert.assertTrue("a member still hears from the service after the end",
+        CoachBeta.due(NOW, NOW + CoachBeta.STALE_MS, false, true));
+  }
+
+  /** Nearly every user never chose the coach, so their status ask says nothing about them. */
+  @Test
+  public void onlyAnInstallTheCoachLetsInOrThatJoinedSaysWhoItIs() {
+    Assert.assertTrue(CoachClient.asksAnonymously(false, false));
+    Assert.assertFalse(CoachClient.asksAnonymously(true, false));
+    Assert.assertFalse(CoachClient.asksAnonymously(false, true));
+  }
+
+  @Test
+  public void anAnonymousAskCarriesNoIdentityAtAll() {
+    String purchase = "oakjnhghnfkbkpanicegbbmk.AO-J1Oz_abcdefghijklmnop";
+
+    Assert.assertTrue(CoachClient.identity(true, false, "t", "id", purchase).isEmpty());
+    Assert.assertEquals("id",
+        CoachClient.identity(true, true, "t", "id", purchase).get("Coach-Id"));
+  }
+
   @Test
   public void anEndedBetaLetsNobodyIn() {
     Assert.assertTrue(CoachBeta.running(CoachBeta.Phase.OPEN));

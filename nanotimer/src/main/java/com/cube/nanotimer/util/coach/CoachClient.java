@@ -13,6 +13,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -186,7 +188,7 @@ public final class CoachClient {
    * showing a beta part calls it on opening; the answer redraws it through {@link CoachBeta.Listener}.
    */
   public void checkBetaIfStale() {
-    if (!beta.isStale(System.currentTimeMillis())) {
+    if (!beta.isStale(System.currentTimeMillis(), asksAnonymously(paidAccess(), beta.isMember()))) {
       return;
     }
     new Thread(new Runnable() {
@@ -207,7 +209,9 @@ public final class CoachClient {
     try {
       // Joined by the Coach ID. The token and purchase go too, only for the feedback mode.
       Answer answer = join ? post(joinUrl, "{}", PRACTICE_READ_TIMEOUT_MS, true)
-          : call(betaUrl, null, PRACTICE_READ_TIMEOUT_MS, true);
+          : asksAnonymously(paidAccess(), beta.isMember())
+              ? call(betaUrl, null, PRACTICE_READ_TIMEOUT_MS, true, false)
+              : call(betaUrl, null, PRACTICE_READ_TIMEOUT_MS, true);
       reply = answer.body == null ? CoachBetaReply.unreadable()
           : CoachBetaReply.parse(answer.status, answer.body);
     } catch (IOException e) {
@@ -356,9 +360,44 @@ public final class CoachClient {
     return call(url, null, readTimeoutMs, false);
   }
 
-  /** @param requestBody null for a GET */
+  /**
+   * Whether a beta status is asked for with nothing about the install: no Coach ID, no token, no
+   * purchase. True for every install the coach has not let in and that never joined, which is
+   * nearly every Cubench user: they never chose to send anything, and the service answers them
+   * from memory rather than waking its database.
+   */
+  static boolean asksAnonymously(boolean paidAccess, boolean member) {
+    return !paidAccess && !member;
+  }
+
   private Answer call(String url, String requestBody, int readTimeoutMs, boolean withAccess)
       throws IOException {
+    return call(url, requestBody, readTimeoutMs, withAccess, true);
+  }
+
+  /** The headers that say who is asking. Empty when not identified, whatever else is held. */
+  static Map<String, String> identity(boolean withAccess, boolean identified, String token,
+      String coachId, String purchase) {
+    Map<String, String> headers = new LinkedHashMap<String, String>();
+    if (!identified) {
+      return headers;
+    }
+    if (withAccess && !token.isEmpty()) {
+      headers.put("Authorization", "Bearer " + token);
+    }
+    headers.put("Coach-Id", coachId);
+    if (CoachAccess.sendable(purchase)) {
+      headers.put("Purchase-Token", purchase);
+    }
+    return headers;
+  }
+
+  /**
+   * @param requestBody null for a GET
+   * @param identified false sends no Coach ID either, so the request says nothing of the install
+   */
+  private Answer call(String url, String requestBody, int readTimeoutMs, boolean withAccess,
+      boolean identified) throws IOException {
     HttpURLConnection connection = null;
     try {
       connection = (HttpURLConnection) new URL(url).openConnection();
@@ -373,17 +412,11 @@ public final class CoachClient {
       } else {
         connection.setRequestMethod("GET");
       }
-      if (withAccess && !token.isEmpty()) {
-        connection.setRequestProperty("Authorization", "Bearer " + token);
-      }
-      connection.setRequestProperty("Coach-Id", coachId);
       String purchase = withAccess
           && sendsPurchase(access.hasEnded(), beta.letsIn()) ? access.getPurchaseToken() : null;
-      if (!CoachAccess.sendable(purchase)) {
-        purchase = null;
-      }
-      if (purchase != null) {
-        connection.setRequestProperty("Purchase-Token", purchase);
+      for (Map.Entry<String, String> header
+          : identity(withAccess, identified, token, coachId, purchase).entrySet()) {
+        connection.setRequestProperty(header.getKey(), header.getValue());
       }
       if (body != null) {
         connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
