@@ -1676,7 +1676,7 @@
   <string name="coach_beta_offer_note">Free while the coach is in beta. Nothing is charged when it ends.</string>
   <string name="coach_beta_private">Nothing leaves your phone unless you join or send a report.</string>
   <string name="coach_beta_drawer_free">Free while in beta</string>
-  <string name="coach_beta_news_line">And an AI coach, free while it\'s in beta</string>
+  <string name="coach_beta_news_line">An AI coach, free while it\'s in beta</string>
   <string name="coach_beta_end_title">Thank you for testing the coach</string>
   <string name="coach_beta_end_sub">The beta has ended</string>
   <string name="coach_beta_end_body">As thanks, your first two months on the monthly plan are half price if you\'d like to keep going.</string>

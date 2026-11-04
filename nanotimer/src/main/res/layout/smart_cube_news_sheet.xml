@@ -26,24 +26,35 @@
        android:layout_height="wrap_content"
        android:orientation="vertical">
 
-      <include layout="@layout/smart_cube_hero"/>
-
-      <TextView
-         android:id="@+id/tvNewsPill"
+      <!-- The pill rides on the top of the mark's glow, so it takes no line of its own. -->
+      <FrameLayout
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:layout_gravity="center_horizontal"
-         android:background="@drawable/smart_cube_pill"
-         android:backgroundTint="@color/pill_scan_bg"
-         android:paddingLeft="12dp"
-         android:paddingRight="12dp"
-         android:paddingTop="3dp"
-         android:paddingBottom="3dp"
-         android:textAllCaps="true"
-         android:textColor="@color/lightblue"
-         android:textSize="11.5sp"
-         android:textStyle="bold"
-         android:letterSpacing="0.08"/>
+         android:layout_gravity="center_horizontal">
+
+        <include
+           layout="@layout/smart_cube_hero"
+           android:layout_width="120dp"
+           android:layout_height="120dp"
+           android:layout_marginTop="8dp"/>
+
+        <TextView
+           android:id="@+id/tvNewsPill"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_gravity="top|center_horizontal"
+           android:background="@drawable/smart_cube_pill"
+           android:backgroundTint="@color/pill_scan_bg"
+           android:paddingLeft="12dp"
+           android:paddingRight="12dp"
+           android:paddingTop="3dp"
+           android:paddingBottom="3dp"
+           android:textAllCaps="true"
+           android:textColor="@color/lightblue"
+           android:textSize="11.5sp"
+           android:textStyle="bold"
+           android:letterSpacing="0.08"/>
+      </FrameLayout>
 
       <TextView
          android:id="@+id/tvNewsTitle"
