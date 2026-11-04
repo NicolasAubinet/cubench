@@ -207,22 +207,15 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
   }
 
   private void pickType() {
-    String[] names = new String[eligible.size()];
-    for (int i = 0; i < names.length; i++) {
-      names[i] = name(eligible.get(i));
-    }
-    new AlertDialog.Builder(requireActivity(), R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.coach_plans_for)
-        .setSingleChoiceItems(names, eligible.indexOf(picked),
-            new DialogInterface.OnClickListener() {
-              @Override
-              public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                picked = eligible.get(which);
-                showSends();
-              }
-            })
-        .show();
+    CoachPlansForDialog.pick(requireActivity(), picked, new CoachPlansForDialog.Picked() {
+      @Override
+      public void picked(SolveType choice) {
+        if (isAdded()) {
+          picked = choice;
+          showSends();
+        }
+      }
+    });
   }
 
   /** The base plans as Play lists them, or that Play is being asked, or that it could not say. */

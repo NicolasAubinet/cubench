@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Which solve type the weekly plans are written for: the ones that can carry them, to pick from. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Which solve type the weekly plans are written for: the head the solve type picker wears, with a
+     line saying what the choice does, then the ones that can carry them. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
-   android:layout_height="wrap_content">
+   android:layout_height="wrap_content"
+   android:orientation="vertical">
 
-  <LinearLayout
+  <include
+     android:id="@+id/coachPlansForHead"
+     layout="@layout/selector_list_header"/>
+
+  <ScrollView
      android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:orientation="vertical"
-     android:paddingLeft="20dp"
-     android:paddingRight="20dp"
-     android:paddingTop="20dp"
-     android:paddingBottom="4dp">
-
-    <TextView
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:fontFamily="@font/roboto_medium"
-       android:text="@string/coach_plans_for"
-       android:textColor="@color/white"
-       android:textSize="19sp"/>
+     android:layout_height="wrap_content">
 
     <!-- One coach_plans_for_item per solve type, added in code. -->
     <LinearLayout
        android:id="@+id/llCoachPlansForTypes"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:orientation="vertical"/>
+       android:orientation="vertical"
+       android:paddingLeft="16dp"
+       android:paddingRight="16dp"
+       android:paddingTop="4dp"
+       android:paddingBottom="4dp"/>
+  </ScrollView>
 
-  </LinearLayout>
-
-</ScrollView>
+</LinearLayout>

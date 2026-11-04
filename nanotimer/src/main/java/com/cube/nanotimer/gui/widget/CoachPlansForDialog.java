@@ -2,6 +2,7 @@ package com.cube.nanotimer.gui.widget;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -34,20 +35,38 @@ import java.util.List;
  */
 public final class CoachPlansForDialog {
 
+  /** Told the solve type picked, in the mode that only picks. */
+  public interface Picked {
+    void picked(SolveType choice);
+  }
+
   private final Activity activity;
   private final Runnable onMoved;
+  private final Picked onPicked;
   private List<SolveType> eligible;
   private SolveType flagged;
   private final List<Integer> counts = new ArrayList<Integer>();
 
-  private CoachPlansForDialog(Activity activity, Runnable onMoved) {
+  private CoachPlansForDialog(Activity activity, Runnable onMoved, Picked onPicked,
+      SolveType current) {
     this.activity = activity;
     this.onMoved = onMoved;
+    this.onPicked = onPicked;
+    this.flagged = current;
   }
 
   /** @param onMoved run on the main thread once the plans have been moved */
   public static void show(Activity activity, Runnable onMoved) {
-    new CoachPlansForDialog(activity, onMoved).load();
+    new CoachPlansForDialog(activity, onMoved, null, null).load();
+  }
+
+  /**
+   * Only picks, for a sheet that turns the plans on later: nothing moves and nothing is asked.
+   *
+   * @param current the solve type the sheet shows, marked as picked
+   */
+  public static void pick(Activity activity, SolveType current, Picked onPicked) {
+    new CoachPlansForDialog(activity, null, onPicked, current).load();
   }
 
   private void load() {
@@ -56,7 +75,9 @@ public final class CoachPlansForDialog {
           @Override
           public void onData(List<SolveType> solveTypes) {
             eligible = CoachPlans.eligible(solveTypes);
-            flagged = CoachPlans.flagged(solveTypes);
+            if (onPicked == null) {
+              flagged = CoachPlans.flagged(solveTypes);
+            }
             count();
           }
         });
@@ -95,6 +116,7 @@ public final class CoachPlansForDialog {
     }
     LayoutInflater inflater = LayoutInflater.from(activity);
     View content = inflater.inflate(R.layout.coach_plans_for_dialog, null);
+    showHead(content.findViewById(R.id.coachPlansForHead));
     LinearLayout rows = content.findViewById(R.id.llCoachPlansForTypes);
     final AlertDialog dialog = new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
         .setView(content)
@@ -107,7 +129,8 @@ public final class CoachPlansForDialog {
       ImageView icon = row.findViewById(R.id.imgCoachPlansForType);
       icon.setImageResource(SolveTypeIcons.forSolveType(choice));
       icon.setColorFilter(ContextCompat.getColor(activity, R.color.lightblue));
-      ((TextView) row.findViewById(R.id.tvCoachPlansForName)).setText(name(choice));
+      TextView nameView = row.findViewById(R.id.tvCoachPlansForName);
+      nameView.setText(name(choice));
       ((TextView) row.findViewById(R.id.tvCoachPlansForCount))
           .setText(String.valueOf(counts.get(i)));
       TextView note = row.findViewById(R.id.tvCoachPlansForNote);
@@ -118,11 +141,17 @@ public final class CoachPlansForDialog {
       }
       final boolean current = flagged != null && choice.getId() == flagged.getId();
       row.setSelected(current);
+      // Marked as the solve type picker marks the one in use.
+      nameView.setTextColor(ContextCompat.getColor(activity,
+          current ? R.color.lightblue : R.color.white));
+      nameView.setTypeface(nameView.getTypeface(), current ? Typeface.BOLD : Typeface.NORMAL);
       row.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
           dialog.dismiss();
-          if (!current) {
+          if (onPicked != null) {
+            onPicked.picked(choice);
+          } else if (!current) {
             confirm(choice, missing);
           }
         }
@@ -130,6 +159,22 @@ public final class CoachPlansForDialog {
       rows.addView(row);
     }
     dialog.show();
+  }
+
+  /** What is chosen and what the choice does, on the head the solve type picker wears. */
+  private void showHead(View head) {
+    int color = ContextCompat.getColor(activity, R.color.lightblue);
+    TextView eyebrow = head.findViewById(R.id.tvHeaderEyebrow);
+    eyebrow.setText(R.string.coach_plans_setting);
+    eyebrow.setTextColor(color);
+    ((TextView) head.findViewById(R.id.tvHeaderTitle)).setText(R.string.coach_plans_for_title);
+    TextView note = head.findViewById(R.id.tvHeaderNote);
+    note.setText(R.string.coach_plans_for_note);
+    note.setVisibility(View.VISIBLE);
+    ImageView icon = head.findViewById(R.id.imgHeaderIcon);
+    icon.setImageResource(R.drawable.ic_coach_target);
+    icon.setColorFilter(color);
+    head.findViewById(R.id.headerTile).setBackgroundResource(R.drawable.coach_hero_icon_tile);
   }
 
   private void confirm(final SolveType choice, int missing) {
