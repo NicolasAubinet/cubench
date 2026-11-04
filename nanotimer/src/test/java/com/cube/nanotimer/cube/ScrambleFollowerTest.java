@@ -322,4 +322,29 @@ public class ScrambleFollowerTest {
     turn(follower, mirror, Face.L, false); // L commutes with R but not across U
     assertTrue(follower.isWrong());
   }
+
+  @Test
+  public void startsPartWayWhenTheFirstTurnCameBeforeTheScramble() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"R", "U'", "F2"});
+    CubieCube mirror = new CubieCube();
+    mirror.applyMove(Face.R, false); // turned while the last solve was still being saved
+    assertTrue(follower.startAt(new CubeState(mirror.toFaceCube())));
+    assertEquals(1, follower.getDoneCount());
+    assertFalse(follower.isWrong());
+
+    turn(follower, mirror, Face.U, true);
+    assertEquals(2, follower.getDoneCount());
+  }
+
+  @Test
+  public void startsAtSolvedAndRefusesAStateOffThePath() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"R", "U'", "F2"});
+    assertTrue(follower.startAt(CubeState.SOLVED));
+    assertEquals(0, follower.getDoneCount());
+
+    CubieCube mirror = new CubieCube();
+    mirror.applyMove(Face.L, false);
+    assertFalse(follower.startAt(new CubeState(mirror.toFaceCube())));
+    assertTrue(follower.isLost());
+  }
 }

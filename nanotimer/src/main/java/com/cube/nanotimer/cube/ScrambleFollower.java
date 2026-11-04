@@ -267,6 +267,16 @@ public class ScrambleFollower {
     lost = false;
   }
 
+  /**
+   * Starts the follow from {@code state} rather than from solved, for a cube that may already be a
+   * turn or two into the scramble. Returns false when the state is not on the scramble's path.
+   */
+  public boolean startAt(CubeState state) {
+    reset();
+    onState(state);
+    return !lost;
+  }
+
   /** True when the cube turned up somewhere the moves cannot explain: the follow means nothing. */
   public boolean isLost() {
     return lost;

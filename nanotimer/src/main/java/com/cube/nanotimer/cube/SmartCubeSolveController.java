@@ -407,14 +407,25 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
       notifyChanged();
       return;
     }
-    CubeState state = SmartCubeManager.INSTANCE.getCurrentState();
-    if (state != null && state.isSolved()) {
-      phase = Phase.FOLLOWING;
-      follower.reset();
-    } else {
+    // The delivered state, not the manager's: moves still queued behind it then reach the follower.
+    CubeState state = deliveredState != null ? deliveredState
+        : SmartCubeManager.INSTANCE.getCurrentState();
+    if (!followFrom(state)) {
       phase = Phase.NEEDS_SOLVE;
     }
     notifyChanged();
+  }
+
+  /**
+   * Follows from {@code state} if it is on the scramble's path. Not only solved: a turn made before
+   * the scramble was up, or a solved state the cube never reported alone, would strand the follow.
+   */
+  private boolean followFrom(CubeState state) {
+    if (state == null || !follower.startAt(state)) {
+      return false;
+    }
+    phase = follower.isComplete() && follower.getMoveCount() > 0 ? Phase.ARMED : Phase.FOLLOWING;
+    return true;
   }
 
   @Override
@@ -439,9 +450,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
         }
         break;
       case NEEDS_SOLVE:
-        if (state.isSolved()) {
-          phase = Phase.FOLLOWING;
-          follower.reset();
+        if (followFrom(state)) {
           notifyChanged();
         }
         break;
