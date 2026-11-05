@@ -198,6 +198,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     public void handleOnBackPressed() {
       if (!choosingToPractise) {
         // A learning drill's choose step: back ends the drill, summed up if a rep was solved
+        lastRepRow.removeCallbacks(showNextCase);
+        clearChoosing();
+        session.endPractice();
+        setChoosing(false);
         setEnabled(false);
         getOnBackPressedDispatcher().onBackPressed();
         return;
@@ -1240,7 +1244,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   private void nextRep() {
-    if (!chooseOnly && session.getPracticeCase() == null) {
+    if (!chooseOnly && session.getPracticeCase() == null && !session.isFinished()) {
       collectCasesToChoose(); // a case coming into a learning drill's set is chosen for first
       if (!toChoose.isEmpty()) {
         chooseNext();
@@ -1399,10 +1403,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   /**
    * The cases to count progress over. A drill with a working set may hold far more cases than it
-   * reaches, so only those dealt so far are shown, plus while it runs those in the set.
+   * reaches, so only those dealt so far are shown, plus while it runs those in the set. A learning
+   * drill's few cases are all shown, the ones not reached yet included: they are still to learn.
    */
   private List<String> shownCases(boolean running) {
-    if (session.getWorkingSet() == 0) {
+    DrillSpec spec = session.getSpec();
+    if (spec.getWorkingSet() == 0 || spec.isLearning()) {
       return session.getCases();
     }
     List<String> active = running ? session.getActiveCases() : Collections.<String>emptyList();

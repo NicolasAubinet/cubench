@@ -84,8 +84,6 @@ public final class DrillSession {
 
   /** Deals tried before a look-ahead rep takes one with a piece stuck in the other slot. */
   private static final int MAX_LOOKAHEAD_DEALS = 50;
-  /** New algorithms a learning drill teaches at once, the next coming in as one is learned. */
-  static final int LEARNING_AT_ONCE = 4;
 
   /** The back slots a back-slot drill deals into, and the y quarters that take front right there. */
   private static final String[] BACK_SLOTS =
@@ -372,12 +370,14 @@ public final class DrillSession {
    */
   private int gripQuartersTo(String slot) {
     CubeRotation grip = gripReader == null ? null : gripReader.grip();
-    if (grip != null && grip.faceAt('U') == LayerRotation.piece("U", 0, layerFace).charAt(0)) {
-      lastUpright = grip;
-    } else {
-      grip = lastUpright;
-    }
     if (grip == null) {
+      return 0;
+    }
+    if (grip.faceAt('U') == LayerRotation.piece("U", 0, layerFace).charAt(0)) {
+      lastUpright = grip;
+    } else if (lastUpright != null) {
+      grip = lastUpright;
+    } else {
       return 0;
     }
     String held = F2LBackSlotAlgorithms.BACK_RIGHT.equals(slot) ? "DRB" : "DBL";
@@ -1030,24 +1030,12 @@ public final class DrillSession {
   }
 
   /**
-   * How many uncleared cases are dealt at once, 0 for all. A learning drill holds at most
-   * {@link #LEARNING_AT_ONCE}, so a new algorithm is never one of more than that being learned.
-   */
-  public int getWorkingSet() {
-    int sent = spec.getWorkingSet();
-    if (!spec.isLearning()) {
-      return sent;
-    }
-    return sent > 0 ? Math.min(sent, LEARNING_AT_ONCE) : LEARNING_AT_ONCE;
-  }
-
-  /**
    * The cases still being dealt, in the order the spec named them, or by weight for a drill with a
    * working set, which deals from only the first of them that have not retired.
    */
   public List<String> getActiveCases() {
     CaseTally tally = getTally();
-    int limit = getWorkingSet() > 0 ? getWorkingSet() : Integer.MAX_VALUE;
+    int limit = spec.getWorkingSet() > 0 ? spec.getWorkingSet() : Integer.MAX_VALUE;
     List<String> active = new ArrayList<String>();
     for (String code : cases) {
       if (active.size() < limit && !tally.isCleared(code)) {

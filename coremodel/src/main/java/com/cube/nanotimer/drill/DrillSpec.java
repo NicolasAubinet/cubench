@@ -125,6 +125,9 @@ public final class DrillSpec {
     }
   }
 
+  /** New cases a learning drill deals at once. */
+  public static final int LEARNING_AT_ONCE = 4;
+
   private static final String DEFAULT_PUZZLE = "3x3";
   private static final String DEFAULT_METHOD = "cfop";
 
@@ -543,9 +546,16 @@ public final class DrillSpec {
     return caseAlgorithms.get(caseCode);
   }
 
-  /** How many cases are dealt from at once, or 0 for all of them. */
+  /**
+   * How many cases are dealt from at once, or 0 for all of them. A learning drill holds at most
+   * {@link #LEARNING_AT_ONCE}, whatever it was sent with: new algorithms are learned a few at a
+   * time, the next coming in as one is learned (owner, 2026-11-05).
+   */
   public int getWorkingSet() {
-    return workingSet;
+    if (!learning) {
+      return workingSet;
+    }
+    return workingSet > 0 ? Math.min(workingSet, LEARNING_AT_ONCE) : LEARNING_AT_ONCE;
   }
 
   /** A short name to show. Whoever wrote it is responsible for its language. */
