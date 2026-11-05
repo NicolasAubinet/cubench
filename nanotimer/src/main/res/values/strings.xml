@@ -986,10 +986,6 @@
   <string name="drill_show_alg">Show alg</string>
   <string name="drill_choose_title">Algorithm for %1$s</string>
   <string name="drill_choose_use">Use this one</string>
-  <string name="drill_choose_use_start">Use this one and start</string>
-  <string name="drill_choose_intro_title">Choose your algorithms</string>
-  <string name="drill_choose_intro_count">%1$d of %2$d</string>
-  <string name="drill_choose_intro_body">Try them on the cube, then keep the one you prefer. The drill starts after the last case.</string>
   <string name="drill_choose_yours">Yours</string>
   <string name="drill_choose_more">All algorithms and case details…</string>
   <plurals name="drill_choose_last">

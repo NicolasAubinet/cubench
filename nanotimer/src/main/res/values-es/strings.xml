@@ -954,10 +954,6 @@
   <string name="drill_show_alg">Ver alg</string>
   <string name="drill_choose_title">Algoritmo para %1$s</string>
   <string name="drill_choose_use">Usar este</string>
-  <string name="drill_choose_use_start">Usar este y empezar</string>
-  <string name="drill_choose_intro_title">Elige tus algoritmos</string>
-  <string name="drill_choose_intro_count">%1$d de %2$d</string>
-  <string name="drill_choose_intro_body">Pruébalos en el cubo y quédate con el que prefieras. El drill empieza después del último caso.</string>
   <string name="drill_choose_yours">El tuyo</string>
   <string name="drill_choose_more">Todos los algoritmos y detalles del caso…</string>
   <plurals name="drill_choose_last">

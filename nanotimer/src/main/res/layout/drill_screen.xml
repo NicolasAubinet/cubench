@@ -213,65 +213,6 @@
        android:text="@string/drill_practice_offer"
        android:visibility="gone"/>
 
-    <!-- A learning drill's opening choose step: says it is a step before the drill, and how far
-         through its cases it is. Gone when choosing from Alg or a practice offer. -->
-    <LinearLayout
-       android:id="@+id/llDrillChooseIntro"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="6dp"
-       android:orientation="vertical"
-       android:paddingLeft="4dp"
-       android:paddingRight="4dp"
-       android:visibility="gone">
-
-      <LinearLayout
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:gravity="center_vertical"
-         android:orientation="horizontal">
-
-        <TextView
-           android:layout_width="0dp"
-           android:layout_height="wrap_content"
-           android:layout_weight="1"
-           android:singleLine="true"
-           android:ellipsize="end"
-           android:fontFamily="@font/roboto_medium"
-           android:letterSpacing="0.06"
-           android:text="@string/drill_choose_intro_title"
-           android:textAllCaps="true"
-           android:textColor="@color/white"
-           android:textSize="13sp"/>
-
-        <TextView
-           android:id="@+id/tvDrillChooseCount"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginLeft="8dp"
-           android:fontFamily="@font/roboto_medium"
-           android:textColor="@color/secondary_text"
-           android:textSize="13sp"
-           android:fontFeatureSettings="tnum"/>
-      </LinearLayout>
-
-      <ProgressBar
-         android:id="@+id/pbDrillChoose"
-         style="?android:attr/progressBarStyleHorizontal"
-         android:layout_width="match_parent"
-         android:layout_height="4dp"
-         android:layout_marginTop="6dp"
-         android:progressDrawable="@drawable/drill_progress"/>
-
-      <TextView
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="6dp"
-         android:text="@string/drill_choose_intro_body"
-         android:textColor="@color/secondary_text"
-         android:textSize="13sp"/>
-    </LinearLayout>
-
     <!-- The choose step: the case's algorithms, the one tapped being the one followed, and a way
          into the full popup. Capped at about four rows and a half, so a long list scrolls rather
          than shrinking the cube. -->
