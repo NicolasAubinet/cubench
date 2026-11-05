@@ -159,7 +159,8 @@ public class CoachPlanFeedbackView {
     int picked = given == CoachPlanFeedback.Answer.YES ? 0
         : given == CoachPlanFeedback.Answer.NOT_QUITE ? 1 : -1;
     choice((LinearLayout) block.findViewById(R.id.llFbChoice),
-        new int[] {R.string.coach_fb_yes, R.string.coach_fb_not_quite}, picked, flagged == index,
+        new int[] {R.string.coach_fb_yes, R.string.coach_fb_not_quite}, picked,
+        flagged == index && picked == -1,
         new Picked() {
           @Override
           public void picked(int which) {
@@ -189,6 +190,7 @@ public class CoachPlanFeedbackView {
         R.string.coach_fb_reason_too_boring, R.string.coach_fb_reason_not_worth,
         R.string.coach_fb_reason_other};
     bindFold(block, index, answer, all, words);
+    flagWhy(block, flagged == index);
     for (int i = 0; i < all.length; i++) {
       RadioButton option = new RadioButton(activity);
       option.setId(View.generateViewId());
@@ -210,6 +212,12 @@ public class CoachPlanFeedbackView {
           save();
           EditText field = block.findViewById(R.id.etFbFocusText);
           hintText(field, all[at]);
+          if (flagged == index && (all[at] != CoachPlanFeedback.Reason.OTHER
+              || !field.getText().toString().trim().isEmpty())) {
+            flagged = -1;
+            flagWhy(block, false);
+          }
+          refreshSend();
           if (all[at] == CoachPlanFeedback.Reason.OTHER) {
             field.requestFocus();
             ((InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE))
@@ -225,8 +233,10 @@ public class CoachPlanFeedbackView {
       @Override
       public void typed(String value) {
         feedback.setFocusText(index, value);
-        if (flagged == index && !value.trim().isEmpty()) {
-          flagged = -1; // the outline goes on the next redraw
+        if (flagged == index && !value.trim().isEmpty()
+            && !feedback.getFocus(index).getReasons().isEmpty()) {
+          flagged = -1;
+          flagWhy(block, false);
         }
         refreshSend();
       }
@@ -239,7 +249,26 @@ public class CoachPlanFeedbackView {
       return;
     }
     rateCard.findViewById(R.id.buFbSend).setAlpha(
-        missing().isEmpty() && otherUnsaid() == -1 && feedback.isRated() && !sending ? 1f : 0.45f);
+        missing().isEmpty() && reasonUnpicked() == -1 && otherUnsaid() == -1 && feedback.isRated()
+            && !sending ? 1f : 0.45f);
+  }
+
+  /** "What's off?" in amber while it is the answer Send is waiting for. */
+  private void flagWhy(View block, boolean flag) {
+    ((TextView) block.findViewById(R.id.tvFbWhyLabel)).setTextColor(
+        flag ? AMBER : ContextCompat.getColor(activity, R.color.secondary_text));
+  }
+
+  /** The first focus answered "Not quite" with no reason picked, -1 when none; asked in every mode. */
+  private int reasonUnpicked() {
+    for (int i = 0; i < focusBlocks.size(); i++) {
+      CoachPlanFeedback.FocusAnswer answer = feedback.getFocus(i);
+      if (answer != null && answer.getAnswer() == CoachPlanFeedback.Answer.NOT_QUITE
+          && answer.getReasons().isEmpty()) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /** One field for both: optional detail, or the reason itself once "Other" is picked. */
@@ -397,6 +426,17 @@ public class CoachPlanFeedbackView {
       flagged = missing.get(0);
       bindFocus(focusBlocks.get(flagged), flagged);
       scrollTo(focusBlocks.get(flagged));
+      return;
+    }
+    int unpicked = reasonUnpicked();
+    if (unpicked != -1) {
+      Toast.makeText(activity, activity.getString(R.string.coach_fb_pick_reason_for,
+          focusTitle(unpicked)), Toast.LENGTH_SHORT).show();
+      folded.put(unpicked, false);
+      flagged = unpicked;
+      View block = focusBlocks.get(unpicked);
+      bindFocus(block, unpicked);
+      scrollTo(block);
       return;
     }
     int unsaid = otherUnsaid();

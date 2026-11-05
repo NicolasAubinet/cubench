@@ -1644,6 +1644,7 @@
   <string name="coach_fb_tell_more">Cuéntame más (opcional)</string>
   <string name="coach_fb_say_what">Cuéntame qué falla</string>
   <string name="coach_fb_say_what_for">Por favor, dime qué falla en \"%1$s\"</string>
+  <string name="coach_fb_pick_reason_for">Por favor, elige qué falla en \"%1$s\"</string>
   <string name="coach_fb_stars_title">¿Qué tan útil es este plan?</string>
   <string name="coach_fb_stars_held">Valorarlo desbloquea tu siguiente plan semanal.</string>
   <string name="coach_fb_stars_free">Tus respuestas me ayudan a mejorar el coach.</string>

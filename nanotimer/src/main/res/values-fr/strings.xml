@@ -1645,6 +1645,7 @@
   <string name="coach_fb_tell_more">Dites-m\'en plus (facultatif)</string>
   <string name="coach_fb_say_what">Dites-moi ce qui ne va pas</string>
   <string name="coach_fb_say_what_for">Merci de me dire ce qui ne va pas pour « %1$s »</string>
+  <string name="coach_fb_pick_reason_for">Merci de choisir ce qui ne va pas pour « %1$s »</string>
   <string name="coach_fb_stars_title">Ce plan vous est-il utile ?</string>
   <string name="coach_fb_stars_held">Noter débloque votre plan de la semaine suivante.</string>
   <string name="coach_fb_stars_free">Vos réponses m\'aident à améliorer le coach.</string>

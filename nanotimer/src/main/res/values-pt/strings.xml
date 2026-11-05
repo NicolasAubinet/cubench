@@ -1647,6 +1647,7 @@
   <string name="coach_fb_tell_more">Conte mais (opcional)</string>
   <string name="coach_fb_say_what">Conte o que não está certo</string>
   <string name="coach_fb_say_what_for">Por favor, diga o que não está certo em \"%1$s\"</string>
+  <string name="coach_fb_pick_reason_for">Por favor, escolha o que não está certo em \"%1$s\"</string>
   <string name="coach_fb_stars_title">Quão útil é este plano?</string>
   <string name="coach_fb_stars_held">Avaliar libera seu próximo plano semanal.</string>
   <string name="coach_fb_stars_free">Suas respostas me ajudam a melhorar o coach.</string>
