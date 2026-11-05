@@ -36,6 +36,18 @@ public class AlgorithmFollowerTest {
     assertEquals(2, follower.getDoneCount());
   }
 
+  /** U' before an algorithm starting U lands on the start state again, which is not U done. */
+  @Test
+  public void turnsBackToTheStartAreNotTheFirstMoveDone() {
+    AlgorithmFollower follower = new AlgorithmFollower("U R U' R' U R U' R' L U2 L'");
+    for (int i = 0; i < 6; i++) {
+      turn(follower, "R U R' U'");
+    }
+    assertEquals(0, follower.getDoneCount());
+    turn(follower, "U R");
+    assertEquals(2, follower.getDoneCount());
+  }
+
   @Test
   public void followsTheAlgorithmFromAnotherSide() {
     AlgorithmFollower follower = new AlgorithmFollower("R U R' U'");

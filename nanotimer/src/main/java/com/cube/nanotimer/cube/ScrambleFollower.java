@@ -95,7 +95,8 @@ public class ScrambleFollower {
       for (Step step : turns) {
         applyStep(cube, step, step.quarters);
       }
-      fullStates.put(cube.toFaceCube(), ++moveCount);
+      // A state met twice keeps its first index: turns that come back to it have done nothing.
+      fullStates.putIfAbsent(cube.toFaceCube(), ++moveCount);
     }
   }
 
