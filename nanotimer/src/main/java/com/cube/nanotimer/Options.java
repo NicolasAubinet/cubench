@@ -107,6 +107,7 @@ public enum Options {
   private static final String LEARN_PICK_KEY_PREFIX = "learn_pick_";
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
   private static final String LEARNED_CASES_KEY = "learned_cases";
+  private static final String LEARNED_PAIR_CASES_KEY = "learned_pair_cases";
   private static final String KEPT_ALGORITHM_CASES_KEY = "kept_algorithm_cases";
   private static final String CELEBRATED_GROUPS_KEY = "celebrated_groups";
   public static final String DRILL_PRESETS_KEY_PREFIX = "drill_case_presets_";
@@ -575,6 +576,22 @@ public enum Options {
     Set<String> learned = getLearnedCases();
     if (learned.add(caseCode)) {
       sharedPreferences.edit().putStringSet(LEARNED_CASES_KEY, learned).apply();
+    }
+  }
+
+  /**
+   * The F2L pairs, back-slot ones included, cleared in a learning drill. Kept apart from
+   * {@link #getLearnedCases}, which the coach's learn order reads and which holds no pair.
+   */
+  public Set<String> getLearnedPairCases() {
+    return new LinkedHashSet<String>(
+        sharedPreferences.getStringSet(LEARNED_PAIR_CASES_KEY, new LinkedHashSet<String>()));
+  }
+
+  public void addLearnedPairCase(String caseCode) {
+    Set<String> learned = getLearnedPairCases();
+    if (learned.add(caseCode)) {
+      sharedPreferences.edit().putStringSet(LEARNED_PAIR_CASES_KEY, learned).apply();
     }
   }
 

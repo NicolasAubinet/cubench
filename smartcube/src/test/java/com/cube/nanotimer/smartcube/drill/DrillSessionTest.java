@@ -838,24 +838,48 @@ public class DrillSessionTest {
     }
   }
 
-  /** A learning drill deals 4 new cases at once; the fifth comes in once one is learned. */
+  /** A run holds 4 cases: new ones first, then half of it reviewing learned ones. */
   @Test
-  public void aLearningDrillTeachesFourCasesAtOnce() {
+  public void aLearningRunHoldsFourCasesHalfOfThemReview() {
     List<String> codes = Arrays.asList("pll_h", "pll_z", "pll_ua", "pll_ub", "pll_t", "pll_e");
-    DrillSession session = new DrillSession(DrillSpec.learning("coach-learn",
-        DrillSpec.Type.CASE_EXECUTION, codes, DrillSpec.Selection.ROUND_ROBIN, 400, 3,
-        Collections.<String, String>emptyMap(), null), new Random(3));
-    assertEquals(codes.subList(0, 4), session.getActiveCases());
+    assertEquals(codes.subList(0, 4), runOf(codes));
+    List<String> run = runOf(codes, "pll_h", "pll_z", "pll_ua", "pll_ub");
+    assertEquals(4, run.size());
+    assertTrue(run.containsAll(Arrays.asList("pll_t", "pll_e")));
+    run = runOf(codes, "pll_h", "pll_z", "pll_ua", "pll_ub", "pll_t");
+    assertEquals(4, run.size());
+    assertTrue(run.contains("pll_e")); // one new left, so three review it
+    assertEquals(4, runOf(codes, codes.toArray(new String[0])).size());
+    assertEquals(Arrays.asList("pll_h", "pll_z", "pll_ua", "pll_ub"), runOf(codes, "pll_h"));
+  }
+
+  /** The run never refills: once its 4 cases are learned, the drill is over. */
+  @Test
+  public void aLearningRunEndsWhenItsCasesAreLearned() {
+    List<String> codes = Arrays.asList("pll_h", "pll_z", "pll_ua", "pll_ub", "pll_t", "pll_e");
+    DrillSession session = learningSession(codes);
+    session.keepRunCases(Collections.<String>emptySet());
     Hand hand = new Hand(session);
-    while (session.getActiveCases().equals(codes.subList(0, 4)) && hand.next()) {
+    while (hand.next()) {
       String code = session.getCurrentCase();
       assertTrue(code, codes.subList(0, 4).contains(code));
       hand.execute(LayerRotation.toFace(LastLayerAlgorithms.forCaseCode(code), "U"));
     }
-    List<String> active = session.getActiveCases();
-    assertEquals(4, active.size());
-    assertTrue(active.contains("pll_t"));
-    assertFalse(active.contains("pll_e"));
+    for (String code : codes.subList(0, 4)) {
+      assertTrue(code, session.isRetired(code));
+    }
+  }
+
+  private static List<String> runOf(List<String> codes, String... learned) {
+    DrillSession session = learningSession(codes);
+    session.keepRunCases(new HashSet<String>(Arrays.asList(learned)));
+    return session.getCases();
+  }
+
+  private static DrillSession learningSession(List<String> codes) {
+    return new DrillSession(DrillSpec.learning("coach-learn", DrillSpec.Type.CASE_EXECUTION,
+        codes, DrillSpec.Selection.ROUND_ROBIN, 400, 3,
+        Collections.<String, String>emptyMap(), null), new Random(3));
   }
 
   private static DrillSpec learning() {

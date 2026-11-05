@@ -401,6 +401,11 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   private void begin(DrillSpec spec, Map<String, Long> weights) {
     session = new DrillSession(spec, Utils.getRandom(), weights, layerFace);
+    if (!chooseOnly) {
+      Set<String> learned = Options.INSTANCE.getLearnedCases();
+      learned.addAll(Options.INSTANCE.getLearnedPairCases());
+      session.keepRunCases(learned);
+    }
     if (spec.getType() == DrillSpec.Type.F2L_BACK_SLOT) {
       final char layer = layerFace == null ? 'U' : layerFace.charAt(0);
       session.setRotationReader((moves, shownHostMs, skewMs) -> {
@@ -673,8 +678,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         || !clearedHere.add(code)) {
       return;
     }
-    // The learn order these feed is OLL and PLL only; a pair has no use there.
-    if (!CaseAlgorithms.isPair(code)) {
+    // The learn order these feed is OLL and PLL only; a pair is kept apart, for the next run.
+    if (CaseAlgorithms.isPair(code)) {
+      Options.INSTANCE.addLearnedPairCase(code);
+    } else {
       Options.INSTANCE.addLearnedCase(code);
     }
     String group = OllShapes.groupOf(code);

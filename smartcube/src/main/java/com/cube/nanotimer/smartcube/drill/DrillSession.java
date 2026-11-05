@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * A drill being run: the virtual cube holds the case, the smart cube is only the input, and the
@@ -1022,6 +1023,30 @@ public final class DrillSession {
   /** Whether a case has beaten its target often enough to leave the drill. */
   public boolean isRetired(String code) {
     return getTally().isCleared(code);
+  }
+
+  /**
+   * Narrows a learning drill to this run's cases, before the first deal: at most
+   * {@link DrillSpec#LEARNING_AT_ONCE}, never refilled. Half of them review cases learned in an
+   * earlier run, drawn at random, and the rest are new ones in the spec's order; with too few of
+   * either, the other fills the run (owner, 2026-11-05).
+   */
+  public void keepRunCases(Set<String> learned) {
+    if (!spec.isLearning()) {
+      return;
+    }
+    List<String> fresh = new ArrayList<String>();
+    List<String> known = new ArrayList<String>();
+    for (String code : cases) {
+      (learned.contains(code) ? known : fresh).add(code);
+    }
+    Collections.shuffle(known, random);
+    int size = Math.min(DrillSpec.LEARNING_AT_ONCE, cases.size());
+    int review = known.isEmpty() ? 0 : Math.max(size / 2, size - fresh.size());
+    review = Math.min(review, known.size());
+    List<String> run = new ArrayList<String>(known.subList(0, review));
+    run.addAll(fresh.subList(0, Math.min(size - review, fresh.size())));
+    cases.retainAll(run); // the spec's order, which a round-robin pass is drawn from anyway
   }
 
   /** The cases this app can deal, in the order the spec named them. */
