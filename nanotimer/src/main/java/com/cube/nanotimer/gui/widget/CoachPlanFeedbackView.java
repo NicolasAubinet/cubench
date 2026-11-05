@@ -3,6 +3,7 @@ package com.cube.nanotimer.gui.widget;
 import android.app.Activity;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -23,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
@@ -337,6 +339,13 @@ public class CoachPlanFeedbackView {
     TextView sub = rateCard.findViewById(R.id.tvFbRateSub);
     title.setText(open ? R.string.coach_fb_stars_title : R.string.coach_fb_thanks);
     sub.setText(open ? look.starsSubtitle() : R.string.coach_fb_thanks_sub);
+    TextView edit = rateCard.findViewById(R.id.tvFbRateEdit);
+    edit.setVisibility(open ? View.GONE : View.VISIBLE);
+    Drawable pencil =
+        ContextCompat.getDrawable(activity, R.drawable.ic_action_edit).mutate();
+    pencil.setBounds(0, 0, dp(16), dp(16));
+    DrawableCompat.setTint(pencil, 0xFFFFD27A);
+    edit.setCompoundDrawablesRelative(pencil, null, null, null);
     showStars((LinearLayout) rateCard.findViewById(R.id.llFbStars), open);
     EditText text = rateCard.findViewById(R.id.etFbText);
     text.setVisibility(open ? View.VISIBLE : View.GONE);

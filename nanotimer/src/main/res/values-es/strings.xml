@@ -1659,7 +1659,8 @@
   </plurals>
   <string name="coach_fb_pick_stars">Por favor, elige las estrellas</string>
   <string name="coach_fb_thanks">Gracias por valorarlo</string>
-  <string name="coach_fb_thanks_sub">Puedes cambiarlo hasta el siguiente plan.</string>
+  <string name="coach_fb_thanks_sub">Puedes cambiar tus respuestas hasta el siguiente plan.</string>
+  <string name="coach_fb_edit">Editar</string>
   <string name="coach_fb_thanks_toast">Gracias por ayudarme a mejorar el coach</string>
   <plurals name="coach_fb_next_in">
     <item quantity="one">En %d día, una vez valorado</item>
