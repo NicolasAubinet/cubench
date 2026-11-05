@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
@@ -871,8 +872,26 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
             LastLayerCaseNames.shortName(code))));
     session.startPractice(code, first);
     setChoosing(true);
+    showChooseIntro();
     buildChooseRows();
     drawCase();
+  }
+
+  /** A learning drill's opening choose step says what it is and how far through it is. */
+  private void showChooseIntro() {
+    boolean opening = !choosingToPractise && !chooseOnly && !toChoose.isEmpty();
+    findViewById(R.id.llDrillChooseIntro).setVisibility(opening ? View.VISIBLE : View.GONE);
+    TextView use = findViewById(R.id.btDrillUseThis);
+    use.setText(opening && chooseIndex == toChoose.size() - 1
+        ? R.string.drill_choose_use_start : R.string.drill_choose_use);
+    if (!opening) {
+      return;
+    }
+    ((TextView) findViewById(R.id.tvDrillChooseCount)).setText(
+        getString(R.string.drill_choose_intro_count, chooseIndex + 1, toChoose.size()));
+    ProgressBar bar = findViewById(R.id.pbDrillChoose);
+    bar.setMax(toChoose.size());
+    bar.setProgress(chooseIndex);
   }
 
   private void clearChoosing() {
@@ -958,6 +977,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     findViewById(R.id.llDrillButtons).setVisibility(on ? View.GONE : View.VISIBLE);
     findViewById(R.id.svDrillChoose).setVisibility(on ? View.VISIBLE : View.GONE);
     findViewById(R.id.llDrillChooseButtons).setVisibility(on ? View.VISIBLE : View.GONE);
+    if (!on) {
+      findViewById(R.id.llDrillChooseIntro).setVisibility(View.GONE);
+    }
     if (on) {
       // Sized once shown: hidden, the button has no width and its label got the smallest size
       DrillControlLabels.apply(new Button[] {findViewById(R.id.btDrillChooseReset)},
