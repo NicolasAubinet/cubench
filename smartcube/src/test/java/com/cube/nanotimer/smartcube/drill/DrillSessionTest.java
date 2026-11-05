@@ -16,6 +16,7 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LPairScrambles;
+import com.cube.nanotimer.step.LastLayerAlgorithms;
 import com.cube.nanotimer.smartcube.step.FaceTurns;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import java.util.ArrayList;
@@ -835,6 +836,26 @@ public class DrillSessionTest {
         }
       }
     }
+  }
+
+  /** A learning drill deals 4 new cases at once; the fifth comes in once one is learned. */
+  @Test
+  public void aLearningDrillTeachesFourCasesAtOnce() {
+    List<String> codes = Arrays.asList("pll_h", "pll_z", "pll_ua", "pll_ub", "pll_t", "pll_e");
+    DrillSession session = new DrillSession(DrillSpec.learning("coach-learn",
+        DrillSpec.Type.CASE_EXECUTION, codes, DrillSpec.Selection.ROUND_ROBIN, 400, 3,
+        Collections.<String, String>emptyMap(), null), new Random(3));
+    assertEquals(codes.subList(0, 4), session.getActiveCases());
+    Hand hand = new Hand(session);
+    while (session.getActiveCases().equals(codes.subList(0, 4)) && hand.next()) {
+      String code = session.getCurrentCase();
+      assertTrue(code, codes.subList(0, 4).contains(code));
+      hand.execute(LayerRotation.toFace(LastLayerAlgorithms.forCaseCode(code), "U"));
+    }
+    List<String> active = session.getActiveCases();
+    assertEquals(4, active.size());
+    assertTrue(active.contains("pll_t"));
+    assertFalse(active.contains("pll_e"));
   }
 
   private static DrillSpec learning() {
