@@ -1135,6 +1135,8 @@
   <string name="case_title_f2l">F2L pair</string>
   <string name="case_title_f2l_back_right">F2L pair, back right</string>
   <string name="case_title_f2l_back_left">F2L pair, back left</string>
+  <string name="case_slot_back_right">Back right</string>
+  <string name="case_slot_back_left">Back left</string>
   <string name="case_algorithms_order">Recommended first. Tap the one you use.</string>
   <string name="case_algorithm_empty_fl">Needs the front-left slot empty</string>
   <string name="case_algorithm_empty_br">Needs the back-right slot empty</string>

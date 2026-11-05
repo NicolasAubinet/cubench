@@ -1605,6 +1605,15 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     LastLayerCaseView chart = row.findViewById(R.id.vDrillTargetChart);
     if (CaseAlgorithms.isPair(code)) {
       chart.setVisibility(View.GONE);
+      TextView algorithm = row.findViewById(R.id.tvDrillTargetAlg);
+      algorithm.setText(learningAlgorithm(code));
+      algorithm.setTypeface(algorithmFace);
+      algorithm.setVisibility(View.VISIBLE);
+      String slot = CaseAlgorithms.backSlotOf(code);
+      if (slot != null) { // the column is narrow, and every row is an F2L pair
+        name = getString("br".equals(slot) ? R.string.case_slot_back_right
+            : R.string.case_slot_back_left);
+      }
     } else {
       chart.setDiagram(LastLayerDiagram.forCase(code));
     }

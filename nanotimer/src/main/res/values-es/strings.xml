@@ -1089,6 +1089,8 @@
   <string name="case_title_f2l">Par F2L</string>
   <string name="case_title_f2l_back_right">Par F2L, trasero derecho</string>
   <string name="case_title_f2l_back_left">Par F2L, trasero izquierdo</string>
+  <string name="case_slot_back_right">Trasero derecho</string>
+  <string name="case_slot_back_left">Trasero izquierdo</string>
   <string name="case_algorithms_order">Los recomendados primero. Toca el que uses.</string>
   <string name="case_algorithm_empty_fl">Necesita el slot frontal izquierdo vacío</string>
   <string name="case_algorithm_empty_br">Necesita el slot trasero derecho vacío</string>
