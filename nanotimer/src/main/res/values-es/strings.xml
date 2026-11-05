@@ -1462,7 +1462,6 @@
   <string name="coach_pair_show">Ver el caso</string>
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_plan_title">En qué centrarte</string>
-  <string name="coach_plan_loop">Dirá si el trabajo de esta semana ha cambiado algo.</string>
   <string name="coach_preview_title">Tu plan se vería así</string>
   <string name="coach_preview_when">Cada semana, a partir de tus resoluciones</string>
   <string name="coach_fig_seconds_lost">segundos perdidos</string>

@@ -363,13 +363,13 @@ public class CoachPlanStatus {
   }
 
   /**
-   * The line under the docked row: what the next plan will answer, or, while it waits on a
-   * rating, when to rate and a "Rate now" that scrolls to the stars.
+   * The line under the docked row, only while the next plan waits on a rating: when to rate and a
+   * "Rate now" that scrolls to the stars.
    */
   private void showRateNow(boolean held, boolean due) {
     TextView loop = status.findViewById(R.id.tvCoachPlanStatusLoop);
     if (!held) {
-      loop.setText(R.string.coach_plan_loop);
+      loop.setVisibility(View.GONE);
       loop.setOnClickListener(null);
       loop.setClickable(false);
       return;
@@ -509,8 +509,8 @@ public class CoachPlanStatus {
   }
 
   /**
-   * Moves the card into the plan's card, where it loses its own ground and says what the next plan
-   * will answer, or back to the top of the tab.
+   * Moves the card into the plan's card, where it loses its own ground, or back to the top of the
+   * tab.
    */
   private void place(boolean docked) {
     ViewGroup target = docked && dock != null ? dock : tab;

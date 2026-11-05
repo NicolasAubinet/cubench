@@ -76,13 +76,12 @@
        android:progressDrawable="@drawable/drill_progress"
        android:visibility="gone"/>
 
-    <!-- Only docked in a plan's card: what the next plan will answer. -->
+    <!-- Only docked in a plan's card, while the next plan waits on a rating. -->
     <TextView
        android:id="@+id/tvCoachPlanStatusLoop"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:layout_marginTop="8dp"
-       android:text="@string/coach_plan_loop"
        android:textColor="@color/secondary_text"
        android:textSize="12.5sp"
        android:visibility="gone"/>

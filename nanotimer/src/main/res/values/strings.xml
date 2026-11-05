@@ -1511,7 +1511,6 @@
   <string name="coach_pair_show">Show case</string>
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_plan_title">This week\'s focus</string>
-  <string name="coach_plan_loop">It will say whether this week\'s work moved anything.</string>
   <string name="coach_preview_title">Your plan would look like this</string>
   <string name="coach_preview_when">Every week, from your own solves</string>
   <string name="coach_fig_seconds_lost">seconds lost</string>
