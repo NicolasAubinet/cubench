@@ -630,6 +630,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   /** Every case a learning drill teaches, against the algorithm the screen shows for it. */
   private void teachAll() {
+    if (!teachesAlgorithm()) {
+      return;
+    }
     for (String code : session.getCases()) {
       session.setTaughtAlgorithm(code, learningAlgorithm(code));
     }
@@ -776,8 +779,16 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return false;
     }
     // A learning drill's own algorithm is what it asked for, even when off the usual list.
-    return !session.getSpec().isLearning()
-        || !CaseAlgorithms.sameTurning(code, turned, learningAlgorithm(code));
+    return !teachesAlgorithm() || !CaseAlgorithms.sameTurning(code, turned, learningAlgorithm(code));
+  }
+
+  /**
+   * A learning drill that holds each case to one algorithm, picked in a choose step at its start. A
+   * back-slot drill takes any solve without a rotation: its point is the slot, not the algorithm.
+   */
+  private boolean teachesAlgorithm() {
+    DrillSpec spec = session.getSpec();
+    return spec.isLearning() && spec.getType() != DrillSpec.Type.F2L_BACK_SLOT;
   }
 
   /** A learning rep looked up, reset, skipped, turned with another algorithm or with a rotation. */
@@ -812,6 +823,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private void collectCasesToChoose() {
     toChoose.clear();
     chooseIndex = 0;
+    if (!teachesAlgorithm()) {
+      return;
+    }
     for (String code : session.getCases()) {
       if (!Options.INSTANCE.isAlgorithmKept(code)) {
         toChoose.add(code);
