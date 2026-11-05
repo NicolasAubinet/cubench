@@ -155,6 +155,8 @@ public final class DrillSession {
   private boolean followsOn;
   private RotationReader rotationReader;
   private GripReader gripReader;
+  /** The last grip read with the layer's face on top, for when a slice leaves the core tipped. */
+  private CubeRotation lastUpright;
   /** The y quarters a back-slot case was dealt off the usual grip, to follow the user's. */
   private int gripQuarters;
 
@@ -363,10 +365,16 @@ public final class DrillSession {
 
   /**
    * The extra y quarters that put the slot behind the hand as the cube is held now: 0 for the usual
-   * grip, and for one the gyro cannot read, or that has another face on top.
+   * grip, and for one the gyro cannot read. The gyro is in the core, which an M or S just turned
+   * tips over, so a grip with another face on top is taken as the last one read upright.
    */
   private int gripQuartersTo(String slot) {
     CubeRotation grip = gripReader == null ? null : gripReader.grip();
+    if (grip != null && grip.faceAt('U') == LayerRotation.piece("U", 0, layerFace).charAt(0)) {
+      lastUpright = grip;
+    } else {
+      grip = lastUpright;
+    }
     if (grip == null) {
       return 0;
     }

@@ -1146,6 +1146,29 @@ public class DrillSessionTest {
     }
   }
 
+  /** Every listed back-slot algorithm, tried in the choose step, solves the case it is dealt. */
+  @Test
+  public void everyBackSlotAlgorithmFinishesItsPractisedCase() {
+    List<String> failed = new ArrayList<String>();
+    for (String code : F2LPairScrambles.basicCases()) {
+      for (String slot : new String[] {"br", "bl"}) {
+        String backCode = CaseAlgorithms.inBackSlot(code, slot);
+        for (CaseAlgorithms.Listed listed : CaseAlgorithms.shown(backCode)) {
+          String alg = listed.getMoves();
+          DrillSession session = new DrillSession(backSlotSpec(code), new Random(5));
+          Hand hand = new Hand(session);
+          for (int rep = 0; rep < 2; rep++) {
+            hand.practise(backCode, alg);
+            if (hand.execute(alg) == null) {
+              failed.add(backCode + " " + alg + " rep " + rep);
+            }
+          }
+        }
+      }
+    }
+    assertEquals(Collections.<String>emptyList(), failed);
+  }
+
   /** Held a quarter round, as a d leaves it, the case goes behind the hand and its algorithm counts. */
   @Test
   public void aBackSlotCaseIsDealtIntoTheSlotOfTheGripHeld() {
@@ -1175,6 +1198,35 @@ public class DrillSessionTest {
             assertFalse(what, CaseAlgorithms.isWorthPointingOut(backCode, rep.getTurned()));
           }
         }
+      }
+    }
+  }
+
+  /** A slice tips the gyro's core over; a grip read with another face on top keeps the last one. */
+  @Test
+  public void aGripReadWithAnotherFaceOnTopKeepsTheLastGrip() {
+    for (String face : new String[] {"U", "D"}) {
+      char top = LayerRotation.piece("U", 0, face).charAt(0);
+      for (CubeRotation tipped : CubeRotation.all()) {
+        if (tipped.faceAt('U') == top) {
+          continue;
+        }
+        CubeRotation[] read = {null};
+        for (CubeRotation usual : CubeRotation.withFaceUp(top)) {
+          if (usual.faceAt('F') == LayerRotation.piece("F", 0, face).charAt(0)) {
+            read[0] = usual;
+          }
+        }
+        DrillSession session = new DrillSession(backSlotSpec("pair_26"), new Random(5), null, face);
+        session.setGripReader(() -> read[0]);
+        Hand hand = new Hand(session);
+        String alg = "U L U' M U L' U' M'";
+        hand.practise("pair_26_bl", alg);
+        assertNotNull(hand.execute(LayerRotation.toFace(alg, face)));
+        read[0] = tipped;
+        hand.practise("pair_26_bl", alg);
+        assertNotNull(face + " tipped " + tipped,
+            hand.execute(LayerRotation.toFace(alg, face)));
       }
     }
   }
