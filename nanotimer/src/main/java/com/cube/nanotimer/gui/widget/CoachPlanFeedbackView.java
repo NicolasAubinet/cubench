@@ -465,6 +465,14 @@ public class CoachPlanFeedbackView {
       scrollTo(rateCard);
       return;
     }
+    CoachBeta beta = CoachBeta.of(activity);
+    if (beta.isRated(planId)
+        && feedback.answers(stored.getPlan()).equals(beta.getSentAnswers(planId))) {
+      editing = false; // reopened and sent back unchanged: fold it, no call to the service
+      folded.clear();
+      show(stored, areas, hero);
+      return;
+    }
     final CoachClient client = CoachClient.configured(activity);
     if (client == null) {
       return;
@@ -484,14 +492,15 @@ public class CoachPlanFeedbackView {
                 feedback.setDrillReps(i, reps.get(i));
               }
             }
-            post(client, id, feedback.toBody(plan.getPlan()));
+            post(client, id, feedback.toBody(plan.getPlan()), feedback.answers(plan.getPlan()));
           }
         });
       }
     });
   }
 
-  private void post(final CoachClient client, final String id, final String body) {
+  private void post(final CoachClient client, final String id, final String body,
+      final String answers) {
     new Thread(new Runnable() {
       @Override
       public void run() {
@@ -502,6 +511,7 @@ public class CoachPlanFeedbackView {
             sending = false;
             if (outcome == CoachClient.FeedbackOutcome.SENT
                 || outcome == CoachClient.FeedbackOutcome.GONE) {
+              CoachBeta.of(activity).setSentAnswers(id, answers);
               editing = false;
               folded.clear();
               CoachPlanWorker.onRated(activity);

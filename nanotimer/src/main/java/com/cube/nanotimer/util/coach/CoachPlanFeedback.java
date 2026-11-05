@@ -246,6 +246,22 @@ public final class CoachPlanFeedback {
     }
   }
 
+  /**
+   * The body without its reading signals: what the solver said, the only thing a resend is worth
+   * making for. Drill reps and focuses seen move without the solver saying anything new.
+   *
+   * @throws IllegalStateException before the plan is rated
+   */
+  public String answers(CoachPlan plan) {
+    try {
+      JSONObject body = new JSONObject(toBody(plan));
+      body.remove("signals");
+      return body.toString();
+    } catch (JSONException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   /** The draft as kept on the device. */
   public String toDraft() {
     try {

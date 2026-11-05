@@ -99,6 +99,7 @@ public final class CoachBeta {
   private static final String RATED_PLAN_ID_KEY = "rated_plan_id";
   private static final String OWED_SAID_KEY = "owed_said";
   private static final String DRAFT_KEY_PREFIX = "draft_";
+  private static final String SENT_KEY_PREFIX = "sent_";
   private static final String MODE_KEY = "feedback_mode";
   private static final String END_SEEN_KEY = "end_seen";
   private static final String INVITATION_SHOWN_KEY = "invitation_shown";
@@ -334,7 +335,7 @@ public final class CoachBeta {
         // The one before the last is no longer rateable from the app.
         String previous = preferences.getString(PREVIOUS_PLAN_ID_KEY, null);
         if (previous != null) {
-          editor.remove(DRAFT_KEY_PREFIX + previous);
+          editor.remove(DRAFT_KEY_PREFIX + previous).remove(SENT_KEY_PREFIX + previous);
         }
       }
       editor.putString(PLAN_ID_KEY, planId).remove(OWED_SAID_KEY);
@@ -433,5 +434,14 @@ public final class CoachBeta {
 
   public synchronized void saveFeedback(String planId, CoachPlanFeedback feedback) {
     preferences.edit().putString(DRAFT_KEY_PREFIX + planId, feedback.toDraft()).commit();
+  }
+
+  /** The answers the service last took for this plan ({@link CoachPlanFeedback#answers}), or null. */
+  public synchronized String getSentAnswers(String planId) {
+    return preferences.getString(SENT_KEY_PREFIX + planId, null);
+  }
+
+  public synchronized void setSentAnswers(String planId, String answers) {
+    preferences.edit().putString(SENT_KEY_PREFIX + planId, answers).commit();
   }
 }

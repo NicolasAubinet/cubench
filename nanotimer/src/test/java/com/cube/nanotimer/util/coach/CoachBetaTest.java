@@ -183,6 +183,23 @@ public class CoachBetaTest {
     Assert.assertEquals(1_000, signals.getLong("rated_after_ms"));
   }
 
+  /** A resend is skipped on equal answers, so reading signals must not count and words must. */
+  @Test
+  public void answersIgnoreTheSignalsButNotAWord() {
+    CoachPlanFeedback feedback = new CoachPlanFeedback();
+    feedback.opened(NOW);
+    feedback.rate(4, NOW + 1_000);
+    feedback.answer(0, CoachPlanFeedback.Answer.YES);
+    String sent = feedback.answers(plan());
+
+    feedback.seen(1);
+    feedback.setDrillReps(0, 12);
+    Assert.assertEquals(sent, feedback.answers(plan()));
+
+    feedback.setText("one more thing");
+    Assert.assertNotEquals(sent, feedback.answers(plan()));
+  }
+
   @Test
   public void aYesDropsTheReasonsANotQuiteHad() {
     CoachPlanFeedback feedback = new CoachPlanFeedback();
