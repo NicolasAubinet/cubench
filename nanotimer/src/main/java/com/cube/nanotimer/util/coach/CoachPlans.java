@@ -43,6 +43,11 @@ public final class CoachPlans {
         && Options.INSTANCE.getCoachPlansSolveType() == solveType.getId();
   }
 
+  /** Whether the weekly plans are on and written for some solve type, whichever is on screen. */
+  public static boolean carriedByAny() {
+    return Options.INSTANCE.isCoachPlansOn() && Options.INSTANCE.getCoachPlansSolveType() != -1;
+  }
+
   /** @param method the method the solve type's solves are read as */
   static boolean eligible(SolveType solveType, CubeMethod method) {
     DynamicTranslations names = App.INSTANCE.getDynamicTranslations();

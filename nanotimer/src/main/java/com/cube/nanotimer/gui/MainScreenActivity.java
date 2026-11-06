@@ -514,14 +514,41 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     if (entry != MENU_ANALYSIS && entry != MENU_COACHING) {
       return false;
     }
-    // The coach plans two-handed CFOP only, so it also dims for a blind, Roux, LBL or one-handed type.
-    return entry == MENU_COACHING ? !CoachPlans.eligible(curSolveType)
+    // The coach plans two-handed CFOP only; once plans are on, it opens theirs from any type.
+    return entry == MENU_COACHING
+        ? !CoachPlans.carriedByAny() && !CoachPlans.eligible(curSolveType)
         : !AnalysisActivity.canAnalyse(curSolveType);
   }
 
+  /** Opens the plan of the solve type the plans are written for, whichever type is on screen. */
+  private void openCoach() {
+    if (!CoachPlans.carriedByAny()
+        || (curSolveType != null && CoachPlans.carriedBy(curSolveType))) {
+      openAnalysis(AnalysisActivity.TAB_PLAN);
+      return;
+    }
+    App.INSTANCE.getService().getSolveTypes(CubeType.THREE_BY_THREE,
+        new DataCallback<List<SolveType>>() {
+          @Override
+          public void onData(List<SolveType> solveTypes) {
+            final SolveType flagged = CoachPlans.flagged(solveTypes);
+            runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                openAnalysis(AnalysisActivity.TAB_PLAN, flagged != null ? flagged : curSolveType);
+              }
+            });
+          }
+        });
+  }
+
   private void openAnalysis(int tab) {
+    openAnalysis(tab, curSolveType);
+  }
+
+  private void openAnalysis(int tab, SolveType solveType) {
     Intent i = new Intent(this, AnalysisActivity.class);
-    i.putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, curSolveType);
+    i.putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, solveType);
     i.putExtra(AnalysisActivity.EXTRA_TAB, tab);
     startActivity(i);
   }
@@ -608,7 +635,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         break;
       case MENU_COACHING:
         // The coach has no screen of its own: what it would say is the hub's third tab.
-        openAnalysis(AnalysisActivity.TAB_PLAN);
+        openCoach();
         break;
       case MENU_IMPORT_EXPORT:
         ArrayList<String> items = new ArrayList<>(Arrays.asList(getResources().getStringArray(R.array.import_export)));
