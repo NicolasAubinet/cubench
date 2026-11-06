@@ -520,8 +520,8 @@
        android:textSize="12.5sp"/>
   </LinearLayout>
 
-  <!-- Debug builds only: runs the weekly job now for this solve type, and says how it ended.
-       What Play last answered also shows in a release built with coach.purchase.debug. -->
+  <!-- How the last "Request new plan" ended, where that menu item is offered. What Play last
+       answered also shows in a release built with coach.purchase.debug. -->
   <LinearLayout
      android:id="@+id/llAnalysisPlanDebug"
      android:layout_width="match_parent"
@@ -539,12 +539,6 @@
        android:textColor="@color/secondary_text"
        android:textSize="12.5sp"
        android:visibility="gone"/>
-
-    <androidx.appcompat.widget.AppCompatButton
-       android:id="@+id/buAnalysisPlanAskNow"
-       style="@style/DialogActionButton"
-       android:text="Ask now (debug)"
-       tools:ignore="HardcodedText"/>
 
     <LinearLayout
        android:id="@+id/llAnalysisPlanPurchaseDebug"

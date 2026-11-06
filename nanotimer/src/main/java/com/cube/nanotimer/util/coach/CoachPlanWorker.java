@@ -135,7 +135,7 @@ public final class CoachPlanWorker extends Worker {
     runIn(context, PlanSchedule.QUIET_MS);
   }
 
-  /** Debug builds only: asks for the solve type now, whatever the schedule says. */
+  /** Asks for the solve type now, whatever the schedule says: debug and owner token builds only. */
   public static void askNow(Context context, SolveType solveType) {
     Data solveTypeId = new Data.Builder().putInt(DEBUG_SOLVE_TYPE, solveType.getId()).build();
     WorkManager.getInstance(context.getApplicationContext())

@@ -46,6 +46,7 @@ import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.coach.CoachAccess;
 import com.cube.nanotimer.util.coach.CoachBeta;
@@ -139,6 +140,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private MenuItem windowItem;
   private MenuItem feedbackItem;
   private MenuItem languageItem;
+  private MenuItem askNowItem;
   private boolean planShown;
   private int tab = TAB_SOLVE;
   private boolean loaded;
@@ -296,6 +298,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     });
     feedbackItem = menu.findItem(R.id.itAnalysisPlanFeedback);
     languageItem = menu.findItem(R.id.itAnalysisPlanLanguage);
+    askNowItem = menu.findItem(R.id.itAnalysisPlanAskNow);
     showPlanMenu();
     showWindow();
     return super.onCreateOptionsMenu(menu);
@@ -317,6 +320,10 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     }
     if (item.getItemId() == R.id.itAnalysisPlanLanguage) {
       askForPlanLanguage();
+      return true;
+    }
+    if (item.getItemId() == R.id.itAnalysisPlanAskNow) {
+      confirmAskNow();
       return true;
     }
     return super.onOptionsItemSelected(item);
@@ -414,11 +421,15 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         .show();
   }
 
-  /** The Plan tab's overflow: plan feedback for whoever isn't required to give it, and language. */
+  /**
+   * The Plan tab's overflow: plan feedback for whoever isn't required to give it, language, and
+   * a plan on demand where {@link #askNowOffered} allows it.
+   */
   private void showPlanMenu() {
     if (feedbackItem == null) {
       return;
     }
+    askNowItem.setVisible(tab == TAB_PLAN && askNowOffered());
     boolean coach = tab == TAB_PLAN && CoachClient.configured(this) != null;
     CoachBetaLook look = coach ? CoachBetaLook.of(this) : null;
     boolean choice = look != null && planShown && look.offersFeedbackChoice();
@@ -844,12 +855,6 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       }
     };
     read.setListener(readListener);
-    findViewById(R.id.buAnalysisPlanAskNow).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        CoachPlanWorker.askNow(AnalysisActivity.this, solveType);
-      }
-    });
     // The beta's pitch, questions and tags are drawn from the last status, so a new one redraws.
     betaListener = new CoachBeta.Listener() {
       @Override
@@ -912,16 +917,33 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   }
 
   /**
-   * Debug builds only: the button that runs the weekly job now, and how its last ask ended. What
-   * Play last answered sits under it.
+   * Whether the menu offers a plan now, whatever the schedule says: debug builds, and releases
+   * carrying the owner's token, which bundleRelease refuses to build. The service still caps the
+   * plans a device gets each week.
    */
+  private boolean askNowOffered() {
+    return coachClient != null && CoachPlans.eligible(solveType)
+        && (debuggable() || !getString(R.string.coach_token).isEmpty());
+  }
+
+  private void confirmAskNow() {
+    DialogUtils.showYesNoConfirmation(this,
+        "Request a new plan now? It replaces the plan you are following.", new YesNoListener() {
+          @Override
+          public void onYes() {
+            CoachPlanWorker.askNow(AnalysisActivity.this, solveType);
+          }
+        });
+  }
+
+  /** How the last plan on demand ended, then what Play last answered. */
   private void showAskNow() {
-    boolean offered = debuggable() && coachClient != null && CoachPlans.eligible(solveType);
-    findViewById(R.id.llAnalysisPlanDebug)
-        .setVisibility(offered || purchaseDebugOffered() ? View.VISIBLE : View.GONE);
-    findViewById(R.id.buAnalysisPlanAskNow).setVisibility(offered ? View.VISIBLE : View.GONE);
+    boolean offered = askNowOffered();
+    showPlanMenu();
     CoachRead read = CoachRead.of(solveType);
     boolean failed = offered && read.getState() == CoachRead.State.FAILED;
+    findViewById(R.id.llAnalysisPlanDebug)
+        .setVisibility(failed || purchaseDebugOffered() ? View.VISIBLE : View.GONE);
     TextView status = findViewById(R.id.tvAnalysisPlanDebugStatus);
     status.setVisibility(failed ? View.VISIBLE : View.GONE);
     if (failed) {
