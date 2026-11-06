@@ -373,7 +373,6 @@ public class Utils {
     }
   }
 
-
   /**
    * A case as a headline, "PLL Ga" or "OLL 21", for a screen whose whole subject is the case.
    * {@link #toSmartCubeCaseLabel} is parenthetical because it hangs off a step name in a shared
