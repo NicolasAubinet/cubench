@@ -383,6 +383,20 @@
            android:alpha="0.9"
            android:textSize="14sp"
            android:layout_marginTop="10dp"
+           android:drawableLeft="@drawable/ic_coach_point_daily"
+           android:drawableStart="@drawable/ic_coach_point_daily"
+           android:text="@string/analysis_plan_point_daily"/>
+
+        <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:drawablePadding="12dp"
+           android:gravity="center_vertical"
+           android:lineSpacingMultiplier="1.15"
+           android:textColor="@color/white"
+           android:alpha="0.9"
+           android:textSize="14sp"
+           android:layout_marginTop="10dp"
            android:id="@+id/tvAnalysisPlanPointSupport"
            android:drawableLeft="@drawable/ic_coach_point_support"
            android:drawableStart="@drawable/ic_coach_point_support"

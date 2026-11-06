@@ -1270,6 +1270,7 @@
   <string name="analysis_plan_point_plans">Un plan concret chaque semaine, tiré de vos résolutions</string>
   <string name="analysis_plan_point_practice">Entraînez les cas qui vous coûtent le plus de temps</string>
   <string name="analysis_plan_point_learn">Apprenez les algorithmes qui rapportent le plus vite</string>
+  <string name="analysis_plan_point_daily">Suivez vos progrès chaque jour</string>
   <string name="analysis_plan_point_support">Soutenez le développement de Cubench</string>
   <string name="analysis_plan_private">Rien ne quitte votre téléphone sans abonnement ou rapport envoyé.</string>
   <string name="analysis_plan_cites">Un plan est écrit à partir de vos propres résolutions, chaque affirmation citant un chiffre que vous pouvez vérifier sur les deux autres onglets.</string>
