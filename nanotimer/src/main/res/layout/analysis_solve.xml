@@ -116,7 +116,6 @@
        android:layout_height="wrap_content"
        android:layout_marginBottom="10dp"
        android:letterSpacing="0.09"
-       android:textAllCaps="true"
        android:textColor="@color/secondary_text"
        android:textSize="11sp"/>
 
@@ -125,19 +124,6 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:orientation="vertical"/>
-
-    <!-- The honest limit, printed rather than left for the reader to work out: shares sum to a
-         hundred, so the four deltas always cancel and a quick last step will always print as a
-         problem with an earlier one. A reader who works that out alone trusts the next chart less. -->
-    <TextView
-       android:id="@+id/tvAnalysisDeltaLimit"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="10dp"
-       android:lineSpacingMultiplier="1.15"
-       android:text="@string/analysis_delta_limit"
-       android:textColor="@color/secondary_text"
-       android:textSize="12sp"/>
   </LinearLayout>
 
   <!-- The Cases tab includes this same table, so every id inside it exists twice under this

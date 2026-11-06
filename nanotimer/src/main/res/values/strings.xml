@@ -90,13 +90,13 @@
   <string name="session_success_average">Success average</string>
   <string name="session_accuracy">Accuracy</string>
   <string name="sessiondetail_help_title">What these numbers mean</string>
-  <string name="sessiondetail_help_body">All of them cover the one session named above.</string>
-  <string name="sessiondetail_help_average">Drops the fastest and slowest 5% of times (at least one of each), then averages the rest. A DNF counts as the slowest, so it is the first to be dropped.</string>
+  <string name="sessiondetail_help_body">All figures here cover the session shown above.</string>
+  <string name="sessiondetail_help_average">Drops the fastest 5% and the slowest 5% of times (at least one of each), then averages the rest. A DNF counts as the slowest, so it is the first to be dropped.</string>
   <string name="sessiondetail_help_success_average">The same trimmed average, over the solves you did not DNF.</string>
   <string name="sessiondetail_help_deviation">How far the session spreads around its own mean, DNFs left out. Smaller is steadier.</string>
   <string name="sessiondetail_help_best_mo3">The best three in a row, as a plain mean: nothing is dropped, so one DNF among the three makes it a DNF.</string>
   <string name="sessiondetail_help_accuracy">Percentage of solves in this session that were not a DNF.</string>
-  <string name="sessiondetail_help_best_averages">The best 5, 12, 50 and 100 anywhere in the session, not just the most recent ones.</string>
+  <string name="sessiondetail_help_best_averages">Your best Ao5, Ao12, Ao50 and Ao100 anywhere in the session, not only the latest ones.</string>
 
   <string name="clear_history">Clear history</string>
   <string name="clear_history_title">Clear this history?</string>
@@ -156,7 +156,7 @@
   <string name="edit_solve_types">Edit solve types</string>
   <string name="edit_solve_types_summary">Edit, create and delete solve types</string>
   <string name="solvetypes_help_title">About solve types</string>
-  <string name="solvetypes_help_body">Each one keeps a history of its own under this puzzle, and the timer\'s picker lists them in the order they are in here.</string>
+  <string name="solvetypes_help_body">Each one keeps its own history for this puzzle. The timer\'s picker lists them in the order shown here.</string>
   <string name="solvetypes_help_reorder">Reorder</string>
   <string name="solvetypes_help_edit_body">Tap a row to edit its name and settings, give it steps, or delete it.</string>
   <string name="solvetypes_help_reorder_body">Drag a row by the grip on its right to move it up or down the list.</string>
@@ -286,7 +286,7 @@
   <string name="export_help_body">This screen makes two kinds of file. Pick one at the top. The CSV includes the solves you select below.</string>
   <string name="export_help_backup_body">One file holding everything the app keeps: every solve, every session and every setting. Only Cubench reads it, and restoring one replaces what is on the phone.</string>
   <string name="export_help_share">Sends the file to another app: email, a chat app, cloud storage.</string>
-  <string name="export_help_save">Writes it where you choose on this device, to keep or move yourself.</string>
+  <string name="export_help_save">Saves the file to a folder you choose on this device.</string>
   <string name="export_help_columns">What a line holds</string>
   <string name="export_help_columns_body">The puzzle type, the solve type, the time and its date, the scramble, and any penalty or comment.</string>
   <string name="export_help_reading_back">Reading it back</string>
@@ -1280,9 +1280,9 @@
   </plurals>
   <string name="analysis_column_step">Step</string>
   <string name="analysis_delta_label">Against a typical %s solve</string>
+  <string name="analysis_delta_zero_sum">(zero-sum steps)</string>
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
-  <string name="analysis_delta_limit">Sums to zero: a fast step makes others look slow.</string>
   <string name="analysis_window_title">Read over</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">Last 50</string>
@@ -1619,7 +1619,7 @@
   <string name="analysis_help_standard">Standard algorithms</string>
   <string name="analysis_help_standard_body">The cases of the set where your last solve used one of the listed algorithms.</string>
   <string name="analysis_help_extra">Extra moves</string>
-  <string name="analysis_help_extra_body">The turns those cases cost you over the shortest standard algorithm, added up.</string>
+  <string name="analysis_help_extra_body">The extra turns those cases cost you, compared with the shortest standard algorithm.</string>
   <string name="analysis_help_plan_title">Your plan</string>
   <string name="analysis_help_plan_body">Plans are part of the Cubench coach, a paid feature. The coach reads your smart cube solves, finds what costs you the most time, and turns it into a plan for the week, with drills for your weak points.</string>
   <string name="analysis_help_plan_cards">This week\'s focus</string>

@@ -3,6 +3,10 @@ package com.cube.nanotimer.gui;
 import android.content.DialogInterface;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +20,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
@@ -801,8 +806,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     showWindow();
     showSample();
     showRead();
-    ((TextView) findViewById(R.id.tvAnalysisDeltaLabel)).setText(
-        getString(R.string.analysis_delta_label, getString(SolveTypeMethod.nameOf(method))));
+    showDeltaLabel();
 
     steps.clear();
     steps.addAll(statistics.getFamilies());
@@ -1283,6 +1287,19 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    * nobody has published figures for, rather than measuring a Roux solve against somebody else's
    * steps.
    */
+  /** The card's caps label, with a smaller, fainter note that the deltas cancel out. */
+  private void showDeltaLabel() {
+    String label = getString(R.string.analysis_delta_label, getString(SolveTypeMethod.nameOf(method)))
+        .toUpperCase(getResources().getConfiguration().locale);
+    SpannableStringBuilder text = new SpannableStringBuilder(label).append("  ");
+    int start = text.length();
+    text.append(getString(R.string.analysis_delta_zero_sum));
+    int faded = ColorUtils.setAlphaComponent(ContextCompat.getColor(this, R.color.secondary_text), 0x99);
+    text.setSpan(new RelativeSizeSpan(0.9f), start, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    text.setSpan(new ForegroundColorSpan(faded), start, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    ((TextView) findViewById(R.id.tvAnalysisDeltaLabel)).setText(text);
+  }
+
   private void showDeltas() {
     Map<String, Double> expected =
         StepBaseline.shares(method.getCode().toLowerCase(Locale.US), familyCodes());
