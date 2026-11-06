@@ -1706,7 +1706,7 @@
     <item quantity="one">répétition</item>
     <item quantity="other">répétitions</item>
   </plurals>
-  <string name="coach_day_none_yet">Pas encore de résolution aujourd\'hui. Vos chiffres s\'affichent dès la première.</string>
+  <string name="coach_day_none_yet">Pas encore de résolution aujourd\'hui.</string>
   <string name="coach_day_since">Depuis le plan</string>
   <plurals name="coach_day_since_solves">
     <item quantity="one">%d résolution</item>
@@ -1755,4 +1755,7 @@
   <string name="coach_recap_setting_summary">Les résolutions du jour et l\'évolution de vos points, les jours où vous résolvez</string>
   <string name="coach_recap_time">Heure du bilan</string>
   <string name="coach_recap_time_summary">À partir de %1$s, une fois votre session finie</string>
+  <string name="coach_day_sets">Pratique libre depuis hier</string>
+  <string name="coach_day_sets_joined">Ajoutés : %1$s</string>
+  <string name="coach_day_sets_left">Retirés : %1$s</string>
 </resources>

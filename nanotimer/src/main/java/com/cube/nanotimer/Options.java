@@ -90,6 +90,7 @@ public enum Options {
   private static final String COACH_PRACTICE_KEY_PREFIX = "coach_practice_";
   private static final String COACH_PRACTICE_AT_KEY_PREFIX = "coach_practice_at_";
   private static final String COACH_PRACTICE_WITH_KEY_PREFIX = "coach_practice_with_";
+  private static final String COACH_PRACTICE_BEFORE_KEY_PREFIX = "coach_practice_before_";
   private static final String LEARN_NEXT_COUNT_KEY = "learn_next_count";
   private static final int DEFAULT_LEARN_NEXT_COUNT = 3;
   private static final String COACH_ID_KEY = "coach_id";
@@ -380,8 +381,22 @@ public enum Options {
     return sharedPreferences.getString(COACH_PRACTICE_WITH_KEY_PREFIX + solveTypeId, null);
   }
 
-  public void setCoachPractice(int solveTypeId, String reply, long askedAt, String askedWith) {
-    sharedPreferences.edit()
+  /** The sets kept on the last day before the current ones were asked, null when none were. */
+  public String getCoachPracticeBefore(int solveTypeId) {
+    return sharedPreferences.getString(COACH_PRACTICE_BEFORE_KEY_PREFIX + solveTypeId, null);
+  }
+
+  /**
+   * @param before the sets the new ones replace when those were from an earlier day, kept as the
+   *     day's baseline; null keeps the baseline there is
+   */
+  public void setCoachPractice(int solveTypeId, String reply, long askedAt, String askedWith,
+      String before) {
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    if (before != null) {
+      editor.putString(COACH_PRACTICE_BEFORE_KEY_PREFIX + solveTypeId, before);
+    }
+    editor
         .putString(COACH_PRACTICE_KEY_PREFIX + solveTypeId, reply)
         .putLong(COACH_PRACTICE_AT_KEY_PREFIX + solveTypeId, askedAt)
         .putString(COACH_PRACTICE_WITH_KEY_PREFIX + solveTypeId, askedWith)
