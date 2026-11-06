@@ -1271,7 +1271,7 @@
   <string name="analysis_plan_point_support">Soutenez le développement de Cubench</string>
   <string name="analysis_plan_private">Rien ne quitte votre téléphone sans abonnement ou rapport envoyé.</string>
   <string name="analysis_plan_cites">Un plan est écrit à partir de vos propres résolutions, chaque affirmation citant un chiffre que vous pouvez vérifier sur les deux autres onglets.</string>
-  <string name="analysis_plan_not_yet">Il n\'y a pas encore de plan ici. Résolution et Cas restent gratuits quoi qu\'il arrive à cet onglet.</string>
+  <string name="analysis_plan_not_yet">Pas encore de plan. Résolution et Cas restent gratuits dans tous les cas.</string>
   <string name="coach_written">Analysé le %1$s</string>
   <string name="coach_uncited">%1$d éléments de ce plan ne figurent pas dans votre historique et ne sont pas affichés.</string>
   <string name="coach_refused_thin">Il n\'y a pas encore assez à lire. Faites encore quelques résolutions avec votre smart cube et redemandez.</string>
@@ -1566,7 +1566,7 @@
   <string name="analysis_help_extra">Coups en trop</string>
   <string name="analysis_help_extra_body">Les coups en trop que ces cas vous ont coûtés, par rapport à l\'algorithme standard le plus court.</string>
   <string name="analysis_help_plan_title">Votre plan</string>
-  <string name="analysis_help_plan_body">Les plans font partie du coach Cubench, une fonction payante. Le coach lit vos résolutions au smart cube, trouve ce qui vous coûte le plus de temps et en fait un plan pour la semaine, avec des drills pour vos points faibles.</string>
+  <string name="analysis_help_plan_body">Les plans font partie du coach Cubench. Le coach lit vos résolutions au smart cube, trouve ce qui vous coûte le plus de temps et en fait un plan pour la semaine, avec des drills pour vos points faibles.</string>
   <string name="analysis_help_plan_cards">À travailler cette semaine</string>
   <string name="analysis_help_plan_cards_body">Jusqu\'à trois points à travailler, le plus rentable en premier. Chacun explique ce qui se passe, pourquoi, et ce que vous pouvez faire.</string>
   <string name="analysis_help_plan_drills">Drills</string>

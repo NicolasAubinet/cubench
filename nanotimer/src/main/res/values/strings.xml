@@ -1318,7 +1318,7 @@
   <string name="analysis_plan_point_support">Support Cubench development</string>
   <string name="analysis_plan_private">Nothing leaves your phone unless you subscribe or send a report.</string>
   <string name="analysis_plan_cites">A plan is written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>
-  <string name="analysis_plan_not_yet">There is no plan here yet. Solve and Cases stay free whatever lands on this tab.</string>
+  <string name="analysis_plan_not_yet">No plan yet. Solve and Cases stay free either way.</string>
   <string name="coach_written">Read on %1$s</string>
   <string name="coach_uncited">%1$d of this plan\'s claims are not in your history, and are not shown.</string>
   <string name="coach_refused_thin">There isn\'t enough to read yet. Do a few more solves with your smart cube and ask again.</string>
@@ -1618,7 +1618,7 @@
   <string name="analysis_help_extra">Extra moves</string>
   <string name="analysis_help_extra_body">The extra turns those cases cost you, compared with the shortest standard algorithm.</string>
   <string name="analysis_help_plan_title">Your plan</string>
-  <string name="analysis_help_plan_body">Plans are part of the Cubench coach, a paid feature. The coach reads your smart cube solves, finds what costs you the most time, and turns it into a plan for the week, with drills for your weak points.</string>
+  <string name="analysis_help_plan_body">Plans are part of the Cubench coach. The coach reads your smart cube solves, finds what costs you the most time, and turns it into a plan for the week, with drills for your weak points.</string>
   <string name="analysis_help_plan_cards">This week\'s focus</string>
   <string name="analysis_help_plan_cards_body">Up to three things to work on, the one worth the most first. Each says what is happening, why, and one thing to do about it.</string>
   <string name="analysis_help_plan_drills">Drills</string>

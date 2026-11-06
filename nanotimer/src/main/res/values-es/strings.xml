@@ -1270,7 +1270,7 @@
   <string name="analysis_plan_point_support">Apoya el desarrollo de Cubench</string>
   <string name="analysis_plan_private">Nada sale de tu teléfono a menos que te suscribas o envíes un informe.</string>
   <string name="analysis_plan_cites">Un plan se escribe a partir de tus propias resoluciones, citando en cada afirmación una cifra que puedes comprobar en las otras dos pestañas.</string>
-  <string name="analysis_plan_not_yet">Todavía no hay ningún plan aquí. Resolución y Casos siguen siendo gratis pase lo que pase con esta pestaña.</string>
+  <string name="analysis_plan_not_yet">Todavía no hay plan. Resolución y Casos siguen siendo gratis igualmente.</string>
   <string name="coach_written">Analizado el %1$s</string>
   <string name="coach_uncited">%1$d datos de este plan no están en tu historial y no se muestran.</string>
   <string name="coach_refused_thin">Todavía no hay suficiente para leer. Haz algunas resoluciones más con tu smart cube y vuelve a pedirlo.</string>
@@ -1565,7 +1565,7 @@
   <string name="analysis_help_extra">Movimientos de más</string>
   <string name="analysis_help_extra_body">Los giros de más que te han costado esos casos, comparados con el algoritmo estándar más corto.</string>
   <string name="analysis_help_plan_title">Tu plan</string>
-  <string name="analysis_help_plan_body">Los planes son parte del coach de Cubench, una función de pago. El coach lee tus resoluciones con smart cube, encuentra lo que más tiempo te cuesta y lo convierte en un plan para la semana, con drills para tus puntos débiles.</string>
+  <string name="analysis_help_plan_body">Los planes son parte del coach de Cubench. El coach lee tus resoluciones con smart cube, encuentra lo que más tiempo te cuesta y lo convierte en un plan para la semana, con drills para tus puntos débiles.</string>
   <string name="analysis_help_plan_cards">En qué centrarte</string>
   <string name="analysis_help_plan_cards_body">Hasta tres cosas que trabajar, empezando por la que más vale. Cada una explica qué pasa, por qué, y una cosa que puedes hacer.</string>
   <string name="analysis_help_plan_drills">Drills</string>
