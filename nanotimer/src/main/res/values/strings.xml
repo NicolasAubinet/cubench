@@ -1282,7 +1282,7 @@
   <string name="analysis_delta_label">Against a typical %s solve</string>
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
-  <string name="analysis_delta_limit">These are shares of one solve, so if one step is over, another has to be under. A quick last step will always make an earlier one look like the problem.</string>
+  <string name="analysis_delta_limit">Sums to zero: a fast step makes others look slow.</string>
   <string name="analysis_window_title">Read over</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">Last 50</string>
@@ -1598,7 +1598,7 @@
   <string name="analysis_sample_chip">Example</string>
   <string name="analysis_sample_mine">My solves</string>
   <string name="analysis_sample_showing">Showing</string>
-  <string name="analysis_sample_banner">Example data from %d solves, not yours. Connect a smart cube to see your own.</string>
+  <string name="analysis_sample_banner">Example data from %d dummy solves. Connect a smart cube to see your own.</string>
   <string name="analysis_sample_cta_title">This is what your cube would say</string>
   <string name="analysis_sample_cta_body">Cubench reads every turn off a smart cube, splits the solve into its steps and names the case each one was. Browse the whole example, then connect a cube to see your own.</string>
   <string name="analysis_sample_connect">Connect a cube</string>
@@ -1610,7 +1610,7 @@
   <string name="analysis_help_bar">The average solve</string>
   <string name="analysis_help_bar_body">One block per step, as wide as its share of the time. Each block is pale where you were looking and solid where you were turning.</string>
   <string name="analysis_help_delta">Against a typical solve</string>
-  <string name="analysis_help_delta_body">These are shares of one solve, so if one step is over, another has to be under. It shows which step is out of balance.</string>
+  <string name="analysis_help_delta_body">Each step\'s share of your solve, against its share in a typical solve. The differences add up to zero, so a fast step makes the others look slow.</string>
   <string name="analysis_help_table">The step table</string>
   <string name="analysis_help_table_body">Mean, best and spread for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
   <string name="analysis_help_spread">Spread</string>

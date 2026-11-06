@@ -1235,7 +1235,7 @@
   <string name="analysis_delta_label">Par rapport \u00e0 une r\u00e9solution %s typique</string>
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
-  <string name="analysis_delta_limit">Ce sont des parts d\'une même résolution : si une étape est au-dessus, une autre est forcément en dessous. Une dernière étape rapide fera toujours passer une étape précédente pour un problème.</string>
+  <string name="analysis_delta_limit">Le total fait zéro : une étape rapide fait paraître les autres lentes.</string>
   <string name="analysis_window_title">Lu sur</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">50 derni\u00e8res</string>
@@ -1546,7 +1546,7 @@
   <string name="analysis_sample_chip">Exemple</string>
   <string name="analysis_sample_mine">Mes résolutions</string>
   <string name="analysis_sample_showing">Affichage</string>
-  <string name="analysis_sample_banner">Données d\'exemple sur %d résolutions, pas les vôtres. Connectez un smart cube pour remplir cet écran.</string>
+  <string name="analysis_sample_banner">Données d\'exemple sur %d résolutions fictives. Connectez un smart cube pour remplir cet écran.</string>
   <string name="analysis_sample_cta_title">Voilà ce que votre cube dirait</string>
   <string name="analysis_sample_cta_body">Cubench lit chaque mouvement d\'un smart cube, découpe la résolution en étapes et nomme le cas de chacune. Parcourez tout l\'exemple, puis connectez un cube pour voir les vôtres.</string>
   <string name="analysis_sample_connect">Connecter un cube</string>
@@ -1558,7 +1558,7 @@
   <string name="analysis_help_bar">La résolution moyenne</string>
   <string name="analysis_help_bar_body">Un bloc par étape, large comme sa part du temps. Chaque bloc est pâle là où vous regardiez et plein là où vous tourniez.</string>
   <string name="analysis_help_delta">Face à une résolution typique</string>
-  <string name="analysis_help_delta_body">Ce sont des parts d\'une même résolution : si une étape est au-dessus, une autre est forcément en dessous. Cela montre quelle étape est déséquilibrée.</string>
+  <string name="analysis_help_delta_body">La part de chaque étape dans votre résolution, comparée à celle d\'une résolution typique. Les écarts font zéro au total : une étape rapide fait paraître les autres lentes.</string>
   <string name="analysis_help_table">Le tableau des étapes</string>
   <string name="analysis_help_table_body">Moyenne, meilleur et écart pour chaque étape. Touchez un en-tête pour trier dessus. Les étapes qui ont des cas nommés, OLL et PLL, portent une flèche et les ouvrent.</string>
   <string name="analysis_help_spread">Écart</string>

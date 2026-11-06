@@ -1234,7 +1234,7 @@
   <string name="analysis_delta_label">Frente a una resoluci\u00f3n %s t\u00edpica</string>
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
-  <string name="analysis_delta_limit">Son partes de un mismo resuelto: si un paso está por encima, otro tiene que estar por debajo. Un último paso rápido siempre hará parecer un problema a uno anterior.</string>
+  <string name="analysis_delta_limit">Suman cero: un paso rápido hace que los demás parezcan lentos.</string>
   <string name="analysis_window_title">Le\u00eddo sobre</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_50">\u00daltimas 50</string>
@@ -1545,7 +1545,7 @@
   <string name="analysis_sample_chip">Ejemplo</string>
   <string name="analysis_sample_mine">Mis resoluciones</string>
   <string name="analysis_sample_showing">Mostrando</string>
-  <string name="analysis_sample_banner">Datos de ejemplo de %d resoluciones, no las tuyas. Conecta un smart cube para llenar esto.</string>
+  <string name="analysis_sample_banner">Datos de ejemplo de %d resoluciones ficticias. Conecta un smart cube para llenar esto.</string>
   <string name="analysis_sample_cta_title">Esto es lo que diría tu cubo</string>
   <string name="analysis_sample_cta_body">Cubench lee cada giro de un smart cube, parte la resolución en sus pasos y nombra el caso de cada uno. Recorre todo el ejemplo y luego conecta un cubo para ver las tuyas.</string>
   <string name="analysis_sample_connect">Conectar un cubo</string>
@@ -1557,7 +1557,7 @@
   <string name="analysis_help_bar">El resuelto medio</string>
   <string name="analysis_help_bar_body">Un bloque por paso, tan ancho como su parte del tiempo. Cada bloque es pálido donde mirabas y sólido donde girabas.</string>
   <string name="analysis_help_delta">Frente a un resuelto típico</string>
-  <string name="analysis_help_delta_body">Son partes de un mismo resuelto: si un paso está por encima, otro tiene que estar por debajo. Muestra qué paso está desequilibrado.</string>
+  <string name="analysis_help_delta_body">La parte de cada paso en tu resolución, frente a la de una resolución típica. Las diferencias suman cero, así que un paso rápido hace que los demás parezcan lentos.</string>
   <string name="analysis_help_table">La tabla de pasos</string>
   <string name="analysis_help_table_body">Media, mejor y desvío de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha y los abren.</string>
   <string name="analysis_help_spread">Desvío</string>
