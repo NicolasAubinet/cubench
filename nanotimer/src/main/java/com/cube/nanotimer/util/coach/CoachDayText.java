@@ -6,9 +6,11 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.FocusProgress;
 import com.cube.nanotimer.session.CoachDay;
+import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
 
+import java.util.List;
 import java.util.Locale;
 
 /** The words of a {@link CoachDay}, shared by the Today card and the evening recap. */
@@ -20,7 +22,7 @@ public final class CoachDayText {
     this.context = context;
   }
 
-  /** What a focus row is about, e.g. "Looking in F2L" or a case's name for drill reps. */
+  /** What a focus row is about, e.g. "Looking in F2L" or "PLL cases" for drill reps. */
   public String label(FocusProgress progress) {
     FocusArea area = progress.getArea();
     String code = area.getCodes().isEmpty() ? null : area.getCodes().get(0);
@@ -49,8 +51,22 @@ public final class CoachDayText {
     boolean aboutCases = reason == FocusArea.Reason.SLOW_CASE
         || reason == FocusArea.Reason.SLOW_UNDER_PRESSURE
         || reason == FocusArea.Reason.INCONSISTENT_CASE;
-    return aboutCases && code != null ? Utils.toSmartCubeCaseHeadline(context, code)
+    String family = aboutCases ? caseFamily(area.getCodes()) : null;
+    return family != null ? context.getString(R.string.drill_cases_family, step(family))
         : reasonTitle(reason);
+  }
+
+  /** The set every case code is in, e.g. pll, or null when they span several or there are none. */
+  static String caseFamily(List<String> codes) {
+    String family = null;
+    for (String code : codes) {
+      String one = MethodStatistics.familyOf(code);
+      if (family != null && !family.equals(one)) {
+        return null;
+      }
+      family = one;
+    }
+    return "pair".equals(family) ? null : family; // a pair's step name carries its number
   }
 
   /** The row's number: before and since, the solves still needed, or the drill reps. */
