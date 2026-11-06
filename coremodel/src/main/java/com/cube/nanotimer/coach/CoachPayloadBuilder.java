@@ -244,8 +244,18 @@ public class CoachPayloadBuilder {
   public static PreviousPlan previous(StoredCoachPlan last, String method, int solvesSince,
       List<Long> sinceTimes, List<StepSample> sinceSamples, List<StepTurning> turnings,
       List<Integer> drillReps) {
-    if (last == null || !method.equals(last.getPayload().getMethod())
-        || solvesSince < SINCE_FLOOR) {
+    return solvesSince < SINCE_FLOOR ? null : sincePlan(last, method, solvesSince, sinceTimes,
+        sinceSamples, turnings, drillReps);
+  }
+
+  /**
+   * As {@link #previous} with no floor on the solves since, for the progress the phone shows
+   * between plans ({@link FocusProgress}): null with no plan, or one written for another method.
+   */
+  public static PreviousPlan sincePlan(StoredCoachPlan last, String method, int solvesSince,
+      List<Long> sinceTimes, List<StepSample> sinceSamples, List<StepTurning> turnings,
+      List<Integer> drillReps) {
+    if (last == null || !method.equals(last.getPayload().getMethod())) {
       return null;
     }
     Set<Long> sinceSolves = new LinkedHashSet<Long>();

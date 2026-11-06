@@ -234,6 +234,8 @@
     </LinearLayout>
   </LinearLayout>
 
+  <include layout="@layout/coach_today_card"/>
+
   <LinearLayout
      android:id="@+id/llAnalysisPlanAreas"
      android:layout_width="match_parent"

@@ -69,6 +69,7 @@ public final class CoachPlanWorker extends Worker {
             .build());
     check(context);
     scheduleAfterPlan(context, false);
+    CoachRecapWorker.schedule(context);
   }
 
   /**
@@ -123,6 +124,7 @@ public final class CoachPlanWorker extends Worker {
 
   /** Checks again once the session has gone quiet, each solve of the plans' type pushing it back. */
   public static void onSolveSaved(Context context, SolveType solveType) {
+    CoachRecapWorker.onSolveSaved(context, solveType);
     if (!Options.INSTANCE.isCoachPlansOn()
         || solveType.getId() != Options.INSTANCE.getCoachPlansSolveType()) {
       return;

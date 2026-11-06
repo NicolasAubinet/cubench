@@ -58,6 +58,7 @@ import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.coach.CoachDayText;
 import com.cube.nanotimer.util.coach.CoachPractice;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
@@ -710,36 +711,7 @@ public class CoachPlanView {
    * written into it.
    */
   private String title(FocusArea area) {
-    if (area.getReason() == null) {
-      return activity.getString(R.string.coach_reason_unknown);
-    }
-    switch (area.getReason()) {
-      case SLOW_CASE:
-        return activity.getString(R.string.coach_reason_slow_case);
-      case SLOW_UNDER_PRESSURE:
-        return activity.getString(R.string.coach_reason_slow_under_pressure);
-      case RECOGNITION_HEAVY:
-        return activity.getString(R.string.coach_reason_recognition_heavy);
-      case TWO_LOOK_OLL:
-      case TWO_LOOK_PLL:
-        return activity.getString(R.string.coach_reason_two_look_oll);
-      case SLOW_STEP:
-        return activity.getString(R.string.coach_reason_slow_step);
-      case STUCK_PIECES:
-        return activity.getString(R.string.coach_reason_stuck_pieces);
-      case SLOW_FIRST_PAIR:
-        return activity.getString(R.string.coach_reason_slow_first_pair);
-      case LONG_PAIR:
-        return activity.getString(R.string.coach_reason_long_pair);
-      case STALLING:
-        return activity.getString(R.string.coach_reason_stalling);
-      case UNEVEN_STEP:
-        return activity.getString(R.string.coach_reason_uneven_step);
-      case F2L_ROTATIONS:
-        return activity.getString(R.string.coach_reason_f2l_rotations);
-      default:
-        return activity.getString(R.string.coach_reason_inconsistent_case);
-    }
+    return CoachDayText.reasonTitle(activity, area.getReason());
   }
 
   /**

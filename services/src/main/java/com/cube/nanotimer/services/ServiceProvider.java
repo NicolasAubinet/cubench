@@ -5,6 +5,7 @@ import com.cube.nanotimer.coach.PairExecution;
 import com.cube.nanotimer.coach.PlanSchedule;
 import com.cube.nanotimer.coach.StepTurning;
 import com.cube.nanotimer.coach.StoredCoachPlan;
+import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CaseHistory;
@@ -84,6 +85,8 @@ public interface ServiceProvider {
   void saveCoachPlan(SolveType solveType, StoredCoachPlan plan);
   StoredCoachPlan getCoachPlan(SolveType solveType);
   List<Integer> getPlanDrillReps(StoredCoachPlan plan);
+  CoachDay getCoachDay(SolveType solveType, CubeMethod method, long dayStart,
+      List<StepTurning> turnings);
   String getCoachStream(SolveType solveType);
   Map<CubeType, List<ScrambleType>> getAllUsedScrambleTypes();
 

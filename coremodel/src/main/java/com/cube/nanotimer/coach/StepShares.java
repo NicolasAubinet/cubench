@@ -2,6 +2,7 @@ package com.cube.nanotimer.coach;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,18 +36,24 @@ public final class StepShares {
    * @return the comparison, empty when the method has no baseline or has fewer than two of its steps
    */
   public static StepShares of(CoachPayload payload) {
+    return payload == null ? of(null, Collections.<StepFigure>emptyList())
+        : of(payload.getMethod(), payload.getFamilies());
+  }
+
+  /** As above, for a method's step figures read off something other than a payload. */
+  public static StepShares of(String method, List<StepFigure> families) {
     Map<String, Double> none = Collections.emptyMap();
-    if (payload == null || !StepBaseline.has(payload.getMethod())) {
+    if (method == null || !StepBaseline.has(method)) {
       return new StepShares(none, none);
     }
     Map<String, Long> spent = new LinkedHashMap<String, Long>();
-    for (StepFigure family : payload.getFamilies()) {
+    for (StepFigure family : families) {
       long time = family.getMeanMs() * family.getCount();
       if (time > 0) {
         spent.put(family.getCode(), Long.valueOf(time));
       }
     }
-    Map<String, Double> baseline = StepBaseline.shares(payload.getMethod(), spent.keySet());
+    Map<String, Double> baseline = StepBaseline.shares(method, spent.keySet());
     if (baseline.size() < 2) {
       return new StepShares(none, none);
     }

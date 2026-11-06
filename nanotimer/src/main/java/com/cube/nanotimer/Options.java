@@ -99,6 +99,12 @@ public enum Options {
   private static final String COACH_ASK_AGAIN_KEY = "coach_ask_again_at";
   private static final String COACH_NUDGE_ON_KEY = "coach_nudge_on";
   private static final String COACH_LAST_NUDGE_KEY = "coach_last_nudge_at";
+  public static final String COACH_NOTIFICATIONS_ON_KEY = "coach_notifications_on";
+  public static final String COACH_PLAN_READY_ON_KEY = "coach_plan_ready_on";
+  public static final String COACH_RECAP_ON_KEY = "coach_recap_on";
+  public static final String COACH_RECAP_TIME_KEY = "coach_recap_time";
+  public static final int COACH_RECAP_DEFAULT_MINUTES = 19 * 60;
+  private static final String COACH_LAST_RECAP_KEY = "coach_last_recap_day";
   private static final String COACH_FEEDBACK_CHOICE_KEY = "coach_feedback_choice";
   private static final String COACH_PLAN_LANGUAGE_KEY = "coach_plan_language";
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
@@ -443,7 +449,41 @@ public enum Options {
 
   /** Whether to remind the solver, some days after a plan, of the solves the next one needs. */
   public boolean isCoachNudgeOn() {
-    return sharedPreferences.getBoolean(COACH_NUDGE_ON_KEY, true);
+    return isCoachNotificationsOn() && sharedPreferences.getBoolean(COACH_NUDGE_ON_KEY, true);
+  }
+
+  /** The switch over every coach notification. */
+  public boolean isCoachNotificationsOn() {
+    return sharedPreferences.getBoolean(COACH_NOTIFICATIONS_ON_KEY, true);
+  }
+
+  /** Whether to say a new plan is ready. */
+  public boolean isCoachPlanReadyOn() {
+    return isCoachNotificationsOn()
+        && sharedPreferences.getBoolean(COACH_PLAN_READY_ON_KEY, true);
+  }
+
+  /** Whether to send the evening recap of a day with solves. */
+  public boolean isCoachRecapOn() {
+    return isCoachNotificationsOn() && sharedPreferences.getBoolean(COACH_RECAP_ON_KEY, true);
+  }
+
+  /** When the recap is sent, in minutes after local midnight. */
+  public int getCoachRecapMinutes() {
+    return sharedPreferences.getInt(COACH_RECAP_TIME_KEY, COACH_RECAP_DEFAULT_MINUTES);
+  }
+
+  public void setCoachRecapMinutes(int minutes) {
+    sharedPreferences.edit().putInt(COACH_RECAP_TIME_KEY, minutes).apply();
+  }
+
+  /** The local day of the last recap sent, as yyyymmdd, 0 when never. */
+  public int getCoachLastRecapDay() {
+    return sharedPreferences.getInt(COACH_LAST_RECAP_KEY, 0);
+  }
+
+  public void setCoachLastRecapDay(int day) {
+    sharedPreferences.edit().putInt(COACH_LAST_RECAP_KEY, day).apply();
   }
 
   /** When the solver was last reminded, 0 when never. */

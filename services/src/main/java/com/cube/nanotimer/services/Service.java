@@ -6,6 +6,7 @@ import com.cube.nanotimer.coach.PairExecution;
 import com.cube.nanotimer.coach.PlanSchedule;
 import com.cube.nanotimer.coach.StepTurning;
 import com.cube.nanotimer.coach.StoredCoachPlan;
+import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CaseHistory;
@@ -157,6 +158,14 @@ public interface Service {
    * in any drill, or any cross for a cross drill, recorded or not. Null where a focus has no drill.
    */
   void getPlanDrillReps(StoredCoachPlan plan, DataCallback<List<Integer>> callback);
+  /**
+   * Today for a coach subscriber: the solve type's solves since {@code dayStart}, any drill's reps
+   * since then, and how each focus of the solve type's plan has moved since it was written.
+   *
+   * @param turnings the turnings of the solves since the plan, read by the app; empty skips them
+   */
+  void getCoachDay(SolveType solveType, CubeMethod method, long dayStart,
+      List<StepTurning> turnings, DataCallback<CoachDay> callback);
   /**
    * The opaque id the coach service counts this solve type by, made the first time it is asked for.
    * A random UUID, never the solve type's id or name, so it says nothing about the user.

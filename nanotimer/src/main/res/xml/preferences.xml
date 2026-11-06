@@ -174,7 +174,7 @@
 
   </PreferenceCategory>
 
-  <!-- Only in a build with a coach. The two settings show once weekly plans are on. -->
+  <!-- Only in a build with a coach. The plans and notifications rows show once weekly plans are on. -->
   <PreferenceCategory
      android:key="coach_category"
      android:title="@string/coach_settings_title">
@@ -183,11 +183,10 @@
        android:key="coach_plans_for"
        android:title="@string/coach_plans_setting"/>
 
-    <SwitchPreference
-       android:key="coach_nudge_on"
-       android:title="@string/coach_reminder_setting"
-       android:summary="@string/coach_reminder_setting_summary"
-       android:defaultValue="true"/>
+    <Preference
+       android:key="coach_notifications"
+       android:title="@string/coach_notifications"
+       android:summary="@string/coach_notifications_summary"/>
 
     <Preference
        android:key="coach_id"

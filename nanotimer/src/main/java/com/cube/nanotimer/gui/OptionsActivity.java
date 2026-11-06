@@ -94,14 +94,14 @@ public class OptionsActivity extends NanoTimerActivity {
 
     /**
      * The coach's section: this install's id, and for a solver who has weekly plans, which solve
-     * type they are for and the reminder.
+     * type they are for and its notifications.
      */
     private void showCoach() {
       PreferenceCategory coach = (PreferenceCategory) findPreference("coach_category");
       Preference coachId = findPreference("coach_id");
       final Preference plansFor = findPreference("coach_plans_for");
-      Preference nudge = findPreference("coach_nudge_on");
-      if (coach == null || coachId == null || plansFor == null || nudge == null) {
+      final Preference notifications = findPreference("coach_notifications");
+      if (coach == null || coachId == null || plansFor == null || notifications == null) {
         return;
       }
       if (!SmartCubeGate.ENABLED || CoachClient.configured(getActivity()) == null) {
@@ -132,9 +132,13 @@ public class OptionsActivity extends NanoTimerActivity {
       }
       if (!Options.INSTANCE.isCoachPlansOn()) {
         coach.removePreference(plansFor);
-        coach.removePreference(nudge);
+        coach.removePreference(notifications);
         return;
       }
+      notifications.setOnPreferenceClickListener(preference -> {
+        startActivity(new Intent(getActivity(), CoachNotificationsActivity.class));
+        return true;
+      });
       showPlansFor(plansFor);
       plansFor.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
         @Override

@@ -1745,4 +1745,66 @@
   <string name="coach_plan_language_next">Used from your next plan.</string>
   <string name="coach_fb_last_week">Did you work on last week\'s plan?</string>
   <string name="coach_fb_in_the_way">What got in the way? (optional)</string>
+
+  <!-- Coach daily: the Today card, the evening recap and the notification settings -->
+  <string name="coach_day_title">Today</string>
+  <plurals name="coach_day_solves">
+    <item quantity="one">solve</item>
+    <item quantity="other">solves</item>
+  </plurals>
+  <string name="coach_day_mean">mean</string>
+  <string name="coach_day_best_ao5">best Ao5</string>
+  <plurals name="coach_day_reps_label">
+    <item quantity="one">drill rep</item>
+    <item quantity="other">drill reps</item>
+  </plurals>
+  <string name="coach_day_none_yet">No solves yet today. Your numbers show from the first one.</string>
+  <string name="coach_day_since">Since the plan</string>
+  <plurals name="coach_day_since_solves">
+    <item quantity="one">%d solve</item>
+    <item quantity="other">%d solves</item>
+  </plurals>
+  <string name="coach_day_looking">Looking in %1$s</string>
+  <string name="coach_day_spread">Spread in %1$s</string>
+  <string name="coach_day_freezes">Freezes in %1$s</string>
+  <string name="coach_day_first_pair">Finding the first pair</string>
+  <string name="coach_day_stuck">Pairs starting stuck</string>
+  <string name="coach_day_share">%1$s share of the solve</string>
+  <string name="coach_day_two_looks">%1$s in two looks</string>
+  <string name="coach_day_seconds">%1$s → %2$s s</string>
+  <string name="coach_day_from_to">%1$s → %2$s</string>
+  <plurals name="coach_day_drill_reps">
+    <item quantity="one">%d drill rep</item>
+    <item quantity="other">%d drill reps</item>
+  </plurals>
+  <plurals name="coach_day_more_solves">
+    <item quantity="one">%d more solve</item>
+    <item quantity="other">%d more solves</item>
+  </plurals>
+  <string name="coach_channel_recap">Coach daily recap</string>
+  <plurals name="coach_recap_title">
+    <item quantity="one">Today: %1$d solve, mean %2$s</item>
+    <item quantity="other">Today: %1$d solves, mean %2$s</item>
+  </plurals>
+  <plurals name="coach_recap_title_no_mean">
+    <item quantity="one">Today: %d solve</item>
+    <item quantity="other">Today: %d solves</item>
+  </plurals>
+  <string name="coach_recap_moved">%1$s: %2$s since the plan.</string>
+  <string name="coach_recap_best_ao5">Best Ao5 today: %1$s.</string>
+  <plurals name="coach_recap_drilled">
+    <item quantity="one">%d drill rep today.</item>
+    <item quantity="other">%d drill reps today.</item>
+  </plurals>
+  <string name="coach_recap_open">See how your focuses are moving.</string>
+  <string name="coach_notifications">Notifications</string>
+  <string name="coach_notifications_summary">Plan ready, solve reminder and daily recap</string>
+  <string name="coach_notifications_all">Coach notifications</string>
+  <string name="coach_notifications_all_summary">Turn every coach notification on or off</string>
+  <string name="coach_plan_ready_setting">Plan ready</string>
+  <string name="coach_plan_ready_setting_summary">When your new weekly plan is written</string>
+  <string name="coach_recap_setting">Daily recap</string>
+  <string name="coach_recap_setting_summary">Today\'s solves and how your focuses moved, on days you solve</string>
+  <string name="coach_recap_time">Recap time</string>
+  <string name="coach_recap_time_summary">From %1$s, once your session is over</string>
 </resources>

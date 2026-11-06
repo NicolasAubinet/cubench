@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One of today's figures in the Today card: the number, and what it is under it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="0dp"
+   android:layout_height="wrap_content"
+   android:layout_weight="1"
+   android:orientation="vertical">
+
+  <TextView
+     android:id="@+id/tvCoachTodayNumber"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:fontFamily="@font/roboto"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/white"
+     android:textSize="22sp"/>
+
+  <TextView
+     android:id="@+id/tvCoachTodayWhat"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:textColor="@color/secondary_text"
+     android:textSize="12sp"/>
+</LinearLayout>

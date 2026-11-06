@@ -1692,4 +1692,66 @@
   <string name="coach_plan_language_next">Se usa a partir de tu próximo plan.</string>
   <string name="coach_fb_last_week">¿Trabajaste el plan de la semana pasada?</string>
   <string name="coach_fb_in_the_way">¿Qué te lo impidió? (opcional)</string>
+
+  <!-- Coach daily: the Today card, the evening recap and the notification settings -->
+  <string name="coach_day_title">Hoy</string>
+  <plurals name="coach_day_solves">
+    <item quantity="one">resolución</item>
+    <item quantity="other">resoluciones</item>
+  </plurals>
+  <string name="coach_day_mean">media</string>
+  <string name="coach_day_best_ao5">mejor Ao5</string>
+  <plurals name="coach_day_reps_label">
+    <item quantity="one">repetición</item>
+    <item quantity="other">repeticiones</item>
+  </plurals>
+  <string name="coach_day_none_yet">Aún no hay resoluciones hoy. Tus números aparecen desde la primera.</string>
+  <string name="coach_day_since">Desde el plan</string>
+  <plurals name="coach_day_since_solves">
+    <item quantity="one">%d resolución</item>
+    <item quantity="other">%d resoluciones</item>
+  </plurals>
+  <string name="coach_day_looking">Búsqueda en %1$s</string>
+  <string name="coach_day_spread">Dispersión en %1$s</string>
+  <string name="coach_day_freezes">Paradas en %1$s</string>
+  <string name="coach_day_first_pair">Encontrar el primer par</string>
+  <string name="coach_day_stuck">Pares que empiezan atascados</string>
+  <string name="coach_day_share">Parte de la resolución en %1$s</string>
+  <string name="coach_day_two_looks">%1$s en dos looks</string>
+  <string name="coach_day_seconds">%1$s → %2$s s</string>
+  <string name="coach_day_from_to">%1$s → %2$s</string>
+  <plurals name="coach_day_drill_reps">
+    <item quantity="one">%d repetición</item>
+    <item quantity="other">%d repeticiones</item>
+  </plurals>
+  <plurals name="coach_day_more_solves">
+    <item quantity="one">%d resolución más</item>
+    <item quantity="other">%d resoluciones más</item>
+  </plurals>
+  <string name="coach_channel_recap">Resumen diario del coach</string>
+  <plurals name="coach_recap_title">
+    <item quantity="one">Hoy: %1$d resolución, media %2$s</item>
+    <item quantity="other">Hoy: %1$d resoluciones, media %2$s</item>
+  </plurals>
+  <plurals name="coach_recap_title_no_mean">
+    <item quantity="one">Hoy: %d resolución</item>
+    <item quantity="other">Hoy: %d resoluciones</item>
+  </plurals>
+  <string name="coach_recap_moved">%1$s: %2$s desde el plan.</string>
+  <string name="coach_recap_best_ao5">Mejor Ao5 de hoy: %1$s.</string>
+  <plurals name="coach_recap_drilled">
+    <item quantity="one">%d repetición hoy.</item>
+    <item quantity="other">%d repeticiones hoy.</item>
+  </plurals>
+  <string name="coach_recap_open">Mira cómo avanzan tus focos.</string>
+  <string name="coach_notifications">Notificaciones</string>
+  <string name="coach_notifications_summary">Plan listo, recordatorio de resoluciones y resumen diario</string>
+  <string name="coach_notifications_all">Notificaciones del coach</string>
+  <string name="coach_notifications_all_summary">Activa o desactiva todas las notificaciones del coach</string>
+  <string name="coach_plan_ready_setting">Plan listo</string>
+  <string name="coach_plan_ready_setting_summary">Cuando se escribe tu nuevo plan semanal</string>
+  <string name="coach_recap_setting">Resumen diario</string>
+  <string name="coach_recap_setting_summary">Las resoluciones del día y cómo se movieron tus focos, los días que resuelves</string>
+  <string name="coach_recap_time">Hora del resumen</string>
+  <string name="coach_recap_time_summary">Desde las %1$s, cuando termine tu sesión</string>
 </resources>

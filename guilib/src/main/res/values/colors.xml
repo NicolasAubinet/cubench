@@ -76,6 +76,8 @@
   <!-- Destructive action as text: pure red glares against the dark dialogs. -->
   <color name="danger_text">#EF5350</color>
   <color name="danger_wash_15">#26EF5350</color>
+  <!-- A figure that moved the wrong way: warm, short of the red that says something broke. -->
+  <color name="moved_worse">#EF8A65</color>
   <!-- A piece a blind algorithm put home, marked in its name. -->
   <color name="piece_home">@color/green_soft</color>
   <!-- And one the last algorithm to touch it left out, which is where the mistake was made. -->

@@ -36,6 +36,7 @@ import com.cube.nanotimer.gui.widget.CoachPlanFeedbackView;
 import com.cube.nanotimer.gui.widget.CoachPlanReportDialog;
 import com.cube.nanotimer.gui.widget.CoachPlanStatus;
 import com.cube.nanotimer.gui.widget.CoachPlanView;
+import com.cube.nanotimer.gui.widget.CoachTodayView;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
@@ -151,6 +152,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private AnalysisCases cases;
   private CoachPlanView planView;
   private CoachPlanFeedbackView feedbackView;
+  private CoachTodayView todayView;
+  /** The plan on the Plan tab, read again into the Today card on every resume. */
+  private StoredCoachPlan shownPlan;
   /** Null in a build made without a coach to ask. */
   private CoachClient coachClient;
   private CoachRead.Listener readListener;
@@ -243,6 +247,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     planView = new CoachPlanView(this, (LinearLayout) findViewById(R.id.llAnalysisPlanAreas),
         solveType);
     feedbackView = new CoachPlanFeedbackView(this, solveType);
+    todayView = new CoachTodayView(this, findViewById(R.id.llCoachToday));
     wireRead();
     wireSample();
 
@@ -262,6 +267,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     if (coachClient != null) {
       coachClient.checkBetaIfStale();
     }
+    showToday(); // solves and drills done since the tab was last drawn
     if (practiceAsked && !learnedAtAsk.equals(Options.INSTANCE.getLearnedCases())) {
       practiceAsked = false; // a learning drill cleared a case, so the next ones are due
       showRead();
@@ -1149,13 +1155,27 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     });
   }
 
+  /** The Today card, for a coach subscriber with a plan on this solve type. */
+  private void showToday() {
+    if (todayView == null) {
+      return; // a resume before the tab was built
+    }
+    if (shownPlan == null || coachClient == null || !coachClient.hasAccess()) {
+      todayView.hide();
+      return;
+    }
+    todayView.load(solveType, shownPlan);
+  }
+
   /**
    * A kept plan in place of the explainer. It is shown even where the history has since changed:
    * it was a true reading when written, and its date says as of when.
    */
   private void showPlan(StoredCoachPlan stored) {
     planShown = stored != null;
+    shownPlan = stored;
     shownPlanWrittenAt = stored == null ? -1 : stored.getWrittenAt();
+    showToday();
     showPlanMenu();
     // A written plan's card takes the countdown to the next one.
     planStatus.dockIn(stored == null ? null : (ViewGroup) findViewById(R.id.llAnalysisPlanDock));

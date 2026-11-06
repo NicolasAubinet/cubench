@@ -8,6 +8,7 @@ import com.cube.nanotimer.coach.CoachPayload;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.FocusArea;
+import com.cube.nanotimer.coach.FocusProgress;
 import com.cube.nanotimer.coach.PairExecution;
 import com.cube.nanotimer.coach.PlanSchedule;
 import com.cube.nanotimer.coach.PreviousPlan;
@@ -22,6 +23,7 @@ import com.cube.nanotimer.services.db.SolveReadingStore;
 import com.cube.nanotimer.services.db.DB;
 import com.cube.nanotimer.session.AverageRecords;
 import com.cube.nanotimer.session.CaseKnowledge;
+import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
@@ -1917,6 +1919,51 @@ public class ServiceProviderImpl implements ServiceProvider {
       drillReps.add(getDrillRepsSince(area.getDrill(), plan.getWrittenAt()));
     }
     return drillReps;
+  }
+
+  @Override
+  public CoachDay getCoachDay(SolveType solveType, CubeMethod method, long dayStart,
+      List<StepTurning> turnings) {
+    List<Long> today = new ArrayList<Long>();
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_TIMEHISTORY_TIME + " FROM "
+        + DB.TABLE_TIMEHISTORY + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ? AND "
+        + DB.COL_TIMEHISTORY_TIMESTAMP + " >= ? ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP
+        + " DESC", new String[] { String.valueOf(solveType.getId()), String.valueOf(dayStart) });
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        today.add(Long.valueOf(cursor.getLong(0)));
+      }
+      cursor.close();
+    }
+    int drillReps = getDrillRepsSince(dayStart);
+    StoredCoachPlan last = getCoachPlan(solveType);
+    if (last == null) {
+      return new CoachDay(today, drillReps, 0, null);
+    }
+    int solvesSince = getMethodSolvesCountSince(solveType, method, last.getWrittenAt());
+    int window = Math.min(solvesSince, CoachPayloadBuilder.FAMILY_WINDOW);
+    PreviousPlan sincePlan = CoachPayloadBuilder.sincePlan(last,
+        method.getCode().toLowerCase(Locale.US), solvesSince,
+        getMethodSolveTimes(solveType, method, window),
+        getMethodStepSamples(solveType, method, window), turnings, getPlanDrillReps(last));
+    return new CoachDay(today, drillReps, solvesSince, FocusProgress.of(last, sincePlan));
+  }
+
+  /** Every drill rep done after the given time, as {@link #getDrillRepsSince(String, long)} counts. */
+  private int getDrillRepsSince(long since) {
+    List<String> args = Collections.singletonList(String.valueOf(since));
+    String drilled = " r JOIN " + DB.TABLE_DRILL + " d ON d." + DB.COL_ID + " = r.%s WHERE d."
+        + DB.COL_DRILL_TIMESTAMP + " > ?";
+    return count("SELECT COUNT(*) FROM " + DB.TABLE_DRILL_REP
+            + String.format(Locale.US, drilled, DB.COL_DRILL_REP_DRILL_ID)
+            + " AND r." + DB.COL_DRILL_REP_ABANDONED + " = 0 AND r." + DB.COL_DRILL_REP_DELETED
+            + " = 0 AND r." + DB.COL_DRILL_REP_PRACTICE + " = 0", args)
+        + count("SELECT COUNT(*) FROM " + DB.TABLE_DRILL_CROSS_REP
+            + String.format(Locale.US, drilled, DB.COL_DRILL_CROSS_REP_DRILL_ID)
+            + " AND r." + DB.COL_DRILL_CROSS_REP_MOVE_COUNT + " > 0", args)
+        + count("SELECT COUNT(*) FROM " + DB.TABLE_DRILL_TALLY + " WHERE "
+            + DB.COL_DRILL_TALLY_TIMESTAMP + " > ? AND " + DB.COL_DRILL_TALLY_DELETED + " = 0",
+            args);
   }
 
   /** How many solves of the method were done after the given time. */

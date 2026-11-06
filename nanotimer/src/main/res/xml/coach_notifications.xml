@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The coach's notifications, one switch per kind under one for all. Opened from Settings, Coach. -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <SwitchPreference
+     android:key="coach_notifications_on"
+     android:title="@string/coach_notifications_all"
+     android:summary="@string/coach_notifications_all_summary"
+     android:defaultValue="true"/>
+
+  <SwitchPreference
+     android:key="coach_plan_ready_on"
+     android:dependency="coach_notifications_on"
+     android:title="@string/coach_plan_ready_setting"
+     android:summary="@string/coach_plan_ready_setting_summary"
+     android:defaultValue="true"/>
+
+  <SwitchPreference
+     android:key="coach_nudge_on"
+     android:dependency="coach_notifications_on"
+     android:title="@string/coach_reminder_setting"
+     android:summary="@string/coach_reminder_setting_summary"
+     android:defaultValue="true"/>
+
+  <SwitchPreference
+     android:key="coach_recap_on"
+     android:dependency="coach_notifications_on"
+     android:title="@string/coach_recap_setting"
+     android:summary="@string/coach_recap_setting_summary"
+     android:defaultValue="true"/>
+
+  <Preference
+     android:key="coach_recap_time"
+     android:dependency="coach_recap_on"
+     android:title="@string/coach_recap_time"/>
+
+</PreferenceScreen>

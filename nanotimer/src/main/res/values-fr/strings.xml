@@ -1693,4 +1693,66 @@
   <string name="coach_plan_language_next">Appliquée à partir de votre prochain plan.</string>
   <string name="coach_fb_last_week">Avez-vous travaillé le plan de la semaine dernière ?</string>
   <string name="coach_fb_in_the_way">Qu\'est-ce qui vous en a empêché ? (facultatif)</string>
+
+  <!-- Coach daily: the Today card, the evening recap and the notification settings -->
+  <string name="coach_day_title">Aujourd\'hui</string>
+  <plurals name="coach_day_solves">
+    <item quantity="one">résolution</item>
+    <item quantity="other">résolutions</item>
+  </plurals>
+  <string name="coach_day_mean">moyenne</string>
+  <string name="coach_day_best_ao5">meilleure Ao5</string>
+  <plurals name="coach_day_reps_label">
+    <item quantity="one">répétition</item>
+    <item quantity="other">répétitions</item>
+  </plurals>
+  <string name="coach_day_none_yet">Pas encore de résolution aujourd\'hui. Vos chiffres s\'affichent dès la première.</string>
+  <string name="coach_day_since">Depuis le plan</string>
+  <plurals name="coach_day_since_solves">
+    <item quantity="one">%d résolution</item>
+    <item quantity="other">%d résolutions</item>
+  </plurals>
+  <string name="coach_day_looking">Recherche en %1$s</string>
+  <string name="coach_day_spread">Écart en %1$s</string>
+  <string name="coach_day_freezes">Arrêts en %1$s</string>
+  <string name="coach_day_first_pair">Trouver la première paire</string>
+  <string name="coach_day_stuck">Paires qui démarrent coincées</string>
+  <string name="coach_day_share">Part de la résolution en %1$s</string>
+  <string name="coach_day_two_looks">%1$s en deux looks</string>
+  <string name="coach_day_seconds">%1$s → %2$s s</string>
+  <string name="coach_day_from_to">%1$s → %2$s</string>
+  <plurals name="coach_day_drill_reps">
+    <item quantity="one">%d répétition</item>
+    <item quantity="other">%d répétitions</item>
+  </plurals>
+  <plurals name="coach_day_more_solves">
+    <item quantity="one">encore %d résolution</item>
+    <item quantity="other">encore %d résolutions</item>
+  </plurals>
+  <string name="coach_channel_recap">Bilan du jour du coach</string>
+  <plurals name="coach_recap_title">
+    <item quantity="one">Aujourd\'hui : %1$d résolution, moyenne %2$s</item>
+    <item quantity="other">Aujourd\'hui : %1$d résolutions, moyenne %2$s</item>
+  </plurals>
+  <plurals name="coach_recap_title_no_mean">
+    <item quantity="one">Aujourd\'hui : %d résolution</item>
+    <item quantity="other">Aujourd\'hui : %d résolutions</item>
+  </plurals>
+  <string name="coach_recap_moved">%1$s : %2$s depuis le plan.</string>
+  <string name="coach_recap_best_ao5">Meilleure Ao5 du jour : %1$s.</string>
+  <plurals name="coach_recap_drilled">
+    <item quantity="one">%d répétition aujourd\'hui.</item>
+    <item quantity="other">%d répétitions aujourd\'hui.</item>
+  </plurals>
+  <string name="coach_recap_open">Voyez comment avancent vos points.</string>
+  <string name="coach_notifications">Notifications</string>
+  <string name="coach_notifications_summary">Plan prêt, rappel de résolutions et bilan du jour</string>
+  <string name="coach_notifications_all">Notifications du coach</string>
+  <string name="coach_notifications_all_summary">Activer ou couper toutes les notifications du coach</string>
+  <string name="coach_plan_ready_setting">Plan prêt</string>
+  <string name="coach_plan_ready_setting_summary">Quand votre nouveau plan de la semaine est écrit</string>
+  <string name="coach_recap_setting">Bilan du jour</string>
+  <string name="coach_recap_setting_summary">Les résolutions du jour et l\'évolution de vos points, les jours où vous résolvez</string>
+  <string name="coach_recap_time">Heure du bilan</string>
+  <string name="coach_recap_time_summary">À partir de %1$s, une fois votre session finie</string>
 </resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One focus in the Today card: a dot in its step's colour, what it is, and its number. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:layout_marginTop="8dp"
+   android:gravity="center_vertical"
+   android:orientation="horizontal">
+
+  <View
+     android:id="@+id/vCoachTodayPip"
+     android:layout_width="8dp"
+     android:layout_height="8dp"/>
+
+  <TextView
+     android:id="@+id/tvCoachTodayLabel"
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_marginLeft="10dp"
+     android:layout_marginStart="10dp"
+     android:layout_weight="1"
+     android:textColor="@color/white"
+     android:textSize="14sp"/>
+
+  <TextView
+     android:id="@+id/tvCoachTodayValue"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginLeft="10dp"
+     android:layout_marginStart="10dp"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/white"
+     android:textSize="14sp"/>
+</LinearLayout>

@@ -156,7 +156,7 @@ final class CoachPlanJob {
     return askAgainAt > now && askAgainAt - now <= PlanSchedule.PERIOD_MS;
   }
 
-  private static SolveType flagged() throws InterruptedException {
+  static SolveType flagged() throws InterruptedException {
     return CoachPlans.flagged(solveTypes());
   }
 
@@ -184,7 +184,7 @@ final class CoachPlanJob {
     return solveTypes.get();
   }
 
-  private static PlanSchedule schedule(SolveType solveType, long lastPlanAt, long now)
+  static PlanSchedule schedule(SolveType solveType, long lastPlanAt, long now)
       throws InterruptedException {
     Held<PlanSchedule> schedule = new Held<PlanSchedule>();
     App.INSTANCE.getService().getPlanSchedule(solveType, CubeMethod.CFOP, lastPlanAt, now,
@@ -261,13 +261,16 @@ final class CoachPlanJob {
   }
 
   private static void notifyPlanReady(Context context, SolveType solveType) {
+    if (!Options.INSTANCE.isCoachPlanReadyOn()) {
+      return;
+    }
     notify(context, PLANS_CHANNEL, R.string.coach_channel_plans, PLAN_READY_NOTIF_ID,
         context.getString(R.string.coach_plan_ready_title),
         context.getString(R.string.coach_plan_ready_text), solveType);
   }
 
   /** Opens the Plan tab on top of whatever the app is showing, rather than restarting its task. */
-  private static void notify(Context context, String channel, int channelName, int id,
+  static void notify(Context context, String channel, int channelName, int id,
       String title, String text, SolveType solveType) {
     NotificationManager manager =
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -292,7 +295,7 @@ final class CoachPlanJob {
   }
 
   /** A service read, waited for. */
-  private static final class Held<T> extends DataCallback<T> {
+  static final class Held<T> extends DataCallback<T> {
     private final CountDownLatch latch = new CountDownLatch(1);
     private T value;
 
