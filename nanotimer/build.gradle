@@ -72,7 +72,9 @@ android {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
             resValue 'string', 'coach_url', localProperties.getProperty('coach.url', '')
-            resValue 'string', 'coach_token', localProperties.getProperty('coach.token', '')
+            // -PnoCoachToken builds the view of an install that has not paid for the coach.
+            resValue 'string', 'coach_token',
+                project.hasProperty('noCoachToken') ? '' : localProperties.getProperty('coach.token', '')
             resValue 'bool', 'coach_purchase_debug', 'true'
         }
         release {

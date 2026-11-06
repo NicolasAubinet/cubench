@@ -49,7 +49,7 @@ public class AnalysisHelpDialog extends NanoTimerBottomSheetFragment {
     int tab = getArguments() == null ? TAB_SOLVE : getArguments().getInt(ARG_TAB);
     boolean sample = getArguments() != null && getArguments().getBoolean(ARG_SAMPLE);
     v.findViewById(R.id.llAnalysisHelpSample)
-        .setVisibility(sample ? View.VISIBLE : View.GONE);
+        .setVisibility(sample && tab != TAB_PLAN ? View.VISIBLE : View.GONE); // no example plan
     // Two lines apart it says these figures are the reader's own, which over the sample is false.
     v.findViewById(R.id.tvAnalysisHelpSolveBody)
         .setVisibility(sample ? View.GONE : View.VISIBLE);

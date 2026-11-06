@@ -934,12 +934,13 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   /**
    * What an ask changes on the tab: the status row, and the practice where there is a coach and
    * something of theirs to read. The coach reads CFOP only, and never the example: a plan written
-   * off somebody else's figures would be kept as theirs.
+   * off somebody else's figures would be kept as theirs. The blank silhouette asks nothing, so a
+   * reader without the coach still gets it over the example.
    */
   private void showRead() {
     planStatus.refresh();
-    showPractice(coachClient != null && readAsSolve() && loaded && !sampling()
-        && SolveTypeMethod.of(solveType) == CubeMethod.CFOP);
+    showPractice(coachClient != null && readAsSolve() && loaded && method == CubeMethod.CFOP,
+        sampling());
     showAskNow();
   }
 
@@ -1001,9 +1002,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    * The standing practice under the plan: the sets last kept at once, then asked for afresh when
    * {@link CoachPractice#refresh} finds them due, once a day or when a learning drill clears cases.
    */
-  private void showPractice(boolean offered) {
+  private void showPractice(boolean offered, boolean sampling) {
     View preview = findViewById(R.id.llAnalysisPlanPreview);
-    if (!offered) {
+    if (!offered || (sampling && coachClient.hasAccess())) {
       preview.setVisibility(View.GONE);
       findViewById(R.id.llAnalysisPractice).setVisibility(View.GONE);
       return;
