@@ -336,6 +336,17 @@ public class CoachPayloadBuilder {
   }
 
   /**
+   * The cross moves figure for {@link CoachPayload#withCrossMoves}, or null under
+   * {@link #FAMILY_FLOOR} plain crosses.
+   *
+   * @param crosses the crosses of the newest {@link #FAMILY_WINDOW} solves, the window the cross's
+   *     time is read over
+   */
+  public static CrossMoveFigure crossMoves(List<CrossTurn> crosses) {
+    return CrossMoveFigure.of(crosses, FAMILY_FLOOR);
+  }
+
+  /**
    * The cases standing at any of the given statuses, as codes. Kept to the sets this method's own
    * steps are made
    * of: a payload for one method has no business carrying what the solver knows of another's, and a

@@ -56,7 +56,9 @@ public class FocusArea {
     /** The last layer's permutation taken in two looks where one would do. */
     TWO_LOOK_PLL,
     /** F2L pairs put in with a cube rotation that a rotationless algorithm would avoid. */
-    F2L_ROTATIONS;
+    F2L_ROTATIONS,
+    /** A cross taking more moves than the fewest its scramble allowed on the same face. */
+    UNPLANNED_CROSS;
 
     public String code() {
       return name().toLowerCase(Locale.ROOT);

@@ -1503,11 +1503,13 @@
   <string name="coach_first_pair_body">You look for %1$s before your first pair, and %2$s before each pair after it.</string>
   <string name="coach_reason_long_pair">F2L pairs taking extra moves</string>
   <string name="coach_long_pair_body">Over %1$d solves, your F2L took %2$s moves where the usual algorithms for its pairs add up to %3$s.</string>
+  <string name="coach_unplanned_cross_body">Over %1$d crosses, you took %2$s moves where the same scrambles could be solved in %3$s.</string>
   <string name="coach_reason_stalling">Freezes while turning</string>
   <string name="coach_stalling_body">%1$s: %2$s freezes a solve; %3$s of its %4$s spent not turning.</string>
   <string name="coach_reason_uneven_step">Uneven from solve to solve</string>
   <string name="coach_uneven_body">%1$s averages %2$s, give or take %3$s, and your best is %4$s.</string>
   <string name="coach_reason_f2l_rotations">Cube rotations in your F2L</string>
+  <string name="coach_reason_unplanned_cross">Crosses taking extra moves</string>
   <string name="coach_rotations_body">Over %1$d solves, you rotated the cube in %2$s of your F2L pairs, and in %3$s of the basic ones.</string>
   <string name="coach_rotations_cost">Each rotation adds %1$s&#160;s between two turns.</string>
   <string name="coach_pair_extra">%1$s extra moves on average</string>
@@ -1542,6 +1544,7 @@
   <string name="coach_fig_first_pair">seconds more to find the first pair</string>
   <string name="coach_fig_first_pair_sub">than each pair after it</string>
   <string name="coach_fig_extra_moves">extra moves in your F2L</string>
+  <string name="coach_fig_extra_cross_moves">extra moves per cross</string>
   <plurals name="coach_fig_over_solves">
     <item quantity="one">over %1$d solve</item>
     <item quantity="other">over %1$d solves</item>
@@ -1562,6 +1565,7 @@
   <string name="coach_bar_drilled">Drilled</string>
   <string name="coach_bar_you">You</string>
   <string name="coach_bar_usual">Usual</string>
+  <string name="coach_bar_fewest">Fewest</string>
   <string name="coach_bar_stuck">Stuck pairs</string>
   <string name="coach_bar_basic">Basic pairs</string>
   <string name="coach_bar_first_pair">First pair</string>

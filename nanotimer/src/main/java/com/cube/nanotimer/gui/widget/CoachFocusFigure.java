@@ -73,6 +73,9 @@ final class CoachFocusFigure {
         || area.getReason() == FocusArea.Reason.F2L_ROTATIONS) {
       return "f2l";
     }
+    if (area.getReason() == FocusArea.Reason.UNPLANNED_CROSS) {
+      return "cross";
+    }
     if (area.getCodes().isEmpty()) {
       return null;
     }
@@ -112,6 +115,8 @@ final class CoachFocusFigure {
         return read.uneven(first(area));
       case F2L_ROTATIONS:
         return read.rotations();
+      case UNPLANNED_CROSS:
+        return read.crossMoves();
       default:
         return null;
     }
@@ -289,6 +294,21 @@ final class CoachFocusFigure {
           plural(R.plurals.coach_fig_over_solves, solves.intValue(), solves.intValue()), null,
           bars(new Bar(context.getString(R.string.coach_bar_you), turned, moves(turned), true),
               new Bar(context.getString(R.string.coach_bar_usual), usual, moves(usual), false)),
+          null, false);
+    }
+
+    CoachFocusFigure crossMoves() {
+      Double solves = value("cross_moves.solves");
+      Double turned = value("cross_moves.turned_moves");
+      Double fewest = value("cross_moves.optimal_moves");
+      if (solves == null || turned == null || fewest == null || turned <= fewest) {
+        return null;
+      }
+      return new CoachFocusFigure("+" + moves(turned - fewest), null,
+          context.getString(R.string.coach_fig_extra_cross_moves),
+          plural(R.plurals.coach_fig_over_solves, solves.intValue(), solves.intValue()), null,
+          bars(new Bar(context.getString(R.string.coach_bar_you), turned, moves(turned), true),
+              new Bar(context.getString(R.string.coach_bar_fewest), fewest, moves(fewest), false)),
           null, false);
     }
 

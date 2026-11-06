@@ -1457,11 +1457,13 @@
   <string name="coach_first_pair_body">Você procura por %1$s antes do seu primeiro par, e %2$s antes de cada um dos seguintes.</string>
   <string name="coach_reason_long_pair">Pares de F2L com movimentos a mais</string>
   <string name="coach_long_pair_body">Em %1$d resoluções, o seu F2L levou %2$s movimentos, onde os algoritmos habituais dos seus pares somam %3$s.</string>
+  <string name="coach_unplanned_cross_body">Em %1$d cruzes, você usou %2$s movimentos, onde os mesmos scrambles se resolviam em %3$s.</string>
   <string name="coach_reason_stalling">Bloqueios ao girar</string>
   <string name="coach_stalling_body">%1$s: %2$s bloqueios por resolução; %3$s dos seus %4$s sem girar.</string>
   <string name="coach_reason_uneven_step">Irregular de resolução para resolução</string>
   <string name="coach_uneven_body">%1$s: média de %2$s, com uma variação de %3$s, e o seu melhor é %4$s.</string>
   <string name="coach_reason_f2l_rotations">Rotações do cubo no seu F2L</string>
+  <string name="coach_reason_unplanned_cross">Cruzes com movimentos a mais</string>
   <string name="coach_rotations_body">Em %1$d resoluções, você rodou o cubo em %2$s dos seus pares de F2L, e em %3$s dos básicos.</string>
   <string name="coach_rotations_cost">Cada rotação acrescenta %1$s&#160;s entre dois movimentos.</string>
   <string name="coach_pair_extra">%1$s movimentos a mais em média</string>
@@ -1496,6 +1498,7 @@
   <string name="coach_fig_first_pair">segundos a mais para encontrar o primeiro par</string>
   <string name="coach_fig_first_pair_sub">do que cada par seguinte</string>
   <string name="coach_fig_extra_moves">movimentos a mais no seu F2L</string>
+  <string name="coach_fig_extra_cross_moves">movimentos a mais por cruz</string>
   <plurals name="coach_fig_over_solves">
     <item quantity="one">em %1$d resolução</item>
     <item quantity="other">em %1$d resoluções</item>
@@ -1516,6 +1519,7 @@
   <string name="coach_bar_drilled">No treino</string>
   <string name="coach_bar_you">Você</string>
   <string name="coach_bar_usual">Habitual</string>
+  <string name="coach_bar_fewest">Mínimo</string>
   <string name="coach_bar_stuck">Presos</string>
   <string name="coach_bar_basic">Básicos</string>
   <string name="coach_bar_first_pair">Primeiro par</string>

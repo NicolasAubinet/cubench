@@ -48,6 +48,11 @@ public class CrossSolvers {
     return solver;
   }
 
+  /** The optimal cross length (HTM) on a single face, without listing the solutions. */
+  public synchronized int optimalLength(CrossFace face, String scramble) {
+    return forFace(face).optimalLength(scramble);
+  }
+
   /** All optimal solutions for a single face. */
   public FaceSolutions solveFace(CrossFace face, String scramble) {
     return new FaceSolutions(face, forFace(face).solve(scramble));

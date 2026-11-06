@@ -222,6 +222,21 @@ public final class CFOPStepDetector implements StepDetector {
     }
   }
 
+  /** Whether the cross on this face is built in this state, URFDLB facelets. */
+  public static boolean isCrossDone(String facelets, Face face) {
+    return Cubies.crossDone(facelets, Cubies.FACES.indexOf(face.name()));
+  }
+
+  /** How many of this face's four F2L slots are done in this state, URFDLB facelets. */
+  public static int slotsDoneCount(String facelets, Face face) {
+    int index = Cubies.FACES.indexOf(face.name());
+    int done = 0;
+    for (int slot = 0; slot < SLOT_COUNT; slot++) {
+      done += slotDone(facelets, index, slot) ? 1 : 0;
+    }
+    return done;
+  }
+
   /** One F2L slot: its first-layer corner and the middle edge beside it are both in place. */
   private static boolean slotDone(String facelets, int face, int slot) {
     return Cubies.inPlace(facelets, Cubies.CORNERS[SLOT_CORNERS[face][slot]])

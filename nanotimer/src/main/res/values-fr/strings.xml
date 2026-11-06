@@ -1455,11 +1455,13 @@
   <string name="coach_first_pair_body">Vous cherchez %1$s avant votre première paire, et %2$s avant chacune des suivantes.</string>
   <string name="coach_reason_long_pair">Des paires F2L en mouvements de trop</string>
   <string name="coach_long_pair_body">Sur %1$d résolutions, vos F2L ont pris %2$s mouvements, là où les algorithmes habituels de leurs paires en comptent %3$s.</string>
+  <string name="coach_unplanned_cross_body">Sur %1$d croix, vous avez pris %2$s mouvements, là où les mêmes mélanges se résolvaient en %3$s.</string>
   <string name="coach_reason_stalling">Des blocages en tournant</string>
   <string name="coach_stalling_body">%1$s : %2$s blocages par résolution ; %3$s sur ses %4$s sans tourner.</string>
   <string name="coach_reason_uneven_step">Irrégulier d\'une résolution à l\'autre</string>
   <string name="coach_uneven_body">%1$s : moyenne de %2$s, à %3$s près, et votre meilleur temps est %4$s.</string>
   <string name="coach_reason_f2l_rotations">Des rotations du cube pendant vos F2L</string>
+  <string name="coach_reason_unplanned_cross">Des croix en mouvements de trop</string>
   <string name="coach_rotations_body">Sur %1$d résolutions, vous avez tourné le cube dans %2$s de vos paires F2L, et dans %3$s des paires basiques.</string>
   <string name="coach_rotations_cost">Chaque rotation ajoute %1$s&#160;s entre deux mouvements.</string>
   <string name="coach_pair_extra">%1$s mouvements de trop en moyenne</string>
@@ -1494,6 +1496,7 @@
   <string name="coach_fig_first_pair">secondes de plus pour trouver la première paire</string>
   <string name="coach_fig_first_pair_sub">que pour chacune des suivantes</string>
   <string name="coach_fig_extra_moves">mouvements en trop dans vos F2L</string>
+  <string name="coach_fig_extra_cross_moves">mouvements en trop par croix</string>
   <plurals name="coach_fig_over_solves">
     <item quantity="one">sur %1$d résolution</item>
     <item quantity="other">sur %1$d résolutions</item>
@@ -1514,6 +1517,7 @@
   <string name="coach_bar_drilled">En drill</string>
   <string name="coach_bar_you">Vous</string>
   <string name="coach_bar_usual">D\'habitude</string>
+  <string name="coach_bar_fewest">Minimum</string>
   <string name="coach_bar_stuck">Coincées</string>
   <string name="coach_bar_basic">Basiques</string>
   <string name="coach_bar_first_pair">Première</string>

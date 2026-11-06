@@ -788,6 +788,14 @@ public class CoachPlanView {
     if (area.getReason() == FocusArea.Reason.F2L_ROTATIONS) {
       return rotations(payload);
     }
+    if (area.getReason() == FocusArea.Reason.UNPLANNED_CROSS) {
+      Double solves = payload.value("cross_moves.solves");
+      Double turned = payload.value("cross_moves.turned_moves");
+      Double fewest = payload.value("cross_moves.optimal_moves");
+      return solves == null || turned == null || fewest == null ? null
+          : activity.getString(R.string.coach_unplanned_cross_body, solves.intValue(),
+              moves(turned), moves(fewest));
+    }
     return null;
   }
 

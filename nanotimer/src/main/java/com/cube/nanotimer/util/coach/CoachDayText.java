@@ -157,6 +157,8 @@ public final class CoachDayText {
         return context.getString(R.string.coach_reason_uneven_step);
       case F2L_ROTATIONS:
         return context.getString(R.string.coach_reason_f2l_rotations);
+      case UNPLANNED_CROSS:
+        return context.getString(R.string.coach_reason_unplanned_cross);
       default:
         return context.getString(R.string.coach_reason_inconsistent_case);
     }

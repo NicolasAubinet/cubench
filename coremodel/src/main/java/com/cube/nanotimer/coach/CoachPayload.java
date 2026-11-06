@@ -36,9 +36,13 @@ public class CoachPayload {
    * drill ({@link #LOOKAHEAD_DRILL_VERSION}), 12 the F2L rotations of gyro solves, 13 nothing new
    * but that the app runs a back-slot drill ({@link #BACK_SLOT_DRILL_VERSION}), 14 the F2L
    * rotations split by front and back slot, and a drill dealing a case into any named slot
-   * ({@link #SLOT_DRILL_VERSION}); an older payload
+   * ({@link #SLOT_DRILL_VERSION}), 15 the cross's moves against its optimal
+   * ({@link #CROSS_MOVES_VERSION}); an older payload
    * is still read, and is simply missing them. */
-  public static final int VERSION = 14;
+  public static final int VERSION = 15;
+
+  /** The first payload with the cross's moves against its optimal, from an app that names it. */
+  public static final int CROSS_MOVES_VERSION = 15;
 
   /** The first payload from an app that runs a look-ahead drill, which needs drill spec 6. */
   public static final int LOOKAHEAD_DRILL_VERSION = 11;
@@ -80,6 +84,7 @@ public class CoachPayload {
   private final List<StepFigure> pllLooks;
   private final String language;
   private final F2lRotationFigure f2lRotations;
+  private final CrossMoveFigure crossMoves;
 
   /**
    * @param solve the whole solve's figures, or null when the window holds too few to quote
@@ -275,6 +280,24 @@ public class CoachPayload {
       List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
       PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks, String language,
       F2lRotationFigure f2lRotations) {
+    this(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow, twoLookCount, solve,
+        families, parts, cases, drillCases, comparisons, knownCases, learningCases, toLearnCases,
+        f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning, turningWindow, llMoves, llHabits,
+        llMoveWindow, ollLooks, previous, twoLookPllCount, pllLooks, language, f2lRotations, null);
+  }
+
+  /** As above, with the crosses against their optimal ({@link #getCrossMoves}), or null. */
+  public CoachPayload(int schemaVersion, String puzzle, String method, int familyWindow,
+      int caseWindow, int drillWindow, Integer twoLookCount, StepFigure solve,
+      List<StepFigure> families, List<StepFigure> parts, List<StepFigure> cases,
+      List<StepFigure> drillCases, List<CaseComparison> comparisons, List<String> knownCases,
+      List<String> learningCases, List<String> toLearnCases, List<StepFigure> f2lGroups,
+      MoveFigure f2lMoves, List<MoveFigure> f2lHabits, Integer f2lMoveWindow,
+      List<TurningFigure> turning, Integer turningWindow, List<MoveFigure> llMoves,
+      List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
+      PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks, String language,
+      F2lRotationFigure f2lRotations, CrossMoveFigure crossMoves) {
+    this.crossMoves = crossMoves;
     this.f2lRotations = f2lRotations;
     this.language = language == null ? null : CoachGlossary.Language.of(language).code();
     this.twoLookPllCount = twoLookPllCount;
@@ -534,7 +557,7 @@ public class CoachPayload {
         twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
         learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
         turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
-        pllLooks, code, f2lRotations);
+        pllLooks, code, f2lRotations, crossMoves);
   }
 
   /**
@@ -547,7 +570,27 @@ public class CoachPayload {
         twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
         learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
         turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
-        pllLooks, language, rotations);
+        pllLooks, language, rotations, crossMoves);
+  }
+
+  /**
+   * This payload with the crosses of the family window against their optimal, built by
+   * {@link CoachPayloadBuilder#crossMoves}. Added after the build: only the app can replay a solve.
+   */
+  public CoachPayload withCrossMoves(CrossMoveFigure crosses) {
+    return new CoachPayload(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow,
+        twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
+        learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
+        turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
+        pllLooks, language, f2lRotations, crosses);
+  }
+
+  /**
+   * The cross's moves against the fewest it could take, or null: too few plain crosses, or a
+   * payload written before version 15.
+   */
+  public CrossMoveFigure getCrossMoves() {
+    return crossMoves;
   }
 
   /**
@@ -610,6 +653,9 @@ public class CoachPayload {
     }
     if (segments.length == 2 && "f2l_rotations".equals(segments[0])) {
       return f2lRotations == null ? null : f2lRotations.field(segments[1]);
+    }
+    if (segments.length == 2 && "cross_moves".equals(segments[0])) {
+      return crossMoves == null ? null : crossMoves.field(segments[1]);
     }
     if (segments.length == 2 && "f2l_moves".equals(segments[0])) {
       return f2lMoves == null ? null : f2lMoves.field(segments[1]);
@@ -898,6 +944,9 @@ public class CoachPayload {
       if (f2lRotations != null) {
         json.put("f2l_rotations", f2lRotations.toJson());
       }
+      if (crossMoves != null) {
+        json.put("cross_moves", crossMoves.toJson());
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write coach payload", e);
@@ -959,7 +1008,9 @@ public class CoachPayload {
               ? Integer.valueOf(json.getInt("two_look_pll_count")) : null,
           figures(json, "pll_looks"), json.optString("language", null),
           json.has("f2l_rotations")
-              ? F2lRotationFigure.fromJson(json.getJSONObject("f2l_rotations")) : null);
+              ? F2lRotationFigure.fromJson(json.getJSONObject("f2l_rotations")) : null,
+          json.has("cross_moves")
+              ? CrossMoveFigure.fromJson(json.getJSONObject("cross_moves")) : null);
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a coach payload: " + e.getMessage(), e);
     }

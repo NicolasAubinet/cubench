@@ -1,5 +1,6 @@
 package com.cube.nanotimer.cube;
 
+import com.cube.nanotimer.coach.CrossTurn;
 import com.cube.nanotimer.coach.PairRotation;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
@@ -46,9 +47,9 @@ public final class SolveReading {
    * version 5 the F2L rotations of a gyro solve, version 6 reads them again now that the solves
    * come with their gyro tracks (version 5 rows hold none), version 7 stops counting a last layer
    * false start as one of the step's algorithms, version 8 drops pauses under 250 ms, version 9
-   * where each pair's slot sat in the grip.
+   * where each pair's slot sat in the grip, version 10 the cross against its optimal.
    */
-  public static final int VERSION = 9;
+  public static final int VERSION = 10;
 
   private static final String RESTART_PART_SUFFIX = "restart";
 
@@ -59,6 +60,7 @@ public final class SolveReading {
   private final List<Turning> turnings;
   private final boolean whole;
   private final List<PairRotation> rotations;
+  private final CrossTurn cross;
 
   /**
    * @param turnings each step as it was turned, in solving order
@@ -72,6 +74,13 @@ public final class SolveReading {
   /** @param rotations each F2L pair's rotations, empty for a solve with no gyro track */
   public SolveReading(List<Execution> executions, List<Turning> turnings, boolean whole,
       List<PairRotation> rotations) {
+    this(executions, turnings, whole, rotations, null);
+  }
+
+  /** @param cross the cross against its optimal, null where none was read */
+  public SolveReading(List<Execution> executions, List<Turning> turnings, boolean whole,
+      List<PairRotation> rotations, CrossTurn cross) {
+    this.cross = cross;
     this.executions = Collections.unmodifiableList(new ArrayList<Execution>(executions));
     this.turnings = Collections.unmodifiableList(new ArrayList<Turning>(turnings));
     this.whole = whole;
@@ -98,6 +107,11 @@ public final class SolveReading {
   /** Each F2L pair's rotations ({@link F2lRotations}), empty where the solve has no gyro track. */
   public List<PairRotation> getRotations() {
     return rotations;
+  }
+
+  /** The cross against the fewest moves it could take ({@link CrossMoves}), or null. */
+  public CrossTurn getCross() {
+    return cross;
   }
 
   public boolean isEmpty() {
@@ -254,7 +268,17 @@ public final class SolveReading {
         ? Collections.<PairRotation>emptyList()
         : F2lRotations.read(solve.getId(), replay.getMoves(), replay.getSteps(),
             GyroTrackFormat.parse(solve.getSmartcubeGyroTrack()));
-    return new SolveReading(executions, turnings, whole, rotations);
+    CrossTurn cross = whole ? readCross(solve, replay) : null;
+    return new SolveReading(executions, turnings, whole, rotations, cross);
+  }
+
+  private static CrossTurn readCross(SolveTime solve, CaseExecutions.Replay replay) {
+    try {
+      return CrossMoves.read(solve.getId(), solve.getScramble(), replay.getMoves(),
+          replay.getSteps());
+    } catch (RuntimeException e) {
+      return null; // a scramble the cross solver cannot read: the rest of the reading stands
+    }
   }
 
   private static void readPairs(SolveStep step, SolveSolution.Step turned,
@@ -364,6 +388,10 @@ public final class SolveReading {
         }
         json.put("rotations", rotations);
       }
+      if (reading.cross != null) {
+        json.put("cross", new JSONArray().put(reading.cross.getOptimalMoves())
+            .put(reading.cross.getTurnedMoves()).put(reading.cross.getSlotsWithCross()));
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write a solve reading", e);
@@ -406,7 +434,10 @@ public final class SolveReading {
             json.getBoolean("basic"), json.optString("slot", null), json.getInt("rotations"),
             gaps(json.getJSONArray("start")), gaps(json.getJSONArray("inside"))));
       }
-      return new SolveReading(executions, turnings, reading.getBoolean("whole"), rotations);
+      JSONArray cross = reading.optJSONArray("cross");
+      return new SolveReading(executions, turnings, reading.getBoolean("whole"), rotations,
+          cross == null ? null
+              : new CrossTurn(solveId, cross.getInt(0), cross.getInt(1), cross.getInt(2)));
     } catch (JSONException e) {
       return null;
     }

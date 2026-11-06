@@ -57,16 +57,16 @@ public final class CoachCodes {
   /** Every field name a payload is written with, which is what a cited path is made of. */
   static final Set<String> FIELDS = withHeldRotations(
       "basic_pairs", "basic_rotated_pairs", "before", "best_ms", "cards", "cases", "code", "codes",
-      "comparisons", "count", "drill", "drill_cases", "drill_count", "drill_mean_ms", "drill_reps",
+      "comparisons", "count", "cross_moves", "drill", "drill_cases", "drill_count", "drill_mean_ms", "drill_reps",
       "drills", "evidence", "excess_ms", "extra_moves", "f2l_groups", "f2l_habits", "f2l_moves",
       "f2l_rotation_cases", "f2l_rotations", "families", "family_mean_ms", "gap_ms", "known_cases",
-      "language", "learning_cases", "ll_habits", "ll_moves", "mean_ms", "method", "moves",
-      "off_list_rate", "oll_looks", "pairs", "parts", "path", "pll_looks", "previous", "puzzle",
+      "language", "learning_cases", "ll_habits", "ll_moves", "long_crosses", "mean_ms", "method",
+      "moves", "off_list_rate", "oll_looks", "optimal_moves", "pairs", "parts", "path", "pll_looks", "previous", "puzzle",
       "reason", "recent_mean_ms", "recognition_ms", "rejection_rate", "rotated", "rotated_pairs",
       "rotations", "run", "schema_version", "share", "since", "skip_rate", "slot", "solve",
       "solve_count", "solve_mean_ms", "solves", "solves_since", "stall_ms", "stalls", "std_dev_ms",
       "stop_ms", "time_lost_ms", "to_learn_cases", "turned_moves", "turning", "two_look_count",
-      "two_look_pll_count", "type", "usual_moves", "value", "was", "windows");
+      "two_look_pll_count", "type", "usual_moves", "value", "was", "windows", "x_crosses");
 
   private CoachCodes() {
   }
