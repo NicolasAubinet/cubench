@@ -103,7 +103,7 @@ public class PreviousPlanTest {
     Assert.assertEquals(1, third.value("previous.cards.2.run"), 1e-9);
   }
 
-  private static StoredCoachPlan stored(CoachPayload payload) {
+  static StoredCoachPlan stored(CoachPayload payload) {
     return new StoredCoachPlan(plan(), payload, 1000);
   }
 
@@ -126,13 +126,13 @@ public class PreviousPlanTest {
   }
 
   /** The last plan against thirty solves since, each stopping once in the cross for 900 ms. */
-  private static PreviousPlan previous(StoredCoachPlan last, String method, int solvesSince) {
+  static PreviousPlan previous(StoredCoachPlan last, String method, int solvesSince) {
     return CoachPayloadBuilder.previous(last, method, solvesSince, solveTimes(SINCE),
         samples(SINCE), turnings(SINCE), Arrays.asList(Integer.valueOf(12), Integer.valueOf(0),
             null));
   }
 
-  private static CoachPayload payload(PreviousPlan previous) {
+  static CoachPayload payload(PreviousPlan previous) {
     return CoachPayloadBuilder.build("3x3", "cfop", solveTimes(40), samples(40), samples(40), 40,
         Collections.<StepSample>emptyList(), 0, Collections.<CaseKnowledge>emptyList(),
         Collections.<PairExecution>emptyList(), 0, turnings(40), 40, previous);

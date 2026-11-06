@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.coach.CoachCodes;
+import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeState;
@@ -128,6 +130,42 @@ public class SolveAnalyzerTest {
     }
     assertArrayEquals(new int[] {2, 3, 8, 15}, perStep);
     assertEquals(moves.size(), move); // every move landed in a step
+  }
+
+  /**
+   * The coach service drops any family not on its list. Checks every detector's steps and the parts
+   * of one played CFOP solve; a new part family has to be added there too.
+   */
+  @Test
+  public void everyStepAndPartFamilyIsOneTheCoachKnows() {
+    startFrom(T_PERM, SUNE, "F U R U' R' F'", "R' U R", "L' U L", "L U' L'", "R' F'");
+    play("F R", 0, 600);
+    play("L U L'", 500, 100);
+    play("L' U' L", 400, 100);
+    play("R' U' R", 300, 100);
+    play("F R U R' U' F'", 600, 100);
+    play(ANTI_SUNE, 900, 100);
+    play(T_PERM, 400, 100);
+
+    for (StepTime step : stepTimes()) {
+      assertKnown(step.getStepName());
+      for (StepTime part : step.getSubSteps()) {
+        assertKnown(part.getStepName());
+      }
+    }
+    for (StepDetector detector : new StepDetector[] {new CFOPStepDetector(),
+        new RouxStepDetector(), new LblStepDetector(), new BlindStepDetector()}) {
+      for (int step = 0; step < detector.stepCount(); step++) {
+        assertKnown(detector.stepName(step));
+        for (int part = 0; part < detector.subStepCount(step); part++) {
+          assertKnown(detector.subStepName(step, part));
+        }
+      }
+    }
+  }
+
+  private static void assertKnown(String code) {
+    assertTrue(code, CoachCodes.FAMILIES.contains(MethodStatistics.familyOf(code)));
   }
 
   @Test

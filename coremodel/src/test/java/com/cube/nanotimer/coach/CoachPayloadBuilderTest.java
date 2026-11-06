@@ -529,7 +529,7 @@ public class CoachPayloadBuilderTest {
   }
 
   /** Twenty solves of steps, forty of cases, three drills of the same two PLLs. */
-  private static CoachPayload build() {
+  static CoachPayload build() {
     List<StepSample> cases = new ArrayList<StepSample>();
     cases.addAll(steps("pll_gb", 6, 2900, 1000));
     cases.addAll(steps("pll_t", 8, 1500, 700));
@@ -560,7 +560,7 @@ public class CoachPayloadBuilderTest {
    * Thirty solves whose pairs carry their case and their place: the first basic and slow to find,
    * then two more basic and one stuck.
    */
-  private static CoachPayload buildWithPlacedPairs() {
+  static CoachPayload buildWithPlacedPairs() {
     List<StepSample> samples = new ArrayList<StepSample>();
     samples.addAll(steps("cross", 30, 6500, 0));
     samples.addAll(steps("f2l", 30, 15000, 4000));
@@ -579,7 +579,7 @@ public class CoachPayloadBuilderTest {
    * Solves of two pairs each: case 23 always with a listed algorithm 4 moves over the shortest, which
    * costs nothing, case 4 with its usual one except a quarter of the time, off the list 4 over.
    */
-  private static CoachPayload buildWithPairMoves(int solves) {
+  static CoachPayload buildWithPairMoves(int solves) {
     return buildWithPairMoves(solves, solves);
   }
 
