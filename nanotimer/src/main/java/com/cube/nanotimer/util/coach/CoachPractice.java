@@ -6,10 +6,8 @@ import android.os.Looper;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.coach.CoachPayload;
-import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.PairExecution;
 import com.cube.nanotimer.coach.StepTurning;
-import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -34,9 +32,10 @@ import org.json.JSONObject;
  * behind it. Cached as the service sent them, so the section draws at once and a failed refresh
  * keeps the last answer.
  *
- * <p>Asked for once a day per solve type, on the first visit of the day, and at once when the cases
- * cleared in a learning drill or the plan's drills change, since those change the answer. Each ask
- * wakes the service's database for minutes, and a day's new solves are what move the sets anyway.
+ * <p>Asked for once a day per solve type, on the first visit of the day, and at once when a learning
+ * drill clears cases, since that changes the answer. Each ask wakes the service's database for
+ * minutes, and a day's new solves are what move the sets anyway. A case the plan also drills stays
+ * in its set, so "your costliest" always means the costliest.
  */
 public final class CoachPractice {
 
@@ -137,26 +136,20 @@ public final class CoachPractice {
     if (!client.hasAccess()) {
       return;
     }
-    App.INSTANCE.getService().getCoachPlan(solveType, new DataCallback<StoredCoachPlan>() {
-      @Override
-      public void onData(StoredCoachPlan stored) {
-        List<String> drilled = drilledCases(stored);
-        List<String> learned = new ArrayList<String>(Options.INSTANCE.getLearnedCases());
-        String with = askedWith(learned, drilled);
-        int id = solveType.getId();
-        if (!due(Options.INSTANCE.getCoachPractice(id), Options.INSTANCE.getCoachPracticeAt(id),
-            Options.INSTANCE.getCoachPracticeWith(id), System.currentTimeMillis(), with,
-            TimeZone.getDefault())) {
-          return;
-        }
-        ask(client, solveType, method, learned, drilled, with, listener);
-      }
-    });
+    List<String> learned = new ArrayList<String>(Options.INSTANCE.getLearnedCases());
+    String with = askedWith(learned);
+    int id = solveType.getId();
+    if (!due(Options.INSTANCE.getCoachPractice(id), Options.INSTANCE.getCoachPracticeAt(id),
+        Options.INSTANCE.getCoachPracticeWith(id), System.currentTimeMillis(), with,
+        TimeZone.getDefault())) {
+      return;
+    }
+    ask(client, solveType, method, learned, with, listener);
   }
 
   /**
    * Whether the kept sets should be asked for again: none kept, kept on an earlier local day, or
-   * asked with other cleared or drilled cases than now.
+   * asked with other cleared cases than now.
    */
   static boolean due(String kept, long askedAt, String askedWith, long now, String with,
       TimeZone zone) {
@@ -164,36 +157,11 @@ public final class CoachPractice {
         || !sameDay(askedAt, now, zone);
   }
 
-  /** The cleared and drilled cases, sorted, as one string to compare an earlier ask by. */
-  static String askedWith(Collection<String> learned, Collection<String> drilled) {
-    List<String> l = new ArrayList<String>(learned);
-    List<String> d = new ArrayList<String>(drilled);
-    Collections.sort(l);
-    Collections.sort(d);
-    return join(l) + "|" + join(d);
-  }
-
-  /** The cases the stored plan's drills run, which the practice sets leave to them. */
-  static List<String> drilledCases(StoredCoachPlan stored) {
-    List<String> cases = new ArrayList<String>();
-    if (stored == null) {
-      return cases;
-    }
-    for (FocusArea area : stored.getPlan().getFocus()) {
-      if (area.getDrill() == null) {
-        continue;
-      }
-      try {
-        for (String code : DrillSpec.fromJson(area.getDrill()).getCases()) {
-          if (!cases.contains(code)) {
-            cases.add(code);
-          }
-        }
-      } catch (RuntimeException e) {
-        // A drill this app cannot read has no button either, so it holds no case back.
-      }
-    }
-    return cases;
+  /** The cleared cases, sorted, as one string to compare an earlier ask by. */
+  static String askedWith(Collection<String> learned) {
+    List<String> sorted = new ArrayList<String>(learned);
+    Collections.sort(sorted);
+    return join(sorted);
   }
 
   private static String join(List<String> codes) {
@@ -217,8 +185,7 @@ public final class CoachPractice {
   }
 
   private static void ask(final CoachClient client, final SolveType solveType, CubeMethod method,
-      final List<String> learned, final List<String> drilled, final String with,
-      final Listener listener) {
+      final List<String> learned, final String with, final Listener listener) {
     final Handler main = new Handler(Looper.getMainLooper());
     final long askedAt = System.currentTimeMillis();
     App.INSTANCE.getService().getCoachPayload(solveType, method,
@@ -230,8 +197,7 @@ public final class CoachPractice {
               @Override
               public void run() {
                 String reply = client.requestPractice(CoachClient.practiceBody(
-                    payload.withLanguage(CoachAsk.planLanguage()),
-                    learned, drilled));
+                    payload.withLanguage(CoachAsk.planLanguage()), learned));
                 final List<Set> sets = parse(reply);
                 if (reply == null && !client.hasAccess()) {
                   main.post(new Runnable() {

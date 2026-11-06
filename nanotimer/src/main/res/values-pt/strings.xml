@@ -1531,7 +1531,7 @@
   <string name="coach_drill_back_slots">Slots traseiros sem rotação</string>
   <string name="coach_drill_slots">F2L sem rotação</string>
   <string name="coach_practice_title">Treino livre</string>
-  <string name="coach_practice_body">Sempre aqui, à parte do plano: os casos que mais custam para você, treinados até baterem suas metas. Atualizado todos os dias com suas últimas resoluções.</string>
+  <string name="coach_practice_body">Sempre aqui, atualizado todos os dias com suas últimas resoluções.</string>
   <string name="coach_practice_set">Os seus casos de %1$s mais custosos</string>
   <string name="coach_learn_next">Próximos OLL a aprender</string>
   <string name="coach_learn_next_pll">Próximos PLL a aprender</string>

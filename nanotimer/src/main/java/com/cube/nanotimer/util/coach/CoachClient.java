@@ -487,16 +487,15 @@ public final class CoachClient {
 
   /**
    * A practice request: the payload, and beside it the cases cleared in a learning drill, which no
-   * solve figure holds and which the "learn next" set moves past, and the cases the current plan's
-   * drills run, which the sets leave to them. Sending those spares the service a database read.
+   * solve figure holds and which the "learn next" set moves past. {@code drilled_cases} goes empty
+   * rather than missing: an app that leaves it out has its plan's cases kept out of the sets.
    */
-  static String practiceBody(CoachPayload payload, Collection<String> learned,
-      Collection<String> drilled) {
+  static String practiceBody(CoachPayload payload, Collection<String> learned) {
     try {
       return new JSONObject()
           .put("payload", new JSONObject(payload.toJson()))
           .put("learned_cases", new JSONArray(learned))
-          .put("drilled_cases", new JSONArray(drilled))
+          .put("drilled_cases", new JSONArray())
           .toString();
     } catch (JSONException e) {
       throw new IllegalStateException(e); // toJson wrote it, so it parses

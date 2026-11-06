@@ -1,10 +1,6 @@
 package com.cube.nanotimer.util.coach;
 
 import com.cube.nanotimer.coach.CoachPayload;
-import com.cube.nanotimer.coach.CoachPlan;
-import com.cube.nanotimer.coach.Evidence;
-import com.cube.nanotimer.coach.FocusArea;
-import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
 
 import java.util.Arrays;
@@ -12,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import org.junit.Assert;
@@ -85,7 +80,7 @@ public class CoachPracticeTest {
   /** Once a day: the first visit of a new local day asks, any later one that day does not. */
   @Test
   public void keptSetsAreAskedForAgainOnTheFirstVisitOfANewDay() {
-    String with = CoachPractice.askedWith(Arrays.asList("pll_t"), Arrays.asList("pll_gb"));
+    String with = CoachPractice.askedWith(Arrays.asList("pll_t"));
 
     Assert.assertFalse(CoachPractice.due("{}", MORNING, with, MORNING + 14 * HOUR, with, ZONE));
     Assert.assertTrue(CoachPractice.due("{}", MORNING, with, MORNING + 15 * HOUR + 1, with, ZONE));
@@ -93,48 +88,33 @@ public class CoachPracticeTest {
 
   @Test
   public void nothingKeptOrNeverAskedIsDue() {
-    Assert.assertTrue(CoachPractice.due(null, MORNING, "|", MORNING, "|", ZONE));
-    Assert.assertTrue(CoachPractice.due("{}", 0, null, MORNING, "|", ZONE));
+    Assert.assertTrue(CoachPractice.due(null, MORNING, "", MORNING, "", ZONE));
+    Assert.assertTrue(CoachPractice.due("{}", 0, null, MORNING, "", ZONE));
   }
 
-  /** A cleared case or a new plan changes the answer, so it is asked for the same day. */
+  /** A case cleared in a learning drill changes the answer, so it is asked for the same day. */
   @Test
-  public void otherClearedOrDrilledCasesAreDueAtOnce() {
-    String before = CoachPractice.askedWith(Collections.<String>emptyList(),
-        Arrays.asList("pll_gb"));
+  public void otherClearedCasesAreDueAtOnce() {
+    String before = CoachPractice.askedWith(Collections.<String>emptyList());
 
     Assert.assertTrue(CoachPractice.due("{}", MORNING, before, MORNING + HOUR,
-        CoachPractice.askedWith(Arrays.asList("oll_26"), Arrays.asList("pll_gb")), ZONE));
-    Assert.assertTrue(CoachPractice.due("{}", MORNING, before, MORNING + HOUR,
-        CoachPractice.askedWith(Collections.<String>emptyList(), Arrays.asList("pll_v")), ZONE));
+        CoachPractice.askedWith(Arrays.asList("oll_26")), ZONE));
   }
 
   @Test
   public void theOrderTheCasesComeInChangesNothing() {
-    Assert.assertEquals(CoachPractice.askedWith(Arrays.asList("b", "a"), Arrays.asList("d", "c")),
-        CoachPractice.askedWith(Arrays.asList("a", "b"), Arrays.asList("c", "d")));
-    Assert.assertNotEquals(CoachPractice.askedWith(Arrays.asList("a"), Collections.<String>emptyList()),
-        CoachPractice.askedWith(Collections.<String>emptyList(), Arrays.asList("a")));
+    Assert.assertEquals(CoachPractice.askedWith(Arrays.asList("b", "a")),
+        CoachPractice.askedWith(Arrays.asList("a", "b")));
   }
 
-  /** What the plan's drills run is sent, so the service need not read the plan back. */
+  /** An empty list, not a missing one, so the service keeps the plan's cases in the sets. */
   @Test
-  public void theStoredPlansDrilledCasesGoInTheRequest() throws Exception {
-    FocusArea drilled = new FocusArea("slow_case", Arrays.asList("pll"),
-        Collections.<Evidence>emptyList(), "text", PLL_DRILL);
-    FocusArea plain = new FocusArea("slow_case", Arrays.asList("oll"),
-        Collections.<Evidence>emptyList(), "text", null);
-    StoredCoachPlan stored = new StoredCoachPlan(new CoachPlan(CoachPlan.VERSION,
-        CoachPlan.Source.COACH, "a headline", Arrays.asList(drilled, plain)), null, MORNING);
+  public void noDrilledCasesAreSent() throws Exception {
+    JSONObject sent = new JSONObject(CoachClient.practiceBody(payload(),
+        Arrays.asList("oll_26")));
 
-    List<String> cases = CoachPractice.drilledCases(stored);
-
-    Assert.assertEquals(Arrays.asList("pll_rb", "pll_v"), cases);
-    Assert.assertEquals(Collections.<String>emptyList(), CoachPractice.drilledCases(null));
-    JSONArray sent = new JSONObject(CoachClient.practiceBody(payload(),
-        Collections.<String>emptyList(), cases)).getJSONArray("drilled_cases");
-    Assert.assertEquals("pll_rb", sent.getString(0));
-    Assert.assertEquals(2, sent.length());
+    Assert.assertEquals(0, sent.getJSONArray("drilled_cases").length());
+    Assert.assertEquals("oll_26", sent.getJSONArray("learned_cases").getString(0));
   }
 
   private static CoachPayload payload() {
