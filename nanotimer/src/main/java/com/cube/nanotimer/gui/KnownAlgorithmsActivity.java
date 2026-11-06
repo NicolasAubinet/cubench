@@ -198,7 +198,7 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
     int name = status == CaseKnowledge.Status.KNOWN ? R.string.known_algorithms_status_known
         : status == CaseKnowledge.Status.NEEDS_REVIEW ? R.string.known_algorithms_status_review
         : status == CaseKnowledge.Status.TO_LEARN ? R.string.known_algorithms_status_to_learn
-        : R.string.known_algorithms_status_unseen;
+        : R.string.analysis_knowledge_unseen;
     heading.setText(getString(R.string.known_algorithms_status_count, getString(name),
         cases.size()));
     rows.addView(heading);

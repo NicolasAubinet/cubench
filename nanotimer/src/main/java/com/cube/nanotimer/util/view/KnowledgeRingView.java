@@ -20,18 +20,21 @@ import com.cube.nanotimer.R;
  * the composition of a duration but progress through a fixed set, and it is the only figure in the
  * hub with a natural "complete".
  *
- * <p><b>One hue in three steps, not three hues.</b> The three states are degrees of the same thing,
- * so they are sequential; giving them their own colours would spend the step palette on a magnitude
- * and put a fourth meaning on colours that already carry three on this screen.
+ * <p><b>One hue in four steps, not four hues.</b> The states (known, needs review, to learn, not yet
+ * seen) are degrees of the same thing, so they are sequential; giving them their own colours would
+ * spend the step palette on a magnitude and put another meaning on colours already used here.
  */
 public class KnowledgeRingView extends View {
 
   /** Of the view's width: how thick the ring is drawn. */
   private static final float STROKE_RATIO = 0.12f;
 
-  /** What the seen-but-not-known arc is worth against the known one. Shared with the legend, which
-   * has to draw the same three steps of the hue beside the ring rather than its own. */
+  /** What the to-learn arc is worth against the known one. Shared with the legend, which has to
+   * draw the same steps of the hue beside the ring rather than its own. */
   public static final int SEEN_ALPHA = 107; // 42%
+
+  /** The needs-review arc: between known and to learn. */
+  public static final int REVIEW_ALPHA = 184; // 72%
 
   private static final float FULL_TURN = 360f;
   private static final float TWELVE_O_CLOCK = -90f;
@@ -41,7 +44,8 @@ public class KnowledgeRingView extends View {
   private final int trackColor;
 
   private int known;
-  private int seen;
+  private int review;
+  private int toLearn;
   private int total;
   private int color;
 
@@ -58,12 +62,14 @@ public class KnowledgeRingView extends View {
 
   /**
    * @param known cases that go in unaided
-   * @param seen cases that have come up but do not yet go in unaided
-   * @param total how many cases the set holds, which the two above are part of
+   * @param review cases that went in unaided before but took two looks the last two times
+   * @param toLearn cases that have come up but never gone in unaided
+   * @param total how many cases the set holds, which the three above are part of
    */
-  public void setCounts(int known, int seen, int total, int color) {
+  public void setCounts(int known, int review, int toLearn, int total, int color) {
     this.known = known;
-    this.seen = seen;
+    this.review = review;
+    this.toLearn = toLearn;
     this.total = total;
     this.color = color;
     invalidate();
@@ -85,10 +91,13 @@ public class KnowledgeRingView extends View {
     canvas.drawArc(bounds, TWELVE_O_CLOCK, FULL_TURN, false, paint);
 
     float knownSweep = FULL_TURN * known / total;
-    float seenSweep = FULL_TURN * seen / total;
+    float reviewSweep = FULL_TURN * review / total;
+    float toLearnSweep = FULL_TURN * toLearn / total;
     paint.setColor(color);
     paint.setAlpha(SEEN_ALPHA);
-    canvas.drawArc(bounds, TWELVE_O_CLOCK + knownSweep, seenSweep, false, paint);
+    canvas.drawArc(bounds, TWELVE_O_CLOCK + knownSweep + reviewSweep, toLearnSweep, false, paint);
+    paint.setAlpha(REVIEW_ALPHA);
+    canvas.drawArc(bounds, TWELVE_O_CLOCK + knownSweep, reviewSweep, false, paint);
     paint.setAlpha(Color.alpha(color));
     canvas.drawArc(bounds, TWELVE_O_CLOCK, knownSweep, false, paint);
   }

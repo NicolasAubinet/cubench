@@ -1229,7 +1229,6 @@
   <string name="known_algorithms_status_known">Known</string>
   <string name="known_algorithms_status_review">Needs review</string>
   <string name="known_algorithms_status_to_learn">To learn</string>
-  <string name="known_algorithms_status_unseen">Nothing to say yet</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">No case recorded yet</string>
   <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case counts as known the first time you put it in with one algorithm in a solve. Take it in two looks again and it needs review; one you have never yet put in with a single algorithm is still to learn.</string>
@@ -1295,8 +1294,6 @@
   <string name="analysis_shape_all">All shapes</string>
   <string name="analysis_shape_count">%1$s (%2$d)</string>
   <string name="analysis_knowledge_of">of %d</string>
-  <string name="analysis_knowledge_known">Known</string>
-  <string name="analysis_knowledge_seen">Seen, not known</string>
   <string name="analysis_knowledge_unseen">Not yet seen</string>
   <string name="analysis_algorithms_label">Standard algorithms</string>
   <string name="analysis_algorithms_extra">Extra moves</string>

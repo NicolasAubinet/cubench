@@ -383,18 +383,21 @@ public class AnalysisCases {
       return;
     }
     int knownCount = 0;
-    int seenCount = 0;
+    int reviewCount = 0;
+    int toLearnCount = 0;
     for (String code : set) {
       CaseKnowledge.Status status = statuses.get(code);
       if (status == CaseKnowledge.Status.KNOWN) {
         knownCount++;
+      } else if (status == CaseKnowledge.Status.NEEDS_REVIEW) {
+        reviewCount++;
       } else if (status != null) {
-        seenCount++;
+        toLearnCount++;
       }
     }
     int hue = ContextCompat.getColor(context, R.color.lightblue);
     ((KnowledgeRingView) root.findViewById(R.id.vAnalysisKnowledgeRing))
-        .setCounts(knownCount, seenCount, set.size(), hue);
+        .setCounts(knownCount, reviewCount, toLearnCount, set.size(), hue);
     ((TextView) root.findViewById(R.id.tvAnalysisKnowledgeKnown))
         .setText(String.valueOf(knownCount));
     ((TextView) root.findViewById(R.id.tvAnalysisKnowledgeOf))
@@ -403,11 +406,13 @@ public class AnalysisCases {
     LinearLayout keys = root.findViewById(R.id.llAnalysisKnowledgeKeys);
     keys.removeAllViews();
     LayoutInflater inflater = LayoutInflater.from(context);
-    addArcKey(keys, inflater, hue, OPAQUE, R.string.analysis_knowledge_known, knownCount);
+    addArcKey(keys, inflater, hue, OPAQUE, R.string.known_algorithms_status_known, knownCount);
+    addArcKey(keys, inflater, hue, KnowledgeRingView.REVIEW_ALPHA,
+        R.string.known_algorithms_status_review, reviewCount);
     addArcKey(keys, inflater, hue, KnowledgeRingView.SEEN_ALPHA,
-        R.string.analysis_knowledge_seen, seenCount);
+        R.string.known_algorithms_status_to_learn, toLearnCount);
     addArcKey(keys, inflater, ContextCompat.getColor(context, R.color.hero_inset), OPAQUE,
-        R.string.analysis_knowledge_unseen, set.size() - knownCount - seenCount);
+        R.string.analysis_knowledge_unseen, set.size() - knownCount - reviewCount - toLearnCount);
   }
 
   /** One of the ring's arcs, named and counted beside the swatch that is drawn in that arc. */

@@ -1185,7 +1185,6 @@
   <string name="known_algorithms_status_known">Conhecido</string>
   <string name="known_algorithms_status_review">Para revisar</string>
   <string name="known_algorithms_status_to_learn">Para aprender</string>
-  <string name="known_algorithms_status_unseen">Nada a dizer</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Nenhum caso registrado</string>
   <string name="known_algorithms_hint">Toque em um caso para ver seus algoritmos. Um caso conta como conhecido na primeira vez que você o faz com um único algoritmo em uma resolução. Se você voltar a fazê-lo em 2-look, ele fica para rever; um que você nunca fez com um único algoritmo fica para aprender.</string>
@@ -1250,8 +1249,6 @@
   <string name="analysis_shape_all">Todas as formas</string>
   <string name="analysis_shape_count">%1$s (%2$d)</string>
   <string name="analysis_knowledge_of">de %d</string>
-  <string name="analysis_knowledge_known">Sabido</string>
-  <string name="analysis_knowledge_seen">Vistos, não conhecidos</string>
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_algorithms_label">Algoritmos padrão</string>
   <string name="analysis_algorithms_extra">Movimentos a mais</string>
