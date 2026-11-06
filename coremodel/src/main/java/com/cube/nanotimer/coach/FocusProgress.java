@@ -158,8 +158,19 @@ public final class FocusProgress {
   private static FocusProgress stepShare(FocusArea area, String method, String family,
       PreviousPlan sincePlan) {
     Double was = StepShares.of(method, sincePlan.getBefore().getFamilies()).actual(family);
-    Double now = StepShares.of(method, sincePlan.getSince().getFamilies()).actual(family);
+    Double now = StepShares.of(method, floored(sincePlan.getSince().getFamilies())).actual(family);
     return share(area, sincePlan, was, now, "families." + family + ".count");
+  }
+
+  /** The steps at their floor, so the shares since are split over the steps the plan's were. */
+  private static List<StepFigure> floored(List<StepFigure> families) {
+    List<StepFigure> floored = new ArrayList<StepFigure>();
+    for (StepFigure family : families) {
+      if (family.getCount() >= CoachPayloadBuilder.FAMILY_FLOOR) {
+        floored.add(family);
+      }
+    }
+    return floored;
   }
 
   private static FocusProgress twoLook(FocusArea area, PreviousPlan sincePlan, String countPath) {
@@ -180,8 +191,8 @@ public final class FocusProgress {
   }
 
   /**
-   * A figure short of its floor, with the solves still needed reckoned from how often it came up
-   * per solve when the plan was written.
+   * A figure short of its floor, with the solves still needed reckoned from how often it has come
+   * up per solve since the plan, or when the plan was written while it has not come up since.
    */
   private static FocusProgress waiting(FocusArea area, Unit unit, PreviousPlan sincePlan,
       String countPath) {

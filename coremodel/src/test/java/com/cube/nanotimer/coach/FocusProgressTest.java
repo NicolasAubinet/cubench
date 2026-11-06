@@ -38,6 +38,21 @@ public class FocusProgressTest {
     Assert.assertEquals(4, waiting.getSolvesNeeded()); // one cross a solve when the plan was written
   }
 
+  /** Stuck pairs at two a solve when written, one since: the wait counts the ones seen since. */
+  @Test
+  public void testAWaitCountsTheOccurrencesSinceUnderTheFloor() {
+    FocusProgress waiting = stuck(6);
+    Assert.assertEquals(FocusProgress.Kind.WAITING, waiting.getKind());
+    Assert.assertEquals(6, waiting.getOccurrences());
+    Assert.assertEquals(4, waiting.getSolvesNeeded());
+
+    FocusProgress shown = stuck(10);
+    Assert.assertEquals(FocusProgress.Kind.FIGURE, shown.getKind());
+    Assert.assertEquals(0.5, shown.getBefore(), 1e-9);
+    Assert.assertEquals(0.25, shown.getSince(), 1e-9);
+    Assert.assertEquals(FocusProgress.Change.BETTER, shown.getChange());
+  }
+
   @Test
   public void testACaseFocusShowsTheDrillRepsSince() {
     FocusProgress slowCase = progress(30, 4000).get(1);
@@ -99,6 +114,32 @@ public class FocusProgressTest {
         times(solvesSince), samples(solvesSince, f2lLooking), turnings(solvesSince),
         Arrays.asList(null, Integer.valueOf(12), null, null, null));
     return FocusProgress.of(stored, sincePlan);
+  }
+
+  private static FocusProgress stuck(int solvesSince) {
+    CoachPlan plan = new CoachPlan(CoachPlan.VERSION, CoachPlan.Source.COACH, null,
+        Arrays.asList(new FocusArea(FocusArea.Reason.STUCK_PIECES,
+            Collections.<String>emptyList(), Collections.<Evidence>emptyList(), null, null)));
+    List<StepSample> written = pairs(40, 2);
+    CoachPayload payload = CoachPayloadBuilder.build("3x3", "cfop", times(40), written, written,
+        40, Collections.<StepSample>emptyList(), 0, Collections.<CaseKnowledge>emptyList());
+    StoredCoachPlan stored = new StoredCoachPlan(plan, payload, 1000);
+    PreviousPlan sincePlan = CoachPayloadBuilder.sincePlan(stored, "cfop", solvesSince,
+        times(solvesSince), pairs(solvesSince, 1), Collections.<StepTurning>emptyList(), null);
+    return FocusProgress.of(stored, sincePlan).get(0);
+  }
+
+  /** Four F2L pairs a solve, the first {@code stuck} of them with a trapped piece. */
+  private static List<StepSample> pairs(int solves, int stuck) {
+    List<StepSample> samples = new ArrayList<StepSample>();
+    for (int solve = 0; solve < solves; solve++) {
+      samples.add(new StepSample("f2l", 12000, 4000, false, solve));
+      for (int pair = 0; pair < 4; pair++) {
+        samples.add(new StepSample(pair < stuck ? "pair_a3" : "pair_5", 3000, 1000, true, solve,
+            Integer.valueOf(pair)));
+      }
+    }
+    return samples;
   }
 
   private static CoachPlan plan() {

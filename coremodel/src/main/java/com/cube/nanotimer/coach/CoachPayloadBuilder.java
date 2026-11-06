@@ -213,8 +213,9 @@ public class CoachPayloadBuilder {
     return new CoachPayload(CoachPayload.VERSION, puzzle, method, solveTimes.size(),
         caseSolveCount, drillCount, Integer.valueOf(twoLooked.size()),
         solveFigure(solveTimes),
-        familyFigures(families.getFamilies(), families, familyTallies),
-        familyFigures(families.getParts(), families, familyTallies), caseFigures, drillFigures,
+        familyFigures(families.getFamilies(), families, familyTallies, FAMILY_FLOOR),
+        familyFigures(families.getParts(), families, familyTallies, FAMILY_FLOOR), caseFigures,
+        drillFigures,
         comparisons(caseFigures, drillFigures, caseTallies, drillTallies),
         casesAt(knowledge, sets, CaseKnowledge.Status.KNOWN),
         casesAt(knowledge, sets, CaseKnowledge.Status.NEEDS_REVIEW,
@@ -245,16 +246,24 @@ public class CoachPayloadBuilder {
       List<Long> sinceTimes, List<StepSample> sinceSamples, List<StepTurning> turnings,
       List<Integer> drillReps) {
     return solvesSince < SINCE_FLOOR ? null : sincePlan(last, method, solvesSince, sinceTimes,
-        sinceSamples, turnings, drillReps);
+        sinceSamples, turnings, drillReps, FAMILY_FLOOR);
   }
 
   /**
    * As {@link #previous} with no floor on the solves since, for the progress the phone shows
    * between plans ({@link FocusProgress}): null with no plan, or one written for another method.
+   * Its figures since carry no floor either, so a focus still short of one can count what it has;
+   * {@link FocusProgress} applies the floor before showing any.
    */
   public static PreviousPlan sincePlan(StoredCoachPlan last, String method, int solvesSince,
       List<Long> sinceTimes, List<StepSample> sinceSamples, List<StepTurning> turnings,
       List<Integer> drillReps) {
+    return sincePlan(last, method, solvesSince, sinceTimes, sinceSamples, turnings, drillReps, 1);
+  }
+
+  private static PreviousPlan sincePlan(StoredCoachPlan last, String method, int solvesSince,
+      List<Long> sinceTimes, List<StepSample> sinceSamples, List<StepTurning> turnings,
+      List<Integer> drillReps, int floor) {
     if (last == null || !method.equals(last.getPayload().getMethod())) {
       return null;
     }
@@ -291,8 +300,8 @@ public class CoachPayloadBuilder {
             Integer.valueOf(twoLookSolves(sinceSamples, LOOK_FAMILIES).size()),
             Integer.valueOf(twoLookSolves(sinceSamples, PERMUTATION_LOOK_FAMILIES).size()),
             solveFigure(sinceTimes),
-            familyFigures(statistics.getFamilies(), statistics, tallies),
-            F2lGroups.of(sinceSamples, FAMILY_FLOOR), Turnings.of(sinceTurnings, FAMILY_FLOOR)),
+            familyFigures(statistics.getFamilies(), statistics, tallies, floor),
+            F2lGroups.of(sinceSamples, floor), Turnings.of(sinceTurnings, floor)),
         cards);
   }
 
@@ -394,10 +403,10 @@ public class CoachPayloadBuilder {
   }
 
   private static List<StepFigure> familyFigures(List<StepStats> stats, MethodStatistics statistics,
-      StepTallies tallies) {
+      StepTallies tallies, int floor) {
     List<StepFigure> figures = new ArrayList<StepFigure>();
     for (StepStats family : stats) {
-      if (family.getCount() < FAMILY_FLOOR) {
+      if (family.getCount() < floor) {
         continue;
       }
       double skipRate = statistics.getSkipRate(family.getCode());
