@@ -1036,7 +1036,6 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       public void onPractice(List<CoachPractice.Set> sets) {
         if (!isFinishing()) {
           drawPractice(sets);
-          showToday(); // the Today card says which cases joined or left
         }
       }
 

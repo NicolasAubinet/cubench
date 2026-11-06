@@ -1701,11 +1701,10 @@
   </plurals>
   <string name="coach_day_mean">media</string>
   <string name="coach_day_best_ao5">mejor Ao5</string>
-  <plurals name="coach_day_reps_label">
-    <item quantity="one">repetición</item>
-    <item quantity="other">repeticiones</item>
-  </plurals>
   <string name="coach_day_none_yet">Aún no hay resoluciones hoy.</string>
+  <string name="coach_day_drills">%1$s hoy · %2$s</string>
+  <string name="coach_day_no_drills">Aún no hay drills hoy.</string>
+  <string name="coach_day_nothing_yet">Aún no hay resoluciones ni drills hoy.</string>
   <string name="coach_day_since">Desde el plan</string>
   <plurals name="coach_day_since_solves">
     <item quantity="one">%d resolución</item>
@@ -1754,7 +1753,4 @@
   <string name="coach_recap_setting_summary">Las resoluciones del día y cómo se movieron tus focos, los días que resuelves</string>
   <string name="coach_recap_time">Hora del resumen</string>
   <string name="coach_recap_time_summary">Desde las %1$s, cuando termine tu sesión</string>
-  <string name="coach_day_sets">Práctica libre desde ayer</string>
-  <string name="coach_day_sets_joined">Añadidos: %1$s</string>
-  <string name="coach_day_sets_left">Quitados: %1$s</string>
 </resources>

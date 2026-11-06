@@ -2,12 +2,7 @@ package com.cube.nanotimer.gui.widget;
 
 import android.app.Activity;
 import android.graphics.drawable.GradientDrawable;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StrikethroughSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -22,13 +17,9 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.util.coach.CoachDayText;
 import com.cube.nanotimer.util.coach.CoachDays;
-import com.cube.nanotimer.util.coach.CoachPractice;
-import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.SolveType;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The Plan tab's Today card: today's solves of the plan's solve type and how each focus has moved
@@ -42,7 +33,6 @@ public final class CoachTodayView {
   private final CoachDayText text;
   /** Bumped by every read, so a slow read cannot draw over a newer one. */
   private int reads;
-  private SolveType solveType;
   /** When the plan whose day is on the card was written, -1 while it shows none. */
   private long shownPlanAt = -1;
 
@@ -56,7 +46,6 @@ public final class CoachTodayView {
   /** Reads today for the plan and draws it; null hides the card. */
   public void load(SolveType solveType, StoredCoachPlan plan) {
     final int read = ++reads;
-    this.solveType = solveType;
     if (plan == null) {
       hide();
       return;
@@ -103,7 +92,9 @@ public final class CoachTodayView {
     ((TextView) card.findViewById(R.id.tvCoachTodaySinceSolves)).setText(null);
     card.findViewById(R.id.llCoachTodaySince)
         .setVisibility(focusCount > 0 ? View.VISIBLE : View.GONE);
-    card.findViewById(R.id.llCoachTodaySets).setVisibility(View.GONE);
+    card.findViewById(R.id.flCoachTodayDrills).setVisibility(View.VISIBLE);
+    card.findViewById(R.id.tvCoachTodayDrills).setVisibility(View.INVISIBLE);
+    card.findViewById(R.id.vCoachTodayDrillsSkeleton).setVisibility(View.VISIBLE);
     card.setVisibility(View.VISIBLE);
   }
 
@@ -113,60 +104,33 @@ public final class CoachTodayView {
     showFigures(day);
     TextView none = card.findViewById(R.id.tvCoachTodayNone);
     none.setVisibility(day.getSolveCount() == 0 ? View.VISIBLE : View.GONE);
-    none.setText(R.string.coach_day_none_yet);
+    boolean idle = day.getSolveCount() == 0 && day.getDrillCount() == 0;
+    none.setText(idle ? R.string.coach_day_nothing_yet : R.string.coach_day_none_yet);
+    showDrills(day);
+    if (idle) {
+      card.findViewById(R.id.flCoachTodayDrills).setVisibility(View.GONE); // said in one line
+    }
     showSince(day);
-    showSets(solveType == null ? null
-        : CoachPractice.sinceYesterday(solveType, System.currentTimeMillis()));
     card.setVisibility(View.VISIBLE);
   }
 
-  /** Joined cases with a plus in green, left ones struck out and turned down, in one wrapping line. */
-  private void showSets(CoachPractice.Changes changes) {
-    View section = card.findViewById(R.id.llCoachTodaySets);
-    if (changes == null || changes.isEmpty()) {
-      section.setVisibility(View.GONE);
+  /** Today's drills and their reps in one line, any drill. */
+  private void showDrills(CoachDay day) {
+    card.findViewById(R.id.flCoachTodayDrills).setVisibility(View.VISIBLE);
+    TextView drills = card.findViewById(R.id.tvCoachTodayDrills);
+    card.findViewById(R.id.vCoachTodayDrillsSkeleton).setVisibility(View.GONE);
+    drills.setVisibility(View.VISIBLE);
+    int count = day.getDrillCount();
+    if (count == 0) {
+      drills.setText(R.string.coach_day_no_drills);
+      drills.setTextColor(ContextCompat.getColor(activity, R.color.secondary_text));
       return;
     }
-    SpannableStringBuilder line = new SpannableStringBuilder();
-    List<String> joinedNames = new ArrayList<String>();
-    for (String code : changes.getJoined()) {
-      String name = Utils.toSmartCubeCaseHeadline(activity, code);
-      joinedNames.add(name);
-      append(line, "+ " + name, new ForegroundColorSpan(
-          ContextCompat.getColor(activity, R.color.green_soft)));
-    }
-    List<String> leftNames = new ArrayList<String>();
-    for (String code : changes.getLeft()) {
-      String name = Utils.toSmartCubeCaseHeadline(activity, code);
-      leftNames.add(name);
-      append(line, name, new StrikethroughSpan(), new ForegroundColorSpan(
-          ContextCompat.getColor(activity, R.color.secondary_text)));
-    }
-    TextView sets = card.findViewById(R.id.tvCoachTodaySets);
-    sets.setText(line);
-    // A strikethrough is not read aloud, so say which cases joined and which left.
-    List<String> said = new ArrayList<String>();
-    if (!joinedNames.isEmpty()) {
-      said.add(activity.getString(R.string.coach_day_sets_joined,
-          TextUtils.join(", ", joinedNames)));
-    }
-    if (!leftNames.isEmpty()) {
-      said.add(activity.getString(R.string.coach_day_sets_left, TextUtils.join(", ", leftNames)));
-    }
-    sets.setContentDescription(TextUtils.join(". ", said));
-    section.setVisibility(View.VISIBLE);
-  }
-
-  private static void append(SpannableStringBuilder line, String text, Object... spans) {
-    if (line.length() > 0) {
-      line.append("   ");
-    }
-    int start = line.length();
-    // Non-breaking, so a case name never wraps in two.
-    line.append(text.replace(' ', ' '));
-    for (Object span : spans) {
-      line.setSpan(span, start, line.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    }
+    drills.setText(activity.getString(R.string.coach_day_drills,
+        activity.getResources().getQuantityString(R.plurals.backup_drills_count, count, count),
+        activity.getResources().getQuantityString(R.plurals.drill_summary_reps,
+            day.getDrillReps(), day.getDrillReps())));
+    drills.setTextColor(ContextCompat.getColor(activity, R.color.white));
   }
 
   private void showFigures(CoachDay day) {
@@ -184,11 +148,6 @@ public final class CoachTodayView {
         figures.addView(figure(figures, text.time(day.getBestAo5()),
             activity.getString(R.string.coach_day_best_ao5)));
       }
-    }
-    if (day.getDrillReps() > 0) {
-      figures.addView(figure(figures, String.valueOf(day.getDrillReps()),
-          activity.getResources().getQuantityString(R.plurals.coach_day_reps_label,
-              day.getDrillReps())));
     }
     figures.setVisibility(figures.getChildCount() > 0 ? View.VISIBLE : View.GONE);
   }

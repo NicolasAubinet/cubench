@@ -1702,11 +1702,10 @@
   </plurals>
   <string name="coach_day_mean">moyenne</string>
   <string name="coach_day_best_ao5">meilleure Ao5</string>
-  <plurals name="coach_day_reps_label">
-    <item quantity="one">répétition</item>
-    <item quantity="other">répétitions</item>
-  </plurals>
   <string name="coach_day_none_yet">Pas encore de résolution aujourd\'hui.</string>
+  <string name="coach_day_drills">%1$s aujourd\'hui · %2$s</string>
+  <string name="coach_day_no_drills">Pas encore de drill aujourd\'hui.</string>
+  <string name="coach_day_nothing_yet">Pas encore de résolution ni de drill aujourd\'hui.</string>
   <string name="coach_day_since">Depuis le plan</string>
   <plurals name="coach_day_since_solves">
     <item quantity="one">%d résolution</item>
@@ -1722,8 +1721,8 @@
   <string name="coach_day_seconds">%1$s → %2$s s</string>
   <string name="coach_day_from_to">%1$s → %2$s</string>
   <plurals name="coach_day_drill_reps">
-    <item quantity="one">%d répétition</item>
-    <item quantity="other">%d répétitions</item>
+    <item quantity="one">%d essai</item>
+    <item quantity="other">%d essais</item>
   </plurals>
   <plurals name="coach_day_more_solves">
     <item quantity="one">encore %d résolution</item>
@@ -1741,8 +1740,8 @@
   <string name="coach_recap_moved">%1$s : %2$s depuis le plan.</string>
   <string name="coach_recap_best_ao5">Meilleure Ao5 du jour : %1$s.</string>
   <plurals name="coach_recap_drilled">
-    <item quantity="one">%d répétition aujourd\'hui.</item>
-    <item quantity="other">%d répétitions aujourd\'hui.</item>
+    <item quantity="one">%d essai de drill aujourd\'hui.</item>
+    <item quantity="other">%d essais de drill aujourd\'hui.</item>
   </plurals>
   <string name="coach_recap_open">Voyez comment avancent vos points.</string>
   <string name="coach_notifications">Notifications</string>
@@ -1755,7 +1754,4 @@
   <string name="coach_recap_setting_summary">Les résolutions du jour et l\'évolution de vos points, les jours où vous résolvez</string>
   <string name="coach_recap_time">Heure du bilan</string>
   <string name="coach_recap_time_summary">À partir de %1$s, une fois votre session finie</string>
-  <string name="coach_day_sets">Pratique libre depuis hier</string>
-  <string name="coach_day_sets_joined">Ajoutés : %1$s</string>
-  <string name="coach_day_sets_left">Retirés : %1$s</string>
 </resources>

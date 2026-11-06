@@ -46,15 +46,15 @@ public class CoachDayTest {
 
   @Test
   public void testADayWithOnlyDrillRepsIsActive() {
-    CoachDay day = new CoachDay(Collections.<Long>emptyList(), 12, 0, null);
+    CoachDay day = new CoachDay(Collections.<Long>emptyList(), 1, 12, 0, null);
 
     Assert.assertTrue(day.isActive());
-    Assert.assertFalse(new CoachDay(Collections.<Long>emptyList(), 0, 0, null).isActive());
+    Assert.assertFalse(new CoachDay(Collections.<Long>emptyList(), 0, 0, 0, null).isActive());
     Assert.assertNull(day.getBestMove());
   }
 
   private static CoachDay day(Long... times) {
     List<Long> list = new ArrayList<Long>(Arrays.asList(times));
-    return new CoachDay(list, 0, 0, null);
+    return new CoachDay(list, 0, 0, 0, null);
   }
 }

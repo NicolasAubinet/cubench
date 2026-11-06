@@ -50,7 +50,7 @@
        android:textSize="12.5sp"/>
   </LinearLayout>
 
-  <!-- Today's figures, each a number over what it is. Best Ao5 and drill reps only once there are. -->
+  <!-- Today's figures, each a number over what it is. Best Ao5 only once there is one. -->
   <LinearLayout
      android:id="@+id/llCoachTodayFigures"
      android:layout_width="match_parent"
@@ -72,6 +72,30 @@
      android:textColor="@color/secondary_text"
      android:textSize="13sp"
      android:visibility="gone"/>
+
+  <!-- Today's drills and their reps, any drill; a blank bar while the day is read. -->
+  <FrameLayout
+     android:id="@+id/flCoachTodayDrills"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:minHeight="20dp">
+
+    <TextView
+       android:id="@+id/tvCoachTodayDrills"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:textColor="@color/white"
+       android:textSize="14sp"/>
+
+    <View
+       android:id="@+id/vCoachTodayDrillsSkeleton"
+       android:layout_width="150dp"
+       android:layout_height="12dp"
+       android:layout_gravity="center_vertical"
+       android:background="@drawable/coach_skeleton"
+       android:visibility="gone"/>
+  </FrameLayout>
 
   <!-- Since the plan: one row per focus, the figure it leads with then and now. -->
   <LinearLayout
@@ -117,40 +141,5 @@
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:orientation="vertical"/>
-  </LinearLayout>
-
-  <!-- The cases that joined a practice set since yesterday, and the ones that left (struck out). -->
-  <LinearLayout
-     android:id="@+id/llCoachTodaySets"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:orientation="vertical"
-     android:visibility="gone">
-
-    <View
-       android:layout_width="match_parent"
-       android:layout_height="1dp"
-       android:layout_marginTop="12dp"
-       android:background="@color/hero_divider"/>
-
-    <TextView
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="10dp"
-       android:fontFamily="@font/roboto_medium"
-       android:letterSpacing="0.1"
-       android:text="@string/coach_day_sets"
-       android:textAllCaps="true"
-       android:textColor="@color/secondary_text"
-       android:textSize="11sp"/>
-
-    <TextView
-       android:id="@+id/tvCoachTodaySets"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="8dp"
-       android:lineSpacingMultiplier="1.3"
-       android:textColor="@color/white"
-       android:textSize="14sp"/>
   </LinearLayout>
 </LinearLayout>

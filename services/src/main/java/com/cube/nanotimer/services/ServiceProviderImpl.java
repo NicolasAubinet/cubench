@@ -1935,10 +1935,12 @@ public class ServiceProviderImpl implements ServiceProvider {
       }
       cursor.close();
     }
-    int drillReps = getDrillRepsSince(dayStart);
+    int[] drilled = getDrillsSince(dayStart);
+    int drills = drilled[0];
+    int drillReps = drilled[1];
     StoredCoachPlan last = getCoachPlan(solveType);
     if (last == null) {
-      return new CoachDay(today, drillReps, 0, null);
+      return new CoachDay(today, drills, drillReps, 0, null);
     }
     int solvesSince = getMethodSolvesCountSince(solveType, method, last.getWrittenAt());
     int window = Math.min(solvesSince, CoachPayloadBuilder.FAMILY_WINDOW);
@@ -1946,24 +1948,41 @@ public class ServiceProviderImpl implements ServiceProvider {
         method.getCode().toLowerCase(Locale.US), solvesSince,
         getMethodSolveTimes(solveType, method, window),
         getMethodStepSamples(solveType, method, window), turnings, getPlanDrillReps(last));
-    return new CoachDay(today, drillReps, solvesSince, FocusProgress.of(last, sincePlan));
+    return new CoachDay(today, drills, drillReps, solvesSince, FocusProgress.of(last, sincePlan));
   }
 
-  /** Every drill rep done after the given time, as {@link #getDrillRepsSince(String, long)} counts. */
-  private int getDrillRepsSince(long since) {
-    List<String> args = Collections.singletonList(String.valueOf(since));
+  /**
+   * The drills started after the given time that have a counted rep, and those reps, as
+   * {@link #getDrillRepsSince(String, long)} counts them. A tally keeps its drill's start, so a drill
+   * is told by its start.
+   *
+   * @return the drills, then the reps
+   */
+  private int[] getDrillsSince(long since) {
+    String start = String.valueOf(since);
     String drilled = " r JOIN " + DB.TABLE_DRILL + " d ON d." + DB.COL_ID + " = r.%s WHERE d."
         + DB.COL_DRILL_TIMESTAMP + " > ?";
-    return count("SELECT COUNT(*) FROM " + DB.TABLE_DRILL_REP
-            + String.format(Locale.US, drilled, DB.COL_DRILL_REP_DRILL_ID)
-            + " AND r." + DB.COL_DRILL_REP_ABANDONED + " = 0 AND r." + DB.COL_DRILL_REP_DELETED
-            + " = 0 AND r." + DB.COL_DRILL_REP_PRACTICE + " = 0", args)
-        + count("SELECT COUNT(*) FROM " + DB.TABLE_DRILL_CROSS_REP
-            + String.format(Locale.US, drilled, DB.COL_DRILL_CROSS_REP_DRILL_ID)
-            + " AND r." + DB.COL_DRILL_CROSS_REP_MOVE_COUNT + " > 0", args)
-        + count("SELECT COUNT(*) FROM " + DB.TABLE_DRILL_TALLY + " WHERE "
-            + DB.COL_DRILL_TALLY_TIMESTAMP + " > ? AND " + DB.COL_DRILL_TALLY_DELETED + " = 0",
-            args);
+    String reps = "SELECT d." + DB.COL_DRILL_TIMESTAMP + " AS started FROM " + DB.TABLE_DRILL_REP
+        + String.format(Locale.US, drilled, DB.COL_DRILL_REP_DRILL_ID)
+        + " AND r." + DB.COL_DRILL_REP_ABANDONED + " = 0 AND r." + DB.COL_DRILL_REP_DELETED
+        + " = 0 AND r." + DB.COL_DRILL_REP_PRACTICE + " = 0"
+        + " UNION ALL SELECT d." + DB.COL_DRILL_TIMESTAMP + " FROM " + DB.TABLE_DRILL_CROSS_REP
+        + String.format(Locale.US, drilled, DB.COL_DRILL_CROSS_REP_DRILL_ID)
+        + " AND r." + DB.COL_DRILL_CROSS_REP_MOVE_COUNT + " > 0"
+        + " UNION ALL SELECT " + DB.COL_DRILL_TALLY_TIMESTAMP + " FROM " + DB.TABLE_DRILL_TALLY
+        + " WHERE " + DB.COL_DRILL_TALLY_TIMESTAMP + " > ? AND " + DB.COL_DRILL_TALLY_DELETED
+        + " = 0";
+    int[] drilledSince = new int[2];
+    Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT started), COUNT(*) FROM (" + reps + ")",
+        new String[] { start, start, start });
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        drilledSince[0] = cursor.getInt(0);
+        drilledSince[1] = cursor.getInt(1);
+      }
+      cursor.close();
+    }
+    return drilledSince;
   }
 
   /** How many solves of the method were done after the given time. */

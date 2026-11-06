@@ -20,19 +20,22 @@ public final class CoachDay {
   private static final int AO5 = 5;
 
   private final List<Long> todayTimes;
+  private final int drillCount;
   private final int drillReps;
   private final int solvesSince;
   private final List<FocusProgress> progress;
 
   /**
    * @param todayTimes today's times, newest first, -1 for a DNF
+   * @param drillCount drills done today with at least one rep counted, any drill
    * @param drillReps drill reps done today, any drill
    * @param solvesSince how many solves of the plan's method followed the plan, 0 with no plan
    * @param progress each focus of the plan in its order, empty with no plan
    */
-  public CoachDay(List<Long> todayTimes, int drillReps, int solvesSince,
+  public CoachDay(List<Long> todayTimes, int drillCount, int drillReps, int solvesSince,
       List<FocusProgress> progress) {
     this.todayTimes = Collections.unmodifiableList(new ArrayList<Long>(todayTimes));
+    this.drillCount = drillCount;
     this.drillReps = drillReps;
     this.solvesSince = solvesSince;
     this.progress = progress == null ? Collections.<FocusProgress>emptyList()
@@ -59,6 +62,10 @@ public final class CoachDay {
       }
     }
     return best;
+  }
+
+  public int getDrillCount() {
+    return drillCount;
   }
 
   public int getDrillReps() {

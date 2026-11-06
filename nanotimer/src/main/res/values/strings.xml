@@ -1754,11 +1754,10 @@
   </plurals>
   <string name="coach_day_mean">mean</string>
   <string name="coach_day_best_ao5">best Ao5</string>
-  <plurals name="coach_day_reps_label">
-    <item quantity="one">drill rep</item>
-    <item quantity="other">drill reps</item>
-  </plurals>
   <string name="coach_day_none_yet">No solves yet today.</string>
+  <string name="coach_day_drills">%1$s today · %2$s</string>
+  <string name="coach_day_no_drills">No drills yet today.</string>
+  <string name="coach_day_nothing_yet">No solves or drills yet today.</string>
   <string name="coach_day_since">Since the plan</string>
   <plurals name="coach_day_since_solves">
     <item quantity="one">%d solve</item>
@@ -1807,7 +1806,4 @@
   <string name="coach_recap_setting_summary">Today\'s solves and how your focuses moved, on days you solve</string>
   <string name="coach_recap_time">Recap time</string>
   <string name="coach_recap_time_summary">From %1$s, once your session is over</string>
-  <string name="coach_day_sets">Practice sets since yesterday</string>
-  <string name="coach_day_sets_joined">Joined: %1$s</string>
-  <string name="coach_day_sets_left">Left: %1$s</string>
 </resources>

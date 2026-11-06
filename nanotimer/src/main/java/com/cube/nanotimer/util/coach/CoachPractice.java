@@ -20,7 +20,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -245,14 +244,7 @@ public final class CoachPractice {
                 if (reply == null || (sets.isEmpty() && !answersEmpty(reply))) {
                   return;
                 }
-                int id = solveType.getId();
-                String kept = Options.INSTANCE.getCoachPractice(id);
-                long keptAt = Options.INSTANCE.getCoachPracticeAt(id);
-                // Sets kept on an earlier day become the baseline of today's changes.
-                boolean earlier = kept != null && keptAt > 0
-                    && !sameDay(keptAt, askedAt, TimeZone.getDefault());
-                Options.INSTANCE.setCoachPractice(id, reply, askedAt, with,
-                    earlier ? kept : null);
+                Options.INSTANCE.setCoachPractice(solveType.getId(), reply, askedAt, with);
                 main.post(new Runnable() {
                   @Override
                   public void run() {
@@ -263,70 +255,6 @@ public final class CoachPractice {
             }).start();
           }
         });
-  }
-
-  /** The cases that joined a practice set and the ones that left one, in the sets' order. */
-  public static final class Changes {
-    private final List<String> joined;
-    private final List<String> left;
-
-    Changes(List<String> joined, List<String> left) {
-      this.joined = Collections.unmodifiableList(joined);
-      this.left = Collections.unmodifiableList(left);
-    }
-
-    public List<String> getJoined() {
-      return joined;
-    }
-
-    public List<String> getLeft() {
-      return left;
-    }
-
-    public boolean isEmpty() {
-      return joined.isEmpty() && left.isEmpty();
-    }
-  }
-
-  /**
-   * How the sets moved since the last day they were kept on, or null when there is nothing to say:
-   * no sets asked today, or none kept before today to compare with.
-   */
-  public static Changes sinceYesterday(SolveType solveType, long now) {
-    int id = solveType.getId();
-    long keptAt = Options.INSTANCE.getCoachPracticeAt(id);
-    String before = Options.INSTANCE.getCoachPracticeBefore(id);
-    if (before == null || keptAt <= 0 || !sameDay(keptAt, now, TimeZone.getDefault())) {
-      return null;
-    }
-    return changes(parse(before), parse(Options.INSTANCE.getCoachPractice(id)));
-  }
-
-  /** Every case is counted once, whichever set holds it. */
-  static Changes changes(List<Set> before, List<Set> now) {
-    LinkedHashSet<String> was = cases(before);
-    LinkedHashSet<String> is = cases(now);
-    List<String> joined = new ArrayList<String>();
-    for (String code : is) {
-      if (!was.contains(code)) {
-        joined.add(code);
-      }
-    }
-    List<String> left = new ArrayList<String>();
-    for (String code : was) {
-      if (!is.contains(code)) {
-        left.add(code);
-      }
-    }
-    return new Changes(joined, left);
-  }
-
-  private static LinkedHashSet<String> cases(List<Set> sets) {
-    LinkedHashSet<String> cases = new LinkedHashSet<String>();
-    for (Set set : sets) {
-      cases.addAll(set.getCases());
-    }
-    return cases;
   }
 
   /** A set whose drill this app cannot run is left out rather than drawn with a dead button. */
