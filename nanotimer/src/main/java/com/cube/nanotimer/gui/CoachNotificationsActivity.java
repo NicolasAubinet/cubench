@@ -1,7 +1,10 @@
 package com.cube.nanotimer.gui;
 
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.Preference;
 
 import com.cube.nanotimer.Options;
@@ -29,9 +32,10 @@ public class CoachNotificationsActivity extends NanoTimerActivity {
     public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
       addPreferencesFromResource(R.xml.coach_notifications);
+      final Context app = getActivity().getApplicationContext();
       Preference.OnPreferenceChangeListener reschedule = (preference, value) -> {
-        // Read once the new value is stored, which is after this listener returns.
-        getView().post(() -> CoachRecapWorker.schedule(getActivity()));
+        // Read once the new value is stored, after this listener returns; the screen may be gone.
+        new Handler(Looper.getMainLooper()).post(() -> CoachRecapWorker.schedule(app));
         return true;
       };
       for (String key : new String[] {Options.COACH_NOTIFICATIONS_ON_KEY,
@@ -51,7 +55,7 @@ public class CoachNotificationsActivity extends NanoTimerActivity {
         new TimePickerDialog(getActivity(), R.style.NanoTimerDialogTheme, (picker, hour, minute) -> {
           Options.INSTANCE.setCoachRecapMinutes(hour * 60 + minute);
           showTime(time);
-          CoachRecapWorker.schedule(getActivity());
+          CoachRecapWorker.schedule(app);
         }, minutes / 60, minutes % 60,
             android.text.format.DateFormat.is24HourFormat(getActivity())).show();
         return true;
