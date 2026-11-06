@@ -1732,6 +1732,15 @@
   <string name="coach_menu_feedback_show">Show plan feedback</string>
   <string name="coach_menu_feedback_hide">Hide plan feedback</string>
   <string name="coach_menu_plan_language">Plan language</string>
+  <string name="coach_report_title">Report this plan</string>
+  <string name="coach_report_body">Your report and the plan are sent to the developer to review.</string>
+  <string name="coach_report_offensive">Offensive or inappropriate</string>
+  <string name="coach_report_harmful">Harmful or unsafe advice</string>
+  <string name="coach_report_other">Something else</string>
+  <string name="coach_report_hint">Anything to add? (optional)</string>
+  <string name="coach_report_sent">Thanks, report sent</string>
+  <string name="coach_report_gone">This plan is too old to be reported</string>
+  <string name="coach_report_failed">The report could not be sent. Please try again later.</string>
   <string name="coach_plan_language_app">App language (%s)</string>
   <string name="coach_plan_language_next">Used from your next plan.</string>
   <string name="coach_fb_last_week">Did you work on last week\'s plan?</string>

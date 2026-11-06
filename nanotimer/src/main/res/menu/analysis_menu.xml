@@ -26,6 +26,11 @@
      android:visible="false"
      app:showAsAction="never"/>
 
+  <item android:id="@+id/itAnalysisPlanReport"
+     android:title="@string/coach_report_title"
+     android:visible="false"
+     app:showAsAction="never"/>
+
   <!-- Debug builds and the owner's token builds only, so never translated. -->
   <item android:id="@+id/itAnalysisPlanAskNow"
      android:title="Request new plan"

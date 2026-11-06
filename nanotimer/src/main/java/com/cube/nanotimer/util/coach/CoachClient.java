@@ -270,6 +270,36 @@ public final class CoachClient {
     }
   }
 
+  /** How a plan report ended. */
+  public enum PlanReportOutcome {
+    SENT,
+    /** The service no longer has the plan, so it cannot be reported. */
+    GONE,
+    FAILED
+  }
+
+  /**
+   * Reports a plan to the developer. Blocks, like {@link #requestPlan}.
+   *
+   * @param body what {@link CoachPlanReport#body} wrote
+   */
+  public PlanReportOutcome sendPlanReport(String planId, String body) {
+    try {
+      Answer answer = post(plansUrl + planId + "/report", body, PRACTICE_READ_TIMEOUT_MS);
+      if (answer.status == 202 || answer.status == 200) {
+        return PlanReportOutcome.SENT;
+      }
+      CoachReply reply = answer.body == null ? CoachReply.unreadable()
+          : CoachReply.parse(answer.status, answer.body);
+      noteRefusal(reply, answer);
+      return reply.getKind() == CoachReply.Kind.REFUSED
+          && reply.getRefusal() == CoachRefusal.NOT_FOUND
+          ? PlanReportOutcome.GONE : PlanReportOutcome.FAILED;
+    } catch (IOException e) {
+      return PlanReportOutcome.FAILED;
+    }
+  }
+
   /** What the service said to a report: its status, and the wait it asked for on a 429. */
   public static final class ReportAnswer {
     public final int status;

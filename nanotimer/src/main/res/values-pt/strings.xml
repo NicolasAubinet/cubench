@@ -1682,6 +1682,15 @@
   <string name="coach_menu_feedback_show">Opinar sobre os planos</string>
   <string name="coach_menu_feedback_hide">Ocultar a opinião sobre os planos</string>
   <string name="coach_menu_plan_language">Idioma dos planos</string>
+  <string name="coach_report_title">Denunciar este plano</string>
+  <string name="coach_report_body">Sua denúncia e o plano são enviados ao desenvolvedor para análise.</string>
+  <string name="coach_report_offensive">Ofensivo ou inadequado</string>
+  <string name="coach_report_harmful">Conselho prejudicial ou perigoso</string>
+  <string name="coach_report_other">Outra coisa</string>
+  <string name="coach_report_hint">Algo a acrescentar? (opcional)</string>
+  <string name="coach_report_sent">Obrigado, denúncia enviada</string>
+  <string name="coach_report_gone">Este plano é antigo demais para ser denunciado</string>
+  <string name="coach_report_failed">Não foi possível enviar a denúncia. Tente novamente mais tarde.</string>
   <string name="coach_plan_language_app">Idioma do app (%s)</string>
   <string name="coach_plan_language_next">Usado a partir do seu próximo plano.</string>
   <string name="coach_fb_last_week">Você trabalhou no plano da semana passada?</string>

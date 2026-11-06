@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:orientation="vertical"
+   android:paddingLeft="@dimen/space_l"
+   android:paddingRight="@dimen/space_l"
+   android:paddingTop="@dimen/space_s"
+   android:paddingBottom="@dimen/space_s">
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:text="@string/coach_report_body"
+     android:textSize="14sp"
+     android:textColor="@color/white"/>
+
+  <RadioGroup
+     android:id="@+id/rgPlanReportReason"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/space_s">
+
+    <RadioButton
+       android:id="@+id/rbPlanReportOffensive"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="@string/coach_report_offensive"
+       android:textSize="15sp"
+       android:textColor="@color/white"
+       android:buttonTint="@color/lightblue"/>
+
+    <RadioButton
+       android:id="@+id/rbPlanReportHarmful"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="@string/coach_report_harmful"
+       android:textSize="15sp"
+       android:textColor="@color/white"
+       android:buttonTint="@color/lightblue"/>
+
+    <RadioButton
+       android:id="@+id/rbPlanReportOther"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="@string/coach_report_other"
+       android:textSize="15sp"
+       android:textColor="@color/white"
+       android:buttonTint="@color/lightblue"/>
+  </RadioGroup>
+
+  <EditText
+     android:id="@+id/tfPlanReportComment"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="@dimen/space_s"
+     android:background="@drawable/dialog_time_field"
+     android:paddingLeft="12dp"
+     android:paddingRight="12dp"
+     android:paddingTop="11dp"
+     android:paddingBottom="11dp"
+     android:gravity="top|start"
+     android:minLines="2"
+     android:maxLines="5"
+     android:maxLength="2000"
+     android:hint="@string/coach_report_hint"
+     android:textColor="@color/white"
+     android:textColorHint="@color/secondary_text"
+     android:textSize="15sp"
+     android:inputType="textMultiLine|textCapSentences"/>
+
+</LinearLayout>

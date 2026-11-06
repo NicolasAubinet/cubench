@@ -1680,6 +1680,15 @@
   <string name="coach_menu_feedback_show">Donner votre avis sur les plans</string>
   <string name="coach_menu_feedback_hide">Masquer l\'avis sur les plans</string>
   <string name="coach_menu_plan_language">Langue des plans</string>
+  <string name="coach_report_title">Signaler ce plan</string>
+  <string name="coach_report_body">Votre signalement et le plan sont envoyés au développeur pour examen.</string>
+  <string name="coach_report_offensive">Offensant ou inapproprié</string>
+  <string name="coach_report_harmful">Conseil nuisible ou dangereux</string>
+  <string name="coach_report_other">Autre chose</string>
+  <string name="coach_report_hint">Une précision ? (facultatif)</string>
+  <string name="coach_report_sent">Merci, signalement envoyé</string>
+  <string name="coach_report_gone">Ce plan est trop ancien pour être signalé</string>
+  <string name="coach_report_failed">Le signalement n\'a pas pu être envoyé. Réessayez plus tard.</string>
   <string name="coach_plan_language_app">Langue de l\'app (%s)</string>
   <string name="coach_plan_language_next">Appliquée à partir de votre prochain plan.</string>
   <string name="coach_fb_last_week">Avez-vous travaillé le plan de la semaine dernière ?</string>

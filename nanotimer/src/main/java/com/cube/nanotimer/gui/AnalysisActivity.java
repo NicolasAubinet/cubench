@@ -33,6 +33,7 @@ import com.cube.nanotimer.gui.widget.AnalysisHelpDialog;
 import com.cube.nanotimer.gui.widget.CaseRow;
 import com.cube.nanotimer.gui.widget.CaseTableHeadings;
 import com.cube.nanotimer.gui.widget.CoachPlanFeedbackView;
+import com.cube.nanotimer.gui.widget.CoachPlanReportDialog;
 import com.cube.nanotimer.gui.widget.CoachPlanStatus;
 import com.cube.nanotimer.gui.widget.CoachPlanView;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
@@ -141,7 +142,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private MenuItem feedbackItem;
   private MenuItem languageItem;
   private MenuItem askNowItem;
+  private MenuItem reportItem;
   private boolean planShown;
+  private long shownPlanWrittenAt;
   private int tab = TAB_SOLVE;
   private boolean loaded;
   private View solveRoot;
@@ -299,6 +302,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     feedbackItem = menu.findItem(R.id.itAnalysisPlanFeedback);
     languageItem = menu.findItem(R.id.itAnalysisPlanLanguage);
     askNowItem = menu.findItem(R.id.itAnalysisPlanAskNow);
+    reportItem = menu.findItem(R.id.itAnalysisPlanReport);
     showPlanMenu();
     showWindow();
     return super.onCreateOptionsMenu(menu);
@@ -324,6 +328,13 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     }
     if (item.getItemId() == R.id.itAnalysisPlanAskNow) {
       confirmAskNow();
+      return true;
+    }
+    if (item.getItemId() == R.id.itAnalysisPlanReport) {
+      String planId = reportablePlanId();
+      if (planId != null) {
+        CoachPlanReportDialog.show(this, coachClient, planId);
+      }
       return true;
     }
     return super.onOptionsItemSelected(item);
@@ -422,8 +433,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   }
 
   /**
-   * The Plan tab's overflow: plan feedback for whoever isn't required to give it, language, and
-   * a plan on demand where {@link #askNowOffered} allows it.
+   * The Plan tab's overflow: plan feedback for whoever isn't required to give it, language, a
+   * report on the plan shown, and a plan on demand where {@link #askNowOffered} allows it.
    */
   private void showPlanMenu() {
     if (feedbackItem == null) {
@@ -439,6 +450,16 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
           : R.string.coach_menu_feedback_show);
     }
     languageItem.setVisible(coach);
+    reportItem.setVisible(coach && reportablePlanId() != null);
+  }
+
+  /** The service's id for the plan on screen, null when it has none to report. */
+  private String reportablePlanId() {
+    if (!planShown || coachClient == null) {
+      return null;
+    }
+    CoachBeta beta = CoachBeta.of(this);
+    return beta.isLastPlan(solveType.getId(), shownPlanWrittenAt) ? beta.getPlanId() : null;
   }
 
   /** Which language the next plans are written in, the app's own first. */
@@ -1134,6 +1155,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    */
   private void showPlan(StoredCoachPlan stored) {
     planShown = stored != null;
+    shownPlanWrittenAt = stored == null ? -1 : stored.getWrittenAt();
     showPlanMenu();
     // A written plan's card takes the countdown to the next one.
     planStatus.dockIn(stored == null ? null : (ViewGroup) findViewById(R.id.llAnalysisPlanDock));
