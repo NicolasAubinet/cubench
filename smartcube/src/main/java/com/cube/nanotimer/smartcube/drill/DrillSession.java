@@ -9,7 +9,7 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
-import com.cube.nanotimer.smartcube.step.F2LBackSlotAlgorithms;
+import com.cube.nanotimer.smartcube.step.F2LSlotAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LPairScrambles;
 import com.cube.nanotimer.smartcube.step.FaceTurns;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
@@ -86,9 +86,9 @@ public final class DrillSession {
   /** Deals tried before a look-ahead rep takes one with a piece stuck in the other slot. */
   private static final int MAX_LOOKAHEAD_DEALS = 50;
 
-  /** The back slots a back-slot drill deals into, and the y quarters that take front right there. */
+  /** The slots a bare code is dealt into by a rotations drill, as a payload 13 plan wrote it. */
   private static final String[] BACK_SLOTS =
-      {F2LBackSlotAlgorithms.BACK_RIGHT, F2LBackSlotAlgorithms.BACK_LEFT};
+      {F2LSlotAlgorithms.BACK_RIGHT, F2LSlotAlgorithms.BACK_LEFT};
 
   /** The cross and the four slots with the cross on D, each slot as its corner and its edge. */
   private static final String[] CROSS_EDGES = {"DF", "DR", "DB", "DL"};
@@ -190,15 +190,19 @@ public final class DrillSession {
     if (lookAhead) {
       cases.add(LOOKAHEAD_CASE); // dealt from no list, so any the spec names are not this drill's
     } else if (backSlots) {
+      // A code naming its slot is dealt there; a bare one, as a payload 13 plan wrote it, into both
+      // back slots.
       List<String> known = F2LPairScrambles.cases();
       for (String code : spec.getCases()) {
-        if (!known.contains(code)) {
+        String slot = CaseAlgorithms.slotOf(code);
+        if (!known.contains(CaseAlgorithms.frontCode(code))) {
           unknownCases.add(code);
           continue;
         }
-        for (String slot : BACK_SLOTS) {
-          if (!CaseAlgorithms.shown(CaseAlgorithms.inBackSlot(code, slot)).isEmpty()) {
-            cases.add(CaseAlgorithms.inBackSlot(code, slot));
+        for (String into : slot != null ? new String[] {slot} : BACK_SLOTS) {
+          String slotted = CaseAlgorithms.inSlot(CaseAlgorithms.frontCode(code), into);
+          if (!cases.contains(slotted) && !CaseAlgorithms.shown(slotted).isEmpty()) {
+            cases.add(slotted);
           }
         }
       }
@@ -309,7 +313,7 @@ public final class DrillSession {
     } else if (backSlots) {
       // Into its own slot, never spun: which slot it goes into is the question. Practice deals it
       // at the algorithm's own turn of the layer, as a front pair's is.
-      String slot = CaseAlgorithms.backSlotOf(currentCase);
+      String slot = CaseAlgorithms.slotOf(currentCase);
       gripQuarters = gripQuartersTo(slot);
       int spins = quartersTo(slot) + gripQuarters;
       String atItsAngle = practiceCase != null && practiceAlgorithm != null
@@ -353,15 +357,26 @@ public final class DrillSession {
     revealed = false;
   }
 
-  /** The y quarters a front-right pair's scramble is spun by to deal it into a back slot. */
+  /** The first-layer corner of a slot, as the cube is held. */
+  private static String slotCorner(String slot) {
+    if (F2LSlotAlgorithms.FRONT_RIGHT.equals(slot)) {
+      return "DFR";
+    }
+    if (F2LSlotAlgorithms.FRONT_LEFT.equals(slot)) {
+      return "DLF";
+    }
+    return F2LSlotAlgorithms.BACK_RIGHT.equals(slot) ? "DRB" : "DBL";
+  }
+
+  /** The y quarters a front-right pair's scramble is spun by to deal it into a slot. */
   private static int quartersTo(String slot) {
-    String corner = F2LBackSlotAlgorithms.BACK_RIGHT.equals(slot) ? "DRB" : "DBL";
+    String corner = slotCorner(slot);
     for (int quarters = 0; quarters < 4; quarters++) {
       if (sameLetters(LayerRotation.piece("DFR", quarters, "U"), corner)) {
         return quarters;
       }
     }
-    throw new IllegalArgumentException("Not a back slot: " + slot);
+    throw new IllegalArgumentException("Not a slot: " + slot);
   }
 
   /**
@@ -381,7 +396,7 @@ public final class DrillSession {
     } else {
       return 0;
     }
-    String held = F2LBackSlotAlgorithms.BACK_RIGHT.equals(slot) ? "DRB" : "DBL";
+    String held = slotCorner(slot);
     for (int quarters = 0; quarters < 4; quarters++) {
       String corner = LayerRotation.piece("DFR", quartersTo(slot) + quarters, layerFace);
       StringBuilder at = new StringBuilder();

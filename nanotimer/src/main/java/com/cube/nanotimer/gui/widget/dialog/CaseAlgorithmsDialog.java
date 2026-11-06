@@ -37,7 +37,7 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms.Listed;
-import com.cube.nanotimer.smartcube.step.F2LBackSlotAlgorithms;
+import com.cube.nanotimer.smartcube.step.F2LSlotAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
@@ -131,13 +131,12 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    * turns into the cross down and the slot in front right. In the cube's own slot numbering.
    */
   private static final int[] CROSS_UP_EDGES = {0, 1, 2, 3};
-  private static final int CROSS_UP_PAIR_CORNER = 1;
-  private static final int CROSS_UP_PAIR_EDGE = 9;
-  /** Where a z2 puts a back-right pair (ULB and BL) and a back-left one (UBR and BR). */
-  private static final int CROSS_UP_BACK_RIGHT_CORNER = 2;
-  private static final int CROSS_UP_BACK_RIGHT_EDGE = 10;
-  private static final int CROSS_UP_BACK_LEFT_CORNER = 3;
-  private static final int CROSS_UP_BACK_LEFT_EDGE = 11;
+  /**
+   * Where a z2 puts each slot's pair, in {@link F2LSlotAlgorithms#SLOTS} order: front right to UFL
+   * and FL, front left to URF and FR, back right to ULB and BL, back left to UBR and BR.
+   */
+  private static final int[] CROSS_UP_CORNERS = {1, 0, 2, 3};
+  private static final int[] CROSS_UP_SLOT_EDGES = {9, 8, 10, 11};
 
   /**
    * How many of the case's own solves are read for the moves. Each one is replayed, so this is the
@@ -263,28 +262,27 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    * user's hands. The player's own drag still turns it round.
    */
   private void showPairCase(WebView webView) {
-    String backSlot = CaseAlgorithms.backSlotOf(caseCode);
-    boolean right = F2LBackSlotAlgorithms.BACK_RIGHT.equals(backSlot);
-    String facelets = backSlot == null
+    String slot = CaseAlgorithms.slotOf(caseCode);
+    String facelets = slot == null
         ? F2LCaseAlgorithms.crossUpFacelets(CaseAlgorithms.pairCase(caseCode))
-        : F2LBackSlotAlgorithms.crossUpFacelets(CaseAlgorithms.pairCase(caseCode), backSlot);
+        : F2LSlotAlgorithms.crossUpFacelets(CaseAlgorithms.pairCase(caseCode), slot);
     if (facelets == null) {
       return;
     }
     cube = new VirtualCube(webView, null, () -> { });
     cube.setGyroFollowing(false);
     cube.setHold(CubeRotation.byNotation("z2").quaternion());
-    // A back slot's pair is behind the cube as it is drawn, so it is looked at from behind.
-    cube.setView(VIEW_LATITUDE, backSlot == null ? VIEW_LONGITUDE
-        : right ? VIEW_LONGITUDE + 180 : 180 - VIEW_LONGITUDE);
+    // Looked at from the side of the pair's slot: behind the cube for a back one.
+    cube.setView(VIEW_LATITUDE, slot == null || F2LSlotAlgorithms.FRONT_RIGHT.equals(slot)
+        ? VIEW_LONGITUDE : F2LSlotAlgorithms.FRONT_LEFT.equals(slot) ? -VIEW_LONGITUDE
+        : F2LSlotAlgorithms.BACK_RIGHT.equals(slot) ? VIEW_LONGITUDE + 180
+        : 180 - VIEW_LONGITUDE);
     cube.setCameraDistance(CAMERA_DISTANCE);
     cube.setNudge(0);
     cube.setState(CubePatternFormat.format(facelets));
-    cube.setStickering(CubeStickering.crossAndPair(CROSS_UP_EDGES,
-        backSlot == null ? CROSS_UP_PAIR_CORNER : right ? CROSS_UP_BACK_RIGHT_CORNER
-            : CROSS_UP_BACK_LEFT_CORNER,
-        backSlot == null ? CROSS_UP_PAIR_EDGE : right ? CROSS_UP_BACK_RIGHT_EDGE
-            : CROSS_UP_BACK_LEFT_EDGE));
+    int at = Math.max(0, F2LSlotAlgorithms.SLOTS.indexOf(slot)); // front right for a plain pair
+    cube.setStickering(CubeStickering.crossAndPair(CROSS_UP_EDGES, CROSS_UP_CORNERS[at],
+        CROSS_UP_SLOT_EDGES[at]));
   }
 
   @Override

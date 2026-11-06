@@ -1135,8 +1135,12 @@
   <string name="case_title_f2l">F2L pair</string>
   <string name="case_title_f2l_back_right">F2L pair, back right</string>
   <string name="case_title_f2l_back_left">F2L pair, back left</string>
+  <string name="case_title_f2l_front_right">F2L pair, front right</string>
+  <string name="case_title_f2l_front_left">F2L pair, front left</string>
   <string name="case_slot_back_right">Back right</string>
   <string name="case_slot_back_left">Back left</string>
+  <string name="case_slot_front_right">Front right</string>
+  <string name="case_slot_front_left">Front left</string>
   <string name="case_algorithms_order">Recommended first. Tap the one you use.</string>
   <string name="case_algorithm_empty_fl">Needs the front-left slot empty</string>
   <string name="case_algorithm_empty_br">Needs the back-right slot empty</string>
@@ -1571,6 +1575,7 @@
   <string name="coach_learn_cases">Learn these cases</string>
   <string name="coach_drill_lookahead">Look-ahead drill</string>
   <string name="coach_drill_back_slots">Back slots without rotating</string>
+  <string name="coach_drill_slots">F2L without rotating</string>
   <string name="coach_practice_title">Practice any time</string>
   <string name="coach_practice_body">Always here, apart from the plan: the cases costing you the most, practised until they beat their targets. Updated every day from your latest solves.</string>
   <string name="coach_practice_set">Your costliest %1$s cases</string>

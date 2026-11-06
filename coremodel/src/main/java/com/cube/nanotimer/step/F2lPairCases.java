@@ -45,29 +45,44 @@ public final class F2lPairCases {
     return ALL.contains(code);
   }
 
-  /** The back slots a pair is dealt into to be put in without a rotation, as a code spells them. */
+  /** The back slots a bare code is dealt into by a drill written for payload 13. */
   public static final List<String> BACK_SLOTS =
       Collections.unmodifiableList(Arrays.asList("br", "bl"));
 
+  /** Every slot a pair can be dealt into, front first, as a code spells them. */
+  public static final List<String> SLOTS =
+      Collections.unmodifiableList(Arrays.asList("fr", "fl", "br", "bl"));
+
   /**
-   * A case dealt into a back slot, {@code pair_27_br}: a drill's case of its own, never a solve's,
+   * A case dealt into a named slot, {@code pair_27_fl}: a drill's case of its own, never a solve's,
    * so no per-case figure or case knowledge is read from one.
    */
-  public static String inBackSlot(String code, String slot) {
+  public static String inSlot(String code, String slot) {
     return code + "_" + slot;
   }
 
-  /** The back slot a code deals its pair into, or null for any other code. */
-  public static String backSlotOf(String code) {
+  /** The slot a code deals its pair into, or null for any other code. */
+  public static String slotOf(String code) {
     if (code == null || !code.startsWith(PREFIX)) {
       return null;
     }
-    for (String slot : BACK_SLOTS) {
+    for (String slot : SLOTS) {
       if (code.endsWith("_" + slot)) {
         return slot;
       }
     }
     return null;
+  }
+
+  /** The case a slot code deals, {@code pair_27} for {@code pair_27_fl}; any other code as it is. */
+  public static String withoutSlot(String code) {
+    String slot = slotOf(code);
+    return slot == null ? code : code.substring(0, code.length() - slot.length() - 1);
+  }
+
+  /** Whether a slot is one in front, either side. */
+  public static boolean isFront(String slot) {
+    return "fr".equals(slot) || "fl".equals(slot);
   }
 
   private static List<String> stuck() {

@@ -1156,14 +1156,25 @@ public class DrillSessionTest {
     assertEquals(Collections.singletonList("pair_99"), session.getUnknownCases());
   }
 
+  /** A code naming its slot is dealt there alone, front slots included. */
+  @Test
+  public void aSlottedCodeIsDealtIntoItsOwnSlot() {
+    DrillSession session = new DrillSession(backSlotSpec("pair_4_fl", "pair_17_fr", "pair_17",
+        "pair_99_fl"), new Random(1));
+    assertEquals(Arrays.asList("pair_4_fl", "pair_17_fr", "pair_17_br", "pair_17_bl"),
+        session.getCases());
+    assertEquals(Collections.singletonList("pair_99_fl"), session.getUnknownCases());
+  }
+
   /** The slot's own algorithm, turned from the grip the case is dealt in, puts the pair home. */
   @Test
-  public void everyBackSlotAlgorithmFinishesItsDealtCase() {
+  public void everySlotAlgorithmFinishesItsDealtCase() {
     for (String code : F2LPairScrambles.basicCases()) {
-      for (String slot : new String[] {"br", "bl"}) {
-        String backCode = CaseAlgorithms.inBackSlot(code, slot);
+      for (String slot : new String[] {"fr", "fl", "br", "bl"}) {
+        String backCode = CaseAlgorithms.inSlot(code, slot);
         for (String face : new String[] {"U", "D"}) {
-          DrillSession session = new DrillSession(backSlotSpec(code), noAlignment(), null, face);
+          DrillSession session = new DrillSession(backSlotSpec(backCode), noAlignment(), null,
+              face);
           Hand hand = new Hand(session);
           while (hand.next() && !backCode.equals(session.getCurrentCase())) {
             session.abandon();
@@ -1191,16 +1202,16 @@ public class DrillSessionTest {
     }
   }
 
-  /** Every listed back-slot algorithm, tried in the choose step, solves the case it is dealt. */
+  /** Every listed slot algorithm, tried in the choose step, solves the case it is dealt. */
   @Test
-  public void everyBackSlotAlgorithmFinishesItsPractisedCase() {
+  public void everySlotAlgorithmFinishesItsPractisedCase() {
     List<String> failed = new ArrayList<String>();
     for (String code : F2LPairScrambles.basicCases()) {
-      for (String slot : new String[] {"br", "bl"}) {
-        String backCode = CaseAlgorithms.inBackSlot(code, slot);
+      for (String slot : new String[] {"fr", "fl", "br", "bl"}) {
+        String backCode = CaseAlgorithms.inSlot(code, slot);
         for (CaseAlgorithms.Listed listed : CaseAlgorithms.shown(backCode)) {
           String alg = listed.getMoves();
-          DrillSession session = new DrillSession(backSlotSpec(code), new Random(5));
+          DrillSession session = new DrillSession(backSlotSpec(backCode), new Random(5));
           Hand hand = new Hand(session);
           for (int rep = 0; rep < 2; rep++) {
             hand.practise(backCode, alg);
@@ -1225,7 +1236,7 @@ public class DrillSessionTest {
         }
         for (String code : new String[] {"pair_1", "pair_4", "pair_17", "pair_33"}) {
           for (String slot : new String[] {"br", "bl"}) {
-            String backCode = CaseAlgorithms.inBackSlot(code, slot);
+            String backCode = CaseAlgorithms.inSlot(code, slot);
             DrillSession session = new DrillSession(backSlotSpec(code), noAlignment(), null, face);
             session.setGripReader(() -> grip);
             Hand hand = new Hand(session);

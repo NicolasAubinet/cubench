@@ -1092,8 +1092,12 @@
   <string name="case_title_f2l">Par F2L</string>
   <string name="case_title_f2l_back_right">Par F2L, traseiro direito</string>
   <string name="case_title_f2l_back_left">Par F2L, traseiro esquerdo</string>
+  <string name="case_title_f2l_front_right">Par F2L, dianteiro direito</string>
+  <string name="case_title_f2l_front_left">Par F2L, dianteiro esquerdo</string>
   <string name="case_slot_back_right">Traseiro direito</string>
   <string name="case_slot_back_left">Traseiro esquerdo</string>
+  <string name="case_slot_front_right">Dianteiro direito</string>
+  <string name="case_slot_front_left">Dianteiro esquerdo</string>
   <string name="case_algorithms_order">Os recomendados primeiro. Toque no que você usa.</string>
   <string name="case_algorithm_empty_fl">Precisa do slot frontal esquerdo vazio</string>
   <string name="case_algorithm_empty_br">Precisa do slot traseiro direito vazio</string>
@@ -1525,6 +1529,7 @@
   <string name="coach_learn_cases">Aprender estes casos</string>
   <string name="coach_drill_lookahead">Treino de look-ahead</string>
   <string name="coach_drill_back_slots">Slots traseiros sem rotação</string>
+  <string name="coach_drill_slots">F2L sem rotação</string>
   <string name="coach_practice_title">Treino livre</string>
   <string name="coach_practice_body">Sempre aqui, à parte do plano: os casos que mais custam para você, treinados até baterem suas metas. Atualizado todos os dias com suas últimas resoluções.</string>
   <string name="coach_practice_set">Os seus casos de %1$s mais custosos</string>

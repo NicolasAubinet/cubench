@@ -169,7 +169,10 @@ public class CoachPlan {
           || spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD
           || spec.getType() == DrillSpec.Type.F2L_BACK_SLOT;
       for (String code : spec.getCases()) {
-        if (pairs ? !F2lPairCases.isCase(code) : !LastLayerAlgorithms.dealsCase(code)
+        String dealt = spec.getType() == DrillSpec.Type.F2L_BACK_SLOT
+            ? F2lPairCases.withoutSlot(code) : code; // only a rotations drill names a slot
+        if (pairs ? !F2lPairCases.isCase(dealt)
+            : !LastLayerAlgorithms.dealsCase(code)
             || (!spec.isLearning() && !payload.holds(code))) {
           undealable.add(code);
         }

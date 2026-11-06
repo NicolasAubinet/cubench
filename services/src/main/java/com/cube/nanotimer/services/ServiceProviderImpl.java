@@ -1959,11 +1959,15 @@ public class ServiceProviderImpl implements ServiceProvider {
     List<String> cases = spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD
         ? Collections.singletonList(DB.DRILL_REP_LOOKAHEAD_CASE) : spec.getCases();
     if (spec.getType() == DrillSpec.Type.F2L_BACK_SLOT) {
-      // Stored under each slot's own code, so last week's reps are found under those.
+      // Stored under each slot's code; a bare one (a payload 13 plan) means both back slots.
       List<String> slotted = new ArrayList<String>();
       for (String code : cases) {
+        if (F2lPairCases.slotOf(code) != null) {
+          slotted.add(code);
+          continue;
+        }
         for (String slot : F2lPairCases.BACK_SLOTS) {
-          slotted.add(F2lPairCases.inBackSlot(code, slot));
+          slotted.add(F2lPairCases.inSlot(code, slot));
         }
       }
       cases = slotted;

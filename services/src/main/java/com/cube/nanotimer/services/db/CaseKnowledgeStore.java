@@ -131,7 +131,7 @@ public final class CaseKnowledgeStore {
   private static boolean namesACase(String code) {
     String caseName = code == null ? null : MethodStatistics.caseOf(code);
     return caseName != null && !SKIPPED.equals(caseName)
-        && !DB.DRILL_REP_LOOKAHEAD_CASE.equals(code) && F2lPairCases.backSlotOf(code) == null;
+        && !DB.DRILL_REP_LOOKAHEAD_CASE.equals(code) && F2lPairCases.slotOf(code) == null;
   }
 
   private static void write(SQLiteDatabase db, String caseSet, String caseName,

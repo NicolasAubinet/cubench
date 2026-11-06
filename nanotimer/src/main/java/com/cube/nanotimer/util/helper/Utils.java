@@ -357,6 +357,24 @@ public class Utils {
   }
 
   /**
+   * The name of a slot a drill deals a pair into ({@code "fl"}), whole as a headline ("F2L pair,
+   * front left") or short for a narrow column ("Front left").
+   */
+  public static int slotString(String slot, boolean headline) {
+    switch (slot) {
+      case "fr":
+        return headline ? R.string.case_title_f2l_front_right : R.string.case_slot_front_right;
+      case "fl":
+        return headline ? R.string.case_title_f2l_front_left : R.string.case_slot_front_left;
+      case "br":
+        return headline ? R.string.case_title_f2l_back_right : R.string.case_slot_back_right;
+      default:
+        return headline ? R.string.case_title_f2l_back_left : R.string.case_slot_back_left;
+    }
+  }
+
+
+  /**
    * A case as a headline, "PLL Ga" or "OLL 21", for a screen whose whole subject is the case.
    * {@link #toSmartCubeCaseLabel} is parenthetical because it hangs off a step name in a shared
    * solve; here there is no step name for it to hang off.
@@ -365,10 +383,9 @@ public class Utils {
     if (code == null) {
       return null;
     }
-    String backSlot = CaseAlgorithms.backSlotOf(code);
-    if (backSlot != null) {
-      return context.getString("br".equals(backSlot) ? R.string.case_title_f2l_back_right
-          : R.string.case_title_f2l_back_left);
+    String slot = CaseAlgorithms.slotOf(code);
+    if (slot != null) {
+      return context.getString(slotString(slot, true));
     }
     if (CaseAlgorithms.isPair(code)) {
       return context.getString(R.string.case_title_f2l); // F2L case numbers are never shown

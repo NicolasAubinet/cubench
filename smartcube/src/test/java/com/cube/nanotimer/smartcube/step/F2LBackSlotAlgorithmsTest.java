@@ -50,12 +50,12 @@ public class F2LBackSlotAlgorithmsTest {
 
   @Test
   public void aBackSlotCodeIsItsOwnCase() {
-    assertEquals("br", CaseAlgorithms.backSlotOf("pair_4_br"));
-    assertNull(CaseAlgorithms.backSlotOf("pair_4"));
-    assertNull(CaseAlgorithms.backSlotOf("oll_21"));
+    assertEquals("br", CaseAlgorithms.slotOf("pair_4_br"));
+    assertNull(CaseAlgorithms.slotOf("pair_4"));
+    assertNull(CaseAlgorithms.slotOf("oll_21"));
     assertEquals("pair_4", CaseAlgorithms.frontCode("pair_4_bl"));
     assertEquals("4", CaseAlgorithms.pairCase("pair_4_bl"));
-    assertEquals("pair_a12_br", CaseAlgorithms.inBackSlot("pair_a12", "br"));
+    assertEquals("pair_a12_br", CaseAlgorithms.inSlot("pair_a12", "br"));
     assertTrue(CaseAlgorithms.isBasicPair("pair_4_br"));
     assertEquals("L U L'", CaseAlgorithms.shortestListed("pair_4_bl"));
     assertTrue(CaseAlgorithms.solves("pair_4_bl", "L U L'"));

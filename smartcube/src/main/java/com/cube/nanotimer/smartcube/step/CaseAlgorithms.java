@@ -14,8 +14,8 @@ import java.util.List;
  * way. A pair's may need one rotation in front of it, since a pair turned into another slot only
  * solves the case as drawn, into front right, once the cube is stood that way.
  *
- * <p>A pair dealt into a back slot to be put in with no rotation ({@code pair_27_br}) is a case of
- * its own here, with {@link F2LBackSlotAlgorithms} for its table: its algorithms are not the front
+ * <p>A pair dealt into a named slot to be put in with no rotation ({@code pair_27_fl}) is a case of
+ * its own here, with {@link F2LSlotAlgorithms} for its table: its algorithms are not the front
  * one's turned, and the front one turned is exactly what it is there to replace.
  */
 public final class CaseAlgorithms {
@@ -38,19 +38,19 @@ public final class CaseAlgorithms {
     return isPair(caseCode) && F2LCases.isBasic(pairCase(caseCode));
   }
 
-  /** The back slot a pair is dealt into to be put in without a rotation, or null for none. */
-  public static String backSlotOf(String caseCode) {
-    return F2lPairCases.backSlotOf(caseCode);
+  /** The slot a drill deals the pair into, put in without a rotation, or null for none. */
+  public static String slotOf(String caseCode) {
+    return F2lPairCases.slotOf(caseCode);
   }
 
-  /** The pair's case dealt into a back slot, {@code pair_27_br} for {@code pair_27}. */
-  public static String inBackSlot(String pairCode, String slot) {
-    return F2lPairCases.inBackSlot(pairCode, slot);
+  /** The pair's case dealt into a slot, {@code pair_27_fl} for {@code pair_27}. */
+  public static String inSlot(String pairCode, String slot) {
+    return F2lPairCases.inSlot(pairCode, slot);
   }
 
-  /** The case a back-slot code deals, {@code pair_27} for {@code pair_27_br}; others unchanged. */
+  /** The case a slot code deals, {@code pair_27} for {@code pair_27_fl}; others unchanged. */
   public static String frontCode(String caseCode) {
-    String slot = backSlotOf(caseCode);
+    String slot = slotOf(caseCode);
     return slot == null ? caseCode
         : caseCode.substring(0, caseCode.length() - slot.length() - 1);
   }
@@ -58,9 +58,9 @@ public final class CaseAlgorithms {
   /** The algorithms the case is listed with, most used first: see {@link AlgorithmList}. */
   public static List<Listed> shown(String caseCode) {
     List<Listed> shown = new ArrayList<Listed>();
-    String backSlot = backSlotOf(caseCode);
-    if (backSlot != null) {
-      for (String moves : F2LBackSlotAlgorithms.forCase(pairCase(caseCode), backSlot)) {
+    String slot = slotOf(caseCode);
+    if (slot != null) {
+      for (String moves : F2LSlotAlgorithms.forCase(pairCase(caseCode), slot)) {
         shown.add(new Listed(moves, shown.isEmpty(), null));
       }
     } else if (isPair(caseCode)) {
@@ -87,7 +87,7 @@ public final class CaseAlgorithms {
     if (moves == null) {
       return null;
     }
-    if (backSlotOf(caseCode) != null) {
+    if (slotOf(caseCode) != null) {
       for (Listed listed : shown(caseCode)) {
         if (sameTurning(caseCode, listed.getMoves(), moves)) {
           return listed.getMoves();
@@ -138,7 +138,7 @@ public final class CaseAlgorithms {
 
   /** The slot ("fl", "br") that must be empty for the algorithm the moves are, or null for none. */
   public static String emptySlotOf(String caseCode, String moves) {
-    if (!isPair(caseCode) || backSlotOf(caseCode) != null) {
+    if (!isPair(caseCode) || slotOf(caseCode) != null) {
       return null;
     }
     F2LCaseAlgorithms.Algorithm matched = F2LCaseAlgorithms.matching(pairCase(caseCode), moves);
@@ -149,7 +149,7 @@ public final class CaseAlgorithms {
 
   /** The shortest algorithm the case is listed with, the one extra moves are counted over. */
   public static String shortestListed(String caseCode) {
-    if (backSlotOf(caseCode) != null) {
+    if (slotOf(caseCode) != null) {
       List<Listed> listed = shown(caseCode);
       return listed.isEmpty() ? null : listed.get(0).getMoves();
     }
@@ -159,7 +159,7 @@ public final class CaseAlgorithms {
 
   /** @see AlgorithmList#read */
   public static AlgorithmExecution read(String caseCode, String moves) {
-    if (backSlotOf(caseCode) != null) {
+    if (slotOf(caseCode) != null) {
       return new AlgorithmExecution(false, 0, 0); // a rotation is what this drill reads, not length
     }
     return isPair(caseCode) ? F2LCaseAlgorithms.read(pairCase(caseCode), moves)
@@ -174,8 +174,8 @@ public final class CaseAlgorithms {
 
   /** @see LastLayerCaseAlgorithms#sameTurning */
   public static boolean sameTurning(String caseCode, String moves, String other) {
-    if (backSlotOf(caseCode) != null) {
-      return F2LBackSlotAlgorithms.sameTurning(moves, other);
+    if (slotOf(caseCode) != null) {
+      return F2LSlotAlgorithms.sameTurning(moves, other);
     }
     return isPair(caseCode) ? F2LCaseAlgorithms.sameTurning(pairCase(caseCode), moves, other)
         : LastLayerCaseAlgorithms.sameTurning(caseCode, moves, other);
@@ -183,7 +183,7 @@ public final class CaseAlgorithms {
 
   /** @see LastLayerCaseAlgorithms#keyAsDrawn */
   public static String keyAsDrawn(String caseCode, String moves) {
-    if (backSlotOf(caseCode) != null) {
+    if (slotOf(caseCode) != null) {
       List<String> turned = AlgorithmForm.comparable(moves);
       return turned.isEmpty() ? null : AlgorithmForm.written(turned);
     }
@@ -193,9 +193,9 @@ public final class CaseAlgorithms {
 
   /** Whether an algorithm solves the case, as it must before one a user typed in is kept. */
   public static boolean solves(String caseCode, String algorithm) {
-    String backSlot = backSlotOf(caseCode);
-    if (backSlot != null) {
-      return F2LBackSlotAlgorithms.solves(pairCase(caseCode), backSlot, algorithm);
+    String slot = slotOf(caseCode);
+    if (slot != null) {
+      return F2LSlotAlgorithms.solves(pairCase(caseCode), slot, algorithm);
     }
     return isPair(caseCode) ? F2LCaseAlgorithms.solves(pairCase(caseCode), algorithm)
         : LastLayerCaseAlgorithms.solves(caseCode, algorithm);

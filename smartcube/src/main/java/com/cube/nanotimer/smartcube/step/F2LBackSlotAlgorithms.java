@@ -262,36 +262,8 @@ public final class F2LBackSlotAlgorithms {
 
   /** Whether the moves put the case's pair into the slot, with the cross and the other slots in. */
   public static boolean solves(String pairCase, String slot, String moves) {
-    if (pairCase == null || moves == null || moves.trim().isEmpty()) {
-      return false;
-    }
-    boolean right = BACK_RIGHT.equals(slot);
-    if (!right && !BACK_LEFT.equals(slot)) {
-      return false;
-    }
-    try {
-      String state = Notation.caseState(moves);
-      if (!pairCase.equals(F2LCases.pairCase(state, Cubies.D,
-          right ? Cubies.DRB : Cubies.DBL, right ? Cubies.BR : Cubies.BL))) {
-        return false;
-      }
-      // Only that pair may be out: the algorithm must leave every other slot as it found it.
-      String after = Notation.apply(state, moves);
-      for (int face = 0; face < 6; face++) {
-        if (face == Cubies.U) {
-          continue;
-        }
-        char centre = after.charAt(face * 9 + 4);
-        for (int i = face == Cubies.D ? 0 : 3; i < 9; i++) {
-          if (after.charAt(face * 9 + i) != centre) {
-            return false;
-          }
-        }
-      }
-      return true;
-    } catch (RuntimeException e) {
-      return false; // unreadable, or a sequence that does not put the cube back down
-    }
+    return (BACK_RIGHT.equals(slot) || BACK_LEFT.equals(slot))
+        && F2LSlotAlgorithms.solves(pairCase, slot, moves);
   }
 
   /**

@@ -81,6 +81,27 @@ public class CoachPlanTest {
     Assert.assertEquals(Collections.singletonList("pair_a99"), plan.undealableDrills(payload()));
   }
 
+  /** Only a rotations drill deals a case into a named slot; a pair drill has no such case. */
+  @Test
+  public void testASlotCodeIsDealtByARotationsDrillAlone() {
+    List<String> codes = Arrays.asList("pair_2_fl", "pair_33_br", "pair_99_fl");
+    DrillSpec rotations = DrillSpec.learning("test", DrillSpec.Type.F2L_BACK_SLOT, codes,
+        DrillSpec.Selection.ROUND_ROBIN, 400, 5, Collections.<String, String>emptyMap(), null);
+    DrillSpec pairs = new DrillSpec("test", DrillSpec.Type.F2L_PAIR, DrillSpec.Delivery.VIRTUAL,
+        codes, DrillSpec.Selection.WEIGHTED, 40, 2000, "drill");
+
+    Assert.assertEquals(Collections.singletonList("pair_99_fl"),
+        planWith(rotations).undealableDrills(payload()));
+    Assert.assertEquals(codes, planWith(pairs).undealableDrills(payload()));
+  }
+
+  private static CoachPlan planWith(DrillSpec drill) {
+    return new CoachPlan(CoachPlan.VERSION, CoachPlan.Source.COACH, null,
+        Collections.singletonList(new FocusArea(FocusArea.Reason.F2L_ROTATIONS,
+            Collections.singletonList("f2l"), Collections.<Evidence>emptyList(), null,
+            drill.toJson())));
+  }
+
   /** A look-ahead drill deals from no case list, so it has nothing to be undealable. */
   @Test
   public void testALookAheadDrillIsKept() {

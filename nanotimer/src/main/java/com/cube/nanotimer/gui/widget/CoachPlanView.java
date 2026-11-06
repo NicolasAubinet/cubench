@@ -46,6 +46,7 @@ import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.StepShares;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
+import com.cube.nanotimer.step.F2lPairCases;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.gui.CrossDrillActivity;
@@ -502,6 +503,16 @@ public class CoachPlanView {
   private static String shortName(String code) {
     String name = code.substring(code.indexOf('_') + 1);
     return name.isEmpty() ? name : name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1);
+  }
+
+  /** Whether a rotations drill deals into a front slot; one naming no slot deals both back ones. */
+  private static boolean dealsAFrontSlot(DrillSpec spec) {
+    for (String code : spec.getCases()) {
+      if (F2lPairCases.isFront(F2lPairCases.slotOf(code))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private View areaCard(int rank, FocusArea area, CoachPayload payload, List<String> undealable) {
@@ -974,7 +985,8 @@ public class CoachPlanView {
     button.setText(withPlay(button, spec.getType() == DrillSpec.Type.CROSS
         ? R.string.drill_cross_title
         : spec.getType() == DrillSpec.Type.F2L_LOOKAHEAD ? R.string.coach_drill_lookahead
-        : spec.getType() == DrillSpec.Type.F2L_BACK_SLOT ? R.string.coach_drill_back_slots
+        : spec.getType() == DrillSpec.Type.F2L_BACK_SLOT
+            ? (dealsAFrontSlot(spec) ? R.string.coach_drill_slots : R.string.coach_drill_back_slots)
         : spec.isLearning() ? R.string.coach_learn_cases
         : spec.getCases().size() == 1 ? R.string.coach_drill_case : R.string.coach_drill_cases));
     button.setOnClickListener(new View.OnClickListener() {
