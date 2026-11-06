@@ -132,7 +132,7 @@ public class SolveReadingTest {
   /** A gyro solve's rotations come back with the solve they were kept for. */
   @Test
   public void keepsEachPairsRotationsUnderItsSolve() {
-    PairRotation kept = new PairRotation(0, "pair_27", true, 2,
+    PairRotation kept = new PairRotation(0, "pair_27", true, PairRotation.BACK_LEFT, 2,
         new PairRotation.Gaps(1, 1100, 0, 0), new PairRotation.Gaps(1, 600, 5, 900));
     SolveReading round = SolveReading.parse(SolveReading.toJson(new SolveReading(
         Collections.<SolveReading.Execution>emptyList(),
@@ -142,6 +142,7 @@ public class SolveReadingTest {
     PairRotation pair = round.getRotations().get(0);
     assertEquals(42, pair.getSolveId());
     assertEquals("pair_27", pair.getCaseCode());
+    assertEquals(PairRotation.BACK_LEFT, pair.getSlot());
     assertTrue(pair.isBasic());
     assertEquals(2, pair.getRotations());
     assertEquals(1100, pair.getStart().getRotatedMs());

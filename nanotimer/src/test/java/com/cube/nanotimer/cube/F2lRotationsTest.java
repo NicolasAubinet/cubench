@@ -32,7 +32,7 @@ public class F2lRotationsTest {
   public void countsRotationsFromTheGyroByWhereTheyFall() {
     List<PairRotation> pairs = F2lRotations.read(7, MOVES, STEPS,
         Arrays.asList(0L, 700L, 2000L, 3800L, 3900L, 4150L, 5300L),
-        Arrays.asList(yaw(0), yaw(90), yaw(180), yaw(270), yaw(180), yaw(270), yaw(360)));
+        Arrays.asList(yaw(0), yaw(90), yaw(180), yaw(270), yaw(180), yaw(270), yaw(360)), null);
 
     assertEquals(3, pairs.size());
     PairRotation first = pairs.get(0);
@@ -62,10 +62,39 @@ public class F2lRotationsTest {
         Arrays.asList(STEPS.get(0), new SolveStep(1, "f2l", 0, 8800, Arrays.asList(
             part("pair_27"), part("pair_9"), new SolveStep(2, "pair_a16", 3500, 1300,
                 Collections.<SolveStep>emptyList())))),
-        Arrays.asList(0L, 5300L), Arrays.asList(yaw(0), yaw(90)));
+        Arrays.asList(0L, 5300L), Arrays.asList(yaw(0), yaw(90)), null);
 
     assertEquals(1, pairs.get(2).getRotations());
     assertGaps(0, 0, 0, 0, pairs.get(2).getStart()); // 4000 ms: counted, but not as a gap
+  }
+
+  /** Each slot is placed in the grip held as the pair before it ended; the first at its own start. */
+  @Test
+  public void readsWhereEachSlotSatInTheGrip() {
+    List<SolveStep> steps = Arrays.asList(STEPS.get(0), new SolveStep(1, "f2l", 1200, 4800,
+        Arrays.asList(part("pair_27_rf"), part("pair_9_lb"), part("pair_a16_lf"))));
+    // Square until 2700 ms, then a y (the gyro reads it as -90° about its vertical) held on.
+    List<PairRotation> pairs = F2lRotations.read(7, MOVES, steps, Arrays.asList(0L, 2700L),
+        Arrays.asList(yaw(0), yaw(-90)), yaw(0));
+
+    assertEquals(PairRotation.FRONT_RIGHT, pairs.get(0).getSlot());
+    assertTrue(pairs.get(0).isFront());
+    assertEquals(PairRotation.BACK_RIGHT, pairs.get(1).getSlot()); // left-back, after a y
+    assertEquals(PairRotation.BACK_LEFT, pairs.get(2).getSlot()); // left-front, after a y
+  }
+
+  @Test
+  public void placesNoSlotWithoutAReferenceOrAFaceName() {
+    List<Long> offsets = Collections.singletonList(0L);
+    List<CubeOrientation> poses = Collections.singletonList(yaw(0));
+
+    assertEquals(null, F2lRotations.read(7, MOVES, STEPS, offsets, poses, yaw(0)).get(0)
+        .getSlot()); // "pair_27" names no slot
+    assertEquals(null, F2lRotations.read(7, MOVES, Arrays.asList(STEPS.get(0),
+        new SolveStep(1, "f2l", 1200, 4800, Arrays.asList(part("pair_27_rf"), part("pair_9"),
+            part("pair_a16")))), offsets, poses, null).get(0).getSlot());
+    // Tipped onto its side, the slot's faces are no longer both around the sides.
+    assertEquals(null, F2lRotations.slotAsHeld("pair_27_rf", yaw(0), about(1, 0, 0, 90)));
   }
 
   @Test

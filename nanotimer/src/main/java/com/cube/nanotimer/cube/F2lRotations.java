@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import com.cube.nanotimer.coach.PairRotation;
 import com.cube.nanotimer.cube.SolveMovesFormat.Move;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.vo.SolveStep;
 
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -74,12 +76,16 @@ public final class F2lRotations {
       offsets.add(Long.valueOf(keyframe.getOffsetMs()));
       poses.add(keyframe.getOrientation());
     }
-    return read(solveId, storedMoves, steps, offsets, poses);
+    return read(solveId, storedMoves, steps, offsets, poses, track.getReference());
   }
 
-  /** As above with the track's poses, oldest first, each at its offset from the solve's start. */
+  /**
+   * As above with the track's poses, oldest first, each at its offset from the solve's start.
+   *
+   * @param reference the grip the poses are measured from, or null: no pair's slot is then placed
+   */
   static List<PairRotation> read(long solveId, String storedMoves, List<SolveStep> steps,
-      List<Long> offsets, List<CubeOrientation> poses) {
+      List<Long> offsets, List<CubeOrientation> poses, CubeOrientation reference) {
     long f2lStart = 0;
     SolveStep f2l = null;
     for (SolveStep step : steps) {
@@ -114,9 +120,15 @@ public final class F2lRotations {
       start[i] = PairRotation.Gaps.NONE;
       inside[i] = PairRotation.Gaps.NONE;
     }
+    long[] firstMs = new long[parts.size()];
+    long[] lastMs = new long[parts.size()];
     for (Move face : faces) {
       int pair = pairOf(face.getOffsetMs(), f2lStart, ends);
       if (pair >= 0) {
+        if (turns[pair] == 0) {
+          firstMs[pair] = face.getOffsetMs();
+        }
+        lastMs[pair] = face.getOffsetMs();
         turns[pair]++;
       }
     }
@@ -151,16 +163,51 @@ public final class F2lRotations {
     }
 
     List<PairRotation> read = new ArrayList<PairRotation>();
+    long previousMs = -1;
     for (int p = 0; p < parts.size(); p++) {
       if (turns[p] == 0) {
         continue; // a pair that went in on its own: nothing was turned for it
       }
+      // Held as the previous pair ended, before any rotation for this one; the first pair from its
+      // own first turn, as the gap into it is not read for rotations either.
+      long heldMs = previousMs >= 0 ? previousMs : firstMs[p];
+      previousMs = lastMs[p];
       String caseCode = CaseExecutions.caseOfPart(parts.get(p).getName());
+      String slot = reference == null ? null
+          : slotAsHeld(parts.get(p).getName(), reference, at(offsets, poses, heldMs));
       read.add(new PairRotation(solveId, caseCode,
-          caseCode != null && CaseAlgorithms.isBasicPair(caseCode), rotations[p], start[p],
+          caseCode != null && CaseAlgorithms.isBasicPair(caseCode), slot, rotations[p], start[p],
           inside[p]));
     }
     return read;
+  }
+
+  /**
+   * Where the slot a part names ({@code pair_27_rf}, by its colours' faces) sits in the grip, or
+   * null where it is not a side slot there: the cross is then not on an up-down axis.
+   */
+  static String slotAsHeld(String partName, CubeOrientation reference, CubeOrientation pose) {
+    int cut = partName == null ? -1 : partName.lastIndexOf('_');
+    String faces = cut < 0 ? "" : partName.substring(cut + 1).toUpperCase(Locale.US);
+    if (faces.length() != 2 || "URFDLB".indexOf(faces.charAt(0)) < 0
+        || "URFDLB".indexOf(faces.charAt(1)) < 0) {
+      return null;
+    }
+    CubeRotation grip = CubeRotation.closest(reference.deltaTo(CubeRotation.upright(pose)));
+    char frontBack = 0;
+    char rightLeft = 0;
+    for (char face : faces.toCharArray()) {
+      char held = grip.mapFace(face);
+      if (held == 'F' || held == 'B') {
+        frontBack = held;
+      } else if (held == 'R' || held == 'L') {
+        rightLeft = held;
+      }
+    }
+    if (frontBack == 0 || rightLeft == 0) {
+      return null;
+    }
+    return ("" + frontBack + rightLeft).toLowerCase(Locale.US);
   }
 
   /** The pair a move made at this offset belongs to, -1 outside F2L. A step owns its last move. */

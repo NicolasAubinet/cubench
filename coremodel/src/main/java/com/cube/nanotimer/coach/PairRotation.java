@@ -17,9 +17,16 @@ public final class PairRotation {
   /** A gap this long is a lost look, whatever the cube did during it. */
   public static final long LONG_GAP_MS = 3000;
 
+  /** Where a pair's slot sat in the grip, spelt as a drill's slot code spells it. */
+  public static final String FRONT_RIGHT = "fr";
+  public static final String FRONT_LEFT = "fl";
+  public static final String BACK_RIGHT = "br";
+  public static final String BACK_LEFT = "bl";
+
   private final long solveId;
   private final String caseCode;
   private final boolean basic;
+  private final String slot;
   private final int rotations;
   private final Gaps start;
   private final Gaps inside;
@@ -33,9 +40,19 @@ public final class PairRotation {
    */
   public PairRotation(long solveId, String caseCode, boolean basic, int rotations, Gaps start,
       Gaps inside) {
+    this(solveId, caseCode, basic, null, rotations, start, inside);
+  }
+
+  /**
+   * As above, with where the pair's slot sat in the grip as the pair began: {@link #FRONT_RIGHT}
+   * and the others, or null where the gyro could not say.
+   */
+  public PairRotation(long solveId, String caseCode, boolean basic, String slot, int rotations,
+      Gaps start, Gaps inside) {
     this.solveId = solveId;
     this.caseCode = caseCode;
     this.basic = basic;
+    this.slot = slot;
     this.rotations = rotations;
     this.start = start;
     this.inside = inside;
@@ -51,6 +68,19 @@ public final class PairRotation {
 
   public boolean isBasic() {
     return basic;
+  }
+
+  /** Where the slot sat in the grip as the pair began, or null where the gyro could not say. */
+  public String getSlot() {
+    return slot;
+  }
+
+  public boolean isFront() {
+    return FRONT_RIGHT.equals(slot) || FRONT_LEFT.equals(slot);
+  }
+
+  public boolean isBack() {
+    return BACK_RIGHT.equals(slot) || BACK_LEFT.equals(slot);
   }
 
   public int getRotations() {

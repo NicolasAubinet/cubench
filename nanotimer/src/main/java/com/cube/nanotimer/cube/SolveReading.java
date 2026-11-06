@@ -45,9 +45,10 @@ public final class SolveReading {
    * version 4 makes stall_ms all the time not turning and adds stop_ms, the long pauses in it,
    * version 5 the F2L rotations of a gyro solve, version 6 reads them again now that the solves
    * come with their gyro tracks (version 5 rows hold none), version 7 stops counting a last layer
-   * false start as one of the step's algorithms, version 8 drops pauses under 250 ms.
+   * false start as one of the step's algorithms, version 8 drops pauses under 250 ms, version 9
+   * where each pair's slot sat in the grip.
    */
-  public static final int VERSION = 8;
+  public static final int VERSION = 9;
 
   private static final String RESTART_PART_SUFFIX = "restart";
 
@@ -353,6 +354,9 @@ public final class SolveReading {
             one.put("case", pair.getCaseCode());
           }
           one.put("basic", pair.isBasic());
+          if (pair.getSlot() != null) {
+            one.put("slot", pair.getSlot());
+          }
           one.put("rotations", pair.getRotations());
           one.put("start", gaps(pair.getStart()));
           one.put("inside", gaps(pair.getInside()));
@@ -399,7 +403,7 @@ public final class SolveReading {
       for (int i = 0; array != null && i < array.length(); i++) {
         JSONObject json = array.getJSONObject(i);
         rotations.add(new PairRotation(solveId, json.optString("case", null),
-            json.getBoolean("basic"), json.getInt("rotations"),
+            json.getBoolean("basic"), json.optString("slot", null), json.getInt("rotations"),
             gaps(json.getJSONArray("start")), gaps(json.getJSONArray("inside"))));
       }
       return new SolveReading(executions, turnings, reading.getBoolean("whole"), rotations);

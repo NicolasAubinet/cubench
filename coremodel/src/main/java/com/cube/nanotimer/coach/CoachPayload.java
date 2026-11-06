@@ -34,15 +34,20 @@ public class CoachPayload {
    * plan and the solves since it, 9 the two-look PLL count and the PLL step split the same way, 10
    * the language the plan is to be written in, 11 nothing new but that the app runs a look-ahead
    * drill ({@link #LOOKAHEAD_DRILL_VERSION}), 12 the F2L rotations of gyro solves, 13 nothing new
-   * but that the app runs a back-slot drill ({@link #BACK_SLOT_DRILL_VERSION}); an older payload
+   * but that the app runs a back-slot drill ({@link #BACK_SLOT_DRILL_VERSION}), 14 the F2L
+   * rotations split by front and back slot, and a drill dealing a case into any named slot
+   * ({@link #SLOT_DRILL_VERSION}); an older payload
    * is still read, and is simply missing them. */
-  public static final int VERSION = 13;
+  public static final int VERSION = 14;
 
   /** The first payload from an app that runs a look-ahead drill, which needs drill spec 6. */
   public static final int LOOKAHEAD_DRILL_VERSION = 11;
 
   /** The first payload from an app that runs a back-slot drill, which needs drill spec 7. */
   public static final int BACK_SLOT_DRILL_VERSION = 13;
+
+  /** The first payload with rotations by slot, from an app dealing {@code pair_2_fl} and the like. */
+  public static final int SLOT_DRILL_VERSION = 14;
 
   private final int schemaVersion;
   private final String puzzle;
