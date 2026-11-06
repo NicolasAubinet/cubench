@@ -91,11 +91,11 @@
   <string name="session_accuracy">Accuracy</string>
   <string name="sessiondetail_help_title">What these numbers mean</string>
   <string name="sessiondetail_help_body">All of them cover the one session named above.</string>
-  <string name="sessiondetail_help_average">Drops the fastest and the slowest, then means what is left. A DNF sorts as the slowest, so the first one drops out too.</string>
+  <string name="sessiondetail_help_average">Drops the fastest and slowest 5% of times (at least one of each), then averages the rest. A DNF counts as the slowest, so it is the first to be dropped.</string>
   <string name="sessiondetail_help_success_average">The same trimmed average, over the solves you did not DNF.</string>
   <string name="sessiondetail_help_deviation">How far the session spreads around its own mean, DNFs left out. Smaller is steadier.</string>
   <string name="sessiondetail_help_best_mo3">The best three in a row, as a plain mean: nothing is dropped, so one DNF among the three makes it a DNF.</string>
-  <string name="sessiondetail_help_accuracy">The share of the session you did not DNF.</string>
+  <string name="sessiondetail_help_accuracy">Percentage of solves in this session that were not a DNF.</string>
   <string name="sessiondetail_help_best_averages">The best 5, 12, 50 and 100 anywhere in the session, not just the most recent ones.</string>
 
   <string name="clear_history">Clear history</string>
@@ -283,9 +283,9 @@
 
   <string name="import_times">Import</string>
   <string name="export_help_title">About exporting</string>
-  <string name="export_help_body">This screen writes two different files, and the control at the top picks which. What the cards below have picked is what goes into the CSV.</string>
+  <string name="export_help_body">This screen makes two kinds of file. Pick one at the top. The CSV includes the solves you select below.</string>
   <string name="export_help_backup_body">One file holding everything the app keeps: every solve, every session and every setting. Only Cubench reads it, and restoring one replaces what is on the phone.</string>
-  <string name="export_help_share">Hands the file straight to another app: a mail, a chat, a cloud drive.</string>
+  <string name="export_help_share">Sends the file to another app: email, a chat app, cloud storage.</string>
   <string name="export_help_save">Writes it where you choose on this device, to keep or move yourself.</string>
   <string name="export_help_columns">What a line holds</string>
   <string name="export_help_columns_body">The puzzle type, the solve type, the time and its date, the scramble, and any penalty or comment.</string>
@@ -331,7 +331,7 @@
   <string name="chart_type_frequency">Frequency</string>
   <string name="chart_type_distribution">Distribution</string>
   <string name="graph_help_title">What these graphs show</string>
-  <string name="graph_help_body">Three ways of reading the same history. The row on the right chooses between them, the picker beside it chooses how far back they go, and Smooth averages each point with its neighbours so the trend shows without the spikes.</string>
+  <string name="graph_help_body">Choose a graph on the right and a time range beside it. Smooth evens out spikes so the trend is easier to see.</string>
   <string name="graph_help_progression">Every solve in order, with the Ao5 and Ao12 running through them.</string>
   <string name="graph_help_frequency">How many solves you did on each day.</string>
   <string name="graph_help_distribution">How many solves landed in each time range. The number under a bar is where its range starts.</string>
@@ -357,7 +357,7 @@
   <string name="cross_neutrality_dual">Dual</string>
   <string name="cross_neutrality_full">Full</string>
   <string name="cross_help_title">About the cross solver</string>
-  <string name="cross_help_body">The shortest ways to solve the cross from the scramble you are on. Every way listed under a color is as short as that color\'s cross can be done in.</string>
+  <string name="cross_help_body">The shortest cross solutions for the current scramble. Each solution shown for a color is the shortest possible for that cross.</string>
   <string name="cross_help_specific">Only the color you pick below.</string>
   <string name="cross_help_dual">That color and the one opposite it, shortest first.</string>
   <string name="cross_help_full">All six colors, shortest first, with the shortest starred.</string>
@@ -919,16 +919,16 @@
   <string name="acc100_label">Acc100</string>
   <string name="stat_to_show">Statistic</string>
   <string name="history_help_title">About these statistics</string>
-  <string name="history_help_body">Any of them can go in any of the three cells.</string>
+  <string name="history_help_body">Each of the three cells can show any of these statistics.</string>
   <string name="history_help_rolling">Rolling windows</string>
   <string name="history_help_rolling_body">A statistic with a number in its name covers only that many of your most recent solves, so it moves with every solve you do.</string>
   <string name="history_help_all">Mean all and Acc all</string>
-  <string name="history_help_all_body">Mean all is the plain mean of your times, DNFs left out. Acc all, on blind types, is how often you succeeded. Both look back over your whole history under this solve type, up to the last 1000 solves.</string>
+  <string name="history_help_all_body">Mean all is the plain mean of your times, DNFs left out. Acc all, on blind types, is how often you succeeded. Both cover your last 1000 solves of this solve type.</string>
   <string name="history_help_pb_body">Your fastest ever under this solve type, however far back it is.</string>
   <string name="history_help_average">Average or mean</string>
-  <string name="history_help_average_body">An average drops the fastest and the slowest, then means the rest. A mean drops nothing, so one DNF among its solves makes it a DNF.</string>
+  <string name="history_help_average_body">An average drops the fastest and slowest times, then averages the rest. A mean drops nothing, so one DNF among its solves makes it a DNF.</string>
   <string name="history_help_blind">Blind types</string>
-  <string name="history_help_blind_body">Ao5 is not offered, since blind attempts are counted in threes. Acc says how often you succeeded, and an average counts successes only, reaching past a DNF rather than counting it.</string>
+  <string name="history_help_blind_body">Ao5 is not offered, since blind attempts are counted in threes. Acc says how often you succeeded, and an average skips DNFs and uses only successful solves.</string>
   <string name="blind_averages_note">An average here counts successes only: Ao12 is the average of your last twelve successful solves, reaching back past any DNF rather than counting it.</string>
   <string name="time_just_now">just now</string>
   <string name="time_minutes_ago">%1$d min ago</string>
@@ -1156,7 +1156,7 @@
   <string name="drill_summary_recorded">Recorded</string>
   <string name="drill_summary_not_recorded">Not recorded</string>
   <string name="drill_help_title">About this drill</string>
-  <string name="drill_help_body">What a drill settles before it deals its first case.</string>
+  <string name="drill_help_body">Settings for this drill.</string>
   <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps feed Drill stats and \"Algorithms you know\" in Analysis. Turn it off to practise without affecting them.</string>
   <string name="drill_planning_limit">Planning limit</string>
   <string name="drill_planning_seconds">seconds</string>
@@ -1606,7 +1606,7 @@
 
   <string name="analysis_help_title">About these figures</string>
   <string name="analysis_help_solve_title">Where your time goes</string>
-  <string name="analysis_help_solve_body">These figures come from your own solves, the ones a cube read, over the window shown at the top.</string>
+  <string name="analysis_help_solve_body">These figures come from your solves done with a smart cube, over the window shown at the top.</string>
   <string name="analysis_help_bar">The average solve</string>
   <string name="analysis_help_bar_body">One block per step, as wide as its share of the time. Each block is pale where you were looking and solid where you were turning.</string>
   <string name="analysis_help_delta">Against a typical solve</string>
@@ -1616,7 +1616,7 @@
   <string name="analysis_help_spread">Spread</string>
   <string name="analysis_help_spread_body">How much the time changes from solve to solve. The same mean can come from doing it the same way every time, or from getting stuck now and then.</string>
   <string name="analysis_help_standard">Standard algorithms</string>
-  <string name="analysis_help_standard_body">How you last turned each case of the set: with one of the algorithms listed for it, which is considered standard.</string>
+  <string name="analysis_help_standard_body">The cases of the set where your last solve used one of the listed algorithms.</string>
   <string name="analysis_help_extra">Extra moves</string>
   <string name="analysis_help_extra_body">The turns those cases cost you over the shortest standard algorithm, added up.</string>
   <string name="analysis_help_plan_title">Your plan</string>
@@ -1629,14 +1629,14 @@
   <string name="analysis_help_plan_new">A new plan</string>
   <string name="analysis_help_plan_new_body">Written from your last 100 smart cube solves, so the first one needs that many. After that a new plan comes every week, once you have done 25 more solves and your session is over.</string>
   <string name="analysis_help_cases_title">Case by case</string>
-  <string name="analysis_help_cases_body">The cases of the selected step that you put in with one algorithm, over the window shown at the top. Only those solves count: a time where you took two looks is left out.</string>
+  <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look, over the window shown at the top. Two-look solves are left out.</string>
   <string name="analysis_help_standing">Where a case stands</string>
-  <string name="analysis_help_standing_body">Known went in with one algorithm and no help, recently enough for that to still hold. Needs review went in that way before, but took two looks the last two times. To learn has never gone in with one algorithm. All of it is read from your solves, not from a list you tick.</string>
+  <string name="analysis_help_standing_body">Known: solved in one look, without help, recently enough to still count. Needs review: solved in one look before, but in two looks the last two times. To learn: never solved in one look. All of this comes from your solves.</string>
   <string name="analysis_help_shape">Shape</string>
   <string name="analysis_help_shape_body">On OLL, a Shape button narrows the table to one group of shapes, with each group\'s size beside it.</string>
-  <string name="analysis_help_rest_body">Under the table, the cases that did not go in with one algorithm in the window, grouped by where they stand over all your solves. Tap one for its algorithms.</string>
+  <string name="analysis_help_rest_body">Under the table, the cases you did not solve in one look in this window, grouped by where they stand across all your solves. Tap one for its algorithms.</string>
   <string name="analysis_help_sample">Example</string>
-  <string name="analysis_help_sample_body">Nothing on these tabs is yours. These figures are made up, and they are here so the screen has something to show before you own a smart cube. Connect one and your own take their place.</string>
+  <string name="analysis_help_sample_body">This is example data, shown until your first solve with a smart cube.</string>
 
   <!-- The smart-cube news sheet: shown once after updating into the smart cube -->
   <string name="news_pill">New</string>

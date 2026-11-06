@@ -83,11 +83,11 @@
   <string name="session_accuracy">Réussites</string>
   <string name="sessiondetail_help_title">Ce que veulent dire ces chiffres</string>
   <string name="sessiondetail_help_body">Ils portent tous sur la seule session nommée ci-dessus.</string>
-  <string name="sessiondetail_help_average">Retire le meilleur et le pire, puis fait la moyenne du reste. Un DNF compte comme le pire, il est donc retiré en premier.</string>
+  <string name="sessiondetail_help_average">Retire les 5 % de temps les plus rapides et les plus lents (au moins un de chaque), puis fait la moyenne du reste. Un DNF compte comme le plus lent, il est donc retiré en premier.</string>
   <string name="sessiondetail_help_success_average">La même moyenne, sur les temps que vous n\'avez pas ratés.</string>
   <string name="sessiondetail_help_deviation">À quel point la session s\'écarte de sa propre moyenne, DNF exclus. Plus c\'est petit, plus c\'est régulier.</string>
   <string name="sessiondetail_help_best_mo3">Les trois meilleurs d\'affilée, en moyenne simple. Une moyenne simple ne retire rien, un seul DNF parmi les trois en fait donc un DNF.</string>
-  <string name="sessiondetail_help_accuracy">La part de la session que vous n\'avez pas ratée.</string>
+  <string name="sessiondetail_help_accuracy">Pourcentage de résolutions de cette session qui ne sont pas un DNF.</string>
   <string name="sessiondetail_help_best_averages">Les meilleures 5, 12, 50 et 100 n\'importe où dans la session, pas seulement les plus récentes.</string>
 
   <string name="clear_history">Effacer l\'historique</string>
@@ -271,9 +271,9 @@
 
   <string name="import_times">Importer</string>
   <string name="export_help_title">À propos de l\'exportation</string>
-  <string name="export_help_body">Cet écran écrit deux fichiers différents, et le contrôle en haut choisit lequel. Ce que les cartes ci-dessous ont sélectionné est ce qui part dans le CSV.</string>
+  <string name="export_help_body">Cet écran crée deux sortes de fichiers. Choisissez-en un en haut. Le CSV contient les résolutions sélectionnées ci-dessous.</string>
   <string name="export_help_backup_body">Un seul fichier qui contient tout ce que l’application garde : chaque temps, chaque session et chaque réglage. Seul Cubench le lit, et le restaurer remplace ce qui se trouve sur le téléphone.</string>
-  <string name="export_help_share">Passe le fichier directement à une autre application : un mail, une discussion, un espace en ligne.</string>
+  <string name="export_help_share">Envoie le fichier à une autre application : e-mail, messagerie, stockage en ligne.</string>
   <string name="export_help_save">L\'écrit où vous voulez sur cet appareil, pour le garder ou le déplacer vous-même.</string>
   <string name="export_help_columns">Ce que contient une ligne</string>
   <string name="export_help_columns_body">Le type de puzzle, le type de résolution, le temps et sa date, le mélange, ainsi que la pénalité et le commentaire éventuels.</string>
@@ -319,7 +319,7 @@
   <string name="chart_type_frequency">Fréquence</string>
   <string name="chart_type_distribution">Distribution</string>
   <string name="graph_help_title">Ce que montrent ces graphiques</string>
-  <string name="graph_help_body">Trois façons de lire le même historique. La rangée de droite choisit entre elles, le sélecteur d\'à côté choisit jusqu\'où elles remontent, et Lisser moyenne chaque point avec ses voisins pour montrer la tendance sans les pics.</string>
+  <string name="graph_help_body">Choisissez un graphique à droite et une période à côté. Lisser atténue les pics pour mieux voir la tendance.</string>
   <string name="graph_help_progression">Chaque temps dans l\'ordre, avec les Ao5 et Ao12 qui les traversent.</string>
   <string name="graph_help_frequency">Le nombre de résolutions faites chaque jour.</string>
   <string name="graph_help_distribution">Le nombre de résolutions tombées dans chaque plage de temps. Le nombre sous une barre est le début de sa plage.</string>
@@ -342,7 +342,7 @@
   <string name="cross_neutrality_dual">Double</string>
   <string name="cross_neutrality_full">Complète</string>
   <string name="cross_help_title">À propos du solveur de croix</string>
-  <string name="cross_help_body">Les façons les plus courtes de faire la croix depuis le mélange en cours. Chaque façon listée sous une couleur est aussi courte que la croix de cette couleur peut l\'être.</string>
+  <string name="cross_help_body">Les solutions de croix les plus courtes pour le mélange en cours. Chaque solution montrée pour une couleur est la plus courte possible pour cette croix.</string>
   <string name="cross_help_specific">Seulement la couleur choisie ci-dessous.</string>
   <string name="cross_help_dual">Cette couleur et celle qui lui est opposée, la plus courte d\'abord.</string>
   <string name="cross_help_full">Les six couleurs, la plus courte d\'abord, la plus courte étant marquée d\'une étoile.</string>
@@ -895,16 +895,16 @@
   <string name="mean_label">Moy totale</string>
   <string name="stat_to_show">Statistique</string>
   <string name="history_help_title">À propos de ces statistiques</string>
-  <string name="history_help_body">N\'importe laquelle peut occuper n\'importe laquelle des trois cases.</string>
+  <string name="history_help_body">Chacune des trois cases peut afficher n\'importe laquelle de ces statistiques.</string>
   <string name="history_help_rolling">Fenêtres glissantes</string>
   <string name="history_help_rolling_body">Une statistique dont le nom contient un nombre ne porte que sur ce nombre de temps les plus récents, elle bouge donc à chaque résolution.</string>
   <string name="history_help_all">Moy totale et Préc totale</string>
-  <string name="history_help_all_body">La moy totale est la moyenne simple de vos temps, DNF exclus. La préc totale, sur les types en aveugle, dit à quelle fréquence vous avez réussi. Les deux portent sur tout votre historique pour ce type de résolution, jusqu\'aux 1000 derniers temps.</string>
+  <string name="history_help_all_body">La moy totale est la moyenne simple de vos temps, DNF exclus. La préc totale, sur les types en aveugle, dit à quelle fréquence vous avez réussi. Les deux portent sur vos 1000 derniers temps pour ce type de résolution.</string>
   <string name="history_help_pb_body">Votre meilleur temps pour ce type de résolution, aussi ancien soit-il.</string>
   <string name="history_help_average">Moyenne ou moyenne simple</string>
   <string name="history_help_average_body">Une moyenne retire le meilleur et le pire, puis fait la moyenne du reste. Une moyenne simple ne retire rien, un seul DNF parmi ses temps en fait donc un DNF.</string>
   <string name="history_help_blind">Types en aveugle</string>
-  <string name="history_help_blind_body">L\'Ao5 n\'est pas proposé, les tentatives en aveugle se comptant par trois. La préc totale dit à quelle fréquence vous avez réussi, et une moyenne ne compte que les réussites, en remontant au-delà d\'un DNF plutôt qu\'en le comptant.</string>
+  <string name="history_help_blind_body">L\'Ao5 n\'est pas proposé, les tentatives en aveugle se comptant par trois. La préc totale dit à quelle fréquence vous avez réussi, et une moyenne ignore les DNF pour ne garder que les réussites.</string>
   <string name="blind_averages_note">Une moyenne ne compte ici que les réussites : Ao12 est la moyenne de vos douze dernières résolutions réussies, en remontant au-delà des DNF plutôt que de les compter.</string>
   <string name="time_just_now">à l\'instant</string>
   <string name="time_minutes_ago">il y a %1$d min</string>
@@ -1111,7 +1111,7 @@
   <string name="drill_summary_recorded">Enregistré</string>
   <string name="drill_summary_not_recorded">Non enregistré</string>
   <string name="drill_help_title">À propos de ce drill</string>
-  <string name="drill_help_body">Ce qu\'un drill fixe avant de distribuer son premier cas.</string>
+  <string name="drill_help_body">Les réglages de ce drill.</string>
   <string name="drill_help_record">Activé, chaque essai est enregistré : son temps, et si vous avez demandé à voir l\'algorithme. Ces essais alimentent les Stats de drill et « Algorithmes connus » dans Analyse. Désactivez-le pour vous entraîner sans les modifier.</string>
   <string name="drill_planning_limit">Temps de réflexion limité</string>
   <string name="drill_planning_seconds">secondes</string>
@@ -1554,7 +1554,7 @@
 
   <string name="analysis_help_title">À propos de ces chiffres</string>
   <string name="analysis_help_solve_title">Où passe votre temps</string>
-  <string name="analysis_help_solve_body">Ces chiffres viennent de vos propres résolutions, celles qu\'un cube a lues, sur la fenêtre indiquée en haut.</string>
+  <string name="analysis_help_solve_body">Ces chiffres viennent de vos résolutions faites avec un smart cube, sur la fenêtre indiquée en haut.</string>
   <string name="analysis_help_bar">La résolution moyenne</string>
   <string name="analysis_help_bar_body">Un bloc par étape, large comme sa part du temps. Chaque bloc est pâle là où vous regardiez et plein là où vous tourniez.</string>
   <string name="analysis_help_delta">Face à une résolution typique</string>
@@ -1564,7 +1564,7 @@
   <string name="analysis_help_spread">Écart</string>
   <string name="analysis_help_spread_body">De combien le temps change d\'une résolution à l\'autre. Une même moyenne peut venir de toujours faire pareil, ou de bloquer de temps en temps.</string>
   <string name="analysis_help_standard">Algorithmes standards</string>
-  <string name="analysis_help_standard_body">La dernière façon dont vous avez tourné chaque cas de l\'ensemble : avec l\'un des algorithmes listés pour lui, ce qui est considéré comme standard.</string>
+  <string name="analysis_help_standard_body">Les cas de l\'ensemble où votre dernière résolution a utilisé l\'un des algorithmes listés.</string>
   <string name="analysis_help_extra">Coups en trop</string>
   <string name="analysis_help_extra_body">Les coups que ces cas vous ont coûtés par rapport à l\'algorithme standard le plus court, additionnés.</string>
   <string name="analysis_help_plan_title">Votre plan</string>
@@ -1577,14 +1577,14 @@
   <string name="analysis_help_plan_new">Un nouveau plan</string>
   <string name="analysis_help_plan_new_body">Écrit à partir de vos 100 dernières résolutions au smart cube, le premier en demande donc autant. Ensuite un nouveau plan arrive chaque semaine, une fois 25 résolutions de plus faites et votre session terminée.</string>
   <string name="analysis_help_cases_title">Cas par cas</string>
-  <string name="analysis_help_cases_body">Les cas de l\'étape choisie que vous avez faits en un seul algorithme, sur la fenêtre indiquée en haut. Seules ces résolutions comptent : un temps en deux looks est laissé de côté.</string>
+  <string name="analysis_help_cases_body">Les cas de l\'étape choisie que vous avez faits en un seul look, sur la fenêtre indiquée en haut. Les résolutions en deux looks sont laissées de côté.</string>
   <string name="analysis_help_standing">Où en est un cas</string>
-  <string name="analysis_help_standing_body">Connu : passé en un seul algorithme, sans aide, et assez récemment pour que ce soit encore vrai. À revoir : il passait ainsi avant, mais en 2-look les deux dernières fois. À apprendre : jamais passé en un seul algorithme. Tout cela est lu dans vos résolutions, pas dans une liste à cocher.</string>
+  <string name="analysis_help_standing_body">Connu : passé en un seul look, sans aide, assez récemment pour compter encore. À revoir : passé en un seul look avant, mais en deux looks les deux dernières fois. À apprendre : jamais passé en un seul look. Tout cela vient de vos résolutions.</string>
   <string name="analysis_help_shape">Forme</string>
   <string name="analysis_help_shape_body">En OLL, un bouton Forme réduit le tableau à un groupe de formes, avec la taille de chaque groupe à côté.</string>
-  <string name="analysis_help_rest_body">Sous le tableau, les cas qui ne sont pas passés en un seul algorithme dans la fenêtre, groupés selon où ils en sont sur toutes vos résolutions. Touchez-en un pour ses algorithmes.</string>
+  <string name="analysis_help_rest_body">Sous le tableau, les cas que vous n\'avez pas faits en un seul look dans la fenêtre, groupés selon où ils en sont sur toutes vos résolutions. Touchez-en un pour ses algorithmes.</string>
   <string name="analysis_help_sample">Exemple</string>
-  <string name="analysis_help_sample_body">Rien sur ces onglets n\'est à vous. Ces chiffres sont inventés, et ils sont là pour que l\'écran ait quelque chose à montrer avant que vous ayez un smart cube. Connectez-en un et les vôtres prendront leur place.</string>
+  <string name="analysis_help_sample_body">Ce sont des données d\'exemple, affichées jusqu\'à votre première résolution avec un smart cube.</string>
 
   <!-- The smart-cube news sheet: shown once after updating into the smart cube -->
   <string name="news_pill">Nouveau</string>

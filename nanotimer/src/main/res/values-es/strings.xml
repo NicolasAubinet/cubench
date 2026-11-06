@@ -83,11 +83,11 @@
   <string name="session_accuracy">Éxito</string>
   <string name="sessiondetail_help_title">Qué significan estos números</string>
   <string name="sessiondetail_help_body">Todos se refieren a la única sesión nombrada arriba.</string>
-  <string name="sessiondetail_help_average">Quita el mejor y el peor, y promedia el resto. Un DNF cuenta como el peor, así que es el primero en salir.</string>
+  <string name="sessiondetail_help_average">Quita el 5 % de tiempos más rápidos y más lentos (al menos uno de cada), y promedia el resto. Un DNF cuenta como el más lento, así que es el primero en salir.</string>
   <string name="sessiondetail_help_success_average">La misma media, sobre los tiempos que no falló.</string>
   <string name="sessiondetail_help_deviation">Cuánto se aparta la sesión de su propia media, sin contar los DNF. Cuanto menor, más constante.</string>
   <string name="sessiondetail_help_best_mo3">Los tres mejores seguidos, en media simple. Una media simple no quita nada, así que un solo DNF entre los tres la convierte en DNF.</string>
-  <string name="sessiondetail_help_accuracy">La parte de la sesión que no falló.</string>
+  <string name="sessiondetail_help_accuracy">Porcentaje de resoluciones de esta sesión que no son DNF.</string>
   <string name="sessiondetail_help_best_averages">Las mejores 5, 12, 50 y 100 en cualquier punto de la sesión, no solo las más recientes.</string>
 
   <string name="clear_history">Limpiar historial</string>
@@ -271,9 +271,9 @@
 
   <string name="import_times">Importar</string>
   <string name="export_help_title">Sobre la exportación</string>
-  <string name="export_help_body">Esta pantalla escribe dos archivos distintos, y el control de arriba elige cuál. Lo que hayas seleccionado en las tarjetas de abajo es lo que va al CSV.</string>
+  <string name="export_help_body">Esta pantalla crea dos tipos de archivo. Elige uno arriba. El CSV incluye las resoluciones que selecciones abajo.</string>
   <string name="export_help_backup_body">Un solo archivo con todo lo que guarda la aplicación: cada tiempo, cada sesión y cada ajuste. Solo Cubench lo lee, y restaurarlo sustituye lo que hay en el teléfono.</string>
-  <string name="export_help_share">Entrega el archivo directamente a otra aplicación: un correo, un chat, un espacio en la nube.</string>
+  <string name="export_help_share">Envía el archivo a otra aplicación: correo, chat, almacenamiento en la nube.</string>
   <string name="export_help_save">Lo escribe donde usted elija en este dispositivo, para guardarlo o moverlo usted mismo.</string>
   <string name="export_help_columns">Qué contiene una línea</string>
   <string name="export_help_columns_body">El tipo de puzzle, el tipo de resolución, el tiempo y su fecha, la mezcla, y la penalización y el comentario si los hay.</string>
@@ -319,7 +319,7 @@
   <string name="chart_type_frequency">Frecuencia</string>
   <string name="chart_type_distribution">Distribución</string>
   <string name="graph_help_title">Qué muestran estos gráficos</string>
-  <string name="graph_help_body">Tres maneras de leer el mismo historial. La fila de la derecha elige entre ellas, el selector de al lado elige hasta dónde llegan, y Suavizado promedia cada punto con sus vecinos para mostrar la tendencia sin los picos.</string>
+  <string name="graph_help_body">Elige un gráfico a la derecha y un periodo al lado. Suavizado atenúa los picos para que la tendencia se vea mejor.</string>
   <string name="graph_help_progression">Cada tiempo en orden, con los Ao5 y Ao12 que los recorren.</string>
   <string name="graph_help_frequency">Cuántas resoluciones hiciste cada día.</string>
   <string name="graph_help_distribution">Cuántas resoluciones cayeron en cada rango de tiempo. El número debajo de una barra es donde empieza su rango.</string>
@@ -342,7 +342,7 @@
   <string name="cross_neutrality_dual">Dual</string>
   <string name="cross_neutrality_full">Completa</string>
   <string name="cross_help_title">Sobre el solucionador de cruz</string>
-  <string name="cross_help_body">Las formas más cortas de hacer la cruz desde la mezcla actual. Cada forma listada bajo un color es tan corta como puede ser la cruz de ese color.</string>
+  <string name="cross_help_body">Las soluciones de cruz más cortas para la mezcla actual. Cada solución mostrada para un color es la más corta posible para esa cruz.</string>
   <string name="cross_help_specific">Solo el color que elija abajo.</string>
   <string name="cross_help_dual">Ese color y el opuesto, el más corto primero.</string>
   <string name="cross_help_full">Los seis colores, el más corto primero, con el más corto marcado con una estrella.</string>
@@ -894,16 +894,16 @@
   <string name="mean_label">Media total</string>
   <string name="stat_to_show">Estadística</string>
   <string name="history_help_title">Sobre estas estadísticas</string>
-  <string name="history_help_body">Cualquiera de ellas puede ir en cualquiera de las tres casillas.</string>
+  <string name="history_help_body">Cada una de las tres casillas puede mostrar cualquiera de estas estadísticas.</string>
   <string name="history_help_rolling">Ventanas móviles</string>
   <string name="history_help_rolling_body">Una estadística con un número en su nombre solo abarca esa cantidad de sus tiempos más recientes, así que se mueve con cada resolución.</string>
   <string name="history_help_all">Media total y Prec total</string>
-  <string name="history_help_all_body">La media total es la media simple de sus tiempos, sin contar los DNF. La prec total, en los tipos a ciegas, dice con qué frecuencia acertó. Ambas abarcan todo su historial para este tipo de resolución, hasta los últimos 1000 tiempos.</string>
+  <string name="history_help_all_body">La media total es la media simple de sus tiempos, sin contar los DNF. La prec total, en los tipos a ciegas, dice con qué frecuencia acertó. Ambas abarcan sus últimos 1000 tiempos de este tipo de resolución.</string>
   <string name="history_help_pb_body">Su mejor tiempo para este tipo de resolución, por antiguo que sea.</string>
   <string name="history_help_average">Media o media simple</string>
   <string name="history_help_average_body">Una media quita el mejor y el peor, y promedia el resto. Una media simple no quita nada, así que un solo DNF entre sus tiempos la convierte en DNF.</string>
   <string name="history_help_blind">Tipos a ciegas</string>
-  <string name="history_help_blind_body">El Ao5 no se ofrece, ya que los intentos a ciegas se cuentan de tres en tres. La prec dice con qué frecuencia acertó, y una media cuenta solo los aciertos, remontándose más allá de un DNF en vez de contarlo.</string>
+  <string name="history_help_blind_body">El Ao5 no se ofrece, ya que los intentos a ciegas se cuentan de tres en tres. La prec dice con qué frecuencia acertó, y una media ignora los DNF y solo usa los aciertos.</string>
   <string name="blind_averages_note">Aquí una media solo cuenta los éxitos: Ao12 es la media de tus últimas doce resoluciones exitosas, retrocediendo más allá de los DNF en vez de contarlos.</string>
   <string name="time_just_now">ahora mismo</string>
   <string name="time_minutes_ago">hace %1$d min</string>
@@ -1110,7 +1110,7 @@
   <string name="drill_summary_recorded">Guardado</string>
   <string name="drill_summary_not_recorded">Sin guardar</string>
   <string name="drill_help_title">Sobre este drill</string>
-  <string name="drill_help_body">Lo que un drill fija antes de repartir su primer caso.</string>
+  <string name="drill_help_body">Los ajustes de este drill.</string>
   <string name="drill_help_record">Activado, cada repetición se guarda: su tiempo y si pediste ver el algoritmo. Esas repeticiones alimentan las Estadísticas de drills y «Algoritmos que conoces» en Análisis. Desactívalo para practicar sin afectarlos.</string>
   <string name="drill_planning_limit">Límite de planificación</string>
   <string name="drill_planning_seconds">segundos</string>
@@ -1553,7 +1553,7 @@
 
   <string name="analysis_help_title">Sobre estas cifras</string>
   <string name="analysis_help_solve_title">Adónde va tu tiempo</string>
-  <string name="analysis_help_solve_body">Estas cifras vienen de tus propios resueltos, los que leyó un cubo, en la ventana indicada arriba.</string>
+  <string name="analysis_help_solve_body">Estas cifras vienen de tus resoluciones hechas con un smart cube, en la ventana indicada arriba.</string>
   <string name="analysis_help_bar">El resuelto medio</string>
   <string name="analysis_help_bar_body">Un bloque por paso, tan ancho como su parte del tiempo. Cada bloque es pálido donde mirabas y sólido donde girabas.</string>
   <string name="analysis_help_delta">Frente a un resuelto típico</string>
@@ -1563,7 +1563,7 @@
   <string name="analysis_help_spread">Desvío</string>
   <string name="analysis_help_spread_body">Cuánto cambia el tiempo de una resolución a otra. Una misma media puede venir de hacerlo siempre igual, o de atascarte de vez en cuando.</string>
   <string name="analysis_help_standard">Algoritmos estándar</string>
-  <string name="analysis_help_standard_body">Cómo giraste por última vez cada caso del conjunto: con uno de los algoritmos que tiene listados, lo que se considera estándar.</string>
+  <string name="analysis_help_standard_body">Los casos del conjunto en los que tu última resolución usó uno de los algoritmos listados.</string>
   <string name="analysis_help_extra">Movimientos de más</string>
   <string name="analysis_help_extra_body">Los giros que esos casos te han costado sobre el algoritmo estándar más corto, sumados.</string>
   <string name="analysis_help_plan_title">Tu plan</string>
@@ -1576,14 +1576,14 @@
   <string name="analysis_help_plan_new">Un plan nuevo</string>
   <string name="analysis_help_plan_new_body">Se escribe a partir de tus últimas 100 resoluciones con smart cube, así que el primero necesita esas. Después llega un plan nuevo cada semana, cuando hayas hecho 25 resoluciones más y tu sesión haya terminado.</string>
   <string name="analysis_help_cases_title">Caso por caso</string>
-  <string name="analysis_help_cases_body">Los casos del paso elegido que resolviste con un solo algoritmo, sobre la ventana indicada arriba. Solo cuentan esas resoluciones: un tiempo en dos looks se deja fuera.</string>
+  <string name="analysis_help_cases_body">Los casos del paso elegido que resolviste en un solo look, en la ventana indicada arriba. Las resoluciones en dos looks se dejan fuera.</string>
   <string name="analysis_help_standing">Cómo está un caso</string>
-  <string name="analysis_help_standing_body">Conocido: salió con un solo algoritmo, sin ayuda, y hace poco como para que siga siendo cierto. Para repasar: antes salía así, pero en 2-look las dos últimas veces. Para aprender: nunca ha salido con un solo algoritmo. Todo se lee de tus resoluciones, no de una lista que marcas.</string>
+  <string name="analysis_help_standing_body">Conocido: salió en un solo look, sin ayuda, hace poco como para que siga contando. Para repasar: antes salía en un solo look, pero en dos looks las dos últimas veces. Para aprender: nunca ha salido en un solo look. Todo sale de tus resoluciones.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">En OLL, un botón Forma reduce la tabla a un grupo de formas, con el tamaño de cada grupo al lado.</string>
-  <string name="analysis_help_rest_body">Bajo la tabla, los casos que no resolviste con un solo algoritmo en la ventana, agrupados por cómo están en todas tus resoluciones. Toca uno para ver sus algoritmos.</string>
+  <string name="analysis_help_rest_body">Bajo la tabla, los casos que no resolviste en un solo look en la ventana, agrupados por cómo están en todas tus resoluciones. Toca uno para ver sus algoritmos.</string>
   <string name="analysis_help_sample">Ejemplo</string>
-  <string name="analysis_help_sample_body">Nada de estas pestañas es tuyo. Estas cifras están inventadas, y están aquí para que la pantalla tenga algo que mostrar antes de que tengas un smart cube. Conecta uno y las tuyas ocuparán su lugar.</string>
+  <string name="analysis_help_sample_body">Son datos de ejemplo, que se muestran hasta tu primera resolución con un smart cube.</string>
 
   <!-- The smart-cube news sheet: shown once after updating into the smart cube -->
   <string name="news_pill">Nuevo</string>
