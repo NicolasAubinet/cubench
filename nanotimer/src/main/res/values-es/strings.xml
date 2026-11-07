@@ -1260,7 +1260,7 @@
   <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
   <string name="analysis_plan_headline">Un plan cada semana</string>
   <string name="analysis_plan_for_cfop">Solo CFOP por ahora</string>
-  <string name="analysis_plan_cfop_only">El coach escribe planes solo para CFOP, no para %1$s.</string>
+  <string name="analysis_plan_cfop_only">El coach escribe planes solo para CFOP.</string>
   <string name="analysis_plan_two_handed_only">El coach escribe planes solo para resoluciones a dos manos.</string>
   <string name="analysis_plan_body">Leído de tus propias resoluciones: qué trabajar, el drill para hacerlo, y si el trabajo de la semana pasada cambió algo.</string>
   <string name="analysis_plan_point_plans">Un plan semanal práctico, basado en tus resoluciones</string>
@@ -1321,10 +1321,6 @@
   <string name="coach_retry_unavailable">El coach no está disponible ahora mismo. Lo volverá a intentar solo.</string>
   <string name="coach_gate_title">El coach se abre a las %1$d resoluciones con smart cube</string>
   <string name="coach_gate_count">%1$d de %2$d</string>
-  <plurals name="coach_gate_note">
-    <item quantity="one">Falta %1$d en %2$s. No hay nada que comprar hasta entonces.</item>
-    <item quantity="other">Faltan %1$d en %2$s. No hay nada que comprar hasta entonces.</item>
-  </plurals>
   <string name="coach_offer_try_free">Probar el coach, %1$s gratis</string>
   <string name="coach_offer_try">Obtener el coach</string>
   <string name="coach_offer_then">Después %1$s o %2$s.</string>

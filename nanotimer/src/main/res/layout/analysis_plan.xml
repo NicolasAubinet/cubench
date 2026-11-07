@@ -469,15 +469,6 @@
            android:layout_height="6dp"
            android:layout_marginTop="8dp"
            android:progressDrawable="@drawable/drill_progress"/>
-
-        <TextView
-           android:id="@+id/tvCoachGateNote"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="8dp"
-           android:lineSpacingMultiplier="1.2"
-           android:textColor="@color/secondary_text"
-           android:textSize="12sp"/>
       </LinearLayout>
 
       <LinearLayout

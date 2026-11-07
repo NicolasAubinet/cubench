@@ -612,8 +612,7 @@ public class CoachPlanStatus {
   private String whyNoPlan() {
     CubeMethod method = SolveTypeMethod.of(solveType);
     if (method != CubeMethod.CFOP) {
-      return activity.getString(R.string.analysis_plan_cfop_only,
-          activity.getString(Utils.getMethodLabel(method)));
+      return activity.getString(R.string.analysis_plan_cfop_only);
     }
     ScrambleType scrambleType = solveType.getScrambleType();
     boolean plain = !solveType.hasSteps()
@@ -714,7 +713,6 @@ public class CoachPlanStatus {
   /** @param solves how many smart cube solves the solve type on screen has */
   private void showGate(int solves) {
     int floor = CoachPayloadBuilder.PLAN_FLOOR;
-    int more = floor - solves;
     tab.findViewById(R.id.tvAnalysisPlanCites).setVisibility(View.GONE);
     showPoints(true);
     tab.findViewById(R.id.llCoachOffer).setVisibility(View.GONE);
@@ -726,9 +724,6 @@ public class CoachPlanStatus {
     ProgressBar meter = tab.findViewById(R.id.pbCoachGate);
     meter.setMax(floor);
     meter.setProgress(solves);
-    ((TextView) tab.findViewById(R.id.tvCoachGateNote)).setText(activity.getResources()
-        .getQuantityString(R.plurals.coach_gate_note, more, more,
-            Utils.toSolveTypeLocalizedName(activity, solveType.getName())));
   }
 
   /** @param offered the solve type with enough solves, which the purchase offers the plans for */
@@ -767,8 +762,7 @@ public class CoachPlanStatus {
     String text = null;
     if (solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId() && !solveType.isBlind()
         && method != CubeMethod.CFOP && method != CubeMethod.BLIND) {
-      text = activity.getString(R.string.analysis_plan_cfop_only,
-          activity.getString(Utils.getMethodLabel(method)));
+      text = activity.getString(R.string.analysis_plan_cfop_only);
     } else if (AnalysisActivity.canAnalyse(solveType) && !solveType.isBlind()
         && !CoachPlans.eligible(solveType)) {
       text = activity.getString(R.string.analysis_plan_two_handed_only); // CFOP, but one-handed

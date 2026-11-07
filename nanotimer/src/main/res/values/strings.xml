@@ -1308,7 +1308,7 @@
   <string name="analysis_cases_method">Only CFOP solves have their cases named so far, so there is nothing to rank here.</string>
   <string name="analysis_plan_headline">A plan every week</string>
   <string name="analysis_plan_for_cfop">CFOP only for now</string>
-  <string name="analysis_plan_cfop_only">The coach writes plans for CFOP solves only, not %1$s.</string>
+  <string name="analysis_plan_cfop_only">The coach writes plans for CFOP solves only.</string>
   <string name="analysis_plan_two_handed_only">The coach writes plans for two-handed solves only.</string>
   <string name="analysis_plan_body">Read from your own solves: what to work on, the drill for it, and whether last week\'s work moved anything.</string>
   <string name="analysis_plan_point_plans">A weekly plan you can act on, from your solves</string>
@@ -1369,10 +1369,6 @@
   <string name="coach_retry_unavailable">The coach isn\'t available right now. It will try again by itself.</string>
   <string name="coach_gate_title">The coach opens at %1$d smart cube solves</string>
   <string name="coach_gate_count">%1$d of %2$d</string>
-  <plurals name="coach_gate_note">
-    <item quantity="one">%1$d to go on %2$s. Nothing to buy before then.</item>
-    <item quantity="other">%1$d to go on %2$s. Nothing to buy before then.</item>
-  </plurals>
   <string name="coach_offer_try_free">Try the coach, %1$s free</string>
   <string name="coach_offer_try">Get the coach</string>
   <string name="coach_offer_then">Then %1$s or %2$s.</string>

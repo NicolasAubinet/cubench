@@ -164,6 +164,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private StoredCoachPlan keptPlan;
   /** Whether the blank plan last drawn carries padlocks. */
   private boolean previewLocked;
+  /** Whether the practice section holds blank sets rather than the coach's. */
+  private boolean practiceTeaser;
   /** Null in a build made without a coach to ask. */
   private CoachClient coachClient;
   private CoachRead.Listener readListener;
@@ -634,7 +636,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
               showCases();
             }
             if (findViewById(R.id.llAnalysisPractice).getVisibility() == View.VISIBLE
-                && findViewById(R.id.tvAnalysisPracticeLocked).getVisibility() == View.VISIBLE) {
+                && practiceTeaser) {
               planView.setPracticeTeaser((LinearLayout) findViewById(R.id.llAnalysisPracticeSets),
                   learnNextOffered());
             }
@@ -1041,7 +1043,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     // A plan is never drawn as an example: what the install would get is drawn blank instead.
     boolean locked = !coachClient.hasAccess();
     // A member waiting on a first plan sees the same blank plan, as what is coming.
-    boolean first = !locked && !planShown && planStatus.getLook() == CoachPlanStatus.Look.FIRST;
+    boolean first = !locked && waitingOnFirstPlan();
     boolean blank = locked || first;
     if (blank && (preview.getVisibility() != View.VISIBLE || previewLocked != locked)) {
       planView.setPreview(preview, locked);
@@ -1050,9 +1052,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     preview.setVisibility(blank ? View.VISIBLE : View.GONE);
     ((TextView) preview.findViewById(R.id.tvCoachPreviewTitle))
         .setText(first ? R.string.coach_preview_first_title : R.string.coach_preview_title);
-    preview.findViewById(R.id.tvCoachPreviewLock).setVisibility(locked ? View.VISIBLE : View.GONE);
     if (locked) {
       practiceAsked = false; // the sets are asked for once the coach lets the install in
+      practiceTeaser = true;
       showPracticeLocked(true);
       findViewById(R.id.llAnalysisPractice).setVisibility(View.VISIBLE);
       planView.setPracticeTeaser((LinearLayout) findViewById(R.id.llAnalysisPracticeSets),
@@ -1060,6 +1062,10 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       return;
     }
     if (practiceAsked) {
+      if (practiceSets.isEmpty()) {
+        drawPractice(practiceSets); // blank sets come and go with the first plan's wait
+        return;
+      }
       LinearLayout sets = findViewById(R.id.llAnalysisPracticeSets);
       findViewById(R.id.llAnalysisPractice).setVisibility(
           sets.getChildCount() == 0 ? View.GONE : View.VISIBLE);
@@ -1085,6 +1091,11 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     });
   }
 
+  /** Whether this is the plans' own type with no plan written yet, for a member. */
+  private boolean waitingOnFirstPlan() {
+    return !planShown && planStatus.getLook() == CoachPlanStatus.Look.FIRST;
+  }
+
   /** @param locked whether the section is the teaser, which the chip says and no text explains */
   private void showPracticeLocked(boolean locked) {
     findViewById(R.id.tvAnalysisPracticeLocked).setVisibility(locked ? View.VISIBLE : View.GONE);
@@ -1102,7 +1113,13 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     practiceSets = sets;
     showPracticeLocked(false);
     LinearLayout into = findViewById(R.id.llAnalysisPracticeSets);
-    planView.setPractice(into, sets);
+    // Before a first plan there are no sets yet: the blank ones go with the blank plan.
+    practiceTeaser = sets.isEmpty() && waitingOnFirstPlan();
+    if (practiceTeaser) {
+      planView.setPracticeTeaser(into, learnNextOffered());
+    } else {
+      planView.setPractice(into, sets);
+    }
     findViewById(R.id.llAnalysisPractice)
         .setVisibility(into.getChildCount() == 0 ? View.GONE : View.VISIBLE);
   }

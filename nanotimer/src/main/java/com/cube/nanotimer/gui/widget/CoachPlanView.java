@@ -320,8 +320,8 @@ public class CoachPlanView {
    * The practice sets as an install without the coach reads them: the same cards with blank
    * charts, since which cases cost it the most is the coach's to say.
    *
-   * @param learnNext the step whose cases to learn next are drawn too, "pll" or "oll", or null for
-   *     a solver with both learnt
+   * @param learnNext the step whose cases to learn next are drawn too, "pll" or "oll"; null draws
+   *     OLL's, as a blank plan shows every card it can hold
    */
   public void setPracticeTeaser(LinearLayout into, String learnNext) {
     into.removeAllViews();
@@ -330,11 +330,9 @@ public class CoachPlanView {
           Utils.toSmartCubeStepLocalizedName(activity, family, 0)), TEASER_CASES,
           R.drawable.coach_practice_target_dots));
     }
-    if (learnNext != null) {
-      // Five dots: a learning case clears on five clean reps in a row.
-      into.addView(teaserCard(into, activity.getString(learnNextTitle(learnNext)),
-          Options.INSTANCE.getLearnNextCount(), R.drawable.coach_learning_target_dots));
-    }
+    // Five dots: a learning case clears on five clean reps in a row.
+    into.addView(teaserCard(into, activity.getString(learnNextTitle(learnNext)),
+        Options.INSTANCE.getLearnNextCount(), R.drawable.coach_learning_target_dots));
   }
 
   private static int learnNextTitle(String family) {
