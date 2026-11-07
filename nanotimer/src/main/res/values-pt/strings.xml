@@ -1547,7 +1547,6 @@
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>
   </plurals>
-  <string name="coach_practice_locked">Com o coach</string>
 
   <string name="analysis_sample_subtitle">Não são seus tempos</string>
   <string name="analysis_sample_chip">Exemplo</string>

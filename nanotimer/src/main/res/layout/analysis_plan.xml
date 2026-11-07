@@ -616,25 +616,6 @@
          android:textAllCaps="true"
          android:textColor="@color/secondary_text"
          android:textSize="12.5sp"/>
-
-      <!-- Only over the teaser, for an install without the coach. -->
-      <TextView
-         android:id="@+id/tvAnalysisPracticeLocked"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:background="@drawable/coach_practice_locked_chip"
-         android:drawableLeft="@drawable/ic_coach_lock"
-         android:drawableStart="@drawable/ic_coach_lock"
-         android:drawablePadding="5dp"
-         android:gravity="center_vertical"
-         android:paddingLeft="10dp"
-         android:paddingRight="10dp"
-         android:paddingTop="4dp"
-         android:paddingBottom="4dp"
-         android:text="@string/coach_practice_locked"
-         android:textColor="@color/white"
-         android:textSize="12.5sp"
-         android:visibility="gone"/>
     </LinearLayout>
 
     <TextView

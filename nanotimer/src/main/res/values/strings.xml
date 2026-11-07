@@ -1594,7 +1594,6 @@
     <item quantity="one">%d case</item>
     <item quantity="other">%d cases</item>
   </plurals>
-  <string name="coach_practice_locked">With the coach</string>
 
   <!-- Example mode: the whole hub filled with an invented solver, for a reader no cube has ever
        read a solve for. The solver has no name: the banner already says the figures are not the

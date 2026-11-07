@@ -1055,7 +1055,6 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     if (locked) {
       practiceAsked = false; // the sets are asked for once the coach lets the install in
       practiceTeaser = true;
-      showPracticeLocked(true);
       findViewById(R.id.llAnalysisPractice).setVisibility(View.VISIBLE);
       planView.setPracticeTeaser((LinearLayout) findViewById(R.id.llAnalysisPracticeSets),
           learnNextOffered());
@@ -1096,12 +1095,6 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     return !planShown && planStatus.getLook() == CoachPlanStatus.Look.FIRST;
   }
 
-  /** @param locked whether the section is the teaser, which the chip says and no text explains */
-  private void showPracticeLocked(boolean locked) {
-    findViewById(R.id.tvAnalysisPracticeLocked).setVisibility(locked ? View.VISIBLE : View.GONE);
-    findViewById(R.id.tvAnalysisPracticeBody).setVisibility(locked ? View.GONE : View.VISIBLE);
-  }
-
   @Override
   public void onDrillCasesPicked(String family) {
     if (!isFinishing() && !practiceSets.isEmpty()) {
@@ -1111,7 +1104,6 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
 
   private void drawPractice(List<CoachPractice.Set> sets) {
     practiceSets = sets;
-    showPracticeLocked(false);
     LinearLayout into = findViewById(R.id.llAnalysisPracticeSets);
     // Before a first plan there are no sets yet: the blank ones go with the blank plan.
     practiceTeaser = sets.isEmpty() && waitingOnFirstPlan();

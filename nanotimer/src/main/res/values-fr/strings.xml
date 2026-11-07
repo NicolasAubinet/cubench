@@ -1545,7 +1545,6 @@
     <item quantity="one">%d cas</item>
     <item quantity="other">%d cas</item>
   </plurals>
-  <string name="coach_practice_locked">Avec le coach</string>
 
   <string name="analysis_sample_subtitle">Pas vos résolutions</string>
   <string name="analysis_sample_chip">Exemple</string>
