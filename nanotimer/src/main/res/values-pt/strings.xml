@@ -1390,8 +1390,12 @@
   <string name="coach_plans_paused">Os planos estão em pausa</string>
   <string name="coach_plans_paused_body">Um plano é escrito para um tipo de resolução 3x3 em CFOP sem scrambles especiais.</string>
   <string name="coach_plans_paused_none">Não resta nenhum.</string>
-  <string name="coach_plans_written_for">Os planos são escritos para %1$s</string>
   <string name="coach_plans_resume_here">Escrevê-los para %1$s</string>
+  <string name="coach_plans_elsewhere">Seu plano semanal está em %1$s</string>
+  <string name="coach_plans_elsewhere_body">Aqui, Resolução e Casos leem suas resoluções de %1$s.</string>
+  <string name="coach_plans_open">Abrir o plano</string>
+  <string name="coach_plans_move_here">Escrever os planos para %1$s</string>
+  <string name="coach_plans_not_here">Não é possível escrever planos para este tipo de resolução: é preciso 3x3 CFOP, com as duas mãos, sem embaralhamentos especiais.</string>
   <string name="coach_plans_for">Planos para</string>
   <string name="coach_plans_for_title">Escolha um tipo de resolução</string>
   <string name="coach_plans_for_note">Seu plano é escrito a partir das resoluções com smart cube deste tipo.</string>

@@ -75,6 +75,14 @@ public class CoachPlanStatus {
   private Runnable rateNow;
   /** The end-of-beta thanks, once drawn. */
   private View endCard;
+  /** Whether the card stands alone: the plans are on another solve type, or paused. */
+  private boolean elsewhere;
+  private ElsewhereListener elsewhereListener;
+
+  /** Told when the card starts or stops standing alone on the tab. */
+  public interface ElsewhereListener {
+    void onElsewhereChanged(boolean elsewhere);
+  }
 
   /**
    * @param tab the Plan tab's own layout
@@ -109,12 +117,16 @@ public class CoachPlanStatus {
     showMethodLine();
     showBetaEnd();
     if (client == null) {
+      setElsewhere(false);
       hide();
       showNoOffer();
       return;
     }
     boolean cfop = solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId()
         && SolveTypeMethod.of(solveType) == CubeMethod.CFOP;
+    if (!(client.hasAccess() && Options.INSTANCE.isCoachPlansOn() && cfop)) {
+      setElsewhere(false); // only the schedule's read can find the plans elsewhere
+    }
     if (client.hasAccess()) {
       showNoOffer();
       if (!Options.INSTANCE.isCoachPlansOn()) {
@@ -177,6 +189,7 @@ public class CoachPlanStatus {
                     show(new Runnable() {
                       @Override
                       public void run() {
+                        setElsewhere(false);
                         showNext(schedule);
                       }
                     });
@@ -431,13 +444,13 @@ public class CoachPlanStatus {
    * @param none whether no solve type at all can carry the plans
    */
   private void showElsewhere(SolveType flagged, boolean none) {
+    setElsewhere(true);
     showCard(false);
-    TextView text = showTitle(flagged == null ? activity.getString(R.string.coach_plans_paused)
-        : activity.getString(R.string.coach_plans_written_for,
-            Utils.toSolveTypeLocalizedName(activity, flagged.getName())));
     if (flagged != null) {
+      showOnOther(flagged);
       return;
     }
+    TextView text = showTitle(activity.getString(R.string.coach_plans_paused));
     text.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_plans_paused, 0, 0, 0);
     text.setCompoundDrawablePadding(
         Math.round(6 * activity.getResources().getDisplayMetrics().density));
@@ -465,6 +478,64 @@ public class CoachPlanStatus {
         }
       }
     });
+  }
+
+  /**
+   * The plan is on another solve type: this screen's other tabs read this one, so the card says
+   * which, opens the plan's own screen, and offers to move the plans here.
+   */
+  private void showOnOther(final SolveType flagged) {
+    String here = Utils.toSolveTypeLocalizedName(activity, solveType.getName());
+    showTitle(activity.getString(R.string.coach_plans_elsewhere,
+        Utils.toSolveTypeLocalizedName(activity, flagged.getName())));
+    final boolean movable = CoachPlans.eligible(solveType);
+    String body = activity.getString(R.string.coach_plans_elsewhere_body, here);
+    TextView bodyView = status.findViewById(R.id.tvCoachPlanStatusBody);
+    bodyView.setText(movable ? body : body + " " + activity.getString(R.string.coach_plans_not_here));
+    bodyView.setVisibility(View.VISIBLE);
+    TextView open = status.findViewById(R.id.buCoachPlanStatus);
+    open.setText(R.string.coach_plans_open);
+    open.setBackgroundResource(R.drawable.dialog_action_button);
+    open.setVisibility(View.VISIBLE);
+    open.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        openPlanOf(flagged.getId());
+      }
+    });
+    TextView move = status.findViewById(R.id.buCoachPlanStatusAlt);
+    move.setText(activity.getString(R.string.coach_plans_move_here, here));
+    move.setVisibility(movable ? View.VISIBLE : View.GONE);
+    move.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        CoachPlansForDialog.moveHere(activity, flagged, solveType, new Runnable() {
+          @Override
+          public void run() {
+            checked = false;
+            refresh();
+          }
+        });
+      }
+    });
+  }
+
+  /** Who hides the rest of the tab while the card stands alone. */
+  public void setElsewhereListener(ElsewhereListener listener) {
+    elsewhereListener = listener;
+  }
+
+  public boolean isElsewhere() {
+    return elsewhere;
+  }
+
+  private void setElsewhere(boolean now) {
+    if (elsewhere != now) {
+      elsewhere = now;
+      if (elsewhereListener != null) {
+        elsewhereListener.onElsewhereChanged(now);
+      }
+    }
   }
 
   /**
@@ -501,6 +572,7 @@ public class CoachPlanStatus {
     status.findViewById(R.id.pbCoachPlanMeter).setVisibility(View.GONE);
     status.findViewById(R.id.tvCoachPlanStatusBody).setVisibility(View.GONE);
     status.findViewById(R.id.buCoachPlanStatus).setVisibility(View.GONE);
+    status.findViewById(R.id.buCoachPlanStatusAlt).setVisibility(View.GONE);
   }
 
   private void hide() {

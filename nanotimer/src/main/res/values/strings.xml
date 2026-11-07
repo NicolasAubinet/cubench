@@ -1435,8 +1435,12 @@
   <string name="coach_plans_paused">Plans are paused</string>
   <string name="coach_plans_paused_body">A plan is written for a 3x3 CFOP solve type with no special scrambles.</string>
   <string name="coach_plans_paused_none">None is left.</string>
-  <string name="coach_plans_written_for">Plans are written for %1$s</string>
   <string name="coach_plans_resume_here">Write them for %1$s</string>
+  <string name="coach_plans_elsewhere">Your weekly plan is on %1$s</string>
+  <string name="coach_plans_elsewhere_body">Solve and Cases on this screen read your %1$s solves.</string>
+  <string name="coach_plans_open">Open the plan</string>
+  <string name="coach_plans_move_here">Write plans for %1$s instead</string>
+  <string name="coach_plans_not_here">Plans cannot be written for this solve type: they need 3x3 CFOP, two-handed, with no special scrambles.</string>
   <string name="coach_plans_for">Plans for</string>
   <string name="coach_plans_for_title">Choose a solve type</string>
   <string name="coach_plans_for_note">Your plan is written from this solve type\'s smart cube solves.</string>

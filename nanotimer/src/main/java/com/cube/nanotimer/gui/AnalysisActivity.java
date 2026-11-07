@@ -160,6 +160,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private CoachTodayView todayView;
   /** The plan on the Plan tab, read again into the Today card on every resume. */
   private StoredCoachPlan shownPlan;
+  /** The plan last kept for this solve type, shown unless the plans are now elsewhere. */
+  private StoredCoachPlan keptPlan;
   /** Null in a build made without a coach to ask. */
   private CoachClient coachClient;
   private CoachRead.Listener readListener;
@@ -874,6 +876,20 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         feedbackView.scrollToRate();
       }
     });
+    planStatus.setElsewhereListener(new CoachPlanStatus.ElsewhereListener() {
+      @Override
+      public void onElsewhereChanged(boolean elsewhere) {
+        // Posted: it is told from inside a refresh, which redrawing the plan would start again.
+        findViewById(R.id.llAnalysisPlan).post(new Runnable() {
+          @Override
+          public void run() {
+            if (!isFinishing()) {
+              showPlan(keptPlan);
+            }
+          }
+        });
+      }
+    });
     final CoachRead read = CoachRead.of(solveType);
     readListener = new CoachRead.Listener() {
       @Override
@@ -943,8 +959,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    */
   private void showRead() {
     planStatus.refresh();
-    showPractice(coachClient != null && readAsSolve() && loaded && method == CubeMethod.CFOP,
-        sampling());
+    showPractice(coachClient != null && readAsSolve() && loaded && method == CubeMethod.CFOP
+        && !planStatus.isElsewhere(), sampling());
     showAskNow();
   }
 
@@ -1176,7 +1192,11 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    * A kept plan in place of the explainer. It is shown even where the history has since changed:
    * it was a true reading when written, and its date says as of when.
    */
-  private void showPlan(StoredCoachPlan stored) {
+  private void showPlan(StoredCoachPlan kept) {
+    keptPlan = kept;
+    // Plans moved away leave this type's last one behind, out of date: the status card stands alone.
+    boolean elsewhere = planStatus.isElsewhere();
+    StoredCoachPlan stored = elsewhere ? null : kept;
     planShown = stored != null;
     shownPlan = stored;
     shownPlanWrittenAt = stored == null ? -1 : stored.getWrittenAt();
@@ -1189,7 +1209,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     int written = stored == null ? View.GONE : View.VISIBLE;
     findViewById(R.id.llAnalysisPlanWritten).setVisibility(written);
     findViewById(R.id.llAnalysisPlanAreas).setVisibility(written);
-    findViewById(R.id.llAnalysisPlanAbout).setVisibility(stored == null ? View.VISIBLE : View.GONE);
+    findViewById(R.id.llAnalysisPlanAbout)
+        .setVisibility(stored == null && !elsewhere ? View.VISIBLE : View.GONE);
     if (stored == null) {
       feedbackView.show(null, (LinearLayout) findViewById(R.id.llAnalysisPlanAreas),
           findViewById(R.id.llAnalysisPlanWritten));

@@ -69,6 +69,29 @@ public final class CoachPlansForDialog {
     new CoachPlansForDialog(activity, null, onPicked, current).load();
   }
 
+  /**
+   * Asks to move the plans from {@code from} to {@code to}, as picking it in the dialog does.
+   *
+   * @param onMoved run on the main thread once the plans have been moved
+   */
+  public static void moveHere(final Activity activity, SolveType from, final SolveType to,
+      Runnable onMoved) {
+    final CoachPlansForDialog dialog = new CoachPlansForDialog(activity, onMoved, null, from);
+    App.INSTANCE.getService().getCoachSolveCount(to, CubeMethod.CFOP, new DataCallback<Integer>() {
+      @Override
+      public void onData(final Integer count) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (!activity.isFinishing()) {
+              dialog.confirm(to, CoachPayloadBuilder.PLAN_FLOOR - count.intValue());
+            }
+          }
+        });
+      }
+    });
+  }
+
   private void load() {
     App.INSTANCE.getService().getSolveTypes(CubeType.THREE_BY_THREE,
         new DataCallback<List<SolveType>>() {
