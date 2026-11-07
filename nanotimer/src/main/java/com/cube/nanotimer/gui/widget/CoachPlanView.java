@@ -164,8 +164,10 @@ public class CoachPlanView {
   /**
    * The plan an install without the coach would get, drawn blank: the plan's card with no headline
    * and one card per kind of focus, each with its real title and step and none of its figures.
+   *
+   * @param locked whether the install has no coach yet, which padlocks the drill buttons
    */
-  public void setPreview(View preview) {
+  public void setPreview(View preview, boolean locked) {
     LinearLayout chips = preview.findViewById(R.id.llCoachPreviewChips);
     LinearLayout areas = preview.findViewById(R.id.llCoachPreviewAreas);
     chips.removeAllViews();
@@ -180,12 +182,13 @@ public class CoachPlanView {
       name.setText(Utils.toSmartCubeStepLocalizedName(activity, PREVIEW_FAMILIES[i], 0));
       chip.setClickable(false);
       chips.addView(chip);
-      areas.addView(blankCard(areas, i + 1, PREVIEW_REASONS[i], PREVIEW_FAMILIES[i], colour));
+      areas.addView(blankCard(areas, i + 1, PREVIEW_REASONS[i], PREVIEW_FAMILIES[i], colour,
+          locked));
     }
   }
 
   private View blankCard(LinearLayout parent, int rank, FocusArea.Reason reason, String family,
-      int colour) {
+      int colour, boolean locked) {
     // The card's own margin goes to the frame, so the light is drawn over the card alone.
     View card = inflater.inflate(R.layout.coach_focus_area, parent, false);
     ShimmerLayout frame = new ShimmerLayout(activity);
@@ -228,7 +231,11 @@ public class CoachPlanView {
     drill.setVisibility(View.VISIBLE);
     drill.setBackgroundResource(R.drawable.accent_ghost_button);
     drill.setTextColor(ContextCompat.getColor(activity, R.color.lightblue));
-    drill.setText(withMark(drill, R.drawable.ic_coach_lock, R.string.coach_drill_cases));
+    if (locked) {
+      drill.setText(withMark(drill, R.drawable.ic_coach_lock, R.string.coach_drill_cases));
+    } else {
+      drill.setText(R.string.coach_drill_cases);
+    }
     drill.setAlpha(0.6f);
     drill.setClickable(false);
     frame.addView(card);

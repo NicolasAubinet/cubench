@@ -160,8 +160,10 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private CoachTodayView todayView;
   /** The plan on the Plan tab, read again into the Today card on every resume. */
   private StoredCoachPlan shownPlan;
-  /** The plan last kept for this solve type, shown unless the plans are now elsewhere. */
+  /** The plan last kept for this solve type, hidden while the status card stands alone. */
   private StoredCoachPlan keptPlan;
+  /** Whether the blank plan last drawn carries padlocks. */
+  private boolean previewLocked;
   /** Null in a build made without a coach to ask. */
   private CoachClient coachClient;
   private CoachRead.Listener readListener;
@@ -259,7 +261,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     wireSample();
 
     showTabStrip();
-    tabs.setSelection(onlySolve() ? TAB_SOLVE : getIntent().getIntExtra(EXTRA_TAB, TAB_SOLVE));
+    int asked = getIntent().getIntExtra(EXTRA_TAB, TAB_SOLVE);
+    tabs.setSelection(onlySolve() || (asked == TAB_PLAN && coachClient == null) ? TAB_SOLVE : asked);
     showTab(tabs.getSelection());
     loadKnowledge();
     loadOwnSolves();
@@ -577,6 +580,12 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       tabs.setSelection(TAB_SOLVE); // the control is hidden, not forgotten: it can come back
       showTab(TAB_SOLVE);
     }
+    // A build with no coach has no plan to show, nor any to sell.
+    tabs.setSegmentVisible(TAB_PLAN, coachClient != null);
+    if (coachClient == null && tab == TAB_PLAN) {
+      tabs.setSelection(TAB_SOLVE);
+      showTab(TAB_SOLVE);
+    }
   }
 
   /**
@@ -876,9 +885,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         feedbackView.scrollToRate();
       }
     });
-    planStatus.setElsewhereListener(new CoachPlanStatus.ElsewhereListener() {
+    planStatus.setLookListener(new CoachPlanStatus.LookListener() {
       @Override
-      public void onElsewhereChanged(boolean elsewhere) {
+      public void onLookChanged(CoachPlanStatus.Look look) {
         // Posted: it is told from inside a refresh, which redrawing the plan would start again.
         findViewById(R.id.llAnalysisPlan).post(new Runnable() {
           @Override
@@ -960,7 +969,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private void showRead() {
     planStatus.refresh();
     showPractice(coachClient != null && readAsSolve() && loaded && method == CubeMethod.CFOP
-        && !planStatus.isElsewhere(), sampling());
+        && planStatus.getLook() != CoachPlanStatus.Look.ALONE, sampling());
     showAskNow();
   }
 
@@ -1031,10 +1040,17 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     }
     // A plan is never drawn as an example: what the install would get is drawn blank instead.
     boolean locked = !coachClient.hasAccess();
-    if (locked && preview.getVisibility() != View.VISIBLE) {
-      planView.setPreview(preview);
+    // A member waiting on a first plan sees the same blank plan, as what is coming.
+    boolean first = !locked && !planShown && planStatus.getLook() == CoachPlanStatus.Look.FIRST;
+    boolean blank = locked || first;
+    if (blank && (preview.getVisibility() != View.VISIBLE || previewLocked != locked)) {
+      planView.setPreview(preview, locked);
+      previewLocked = locked;
     }
-    preview.setVisibility(locked ? View.VISIBLE : View.GONE);
+    preview.setVisibility(blank ? View.VISIBLE : View.GONE);
+    ((TextView) preview.findViewById(R.id.tvCoachPreviewTitle))
+        .setText(first ? R.string.coach_preview_first_title : R.string.coach_preview_title);
+    preview.findViewById(R.id.tvCoachPreviewLock).setVisibility(locked ? View.VISIBLE : View.GONE);
     if (locked) {
       practiceAsked = false; // the sets are asked for once the coach lets the install in
       showPracticeLocked(true);
@@ -1195,8 +1211,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private void showPlan(StoredCoachPlan kept) {
     keptPlan = kept;
     // Plans moved away leave this type's last one behind, out of date: the status card stands alone.
-    boolean elsewhere = planStatus.isElsewhere();
-    StoredCoachPlan stored = elsewhere ? null : kept;
+    CoachPlanStatus.Look look = planStatus.getLook();
+    boolean alone = look == CoachPlanStatus.Look.ALONE;
+    StoredCoachPlan stored = alone ? null : kept;
     planShown = stored != null;
     shownPlan = stored;
     shownPlanWrittenAt = stored == null ? -1 : stored.getWrittenAt();
@@ -1210,7 +1227,11 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     findViewById(R.id.llAnalysisPlanWritten).setVisibility(written);
     findViewById(R.id.llAnalysisPlanAreas).setVisibility(written);
     findViewById(R.id.llAnalysisPlanAbout)
-        .setVisibility(stored == null && !elsewhere ? View.VISIBLE : View.GONE);
+        .setVisibility(stored == null && !alone ? View.VISIBLE : View.GONE);
+    // The pitch is for an install that could take the coach here; a member reads the countdown.
+    int pitch = look == CoachPlanStatus.Look.PITCH ? View.VISIBLE : View.GONE;
+    findViewById(R.id.llAnalysisPlanPitch).setVisibility(pitch);
+    findViewById(R.id.tvAnalysisPlanNotYet).setVisibility(pitch);
     if (stored == null) {
       feedbackView.show(null, (LinearLayout) findViewById(R.id.llAnalysisPlanAreas),
           findViewById(R.id.llAnalysisPlanWritten));
@@ -1243,6 +1264,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
 
       @Override
       public void onRecommendedDrills() {
+        if (coachClient == null) {
+          return;
+        }
         tabs.setSelection(TAB_PLAN);
         showTab(TAB_PLAN);
       }

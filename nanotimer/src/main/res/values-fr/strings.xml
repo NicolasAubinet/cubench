@@ -1393,7 +1393,9 @@
   <string name="coach_plans_elsewhere_body">Ici, Résolution et Cas lisent vos résolutions %1$s.</string>
   <string name="coach_plans_open">Ouvrir le plan</string>
   <string name="coach_plans_move_here">Écrire les plans pour %1$s à la place</string>
-  <string name="coach_plans_not_here">Aucun plan ne peut être écrit pour ce type de résolution : il faut du 3x3 CFOP, à deux mains, sans mélange spécial.</string>
+  <string name="coach_plans_none_here">Pas de plan de la semaine pour ce type de résolution</string>
+  <string name="coach_plans_see_on">Voir le coach sur %1$s</string>
+  <string name="coach_first_plan_body">Votre premier plan est écrit à partir de vos résolutions %1$s au smart cube dès qu\'il y en a %2$d.</string>
   <string name="coach_plans_for">Plans pour</string>
   <string name="coach_plans_for_title">Choisissez un type de résolution</string>
   <string name="coach_plans_for_note">Votre plan est écrit à partir des résolutions au smart cube de ce type.</string>
@@ -1474,6 +1476,7 @@
   <string name="coach_percent">%1$d%%</string>
   <string name="coach_plan_title">À travailler cette semaine</string>
   <string name="coach_preview_title">Votre plan ressemblerait à ceci</string>
+  <string name="coach_preview_first_title">Votre premier plan ressemblera à ceci</string>
   <string name="coach_preview_when">Chaque semaine, à partir de vos résolutions</string>
   <string name="coach_fig_seconds_lost">secondes perdues</string>
   <plurals name="coach_fig_case_times">

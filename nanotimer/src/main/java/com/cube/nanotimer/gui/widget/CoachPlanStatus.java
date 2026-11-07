@@ -37,6 +37,7 @@ import com.cube.nanotimer.util.coach.CoachReply;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
+import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.text.DateFormat;
@@ -75,13 +76,24 @@ public class CoachPlanStatus {
   private Runnable rateNow;
   /** The end-of-beta thanks, once drawn. */
   private View endCard;
-  /** Whether the card stands alone: the plans are on another solve type, or paused. */
-  private boolean elsewhere;
-  private ElsewhereListener elsewhereListener;
+  private Look look = Look.PITCH;
+  private LookListener lookListener;
 
-  /** Told when the card starts or stops standing alone on the tab. */
-  public interface ElsewhereListener {
-    void onElsewhereChanged(boolean elsewhere);
+  /** What the rest of the tab shows around the card while this type has no plan of its own. */
+  public enum Look {
+    /** The explainer and the blank previews: an install that could still take the coach here. */
+    PITCH,
+    /** The card alone: the plans are on another type or paused, or no plan is written for it. */
+    ALONE,
+    /** The plans' own type, waiting on its first plan: the countdown and the blank plan. */
+    FIRST,
+    /** The plans' own type between plans: the countdown alone. */
+    OWN
+  }
+
+  /** Told when the tab's look changes. */
+  public interface LookListener {
+    void onLookChanged(Look look);
   }
 
   /**
@@ -117,18 +129,21 @@ public class CoachPlanStatus {
     showMethodLine();
     showBetaEnd();
     if (client == null) {
-      setElsewhere(false);
+      setLook(Look.PITCH); // the screen hides the tab instead
       hide();
       showNoOffer();
       return;
     }
-    boolean cfop = solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId()
-        && SolveTypeMethod.of(solveType) == CubeMethod.CFOP;
-    if (!(client.hasAccess() && Options.INSTANCE.isCoachPlansOn() && cfop)) {
-      setElsewhere(false); // only the schedule's read can find the plans elsewhere
-    }
+    boolean sighted = solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId()
+        && !solveType.isBlind();
+    boolean cfop = sighted && SolveTypeMethod.of(solveType) == CubeMethod.CFOP;
     if (client.hasAccess()) {
       showNoOffer();
+      if (Options.INSTANCE.isCoachPlansOn() && sighted) {
+        loadSchedule(); // the look waits on which type carries the plans
+        return;
+      }
+      setLook(Look.PITCH);
       if (!Options.INSTANCE.isCoachPlansOn()) {
         // A build token asks for nothing, so its weekly plans turn on where they are looked for.
         CoachPlans.turnOn(activity, solveType, new Runnable() {
@@ -142,27 +157,73 @@ public class CoachPlanStatus {
             });
           }
         });
-      } else if (cfop) {
-        loadSchedule();
       } else {
         hide();
       }
     } else if (client.accessEnded() || Options.INSTANCE.isCoachPlansOn()) {
       // Weekly plans that are on with nothing to let the install in: it was let in before.
+      setLook(Look.PITCH);
       showNoOffer();
       if (cfop && endCard == null) { // a member reads the thanks card instead
         showEnded();
       } else {
         hide();
       }
-    } else {
+    } else if (CoachPlans.eligible(solveType)) {
+      setLook(Look.PITCH);
       hide();
-      if (CoachPlans.eligible(solveType)) {
-        loadOffer();
+      loadOffer();
+    } else {
+      showNoOffer();
+      if (sighted) {
+        loadNoneHere();
       } else {
-        showNoOffer();
+        setLook(Look.PITCH);
+        hide();
       }
     }
+  }
+
+  /** A sighted 3x3 type no plan is written for, on an install that could take the coach. */
+  private void loadNoneHere() {
+    App.INSTANCE.getService().getSolveTypes(CubeType.THREE_BY_THREE,
+        new DataCallback<List<SolveType>>() {
+          @Override
+          public void onData(List<SolveType> solveTypes) {
+            List<SolveType> eligible = CoachPlans.eligible(solveTypes);
+            final SolveType other = eligible.isEmpty() ? null : eligible.get(0);
+            show(new Runnable() {
+              @Override
+              public void run() {
+                showNoneHere(other);
+              }
+            });
+          }
+        });
+  }
+
+  /** @param other a type the coach does read, whose tab holds the pitch; null when none does */
+  private void showNoneHere(final SolveType other) {
+    setLook(Look.ALONE);
+    showCard(false);
+    showTitle(activity.getString(R.string.coach_plans_none_here));
+    TextView body = status.findViewById(R.id.tvCoachPlanStatusBody);
+    body.setText(whyNoPlan());
+    body.setVisibility(View.VISIBLE);
+    if (other == null) {
+      return;
+    }
+    TextView button = status.findViewById(R.id.buCoachPlanStatus);
+    button.setText(activity.getString(R.string.coach_plans_see_on,
+        Utils.toSolveTypeLocalizedName(activity, other.getName())));
+    button.setBackgroundResource(R.drawable.dialog_action_button_ghost);
+    button.setVisibility(View.VISIBLE);
+    button.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        openPlanOf(other.getId());
+      }
+    });
   }
 
   private void loadSchedule() {
@@ -189,7 +250,7 @@ public class CoachPlanStatus {
                     show(new Runnable() {
                       @Override
                       public void run() {
-                        setElsewhere(false);
+                        setLook(schedule.isFirst() ? Look.FIRST : Look.OWN);
                         showNext(schedule);
                       }
                     });
@@ -337,6 +398,15 @@ public class CoachPlanStatus {
     text.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
     status.findViewById(R.id.pbCoachPlanStatus).setVisibility(waiting ? View.VISIBLE : View.GONE);
     showMeter(schedule, value != null);
+    // Waiting on a first plan, the solves still needed are the whole tab's news.
+    if (this.look == Look.FIRST && dock == null && value != null && schedule.getSolvesNeeded() > 0) {
+      text.setTextSize(20);
+      TextView body = status.findViewById(R.id.tvCoachPlanStatusBody);
+      body.setText(activity.getString(R.string.coach_first_plan_body,
+          Utils.toSolveTypeLocalizedName(activity, solveType.getName()),
+          CoachPayloadBuilder.PLAN_FLOOR));
+      body.setVisibility(View.VISIBLE);
+    }
 
     // A first plan does not wait for the session to end while the solver is looking at the tab.
     if (!checked && !writing && heldUntil == 0 && schedule.mayAsk(true)) {
@@ -444,7 +514,7 @@ public class CoachPlanStatus {
    * @param none whether no solve type at all can carry the plans
    */
   private void showElsewhere(SolveType flagged, boolean none) {
-    setElsewhere(true);
+    setLook(Look.ALONE);
     showCard(false);
     if (flagged != null) {
       showOnOther(flagged);
@@ -491,7 +561,7 @@ public class CoachPlanStatus {
     final boolean movable = CoachPlans.eligible(solveType);
     String body = activity.getString(R.string.coach_plans_elsewhere_body, here);
     TextView bodyView = status.findViewById(R.id.tvCoachPlanStatusBody);
-    bodyView.setText(movable ? body : body + " " + activity.getString(R.string.coach_plans_not_here));
+    bodyView.setText(movable ? body : body + " " + whyNoPlan());
     bodyView.setVisibility(View.VISIBLE);
     TextView open = status.findViewById(R.id.buCoachPlanStatus);
     open.setText(R.string.coach_plans_open);
@@ -520,22 +590,37 @@ public class CoachPlanStatus {
     });
   }
 
-  /** Who hides the rest of the tab while the card stands alone. */
-  public void setElsewhereListener(ElsewhereListener listener) {
-    elsewhereListener = listener;
+  /** Who redraws the rest of the tab when its look changes. */
+  public void setLookListener(LookListener listener) {
+    lookListener = listener;
   }
 
-  public boolean isElsewhere() {
-    return elsewhere;
+  public Look getLook() {
+    return look;
   }
 
-  private void setElsewhere(boolean now) {
-    if (elsewhere != now) {
-      elsewhere = now;
-      if (elsewhereListener != null) {
-        elsewhereListener.onElsewhereChanged(now);
+  private void setLook(Look now) {
+    if (look != now) {
+      look = now;
+      if (lookListener != null) {
+        lookListener.onLookChanged(now);
       }
     }
+  }
+
+  /** Why no plan is written for this sighted 3x3 type, in one sentence. */
+  private String whyNoPlan() {
+    CubeMethod method = SolveTypeMethod.of(solveType);
+    if (method != CubeMethod.CFOP) {
+      return activity.getString(R.string.analysis_plan_cfop_only,
+          activity.getString(Utils.getMethodLabel(method)));
+    }
+    ScrambleType scrambleType = solveType.getScrambleType();
+    boolean plain = !solveType.hasSteps()
+        && (scrambleType == null || scrambleType.isDefault());
+    // CFOP with plain scrambles leaves only the hands as the reason.
+    return activity.getString(plain ? R.string.analysis_plan_two_handed_only
+        : R.string.coach_plans_paused_body);
   }
 
   /**

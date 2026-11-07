@@ -20,6 +20,7 @@
        android:layout_weight="1"
        android:fontFamily="@font/roboto_medium"
        android:letterSpacing="0.08"
+       android:id="@+id/tvCoachPreviewTitle"
        android:text="@string/coach_preview_title"
        android:textAllCaps="true"
        android:textColor="@color/secondary_text"
@@ -28,6 +29,7 @@
     <TextView
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
+       android:id="@+id/tvCoachPreviewLock"
        android:background="@drawable/coach_practice_locked_chip"
        android:drawableLeft="@drawable/ic_coach_lock"
        android:drawableStart="@drawable/ic_coach_lock"

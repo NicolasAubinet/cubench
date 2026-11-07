@@ -270,6 +270,7 @@
     <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
+       android:id="@+id/llAnalysisPlanPitch"
        android:background="@drawable/coach_offer_card"
        android:orientation="vertical"
        android:paddingLeft="16dp"
@@ -539,6 +540,7 @@
        android:lineSpacingMultiplier="1.2"
        android:paddingLeft="12dp"
        android:paddingRight="12dp"
+       android:id="@+id/tvAnalysisPlanNotYet"
        android:text="@string/analysis_plan_not_yet"
        android:textColor="@color/secondary_text"
        android:textSize="12.5sp"/>
