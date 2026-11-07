@@ -95,13 +95,24 @@ public class AlgorithmFollowerTest {
     assertFalse(follower.isWrongAngle());
   }
 
-  /** The same Sune started from the left side: an R turned as an F. */
+  /** The same Sune started from the left side: an R turned as an F, then its U. */
   @Test
   public void aSideTurnFromAnotherAngleIsAWrongAngle() {
     AlgorithmFollower follower = new AlgorithmFollower(SUNE, "U", finishes(SUNE));
-    turn(follower, "F");
+    turn(follower, "F U");
     assertTrue(follower.isWrongAngle());
     assertEquals(0, follower.getDoneCount());
+  }
+
+  /** An F where the R was due is more likely a wrong face than a wrong grip: undone as F'. */
+  @Test
+  public void oneSideTurnIsASlipNotAWrongAngle() {
+    AlgorithmFollower follower = new AlgorithmFollower(SUNE, "U", finishes(SUNE));
+    turn(follower, "F");
+    assertFalse(follower.isWrongAngle());
+    assertEquals("F'", follower.getUndoMoves());
+    turn(follower, "F'");
+    assertEquals("", follower.getUndoMoves());
   }
 
   @Test

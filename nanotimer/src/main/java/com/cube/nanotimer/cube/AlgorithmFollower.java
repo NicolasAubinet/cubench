@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 public class AlgorithmFollower {
 
   private static final String[] AUF = {null, "", "2", "'"};
+  private static final int MIN_WRONG_ANGLE_TURNS = 2;
 
   private final String[] tokens;
   /** For each token, how many tokens that turn something end at or before it. */
@@ -188,10 +189,13 @@ public class AlgorithmFollower {
     return done;
   }
 
-  /** Whether the turns so far fit the algorithm from an angle that does not finish the case. */
+  /**
+   * Whether the turns so far fit the algorithm from an angle that does not finish the case. One turn
+   * is no sign of one: any side turn is an opening R from some angle, so it reads as a plain slip.
+   */
   public boolean isWrongAngle() {
     int wrong = furthest(false);
-    return wrong > 0 && wrong > furthest(true);
+    return wrong >= MIN_WRONG_ANGLE_TURNS && wrong > furthest(true);
   }
 
   /**
