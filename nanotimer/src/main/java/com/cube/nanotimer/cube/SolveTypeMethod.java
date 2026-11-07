@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -26,12 +27,9 @@ public final class SolveTypeMethod {
   private SolveTypeMethod() {
   }
 
-  /** What the method is called, which two screens each keep their own two-way copy of today. */
+  /** What the method is called. */
   public static int nameOf(CubeMethod method) {
-    if (method == CubeMethod.ROUX) {
-      return R.string.method_roux;
-    }
-    return method == CubeMethod.BLIND ? R.string.method_blind : R.string.method_cfop;
+    return Utils.getMethodLabel(method);
   }
 
   /** Never null: a breakdown read under no method at all is a guess, which is not on offer. */
