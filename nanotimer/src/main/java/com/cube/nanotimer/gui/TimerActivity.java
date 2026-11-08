@@ -56,6 +56,7 @@ import com.cube.nanotimer.gui.widget.ResultListener;
 import com.cube.nanotimer.gui.widget.SessionDetailDialog;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.SolveStepBar;
+import com.cube.nanotimer.gui.widget.SpotlightOverlay;
 import com.cube.nanotimer.gui.widget.StepSplitsView;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.gui.widget.dialog.AddNewTimeDialog;
@@ -167,6 +168,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private ValueAnimator solveFlourish; // the finish flash, kept so a late verdict can call it off
   private boolean skipRecordPanel; // suppress the record panel on the next refresh (a discard-bound stop, or a delete)
   private boolean fastSolvePending; // the solve being saved beat half the PB, so it is asked about before it is celebrated
+  private boolean lastSolveHintDue; // the solve being saved is the first the cube timed: point at Last solve once it lands
+  private boolean promoteLastSolve; // Last solve sits in the bar while the hint points at it
+  private SpotlightOverlay lastSolveHint;
+  private OnBackPressedCallback lastSolveHintBack;
   private CubeSession cubeSession;
   private SolveAverages solveAverages;
   private SolveAverages prevSolveAverages;
@@ -959,6 +964,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       menu.findItem(R.id.itAddTime).setVisible(false);
     }
     setUpQuickAction(menu);
+    if (promoteLastSolve) {
+      menu.findItem(R.id.itLastSolve).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+    }
     // The chip sits with the other items now, and takes its item with it when it goes: without a
     // cube there is a gap in the bar otherwise. The loop above is what takes it away during a run,
     // so the bar stays a tap target.
@@ -1117,6 +1125,58 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     hideStepBreakdown(); // the breakdown belonged to the solve that is now gone
   }
 
+  private void openLastSolve() {
+    if (lastSolveTime != null) {
+      DialogUtils.showFragment(this, HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this));
+    } else {
+      DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
+    }
+  }
+
+  /**
+   * After the first solve a cube timed, points at Last solve, where its breakdown, reconstruction
+   * and replay live. Shown once. Last solve is put in the bar for the moment if the solve type keeps
+   * it in the overflow menu, and the caption then says where to find it afterwards.
+   */
+  private void showLastSolveHint() {
+    if (lastSolveHint != null || timerState != TimerState.STOPPED || isFinishing()) {
+      return;
+    }
+    Options.INSTANCE.setLastSolveHintSeen(true);
+    boolean inBar = getQuickActionItemId() == R.id.itLastSolve;
+    CharSequence text = getString(R.string.last_solve_hint);
+    if (!inBar) {
+      promoteLastSolve = true;
+      supportInvalidateOptionsMenu();
+      text = text + "\n\n" + getString(R.string.last_solve_hint_menu);
+    }
+    lastSolveHint = SpotlightOverlay.show(this, () -> findViewById(R.id.itLastSolve), text, () -> {
+      dismissLastSolveHint();
+      openLastSolve();
+    });
+    lastSolveHintBack = new OnBackPressedCallback(true) {
+      @Override
+      public void handleOnBackPressed() {
+        dismissLastSolveHint();
+      }
+    };
+    getOnBackPressedDispatcher().addCallback(this, lastSolveHintBack);
+  }
+
+  private void dismissLastSolveHint() {
+    if (lastSolveHint == null) {
+      return;
+    }
+    lastSolveHint.dismiss();
+    lastSolveHint = null;
+    lastSolveHintBack.remove();
+    lastSolveHintBack = null;
+    if (promoteLastSolve) {
+      promoteLastSolve = false;
+      supportInvalidateOptionsMenu();
+    }
+  }
+
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home && timerState != TimerState.STOPPED) {
@@ -1156,12 +1216,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
           deleteLastSolve();
           break;
         case R.id.itLastSolve:
-          if (lastSolveTime != null) {
-            DialogUtils.showFragment(this,
-                HistoryDetailDialog.newInstance(lastSolveTime, cubeType, this));
-          } else {
-            DialogUtils.showShortInfoMessage(this, R.string.no_solve_for_action);
-          }
+          openLastSolve();
           break;
         case R.id.itSessionDetails:
           DialogUtils.showFragment(this, SessionDetailDialog.newInstance(solveType));
@@ -1418,6 +1473,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   private void startTimer() {
+    dismissLastSolveHint(); // a cube's first turn can start a solve under it
     long curTime = System.currentTimeMillis();
     // A discard still waiting on its save is dropped rather than carried into this solve, so a
     // save that never lands can never take the wrong time with it.
@@ -1683,6 +1739,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     applyAutoPenalty(solveTime, penalty);
     // A cross-button stop already asks; asking twice would be the same question.
     fastSolvePending = !skipRecordPanel && isSuspiciouslyFast(solveTime.getTime());
+    lastSolveHintDue = time > 0 && !lastSolveMoves.isEmpty() && !Options.INSTANCE.isLastSolveHintSeen();
 
     addTimeToUI(solveTime);
     save(solveTime);
@@ -2672,11 +2729,19 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
               deleteLastSolve();
             }
           }
+          boolean hintDue = lastSolveHintDue && data.getSolveTime() != null;
+          if (data.getSolveTime() != null) {
+            lastSolveHintDue = false;
+          }
           if (fastSolvePending && data.getSolveTime() != null) {
             fastSolvePending = false;
             confirmFastSolve(); // the fields refresh with the answer, so nothing is lit before it
           } else {
             refreshAvgFields(showNotifications, data.getSolveTime() != null);
+            // Not over a question about the solve: the next cube solve gets the hint instead.
+            if (hintDue && showNotifications && lastSolveTime != null) {
+              showLastSolveHint();
+            }
           }
         }
       });

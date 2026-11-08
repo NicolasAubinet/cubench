@@ -68,6 +68,7 @@ public enum Options {
   public static final String DRILL_FOLLOW_GYRO_KEY = "drill_follow_gyro";
   public static final String SCRAMBLE_VIEW_3D_KEY = "scramble_view_3d";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
+  public static final String LAST_SOLVE_HINT_SEEN_KEY = "last_solve_hint_seen";
   public static final String SMART_CUBE_AUTO_CONNECT_KEY = "smart_cube_auto_connect";
   public static final String SMART_CUBE_LAST_ID_KEY = "smart_cube_last_id";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
@@ -806,6 +807,15 @@ public enum Options {
 
   public void setSmartCubeIntroSeen(boolean seen) {
     sharedPreferences.edit().putBoolean(SMART_CUBE_INTRO_SEEN_KEY, seen).apply();
+  }
+
+  // Whether the timer has pointed at "Last solve" after a cube-timed solve. Shown once.
+  public boolean isLastSolveHintSeen() {
+    return sharedPreferences.getBoolean(LAST_SOLVE_HINT_SEEN_KEY, false);
+  }
+
+  public void setLastSolveHintSeen(boolean seen) {
+    sharedPreferences.edit().putBoolean(LAST_SOLVE_HINT_SEEN_KEY, seen).apply();
   }
 
   public boolean isSmartCubeAutoConnect() {

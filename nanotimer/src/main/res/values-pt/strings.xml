@@ -357,6 +357,8 @@
   <string name="scramble_view_3d">3D</string>
   <string name="no_solve_for_action">Nenhuma resolução à qual aplicar isto</string>
   <string name="last_solve">Última resolução</string>
+  <string name="last_solve_hint">Seu cubo registrou esta resolução. Toque aqui para ver o detalhamento, a reconstrução e o replay em 3D.</string>
+  <string name="last_solve_hint_menu">Depois, Última resolução fica no menu ⋮.</string>
 
   <string name="breakdown">Detalhamento</string>
   <string name="breakdown_step">Etapa</string>
