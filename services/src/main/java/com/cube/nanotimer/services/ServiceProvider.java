@@ -131,5 +131,6 @@ public interface ServiceProvider {
   void addSolveTypeSteps(SolveType solveType);
   void updateSolveType(SolveType solveType, boolean recalculateAverages);
   void updateSolveTypeBlindMethod(SolveType solveType);
+  void updateSolveTypeQuickAction(SolveType solveType);
   void deleteSolveType(SolveType solveType);
 }

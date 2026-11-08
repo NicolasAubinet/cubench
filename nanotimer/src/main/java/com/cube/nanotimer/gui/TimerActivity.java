@@ -108,6 +108,7 @@ import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
+import com.cube.nanotimer.vo.TimerQuickAction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -169,7 +170,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private boolean skipRecordPanel; // suppress the record panel on the next refresh (a discard-bound stop, or a delete)
   private boolean fastSolvePending; // the solve being saved beat half the PB, so it is asked about before it is celebrated
   private boolean lastSolveHintDue; // the solve being saved is the first the cube timed: point at Last solve once it lands
-  private boolean promoteLastSolve; // Last solve sits in the bar while the hint points at it
   private SpotlightOverlay lastSolveHint;
   private OnBackPressedCallback lastSolveHintBack;
   private CubeSession cubeSession;
@@ -964,9 +964,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       menu.findItem(R.id.itAddTime).setVisible(false);
     }
     setUpQuickAction(menu);
-    if (promoteLastSolve) {
-      menu.findItem(R.id.itLastSolve).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-    }
     // The chip sits with the other items now, and takes its item with it when it goes: without a
     // cube there is a gap in the bar otherwise. The loop above is what takes it away during a run,
     // so the bar stays a tap target.
@@ -1134,22 +1131,32 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   /**
+   * A cube-timed solve is mostly read in its details, so the first one on a solve type puts Last
+   * solve in the bar, once per type: a user who sets the button back afterwards keeps their choice.
+   */
+  private void putLastSolveInBar() {
+    if (Options.INSTANCE.isLastSolveButtonSet(solveType.getId())) {
+      return;
+    }
+    Options.INSTANCE.setLastSolveButtonSet(solveType.getId());
+    if (solveType.getQuickAction() == TimerQuickAction.LAST_SOLVE) {
+      return;
+    }
+    solveType.setQuickAction(TimerQuickAction.LAST_SOLVE);
+    App.INSTANCE.getService().updateSolveTypeQuickAction(solveType, null);
+    supportInvalidateOptionsMenu();
+  }
+
+  /**
    * After the first solve a cube timed, points at Last solve, where its breakdown, reconstruction
-   * and replay live. Shown once. Last solve is put in the bar for the moment if the solve type keeps
-   * it in the overflow menu, and the caption then says where to find it afterwards.
+   * and replay live. Shown once.
    */
   private void showLastSolveHint() {
     if (lastSolveHint != null || timerState != TimerState.STOPPED || isFinishing()) {
       return;
     }
     Options.INSTANCE.setLastSolveHintSeen(true);
-    boolean inBar = getQuickActionItemId() == R.id.itLastSolve;
     CharSequence text = getString(R.string.last_solve_hint);
-    if (!inBar) {
-      promoteLastSolve = true;
-      supportInvalidateOptionsMenu();
-      text = text + "\n\n" + getString(R.string.last_solve_hint_menu);
-    }
     lastSolveHint = SpotlightOverlay.show(this, () -> findViewById(R.id.itLastSolve), text, () -> {
       dismissLastSolveHint();
       openLastSolve();
@@ -1171,10 +1178,6 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     lastSolveHint = null;
     lastSolveHintBack.remove();
     lastSolveHintBack = null;
-    if (promoteLastSolve) {
-      promoteLastSolve = false;
-      supportInvalidateOptionsMenu();
-    }
   }
 
   @Override
@@ -1739,7 +1742,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     applyAutoPenalty(solveTime, penalty);
     // A cross-button stop already asks; asking twice would be the same question.
     fastSolvePending = !skipRecordPanel && isSuspiciouslyFast(solveTime.getTime());
-    lastSolveHintDue = time > 0 && !lastSolveMoves.isEmpty() && !Options.INSTANCE.isLastSolveHintSeen();
+    boolean cubeTimed = time > 0 && !lastSolveMoves.isEmpty();
+    if (cubeTimed) {
+      putLastSolveInBar();
+    }
+    lastSolveHintDue = cubeTimed && !Options.INSTANCE.isLastSolveHintSeen();
 
     addTimeToUI(solveTime);
     save(solveTime);

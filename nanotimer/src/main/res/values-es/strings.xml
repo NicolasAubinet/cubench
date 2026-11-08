@@ -356,7 +356,6 @@
   <string name="no_solve_for_action">Aún no hay resolución a la que aplicar esto</string>
   <string name="last_solve">Última resolución</string>
   <string name="last_solve_hint">Tu cubo ha registrado esta resolución. Toca aquí para ver su desglose, su reconstrucción y su repetición en 3D.</string>
-  <string name="last_solve_hint_menu">Después, Última resolución está en el menú ⋮.</string>
 
   <string name="breakdown">Desglose</string>
   <string name="breakdown_step">Paso</string>

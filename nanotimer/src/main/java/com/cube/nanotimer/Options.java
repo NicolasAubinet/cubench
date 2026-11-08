@@ -69,6 +69,7 @@ public enum Options {
   public static final String SCRAMBLE_VIEW_3D_KEY = "scramble_view_3d";
   public static final String SMART_CUBE_INTRO_SEEN_KEY = "smart_cube_intro_seen";
   public static final String LAST_SOLVE_HINT_SEEN_KEY = "last_solve_hint_seen";
+  public static final String LAST_SOLVE_BUTTON_SET_KEY = "last_solve_button_set";
   public static final String SMART_CUBE_AUTO_CONNECT_KEY = "smart_cube_auto_connect";
   public static final String SMART_CUBE_LAST_ID_KEY = "smart_cube_last_id";
   public static final String SMART_CUBE_METHOD_KEY = "smart_cube_method";
@@ -816,6 +817,20 @@ public enum Options {
 
   public void setLastSolveHintSeen(boolean seen) {
     sharedPreferences.edit().putBoolean(LAST_SOLVE_HINT_SEEN_KEY, seen).apply();
+  }
+
+  // Solve types whose bar button was set to Last solve at their first cube-timed solve. Once each,
+  // so a user who sets it back keeps their choice.
+  public boolean isLastSolveButtonSet(int solveTypeId) {
+    return sharedPreferences.getStringSet(LAST_SOLVE_BUTTON_SET_KEY, new LinkedHashSet<String>())
+        .contains(String.valueOf(solveTypeId));
+  }
+
+  public void setLastSolveButtonSet(int solveTypeId) {
+    Set<String> ids = new LinkedHashSet<>(
+        sharedPreferences.getStringSet(LAST_SOLVE_BUTTON_SET_KEY, new LinkedHashSet<String>()));
+    ids.add(String.valueOf(solveTypeId));
+    sharedPreferences.edit().putStringSet(LAST_SOLVE_BUTTON_SET_KEY, ids).apply();
   }
 
   public boolean isSmartCubeAutoConnect() {

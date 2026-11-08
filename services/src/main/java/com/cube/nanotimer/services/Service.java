@@ -246,6 +246,8 @@ public interface Service {
   void updateSolveType(SolveType solveType, boolean recalculateAverages, DataCallback<Void> callback);
   /** Stores a blind type's method alone, for a caller holding only part of the type. */
   void updateSolveTypeBlindMethod(SolveType solveType, DataCallback<Void> callback);
+  /** Stores a type's quick action alone, for a caller holding only part of the type. */
+  void updateSolveTypeQuickAction(SolveType solveType, DataCallback<Void> callback);
   void deleteSolveType(SolveType solveType, DataCallback<Void> callback);
 
   ServiceProvider getProviderAccess();

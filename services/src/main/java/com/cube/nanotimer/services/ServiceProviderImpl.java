@@ -1566,6 +1566,13 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
+  public void updateSolveTypeQuickAction(SolveType solveType) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_SOLVETYPE_QUICK_ACTION, toQuickActionId(solveType.getQuickActionOverride()));
+    db.update(DB.TABLE_SOLVETYPE, values, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
+  }
+
+  @Override
   public void updateSolveType(SolveType solveType, boolean recalculateAverages) {
     ContentValues values = new ContentValues();
     values.put(DB.COL_SOLVETYPE_NAME, solveType.getName());
