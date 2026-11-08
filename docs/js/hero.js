@@ -1,4 +1,4 @@
-// Hero: replays a real smart cube solve on a cubing.js cube, at the pace it was turned.
+// Hero: replays a smart cube solve on a cubing.js cube, each turn at its recorded time.
 import solve from './hero-solve.js';
 
 const CUBING = '../vendor/twisty.js'; // built by tools/website (npm run build)
