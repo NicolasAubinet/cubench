@@ -1368,7 +1368,7 @@
   <string name="coach_sheet_sub">Um plano todas as semanas, a partir das suas próprias resoluções</string>
   <string name="coach_go">Ir para o coach</string>
   <string name="coach_invite_ready">Você tem %1$d resoluções com seu smart cube, o suficiente para um primeiro plano.</string>
-  <string name="coach_purchase_free">Grátis durante %1$s</string>
+  <string name="coach_purchase_free">%1$s grátis</string>
   <string name="coach_tile_first_year">o primeiro ano</string>
   <string name="coach_tile_first_month">o primeiro mês</string>
   <string name="coach_tile_first">durante %1$s</string>

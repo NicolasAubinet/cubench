@@ -361,8 +361,9 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
   }
 
   /**
-   * The invitation: why it opened, the beta's Free tile or the trial line, and the weekly loop. No
-   * prices and no upload text: those are agreed to on the Plan tab, where the button leads.
+   * The invitation: why it opened, then the beta's Free tile and weekly loop, or after the beta what
+   * the coach gives and the trial line. No prices and no upload text: those are agreed to on the
+   * Plan tab, where the button leads.
    */
   private void showInvitation() {
     CoachBetaLook.Sheet sheet = sheet();
@@ -382,9 +383,12 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     content.findViewById(R.id.llCoachPurchaseHow).setVisibility(View.GONE);
     content.findViewById(R.id.tvCoachPurchaseNote).setVisibility(View.GONE);
     content.findViewById(R.id.buCoachBetaClose).setVisibility(View.GONE);
-    content.findViewById(R.id.llCoachBetaLoop).setVisibility(View.VISIBLE);
+    // Rating is a step of the week only during the beta; after it, what the coach gives instead.
+    boolean beta = sheet != CoachBetaLook.Sheet.PAID;
+    content.findViewById(R.id.llCoachBetaLoop).setVisibility(beta ? View.VISIBLE : View.GONE);
     content.findViewById(R.id.tvCoachBetaLoopNote)
         .setVisibility(sheet == CoachBetaLook.Sheet.JOIN ? View.VISIBLE : View.GONE);
+    content.findViewById(R.id.llCoachInvitePoints).setVisibility(beta ? View.GONE : View.VISIBLE);
     showLoop();
     setOrHide((TextView) content.findViewById(R.id.tvCoachInviteReady),
         getString(R.string.coach_invite_ready, inviteSolves));

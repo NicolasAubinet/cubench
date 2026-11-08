@@ -196,6 +196,18 @@
          android:textSize="12.5sp"
          android:visibility="gone"/>
 
+      <!-- The invitation once the beta is over: what the coach gives, in place of the loop. -->
+      <LinearLayout
+         android:id="@+id/llCoachInvitePoints"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="16dp"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <include layout="@layout/coach_points"/>
+      </LinearLayout>
+
       <!-- A full beta: what stays free meanwhile. Takes the place of "How it works". -->
       <LinearLayout
          android:id="@+id/llCoachBetaMeanwhile"

@@ -341,75 +341,7 @@
          android:orientation="vertical"
          android:visibility="gone">
 
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:drawablePadding="12dp"
-           android:gravity="center_vertical"
-           android:lineSpacingMultiplier="1.15"
-           android:textColor="@color/white"
-           android:alpha="0.9"
-           android:textSize="14sp"
-           android:drawableLeft="@drawable/ic_coach_point_plan"
-           android:drawableStart="@drawable/ic_coach_point_plan"
-           android:text="@string/analysis_plan_point_plans"/>
-
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:drawablePadding="12dp"
-           android:gravity="center_vertical"
-           android:lineSpacingMultiplier="1.15"
-           android:textColor="@color/white"
-           android:alpha="0.9"
-           android:textSize="14sp"
-           android:layout_marginTop="10dp"
-           android:drawableLeft="@drawable/ic_coach_point_practice"
-           android:drawableStart="@drawable/ic_coach_point_practice"
-           android:text="@string/analysis_plan_point_practice"/>
-
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:drawablePadding="12dp"
-           android:gravity="center_vertical"
-           android:lineSpacingMultiplier="1.15"
-           android:textColor="@color/white"
-           android:alpha="0.9"
-           android:textSize="14sp"
-           android:layout_marginTop="10dp"
-           android:drawableLeft="@drawable/ic_coach_point_learn"
-           android:drawableStart="@drawable/ic_coach_point_learn"
-           android:text="@string/analysis_plan_point_learn"/>
-
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:drawablePadding="12dp"
-           android:gravity="center_vertical"
-           android:lineSpacingMultiplier="1.15"
-           android:textColor="@color/white"
-           android:alpha="0.9"
-           android:textSize="14sp"
-           android:layout_marginTop="10dp"
-           android:drawableLeft="@drawable/ic_coach_point_daily"
-           android:drawableStart="@drawable/ic_coach_point_daily"
-           android:text="@string/analysis_plan_point_daily"/>
-
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:drawablePadding="12dp"
-           android:gravity="center_vertical"
-           android:lineSpacingMultiplier="1.15"
-           android:textColor="@color/white"
-           android:alpha="0.9"
-           android:textSize="14sp"
-           android:layout_marginTop="10dp"
-           android:id="@+id/tvAnalysisPlanPointSupport"
-           android:drawableLeft="@drawable/ic_coach_point_support"
-           android:drawableStart="@drawable/ic_coach_point_support"
-           android:text="@string/analysis_plan_point_support"/>
+        <include layout="@layout/coach_points"/>
       </LinearLayout>
 
       <TextView
