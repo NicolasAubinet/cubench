@@ -1,0 +1,18 @@
+{
+  "name": "cubench-website-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Builds docs/vendor/twisty.js (cubing.js 3D player for the website hero) and docs/privacy.html from privacy_policy.md. Run by hand; the site itself has no build step.",
+  "license": "GPL-3.0",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "privacy": "node privacy.mjs"
+  },
+  "dependencies": {
+    "cubing": "0.66.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  }
+}
