@@ -1409,7 +1409,10 @@
   <string name="coach_purchase_subscribe_for">Subscribe for %1$s</string>
   <string name="coach_purchase_subscribe">Subscribe</string>
   <string name="coach_purchase_note">Cancel any time in Google Play. Subscribing turns weekly plans on.</string>
-  <string name="coach_purchase_sub">From your own solves</string>
+  <string name="coach_sheet_title">Smart cube coach</string>
+  <string name="coach_sheet_sub">A plan every week, from your own solves</string>
+  <string name="coach_go">Go to coach</string>
+  <string name="coach_invite_ready">You have %1$d solves with your smart cube, enough for a first plan.</string>
   <string name="coach_purchase_free">Free for %1$s</string>
   <string name="coach_tile_first_year">first year</string>
   <string name="coach_tile_first_month">first month</string>

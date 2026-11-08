@@ -62,7 +62,7 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.backup.BackupRestorer;
 import com.cube.nanotimer.util.coach.CoachBeta;
-import com.cube.nanotimer.util.coach.CoachBetaInvitation;
+import com.cube.nanotimer.util.coach.CoachInvitation;
 import com.cube.nanotimer.util.coach.CoachBetaLook;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlans;
@@ -157,7 +157,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private static final int MENU_DRILLS = 2;
   private static final int MENU_ANALYSIS = 3;
   private static final int MENU_COACHING = 4;
-  private static final String BETA_INVITE_TAG = "coach_beta_invite";
+  private static final String COACH_INVITE_TAG = "coach_invite";
   private static final int MENU_IMPORT_EXPORT = 5;
   private static final int MENU_CLEAR_HISTORY = 6;
   private static final int MENU_LANGUAGE = 7;
@@ -184,11 +184,11 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
       if (menuListAdapter != null) {
         menuListAdapter.notifyDataSetChanged();
       }
-      maybeInviteToBeta();
+      maybeInviteToCoach();
     }
   };
   private SmartCubeChip smartCubeChip;
-  private boolean betaInviteCounting;
+  private boolean coachInviteCounting;
 
   private int previousLastItem = 0;
 
@@ -701,19 +701,19 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     }
   }
 
-  /** Opens the beta's join sheet by itself, once, when {@link CoachBetaInvitation} says it's time. */
-  private void maybeInviteToBeta() {
+  /** Opens the coach's invitation by itself, once, when {@link CoachInvitation} says it's time. */
+  private void maybeInviteToCoach() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
         final CoachClient coach = CoachClient.configured(MainScreenActivity.this);
         final CoachBeta beta = CoachBeta.of(MainScreenActivity.this);
         final SolveType solveType = curSolveType;
-        if (betaInviteCounting || coach == null
-            || !CoachBetaInvitation.mayInvite(coach, beta, solveType)) {
+        if (coachInviteCounting || coach == null
+            || !CoachInvitation.mayInvite(MainScreenActivity.this, coach, beta, solveType)) {
           return;
         }
-        betaInviteCounting = true;
+        coachInviteCounting = true;
         App.INSTANCE.getService().getCoachSolveCount(solveType, CubeMethod.CFOP,
             new DataCallback<Integer>() {
               @Override
@@ -721,12 +721,12 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
                 runOnUiThread(new Runnable() {
                   @Override
                   public void run() {
-                    betaInviteCounting = false;
-                    if (CoachBetaInvitation.due(count) && canInviteNow()
-                        && CoachBetaInvitation.mayInvite(coach, beta, curSolveType)) {
+                    coachInviteCounting = false;
+                    if (CoachInvitation.due(count) && canInviteNow()
+                        && CoachInvitation.mayInvite(MainScreenActivity.this, coach, beta, curSolveType)) {
                       beta.invitationShown();
-                      CoachPurchaseSheet.newInstance(curSolveType)
-                          .show(getSupportFragmentManager(), BETA_INVITE_TAG);
+                      CoachPurchaseSheet.newInvitation(curSolveType, count)
+                          .show(getSupportFragmentManager(), COACH_INVITE_TAG);
                     }
                   }
                 });
@@ -865,7 +865,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
           setCurSolveType(newCurSolveType);
           refreshHero();
           refreshHistory();
-          maybeInviteToBeta();
+          maybeInviteToCoach();
         }
       });
     } else {

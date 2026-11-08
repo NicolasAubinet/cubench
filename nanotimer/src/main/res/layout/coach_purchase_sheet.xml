@@ -60,7 +60,7 @@
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:fontFamily="@font/roboto"
-             android:text="@string/analysis_plan_headline"
+             android:text="@string/coach_sheet_title"
              android:textColor="@color/white"
              android:textSize="20sp"
              android:textStyle="bold"/>
@@ -69,11 +69,22 @@
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
              android:layout_marginTop="1dp"
-             android:text="@string/coach_purchase_sub"
+             android:text="@string/coach_sheet_sub"
              android:textColor="@color/secondary_text"
              android:textSize="13sp"/>
         </LinearLayout>
       </LinearLayout>
+
+      <!-- The invitation only: why the sheet opened by itself. -->
+      <TextView
+         android:id="@+id/tvCoachInviteReady"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="14dp"
+         android:lineSpacingMultiplier="1.15"
+         android:textColor="@color/white"
+         android:textSize="15sp"
+         android:visibility="gone"/>
 
       <!-- The tiles, side by side. Their badges stand above them, so nothing may clip. -->
       <LinearLayout

@@ -1362,7 +1362,10 @@
   <string name="coach_purchase_subscribe_for">S\'abonner pour %1$s</string>
   <string name="coach_purchase_subscribe">S\'abonner</string>
   <string name="coach_purchase_note">Annulez à tout moment dans Google Play. S\'abonner active les plans hebdomadaires.</string>
-  <string name="coach_purchase_sub">À partir de vos propres résolutions</string>
+  <string name="coach_sheet_title">Coach smart cube</string>
+  <string name="coach_sheet_sub">Un plan chaque semaine, à partir de vos propres résolutions</string>
+  <string name="coach_go">Voir le coach</string>
+  <string name="coach_invite_ready">Vous avez %1$d résolutions avec votre smart cube, assez pour un premier plan.</string>
   <string name="coach_purchase_free">Gratuit pendant %1$s</string>
   <string name="coach_tile_first_year">la première année</string>
   <string name="coach_tile_first_month">le premier mois</string>

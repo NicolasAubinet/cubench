@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.AnalysisActivity;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.util.coach.CoachBeta;
 import com.cube.nanotimer.util.coach.CoachBetaLook;
@@ -49,6 +51,7 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
   private static final String STATE_PLAN = "plan";
   private static final String STATE_PICKED = "picked";
   private static final String ARG_PLAN = "basePlan";
+  private static final String ARG_INVITE_SOLVES = "inviteSolves";
 
   private CoachBilling billing;
   private CoachClient client;
@@ -56,6 +59,20 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
   private List<SolveType> eligible = Collections.emptyList();
   private SolveType picked;
   private String basePlan = CoachBilling.YEARLY;
+  private int inviteSolves;
+
+  /**
+   * The sheet as an invitation, opened by itself once the solver has enough solves for a plan. It
+   * says what the coach is and leads to the Plan tab, which holds the offer: nothing is joined or
+   * bought from here.
+   *
+   * @param solves the solves with a smart cube the coach can read on {@code solveType}
+   */
+  public static CoachPurchaseSheet newInvitation(SolveType solveType, int solves) {
+    CoachPurchaseSheet sheet = newInstance(solveType);
+    sheet.requireArguments().putInt(ARG_INVITE_SOLVES, solves);
+    return sheet;
+  }
 
   /** @param solveType the solve type the plans are offered for first, when it can carry them */
   public static CoachPurchaseSheet newInstance(SolveType solveType) {
@@ -80,6 +97,7 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     client = CoachClient.configured(requireContext());
     picked = (SolveType) requireArguments().getSerializable(ARG_SOLVE_TYPE);
     basePlan = requireArguments().getString(ARG_PLAN, basePlan);
+    inviteSolves = requireArguments().getInt(ARG_INVITE_SOLVES);
     if (savedInstanceState != null) {
       basePlan = savedInstanceState.getString(STATE_PLAN, basePlan);
       picked = (SolveType) savedInstanceState.getSerializable(STATE_PICKED);
@@ -99,7 +117,9 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     content.findViewById(R.id.buCoachPurchase).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (sheet() == CoachBetaLook.Sheet.JOIN) {
+        if (inviteSolves > 0) {
+          goToCoach();
+        } else if (sheet() == CoachBetaLook.Sheet.JOIN) {
           join();
         } else {
           buy();
@@ -228,6 +248,10 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
 
   /** The base plans as Play lists them, or that Play is being asked, or that it could not say. */
   private void showPlans() {
+    if (inviteSolves > 0) {
+      showInvitation();
+      return;
+    }
     if (showBeta(sheet())) {
       return;
     }
@@ -334,6 +358,47 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     button.setText(R.string.coach_beta_join);
     button.setEnabled(true);
     return true;
+  }
+
+  /**
+   * The invitation: why it opened, the beta's Free tile or the trial line, and the weekly loop. No
+   * prices and no upload text: those are agreed to on the Plan tab, where the button leads.
+   */
+  private void showInvitation() {
+    CoachBetaLook.Sheet sheet = sheet();
+    if (sheet != CoachBetaLook.Sheet.PAID) {
+      showBeta(sheet);
+    } else {
+      content.findViewById(R.id.flCoachBetaTile).setVisibility(View.GONE);
+      content.findViewById(R.id.llCoachBetaMeanwhile).setVisibility(View.GONE);
+      content.findViewById(R.id.llCoachPurchasePlans).setVisibility(View.GONE);
+      List<CoachOffers.Offer> plans = billing == null ? null : billing.getPlans();
+      setOrHide((TextView) content.findViewById(R.id.tvCoachPurchaseFree),
+          plans == null || plans.isEmpty() ? null
+              : new CoachPriceText(getResources()).free(plans.get(0)));
+    }
+    content.findViewById(R.id.pbCoachPurchase).setVisibility(View.GONE);
+    content.findViewById(R.id.tvCoachPurchaseUnavailable).setVisibility(View.GONE);
+    content.findViewById(R.id.llCoachPurchaseHow).setVisibility(View.GONE);
+    content.findViewById(R.id.tvCoachPurchaseNote).setVisibility(View.GONE);
+    content.findViewById(R.id.buCoachBetaClose).setVisibility(View.GONE);
+    content.findViewById(R.id.llCoachBetaLoop).setVisibility(View.VISIBLE);
+    content.findViewById(R.id.tvCoachBetaLoopNote)
+        .setVisibility(sheet == CoachBetaLook.Sheet.JOIN ? View.VISIBLE : View.GONE);
+    showLoop();
+    setOrHide((TextView) content.findViewById(R.id.tvCoachInviteReady),
+        getString(R.string.coach_invite_ready, inviteSolves));
+    TextView button = content.findViewById(R.id.buCoachPurchase);
+    button.setVisibility(View.VISIBLE);
+    button.setEnabled(true);
+    button.setText(R.string.coach_go);
+  }
+
+  private void goToCoach() {
+    startActivity(new Intent(requireContext(), AnalysisActivity.class)
+        .putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, picked)
+        .putExtra(AnalysisActivity.EXTRA_TAB, AnalysisActivity.TAB_PLAN));
+    dismiss();
   }
 
   /** Get your plan, practise, rate it, next plan, with the rating lit in amber. */
