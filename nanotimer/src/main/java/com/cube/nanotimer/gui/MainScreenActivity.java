@@ -46,6 +46,7 @@ import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.gui.widget.AboutDialog;
 import com.cube.nanotimer.gui.widget.CoachPurchaseSheet;
+import com.cube.nanotimer.gui.widget.ReleaseNotes;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
 import com.cube.nanotimer.gui.widget.HistoryHelpDialog;
@@ -709,7 +710,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         final CoachClient coach = CoachClient.configured(MainScreenActivity.this);
         final CoachBeta beta = CoachBeta.of(MainScreenActivity.this);
         final SolveType solveType = curSolveType;
-        if (coachInviteCounting || coach == null
+        // Never in the same run as the news sheet or the release notes: one announcement per start.
+        if (coachInviteCounting || coach == null || ReleaseNotes.announcedThisLaunch()
             || !CoachInvitation.mayInvite(MainScreenActivity.this, coach, beta, solveType)) {
           return;
         }

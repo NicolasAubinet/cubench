@@ -22,6 +22,13 @@ public class ReleaseNotes {
   private static final String VERSION_KEY = "app_version";
   private static final String HIDE_ON_UPDATE_KEY = "release_notes_hide_on_update";
 
+  private static boolean announced;
+
+  /** Whether this run of the app opened with the news sheet or the release notes. */
+  public static boolean announcedThisLaunch() {
+    return announced;
+  }
+
   // The notes are authored as bare markup, one string per locale; their look lives here.
   private static final String STYLE =
       "<style>" +
@@ -55,9 +62,11 @@ public class ReleaseNotes {
       }
       // Checked on every start, not only on an upgrade: a test build can keep its version name.
       if (SmartCubeNewsSheet.showOnLaunch(context, false)) {
+        announced = true;
         return;
       }
       if (upgraded && !prefs.getBoolean(HIDE_ON_UPDATE_KEY, false)) {
+        announced = true;
         showReleaseNotesDialog(context);
       }
     }

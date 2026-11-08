@@ -374,9 +374,12 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
       content.findViewById(R.id.llCoachBetaMeanwhile).setVisibility(View.GONE);
       content.findViewById(R.id.llCoachPurchasePlans).setVisibility(View.GONE);
       List<CoachOffers.Offer> plans = billing == null ? null : billing.getPlans();
-      setOrHide((TextView) content.findViewById(R.id.tvCoachPurchaseFree),
-          plans == null || plans.isEmpty() ? null
-              : new CoachPriceText(getResources()).free(plans.get(0)));
+      CoachPriceText text = new CoachPriceText(getResources());
+      String free = null;
+      for (int i = 0; plans != null && i < plans.size() && free == null; i++) {
+        free = text.free(plans.get(i)); // whichever plan starts free, if only one does
+      }
+      setOrHide((TextView) content.findViewById(R.id.tvCoachPurchaseFree), free);
     }
     content.findViewById(R.id.pbCoachPurchase).setVisibility(View.GONE);
     content.findViewById(R.id.tvCoachPurchaseUnavailable).setVisibility(View.GONE);
@@ -384,11 +387,11 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     content.findViewById(R.id.tvCoachPurchaseNote).setVisibility(View.GONE);
     content.findViewById(R.id.buCoachBetaClose).setVisibility(View.GONE);
     // Rating is a step of the week only during the beta; after it, what the coach gives instead.
-    boolean beta = sheet != CoachBetaLook.Sheet.PAID;
-    content.findViewById(R.id.llCoachBetaLoop).setVisibility(beta ? View.VISIBLE : View.GONE);
-    content.findViewById(R.id.tvCoachBetaLoopNote)
-        .setVisibility(sheet == CoachBetaLook.Sheet.JOIN ? View.VISIBLE : View.GONE);
-    content.findViewById(R.id.llCoachInvitePoints).setVisibility(beta ? View.GONE : View.VISIBLE);
+    boolean join = sheet == CoachBetaLook.Sheet.JOIN;
+    content.findViewById(R.id.llCoachBetaLoop).setVisibility(join ? View.VISIBLE : View.GONE);
+    content.findViewById(R.id.tvCoachBetaLoopNote).setVisibility(join ? View.VISIBLE : View.GONE);
+    content.findViewById(R.id.llCoachInvitePoints)
+        .setVisibility(sheet == CoachBetaLook.Sheet.PAID ? View.VISIBLE : View.GONE);
     showLoop();
     setOrHide((TextView) content.findViewById(R.id.tvCoachInviteReady),
         getString(R.string.coach_invite_ready, inviteSolves));
