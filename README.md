@@ -29,6 +29,10 @@ Android speedcubing timer app to keep track of your times and averages everywher
   and contributors (`src/js/solver/ftocta.js` and the supporting `mathlib.js`),
   used under the GPL-3.0 license.
 
+## Support
+
+Cubench is free, open source and has no ads. If it helps your cubing and you'd like to say thanks, you can buy me a coffee on [Ko-fi](https://ko-fi.com/nicolasaubinet). It unlocks nothing, it just helps me keep working on it.
+
 ## License (GNU GPL v3)
 
     Copyright (C) 2016  Nicolas Aubinet
