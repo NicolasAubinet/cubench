@@ -1157,10 +1157,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     }
     Options.INSTANCE.setLastSolveHintSeen(true);
     CharSequence text = getString(R.string.last_solve_hint);
+    // Gives up when the bar has no room for the button: the hint is not worth a dimmed screen.
     lastSolveHint = SpotlightOverlay.show(this, () -> findViewById(R.id.itLastSolve), text, () -> {
       dismissLastSolveHint();
       openLastSolve();
-    });
+    }, this::dismissLastSolveHint);
     lastSolveHintBack = new OnBackPressedCallback(true) {
       @Override
       public void handleOnBackPressed() {

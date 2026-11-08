@@ -27,7 +27,8 @@ import com.cube.nanotimer.R;
  * anything else is ignored until the owner dismisses it (back, or a solve starting).
  *
  * <p>The target is looked up again before every frame, so a menu rebuilt or a rotation moves the
- * circle with it; while the target is not laid out yet, only the dim shows.
+ * circle with it. Until the target is first found the overlay is invisible and lets touches through,
+ * and if it is not found within {@link #FIND_TIMEOUT_MS} the overlay removes itself and says so.
  */
 public class SpotlightOverlay extends FrameLayout {
 
@@ -38,9 +39,21 @@ public class SpotlightOverlay extends FrameLayout {
   private static final int SCRIM = 0xB8000000;
   private static final int FADE_MS = 200;
   private static final int PULSE_MS = 1400;
+  private static final int FIND_TIMEOUT_MS = 2000;
 
   private final TargetFinder finder;
   private final Runnable onTargetTap;
+  private final Runnable onGiveUp;
+  private boolean revealed;
+  private final Runnable giveUp = new Runnable() {
+    @Override
+    public void run() {
+      if (!revealed) {
+        dismiss();
+        onGiveUp.run();
+      }
+    }
+  };
   private final TextView caption;
   private final Paint scrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -64,12 +77,13 @@ public class SpotlightOverlay extends FrameLayout {
     }
   };
 
-  private SpotlightOverlay(Context context, TargetFinder finder, CharSequence text, Runnable onTargetTap) {
+  private SpotlightOverlay(Context context, TargetFinder finder, CharSequence text, Runnable onTargetTap,
+      Runnable onGiveUp) {
     super(context);
     this.finder = finder;
     this.onTargetTap = onTargetTap;
+    this.onGiveUp = onGiveUp;
     setWillNotDraw(false);
-    setClickable(true);
     holePadding = dp(6);
     captionGap = dp(14);
 
@@ -100,15 +114,18 @@ public class SpotlightOverlay extends FrameLayout {
     addView(caption, params);
   }
 
-  /** Adds the overlay over the whole window of {@code activity}. */
+  /**
+   * Adds the overlay over the whole window of {@code activity}.
+   *
+   * @param onGiveUp run if the target never shows, after the overlay has removed itself
+   */
   public static SpotlightOverlay show(Activity activity, TargetFinder finder, CharSequence text,
-      Runnable onTargetTap) {
-    SpotlightOverlay overlay = new SpotlightOverlay(activity, finder, text, onTargetTap);
+      Runnable onTargetTap, Runnable onGiveUp) {
+    SpotlightOverlay overlay = new SpotlightOverlay(activity, finder, text, onTargetTap, onGiveUp);
     ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
     decor.addView(overlay, new ViewGroup.LayoutParams(
         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     overlay.setAlpha(0f);
-    overlay.animate().alpha(1f).setDuration(FADE_MS);
     return overlay;
   }
 
@@ -123,6 +140,7 @@ public class SpotlightOverlay extends FrameLayout {
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
     getViewTreeObserver().addOnPreDrawListener(tracker);
+    postDelayed(giveUp, FIND_TIMEOUT_MS);
     pulseAnimator = ValueAnimator.ofFloat(0f, 1f);
     pulseAnimator.setDuration(PULSE_MS);
     pulseAnimator.setRepeatCount(ValueAnimator.INFINITE);
@@ -136,6 +154,7 @@ public class SpotlightOverlay extends FrameLayout {
   @Override
   protected void onDetachedFromWindow() {
     getViewTreeObserver().removeOnPreDrawListener(tracker);
+    removeCallbacks(giveUp);
     if (pulseAnimator != null) {
       pulseAnimator.cancel();
     }
@@ -169,6 +188,10 @@ public class SpotlightOverlay extends FrameLayout {
       caption.setLayoutParams(params);
     }
     caption.setVisibility(VISIBLE);
+    if (!revealed) {
+      revealed = true;
+      animate().alpha(1f).setDuration(FADE_MS);
+    }
     return true;
   }
 
@@ -198,7 +221,7 @@ public class SpotlightOverlay extends FrameLayout {
       dismiss();
       onTargetTap.run();
     }
-    return true;
+    return revealed; // invisible until the target shows: touches go through to the screen
   }
 
   private float dp(float value) {
