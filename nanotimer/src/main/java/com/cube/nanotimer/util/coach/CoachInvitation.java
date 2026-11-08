@@ -3,13 +3,13 @@ package com.cube.nanotimer.util.coach;
 import android.content.Context;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.coach.CoachPayloadBuilder;
-import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.vo.SolveType;
 
 /**
- * The coach's invitation: a sheet opened by itself once, when the solver could get a plan today.
- * That is a smart cube connected and enough solves the coach can read for a plan, on a solve type it
- * writes plans for. The sheet leads to the Plan tab; the drawer's Coaching row leads there after.
+ * The coach's invitation: a sheet opened by itself once, when the solver could get a plan today:
+ * enough smart cube solves for a plan on a solve type the coach writes plans for. No cube needs to
+ * be connected, so it can open as the app starts as well as on a return to the main screen. The
+ * sheet leads to the Plan tab; the drawer's Coaching row leads there after.
  *
  * <p>Nobody who has or ever had the coach is invited, and nobody is while the beta is full: a beta
  * with no seat to give is not news worth interrupting for, and a seat freed later brings it back.
@@ -29,7 +29,7 @@ public final class CoachInvitation {
     boolean full = look != null && look.sheet() == CoachBetaLook.Sheet.FULL;
     return solveType != null
         && may(beta.isInvitationShown(), full, knowsCoach(client),
-            SmartCubeManager.INSTANCE.isConnected(), CoachPlans.eligible(solveType));
+            CoachPlans.eligible(solveType));
   }
 
   /** Has the coach, or had it: weekly plans still on, or an access that ended. */
@@ -42,8 +42,7 @@ public final class CoachInvitation {
     return coachSolves >= MIN_SOLVES;
   }
 
-  static boolean may(boolean shown, boolean betaFull, boolean knowsCoach, boolean cubeConnected,
-      boolean eligible) {
-    return !shown && !betaFull && !knowsCoach && cubeConnected && eligible;
+  static boolean may(boolean shown, boolean betaFull, boolean knowsCoach, boolean eligible) {
+    return !shown && !betaFull && !knowsCoach && eligible;
   }
 }
