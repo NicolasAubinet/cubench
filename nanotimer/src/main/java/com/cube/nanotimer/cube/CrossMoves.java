@@ -34,6 +34,22 @@ public final class CrossMoves {
    * @return the cross, or null where the solve has no cross and F2L to read one from
    */
   static CrossTurn read(long solveId, String scramble, String storedMoves, List<SolveStep> steps) {
+    Replayed replayed = replay(scramble, storedMoves, steps);
+    if (replayed == null || replayed.face == null) {
+      return null;
+    }
+    int optimal = SOLVERS.optimalLength(CrossFace.valueOf(replayed.face.name()), scramble);
+    return new CrossTurn(solveId, optimal, htm(replayed.crossTurns),
+        CFOPStepDetector.slotsDoneCount(replayed.atCross, replayed.face));
+  }
+
+  /** The face the cross was built on, or null where the solve has no cross and F2L to read. */
+  static Face face(String scramble, String storedMoves, List<SolveStep> steps) {
+    Replayed replayed = replay(scramble, storedMoves, steps);
+    return replayed == null ? null : replayed.face;
+  }
+
+  private static Replayed replay(String scramble, String storedMoves, List<SolveStep> steps) {
     if (steps.size() < 2 || !CROSS.equals(steps.get(0).getName())
         || !SolveReading.F2L.equals(steps.get(1).getName())) {
       return null;
@@ -65,13 +81,20 @@ public final class CrossMoves {
     if (atCross == null) {
       atCross = cube.toFaceCube(); // F2L turned nothing: the cross finished it
     }
-    Face face = crossFace(atCross, cube.toFaceCube());
-    if (face == null) {
-      return null;
+    return new Replayed(crossTurns, atCross, crossFace(atCross, cube.toFaceCube()));
+  }
+
+  /** A solve replayed to the end of F2L. */
+  private static final class Replayed {
+    final List<String> crossTurns;
+    final String atCross;
+    final Face face;
+
+    Replayed(List<String> crossTurns, String atCross, Face face) {
+      this.crossTurns = crossTurns;
+      this.atCross = atCross;
+      this.face = face;
     }
-    int optimal = SOLVERS.optimalLength(CrossFace.valueOf(face.name()), scramble);
-    return new CrossTurn(solveId, optimal, htm(crossTurns),
-        CFOPStepDetector.slotsDoneCount(atCross, face));
   }
 
   /** The face whose cross was done as the cross ended and whose two layers were done after F2L. */

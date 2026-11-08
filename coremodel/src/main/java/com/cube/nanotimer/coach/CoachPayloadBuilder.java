@@ -347,6 +347,17 @@ public class CoachPayloadBuilder {
   }
 
   /**
+   * The final AUF figure for {@link CoachPayload#withFinalAuf}, or null under {@link #FAMILY_FLOOR}
+   * final AUFs.
+   *
+   * @param plls the PLLs read in the newest {@link #FAMILY_WINDOW} solves
+   * @param pausesMs the pause before each final AUF among them
+   */
+  public static FinalAufFigure finalAuf(int plls, List<Long> pausesMs) {
+    return FinalAufFigure.of(plls, pausesMs, FAMILY_FLOOR);
+  }
+
+  /**
    * The cases standing at any of the given statuses, as codes. Kept to the sets this method's own
    * steps are made
    * of: a payload for one method has no business carrying what the solver knows of another's, and a

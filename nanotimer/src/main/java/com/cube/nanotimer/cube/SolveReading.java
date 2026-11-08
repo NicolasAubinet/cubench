@@ -47,9 +47,10 @@ public final class SolveReading {
    * version 5 the F2L rotations of a gyro solve, version 6 reads them again now that the solves
    * come with their gyro tracks (version 5 rows hold none), version 7 stops counting a last layer
    * false start as one of the step's algorithms, version 8 drops pauses under 250 ms, version 9
-   * where each pair's slot sat in the grip, version 10 the cross against its optimal.
+   * where each pair's slot sat in the grip, version 10 the cross against its optimal, version 11
+   * the pause before the final AUF.
    */
-  public static final int VERSION = 10;
+  public static final int VERSION = 11;
 
   private static final String RESTART_PART_SUFFIX = "restart";
 
@@ -61,6 +62,7 @@ public final class SolveReading {
   private final boolean whole;
   private final List<PairRotation> rotations;
   private final CrossTurn cross;
+  private final Long finalAufMs;
 
   /**
    * @param turnings each step as it was turned, in solving order
@@ -80,6 +82,13 @@ public final class SolveReading {
   /** @param cross the cross against its optimal, null where none was read */
   public SolveReading(List<Execution> executions, List<Turning> turnings, boolean whole,
       List<PairRotation> rotations, CrossTurn cross) {
+    this(executions, turnings, whole, rotations, cross, null);
+  }
+
+  /** @param finalAufMs the pause before the final AUF ({@link #getFinalAufMs}) */
+  public SolveReading(List<Execution> executions, List<Turning> turnings, boolean whole,
+      List<PairRotation> rotations, CrossTurn cross, Long finalAufMs) {
+    this.finalAufMs = finalAufMs;
     this.cross = cross;
     this.executions = Collections.unmodifiableList(new ArrayList<Execution>(executions));
     this.turnings = Collections.unmodifiableList(new ArrayList<Turning>(turnings));
@@ -112,6 +121,14 @@ public final class SolveReading {
   /** The cross against the fewest moves it could take ({@link CrossMoves}), or null. */
   public CrossTurn getCross() {
     return cross;
+  }
+
+  /**
+   * The pause before the final AUF ({@link FinalAuf}): -1 for a PLL with no AUF after it, null where
+   * no PLL algorithm was read.
+   */
+  public Long getFinalAufMs() {
+    return finalAufMs;
   }
 
   public boolean isEmpty() {
@@ -269,7 +286,17 @@ public final class SolveReading {
         : F2lRotations.read(solve.getId(), replay.getMoves(), replay.getSteps(),
             GyroTrackFormat.parse(solve.getSmartcubeGyroTrack()));
     CrossTurn cross = whole ? readCross(solve, replay) : null;
-    return new SolveReading(executions, turnings, whole, rotations, cross);
+    Long finalAuf = whole ? readFinalAuf(solve, replay) : null;
+    return new SolveReading(executions, turnings, whole, rotations, cross, finalAuf);
+  }
+
+  private static Long readFinalAuf(SolveTime solve, CaseExecutions.Replay replay) {
+    try {
+      return FinalAuf.read(replay.getMoves(), replay.getSteps(),
+          CrossMoves.face(solve.getScramble(), replay.getMoves(), replay.getSteps()));
+    } catch (RuntimeException e) {
+      return null; // a scramble that cannot be replayed: the rest of the reading stands
+    }
   }
 
   private static CrossTurn readCross(SolveTime solve, CaseExecutions.Replay replay) {
@@ -392,6 +419,9 @@ public final class SolveReading {
         json.put("cross", new JSONArray().put(reading.cross.getOptimalMoves())
             .put(reading.cross.getTurnedMoves()).put(reading.cross.getSlotsWithCross()));
       }
+      if (reading.finalAufMs != null) {
+        json.put("final_auf", reading.finalAufMs.longValue());
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write a solve reading", e);
@@ -437,7 +467,8 @@ public final class SolveReading {
       JSONArray cross = reading.optJSONArray("cross");
       return new SolveReading(executions, turnings, reading.getBoolean("whole"), rotations,
           cross == null ? null
-              : new CrossTurn(solveId, cross.getInt(0), cross.getInt(1), cross.getInt(2)));
+              : new CrossTurn(solveId, cross.getInt(0), cross.getInt(1), cross.getInt(2)),
+          reading.has("final_auf") ? Long.valueOf(reading.getLong("final_auf")) : null);
     } catch (JSONException e) {
       return null;
     }

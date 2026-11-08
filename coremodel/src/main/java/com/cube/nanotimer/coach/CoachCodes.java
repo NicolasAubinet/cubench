@@ -56,12 +56,12 @@ public final class CoachCodes {
 
   /** Every field name a payload is written with, which is what a cited path is made of. */
   static final Set<String> FIELDS = withHeldRotations(
-      "basic_pairs", "basic_rotated_pairs", "before", "best_ms", "cards", "cases", "code", "codes",
+      "aufs", "basic_pairs", "basic_rotated_pairs", "before", "best_ms", "cards", "cases", "code", "codes",
       "comparisons", "count", "cross_moves", "drill", "drill_cases", "drill_count", "drill_mean_ms", "drill_reps",
       "drills", "evidence", "excess_ms", "extra_moves", "f2l_groups", "f2l_habits", "f2l_moves",
-      "f2l_rotation_cases", "f2l_rotations", "families", "family_mean_ms", "gap_ms", "known_cases",
+      "f2l_rotation_cases", "f2l_rotations", "families", "final_auf", "family_mean_ms", "gap_ms", "known_cases",
       "language", "learning_cases", "ll_habits", "ll_moves", "long_crosses", "mean_ms", "method",
-      "moves", "off_list_rate", "oll_looks", "optimal_moves", "pairs", "parts", "path", "pll_looks", "previous", "puzzle",
+      "moves", "off_list_rate", "oll_looks", "optimal_moves", "pairs", "parts", "path", "pause_ms", "pll_looks", "previous", "puzzle",
       "reason", "recent_mean_ms", "recognition_ms", "rejection_rate", "rotated", "rotated_pairs",
       "rotations", "run", "schema_version", "share", "since", "skip_rate", "slot", "solve",
       "solve_count", "solve_mean_ms", "solves", "solves_since", "stall_ms", "stalls", "std_dev_ms",
