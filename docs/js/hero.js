@@ -2,15 +2,16 @@
 import solve from './hero-solve.js';
 
 const CUBING = '../vendor/twisty.js'; // built by tools/website (npm run build)
-const TURN_MS = 110; // how long one turn takes on screen; real turns are about this fast
+const TURN_MS = 110; // on-screen length of a turn; a smart cube reports a turn as it completes, so it ends at its time
+const LEAD_MS = 700; // the scrambled cube shown at 0.00 before the first turn
 const HOLD_MS = 3500; // pause on the solved cube before replaying
 
 const $ = id => document.getElementById(id);
 const stage = $('stage'), cubeBox = $('cube'), clock = $('clock'), stepText = $('steptext');
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Split bar and labels from the solve's top-level steps.
-const total = solve.time;
+// Split bar and labels from the solve's top-level steps. The clock stops on the last turn, the step total.
+const total = solve.moves[solve.moves.length - 1][1];
 const bar = $('bar'), labels = $('labels');
 const segs = solve.steps.map(s => {
   const i = document.createElement('i');
@@ -24,7 +25,7 @@ const segs = solve.steps.map(s => {
 });
 
 function showReadout(t) {
-  clock.textContent = (Math.min(t, total) / 1000).toFixed(2);
+  clock.textContent = (Math.max(0, Math.min(t, total)) / 1000).toFixed(2);
   let sub = null;
   solve.steps.forEach((s, k) => segs[k].classList.toggle('on', t >= s.from));
   for (const s of solve.parts) if (t >= s.from) sub = s;
@@ -55,20 +56,21 @@ async function start() {
   new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(stage);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) t0 = null; });
 
-  let i = 0, last = -1;
+  let i = 0, last = -LEAD_MS;
   function frame(now) {
     requestAnimationFrame(frame);
-    if (!visible || document.hidden) return;
-    if (t0 === null) { t0 = now - (last > 0 ? last : 0); }
-    let t = now - t0;
-    if (t > total + HOLD_MS) { t0 = now; t = 0; i = 0; }
+    if (!visible || document.hidden) { t0 = null; return; }
+    if (t0 === null) t0 = now - (last + LEAD_MS);
+    let t = now - t0 - LEAD_MS;
+    if (t > total + HOLD_MS) { t0 = now; t = -LEAD_MS; i = 0; }
     last = t;
-    while (i < n - 1 && at[i + 1] <= t) i++;
-    if (i > 0 && at[i] > t) i = 0;
+    // Turn k plays over [at[k] - d, at[k]]; i is the first turn not yet finished.
+    while (i < n && at[i] <= t) i++;
     let ts;
-    if (t < at[0]) ts = 0;
+    if (i >= n) ts = endTs;
     else {
-      const p = Math.min(1, (t - at[i]) / Math.min(TURN_MS, i < n - 1 ? at[i + 1] - at[i] : TURN_MS));
+      const d = i > 0 ? Math.min(TURN_MS, at[i] - at[i - 1]) : TURN_MS;
+      const p = Math.max(0, 1 - (at[i] - t) / d);
       ts = startTs(i) + p * dur(i);
     }
     model.timestampRequest.set(Math.min(ts, endTs));

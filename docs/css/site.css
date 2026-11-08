@@ -24,7 +24,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.6 Roboto, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0; overflow-x: clip; background: var(--bg); color: var(--ink); font: 400 17px/1.6 Roboto, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
 img { max-width: 100%; }
 .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
@@ -109,6 +109,10 @@ ul.points li b { color: var(--ink); font-weight: 500; }
 .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 26px; background: #303030; }
 .phone.sm { width: 210px; }
 .tilt-l { transform: translateY(40px) rotate(-3deg); }
+.phones.three .phone { width: 220px; }
+.phones.three .phone:nth-child(1) { margin-right: -64px; transform: translateY(34px) rotate(-5deg) scale(.9); }
+.phones.three .phone:nth-child(2) { position: relative; z-index: 1; }
+.phones.three .phone:nth-child(3) { margin-left: -64px; transform: translateY(34px) rotate(5deg) scale(.9); }
 .tilt-r { transform: translateY(-10px) rotate(3deg); }
 
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 40px; }
@@ -173,8 +177,8 @@ table.cmp { width: 100%; border-collapse: separate; border-spacing: 0; font-size
 
 .press-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin: 20px 0; }
 .press-grid a { display: block; text-decoration: none; font-size: 13px; color: var(--ink2); }
-.press-grid img { display: block; width: 100%; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 6px; }
-textarea.copy { width: 100%; min-height: 120px; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font: inherit; font-size: 15px; resize: vertical; }
+.press-grid img { display: block; width: 100%; height: auto; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 6px; }
+textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 14px; font: inherit; font-size: 15px; resize: vertical; }
 
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
 .reveal.in, .no-js .reveal { opacity: 1; transform: none; }
@@ -185,7 +189,7 @@ textarea.copy { width: 100%; min-height: 120px; background: var(--card); color: 
   .nav .links { display: none; }
   .nav .btn { margin-left: auto; }
   .hero { padding: 40px 0 36px; }
-  .hero .wrap, .row { grid-template-columns: 1fr; gap: 36px; }
+  .hero .wrap, .row { grid-template-columns: minmax(0, 1fr); gap: 36px; }
   .row.flip .text { order: 0; }
   .lede { font-size: 18px; }
   .stage { max-width: 440px; width: 100%; margin: 0 auto; }
@@ -194,6 +198,9 @@ textarea.copy { width: 100%; min-height: 120px; background: var(--card); color: 
   .phone { width: 44vw; max-width: 230px; }
   .phone.sm { width: 40vw; }
   .phones { gap: 12px; }
+  .phones.three .phone { width: 38vw; }
+  .phones.three .phone:nth-child(1) { margin-right: -13vw; }
+  .phones.three .phone:nth-child(3) { margin-left: -13vw; }
   .grid3, .cubes { grid-template-columns: 1fr; }
   .coach { grid-template-columns: 1fr; gap: 14px; padding: 24px; }
   .coach .badge { justify-self: start; }
