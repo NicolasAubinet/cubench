@@ -22,6 +22,7 @@ public class SmartCubeChip implements CubeConnectionListener, CubeBatteryListene
   private final Context context;
   private final Runnable onClick;
   private MenuItem item;
+  private MenuItem connectedOnlyItem;
   private View chip;
   private boolean hideWhenDisconnected;
   private boolean suppressed;
@@ -50,6 +51,12 @@ public class SmartCubeChip implements CubeConnectionListener, CubeBatteryListene
     if (chip != null) {
       chip.setOnClickListener(v -> onClick.run());
     }
+    refresh();
+  }
+
+  /** An item beside the chip that is shown only while a cube is connected, or null for none. */
+  public void setConnectedOnlyItem(MenuItem connectedOnlyItem) {
+    this.connectedOnlyItem = connectedOnlyItem;
     refresh();
   }
 
@@ -97,6 +104,9 @@ public class SmartCubeChip implements CubeConnectionListener, CubeBatteryListene
     chip.setVisibility(visible ? View.VISIBLE : View.GONE);
     if (item != null) {
       item.setVisible(visible);
+    }
+    if (connectedOnlyItem != null) {
+      connectedOnlyItem.setVisible(visible && connected);
     }
 
     icon.setColorFilter(ContextCompat.getColor(context, connected ? R.color.lightblue : R.color.white));

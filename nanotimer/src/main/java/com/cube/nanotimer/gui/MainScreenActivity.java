@@ -378,6 +378,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     // holding its width in the bar, and the gate has to take the whole item away.
     MenuItem smartCubeItem = menu.findItem(R.id.itSmartCube);
     smartCubeChip.bind(smartCubeItem, smartCubeItem != null ? smartCubeItem.getActionView() : null);
+    smartCubeChip.setConnectedOnlyItem(menu.findItem(R.id.itDrills));
     return super.onCreateOptionsMenu(menu);
   }
 
@@ -385,6 +386,10 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itAppIcon) {
       DialogUtils.showFragment(this, AboutDialog.newInstance());
+      return true;
+    }
+    if (item.getItemId() == R.id.itDrills) {
+      startActivity(new Intent(this, DrillSetupActivity.class));
       return true;
     }
     return super.onOptionsItemSelected(item);
