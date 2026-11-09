@@ -20,14 +20,12 @@ public final class F2lPairCases {
   private static final int ADVANCED = 42;
   private static final int ADVANCED_TWINS = 9;
 
-  private static final int CORNER_STUCK = 9;
-  private static final int EDGE_STUCK_LAST = 24;
-  private static final String HARD_TWIN = "pair_a9a";
+  private static final int ONE_PIECE_LAST = 24;
+  private static final List<String> NO_VOTED_TAKE_OUT = Arrays.asList("pair_a3a", "pair_a23");
 
   private static final List<String> STUCK = stuck();
   private static final List<String> ALL = all();
   private static final List<String> TAKE_OUT = takeOut();
-  private static final List<String> EDGE_STUCK = edgeStuck();
 
   private F2lPairCases() {
   }
@@ -49,15 +47,11 @@ public final class F2lPairCases {
 
   /**
    * The stuck cases a solver short of advanced F2L is dealt: one piece trapped and the other in the
-   * last layer, taken out with a trigger. Both trapped together, and a9a, are left out.
+   * last layer, each with a voted algorithm that takes the piece out first. Both trapped together
+   * are left out, and a3a and a23, which have no such algorithm.
    */
   public static List<String> takeOutCodes() {
     return TAKE_OUT;
-  }
-
-  /** The cases with the edge trapped and the corner in the last layer, a10 to a24. */
-  public static List<String> edgeStuckCodes() {
-    return EDGE_STUCK;
   }
 
   public static boolean isCase(String code) {
@@ -118,17 +112,7 @@ public final class F2lPairCases {
   private static List<String> takeOut() {
     List<String> codes = new ArrayList<String>();
     for (String code : STUCK) {
-      if (number(code) <= EDGE_STUCK_LAST && !HARD_TWIN.equals(code)) {
-        codes.add(code);
-      }
-    }
-    return Collections.unmodifiableList(codes);
-  }
-
-  private static List<String> edgeStuck() {
-    List<String> codes = new ArrayList<String>();
-    for (String code : STUCK) {
-      if (number(code) > CORNER_STUCK && number(code) <= EDGE_STUCK_LAST) {
+      if (number(code) <= ONE_PIECE_LAST && !NO_VOTED_TAKE_OUT.contains(code)) {
         codes.add(code);
       }
     }
