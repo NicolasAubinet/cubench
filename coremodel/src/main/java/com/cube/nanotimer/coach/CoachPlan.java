@@ -6,8 +6,11 @@ import com.cube.nanotimer.step.LastLayerAlgorithms;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -62,13 +65,27 @@ public class CoachPlan {
   private final Source source;
   private final String headline;
   private final List<FocusArea> focus;
+  private final Map<String, Long> expectedCaseMs;
 
   /** @param headline the diagnosis in a sentence, null for a plan written without a model */
   public CoachPlan(int planVersion, Source source, String headline, List<FocusArea> focus) {
+    this(planVersion, source, headline, focus, Collections.<String, Long>emptyMap());
+  }
+
+  /** As above, with what each case the plan shows ordinarily costs this solver in a solve. */
+  public CoachPlan(int planVersion, Source source, String headline, List<FocusArea> focus,
+      Map<String, Long> expectedCaseMs) {
     this.planVersion = planVersion;
     this.source = source;
     this.headline = headline;
     this.focus = Collections.unmodifiableList(new ArrayList<FocusArea>(focus));
+    this.expectedCaseMs =
+        Collections.unmodifiableMap(new LinkedHashMap<String, Long>(expectedCaseMs));
+  }
+
+  /** The same plan carrying these expected case times instead of its own. */
+  public CoachPlan withExpectedCaseMs(Map<String, Long> expected) {
+    return new CoachPlan(planVersion, source, headline, focus, expected);
   }
 
   public int getPlanVersion() {
@@ -86,6 +103,16 @@ public class CoachPlan {
   /** What to work on, worst first. */
   public List<FocusArea> getFocus() {
     return focus;
+  }
+
+  /**
+   * What a case ordinarily costs this solver in a solve: the case's usual share of its family, across
+   * solvers, times this solver's own family mean. Lets a card say a G perm is slow for a G perm rather
+   * than slow against an H. Null for a case the plan carries no figure for, which is every case of a
+   * plan written before the figure existed and of one written without the service.
+   */
+  public Long getExpectedCaseMs(String code) {
+    return expectedCaseMs.get(code);
   }
 
   /**
@@ -194,6 +221,13 @@ public class CoachPlan {
         areas.put(area.toJson());
       }
       json.put("focus", areas);
+      if (!expectedCaseMs.isEmpty()) {
+        JSONObject expected = new JSONObject();
+        for (Map.Entry<String, Long> one : expectedCaseMs.entrySet()) {
+          expected.put(one.getKey(), one.getValue().longValue());
+        }
+        json.put("case_expected_ms", expected);
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write coach plan", e);
@@ -217,8 +251,16 @@ public class CoachPlan {
       for (int i = 0; areas != null && i < areas.length(); i++) {
         focus.add(FocusArea.fromJson(areas.getJSONObject(i)));
       }
+      Map<String, Long> expected = new LinkedHashMap<String, Long>();
+      JSONObject cased = json.optJSONObject("case_expected_ms");
+      if (cased != null) {
+        for (Iterator<String> keys = cased.keys(); keys.hasNext(); ) {
+          String code = keys.next();
+          expected.put(code, Long.valueOf(cased.getLong(code)));
+        }
+      }
       return new CoachPlan(version, Source.of(json.getString("source")),
-          json.has("headline") ? json.getString("headline") : null, focus);
+          json.has("headline") ? json.getString("headline") : null, focus, expected);
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a coach plan: " + e.getMessage(), e);
     }

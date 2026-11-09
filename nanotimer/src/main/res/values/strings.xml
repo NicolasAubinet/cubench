@@ -1501,6 +1501,7 @@
   <string name="coach_reason_unknown">Something else to work on</string>
   <string name="coach_update_app">Update Cubench to see it all</string>
   <string name="coach_case_mean">%1$s against your %2$s average of %3$s</string>
+  <string name="coach_case_expected">%1$s against an expected %2$s</string>
   <string name="coach_case_cost">%1$d times, %2$s lost</string>
   <string name="coach_case_gap">%1$s drilled, %2$s slower in a solve</string>
   <string name="coach_case_both">%1$s in a solve, %2$s drilled</string>

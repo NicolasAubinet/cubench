@@ -1455,6 +1455,7 @@
   <string name="coach_reason_unknown">Outra coisa para trabalhar</string>
   <string name="coach_update_app">Atualize o Cubench para ver tudo</string>
   <string name="coach_case_mean">%1$s contra sua média de %2$s de %3$s</string>
+  <string name="coach_case_expected">%1$s contra %2$s esperados</string>
   <string name="coach_case_cost">%1$d vezes, %2$s perdidos</string>
   <string name="coach_case_gap">%1$s no treino, %2$s a mais na resolução</string>
   <string name="coach_case_both">%1$s na resolução, %2$s no treino</string>

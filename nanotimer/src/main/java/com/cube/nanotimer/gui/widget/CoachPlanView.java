@@ -41,6 +41,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.CoachPayload;
+import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.Evidence;
 import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.StepShares;
@@ -99,6 +100,8 @@ public class CoachPlanView {
   private final LayoutInflater inflater;
   /** Whose plan this is, for a drill that reads the solver's own recent solves. */
   private final SolveType solveType;
+  /** The plan on screen, for the expected case times it carries. */
+  private CoachPlan plan;
 
   public CoachPlanView(Activity activity, LinearLayout container, SolveType solveType) {
     this.activity = activity;
@@ -109,6 +112,7 @@ public class CoachPlanView {
 
   public void setPlan(StoredCoachPlan stored) {
     container.removeAllViews();
+    plan = stored == null ? null : stored.getPlan();
     if (stored == null) {
       return;
     }
@@ -925,6 +929,11 @@ public class CoachPlanView {
       if (drilled != null) {
         return activity.getString(R.string.coach_case_both, time(mean), time(drilled));
       }
+    }
+    Long expected = plan == null ? null : plan.getExpectedCaseMs(code);
+    if (mean != null && expected != null) {
+      return activity.getString(R.string.coach_case_expected, time(mean),
+          time(Double.valueOf(expected.doubleValue())));
     }
     Double family = payload.value("cases." + code + ".family_mean_ms");
     int cut = code.indexOf('_');

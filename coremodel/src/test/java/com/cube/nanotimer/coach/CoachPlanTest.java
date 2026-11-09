@@ -11,7 +11,9 @@ import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The third check a plan is put through, and the two ways it says no.
@@ -159,6 +161,25 @@ public class CoachPlanTest {
     Assert.assertNull(plan.getFocus().get(0).getReason());
     Assert.assertEquals("f2l_lookahead", plan.getFocus().get(0).getReasonCode());
     Assert.assertEquals("Look ahead.", plan.getFocus().get(0).getText());
+  }
+
+  @Test
+  public void testExpectedCaseTimesSurviveARoundTrip() {
+    Map<String, Long> expected = new LinkedHashMap<String, Long>();
+    expected.put("pll_gb", Long.valueOf(5850));
+    CoachPlan plan = CoachPlan.parse(planDrilling("pll_gb").withExpectedCaseMs(expected).toJson());
+
+    Assert.assertEquals(Long.valueOf(5850), plan.getExpectedCaseMs("pll_gb"));
+    Assert.assertNull(plan.getExpectedCaseMs("pll_ga"));
+  }
+
+  /** A plan written before the figure existed reads back with none. */
+  @Test
+  public void testAPlanWithoutExpectedCaseTimesHasNone() {
+    String json = planDrilling("pll_gb").toJson();
+
+    Assert.assertFalse(json.contains("case_expected_ms"));
+    Assert.assertNull(CoachPlan.parse(json).getExpectedCaseMs("pll_gb"));
   }
 
   /** Every case the app can deal is a case this check accepts, which is the two ends meeting. */
