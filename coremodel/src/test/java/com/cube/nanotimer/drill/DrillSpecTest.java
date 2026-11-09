@@ -228,6 +228,24 @@ public class DrillSpecTest {
     assertFalse(spec.isLearning());
   }
 
+  /** Kept at the working set's version: an older app ignores the flag and still runs the drill. */
+  @Test
+  public void aTakeOutDrillReadsBackAtItsOwnVersion() {
+    DrillSpec spec = new DrillSpec("coach-f2l", DrillSpec.Type.F2L_PAIR,
+        DrillSpec.Delivery.VIRTUAL, Arrays.asList("pair_a1"), DrillSpec.Selection.WEIGHTED, 40,
+        900, Collections.<String, Long>emptyMap(), 3, 5, null).withWorkingSet(5).withTakeOut();
+    DrillSpec read = DrillSpec.fromJson(spec.toJson());
+    assertTrue(read.isTakeOut());
+    assertEquals(4, read.getSpecVersion());
+    assertEquals(5, read.getWorkingSet());
+    assertFalse(DrillSpec.fromJson(G_PERMS).isTakeOut());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void onlyAPairDrillIsTakenOut() {
+    DrillSpec.fromJson(G_PERMS).withTakeOut();
+  }
+
   @Test
   public void refusesALearningDrillThatCannotRetire() {
     refuses("{\"spec_version\": 5, \"type\": \"case_execution\", \"delivery\": \"virtual\","

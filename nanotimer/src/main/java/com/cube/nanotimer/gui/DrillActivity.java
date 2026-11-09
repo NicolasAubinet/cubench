@@ -793,7 +793,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     String code = rep.getCaseCode();
     String turned = rep.getTurned();
     if (rep.isAbandoned() || !CaseAlgorithms.isWorthPointingOut(code, turned)
-        || CaseFlags.isTheirs(code, turned)) {
+        || CaseFlags.isTheirs(code, turned)
+        || session.getSpec().isTakeOut() && CaseAlgorithms.isTakeOut(code, turned)) {
       return false;
     }
     // A learning drill's own algorithm is what it asked for, even when off the usual list.
@@ -885,7 +886,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (recommended != null) {
       return recommended;
     }
-    List<CaseAlgorithms.Listed> listed = CaseAlgorithms.shown(code);
+    List<CaseAlgorithms.Listed> listed = listedFor(code);
     if (!listed.isEmpty()) {
       return listed.get(0).getMoves();
     }
@@ -946,13 +947,27 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /** The listed algorithm the case popup marks as recommended, or null where the vote is close. */
-  private static String recommendedAlgorithm(String code) {
-    for (CaseAlgorithms.Listed listed : CaseAlgorithms.shown(code)) {
+  private String recommendedAlgorithm(String code) {
+    for (CaseAlgorithms.Listed listed : listedFor(code)) {
       if (listed.isRecommended()) {
         return listed.getMoves();
       }
     }
     return null;
+  }
+
+  /**
+   * The algorithms this drill offers for a case: a take-out drill's stuck pair the way its piece is
+   * taken out before advanced F2L, any other case its usual list.
+   */
+  private List<CaseAlgorithms.Listed> listedFor(String code) {
+    if (session != null && session.getSpec().isTakeOut()) {
+      List<CaseAlgorithms.Listed> ways = CaseAlgorithms.takeOut(code);
+      if (!ways.isEmpty()) {
+        return ways;
+      }
+    }
+    return CaseAlgorithms.shown(code);
   }
 
   /** Keeps a choose-step rep's execution time against the algorithm tried, if it counts. */
@@ -1006,7 +1021,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     List<String> shown = new ArrayList<String>();
     String own = Options.INSTANCE.getOwnCaseAlgorithm(choosing);
     addIfNew(shown, firstAlgorithm);
-    for (CaseAlgorithms.Listed listed : CaseAlgorithms.shown(choosing)) {
+    for (CaseAlgorithms.Listed listed : listedFor(choosing)) {
       // Their own spelling of a listed algorithm stands in its place
       addIfNew(shown, CaseAlgorithms.sameTurning(choosing, listed.getMoves(), own) ? own
           : listed.getMoves());

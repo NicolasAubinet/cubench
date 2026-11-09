@@ -154,6 +154,7 @@ public final class DrillSpec {
   private final int workingSet;
   private final boolean learning;
   private final Map<String, String> caseAlgorithms;
+  private final boolean takeOut;
   private final String source;
 
   /** A drill this app wrote itself, at the current version. */
@@ -184,7 +185,7 @@ public final class DrillSpec {
     this(caseTargetsMs.isEmpty() && winsToRetire == 0 ? VERSION_2 : VERSION_3, id, DEFAULT_PUZZLE,
         DEFAULT_METHOD, type, delivery, cases, selection, reps, targetMs, caseTargetsMs,
         winsToRetire, minShowings, label, null, 0, 0, false,
-        Collections.<String, String>emptyMap(), null);
+        Collections.<String, String>emptyMap(), false, null);
   }
 
   /**
@@ -194,7 +195,21 @@ public final class DrillSpec {
   public DrillSpec withWorkingSet(int size) {
     return new DrillSpec(size > 0 ? Math.max(VERSION_4, specVersion) : specVersion, id, puzzle,
         method, type, delivery, cases, selection, reps, targetMs, caseTargetsMs, winsToRetire,
-        minShowings, label, crossFace, planningMs, size, learning, caseAlgorithms, null);
+        minShowings, label, crossFace, planningMs, size, learning, caseAlgorithms, takeOut, null);
+  }
+
+  /**
+   * The same pair drill shown the way a stuck piece is taken out with a trigger before the basic
+   * case, rather than the advanced set's algorithms, for a solver not yet learning advanced F2L. No
+   * version comes with it: an app that does not know it runs the drill with the advanced ones.
+   */
+  public DrillSpec withTakeOut() {
+    if (type != Type.F2L_PAIR) {
+      throw new IllegalArgumentException("Only a pair drill is taken out, not " + type.code());
+    }
+    return new DrillSpec(specVersion, id, puzzle, method, type, delivery, cases, selection, reps,
+        targetMs, caseTargetsMs, winsToRetire, minShowings, label, crossFace, planningMs,
+        workingSet, learning, caseAlgorithms, true, null);
   }
 
   /**
@@ -206,7 +221,7 @@ public final class DrillSpec {
       int reps, int winsToRetire, Map<String, String> algorithms, String label) {
     return new DrillSpec(VERSION_5, id, DEFAULT_PUZZLE, DEFAULT_METHOD, type, Delivery.VIRTUAL,
         cases, selection, reps, 0, Collections.<String, Long>emptyMap(), winsToRetire,
-        winsToRetire, label, null, 0, 0, true, algorithms, null);
+        winsToRetire, label, null, 0, 0, true, algorithms, false, null);
   }
 
   /**
@@ -218,7 +233,7 @@ public final class DrillSpec {
     return new DrillSpec(VERSION_2, id, DEFAULT_PUZZLE, DEFAULT_METHOD, Type.CROSS,
         Delivery.VIRTUAL, Collections.<String>emptyList(), Selection.ROUND_ROBIN, reps, 0,
         Collections.<String, Long>emptyMap(), 0, 0, label, crossFace, planningMs, 0, false,
-        Collections.<String, String>emptyMap(), null);
+        Collections.<String, String>emptyMap(), false, null);
   }
 
   /** A look-ahead drill this app wrote itself, which runs its reps out. */
@@ -226,14 +241,14 @@ public final class DrillSpec {
     return new DrillSpec(VERSION_6, id, DEFAULT_PUZZLE, DEFAULT_METHOD, Type.F2L_LOOKAHEAD,
         Delivery.VIRTUAL, Collections.<String>emptyList(), Selection.ROUND_ROBIN, reps, 0,
         Collections.<String, Long>emptyMap(), 0, 0, label, null, 0, 0, false,
-        Collections.<String, String>emptyMap(), null);
+        Collections.<String, String>emptyMap(), false, null);
   }
 
   private DrillSpec(int specVersion, String id, String puzzle, String method, Type type,
       Delivery delivery, List<String> cases, Selection selection, int reps, long targetMs,
       Map<String, Long> caseTargetsMs, int winsToRetire, int minShowings, String label,
       String crossFace, long planningMs, int workingSet, boolean learning,
-      Map<String, String> caseAlgorithms, String source) {
+      Map<String, String> caseAlgorithms, boolean takeOut, String source) {
     if (type == null || delivery == null || selection == null) {
       throw new IllegalArgumentException("A drill needs a type, a delivery and a selection");
     }
@@ -304,6 +319,7 @@ public final class DrillSpec {
       }
     }
     this.caseAlgorithms = Collections.unmodifiableMap(algorithms);
+    this.takeOut = takeOut;
     this.source = source;
   }
 
@@ -339,6 +355,7 @@ public final class DrillSpec {
           object.optInt("working_set", 0),
           object.optBoolean("learn", false),
           algorithms(object.optJSONObject("case_algorithms")),
+          object.optBoolean("take_out", false),
           json);
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a drill spec: " + e.getMessage(), e);
@@ -391,6 +408,9 @@ public final class DrillSpec {
         if (!caseAlgorithms.isEmpty()) {
           object.put("case_algorithms", new JSONObject(caseAlgorithms));
         }
+      }
+      if (takeOut) {
+        object.put("take_out", true);
       }
       if (label != null) {
         object.put("label", label);
@@ -539,6 +559,11 @@ public final class DrillSpec {
    */
   public boolean isLearning() {
     return learning;
+  }
+
+  /** Whether a stuck pair is shown taken out with a trigger: see {@link #withTakeOut}. */
+  public boolean isTakeOut() {
+    return takeOut;
   }
 
   /** The algorithm a learning drill shows for a case, or null for the case's usual one. */

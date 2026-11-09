@@ -20,8 +20,14 @@ public final class F2lPairCases {
   private static final int ADVANCED = 42;
   private static final int ADVANCED_TWINS = 9;
 
+  private static final int CORNER_STUCK = 9;
+  private static final int EDGE_STUCK_LAST = 24;
+  private static final String HARD_TWIN = "pair_a9a";
+
   private static final List<String> STUCK = stuck();
   private static final List<String> ALL = all();
+  private static final List<String> TAKE_OUT = takeOut();
+  private static final List<String> EDGE_STUCK = edgeStuck();
 
   private F2lPairCases() {
   }
@@ -39,6 +45,19 @@ public final class F2lPairCases {
   /** The cases with a piece trapped in another slot. */
   public static List<String> stuckCodes() {
     return STUCK;
+  }
+
+  /**
+   * The stuck cases a solver short of advanced F2L is dealt: one piece trapped and the other in the
+   * last layer, taken out with a trigger. Both trapped together, and a9a, are left out.
+   */
+  public static List<String> takeOutCodes() {
+    return TAKE_OUT;
+  }
+
+  /** The cases with the edge trapped and the corner in the last layer, a10 to a24. */
+  public static List<String> edgeStuckCodes() {
+    return EDGE_STUCK;
   }
 
   public static boolean isCase(String code) {
@@ -94,6 +113,31 @@ public final class F2lPairCases {
       }
     }
     return Collections.unmodifiableList(codes);
+  }
+
+  private static List<String> takeOut() {
+    List<String> codes = new ArrayList<String>();
+    for (String code : STUCK) {
+      if (number(code) <= EDGE_STUCK_LAST && !HARD_TWIN.equals(code)) {
+        codes.add(code);
+      }
+    }
+    return Collections.unmodifiableList(codes);
+  }
+
+  private static List<String> edgeStuck() {
+    List<String> codes = new ArrayList<String>();
+    for (String code : STUCK) {
+      if (number(code) > CORNER_STUCK && number(code) <= EDGE_STUCK_LAST) {
+        codes.add(code);
+      }
+    }
+    return Collections.unmodifiableList(codes);
+  }
+
+  /** 12 for {@code pair_a12} and for {@code pair_a12a}. */
+  private static int number(String stuckCode) {
+    return Integer.parseInt(stuckCode.replaceAll("\\D", ""));
   }
 
   private static List<String> all() {

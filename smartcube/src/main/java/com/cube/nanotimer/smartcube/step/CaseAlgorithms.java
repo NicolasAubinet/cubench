@@ -79,6 +79,26 @@ public final class CaseAlgorithms {
   }
 
   /**
+   * A stuck pair's piece taken out with a trigger before the basic case ({@link
+   * F2LTakeOutAlgorithms}), the first recommended; empty for any other case.
+   */
+  public static List<Listed> takeOut(String caseCode) {
+    List<Listed> ways = new ArrayList<Listed>();
+    if (isPair(caseCode) && slotOf(caseCode) == null) {
+      for (String moves : F2LTakeOutAlgorithms.forCase(pairCase(caseCode))) {
+        ways.add(new Listed(moves, ways.isEmpty(), null));
+      }
+    }
+    return Collections.unmodifiableList(ways);
+  }
+
+  /** Whether the moves are one of the case's {@link #takeOut} ways, from any grip. */
+  public static boolean isTakeOut(String caseCode, String moves) {
+    return isPair(caseCode) && slotOf(caseCode) == null
+        && F2LTakeOutAlgorithms.isListed(pairCase(caseCode), moves);
+  }
+
+  /**
    * How an execution is written where it is shown: the table's spelling where it is one of the
    * case's algorithms, and otherwise the execution itself, tidied. A mirror of a listed algorithm is
    * that algorithm when it comes to reading it, but is shown the way it was turned.
