@@ -951,6 +951,13 @@ public class CoachPlanView {
     }
     Double count = payload.value("cases." + code + ".count");
     Double lost = payload.value("cases." + code + ".time_lost_ms");
+    Double mean = payload.value("cases." + code + ".mean_ms");
+    Long expected = plan == null ? null : plan.getExpectedCaseMs(code);
+    if (count != null && mean != null && expected != null) {
+      // Lost against what this case usually costs, as the line above it reads, not the family mean.
+      double over = (mean.doubleValue() - expected.doubleValue()) * count.doubleValue();
+      lost = over > 0 ? Double.valueOf(over) : null;
+    }
     return count == null || lost == null ? null
         : activity.getString(R.string.coach_case_cost, count.intValue(), time(lost));
   }
