@@ -47,7 +47,8 @@ import java.util.List;
  * {@link #RUN_TO_KNOW_LARGE_POOL} from a pool of at least {@link #LARGE_POOL} cases, where picking
  * the case out of many is most of the work. A rep with the algorithm looked up or on screen starts
  * the run again and says nothing else: the panel is also opened to compare algorithms, so only a
- * solve moves a case down. A fumbled or restarted rep never reaches the rule at all.
+ * solve moves a case down. A restarted rep breaks the run the same way, as it does in a learning
+ * drill; a skipped one never reaches the rule at all.
  *
  * <p><b>Known from drills alone gets no grace.</b> The single lapse forgiven above is forgiven only
  * where a solve has put the case in alone since the lapse before it. A case drills made known and
@@ -101,7 +102,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 6;
+  public static final int RULE_VERSION = 7;
 
   /** Clean drill reps in a row that make a case known. */
   public static final int RUN_TO_KNOW = 5;
@@ -127,7 +128,7 @@ public class CaseKnowledge {
     /** A clean drill rep, dealt out of at least {@link #LARGE_POOL} cases. */
     CLEAN_REP_LARGE_POOL,
 
-    /** A drill rep turned with the algorithm looked up or on screen. */
+    /** A drill rep turned with the algorithm looked up or on screen, or restarted. */
     LOOKED_UP,
   }
 

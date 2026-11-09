@@ -220,7 +220,9 @@ public final class CaseKnowledgeStore {
         + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
         + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")";
 
-    String drilled = "SELECT r." + DB.COL_DRILL_REP_REVEALED + " = 0 AS unaided"
+    // A restarted rep breaks a run as a lookup does, which is how the learning drill reads it.
+    String drilled = "SELECT (r." + DB.COL_DRILL_REP_REVEALED + " = 0"
+        + "     AND r." + DB.COL_DRILL_REP_RESET_COUNT + " = 0) AS unaided"
         + "     , 0 AS from_solve"
         + "     , d." + DB.COL_DRILL_TIMESTAMP + " AS seen_at"
         + "     , r." + DB.COL_DRILL_REP_POSITION + " AS ordinal"
@@ -231,8 +233,8 @@ public final class CaseKnowledgeStore {
         + "   AND r." + DB.COL_DRILL_REP_DELETED + " = 0"
         + "   AND r." + DB.COL_DRILL_REP_PRACTICE + " = 0"
         + "   AND (r." + DB.COL_DRILL_REP_REVEALED + " = 1"
-        + "     OR (r." + DB.COL_DRILL_REP_ABANDONED + " = 0"
-        + "    AND r." + DB.COL_DRILL_REP_RESET_COUNT + " = 0))";
+        + "     OR r." + DB.COL_DRILL_REP_RESET_COUNT + " > 0"
+        + "     OR r." + DB.COL_DRILL_REP_ABANDONED + " = 0)";
 
     List<Occurrence> occurrences = new ArrayList<Occurrence>();
     Cursor cursor = db.rawQuery(solved + " UNION ALL " + drilled

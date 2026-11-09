@@ -145,9 +145,16 @@ public class CaseKnowledgeTest {
     Assert.assertNull(Status.forCode(""));
   }
 
+  /** The owner's OLL 16 on 2026-11-09: restarted reps (read as L) kept every run under five. */
+  @Test
+  public void testRestartedRepsKeepADrilledCaseToLearn() {
+    Assert.assertEquals(Status.TO_LEARN,
+        CaseKnowledge.read(occurrences("HH" + "LLcc" + "LLccLcccL")));
+  }
+
   /**
    * Oldest first: U and H are solves in one algorithm and in more, c and C clean drill reps from a
-   * small and a large pool, L a rep with the algorithm on screen.
+   * small and a large pool, L a rep with the algorithm on screen or restarted.
    */
   private static List<Evidence> occurrences(String reading) {
     List<Evidence> occurrences = new ArrayList<Evidence>();
