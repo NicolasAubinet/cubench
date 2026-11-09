@@ -292,7 +292,8 @@ public class CoachPayloadBuilderTest {
   public void testF2lGroupsRideInThePayloadAndSurviveARoundTrip() {
     CoachPayload payload = CoachPayload.parse(buildWithPlacedPairs().toJson());
 
-    Assert.assertEquals(4, payload.getF2lGroups().size());
+    Assert.assertEquals(5, payload.getF2lGroups().size());
+    Assert.assertNotNull(payload.value("f2l_groups.f2l_basic_early.mean_ms"));
     Assert.assertEquals(0.25, payload.value("f2l_groups.f2l_stuck.share"), 1e-9);
     Assert.assertEquals(5000, payload.value("f2l_groups.f2l_stuck.mean_ms"), 50);
     Assert.assertEquals(3000, payload.value("f2l_groups.f2l_basic.mean_ms"), 50);

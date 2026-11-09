@@ -114,6 +114,38 @@ public class F2lGroupsTest {
     Assert.assertEquals(400, figure(groups, F2lGroups.LATER).getRecognitionMs().longValue());
   }
 
+  /** A stuck pair is never a solve's last, so the basic ones are also sent without the last. */
+  @Test
+  public void testTheBasicPairsBeforeTheLastRideBesideTheComparison() {
+    List<StepSample> samples = new ArrayList<StepSample>();
+    for (int solve = 0; solve < 12; solve++) {
+      samples.add(new StepSample("pair_a12_rf", 5000 + solve, 1500, true, solve, 0));
+      samples.add(new StepSample("pair_27_fl", 3000 + solve * 10, 800, true, solve, 1));
+      boolean skipped = solve % 2 == 0; // its last slot already in, the pair before is the last
+      samples.add(new StepSample("pair_3_br", 3000 + solve * 10, 800, true, solve, 2));
+      samples.add(skipped ? new StepSample("pair_skip", 0, 0, true, solve, 3)
+          : new StepSample("pair_4_bl", 2000 + solve, 500, true, solve, 3));
+    }
+
+    List<StepFigure> groups = F2lGroups.of(samples, FLOOR);
+
+    StepFigure early = figure(groups, F2lGroups.BASIC_EARLY);
+    Assert.assertEquals(18, early.getCount());
+    Assert.assertEquals(3057, early.getMeanMs(), 5);
+    Assert.assertNull(early.getShare());
+  }
+
+  @Test
+  public void testTheBasicPairsBeforeTheLastAreNotSentWithoutTheComparison() {
+    List<StepSample> samples = new ArrayList<StepSample>();
+    for (int solve = 0; solve < 30; solve++) {
+      samples.add(new StepSample("pair_27_fl", 3200, 800, true, solve, 0));
+      samples.add(new StepSample("pair_4_bl", 2000, 500, true, solve, 1));
+    }
+
+    Assert.assertNull(figure(F2lGroups.of(samples, FLOOR), F2lGroups.BASIC_EARLY));
+  }
+
   @Test
   public void testAPairWithNoPlaceIsNotGuessedAt() {
     List<StepSample> samples = new ArrayList<StepSample>();

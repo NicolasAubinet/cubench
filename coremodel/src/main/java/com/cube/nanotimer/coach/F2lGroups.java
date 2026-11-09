@@ -20,6 +20,11 @@ import java.util.regex.Pattern;
  *   <li><b>Stuck pieces</b>: the pairs handed with a piece trapped in another unsolved slot (the
  *       advanced cases, {@code pair_a*}) against the basic ones ({@code pair_<number>}). A placement
  *       neither set names, a skip, and a pair stored with only its slot are in neither group.
+ *   <li><b>Basic pairs before the last</b>: the basic pairs less each solve's last one, sent beside
+ *       the comparison above (payload 17). A piece can only be trapped while another slot is still
+ *       open, so a stuck pair is never a solve's last, and the last is its quickest: 2.59 s against
+ *       3.15 s for the first on the owner's 995 pairs (2026-11-09), which put the stuck gap 16% over
+ *       what the same places in the solve cost.
  *   <li><b>The first pair</b>: the pause before the first pair after the cross against the pause
  *       before each later one, which says whether the cross ends in a hunt for the first pair.
  * </ul>
@@ -35,6 +40,9 @@ final class F2lGroups {
 
   /** The pairs handed with a piece trapped in another unsolved slot. */
   static final String STUCK = "f2l_stuck";
+
+  /** The basic pairs that were not their solve's last, the places a stuck pair can come in. */
+  static final String BASIC_EARLY = "f2l_basic_early";
 
   /** The first pair each solve worked on after the cross. */
   static final String FIRST = "f2l_first";
@@ -69,7 +77,11 @@ final class F2lGroups {
     }
     List<StepFigure> figures = new ArrayList<StepFigure>();
     Double share = basic + stuck == 0 ? null : Double.valueOf((double) stuck / (basic + stuck));
-    figures.addAll(compared(byCase, BASIC, STUCK, share, floor));
+    List<StepFigure> byStuck = compared(byCase, BASIC, STUCK, share, floor);
+    figures.addAll(byStuck);
+    if (!byStuck.isEmpty()) {
+      figures.addAll(alone(basicEarly(samples), BASIC_EARLY, floor));
+    }
     figures.addAll(compared(byPosition(samples), FIRST, LATER, null, floor));
     return figures;
   }
@@ -100,6 +112,44 @@ final class F2lGroups {
       grouped.add(relabel(pair, first ? FIRST : LATER));
     }
     return grouped;
+  }
+
+  /**
+   * The basic pairs below the highest place a pair of their solve was worked at. A skip is passed
+   * over: with the last slot already filled, the pair before it was the last one open.
+   */
+  private static List<StepSample> basicEarly(List<StepSample> samples) {
+    Map<Long, Integer> lastOf = new LinkedHashMap<Long, Integer>();
+    for (StepSample pair : pairs(samples)) {
+      if (pair.getPartIndex() != null
+          && !MethodStatistics.SKIP.equals(MethodStatistics.caseOf(pair.getCode()))) {
+        Long solve = Long.valueOf(pair.getSolveId());
+        Integer last = lastOf.get(solve);
+        if (last == null || pair.getPartIndex().intValue() > last.intValue()) {
+          lastOf.put(solve, pair.getPartIndex());
+        }
+      }
+    }
+    List<StepSample> early = new ArrayList<StepSample>();
+    for (StepSample pair : pairs(samples)) {
+      String caseName = MethodStatistics.caseOf(pair.getCode());
+      if (pair.getPartIndex() != null && caseName != null && BASIC_CASE.matcher(caseName).matches()
+          && pair.getPartIndex().intValue() < lastOf.get(Long.valueOf(pair.getSolveId()))) {
+        early.add(relabel(pair, BASIC_EARLY));
+      }
+    }
+    return early;
+  }
+
+  /** One group on its own, or nothing under the floor. */
+  private static List<StepFigure> alone(List<StepSample> grouped, String code, int floor) {
+    StepTallies tallies = new StepTallies(grouped);
+    StepStats stats = tallies.get(code);
+    List<StepFigure> figures = new ArrayList<StepFigure>();
+    if (stats != null && stats.getCount() >= floor) {
+      figures.add(StepFigure.group(stats, tallies.getRejectionRate(code), null));
+    }
+    return figures;
   }
 
   private static List<StepSample> pairs(List<StepSample> samples) {

@@ -37,9 +37,13 @@ public class CoachPayload {
    * but that the app runs a back-slot drill ({@link #BACK_SLOT_DRILL_VERSION}), 14 the F2L
    * rotations split by front and back slot, and a drill dealing a case into any named slot
    * ({@link #SLOT_DRILL_VERSION}), 15 the cross's moves against its optimal
-   * ({@link #CROSS_MOVES_VERSION}), 16 the pause before the final AUF; an older payload
-   * is still read, and is simply missing them. */
-  public static final int VERSION = 16;
+   * ({@link #CROSS_MOVES_VERSION}), 16 the pause before the final AUF, 17 the basic F2L pairs
+   * less each solve's last, and an app that shows a take-out stuck-pair drill
+   * ({@link #TAKE_OUT_VERSION}); an older payload is still read, and is simply missing them. */
+  public static final int VERSION = 17;
+
+  /** The first payload with the early basic pairs, from an app that shows a take-out drill. */
+  public static final int TAKE_OUT_VERSION = 17;
 
   /** The first payload with the cross's moves against its optimal, from an app that names it. */
   public static final int CROSS_MOVES_VERSION = 15;

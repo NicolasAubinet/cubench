@@ -49,7 +49,8 @@ public final class CoachCodes {
 
   /** The F2L groups. */
   public static final Set<String> F2L_GROUPS =
-      set(F2lGroups.BASIC, F2lGroups.STUCK, F2lGroups.FIRST, F2lGroups.LATER);
+      set(F2lGroups.BASIC, F2lGroups.STUCK, F2lGroups.BASIC_EARLY, F2lGroups.FIRST,
+          F2lGroups.LATER);
 
   /** The two sides of a last layer step split by looks. */
   public static final Set<String> LOOKS = set(LastLayerLooks.ONE_LOOK, LastLayerLooks.TWO_LOOK);
