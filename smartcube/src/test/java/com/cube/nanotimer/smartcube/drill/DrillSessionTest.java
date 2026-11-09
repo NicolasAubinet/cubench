@@ -531,7 +531,7 @@ public class DrillSessionTest {
         Collections.frequency(seen, seen.get(0)));
   }
 
-  /** A case left to look its algorithms up spends the rep but comes round again, unlike a skip. */
+  /** A case left to look its algorithms up spends the rep but is dealt next, unlike a skip. */
   @Test
   public void aCaseLeftToLookUpComesRoundAgain() {
     DrillSpec spec = new DrillSpec("look", DrillSpec.Type.CASE_EXECUTION,
@@ -552,6 +552,24 @@ public class DrillSessionTest {
     }
     assertEquals(5, seen.size());
     assertEquals(2, Collections.frequency(seen, seen.get(0)));
+    assertEquals(seen.get(0), seen.get(1));
+  }
+
+  /** In a retiring drill too, and after practising it, the looked-up case is the next one dealt. */
+  @Test
+  public void aCaseLookedUpIsDealtAfterItsPractice() {
+    DrillSpec spec = new DrillSpec("look", DrillSpec.Type.CASE_EXECUTION,
+        DrillSpec.Delivery.VIRTUAL, Arrays.asList("pll_h", "pll_z", "pll_t", "pll_ua"),
+        DrillSpec.Selection.ROUND_ROBIN, 20, 2000, Collections.<String, Long>emptyMap(), 3, 0, null);
+    assertTrue(spec.retiresCases());
+    DrillSession session = new DrillSession(spec, new Random(3));
+    assertTrue(session.nextRep());
+    String looked = session.getCurrentCase();
+    session.lookUp();
+    session.startPractice(looked, null);
+    session.endPractice();
+    assertTrue(session.nextRep());
+    assertEquals(looked, session.getCurrentCase());
   }
 
   /**

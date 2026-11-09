@@ -962,8 +962,8 @@ public final class DrillSession {
 
   /**
    * Leaves the case in front of the user to look its algorithms up, spending the rep as a looked-up
-   * skip. Unlike a skip it comes round again later, as a case looked up mid-rep does. Null when
-   * there is none.
+   * skip. Unlike a skip it is the next case dealt, so the user can try it with the algorithm put
+   * away again. Null when there is none.
    */
   public DrillRep lookUp() {
     String code = currentCase;
@@ -972,9 +972,7 @@ public final class DrillSession {
     }
     revealed = true;
     DrillRep rep = complete(true);
-    if (!spec.retiresCases()) {
-      showAgain(code);
-    }
+    dealNext = code;
     return rep;
   }
 
