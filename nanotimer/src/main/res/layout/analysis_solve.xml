@@ -12,91 +12,48 @@
    android:layout_height="wrap_content"
    android:orientation="vertical">
 
-  <!-- The mean stands free at hero size rather than inside a chart, and the composition is the same
-       bar the main screen's hero card draws, which is the thing that was tapped to get here. -->
+  <!-- No card behind the mean: it stands free at hero size, as the timer's own result does, and the
+       composition is the same bar the main screen's hero card draws. -->
   <LinearLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:background="@drawable/analysis_card"
      android:orientation="vertical"
-     android:padding="14dp">
+     android:paddingTop="4dp">
 
-    <LinearLayout
+    <TextView
+       android:id="@+id/tvAnalysisMean"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:baselineAligned="false"
-       android:orientation="horizontal">
+       android:fontFeatureSettings="tnum"
+       android:gravity="center_horizontal"
+       android:includeFontPadding="false"
+       android:singleLine="true"
+       android:textColor="@color/white"
+       android:textSize="58sp"
+       android:textStyle="bold"/>
 
-      <LinearLayout
-         android:layout_width="0dp"
-         android:layout_height="wrap_content"
-         android:layout_weight="1"
-         android:orientation="vertical">
+    <TextView
+       android:id="@+id/tvAnalysisMeanOf"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="4dp"
+       android:fontFeatureSettings="tnum"
+       android:gravity="center_horizontal"
+       android:textColor="@color/secondary_text"
+       android:textSize="14sp"/>
 
-        <!-- Over the figure rather than under it, and in the same small caps Best is labelled with:
-             below, a caption that far under a 38sp number reads as a footnote to the whole card. -->
-        <TextView
-           android:id="@+id/tvAnalysisMeanOf"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:letterSpacing="0.07"
-           android:textAllCaps="true"
-           android:textColor="@color/secondary_text"
-           android:textSize="10sp"/>
-
-        <com.cube.nanotimer.util.view.FontFitTextView
-           android:id="@+id/tvAnalysisMean"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="2dp"
-           android:fontFamily="@font/roboto_medium"
-           android:fontFeatureSettings="tnum"
-           android:includeFontPadding="false"
-           android:singleLine="true"
-           android:textColor="@color/white"
-           android:textSize="38sp"/>
-      </LinearLayout>
-
-      <LinearLayout
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:gravity="right"
-         android:orientation="vertical">
-
-        <TextView
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:letterSpacing="0.07"
-           android:text="@string/analysis_best"
-           android:textAllCaps="true"
-           android:textColor="@color/secondary_text"
-           android:textSize="10sp"/>
-
-        <TextView
-           android:id="@+id/tvAnalysisBest"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:fontFeatureSettings="tnum"
-           android:textColor="@color/secondary_text"
-           android:textSize="15sp"/>
-      </LinearLayout>
-    </LinearLayout>
-
-    <!-- Taller than the row's bar and no denser: the palette is the cube's own and is too bright to
-         cover area, so what grows is the length rather than the fill. -->
     <com.cube.nanotimer.util.view.SolveStepBarView
        android:id="@+id/vAnalysisComposition"
        android:layout_width="match_parent"
-       android:layout_height="18dp"
-       android:layout_marginTop="12dp"/>
+       android:layout_height="12dp"
+       android:layout_marginTop="14dp"/>
 
-    <!-- Always present, and every segment named on it: the lightness check is being relaxed rather
-         than passed, and a legend is part of what pays for that. -->
+    <!-- Every segment named under the bar, each in its own column: name, time, then share. -->
     <LinearLayout
        android:id="@+id/llAnalysisLegend"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="12dp"
+       android:layout_marginTop="9dp"
        android:baselineAligned="false"
        android:orientation="horizontal"/>
   </LinearLayout>
@@ -105,7 +62,7 @@
      android:id="@+id/llAnalysisDeltaCard"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_marginTop="10dp"
+     android:layout_marginTop="12dp"
      android:background="@drawable/analysis_card"
      android:orientation="vertical"
      android:padding="14dp">
@@ -134,7 +91,7 @@
      layout="@layout/case_table"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:layout_marginTop="20dp"/>
+     android:layout_marginTop="14dp"/>
 
   <!-- Under the step table rather than above it: the table is what the tab is opened for, this is
        the occasional look. Its figures come from a second read of the window's solves. -->

@@ -263,5 +263,7 @@
   <color name="table_header">#346CCCEC</color>
   <color name="grid_background_1">@color/accent_wash_08</color>
   <color name="grid_background_2">@color/accent_wash_20</color>
+  <!-- A count on a case picture's corner, ringed in the ground colour so it reads as lifted off it. -->
+  <color name="case_badge">#4A5056</color>
 
 </resources>

@@ -4,14 +4,12 @@
      can be off. It is the window chip's control a row down, which is why it opens a list. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="wrap_content"
-   android:layout_height="wrap_content"
+   android:layout_height="42dp"
    android:layout_marginRight="@dimen/space_s"
    android:background="@drawable/number_preset_chip"
    android:gravity="center"
-   android:paddingLeft="14dp"
-   android:paddingRight="14dp"
-   android:paddingTop="6dp"
-   android:paddingBottom="6dp"
+   android:paddingLeft="18dp"
+   android:paddingRight="18dp"
    android:singleLine="true"
    android:textColor="@color/number_preset_chip_text"
-   android:textSize="13sp"/>
+   android:textSize="17sp"/>

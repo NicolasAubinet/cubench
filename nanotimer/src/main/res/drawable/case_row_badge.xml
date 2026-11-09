@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A case's count on its picture's corner: a pill ringed in the ground colour. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <shape android:shape="rectangle">
+      <solid android:color="@color/graybg"/>
+      <corners android:radius="11dp"/>
+    </shape>
+  </item>
+  <item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp">
+    <shape android:shape="rectangle">
+      <solid android:color="@color/case_badge"/>
+      <corners android:radius="9dp"/>
+    </shape>
+  </item>
+</layer-list>

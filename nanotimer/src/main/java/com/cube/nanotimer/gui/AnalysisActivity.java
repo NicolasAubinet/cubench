@@ -130,7 +130,10 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private static final String PERCENT_FORMAT = "%d%%";
 
   /** The narrowest the delta scale ever gets, so a solver in proportion does not read as wild. */
-  private static final int MIN_DELTA_SCALE = 6;
+  private static final double MIN_DELTA_SCALE = 1.5;
+
+  /** Of the half track: how far the widest delta reaches, leaving room before the edge. */
+  private static final double WIDEST_DELTA_REACH = 0.92;
 
   // No count column: a step is reached in nearly every solve, so its count is the solve count and
   // ranking by it would rank nothing. The rows leave it out too.
@@ -1294,11 +1297,16 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         .setText(FormatterService.INSTANCE.formatSolveTime(total));
     // Of the steps rather than of the solve: a solve is timed from its first move and its steps do
     // not have to add up to it, so calling this the solve's own mean would be a different figure.
-    ((TextView) findViewById(R.id.tvAnalysisMeanOf)).setText(getResources()
-        .getQuantityString(R.plurals.analysis_mean_of, statistics.getSolveCount(),
-            statistics.getSolveCount()));
-    ((TextView) findViewById(R.id.tvAnalysisBest))
-        .setText(FormatterService.INSTANCE.formatSolveTime(best));
+    String bestText = FormatterService.INSTANCE.formatSolveTime(best);
+    String caption = getResources().getQuantityString(R.plurals.analysis_hero_caption,
+        statistics.getSolveCount(), statistics.getSolveCount(), bestText);
+    SpannableStringBuilder captionText = new SpannableStringBuilder(caption);
+    int bestAt = caption.lastIndexOf(bestText);
+    if (bestAt >= 0) {
+      captionText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.white)),
+          bestAt, bestAt + bestText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+    ((TextView) findViewById(R.id.tvAnalysisMeanOf)).setText(captionText);
 
     showComposition();
     showLegend(total);
@@ -1325,9 +1333,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     LayoutInflater inflater = LayoutInflater.from(this);
     for (StepStats step : steps) {
       View cell = inflater.inflate(R.layout.analysis_legend_cell, legend, false);
-      cell.findViewById(R.id.vAnalysisLegendSwatch)
-          .setBackgroundColor(palette.colorFor(step.getCode()));
-      ((TextView) cell.findViewById(R.id.tvAnalysisLegendName)).setText(nameOf(step));
+      TextView name = cell.findViewById(R.id.tvAnalysisLegendName);
+      name.setText(nameOf(step));
+      name.setTextColor(palette.colorFor(step.getCode()));
       ((TextView) cell.findViewById(R.id.tvAnalysisLegendShare))
           .setText(percent(total == 0 ? 0 : (double) step.getMeanMs() / total));
       ((TextView) cell.findViewById(R.id.tvAnalysisLegendTime))
@@ -1382,7 +1390,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       deltas.put(step.getCode(), Double.valueOf(delta));
       widest = Math.max(widest, Math.abs(delta));
     }
-    double scale = Math.max(MIN_DELTA_SCALE, Math.ceil(widest));
+    double scale = Math.max(MIN_DELTA_SCALE, widest / WIDEST_DELTA_REACH);
 
     LinearLayout rows = findViewById(R.id.llAnalysisDeltaRows);
     rows.removeAllViews();
@@ -1393,15 +1401,15 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         continue;
       }
       View row = inflater.inflate(R.layout.analysis_delta_row, rows, false);
-      ((TextView) row.findViewById(R.id.tvAnalysisDeltaName)).setText(nameOf(step));
+      TextView name = row.findViewById(R.id.tvAnalysisDeltaName);
+      name.setText(nameOf(step));
+      name.setTextColor(palette.colorFor(step.getCode()));
       ((DeltaBarView) row.findViewById(R.id.vAnalysisDeltaBar))
           .setDelta((float) (delta.doubleValue() / scale), palette.colorFor(step.getCode()));
       TextView value = row.findViewById(R.id.tvAnalysisDeltaValue);
       value.setText(signed(delta.doubleValue()));
-      // Under is not good news and over is not bad: which side of the rule it is on is the fact,
-      // and the verdict colours mean something else on this screen.
-      value.setTextColor(ContextCompat.getColor(this,
-          delta.doubleValue() >= 0 ? R.color.white : R.color.secondary_text));
+      // Under is not good news and over is not bad, so both read alike: the side of the rule says it.
+      value.setTextColor(ContextCompat.getColor(this, R.color.white));
       rows.addView(row);
     }
   }
@@ -1426,6 +1434,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
           .meter(step.getMeanRecognitionMs(), step.getMeanExecutionMs(), hue)
           .value(0, FormatterService.INSTANCE.formatSolveTime(step.getMeanMs()),
               ContextCompat.getColor(this, R.color.white))
+          .lead(0)
           .value(1, FormatterService.INSTANCE.formatSolveTime(step.getBestMs()),
               ContextCompat.getColor(this, R.color.secondary_text))
           .value(2, quotable(step, 3) ? FormatterService.INSTANCE.formatSolveTime(step.getStdDevMs())

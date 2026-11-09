@@ -28,8 +28,12 @@ public class DeltaBarView extends View {
   /** Of the bar's height: the radius its ends are rounded to. */
   private static final float CORNER_RATIO = 0.25f;
 
+  /** The bar's own height, centred on a rule that runs the view's full height above and below it. */
+  private static final float BAR_DP = 10f;
+
   private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final int ruleColor;
+  private final float barPx;
 
   private float fraction; // -1 to 1 of the half width, negative being under
   private int color;
@@ -41,6 +45,7 @@ public class DeltaBarView extends View {
   public DeltaBarView(Context context, AttributeSet attributes) {
     super(context, attributes);
     ruleColor = ContextCompat.getColor(context, R.color.white_wash_25);
+    barPx = BAR_DP * context.getResources().getDisplayMetrics().density;
   }
 
   /**
@@ -64,9 +69,11 @@ public class DeltaBarView extends View {
       return;
     }
     float end = middle + fraction * middle;
-    float corner = height * CORNER_RATIO;
+    float bar = Math.min(height, barPx);
+    float top = (height - bar) / 2f;
+    float corner = bar * CORNER_RATIO;
     paint.setColor(color);
-    canvas.drawRoundRect(Math.min(middle, end), 0, Math.max(middle, end), height,
+    canvas.drawRoundRect(Math.min(middle, end), top, Math.max(middle, end), top + bar,
         corner, corner, paint);
   }
 }

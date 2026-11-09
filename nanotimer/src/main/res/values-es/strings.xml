@@ -1226,10 +1226,9 @@
   <string name="analysis_empty_scramble">Este tipo de resolución prepara un solo paso y no una resolución entera, así que no hay nada que desglosar.</string>
   <string name="analysis_empty_puzzle">Un smart cube solo lee resoluciones de 3x3. No hay nada que desglosar aquí.</string>
   <string name="analysis_empty_steps">Este tipo de resolución cronometra sus propios pasos, así que su desglose es el que tocas en el cronómetro.</string>
-  <string name="analysis_best">Mejor</string>
-  <plurals name="analysis_mean_of">
-    <item quantity="one">Media de %d resolución</item>
-    <item quantity="other">Media de %d resoluciones</item>
+  <plurals name="analysis_hero_caption">
+    <item quantity="one">media de %1$d resolución · mejor %2$s</item>
+    <item quantity="other">media de %1$d resoluciones · mejor %2$s</item>
   </plurals>
   <string name="analysis_column_step">Paso</string>
   <string name="analysis_delta_label">Frente a una resoluci\u00f3n %s t\u00edpica</string>

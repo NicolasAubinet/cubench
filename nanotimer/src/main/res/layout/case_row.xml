@@ -27,10 +27,35 @@
      android:id="@+id/tvCaseRowCount"
      style="@style/DrillCasePosition"/>
 
-  <com.cube.nanotimer.gui.widget.LastLayerCaseView
-     android:id="@+id/vCaseRowChart"
-     android:layout_width="36dp"
-     android:layout_height="36dp"/>
+  <!-- The picture, with a corner badge for a table that shows its count on the case. -->
+  <FrameLayout
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:clipChildren="false"
+     android:clipToPadding="false">
+
+    <com.cube.nanotimer.gui.widget.LastLayerCaseView
+       android:id="@+id/vCaseRowChart"
+       android:layout_width="36dp"
+       android:layout_height="36dp"/>
+
+    <TextView
+       android:id="@+id/tvCaseRowBadge"
+       android:layout_width="wrap_content"
+       android:layout_height="22dp"
+       android:layout_gravity="right|bottom"
+       android:layout_marginRight="-7dp"
+       android:layout_marginBottom="-7dp"
+       android:background="@drawable/case_row_badge"
+       android:fontFeatureSettings="tnum"
+       android:gravity="center"
+       android:minWidth="22dp"
+       android:paddingLeft="7dp"
+       android:paddingRight="7dp"
+       android:textColor="@color/white"
+       android:textSize="11sp"
+       android:visibility="gone"/>
+  </FrameLayout>
 
   <!-- What a step of the solve carries instead of a chart: it has no picture, and a blank the width
        of one would leave the names hanging off an empty column. -->
@@ -121,6 +146,13 @@
          android:fontFeatureSettings="tnum"
          android:singleLine="true"
          android:textSize="11sp"/>
+
+      <!-- What a bar drawn to the table's scale leaves of the row, after its figures. -->
+      <View
+         android:id="@+id/vCaseRowBarRest"
+         android:layout_width="0dp"
+         android:layout_height="1dp"
+         android:visibility="gone"/>
     </LinearLayout>
   </LinearLayout>
 

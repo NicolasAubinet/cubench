@@ -1274,10 +1274,9 @@
   <string name="analysis_empty_scramble">This solve type sets up one step rather than a whole solve, so there is nothing to break down.</string>
   <string name="analysis_empty_puzzle">A smart cube only reads 3x3 solves. There is nothing to break down here.</string>
   <string name="analysis_empty_steps">This solve type times its own steps, so its breakdown is the one you tap on the timer.</string>
-  <string name="analysis_best">Best</string>
-  <plurals name="analysis_mean_of">
-    <item quantity="one">Mean of %d solve</item>
-    <item quantity="other">Mean of %d solves</item>
+  <plurals name="analysis_hero_caption">
+    <item quantity="one">mean of %1$d solve · best %2$s</item>
+    <item quantity="other">mean of %1$d solves · best %2$s</item>
   </plurals>
   <string name="analysis_column_step">Step</string>
   <string name="analysis_delta_label">Against a typical %s solve</string>
