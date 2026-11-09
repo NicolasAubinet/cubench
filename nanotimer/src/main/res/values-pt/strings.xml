@@ -1454,6 +1454,7 @@
   <string name="coach_case_mean">%1$s contra sua média de %2$s de %3$s</string>
   <string name="coach_case_cost">%1$d vezes, %2$s perdidos</string>
   <string name="coach_case_gap">%1$s no treino, %2$s a mais na resolução</string>
+  <string name="coach_case_both">%1$s na resolução, %2$s no treino</string>
   <string name="coach_case_rejected">%1$d%% deles descartados</string>
   <string name="coach_recognition_body">%1$s: %2$s de %3$s passam antes do primeiro movimento.</string>
   <string name="coach_two_look_body">%1$s: 2-look em %2$d das últimas %3$d resoluções.</string>

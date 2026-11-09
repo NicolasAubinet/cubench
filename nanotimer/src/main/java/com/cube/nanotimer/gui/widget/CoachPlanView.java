@@ -565,7 +565,8 @@ public class CoachPlanView {
           continue;
         }
         if (named && payload.value("cases." + code + ".mean_ms") != null) {
-          cases.addView(caseRow(cases, null, payload, code));
+          cases.addView(caseRow(cases, area.getReason() == FocusArea.Reason.SLOW_UNDER_PRESSURE
+              ? area.getReason() : null, payload, code));
         } else {
           bare.add(code);
         }
@@ -918,6 +919,13 @@ public class CoachPlanView {
       }
     }
     Double mean = payload.value("cases." + code + ".mean_ms");
+    if (reason == FocusArea.Reason.SLOW_UNDER_PRESSURE && mean != null) {
+      // A case the drill deals alongside, with no gap worth reporting: both figures side by side.
+      Double drilled = payload.value("drill_cases." + code + ".mean_ms");
+      if (drilled != null) {
+        return activity.getString(R.string.coach_case_both, time(mean), time(drilled));
+      }
+    }
     Double family = payload.value("cases." + code + ".family_mean_ms");
     int cut = code.indexOf('_');
     return mean == null || family == null || cut < 0 ? null

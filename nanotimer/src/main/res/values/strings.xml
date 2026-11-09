@@ -1500,6 +1500,7 @@
   <string name="coach_case_mean">%1$s against your %2$s average of %3$s</string>
   <string name="coach_case_cost">%1$d times, %2$s lost</string>
   <string name="coach_case_gap">%1$s drilled, %2$s slower in a solve</string>
+  <string name="coach_case_both">%1$s in a solve, %2$s drilled</string>
   <string name="coach_case_rejected">%1$d%% of them thrown out</string>
   <string name="coach_recognition_body">%1$s: %2$s of %3$s goes before the first move.</string>
   <string name="coach_two_look_body">%1$s: two looks in %2$d of the last %3$d solves.</string>
