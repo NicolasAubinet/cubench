@@ -107,31 +107,43 @@
     <View
        android:layout_width="match_parent"
        android:layout_height="1dp"
-       android:layout_marginTop="12dp"
+       android:layout_marginTop="14dp"
        android:background="@color/hero_divider"/>
 
+    <!-- Headed like Today, so its figures are not read as today's. -->
     <LinearLayout
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_marginTop="10dp"
+       android:layout_marginTop="14dp"
        android:gravity="center_vertical"
        android:orientation="horizontal">
 
+      <ImageView
+         android:layout_width="34dp"
+         android:layout_height="34dp"
+         android:background="@drawable/coach_hero_icon_tile"
+         android:importantForAccessibility="no"
+         android:padding="8dp"
+         android:src="@drawable/ic_coach_point_plan"/>
+
       <TextView
-         android:layout_width="0dp"
+         android:layout_width="wrap_content"
          android:layout_height="wrap_content"
-         android:layout_weight="1"
-         android:fontFamily="@font/roboto_medium"
-         android:letterSpacing="0.1"
+         android:layout_marginLeft="10dp"
+         android:layout_marginStart="10dp"
+         android:fontFamily="@font/roboto"
          android:text="@string/coach_day_since"
-         android:textAllCaps="true"
-         android:textColor="@color/secondary_text"
-         android:textSize="11sp"/>
+         android:textColor="@color/white"
+         android:textSize="17sp"
+         android:textStyle="bold"/>
 
       <TextView
          android:id="@+id/tvCoachTodaySinceSolves"
-         android:layout_width="wrap_content"
+         android:layout_width="0dp"
          android:layout_height="wrap_content"
+         android:layout_marginLeft="8dp"
+         android:layout_marginStart="8dp"
+         android:layout_weight="1"
          android:textColor="@color/secondary_text"
          android:textSize="12.5sp"/>
     </LinearLayout>
