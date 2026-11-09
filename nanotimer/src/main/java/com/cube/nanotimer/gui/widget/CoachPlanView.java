@@ -919,8 +919,10 @@ public class CoachPlanView {
     }
     Double mean = payload.value("cases." + code + ".mean_ms");
     Double family = payload.value("cases." + code + ".family_mean_ms");
-    return mean == null || family == null ? null
-        : activity.getString(R.string.coach_case_mean, time(mean), time(family));
+    int cut = code.indexOf('_');
+    return mean == null || family == null || cut < 0 ? null
+        : activity.getString(R.string.coach_case_mean, time(mean),
+            Utils.toSmartCubeStepLocalizedName(activity, code.substring(0, cut), 0), time(family));
   }
 
   /** The second line: how often, and what that has added up to. */
