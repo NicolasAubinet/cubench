@@ -487,6 +487,14 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     caseShown();
   }
 
+  /** An untouched case is timed from now, so the pause is not read as recognition. */
+  @Override
+  protected void onCubeBack() {
+    if (cubeReady && session.getCurrentCase() != null && session.getMovesSoFar().isEmpty()) {
+      caseShown();
+    }
+  }
+
   @Override
   protected boolean standsOnMat() {
     return true;

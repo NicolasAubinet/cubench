@@ -1030,6 +1030,7 @@
   <string name="drill_case_stats_when">%1$s · essai %2$d</string>
   <string name="drill_case_stats_remove_message">%1$s, %2$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
   <string name="drill_needs_cube">Connectez votre smart cube pour lancer un drill.</string>
+  <string name="drill_cube_away">Cube déconnecté. Reconnectez-le pour continuer.</string>
   <string name="drill_no_known_cases">Aucun cas de ce drill ne peut être mélangé par l\'application.</string>
   <string name="drill_no_cube_view">Cet appareil ne peut pas afficher le cube d\'un drill.</string>
   <string name="drill_straighten">Redresser le cube</string>

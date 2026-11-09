@@ -1073,6 +1073,7 @@
   <!-- Punctuation between what was drilled and the mode it was drilled in. -->
   <string name="drill_summary_subtitle" translatable="false">%1$s · %2$s</string>
   <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>
+  <string name="drill_cube_away">Cube disconnected. Reconnect it to carry on.</string>
   <string name="drill_no_known_cases">This drill has no case this app knows how to scramble.</string>
   <string name="drill_no_cube_view">This device cannot draw the cube a drill is run on.</string>
   <string name="drill_straighten">Straighten the cube</string>

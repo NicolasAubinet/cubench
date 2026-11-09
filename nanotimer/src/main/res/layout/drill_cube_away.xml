@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- The cube went away mid-drill (a cube left idle falls asleep): the drill waits for it rather
+     than ending. A tap opens the connect sheet. Shown on both drill screens. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:id="@+id/tvDrillCubeAway"
+   android:layout_width="wrap_content"
+   android:layout_height="wrap_content"
+   android:layout_gravity="top|center_horizontal"
+   android:layout_margin="10dp"
+   android:background="@drawable/smart_cube_pill"
+   android:backgroundTint="@color/warning"
+   android:gravity="center"
+   android:paddingLeft="16dp"
+   android:paddingRight="16dp"
+   android:paddingTop="8dp"
+   android:paddingBottom="8dp"
+   android:fontFamily="@font/roboto_medium"
+   android:textColor="@color/on_accent"
+   android:textSize="14sp"
+   android:text="@string/drill_cube_away"
+   android:visibility="gone"/>

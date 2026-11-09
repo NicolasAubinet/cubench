@@ -248,6 +248,15 @@ public class CrossDrillActivity extends DrillScreenActivity {
     }
   }
 
+  /** An untouched scramble was in view the whole pause, so a fresh one is dealt to plan. */
+  @Override
+  protected void onCubeBack() {
+    if (cubeReady && !betweenReps && session.isRunning() && session.getMoveCount() == 0) {
+      showStatus(getString(R.string.drill_cross_dealing));
+      dealScramble(0);
+    }
+  }
+
   /**
    * A turn made before the scramble is on screen is dropped, not queued. The first one of a rep
    * takes the colours with it: from there the cross is built from what was read, not from what can

@@ -132,20 +132,23 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
 
   /** The page has drawn the case, which is when a turn can be counted against it. */
   protected boolean cubeReady;
-  /** The drill is over, by its last rep or by the cube going away, and takes no more turns. */
+  /** The drill is over, by its last rep or by the user stopping it, and takes no more turns. */
   protected boolean finished;
 
   /** The first case has been dealt. Once only, however often a cube comes and goes after it. */
   private boolean started;
   /** Held at the door for want of a cube, which is not the same as having failed for good. */
   private boolean awaitingCube;
+  /** The cube went away mid-drill, which pauses the drill until it is back. */
+  private boolean cubeAway;
+  private View cubeAwayNotice;
 
   /** Where a recording drill's reps go, and a drain for a casual one's. */
   protected DrillRecorder recorder;
   /**
    * How this drill is going to have stopped. Set where the drill is cut short, since by the time
-   * the summary is drawn the three endings look alike, and a drill whose cube died at rep 6 is not
-   * the same result as one the user walked out of at rep 6.
+   * the summary is drawn the endings look alike, and a drill that ran its course is not the same
+   * result as one the user walked out of at rep 6. A lost cube no longer ends one: it pauses it.
    */
   private DrillEnd endReason = DrillEnd.FINISHED;
 
@@ -189,6 +192,8 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     runningLayout = findViewById(R.id.drillRunning);
     summaryLayout = findViewById(R.id.drillSummary);
     tvUnavailable = findViewById(R.id.tvDrillUnavailable);
+    cubeAwayNotice = findViewById(R.id.tvDrillCubeAway);
+    cubeAwayNotice.setOnClickListener(v -> openSmartCubeConnect());
     pbCube = findViewById(R.id.pbDrillCube);
 
     followGyro = Options.INSTANCE.isDrillFollowGyro();
@@ -479,16 +484,32 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     onCaseVisible();
   }
 
-  /** A drill stopped at rep 6 of 20 is a result, so a cube that goes away ends it rather than
-   * losing it. One that never started waits instead, since it has no reps to end with. */
+  /**
+   * A cube that goes away pauses the drill rather than ending it: a cube left idle falls asleep,
+   * and a break mid-drill must not cost the drill. One that never started waits at the door.
+   */
   @Override
   public void onConnection(CubeConnection connection) {
     if (awaitingCube) {
       startWhenCubeConnected();
-    } else if (started && isDrillRunning() && !SmartCubeManager.INSTANCE.isConnected()) {
-      endReason = DrillEnd.CUBE_LOST;
-      showSummary();
+      return;
     }
+    if (!started || !isDrillRunning() || finished) {
+      return;
+    }
+    boolean connected = SmartCubeManager.INSTANCE.isConnected();
+    if (!connected && !cubeAway) {
+      cubeAway = true;
+      cubeAwayNotice.setVisibility(View.VISIBLE);
+    } else if (connected && cubeAway) {
+      cubeAway = false;
+      cubeAwayNotice.setVisibility(View.GONE);
+      onCubeBack();
+    }
+  }
+
+  /** The cube is back after a pause, with the case in view all along: a drill may re-time it. */
+  protected void onCubeBack() {
   }
 
   /** The layout's size for the rep's figure, read once before anything changes it. */

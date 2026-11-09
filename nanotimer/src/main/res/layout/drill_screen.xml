@@ -61,6 +61,7 @@
          android:visibility="gone"/>
 
       <include layout="@layout/drill_gyro_chip"/>
+      <include layout="@layout/drill_cube_away"/>
     </FrameLayout>
 
     <!-- Practice mode, or a learning drill's Show alg: the algorithm, in the scramble's face,

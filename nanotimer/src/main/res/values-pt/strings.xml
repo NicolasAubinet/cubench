@@ -1032,6 +1032,7 @@
   <string name="drill_case_stats_when">%1$s · repetição %2$d</string>
   <string name="drill_case_stats_remove_message">%1$s, %2$s. Fica na lista, riscada, e não conta para nada.</string>
   <string name="drill_needs_cube">Conecte seu smart cube para fazer um treino.</string>
+  <string name="drill_cube_away">Cubo desconectado. Reconecte-o para continuar.</string>
   <string name="drill_no_known_cases">O aplicativo não sabe gerar nenhum dos casos deste treino.</string>
   <string name="drill_no_cube_view">Este dispositivo não consegue desenhar o cubo de um treino.</string>
   <string name="drill_straighten">Endireitar o cubo</string>

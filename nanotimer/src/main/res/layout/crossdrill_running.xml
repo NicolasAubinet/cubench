@@ -106,6 +106,7 @@
        android:visibility="gone"/>
 
     <include layout="@layout/drill_gyro_chip"/>
+    <include layout="@layout/drill_cube_away"/>
 
   </FrameLayout>
 
