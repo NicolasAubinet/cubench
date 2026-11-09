@@ -1294,7 +1294,10 @@
   <string name="analysis_column_case">Case</string>
   <string name="analysis_shape_title">Shape</string>
   <string name="analysis_shape_all">All shapes</string>
-  <string name="analysis_shape_count">%1$s (%2$d)</string>
+  <plurals name="analysis_shape_cases">
+    <item quantity="one">%d case</item>
+    <item quantity="other">%d cases</item>
+  </plurals>
   <string name="analysis_knowledge_of">of %d</string>
   <string name="analysis_knowledge_unseen">Not yet seen</string>
   <string name="analysis_algorithms_label">Standard algorithms</string>

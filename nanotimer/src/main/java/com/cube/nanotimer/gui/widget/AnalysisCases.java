@@ -1,7 +1,7 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.content.Context;
-import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -103,6 +103,23 @@ public class AnalysisCases {
    */
   private static final CaseKnowledge.Status[] STANDINGS = {CaseKnowledge.Status.KNOWN,
       CaseKnowledge.Status.NEEDS_REVIEW, CaseKnowledge.Status.TO_LEARN, null};
+
+  /** Each shape's picture in the picker: its first case in the set's order. */
+  private static final Map<String, String> SHAPE_PICTURES = shapePictures();
+  /** Two rows of seven fit a landscape screen; seven across a portrait one leave no room to read. */
+  private static final int SHAPE_COLUMNS = 4;
+  private static final int SHAPE_COLUMNS_WIDE = 7;
+
+  private static Map<String, String> shapePictures() {
+    Map<String, String> pictures = new LinkedHashMap<String, String>();
+    for (String code : DRAWN.keySet()) {
+      String name = LastLayerCaseNames.group(code);
+      if (name != null && !pictures.containsKey(name)) {
+        pictures.put(name, code);
+      }
+    }
+    return pictures;
+  }
 
   private static Map<String, Integer> shapeSizes() {
     Map<String, Integer> sizes = new LinkedHashMap<String, Integer>();
@@ -310,26 +327,59 @@ public class AnalysisCases {
    * reason this is a list.
    */
   private void pickShape() {
-    final List<String> shapes = shapesOf(family);
-    String[] labels = new String[shapes.size() + 1];
-    labels[0] = context.getString(R.string.analysis_shape_all);
-    for (int i = 0; i < shapes.size(); i++) {
-      labels[i + 1] = context.getString(R.string.analysis_shape_count, shapes.get(i),
-          SHAPE_SIZES.get(shapes.get(i)));
-    }
-    // The window chip's own dialog, down to its theme: this is the same control one row up.
-    new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme)
+    List<String> shapes = shapesOf(family);
+    LayoutInflater inflater = LayoutInflater.from(context);
+    View body = inflater.inflate(R.layout.analysis_shape_picker, null);
+    LinearLayout grid = body.findViewById(R.id.llShapeGrid);
+    // The window chip's dialog theme: this is the same kind of control one row up.
+    final AlertDialog dialog = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme)
         .setTitle(R.string.analysis_shape_title)
-        .setSingleChoiceItems(labels, shapes.indexOf(shape) + 1,
-            new DialogInterface.OnClickListener() {
-              @Override
-              public void onClick(DialogInterface dialog, int which) {
-                shape = which == 0 ? ANY : shapes.get(which - 1);
-                dialog.dismiss();
-                redraw();
-              }
-            })
-        .show();
+        .setView(body)
+        .create();
+
+    View all = body.findViewById(R.id.tvShapeAll);
+    all.setSelected(ANY.equals(shape));
+    all.setOnClickListener(shapePick(dialog, ANY));
+    int columns = context.getResources().getConfiguration().orientation
+        == Configuration.ORIENTATION_LANDSCAPE ? SHAPE_COLUMNS_WIDE : SHAPE_COLUMNS;
+    LinearLayout row = null;
+    for (int i = 0; i < shapes.size(); i++) {
+      if (i % columns == 0) {
+        row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        grid.addView(row);
+      }
+      String name = shapes.get(i);
+      View tile = inflater.inflate(R.layout.analysis_shape_tile, row, false);
+      ((LastLayerCaseView) tile.findViewById(R.id.vShapeChart))
+          .setDiagram(LastLayerDiagram.forCase(SHAPE_PICTURES.get(name)));
+      ((TextView) tile.findViewById(R.id.tvShapeName)).setText(name);
+      int size = SHAPE_SIZES.get(name).intValue();
+      ((TextView) tile.findViewById(R.id.tvShapeCount)).setText(
+          context.getResources().getQuantityString(R.plurals.analysis_shape_cases, size, size));
+      tile.setSelected(name.equals(shape));
+      tile.setOnClickListener(shapePick(dialog, name));
+      row.addView(tile);
+    }
+    // Empty cells keep the last row's tiles the width of the others.
+    for (int left = (columns - shapes.size() % columns) % columns; left > 0;
+        left--) {
+      View spacer = inflater.inflate(R.layout.analysis_shape_tile, row, false);
+      spacer.setVisibility(View.INVISIBLE);
+      row.addView(spacer);
+    }
+    dialog.show();
+  }
+
+  private View.OnClickListener shapePick(final AlertDialog dialog, final String picked) {
+    return new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        shape = picked;
+        dialog.dismiss();
+        redraw();
+      }
+    };
   }
 
   /**

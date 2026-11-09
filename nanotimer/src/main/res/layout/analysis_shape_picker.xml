@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The shape picker's body: every shape at once, so the whole body scrolls on a short screen. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content">
+
+  <LinearLayout
+     android:id="@+id/llShapeGrid"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingStart="16dp"
+     android:paddingTop="4dp"
+     android:paddingEnd="16dp"
+     android:paddingBottom="8dp">
+
+    <TextView
+       android:id="@+id/tvShapeAll"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_margin="4dp"
+       android:background="@drawable/shape_tile"
+       android:fontFamily="@font/roboto_medium"
+       android:gravity="center"
+       android:minHeight="48dp"
+       android:text="@string/analysis_shape_all"
+       android:textColor="@color/case_name"
+       android:textSize="15sp"/>
+
+  </LinearLayout>
+
+</ScrollView>
