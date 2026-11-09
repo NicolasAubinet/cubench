@@ -17,7 +17,7 @@ import java.util.Map;
  * length never ranks. A search only checks the shape: some prefix of the algorithm leaves the pair
  * a basic case, and the rest is one of that case's listed algorithms.
  *
- * <p>On 20 of the 33 one-piece cases the most voted algorithm is itself a take-out. On 11 a take-out
+ * <p>On 21 of the 33 one-piece cases the most voted algorithm is itself a take-out. On 10 a take-out
  * has votes but the top algorithm is another kind, which the advanced stage teaches. a3a and a23
  * have no voted take-out and are left out, pending the owner. Both pieces in one slot are left out
  * too: one trigger lifts the pair out whole, and it comes up on one pair in seventy.
