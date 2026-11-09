@@ -751,9 +751,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    * staring at it, and the alternative was leaving the drill to go and look it up.
    *
    * <p>They are tried on the cube in the choose step, the same one a coach's offer opens, with the
-   * case popup a row away. The rep up is spent, marked as looked up, so it is never read as knowing
-   * the case, and the case comes round again later; Back or "Use this one" returns to the drill on
-   * a new case. A case with nothing to try gets the popup, the rep going on being timed.
+   * case popup a row away. The rep is not spent: Back or "Use this one" deals the same case again,
+   * and that rep is marked looked up, so it is never read as knowing the case. A case with nothing
+   * to try gets the popup, the rep going on being timed.
    */
   private void showAlgorithms() {
     String code = session == null || choosing != null ? null : session.getCurrentCase();
@@ -766,10 +766,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       DialogUtils.showFragment(this, CaseAlgorithmsDialog.newInstance(code));
       return;
     }
-    recorder.record(session.lookUp());
-    if (session.getSpec().retiresCases()) {
-      refreshCaseProgress();
-    }
+    session.lookUp();
     hidePracticeOffer();
     choosingToPractise = true;
     beginChoosing(code, first);

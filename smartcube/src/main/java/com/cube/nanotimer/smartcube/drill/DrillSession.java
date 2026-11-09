@@ -108,6 +108,8 @@ public final class DrillSession {
   private String lastDealt;
   /** A case left untouched for practice, dealt first when the drill resumes. */
   private String dealNext;
+  /** A case left to look up, whose rep is marked looked up once it is dealt again. */
+  private String lookedUp;
   private final Map<String, String> taught = new HashMap<String, String>();
 
   /** An F2L pair drill, whose case is a pair and whose rep ends when that pair is in. */
@@ -265,6 +267,8 @@ public final class DrillSession {
       return false;
     }
     deal(pick());
+    revealed = currentCase.equals(lookedUp);
+    lookedUp = null;
     return true;
   }
 
@@ -961,19 +965,18 @@ public final class DrillSession {
   }
 
   /**
-   * Leaves the case in front of the user to look its algorithms up, spending the rep as a looked-up
-   * skip. Unlike a skip it is the next case dealt, so the user can try it with the algorithm put
-   * away again. Null when there is none.
+   * Leaves the case in front of the user to look its algorithms up. The rep is not spent: the case
+   * is the next one dealt, so the user can try it with the algorithm put away, and that rep is
+   * marked looked up. False when there is no case to leave.
    */
-  public DrillRep lookUp() {
+  public boolean lookUp() {
     String code = currentCase;
     if (code == null || practiceCase != null) {
-      return null;
+      return false;
     }
-    revealed = true;
-    DrillRep rep = complete(true);
     dealNext = code;
-    return rep;
+    lookedUp = code;
+    return true;
   }
 
   /**

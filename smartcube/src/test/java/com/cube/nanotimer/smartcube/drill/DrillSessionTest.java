@@ -531,7 +531,7 @@ public class DrillSessionTest {
         Collections.frequency(seen, seen.get(0)));
   }
 
-  /** A case left to look its algorithms up spends the rep but is dealt next, unlike a skip. */
+  /** A case left to look its algorithms up is dealt next and only then spent, marked looked up. */
   @Test
   public void aCaseLeftToLookUpComesRoundAgain() {
     DrillSpec spec = new DrillSpec("look", DrillSpec.Type.CASE_EXECUTION,
@@ -543,16 +543,18 @@ public class DrillSessionTest {
     while (hand.next()) {
       seen.add(session.getCurrentCase());
       if (seen.size() == 1) {
-        DrillRep rep = session.lookUp();
-        assertTrue(rep.isAbandoned());
-        assertTrue(rep.wasRevealed());
+        assertTrue(session.lookUp());
       } else {
         assertNotNull(session.getCurrentCase(), hand.execute(inverse(session.getCurrentScramble())));
       }
     }
-    assertEquals(5, seen.size());
-    assertEquals(2, Collections.frequency(seen, seen.get(0)));
+    List<DrillRep> reps = session.getReps();
+    assertEquals(5, reps.size());
     assertEquals(seen.get(0), seen.get(1));
+    assertEquals(seen.get(0), reps.get(0).getCaseCode());
+    assertTrue(reps.get(0).wasRevealed());
+    assertFalse(reps.get(0).isAbandoned());
+    assertFalse(reps.get(1).wasRevealed());
   }
 
   /** In a retiring drill too, and after practising it, the looked-up case is the next one dealt. */
@@ -563,13 +565,20 @@ public class DrillSessionTest {
         DrillSpec.Selection.ROUND_ROBIN, 20, 2000, Collections.<String, Long>emptyMap(), 3, 0, null);
     assertTrue(spec.retiresCases());
     DrillSession session = new DrillSession(spec, new Random(3));
-    assertTrue(session.nextRep());
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
     String looked = session.getCurrentCase();
-    session.lookUp();
-    session.startPractice(looked, null);
+    assertTrue(session.lookUp());
+    hand.practise(looked);
+    assertNotNull(hand.execute(inverse(session.getCurrentScramble())));
     session.endPractice();
-    assertTrue(session.nextRep());
+    assertTrue(hand.next());
     assertEquals(looked, session.getCurrentCase());
+    assertTrue(session.getReps().isEmpty());
+    DrillRep rep = hand.execute(inverse(session.getCurrentScramble()));
+    assertNotNull(rep);
+    assertTrue(rep.wasRevealed());
+    assertEquals(1, session.getReps().size());
   }
 
   /**
