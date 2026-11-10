@@ -121,6 +121,13 @@
          android:fontFeatureSettings="tnum"
          android:singleLine="true"
          android:textSize="11sp"/>
+
+      <!-- What a bar drawn to the table's scale leaves of the row, after its figures. -->
+      <View
+         android:id="@+id/vCaseRowBarRest"
+         android:layout_width="0dp"
+         android:layout_height="1dp"
+         android:visibility="gone"/>
     </LinearLayout>
   </LinearLayout>
 

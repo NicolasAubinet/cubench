@@ -11,6 +11,7 @@ import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -113,6 +114,7 @@ public enum Options {
   public static final String CFOP_READING_KEY = "cfop_reading_version";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   private static final String LEARN_PICK_KEY_PREFIX = "learn_pick_";
+  private static final String LEARN_PICK_CLEANED_KEY = "learn_pick_cleaned";
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
   private static final String LEARNED_CASES_KEY = "learned_cases";
   private static final String LEARNED_PAIR_CASES_KEY = "learned_pair_cases";
@@ -534,12 +536,40 @@ public enum Options {
 
   /**
    * The cases the user chose to learn next in place of the coach's suggestion, or null while they
-   * follow the suggestion.
+   * follow the suggestion. A case leaves the pick when a learning drill clears it
+   * ({@link #dropFromLearnPick}), so a known case picked on purpose stays until it is cleared again.
    *
    * @param family the case code prefix, {@code "oll_"} or {@code "pll_"}
    */
   public Set<String> getLearnPick(String family) {
+    if (!sharedPreferences.getBoolean(LEARN_PICK_CLEANED_KEY, false)) {
+      // Picks stored before cleared cases left them still hold those cases: dropped once.
+      for (String each : new String[] { "oll_", "pll_" }) {
+        setCodes(LEARN_PICK_KEY_PREFIX + each,
+            withoutLearned(getCodes(LEARN_PICK_KEY_PREFIX + each), getLearnedCases()));
+      }
+      sharedPreferences.edit().putBoolean(LEARN_PICK_CLEANED_KEY, true).apply();
+    }
     return getCodes(LEARN_PICK_KEY_PREFIX + family);
+  }
+
+  /** Takes a case just cleared in a learning drill out of its family's own pick. */
+  public void dropFromLearnPick(String caseCode) {
+    String family = caseCode.substring(0, caseCode.indexOf('_') + 1);
+    Set<String> pick = getLearnPick(family);
+    if (pick != null && pick.contains(caseCode)) {
+      setLearnPick(family, withoutLearned(pick, Collections.singleton(caseCode)));
+    }
+  }
+
+  /** The pick without the learned cases, or null when nothing is left of it. */
+  static Set<String> withoutLearned(Set<String> pick, Set<String> learned) {
+    if (pick == null) {
+      return null;
+    }
+    Set<String> left = new LinkedHashSet<String>(pick);
+    left.removeAll(learned);
+    return left.isEmpty() ? null : left;
   }
 
   /** @param cases the chosen cases, or null to follow the suggestion again */

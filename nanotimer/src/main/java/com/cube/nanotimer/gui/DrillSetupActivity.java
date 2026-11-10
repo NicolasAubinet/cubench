@@ -231,7 +231,7 @@ public class DrillSetupActivity extends NanoTimerActivity
       }
     });
 
-    findViewById(R.id.llDrillCasesPick).setOnClickListener(new View.OnClickListener() {
+    casesRow.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         DrillCasesDialog.newInstance(family()).show(getSupportFragmentManager(), "drillCases");

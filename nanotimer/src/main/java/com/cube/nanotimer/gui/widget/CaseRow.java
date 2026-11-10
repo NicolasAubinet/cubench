@@ -2,10 +2,13 @@ package com.cube.nanotimer.gui.widget;
 
 import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
@@ -38,6 +41,9 @@ public class CaseRow {
   /** What a column that is not the ranked one is worth: still coloured, but standing back. */
   private static final float UNRANKED_ALPHA = 0.6f;
 
+  /** The lead figure's size, the one a table is read by. */
+  private static final float LEAD_SP = 19f;
+
   private final View line;
 
   public static View inflate(LayoutInflater inflater, ViewGroup parent) {
@@ -60,6 +66,15 @@ public class CaseRow {
   /** A line with no count: the picture slides left into the space it leaves. */
   public CaseRow noCount() {
     line.findViewById(R.id.tvCaseRowCount).setVisibility(View.GONE);
+    return this;
+  }
+
+  public CaseRow chartSize(int px) {
+    View chart = line.findViewById(R.id.vCaseRowChart);
+    ViewGroup.LayoutParams params = chart.getLayoutParams();
+    params.width = px;
+    params.height = px;
+    chart.setLayoutParams(params);
     return this;
   }
 
@@ -154,6 +169,28 @@ public class CaseRow {
     return this;
   }
 
+  /**
+   * Draws the meter's bar to one scale across the table rather than to the row's width, so the
+   * column reads as a ranked chart: the slowest case takes all the room its figures leave.
+   *
+   * @param share this case's time over the table's slowest, 0 to 1
+   */
+  public CaseRow scaleBar(float share) {
+    float clamped = Math.max(0.04f, Math.min(1f, share));
+    View bar = line.findViewById(R.id.vCaseRowBar);
+    android.widget.LinearLayout.LayoutParams params =
+        (android.widget.LinearLayout.LayoutParams) bar.getLayoutParams();
+    params.weight = clamped;
+    bar.setLayoutParams(params);
+    View rest = line.findViewById(R.id.vCaseRowBarRest);
+    rest.setVisibility(View.VISIBLE);
+    android.widget.LinearLayout.LayoutParams restParams =
+        (android.widget.LinearLayout.LayoutParams) rest.getLayoutParams();
+    restParams.weight = 1f - clamped;
+    rest.setLayoutParams(restParams);
+    return this;
+  }
+
   /** A line with nothing to say about where its time went. */
   public CaseRow noMeter() {
     line.findViewById(R.id.llCaseRowMeter).setVisibility(View.GONE);
@@ -172,6 +209,18 @@ public class CaseRow {
     TextView view = line.findViewById(VALUE_IDS[column]);
     view.setText(value);
     view.setTextColor(color);
+    return this;
+  }
+
+  /**
+   * Sets one figure larger and bold, for the column a table is read by. In pixels, since the
+   * figure fits itself to its column by measuring in pixels.
+   */
+  public CaseRow lead(int column) {
+    TextView view = valueView(column);
+    view.setTextSize(TypedValue.COMPLEX_UNIT_PX, TypedValue.applyDimension(
+        TypedValue.COMPLEX_UNIT_SP, LEAD_SP, line.getResources().getDisplayMetrics()));
+    view.setTypeface(ResourcesCompat.getFont(line.getContext(), R.font.roboto_bold));
     return this;
   }
 

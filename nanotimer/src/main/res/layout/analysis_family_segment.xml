@@ -2,4 +2,9 @@
 <!-- One step on the Cases row. A segment rather than a chip: exactly one step is being read at a
      time, and a chip that cannot be turned off was promising a filter it does not have. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-   style="@style/ViewSegmentCompact"/>
+   style="@style/ViewSegmentCompact"
+   android:layout_height="36dp"
+   android:gravity="center"
+   android:paddingLeft="24dp"
+   android:paddingRight="24dp"
+   android:textSize="17sp"/>

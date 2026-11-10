@@ -310,6 +310,11 @@ public class CoachPlanView {
   }
 
   /** The standing practice sets, one outlined card per family, into their own container. */
+  /** The tag a step's costliest-cases card carries, for {@link View#findViewWithTag}. */
+  public static String practiceTag(String family) {
+    return "practice_" + family;
+  }
+
   public void setPractice(LinearLayout into, List<CoachPractice.Set> sets) {
     into.removeAllViews();
     for (CoachPractice.Set set : sets) {
@@ -364,6 +369,12 @@ public class CoachPlanView {
     final Set<String> learned = Options.INSTANCE.getLearnedCases();
     final int offered = set.countToLearn(learned);
     Set<String> own = Options.INSTANCE.getLearnPick(set.getFamily() + "_");
+    CoachPractice.Set suggested = set.firstToLearn(Options.INSTANCE.getLearnNextCount(), learned);
+    if (own != null && suggested != null && own.equals(new HashSet<String>(suggested.getCases()))) {
+      // A pick equal to the suggestion follows it, as the Choose dialog stores one.
+      Options.INSTANCE.setLearnPick(set.getFamily() + "_", null);
+      own = null;
+    }
     if (offered == 0 && own == null) {
       return null;
     }
@@ -372,7 +383,6 @@ public class CoachPlanView {
         learnNextTitle(set.getFamily()));
     bindChoose(card, set, learned);
     if (own != null) {
-      // The user's own pick stays as chosen; a case cleared since is ticked, not dropped.
       card.findViewById(R.id.tvCoachPracticeNote).setVisibility(View.VISIBLE);
       bindLearning(card, set.withCases(new ArrayList<String>(own)), learned);
       return card;
@@ -473,6 +483,7 @@ public class CoachPlanView {
 
   private View practiceCard(LinearLayout parent, final CoachPractice.Set set) {
     View card = inflater.inflate(R.layout.coach_practice_set, parent, false);
+    card.setTag(practiceTag(set.getFamily()));
     ((TextView) card.findViewById(R.id.tvCoachPracticeTitle)).setText(activity.getString(
         R.string.coach_practice_set,
         Utils.toSmartCubeStepLocalizedName(activity, set.getFamily(), 0)));

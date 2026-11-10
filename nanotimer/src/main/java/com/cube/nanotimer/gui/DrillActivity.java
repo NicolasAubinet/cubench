@@ -695,6 +695,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       Options.INSTANCE.addLearnedPairCase(code);
     } else {
       Options.INSTANCE.addLearnedCase(code);
+      Options.INSTANCE.dropFromLearnPick(code);
     }
     String group = OllShapes.groupOf(code);
     if (!session.getSpec().isFromCoach() || group == null

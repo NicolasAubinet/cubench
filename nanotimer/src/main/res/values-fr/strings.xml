@@ -1233,10 +1233,9 @@
   <string name="analysis_empty_scramble">Ce type de résolution met en place une seule étape et non une résolution entière, il n\'y a donc rien à détailler.</string>
   <string name="analysis_empty_puzzle">Un smart cube ne lit que les résolutions de 3x3. Il n\'y a rien à détailler ici.</string>
   <string name="analysis_empty_steps">Ce type de résolution chronomètre ses propres étapes, son détail est donc celui que vous tapez sur le chrono.</string>
-  <string name="analysis_best">Meilleur</string>
-  <plurals name="analysis_mean_of">
-    <item quantity="one">Moyenne de %d résolution</item>
-    <item quantity="other">Moyenne de %d résolutions</item>
+  <plurals name="analysis_hero_caption">
+    <item quantity="one">moyenne de %1$d résolution · meilleur %2$s</item>
+    <item quantity="other">moyenne de %1$d résolutions · meilleur %2$s</item>
   </plurals>
   <string name="analysis_column_step">\u00c9tape</string>
   <string name="analysis_delta_label">Par rapport \u00e0 une r\u00e9solution %s typique</string>

@@ -76,10 +76,13 @@ public class AnalysisCases {
   private static final int SPREAD_COLUMN = 3;
 
   // The last three are the step table's own columns, so a reader crossing tabs reads them once.
-  private static final int[] HEADING_LABELS = {R.string.drill_stats_column_count,
+  // No count heading: the count rides on the case picture as a badge.
+  private static final int[] HEADING_LABELS = {0,
       R.string.drill_summary_cell_mean, R.string.drill_summary_cell_best,
       R.string.drill_stats_column_spread};
   private static final boolean[] OPENS_DESCENDING = {true, true, true, true};
+
+  private static final int CHART_DP = 44;
 
   private static final int OPAQUE = 255;
 
@@ -145,7 +148,8 @@ public class AnalysisCases {
   public interface Listener {
     void onCasePicked(String caseCode);
 
-    void onRecommendedDrills();
+    /** @param family the step the tab shows, whose costliest cases the plan drills */
+    void onRecommendedDrills(String family);
   }
 
   private final Context context;
@@ -182,7 +186,7 @@ public class AnalysisCases {
     root.findViewById(R.id.llAnalysisRecommended).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        listener.onRecommendedDrills();
+        listener.onRecommendedDrills(family);
       }
     });
   }
@@ -522,16 +526,27 @@ public class AnalysisCases {
 
     rows.removeAllViews();
     LayoutInflater inflater = LayoutInflater.from(context);
+    long slowest = 1;
+    for (StepStats stepCase : cases) {
+      slowest = Math.max(slowest,
+          stepCase.getMeanRecognitionMs() + stepCase.getMeanExecutionMs());
+    }
+    float density = context.getResources().getDisplayMetrics().density;
+    int chartPx = Math.round(CHART_DP * density);
     for (final StepStats stepCase : cases) {
       String code = stepCase.getCode();
       int hue = palette.colorFor(MethodStatistics.familyOf(code));
       CaseRow row = new CaseRow(CaseRow.inflate(inflater, rows));
-      row.count(String.valueOf(stepCase.getCount()))
+      row.noCount()
+          .chartSize(chartPx)
           .chart(code)
           .name(Utils.toSmartCubeCaseHeadline(context, code))
           .meter(stepCase.getMeanRecognitionMs(), stepCase.getMeanExecutionMs(), hue)
+          .scaleBar((float) (stepCase.getMeanRecognitionMs() + stepCase.getMeanExecutionMs())
+              / slowest)
           .value(0, FormatterService.INSTANCE.formatSolveTime(stepCase.getMeanMs()),
               ContextCompat.getColor(context, R.color.white))
+          .lead(0)
           .value(1, FormatterService.INSTANCE.formatSolveTime(stepCase.getBestMs()),
               ContextCompat.getColor(context, R.color.secondary_text))
           .value(2, quotable(stepCase, SPREAD_COLUMN)
