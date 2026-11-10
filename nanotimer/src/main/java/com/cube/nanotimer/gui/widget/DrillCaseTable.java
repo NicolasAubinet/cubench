@@ -84,6 +84,8 @@ public class DrillCaseTable {
 
   /** Ranks by the order the reps were dealt in rather than by any of their figures. */
   private static final int POSITION_COLUMN = 0;
+  /** The value column holding the whole rep, after its two halves. */
+  private static final int TOTAL_COLUMN = 2;
 
   private static final DrillRepOrder.Key[] CASE_KEYS = {
       DrillRepOrder.Key.RECOGNITION, DrillRepOrder.Key.EXECUTION, DrillRepOrder.Key.TOTAL};
@@ -333,6 +335,8 @@ public class DrillCaseTable {
             gone ? color(R.color.secondary_text) : scales[column].colorFor(time, false));
       }
     }
+    // The whole rep is the figure the table is read by, as the mean is on the Analysis tables.
+    row.lead(TOTAL_COLUMN);
 
     // Where the rep's time went. A rep with no time to divide has no shape, so it shows none. A
     // pair has no picture and every pair has the same name, so its bar is the line's picture.
