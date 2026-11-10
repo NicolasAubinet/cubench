@@ -148,7 +148,8 @@ public class AnalysisCases {
   public interface Listener {
     void onCasePicked(String caseCode);
 
-    void onRecommendedDrills();
+    /** @param family the step the tab shows, whose costliest cases the plan drills */
+    void onRecommendedDrills(String family);
   }
 
   private final Context context;
@@ -185,7 +186,7 @@ public class AnalysisCases {
     root.findViewById(R.id.llAnalysisRecommended).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        listener.onRecommendedDrills();
+        listener.onRecommendedDrills(family);
       }
     });
   }

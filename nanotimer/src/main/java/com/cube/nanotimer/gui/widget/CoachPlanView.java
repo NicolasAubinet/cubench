@@ -310,6 +310,11 @@ public class CoachPlanView {
   }
 
   /** The standing practice sets, one outlined card per family, into their own container. */
+  /** The tag a step's costliest-cases card carries, for {@link View#findViewWithTag}. */
+  public static String practiceTag(String family) {
+    return "practice_" + family;
+  }
+
   public void setPractice(LinearLayout into, List<CoachPractice.Set> sets) {
     into.removeAllViews();
     for (CoachPractice.Set set : sets) {
@@ -473,6 +478,7 @@ public class CoachPlanView {
 
   private View practiceCard(LinearLayout parent, final CoachPractice.Set set) {
     View card = inflater.inflate(R.layout.coach_practice_set, parent, false);
+    card.setTag(practiceTag(set.getFamily()));
     ((TextView) card.findViewById(R.id.tvCoachPracticeTitle)).setText(activity.getString(
         R.string.coach_practice_set,
         Utils.toSmartCubeStepLocalizedName(activity, set.getFamily(), 0)));

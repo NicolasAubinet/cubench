@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -124,6 +125,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   public static final int TAB_SOLVE = 0;
   private static final int TAB_CASES = 1;
   public static final int TAB_PLAN = 2;
+
+  /** Room left above a card scrolled to, so it does not sit flush on the tab strip. */
+  private static final int PRACTICE_SCROLL_GAP_DP = 16;
 
 
   /** How the shares are written, which is a whole number of points either way. */
@@ -1275,14 +1279,46 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       }
 
       @Override
-      public void onRecommendedDrills() {
+      public void onRecommendedDrills(String family) {
         if (coachClient == null) {
           return;
         }
         tabs.setSelection(TAB_PLAN);
         showTab(TAB_PLAN);
+        // Without the coach the tab's top is the answer: it says what a plan does.
+        if (coachClient.hasAccess()) {
+          scrollToPractice(family);
+        }
       }
     };
+  }
+
+  /**
+   * Brings the step's costliest-cases card into view once the Plan tab is laid out. Stays at the
+   * top when there is no such card, as before a first plan.
+   */
+  private void scrollToPractice(String family) {
+    final ScrollView scroll = findViewById(R.id.svAnalysis);
+    ViewGroup sets = findViewById(R.id.llAnalysisPracticeSets);
+    View found = sets.findViewWithTag(CoachPlanView.practiceTag(family));
+    if (found == null) {
+      return;
+    }
+    // The first card takes the section's heading with it, which says what these cards are.
+    final View card = sets.indexOfChild(found) == 0 ? findViewById(R.id.llAnalysisPractice) : found;
+    scroll.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+      @Override
+      public boolean onPreDraw() {
+        scroll.getViewTreeObserver().removeOnPreDrawListener(this);
+        int top = 0;
+        for (View v = card; v != null && v != scroll; v = (View) v.getParent()) {
+          top += v.getTop();
+        }
+        scroll.smoothScrollTo(0, Math.max(0, top - (int) (PRACTICE_SCROLL_GAP_DP
+            * getResources().getDisplayMetrics().density)));
+        return true;
+      }
+    });
   }
 
   /** The mean of the whole solve, and what it was made of. */
