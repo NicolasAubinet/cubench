@@ -72,6 +72,7 @@ import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
 import com.cube.nanotimer.util.view.LearningAlgorithmFade;
 import com.cube.nanotimer.util.view.PracticeOfferPulse;
+import com.cube.nanotimer.util.view.HalfTurnHint;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
 import com.cube.nanotimer.util.view.DrillControlLabels;
 import com.cube.nanotimer.util.view.DrillRepParts;
@@ -79,6 +80,7 @@ import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -185,6 +187,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** Greys the practised algorithm's moves as they are turned; null where there is none to follow. */
   private AlgorithmFollower algorithmFollower;
   private ScrambleFollowAnimator algorithmAnimator;
+  private HalfTurnHint halfTurnHint;
   /** The scramble's own face: an algorithm being followed reads like a scramble being turned. */
   private Typeface algorithmFace;
   private Button skip;
@@ -275,6 +278,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       }
     });
     algorithmAnimator = new ScrambleFollowAnimator(practiceAlgorithm);
+    halfTurnHint = new HalfTurnHint(practiceAlgorithm, this::showAlgorithmProgress);
     Drawable bulb = ContextCompat.getDrawable(this, R.drawable.ic_case_idea).mutate();
     bulb.setTint(ContextCompat.getColor(this, R.color.on_accent));
     int bulbSize = getResources().getDimensionPixelSize(R.dimen.drill_practice_offer_icon);
@@ -1251,6 +1255,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     }
     String undo = algorithmFollower.getUndoMoves();
     if (!undo.isEmpty()) {
+      halfTurnHint.clear();
       algorithmAnimator.reset();
       practiceAlgorithm.setText(ScrambleFormatterService.INSTANCE.formatReverseMoves(
           getString(algorithmFollower.isWrongAngle() ? R.string.drill_wrong_angle
@@ -1258,8 +1263,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return;
     }
     // the written tokens set the layout; a half turn a quarter in is drawn as its quarter left
-    algorithmAnimator.show(new SpannableString(TextUtils.join(" ", algorithmFollower.getTokens())),
-        algorithmFollower.getDoneCount(), algorithmFollower.getShownTokens());
+    String[] tokens = algorithmFollower.getTokens();
+    String[] shown = algorithmFollower.getShownTokens();
+    boolean hint = halfTurnHint.ready(
+        Arrays.equals(tokens, shown) ? null : Arrays.asList(shown));
+    algorithmAnimator.show(new SpannableString(TextUtils.join(" ", tokens)),
+        algorithmFollower.getDoneCount(), hint ? shown : null);
   }
 
   /** A case dealt again starts the algorithm over. */

@@ -94,6 +94,7 @@ import com.cube.nanotimer.util.view.InspectionRingView;
 import com.cube.nanotimer.util.view.ParticleView;
 import com.cube.nanotimer.util.view.PuzzleIcons;
 import com.cube.nanotimer.util.view.ScalingLinearLayout;
+import com.cube.nanotimer.util.view.HalfTurnHint;
 import com.cube.nanotimer.util.view.ScrambleFollowAnimator;
 import com.cube.nanotimer.util.view.ScrambleStatePreview;
 import com.cube.nanotimer.util.view.SessionBarsView;
@@ -218,6 +219,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private InspectionRingView inspectionRing; // full-screen overlay, drawn only while inspecting
   private FocusTransition focusTransition; // the ring leaving and the digits arriving, as one move
   private ScrambleFollowAnimator scrambleAnimator; // subtle per-move zoom during a cube follow
+  private HalfTurnHint halfTurnHint;
   private boolean oversteppedInspection = false;
   private boolean reviewRequested = false; // at most one review request per timer session
 
@@ -448,8 +450,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         } else {
           // The animator owns the per-move zoom; it sets the (already coloured) progress text itself.
           int doneCount = solveController.getDoneCount();
+          int halfLeft = solveController.getHalfTurnLeft();
+          boolean hint = halfTurnHint.ready(halfLeft == 0 ? null : doneCount + ":" + halfLeft);
           String[] shown = ScrambleFollower.withHalfTurnLeft(currentScramble, doneCount,
-              solveController.getHalfTurnLeft());
+              hint ? halfLeft : 0);
           scrambleAnimator.show(ScrambleFormatterService.INSTANCE.formatScrambleWithProgress(
               shown, cubeType, currentOrientation, doneCount), doneCount);
         }
@@ -551,6 +555,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     stepSplits = (StepSplitsView) findViewById(R.id.stepSplits);
     tvSolveStats = (TextView) findViewById(R.id.tvSolveStats); // absent in landscape, so always null-check
     scrambleAnimator = new ScrambleFollowAnimator(tvScramble);
+    halfTurnHint = new HalfTurnHint(tvScramble, this::renderScramble);
 
     if (currentOrientation == Configuration.ORIENTATION_PORTRAIT && cubeType == CubeType.SEVEN_BY_SEVEN
         && tvTimer instanceof DigitalTextView) {
