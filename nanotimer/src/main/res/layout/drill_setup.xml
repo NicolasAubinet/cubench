@@ -41,21 +41,22 @@
            android:layout_height="wrap_content"
            android:orientation="horizontal"/>
 
-        <!-- A case drill: what it deals, and the first few of those cases drawn out. -->
+        <!-- A case drill: what it deals, and the first few of those cases drawn out. All of it
+             opens the picker, the cases included: Choose names the block, it is not the only way in. -->
         <LinearLayout
            android:id="@+id/llDrillCases"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
+           android:layout_marginTop="10dp"
+           android:background="@drawable/hero_selector_row"
+           android:clickable="true"
+           android:focusable="true"
            android:orientation="vertical">
 
           <LinearLayout
              android:id="@+id/llDrillCasesPick"
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
-             android:layout_marginTop="10dp"
-             android:background="@drawable/hero_selector_row"
-             android:clickable="true"
-             android:focusable="true"
              android:gravity="center_vertical"
              android:minHeight="52dp"
              android:orientation="horizontal"
