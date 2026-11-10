@@ -1449,12 +1449,12 @@
     <item quantity="one">Um plano precisa de %1$d resoluções com o smart cube, e você tem %2$d. Falta %3$d.</item>
     <item quantity="other">Um plano precisa de %1$d resoluções com o smart cube, e você tem %2$d. Faltam %3$d.</item>
   </plurals>
-  <string name="coach_reason_slow_case">Casos que tomam seu tempo</string>
+  <string name="coach_reason_slow_case">Casos que custam tempo</string>
   <string name="coach_reason_slow_under_pressure">Conhecidos, mas lentos na resolução</string>
   <string name="coach_reason_recognition_heavy">Mais procura do que execução</string>
   <string name="coach_reason_two_look_oll">A última camada em 2-look</string>
   <string name="coach_reason_inconsistent_case">Casos que dão errado</string>
-  <string name="coach_reason_slow_step">Ocupa mais resolução do que o habitual</string>
+  <string name="coach_reason_slow_step">Uma parte da resolução maior do que o habitual</string>
   <string name="coach_reason_stuck_pieces">Peças presas em outros slots</string>
   <string name="coach_reason_slow_first_pair">Um primeiro par lento</string>
   <string name="coach_reason_unknown">Outra coisa para trabalhar</string>

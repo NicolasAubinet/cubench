@@ -1448,10 +1448,10 @@
   </plurals>
   <string name="coach_reason_slow_case">Casos que te cuestan tiempo</string>
   <string name="coach_reason_slow_under_pressure">Conocidos, pero lentos al resolver</string>
-  <string name="coach_reason_recognition_heavy">Más buscar que girar</string>
+  <string name="coach_reason_recognition_heavy">Más tiempo buscando que girando</string>
   <string name="coach_reason_two_look_oll">La última capa en 2-look</string>
   <string name="coach_reason_inconsistent_case">Casos que salen mal</string>
-  <string name="coach_reason_slow_step">Ocupa más resolución de lo habitual</string>
+  <string name="coach_reason_slow_step">Más parte de la resolución de lo habitual</string>
   <string name="coach_reason_stuck_pieces">Piezas atrapadas en otros slots</string>
   <string name="coach_reason_slow_first_pair">Un primer par lento</string>
   <string name="coach_reason_unknown">Otra cosa que trabajar</string>

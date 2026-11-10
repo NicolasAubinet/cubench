@@ -1449,10 +1449,10 @@
   </plurals>
   <string name="coach_reason_slow_case">Cas qui vous coûtent du temps</string>
   <string name="coach_reason_slow_under_pressure">Connus, mais lents en résolution</string>
-  <string name="coach_reason_recognition_heavy">Plus de pause que d\'exécution</string>
+  <string name="coach_reason_recognition_heavy">Plus de temps à chercher qu\'à tourner</string>
   <string name="coach_reason_two_look_oll">La dernière couche en 2-look</string>
   <string name="coach_reason_inconsistent_case">Cas qui tournent mal</string>
-  <string name="coach_reason_slow_step">Prend une plus grande part que la normale</string>
+  <string name="coach_reason_slow_step">Une plus grande part de la résolution que d\'habitude</string>
   <string name="coach_reason_stuck_pieces">Pièces coincées dans d\'autres slots</string>
   <string name="coach_reason_slow_first_pair">Une première paire lente</string>
   <string name="coach_reason_unknown">Autre chose à travailler</string>
@@ -1470,7 +1470,7 @@
   <string name="coach_step_share_body">%1$s prend %2$s de votre résolution, alors que %3$s est habituel.</string>
   <string name="coach_stuck_body">%1$s de vos paires commencent avec une pièce coincée dans un autre slot. Elles prennent %2$s, contre %3$s pour les autres.</string>
   <string name="coach_first_pair_body">Vous cherchez %1$s avant votre première paire, et %2$s avant chacune des suivantes.</string>
-  <string name="coach_reason_long_pair">Des paires F2L en mouvements de trop</string>
+  <string name="coach_reason_long_pair">Des paires F2L trop longues</string>
   <string name="coach_long_pair_body">Sur %1$d résolutions, vos F2L ont pris %2$s mouvements, là où les algorithmes habituels de leurs paires en comptent %3$s.</string>
   <string name="coach_unplanned_cross_body">Sur %1$d croix, vous avez pris %2$s mouvements, là où les mêmes mélanges se résolvaient en %3$s.</string>
   <string name="coach_reason_stalling">Des blocages en tournant</string>
@@ -1478,7 +1478,7 @@
   <string name="coach_reason_uneven_step">Irrégulier d\'une résolution à l\'autre</string>
   <string name="coach_uneven_body">%1$s : moyenne de %2$s, à %3$s près, et votre meilleur temps est %4$s.</string>
   <string name="coach_reason_f2l_rotations">Des rotations du cube pendant vos F2L</string>
-  <string name="coach_reason_unplanned_cross">Des croix en mouvements de trop</string>
+  <string name="coach_reason_unplanned_cross">Des croix trop longues</string>
   <string name="coach_rotations_body">Sur %1$d résolutions, vous avez tourné le cube dans %2$s de vos paires F2L, et dans %3$s des paires basiques.</string>
   <string name="coach_rotations_cost">Chaque rotation ajoute %1$s&#160;s entre deux mouvements.</string>
   <string name="coach_pair_extra">%1$s mouvements de trop en moyenne</string>
