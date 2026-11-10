@@ -69,11 +69,6 @@ public class CaseRow {
     return this;
   }
 
-  /** The count as a badge on the picture's corner, for a table with no count column. */
-  public CaseRow badge(CharSequence count) {
-    return text(R.id.tvCaseRowBadge, count, true);
-  }
-
   public CaseRow chartSize(int px) {
     View chart = line.findViewById(R.id.vCaseRowChart);
     ViewGroup.LayoutParams params = chart.getLayoutParams();

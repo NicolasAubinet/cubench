@@ -538,7 +538,6 @@ public class AnalysisCases {
       int hue = palette.colorFor(MethodStatistics.familyOf(code));
       CaseRow row = new CaseRow(CaseRow.inflate(inflater, rows));
       row.noCount()
-          .badge(String.valueOf(stepCase.getCount()))
           .chartSize(chartPx)
           .chart(code)
           .name(Utils.toSmartCubeCaseHeadline(context, code))
