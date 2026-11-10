@@ -333,6 +333,11 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     return follower != null && follower.isWrong();
   }
 
+  /** See {@link ScrambleFollower#getHalfTurnLeft}. */
+  public int getHalfTurnLeft() {
+    return follower == null || phase == Phase.ARMED ? 0 : follower.getHalfTurnLeft();
+  }
+
   /** True once the whole scramble has been followed and the timer is armed. */
   public boolean isReadyToSolve() {
     return phase == Phase.ARMED;

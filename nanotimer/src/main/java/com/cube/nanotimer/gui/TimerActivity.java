@@ -448,8 +448,10 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         } else {
           // The animator owns the per-move zoom; it sets the (already coloured) progress text itself.
           int doneCount = solveController.getDoneCount();
+          String[] shown = ScrambleFollower.withHalfTurnLeft(currentScramble, doneCount,
+              solveController.getHalfTurnLeft());
           scrambleAnimator.show(ScrambleFormatterService.INSTANCE.formatScrambleWithProgress(
-              currentScramble, cubeType, currentOrientation, doneCount), doneCount);
+              shown, cubeType, currentOrientation, doneCount), doneCount);
         }
         break;
       default:

@@ -28,6 +28,21 @@ public class AlgorithmFollowerTest {
   }
 
   @Test
+  public void aHalfTurnStartedShowsTheQuarterLeft() {
+    AlgorithmFollower follower = new AlgorithmFollower("R (U2 R') y U2");
+    turn(follower, "R U");
+    assertEquals("R (U R') y U2", String.join(" ", follower.getShownTokens()));
+    turn(follower, "U'"); // back where it started
+    assertEquals("R (U2 R') y U2", String.join(" ", follower.getShownTokens()));
+    turn(follower, "U'");
+    assertEquals("R (U' R') y U2", String.join(" ", follower.getShownTokens()));
+    turn(follower, "U' R'");
+    assertEquals("R (U2 R') y U2", String.join(" ", follower.getShownTokens()));
+    turn(follower, "U"); // past the rotation, on the cube's own face
+    assertEquals("R (U2 R') y U", String.join(" ", follower.getShownTokens()));
+  }
+
+  @Test
   public void aTurnOfUBeforeTheAlgorithmIsNotAMove() {
     AlgorithmFollower follower = new AlgorithmFollower("R U R' U'");
     turn(follower, "U'");

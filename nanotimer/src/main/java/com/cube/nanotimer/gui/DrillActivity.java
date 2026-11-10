@@ -1259,7 +1259,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return;
     }
     algorithmAnimator.show(new SpannableString(TextUtils.join(" ",
-        algorithmFollower.getTokens())), algorithmFollower.getDoneCount());
+        algorithmFollower.getShownTokens())), algorithmFollower.getDoneCount());
   }
 
   /** A case dealt again starts the algorithm over. */

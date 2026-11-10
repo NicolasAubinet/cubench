@@ -176,6 +176,31 @@ public class AlgorithmFollower {
     return any;
   }
 
+  /**
+   * The tokens as {@link #getTokens}, but with a half turn the cube is a quarter into written as the
+   * quarter left of it: R2 shows as R once R is turned.
+   */
+  public String[] getShownTokens() {
+    String[] shown = tokens.clone();
+    int turned = furthest(true);
+    int current = 0; // the turning token after the done ones, past any rotation before it
+    while (current < shown.length && turningUpTo[current] <= turned) {
+      current++;
+    }
+    if (current >= shown.length) {
+      return shown;
+    }
+    for (int i = 0; i < followers.size(); i++) {
+      ScrambleFollower follower = followers.get(i);
+      int left = follower.getHalfTurnLeft();
+      if (rightAngle.get(i) && left != 0 && !follower.isWrong() && done(i) == turned) {
+        shown[current] = ScrambleFollower.asQuarterLeft(shown[current], left);
+        break;
+      }
+    }
+    return shown;
+  }
+
   /** How many of the algorithm's tokens are done, a rotation counting with the move before it. */
   public int getDoneCount() {
     int turned = furthest(true);

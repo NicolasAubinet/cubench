@@ -49,6 +49,42 @@ public class ScrambleFollowerTest {
   }
 
   @Test
+  public void aHalfTurnStartedLeavesAQuarter() {
+    String[] scramble = {"R", "", "U2", "F"};
+    ScrambleFollower follower = new ScrambleFollower(scramble);
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.R, false);
+    turn(follower, mirror, Face.U, false);
+    assertEquals(1, follower.getHalfTurnLeft());
+    assertEquals("R  U F", String.join(" ", ScrambleFollower.withHalfTurnLeft(scramble,
+        follower.getDoneCount(), follower.getHalfTurnLeft())));
+    turn(follower, mirror, Face.U, true);
+    turn(follower, mirror, Face.U, true);
+    assertEquals(3, follower.getHalfTurnLeft());
+    turn(follower, mirror, Face.U, true);
+    assertEquals(0, follower.getHalfTurnLeft());
+    assertEquals(2, follower.getDoneCount());
+  }
+
+  @Test
+  public void aQuarterLeftKeepsTheBrackets() {
+    assertEquals("(Rw')", ScrambleFollower.asQuarterLeft("(Rw2')", 3));
+    assertEquals("(U)", ScrambleFollower.asQuarterLeft("(U2)", 1));
+    assertEquals("F'", ScrambleFollower.asQuarterLeft("F2", 3));
+  }
+
+  @Test
+  public void aWrongHalfTurnPartlyUndoneLeavesAQuarter() {
+    ScrambleFollower follower = new ScrambleFollower(new String[] {"F"});
+    CubieCube mirror = new CubieCube();
+    turn(follower, mirror, Face.R, false);
+    turn(follower, mirror, Face.R, false);
+    assertEquals("R2", follower.getReverseMoves());
+    turn(follower, mirror, Face.R, true);
+    assertEquals("R'", follower.getReverseMoves());
+  }
+
+  @Test
   public void doubleTurnAcceptsEitherDirection() {
     String[] scramble = {"R2"};
     ScrambleFollower follower = new ScrambleFollower(scramble);

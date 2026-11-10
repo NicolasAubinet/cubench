@@ -47,11 +47,13 @@ public class ScrambleFollower {
 
   private final Map<String, Integer> fullStates = new HashMap<>(); // facelets -> tokens complete
   private final Map<String, Integer> partStates = new HashMap<>(); // mid-token -> its index
+  private final Map<String, Integer> halfStates = new HashMap<>(); // half turn one quarter in -> 1 or 3
   private final CubieCube tracked = new CubieCube();
   private final Deque<Deviation> wrongMoves = new ArrayDeque<>(); // newest first: undo order
 
   private int moveCount;
   private int doneCount;
+  private int halfLeft;
   private boolean lost;
 
   public ScrambleFollower(String[] scramble) {
@@ -176,7 +178,13 @@ public class ScrambleFollower {
         applyStep(cube, turns.get(i), quarters[i]);
       }
       if (!untouched && !done) {
-        partStates.put(cube.toFaceCube(), index);
+        String facelets = cube.toFaceCube();
+        partStates.put(facelets, index);
+        if (turns.size() == 1 && turns.get(0).quarters == 2) {
+          halfStates.put(facelets, quarters[0]); // R left after R, R' left after R'
+        } else {
+          halfStates.remove(facelets);
+        }
       }
       return;
     }
@@ -219,10 +227,12 @@ public class ScrambleFollower {
 
   private boolean apply(String facelets, CubeMove move) {
     int prevDone = doneCount;
+    int prevHalf = halfLeft;
     String prevReverse = getReverseMoves();
     boolean prevLost = lost;
     Integer full = fullStates.get(facelets);
     Integer part = partStates.get(facelets);
+    halfLeft = full == null && part != null ? halfStates.getOrDefault(facelets, 0) : 0;
     if (full != null) {
       doneCount = full;
       wrongMoves.clear();
@@ -240,7 +250,7 @@ public class ScrambleFollower {
       doneCount = 0;
       lost = true;
     }
-    return doneCount != prevDone || lost != prevLost || !getReverseMoves().equals(prevReverse);
+    return doneCount != prevDone || halfLeft != prevHalf || lost != prevLost || !getReverseMoves().equals(prevReverse);
   }
 
   /**
@@ -265,6 +275,7 @@ public class ScrambleFollower {
     tracked.fromFacelet(CubieCube.SOLVED_FACELET);
     wrongMoves.clear();
     doneCount = 0;
+    halfLeft = 0;
     lost = false;
   }
 
@@ -285,6 +296,35 @@ public class ScrambleFollower {
 
   public int getDoneCount() {
     return doneCount;
+  }
+
+  /**
+   * The quarter turn left of the current token when it is a half turn of one face and the cube is
+   * a quarter into it: 1 clockwise, 3 counter-clockwise, 0 otherwise.
+   */
+  public int getHalfTurnLeft() {
+    return halfLeft;
+  }
+
+  /** {@code token}, a half turn such as "R2" or "(Rw2)", written as the quarter turn {@code left}. */
+  public static String asQuarterLeft(String token, int left) {
+    return token.replaceFirst("2'?(?=\\)*$)", left == 3 ? "'" : "");
+  }
+
+  /** The scramble with its current token written as the quarter turn left of it, if any. */
+  public static String[] withHalfTurnLeft(String[] scramble, int doneCount, int left) {
+    String[] shown = scramble.clone();
+    if (left == 0) {
+      return shown;
+    }
+    int turning = 0; // blank tokens are not followed, so they do not count
+    for (int i = 0; i < shown.length; i++) {
+      if (shown[i] != null && !shown[i].trim().isEmpty() && turning++ == doneCount) {
+        shown[i] = asQuarterLeft(shown[i], left);
+        break;
+      }
+    }
+    return shown;
   }
 
   public boolean isWrong() {
