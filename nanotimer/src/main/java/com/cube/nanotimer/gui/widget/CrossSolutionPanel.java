@@ -1,6 +1,7 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -19,6 +20,8 @@ import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.scrambler.cross.CrossFormatter;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -82,6 +85,9 @@ public class CrossSolutionPanel extends LinearLayout {
   private ImageButton btStepStart;
   private ImageButton btStepBack;
   private ImageButton btStepNext;
+  private ImageButton btAllSolutions;
+  /** The timer's monospace, so every move takes one column and the two rows line up. */
+  private final Typeface mono;
 
   /** Every way of the shortest length, in the frame the cube reports its turns in. */
   private List<String[]> solutions;
@@ -115,6 +121,10 @@ public class CrossSolutionPanel extends LinearLayout {
     btStepStart = findViewById(R.id.btCrossStepStart);
     btStepBack = findViewById(R.id.btCrossStepBack);
     btStepNext = findViewById(R.id.btCrossStepNext);
+    btAllSolutions = findViewById(R.id.btCrossAllSolutions);
+    mono = Typeface.createFromAsset(context.getAssets(), "fonts/JetBrainsMono-Medium.ttf");
+    tvYours.setTypeface(mono);
+    tvBestMoves.setTypeface(mono);
 
     findViewById(R.id.btCrossAltPrev).setOnClickListener(new OnClickListener() {
       @Override
@@ -147,6 +157,12 @@ public class CrossSolutionPanel extends LinearLayout {
         stepForward();
       }
     });
+    btAllSolutions.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        showAllSolutions();
+      }
+    });
   }
 
   public void setListener(Listener listener) {
@@ -173,9 +189,11 @@ public class CrossSolutionPanel extends LinearLayout {
   public void setYourMoves(List<String> moves) {
     if (moves == null || moves.isEmpty()) {
       yoursRow.setVisibility(GONE);
+      showIfAnything();
       return;
     }
     yoursRow.setVisibility(VISIBLE);
+    showIfAnything();
     SpannableStringBuilder text = new SpannableStringBuilder();
     String rotation = CrossFormatter.rotationPrefix(face);
     if (!rotation.isEmpty()) {
@@ -184,7 +202,7 @@ public class CrossSolutionPanel extends LinearLayout {
           0, text.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
     }
     for (String move : moves) {
-      text.append(text.length() == 0 ? "" : "  ").append(CrossFormatter.moveOnBottom(face, move));
+      appendMove(text, CrossFormatter.moveOnBottom(face, move));
     }
     tvYours.setText(text);
     // The last move turned is the one worth seeing, so a strip too long for the screen shows its
@@ -209,14 +227,16 @@ public class CrossSolutionPanel extends LinearLayout {
       hideSolutions();
       return;
     }
-    solutions = ways;
+    solutions = byFirstFace(ways);
     // Unwalked, and the cube untouched: the rep has just ended on the cross the user built, and
     // putting the scramble back under them to show them an answer takes away the answer they made.
     step = OFF_TRACK;
     pendingHalf = null;
     bestCell.setVisibility(VISIBLE);
+    showIfAnything();
     tvBestLabel.setText(getResources().getString(R.string.drill_cross_panel_shortest, length));
     altGroup.setVisibility(ways.size() > 1 ? VISIBLE : GONE);
+    btAllSolutions.setVisibility(ways.size() > 1 ? VISIBLE : GONE);
     showWay(0);
   }
 
@@ -225,6 +245,13 @@ public class CrossSolutionPanel extends LinearLayout {
     solutions = null;
     display = null;
     bestCell.setVisibility(GONE);
+    showIfAnything();
+  }
+
+  /** The panel is a card, so with neither row in it there would be an empty card under the cube. */
+  private void showIfAnything() {
+    boolean any = yoursRow.getVisibility() == VISIBLE || bestCell.getVisibility() == VISIBLE;
+    setVisibility(any ? VISIBLE : GONE);
   }
 
   /** Nothing to say: a new scramble is about to go up. */
@@ -324,15 +351,11 @@ public class CrossSolutionPanel extends LinearLayout {
     }
     int done = ContextCompat.getColor(getContext(), R.color.gray600);
     int next = ContextCompat.getColor(getContext(), R.color.cube_yellow);
-    int rest = ContextCompat.getColor(getContext(), R.color.white);
+    int rest = ContextCompat.getColor(getContext(), R.color.lightblue);
     SpannableStringBuilder text = new SpannableStringBuilder();
     int currentStart = -1;
     for (int i = 0; i < display.length; i++) {
-      if (text.length() > 0) {
-        text.append("  ");
-      }
-      int start = text.length();
-      text.append(display[i]);
+      int start = appendMove(text, display[i]);
       int color;
       if (i < displayOffset) {
         color = done; // the rotation the reading convention opens with, which is not a move
@@ -356,6 +379,78 @@ public class CrossSolutionPanel extends LinearLayout {
     enable(btStepStart, step != 0);
     enable(btStepBack, step > 0);
     enable(btStepNext, step != OFF_TRACK && step < way.length);
+  }
+
+  /**
+   * Every solution in a sheet, grouped by first move; the one picked is shown here as if stepped to
+   * with the pager.
+   */
+  private void showAllSolutions() {
+    if (solutions == null) {
+      return;
+    }
+    int gray = ContextCompat.getColor(getContext(), R.color.gray600);
+    List<CharSequence> rows = new ArrayList<CharSequence>();
+    List<Character> faces = new ArrayList<Character>();
+    for (String[] way : solutions) {
+      String[] spelled = CrossFormatter.toCrossOnBottom(face, way);
+      int offset = spelled.length - way.length;
+      SpannableStringBuilder text = new SpannableStringBuilder();
+      for (int i = 0; i < spelled.length; i++) {
+        int start = appendMove(text, spelled[i]);
+        if (i < offset) {
+          text.setSpan(new ForegroundColorSpan(gray), start, text.length(),
+              Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        }
+      }
+      rows.add(text);
+      faces.add(firstFace(way));
+    }
+    CrossSolutionsSheet.show(getContext(), mono, rows, faces, solutions.get(0).length, shown,
+        new CrossSolutionsSheet.Listener() {
+          @Override
+          public void onPicked(int index) {
+            showWay(index);
+          }
+        });
+  }
+
+  /**
+   * The solutions in {@link CrossSolutionsSheet#FACE_ORDER} groups by the face their first move
+   * turns as it is read, so the pager and the sheet count in one order. Stable within a group.
+   */
+  private List<String[]> byFirstFace(List<String[]> ways) {
+    List<String[]> sorted = new ArrayList<String[]>(ways);
+    Collections.sort(sorted, new Comparator<String[]>() {
+      @Override
+      public int compare(String[] a, String[] b) {
+        return CrossSolutionsSheet.FACE_ORDER.indexOf(firstFace(a))
+            - CrossSolutionsSheet.FACE_ORDER.indexOf(firstFace(b));
+      }
+    });
+    return sorted;
+  }
+
+  /** The face a solution's first move turns, as it is read: past the rotation, relabeled. */
+  private char firstFace(String[] way) {
+    String[] spelled = CrossFormatter.toCrossOnBottom(face, way);
+    return spelled[spelled.length - way.length].charAt(0);
+  }
+
+  /**
+   * Adds a move in a column of its own, two characters and a space, so moves line up under one
+   * another in a monospace face. Returns where the move starts.
+   */
+  private static int appendMove(SpannableStringBuilder text, String move) {
+    if (text.length() > 0) {
+      text.append(' ');
+    }
+    int start = text.length();
+    text.append(move);
+    if (move.length() < 2) {
+      text.append(' ');
+    }
+    return start;
   }
 
   /** Scrolls the strip so the move you are on is on the screen, for a way too long to fit. */

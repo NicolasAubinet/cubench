@@ -1,11 +1,14 @@
 package com.cube.nanotimer.gui;
 
 import android.graphics.drawable.GradientDrawable;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -31,6 +34,8 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
+import com.cube.nanotimer.util.view.DrillRepParts;
+import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.CubeType;
 
@@ -125,6 +130,9 @@ public class CrossDrillActivity extends DrillScreenActivity {
   private int repSeq;
 
   private TextView tvStatus;
+  /** The status line's pill, which gives way to the split between reps. */
+  private View statusPill;
+  private DrillSplitBarView repSplit;
   /** The whole rep line, since the beat scales it. */
   private View lastRepRow;
   private Button btDone;
@@ -156,11 +164,14 @@ public class CrossDrillActivity extends DrillScreenActivity {
     bindDrillScreen();
 
     tvStatus = findViewById(R.id.tvDrillCrossStatus);
+    statusPill = findViewById(R.id.drillStatusPill);
+    repSplit = findViewById(R.id.vDrillRepSplit);
     lastRepRow = findViewById(R.id.llDrillLastRep);
     btDone = findViewById(R.id.btDrillCrossDone);
     panel = findViewById(R.id.crossSolutionPanel);
     repWash = findViewById(R.id.drillRepWash);
     repBadge = findViewById(R.id.tvDrillCrossBadge);
+    fitToOrientation();
 
     btDone.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -222,6 +233,29 @@ public class CrossDrillActivity extends DrillScreenActivity {
     super.onDestroy();
     handler.removeCallbacksAndMessages(null);
     DrillRepFlourish.cancel(repWash, lastRepRow, repBadge);
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    fitToOrientation();
+  }
+
+  /**
+   * The count and the button are smaller on its side, where the reading column is short. Set here
+   * because a rotation does not recreate this screen, so the layout's sizes are not re-read.
+   */
+  private void fitToOrientation() {
+    setRepValueSize(getResources().getDimension(R.dimen.drill_cross_count_size));
+    btDone.getLayoutParams().height =
+        getResources().getDimensionPixelSize(R.dimen.drill_cross_button_height);
+    btDone.requestLayout();
+  }
+
+  /** On the bare ground in its pool of shadow, like the other drills' cubes. */
+  @Override
+  protected boolean standsOnMat() {
+    return true;
   }
 
   @Override
@@ -308,6 +342,8 @@ public class CrossDrillActivity extends DrillScreenActivity {
     handler.removeCallbacks(stalledHint);
     betweenReps = true;
     lastRepRow.setVisibility(View.VISIBLE);
+    statusPill.setVisibility(View.GONE); // the split under the count says what it used to
+    showRepStrip(session.getReps().size() - 1);
 
     // The cross comes back and nothing else does. Every rep ends looking like the one thing the
     // drill was about, whether it was found the short way or the long one, and the four edges stay
@@ -323,7 +359,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
   }
 
   /**
-   * What the rep cost in time, and the shortest ways there were.
+   * The shortest ways there were.
    *
    * <p>The ways are put in front of the user rather than behind a button: the rep is over, so
    * there is nothing left to give away, and a sequence you have to go and ask for is one you will
@@ -331,9 +367,6 @@ public class CrossDrillActivity extends DrillScreenActivity {
    * only chance the drill has to show the other thirty-eight.
    */
   private void showBetweenReps(CrossDrillRep rep) {
-    showStatus(getString(R.string.drill_cross_rep_times,
-        FormatterService.INSTANCE.formatSolveTime(rep.getPlanningMs()),
-        FormatterService.INSTANCE.formatSolveTime(rep.getExecutionMs())));
     if (solutions != null) {
       panel.showSolutions(solutions.solutions, solutions.length);
     }
@@ -399,6 +432,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     // Taken away rather than emptied: a row holding its place under the cube for the length of a
     // rep is a band of nothing where the eye goes looking for the cube.
     lastRepRow.setVisibility(View.GONE);
+    statusPill.setVisibility(View.VISIBLE);
     panel.clear();
     btDone.setText(R.string.drill_cross_done);
     if (session.isFinished()) {
@@ -460,6 +494,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
     cube.setState(CubePatternFormat.format(session.getFacelets()));
     cube.setStickering(CubeStickering.crossAndCentres(session.getCrossEdges()));
     setProgress(session.getReps().size() + 1, session.getSpec().getReps());
+    showRepStrip(session.getReps().size());
     solveInBackground(scramble, repSeq);
     if (cubeReady) {
       startPlanning();
@@ -490,6 +525,7 @@ public class CrossDrillActivity extends DrillScreenActivity {
               List<CrossDrillRep> reps = session.getReps();
               CrossDrillRep last = reps.get(reps.size() - 1);
               showLastRep(last);
+              showRepStrip(reps.size() - 1);
               playRepBeat(last); // which only has anything left to play if it turns out to be the best
               showBetweenReps(last);
             }
@@ -602,11 +638,17 @@ public class CrossDrillActivity extends DrillScreenActivity {
       // here, only a verdict. The moves went somewhere else.
       setLastRep(null, 0, getString(R.string.drill_cross_rep_missed), R.color.danger_text, true,
           null);
+      repSplit.setVisibility(View.GONE);
       return;
     }
+    List<DrillRepParts.Part> parts = DrillRepParts.planning(rep.getPlanningMs(),
+        rep.getExecutionMs(), StepPalette.cfop(this).colorFor(CROSS_FAMILY));
+    DrillRepParts.draw(repSplit, parts);
+    repSplit.setVisibility(View.VISIBLE);
+    CharSequence split = DrillRepParts.words(this, parts);
     String moves = getString(R.string.drill_cross_rep_moves, rep.getMoveCount());
     if (verdict == Verdict.UNSCORED) {
-      setLastRep(null, 0, moves, R.color.white, false, null);
+      setLastRep(null, 0, moves, R.color.white, false, split);
       return;
     }
     boolean optimal = verdict == Verdict.OPTIMAL;
@@ -614,7 +656,45 @@ public class CrossDrillActivity extends DrillScreenActivity {
         optimal ? getString(R.string.drill_cross_verdict_optimal)
             : getString(R.string.drill_cross_verdict_extra, rep.getExtraMoves()),
         optimal ? R.color.green_soft : R.color.warning,
-        moves, optimal ? R.color.green_soft : R.color.white, false, null);
+        moves, optimal ? R.color.green_soft : R.color.white, false, split);
+    fitCountToRow();
+  }
+
+  /**
+   * Shrinks the move count when it and its verdict would not fit on one line, which only a long
+   * word for "moves" does ("6 mouvements"). Never grows it past the layout's size.
+   */
+  private void fitCountToRow() {
+    lastRepRow.post(new Runnable() {
+      @Override
+      public void run() {
+        TextView count = findViewById(R.id.tvDrillLastRep);
+        View verdict = findViewById(R.id.tvDrillLastRepName);
+        float size = getResources().getDimension(R.dimen.drill_cross_count_size);
+        count.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
+        int room = lastRepRow.getWidth() - lastRepRow.getPaddingLeft()
+            - lastRepRow.getPaddingRight();
+        if (verdict.getVisibility() == View.VISIBLE) {
+          verdict.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+          room -= verdict.getMeasuredWidth()
+              + ((ViewGroup.MarginLayoutParams) verdict.getLayoutParams()).leftMargin;
+        }
+        float width = count.getPaint().measureText(count.getText().toString());
+        if (room > 0 && width > room) {
+          count.setTextSize(TypedValue.COMPLEX_UNIT_PX, size * room / width);
+        }
+      }
+    });
+  }
+
+  /** The drill as a strip: each rep by how it finished, the rep given ringed. */
+  private void showRepStrip(int current) {
+    List<CrossDrillRep> reps = session.getReps();
+    int[] done = new int[reps.size()];
+    for (int i = 0; i < done.length; i++) {
+      done[i] = outcomeOf(reps.get(i));
+    }
+    setRepStrip(done, session.getSpec().getReps(), current);
   }
 
   @Override

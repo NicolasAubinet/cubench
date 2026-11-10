@@ -1,10 +1,12 @@
 package com.cube.nanotimer.gui;
 
 import android.content.res.ColorStateList;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -556,6 +558,12 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     tvSub.setVisibility(sub == null ? View.GONE : View.VISIBLE);
   }
 
+  /** A new headline size for the rep's figure, for a screen that changes it on rotation. */
+  protected void setRepValueSize(float px) {
+    repValuePx = px;
+    ((TextView) findViewById(R.id.tvDrillLastRep)).setTextSize(TypedValue.COMPLEX_UNIT_PX, px);
+  }
+
   /** The same, for a drill that scores every rep in the one ink. */
   protected void setLastRep(CharSequence name, int nameColorRes, CharSequence value, boolean quiet,
       CharSequence sub) {
@@ -581,13 +589,33 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
         .setDuration(PAST_REP_FADE_MS).start();
   }
 
-  /** Where the drill has got to, in words and as the meter under them. */
+  /**
+   * Where the drill has got to, in words: up to the rep number in white with the number bold, the
+   * total quiet. The strip under it is {@link #setRepStrip}.
+   */
   protected void setProgress(int rep, int total) {
-    ((TextView) findViewById(R.id.tvDrillProgress))
-        .setText(getString(R.string.drill_progress, rep, total));
-    ProgressBar meter = findViewById(R.id.pbDrillProgress);
-    meter.setMax(Math.max(1, total));
-    meter.setProgress(rep);
+    String text = getString(R.string.drill_progress, rep, total);
+    SpannableStringBuilder line = new SpannableStringBuilder(text);
+    String number = String.valueOf(rep);
+    int at = text.indexOf(number);
+    int lit = at < 0 ? text.length() : at + number.length();
+    line.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.white)), 0, lit,
+        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    if (at >= 0) {
+      line.setSpan(new StyleSpan(Typeface.BOLD), at, lit, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+    ((TextView) findViewById(R.id.tvDrillProgress)).setText(line);
+  }
+
+  /**
+   * The drill as a strip, one segment per rep.
+   *
+   * @param done one {@link DrillOutcomeStrip} outcome per rep finished
+   * @param total how many reps the drill runs
+   * @param current the rep to ring: the one in hand, or the one just finished
+   */
+  protected void setRepStrip(int[] done, int total, int current) {
+    ((DrillOutcomeStrip) findViewById(R.id.vDrillRepStrip)).setReps(done, total, current);
   }
 
   /** One of the card's two cells: what the figure is, the figure, and what it is of. */
@@ -707,7 +735,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
       TextView item = (TextView) inflater.inflate(R.layout.drill_summary_key, key, false);
       item.setText(names[outcome]);
       item.setCompoundDrawablesRelativeWithIntrinsicBounds(
-          keySwatch(strip.colorOf(outcome), outcome == DrillOutcomeStrip.MISSED), null, null, null);
+          keySwatch(strip.colorOf(outcome)), null, null, null);
       key.addView(item);
     }
   }
@@ -775,17 +803,13 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     return text;
   }
 
-  /** The key's mark for one finish: a filled chip, or a dashed one for a cross never built. */
-  private GradientDrawable keySwatch(int color, boolean dashed) {
+  /** The key's mark for one finish, a chip in its colour. */
+  private GradientDrawable keySwatch(int color) {
     float density = getResources().getDisplayMetrics().density;
     GradientDrawable swatch = new GradientDrawable();
-    swatch.setCornerRadius(2 * density);
+    swatch.setCornerRadius(3 * density);
     swatch.setSize(Math.round(10 * density), Math.round(6 * density));
-    if (dashed) {
-      swatch.setStroke(Math.round(density), color, 2 * density, 2 * density);
-    } else {
-      swatch.setColor(color);
-    }
+    swatch.setColor(color);
     return swatch;
   }
 

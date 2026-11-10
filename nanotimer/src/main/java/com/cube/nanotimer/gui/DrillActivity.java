@@ -51,6 +51,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.gui.widget.DrillCasePips;
+import com.cube.nanotimer.gui.widget.DrillOutcomeStrip;
 import com.cube.nanotimer.gui.widget.DrillCaseTable;
 import com.cube.nanotimer.gui.widget.DrillLiveCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
@@ -606,6 +607,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       refreshCaseProgress(); // during the beat, so the dot fills beside the rep that earned it
     }
     showLastRep(rep, timed);
+    if (!session.getSpec().retiresCases() && !rep.isPractice()) {
+      showRepStrip(session.getReps().size() - 1);
+    }
     offerPractice(rep);
     // No wash for a rep that was skipped: nothing was solved to dwell on. The hold stays, since
     // what the user could not place is the one thing worth reading off a skipped rep, and the line
@@ -1137,7 +1141,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     boolean retiring = session.getSpec().retiresCases();
     casePips.setVisibility(!on && retiring ? View.VISIBLE : View.GONE);
     findViewById(R.id.tvDrillProgress).setVisibility(View.VISIBLE); // the card's heading
-    findViewById(R.id.pbDrillProgress).setVisibility(!on && !retiring ? View.VISIBLE : View.GONE);
+    findViewById(R.id.vDrillRepStrip).setVisibility(!on && !retiring ? View.VISIBLE : View.GONE);
     // A learning drill's fade may still be running, and would hide the practised algorithm.
     LearningAlgorithmFade.show(practiceAlgorithmRow);
     practiceAlgorithmRow.setVisibility(on ? View.VISIBLE : View.GONE);
@@ -1304,6 +1308,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         refreshCaseProgress();
       } else {
         setProgress(session.getReps().size() + 1, session.getSpec().getReps());
+        showRepStrip(session.getReps().size());
       }
     }
     // Only once the case is really up: before the page has drawn, the first one is not yet in
@@ -1405,9 +1410,34 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     return code != null && code.startsWith(FAMILY_OLL) ? R.color.step_oll : R.color.step_pll;
   }
 
+  /**
+   * The drill as a strip: each rep against the mean of the reps so far, faster in green and slower
+   * in red, as the history colours a time against its session. A skipped rep is not scored.
+   */
+  private void showRepStrip(int current) {
+    List<DrillRep> reps = session.getReps();
+    DrillRepOrder.Key key = DrillRepOrder.readBy(session.getSpec().getType());
+    long total = 0;
+    int timed = 0;
+    for (DrillRep rep : reps) {
+      if (!rep.isAbandoned()) {
+        total += DrillRepOrder.timeMs(rep, key);
+        timed++;
+      }
+    }
+    int[] done = new int[reps.size()];
+    for (int i = 0; i < done.length; i++) {
+      DrillRep rep = reps.get(i);
+      done[i] = rep.isAbandoned() ? DrillOutcomeStrip.UNSCORED
+          : DrillRepOrder.timeMs(rep, key) * timed <= total ? DrillOutcomeStrip.FASTER
+          : DrillOutcomeStrip.SLOWER;
+    }
+    setRepStrip(done, session.getSpec().getReps(), current);
+  }
+
   /** A coach drill counts cases, not reps: a bar per case takes the rep count's meter's place. */
   private void useCaseProgress() {
-    findViewById(R.id.pbDrillProgress).setVisibility(View.GONE);
+    findViewById(R.id.vDrillRepStrip).setVisibility(View.GONE);
     casePips.setVisibility(View.VISIBLE);
     refreshCaseProgress();
   }

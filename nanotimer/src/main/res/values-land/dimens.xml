@@ -3,4 +3,6 @@
   <dimen name="scramble_dialog_diagram_height">150dp</dimen>
   <!-- The list is closer to the edge sideways, and its heading follows it. -->
   <dimen name="history_bar_inset">12dp</dimen>
+  <dimen name="drill_cross_count_size">28sp</dimen>
+  <dimen name="drill_cross_button_height">46dp</dimen>
 </resources>

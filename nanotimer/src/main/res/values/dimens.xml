@@ -44,4 +44,7 @@
   <dimen name="group_learned_case">54dp</dimen>
   <dimen name="group_learned_case_gap">5dp</dimen>
   <dimen name="coach_purchase_tile_gap">10dp</dimen>
+  <!-- The cross drill's move count and its button; smaller on its side, where height is short. -->
+  <dimen name="drill_cross_count_size">40sp</dimen>
+  <dimen name="drill_cross_button_height">54dp</dimen>
 </resources>

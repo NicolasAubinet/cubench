@@ -1148,9 +1148,15 @@
   <string name="drill_cross_panel_you">Vos mouvements</string>
   <string name="drill_cross_panel_shortest">Le plus court en %d</string>
   <string name="drill_cross_way_of">%1$d/%2$d</string>
+  <string name="drill_cross_all_solutions">Toutes les solutions</string>
+  <string name="drill_cross_starts_with">Commence par</string>
+  <string name="drill_cross_all_count">%1$d en %2$d mouvements</string>
+  <plurals name="drill_cross_group_solutions">
+    <item quantity="one">%d solution</item>
+    <item quantity="other">%d solutions</item>
+  </plurals>
   <string name="drill_cross_step_back">Mouvement précédent</string>
   <string name="drill_cross_step_forward">Mouvement suivant</string>
-  <string name="drill_cross_rep_times">Réflexion %1$s, exécution %2$s</string>
 
   <!-- Sauvegarde et restauration -->
   <string name="export_segment_backup">Sauvegarder</string>

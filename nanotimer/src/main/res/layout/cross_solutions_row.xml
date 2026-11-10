@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One solution of the sheet: its place in the pager's order, then its moves. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="44dp"
+   android:gravity="center_vertical"
+   android:orientation="horizontal"
+   android:paddingLeft="12dp"
+   android:paddingRight="20dp">
+
+  <TextView
+     android:id="@+id/tvCrossSolutionIndex"
+     android:layout_width="36dp"
+     android:layout_height="wrap_content"
+     android:gravity="end"
+     android:textColor="@color/gray600"
+     android:textSize="13sp"
+     android:fontFeatureSettings="tnum"/>
+
+  <TextView
+     android:id="@+id/tvCrossSolutionMoves"
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:layout_marginLeft="14dp"
+     android:singleLine="true"
+     android:ellipsize="end"
+     android:textColor="@color/gray200"
+     android:textSize="17sp"/>
+</LinearLayout>

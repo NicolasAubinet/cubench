@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The solution on screen in the solutions sheet: an accent wash with an accent edge on the left. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item>
+    <shape>
+      <solid android:color="@color/accent_wash_15"/>
+    </shape>
+  </item>
+  <item android:gravity="left" android:width="3dp">
+    <shape>
+      <solid android:color="@color/lightblue"/>
+    </shape>
+  </item>
+</layer-list>

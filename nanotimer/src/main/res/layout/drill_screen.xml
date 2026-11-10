@@ -264,7 +264,7 @@
            android:singleLine="true"
            android:ellipsize="end"
            android:textColor="@color/secondary_text"
-           android:textSize="13sp"
+           android:textSize="16sp"
            android:fontFeatureSettings="tnum"/>
 
         <!-- The mode picked before the drill started, shown because it cannot be changed now. -->
@@ -290,14 +290,12 @@
          android:layout_marginTop="10dp"
          android:visibility="gone"/>
 
-      <!-- Not tappable, so it is not a control: a drill has a known end. -->
-      <ProgressBar
-         android:id="@+id/pbDrillProgress"
-         style="?android:attr/progressBarStyleHorizontal"
+      <!-- One segment per rep, coloured against the drill's mean so far; the rep in hand ringed. -->
+      <com.cube.nanotimer.gui.widget.DrillOutcomeStrip
+         android:id="@+id/vDrillRepStrip"
          android:layout_width="match_parent"
-         android:layout_height="4dp"
-         android:layout_marginTop="10dp"
-         android:progressDrawable="@drawable/drill_progress"/>
+         android:layout_height="12dp"
+         android:layout_marginTop="8dp"/>
 
       <include
          layout="@layout/drill_live_cells"

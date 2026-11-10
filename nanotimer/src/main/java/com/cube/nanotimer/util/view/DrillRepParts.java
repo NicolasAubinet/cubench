@@ -71,6 +71,15 @@ public final class DrillRepParts {
     return parts;
   }
 
+  /** A cross drill rep: the planning as a wash of the cross colour, the turning at full strength. */
+  public static List<Part> planning(long planningMs, long executionMs, int hue) {
+    List<Part> parts = new ArrayList<Part>();
+    parts.add(new Part(R.string.drill_summary_cell_planning, planningMs,
+        executionMs > 0 ? StepPalette.wash(hue) : hue, false));
+    parts.add(new Part(R.string.drill_summary_column_execution, executionMs, hue, false));
+    return parts;
+  }
+
   /** A look-ahead rep: the pairs in F2L's colour, the look as a wash of it, the pause lit. */
   public static List<Part> lookAhead(Context context, long beforeMs, long pairOneMs, long pauseMs,
       long pairTwoMs, int hue) {
