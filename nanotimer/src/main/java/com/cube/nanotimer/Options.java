@@ -534,12 +534,28 @@ public enum Options {
 
   /**
    * The cases the user chose to learn next in place of the coach's suggestion, or null while they
-   * follow the suggestion.
+   * follow the suggestion. A case cleared in a learning drill leaves the pick, and a pick left
+   * empty goes back to the suggestion; the stored pick is cleaned to match.
    *
    * @param family the case code prefix, {@code "oll_"} or {@code "pll_"}
    */
   public Set<String> getLearnPick(String family) {
-    return getCodes(LEARN_PICK_KEY_PREFIX + family);
+    Set<String> stored = getCodes(LEARN_PICK_KEY_PREFIX + family);
+    Set<String> left = withoutLearned(stored, getLearnedCases());
+    if (stored != null && !stored.equals(left)) {
+      setLearnPick(family, left);
+    }
+    return left;
+  }
+
+  /** The pick without the learned cases, or null when nothing is left of it. */
+  static Set<String> withoutLearned(Set<String> pick, Set<String> learned) {
+    if (pick == null) {
+      return null;
+    }
+    Set<String> left = new LinkedHashSet<String>(pick);
+    left.removeAll(learned);
+    return left.isEmpty() ? null : left;
   }
 
   /** @param cases the chosen cases, or null to follow the suggestion again */

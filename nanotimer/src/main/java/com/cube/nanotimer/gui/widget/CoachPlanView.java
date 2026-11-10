@@ -369,6 +369,12 @@ public class CoachPlanView {
     final Set<String> learned = Options.INSTANCE.getLearnedCases();
     final int offered = set.countToLearn(learned);
     Set<String> own = Options.INSTANCE.getLearnPick(set.getFamily() + "_");
+    CoachPractice.Set suggested = set.firstToLearn(Options.INSTANCE.getLearnNextCount(), learned);
+    if (own != null && suggested != null && own.equals(new HashSet<String>(suggested.getCases()))) {
+      // A pick equal to the suggestion follows it, as the Choose dialog stores one.
+      Options.INSTANCE.setLearnPick(set.getFamily() + "_", null);
+      own = null;
+    }
     if (offered == 0 && own == null) {
       return null;
     }
@@ -377,7 +383,6 @@ public class CoachPlanView {
         learnNextTitle(set.getFamily()));
     bindChoose(card, set, learned);
     if (own != null) {
-      // The user's own pick stays as chosen; a case cleared since is ticked, not dropped.
       card.findViewById(R.id.tvCoachPracticeNote).setVisibility(View.VISIBLE);
       bindLearning(card, set.withCases(new ArrayList<String>(own)), learned);
       return card;
