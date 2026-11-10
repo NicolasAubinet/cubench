@@ -3,11 +3,12 @@ package com.cube.nanotimer.gui.widget.dialog;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.text.InputType;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewTreeObserver;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -57,6 +58,11 @@ public class DrillPresetsDialog {
   private View empty;
   private TextView save;
   private View hint;
+  private EditText field;
+  /** Whether the popup shows the name field rather than the presets. */
+  private boolean naming;
+  /** The preset being renamed, or null while a new one is named. */
+  private DrillCasePreset renaming;
 
   /** @param picked what the picker has ticked, which is what a preset saved here would hold */
   public static void show(Activity activity, String family, Set<String> picked, Listener listener) {
@@ -78,23 +84,57 @@ public class DrillPresetsDialog {
     empty = view.findViewById(R.id.tvPresetsEmpty);
     hint = view.findViewById(R.id.tvPresetsHint);
     save = view.findViewById(R.id.tvPresetsSave);
+    field = view.findViewById(R.id.etPresetName);
     save.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         askForName(null);
       }
     });
-    refresh();
+    field.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+      @Override
+      public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
+          submitName();
+          return true;
+        }
+        return false;
+      }
+    });
 
     dialog = new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
         .setTitle(R.string.drill_presets)
         .setView(view)
         .setPositiveButton(R.string.close, null)
+        .setNegativeButton(R.string.cancel, null)
         .create();
     dialog.show();
+    // This window takes the keyboard itself, so it is never raised against the picker underneath.
+    dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+    // Bound after showing so that Save can refuse an empty name without the popup closing.
+    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        if (naming) {
+          submitName();
+        } else {
+          dialog.dismiss();
+        }
+      }
+    });
+    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        showList();
+      }
+    });
+    showList();
   }
 
   private void refresh() {
+    if (naming) {
+      return;
+    }
     rows.removeAllViews();
     for (DrillCasePreset preset : presets) {
       rows.addView(row(preset));
@@ -203,101 +243,82 @@ public class DrillPresetsDialog {
   }
 
   /**
-   * Names a new preset, or renames one. A name already in use takes that preset over rather than
-   * standing beside it: two presets under one name is not a state the list could explain.
+   * Turns the popup into a name field, for a new preset or to rename one. A name already in use
+   * takes that preset over rather than standing beside it: two presets under one name is not a
+   * state the list could explain.
    */
-  private void askForName(final DrillCasePreset renaming) {
-    final EditText field = new EditText(activity);
-    field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-    field.setSingleLine();
-    field.setText(renaming == null ? "" : renaming.getName());
+  private void askForName(DrillCasePreset preset) {
+    naming = true;
+    // A typed name is worth more than a stray tap outside the popup.
+    dialog.setCanceledOnTouchOutside(false);
+    renaming = preset;
+    dialog.setTitle(preset == null ? R.string.drill_presets_name : R.string.rename);
+    rows.setVisibility(View.GONE);
+    empty.setVisibility(View.GONE);
+    save.setVisibility(View.GONE);
+    hint.setVisibility(View.GONE);
+    field.setVisibility(View.VISIBLE);
+    field.setText(preset == null ? "" : preset.getName());
     field.setSelection(field.getText().length());
-    field.setTextColor(ContextCompat.getColor(activity, R.color.white));
-    int pad = dp(20);
-    field.setPadding(pad, dp(8), pad, dp(8));
-
-    final AlertDialog naming = new AlertDialog.Builder(activity, R.style.NanoTimerDialogTheme)
-        .setTitle(renaming == null ? R.string.drill_presets_name : R.string.rename)
-        .setView(field)
-        .setNegativeButton(R.string.cancel, null)
-        .setPositiveButton(R.string.save, null)
-        .create();
-    // A typed name is worth more than the tap that would throw it away, and on the phones where the
-    // keyboard comes up behind the popups every tap on a key was reaching the prompt as one.
-    naming.setCanceledOnTouchOutside(false);
-    naming.setOnShowListener(new DialogInterface.OnShowListener() {
+    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setText(R.string.save);
+    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setVisibility(View.VISIBLE);
+    field.requestFocus();
+    field.post(new Runnable() {
       @Override
-      public void onShow(DialogInterface d) {
-        raiseKeyboard(field);
-      }
-    });
-    naming.show();
-    // Bound after showing so an empty name leaves the prompt standing rather than closing on nothing.
-    naming.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        String typed = field.getText().toString().trim();
-        if (typed.isEmpty()) {
-          return;
-        }
-        DrillCasePreset existing = DrillCasePreset.named(presets, typed);
-        if (existing != null && existing != renaming) {
-          confirmReplace(renaming, typed, naming);
-          return;
-        }
-        keep(renaming, typed);
-        naming.dismiss();
+      public void run() {
+        keyboard().showSoftInput(field, InputMethodManager.SHOW_IMPLICIT);
       }
     });
   }
 
-  /**
-   * Raises the keyboard for a field once its window holds the focus. Asked for while the window is
-   * still going up, the keyboard can be raised against the popup underneath and land behind this
-   * one, where a tap on a key never reaches the field it was meant for.
-   */
-  private void raiseKeyboard(final EditText field) {
-    field.requestFocus();
-    if (field.hasWindowFocus()) {
-      showSoftInput(field);
+  /** Back to the presets, from the name field or when the popup opens. */
+  private void showList() {
+    naming = false;
+    dialog.setCanceledOnTouchOutside(true);
+    renaming = null;
+    if (field.getVisibility() == View.VISIBLE) {
+      keyboard().hideSoftInputFromWindow(field.getWindowToken(), 0);
+    }
+    field.setVisibility(View.GONE);
+    rows.setVisibility(View.VISIBLE);
+    dialog.setTitle(R.string.drill_presets);
+    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setText(R.string.close);
+    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setVisibility(View.GONE);
+    refresh();
+  }
+
+  /** An empty name leaves the field standing rather than saving nothing. */
+  private void submitName() {
+    String typed = field.getText().toString().trim();
+    if (typed.isEmpty()) {
       return;
     }
-    field.getViewTreeObserver().addOnWindowFocusChangeListener(
-        new ViewTreeObserver.OnWindowFocusChangeListener() {
-          @Override
-          public void onWindowFocusChanged(boolean hasFocus) {
-            if (!hasFocus) {
-              return;
-            }
-            field.getViewTreeObserver().removeOnWindowFocusChangeListener(this);
-            field.requestFocus();
-            showSoftInput(field);
-          }
-        });
+    DrillCasePreset existing = DrillCasePreset.named(presets, typed);
+    if (existing != null && existing != renaming) {
+      confirmReplace(renaming, typed);
+      return;
+    }
+    keep(renaming, typed);
+    showList();
   }
 
-  private void showSoftInput(EditText field) {
-    InputMethodManager imm =
-        (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-    if (imm != null) {
-      imm.showSoftInput(field, InputMethodManager.SHOW_IMPLICIT);
-    }
+  private InputMethodManager keyboard() {
+    return (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
   }
 
   /**
    * A name already in use takes the preset that had it, cases and all, and nothing else could give
-   * those back. So it is asked exactly as a delete is, and saying no leaves the prompt standing with
+   * those back. So it is asked exactly as a delete is, and saying no leaves the field standing with
    * the name still in it to be changed.
    */
-  private void confirmReplace(final DrillCasePreset renaming, final String name,
-      final AlertDialog naming) {
+  private void confirmReplace(final DrillCasePreset renaming, final String name) {
     DialogUtils.showYesNoConfirmation(activity,
         activity.getString(R.string.drill_presets_replace_confirm, name),
         new YesNoListener() {
           @Override
           public void onYes() {
             keep(renaming, name);
-            naming.dismiss();
+            showList();
           }
 
           @Override

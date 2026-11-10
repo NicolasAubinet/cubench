@@ -41,4 +41,16 @@
      android:textColor="@color/secondary_text"
      android:textSize="12sp"/>
 
+  <!-- A preset is named here rather than in a popup of its own: a third window stacked over the
+       picker is where some phones raised the keyboard behind everything. -->
+  <EditText
+     android:id="@+id/etPresetName"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:imeOptions="actionDone"
+     android:inputType="text|textCapSentences"
+     android:singleLine="true"
+     android:textColor="@color/white"
+     android:visibility="gone"/>
+
 </LinearLayout>
