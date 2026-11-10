@@ -105,6 +105,9 @@ public class DrillCaseTable {
 
   private static final String PAIR_FAMILY = "f2l";
 
+  /** A rep slower than this many medians fills its row instead of setting every bar's scale. */
+  private static final int BAR_OUTLIER_FACTOR = 3;
+
   private final FragmentActivity activity;
   private final LinearLayout rows;
   private final List<DrillRep> reps;
@@ -118,8 +121,8 @@ public class DrillCaseTable {
   private final TimeColorScale[] scales = new TimeColorScale[CaseRow.COLUMNS];
   private final StepPalette palette;
   private final Listener listener;
-  /** The longest timed rep, which an F2L pair's bar is measured against. */
-  private final long longestMs;
+  /** What an F2L pair's full-width bar stands for: see {@link #barScale}. */
+  private long barMs;
 
   private CaseTableHeadings headings;
 
@@ -140,14 +143,9 @@ public class DrillCaseTable {
     this.keys = lookAhead ? LOOKAHEAD_KEYS : CASE_KEYS;
     this.reps = new ArrayList<DrillRep>(reps);
     this.dealt = new ArrayList<DrillRep>(reps);
-    long longest = 0;
     for (int i = 0; i < dealt.size(); i++) {
       positions.put(dealt.get(i), i);
-      if (!dealt.get(i).isAbandoned()) {
-        longest = Math.max(longest, dealt.get(i).getTotalMs());
-      }
     }
-    this.longestMs = longest;
     buildScales();
 
     LayoutInflater inflater = LayoutInflater.from(activity);
@@ -256,6 +254,7 @@ public class DrillCaseTable {
 
   /** One gradient per column, over the reps that count and have a time to be ranked among. */
   private void buildScales() {
+    barMs = barScale();
     for (int column = 0; column < keys.length; column++) {
       List<Long> times = new ArrayList<Long>();
       for (DrillRep rep : reps) {
@@ -266,6 +265,25 @@ public class DrillCaseTable {
       scales[column] = new TimeColorScale(activity);
       scales[column].setTimes(times, false);
     }
+  }
+
+  /**
+   * The slowest counted rep, capped at {@link #BAR_OUTLIER_FACTOR} times the median one: measured
+   * against one very slow rep, every other pair's bar shrank to a sliver.
+   */
+  private long barScale() {
+    List<Long> totals = new ArrayList<Long>();
+    for (DrillRep rep : dealt) {
+      if (!rep.isAbandoned() && !deleted.contains(rep)) {
+        totals.add(rep.getTotalMs());
+      }
+    }
+    if (totals.isEmpty()) {
+      return 0;
+    }
+    Collections.sort(totals);
+    long median = totals.get(totals.size() / 2);
+    return Math.min(totals.get(totals.size() - 1), median * BAR_OUTLIER_FACTOR);
   }
 
   /** Ranks the table as it now stands, and says on the columns which ranking that is. */
@@ -320,7 +338,7 @@ public class DrillCaseTable {
     // pair has no picture and every pair has the same name, so its bar is the line's picture.
     List<DrillRepParts.Part> parts = DrillRepParts.of(activity, rep, hueOf(code));
     if (pair) {
-      row.proportion(parts, longestMs == 0 ? 0 : rep.getTotalMs() / (float) longestMs,
+      row.proportion(parts, barMs == 0 ? 0 : rep.getTotalMs() / (float) barMs,
           activity.getResources().getDimensionPixelSize(R.dimen.drill_pair_bar_height));
     } else {
       row.shape(parts);
