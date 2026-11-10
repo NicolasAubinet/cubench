@@ -433,6 +433,9 @@ public class CrossSolutionPanel extends LinearLayout {
 
   /** The face a solution's first move turns, as it is read: past the rotation, relabeled. */
   private char firstFace(String[] way) {
+    if (way.length == 0) {
+      return ' '; // a cross dealt already built: nothing to turn, nothing to group by
+    }
     String[] spelled = CrossFormatter.toCrossOnBottom(face, way);
     return spelled[spelled.length - way.length].charAt(0);
   }
