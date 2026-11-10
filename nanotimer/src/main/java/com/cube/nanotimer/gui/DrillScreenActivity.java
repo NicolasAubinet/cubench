@@ -618,6 +618,11 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     ((DrillOutcomeStrip) findViewById(R.id.vDrillRepStrip)).setReps(done, total, current);
   }
 
+  /** {@link #setRepStrip} for a timed drill: see {@link DrillOutcomeStrip#setTimedReps}. */
+  protected void setTimedRepStrip(long[] timesMs, int total, int current) {
+    ((DrillOutcomeStrip) findViewById(R.id.vDrillRepStrip)).setTimedReps(timesMs, total, current);
+  }
+
   /** One of the card's two cells: what the figure is, the figure, and what it is of. */
   protected void setSummaryCell(int index, CharSequence key, CharSequence value, CharSequence sub) {
     findViewById(R.id.llDrillSummaryCells).setVisibility(View.VISIBLE);

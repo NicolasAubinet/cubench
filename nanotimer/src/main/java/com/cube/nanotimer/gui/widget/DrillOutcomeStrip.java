@@ -10,11 +10,16 @@ import android.view.View;
 import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.util.helper.TimeColorScale;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A drill's reps in the order dealt, one segment each, coloured by how the rep went. A cross drill
- * scores a finish (the shortest cross, a longer one, none at all); a timed drill scores a rep against
- * the drill's own mean. The reps still to come stay as faint segments, and the rep in hand is ringed.
+ * scores a finish (the shortest cross, a longer one, none at all); a timed drill colours a rep on the
+ * gradient the history colours its times with. The reps still to come stay as faint segments, and
+ * the rep in hand is ringed.
  */
 public class DrillOutcomeStrip extends View {
 
@@ -23,12 +28,10 @@ public class DrillOutcomeStrip extends View {
   public static final int MISSED = 2;
   /** Finished with nothing to score it against, or skipped. */
   public static final int UNSCORED = 3;
-  /** A timed rep at or under the drill's mean so far. */
-  public static final int FASTER = 4;
-  /** A timed rep over the drill's mean so far. */
-  public static final int SLOWER = 5;
   /** Not dealt yet. */
-  public static final int TO_COME = 6;
+  public static final int TO_COME = 4;
+  /** A timed rep, coloured by its time: see {@link #setTimedReps}. */
+  private static final int TIMED = 5;
 
   private static final float GAP_DP = 3;
   private static final float RING_GAP_DP = 2;
@@ -39,7 +42,9 @@ public class DrillOutcomeStrip extends View {
   private final Paint ring = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final RectF segment = new RectF();
   private final int[] colors;
+  private final TimeColorScale timeScale;
   private int[] outcomes = new int[0];
+  private int[] timedColors = new int[0];
   private int current = -1;
 
   public DrillOutcomeStrip(Context context) {
@@ -50,8 +55,8 @@ public class DrillOutcomeStrip extends View {
     super(context, attributes);
     density = getResources().getDisplayMetrics().density;
     colors = new int[] {color(R.color.green_soft), color(R.color.warning),
-        color(R.color.danger_text), color(R.color.white_wash_20), color(R.color.green_soft),
-        color(R.color.danger_text), color(R.color.white_wash_10)};
+        color(R.color.danger_text), color(R.color.white_wash_20), color(R.color.white_wash_10)};
+    timeScale = new TimeColorScale(context);
     ring.setStyle(Paint.Style.STROKE);
     ring.setStrokeWidth(RING_DP * density);
   }
@@ -77,6 +82,31 @@ public class DrillOutcomeStrip extends View {
     invalidate();
   }
 
+  /**
+   * The drill so far, each rep coloured by its time as the history colours a session's: green for
+   * the fastest, white around the median, red for the slowest.
+   *
+   * @param timesMs one time per rep finished, in the order dealt; negative for a rep not scored
+   * @param total how many reps the drill runs; the rest are drawn as still to come
+   * @param current the rep to ring, or -1 for none
+   */
+  public void setTimedReps(long[] timesMs, int total, int current) {
+    List<Long> scored = new ArrayList<>();
+    for (long time : timesMs) {
+      if (time >= 0) {
+        scored.add(time);
+      }
+    }
+    timeScale.setTimes(scored, false);
+    int[] done = new int[timesMs.length];
+    timedColors = new int[timesMs.length];
+    for (int i = 0; i < timesMs.length; i++) {
+      done[i] = timesMs[i] < 0 ? UNSCORED : TIMED;
+      timedColors[i] = timeScale.colorFor(timesMs[i], false);
+    }
+    setReps(done, total, current);
+  }
+
   /** The colour an outcome is drawn in, for the key under the strip. */
   public int colorOf(int outcome) {
     return colors[outcome];
@@ -97,7 +127,7 @@ public class DrillOutcomeStrip extends View {
     float corner = (bottom - top) / 2;
     for (int i = 0; i < count; i++) {
       float left = inset + i * (width + gap);
-      int color = colors[outcomes[i]];
+      int color = outcomes[i] == TIMED ? timedColors[i] : colors[outcomes[i]];
       segment.set(left, top, left + width, bottom);
       fill.setColor(color);
       canvas.drawRoundRect(segment, corner, corner, fill);

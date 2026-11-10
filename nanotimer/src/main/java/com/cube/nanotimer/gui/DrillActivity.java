@@ -51,7 +51,6 @@ import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.gui.widget.DrillCasePips;
-import com.cube.nanotimer.gui.widget.DrillOutcomeStrip;
 import com.cube.nanotimer.gui.widget.DrillCaseTable;
 import com.cube.nanotimer.gui.widget.DrillLiveCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
@@ -1413,28 +1412,18 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * The drill as a strip: each rep against the mean of the reps so far, faster in green and slower
-   * in red, as the history colours a time against its session. A skipped rep is not scored.
+   * The drill as a strip: each rep coloured against the reps so far, as the history colours a time
+   * against its session. A skipped rep is not scored.
    */
   private void showRepStrip(int current) {
     List<DrillRep> reps = session.getReps();
     DrillRepOrder.Key key = DrillRepOrder.readBy(session.getSpec().getType());
-    long total = 0;
-    int timed = 0;
-    for (DrillRep rep : reps) {
-      if (!rep.isAbandoned()) {
-        total += DrillRepOrder.timeMs(rep, key);
-        timed++;
-      }
-    }
-    int[] done = new int[reps.size()];
-    for (int i = 0; i < done.length; i++) {
+    long[] times = new long[reps.size()];
+    for (int i = 0; i < times.length; i++) {
       DrillRep rep = reps.get(i);
-      done[i] = rep.isAbandoned() ? DrillOutcomeStrip.UNSCORED
-          : DrillRepOrder.timeMs(rep, key) * timed <= total ? DrillOutcomeStrip.FASTER
-          : DrillOutcomeStrip.SLOWER;
+      times[i] = rep.isAbandoned() ? -1 : DrillRepOrder.timeMs(rep, key);
     }
-    setRepStrip(done, session.getSpec().getReps(), current);
+    setTimedRepStrip(times, session.getSpec().getReps(), current);
   }
 
   /** A coach drill counts cases, not reps: a bar per case takes the rep count's meter's place. */
