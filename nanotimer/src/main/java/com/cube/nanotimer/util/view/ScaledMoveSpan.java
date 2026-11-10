@@ -15,6 +15,7 @@ public class ScaledMoveSpan extends ReplacementSpan {
   private float scale;
   private int color;
   private boolean bold;
+  private String label; // drawn in place of the text, which still sets the width
 
   public ScaledMoveSpan(float scale, int color, boolean bold) {
     this.scale = scale;
@@ -28,6 +29,11 @@ public class ScaledMoveSpan extends ReplacementSpan {
 
   public void setColor(int color) {
     this.color = color;
+  }
+
+  /** Draws {@code label} instead of the spanned text, keeping the text's width: R in R2's room. */
+  public void setLabel(String label) {
+    this.label = label;
   }
 
   @Override
@@ -52,7 +58,11 @@ public class ScaledMoveSpan extends ReplacementSpan {
     canvas.scale(scale, scale, x + width / 2f, y); // grow/shrink in place around the baseline centre
     paint.setColor(color);
     paint.setFakeBoldText(bold);
-    canvas.drawText(text, start, end, x, y, paint);
+    if (label != null) {
+      canvas.drawText(label, x, y, paint);
+    } else {
+      canvas.drawText(text, start, end, x, y, paint);
+    }
     canvas.restore();
     paint.setColor(prevColor);
     paint.setFakeBoldText(prevBold);

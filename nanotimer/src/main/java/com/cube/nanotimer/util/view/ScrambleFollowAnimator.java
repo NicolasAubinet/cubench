@@ -54,6 +54,14 @@ public class ScrambleFollowAnimator {
    * @param doneCount how many scramble moves are done — move {@code doneCount} is the current one
    */
   public void show(Spannable text, int doneCount) {
+    show(text, doneCount, null);
+  }
+
+  /**
+   * As {@link #show(Spannable, int)}, but a move whose entry in {@code labels} differs from its text
+   * is drawn as that label in the text's room, so a half turn shown as its quarter left never reflows.
+   */
+  public void show(Spannable text, int doneCount, String[] labels) {
     cancel();
     List<int[]> tokens = ScrambleFormatterService.INSTANCE.moveTokenRanges(text);
     boolean handOff = lastDoneCount >= 0 && doneCount > lastDoneCount;
@@ -72,6 +80,16 @@ public class ScrambleFollowAnimator {
         currentSpan = attach(text, tokens.get(i), handOff ? 1f : GROWN_SCALE, currentColor);
       }
       // pending moves keep the base column colour and normal size
+    }
+    for (int i = 0; labels != null && i < labels.length && i < tokens.size(); i++) {
+      int[] token = tokens.get(i);
+      if (labels[i] == null || labels[i].contentEquals(text.subSequence(token[0], token[1]))) {
+        continue;
+      }
+      ScaledMoveSpan[] spans = text.getSpans(token[0], token[1], ScaledMoveSpan.class);
+      ScaledMoveSpan span = spans.length > 0 ? spans[0]
+          : attach(text, token, 1f, textView.getCurrentTextColor());
+      span.setLabel(labels[i]);
     }
 
     textView.setText(text);

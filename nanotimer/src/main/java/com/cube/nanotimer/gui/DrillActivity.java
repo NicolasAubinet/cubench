@@ -1258,8 +1258,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
               : R.string.smart_cube_undo), undo));
       return;
     }
-    algorithmAnimator.show(new SpannableString(TextUtils.join(" ",
-        algorithmFollower.getShownTokens())), algorithmFollower.getDoneCount());
+    // the written tokens set the layout; a half turn a quarter in is drawn as its quarter left
+    algorithmAnimator.show(new SpannableString(TextUtils.join(" ", algorithmFollower.getTokens())),
+        algorithmFollower.getDoneCount(), algorithmFollower.getShownTokens());
   }
 
   /** A case dealt again starts the algorithm over. */
