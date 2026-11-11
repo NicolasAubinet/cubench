@@ -153,7 +153,8 @@ public final class SolveSolution {
     int parts = 0;
     for (int i = 0; i < solveSteps.size(); i++) {
       total += steps.get(i).getMoveCount();
-      if (solveSteps.get(i).getExecutionMs() > 0) { // a step that turned nothing has none: see getTps
+      // A step that turned nothing has no turning time: see getTps.
+      if (solveSteps.get(i).getExecutionMs() > 0 || steps.get(i).getMoveCount() > 0) {
         turningMs += solveSteps.get(i).getTotalMs();
       }
       parts += solveSteps.get(i).getSubSteps().size();
@@ -174,8 +175,10 @@ public final class SolveSolution {
       boundaryMs += solveStep.getTotalMs();
       // A step ends on the move that completed it and so owns that move — except a step that turned
       // nothing, which owns none. Memorisation ends the moment the cube is first turned, and that
-      // turn is the first of the solving: shown under the memo it reads as a move made blind.
-      int end = solveStep.getExecutionMs() > 0 ? endOf(moves, taken, boundaryMs) : taken;
+      // turn is the first of the solving: shown under the memo it reads as a move made blind. The
+      // last step has no next one to hand them to, so a PLL skip still owns its final AUF.
+      boolean last = i == solveSteps.size() - 1;
+      int end = solveStep.getExecutionMs() > 0 || last ? endOf(moves, taken, boundaryMs) : taken;
       steps.add(new Step(i, solveStep.getName(),
           groupsFor(moves, taken, end, solveStep.getSubSteps(), stepStartMs),
           pausesOf(moves, taken, end, solveStep, stepStartMs, turnMs), STOP_TURNS * turnMs));

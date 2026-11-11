@@ -195,6 +195,20 @@ public class SolveSolutionTest {
   }
 
   @Test
+  public void aPllSkipKeepsItsFinalAuf() {
+    // A skipped PLL is stored with no execution, but the AUF that solved the cube is in its window.
+    String stored = moves("R@0", "U@100", "F@200", "U@500");
+    List<SolveStep> steps = Arrays.asList(step("cross", 0, 200), step("oll", 0, 0),
+        step("pll_skip", 300, 0));
+
+    SolveSolution solution = SolveSolution.from(stored, steps);
+
+    assertEquals("R U F", solution.getSteps().get(0).getMoves());
+    assertEquals("U", solution.getSteps().get(2).getMoves());
+    assertEquals(4, solution.getMoveCount());
+  }
+
+  @Test
   public void foldsConsecutiveSameFaceTurnsIntoAHalfTurn() {
     // The cube reports R2 as two quarter turns; a cuber counts it as one move.
     String stored = moves("R@0", "R@50", "U'@100", "U'@150", "F@200");
