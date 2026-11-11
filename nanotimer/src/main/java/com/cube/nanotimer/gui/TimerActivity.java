@@ -362,6 +362,11 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   @Override
   protected void onDestroy() {
     ScramblerService.INSTANCE.removeRandomStateGenListener(randomStateGenListener);
+    // A Timer thread outlives the screen: left running it ticks into a dead activity forever.
+    cancelTimer();
+    synchronized (holdToStartTimerSync) {
+      stopHoldToStartTimer();
+    }
     if (liveCube != null) { // onCreate finishes early without a solve type, and never builds one
       liveCube.destroy();
     }
@@ -1435,6 +1440,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     if (solveType.hasSteps()) {
       showStepsSoFar(); // after timerStarted, which clears the last solve's bar off the screen
     }
+    cancelTimer();
     timer = new Timer();
     if (Options.INSTANCE.isShowTimeWhenRunning()) {
       TimerTask timerTask = new TimerTask() {
@@ -1558,6 +1564,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     timerStarted();
     resetTimerText();
     clearAvgRecordStyle();
+    cancelTimer();
     timer = new Timer();
     TimerTask timerTask = new TimerTask() {
       public void run() {
@@ -1808,6 +1815,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   private void startHoldToStartTimer() {
+    stopHoldToStartTimer(); // a press whose release never came would otherwise tick on forever
     holdToStartTs = System.currentTimeMillis();
     holdToStartTimer = new Timer();
     final Handler timerHandler = new Handler();
@@ -1832,6 +1840,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       }
     };
     holdToStartTimer.schedule(timerTask, 1, REFRESH_INTERVAL);
+  }
+
+  private void cancelTimer() {
+    if (timer != null) {
+      timer.cancel();
+      timer.purge();
+    }
   }
 
   private void stopHoldToStartTimer() {
@@ -2561,6 +2576,13 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     } else if (parMotionEventAction == MotionEvent.ACTION_CANCEL) {
       surfacePressed = false; // taken away rather than lifted, and no stop follows it
       applyGround();
+      synchronized (holdToStartTimerSync) { // no release is coming, so the hold ends here
+        if (holdToStartTimer != null || holdToStartTs > 0) {
+          stopHoldToStartTimer();
+          holdToStartTs = 0;
+          setDefaultBannerText();
+        }
+      }
     } else if (parMotionEventAction == MotionEvent.ACTION_UP) {
       surfacePressed = false;
       applyGround();

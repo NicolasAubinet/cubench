@@ -645,11 +645,12 @@ public class ScrambleStatePreview {
     } else if (previewLayout.getVisibility() != View.VISIBLE) {
       previewLayout.setAlpha(0f); // never shown yet, so there is nothing to fade
     } else {
-      previewLayout.animate().alpha(0f).setDuration(FADE_MS)
+      final View layout = previewLayout; // release() may null the field before the fade ends
+      layout.animate().alpha(0f).setDuration(FADE_MS)
           .withEndAction(new Runnable() {
             @Override
             public void run() {
-              previewLayout.setVisibility(View.INVISIBLE);
+              layout.setVisibility(View.INVISIBLE);
             }
           }).start();
     }
