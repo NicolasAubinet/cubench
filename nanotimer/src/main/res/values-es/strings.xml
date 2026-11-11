@@ -84,9 +84,9 @@
   <string name="sessiondetail_help_title">Qué significan estos números</string>
   <string name="sessiondetail_help_body">Todos se refieren a la única sesión nombrada arriba.</string>
   <string name="sessiondetail_help_average">Quita el mejor y el peor, y promedia el resto. Un DNF cuenta como el peor, así que es el primero en salir.</string>
-  <string name="sessiondetail_help_success_average">La misma media, sobre los tiempos que no falló.</string>
-  <string name="sessiondetail_help_deviation">Cuánto se aparta la sesión de su propia media, sin contar los DNF. Cuanto menor, más constante.</string>
-  <string name="sessiondetail_help_best_mo3">Los tres mejores seguidos, en media simple. Una media simple no quita nada, así que un solo DNF entre los tres la convierte en DNF.</string>
+  <string name="sessiondetail_help_success_average">La misma media recortada, sobre las resoluciones que no fueron DNF.</string>
+  <string name="sessiondetail_help_deviation">Cuánto se dispersan los tiempos de la sesión alrededor de su media, sin contar los DNF. Cuanto menor, más constante.</string>
+  <string name="sessiondetail_help_best_mo3">Los tres mejores tiempos seguidos, en media simple: no se quita ninguno, así que un solo DNF entre los tres la convierte en DNF.</string>
   <string name="sessiondetail_help_accuracy">La parte de la sesión que no falló.</string>
   <string name="sessiondetail_help_best_averages">Las mejores 5, 12, 50 y 100 en cualquier punto de la sesión, no solo las más recientes.</string>
 
@@ -147,8 +147,8 @@
   <string name="solvetypes_help_body">Cada uno guarda su propio historial en este puzle, y el selector del cronómetro los lista en el orden que tienen aquí.</string>
   <string name="solvetypes_help_reorder">Reordenar</string>
   <string name="solvetypes_help_edit_body">Toca una fila para editar su nombre y sus ajustes, darle pasos o borrarla.</string>
-  <string name="solvetypes_help_reorder_body">Arrastra una fila por el asa de su derecha para subirla o bajarla en la lista.</string>
-  <string name="solvetypes_help_add_body">El + de la barra crea otro, vacío al principio.</string>
+  <string name="solvetypes_help_reorder_body">Arrastra una fila por el asa de la derecha para subirla o bajarla.</string>
+  <string name="solvetypes_help_add_body">El + de la barra crea uno nuevo, vacío.</string>
   <string name="solvetypes_steps_count">%1$d pasos</string>
   <string name="solvetypes_no_inspection">Sin inspección</string>
   <string name="solvetypes_empty_title">Ningún tipo de resolución</string>
@@ -235,8 +235,8 @@
   <string name="backup_saved">Copia de seguridad guardada</string>
   <string name="backup_failed">No se pudo crear la copia de seguridad</string>
   <plurals name="backup_drills_count">
-    <item quantity="one">%d entrenamiento</item>
-    <item quantity="other">%d entrenamientos</item>
+    <item quantity="one">%d drill</item>
+    <item quantity="other">%d drills</item>
   </plurals>
   <plurals name="export_solves_count">
     <item quantity="one">%d resolución</item>
@@ -272,13 +272,13 @@
   <string name="import_times">Importar</string>
   <string name="export_help_title">Sobre la exportación</string>
   <string name="export_help_body">Esta pantalla escribe dos archivos distintos, y el control de arriba elige cuál. Lo que hayas seleccionado en las tarjetas de abajo es lo que va al CSV.</string>
-  <string name="export_help_backup_body">Un solo archivo con todo lo que guarda la aplicación: cada tiempo, cada sesión y cada ajuste. Solo Cubench lo lee, y restaurarlo sustituye lo que hay en el teléfono.</string>
+  <string name="export_help_backup_body">Un solo archivo con todo lo que guarda la aplicación: todas las resoluciones, sesiones y ajustes. Solo Cubench puede leerlo, y al restaurarlo se reemplaza lo que hay en el teléfono.</string>
   <string name="export_help_share">Entrega el archivo directamente a otra aplicación: un correo, un chat, un espacio en la nube.</string>
   <string name="export_help_save">Lo escribe donde usted elija en este dispositivo, para guardarlo o moverlo usted mismo.</string>
   <string name="export_help_columns">Qué contiene una línea</string>
-  <string name="export_help_columns_body">El tipo de puzzle, el tipo de resolución, el tiempo y su fecha, la mezcla, y la penalización y el comentario si los hay.</string>
-  <string name="export_help_reading_back">Volver a leerlo</string>
-  <string name="export_help_reading_back_body">La importación toma este archivo, o el CSV de otro cronómetro con las mismas columnas, y añade sus tiempos a su historial sin eliminar nada.</string>
+  <string name="export_help_columns_body">El tipo de puzzle, el tipo de resolución, el tiempo y su fecha, la mezcla, y la penalización o el comentario si los hay.</string>
+  <string name="export_help_reading_back">Importarlo de nuevo</string>
+  <string name="export_help_reading_back_body">Importar acepta este archivo, o el CSV de otro cronómetro con las mismas columnas, y añade sus resoluciones a tu historial sin borrar nada.</string>
   <string name="line">línia</string>
   <string name="error_in_line">Error en línea %1$d</string>
   <string name="import_invalid_columns_count">Cuenta de columnas inválida. Por favor revisa el formato del archivo a importar e inténtalo de nuevo.</string>
@@ -320,9 +320,9 @@
   <string name="chart_type_distribution">Distribución</string>
   <string name="graph_help_title">Qué muestran estos gráficos</string>
   <string name="graph_help_body">Tres maneras de leer el mismo historial. La fila de la derecha elige entre ellas, el selector de al lado elige hasta dónde llegan, y Suavizado promedia cada punto con sus vecinos para mostrar la tendencia sin los picos.</string>
-  <string name="graph_help_progression">Cada tiempo en orden, con los Ao5 y Ao12 que los recorren.</string>
+  <string name="graph_help_progression">Todas las resoluciones en orden, con el Ao5 y el Ao12 trazados encima.</string>
   <string name="graph_help_frequency">Cuántas resoluciones hiciste cada día.</string>
-  <string name="graph_help_distribution">Cuántas resoluciones cayeron en cada rango de tiempo. El número debajo de una barra es donde empieza su rango.</string>
+  <string name="graph_help_distribution">Cuántas resoluciones caen en cada franja de tiempo. El número bajo cada barra es donde empieza su franja.</string>
 
   <string name="best_times">Mejores tiempos</string>
   <string name="sort_by_date">Por fecha</string>
@@ -344,8 +344,8 @@
   <string name="cross_help_title">Sobre el solucionador de cruz</string>
   <string name="cross_help_body">Las formas más cortas de hacer la cruz desde la mezcla actual. Cada forma listada bajo un color es tan corta como puede ser la cruz de ese color.</string>
   <string name="cross_help_specific">Solo el color que elija abajo.</string>
-  <string name="cross_help_dual">Ese color y el opuesto, el más corto primero.</string>
-  <string name="cross_help_full">Los seis colores, el más corto primero, con el más corto marcado con una estrella.</string>
+  <string name="cross_help_dual">Ese color y su opuesto, la más corta primero.</string>
+  <string name="cross_help_full">Los seis colores, la más corta primero y marcada con una estrella.</string>
   <string name="cross_solving">Resolviendo…</string>
   <string name="cross_no_scramble">Aún no hay mezcla disponible</string>
 
@@ -448,9 +448,9 @@
   <string name="share_time">Compartir tiempo</string>
   <string name="share_time_subject">Nuevo tiempo: %1$s</string>
   <string name="share_time_text">¡Acabo de resolver el cubo %1$s en %2$s!\n\nMezcla:\n%3$s\n\nMedido en %4$s con la app de android Cubench:\n%5$s</string>
-  <string name="share_time_steps_text">Acabo de resolver el cubo %1$s en %2$s with the following steps times:\n%3$s\nScramble:\n%4$s\n\nTimed on %5$s with Cubench android app:\n%6$s</string>
+  <string name="share_time_steps_text">Acabo de resolver el cubo %1$s en %2$s con estos tiempos por paso:\n%3$s\nMezcla:\n%4$s\n\nCronometrado el %5$s con la app Cubench para Android:\n%6$s</string>
   <string name="smart_cube_mac">MAC: %s</string>
-  <string name="share_smartcube_data">Datos del cubo inteligente:</string>
+  <string name="share_smartcube_data">Datos del smart cube:</string>
   <string name="share_send_report">Enviar informe</string>
   <string name="report_reconstruction">¿Reconstrucción incorrecta?</string>
   <string name="report_reconstruction_body">Esto envía la resolución al desarrollador de la app para que la lectura pueda revisarse.</string>
@@ -779,7 +779,7 @@
     ]]>
   </string>
 
-  <string name="smart_cube_title">Cubo inteligente</string>
+  <string name="smart_cube_title">Smart cube</string>
   <string name="smart_cube_disconnect">Desconectar</string>
   <string name="smart_cube_scanning">Buscando…</string>
   <string name="smart_cube_connecting">Conectando a %s…</string>
@@ -799,7 +799,7 @@
   <string name="smart_cube_undo">Deshaz tus movimientos erróneos</string>
 
   <!-- Cubo inteligente: panel explicativo de la primera vez -->
-  <string name="smart_cube_intro_title">Qué hace un cubo inteligente</string>
+  <string name="smart_cube_intro_title">Qué hace un smart cube</string>
   <string name="smart_cube_intro_timing_title">El cronómetro se encarga solo</string>
   <string name="smart_cube_intro_timing_body">Arranca con tu primer movimiento y se detiene en cuanto el cubo queda resuelto. Sin tocar la pantalla, sin salidas fallidas.</string>
   <string name="smart_cube_intro_scramble_title">Mezclas que puedes seguir</string>
@@ -807,7 +807,7 @@
   <string name="smart_cube_intro_breakdown_title">Cada resolución, desglosada</string>
   <string name="smart_cube_intro_breakdown_body">Cross, F2L, OLL y PLL se cronometran por separado, con número de movimientos, velocidad y la reconstrucción completa.</string>
   <string name="smart_cube_intro_continue">Vincular mi cubo</string>
-  <string name="smart_cube_help">Qué hace un cubo inteligente</string>
+  <string name="smart_cube_help">Qué hace un smart cube</string>
 
   <!-- Cubo inteligente: estados de vinculación -->
   <string name="smart_cube_searching_title">Buscando tu cubo</string>
@@ -839,7 +839,7 @@
   <string name="blind_method_op_m2">OP/M2</string>
   <string name="method_default">Predeterminado (%1$s)</string>
   <string name="method_info">Acerca del método</string>
-  <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un cubo inteligente conectado: le dice a la aplicación en qué pasos dividir una resolución. Déjalo en el valor predeterminado para seguir el método preferido de los ajustes, o indica el método que realmente usas para este tipo de resolución.</string>
+  <string name="method_info_message">Se usa para reconstruir tus resoluciones cuando hay un smart cube conectado: le dice a la aplicación en qué pasos dividir una resolución. Déjalo en el valor predeterminado para seguir el método preferido de los ajustes, o indica el método que realmente usas para este tipo de resolución.</string>
   <string name="reread_solves_title">¿Releer los resueltos anteriores?</string>
   <string name="reread_solves_message">%1$d resueltos de este tipo se leyeron como %2$s. Pueden releerse como %3$s, lo que puede tardar un poco con un historial largo. No se pierde nada: volver a poner el método y releer los restaura.</string>
   <string name="reread_solves_confirm">Releer</string>
@@ -880,10 +880,10 @@
   <string name="history_help_title">Sobre estas estadísticas</string>
   <string name="history_help_body">Cualquiera de ellas puede ir en cualquiera de las tres casillas.</string>
   <string name="history_help_rolling">Ventanas móviles</string>
-  <string name="history_help_rolling_body">Una estadística con un número en su nombre solo abarca esa cantidad de sus tiempos más recientes, así que se mueve con cada resolución.</string>
+  <string name="history_help_rolling_body">Una estadística con un número en el nombre solo cubre esa cantidad de sus tiempos más recientes, así que cambia con cada resolución que hace.</string>
   <string name="history_help_all">Media total y Prec total</string>
   <string name="history_help_all_body">La media total es la media simple de sus tiempos, sin contar los DNF. La prec total, en los tipos a ciegas, dice con qué frecuencia acertó. Ambas abarcan todo su historial para este tipo de resolución, hasta los últimos 1000 tiempos.</string>
-  <string name="history_help_pb_body">Su mejor tiempo para este tipo de resolución, por antiguo que sea.</string>
+  <string name="history_help_pb_body">Su tiempo más rápido en este tipo de resolución, por antiguo que sea.</string>
   <string name="history_help_average">Media o media simple</string>
   <string name="history_help_average_body">Una media quita el mejor y el peor, y promedia el resto. Una media simple no quita nada, así que un solo DNF entre sus tiempos la convierte en DNF.</string>
   <string name="history_help_blind">Tipos a ciegas</string>
@@ -911,12 +911,12 @@
   <string name="verdict_slower">%1$s más lento que tu %2$s</string>
 
   <string name="smartcube_case_headline">%1$s %2$s</string>
-  <string name="drill_title">Entrenamiento</string>
+  <string name="drill_title">Drill</string>
   <string name="drill_progress">Repetición %1$d de %2$d</string>
   <string name="drill_reset">Reiniciar</string>
   <string name="drill_skip">Saltar</string>
   <string name="drill_done">Listo</string>
-  <string name="drill_finished">Entrenamiento terminado</string>
+  <string name="drill_finished">Drill terminado</string>
   <string name="drill_rep_skipped">Saltada</string>
   <string name="drill_summary_nothing_timed">No se cronometró nada</string>
   <string name="drill_summary_cell_reps">Repeticiones</string>
@@ -936,15 +936,15 @@
   <string name="drill_case_seconds">%1$s s</string>
   <string name="drill_case_remove">Quitar</string>
   <string name="drill_case_removed">Quitada, toque para restaurar</string>
-  <string name="drill_stats_title">Estadísticas de entrenamiento</string>
+  <string name="drill_stats_title">Estadísticas de drills</string>
   <string name="drill_stats_column_spread">Desvío</string>
   <plurals name="drill_stats_cell_cases">
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>
   </plurals>
   <string name="drill_stats_hint">Toca un caso para ver cada uno de sus intentos.</string>
-  <string name="drill_stats_empty">Nada registrado todavía. Los entrenamientos hechos en modo serio aparecen aquí, caso por caso.</string>
-  <string name="drill_stats_empty_window">Ningún entrenamiento en este periodo.</string>
+  <string name="drill_stats_empty">Nada registrado todavía. Los drills hechos en modo serio aparecen aquí, caso por caso.</string>
+  <string name="drill_stats_empty_window">Ningún drill en este periodo.</string>
   <string name="drill_stats_window_today">Hoy</string>
   <string name="drill_stats_window_week">Semana</string>
   <string name="drill_stats_window_month">Mes</string>
@@ -964,13 +964,13 @@
   </plurals>
   <string name="drill_case_stats_when">%1$s · repetición %2$d</string>
   <string name="drill_case_stats_remove_message">%1$s, %2$s. Queda en la lista, tachada, y no cuenta para nada.</string>
-  <string name="drill_needs_cube">Conecta tu cubo inteligente para hacer un entrenamiento.</string>
-  <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este entrenamiento.</string>
-  <string name="drill_no_cube_view">Este dispositivo no puede dibujar el cubo de un entrenamiento.</string>
-  <string name="drill_spec_unreadable">Esta versión de la aplicación no puede leer ese entrenamiento.</string>
+  <string name="drill_needs_cube">Conecta tu smart cube para hacer un drill.</string>
+  <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este drill.</string>
+  <string name="drill_no_cube_view">Este dispositivo no puede dibujar el cubo de un drill.</string>
+  <string name="drill_spec_unreadable">Esta versión de la aplicación no puede leer ese drill.</string>
 
   <!-- Eleccion del entrenamiento -->
-  <string name="drill_setup_title">Nuevo entrenamiento</string>
+  <string name="drill_setup_title">Nuevo drill</string>
   <string name="drill_practice">Practicar</string>
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
@@ -1035,17 +1035,17 @@
   <string name="drill_record">Guardar los tiempos</string>
   <string name="drill_summary_recorded">Guardado</string>
   <string name="drill_summary_not_recorded">Sin guardar</string>
-  <string name="drill_help_title">Sobre este entrenamiento</string>
+  <string name="drill_help_title">Sobre este drill</string>
   <string name="drill_help_body">Lo que un entrenamiento fija antes de repartir su primer caso.</string>
-  <string name="drill_help_record">Activado, cada repetición se guarda: su tiempo y si pediste ver el algoritmo. Esas repeticiones alimentan las Estadísticas de entrenamiento y «Algoritmos que conoces» en Análisis. Desactívalo para practicar sin afectarlos.</string>
+  <string name="drill_help_record">Si está activado, se guarda cada repetición: su tiempo y si pediste ver el algoritmo. Esas repeticiones cuentan en Estadísticas de drills y en «Algoritmos que conoces» de Análisis. Desactívalo para practicar sin que cuenten.</string>
   <string name="drill_planning">Planificación</string>
   <string name="drill_planning_limit">Límite de planificación</string>
   <string name="drill_planning_seconds">segundos</string>
-  <string name="drill_planning_hint">Desactivado por defecto: aprender la cruz completa lleva más que los 15 segundos oficiales.</string>
-  <string name="drill_start">Empezar entrenamiento</string>
+  <string name="drill_planning_hint">Desactivado por defecto: aprender la cruz completa lleva más de los 15 segundos oficiales.</string>
+  <string name="drill_start">Empezar drill</string>
 
   <!-- Entrenamiento de cruz -->
-  <string name="drill_cross_title">Entrenamiento de cruz</string>
+  <string name="drill_cross_title">Drill de cruz</string>
   <string name="drill_cross_done">Listo</string>
   <string name="drill_cross_next">Siguiente</string>
   <string name="drill_cross_dealing">Preparando una mezcla</string>
@@ -1106,7 +1106,7 @@
   <string name="known_algorithms_status_unseen">Nada que decir</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Sin caso registrado</string>
-  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en dos pasos, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
+  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en 2-look, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
   <string name="blind_setup_summary">%2$s, %1$s, búferes %3$s y %4$s</string>
@@ -1129,10 +1129,10 @@
 
   <!-- ================= Analysis hub ================= -->
   <string name="analysis_title">An\u00e1lisis</string>
-  <string name="menu_section_smartcube">Cubo inteligente</string>
+  <string name="menu_section_smartcube">Smart cube</string>
   <string name="menu_section_data">Tus datos</string>
   <string name="menu_section_app">Aplicación</string>
-  <string name="menu_drills">Entrenamientos</string>
+  <string name="menu_drills">Drills</string>
   <string name="menu_coaching">Coaching</string>
   <string name="menu_premium_tag">Premium</string>
   <string name="menu_hub_unavailable">Solo resoluciones normales de 3x3</string>
@@ -1199,16 +1199,16 @@
   <string name="analysis_sample_browse">Seguir mirando</string>
 
   <string name="analysis_help_title">Sobre estas cifras</string>
-  <string name="analysis_help_solve_title">Adónde va tu tiempo</string>
+  <string name="analysis_help_solve_title">En qué se va tu tiempo</string>
   <string name="analysis_help_solve_body">Estas cifras vienen de tus propios resueltos, los que leyó un cubo, en la ventana indicada arriba.</string>
-  <string name="analysis_help_bar">El resuelto medio</string>
-  <string name="analysis_help_bar_body">Un bloque por paso, tan ancho como su parte del tiempo. Cada bloque es pálido donde mirabas y sólido donde girabas.</string>
-  <string name="analysis_help_delta">Frente a un resuelto típico</string>
+  <string name="analysis_help_bar">La resolución media</string>
+  <string name="analysis_help_bar_body">Un bloque por paso, tan ancho como la parte del tiempo que ocupa. La parte clara es el tiempo que pasaste mirando; la sólida, el que pasaste girando.</string>
+  <string name="analysis_help_delta">Frente a una resolución típica</string>
   <string name="analysis_help_delta_body">Son partes de un mismo resuelto: si un paso está por encima, otro tiene que estar por debajo. Muestra qué paso está desequilibrado.</string>
   <string name="analysis_help_table">La tabla de pasos</string>
-  <string name="analysis_help_table_body">Media, mejor y desvío de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha y los abren.</string>
+  <string name="analysis_help_table_body">Media, mejor y desvío de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha: tócalos para ver sus casos.</string>
   <string name="analysis_help_spread">Desvío</string>
-  <string name="analysis_help_spread_body">Cuánto cambia el tiempo de una resolución a otra. Una misma media puede venir de hacerlo siempre igual, o de atascarte de vez en cuando.</string>
+  <string name="analysis_help_spread_body">Cuánto varía el tiempo de una resolución a otra. La misma media puede salir de hacerlo siempre igual o de atascarte de vez en cuando.</string>
   <string name="analysis_help_standard">Algoritmos estándar</string>
   <string name="analysis_help_standard_body">Cómo giraste por última vez cada caso del conjunto: con uno de los algoritmos que tiene listados, lo que se considera estándar.</string>
   <string name="analysis_help_extra">Movimientos de más</string>
@@ -1217,10 +1217,10 @@
   <string name="analysis_help_plan_body">Aquí no se mide nada. La pestaña muestra qué cubriría un plan, y todavía no hay ninguno. Las cifras que usaría un plan están en Resolución y Casos, y esas siguen siendo gratis.</string>
   <string name="analysis_help_cases_title">Caso por caso</string>
   <string name="analysis_help_cases_body">Los casos del paso elegido, sobre la ventana indicada arriba.</string>
-  <string name="analysis_help_standing">Cómo está un caso</string>
+  <string name="analysis_help_standing">Estado de un caso</string>
   <string name="analysis_help_standing_body">Conocido: salió con un solo algoritmo, sin ayuda, y hace poco como para que siga siendo cierto. Para repasar: antes salía así, pero llevó dos miradas las dos últimas veces. Para aprender: nunca ha salido con un solo algoritmo. Todo se lee de tus resoluciones, no de una lista que marcas.</string>
   <string name="analysis_help_shape">Forma</string>
-  <string name="analysis_help_shape_body">En OLL, un botón Forma reduce la tabla a un grupo de formas, con el tamaño de cada grupo al lado.</string>
+  <string name="analysis_help_shape_body">En OLL, el botón Forma limita la tabla a un grupo de formas, con el número de casos de cada grupo al lado.</string>
   <string name="analysis_help_rest_body">Bajo la tabla, los casos que no salieron en la ventana, agrupados por cómo están en todas tus resoluciones. Toca uno para ver sus algoritmos.</string>
   <string name="analysis_help_sample">Ejemplo</string>
   <string name="analysis_help_sample_body">Nada de estas pestañas es tuyo. Estas cifras están inventadas, y están aquí para que la pantalla tenga algo que mostrar antes de que tengas un smart cube. Conecta uno y las tuyas ocuparán su lugar.</string>
