@@ -479,7 +479,15 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.1.1 <i>(Nueva versión)</i></b></u><br/>
+    <u><b>v2.1.2 <i>(Nueva versión)</i></b></u><br/>
+    <ul>
+      <li>Corregido un cierre inesperado en la pantalla del cronómetro, sobre todo en tabletas</li>
+      <li>Corregido el cronómetro, que gastaba batería y memoria en segundo plano, o se bloqueaba al tocarlo, tras salir de él durante una resolución</li>
+      <li>Corregido un cierre inesperado poco frecuente al editar o eliminar una resolución desde sus detalles</li>
+      <li>La traducción al portugués se ha reescrito en portugués de Brasil</li>
+      <li>Textos más claros en francés y español</li>
+    </ul>
+    <u><b>v2.1.1</b></u><br/>
     <ul>
       <li>Las mezclas de 2x2 ahora tienen 11 movimientos, solo con R, U y F, como las oficiales</li>
       <li>El historial ahora se puede ordenar por mejor Ao5, Ao12, Ao50 o Ao100</li>

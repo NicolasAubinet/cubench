@@ -498,7 +498,15 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.1.1 <i>(New version)</i></b></u><br/>
+    <u><b>v2.1.2 <i>(New version)</i></b></u><br/>
+    <ul>
+      <li>Fixed a crash on the timer screen, seen mostly on tablets</li>
+      <li>Fixed the timer using battery and memory in the background, or freezing on a tap, after it was left during a solve</li>
+      <li>Fixed a rare crash when editing or deleting a solve from its details</li>
+      <li>The Portuguese translation has been rewritten in Brazilian Portuguese</li>
+      <li>Clearer wording in French and Spanish</li>
+    </ul>
+    <u><b>v2.1.1</b></u><br/>
     <ul>
       <li>2x2 scrambles are now 11 moves using R, U and F only, like official ones</li>
       <li>The history can now be sorted by best Ao5, Ao12, Ao50 or Ao100</li>
