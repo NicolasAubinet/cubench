@@ -277,6 +277,10 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
         return;
       }
     }
+    if (SmartCubeAutoConnect.INSTANCE.wants(found)) {
+      connect(found);
+      return;
+    }
     discovered.add(found);
     addCubeRow(found);
     showSearching();

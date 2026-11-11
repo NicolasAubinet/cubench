@@ -16,7 +16,8 @@ import com.cube.nanotimer.smartcube.model.DiscoveredCube;
  * Connects the last cube by itself when the user has asked for that on the smart-cube sheet.
  *
  * <p>A scan is a short burst, never a standing one: when the app starts or comes back to the
- * foreground, and once after a connected cube drops. It stops after {@link #SCAN_MS}, when the cube
+ * foreground (a screen woken from sleep included), and once after a connected cube drops; the
+ * smart-cube sheet's own scan connects the cube too (see {@link #wants}). It stops after {@link #SCAN_MS}, when the cube
  * is found, or when the app goes to the background, so a cube left switched off costs nothing.
  * Disconnecting by hand holds it off until a cube is connected again, or it would undo the button.
  */
@@ -49,10 +50,19 @@ public enum SmartCubeAutoConnect {
     stop();
   }
 
+  /**
+   * Whether a cube just found should be connected without a tap: it is the last one, and the user
+   * wants that and has not just disconnected. The sheet asks this, since its scan replaces this one.
+   */
+  public boolean wants(DiscoveredCube found) {
+    return !heldOff && Options.INSTANCE.isSmartCubeAutoConnect()
+        && found.getId().equals(Options.INSTANCE.getSmartCubeLastId());
+  }
+
   private void tryConnect() {
     String id = Options.INSTANCE.getSmartCubeLastId();
-    // A scan already running is the sheet's, looking for a cube with the user watching.
-    if (scanning || heldOff || id == null || !SmartCubeGate.ENABLED
+    // A scan already running is ours or the sheet's; once the sheet has taken the radio, ours is over.
+    if (heldOff || id == null || !SmartCubeGate.ENABLED
         || SmartCubeManager.INSTANCE.isScanning()
         || !Options.INSTANCE.isSmartCubeAutoConnect()
         || SmartCubeManager.INSTANCE.isConnected()
@@ -66,6 +76,7 @@ public enum SmartCubeAutoConnect {
       return; // Bluetooth went off or the permission was revoked in between: try again next time
     }
     scanning = true;
+    handler.removeCallbacks(timeout);
     handler.postDelayed(timeout, SCAN_MS);
   }
 
