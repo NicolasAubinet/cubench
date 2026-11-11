@@ -500,7 +500,13 @@
     <b>Otras novedades</b>
     <ul>
       <li>Tras una resolución, el cronómetro indica qué puesto ocupa el tiempo entre todas tus resoluciones, como en el detalle de las resoluciones</li>
-      <li>La traducción al portugués se ha reescrito en portugués de Brasil</li>
+    </ul>
+    <u><b>v2.1.2</b></u><br/>
+    <ul>
+      <li>Corregido un cierre inesperado en la pantalla del cronómetro, sobre todo en tabletas</li>
+      <li>Corregido el cronómetro, que gastaba batería y memoria en segundo plano, o se bloqueaba al tocarlo, tras salir de él durante una resolución</li>
+      <li>Corregido un cierre inesperado poco frecuente al editar o eliminar una resolución desde sus detalles</li>
+      <li>Textos más claros en francés, español y portugués</li>
     </ul>
     <u><b>v2.1.1</b></u><br/>
     <ul>
