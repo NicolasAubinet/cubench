@@ -1831,6 +1831,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   }
 
   private synchronized void updateInspection() {
+    if (timerState != TimerState.INSPECTING) {
+      return; // a tick posted just before the inspection timer was cancelled
+    }
     long curTime = System.currentTimeMillis() - timerStartTs;
     final int officialInspectionDnfTime = 2;
     inspectionRing.setElapsed(curTime);
@@ -1927,6 +1930,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       timer.cancel();
       timer.purge();
     }
+    timerHandler.removeCallbacksAndMessages(null); // ticks already posted would still run
   }
 
   private void stopHoldToStartTimer() {
