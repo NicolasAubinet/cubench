@@ -389,7 +389,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         final SolveTime deleted = solveTime;
         App.INSTANCE.getService().deleteTime(deleted, new DataCallback<SolveAverages>() {
           public void onData(SolveAverages data) {
-            handler.onTimeDeleted(deleted); // once deleted, so a handler may safely re-read the averages
+            if (handler != null) { // a dialog Android recreated has none
+              handler.onTimeDeleted(deleted); // once deleted, so a handler may safely re-read the averages
+            }
           }
         });
         dialog.dismiss();
@@ -1605,7 +1607,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     App.INSTANCE.getService().saveTime(solveTime, new DataCallback<SolveAverages>() {
       @Override
       public void onData(SolveAverages data) {
-        handler.onTimeChanged(solveTime);
+        if (handler != null) { // a dialog Android recreated has none
+          handler.onTimeChanged(solveTime);
+        }
       }
     });
   }
