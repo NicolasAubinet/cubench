@@ -1,33 +1,63 @@
 # Cubench
 
-<a href="https://play.google.com/store/apps/details?id=com.cube.nanotimer" target="_blank">
+<a href="https://play.google.com/store/apps/details?id=com.cube.nanotimer&referrer=utm_source%3Dgithub" target="_blank">
   <img alt="Get it on Google Play"
        src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
        height="60"/>
 </a>
 
-Android speedcubing timer app to keep track of your times and averages everywhere.
+A free, open-source speedcubing timer and trainer for Android, formerly Nano Timer, on Google Play since 2014. No ads, no account: your solves stay on your phone.
 
-## Features:
+## Timer
 
-* Scramble generation for many cube types
-* Define your own solve types to have separate histories for a same cube type
-* Lots of customization options
-* Multiple-steps timer allowing you to know where you should focus your practice (pre-registered steps, or define your own)
-* Special scramble types to practice only F2L, last layer, PLL and more
-* Graphs
-* Times import/export
-* Cubing sessions
-* Random-state scrambles for 3x3x3, 2x2x2, Square-1, Pyraminx and FTO
-* Special blind solve type with blind-specific fields like success rate, last/best Mo3 and average of successes
-* Keep track of your averages and your best times
+* Scrambles for 2x2 to 7x7, Megaminx, Pyraminx, Skewb, Square-1, Clock and FTO
+* Random-state scrambles for 3x3, 2x2, Pyraminx, Square-1 and FTO
+* Special scrambles to practice only F2L, the last layer, OLL, PLL and more
+* Your own solve types, to keep separate histories for one-handed, blindfolded or anything else on the same puzzle
+* Multi-step timing, to see which step of your solve takes the most time
+* WCA inspection, +2 and DNF
+* Ao5, Ao12, Ao50, Ao100 and more, personal bests, graphs and sessions
+* Blind solve types with success rate and Mo3
+* Backup and restore, CSV export
+* In English, French, Spanish and Brazilian Portuguese
+
+## Smart cubes (new in 2.2)
+
+Connect a Bluetooth smart cube and Cubench follows every move:
+
+* A live 3D cube that turns with yours
+* Every solve reconstructed step by step, with the time spent recognizing and turning: CFOP, Roux, beginner method, and blind solves with their buffers and targets
+* Each algorithm case detected and tracked across your solves: known, needs review, to learn
+* Drills for any PLL, OLL or F2L case, checked on the real cube rep by rep
+* A look-ahead drill, and a cross drill that compares your cross with the shortest one
+
+Supported cubes:
+
+* **GAN**: 356 i3, i Carry, i Carry S, i Carry 2, GAN12 ui, GAN12 ui Maglev, GAN14 ui FreePlay, Mini ui FreePlay, Monster Go 3Ai
+* **MoYu**: AI 2023, WeiLong V10 AI, WeiLong V11 AI
+* **QiYi**: QiYi Smart Cube, XMD Tornado V4 AI
+
+Own a smart cube that isn't listed, or one that misbehaves? Please [open an issue](../../issues): logs from cubes I don't own are the most useful bug reports there are.
+
+## For developers
+
+Java, built with Gradle. Modules:
+
+* `nanotimer`: the app (GUI, scramblers, reconstruction, drills)
+* `smartcube`: the Bluetooth protocols for GAN (gen 2, 3 and 4), MoYu and QiYi cubes, with no third-party library
+* `coremodel`: the model shared by the app and the coach service
+* `services`: SQLite persistence
+* `datamodel`: value objects, puzzle and solve types, statistics
+* `guilib`: shared drawables, styles and themes
+
+```sh
+./gradlew assembleDebug        # build the debug APK
+./gradlew test                 # unit tests, all modules
+```
 
 ## Acknowledgements
 
-* The FTO (Face-Turning Octahedron) random-state scrambler is a Java port of the
-  solver from [cstimer](https://github.com/cs0x7f/cstimer) by Shuang Chen (cs0x7f)
-  and contributors (`src/js/solver/ftocta.js` and the supporting `mathlib.js`),
-  used under the GPL-3.0 license.
+* The FTO (Face-Turning Octahedron) random-state scrambler is a Java port of the solver from [cstimer](https://github.com/cs0x7f/cstimer) by Shuang Chen (cs0x7f) and contributors (`src/js/solver/ftocta.js` and the supporting `mathlib.js`), used under the GPL-3.0 license.
 
 ## Support
 
