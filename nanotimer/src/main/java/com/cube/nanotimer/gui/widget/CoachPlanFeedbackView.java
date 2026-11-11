@@ -178,6 +178,16 @@ public class CoachPlanFeedbackView {
             bindRate(true);
           }
         });
+    EditText yesText = block.findViewById(R.id.etFbYesText);
+    yesText.setVisibility(picked == 0 ? View.VISIBLE : View.GONE);
+    if (picked == 0) {
+      bindText(yesText, answer.getText(), new Typed() {
+        @Override
+        public void typed(String value) {
+          feedback.setFocusText(index, value);
+        }
+      });
+    }
     View why = block.findViewById(R.id.llFbWhy);
     why.setVisibility(picked == 1 ? View.VISIBLE : View.GONE);
     if (picked != 1) {
@@ -306,8 +316,8 @@ public class CoachPlanFeedbackView {
       picked = said; // their own words say more than "Other"
     }
     Boolean choice = folded.get(index);
-    final boolean fold = choice != null ? choice
-        : !picked.isEmpty() || (answer.getText() != null && !answer.getText().isEmpty());
+    // Words alone don't fold it: they may have come from a "yes", with no reason picked yet.
+    final boolean fold = choice != null ? choice : !answer.getReasons().isEmpty();
     block.findViewById(R.id.llFbWhyBody).setVisibility(fold ? View.GONE : View.VISIBLE);
     TextView pickedView = block.findViewById(R.id.tvFbWhyPicked);
     pickedView.setText(fold ? picked : "");

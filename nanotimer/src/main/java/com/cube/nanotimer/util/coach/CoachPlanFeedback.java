@@ -168,13 +168,12 @@ public final class CoachPlanFeedback {
     return focuses.get(focusIndex);
   }
 
-  /** Sets a focus's answer. A "yes" drops the reasons and text a "not quite" had. */
+  /** Sets a focus's answer. A "yes" drops the reasons a "not quite" had; the words stay with either. */
   public void answer(int focusIndex, Answer answer) {
     FocusAnswer focus = focus(focusIndex);
     focus.answer = answer;
     if (answer == Answer.YES) {
       focus.reasons.clear();
-      focus.text = null;
     }
   }
 

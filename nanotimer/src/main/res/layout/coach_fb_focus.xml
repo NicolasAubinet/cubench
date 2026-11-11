@@ -38,6 +38,22 @@
        android:orientation="horizontal"/>
   </LinearLayout>
 
+  <!-- After a "Yes": room to say why, so agreeing is not only a tap. -->
+  <EditText
+     android:id="@+id/etFbYesText"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:background="@drawable/coach_purchase_field"
+     android:hint="@string/coach_fb_tell_more"
+     android:inputType="textCapSentences|textMultiLine"
+     android:maxLength="2000"
+     android:padding="10dp"
+     android:textColor="@color/white"
+     android:textColorHint="@color/secondary_text"
+     android:textSize="13.5sp"
+     android:visibility="gone"/>
+
   <LinearLayout
      android:id="@+id/llFbWhy"
      android:layout_width="match_parent"

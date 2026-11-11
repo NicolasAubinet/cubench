@@ -201,7 +201,7 @@ public class CoachBetaTest {
   }
 
   @Test
-  public void aYesDropsTheReasonsANotQuiteHad() {
+  public void aYesDropsTheReasonsButKeepsTheWords() {
     CoachPlanFeedback feedback = new CoachPlanFeedback();
     feedback.answer(0, CoachPlanFeedback.Answer.NOT_QUITE);
     feedback.toggleReason(0, CoachPlanFeedback.Reason.NOT_CLEAR);
@@ -209,7 +209,16 @@ public class CoachBetaTest {
     feedback.answer(0, CoachPlanFeedback.Answer.YES);
 
     Assert.assertTrue(feedback.getFocus(0).getReasons().isEmpty());
-    Assert.assertNull(feedback.getFocus(0).getText());
+    Assert.assertEquals("why", feedback.getFocus(0).getText());
+  }
+
+  @Test
+  public void theWordsSurviveAChangedAnswer() {
+    CoachPlanFeedback feedback = new CoachPlanFeedback();
+    feedback.answer(0, CoachPlanFeedback.Answer.YES);
+    feedback.setFocusText(0, "spot on");
+    feedback.answer(0, CoachPlanFeedback.Answer.NOT_QUITE);
+    Assert.assertEquals("spot on", feedback.getFocus(0).getText());
   }
 
   @Test
