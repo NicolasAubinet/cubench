@@ -486,8 +486,7 @@
       <li>Corrigido um erro que fechava o app na tela do cronômetro, principalmente em tablets</li>
       <li>Corrigido o cronômetro, que gastava bateria e memória em segundo plano, ou travava ao tocar, depois de sair dele durante uma resolução</li>
       <li>Corrigido um erro raro que fechava o app ao editar ou excluir uma resolução pelos detalhes</li>
-      <li>A tradução para o português foi reescrita em português do Brasil</li>
-      <li>Textos mais claros em francês e espanhol</li>
+      <li>Textos mais claros em francês, espanhol e português</li>
     </ul>
     <u><b>v2.1.1</b></u><br/>
     <ul>

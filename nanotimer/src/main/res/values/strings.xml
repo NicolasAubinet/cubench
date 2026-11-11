@@ -503,8 +503,7 @@
       <li>Fixed a crash on the timer screen, seen mostly on tablets</li>
       <li>Fixed the timer using battery and memory in the background, or freezing on a tap, after it was left during a solve</li>
       <li>Fixed a rare crash when editing or deleting a solve from its details</li>
-      <li>The Portuguese translation has been rewritten in Brazilian Portuguese</li>
-      <li>Clearer wording in French and Spanish</li>
+      <li>Clearer wording in French, Spanish and Portuguese</li>
     </ul>
     <u><b>v2.1.1</b></u><br/>
     <ul>
