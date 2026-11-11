@@ -261,11 +261,22 @@
      android:textSize="12.5sp"
      android:visibility="gone"/>
 
+  <!-- Until the stored plan is read, so neither the plan nor the pitch shows before the other. -->
+  <ProgressBar
+     android:id="@+id/pbAnalysisPlanLoading"
+     android:layout_width="32dp"
+     android:layout_height="32dp"
+     android:layout_gravity="center_horizontal"
+     android:layout_marginTop="40dp"
+     android:layout_marginBottom="40dp"
+     android:visibility="gone"/>
+
   <LinearLayout
      android:id="@+id/llAnalysisPlanAbout"
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
-     android:orientation="vertical">
+     android:orientation="vertical"
+     android:visibility="gone">
 
     <LinearLayout
        android:layout_width="match_parent"

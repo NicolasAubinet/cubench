@@ -157,6 +157,13 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private MenuItem askNowItem;
   private MenuItem reportItem;
   private boolean planShown;
+  /** Shows the plan spinner, posted with a delay so a quick read never flashes it. */
+  private final Runnable showPlanLoading = new Runnable() {
+    @Override
+    public void run() {
+      findViewById(R.id.pbAnalysisPlanLoading).setVisibility(View.VISIBLE);
+    }
+  };
   private long shownPlanWrittenAt;
   private int tab = TAB_SOLVE;
   private boolean loaded;
@@ -275,6 +282,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     showTab(tabs.getSelection());
     loadKnowledge();
     loadOwnSolves();
+    findViewById(R.id.pbAnalysisPlanLoading).postDelayed(showPlanLoading, 200);
     loadPlan();
     load();
   }
@@ -1225,6 +1233,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
    * it was a true reading when written, and its date says as of when.
    */
   private void showPlan(StoredCoachPlan kept) {
+    View loading = findViewById(R.id.pbAnalysisPlanLoading);
+    loading.removeCallbacks(showPlanLoading);
+    loading.setVisibility(View.GONE);
     keptPlan = kept;
     // Plans moved away leave this type's last one behind, out of date: the status card stands alone.
     CoachPlanStatus.Look look = planStatus.getLook();
