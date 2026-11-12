@@ -397,7 +397,7 @@ public class AnalysisCases {
   private Set<String> knownCodes() {
     Set<String> known = new HashSet<String>();
     for (Map.Entry<String, CaseKnowledge.Status> entry : statuses.entrySet()) {
-      if (entry.getValue() == CaseKnowledge.Status.KNOWN) {
+      if (entry.getValue() != null && entry.getValue().isLearned()) {
         known.add(entry.getKey());
       }
     }

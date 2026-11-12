@@ -670,7 +670,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     }
   }
 
-  /** The cases the solves say are known, read once for a shape group's completion. */
+  /** The cases the solves say are learned, read once for a shape group's completion. */
   private void loadKnownCases() {
     App.INSTANCE.getService().getCaseHistory(0, new DataCallback<CaseHistory>() {
       @Override
@@ -679,7 +679,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
           @Override
           public void run() {
             for (CaseKnowledge known : history.getCases()) {
-              if (known.getStatus() == CaseKnowledge.Status.KNOWN) {
+              if (known.getStatus() != null && known.getStatus().isLearned()) {
                 knownCases.add(known.getCode());
               }
             }

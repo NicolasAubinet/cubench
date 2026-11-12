@@ -49,11 +49,13 @@ import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
 import com.cube.nanotimer.gui.widget.SelectorFragmentDialog;
+import com.cube.nanotimer.gui.widget.SetLearnedPanel;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.OllGroups;
 import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.coach.CoachAccess;
@@ -85,6 +87,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -656,6 +659,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
             if (!sampling()) {
               known = readKnown;
               showCases();
+              celebrateLate();
             }
             if (findViewById(R.id.llAnalysisPractice).getVisibility() == View.VISIBLE
                 && practiceTeaser) {
@@ -666,6 +670,36 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         });
       }
     });
+  }
+
+  /** A whole set the drill missed celebrating, e.g. finished while a case sat in review: shown once. */
+  private void celebrateLate() {
+    Set<String> drillLearned = Options.INSTANCE.getLearnedCases();
+    Set<String> learned = new HashSet<String>(drillLearned);
+    for (CaseKnowledge known : readKnown) {
+      if (known.getStatus() != null && known.getStatus().isLearned()) {
+        learned.add(known.getCode());
+      }
+    }
+    Set<String> celebrated = new HashSet<String>();
+    for (SetLearnedPanel.Family each : SetLearnedPanel.Family.values()) {
+      if (Options.INSTANCE.isGroupCelebrated(SetLearnedPanel.celebratedKey(each))) {
+        celebrated.add(SetLearnedPanel.celebratedKey(each));
+      }
+    }
+    SetLearnedPanel.Family family = SetLearnedPanel.lateCelebration(learned, drillLearned,
+        celebrated);
+    if (family == null || isFinishing()) {
+      return;
+    }
+    Options.INSTANCE.setGroupCelebrated(SetLearnedPanel.celebratedKey(family));
+    if (family == SetLearnedPanel.Family.OLL) {
+      for (String group : OllGroups.getAll()) {
+        Options.INSTANCE.setGroupCelebrated(group); // the whole set's screen stands in for them
+      }
+    }
+    SetLearnedPanel.show(this, family, SetLearnedPanel.casesOf(family),
+        SetLearnedPanel.otherSetLearned(family, learned), null);
   }
 
   /** Asked once for the life of the screen: owning a cube is not a fact about the window. */

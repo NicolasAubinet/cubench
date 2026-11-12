@@ -25,6 +25,7 @@ import com.cube.nanotimer.util.view.SetLearnedEntrance;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,6 +67,27 @@ public final class SetLearnedPanel {
   /** Whether every case of the set other than {@code family} is among {@code learned}. */
   public static boolean otherSetLearned(Family family, Collection<String> learned) {
     return learned.containsAll(casesOf(family == Family.OLL ? Family.PLL : Family.OLL));
+  }
+
+  /**
+   * A set to celebrate late, or null: complete, never celebrated, and with at least one case
+   * cleared in a learning drill, so a set known from solving alone is not celebrated out of the
+   * blue. OLL first when both are due.
+   *
+   * @param learned every case learned, by solves or drills
+   * @param drillLearned the cases cleared in a learning drill
+   * @param celebrated the {@link #celebratedKey} of each set already celebrated
+   */
+  public static Family lateCelebration(Collection<String> learned,
+      Collection<String> drillLearned, Collection<String> celebrated) {
+    for (Family family : Family.values()) {
+      List<String> cases = casesOf(family);
+      if (!celebrated.contains(celebratedKey(family)) && learned.containsAll(cases)
+          && !Collections.disjoint(cases, drillLearned)) {
+        return family;
+      }
+    }
+    return null;
   }
 
   /** Kept beside the celebrated shape groups, under a name no group has. */

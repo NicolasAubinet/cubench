@@ -77,6 +77,11 @@ public class CaseKnowledge {
       this.code = code;
     }
 
+    /** Done in one look at some point: known now, or known and slipping since. */
+    public boolean isLearned() {
+      return this == KNOWN || this == NEEDS_REVIEW;
+    }
+
     /** Stored and sent under this, never under the enum's own name or its position. */
     public String code() {
       return code;
