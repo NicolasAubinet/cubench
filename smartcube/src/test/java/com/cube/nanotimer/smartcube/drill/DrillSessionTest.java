@@ -1412,6 +1412,56 @@ public class DrillSessionTest {
     assertNotNull(hand.execute(alg));
   }
 
+  /** Given up on after a rotation, the rep is not marked, but the next case ignores the turned hold. */
+  @Test
+  public void aCaseAfterARotatedRepGivenUpOnIgnoresTheTurnedHold() {
+    CubeRotation usual = null;
+    CubeRotation turnedHold = null;
+    for (CubeRotation grip : CubeRotation.withFaceUp('U')) {
+      if (grip.faceAt('F') == 'F') {
+        usual = grip;
+      } else if (grip.faceAt('F') == 'R') {
+        turnedHold = grip;
+      }
+    }
+    CubeRotation[] read = {usual};
+    DrillSession session = new DrillSession(backSlotSpec("pair_24_fl"), noAlignment());
+    session.setGripReader(() -> read[0]);
+    session.setRotationReader((moves, shownHostMs, skewMs) -> true);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    assertNull(hand.execute("U"));
+    assertFalse(session.abandon().isRotated());
+    read[0] = turnedHold;
+    assertTrue(hand.next());
+    assertNotNull(hand.execute(CaseAlgorithms.shortestListed("pair_24_fl")));
+  }
+
+  /** Left to look its algorithms up after a rotation, the case comes back where it was dealt. */
+  @Test
+  public void aCaseLookedUpAfterARotationIgnoresTheTurnedHold() {
+    CubeRotation usual = null;
+    CubeRotation turnedHold = null;
+    for (CubeRotation grip : CubeRotation.withFaceUp('U')) {
+      if (grip.faceAt('F') == 'F') {
+        usual = grip;
+      } else if (grip.faceAt('F') == 'R') {
+        turnedHold = grip;
+      }
+    }
+    CubeRotation[] read = {usual};
+    DrillSession session = new DrillSession(backSlotSpec("pair_24_fl"), noAlignment());
+    session.setGripReader(() -> read[0]);
+    session.setRotationReader((moves, shownHostMs, skewMs) -> true);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    assertNull(hand.execute("U"));
+    assertTrue(session.lookUp());
+    read[0] = turnedHold;
+    assertTrue(hand.next());
+    assertNotNull(hand.execute(CaseAlgorithms.shortestListed("pair_24_fl")));
+  }
+
   private static DrillSpec backSlotSpec(String... codes) {
     return DrillSpec.learning("test", DrillSpec.Type.F2L_BACK_SLOT, Arrays.asList(codes),
         DrillSpec.Selection.ROUND_ROBIN, 400, 5, Collections.<String, String>emptyMap(), null);

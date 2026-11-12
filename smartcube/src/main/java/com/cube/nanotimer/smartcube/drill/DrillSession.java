@@ -978,7 +978,14 @@ public final class DrillSession {
     }
     dealNext = code;
     lookedUp = code;
+    holdTurned = turnedInHand();
     return true;
+  }
+
+  /** Whether the cube was turned in hand since the case was shown, for a slot drill. */
+  private boolean turnedInHand() {
+    return backSlots && !moves.isEmpty() && rotationReader != null
+        && rotationReader.rotated(new ArrayList<CubeMove>(moves), caseShownAtMs, clockSkewMs);
   }
 
   /**
@@ -1011,12 +1018,13 @@ public final class DrillSession {
         pause = Math.max(0, pauseEnd - firstPairInMs);
       }
     }
-    boolean rotated = backSlots && !abandoned && !moves.isEmpty() && rotationReader != null
-        && rotationReader.rotated(new ArrayList<CubeMove>(moves), caseShownAtMs, clockSkewMs);
+    // Read on a given-up rep too: the rep is not marked, but the hand is still turned.
+    boolean turnedInHand = turnedInHand();
+    boolean rotated = turnedInHand && !abandoned;
     DrillRep rep = new DrillRep(currentCase, currentScramble,
         new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
         resetCount, revealed, abandoned, practice, offTaught, pairOne, pause, rotated, turned);
-    holdTurned = rotated;
+    holdTurned = turnedInHand;
     // A practice rep is none of the drill's: it neither spends one nor counts towards retiring.
     if (!practice) {
       reps.add(rep);
