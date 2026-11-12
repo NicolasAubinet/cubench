@@ -379,7 +379,6 @@ public class AnalysisCases {
           : context.getString(R.string.analysis_shape_known, knownHere, group.size()));
       if (complete) {
         count.setTextColor(ContextCompat.getColor(context, R.color.lightblue));
-        tile.findViewById(R.id.ivShapeDone).setVisibility(View.VISIBLE);
       }
       tile.setSelected(name.equals(shape));
       tile.setOnClickListener(shapePick(dialog, name));

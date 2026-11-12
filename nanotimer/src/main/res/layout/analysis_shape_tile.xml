@@ -15,29 +15,10 @@
    android:paddingEnd="6dp"
    android:paddingBottom="8dp">
 
-  <FrameLayout
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vShapeChart"
      android:layout_width="match_parent"
-     android:layout_height="wrap_content">
-
-    <com.cube.nanotimer.gui.widget.LastLayerCaseView
-       android:id="@+id/vShapeChart"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"/>
-
-    <!-- On a group whose every case is known. -->
-    <ImageView
-       android:id="@+id/ivShapeDone"
-       android:layout_width="20dp"
-       android:layout_height="20dp"
-       android:layout_gravity="top|end"
-       android:layout_marginTop="-4dp"
-       android:layout_marginEnd="-4dp"
-       android:background="@drawable/shape_tile_done_badge"
-       android:importantForAccessibility="no"
-       android:padding="2dp"
-       android:src="@drawable/ic_optimal_check"
-       android:visibility="gone"/>
-  </FrameLayout>
+     android:layout_height="wrap_content"/>
 
   <TextView
      android:id="@+id/tvShapeName"
