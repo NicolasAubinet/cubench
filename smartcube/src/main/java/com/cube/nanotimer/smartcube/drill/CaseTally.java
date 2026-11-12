@@ -45,7 +45,8 @@ public final class CaseTally {
 
   /**
    * A learning drill's dots are a run: each rep turned without looking, with the algorithm being
-   * learned, adds one, and anything else empties them. Reaching the target clears the case for good.
+   * learned, adds one. A rep that was reset and then turned right takes one back, since a reset is
+   * for a slip; anything else empties them. Reaching the target clears the case for good.
    */
   private void countStreak(DrillRep rep) {
     String code = rep.getCaseCode();
@@ -58,9 +59,17 @@ public final class CaseTally {
       if (countOf(wins, code) >= spec.getWinsToRetire()) {
         cleared.put(code, Boolean.TRUE);
       }
+    } else if (isSlip(rep)) {
+      wins.put(code, Math.max(0, countOf(wins, code) - 1));
     } else {
       wins.put(code, 0);
     }
+  }
+
+  /** A rep that would have won but for being reset. */
+  private static boolean isSlip(DrillRep rep) {
+    return rep.getResetCount() > 0 && !rep.isAbandoned() && !rep.wasRevealed()
+        && !rep.isOffTaught() && !rep.isRotated();
   }
 
   /**

@@ -827,6 +827,35 @@ public class DrillSessionTest {
     assertTrue(session.isRetired("pll_h"));
   }
 
+  /** A reset takes back one dot, not the whole run. */
+  @Test
+  public void aResetTakesOneDotBack() {
+    DrillSession session = new DrillSession(learning(), new Random(7));
+    Hand hand = new Hand(session);
+    boolean resetDone = false;
+    int reps = 0;
+    while (hand.next()) {
+      String code = session.getCurrentCase();
+      boolean resetHere = !resetDone && "pll_h".equals(code)
+          && session.getTally().getWins(code) == 2;
+      if (resetHere) {
+        hand.execute("R U");
+        hand.reset();
+        resetDone = true;
+      }
+      reps += session.isRetired(code) ? 0 : 1;
+      hand.pause(300);
+      DrillRep rep = hand.execute(inverse(session.getCurrentScramble()));
+      if (resetHere) {
+        assertEquals(1, session.getTally().getWins("pll_h"));
+        assertEquals(1, rep.getResetCount());
+      }
+    }
+    assertTrue(resetDone);
+    assertEquals("three each, plus the reset rep and the dot it took back", 8, reps);
+    assertTrue(session.isRetired("pll_h"));
+  }
+
   /** A rep turned some other way than the algorithm being learned does not count. */
   @Test
   public void onlyTheTaughtAlgorithmCounts() {
