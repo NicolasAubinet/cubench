@@ -990,8 +990,7 @@
   <string name="set_learned_title_oll">OLL completo</string>
   <string name="set_learned_title_pll">PLL completo</string>
   <string name="set_learned_count">Los %d casos, un algoritmo cada uno</string>
-  <string name="set_learned_body_oll">Sea cual sea la forma de la última capa, la orientas de un vistazo. Es uno de los grandes hitos del speedcubing.</string>
-  <string name="set_learned_body_pll">Muestre lo que muestre la última capa, la terminas de un vistazo. Es uno de los grandes hitos del speedcubing.</string>
+  <string name="set_learned_cheer">Gran trabajo, ¡sigue así!</string>
   <string name="set_learned_both">OLL y PLL completos: ya conoces toda la última capa de CFOP.</string>
   <plurals name="group_learned_body">
     <item quantity="one">Conoces el OLL %2$s. Siempre que veas esta forma, tienes el algoritmo.</item>

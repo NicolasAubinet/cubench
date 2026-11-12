@@ -739,10 +739,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     setToCelebrate = null;
     groupToCelebrate = null;
     Options.INSTANCE.setGroupCelebrated(SetLearnedPanel.celebratedKey(family));
-    SetLearnedPanel.Family other = family == SetLearnedPanel.Family.OLL
-        ? SetLearnedPanel.Family.PLL : SetLearnedPanel.Family.OLL;
     SetLearnedPanel.show(this, family, SetLearnedPanel.casesOf(family),
-        learnedCases().containsAll(SetLearnedPanel.casesOf(other)), new Runnable() {
+        SetLearnedPanel.otherSetLearned(family, learnedCases()), new Runnable() {
           @Override
           public void run() {
             if (!finished && !isFinishing()) {

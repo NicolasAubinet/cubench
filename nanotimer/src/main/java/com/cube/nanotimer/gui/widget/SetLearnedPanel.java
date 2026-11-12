@@ -24,6 +24,7 @@ import com.cube.nanotimer.util.view.RaysView;
 import com.cube.nanotimer.util.view.SetLearnedEntrance;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,6 +63,11 @@ public final class SetLearnedPanel {
     return cases;
   }
 
+  /** Whether every case of the set other than {@code family} is among {@code learned}. */
+  public static boolean otherSetLearned(Family family, Collection<String> learned) {
+    return learned.containsAll(casesOf(family == Family.OLL ? Family.PLL : Family.OLL));
+  }
+
   /** Kept beside the celebrated shape groups, under a name no group has. */
   public static String celebratedKey(Family family) {
     return family == Family.OLL ? "set:oll" : "set:pll";
@@ -92,8 +98,6 @@ public final class SetLearnedPanel {
         oll ? R.string.set_learned_title_oll : R.string.set_learned_title_pll);
     ((TextView) panel.findViewById(R.id.tvSetLearnedCount))
         .setText(activity.getString(R.string.set_learned_count, cases.size()));
-    ((TextView) panel.findViewById(R.id.tvSetLearnedBody)).setText(
-        oll ? R.string.set_learned_body_oll : R.string.set_learned_body_pll);
     if (bothSets) {
       TextView both = panel.findViewById(R.id.tvSetLearnedBoth);
       both.setTextColor(accent);

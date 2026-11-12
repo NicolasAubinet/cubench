@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Shown once over a coach learning drill when its last case completes the whole OLL or PLL set:
-     every case of the set, and what that means. Takes every touch until closed. -->
+     every case of the set and a cheer. Takes every touch until closed. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
@@ -100,12 +100,12 @@
            android:orientation="vertical"/>
 
         <TextView
-           android:id="@+id/tvSetLearnedBody"
+           android:id="@+id/tvSetLearnedCheer"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:layout_marginTop="16dp"
            android:gravity="center"
-           android:lineSpacingExtra="2dp"
+           android:text="@string/set_learned_cheer"
            android:textColor="#E6FFFFFF"
            android:textSize="15.5sp"/>
 
