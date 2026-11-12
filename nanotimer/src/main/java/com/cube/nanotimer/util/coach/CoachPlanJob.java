@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
@@ -239,7 +240,7 @@ final class CoachPlanJob {
       text = context.getString(R.string.coach_reminder_text, type);
     }
     notify(context, REMINDERS_CHANNEL, R.string.coach_channel_reminders, REMINDER_NOTIF_ID,
-        title, text, solveType);
+        R.drawable.ic_stat_coach, title, text, solveType);
   }
 
   /** How many midnights lie between two times, in the device's time zone. */
@@ -264,34 +265,55 @@ final class CoachPlanJob {
     if (!Options.INSTANCE.isCoachPlanReadyOn()) {
       return;
     }
-    notify(context, PLANS_CHANNEL, R.string.coach_channel_plans, PLAN_READY_NOTIF_ID,
-        context.getString(R.string.coach_plan_ready_title),
-        context.getString(R.string.coach_plan_ready_text), solveType);
+    String text = context.getString(R.string.coach_plan_ready_text);
+    // Gold and a picture, where every other coach notification is blue text: a new plan is the
+    // one a glance must not mistake for the daily recap.
+    NotificationCompat.Builder builder = builder(context, PLANS_CHANNEL,
+        R.string.coach_channel_plans, context.getString(R.string.coach_plan_ready_title), text,
+        solveType)
+        .setSmallIcon(R.drawable.ic_stat_coach)
+        .setColor(ContextCompat.getColor(context, R.color.coach_plan_notification))
+        .setLargeIcon(CoachNotificationArt.planBadge(context))
+        .setStyle(new NotificationCompat.BigPictureStyle()
+            .bigPicture(CoachNotificationArt.planBanner(context))
+            .bigLargeIcon((Bitmap) null)
+            .setSummaryText(text));
+    post(context, PLAN_READY_NOTIF_ID, builder);
+  }
+
+  /** A coach notification of plain text, in the coach's blue. */
+  static void notify(Context context, String channel, int channelName, int id, int smallIcon,
+      String title, String text, SolveType solveType) {
+    post(context, id, builder(context, channel, channelName, title, text, solveType)
+        .setSmallIcon(smallIcon)
+        .setColor(ContextCompat.getColor(context, R.color.cube_blue))
+        .setStyle(new NotificationCompat.BigTextStyle().bigText(text)));
   }
 
   /** Opens the Plan tab on top of whatever the app is showing, rather than restarting its task. */
-  static void notify(Context context, String channel, int channelName, int id,
-      String title, String text, SolveType solveType) {
-    NotificationManager manager =
-        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+  private static NotificationCompat.Builder builder(Context context, String channel,
+      int channelName, String title, String text, SolveType solveType) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      manager.createNotificationChannel(new NotificationChannel(channel,
-          context.getString(channelName), NotificationManager.IMPORTANCE_DEFAULT));
+      ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
+          .createNotificationChannel(new NotificationChannel(channel,
+              context.getString(channelName), NotificationManager.IMPORTANCE_DEFAULT));
     }
     Intent open = new Intent(context, AnalysisActivity.class)
         .putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, solveType)
         .putExtra(AnalysisActivity.EXTRA_TAB, AnalysisActivity.TAB_PLAN)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    manager.notify(id, new NotificationCompat.Builder(context, channel)
-        .setSmallIcon(R.drawable.ic_stat_coach)
-        .setColor(ContextCompat.getColor(context, R.color.cube_blue))
+    return new NotificationCompat.Builder(context, channel)
         .setContentTitle(title)
         .setContentText(text)
-        .setStyle(new NotificationCompat.BigTextStyle().bigText(text))
         .setContentIntent(PendingIntent.getActivity(context, 0, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE))
-        .setAutoCancel(true)
-        .build());
+        .setGroup(channel) // its own group: bundled with the others, a new plan went unseen
+        .setAutoCancel(true);
+  }
+
+  private static void post(Context context, int id, NotificationCompat.Builder builder) {
+    ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
+        .notify(id, builder.build());
   }
 
   /** A service read, waited for. */

@@ -154,7 +154,8 @@ public final class CoachRecapWorker extends Worker {
       return 0; // no solve today, or nowhere to show it
     }
     Options.INSTANCE.setCoachLastRecapDay(CoachDays.dayKey(now));
-    CoachPlanJob.notify(context, CHANNEL, R.string.coach_channel_recap, NOTIF_ID, title,
+    CoachPlanJob.notify(context, CHANNEL, R.string.coach_channel_recap, NOTIF_ID,
+        R.drawable.ic_stat_recap, title,
         text.recapText(day.get()), solveType);
     return 0;
   }
