@@ -295,6 +295,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       coachClient.checkBetaIfStale();
     }
     showToday(); // solves and drills done since the tab was last drawn
+    if (knownRead) {
+      loadKnowledge(); // a drill run from here may have learned cases since
+    }
     if (practiceAsked && !learnedAtAsk.equals(Options.INSTANCE.getLearnedCases())) {
       practiceAsked = false; // a learning drill cleared a case, so the next ones are due
       showRead();
@@ -529,6 +532,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private void showTab(int tab) {
     boolean moved = this.tab != tab;
     this.tab = tab;
+    if (moved && tab == TAB_CASES && knownRead) {
+      loadKnowledge();
+    }
     showWhatIsReadable();
     showPlanMenu();
     if (moved) {
@@ -630,8 +636,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   }
 
   /**
-   * What the solver knows, read once for the life of the screen. It does not depend on the window
-   * the figures are read over: whether a case goes in unaided is a fact about the solver.
+   * What the solver knows, read on opening and again on coming back or onto the Cases tab, since a
+   * drill learns cases behind this screen. It does not depend on the window the figures are read
+   * over: whether a case goes in unaided is a fact about the solver.
    *
    * <p>No solves asked for. What the Cases tab wants from the history is the statuses, and the
    * solves come along only for a screen that reads the moves back out of them.
