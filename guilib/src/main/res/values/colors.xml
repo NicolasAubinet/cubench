@@ -182,7 +182,6 @@
   <color name="cube_green">#4FB35C</color>
   <color name="cube_blue">#3C74D4</color>
   <!-- The new-plan notification's accent: a deeper gold than the OLL yellow, legible on a light shade. -->
-  <color name="coach_plan_notification">#B8891A</color>
 
   <!-- A last-layer case drawn as a chart: the layer, a sticker not yet facing up, and the arrows
        showing where a piece has to travel. Yellow-on-top, as every case chart is. -->

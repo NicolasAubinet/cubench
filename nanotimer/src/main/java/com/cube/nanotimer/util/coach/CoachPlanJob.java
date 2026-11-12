@@ -266,13 +266,13 @@ final class CoachPlanJob {
       return;
     }
     String text = context.getString(R.string.coach_plan_ready_text);
-    // Gold and a picture, where every other coach notification is blue text: a new plan is the
-    // one a glance must not mistake for the daily recap.
+    // A picture, where every other coach notification is text: a new plan is the one a glance
+    // must not mistake for the daily recap.
     NotificationCompat.Builder builder = builder(context, PLANS_CHANNEL,
         R.string.coach_channel_plans, context.getString(R.string.coach_plan_ready_title), text,
         solveType)
         .setSmallIcon(R.drawable.ic_stat_coach)
-        .setColor(ContextCompat.getColor(context, R.color.coach_plan_notification))
+        .setColor(ContextCompat.getColor(context, R.color.cube_blue))
         .setLargeIcon(CoachNotificationArt.planBadge(context))
         .setStyle(new NotificationCompat.BigPictureStyle()
             .bigPicture(CoachNotificationArt.planBanner(context))
