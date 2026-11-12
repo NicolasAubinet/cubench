@@ -856,6 +856,35 @@ public class DrillSessionTest {
     assertTrue(session.isRetired("pll_h"));
   }
 
+  /** A reset with no dots yet leaves the case at none, never below. */
+  @Test
+  public void aResetAtNoDotsStaysAtNone() {
+    DrillSession session = new DrillSession(learning(), new Random(7));
+    Hand hand = new Hand(session);
+    boolean resetDone = false;
+    int reps = 0;
+    while (hand.next()) {
+      String code = session.getCurrentCase();
+      boolean resetHere = !resetDone && "pll_h".equals(code)
+          && session.getTally().getWins(code) == 0;
+      if (resetHere) {
+        hand.execute("R U");
+        hand.reset();
+        resetDone = true;
+      }
+      reps += session.isRetired(code) ? 0 : 1;
+      hand.pause(300);
+      DrillRep rep = hand.execute(inverse(session.getCurrentScramble()));
+      if (resetHere) {
+        assertEquals(1, rep.getResetCount());
+        assertEquals(0, session.getTally().getWins("pll_h"));
+      }
+    }
+    assertTrue(resetDone);
+    assertEquals("three each, plus the reset rep that took nothing back", 7, reps);
+    assertTrue(session.isRetired("pll_h"));
+  }
+
   /** A rep turned some other way than the algorithm being learned does not count. */
   @Test
   public void onlyTheTaughtAlgorithmCounts() {
