@@ -56,14 +56,19 @@ public class ParticleView extends View {
 
   /** Fires a fresh burst from the lower-centre, upward and outward like a confetti cannon. */
   public void burst() {
+    particles.clear();
+    burstAt(0.5f, 0.72f);
+  }
+
+  /** Adds a burst from a point given as fractions of the view, keeping any still in the air. */
+  public void burstAt(float xFraction, float yFraction) {
     int w = getWidth();
     int h = getHeight();
     if (w == 0 || h == 0) {
       return;
     }
-    particles.clear();
-    float originX = w / 2f;
-    float originY = h * 0.72f;
+    float originX = w * xFraction;
+    float originY = h * yFraction;
     float unit = h / 800f; // scale speeds/sizes to the screen so the burst reads the same everywhere
     for (int i = 0; i < PARTICLE_COUNT; i++) {
       Particle p = new Particle();

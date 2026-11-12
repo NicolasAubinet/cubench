@@ -65,6 +65,7 @@ import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.gui.widget.GroupLearnedPanel;
+import com.cube.nanotimer.gui.widget.SetLearnedPanel;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.step.LastLayerAlgorithms;
 import com.cube.nanotimer.step.OllShapes;
@@ -195,6 +196,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private final Set<String> knownCases = new HashSet<String>();
   private final Set<String> clearedHere = new HashSet<String>();
   private String groupToCelebrate;
+  private SetLearnedPanel.Family setToCelebrate;
   /** Back leaves practice for the drill rather than ending the drill. */
   private final OnBackPressedCallback practiceBack = new OnBackPressedCallback(false) {
     @Override
@@ -646,6 +648,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private final Runnable showNextCase = new Runnable() {
     @Override
     public void run() {
+      if (setToCelebrate != null) {
+        celebrateSet(setToCelebrate);
+        return;
+      }
       if (groupToCelebrate != null) {
         celebrate(groupToCelebrate);
         return;
@@ -685,7 +691,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   /**
    * A case a learning drill has just cleared counts as learned from now on; in a coach drill, one
-   * that completes its shape group is celebrated once the rep's beat is over.
+   * that completes its shape group, or the whole OLL or PLL set, is celebrated once the rep's beat
+   * is over.
    */
   private void noteLearned(DrillRep rep) {
     String code = rep.getCaseCode();
@@ -693,6 +700,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         || !clearedHere.add(code)) {
       return;
     }
+    boolean wasLearned = learnedCases().contains(code); // a review case completes nothing new
     // The learn order these feed is OLL and PLL only; a pair is kept apart, for the next run.
     if (CaseAlgorithms.isPair(code)) {
       Options.INSTANCE.addLearnedPairCase(code);
@@ -700,12 +708,23 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       Options.INSTANCE.addLearnedCase(code);
       Options.INSTANCE.dropFromLearnPick(code);
     }
-    String group = OllShapes.groupOf(code);
-    if (!session.getSpec().isFromCoach() || group == null
-        || Options.INSTANCE.isGroupCelebrated(group)) {
+    if (!session.getSpec().isFromCoach()) {
       return;
     }
-    if (learnedCases().containsAll(OllShapes.casesOf(group))) {
+    String group = OllShapes.groupOf(code);
+    Set<String> learned = learnedCases();
+    SetLearnedPanel.Family family = SetLearnedPanel.familyOf(code);
+    if (family != null && !wasLearned
+        && !Options.INSTANCE.isGroupCelebrated(SetLearnedPanel.celebratedKey(family))
+        && learned.containsAll(SetLearnedPanel.casesOf(family))) {
+      setToCelebrate = family;
+      if (group != null) {
+        Options.INSTANCE.setGroupCelebrated(group); // the whole set's screen stands in for it
+      }
+      return;
+    }
+    if (group != null && !Options.INSTANCE.isGroupCelebrated(group)
+        && learned.containsAll(OllShapes.casesOf(group))) {
       groupToCelebrate = group;
     }
   }
@@ -714,6 +733,23 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     Set<String> learned = new HashSet<String>(knownCases);
     learned.addAll(Options.INSTANCE.getLearnedCases());
     return learned;
+  }
+
+  private void celebrateSet(SetLearnedPanel.Family family) {
+    setToCelebrate = null;
+    groupToCelebrate = null;
+    Options.INSTANCE.setGroupCelebrated(SetLearnedPanel.celebratedKey(family));
+    SetLearnedPanel.Family other = family == SetLearnedPanel.Family.OLL
+        ? SetLearnedPanel.Family.PLL : SetLearnedPanel.Family.OLL;
+    SetLearnedPanel.show(this, family, SetLearnedPanel.casesOf(family),
+        learnedCases().containsAll(SetLearnedPanel.casesOf(other)), new Runnable() {
+          @Override
+          public void run() {
+            if (!finished && !isFinishing()) {
+              nextRep();
+            }
+          }
+        });
   }
 
   private void celebrate(String group) {

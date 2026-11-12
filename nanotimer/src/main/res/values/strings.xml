@@ -1018,6 +1018,13 @@
   <string name="group_learned_progress">%1$d of %2$d OLLs learned</string>
   <string name="group_learned_groups">%1$d of %2$d shape groups complete</string>
   <string name="group_learned_continue">Keep going</string>
+  <string name="set_learned_label">Milestone</string>
+  <string name="set_learned_title_oll">Full OLL</string>
+  <string name="set_learned_title_pll">Full PLL</string>
+  <string name="set_learned_count">All %d cases, one algorithm each</string>
+  <string name="set_learned_body_oll">Whatever shape the last layer shows, you orient it in one look. That is one of the big milestones of speedcubing.</string>
+  <string name="set_learned_body_pll">Whatever the last layer shows, you finish it in one look. That is one of the big milestones of speedcubing.</string>
+  <string name="set_learned_both">Full OLL and full PLL: you now know the whole last layer of CFOP.</string>
   <plurals name="group_learned_body">
     <item quantity="one">You know the %2$s OLL. Whenever you see this shape, you have the algorithm.</item>
     <item quantity="other">You know all %1$d %2$s OLLs. Whenever you see this shape, you have the algorithm.</item>
