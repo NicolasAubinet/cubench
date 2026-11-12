@@ -1387,6 +1387,31 @@ public class DrillSessionTest {
     }
   }
 
+  /** A rotation leaves the hand turned; the case practised after it goes where the rep was dealt. */
+  @Test
+  public void practiceAfterARotatedRepIgnoresTheTurnedHold() {
+    CubeRotation usual = null;
+    CubeRotation turnedHold = null;
+    for (CubeRotation grip : CubeRotation.withFaceUp('U')) {
+      if (grip.faceAt('F') == 'F') {
+        usual = grip;
+      } else if (grip.faceAt('F') == 'R') {
+        turnedHold = grip;
+      }
+    }
+    CubeRotation[] read = {usual};
+    DrillSession session = new DrillSession(backSlotSpec("pair_24_fl"), noAlignment());
+    session.setGripReader(() -> read[0]);
+    session.setRotationReader((moves, shownHostMs, skewMs) -> true);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    String alg = CaseAlgorithms.shortestListed("pair_24_fl");
+    assertTrue(hand.execute(alg).isRotated());
+    read[0] = turnedHold;
+    hand.practise("pair_24_fl", alg);
+    assertNotNull(hand.execute(alg));
+  }
+
   private static DrillSpec backSlotSpec(String... codes) {
     return DrillSpec.learning("test", DrillSpec.Type.F2L_BACK_SLOT, Arrays.asList(codes),
         DrillSpec.Selection.ROUND_ROBIN, 400, 5, Collections.<String, String>emptyMap(), null);

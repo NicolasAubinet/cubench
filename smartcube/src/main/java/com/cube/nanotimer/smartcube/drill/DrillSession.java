@@ -162,6 +162,8 @@ public final class DrillSession {
   private CubeRotation lastUpright;
   /** The y quarters a back-slot case was dealt off the usual grip, to follow the user's. */
   private int gripQuarters;
+  /** The last rep was solved with the cube turned in hand, a hold the user then turns back from. */
+  private boolean holdTurned;
 
   public DrillSession(DrillSpec spec, Random random) {
     this(spec, random, null, "U");
@@ -318,7 +320,7 @@ public final class DrillSession {
       // Into its own slot, never spun: which slot it goes into is the question. Practice deals it
       // at the algorithm's own turn of the layer, as a front pair's is.
       String slot = CaseAlgorithms.slotOf(currentCase);
-      gripQuarters = gripQuartersTo(slot);
+      gripQuarters = holdTurned ? gripQuarters : gripQuartersTo(slot);
       int spins = quartersTo(slot) + gripQuarters;
       String atItsAngle = practiceCase != null && practiceAlgorithm != null
           ? F2LPairScrambles.forAlgorithm(practiceAlgorithm, random) : null;
@@ -1014,6 +1016,7 @@ public final class DrillSession {
     DrillRep rep = new DrillRep(currentCase, currentScramble,
         new ArrayList<CubeMove>(moves), shownAt, recognition, execution, moves.size(),
         resetCount, revealed, abandoned, practice, offTaught, pairOne, pause, rotated, turned);
+    holdTurned = rotated;
     // A practice rep is none of the drill's: it neither spends one nor counts towards retiring.
     if (!practice) {
       reps.add(rep);
