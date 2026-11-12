@@ -16,7 +16,9 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.step.OllShapes;
 import com.cube.nanotimer.util.FormatterService;
+import com.cube.nanotimer.util.OllGroups;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.FlowLayout;
 import com.cube.nanotimer.util.view.KnowledgeRingView;
@@ -28,9 +30,11 @@ import com.cube.nanotimer.vo.StepStats;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The Analysis hub's Cases tab: one step's whole set, the cases the window holds figures for
@@ -324,7 +328,8 @@ public class AnalysisCases {
   }
 
   /**
-   * The groups to narrow to, biggest first, each with how many cases it holds.
+   * The groups to narrow to, biggest first, each with how many of its cases are known, and over
+   * them how many groups of the whole set are complete.
    *
    * <p>Size order puts the groups with the most in them at the top, and the count beside each is
    * what makes that order explain itself. Neither works in a scrolling row, which is the whole
@@ -341,6 +346,10 @@ public class AnalysisCases {
         .setView(body)
         .create();
 
+    Set<String> known = knownCodes();
+    ((TextView) body.findViewById(R.id.tvShapeGroupsKnown)).setText(context.getString(
+        R.string.analysis_shape_groups_known, OllGroups.countComplete(known),
+        OllGroups.getAll().size()));
     View all = body.findViewById(R.id.tvShapeAll);
     all.setSelected(ANY.equals(shape));
     all.setOnClickListener(shapePick(dialog, ANY));
@@ -358,9 +367,20 @@ public class AnalysisCases {
       ((LastLayerCaseView) tile.findViewById(R.id.vShapeChart))
           .setDiagram(LastLayerDiagram.forCase(SHAPE_PICTURES.get(name)));
       ((TextView) tile.findViewById(R.id.tvShapeName)).setText(name);
-      int size = SHAPE_SIZES.get(name).intValue();
-      ((TextView) tile.findViewById(R.id.tvShapeCount)).setText(
-          context.getResources().getQuantityString(R.plurals.analysis_shape_cases, size, size));
+      List<String> group = OllShapes.casesOf(name);
+      int knownHere = 0;
+      for (String code : group) {
+        knownHere += known.contains(code) ? 1 : 0;
+      }
+      boolean complete = knownHere == group.size();
+      TextView count = tile.findViewById(R.id.tvShapeCount);
+      count.setText(complete
+          ? context.getString(R.string.analysis_shape_all_known)
+          : context.getString(R.string.analysis_shape_known, knownHere, group.size()));
+      if (complete) {
+        count.setTextColor(ContextCompat.getColor(context, R.color.lightblue));
+        tile.findViewById(R.id.ivShapeDone).setVisibility(View.VISIBLE);
+      }
       tile.setSelected(name.equals(shape));
       tile.setOnClickListener(shapePick(dialog, name));
       row.addView(tile);
@@ -373,6 +393,16 @@ public class AnalysisCases {
       row.addView(spacer);
     }
     dialog.show();
+  }
+
+  private Set<String> knownCodes() {
+    Set<String> known = new HashSet<String>();
+    for (Map.Entry<String, CaseKnowledge.Status> entry : statuses.entrySet()) {
+      if (entry.getValue() == CaseKnowledge.Status.KNOWN) {
+        known.add(entry.getKey());
+      }
+    }
+    return known;
   }
 
   private View.OnClickListener shapePick(final AlertDialog dialog, final String picked) {

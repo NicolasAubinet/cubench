@@ -719,22 +719,14 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private void celebrate(String group) {
     groupToCelebrate = null;
     Options.INSTANCE.setGroupCelebrated(group);
-    int learned = 0;
-    Set<String> cases = learnedCases();
-    for (String[] row : LastLayerAlgorithms.ORIENTATIONS) {
-      if (cases.contains("oll_" + row[0])) {
-        learned++;
+    GroupLearnedPanel.show(this, group, learnedCases(), new Runnable() {
+      @Override
+      public void run() {
+        if (!finished && !isFinishing()) {
+          nextRep();
+        }
       }
-    }
-    GroupLearnedPanel.show(this, group, OllShapes.casesOf(group), learned,
-        LastLayerAlgorithms.ORIENTATIONS.length, new Runnable() {
-          @Override
-          public void run() {
-            if (!finished && !isFinishing()) {
-              nextRep();
-            }
-          }
-        });
+    });
   }
 
   /**

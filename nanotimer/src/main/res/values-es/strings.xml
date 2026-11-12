@@ -984,6 +984,7 @@
   <string name="drill_rep_rotated">con una rotación</string>
   <string name="group_learned_label">Grupo aprendido</string>
   <string name="group_learned_progress">%1$d de %2$d OLL aprendidos</string>
+  <string name="group_learned_groups">%1$d de %2$d grupos de forma completos</string>
   <string name="group_learned_continue">Seguir</string>
   <plurals name="group_learned_body">
     <item quantity="one">Conoces el OLL %2$s. Siempre que veas esta forma, tienes el algoritmo.</item>
@@ -1257,10 +1258,9 @@
   <string name="analysis_column_case">Caso</string>
   <string name="analysis_shape_title">Forma</string>
   <string name="analysis_shape_all">Todas las formas</string>
-  <plurals name="analysis_shape_cases">
-    <item quantity="one">%d caso</item>
-    <item quantity="other">%d casos</item>
-  </plurals>
+  <string name="analysis_shape_known">%1$d/%2$d conocidos</string>
+  <string name="analysis_shape_all_known">Todos conocidos</string>
+  <string name="analysis_shape_groups_known">%1$d de %2$d grupos conocidos por completo</string>
   <string name="analysis_knowledge_of">de %d</string>
   <string name="analysis_knowledge_unseen">Nunca vistos</string>
   <string name="analysis_algorithms_label">Algoritmos estándar</string>

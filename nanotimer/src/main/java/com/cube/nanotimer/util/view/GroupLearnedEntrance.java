@@ -7,11 +7,14 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ProgressBar;
 
+import com.cube.nanotimer.R;
+
 import java.util.List;
 
 /**
  * How the shape-group celebration arrives: the card swells in, the trophy pops, confetti bursts, the
- * group's cases land one after another, and the OLL bar fills by the cases just learned.
+ * group's cases land one after another, the OLL bar fills by the cases just learned, and the
+ * group's pip lights in the row of groups.
  */
 public final class GroupLearnedEntrance {
 
@@ -25,13 +28,14 @@ public final class GroupLearnedEntrance {
   private static final long CASE_STAGGER_MS = 90;
   private static final long CASE_MS = 340;
   private static final long BAR_MS = 900;
+  private static final long PIP_MS = 520;
   private static final long LEAVE_MS = 180;
 
   private GroupLearnedEntrance() {
   }
 
   public static void play(View panel, View card, View badge, List<View> cases,
-      final ProgressBar bar, final int barTo, final ParticleView confetti) {
+      final ProgressBar bar, final int barTo, final View newPip, final ParticleView confetti) {
     panel.setAlpha(0f);
     panel.animate().alpha(1f).setDuration(SCRIM_MS);
 
@@ -68,6 +72,19 @@ public final class GroupLearnedEntrance {
     fill.setDuration(BAR_MS);
     fill.setInterpolator(new DecelerateInterpolator());
     fill.start();
+
+    if (newPip != null) {
+      newPip.postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          newPip.setBackgroundResource(R.drawable.group_learned_pip_on);
+          newPip.setScaleX(0f);
+          newPip.setScaleY(0f);
+          newPip.animate().scaleX(1f).scaleY(1f).setDuration(PIP_MS)
+              .setInterpolator(new OvershootInterpolator(4f));
+        }
+      }, fill.getStartDelay() + BAR_MS / 2);
+    }
   }
 
   public static void leave(View panel, Runnable then) {

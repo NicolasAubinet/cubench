@@ -10,15 +10,20 @@ import android.widget.TextView;
 
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
+import com.cube.nanotimer.step.LastLayerAlgorithms;
+import com.cube.nanotimer.step.OllShapes;
+import com.cube.nanotimer.util.OllGroups;
 import com.cube.nanotimer.util.view.GroupLearnedEntrance;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The moment a coach learning drill completes a shape group: the group's cases together, a line
- * saying the shape is now always solvable in one algorithm, and how far into OLL that brings the
- * solver. Laid over the drill, which waits until it is closed.
+ * saying the shape is now always solvable in one algorithm, how far into OLL that brings the
+ * solver, and a pip per shape group with the one just completed lighting last. Laid over the drill,
+ * which waits until it is closed.
  */
 public final class GroupLearnedPanel {
 
@@ -28,25 +33,34 @@ public final class GroupLearnedPanel {
   }
 
   /**
-   * @param cases the group's cases, {@code oll_7}
-   * @param learned OLLs learned in all, this group included
-   * @param total OLLs there are
+   * @param learned every case the solver knows, this group's included ({@code oll_7} codes)
    */
-  public static void show(Activity activity, String group, List<String> cases, int learned,
-      int total, final Runnable onClosed) {
+  public static void show(Activity activity, String group, Set<String> learned,
+      final Runnable onClosed) {
     final ViewGroup root = activity.findViewById(android.R.id.content);
     final View panel = LayoutInflater.from(activity).inflate(R.layout.group_learned_panel, root,
         false);
+    List<String> cases = OllShapes.casesOf(group);
+    int learnedOlls = 0;
+    for (String[] row : LastLayerAlgorithms.ORIENTATIONS) {
+      learnedOlls += learned.contains("oll_" + row[0]) ? 1 : 0;
+    }
+    int total = LastLayerAlgorithms.ORIENTATIONS.length;
     ((TextView) panel.findViewById(R.id.tvGroupLearnedTitle)).setText(group);
     ((TextView) panel.findViewById(R.id.tvGroupLearnedBody)).setText(activity.getResources()
         .getQuantityString(R.plurals.group_learned_body, cases.size(), cases.size(), group));
     ((TextView) panel.findViewById(R.id.tvGroupLearnedProgress))
-        .setText(activity.getString(R.string.group_learned_progress, learned, total));
+        .setText(activity.getString(R.string.group_learned_progress, learnedOlls, total));
+    ((TextView) panel.findViewById(R.id.tvGroupLearnedGroups)).setText(activity.getString(
+        R.string.group_learned_groups, OllGroups.countComplete(learned),
+        OllGroups.getAll().size()));
+    View newPip = addPips(activity, (LinearLayout) panel.findViewById(R.id.llGroupLearnedGroups),
+        group, learned);
     List<View> charts = addCases(activity, (LinearLayout) panel.findViewById(
         R.id.llGroupLearnedCases), cases);
     ProgressBar bar = panel.findViewById(R.id.pbGroupLearned);
-    int before = Math.round(1000f * (learned - cases.size()) / total);
-    int after = Math.round(1000f * learned / total);
+    int before = Math.round(1000f * (learnedOlls - cases.size()) / total);
+    int after = Math.round(1000f * learnedOlls / total);
     bar.setProgress(before);
     panel.findViewById(R.id.btGroupLearnedContinue).setOnClickListener(
         new View.OnClickListener() {
@@ -66,8 +80,29 @@ public final class GroupLearnedPanel {
         });
     root.addView(panel);
     GroupLearnedEntrance.play(panel, panel.findViewById(R.id.llGroupLearnedCard),
-        panel.findViewById(R.id.flGroupLearnedBadge), charts, bar, after,
+        panel.findViewById(R.id.flGroupLearnedBadge), charts, bar, after, newPip,
         panel.findViewById(R.id.vGroupLearnedConfetti));
+  }
+
+  /** @return the pip of the group just completed, drawn unlit until the entrance lights it */
+  private static View addPips(Activity activity, LinearLayout row, String group,
+      Set<String> learned) {
+    int size = activity.getResources().getDimensionPixelSize(R.dimen.group_learned_pip);
+    int gap = activity.getResources().getDimensionPixelSize(R.dimen.group_learned_pip_gap);
+    View newPip = null;
+    for (String each : OllGroups.getAll()) {
+      View pip = new View(activity);
+      boolean isNew = each.equals(group);
+      pip.setBackgroundResource(OllGroups.isComplete(each, learned) && !isNew
+          ? R.drawable.group_learned_pip_on : R.drawable.group_learned_pip_off);
+      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
+      params.setMargins(gap / 2, 0, gap / 2, 0);
+      row.addView(pip, params);
+      if (isNew) {
+        newPip = pip;
+      }
+    }
+    return newPip;
   }
 
   private static List<View> addCases(Activity activity, LinearLayout rows, List<String> cases) {

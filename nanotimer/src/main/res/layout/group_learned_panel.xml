@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Shown over a coach learning drill when its last case completes a shape group: the group's
-     cases together, and how far into OLL that brings the solver. Takes every touch until closed. -->
+     cases together, and how far into OLL and its groups that brings the solver. Takes every touch
+     until closed. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
@@ -86,6 +87,22 @@
 
     <TextView
        android:id="@+id/tvGroupLearnedProgress"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="8dp"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"/>
+
+    <!-- One pip per shape group, lit for each complete one; the new one lights last. -->
+    <LinearLayout
+       android:id="@+id/llGroupLearnedGroups"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="16dp"
+       android:orientation="horizontal"/>
+
+    <TextView
+       android:id="@+id/tvGroupLearnedGroups"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
        android:layout_marginTop="8dp"

@@ -14,6 +14,17 @@
      android:paddingEnd="16dp"
      android:paddingBottom="8dp">
 
+    <!-- How many groups are complete, over the whole OLL set. -->
+    <TextView
+       android:id="@+id/tvShapeGroupsKnown"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginStart="4dp"
+       android:layout_marginEnd="4dp"
+       android:layout_marginBottom="8dp"
+       android:textColor="@color/secondary_text"
+       android:textSize="14sp"/>
+
     <TextView
        android:id="@+id/tvShapeAll"
        android:layout_width="match_parent"
