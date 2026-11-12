@@ -124,8 +124,14 @@ public interface ServiceProvider {
   /** The newest {@code lastSolves} solves a method's figures are read from, with their moves. */
   List<SolveTime> getMethodSolves(SolveType solveType, CubeMethod method, int lastSolves);
 
-  /** Reads every case's status again from the history behind it. */
-  void refreshCaseKnowledge();
+  /**
+   * Reads every case's status again from the history behind it, first storing a clear for each of
+   * {@code clearedBefore} that has none: cases a learning drill cleared before clears were stored.
+   */
+  void refreshCaseKnowledge(List<String> clearedBefore);
+
+  /** Stores that a learning drill has just cleared the case, and reads its status again. */
+  void recordCaseCleared(String caseCode, long atMs);
 
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);

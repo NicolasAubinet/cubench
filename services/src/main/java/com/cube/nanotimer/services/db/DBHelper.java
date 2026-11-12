@@ -127,6 +127,7 @@ public class DBHelper extends SQLiteOpenHelper {
     createDrillTallyTable(db);
     createCoachPlanTable(db);
     createCaseKnowledgeTable(db);
+    createCaseClearedTable(db);
     createSolveReadingTable(db);
   }
 
@@ -275,12 +276,27 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_CASE_KNOWLEDGE_STATUS + " TEXT NOT NULL, " +
         DB.COL_CASE_KNOWLEDGE_EVIDENCE + " INTEGER NOT NULL, " +
         DB.COL_CASE_KNOWLEDGE_LAST_SEEN + " INTEGER NOT NULL, " +
-        DB.COL_CASE_KNOWLEDGE_UPDATED + " INTEGER NOT NULL" +
+        DB.COL_CASE_KNOWLEDGE_UPDATED + " INTEGER NOT NULL, " +
+        DB.COL_CASE_KNOWLEDGE_LEARNED_SOURCE + " TEXT, " +
+        DB.COL_CASE_KNOWLEDGE_LEARNED_AT + " INTEGER" +
       ");"
     );
     // Unique rather than merely fast: one case has one status, and a refresh replaces it.
     db.execSQL("CREATE UNIQUE INDEX " + DB.IDX_CASE_KNOWLEDGE_CASE +
         " ON " + DB.TABLE_CASE_KNOWLEDGE + " (" + DB.COL_CASE_KNOWLEDGE_SET + ", " + DB.COL_CASE_KNOWLEDGE_CASE + ");"
+    );
+  }
+
+  /** Learning-drill clears; from {@link #createTables} and the upgrade to 39. */
+  private void createCaseClearedTable(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE " + DB.TABLE_CASE_CLEARED + "(" +
+        DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        DB.COL_CASE_CLEARED_CASE + " TEXT NOT NULL, " +
+        DB.COL_CASE_CLEARED_AT + " INTEGER NOT NULL" +
+      ");"
+    );
+    db.execSQL("CREATE INDEX " + DB.IDX_CASE_CLEARED_CASE +
+        " ON " + DB.TABLE_CASE_CLEARED + " (" + DB.COL_CASE_CLEARED_CASE + ");"
     );
   }
 
@@ -534,6 +550,18 @@ public class DBHelper extends SQLiteOpenHelper {
     // Not < 38: a database coming from below 27 was just handed the columns by createDrillTables.
     if (oldVersion >= 27 && oldVersion < 38) {
       DBUpgradeScripts.addDrillRepPairTimes(db);
+    }
+
+    // Not < 39 for the columns: a database coming from below 30 was just handed them. The table is
+    // filled by App.refreshCaseKnowledge, which the rule version bump runs once.
+    if (oldVersion >= 30 && oldVersion < 39) {
+      db.execSQL("ALTER TABLE " + DB.TABLE_CASE_KNOWLEDGE + " ADD COLUMN "
+          + DB.COL_CASE_KNOWLEDGE_LEARNED_SOURCE + " TEXT");
+      db.execSQL("ALTER TABLE " + DB.TABLE_CASE_KNOWLEDGE + " ADD COLUMN "
+          + DB.COL_CASE_KNOWLEDGE_LEARNED_AT + " INTEGER");
+    }
+    if (oldVersion < 39) {
+      createCaseClearedTable(db);
     }
 
 //    progressDialog.hide();

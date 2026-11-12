@@ -47,8 +47,12 @@ import java.util.List;
  * {@link #RUN_TO_KNOW_LARGE_POOL} from a pool of at least {@link #LARGE_POOL} cases, where picking
  * the case out of many is most of the work. A rep with the algorithm looked up or on screen starts
  * the run again and says nothing else: the panel is also opened to compare algorithms, so only a
- * solve moves a case down. A restarted rep breaks the run the same way, as it does in a learning
- * drill; a skipped one never reaches the rule at all.
+ * solve moves a case down. A restarted rep breaks the run the same way; a skipped one never reaches
+ * the rule at all.
+ *
+ * <p><b>A learning drill's clear is its own evidence.</b> That drill decides with rules of its own
+ * (a reset takes one dot back, a rep on another algorithm empties them), and its reps may not even
+ * be recorded, so the clear itself is stored and read here as a drilled run.
  *
  * <p><b>Known from drills alone gets no grace.</b> The single lapse forgiven above is forgiven only
  * where a solve has put the case in alone since the lapse before it. A case drills made known and
@@ -107,7 +111,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 7;
+  public static final int RULE_VERSION = 8;
 
   /** Clean drill reps in a row that make a case known. */
   public static final int RUN_TO_KNOW = 5;
@@ -135,6 +139,25 @@ public class CaseKnowledge {
 
     /** A drill rep turned with the algorithm looked up or on screen, or restarted. */
     LOOKED_UP,
+
+    /** A learning drill cleared the case: its run of reps turned without looking hit the target. */
+    CLEARED,
+  }
+
+  /** What first made a case learned, stored beside its status. */
+  public enum Source {
+    SOLVE("solve"), DRILL("drill"), LEARNING_DRILL("learning_drill");
+
+    private final String code;
+
+    Source(String code) {
+      this.code = code;
+    }
+
+    /** Stored under this, never under the enum's own name or its position. */
+    public String code() {
+      return code;
+    }
   }
 
   /** What the occurrences come to once drill reps are read as runs. */
@@ -193,8 +216,40 @@ public class CaseKnowledge {
     return said(occurrences).size();
   }
 
-  /** Newest first. A run counts once, and a lapse in a solve breaks it as a lookup does. */
+  /**
+   * The occurrence that first made the case learned, or -1 for one never done in one algorithm. A
+   * drill run is placed at the rep that completed it.
+   *
+   * @param occurrences oldest first
+   */
+  public static int firstLearned(List<Evidence> occurrences) {
+    List<Integer> at = new ArrayList<Integer>();
+    List<Said> said = said(occurrences, at);
+    for (int i = said.size() - 1; i >= 0; i--) {
+      if (said.get(i) != Said.LAPSED) {
+        return at.get(i);
+      }
+    }
+    return -1;
+  }
+
+  /** Where an occurrence {@link #firstLearned} points at came from. */
+  public static Source sourceOf(Evidence occurrence) {
+    return occurrence == Evidence.UNAIDED ? Source.SOLVE
+        : occurrence == Evidence.CLEARED ? Source.LEARNING_DRILL : Source.DRILL;
+  }
+
   private static List<Said> said(List<Evidence> occurrences) {
+    return said(occurrences, new ArrayList<Integer>());
+  }
+
+  /**
+   * Newest first. A run counts once, and a lapse in a solve breaks it as a lookup does. A learning
+   * drill's clear stands for the run its reps make, so the two never count twice.
+   *
+   * @param at filled alongside, newest first: which occurrence each entry was said at
+   */
+  private static List<Said> said(List<Evidence> occurrences, List<Integer> at) {
     List<Said> said = new ArrayList<Said>();
     if (occurrences == null) {
       return said;
@@ -202,21 +257,31 @@ public class CaseKnowledge {
     int run = 0;
     int largeRun = 0;
     boolean counted = false;
-    for (Evidence occurrence : occurrences) {
+    for (int i = 0; i < occurrences.size(); i++) {
+      Evidence occurrence = occurrences.get(i);
       if (occurrence == Evidence.UNAIDED) {
         said.add(0, Said.SOLVED);
+        at.add(0, i);
       } else if (occurrence == Evidence.HELPED || occurrence == Evidence.LOOKED_UP) {
         if (occurrence == Evidence.HELPED) {
           said.add(0, Said.LAPSED);
+          at.add(0, i);
         }
         run = 0;
         largeRun = 0;
         counted = false;
+      } else if (occurrence == Evidence.CLEARED) {
+        if (!counted) {
+          said.add(0, Said.DRILLED);
+          at.add(0, i);
+          counted = true;
+        }
       } else {
         run++;
         largeRun = occurrence == Evidence.CLEAN_REP_LARGE_POOL ? largeRun + 1 : 0;
         if (!counted && (run >= RUN_TO_KNOW || largeRun >= RUN_TO_KNOW_LARGE_POOL)) {
           said.add(0, Said.DRILLED);
+          at.add(0, i);
           counted = true;
         }
       }

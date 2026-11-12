@@ -24,6 +24,7 @@ import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SolveTime;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -95,13 +96,15 @@ public enum App {
     if (Options.INSTANCE.getCaseKnowledgeRuleVersion() == CaseKnowledge.RULE_VERSION) {
       return;
     }
-    getService().refreshCaseKnowledge(new DataCallback<Void>() {
-      @Override
-      public void onData(Void data) {
-        // Only once it has been read back, so a run killed part way through does it again.
-        Options.INSTANCE.setCaseKnowledgeRuleVersion(CaseKnowledge.RULE_VERSION);
-      }
-    });
+    // Clears from before they were stored live only in the learned list, so they go in first.
+    getService().refreshCaseKnowledge(new ArrayList<String>(Options.INSTANCE.getLearnedCases()),
+        new DataCallback<Void>() {
+          @Override
+          public void onData(Void data) {
+            // Only once it has been read back, so a run killed part way through does it again.
+            Options.INSTANCE.setCaseKnowledgeRuleVersion(CaseKnowledge.RULE_VERSION);
+          }
+        });
   }
 
   /**

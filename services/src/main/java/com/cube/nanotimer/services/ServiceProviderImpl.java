@@ -2170,8 +2170,14 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
-  public void refreshCaseKnowledge() {
+  public void refreshCaseKnowledge(List<String> clearedBefore) {
+    CaseKnowledgeStore.backfillCleared(db, clearedBefore);
     CaseKnowledgeStore.rebuild(db);
+  }
+
+  @Override
+  public void recordCaseCleared(String caseCode, long atMs) {
+    CaseKnowledgeStore.recordCleared(db, caseCode, atMs);
   }
 
   /**

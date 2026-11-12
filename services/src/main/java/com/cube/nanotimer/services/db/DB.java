@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 38;
+  public static final int DB_VERSION = 39;
 
   public static final String COL_ID = "id";
 
@@ -147,7 +147,15 @@ public class DB {
   public static final String COL_CASE_KNOWLEDGE_EVIDENCE = "evidence"; // how many occurrences the status was read from
   public static final String COL_CASE_KNOWLEDGE_LAST_SEEN = "last_seen"; // when the case last came up, in a solve or a drill
   public static final String COL_CASE_KNOWLEDGE_UPDATED = "updated";
+  public static final String COL_CASE_KNOWLEDGE_LEARNED_SOURCE = "learned_source"; // CaseKnowledge.Source code of what first made it learned; NULL for one never learned
+  public static final String COL_CASE_KNOWLEDGE_LEARNED_AT = "learned_at"; // when that was; NULL alongside
   public static final String IDX_CASE_KNOWLEDGE_CASE = "idx_case_knowledge_case";
+
+  // Each time a learning drill cleared a case. Evidence, not cache: case_knowledge is rebuilt from it.
+  public static final String TABLE_CASE_CLEARED = "case_cleared";
+  public static final String COL_CASE_CLEARED_CASE = "case_code"; // "oll_53", as drill_rep.case_code
+  public static final String COL_CASE_CLEARED_AT = "cleared_at";
+  public static final String IDX_CASE_CLEARED_CASE = "idx_case_cleared_case";
 
   // What was turned for each case of one solve, read once and kept. Nothing stores a case's moves:
   // they are a slice of the solve, so reading them means solving the scramble again and setting

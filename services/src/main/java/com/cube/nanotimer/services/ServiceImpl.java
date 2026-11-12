@@ -848,11 +848,26 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
-  public void refreshCaseKnowledge(final DataCallback<Void> callback) {
+  public void refreshCaseKnowledge(final List<String> clearedBefore,
+      final DataCallback<Void> callback) {
     run(new Runnable() {
       @Override
       public void run() {
-        provider.refreshCaseKnowledge();
+        provider.refreshCaseKnowledge(clearedBefore);
+        if (callback != null) {
+          callback.onData(null);
+        }
+      }
+    });
+  }
+
+  @Override
+  public void recordCaseCleared(final String caseCode, final DataCallback<Void> callback) {
+    final long atMs = System.currentTimeMillis();
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.recordCaseCleared(caseCode, atMs);
         if (callback != null) {
           callback.onData(null);
         }

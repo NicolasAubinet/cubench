@@ -690,9 +690,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * A case a learning drill has just cleared counts as learned from now on; in a coach drill, one
-   * that completes its shape group, or the whole OLL or PLL set, is celebrated once the rep's beat
-   * is over.
+   * A case a learning drill has just cleared counts as learned from now on, stored as evidence of
+   * it being known. In a coach drill, a newly learned case that completes its shape group, or the
+   * whole OLL or PLL set, is celebrated once the rep's beat is over.
    */
   private void noteLearned(DrillRep rep) {
     String code = rep.getCaseCode();
@@ -707,14 +707,15 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     } else {
       Options.INSTANCE.addLearnedCase(code);
       Options.INSTANCE.dropFromLearnPick(code);
+      App.INSTANCE.getService().recordCaseCleared(code, null);
     }
-    if (!session.getSpec().isFromCoach()) {
+    if (!session.getSpec().isFromCoach() || wasLearned) {
       return;
     }
     String group = OllShapes.groupOf(code);
     Set<String> learned = learnedCases();
     SetLearnedPanel.Family family = SetLearnedPanel.familyOf(code);
-    if (family != null && !wasLearned
+    if (family != null
         && !Options.INSTANCE.isGroupCelebrated(SetLearnedPanel.celebratedKey(family))
         && learned.containsAll(SetLearnedPanel.casesOf(family))) {
       setToCelebrate = family;

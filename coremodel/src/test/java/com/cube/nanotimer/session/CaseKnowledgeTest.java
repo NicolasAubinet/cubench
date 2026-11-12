@@ -152,9 +152,41 @@ public class CaseKnowledgeTest {
         CaseKnowledge.read(occurrences("HH" + "LLcc" + "LLccLcccL")));
   }
 
+  /** A learning drill's clear is known whatever its reps say: a reset there only took a dot back. */
+  @Test
+  public void testALearningDrillClearIsKnownEvenWhenTheRepsBrokeTheRun() {
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("X")));
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("cccLcccX")));
+  }
+
+  @Test
+  public void testAClearAfterARunAlreadyCountedIsNotCountedTwice() {
+    Assert.assertEquals(1, CaseKnowledge.evidenceCount(occurrences("cccccX")));
+    Assert.assertEquals(2, CaseKnowledge.evidenceCount(occurrences("cccccLX")));
+  }
+
+  @Test
+  public void testAClearedCaseTakenInTwoLooksNeedsReview() {
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("XH")));
+  }
+
+  @Test
+  public void testFirstLearnedPointsAtWhatFirstMadeTheCaseLearned() {
+    Assert.assertEquals(-1, CaseKnowledge.firstLearned(occurrences("HHcc")));
+    Assert.assertEquals(1, CaseKnowledge.firstLearned(occurrences("HUHU")));
+    Assert.assertEquals(5, CaseKnowledge.firstLearned(occurrences("Hcccccc")));
+    Assert.assertEquals(3, CaseKnowledge.firstLearned(occurrences("ccLXU")));
+    Assert.assertEquals(CaseKnowledge.Source.LEARNING_DRILL,
+        CaseKnowledge.sourceOf(Evidence.CLEARED));
+    Assert.assertEquals(CaseKnowledge.Source.SOLVE, CaseKnowledge.sourceOf(Evidence.UNAIDED));
+    Assert.assertEquals(CaseKnowledge.Source.DRILL,
+        CaseKnowledge.sourceOf(Evidence.CLEAN_REP_LARGE_POOL));
+  }
+
   /**
    * Oldest first: U and H are solves in one algorithm and in more, c and C clean drill reps from a
-   * small and a large pool, L a rep with the algorithm on screen or restarted.
+   * small and a large pool, L a rep with the algorithm on screen or restarted, X a learning drill's
+   * clear.
    */
   private static List<Evidence> occurrences(String reading) {
     List<Evidence> occurrences = new ArrayList<Evidence>();
@@ -164,6 +196,7 @@ public class CaseKnowledgeTest {
         case 'H': occurrences.add(Evidence.HELPED); break;
         case 'c': occurrences.add(Evidence.CLEAN_REP); break;
         case 'C': occurrences.add(Evidence.CLEAN_REP_LARGE_POOL); break;
+        case 'X': occurrences.add(Evidence.CLEARED); break;
         default: occurrences.add(Evidence.LOOKED_UP); break;
       }
     }

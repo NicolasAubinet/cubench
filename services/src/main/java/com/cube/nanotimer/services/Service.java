@@ -239,7 +239,10 @@ public interface Service {
    * Works out every case's status again from the solves and drill reps behind it. The statuses are
    * a cache, so this only ever has to be asked for when the rule that reads them has changed.
    */
-  void refreshCaseKnowledge(DataCallback<Void> callback);
+  void refreshCaseKnowledge(List<String> clearedBefore, DataCallback<Void> callback);
+
+  /** A learning drill has just cleared the case: stored as evidence of it being known. */
+  void recordCaseCleared(String caseCode, DataCallback<Void> callback);
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);
