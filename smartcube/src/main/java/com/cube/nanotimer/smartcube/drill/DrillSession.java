@@ -134,6 +134,8 @@ public final class DrillSession {
   private final CubeTwin twin = new CubeTwin();
   private String currentCase;
   private String currentScramble;
+  /** A slot case's scramble before the grip's turn, in the colours' own frame. */
+  private String slotScramble;
   private final List<CubeMove> moves = new ArrayList<CubeMove>();
   private long firstMoveMs;
   /** The first turn that was not an AUF, which is where the algorithm really started. */
@@ -321,14 +323,11 @@ public final class DrillSession {
       // at the algorithm's own turn of the layer, as a front pair's is.
       String slot = CaseAlgorithms.slotOf(currentCase);
       gripQuarters = holdTurned ? gripQuarters : gripQuartersTo(slot);
-      int spins = quartersTo(slot) + gripQuarters;
       String atItsAngle = practiceCase != null && practiceAlgorithm != null
           ? F2LPairScrambles.forAlgorithm(practiceAlgorithm, random) : null;
-      currentScramble = LayerRotation.toFace(LayerRotation.spun(atItsAngle != null ? atItsAngle
-          : LayerRotation.spun(F2LPairScrambles.forCase(CaseAlgorithms.frontCode(currentCase),
-              random), quartersTo(slot)), gripQuarters), layerFace);
-      pairCorner = LayerRotation.piece("DFR", spins, layerFace);
-      pairEdge = LayerRotation.piece("FR", spins, layerFace);
+      slotScramble = atItsAngle != null ? atItsAngle : LayerRotation.spun(
+          F2LPairScrambles.forCase(CaseAlgorithms.frontCode(currentCase), random), quartersTo(slot));
+      spinToGrip();
     } else if (pairs) {
       // A random slot, so the pair is not always read in the same place. Practice spins it by the
       // algorithm's leading y, so the moves after it run with no rotation.
@@ -707,6 +706,38 @@ public final class DrillSession {
     if (currentCase == null) {
       return;
     }
+    putBack();
+    resetCount++;
+  }
+
+  /**
+   * The user has just declared the usual grip, so a slot case is dealt for it from now on: the one
+   * up goes back to its start there, unspent and not counted as reset. False when none was moved.
+   */
+  public boolean straightened() {
+    holdTurned = false;
+    lastUpright = null; // read against the reference just replaced
+    gripQuarters = 0;
+    if (!backSlots || currentCase == null) {
+      return false;
+    }
+    spinToGrip();
+    putBack();
+    readShownPieces();
+    return true;
+  }
+
+  /** The slot case's scramble turned to the grip it is dealt for. */
+  private void spinToGrip() {
+    String slot = CaseAlgorithms.slotOf(currentCase);
+    int spins = quartersTo(slot) + gripQuarters;
+    currentScramble = LayerRotation.toFace(LayerRotation.spun(slotScramble, gripQuarters),
+        layerFace);
+    pairCorner = LayerRotation.piece("DFR", spins, layerFace);
+    pairEdge = LayerRotation.piece("FR", spins, layerFace);
+  }
+
+  private void putBack() {
     cube = new CubieCube();
     FaceTurns.apply(cube, currentScramble);
     moves.clear();
@@ -716,7 +747,6 @@ public final class DrillSession {
     firstPairInMs = NOT_SHOWN;
     pairTwoStartMs = NOT_SHOWN;
     caseShownAtMs = NOT_SHOWN;
-    resetCount++;
   }
 
   /**

@@ -773,6 +773,20 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return; // between reps, with the finished cube still up
     }
     session.resetRep();
+    putCaseBack();
+  }
+
+  /** Green is in front now, so a slot case is dealt again for that hold rather than a guessed one. */
+  @Override
+  protected void onStraightened() {
+    if (session != null && session.straightened()) {
+      cube.setStickering(
+          CubeStickering.pieces(session.getShownEdges(), session.getShownCorners()));
+      putCaseBack();
+    }
+  }
+
+  private void putCaseBack() {
     cube.setState(CubePatternFormat.format(session.getFacelets()));
     restartAlgorithmProgress();
     if (cubeReady) {

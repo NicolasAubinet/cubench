@@ -393,13 +393,21 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
       return;
     }
     final String upName = getString(Utils.getFaceColourNameRes(up));
-    showStraightenToast(getString(R.string.drill_straighten_hold, upName,
-        getString(Utils.getFaceColourNameRes(front))));
+    final String frontName = getString(Utils.getFaceColourNameRes(front));
     SmartCubeManager.INSTANCE.straightenTo(grip, held -> {
-      if (!held && !isFinishing()) {
-        showStraightenToast(getString(R.string.drill_straighten_wrong, upName));
+      if (isFinishing()) {
+        return;
       }
+      if (held) {
+        onStraightened();
+      }
+      showStraightenToast(held ? getString(R.string.drill_straightened, upName, frontName)
+          : getString(R.string.drill_straighten_wrong, upName));
     });
+  }
+
+  /** The grip was just taken again as the declared hold, on the main thread. */
+  protected void onStraightened() {
   }
 
   private void showStraightenToast(String message) {

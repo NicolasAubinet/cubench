@@ -305,13 +305,31 @@ public enum SmartCubeManager {
   }
 
   /**
-   * Takes the grip again as {@code grip}, once the cube is still: the solver is holding it that
-   * way. Exact however far the yaw has drifted, unlike {@link #reanchorGyro}, which only knows
-   * "square" and so cannot tell which way the cube faces once the drift passes 45°.
+   * Takes the grip again as {@code grip}: the solver is holding it that way. Exact however far the
+   * yaw has drifted, unlike {@link #reanchorGyro}, which only knows "square" and so cannot tell
+   * which way the cube faces once the drift passes 45°.
+   *
+   * <p>Taken off the latest reading at once, not after waiting for the cube to be still: a press of
+   * the button is a deliberate hold, not a core spinning down from a slice. Only a gyro with no
+   * reading yet is waited for.
    */
   public void straightenTo(CubeRotation grip, StraightenListener listener) {
     mainHandler.post(() -> {
       mainHandler.removeCallbacks(anchorWhenStill);
+      CubeOrientation now = getOrientation();
+      if (now != null) {
+        anchoring = false;
+        holdingGrip = null;
+        holdingListener = null;
+        boolean held = gyroReference.anchorHolding(now, grip);
+        if (held) {
+          notifyGyroReferenceChanged();
+        }
+        if (listener != null) {
+          listener.onStraightened(held);
+        }
+        return;
+      }
       holdingGrip = grip;
       holdingListener = listener;
       anchoring = true;

@@ -1437,6 +1437,28 @@ public class DrillSessionTest {
     assertNotNull(hand.execute(CaseAlgorithms.shortestListed("pair_24_fl")));
   }
 
+  /** Straightening declares green in front: the case up is dealt again for it, not as a reset. */
+  @Test
+  public void straighteningDealsTheCaseUpForTheUsualGrip() {
+    CubeRotation turnedHold = null;
+    for (CubeRotation grip : CubeRotation.withFaceUp('U')) {
+      if (grip.faceAt('F') == 'R') {
+        turnedHold = grip;
+      }
+    }
+    CubeRotation held = turnedHold;
+    DrillSession session = new DrillSession(backSlotSpec("pair_24_fl"), noAlignment());
+    session.setGripReader(() -> held);
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    String alg = CaseAlgorithms.shortestListed("pair_24_fl");
+    assertNull(hand.execute("U"));
+    assertTrue(hand.straighten());
+    DrillRep rep = hand.execute(alg);
+    assertNotNull(rep);
+    assertTrue(CaseTally.isClean(rep));
+  }
+
   /** Left to look its algorithms up after a rotation, the case comes back where it was dealt. */
   @Test
   public void aCaseLookedUpAfterARotationIgnoresTheTurnedHold() {
@@ -1851,6 +1873,14 @@ public class DrillSessionTest {
       session.startPractice(code, algorithm);
       shownAtMs = clock;
       session.markCaseShown(shownAtMs);
+    }
+
+    /** Straighten the cube, which puts the case up back at its start for the usual grip. */
+    boolean straighten() {
+      boolean moved = session.straightened();
+      shownAtMs = clock;
+      session.markCaseShown(shownAtMs);
+      return moved;
     }
 
     /** Put the case back and look at it afresh, which is where its recognition now runs from. */
