@@ -145,6 +145,8 @@ public interface Service {
 
   void getCoachPayload(SolveType solveType, CubeMethod method, List<PairExecution> executions,
       List<StepTurning> turnings, DataCallback<CoachPayload> callback);
+  /** {@link ServiceProvider#getDailyPayload}, read now. */
+  void getDailyPayload(SolveType solveType, CubeMethod method, DataCallback<CoachPayload> callback);
   /**
    * Keeps the last plan written for a solve type, and the payload it was written from, replacing
    * whatever that writer left before. A plan is stored so it reads without the network and without

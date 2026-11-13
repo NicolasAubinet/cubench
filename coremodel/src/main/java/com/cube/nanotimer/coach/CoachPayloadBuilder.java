@@ -2,6 +2,7 @@ package com.cube.nanotimer.coach;
 
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.step.LastLayerAlgorithms;
 import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 /**
  * Where a solver's history becomes the one thing a coach is allowed to see.
@@ -355,6 +357,45 @@ public class CoachPayloadBuilder {
    */
   public static FinalAufFigure finalAuf(int plls, List<Long> pausesMs) {
     return FinalAufFigure.of(plls, pausesMs, FAMILY_FLOOR);
+  }
+
+  /**
+   * How each learned OLL and PLL is holding, for {@link CoachPayload#withCaseRecall}: only cases
+   * known or needing review, since a case never learnt has nothing to recall.
+   *
+   * @param history each case's occurrences, oldest first, as {@link CaseKnowledge} reads them
+   * @param caseSamples the {@link #CASE_WINDOW}'s step occurrences, newest solve first, which the
+   *     recent recognitions are read from
+   */
+  public static List<CaseRecall> caseRecall(List<CaseKnowledge> knowledge,
+      Map<String, List<CaseRecall.Occurrence>> history, List<StepSample> caseSamples, long nowMs,
+      TimeZone zone) {
+    Map<String, List<Long>> recognitions = new HashMap<String, List<Long>>();
+    for (StepSample sample : caseSamples) {
+      if (sample.isPart()) {
+        continue;
+      }
+      List<Long> seen = recognitions.get(sample.getCode());
+      if (seen == null) {
+        seen = new ArrayList<Long>();
+        recognitions.put(sample.getCode(), seen);
+      }
+      seen.add(Long.valueOf(sample.getRecognitionMs()));
+    }
+    List<CaseRecall> recall = new ArrayList<CaseRecall>();
+    for (CaseKnowledge stepCase : knowledge) {
+      String code = stepCase.getCode();
+      if (!stepCase.getStatus().isLearned() || !CASE_FAMILIES.contains(stepCase.getCaseSet())
+          || !LastLayerAlgorithms.dealsCase(code)) {
+        continue;
+      }
+      CaseRecall one = CaseRecall.of(code, stepCase.getStatus(), history.get(code),
+          recognitions.get(code), nowMs, zone);
+      if (one != null) {
+        recall.add(one);
+      }
+    }
+    return recall;
   }
 
   /**

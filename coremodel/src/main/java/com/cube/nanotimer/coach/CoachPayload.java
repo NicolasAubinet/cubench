@@ -39,8 +39,12 @@ public class CoachPayload {
    * ({@link #SLOT_DRILL_VERSION}), 15 the cross's moves against its optimal
    * ({@link #CROSS_MOVES_VERSION}), 16 the pause before the final AUF, 17 the basic F2L pairs
    * less each solve's last, and an app that shows a take-out stuck-pair drill
-   * ({@link #TAKE_OUT_VERSION}); an older payload is still read, and is simply missing them. */
-  public static final int VERSION = 17;
+   * ({@link #TAKE_OUT_VERSION}), 18 how each learned case is holding ({@link #CASE_RECALL_VERSION});
+   * an older payload is still read, and is simply missing them. */
+  public static final int VERSION = 18;
+
+  /** The first payload that can carry {@link #getCaseRecall}, from an app that runs a daily drill. */
+  public static final int CASE_RECALL_VERSION = 18;
 
   /** The first payload with the early basic pairs, from an app that shows a take-out drill. */
   public static final int TAKE_OUT_VERSION = 17;
@@ -90,6 +94,7 @@ public class CoachPayload {
   private final F2lRotationFigure f2lRotations;
   private final CrossMoveFigure crossMoves;
   private final FinalAufFigure finalAuf;
+  private final List<CaseRecall> caseRecall;
 
   /**
    * @param solve the whole solve's figures, or null when the window holds too few to quote
@@ -320,6 +325,27 @@ public class CoachPayload {
       List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
       PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks, String language,
       F2lRotationFigure f2lRotations, CrossMoveFigure crossMoves, FinalAufFigure finalAuf) {
+    this(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow, twoLookCount, solve,
+        families, parts, cases, drillCases, comparisons, knownCases, learningCases, toLearnCases,
+        f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning, turningWindow, llMoves, llHabits,
+        llMoveWindow, ollLooks, previous, twoLookPllCount, pllLooks, language, f2lRotations,
+        crossMoves, finalAuf, null);
+  }
+
+  /** As above, with how each learned case is holding ({@link #getCaseRecall}), or null. */
+  public CoachPayload(int schemaVersion, String puzzle, String method, int familyWindow,
+      int caseWindow, int drillWindow, Integer twoLookCount, StepFigure solve,
+      List<StepFigure> families, List<StepFigure> parts, List<StepFigure> cases,
+      List<StepFigure> drillCases, List<CaseComparison> comparisons, List<String> knownCases,
+      List<String> learningCases, List<String> toLearnCases, List<StepFigure> f2lGroups,
+      MoveFigure f2lMoves, List<MoveFigure> f2lHabits, Integer f2lMoveWindow,
+      List<TurningFigure> turning, Integer turningWindow, List<MoveFigure> llMoves,
+      List<MoveFigure> llHabits, Integer llMoveWindow, List<StepFigure> ollLooks,
+      PreviousPlan previous, Integer twoLookPllCount, List<StepFigure> pllLooks, String language,
+      F2lRotationFigure f2lRotations, CrossMoveFigure crossMoves, FinalAufFigure finalAuf,
+      List<CaseRecall> caseRecall) {
+    this.caseRecall = caseRecall == null ? Collections.<CaseRecall>emptyList()
+        : Collections.unmodifiableList(new ArrayList<CaseRecall>(caseRecall));
     this.finalAuf = finalAuf;
     this.crossMoves = crossMoves;
     this.f2lRotations = f2lRotations;
@@ -581,7 +607,7 @@ public class CoachPayload {
         twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
         learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
         turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
-        pllLooks, code, f2lRotations, crossMoves, finalAuf);
+        pllLooks, code, f2lRotations, crossMoves, finalAuf, caseRecall);
   }
 
   /**
@@ -594,7 +620,7 @@ public class CoachPayload {
         twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
         learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
         turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
-        pllLooks, language, rotations, crossMoves, finalAuf);
+        pllLooks, language, rotations, crossMoves, finalAuf, caseRecall);
   }
 
   /**
@@ -606,7 +632,7 @@ public class CoachPayload {
         twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
         learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
         turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
-        pllLooks, language, f2lRotations, crosses, finalAuf);
+        pllLooks, language, f2lRotations, crosses, finalAuf, caseRecall);
   }
 
   /**
@@ -626,7 +652,7 @@ public class CoachPayload {
         twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
         learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
         turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
-        pllLooks, language, f2lRotations, crossMoves, aufs);
+        pllLooks, language, f2lRotations, crossMoves, aufs, caseRecall);
   }
 
   /**
@@ -635,6 +661,27 @@ public class CoachPayload {
    */
   public FinalAufFigure getFinalAuf() {
     return finalAuf;
+  }
+
+  /**
+   * This payload with how each learned case is holding, built by
+   * {@link CoachPayloadBuilder#caseRecall}. Only the daily drill's ask sends it: a weekly plan has
+   * no use for days, and a payload says when the solver cubes only where it must.
+   */
+  public CoachPayload withCaseRecall(List<CaseRecall> recall) {
+    return new CoachPayload(schemaVersion, puzzle, method, familyWindow, caseWindow, drillWindow,
+        twoLookCount, solve, families, parts, cases, drillCases, comparisons, knownCases,
+        learningCases, toLearnCases, f2lGroups, f2lMoves, f2lHabits, f2lMoveWindow, turning,
+        turningWindow, llMoves, llHabits, llMoveWindow, ollLooks, previous, twoLookPllCount,
+        pllLooks, language, f2lRotations, crossMoves, finalAuf, recall);
+  }
+
+  /**
+   * How each learned OLL and PLL is holding, empty where none was sent or the payload predates
+   * version {@link #CASE_RECALL_VERSION}.
+   */
+  public List<CaseRecall> getCaseRecall() {
+    return caseRecall;
   }
 
   /**
@@ -997,6 +1044,13 @@ public class CoachPayload {
       if (finalAuf != null) {
         json.put("final_auf", finalAuf.toJson());
       }
+      if (!caseRecall.isEmpty()) {
+        JSONArray recall = new JSONArray();
+        for (CaseRecall one : caseRecall) {
+          recall.put(one.toJson());
+        }
+        json.put("case_recall", recall);
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write coach payload", e);
@@ -1062,7 +1116,8 @@ public class CoachPayload {
           json.has("cross_moves")
               ? CrossMoveFigure.fromJson(json.getJSONObject("cross_moves")) : null,
           json.has("final_auf")
-              ? FinalAufFigure.fromJson(json.getJSONObject("final_auf")) : null);
+              ? FinalAufFigure.fromJson(json.getJSONObject("final_auf")) : null,
+          caseRecall(json));
     } catch (JSONException e) {
       throw new IllegalArgumentException("Not a coach payload: " + e.getMessage(), e);
     }
@@ -1084,6 +1139,15 @@ public class CoachPayload {
       habits.add(MoveFigure.fromJson(array.getJSONObject(i)));
     }
     return habits;
+  }
+
+  private static List<CaseRecall> caseRecall(JSONObject json) throws JSONException {
+    List<CaseRecall> recall = new ArrayList<CaseRecall>();
+    JSONArray array = json.optJSONArray("case_recall");
+    for (int i = 0; array != null && i < array.length(); i++) {
+      recall.add(CaseRecall.fromJson(array.getJSONObject(i)));
+    }
+    return recall;
   }
 
   private static List<TurningFigure> turning(JSONObject json) throws JSONException {

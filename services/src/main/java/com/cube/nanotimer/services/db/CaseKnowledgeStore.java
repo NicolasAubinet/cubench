@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.cube.nanotimer.coach.CaseRecall;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
@@ -135,6 +136,25 @@ public final class CaseKnowledgeStore {
     } finally {
       db.endTransaction();
     }
+  }
+
+  /** Each named case's occurrences, oldest first, dated, for {@link CaseRecall}. */
+  public static Map<String, List<CaseRecall.Occurrence>> history(SQLiteDatabase db,
+      Collection<String> codes) {
+    Map<String, List<CaseRecall.Occurrence>> history =
+        new HashMap<String, List<CaseRecall.Occurrence>>();
+    Map<Long, Boolean> largePools = new HashMap<Long, Boolean>();
+    for (String code : codes) {
+      if (!namesACase(code)) {
+        continue;
+      }
+      List<CaseRecall.Occurrence> dated = new ArrayList<CaseRecall.Occurrence>();
+      for (Occurrence occurrence : occurrences(db, code, largePools)) {
+        dated.add(new CaseRecall.Occurrence(occurrence.says, occurrence.atMs));
+      }
+      history.put(code, dated);
+    }
+    return history;
   }
 
   /** A learning drill has cleared the case: stored as evidence, and its status read again. */

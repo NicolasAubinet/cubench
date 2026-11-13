@@ -80,6 +80,8 @@ public interface ServiceProvider {
   PlanSchedule getPlanSchedule(SolveType solveType, CubeMethod method, long lastPlanAt, long now);
   CoachPayload getCoachPayload(SolveType solveType, CubeMethod method,
       List<PairExecution> executions, List<StepTurning> turnings);
+  /** The payload a daily drill is asked with: the case figures and how each learned case holds. */
+  CoachPayload getDailyPayload(SolveType solveType, CubeMethod method, long now);
   Map<Long, String> getSolveReadings(List<Long> solveIds, int version);
   void saveSolveReadings(Map<Long, String> readings, int version);
   void saveCoachPlan(SolveType solveType, StoredCoachPlan plan);

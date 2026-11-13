@@ -1901,6 +1901,23 @@ public class ServiceProviderImpl implements ServiceProvider {
         getPreviousPlan(solveType, method, methodCode, solveTimes, turnings));
   }
 
+  @Override
+  public CoachPayload getDailyPayload(SolveType solveType, CubeMethod method, long now) {
+    CoachPayload payload = getCoachPayload(solveType, method,
+        Collections.<PairExecution>emptyList(), Collections.<StepTurning>emptyList());
+    List<CaseKnowledge> knowledge = CaseKnowledgeStore.read(db);
+    List<String> codes = new ArrayList<String>();
+    for (CaseKnowledge stepCase : knowledge) {
+      if (stepCase.getStatus().isLearned()) {
+        codes.add(stepCase.getCode());
+      }
+    }
+    return payload.withCaseRecall(CoachPayloadBuilder.caseRecall(knowledge,
+        CaseKnowledgeStore.history(db, codes),
+        getMethodStepSamples(solveType, method, CoachPayloadBuilder.CASE_WINDOW), now,
+        TimeZone.getDefault()));
+  }
+
   /** The last plan and the solves since it, or null where the next plan is not to be told of it. */
   private PreviousPlan getPreviousPlan(SolveType solveType, CubeMethod method, String methodCode,
       List<Long> solveTimes, List<StepTurning> turnings) {
