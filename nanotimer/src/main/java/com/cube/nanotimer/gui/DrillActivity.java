@@ -250,6 +250,21 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     return intent;
   }
 
+  /**
+   * One case drilled on its own and recorded, its algorithm hidden until asked for: for a case
+   * whose algorithm the user has starred, so practising it can bring it back to Known.
+   */
+  public static Intent drillFor(Context context, String caseCode) {
+    Intent intent = new Intent(context, DrillActivity.class);
+    intent.putExtra(EXTRA_LAYER_FACE, DrillSetupActivity.layerFace().name());
+    intent.putExtra(EXTRA_RECORDING, true);
+    intent.putExtra(EXTRA_SPEC, new DrillSpec("local-case",
+        CaseAlgorithms.isPair(caseCode) ? DrillSpec.Type.F2L_PAIR : DrillSpec.Type.CASE_EXECUTION,
+        DrillSpec.Delivery.VIRTUAL, Collections.singletonList(caseCode),
+        DrillSpec.Selection.ROUND_ROBIN, CaseKnowledge.RUN_TO_KNOW, 0, null).toJson());
+    return intent;
+  }
+
   /** Whether a case has an algorithm for its choose step to start on, outside a learning drill. */
   public static boolean hasAlgorithmToTry(String caseCode) {
     return Options.INSTANCE.getCaseAlgorithm(caseCode) != null

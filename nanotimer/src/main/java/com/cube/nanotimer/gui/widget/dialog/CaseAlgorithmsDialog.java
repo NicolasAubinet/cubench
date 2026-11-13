@@ -251,7 +251,10 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   private void practice() {
     if (SmartCubeManager.INSTANCE.isConnected()) {
-      startActivity(DrillActivity.chooseFor(getActivity(), caseCode));
+      // A starred algorithm is known to be theirs: drill the case, recorded; else choose one first.
+      startActivity(Options.INSTANCE.getCaseAlgorithm(caseCode) != null
+          ? DrillActivity.drillFor(getActivity(), caseCode)
+          : DrillActivity.chooseFor(getActivity(), caseCode));
     } else {
       DialogUtils.showFragment(getActivity(), new SmartCubeConnectDialog());
     }
