@@ -166,6 +166,7 @@ public final class DrillSession {
   private int gripQuarters;
   /** The last rep was solved with the cube turned in hand, a hold the user then turns back from. */
   private boolean holdTurned;
+  private Dealer dealer;
 
   public DrillSession(DrillSpec spec, Random random) {
     this(spec, random, null, "U");
@@ -227,6 +228,17 @@ public final class DrillSession {
         }
       });
     }
+  }
+
+  /** Deals the cases in an order of its own, in place of the spec's selection. */
+  public interface Dealer {
+    /** The next case to deal, or null when the drill is over; the same until a rep is recorded. */
+    String next();
+  }
+
+  /** Hands the dealing to {@code dealer}; null gives it back to the spec's selection. */
+  public void setDealer(Dealer dealer) {
+    this.dealer = dealer;
   }
 
   public DrillSpec getSpec() {
@@ -1175,6 +1187,11 @@ public final class DrillSession {
    * now and then, so the last case is not known to be coming.
    */
   private String pick() {
+    if (dealer != null) {
+      String next = dealer.next();
+      lastDealt = next;
+      return next;
+    }
     List<String> active = getActiveCases();
     String next = dealNext;
     dealNext = null;
@@ -1267,6 +1284,9 @@ public final class DrillSession {
   }
 
   public boolean isFinished() {
+    if (dealer != null) {
+      return !isRunnable() || dealer.next() == null;
+    }
     return !isRunnable() || reps.size() >= spec.getReps() || getActiveCases().isEmpty();
   }
 }
