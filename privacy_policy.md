@@ -50,6 +50,6 @@ You can ask for a copy of the data the server holds about you, or for its deleti
 
 # Contact
 
-If you have any questions about this privacy policy, you can contact me by email: nanotimercube@gmail.com
+If you have any questions about this privacy policy, you can contact me by email: contact@cubench.app
 
 Last updated: November 6, 2026

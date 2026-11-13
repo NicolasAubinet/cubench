@@ -7,7 +7,7 @@
   <string name="app_license">Cette application utilise les librairies drag-sort-listview et MPAndroidChart sous license Apache 2.0. Les diagrammes de mélange sont générés avec cubing.js et scramble-display (GPL-3.0) et three.js (MIT).</string>
   <string name="feedback_message">Si vous rencontrez un bug ou si vous avez des suggestions ou commentaires, n\'hésitez pas à envoyer un mail à l\'adresse ci-dessous.</string>
   <string name="dev_name">Nicolas Aubinet</string>
-  <string name="email">NanoTimerCube@gmail.com</string>
+  <string name="email">contact@cubench.app</string>
   <string name="about">À propos</string>
   <string name="backspace_exit">Appuyez à nouveau sur retour pour quitter</string>
 

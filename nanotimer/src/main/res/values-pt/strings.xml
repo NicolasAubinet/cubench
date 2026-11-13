@@ -7,7 +7,7 @@
   <string name="app_license">Este aplicativo usa as bibliotecas drag-sort-listview e MPAndroidChart licenciadas sob Apache 2.0. Os diagramas de scramble são gerados com cubing.js e scramble-display (GPL-3.0) e three.js (MIT).</string>
   <string name="feedback_message">Se você encontrar um bug ou tiver sugestões ou comentários, não hesite em enviar um e-mail para o endereço abaixo.</string>
   <string name="dev_name">Nicolas Aubinet</string>
-  <string name="email">NanoTimerCube@gmail.com</string>
+  <string name="email">contact@cubench.app</string>
   <string name="about">Sobre</string>
   <string name="backspace_exit">Toque em voltar novamente para sair</string>
 
