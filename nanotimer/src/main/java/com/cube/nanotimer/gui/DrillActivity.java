@@ -658,13 +658,14 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * Holds the finished rep before the next case: the beat alone with the pause turned off, else
-   * the pause, with the rep brought forward. A title forces a pause, for a change of block.
+   * Holds the finished rep before the next case: the beat alone with the pause turned off or in the
+   * choose step, which repeats one case; else the pause, with the rep brought forward. A title
+   * forces a pause, for a change of block.
    */
   private void pauseThenNext(CharSequence title) {
     stopHold();
     long pauseMs = Options.INSTANCE.getDrillPauseMs();
-    if (title == null && pauseMs <= 0) {
+    if (title == null && (pauseMs <= 0 || session.getPracticeCase() != null)) {
       lastRepRow.postDelayed(showNextCase, REP_HOLD_MS);
       return;
     }
