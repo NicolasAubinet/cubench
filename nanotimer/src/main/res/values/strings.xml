@@ -1338,9 +1338,11 @@
   <string name="analysis_plan_two_handed_only">The coach writes plans for two-handed solves only.</string>
   <string name="analysis_plan_body">Read from your own solves: what to work on, the drill for it, and whether last week\'s work moved anything.</string>
   <string name="analysis_plan_point_plans">A weekly plan you can act on, from your solves</string>
+  <string name="analysis_plan_point_worked">Find out whether last week\'s work made a difference</string>
   <string name="analysis_plan_point_practice">Practice the cases costing you the most time</string>
   <string name="analysis_plan_point_learn">Learn the algorithms that pay off soonest</string>
-  <string name="analysis_plan_point_daily">Track your progress every day</string>
+  <string name="analysis_plan_point_f2l">Fix F2L pairs that take extra moves</string>
+  <string name="analysis_plan_point_daily">A custom daily drill for the cases that slip</string>
   <string name="analysis_plan_point_support">Support Cubench development</string>
   <string name="analysis_plan_private">Nothing leaves your phone unless you subscribe or send a report.</string>
   <string name="analysis_plan_cites">A plan is written from your own solves, with every claim citing a figure you can go and check on the other two tabs.</string>

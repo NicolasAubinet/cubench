@@ -25,6 +25,20 @@
      android:alpha="0.9"
      android:textSize="14sp"
      android:layout_marginTop="10dp"
+     android:drawableLeft="@drawable/ic_coach_point_worked"
+     android:drawableStart="@drawable/ic_coach_point_worked"
+     android:text="@string/analysis_plan_point_worked"/>
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:drawablePadding="12dp"
+     android:gravity="center_vertical"
+     android:lineSpacingMultiplier="1.15"
+     android:textColor="@color/white"
+     android:alpha="0.9"
+     android:textSize="14sp"
+     android:layout_marginTop="10dp"
      android:drawableLeft="@drawable/ic_coach_point_practice"
      android:drawableStart="@drawable/ic_coach_point_practice"
      android:text="@string/analysis_plan_point_practice"/>
@@ -42,6 +56,20 @@
      android:drawableLeft="@drawable/ic_coach_point_learn"
      android:drawableStart="@drawable/ic_coach_point_learn"
      android:text="@string/analysis_plan_point_learn"/>
+
+  <TextView
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:drawablePadding="12dp"
+     android:gravity="center_vertical"
+     android:lineSpacingMultiplier="1.15"
+     android:textColor="@color/white"
+     android:alpha="0.9"
+     android:textSize="14sp"
+     android:layout_marginTop="10dp"
+     android:drawableLeft="@drawable/ic_coach_point_f2l"
+     android:drawableStart="@drawable/ic_coach_point_f2l"
+     android:text="@string/analysis_plan_point_f2l"/>
 
   <TextView
      android:layout_width="match_parent"

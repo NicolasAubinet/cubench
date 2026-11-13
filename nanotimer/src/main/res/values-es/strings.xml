@@ -1290,9 +1290,11 @@
   <string name="analysis_plan_two_handed_only">El coach escribe planes solo para resoluciones a dos manos.</string>
   <string name="analysis_plan_body">Leído de tus propias resoluciones: qué trabajar, el drill para hacerlo, y si el trabajo de la semana pasada cambió algo.</string>
   <string name="analysis_plan_point_plans">Un plan semanal práctico, basado en tus resoluciones</string>
+  <string name="analysis_plan_point_worked">Comprueba si el trabajo de la semana pasada marcó la diferencia</string>
   <string name="analysis_plan_point_practice">Practica los casos que más tiempo te cuestan</string>
   <string name="analysis_plan_point_learn">Aprende los algoritmos que antes dan fruto</string>
-  <string name="analysis_plan_point_daily">Sigue tu progreso cada día</string>
+  <string name="analysis_plan_point_f2l">Corrige los pares de F2L que llevan movimientos de más</string>
+  <string name="analysis_plan_point_daily">Un drill diario a medida para los casos que fallan</string>
   <string name="analysis_plan_point_support">Apoya el desarrollo de Cubench</string>
   <string name="analysis_plan_private">Nada sale de tu teléfono a menos que te suscribas o envíes un informe.</string>
   <string name="analysis_plan_cites">Un plan se escribe a partir de tus propias resoluciones, citando en cada afirmación una cifra que puedes comprobar en las otras dos pestañas.</string>
