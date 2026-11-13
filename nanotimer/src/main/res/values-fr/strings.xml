@@ -880,7 +880,6 @@
   <string name="drill_pause_setting">Pause entre les cas des drills</string>
   <string name="drill_pause_off">Aucune</string>
   <string name="drill_pause_seconds">%1$s s</string>
-  <string name="drill_pause_skip_hint">Touchez pour continuer</string>
   <string name="preferred_method_prompt">Quelle méthode utilisez-vous ? Elle sert à découper vos résolutions en étapes. C\'est la méthode par défaut : chaque type de résolution peut avoir la sienne.</string>
 
   <string name="quick_action">Action rapide</string>

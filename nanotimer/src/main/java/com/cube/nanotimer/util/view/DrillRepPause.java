@@ -47,7 +47,6 @@ public final class DrillRepPause {
   private static final long IN_MS = 420;
   private static final long TITLE_DELAY_MS = 140;
   private static final long DRAIN_DELAY_MS = 180;
-  private static final long HINT_DELAY_MS = 600;
   private static final long EXTRAS_IN_MS = 260;
   private static final long OUT_MS = 320;
   private static final long EXTRAS_OUT_MS = 120;
@@ -67,7 +66,6 @@ public final class DrillRepPause {
   private final TextView title;
   private final View foot;
   private final View drain;
-  private final View hint;
   private final float density;
   private final boolean blurs = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
   private float softness;
@@ -91,12 +89,10 @@ public final class DrillRepPause {
    * @param cube the drawn cube, blurred where the system can
    * @param line the rep's line, a sibling of the cube's frame, moved and scaled by the pause
    * @param title over the cube's frame, above the rep: shown for a titled pause only
-   * @param foot over the cube's frame, below the rep: the drain and the hint
+   * @param foot over the cube's frame, below the rep: holds the drain
    * @param drain the line that runs out as the pause does
-   * @param hint how to end the pause early, which comes in last
    */
-  public DrillRepPause(View scrim, View cube, View line, TextView title, View foot, View drain,
-      View hint) {
+  public DrillRepPause(View scrim, View cube, View line, TextView title, View foot, View drain) {
     this.stage = (View) scrim.getParent();
     this.scrim = scrim;
     this.cube = cube;
@@ -104,7 +100,6 @@ public final class DrillRepPause {
     this.title = title;
     this.foot = foot;
     this.drain = drain;
-    this.hint = hint;
     density = scrim.getResources().getDisplayMetrics().density;
   }
 
@@ -128,7 +123,6 @@ public final class DrillRepPause {
     foot.setAlpha(1f);
     foot.setVisibility(View.VISIBLE);
     drain.setAlpha(0f);
-    hint.setAlpha(0f);
     if (!blurs) {
       scrim.setAlpha(0f);
       scrim.setVisibility(View.VISIBLE);
@@ -212,8 +206,6 @@ public final class DrillRepPause {
     parts.add(timed(ObjectAnimator.ofFloat(title, View.TRANSLATION_Y, title.getTranslationY() + rise),
         EXTRAS_IN_MS, TITLE_DELAY_MS, SETTLE));
     parts.add(timed(ObjectAnimator.ofFloat(drain, View.ALPHA, 1f), EXTRAS_IN_MS, DRAIN_DELAY_MS,
-        SETTLE));
-    parts.add(timed(ObjectAnimator.ofFloat(hint, View.ALPHA, 1f), EXTRAS_IN_MS, HINT_DELAY_MS,
         SETTLE));
     parts.add(timed(ObjectAnimator.ofFloat(drain, View.SCALE_X, 0f), durationMs, 0,
         new LinearInterpolator()));

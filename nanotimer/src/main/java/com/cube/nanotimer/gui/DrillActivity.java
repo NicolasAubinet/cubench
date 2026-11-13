@@ -257,7 +257,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     repPause = new DrillRepPause(findViewById(R.id.drillPauseScrim),
         findViewById(R.id.wvDrillCube), findViewById(R.id.flDrillLastRepStage),
         findViewById(R.id.tvDrillPauseTitle), findViewById(R.id.llDrillPauseFoot),
-        findViewById(R.id.vDrillPauseDrain), findViewById(R.id.tvDrillPauseHint));
+        findViewById(R.id.vDrillPauseDrain));
     pauseSkip = findViewById(R.id.drillPauseSkip);
     pauseSkip.setOnClickListener(new View.OnClickListener() {
       @Override

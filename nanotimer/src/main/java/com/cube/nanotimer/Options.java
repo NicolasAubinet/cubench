@@ -1010,9 +1010,9 @@ public enum Options {
   // The pause after a drill rep before the next case, in ms; 0 deals it after the rep's beat.
   public long getDrillPauseMs() {
     try {
-      return Long.parseLong(sharedPreferences.getString(DRILL_PAUSE_KEY, "1500"));
+      return Long.parseLong(sharedPreferences.getString(DRILL_PAUSE_KEY, "2000"));
     } catch (NumberFormatException e) {
-      return 1500;
+      return 2000;
     }
   }
 

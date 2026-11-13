@@ -882,7 +882,6 @@
   <string name="drill_pause_setting">Pausa entre casos dos treinos</string>
   <string name="drill_pause_off">Nenhuma</string>
   <string name="drill_pause_seconds">%1$s s</string>
-  <string name="drill_pause_skip_hint">Toque para continuar</string>
   <string name="preferred_method_prompt">Com qual método você resolve? Ele é usado para dividir suas resoluções em etapas. Este é o padrão: cada tipo de resolução pode ter o seu.</string>
 
   <string name="quick_action">Ação rápida</string>
