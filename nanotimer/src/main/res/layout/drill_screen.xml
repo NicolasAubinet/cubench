@@ -42,7 +42,8 @@
          android:background="@android:color/transparent"
          android:visibility="invisible"/>
 
-      <!-- The pause between cases: the solved cube dimmed under the rep just finished. -->
+      <!-- The pause between cases: the solved cube dimmed under the rep just finished, before
+           Android 12; from there the cube is blurred instead. -->
       <View
          android:id="@+id/drillPauseScrim"
          android:layout_width="match_parent"
@@ -85,6 +86,7 @@
         </FrameLayout>
 
         <TextView
+           android:id="@+id/tvDrillPauseHint"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:layout_marginTop="14dp"

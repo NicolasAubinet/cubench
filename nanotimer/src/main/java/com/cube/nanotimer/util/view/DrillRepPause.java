@@ -4,20 +4,34 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.view.animation.PathInterpolator;
 import android.widget.TextView;
+
+import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The pause between two drill cases: the solved cube dims, and the rep just finished rises from its
- * slot under the cube to the middle of the cube's room, larger, with a line draining under it. When
- * the pause ends the dimming lifts first and the next case is dealt onto a clear cube, while the
- * line settles back into its slot.
+ * The pause between two drill cases: the solved cube softens and steps back, and the rep just
+ * finished rises from its slot under the cube to the middle of the cube's room, larger, with a line
+ * draining under it. When the pause ends the cube comes back into focus first and the next case is
+ * dealt onto it, while the line settles back into its slot.
+ *
+ * <p>From Android 12 the cube itself is blurred and dimmed, which leaves the beat's glow behind it
+ * showing round the result; before that a dark cover over the cube does the dimming alone.
  *
  * <p>Kept out of the drill screen, as {@link DrillRepFlourish} is: it only moves views. The screen
  * decides when a pause starts and ends, and the next case is still timed from when it is dealt.
@@ -26,22 +40,40 @@ public final class DrillRepPause {
 
   private static final float SCALE = 1.25f;
   private static final float SCRIM_ALPHA = 0.88f;
-  private static final long IN_MS = 320;
-  private static final long EXTRAS_DELAY_MS = 120;
-  private static final long EXTRAS_IN_MS = 220;
-  private static final long OUT_MS = 280;
+  private static final float CUBE_SCALE = 0.92f;
+  private static final float CUBE_BLUR_DP = 14;
+  /** How much of the cube's brightness is left at the deepest of the pause. */
+  private static final float CUBE_DIM = 0.4f;
+  private static final long IN_MS = 420;
+  private static final long DOT_DELAY_MS = 260;
+  private static final long DOT_MS = 260;
+  private static final long TITLE_DELAY_MS = 140;
+  private static final long DRAIN_DELAY_MS = 180;
+  private static final long HINT_DELAY_MS = 600;
+  private static final long EXTRAS_IN_MS = 260;
+  private static final long OUT_MS = 320;
   private static final long EXTRAS_OUT_MS = 120;
-  /** How long the dimming takes to lift before the next case is dealt onto the cube. */
-  private static final long CLEAR_MS = 160;
-  private static final float GAP_DP = 20;
+  /** How long the cube takes to come back into focus before the next case is dealt onto it. */
+  private static final long CLEAR_MS = 180;
+  private static final float GAP_DP = 22;
+  private static final float TITLE_RISE_DP = 10;
+
+  /** Material's emphasized curves: a quick start that settles slowly, and its mirror. */
+  private static final Interpolator SETTLE = new PathInterpolator(0.05f, 0.7f, 0.1f, 1f);
+  private static final Interpolator LEAVE = new PathInterpolator(0.3f, 0f, 0.1f, 1f);
 
   private final View stage;
   private final View scrim;
+  private final View cube;
   private final View line;
+  private final View dot;
   private final TextView title;
   private final View foot;
   private final View drain;
-  private final float gap;
+  private final View hint;
+  private final float density;
+  private final boolean blurs = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
+  private float softness;
   private AnimatorSet running;
   private ViewTreeObserver.OnPreDrawListener placing;
   private boolean up;
@@ -59,19 +91,26 @@ public final class DrillRepPause {
 
   /**
    * @param scrim covers the cube, inside the cube's own frame, which is the room the rep rises into
+   * @param cube the drawn cube, blurred where the system can
    * @param line the rep's line, a sibling of the cube's frame, moved and scaled by the pause
+   * @param dot inside the line: popped in once the line has risen, when the screen shows it
    * @param title over the cube's frame, above the rep: shown for a titled pause only
    * @param foot over the cube's frame, below the rep: the drain and the hint
    * @param drain the line that runs out as the pause does
+   * @param hint how to end the pause early, which comes in last
    */
-  public DrillRepPause(View scrim, View line, TextView title, View foot, View drain) {
+  public DrillRepPause(View scrim, View cube, View line, View dot, TextView title, View foot,
+      View drain, View hint) {
     this.stage = (View) scrim.getParent();
     this.scrim = scrim;
+    this.cube = cube;
     this.line = line;
+    this.dot = dot;
     this.title = title;
     this.foot = foot;
     this.drain = drain;
-    gap = GAP_DP * scrim.getResources().getDisplayMetrics().density;
+    this.hint = hint;
+    density = scrim.getResources().getDisplayMetrics().density;
   }
 
   /** Whether a pause is up, or ending with its next case still to deal. */
@@ -91,10 +130,14 @@ public final class DrillRepPause {
     title.setText(heading);
     title.setVisibility(heading == null ? View.GONE : View.VISIBLE);
     title.setAlpha(0f);
-    foot.setAlpha(0f);
+    foot.setAlpha(1f);
     foot.setVisibility(View.VISIBLE);
-    scrim.setAlpha(0f);
-    scrim.setVisibility(View.VISIBLE);
+    drain.setAlpha(0f);
+    hint.setAlpha(0f);
+    if (!blurs) {
+      scrim.setAlpha(0f);
+      scrim.setVisibility(View.VISIBLE);
+    }
     drain.setPivotX(0f);
     drain.setScaleX(1f);
     // Placed once laid out: the title and foot have no height before that
@@ -113,8 +156,8 @@ public final class DrillRepPause {
   }
 
   /**
-   * Ends the pause: the dimming lifts, then {@code dealt} runs, unless {@code now} runs it at once
-   * (a turn already made for the next case). The line goes back to its slot meanwhile.
+   * Ends the pause: the cube comes back into focus, then {@code dealt} runs, unless {@code now}
+   * runs it at once (a turn already made for the next case). The line goes home meanwhile.
    */
   public void leave(Runnable dealt, boolean now) {
     stopPlacing();
@@ -147,36 +190,63 @@ public final class DrillRepPause {
 
   private void animateIn(long durationMs) {
     float height = line.getHeight();
+    float gap = GAP_DP * density;
     float titleRoom = title.getVisibility() == View.VISIBLE ? title.getHeight() + gap : 0;
     float block = titleRoom + height * SCALE + gap + foot.getHeight();
     float top = stage.getTop() + Math.max(0f, (stage.getHeight() - block) / 2);
     float lineCentre = top + titleRoom + height * SCALE / 2;
-    title.setTranslationY(top - stage.getTop());
+    float rise = TITLE_RISE_DP * density;
+    title.setTranslationY(top - stage.getTop() - rise);
     foot.setTranslationY(top + titleRoom + height * SCALE + gap - stage.getTop());
 
     List<Animator> parts = new ArrayList<Animator>();
-    parts.add(timed(ObjectAnimator.ofFloat(scrim, View.ALPHA, SCRIM_ALPHA), IN_MS, 0));
+    if (blurs) {
+      parts.add(timed(soften(1f), IN_MS, 0, SETTLE));
+    } else {
+      parts.add(timed(ObjectAnimator.ofFloat(scrim, View.ALPHA, SCRIM_ALPHA), IN_MS, 0, SETTLE));
+    }
+    parts.add(timed(ObjectAnimator.ofFloat(cube, View.SCALE_X, CUBE_SCALE), IN_MS, 0, SETTLE));
+    parts.add(timed(ObjectAnimator.ofFloat(cube, View.SCALE_Y, CUBE_SCALE), IN_MS, 0, SETTLE));
     parts.add(timed(ObjectAnimator.ofFloat(line, View.TRANSLATION_Y,
-        lineCentre - (line.getTop() + height / 2)), IN_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_X, SCALE), IN_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_Y, SCALE), IN_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(title, View.ALPHA, 1f), EXTRAS_IN_MS, EXTRAS_DELAY_MS));
-    parts.add(timed(ObjectAnimator.ofFloat(foot, View.ALPHA, 1f), EXTRAS_IN_MS, EXTRAS_DELAY_MS));
-    Animator drainOut = ObjectAnimator.ofFloat(drain, View.SCALE_X, 0f);
-    drainOut.setDuration(durationMs);
-    drainOut.setInterpolator(new LinearInterpolator());
-    parts.add(drainOut);
+        lineCentre - (line.getTop() + height / 2)), IN_MS, 0, SETTLE));
+    Interpolator swell = new OvershootInterpolator(1.4f);
+    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_X, SCALE), IN_MS, 0, swell));
+    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_Y, SCALE), IN_MS, 0, swell));
+    if (dot.getVisibility() == View.VISIBLE) {
+      dot.setScaleX(0f);
+      dot.setScaleY(0f);
+      Interpolator pop = new OvershootInterpolator(3f);
+      parts.add(timed(ObjectAnimator.ofFloat(dot, View.SCALE_X, 1f), DOT_MS, DOT_DELAY_MS, pop));
+      parts.add(timed(ObjectAnimator.ofFloat(dot, View.SCALE_Y, 1f), DOT_MS, DOT_DELAY_MS, pop));
+    }
+    parts.add(timed(ObjectAnimator.ofFloat(title, View.ALPHA, 1f), EXTRAS_IN_MS, TITLE_DELAY_MS,
+        SETTLE));
+    parts.add(timed(ObjectAnimator.ofFloat(title, View.TRANSLATION_Y, title.getTranslationY() + rise),
+        EXTRAS_IN_MS, TITLE_DELAY_MS, SETTLE));
+    parts.add(timed(ObjectAnimator.ofFloat(drain, View.ALPHA, 1f), EXTRAS_IN_MS, DRAIN_DELAY_MS,
+        SETTLE));
+    parts.add(timed(ObjectAnimator.ofFloat(hint, View.ALPHA, 1f), EXTRAS_IN_MS, HINT_DELAY_MS,
+        SETTLE));
+    parts.add(timed(ObjectAnimator.ofFloat(drain, View.SCALE_X, 0f), durationMs, 0,
+        new LinearInterpolator()));
     play(parts);
   }
 
   private void animateOut() {
     List<Animator> parts = new ArrayList<Animator>();
-    parts.add(timed(ObjectAnimator.ofFloat(scrim, View.ALPHA, 0f), CLEAR_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(title, View.ALPHA, 0f), EXTRAS_OUT_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(foot, View.ALPHA, 0f), EXTRAS_OUT_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(line, View.TRANSLATION_Y, 0f), OUT_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_X, 1f), OUT_MS, 0));
-    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_Y, 1f), OUT_MS, 0));
+    Interpolator clear = new DecelerateInterpolator();
+    if (blurs) {
+      parts.add(timed(soften(0f), CLEAR_MS, 0, clear));
+    } else {
+      parts.add(timed(ObjectAnimator.ofFloat(scrim, View.ALPHA, 0f), CLEAR_MS, 0, clear));
+    }
+    parts.add(timed(ObjectAnimator.ofFloat(cube, View.SCALE_X, 1f), CLEAR_MS, 0, clear));
+    parts.add(timed(ObjectAnimator.ofFloat(cube, View.SCALE_Y, 1f), CLEAR_MS, 0, clear));
+    parts.add(timed(ObjectAnimator.ofFloat(title, View.ALPHA, 0f), EXTRAS_OUT_MS, 0, clear));
+    parts.add(timed(ObjectAnimator.ofFloat(foot, View.ALPHA, 0f), EXTRAS_OUT_MS, 0, clear));
+    parts.add(timed(ObjectAnimator.ofFloat(line, View.TRANSLATION_Y, 0f), OUT_MS, 0, LEAVE));
+    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_X, 1f), OUT_MS, 0, LEAVE));
+    parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_Y, 1f), OUT_MS, 0, LEAVE));
     AnimatorSet set = play(parts);
     set.addListener(new AnimatorListenerAdapter() {
       private boolean cancelled;
@@ -195,6 +265,40 @@ public final class DrillRepPause {
     });
   }
 
+  /** The cube's blur and dimming, from where it stands to {@code to}: 0 sharp, 1 deepest. */
+  private ValueAnimator soften(float to) {
+    ValueAnimator animator = ValueAnimator.ofFloat(softness, to);
+    animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+      @Override
+      public void onAnimationUpdate(ValueAnimator animation) {
+        setSoftness((Float) animation.getAnimatedValue());
+      }
+    });
+    return animator;
+  }
+
+  private void setSoftness(float value) {
+    softness = value;
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+      return;
+    }
+    soften(cube, value, CUBE_BLUR_DP * density * value);
+  }
+
+  @RequiresApi(Build.VERSION_CODES.S)
+  private static void soften(View view, float value, float radius) {
+    if (value <= 0f) {
+      view.setRenderEffect(null);
+      return;
+    }
+    float light = 1f - (1f - CUBE_DIM) * value;
+    ColorMatrix dim = new ColorMatrix();
+    dim.setScale(light, light, light, 1f);
+    view.setRenderEffect(RenderEffect.createChainEffect(
+        RenderEffect.createColorFilterEffect(new ColorMatrixColorFilter(dim)),
+        RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.DECAL)));
+  }
+
   private AnimatorSet play(List<Animator> parts) {
     if (running != null) {
       running.cancel();
@@ -206,10 +310,11 @@ public final class DrillRepPause {
     return set;
   }
 
-  private static Animator timed(Animator animator, long durationMs, long delayMs) {
+  private static Animator timed(Animator animator, long durationMs, long delayMs,
+      Interpolator interpolator) {
     animator.setDuration(durationMs);
     animator.setStartDelay(delayMs);
-    animator.setInterpolator(new DecelerateInterpolator());
+    animator.setInterpolator(interpolator);
     return animator;
   }
 
@@ -224,6 +329,11 @@ public final class DrillRepPause {
     line.setTranslationY(0f);
     line.setScaleX(1f);
     line.setScaleY(1f);
+    cube.setScaleX(1f);
+    cube.setScaleY(1f);
+    dot.setScaleX(1f);
+    dot.setScaleY(1f);
+    setSoftness(0f);
     hideExtras();
   }
 

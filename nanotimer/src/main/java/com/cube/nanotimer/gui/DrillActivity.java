@@ -255,10 +255,11 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
     lastRepRow = findViewById(R.id.llDrillLastRep);
     repWash = findViewById(R.id.drillRepWash);
-    repPause = new DrillRepPause(findViewById(R.id.drillPauseScrim),
-        findViewById(R.id.flDrillLastRepStage), findViewById(R.id.tvDrillPauseTitle),
-        findViewById(R.id.llDrillPauseFoot), findViewById(R.id.vDrillPauseDrain));
     repDot = findViewById(R.id.vDrillLastRepDot);
+    repPause = new DrillRepPause(findViewById(R.id.drillPauseScrim),
+        findViewById(R.id.wvDrillCube), findViewById(R.id.flDrillLastRepStage), repDot,
+        findViewById(R.id.tvDrillPauseTitle), findViewById(R.id.llDrillPauseFoot),
+        findViewById(R.id.vDrillPauseDrain), findViewById(R.id.tvDrillPauseHint));
     pauseSkip = findViewById(R.id.drillPauseSkip);
     pauseSkip.setOnClickListener(new View.OnClickListener() {
       @Override
