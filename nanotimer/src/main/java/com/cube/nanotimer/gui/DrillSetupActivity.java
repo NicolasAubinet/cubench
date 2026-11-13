@@ -42,6 +42,7 @@ import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
+import com.cube.nanotimer.smartcube.step.F2LSlotAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.step.F2lPairCases;
 import com.cube.nanotimer.util.DrillCasePreset;
@@ -92,6 +93,10 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final int F2L_ADVANCED = 1;
   private static final int F2L_BOTH = 2;
 
+  /** Which slots a pair is dealt into, in the order the segments are drawn. */
+  private static final int F2L_FRONT_SLOTS = 0;
+  private static final int F2L_BACK_SLOTS = 1;
+
   private static final int[] REP_COUNTS = {10, 20, 30, 50};
 
   /** The last segment of the reps row: as many reps as there are cases, so each comes up once. */
@@ -117,6 +122,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final String KEY_PLANNING_ON = "planning_on";
   private static final String KEY_PLANNING_SECONDS = "planning_seconds";
   private static final String KEY_F2L_CASES = "f2l_cases";
+  private static final String KEY_F2L_SLOTS = "f2l_slots";
 
   private static final String FAMILY_PLL = "pll_";
   private static final String FAMILY_OLL = "oll_";
@@ -126,6 +132,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   private StepPalette palette;
   private SegmentedControl reps;
   private SegmentedControl f2lCases;
+  private SegmentedControl f2lSlots;
   private Switch swRecord;
   private SmartCubeChip smartCubeChip;
   private Switch swPlanning;
@@ -209,6 +216,17 @@ public class DrillSetupActivity extends NanoTimerActivity
           }
         });
     f2lCases.setSelection(Options.INSTANCE.getDrillChoice(KEY_F2L_CASES, F2L_BOTH));
+
+    f2lSlots = new SegmentedControl(this, (LinearLayout) findViewById(R.id.llDrillF2lSlots),
+        new String[] {getString(R.string.drill_f2l_front_slots),
+            getString(R.string.drill_f2l_back_slots), getString(R.string.drill_f2l_both)},
+        new SegmentedControl.Listener() {
+          @Override
+          public void onSegmentPicked(int index) {
+            Options.INSTANCE.setDrillChoice(KEY_F2L_SLOTS, index);
+          }
+        });
+    f2lSlots.setSelection(Options.INSTANCE.getDrillChoice(KEY_F2L_SLOTS, F2L_FRONT_SLOTS));
 
     swRecord.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
       @Override
@@ -391,6 +409,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     }
     reps.setAccent(colour);
     f2lCases.setAccent(colour);
+    f2lSlots.setAccent(colour);
     ((TextView) findViewById(R.id.tvDrillCasesFamily)).setTextColor(colour);
     ((TextView) findViewById(R.id.tvDrillPictureLabel)).setTextColor(colour);
     TextView choose = findViewById(R.id.tvDrillCasesChoose);
@@ -442,6 +461,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     paintPracticeColour(practiceColour(picked));
     crossOptions.setVisibility(cross ? View.VISIBLE : View.GONE);
     findViewById(R.id.llDrillF2lCases).setVisibility(f2l ? View.VISIBLE : View.GONE);
+    findViewById(R.id.llDrillF2lSlots).setVisibility(f2l ? View.VISIBLE : View.GONE);
     findViewById(R.id.llDrillPicture).setVisibility(cross || f2l ? View.VISIBLE : View.GONE);
     if (cross || f2l) {
       showPicture(picked);
@@ -655,6 +675,7 @@ public class DrillSetupActivity extends NanoTimerActivity
           DrillSpec.Type.F2L_PAIR, DrillSpec.Delivery.VIRTUAL, pickedPairs(),
           DrillSpec.Selection.WEIGHTED, REP_COUNTS[reps.getSelection()], 0,
           getString(R.string.drill_practice_f2l)).toJson());
+      intent.putExtra(DrillActivity.EXTRA_PAIR_SLOTS, pickedSlots());
     } else {
       List<String> cases = pickedCases();
       if (cases.isEmpty()) {
@@ -683,6 +704,18 @@ public class DrillSetupActivity extends NanoTimerActivity
         return F2lPairCases.stuckCodes();
       default:
         return F2lPairCases.codes();
+    }
+  }
+
+  /** Null for Both, which deals into any of the four. */
+  private String[] pickedSlots() {
+    switch (f2lSlots.getSelection()) {
+      case F2L_FRONT_SLOTS:
+        return new String[] {F2LSlotAlgorithms.FRONT_RIGHT, F2LSlotAlgorithms.FRONT_LEFT};
+      case F2L_BACK_SLOTS:
+        return new String[] {F2LSlotAlgorithms.BACK_RIGHT, F2LSlotAlgorithms.BACK_LEFT};
+      default:
+        return null;
     }
   }
 

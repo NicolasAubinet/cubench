@@ -1126,6 +1126,8 @@
   <string name="drill_f2l_both">Les deux</string>
   <string name="drill_reps_all">Tous</string>
   <string name="drill_record">Enregistrer les temps</string>
+  <string name="drill_f2l_front_slots">Slots avant</string>
+  <string name="drill_f2l_back_slots">Slots arrière</string>
   <string name="drill_summary_recorded">Enregistré</string>
   <string name="drill_summary_not_recorded">Non enregistré</string>
   <string name="drill_help_title">À propos de ce drill</string>

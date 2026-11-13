@@ -123,6 +123,8 @@ public final class DrillSession {
   private final boolean lookAhead;
   /** Every slot as {corner, edge}, the two dealt ones first. Null for any other drill. */
   private String[][] lookAheadSlots;
+  /** The slots a pair drill deals into, one at random per rep; null for any of the four. */
+  private String[] pairSlots;
   /** When the first of the two pairs came in, and the turn after it, on the cube's clock. */
   private long firstPairInMs = NOT_SHOWN;
   private long pairTwoStartMs = NOT_SHOWN;
@@ -245,6 +247,11 @@ public final class DrillSession {
     return spec;
   }
 
+  /** Limits a pair drill to these slots, one picked at random per rep; none for any of the four. */
+  public void setPairSlots(String... slots) {
+    pairSlots = slots == null || slots.length == 0 ? null : slots.clone();
+  }
+
   /** What tells a back-slot rep turned with a rotation from one without. Unset, none is. */
   public void setRotationReader(RotationReader reader) {
     rotationReader = reader;
@@ -346,7 +353,8 @@ public final class DrillSession {
       String atItsAngle = practiceCase != null && practiceAlgorithm != null
           ? F2LPairScrambles.forAlgorithm(practiceAlgorithm, random) : null;
       int spins = atItsAngle != null ? LastLayerScrambles.leadingYQuarters(practiceAlgorithm)
-          : practiceCase != null ? 0 : random.nextInt(4);
+          : practiceCase != null ? 0 : pairSlots == null ? random.nextInt(4)
+          : quartersTo(pairSlots[random.nextInt(pairSlots.length)]);
       currentScramble = LayerRotation.toFace(LayerRotation.spun(atItsAngle != null ? atItsAngle
           : F2LPairScrambles.forCase(currentCase, random), spins), layerFace);
       pairCorner = LayerRotation.piece("DFR", spins, layerFace);

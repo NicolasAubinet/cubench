@@ -122,6 +122,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    */
   public static final String EXTRA_LAYER_FACE = "drillLayerFace";
 
+  /** The slots an F2L pair drill deals into, as a String[] of slot codes. Optional: all four. */
+  public static final String EXTRA_PAIR_SLOTS = "drillPairSlots";
+
   /** The solve type whose recent solves lean an F2L pair drill's draw. Optional. */
   public static final String EXTRA_SOLVE_TYPE = "drillSolveType";
 
@@ -470,6 +473,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   private void begin(DrillSpec spec, Map<String, Long> weights) {
     session = new DrillSession(spec, Utils.getRandom(), weights, layerFace);
+    session.setPairSlots(getIntent().getStringArrayExtra(EXTRA_PAIR_SLOTS));
     String daily = getIntent().getStringExtra(EXTRA_DAILY);
     if (daily != null) {
       dailyRun = new DailyRun(DailyRun.dealable(DailyRun.parse(daily), session.getCases()));

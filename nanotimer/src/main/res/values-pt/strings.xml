@@ -1128,6 +1128,8 @@
   <string name="drill_f2l_both">Ambos</string>
   <string name="drill_reps_all">Todos</string>
   <string name="drill_record">Salvar os tempos</string>
+  <string name="drill_f2l_front_slots">Frontais</string>
+  <string name="drill_f2l_back_slots">Traseiros</string>
   <string name="drill_summary_recorded">Salvo</string>
   <string name="drill_summary_not_recorded">Não salvo</string>
   <string name="drill_help_title">Sobre este treino</string>

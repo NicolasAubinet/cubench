@@ -169,6 +169,17 @@
            android:padding="3dp"
            android:visibility="gone"/>
 
+        <!-- Only for an F2L drill: the slots a pair is dealt into, front, back or any. -->
+        <LinearLayout
+           android:id="@+id/llDrillF2lSlots"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="8dp"
+           android:background="@drawable/view_segment_group"
+           android:orientation="horizontal"
+           android:padding="3dp"
+           android:visibility="gone"/>
+
         <TextView
            android:id="@+id/tvDrillPracticeHint"
            android:layout_width="match_parent"

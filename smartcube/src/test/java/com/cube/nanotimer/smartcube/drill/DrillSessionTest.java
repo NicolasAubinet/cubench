@@ -1010,6 +1010,30 @@ public class DrillSessionTest {
     assertEquals(code, rep.getCaseCode());
   }
 
+  /** A pair drill limited to some slots deals into each of those and no other; unlimited, all four. */
+  @Test
+  public void aPairDrillDealsOnlyIntoTheSlotsItIsLimitedTo() {
+    assertEquals(new HashSet<>(Arrays.asList("DFR", "DLF")), dealtCorners("fr", "fl"));
+    assertEquals(new HashSet<>(Arrays.asList("DRB", "DBL")), dealtCorners("br", "bl"));
+    assertEquals(new HashSet<>(Arrays.asList("DFR", "DLF", "DRB", "DBL")), dealtCorners());
+  }
+
+  private static Set<String> dealtCorners(String... slots) {
+    String[] names = {"URF", "UFL", "ULB", "UBR", "DFR", "DLF", "DBL", "DRB"};
+    Set<String> corners = new HashSet<>();
+    Random random = new Random(7);
+    for (int i = 0; i < 60; i++) {
+      DrillSession session = new DrillSession(pairSpec("pair_12"), random, null, "U");
+      session.setPairSlots(slots);
+      Hand hand = new Hand(session);
+      assertTrue(hand.next());
+      int[] shown = session.getShownCorners();
+      corners.add(names[shown[shown.length - 1]]);
+      assertNotNull(hand.execute(inverse(session.getCurrentScramble())));
+    }
+    return corners;
+  }
+
   /** On every face a solver may finish on, and in whichever slot the pair was dealt. */
   @Test
   public void everyPairIsFinishedByPuttingItIn() {
