@@ -1293,7 +1293,7 @@
   <string name="analysis_plan_point_worked">Voyez si le travail de la semaine passée a fait la différence</string>
   <string name="analysis_plan_point_practice">Entraînez les cas qui vous coûtent le plus de temps</string>
   <string name="analysis_plan_point_learn">Apprenez les algorithmes qui rapportent le plus vite</string>
-  <string name="analysis_plan_point_f2l">Corrigez les paires F2L qui prennent des mouvements en trop</string>
+  <string name="analysis_plan_point_f2l">Optimisez vos algos F2L, rotations et look-ahead</string>
   <string name="analysis_plan_point_daily">Un drill quotidien sur mesure pour les cas qui flanchent</string>
   <string name="analysis_plan_point_support">Soutenez le développement de Cubench</string>
   <string name="analysis_plan_private">Rien ne quitte votre téléphone sans abonnement ou rapport envoyé.</string>

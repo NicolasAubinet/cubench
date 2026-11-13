@@ -1340,7 +1340,7 @@
   <string name="analysis_plan_point_worked">Find out whether last week\'s work made a difference</string>
   <string name="analysis_plan_point_practice">Practice the cases costing you the most time</string>
   <string name="analysis_plan_point_learn">Learn the algorithms that pay off soonest</string>
-  <string name="analysis_plan_point_f2l">Fix F2L pairs that take extra moves</string>
+  <string name="analysis_plan_point_f2l">Optimize F2L algs, rotations and look-ahead</string>
   <string name="analysis_plan_point_daily">A custom daily drill for the cases that slip</string>
   <string name="analysis_plan_point_support">Support Cubench development</string>
   <string name="analysis_plan_private">Nothing leaves your phone unless you subscribe or send a report.</string>
