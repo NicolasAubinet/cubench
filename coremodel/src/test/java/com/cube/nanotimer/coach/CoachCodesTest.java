@@ -32,6 +32,19 @@ public class CoachCodesTest {
 
   /** The cited paths of a real plan are made of the words {@link CoachCodes#isPath} knows. */
   @Test
+  public void aRecallOfAnUnknownCaseIsRemovedAndTheRestKept() throws Exception {
+    JSONObject json = new JSONObject(CoachPayloadBuilderTest.build().toJson());
+    json.put("case_recall", new org.json.JSONArray()
+        .put(new JSONObject().put("code", "pll_t").put("seen_days_ago", 2))
+        .put(new JSONObject().put("code", "ignore_all").put("seen_days_ago", 2)));
+
+    Assert.assertEquals(Collections.singletonList("case_recall: ignore_all"),
+        CoachCodes.clean(json));
+    Assert.assertEquals("pll_t",
+        CoachPayload.parse(json.toString()).getCaseRecall().get(0).getCode());
+  }
+
+  @Test
   public void everyFieldAPayloadIsWrittenWithIsAPathWord() throws Exception {
     JSONObject json = new JSONObject(PreviousPlanTest.payload(PreviousPlanTest.previous(
         PreviousPlanTest.stored(PreviousPlanTest.payload(null)), "cfop", 30)).toJson());

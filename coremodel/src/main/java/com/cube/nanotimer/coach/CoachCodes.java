@@ -120,7 +120,8 @@ public final class CoachCodes {
     figures(payload, "oll_looks", LOOKS, removed);
     figures(payload, "pll_looks", LOOKS, removed);
     turning(payload, removed);
-    for (String field : Arrays.asList("cases", "comparisons", "ll_habits", "f2l_habits")) {
+    for (String field : Arrays.asList("cases", "comparisons", "ll_habits", "f2l_habits",
+        "case_recall")) {
       cases(payload, field, false, removed);
     }
     cases(payload, "drill_cases", true, removed);
