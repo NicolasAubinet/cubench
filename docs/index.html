@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cubench: the free smart cube app for Android</title>
+<meta name="description" content="Connect a GAN, MoYu or QiYi smart cube. Cubench reconstructs every solve, times every OLL, PLL and F2L case, and drills them on your real cube. Free, no account, no ads, open source.">
+<link rel="canonical" href="https://cubench.app/">
+<meta name="theme-color" content="#121518">
+<link rel="icon" href="img/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="img/icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Cubench">
+<meta property="og:title" content="Cubench: the free smart cube app for Android">
+<meta property="og:description" content="Full reconstruction, case stats and drills on your real cube. Free, no account, no ads, open source.">
+<meta property="og:url" content="https://cubench.app/">
+<meta property="og:image" content="https://cubench.app/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Cubench",
+  "alternateName": "Nano Timer",
+  "operatingSystem": "Android",
+  "applicationCategory": "GameApplication",
+  "description": "Speedcubing timer and smart cube app: full reconstruction, case stats and drills on GAN, MoYu and QiYi smart cubes.",
+  "url": "https://cubench.app/",
+  "downloadUrl": "https://play.google.com/store/apps/details?id=com.cube.nanotimer",
+  "image": "https://cubench.app/img/icon-192.png",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "author": { "@type": "Person", "name": "Nicolas Aubinet" }
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav"><div class="wrap">
+  <a class="brand" href="./" aria-label="Cubench home"><img src="img/icon-192.png" alt="" width="36" height="36"><span><b>CUBENCH</b><small>SPEEDCUBE TIMER</small></span></a>
+  <nav class="links" aria-label="Sections"><a href="./#features">Features</a><a href="./#timer">Timer</a><a href="./#coach">Coach</a><a href="./#cubes">Cubes</a></nav>
+  <a class="btn btn-accent" href="https://play.google.com/store/apps/details?id=com.cube.nanotimer&amp;referrer=utm_source%3Dwebsite%26utm_campaign%3Dnav">Get it free</a>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <div>
+    <p class="eyebrow">Smart cube app for Android</p>
+    <h1>See every turn of <em>every solve.</em></h1>
+    <p class="lede">The free smart cube app for Android: full reconstruction, case stats and drills on your real cube. No account, no ads, open source.</p>
+    <div class="cta">
+      <a class="play" href="https://play.google.com/store/apps/details?id=com.cube.nanotimer&amp;referrer=utm_source%3Dwebsite%26utm_campaign%3Dhero"><img src="img/google-play-badge.png" alt="Get it on Google Play" width="191" height="74"></a>
+      <a class="btn btn-ghost" href="#features">See what it does</a>
+    </div>
+    <ul class="facts"><li>Free, all of it</li><li>Works offline</li><li>Your data stays on your phone</li></ul>
+  </div>
+  <figure class="stage" id="stage" style="margin:0" aria-label="A smart cube solve replayed turn by turn">
+    <figcaption class="tag" id="stage-tag">A solve read by Cubench · <b>CFOP</b></figcaption>
+    <div class="cube" id="cube"></div>
+    <div class="readout" aria-hidden="true">
+      <div class="time" id="clock">0.00</div>
+      <div class="step mono" id="steptext">&nbsp;</div>
+      <div class="splitbar" id="bar"></div>
+      <div class="splitlabels" id="labels"></div>
+    </div>
+  </figure>
+</div></section>
+
+<div class="strip"><div class="wrap">
+  <div class="brands"><span>Works with</span><b>GAN</b><b>MoYu</b><b>QiYi</b></div>
+  <dl class="stats">
+    <div><dt>4.7 ★</dt><dd>2,100+ reviews</dd></div>
+    <div><dt>12 years</dt><dd>of cubers timing</dd></div>
+    <div><dt>GPL v3</dt><dd>open source</dd></div>
+  </dl>
+</div></div>
+
+<section class="feat" id="features"><div class="wrap row">
+  <div class="text reveal">
+    <h2 class="bar" style="--c:var(--cross)">Every solve reconstructed</h2>
+    <p class="sub">Find out where the time went, step by step.</p>
+    <p>Solve on your smart cube and Cubench writes the whole solve down: every step timed, every case named, every algorithm you used.</p>
+    <ul class="points" style="--c:var(--cross)">
+      <li><span><b>CFOP, Roux, LBL and blind.</b> Blind solves come back with buffers and targets.</span></li>
+      <li><span><b>Recognition and execution timed apart</b>, for every step.</span></li>
+      <li><span><b>Replay any solve</b> on a 3D cube, at your own speed.</span></li>
+    </ul>
+  </div>
+  <div class="phones three reveal">
+    <div class="phone"><img src="shots/timer_solved.webp" alt="The timer right after a 13.81 smart cube solve: cross, F2L, OLL and PLL split bars, 60 moves at 4.3 turns per second" width="540" height="1200" loading="lazy"></div>
+    <div class="phone"><img src="shots/solve_breakdown.webp" alt="A smart cube solve read step by step: cross, four F2L pairs, OLL 22 and a T perm, each with its algorithm and times" width="540" height="1200" loading="lazy"></div>
+    <div class="phone"><img src="shots/replay.webp" alt="The same solve replayed on a 3D cube, paused during OLL" width="540" height="1200" loading="lazy"></div>
+  </div>
+</div></section>
+
+<section class="feat"><div class="wrap row flip">
+  <div class="text reveal">
+    <h2 class="bar" style="--c:var(--oll)">Your cases, measured</h2>
+    <p class="sub">Every OLL, PLL and F2L case, timed on your real solves.</p>
+    <p>No self-rating. Cubench sees which cases you solve in one look and which still cost you, and sorts them for you.</p>
+    <ul class="points" style="--c:var(--oll)">
+      <li><span><b>Known, needs review, to learn</b>: read from your solves.</span></li>
+      <li><span><b>Mean, best and spread</b> per case, with recognition and execution apart.</span></li>
+      <li><span><b>Which algorithm you used</b>, and whether it's the one you meant.</span></li>
+    </ul>
+  </div>
+  <div class="phones reveal">
+    <div class="phone tilt-l"><img src="shots/analysis_solve.webp" alt="Analysis: mean of 85 solves split into cross, F2L, OLL and PLL" width="540" height="1200" loading="lazy"></div>
+    <div class="phone tilt-r"><img src="shots/analysis_cases.webp" alt="Cases: 37 of 57 OLL cases known, with mean, best and spread per case" width="540" height="1200" loading="lazy"></div>
+  </div>
+</div></section>
+
+<section class="feat"><div class="wrap row">
+  <div class="text reveal">
+    <h2 class="bar" style="--c:var(--f2l)">Drills on your real cube</h2>
+    <p class="sub">Practice each case on its own.</p>
+    <p>The app shows a case, you solve it on your cube, and it checks what you did.</p>
+    <ul class="points" style="--c:var(--f2l)">
+      <li><span><b>OLL, PLL and F2L drills</b> that catch the wrong angle, a rotation, or another algorithm.</span></li>
+      <li><span><b>Every rep timed</b>, recognition and execution apart.</span></li>
+      <li><span><b>Cross drill</b>: find the shortest cross in a real scramble, then compare.</span></li>
+    </ul>
+  </div>
+  <div class="phones reveal">
+    <div class="phone tilt-l"><img src="shots/drill_rep.webp" alt="A PLL drill in progress: the case on the cube, rep 8 of 20, recognition and execution times" width="540" height="1200" loading="lazy"></div>
+    <div class="phone tilt-r"><img src="shots/cross_drill.webp" alt="Cross drill: your 8-move cross against the shortest, 7 moves" width="540" height="1200" loading="lazy"></div>
+  </div>
+</div></section>
+
+<section class="feat" id="timer"><div class="wrap">
+  <div class="row">
+    <div class="text reveal">
+      <h2 class="bar" style="--c:var(--accent)">No smart cube? Still a great timer</h2>
+      <p class="sub">Twelve years of cubers have timed with it.</p>
+      <p>Formerly Nano Timer. Every WCA puzzle, random-state scrambles, and stats that stay out of your way until you want them.</p>
+    </div>
+    <div class="phones reveal">
+      <div class="phone sm tilt-l"><img src="shots/timer_plain.webp" alt="Timer after a 9.96 solve, with the session's averages" width="540" height="1205" loading="lazy"></div>
+      <div class="phone sm tilt-r"><img src="shots/history.webp" alt="Solve history with Ao5, Ao12 and personal best" width="540" height="1205" loading="lazy"></div>
+    </div>
+  </div>
+  <div class="grid3 reveal">
+    <div class="tile"><div class="ic" aria-hidden="true">17</div><h3>Every WCA puzzle</h3><p>2x2 to 7x7, Megaminx, Pyraminx, Skewb, Square-1, Clock and blind, plus FTO.</p></div>
+    <div class="tile"><div class="ic" aria-hidden="true">◆</div><h3>Random-state scrambles</h3><p>Fair scrambles, generated in the background.</p></div>
+    <div class="tile"><div class="ic" aria-hidden="true">≡</div><h3>Steps, stats, graphs</h3><p>Time each step, Ao5 to Ao1000, Mo3 for blind, progress graphs.</p></div>
+  </div>
+  <div class="coach reveal" id="coach">
+    <span class="badge">FREE BETA</span>
+    <div><h3>Want a plan? Try the coach.</h3><p>Optional. Once a week it reads your case stats and writes what to practice next, with drills for each focus. Nothing leaves your phone unless you join.</p></div>
+    <a class="btn btn-ghost" href="privacy.html#the-coach-optional-paid-free-while-in-beta">What it sends</a>
+  </div>
+</div></section>
+
+<section class="feat" id="cubes"><div class="wrap reveal">
+  <div class="text"><h2 class="bar" style="--c:var(--accent)">Supported cubes</h2><p class="sub">Bring the cube you have.</p></div>
+  <div class="cubes">
+    <div class="tile"><h3>GAN</h3><ul class="chips"><li>GAN 356 i3</li><li>GAN 356 i Carry</li><li>GAN 356 i Carry S</li><li>GAN 356 i Carry 2</li><li>GAN 12 ui</li><li>GAN 12 ui Maglev</li><li>GAN 14 ui FreePlay</li><li>GAN Mini ui FreePlay</li><li>Monster Go 3Ai</li></ul></div>
+    <div class="tile"><h3>MoYu</h3><ul class="chips"><li>WeiLong V10 AI</li><li>WeiLong V11 AI</li><li>MoYu AI 2023</li></ul></div>
+    <div class="tile"><h3>QiYi</h3><ul class="chips"><li>QiYi Smart Cube</li><li>Tornado V4 Smart</li></ul></div>
+  </div>
+  <p class="note">Your cube isn't listed? Write to <a href="mailto:nanotimercube@gmail.com">nanotimercube@gmail.com</a>.</p>
+</div></section>
+</main>
+
+<section class="final"><div class="wrap">
+  <img class="icon" src="img/icon-192.png" alt="" width="96" height="96" loading="lazy">
+  <h2>Pick up your cube.</h2>
+  <p>Free on Google Play. No account, no ads.</p>
+  <a class="play" href="https://play.google.com/store/apps/details?id=com.cube.nanotimer&amp;referrer=utm_source%3Dwebsite%26utm_campaign%3Dfooter"><img src="img/google-play-badge.png" alt="Get it on Google Play" width="191" height="74" loading="lazy"></a>
+</div></section>
+
+<footer><div class="wrap">
+  <span>Cubench, formerly Nano Timer. Made by Nicolas Aubinet.</span>
+  <a href="press.html">Press kit</a><a href="privacy.html">Privacy policy</a><a href="https://github.com/NicolasAubinet/cubench">Source code</a>
+</div></footer>
+
+<script src="js/site.js" defer></script>
+<script src="js/palette.js" defer></script>
+<script type="module" src="js/hero.js"></script>
+</body>
+</html>
