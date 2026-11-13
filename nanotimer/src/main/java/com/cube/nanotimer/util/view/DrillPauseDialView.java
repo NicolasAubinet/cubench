@@ -19,15 +19,19 @@ import java.util.Locale;
 
 /**
  * The dial the finished rep sits in during the pause between drill cases. The inner ring is the
- * rep's split going round from the top, each part its share of the circle in the colours of the rep
- * line's bar; the thin outer ring is the pause itself, running out clockwise. Under the time, which
- * is the rep line's own and is placed by {@link DrillRepPause}, each part's name and figure.
+ * rep's split, each part its share of the circle in the bar's colours. It runs clockwise from the
+ * bottom, so the looking climbs the left side and the turning comes down the right, which is how
+ * the rep line's bar reads, left to right. The thin outer ring is the pause itself, running out
+ * clockwise from the top like a clock. Under the time, which is the rep line's own and is placed by
+ * {@link DrillRepPause}, each part's name and figure.
  *
  * <p>Drawing only: the pause decides where the dial stands and animates {@link #setSweep},
  * {@link #setRemaining} and {@link #setFiguresAlpha}.
  */
 public class DrillPauseDialView extends View {
 
+  /** Where the split starts, in the canvas's degrees: the bottom. */
+  private static final float SPLIT_START = 90;
   private static final float RING_DP = 7;
   private static final float DRAIN_DP = 2.5f;
   private static final float DRAIN_GAP_DP = 13;
@@ -182,7 +186,7 @@ public class DrillPauseDialView extends View {
     float reach = 360f * sweep;
     if (total == 0) {
       ring.setColor(track);
-      canvas.drawArc(oval, -90, reach, false, ring);
+      canvas.drawArc(oval, SPLIT_START, reach, false, ring);
       return;
     }
     // A round cap reaches past the arc's end by half the stroke, so the gap is widened to match
@@ -201,7 +205,7 @@ public class DrillPauseDialView extends View {
         continue;
       }
       ring.setColor(colors[i]);
-      canvas.drawArc(oval, -90 + from, to - from, false, ring);
+      canvas.drawArc(oval, SPLIT_START + from, to - from, false, ring);
     }
   }
 
