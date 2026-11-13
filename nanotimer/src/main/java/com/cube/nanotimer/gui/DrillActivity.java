@@ -157,6 +157,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The solve type the daily drill is kept for, and its reps dealt before this run. */
   private int dailySolveTypeId = -1;
   private int dailyBefore;
+  /** The day's progress as this run found it, for the reps a prune leaves to be read again. */
+  private String dailyAtStart;
   /** What this drill is called, for the summary once the bar that named it has gone. */
   private String label;
   /** The face the user finishes on, which is the one the drawn cube has to stand on. */
@@ -473,9 +475,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       dailyRun = new DailyRun(DailyRun.dealable(DailyRun.parse(daily), session.getCases()));
       SolveType type = (SolveType) getIntent().getSerializableExtra(EXTRA_SOLVE_TYPE);
       dailySolveTypeId = type == null ? -1 : type.getId();
-      if (type != null) {
-        dailyRun.restore(CoachDaily.progress(type)); // a day left part way picks up there
-      }
+      dailyAtStart = type == null ? null : CoachDaily.progress(type);
+      dailyRun.restore(dailyAtStart); // a day left part way picks up there
       dailyBefore = dailyRun.getRepsDealt();
       session.setDealer(dailyRun);
     }
@@ -1789,6 +1790,17 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     recorder.setCaseRepDeleted(position, deleted);
     showFigures(counted);
     if (dailyRun != null) {
+      // The pruned rep no longer counts towards Known, so it no longer counts towards the day.
+      DailyRun again = new DailyRun(dailyRun.getBlocks());
+      again.restore(dailyAtStart);
+      for (DrillRep rep : counted) {
+        again.record(rep);
+      }
+      dailyRun = again;
+      session.setDealer(again);
+      if (dailySolveTypeId >= 0) {
+        Options.INSTANCE.setCoachDailyProgress(dailySolveTypeId, again.progressJson());
+      }
       setSummaryNote(dailySummary());
     }
   }

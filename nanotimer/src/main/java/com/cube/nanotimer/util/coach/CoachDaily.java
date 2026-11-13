@@ -59,10 +59,12 @@ public final class CoachDaily {
         Options.INSTANCE.getCoachDailyAt(id), System.currentTimeMillis(), TimeZone.getDefault());
   }
 
-  /** How far today's kept drill has been run, so a drill left part way picks up there; or null. */
+  /**
+   * How far the kept drill has been run, so a drill left part way picks up there; or null. Kept with
+   * its answer and cleared by the next one, so a drill begun before midnight resumes after it.
+   */
   public static String progress(SolveType solveType) {
-    return answeredToday(solveType) ? Options.INSTANCE.getCoachDailyProgress(solveType.getId())
-        : null;
+    return Options.INSTANCE.getCoachDailyProgress(solveType.getId());
   }
 
   /** The cases of today's kept drill, which the practice sets leave to it. */
@@ -87,7 +89,6 @@ public final class CoachDaily {
       return;
     }
     final Handler main = new Handler(Looper.getMainLooper());
-    final long askedAt = System.currentTimeMillis();
     final List<String> learned = new ArrayList<String>(Options.INSTANCE.getLearnedCases());
     App.INSTANCE.getService().getDailyPayload(solveType, method,
         new DataCallback<CoachPayload>() {
@@ -99,7 +100,9 @@ public final class CoachDaily {
                 String reply = client.requestDaily(CoachClient.requestBody(
                     payload.withLanguage(CoachAsk.planLanguage()), learned, focus));
                 if (isAnswer(reply)) {
-                  Options.INSTANCE.setCoachDaily(solveType.getId(), reply, askedAt);
+                  // Dated on arrival: asked at 23:59 and answered at 00:01, it is the new day's.
+                  Options.INSTANCE.setCoachDaily(solveType.getId(), reply,
+                      System.currentTimeMillis());
                 }
                 ASKING.remove(solveType.getId());
                 if (!isAnswer(reply)) {
