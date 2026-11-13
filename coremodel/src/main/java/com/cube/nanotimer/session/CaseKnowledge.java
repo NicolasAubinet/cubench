@@ -45,7 +45,8 @@ import java.util.List;
  * rep was recognised, but out of a pool the solver picked and with no solve around it. That is
  * weaker than a solve, so it takes {@link #RUN_TO_KNOW} clean reps in a row to call a case known, or
  * {@link #RUN_TO_KNOW_LARGE_POOL} from a pool of at least {@link #LARGE_POOL} cases, where picking
- * the case out of many is most of the work. A rep with the algorithm looked up or on screen starts
+ * the case out of many is most of the work, or from the coach's daily drill, which deals a case
+ * needing review until it holds (owner, 2026-11-13). A rep with the algorithm looked up or on screen starts
  * the run again and says nothing else: the panel is also opened to compare algorithms, so only a
  * solve moves a case down. A restarted rep breaks the run the same way; a skipped one never reaches
  * the rule at all.
@@ -111,7 +112,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 8;
+  public static final int RULE_VERSION = 9;
 
   /** Clean drill reps in a row that make a case known. */
   public static final int RUN_TO_KNOW = 5;
@@ -136,6 +137,12 @@ public class CaseKnowledge {
 
     /** A clean drill rep, dealt out of at least {@link #LARGE_POOL} cases. */
     CLEAN_REP_LARGE_POOL,
+
+    /**
+     * A clean rep of the coach's daily drill, which deals a case needing review until it is clean
+     * {@link #RUN_TO_KNOW_LARGE_POOL} times running: that run brings it back (owner, 2026-11-13).
+     */
+    CLEAN_REP_DAILY,
 
     /** A drill rep turned with the algorithm looked up or on screen, or restarted. */
     LOOKED_UP,
@@ -278,7 +285,8 @@ public class CaseKnowledge {
         }
       } else {
         run++;
-        largeRun = occurrence == Evidence.CLEAN_REP_LARGE_POOL ? largeRun + 1 : 0;
+        largeRun = occurrence == Evidence.CLEAN_REP_LARGE_POOL
+            || occurrence == Evidence.CLEAN_REP_DAILY ? largeRun + 1 : 0;
         if (!counted && (run >= RUN_TO_KNOW || largeRun >= RUN_TO_KNOW_LARGE_POOL)) {
           said.add(0, Said.DRILLED);
           at.add(0, i);

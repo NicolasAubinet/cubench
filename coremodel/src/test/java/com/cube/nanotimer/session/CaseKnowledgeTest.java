@@ -170,6 +170,15 @@ public class CaseKnowledgeTest {
     Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("XH")));
   }
 
+
+  /** The daily drill brings a case needing review back with 3 clean reps running (owner). */
+  @Test
+  public void testThreeCleanDailyRepsInARowBringAReviewCaseBack() {
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UHHDD")));
+    Assert.assertEquals(Status.KNOWN, CaseKnowledge.read(occurrences("UHHDDD")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UHHDDLD")));
+    Assert.assertEquals(Status.NEEDS_REVIEW, CaseKnowledge.read(occurrences("UHHDcD")));
+  }
   @Test
   public void testFirstLearnedPointsAtWhatFirstMadeTheCaseLearned() {
     Assert.assertEquals(-1, CaseKnowledge.firstLearned(occurrences("HHcc")));
@@ -185,7 +194,8 @@ public class CaseKnowledgeTest {
 
   /**
    * Oldest first: U and H are solves in one algorithm and in more, c and C clean drill reps from a
-   * small and a large pool, L a rep with the algorithm on screen or restarted, X a learning drill's
+   * small and a large pool, D one from the daily drill, L a rep with the algorithm on screen or
+   * restarted, X a learning drill's
    * clear.
    */
   private static List<Evidence> occurrences(String reading) {
@@ -197,6 +207,7 @@ public class CaseKnowledgeTest {
         case 'c': occurrences.add(Evidence.CLEAN_REP); break;
         case 'C': occurrences.add(Evidence.CLEAN_REP_LARGE_POOL); break;
         case 'X': occurrences.add(Evidence.CLEARED); break;
+        case 'D': occurrences.add(Evidence.CLEAN_REP_DAILY); break;
         default: occurrences.add(Evidence.LOOKED_UP); break;
       }
     }

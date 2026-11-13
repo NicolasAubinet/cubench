@@ -92,10 +92,10 @@ public final class CaseKnowledgeStore {
    */
   public static void rebuild(SQLiteDatabase db) {
     Map<String, List<Occurrence>> history = new LinkedHashMap<String, List<Occurrence>>();
-    Map<Long, Boolean> largePools = new HashMap<Long, Boolean>();
+    Map<Long, CaseKnowledge.Evidence> cleanKinds = new HashMap<Long, CaseKnowledge.Evidence>();
     for (String code : casesWithEvidence(db)) {
       if (namesACase(code)) {
-        history.put(code, occurrences(db, code, largePools));
+        history.put(code, occurrences(db, code, cleanKinds));
       }
     }
     db.beginTransaction();
@@ -123,13 +123,13 @@ public final class CaseKnowledgeStore {
    * and a read taken before the other's insert must not be written after its update.
    */
   public static void update(SQLiteDatabase db, Collection<String> codes) {
-    Map<Long, Boolean> largePools = new HashMap<Long, Boolean>();
+    Map<Long, CaseKnowledge.Evidence> cleanKinds = new HashMap<Long, CaseKnowledge.Evidence>();
     db.beginTransaction();
     try {
       for (String code : codes) {
         if (namesACase(code)) {
           write(db, MethodStatistics.familyOf(code), MethodStatistics.caseOf(code),
-              occurrences(db, code, largePools));
+              occurrences(db, code, cleanKinds));
         }
       }
       db.setTransactionSuccessful();
@@ -143,13 +143,13 @@ public final class CaseKnowledgeStore {
       Collection<String> codes) {
     Map<String, List<CaseRecall.Occurrence>> history =
         new HashMap<String, List<CaseRecall.Occurrence>>();
-    Map<Long, Boolean> largePools = new HashMap<Long, Boolean>();
+    Map<Long, CaseKnowledge.Evidence> cleanKinds = new HashMap<Long, CaseKnowledge.Evidence>();
     for (String code : codes) {
       if (!namesACase(code)) {
         continue;
       }
       List<CaseRecall.Occurrence> dated = new ArrayList<CaseRecall.Occurrence>();
-      for (Occurrence occurrence : occurrences(db, code, largePools)) {
+      for (Occurrence occurrence : occurrences(db, code, cleanKinds)) {
         dated.add(new CaseRecall.Occurrence(occurrence.says, occurrence.atMs));
       }
       history.put(code, dated);
@@ -267,10 +267,10 @@ public final class CaseKnowledgeStore {
    * how fluently it runs. A rep turned with the algorithm on screen counts however it ended, since
    * it starts the run again.
    *
-   * @param largePools whether each drill dealt from a large pool, filled as drills are met
+   * @param cleanKinds what a clean rep of each drill says, filled as drills are met
    */
   private static List<Occurrence> occurrences(SQLiteDatabase db, String code,
-      Map<Long, Boolean> largePools) {
+      Map<Long, CaseKnowledge.Evidence> cleanKinds) {
     String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
         + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -337,8 +337,7 @@ public final class CaseKnowledgeStore {
         } else if (!unaided) {
           says = CaseKnowledge.Evidence.LOOKED_UP;
         } else {
-          says = isLargePool(db, cursor.getLong(4), largePools)
-              ? CaseKnowledge.Evidence.CLEAN_REP_LARGE_POOL : CaseKnowledge.Evidence.CLEAN_REP;
+          says = cleanKindOf(db, cursor.getLong(4), cleanKinds);
         }
         occurrences.add(0, new Occurrence(says, cursor.getLong(2)));
       }
@@ -347,34 +346,42 @@ public final class CaseKnowledgeStore {
     return occurrences;
   }
 
-  /** Whether a drill dealt from enough cases at once to count as a large pool. */
-  private static boolean isLargePool(SQLiteDatabase db, long drillId,
-      Map<Long, Boolean> largePools) {
-    Boolean large = largePools.get(drillId);
-    if (large != null) {
-      return large;
+  /** What a clean rep of this drill says: from the daily drill, a large pool, or a small one. */
+  private static CaseKnowledge.Evidence cleanKindOf(SQLiteDatabase db, long drillId,
+      Map<Long, CaseKnowledge.Evidence> cleanKinds) {
+    CaseKnowledge.Evidence kind = cleanKinds.get(drillId);
+    if (kind != null) {
+      return kind;
     }
-    large = Boolean.FALSE;
+    kind = CaseKnowledge.Evidence.CLEAN_REP;
     Cursor cursor = db.rawQuery("SELECT " + DB.COL_DRILL_SPEC + " FROM " + DB.TABLE_DRILL
         + " WHERE " + DB.COL_ID + " = ?", new String[] { String.valueOf(drillId) });
     if (cursor != null) {
       if (cursor.moveToFirst() && !cursor.isNull(0)) {
-        large = poolOf(cursor.getString(0)) >= CaseKnowledge.LARGE_POOL;
+        kind = cleanKindOf(cursor.getString(0));
       }
       cursor.close();
     }
-    largePools.put(drillId, large);
-    return large;
+    cleanKinds.put(drillId, kind);
+    return kind;
   }
 
-  /** The cases a drill deals from at once: its working set where it has one. 0 if unreadable. */
-  private static int poolOf(String spec) {
+  private static CaseKnowledge.Evidence cleanKindOf(String spec) {
     DrillSpec drill;
     try {
       drill = DrillSpec.fromJson(spec);
     } catch (IllegalArgumentException e) {
-      return 0;
+      return CaseKnowledge.Evidence.CLEAN_REP;
     }
+    if (drill.isDaily()) {
+      return CaseKnowledge.Evidence.CLEAN_REP_DAILY;
+    }
+    return poolOf(drill) >= CaseKnowledge.LARGE_POOL
+        ? CaseKnowledge.Evidence.CLEAN_REP_LARGE_POOL : CaseKnowledge.Evidence.CLEAN_REP;
+  }
+
+  /** The cases a drill deals from at once: its working set where it has one. */
+  private static int poolOf(DrillSpec drill) {
     int pool = drill.getCases().size();
     return drill.getWorkingSet() > 0 ? Math.min(pool, drill.getWorkingSet()) : pool;
   }

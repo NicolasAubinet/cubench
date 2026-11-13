@@ -45,6 +45,9 @@ public final class DrillSpec {
   /** How the id of every drill the coach prescribes begins. */
   public static final String COACH_ID_PREFIX = "coach-";
 
+  /** The id of the coach's daily drill, and how each of its blocks' ids begins. */
+  public static final String DAILY_ID = COACH_ID_PREFIX + "daily";
+
   /**
    * The version a drill with no per-case targets and no retiring is written at. A drill that needs
    * nothing newer says so, so an app that only reads 2 still runs every drill that did not need 3.
@@ -487,6 +490,11 @@ public final class DrillSpec {
   /** Whether the coach prescribed this drill, which every id it sends starts by saying. */
   public boolean isFromCoach() {
     return id != null && id.startsWith(COACH_ID_PREFIX);
+  }
+
+  /** The coach's daily drill, whose clean reps bring a case needing review back sooner. */
+  public boolean isDaily() {
+    return id != null && (id.equals(DAILY_ID) || id.startsWith(DAILY_ID + "-"));
   }
 
   public String getPuzzle() {
