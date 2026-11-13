@@ -1795,7 +1795,7 @@
   <!-- The coach's daily drill, in the Plan tab's Today card and on the drill screen. -->
   <string name="coach_daily_title">Treino do dia</string>
   <string name="coach_daily_reps">%1$d repetições · cerca de %2$d min</string>
-  <string name="coach_daily_start">Começar o treino do dia</string>
+  <string name="coach_daily_start">Começar</string>
   <string name="coach_daily_none">Nada pendente hoje: seus OLL e PLL estão firmes.</string>
   <string name="coach_daily_slip">Deslize</string>
   <string name="coach_daily_pause">Lento para reconhecer</string>
@@ -1807,8 +1807,7 @@
   <string name="coach_daily_days_ago">há %d d</string>
   <string name="coach_daily_days">%d d</string>
   <string name="coach_daily_progress">%1$s · %2$d de %3$d</string>
-  <string name="coach_daily_now">Agora %s</string>
+  <string name="coach_daily_next">A seguir: %s</string>
   <string name="coach_daily_summary">%1$d casos, %2$d de %3$d repetições limpas.</string>
-  <string name="coach_daily_summary_back">De volta a Conhecido: %s.</string>
   <string name="coach_daily_summary_slipped">Com deslize, voltam amanhã: %s.</string>
 </resources>

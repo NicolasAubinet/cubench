@@ -97,7 +97,7 @@
        android:visibility="gone"/>
   </FrameLayout>
 
-  <!-- Today's drill from the coach: its cases, each with why it is here, and the button. -->
+  <!-- Today's drill from the coach: its length and the button, its cases kept for the drill. -->
   <LinearLayout
      android:id="@+id/llCoachTodayDaily"
      android:layout_width="match_parent"
@@ -126,26 +126,41 @@
          android:padding="8dp"
          android:src="@drawable/ic_coach_point_daily"/>
 
-      <TextView
-         android:layout_width="wrap_content"
+      <LinearLayout
+         android:layout_width="0dp"
          android:layout_height="wrap_content"
          android:layout_marginLeft="10dp"
          android:layout_marginStart="10dp"
-         android:fontFamily="@font/roboto"
-         android:text="@string/coach_daily_title"
-         android:textColor="@color/white"
-         android:textSize="17sp"
-         android:textStyle="bold"/>
+         android:layout_weight="1"
+         android:orientation="vertical">
 
-      <TextView
-         android:id="@+id/tvCoachDailyReps"
-         android:layout_width="0dp"
-         android:layout_height="wrap_content"
+        <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:fontFamily="@font/roboto"
+           android:text="@string/coach_daily_title"
+           android:textColor="@color/white"
+           android:textSize="17sp"
+           android:textStyle="bold"/>
+
+        <TextView
+           android:id="@+id/tvCoachDailyReps"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:textColor="@color/secondary_text"
+           android:textSize="12.5sp"/>
+      </LinearLayout>
+
+      <androidx.appcompat.widget.AppCompatButton
+         android:id="@+id/buCoachDailyStart"
+         style="@style/AccentGhostButton"
+         android:layout_width="wrap_content"
+         android:layout_height="40dp"
          android:layout_marginLeft="8dp"
          android:layout_marginStart="8dp"
-         android:layout_weight="1"
-         android:textColor="@color/secondary_text"
-         android:textSize="12.5sp"/>
+         android:paddingLeft="20dp"
+         android:paddingRight="20dp"
+         android:text="@string/coach_daily_start"/>
     </LinearLayout>
 
     <TextView
@@ -158,18 +173,6 @@
        android:textColor="@color/secondary_text"
        android:textSize="13sp"
        android:visibility="gone"/>
-
-    <!-- One labelled row of coach_daily_case per block, in solve order. -->
-    <LinearLayout
-       android:id="@+id/llCoachDailyBlocks"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:orientation="vertical"/>
-
-    <androidx.appcompat.widget.AppCompatButton
-       android:id="@+id/buCoachDailyStart"
-       android:layout_marginTop="@dimen/space_m"
-       style="@style/AccentGhostButton"/>
   </LinearLayout>
 
   <!-- Since the plan: one row per focus, the figure it leads with then and now. -->

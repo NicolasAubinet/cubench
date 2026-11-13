@@ -1793,7 +1793,7 @@
   <!-- The coach's daily drill, in the Plan tab's Today card and on the drill screen. -->
   <string name="coach_daily_title">Drill du jour</string>
   <string name="coach_daily_reps">%1$d répétitions · environ %2$d min</string>
-  <string name="coach_daily_start">Lancer le drill du jour</string>
+  <string name="coach_daily_start">Lancer</string>
   <string name="coach_daily_none">Rien à revoir aujourd\'hui : vos OLL et PLL sont solides.</string>
   <string name="coach_daily_slip">Raté</string>
   <string name="coach_daily_pause">Long à repérer</string>
@@ -1805,8 +1805,7 @@
   <string name="coach_daily_days_ago">il y a %d j</string>
   <string name="coach_daily_days">%d j</string>
   <string name="coach_daily_progress">%1$s · %2$d sur %3$d</string>
-  <string name="coach_daily_now">Au tour des %s</string>
+  <string name="coach_daily_next">Ensuite : %s</string>
   <string name="coach_daily_summary">%1$d cas, %2$d répétitions propres sur %3$d.</string>
-  <string name="coach_daily_summary_back">De retour en Connu : %s.</string>
   <string name="coach_daily_summary_slipped">Ratés, à revoir demain : %s.</string>
 </resources>

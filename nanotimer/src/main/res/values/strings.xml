@@ -1845,7 +1845,7 @@
   <!-- The coach's daily drill, in the Plan tab's Today card and on the drill screen. -->
   <string name="coach_daily_title">Today\'s drill</string>
   <string name="coach_daily_reps">%1$d reps · about %2$d min</string>
-  <string name="coach_daily_start">Start today\'s drill</string>
+  <string name="coach_daily_start">Start</string>
   <string name="coach_daily_none">Nothing due today: your OLLs and PLLs are holding.</string>
   <string name="coach_daily_slip">Slipped</string>
   <string name="coach_daily_pause">Slow to spot</string>
@@ -1857,8 +1857,7 @@
   <string name="coach_daily_days_ago">%d d ago</string>
   <string name="coach_daily_days">%d d</string>
   <string name="coach_daily_progress">%1$s · %2$d of %3$d</string>
-  <string name="coach_daily_now">Now %s</string>
+  <string name="coach_daily_next">Next: %s</string>
   <string name="coach_daily_summary">%1$d cases, %2$d of %3$d reps clean.</string>
-  <string name="coach_daily_summary_back">Back to Known: %s.</string>
   <string name="coach_daily_summary_slipped">Slipped, back tomorrow: %s.</string>
 </resources>

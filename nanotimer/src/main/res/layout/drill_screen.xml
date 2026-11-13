@@ -65,10 +65,8 @@
          android:layout_gravity="top"
          android:gravity="center"
          android:fontFamily="@font/roboto_bold"
-         android:letterSpacing="0.1"
-         android:textAllCaps="true"
-         android:textColor="@color/color_accent"
-         android:textSize="15sp"
+         android:textColor="@color/white"
+         android:textSize="28sp"
          android:visibility="gone"/>
 
       <ProgressBar

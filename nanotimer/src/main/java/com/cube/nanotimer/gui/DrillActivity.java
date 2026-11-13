@@ -704,7 +704,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     String next = dailyRun == null || session.getPracticeCase() != null ? null : dailyRun.next();
     if (next != null && dailyRun.opensBlock(next)) {
       // Never mixed: a change of family gets a titled pause, whatever the setting.
-      pauseThenNext(getString(R.string.coach_daily_now,
+      pauseThenNext(getString(R.string.coach_daily_next,
           Utils.toSmartCubeStepLocalizedName(this, dailyRun.blockOf(next).getFamily(), 0)));
       return;
     }
@@ -729,14 +729,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         + " · " + CoachDailyView.reason(this, entry, " "));
   }
 
-  /** What the day came to: cases, clean reps, back to Known, and what slipped. */
+  /** What the day came to: cases, clean reps, and what slipped. */
   private CharSequence dailySummary() {
     StringBuilder note = new StringBuilder(getString(R.string.coach_daily_summary,
         dailyRun.getCasesDealt(), dailyRun.getCleanReps(), dailyRun.getRepsDealt()));
-    if (!dailyRun.getBackToKnown().isEmpty()) {
-      note.append(' ').append(getString(R.string.coach_daily_summary_back,
-          caseNames(dailyRun.getBackToKnown())));
-    }
     if (!dailyRun.getSlipped().isEmpty()) {
       note.append(' ').append(getString(R.string.coach_daily_summary_slipped,
           caseNames(dailyRun.getSlipped())));
