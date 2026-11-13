@@ -45,8 +45,6 @@ public final class DrillRepPause {
   /** How much of the cube's brightness is left at the deepest of the pause. */
   private static final float CUBE_DIM = 0.4f;
   private static final long IN_MS = 420;
-  private static final long DOT_DELAY_MS = 260;
-  private static final long DOT_MS = 260;
   private static final long TITLE_DELAY_MS = 140;
   private static final long DRAIN_DELAY_MS = 180;
   private static final long HINT_DELAY_MS = 600;
@@ -66,7 +64,6 @@ public final class DrillRepPause {
   private final View scrim;
   private final View cube;
   private final View line;
-  private final View dot;
   private final TextView title;
   private final View foot;
   private final View drain;
@@ -93,19 +90,17 @@ public final class DrillRepPause {
    * @param scrim covers the cube, inside the cube's own frame, which is the room the rep rises into
    * @param cube the drawn cube, blurred where the system can
    * @param line the rep's line, a sibling of the cube's frame, moved and scaled by the pause
-   * @param dot inside the line: popped in once the line has risen, when the screen shows it
    * @param title over the cube's frame, above the rep: shown for a titled pause only
    * @param foot over the cube's frame, below the rep: the drain and the hint
    * @param drain the line that runs out as the pause does
    * @param hint how to end the pause early, which comes in last
    */
-  public DrillRepPause(View scrim, View cube, View line, View dot, TextView title, View foot,
-      View drain, View hint) {
+  public DrillRepPause(View scrim, View cube, View line, TextView title, View foot, View drain,
+      View hint) {
     this.stage = (View) scrim.getParent();
     this.scrim = scrim;
     this.cube = cube;
     this.line = line;
-    this.dot = dot;
     this.title = title;
     this.foot = foot;
     this.drain = drain;
@@ -212,13 +207,6 @@ public final class DrillRepPause {
     Interpolator swell = new OvershootInterpolator(1.4f);
     parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_X, SCALE), IN_MS, 0, swell));
     parts.add(timed(ObjectAnimator.ofFloat(line, View.SCALE_Y, SCALE), IN_MS, 0, swell));
-    if (dot.getVisibility() == View.VISIBLE) {
-      dot.setScaleX(0f);
-      dot.setScaleY(0f);
-      Interpolator pop = new OvershootInterpolator(3f);
-      parts.add(timed(ObjectAnimator.ofFloat(dot, View.SCALE_X, 1f), DOT_MS, DOT_DELAY_MS, pop));
-      parts.add(timed(ObjectAnimator.ofFloat(dot, View.SCALE_Y, 1f), DOT_MS, DOT_DELAY_MS, pop));
-    }
     parts.add(timed(ObjectAnimator.ofFloat(title, View.ALPHA, 1f), EXTRAS_IN_MS, TITLE_DELAY_MS,
         SETTLE));
     parts.add(timed(ObjectAnimator.ofFloat(title, View.TRANSLATION_Y, title.getTranslationY() + rise),
@@ -331,8 +319,6 @@ public final class DrillRepPause {
     line.setScaleY(1f);
     cube.setScaleX(1f);
     cube.setScaleY(1f);
-    dot.setScaleX(1f);
-    dot.setScaleY(1f);
     setSoftness(0f);
     hideExtras();
   }

@@ -203,15 +203,6 @@
          android:gravity="center_vertical"
          android:orientation="horizontal">
 
-        <!-- The rep's colour against the drill so far, as on the strip; shown with the pause. -->
-        <View
-           android:id="@+id/vDrillLastRepDot"
-           android:layout_width="10dp"
-           android:layout_height="10dp"
-           android:layout_marginRight="12dp"
-           android:background="@drawable/drill_rep_dot"
-           android:visibility="gone"/>
-
         <TextView
            android:id="@+id/tvDrillLastRep"
            android:layout_width="wrap_content"

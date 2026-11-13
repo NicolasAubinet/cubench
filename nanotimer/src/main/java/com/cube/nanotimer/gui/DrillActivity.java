@@ -157,10 +157,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The whole rep line, since the beat scales it and the hold is posted to it. */
   private View lastRepRow;
   private View repWash;
-  /** The pause between cases, the tap that ends it, and the rep's dot shown with it. */
+  /** The pause between cases, and the tap that ends it. */
   private DrillRepPause repPause;
   private View pauseSkip;
-  private View repDot;
   /** A coach drill's cases, its verdict on a rep, and where that rep's time went. */
   private DrillCasePips casePips;
   private TextView repVerdict;
@@ -255,9 +254,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
     lastRepRow = findViewById(R.id.llDrillLastRep);
     repWash = findViewById(R.id.drillRepWash);
-    repDot = findViewById(R.id.vDrillLastRepDot);
     repPause = new DrillRepPause(findViewById(R.id.drillPauseScrim),
-        findViewById(R.id.wvDrillCube), findViewById(R.id.flDrillLastRepStage), repDot,
+        findViewById(R.id.wvDrillCube), findViewById(R.id.flDrillLastRepStage),
         findViewById(R.id.tvDrillPauseTitle), findViewById(R.id.llDrillPauseFoot),
         findViewById(R.id.vDrillPauseDrain), findViewById(R.id.tvDrillPauseHint));
     pauseSkip = findViewById(R.id.drillPauseSkip);
@@ -635,7 +633,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (!session.getSpec().retiresCases() && !rep.isPractice()) {
       showRepStrip(session.getReps().size() - 1);
     }
-    showRepDot(rep);
+    colourRepTime(rep);
     offerPractice(rep);
     // No wash for a rep that was skipped: nothing was solved to dwell on. The hold stays, since
     // what the user could not place is the one thing worth reading off a skipped rep, and the line
@@ -708,16 +706,15 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     showNextCase.run();
   }
 
-  /** The rep's colour against the drill so far, beside its time while the pause holds it. */
-  private void showRepDot(DrillRep rep) {
-    boolean shown = Options.INSTANCE.getDrillPauseMs() > 0 && !session.getSpec().retiresCases()
-        && !rep.isPractice() && !rep.isAbandoned();
-    repDot.setVisibility(shown ? View.VISIBLE : View.GONE);
-    if (shown) {
-      DrillOutcomeStrip strip = findViewById(R.id.vDrillRepStrip);
-      repDot.setBackgroundTintList(
-          ColorStateList.valueOf(strip.colorOfRep(session.getReps().size() - 1)));
+  /** With the pause on, the rep's time in its colour against the drill so far, as on the strip. */
+  private void colourRepTime(DrillRep rep) {
+    if (Options.INSTANCE.getDrillPauseMs() <= 0 || session.getSpec().retiresCases()
+        || rep.isPractice() || rep.isAbandoned()) {
+      return;
     }
+    DrillOutcomeStrip strip = findViewById(R.id.vDrillRepStrip);
+    ((TextView) findViewById(R.id.tvDrillLastRep))
+        .setTextColor(strip.colorOfRep(session.getReps().size() - 1));
   }
 
   private final Runnable showNextCase = new Runnable() {
