@@ -32,16 +32,35 @@ public final class DrillRepParts {
     private final int color;
     /** Said in its own colour, for the part the drill is about. */
     private final boolean lit;
+    /** Its figure's colour when written on its own: a washed part's hue at text strength. */
+    private final int figureColor;
 
     Part(int nameRes, long ms, int color, boolean lit) {
+      this(nameRes, ms, color, lit, color);
+    }
+
+    Part(int nameRes, long ms, int color, boolean lit, int figureColor) {
       this.nameRes = nameRes;
       this.ms = Math.max(0, ms);
       this.color = color;
       this.lit = lit;
+      this.figureColor = figureColor;
     }
 
     public long getMs() {
       return ms;
+    }
+
+    public int getColor() {
+      return color;
+    }
+
+    public int getFigureColor() {
+      return figureColor;
+    }
+
+    public String getName(Context context) {
+      return context.getString(nameRes);
     }
   }
 
@@ -66,7 +85,8 @@ public final class DrillRepParts {
   public static List<Part> split(long recognitionMs, long executionMs, int hue) {
     List<Part> parts = new ArrayList<Part>();
     parts.add(new Part(R.string.drill_summary_column_recognition, recognitionMs,
-        executionMs > 0 ? StepPalette.wash(hue) : hue, false));
+        executionMs > 0 ? StepPalette.wash(hue) : hue, false,
+        executionMs > 0 ? StepPalette.dim(hue) : hue));
     parts.add(new Part(R.string.drill_summary_column_execution, executionMs, hue, false));
     return parts;
   }
@@ -75,7 +95,8 @@ public final class DrillRepParts {
   public static List<Part> planning(long planningMs, long executionMs, int hue) {
     List<Part> parts = new ArrayList<Part>();
     parts.add(new Part(R.string.drill_summary_cell_planning, planningMs,
-        executionMs > 0 ? StepPalette.wash(hue) : hue, false));
+        executionMs > 0 ? StepPalette.wash(hue) : hue, false,
+        executionMs > 0 ? StepPalette.dim(hue) : hue));
     parts.add(new Part(R.string.drill_summary_column_execution, executionMs, hue, false));
     return parts;
   }
@@ -84,7 +105,8 @@ public final class DrillRepParts {
   public static List<Part> lookAhead(Context context, long beforeMs, long pairOneMs, long pauseMs,
       long pairTwoMs, int hue) {
     List<Part> parts = new ArrayList<Part>();
-    parts.add(new Part(R.string.drill_lookahead_before, beforeMs, StepPalette.wash(hue), false));
+    parts.add(new Part(R.string.drill_lookahead_before, beforeMs, StepPalette.wash(hue), false,
+        StepPalette.dim(hue)));
     parts.add(new Part(R.string.drill_lookahead_pair, pairOneMs, hue, false));
     parts.add(new Part(R.string.drill_lookahead_pause, pauseMs,
         ContextCompat.getColor(context, R.color.drill_pause), true));
@@ -107,7 +129,8 @@ public final class DrillRepParts {
         total += rep.get(i).ms;
       }
       Part first = reps.get(0).get(i);
-      mean.add(new Part(first.nameRes, total / reps.size(), first.color, first.lit));
+      mean.add(new Part(first.nameRes, total / reps.size(), first.color, first.lit,
+          first.figureColor));
     }
     return mean;
   }

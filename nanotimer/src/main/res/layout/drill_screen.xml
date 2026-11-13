@@ -51,6 +51,13 @@
          android:background="@color/graybg"
          android:visibility="gone"/>
 
+      <!-- The pause's dial: the finished rep's split round its time, and the pause running out. -->
+      <com.cube.nanotimer.util.view.DrillPauseDialView
+         android:id="@+id/vDrillPauseDial"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:visibility="gone"/>
+
       <TextView
          android:id="@+id/tvDrillPauseTitle"
          android:layout_width="match_parent"
@@ -63,28 +70,6 @@
          android:textColor="@color/color_accent"
          android:textSize="15sp"
          android:visibility="gone"/>
-
-      <LinearLayout
-         android:id="@+id/llDrillPauseFoot"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_gravity="top"
-         android:gravity="center_horizontal"
-         android:orientation="vertical"
-         android:visibility="gone">
-
-        <FrameLayout
-           android:layout_width="140dp"
-           android:layout_height="3dp"
-           android:background="@drawable/drill_pause_track">
-
-          <View
-             android:id="@+id/vDrillPauseDrain"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:background="@drawable/drill_pause_drain"/>
-        </FrameLayout>
-      </LinearLayout>
 
       <ProgressBar
          android:id="@+id/pbDrillCube"

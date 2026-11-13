@@ -160,6 +160,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The pause between cases, and the tap that ends it. */
   private DrillRepPause repPause;
   private View pauseSkip;
+  /** The finished rep's split, for the pause's dial; empty for a skipped rep. */
+  private List<DrillRepParts.Part> lastRepParts = new ArrayList<DrillRepParts.Part>();
   /** A coach drill's cases, its verdict on a rep, and where that rep's time went. */
   private DrillCasePips casePips;
   private TextView repVerdict;
@@ -256,8 +258,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     repWash = findViewById(R.id.drillRepWash);
     repPause = new DrillRepPause(findViewById(R.id.drillPauseScrim),
         findViewById(R.id.wvDrillCube), findViewById(R.id.flDrillLastRepStage),
-        findViewById(R.id.tvDrillPauseTitle), findViewById(R.id.llDrillPauseFoot),
-        findViewById(R.id.vDrillPauseDrain));
+        findViewById(R.id.tvDrillLastRepName), findViewById(R.id.tvDrillLastRep),
+        new View[] {findViewById(R.id.vDrillRepSplit), findViewById(R.id.tvDrillLastRepSplit)},
+        findViewById(R.id.tvDrillPauseTitle), findViewById(R.id.vDrillPauseDial));
     pauseSkip = findViewById(R.id.drillPauseSkip);
     pauseSkip.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -670,7 +673,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return;
     }
     long holdMs = title == null ? pauseMs : Math.max(pauseMs, TITLED_PAUSE_MS);
-    repPause.enter(title, holdMs);
+    repPause.enter(title, holdMs, lastRepParts);
     pauseSkip.setVisibility(View.VISIBLE);
     lastRepRow.postDelayed(endPauseOnTime, holdMs);
   }
@@ -1484,6 +1487,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     boolean retiring = session.getSpec().retiresCases();
     repVerdict.setVisibility(View.GONE);
     lastRep = rep.isPractice() ? null : rep;
+    lastRepParts = new ArrayList<DrillRepParts.Part>();
     DrillLiveCells.show(this, session.getReps(), session.getSpec().getType());
     if (retiring) {
       refreshCaseProgress(); // rings the case this line is about
@@ -1502,6 +1506,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     boolean pause = key == DrillRepOrder.Key.PAUSE;
     List<DrillRepParts.Part> parts =
         DrillRepParts.of(this, rep, ContextCompat.getColor(this, colour));
+    lastRepParts = parts;
     setLastRep(pause ? getString(R.string.drill_lookahead_pause) : name,
         pause ? R.color.drill_pause : colour,
         FormatterService.INSTANCE.formatSolveTime(DrillRepOrder.timeMs(rep, key)), false,
