@@ -12,6 +12,7 @@ import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
 import com.cube.nanotimer.gui.DrillSetupActivity;
 import com.cube.nanotimer.smartcube.drill.DailyRun;
+import com.cube.nanotimer.util.coach.CoachDaily;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public final class CoachDailyView {
     this.section = section;
   }
 
-  /** Today's blocks; empty says nothing is due, null hides the section. */
+  /** Today's blocks, with how far they were run; empty says nothing is due, null hides it. */
   public void show(final SolveType solveType, final List<DailyRun.Block> blocks) {
     if (blocks == null) {
       section.setVisibility(View.GONE);
@@ -51,14 +52,20 @@ public final class CoachDailyView {
     if (blocks.isEmpty()) {
       return;
     }
-    int total = 0;
-    for (DailyRun.Block block : blocks) {
-      for (DailyRun.Entry entry : block.getEntries()) {
-        total += entry.isReview() ? DailyRun.REVIEW_RUN : entry.getReps();
-      }
+    String progress = CoachDaily.progress(solveType);
+    DailyRun run = new DailyRun(blocks);
+    run.restore(progress);
+    if (DailyRun.isDone(progress) || run.isDone()) {
+      reps.setText(activity.getString(R.string.coach_daily_done, run.getCleanReps(),
+          run.getRepsDealt()));
+      start.setVisibility(View.GONE);
+      return;
     }
-    reps.setText(activity.getString(R.string.coach_daily_reps, total,
-        Math.max(1, Math.round(total * SECONDS_A_REP / 60f))));
+    int left = run.repsPlanned() - run.getRepsDealt();
+    reps.setText(activity.getString(run.getRepsDealt() > 0 ? R.string.coach_daily_reps_left
+        : R.string.coach_daily_reps, left, Math.max(1, Math.round(left * SECONDS_A_REP / 60f))));
+    start.setText(run.getRepsDealt() > 0 ? R.string.coach_daily_resume
+        : R.string.coach_daily_start);
     start.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {

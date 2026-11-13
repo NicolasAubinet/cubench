@@ -1846,6 +1846,9 @@
   <string name="coach_daily_title">Today\'s drill</string>
   <string name="coach_daily_reps">%1$d reps · about %2$d min</string>
   <string name="coach_daily_start">Start</string>
+  <string name="coach_daily_resume">Resume</string>
+  <string name="coach_daily_reps_left">%1$d reps left · about %2$d min</string>
+  <string name="coach_daily_done">Done · %1$d of %2$d reps clean</string>
   <string name="coach_daily_none">Nothing due today: your OLLs and PLLs are holding.</string>
   <string name="coach_daily_slip">Slipped</string>
   <string name="coach_daily_pause">Slow to spot</string>

@@ -59,6 +59,12 @@ public final class CoachDaily {
         Options.INSTANCE.getCoachDailyAt(id), System.currentTimeMillis(), TimeZone.getDefault());
   }
 
+  /** How far today's kept drill has been run, so a drill left part way picks up there; or null. */
+  public static String progress(SolveType solveType) {
+    return answeredToday(solveType) ? Options.INSTANCE.getCoachDailyProgress(solveType.getId())
+        : null;
+  }
+
   /** The cases of today's kept drill, which the practice sets leave to it. */
   public static List<String> keptCases(SolveType solveType) {
     List<String> cases = new ArrayList<String>();

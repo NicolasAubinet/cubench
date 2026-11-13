@@ -41,6 +41,7 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.drill.AlgorithmTimes;
 import com.cube.nanotimer.smartcube.drill.CaseTally;
 import com.cube.nanotimer.smartcube.drill.DailyRun;
+import com.cube.nanotimer.util.coach.CoachDaily;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
@@ -153,6 +154,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private DrillSession session;
   /** How the daily drill deals and what it has come to, or null for any other drill. */
   private DailyRun dailyRun;
+  /** The solve type the daily drill is kept for, and its reps dealt before this run. */
+  private int dailySolveTypeId = -1;
+  private int dailyBefore;
   /** What this drill is called, for the summary once the bar that named it has gone. */
   private String label;
   /** The face the user finishes on, which is the one the drawn cube has to stand on. */
@@ -467,6 +471,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     String daily = getIntent().getStringExtra(EXTRA_DAILY);
     if (daily != null) {
       dailyRun = new DailyRun(DailyRun.dealable(DailyRun.parse(daily), session.getCases()));
+      SolveType type = (SolveType) getIntent().getSerializableExtra(EXTRA_SOLVE_TYPE);
+      dailySolveTypeId = type == null ? -1 : type.getId();
+      if (type != null) {
+        dailyRun.restore(CoachDaily.progress(type)); // a day left part way picks up there
+      }
+      dailyBefore = dailyRun.getRepsDealt();
       session.setDealer(dailyRun);
     }
     if (!chooseOnly) {
@@ -669,6 +679,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     recorder.record(rep);
     if (dailyRun != null) {
       dailyRun.record(rep);
+      if (dailySolveTypeId >= 0 && !rep.isPractice()) {
+        Options.INSTANCE.setCoachDailyProgress(dailySolveTypeId, dailyRun.progressJson());
+      }
     }
     noteLearned(rep);
     AlgorithmTimes.Verdict timed = noteChooseTime(rep);
@@ -709,6 +722,11 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return;
     }
     pauseThenNext(null);
+  }
+
+  /** The reps this run will take: the spec's, or what is left of the day as dealing stands. */
+  private int plannedReps() {
+    return dailyRun == null ? session.getSpec().getReps() : dailyRun.repsPlanned() - dailyBefore;
   }
 
   /** The daily drill's block, how far into it, and why the case is here, under the title. */
@@ -1529,7 +1547,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       if (session.getSpec().retiresCases()) {
         refreshCaseProgress();
       } else {
-        setProgress(session.getReps().size() + 1, session.getSpec().getReps());
+        setProgress(session.getReps().size() + 1, plannedReps());
         showRepStrip(session.getReps().size());
       }
     }
@@ -1647,7 +1665,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       DrillRep rep = reps.get(i);
       times[i] = rep.isAbandoned() ? -1 : DrillRepOrder.timeMs(rep, key);
     }
-    setTimedRepStrip(times, session.getSpec().getReps(), current);
+    setTimedRepStrip(times, plannedReps(), current);
   }
 
   /** A coach drill counts cases, not reps: a bar per case takes the rep count's meter's place. */
@@ -1785,7 +1803,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     } else {
       setSummaryCell(0, getString(pairs ? R.string.drill_summary_pairs
               : R.string.drill_summary_cell_reps), String.valueOf(reps.size()),
-          getString(R.string.drill_summary_cell_of, spec.getReps()));
+          getString(R.string.drill_summary_cell_of, plannedReps()));
     }
 
     // Skipped reps are counted apart rather than folded into a mean, the same rule the case stats

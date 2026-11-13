@@ -321,6 +321,76 @@ public final class DailyRun implements DrillSession.Dealer {
     return total;
   }
 
+  /** Reps the whole day will take as it stands: see {@link #repsInBlock}. */
+  public int repsPlanned() {
+    int total = 0;
+    for (Block block : blocks) {
+      total += repsInBlock(block);
+    }
+    return total;
+  }
+
+  /** Whether every case is done. */
+  public boolean isDone() {
+    return next() == null;
+  }
+
+  /** What has been dealt so far, for {@link #restore} to pick the day up after an interruption. */
+  public String progressJson() {
+    try {
+      return new JSONObject().put("dealt", new JSONObject(dealt))
+          .put("clean_run", new JSONObject(cleanRun)).put("clean", new JSONObject(cleanCount))
+          .put("slipped", new JSONArray(slipped)).put("last", lastDealt == null ? "" : lastDealt)
+          .put("done", isDone()).toString();
+    } catch (JSONException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /** Takes the day up where {@link #progressJson} left it; text that is no progress is ignored. */
+  public void restore(String progress) {
+    if (progress == null) {
+      return;
+    }
+    try {
+      JSONObject json = new JSONObject(progress);
+      readCounts(json.getJSONObject("dealt"), dealt);
+      readCounts(json.getJSONObject("clean_run"), cleanRun);
+      readCounts(json.getJSONObject("clean"), cleanCount);
+      JSONArray slips = json.getJSONArray("slipped");
+      for (int i = 0; i < slips.length(); i++) {
+        slipped.add(slips.getString(i));
+      }
+      String last = json.optString("last", "");
+      lastDealt = last.isEmpty() ? null : last;
+    } catch (JSONException e) {
+      dealt.clear();
+      cleanRun.clear();
+      cleanCount.clear();
+      slipped.clear();
+      lastDealt = null;
+    }
+  }
+
+  /** Whether a kept progress says the day was finished, whatever cases this app could deal. */
+  public static boolean isDone(String progress) {
+    if (progress == null) {
+      return false;
+    }
+    try {
+      return new JSONObject(progress).optBoolean("done", false);
+    } catch (JSONException e) {
+      return false;
+    }
+  }
+
+  private static void readCounts(JSONObject json, Map<String, Integer> into) throws JSONException {
+    JSONArray names = json.names();
+    for (int i = 0; names != null && i < names.length(); i++) {
+      into.put(names.getString(i), json.getInt(names.getString(i)));
+    }
+  }
+
   /** Review cases that ran clean {@link #REVIEW_RUN} times: back to Known. */
   public List<String> getBackToKnown() {
     List<String> back = new ArrayList<String>();

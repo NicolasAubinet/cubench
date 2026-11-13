@@ -1793,6 +1793,9 @@
   <string name="coach_daily_title">Drill del día</string>
   <string name="coach_daily_reps">%1$d repeticiones · unos %2$d min</string>
   <string name="coach_daily_start">Empezar</string>
+  <string name="coach_daily_resume">Seguir</string>
+  <string name="coach_daily_reps_left">Quedan %1$d repeticiones · unos %2$d min</string>
+  <string name="coach_daily_done">Hecho · %1$d de %2$d repeticiones limpias</string>
   <string name="coach_daily_none">Nada pendiente hoy: tus OLL y PLL se mantienen.</string>
   <string name="coach_daily_slip">Fallo</string>
   <string name="coach_daily_pause">Lento al reconocer</string>

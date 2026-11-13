@@ -96,6 +96,7 @@ public enum Options {
   private static final String COACH_PRACTICE_WITH_KEY_PREFIX = "coach_practice_with_";
   private static final String COACH_DAILY_KEY_PREFIX = "coach_daily_";
   private static final String COACH_DAILY_AT_KEY_PREFIX = "coach_daily_at_";
+  private static final String COACH_DAILY_PROGRESS_KEY_PREFIX = "coach_daily_progress_";
   private static final String LEARN_NEXT_COUNT_KEY = "learn_next_count";
   private static final int DEFAULT_LEARN_NEXT_COUNT = 3;
   private static final String COACH_ID_KEY = "coach_id";
@@ -409,6 +410,17 @@ public enum Options {
     sharedPreferences.edit()
         .putString(COACH_DAILY_KEY_PREFIX + solveTypeId, reply)
         .putLong(COACH_DAILY_AT_KEY_PREFIX + solveTypeId, askedAt)
+        .remove(COACH_DAILY_PROGRESS_KEY_PREFIX + solveTypeId)
+        .apply();
+  }
+
+  /** How far the kept daily drill has been run, as DailyRun wrote it; null before its first rep. */
+  public String getCoachDailyProgress(int solveTypeId) {
+    return sharedPreferences.getString(COACH_DAILY_PROGRESS_KEY_PREFIX + solveTypeId, null);
+  }
+
+  public void setCoachDailyProgress(int solveTypeId, String progress) {
+    sharedPreferences.edit().putString(COACH_DAILY_PROGRESS_KEY_PREFIX + solveTypeId, progress)
         .apply();
   }
 

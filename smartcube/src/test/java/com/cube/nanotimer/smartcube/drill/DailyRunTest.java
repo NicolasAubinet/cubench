@@ -114,6 +114,37 @@ public class DailyRunTest {
   }
 
   @Test
+  public void thePlannedRepsCountAReviewCaseAtItsRunAndGrowWithASlip() {
+    DailyRun run = new DailyRun(DailyRun.parse(REPLY));
+    Assert.assertEquals(2 + 3 + 2, run.repsPlanned());
+    run.record(rep("pll_t", true));
+    Assert.assertEquals(2 + 1 + 3 + 2, run.repsPlanned());
+  }
+
+  @Test
+  public void anInterruptedDayPicksUpWhereItLeft() {
+    DailyRun first = new DailyRun(DailyRun.parse(REPLY));
+    first.record(rep("oll_21", false));
+    first.record(rep("oll_21", false));
+    first.record(rep("pll_t", false));
+    first.record(rep("pll_h", true));
+    DailyRun again = new DailyRun(DailyRun.parse(REPLY));
+    again.restore(first.progressJson());
+
+    Assert.assertEquals("pll_t", again.next());
+    Assert.assertEquals(4, again.getRepsDealt());
+    Assert.assertEquals(first.repsPlanned(), again.repsPlanned());
+    Assert.assertEquals(Collections.singletonList("pll_h"), again.getSlipped());
+    Assert.assertFalse(DailyRun.isDone(first.progressJson()));
+    while (again.next() != null) {
+      again.record(rep(again.next(), false));
+    }
+    Assert.assertTrue(DailyRun.isDone(again.progressJson()));
+    again.restore("not progress");
+    Assert.assertEquals(0, again.getRepsDealt());
+  }
+
+  @Test
   public void aCaseThisAppCannotDealIsDropped() {
     List<DailyRun.Block> blocks = DailyRun.dealable(DailyRun.parse(REPLY),
         Arrays.asList("pll_t", "pll_h"));
