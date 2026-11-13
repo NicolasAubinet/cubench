@@ -172,6 +172,15 @@
        android:summary="@string/smart_cube_auto_penalty_summary"
        android:defaultValue="@bool/smart_cube_auto_penalty"/>
 
+    <ListPreference
+       android:key="drill_pause"
+       android:title="@string/drill_pause_setting"
+       android:summary="%s"
+       android:entries="@array/entries_drill_pause"
+       android:entryValues="@array/entryvalues_drill_pause"
+       android:dialogTitle="@string/drill_pause_setting"
+       android:defaultValue="1500"/>
+
   </PreferenceCategory>
 
   <!-- Only in a build with a coach. The plans and notifications rows show once weekly plans are on. -->

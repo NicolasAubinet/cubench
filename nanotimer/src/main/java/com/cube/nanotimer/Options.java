@@ -85,6 +85,7 @@ public enum Options {
   public static final String SMART_CUBE_BLIND_ASKED_KEY = "smart_cube_blind_asked";
   public static final String SMART_CUBE_AUTO_STOP_KEY = "smart_cube_auto_stop";
   public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
+  public static final String DRILL_PAUSE_KEY = "drill_pause";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
   private static final String ANALYSIS_WINDOW_KEY = "analysisWindow";
@@ -1004,6 +1005,15 @@ public enum Options {
   public boolean isSmartCubeAutoPenalty() {
     Boolean defaultValue = context.getResources().getBoolean(R.bool.smart_cube_auto_penalty);
     return sharedPreferences.getBoolean(SMART_CUBE_AUTO_PENALTY_KEY, defaultValue);
+  }
+
+  // The pause after a drill rep before the next case, in ms; 0 deals it after the rep's beat.
+  public long getDrillPauseMs() {
+    try {
+      return Long.parseLong(sharedPreferences.getString(DRILL_PAUSE_KEY, "1500"));
+    } catch (NumberFormatException e) {
+      return 1500;
+    }
   }
 
   // How far a cube's own idea of its state has drifted from the real one, as the facelets of the

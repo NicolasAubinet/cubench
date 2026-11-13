@@ -110,6 +110,21 @@
     <item>2</item>
     <item>3</item>
   </string-array>
+  <!-- The pause between drill cases, in milliseconds; 0 deals the next case after the beat. -->
+  <string-array name="entries_drill_pause">
+    <item>@string/drill_pause_off</item>
+    <item>@string/drill_pause_1</item>
+    <item>@string/drill_pause_1_5</item>
+    <item>@string/drill_pause_2</item>
+    <item>@string/drill_pause_3</item>
+  </string-array>
+  <string-array name="entryvalues_drill_pause">
+    <item>0</item>
+    <item>1000</item>
+    <item>1500</item>
+    <item>2000</item>
+    <item>3000</item>
+  </string-array>
   <!-- Values are CubeMethod codes. -->
   <string-array name="entries_cube_method">
     <item>@string/method_cfop</item>

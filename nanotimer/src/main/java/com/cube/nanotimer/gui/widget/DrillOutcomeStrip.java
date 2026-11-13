@@ -107,6 +107,11 @@ public class DrillOutcomeStrip extends View {
     setReps(done, total, current);
   }
 
+  /** The colour a timed rep is drawn in, as of the last {@link #setTimedReps}. */
+  public int colorOfRep(int index) {
+    return index >= 0 && index < timedColors.length ? timedColors[index] : colors[UNSCORED];
+  }
+
   /** The colour an outcome is drawn in, for the key under the strip. */
   public int colorOf(int outcome) {
     return colors[outcome];

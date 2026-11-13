@@ -51,6 +51,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.gui.widget.DrillCasePips;
+import com.cube.nanotimer.gui.widget.DrillOutcomeStrip;
 import com.cube.nanotimer.gui.widget.DrillCaseTable;
 import com.cube.nanotimer.gui.widget.DrillLiveCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
@@ -71,6 +72,7 @@ import com.cube.nanotimer.step.LastLayerAlgorithms;
 import com.cube.nanotimer.step.OllShapes;
 import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.util.view.DrillRepFlourish;
+import com.cube.nanotimer.util.view.DrillRepPause;
 import com.cube.nanotimer.util.view.LearningAlgorithmFade;
 import com.cube.nanotimer.util.view.PracticeOfferPulse;
 import com.cube.nanotimer.util.view.HalfTurnHint;
@@ -132,6 +134,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    * is charged to nobody.
    */
   private static final long REP_HOLD_MS = DrillRepFlourish.PLAY_BEAT_MS;
+  /** The least a titled pause holds for, even with the pause between cases turned off. */
+  private static final long TITLED_PAUSE_MS = 2000;
   /** Gyro readings taken either side of a back-slot rep, for the poses at its two ends. */
   private static final long ROTATION_LEAD_MS = 500;
   /** How far back the grip a back-slot case is dealt into is read, so a settling reading can't win. */
@@ -153,6 +157,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The whole rep line, since the beat scales it and the hold is posted to it. */
   private View lastRepRow;
   private View repWash;
+  /** The pause between cases, the tap that ends it, and the rep's dot shown with it. */
+  private DrillRepPause repPause;
+  private View pauseSkip;
+  private View repDot;
   /** A coach drill's cases, its verdict on a rep, and where that rep's time went. */
   private DrillCasePips casePips;
   private TextView repVerdict;
@@ -203,7 +211,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     public void handleOnBackPressed() {
       if (!choosingToPractise) {
         // A learning drill's choose step: back ends the drill, summed up if a rep was solved
-        lastRepRow.removeCallbacks(showNextCase);
+        stopHold();
         clearChoosing();
         session.endPractice();
         setChoosing(false);
@@ -247,6 +255,17 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
     lastRepRow = findViewById(R.id.llDrillLastRep);
     repWash = findViewById(R.id.drillRepWash);
+    repPause = new DrillRepPause(findViewById(R.id.drillPauseScrim),
+        findViewById(R.id.flDrillLastRepStage), findViewById(R.id.tvDrillPauseTitle),
+        findViewById(R.id.llDrillPauseFoot), findViewById(R.id.vDrillPauseDrain));
+    repDot = findViewById(R.id.vDrillLastRepDot);
+    pauseSkip = findViewById(R.id.drillPauseSkip);
+    pauseSkip.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        endPause(false);
+      }
+    });
     casePips = findViewById(R.id.vDrillCasePips);
     repVerdict = findViewById(R.id.tvDrillLastRepVerdict);
     repSplit = findViewById(R.id.vDrillRepSplit);
@@ -467,7 +486,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    lastRepRow.removeCallbacks(showNextCase);
+    stopHold();
     DrillRepFlourish.cancel(repWash, lastRepRow);
   }
 
@@ -615,6 +634,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (!session.getSpec().retiresCases() && !rep.isPractice()) {
       showRepStrip(session.getReps().size() - 1);
     }
+    showRepDot(rep);
     offerPractice(rep);
     // No wash for a rep that was skipped: nothing was solved to dwell on. The hold stays, since
     // what the user could not place is the one thing worth reading off a skipped rep, and the line
@@ -635,14 +655,68 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   private void holdThenNext() {
-    lastRepRow.removeCallbacks(showNextCase);
-    lastRepRow.postDelayed(showNextCase, REP_HOLD_MS);
+    pauseThenNext(null);
   }
 
-  /** Ends the beat early, for a practice rep the user has already started turning. */
+  /**
+   * Holds the finished rep before the next case: the beat alone with the pause turned off, else
+   * the pause, with the rep brought forward. A title forces a pause, for a change of block.
+   */
+  private void pauseThenNext(CharSequence title) {
+    stopHold();
+    long pauseMs = Options.INSTANCE.getDrillPauseMs();
+    if (title == null && pauseMs <= 0) {
+      lastRepRow.postDelayed(showNextCase, REP_HOLD_MS);
+      return;
+    }
+    long holdMs = title == null ? pauseMs : Math.max(pauseMs, TITLED_PAUSE_MS);
+    repPause.enter(title, holdMs);
+    pauseSkip.setVisibility(View.VISIBLE);
+    lastRepRow.postDelayed(endPauseOnTime, holdMs);
+  }
+
+  private final Runnable endPauseOnTime = new Runnable() {
+    @Override
+    public void run() {
+      endPause(false);
+    }
+  };
+
+  /** Ends the pause: the next case is dealt once the cube is clear, or at once for a turn. */
+  private void endPause(boolean now) {
+    lastRepRow.removeCallbacks(endPauseOnTime);
+    pauseSkip.setVisibility(View.GONE);
+    repPause.leave(showNextCase, now);
+  }
+
+  /** Stops whatever holds the finished rep, without dealing the next case. */
+  private void stopHold() {
+    lastRepRow.removeCallbacks(showNextCase);
+    lastRepRow.removeCallbacks(endPauseOnTime);
+    pauseSkip.setVisibility(View.GONE);
+    repPause.cancel();
+  }
+
+  /** Ends the beat or the pause early, for a practice rep the user has already started turning. */
   private void showNextCaseNow() {
+    if (repPause.isActive()) {
+      endPause(true);
+      return;
+    }
     lastRepRow.removeCallbacks(showNextCase);
     showNextCase.run();
+  }
+
+  /** The rep's colour against the drill so far, beside its time while the pause holds it. */
+  private void showRepDot(DrillRep rep) {
+    boolean shown = Options.INSTANCE.getDrillPauseMs() > 0 && !session.getSpec().retiresCases()
+        && !rep.isPractice() && !rep.isAbandoned();
+    repDot.setVisibility(shown ? View.VISIBLE : View.GONE);
+    if (shown) {
+      DrillOutcomeStrip strip = findViewById(R.id.vDrillRepStrip);
+      repDot.setBackgroundTintList(
+          ColorStateList.valueOf(strip.colorOfRep(session.getReps().size() - 1)));
+    }
   }
 
   private final Runnable showNextCase = new Runnable() {
@@ -878,7 +952,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return;
     }
     hidePracticeOffer();
-    lastRepRow.removeCallbacks(showNextCase); // tapped during the beat
+    stopHold(); // tapped during the beat
     choosingToPractise = true;
     beginChoosing(offeredCase, first);
   }
@@ -903,7 +977,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   /** The next case to choose for, practised meanwhile; the drill proper once none is left. */
   private void chooseNext() {
-    lastRepRow.removeCallbacks(showNextCase);
+    stopHold();
     if (chooseIndex >= toChoose.size()) {
       if (chooseOnly) {
         finish();
@@ -1040,7 +1114,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   private void endChoosing() {
-    lastRepRow.removeCallbacks(showNextCase); // left during a rep's beat
+    stopHold(); // left during a rep's beat
     clearChoosing();
     session.endPractice();
     setChoosing(false);
@@ -1169,7 +1243,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (finished || isFinishing() || session == null || session.getPracticeCase() == null) {
       return; // also reached when the screen is torn down with the popup open
     }
-    lastRepRow.removeCallbacks(showNextCase);
+    stopHold();
     session.dropCarriedTurns(); // dealt afresh, not next: turns before it were not an attempt
     session.nextRep();
     drawCase();

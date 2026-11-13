@@ -896,6 +896,13 @@
   <string name="smart_cube_auto_stop_summary">Stop the timer as soon as the cube reads solved, rather than on a tap</string>
   <string name="smart_cube_auto_penalty">Auto +2 and DNF</string>
   <string name="smart_cube_auto_penalty_summary">Give a solve stopped one move from solved a +2, and one stopped further out a DNF</string>
+  <string name="drill_pause_setting">Pause between cases</string>
+  <string name="drill_pause_off">Off</string>
+  <string name="drill_pause_1">1 s</string>
+  <string name="drill_pause_1_5">1.5 s</string>
+  <string name="drill_pause_2">2 s</string>
+  <string name="drill_pause_3">3 s</string>
+  <string name="drill_pause_skip_hint">Tap to go on</string>
   <string name="preferred_method_prompt">Which method do you solve with? It is used to break your solves down into steps. This is the default, and each solve type can be set on its own.</string>
 
   <string name="quick_action">Quick action</string>

@@ -877,6 +877,13 @@
   <string name="smart_cube_auto_stop_summary">Arrêter le chrono dès que le cube est résolu, plutôt que sur une pression</string>
   <string name="smart_cube_auto_penalty">+2 et DNF automatiques</string>
   <string name="smart_cube_auto_penalty_summary">Donner un +2 à une résolution arrêtée à un mouvement du résolu, et un DNF à une résolution arrêtée plus loin</string>
+  <string name="drill_pause_setting">Pause entre les cas</string>
+  <string name="drill_pause_off">Aucune</string>
+  <string name="drill_pause_1">1 s</string>
+  <string name="drill_pause_1_5">1,5 s</string>
+  <string name="drill_pause_2">2 s</string>
+  <string name="drill_pause_3">3 s</string>
+  <string name="drill_pause_skip_hint">Touchez pour continuer</string>
   <string name="preferred_method_prompt">Quelle méthode utilisez-vous ? Elle sert à découper vos résolutions en étapes. C\'est la méthode par défaut : chaque type de résolution peut avoir la sienne.</string>
 
   <string name="quick_action">Action rapide</string>

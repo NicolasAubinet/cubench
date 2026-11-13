@@ -42,6 +42,58 @@
          android:background="@android:color/transparent"
          android:visibility="invisible"/>
 
+      <!-- The pause between cases: the solved cube dimmed under the rep just finished. -->
+      <View
+         android:id="@+id/drillPauseScrim"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:background="@color/graybg"
+         android:visibility="gone"/>
+
+      <TextView
+         android:id="@+id/tvDrillPauseTitle"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="top"
+         android:gravity="center"
+         android:fontFamily="@font/roboto_bold"
+         android:letterSpacing="0.1"
+         android:textAllCaps="true"
+         android:textColor="@color/color_accent"
+         android:textSize="15sp"
+         android:visibility="gone"/>
+
+      <LinearLayout
+         android:id="@+id/llDrillPauseFoot"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_gravity="top"
+         android:gravity="center_horizontal"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <FrameLayout
+           android:layout_width="140dp"
+           android:layout_height="3dp"
+           android:background="@drawable/drill_pause_track">
+
+          <View
+             android:id="@+id/vDrillPauseDrain"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:background="@drawable/drill_pause_drain"/>
+        </FrameLayout>
+
+        <TextView
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="14dp"
+           android:text="@string/drill_pause_skip_hint"
+           android:textColor="@color/secondary_text"
+           android:alpha="0.6"
+           android:textSize="13sp"/>
+      </LinearLayout>
+
       <ProgressBar
          android:id="@+id/pbDrillCube"
          style="?android:attr/progressBarStyle"
@@ -121,6 +173,12 @@
 
          This is also the only clock a drill shows. A running one would have to start somewhere,
          and a rep starts when its case is drawn, not when a frame is painted. -->
+    <!-- Moved and scaled by the pause between cases, so the beat can scale the line itself. -->
+    <FrameLayout
+       android:id="@+id/flDrillLastRepStage"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content">
+
     <LinearLayout
        android:id="@+id/llDrillLastRep"
        android:layout_width="match_parent"
@@ -142,6 +200,15 @@
          android:layout_height="wrap_content"
          android:gravity="center_vertical"
          android:orientation="horizontal">
+
+        <!-- The rep's colour against the drill so far, as on the strip; shown with the pause. -->
+        <View
+           android:id="@+id/vDrillLastRepDot"
+           android:layout_width="10dp"
+           android:layout_height="10dp"
+           android:layout_marginRight="12dp"
+           android:background="@drawable/drill_rep_dot"
+           android:visibility="gone"/>
 
         <TextView
            android:id="@+id/tvDrillLastRep"
@@ -190,6 +257,7 @@
          android:textSize="13sp"
          android:fontFeatureSettings="tnum"/>
     </LinearLayout>
+    </FrameLayout>
 
     <!-- A coach drill's offer to practise the case just turned off its list, on its own line so it
          is not missed, and outside the rep row so it does not fade with it. A coach drill holds its
@@ -373,6 +441,15 @@
     </LinearLayout>
 
   </LinearLayout>
+
+  <!-- Up only during the pause between cases: a tap anywhere ends it. -->
+  <View
+     android:id="@+id/drillPauseSkip"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+     android:clickable="true"
+     android:focusable="false"
+     android:visibility="gone"/>
 
   <!-- What the drill leaves behind: the card, a coach drill's cases against their targets, then the
        reps. Done stays outside the scroll, so a drill of all 57 OLLs cannot bury it. -->
