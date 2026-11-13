@@ -143,6 +143,34 @@ public final class DailyRun implements DrillSession.Dealer {
     return blocks;
   }
 
+  /** The blocks as {@link #parse} reads them, to hand a drill screen. */
+  public static String toJson(List<Block> blocks) {
+    try {
+      JSONArray array = new JSONArray();
+      for (Block block : blocks) {
+        JSONArray cases = new JSONArray();
+        for (Entry entry : block.entries) {
+          JSONObject one = new JSONObject().put("code", entry.code).put("reason", entry.reason)
+              .put("reps", entry.reps);
+          if (entry.days != null) {
+            one.put("days", entry.days.intValue());
+          }
+          if (entry.slipKind != null) {
+            one.put("slip_kind", entry.slipKind);
+          }
+          if (entry.recognitionMs != null) {
+            one.put("recognition_ms", entry.recognitionMs.longValue());
+          }
+          cases.put(one);
+        }
+        array.put(new JSONObject().put("family", block.family).put("cases", cases));
+      }
+      return new JSONObject().put("blocks", array).toString();
+    } catch (JSONException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   /** The blocks with only the cases this app can deal, and any block left empty dropped. */
   public static List<Block> dealable(List<Block> blocks, Collection<String> dealable) {
     List<Block> kept = new ArrayList<Block>();

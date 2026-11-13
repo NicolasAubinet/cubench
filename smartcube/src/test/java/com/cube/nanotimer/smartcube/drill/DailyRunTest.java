@@ -121,6 +121,13 @@ public class DailyRunTest {
     Assert.assertEquals("pll", blocks.get(0).getFamily());
   }
 
+  @Test
+  public void theBlocksSurviveARoundTrip() {
+    List<DailyRun.Block> blocks = DailyRun.parse(DailyRun.toJson(DailyRun.parse(REPLY)));
+    Assert.assertEquals(DailyRun.toJson(DailyRun.parse(REPLY)), DailyRun.toJson(blocks));
+    Assert.assertEquals("two_looks", blocks.get(1).getEntries().get(0).getSlipKind());
+  }
+
   private static int count(List<String> dealt, String code) {
     return Collections.frequency(dealt, code);
   }

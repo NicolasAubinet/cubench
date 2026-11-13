@@ -94,6 +94,8 @@ public enum Options {
   private static final String COACH_PRACTICE_KEY_PREFIX = "coach_practice_";
   private static final String COACH_PRACTICE_AT_KEY_PREFIX = "coach_practice_at_";
   private static final String COACH_PRACTICE_WITH_KEY_PREFIX = "coach_practice_with_";
+  private static final String COACH_DAILY_KEY_PREFIX = "coach_daily_";
+  private static final String COACH_DAILY_AT_KEY_PREFIX = "coach_daily_at_";
   private static final String LEARN_NEXT_COUNT_KEY = "learn_next_count";
   private static final int DEFAULT_LEARN_NEXT_COUNT = 3;
   private static final String COACH_ID_KEY = "coach_id";
@@ -390,6 +392,23 @@ public enum Options {
         .putString(COACH_PRACTICE_KEY_PREFIX + solveTypeId, reply)
         .putLong(COACH_PRACTICE_AT_KEY_PREFIX + solveTypeId, askedAt)
         .putString(COACH_PRACTICE_WITH_KEY_PREFIX + solveTypeId, askedWith)
+        .apply();
+  }
+
+  /** Today's daily drill as the coach last answered it for a solve type, or null. */
+  public String getCoachDaily(int solveTypeId) {
+    return sharedPreferences.getString(COACH_DAILY_KEY_PREFIX + solveTypeId, null);
+  }
+
+  /** When the kept daily drill was asked for, or 0 for never. */
+  public long getCoachDailyAt(int solveTypeId) {
+    return sharedPreferences.getLong(COACH_DAILY_AT_KEY_PREFIX + solveTypeId, 0);
+  }
+
+  public void setCoachDaily(int solveTypeId, String reply, long askedAt) {
+    sharedPreferences.edit()
+        .putString(COACH_DAILY_KEY_PREFIX + solveTypeId, reply)
+        .putLong(COACH_DAILY_AT_KEY_PREFIX + solveTypeId, askedAt)
         .apply();
   }
 

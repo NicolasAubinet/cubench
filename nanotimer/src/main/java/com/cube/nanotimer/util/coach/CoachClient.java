@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -42,6 +43,7 @@ public final class CoachClient {
 
   private final String planUrl;
   private final String practiceUrl;
+  private final String dailyUrl;
   private final String redeemUrl;
   private final String reportUrl;
   private final String betaUrl;
@@ -56,6 +58,7 @@ public final class CoachClient {
     String base = baseUrl.replaceAll("/+$", "");
     this.planUrl = base + "/v1/plan";
     this.practiceUrl = base + "/v1/practice";
+    this.dailyUrl = base + "/v1/daily";
     this.redeemUrl = base + "/v1/redeem";
     this.reportUrl = base + "/v1/reconstruction-report";
     this.betaUrl = base + "/v1/beta";
@@ -153,6 +156,28 @@ public final class CoachClient {
     }
   }
 
+
+  /**
+   * Today's daily drill for a payload carrying its case recall, as the service sent it, or null
+   * for any failure: the card keeps what it last had. Blocks, like {@link #requestPlan}.
+   */
+  public String requestDaily(String requestBody) {
+    if (accessEnded()) {
+      return null;
+    }
+    try {
+      Answer answer = post(dailyUrl, requestBody, PRACTICE_READ_TIMEOUT_MS);
+      if (answer.status == 200) {
+        return answer.body;
+      }
+      if (answer.body != null) {
+        noteRefusal(CoachReply.parse(answer.status, answer.body), answer);
+      }
+      return null;
+    } catch (IOException e) {
+      return null;
+    }
+  }
   /**
    * Enters an access code for this install. Blocks, like {@link #requestPlan}.
    *
@@ -491,11 +516,21 @@ public final class CoachClient {
    * rather than missing: an app that leaves it out has its plan's cases kept out of the sets.
    */
   static String practiceBody(CoachPayload payload, Collection<String> learned) {
+    return requestBody(payload, learned, Collections.<String>emptyList());
+  }
+
+  /**
+   * A practice or daily request: the payload, the cases cleared in a learning drill, and the cases
+   * {@code drilled_cases} names: for practice the daily drill's, which it leaves out, and for the
+   * daily drill the plan's, its focus.
+   */
+  static String requestBody(CoachPayload payload, Collection<String> learned,
+      Collection<String> drilled) {
     try {
       return new JSONObject()
           .put("payload", new JSONObject(payload.toJson()))
           .put("learned_cases", new JSONArray(learned))
-          .put("drilled_cases", new JSONArray())
+          .put("drilled_cases", new JSONArray(drilled))
           .toString();
     } catch (JSONException e) {
       throw new IllegalStateException(e); // toJson wrote it, so it parses

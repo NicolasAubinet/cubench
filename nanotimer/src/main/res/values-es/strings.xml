@@ -1789,4 +1789,23 @@
   <string name="coach_recap_setting_summary">Las resoluciones del día y cómo se movieron tus focos, los días que resuelves</string>
   <string name="coach_recap_time">Hora del resumen</string>
   <string name="coach_recap_time_summary">Desde las %1$s, cuando termine tu sesión</string>
+  <!-- The coach's daily drill, in the Plan tab's Today card and on the drill screen. -->
+  <string name="coach_daily_title">Drill del día</string>
+  <string name="coach_daily_reps">%1$d repeticiones · unos %2$d min</string>
+  <string name="coach_daily_start">Empezar el drill del día</string>
+  <string name="coach_daily_none">Nada pendiente hoy: tus OLL y PLL se mantienen.</string>
+  <string name="coach_daily_slip">Fallo</string>
+  <string name="coach_daily_pause">Lento al reconocer</string>
+  <string name="coach_daily_due">Sin ver</string>
+  <string name="coach_daily_focus">Foco del plan</string>
+  <string name="coach_daily_cost">Costoso</string>
+  <string name="coach_daily_today">hoy</string>
+  <string name="coach_daily_yesterday">ayer</string>
+  <string name="coach_daily_days_ago">hace %d d</string>
+  <string name="coach_daily_days">%d d</string>
+  <string name="coach_daily_progress">%1$s · %2$d de %3$d</string>
+  <string name="coach_daily_now">Ahora %s</string>
+  <string name="coach_daily_summary">%1$d casos, %2$d de %3$d repeticiones limpias.</string>
+  <string name="coach_daily_summary_back">De vuelta a Conocido: %s.</string>
+  <string name="coach_daily_summary_slipped">Fallados, vuelven mañana: %s.</string>
 </resources>

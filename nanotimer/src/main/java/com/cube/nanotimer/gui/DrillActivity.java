@@ -40,6 +40,7 @@ import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.drill.AlgorithmTimes;
 import com.cube.nanotimer.smartcube.drill.CaseTally;
+import com.cube.nanotimer.smartcube.drill.DailyRun;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
@@ -51,6 +52,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.drill.DrillSpec;
+import com.cube.nanotimer.gui.widget.CoachDailyView;
 import com.cube.nanotimer.gui.widget.DrillCasePips;
 import com.cube.nanotimer.gui.widget.DrillOutcomeStrip;
 import com.cube.nanotimer.gui.widget.DrillCaseTable;
@@ -122,6 +124,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The solve type whose recent solves lean an F2L pair drill's draw. Optional. */
   public static final String EXTRA_SOLVE_TYPE = "drillSolveType";
 
+  /** The coach's daily drill as {@link DailyRun#toJson} wrote it, dealt block by block. Optional. */
+  public static final String EXTRA_DAILY = "drillDaily";
+
   /** Runs only the spec's one case's choose step, and closes the screen when it is left. */
   private static final String EXTRA_CHOOSE_ONLY = "drillChooseOnly";
 
@@ -146,6 +151,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private static final String FAMILY_OLL = "oll_";
 
   private DrillSession session;
+  /** How the daily drill deals and what it has come to, or null for any other drill. */
+  private DailyRun dailyRun;
   /** What this drill is called, for the summary once the bar that named it has gone. */
   private String label;
   /** The face the user finishes on, which is the one the drawn cube has to stand on. */
@@ -442,6 +449,11 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   private void begin(DrillSpec spec, Map<String, Long> weights) {
     session = new DrillSession(spec, Utils.getRandom(), weights, layerFace);
+    String daily = getIntent().getStringExtra(EXTRA_DAILY);
+    if (daily != null) {
+      dailyRun = new DailyRun(DailyRun.dealable(DailyRun.parse(daily), session.getCases()));
+      session.setDealer(dailyRun);
+    }
     if (!chooseOnly) {
       Set<String> learned = Options.INSTANCE.getLearnedCases();
       learned.addAll(Options.INSTANCE.getLearnedPairCases());
@@ -640,6 +652,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    */
   private void onRepFinished(DrillRep rep) {
     recorder.record(rep);
+    if (dailyRun != null) {
+      dailyRun.record(rep);
+    }
     noteLearned(rep);
     AlgorithmTimes.Verdict timed = noteChooseTime(rep);
     showAlg.setVisibility(View.GONE); // no case is up during the beat; the next one brings it back
@@ -671,7 +686,55 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   private void holdThenNext() {
+    String next = dailyRun == null || session.getPracticeCase() != null ? null : dailyRun.next();
+    if (next != null && dailyRun.opensBlock(next)) {
+      // Never mixed: a change of family gets a titled pause, whatever the setting.
+      pauseThenNext(getString(R.string.coach_daily_now,
+          Utils.toSmartCubeStepLocalizedName(this, dailyRun.blockOf(next).getFamily(), 0)));
+      return;
+    }
     pauseThenNext(null);
+  }
+
+  /** The daily drill's block, how far into it, and why the case is here, under the title. */
+  private void showDailyProgress() {
+    String code = session.getCurrentCase();
+    if (dailyRun == null || code == null || session.getPracticeCase() != null
+        || getSupportActionBar() == null) {
+      return;
+    }
+    DailyRun.Block block = dailyRun.blockOf(code);
+    DailyRun.Entry entry = dailyRun.entry(code);
+    if (block == null || entry == null) {
+      return;
+    }
+    getSupportActionBar().setSubtitle(getString(R.string.coach_daily_progress,
+        Utils.toSmartCubeStepLocalizedName(this, block.getFamily(), 0),
+        dailyRun.repInBlock(block), dailyRun.repsInBlock(block))
+        + " · " + CoachDailyView.reason(this, entry, " "));
+  }
+
+  /** What the day came to: cases, clean reps, back to Known, and what slipped. */
+  private CharSequence dailySummary() {
+    StringBuilder note = new StringBuilder(getString(R.string.coach_daily_summary,
+        dailyRun.getCasesDealt(), dailyRun.getCleanReps(), dailyRun.getRepsDealt()));
+    if (!dailyRun.getBackToKnown().isEmpty()) {
+      note.append(' ').append(getString(R.string.coach_daily_summary_back,
+          caseNames(dailyRun.getBackToKnown())));
+    }
+    if (!dailyRun.getSlipped().isEmpty()) {
+      note.append(' ').append(getString(R.string.coach_daily_summary_slipped,
+          caseNames(dailyRun.getSlipped())));
+    }
+    return note;
+  }
+
+  private String caseNames(List<String> codes) {
+    List<String> names = new ArrayList<String>();
+    for (String code : codes) {
+      names.add(Utils.toSmartCubeCaseHeadline(this, code));
+    }
+    return joined(names);
   }
 
   /**
@@ -1478,6 +1541,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    * the case; the screen's cube and the algorithm's greying get them here.
    */
   private void caseShown() {
+    showDailyProgress();
     DrillSession.Shown shown = session.showCase(System.currentTimeMillis());
     if (shown.getTurns().isEmpty()) {
       return;
@@ -1673,12 +1737,18 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     practiceBack.setEnabled(false);
     practiceOffer.setVisibility(View.GONE);
     showSummaryFor(familyHue);
+    if (dailyRun != null && getSupportActionBar() != null) {
+      getSupportActionBar().setSubtitle(null); // the case it named is over
+    }
 
     // Before the figures give up: a drill where every case was skipped still has something to
     // report, which is which cases they were. It is also what prunes a rep, hence counted().
     DrillCaseTable table =
         new DrillCaseTable(this, session.getReps(), session.getSpec().getType(), this);
     showFigures(table.counted());
+    if (dailyRun != null) {
+      setSummaryNote(dailySummary());
+    }
   }
 
   /**
@@ -1689,6 +1759,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   public void onRepsPruned(int position, boolean deleted, List<DrillRep> counted) {
     recorder.setCaseRepDeleted(position, deleted);
     showFigures(counted);
+    if (dailyRun != null) {
+      setSummaryNote(dailySummary());
+    }
   }
 
   /** The card over the table, from the reps that count. Redrawn whenever that stops being all. */

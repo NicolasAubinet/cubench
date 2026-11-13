@@ -137,14 +137,17 @@ public final class CoachPractice {
       return;
     }
     List<String> learned = new ArrayList<String>(Options.INSTANCE.getLearnedCases());
-    String with = askedWith(learned);
+    // The daily drill's cases are left to it, so the sets are asked again once it is in.
+    List<String> daily = CoachDaily.keptCases(solveType);
+    String with = daily.isEmpty() ? askedWith(learned)
+        : askedWith(learned) + "|" + askedWith(daily);
     int id = solveType.getId();
     if (!due(Options.INSTANCE.getCoachPractice(id), Options.INSTANCE.getCoachPracticeAt(id),
         Options.INSTANCE.getCoachPracticeWith(id), System.currentTimeMillis(), with,
         TimeZone.getDefault())) {
       return;
     }
-    ask(client, solveType, method, learned, with, listener);
+    ask(client, solveType, method, learned, daily, with, listener);
   }
 
   /**
@@ -185,7 +188,8 @@ public final class CoachPractice {
   }
 
   private static void ask(final CoachClient client, final SolveType solveType, CubeMethod method,
-      final List<String> learned, final String with, final Listener listener) {
+      final List<String> learned, final List<String> daily, final String with,
+      final Listener listener) {
     final Handler main = new Handler(Looper.getMainLooper());
     final long askedAt = System.currentTimeMillis();
     App.INSTANCE.getService().getCoachPayload(solveType, method,
@@ -196,8 +200,8 @@ public final class CoachPractice {
             new Thread(new Runnable() {
               @Override
               public void run() {
-                String reply = client.requestPractice(CoachClient.practiceBody(
-                    payload.withLanguage(CoachAsk.planLanguage()), learned));
+                String reply = client.requestPractice(CoachClient.requestBody(
+                    payload.withLanguage(CoachAsk.planLanguage()), learned, daily));
                 final List<Set> sets = parse(reply);
                 if (reply == null && !client.hasAccess()) {
                   main.post(new Runnable() {

@@ -43,6 +43,7 @@ import com.cube.nanotimer.gui.widget.CoachPlanReportDialog;
 import com.cube.nanotimer.gui.widget.CoachPlanStatus;
 import com.cube.nanotimer.gui.widget.CoachPlanView;
 import com.cube.nanotimer.gui.widget.CoachTodayView;
+import com.cube.nanotimer.gui.widget.CoachDailyView;
 import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
@@ -63,7 +64,11 @@ import com.cube.nanotimer.util.coach.CoachBilling;
 import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlanWorker;
 import com.cube.nanotimer.util.coach.CoachPlans;
+import com.cube.nanotimer.util.coach.CoachDaily;
 import com.cube.nanotimer.util.coach.CoachPractice;
+import com.cube.nanotimer.coach.FocusArea;
+import com.cube.nanotimer.drill.DrillSpec;
+import com.cube.nanotimer.smartcube.drill.DailyRun;
 import com.cube.nanotimer.util.coach.CoachRead;
 import com.cube.nanotimer.util.coach.CoachReply;
 import com.cube.nanotimer.util.helper.Utils;
@@ -172,6 +177,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private CoachPlanView planView;
   private CoachPlanFeedbackView feedbackView;
   private CoachTodayView todayView;
+  private CoachDailyView dailyView;
   /** The plan on the Plan tab, read again into the Today card on every resume. */
   private StoredCoachPlan shownPlan;
   /** The plan last kept for this solve type, hidden while the status card stands alone. */
@@ -273,6 +279,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         solveType);
     feedbackView = new CoachPlanFeedbackView(this, solveType);
     todayView = new CoachTodayView(this, findViewById(R.id.llCoachToday));
+    dailyView = new CoachDailyView(this, findViewById(R.id.llCoachTodayDaily));
     wireRead();
     wireSample();
 
@@ -1233,6 +1240,34 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       return;
     }
     todayView.load(solveType, shownPlan);
+    showDaily();
+  }
+
+  /** Today's drill in the Today card: the kept answer at once, asked for once a day. */
+  private void showDaily() {
+    dailyView.show(solveType, CoachDaily.answeredToday(solveType) ? CoachDaily.kept(solveType)
+        : null);
+    List<String> focus = new ArrayList<String>();
+    for (FocusArea area : shownPlan.getPlan().getFocus()) {
+      if (area.getDrill() != null) {
+        try {
+          focus.addAll(DrillSpec.fromJson(area.getDrill()).getCases());
+        } catch (IllegalArgumentException e) {
+          // a drill this app cannot read has no focus cases to offer
+        }
+      }
+    }
+    CoachDaily.refresh(coachClient, solveType, method, focus, new CoachDaily.Listener() {
+      @Override
+      public void onDaily(List<DailyRun.Block> blocks) {
+        if (isFinishing() || shownPlan == null) {
+          return;
+        }
+        dailyView.show(solveType, blocks);
+        practiceAsked = false; // the sets leave the day's cases to it, so they are asked again
+        showRead();
+      }
+    });
   }
 
   /**
