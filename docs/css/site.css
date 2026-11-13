@@ -55,14 +55,11 @@ img { max-width: 100%; }
 .hero { position: relative; overflow: hidden; padding: 72px 0 56px; }
 .hero::before { content: ""; position: absolute; inset: -20% -10% auto; height: 120%; background: radial-gradient(600px 400px at 75% 40%, var(--accent-wash), transparent 70%); pointer-events: none; }
 .hero .wrap { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; position: relative; }
-.eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-ink); font-weight: 500; margin: 0; }
-.eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
-h1 { font-size: clamp(40px, 5.6vw, 68px); line-height: 1.04; letter-spacing: -.025em; font-weight: 900; margin: 18px 0 20px; }
-h1 em { font-style: normal; color: var(--accent-ink); }
+h1 { font-size: clamp(40px, 5.6vw, 68px); line-height: 1.04; letter-spacing: -.025em; font-weight: 900; margin: 0 0 28px; }
+/* Underline split as the hero solve: cross 13%, F2L 54%, OLL 13%, PLL 20%. */
+h1 em { font-style: normal; padding-bottom: .04em; background: linear-gradient(90deg, var(--cross) 0 13%, transparent 0 14%, var(--f2l) 0 67%, transparent 0 68%, var(--oll) 0 80%, transparent 0 81%, var(--pll) 0) left bottom / 100% .085em no-repeat; }
 .lede { font-size: 20px; color: var(--ink2); max-width: 34em; margin: 0 0 32px; }
 .cta { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
-.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 30px 0 0; padding: 0; list-style: none; color: var(--ink2); font-size: 15px; }
-.facts li::before { content: "✓"; color: var(--ok); margin-right: 7px; font-weight: 700; }
 
 .stage { position: relative; aspect-ratio: 1 / 1; border-radius: 28px; background: var(--stage); border: 1px solid rgba(255,255,255,.08); box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.05); color: #f2f4f5; }
 .stage .cube { position: absolute; left: 15%; top: 11%; width: 70%; height: 58%; }
@@ -119,17 +116,8 @@ ul.points li b { color: var(--ink); font-weight: 500; }
 .tile { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
 .tile h3 { margin: 0 0 6px; font-size: 18px; font-weight: 500; }
 .tile p { margin: 0; color: var(--ink2); font-size: 15px; }
-.tile .ic { width: 34px; height: 34px; border-radius: 10px; background: var(--accent-wash); color: var(--accent-ink); display: grid; place-items: center; font-weight: 700; margin-bottom: 14px; font-size: 15px; }
 
-.coach { margin-top: 30px; display: grid; grid-template-columns: auto 1fr auto; gap: 28px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 30px 34px; }
 .badge { font-size: 12px; font-weight: 700; letter-spacing: .1em; color: #12181c; background: var(--oll); border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
-.coach h3 { margin: 0 0 4px; font-size: 22px; }
-.coach p { margin: 0; color: var(--ink2); }
-.coach ul.points { margin: 14px 0; gap: 8px; }
-.coach { align-items: start; }
-.coach > .badge { margin-top: 5px; }
-.coach > .btn { align-self: center; }
-.coach ul.points li::before { background: var(--oll); }
 
 .teaser { display: flex; align-items: center; gap: 24px; justify-content: space-between; text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px 30px; color: var(--ink2); }
 .teaser b { color: var(--ink); font-weight: 500; }
@@ -207,12 +195,39 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
   .phones.three .phone:nth-child(1) { margin-right: -13vw; }
   .phones.three .phone:nth-child(3) { margin-left: -13vw; }
   .grid3, .cubes { grid-template-columns: 1fr; }
-  .coach { grid-template-columns: 1fr; gap: 14px; padding: 24px; }
-  .coach .badge { justify-self: start; }
   .teaser { flex-direction: column; align-items: flex-start; }
   .text p.sub { font-size: 20px; }
   .cmp th, .cmp td { padding: 10px 8px; font-size: 14px; }
   table.cmp { min-width: 880px; }
   .cmp tbody th, .cmp thead th:first-child { position: sticky; left: 0; background: var(--bg); z-index: 1; width: 110px; }
   .tablewrap { margin-inline: -24px; padding-inline: 24px; }
+}
+
+/* Timer tiles: a small real thing per tile instead of an icon. */
+.viz { height: 34px; margin-bottom: 14px; display: flex; align-items: center; }
+.viz.face { display: grid; grid-template-columns: repeat(3, 10px); grid-auto-rows: 10px; gap: 2px; width: max-content; }
+.viz.face i { height: 10px; border-radius: 2px; background: var(--c); }
+.viz.face i:nth-child(1), .viz.face i:nth-child(5), .viz.face i:nth-child(8) { --c: var(--f2l); }
+.viz.face i:nth-child(2), .viz.face i:nth-child(6) { --c: var(--pll); }
+.viz.face i:nth-child(3), .viz.face i:nth-child(7) { --c: var(--oll); }
+.viz.face i:nth-child(4), .viz.face i:nth-child(9) { --c: var(--cross); }
+.viz.scr { font-size: 15px; color: var(--accent-ink); letter-spacing: .02em; }
+.viz.split { gap: 3px; width: 150px; }
+.viz.split i { height: 8px; border-radius: 4px; }
+.viz.split i:nth-child(1) { flex: 13; background: var(--cross); }
+.viz.split i:nth-child(2) { flex: 54; background: var(--f2l); }
+.viz.split i:nth-child(3) { flex: 13; background: var(--oll); }
+.viz.split i:nth-child(4) { flex: 20; background: var(--pll); }
+
+.coach { margin-top: 30px; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 30px 34px; }
+.coach-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.coach h3 { margin: 0; font-size: 24px; line-height: 1.25; }
+.coach p { margin: 0; color: var(--ink2); }
+.coach-lede { margin-top: 8px !important; font-size: 18px; }
+.coach ul.points { grid-template-columns: 1fr 1fr; gap: 14px 36px; margin: 24px 0; }
+.coach ul.points li::before { background: var(--oll); }
+.coach-foot { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--line); font-size: 15px; }
+@media (max-width: 760px) {
+  .coach { padding: 24px; }
+  .coach ul.points { grid-template-columns: 1fr; }
 }
