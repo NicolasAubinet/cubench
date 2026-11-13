@@ -138,7 +138,9 @@ public class DurationRuler extends View {
       if (second) {
         String text = ms == 0 ? zeroLabel.toString() : String.valueOf(ms / SECOND_MS);
         label.setColor(ms == valueMs ? accent : strong);
-        canvas.drawText(text, tx, tickTop + length + 16 * density, label);
+        // Kept inside the view: a long word for "off" would run past its left edge
+        float lx = Math.max(tx, getPaddingLeft() + label.measureText(text) / 2);
+        canvas.drawText(text, lx, tickTop + length + 16 * density, label);
       }
     }
     canvas.drawCircle(x, y, 11 * density, thumb);

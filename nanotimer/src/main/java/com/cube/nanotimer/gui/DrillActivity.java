@@ -12,6 +12,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -266,6 +267,19 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       @Override
       public void onClick(View v) {
         endPause(false);
+      }
+    });
+    // The practice offer shows during the pause, under the catcher: a tap on it is still the offer's
+    pauseSkip.setOnTouchListener(new View.OnTouchListener() {
+      @Override
+      public boolean onTouch(View v, MotionEvent event) {
+        if (practiceOffer.getVisibility() != View.VISIBLE || !isOn(practiceOffer, event)) {
+          return false;
+        }
+        if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+          practiceOffer.performClick();
+        }
+        return true;
       }
     });
     casePips = findViewById(R.id.vDrillCasePips);
@@ -661,9 +675,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * Holds the finished rep before the next case: the beat alone with the pause turned off or in the
-   * choose step, which repeats one case; else the pause, with the rep brought forward. A title
-   * forces a pause, for a change of block.
+   * Holds the finished rep: the short beat with the pause off or in the choose step, else the pause.
+   * A title forces a pause, for a change of block.
    */
   private void pauseThenNext(CharSequence title) {
     stopHold();
@@ -684,6 +697,14 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       endPause(false);
     }
   };
+
+  private static boolean isOn(View view, MotionEvent event) {
+    int[] at = new int[2];
+    view.getLocationOnScreen(at);
+    float x = event.getRawX() - at[0];
+    float y = event.getRawY() - at[1];
+    return x >= 0 && y >= 0 && x < view.getWidth() && y < view.getHeight();
+  }
 
   /** Ends the pause: the next case is dealt once the cube is clear, or at once for a turn. */
   private void endPause(boolean now) {
@@ -1648,6 +1669,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return; // a cube unplugged on the summary screen must not re-run this over its own figures
     }
     finished = true;
+    stopHold(); // a pause still up would deal a case over the summary
     practiceBack.setEnabled(false);
     practiceOffer.setVisibility(View.GONE);
     showSummaryFor(familyHue);

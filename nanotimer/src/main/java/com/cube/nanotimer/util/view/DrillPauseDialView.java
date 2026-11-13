@@ -56,6 +56,7 @@ public class DrillPauseDialView extends View {
   private String[] labels = new String[0];
   private String[] figures = new String[0];
   private int[] figureColors = new int[0];
+  private float column;
   private float centreY;
   private float radius;
   private float figuresTop;
@@ -108,6 +109,11 @@ public class DrillPauseDialView extends View {
       labels[i] = part.getName(getContext()).toUpperCase(Locale.getDefault());
       figures[i] = FormatterService.INSTANCE.formatSolveTime(part.getMs());
       figureColors[i] = part.getFigureColor();
+    }
+    column = 0;
+    for (int i = 0; i < n; i++) {
+      column = Math.max(column, Math.max(label.measureText(labels[i]),
+          figure.measureText(figures[i])));
     }
     invalidate();
   }
@@ -219,10 +225,6 @@ public class DrillPauseDialView extends View {
       return;
     }
     int perRow = n <= 2 ? n : 2;
-    float column = 0;
-    for (int i = 0; i < n; i++) {
-      column = Math.max(column, Math.max(label.measureText(labels[i]), figure.measureText(figures[i])));
-    }
     float pitch = column + COLUMN_GAP_DP * density;
     float rowWidth = perRow * column + (perRow - 1) * COLUMN_GAP_DP * density;
     // Shrunk to the circle's width where the last row stands, for a large font

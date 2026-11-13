@@ -65,6 +65,8 @@ public final class DrillRepPause {
   private static final float FIGURES_GAP_DP = 10;
   /** Kept clear inside the ring round the name, time and figures. */
   private static final float INNER_PAD_DP = 18;
+  /** The least the name and time are scaled to, for a large font in a small dial. */
+  private static final float MIN_SCALE = 0.6f;
 
   /** Material's emphasized curves: a quick start that settles slowly, and its mirror. */
   private static final Interpolator SETTLE = new PathInterpolator(0.05f, 0.7f, 0.1f, 1f);
@@ -214,13 +216,14 @@ public final class DrillRepPause {
     float figuresGap = FIGURES_GAP_DP * density;
     float figures = dial.figuresHeight();
     float inner = 2 * (radius - INNER_PAD_DP * density);
-    float scale = Math.min(SCALE, (inner - figuresGap - figures) / head);
+    float scale = Math.max(MIN_SCALE, Math.min(SCALE, (inner - figuresGap - figures) / head));
     float headTop = centre - (head * scale + figuresGap + figures) / 2;
     float chord = 2 * (float) Math.sqrt(Math.max(0, square(radius) - square(centre - headTop)))
         - 2 * INNER_PAD_DP * density;
-    float headWidth = Math.max(widthOf(name), widthOf(time));
+    // The time's row, which holds a coach drill's verdict beside it
+    float headWidth = Math.max(widthOf(name), ((View) time.getParent()).getWidth());
     if (chord > 0 && headWidth * scale > chord) {
-      scale = chord / headWidth;
+      scale = Math.max(MIN_SCALE, chord / headWidth);
       headTop = centre - (head * scale + figuresGap + figures) / 2;
     }
     float pivot = line.getHeight() / 2f;
