@@ -1208,7 +1208,7 @@
   <string name="known_algorithms_status_to_learn">Para aprender</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Sin caso registrado</string>
-  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto. Si vuelves a hacerlo en 2-look, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
+  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto, o tras una serie de repeticiones limpias en un drill. Si vuelves a hacerlo en 2-look, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
   <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
   <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
   <string name="blind_setup_summary">%2$s, %1$s, búferes %3$s y %4$s</string>
@@ -1614,7 +1614,7 @@
   <string name="analysis_help_cases_title">Caso por caso</string>
   <string name="analysis_help_cases_body">Los casos del paso elegido que resolviste en un solo look, en el rango elegido arriba. Las resoluciones en dos looks no cuentan.</string>
   <string name="analysis_help_standing">Estado de un caso</string>
-  <string name="analysis_help_standing_body">Conocido: resuelto en un solo look y sin ayuda, hace poco, así que aún cuenta. Para repasar: antes salía en un solo look, pero las dos últimas veces necesitó dos. Para aprender: nunca ha salido en un solo look. Todo esto sale de tus resoluciones.</string>
+  <string name="analysis_help_standing_body">Conocido: resuelto en un solo look y sin ayuda, hace poco, así que aún cuenta. Para repasar: antes salía en un solo look, pero las dos últimas veces necesitó dos. Para aprender: nunca ha salido en un solo look. Todo esto sale de tus resoluciones y tus drills.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">En OLL, el botón Forma limita la tabla a un grupo de formas, con el número de casos de cada grupo al lado.</string>
   <string name="analysis_help_rest_body">Bajo la tabla, los casos que no resolviste en un solo look en este rango, agrupados según su estado en todas tus resoluciones. Toca uno para ver sus algoritmos.</string>

@@ -1209,7 +1209,7 @@
   <string name="known_algorithms_status_to_learn">À apprendre</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
   <string name="known_algorithms_no_moves">Aucun cas enregistré</string>
-  <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas est connu dès que vous le faites en un seul algorithme dans une résolution. Si vous le reprenez en 2-look, il est à revoir ; un cas que vous n\'avez jamais fait en un seul algorithme reste à apprendre.</string>
+  <string name="known_algorithms_hint">Touchez un cas pour voir ses algorithmes. Un cas est connu dès que vous le faites en un seul algorithme dans une résolution, ou après une série de répétitions propres en drill. Si vous le reprenez en 2-look, il est à revoir ; un cas que vous n\'avez jamais fait en un seul algorithme reste à apprendre.</string>
   <string name="known_algorithms_empty">Rien ici pour l\'instant. Résolvez avec votre smart cube et les cas que vous faites sans aide apparaîtront.</string>
   <string name="known_algorithms_reading">Lecture de vos résolutions...</string>
   <string name="blind_setup_summary">%2$s, %1$s, buffers %3$s et %4$s</string>
@@ -1615,7 +1615,7 @@
   <string name="analysis_help_cases_title">Cas par cas</string>
   <string name="analysis_help_cases_body">Les cas de l\'étape choisie que vous avez faits en un seul look, sur la période indiquée en haut. Les résolutions en deux looks ne comptent pas.</string>
   <string name="analysis_help_standing">Où en est un cas</string>
-  <string name="analysis_help_standing_body">Connu : fait en un seul look, sans aide, assez récemment pour compter. À revoir : fait en un seul look avant, mais en deux looks les deux dernières fois. À apprendre : jamais fait en un seul look. Tout est tiré de vos résolutions.</string>
+  <string name="analysis_help_standing_body">Connu : fait en un seul look, sans aide, assez récemment pour compter. À revoir : fait en un seul look avant, mais en deux looks les deux dernières fois. À apprendre : jamais fait en un seul look. Tout est tiré de vos résolutions et de vos drills.</string>
   <string name="analysis_help_shape">Forme</string>
   <string name="analysis_help_shape_body">En OLL, le bouton Forme limite le tableau à un groupe de formes, avec le nombre de cas de chaque groupe.</string>
   <string name="analysis_help_rest_body">Sous le tableau, les cas que vous n\'avez pas faits en un seul look sur cette période, classés selon où ils en sont sur l\'ensemble de vos résolutions. Touchez-en un pour voir ses algorithmes.</string>
