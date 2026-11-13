@@ -8,6 +8,8 @@
 
 A free, open-source speedcubing timer and trainer for Android, formerly Nano Timer, on Google Play since 2014. No ads, no account: your solves stay on your phone.
 
+Website and press kit: [cubench.app](https://cubench.app)
+
 ## Timer
 
 * Scrambles for 2x2 to 7x7, Megaminx, Pyraminx, Skewb, Square-1, Clock and FTO

@@ -56,7 +56,7 @@ public class Utils {
   private static final String MEMO_CODE = "memo";
 
   public static final String PRIVACY_POLICY_URL =
-      "https://github.com/NicolasAubinet/cubench/blob/master/privacy_policy.md";
+      "https://cubench.app/privacy.html";
   public static final String LANGUAGE_PREFS_NAME = "language";
   public static final String LANGUAGE_PREF_KEY = "picked";
 
