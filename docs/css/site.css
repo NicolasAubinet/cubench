@@ -125,6 +125,11 @@ ul.points li b { color: var(--ink); font-weight: 500; }
 .badge { font-size: 12px; font-weight: 700; letter-spacing: .1em; color: #12181c; background: var(--oll); border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
 .coach h3 { margin: 0 0 4px; font-size: 22px; }
 .coach p { margin: 0; color: var(--ink2); }
+.coach ul.points { margin: 14px 0; gap: 8px; }
+.coach { align-items: start; }
+.coach > .badge { margin-top: 5px; }
+.coach > .btn { align-self: center; }
+.coach ul.points li::before { background: var(--oll); }
 
 .teaser { display: flex; align-items: center; gap: 24px; justify-content: space-between; text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px 30px; color: var(--ink2); }
 .teaser b { color: var(--ink); font-weight: 500; }
