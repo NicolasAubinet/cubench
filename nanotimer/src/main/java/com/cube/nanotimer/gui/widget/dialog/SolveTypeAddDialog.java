@@ -48,7 +48,6 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   /** The chosen blind method's code, empty to follow the preferred one. Only a blind type has one. */
   public static final String KEY_BLIND_METHOD = "key_blindMethod";
 
-  private static final String ARG_FIELD_CREATOR = "fieldCreator";
   private static final String ARG_CUBE_TYPE = "cubeType";
   private static final String ARG_EDIT = "edit";
   private static final String ARG_EDIT_POSITION = "editPosition";
@@ -93,25 +92,22 @@ public class SolveTypeAddDialog extends ConfirmDialog {
   // The quick actions that apply to this cube type, in spinner order.
   private final List<TimerQuickAction> quickActions = new ArrayList<>();
 
-  public static SolveTypeAddDialog newInstance(FieldCreator fieldCreator, CubeType cubeType) {
+  public static SolveTypeAddDialog newInstance(CubeType cubeType) {
     SolveTypeAddDialog frag = new SolveTypeAddDialog();
     Bundle args = new Bundle();
-    args.putSerializable(ARG_FIELD_CREATOR, fieldCreator);
     args.putString(ARG_CUBE_TYPE, cubeType.toString());
     frag.setArguments(args);
     return frag;
   }
 
   // Opens the same dialog pre-filled with an existing solve type's info, to edit it in place.
-  // fieldEditor must also implement FieldCreator (they are the same object) - it is stored once.
   // scrambleTypeName is the name of the solve type's scramble type, or null for the default scramble.
-  public static <T extends FieldCreator & FieldEditor> SolveTypeAddDialog newInstanceForEdit(
-      T fieldEditor, CubeType cubeType, int position, String name, boolean blind, boolean inspection,
+  public static SolveTypeAddDialog newInstanceForEdit(
+      CubeType cubeType, int position, String name, boolean blind, boolean inspection,
       String scrambleTypeName, TimerQuickAction quickAction, CubeMethod method,
       BlindMethod blindMethod) {
     SolveTypeAddDialog frag = new SolveTypeAddDialog();
     Bundle args = new Bundle();
-    args.putSerializable(ARG_FIELD_CREATOR, fieldEditor);
     args.putString(ARG_CUBE_TYPE, cubeType.toString());
     args.putBoolean(ARG_EDIT, true);
     args.putInt(ARG_EDIT_POSITION, position);
@@ -466,10 +462,10 @@ public class SolveTypeAddDialog extends ConfirmDialog {
 
     boolean confirmed;
     if (isEditMode()) {
-      FieldEditor fieldEditor = (FieldEditor) getArguments().getSerializable(ARG_FIELD_CREATOR);
+      FieldEditor fieldEditor = host(FieldEditor.class);
       confirmed = fieldEditor.editField(getArguments().getInt(ARG_EDIT_POSITION), tfName.getText().toString(), props);
     } else {
-      FieldCreator fieldCreator = (FieldCreator) getArguments().getSerializable(ARG_FIELD_CREATOR);
+      FieldCreator fieldCreator = host(FieldCreator.class);
       confirmed = fieldCreator.createField(tfName.getText().toString(), props);
     }
     if (confirmed) {

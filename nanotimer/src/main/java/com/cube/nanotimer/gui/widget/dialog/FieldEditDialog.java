@@ -11,14 +11,12 @@ public class FieldEditDialog extends ConfirmDialog {
   private int pos;
   private EditText tfName;
 
-  private static final String ARG_FIELD_RENAMER = "fieldRenamer";
   private static final String ARG_POS = "pos";
   private static final String ARG_DEFAULT_NAME = "defaultName";
 
-  public static FieldEditDialog newInstance(FieldRenamer fieldRenamer, int pos, String defaultName) {
+  public static FieldEditDialog newInstance(int pos, String defaultName) {
     FieldEditDialog frag = new FieldEditDialog();
     Bundle args = new Bundle();
-    args.putSerializable(ARG_FIELD_RENAMER, fieldRenamer);
     args.putInt(ARG_POS, pos);
     args.putString(ARG_DEFAULT_NAME, defaultName);
     frag.setArguments(args);
@@ -41,7 +39,7 @@ public class FieldEditDialog extends ConfirmDialog {
 
   @Override
   protected void onConfirm() {
-    FieldRenamer fieldRenamer = (FieldRenamer) getArguments().getSerializable(ARG_FIELD_RENAMER);
+    FieldRenamer fieldRenamer = host(FieldRenamer.class);
     if (fieldRenamer.renameField(pos, tfName.getText().toString())) {
       dialog.dismiss();
     }

@@ -43,13 +43,11 @@ public class AddStepsDialog extends NanoTimerDialogFragment implements FieldRena
   private static final int ACTION_RENAME = 0;
   private static final int ACTION_DELETE = 1;
 
-  private static final String ARG_STEPS_CREATOR = "stepsCreator";
   private static final String ARG_POS = "pos";
 
-  public static AddStepsDialog newInstance(StepsCreator stepsCreator, int pos) {
+  public static AddStepsDialog newInstance(int pos) {
     AddStepsDialog frag = new AddStepsDialog();
     Bundle args = new Bundle();
-    args.putSerializable(ARG_STEPS_CREATOR, stepsCreator);
     args.putInt(ARG_POS, pos);
     frag.setArguments(args);
     return frag;
@@ -152,7 +150,7 @@ public class AddStepsDialog extends NanoTimerDialogFragment implements FieldRena
     if (liSteps.size() < 2) {
       DialogUtils.showInfoMessage(getActivity(), R.string.min_steps_count_not_reached);
     } else {
-      StepsCreator stepsCreator = (StepsCreator) getArguments().getSerializable(ARG_STEPS_CREATOR);
+      StepsCreator stepsCreator = host(StepsCreator.class);
       stepsCreator.addSteps(liSteps, pos);
       dismiss();
     }
@@ -172,8 +170,8 @@ public class AddStepsDialog extends NanoTimerDialogFragment implements FieldRena
             AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuItem.getMenuInfo();
             switch (menuItem.getItemId()) {
               case ACTION_RENAME:
-                FieldEditDialog fieldDialog = FieldEditDialog.newInstance(AddStepsDialog.this, info.position, liSteps.get(info.position));
-                DialogUtils.showFragment(getActivity(), fieldDialog);
+                FieldEditDialog fieldDialog = FieldEditDialog.newInstance(info.position, liSteps.get(info.position));
+                fieldDialog.show(getChildFragmentManager(), "dialog"); // a child, so it finds this as its host
                 break;
               case ACTION_DELETE:
                 liSteps.remove(info.position);

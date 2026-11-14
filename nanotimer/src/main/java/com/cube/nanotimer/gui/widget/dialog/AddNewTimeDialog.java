@@ -29,15 +29,13 @@ public class AddNewTimeDialog extends ConfirmDialog {
   private EditText tfScramble;
   private SwitchCompat cbDNF;
 
-  private static final String ARG_RESULT_LISTENER = "resultListener";
   private static final String ARG_SOLVE_TYPE = "solveType";
   private static final String ARG_SCRAMBLE = "scramble";
 
-  public static AddNewTimeDialog newInstance(ResultListener resultListener, SolveType solveType, String scramble) {
+  public static AddNewTimeDialog newInstance(SolveType solveType, String scramble) {
     AddNewTimeDialog frag = new AddNewTimeDialog();
 
     Bundle args = new Bundle();
-    args.putSerializable(ARG_RESULT_LISTENER, resultListener);
     args.putSerializable(ARG_SOLVE_TYPE, solveType);
     args.putString(ARG_SCRAMBLE, scramble);
     frag.setArguments(args);
@@ -79,7 +77,7 @@ public class AddNewTimeDialog extends ConfirmDialog {
     }
 
     Bundle args = getArguments();
-    final ResultListener resultListener = (ResultListener) args.getSerializable(ARG_RESULT_LISTENER) ;
+    final ResultListener resultListener = host(ResultListener.class);
     SolveType solveType = (SolveType) args.getSerializable(ARG_SOLVE_TYPE);
     String scramble = tfScramble.getText().toString().trim();
     if (scramble.isEmpty()) {

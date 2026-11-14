@@ -1254,7 +1254,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         case R.id.itAddTime:
           if (currentScramble != null) {
             String scramble = ScrambleFormatterService.INSTANCE.formatScrambleAsSingleLine(currentScramble, cubeType);
-            AddNewTimeDialog dialog = AddNewTimeDialog.newInstance(this, solveType, scramble);
+            AddNewTimeDialog dialog = AddNewTimeDialog.newInstance(solveType, scramble);
             DialogUtils.showFragment(this, dialog);
           } else {
             DialogUtils.showShortInfoMessage(this, R.string.can_not_add_time_while_generating);

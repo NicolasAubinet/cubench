@@ -1,7 +1,5 @@
 package com.cube.nanotimer.gui.widget;
 
-import java.io.Serializable;
-
-public interface ResultListener extends Serializable {
+public interface ResultListener {
   void onResult(Object... params);
 }

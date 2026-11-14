@@ -164,7 +164,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
   }
 
   private void showAddDialog() {
-    SolveTypeAddDialog dialog = SolveTypeAddDialog.newInstance(this, curCubeType);
+    SolveTypeAddDialog dialog = SolveTypeAddDialog.newInstance(curCubeType);
     DialogUtils.showFragment(this, dialog);
   }
 
@@ -234,7 +234,7 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
       SolveType solveType = liSolveTypes.get(position);
       String solveTypeName = Utils.toSolveTypeLocalizedName(this, solveType.getName());
       String scrambleTypeName = (solveType.getScrambleType() != null) ? solveType.getScrambleType().getName() : null;
-      SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(this, curCubeType, position,
+      SolveTypeAddDialog editDialog = SolveTypeAddDialog.newInstanceForEdit(curCubeType, position,
           solveTypeName, solveType.isBlind(), solveType.hasInspection(), scrambleTypeName,
           solveType.getQuickAction(), solveType.getMethodOverride(),
           solveType.getBlindMethodOverride());
@@ -290,12 +290,12 @@ public class SolveTypesActivity extends NanoTimerActivity implements SelectionHa
           @Override
           public void run() {
             if (data.getSolveTimes().isEmpty()) {
-              DialogUtils.showFragment(SolveTypesActivity.this, AddStepsDialog.newInstance(SolveTypesActivity.this, position));
+              DialogUtils.showFragment(SolveTypesActivity.this, AddStepsDialog.newInstance(position));
             } else {
               DialogUtils.showYesNoConfirmation(SolveTypesActivity.this, R.string.solvetype_has_times_addsteps, new YesNoListener() {
                 @Override
                 public void onYes() {
-                  DialogUtils.showFragment(SolveTypesActivity.this, AddStepsDialog.newInstance(SolveTypesActivity.this, position));
+                  DialogUtils.showFragment(SolveTypesActivity.this, AddStepsDialog.newInstance(position));
                 }
               });
             }
