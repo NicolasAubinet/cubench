@@ -552,7 +552,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     marks.setLayoutParams(markParams);
     // Only the execution says this, and only the one they turn most: a tap says which one they mean
     // to use, not which one they do.
-    if (one != null && one == turned.get(0)) {
+    // On the starred row "The one you use" repeats the star; it shows only where the two differ.
+    if (one != null && one == turned.get(0) && (used != null || !declared)) {
       marks.addView(chip(used != null ? R.string.case_algorithm_used : R.string.case_algorithm_mine,
           true));
     }
