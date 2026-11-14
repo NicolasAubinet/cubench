@@ -93,6 +93,7 @@
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_marginTop="14dp"
+     android:id="@+id/tvCaseAlgorithmsOrder"
      android:text="@string/case_algorithms_order"
      android:textColor="@color/secondary_text"
      android:textSize="12sp"/>

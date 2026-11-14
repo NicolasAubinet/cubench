@@ -28,6 +28,7 @@ import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachPlans;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.usage.UsageSharing;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveType;
@@ -77,6 +78,7 @@ public class OptionsActivity extends NanoTimerActivity {
 
       showCoach();
       guardPreferredMethod();
+      showUsageSharing();
 
       // Null when the reflection-based PreferenceFragment could not build its manager, which it
       // swallows rather than crashing on.
@@ -244,6 +246,32 @@ public class OptionsActivity extends NanoTimerActivity {
               showCoachCode(code);
             }
           }));
+          return true;
+        }
+      });
+    }
+
+    /** The usage sharing switch, in a build that can share; turning it off forgets what was sent. */
+    private void showUsageSharing() {
+      PreferenceCategory smartCube = (PreferenceCategory) findPreference("smart_cube_category");
+      Preference sharing = findPreference(Options.USAGE_SHARING_ON_KEY);
+      if (smartCube == null || sharing == null) {
+        return;
+      }
+      if (!UsageSharing.isOffered(getActivity())) {
+        smartCube.removePreference(sharing);
+        return;
+      }
+      sharing.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object value) {
+          boolean on = (Boolean) value;
+          Options.INSTANCE.setUsageSharingOn(on); // read by what follows, before the switch saves it
+          if (on) {
+            UsageSharing.turnedOn(getActivity());
+          } else {
+            UsageSharing.turnedOff(getActivity());
+          }
           return true;
         }
       });

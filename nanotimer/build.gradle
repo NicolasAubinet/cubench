@@ -7,8 +7,8 @@ def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withInputStream { localProperties.load(it) }
 }
-// Both become string resources, where a leading @ or ? is a reference and a quote breaks the file.
-['coach.url', 'coach.token'].each { key ->
+// These become string resources, where a leading @ or ? is a reference and a quote breaks the file.
+['coach.url', 'coach.token', 'integrity.project'].each { key ->
     def value = localProperties.getProperty(key, '')
     if (!(value ==~ /[A-Za-z0-9._~:\/=+-]*/)) {
         throw new GradleException("local.properties: $key holds a character a string resource cannot carry")
@@ -25,6 +25,8 @@ if (!gateMatch.find()) {
 def releaseCoach = gateMatch.group(1) == 'true'
 def releaseCoachUrl = releaseCoach ? localProperties.getProperty('coach.url', '') : ''
 def releaseCoachToken = releaseCoach ? localProperties.getProperty('coach.token', '') : ''
+// The Cloud project number Play Integrity tokens are made for (usage sharing). Not a secret.
+def integrityProject = localProperties.getProperty('integrity.project', '')
 // The Plan tab's test purchase buttons, which a release shows only when coach.purchase.debug=true:
 // Play sells to the release package alone, so a debug build cannot try a purchase.
 def releasePurchaseDebug = releaseCoach && localProperties.getProperty('coach.purchase.debug', '') == 'true'
@@ -76,6 +78,7 @@ android {
             resValue 'string', 'coach_token',
                 project.hasProperty('noCoachToken') ? '' : localProperties.getProperty('coach.token', '')
             resValue 'bool', 'coach_purchase_debug', 'true'
+            resValue 'string', 'usage_integrity_project', integrityProject
         }
         release {
             // The owner's own APK only, while the gate is on (see releaseCoach). Until each install
@@ -83,6 +86,7 @@ android {
             resValue 'string', 'coach_url', releaseCoachUrl
             resValue 'string', 'coach_token', releaseCoachToken
             resValue 'bool', 'coach_purchase_debug', releasePurchaseDebug.toString()
+            resValue 'string', 'usage_integrity_project', integrityProject
             if (releaseStoreFile) {
                 signingConfig signingConfigs.release
             }
@@ -127,6 +131,7 @@ dependencies {
     implementation 'com.google.android.play:review:2.0.2' // Play In-App Review API
     implementation 'androidx.work:work-runtime:2.10.5' // the weekly coach plan; 2.11 needs API 23
     implementation 'com.android.billingclient:billing:8.0.0' // 8.1 needs API 23
+    implementation 'com.google.android.play:integrity:1.4.0' // algorithm usage sharing
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 

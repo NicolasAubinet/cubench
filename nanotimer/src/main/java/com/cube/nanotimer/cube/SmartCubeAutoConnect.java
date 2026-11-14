@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.Options;
+import com.cube.nanotimer.util.usage.UsageSharing;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 
@@ -105,6 +106,7 @@ public enum SmartCubeAutoConnect {
       DiscoveredCube device = SmartCubeManager.INSTANCE.getConnectedDevice();
       if (device != null) {
         Options.INSTANCE.setSmartCubeLastId(device.getId());
+        UsageSharing.schedule(context); // here, once the id it checks for is saved
       }
     } else if (connection == CubeConnection.LOST && previous == CubeConnection.READY
         && startedActivities > 0) {

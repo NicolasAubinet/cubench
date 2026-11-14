@@ -40,7 +40,7 @@ import java.util.Map;
 public final class CaseExecutions {
 
   /** How many of a case's answers are looked at. Enough to see which is the usual one. */
-  private static final int PER_CASE = 5;
+  static final int PER_CASE = 5;
 
   /** A pair placed in a way no case is named for ({@code pair_other_rf}). */
   private static final String UNNAMED_PAIR = "other";

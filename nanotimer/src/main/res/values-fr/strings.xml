@@ -877,6 +877,8 @@
   <string name="smart_cube_auto_stop_summary">Arrêter le chrono dès que le cube est résolu, plutôt que sur une pression</string>
   <string name="smart_cube_auto_penalty">+2 et DNF automatiques</string>
   <string name="smart_cube_auto_penalty_summary">Donner un +2 à une résolution arrêtée à un mouvement du résolu, et un DNF à une résolution arrêtée plus loin</string>
+  <string name="usage_sharing">Partager les algorithmes que j\'utilise</string>
+  <string name="usage_sharing_summary">Envoie l\'algorithme que vous exécutez pour chaque cas, sous un identifiant aléatoire, pour montrer ceux que les cubeurs utilisent.</string>
   <string name="drill_pause_setting">Pause entre les cas des drills</string>
   <string name="drill_pause_off">Aucune</string>
   <string name="drill_pause_seconds">%1$s s</string>
@@ -1117,6 +1119,9 @@
   <string name="case_slot_front_right">Avant droit</string>
   <string name="case_slot_front_left">Avant gauche</string>
   <string name="case_algorithms_order">Les recommandés d\'abord. Touchez celui que vous utilisez.</string>
+  <string name="case_algorithms_order_usage">Les plus utilisés d\'abord : la part des utilisateurs Cubench avec un smart cube qui exécutent chacun. Touchez celui que vous utilisez.</string>
+  <string name="case_algorithm_share">%1$d %%</string>
+  <string name="case_algorithm_share_small" formatted="false">&lt;1 %</string>
   <string name="case_algorithm_empty_fl">Nécessite le slot avant gauche vide</string>
   <string name="case_algorithm_empty_br">Nécessite le slot arrière droit vide</string>
   <string name="case_algorithms_pair_open">Algorithmes pour cette paire</string>

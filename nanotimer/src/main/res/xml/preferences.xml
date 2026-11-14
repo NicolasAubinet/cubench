@@ -172,6 +172,13 @@
        android:summary="@string/smart_cube_auto_penalty_summary"
        android:defaultValue="@bool/smart_cube_auto_penalty"/>
 
+    <!-- Only in a build with a coach address. Off asks the service to forget what it was sent. -->
+    <SwitchPreference
+       android:key="usage_sharing_on"
+       android:title="@string/usage_sharing"
+       android:summary="@string/usage_sharing_summary"
+       android:defaultValue="true"/>
+
     <com.cube.nanotimer.gui.widget.preferences.DrillPauseDialog
        android:key="drill_pause"
        android:title="@string/drill_pause_setting"
