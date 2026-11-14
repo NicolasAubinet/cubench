@@ -69,19 +69,30 @@ public class AlgorithmVotesTest {
   public void sendsOnlyTheVotesThatChanged() {
     Map<String, String> reported = new HashMap<String, String>();
     reported.put("oll_27", "R U R' U R U2 R'");
-    reported.put("pll_t", "old");
-    reported.put("pll_y", "kept");
+    reported.put("pll_t", "R U R' U' R' F R2 U' R' U' R U R' F'");
+    reported.put("pll_y", "F R U' R' U' R U R' F' R U R' U' R' F R F'");
     Map<String, String> current = new HashMap<String, String>();
     current.put("oll_27", "R U R' U R U2 R'");
-    current.put("pll_t", "new");
-    current.put("pll_aa", "first");
+    current.put("pll_t", "R U R' U' R' F R2 U' R' U R U R' F'");
+    current.put("pll_aa", "x R' U R' D2 R U' R' D2 R2 x'");
 
     Map<String, String> changed = AlgorithmVotes.changedSince(current, reported);
 
     assertEquals(2, changed.size());
-    assertEquals("new", changed.get("pll_t"));
-    assertEquals("first", changed.get("pll_aa"));
+    assertTrue(changed.containsKey("pll_t"));
+    assertTrue(changed.containsKey("pll_aa"));
     assertEquals(current, AlgorithmVotes.changedSince(current, null));
+  }
+
+  /** The same algorithm spelled another way after a regrip is not a new vote. */
+  @Test
+  public void aRespelledVoteIsNotSentAgain() {
+    Map<String, String> reported = new HashMap<String, String>();
+    reported.put("oll_27", "R U R' U R U2 R'");
+    Map<String, String> current = new HashMap<String, String>();
+    current.put("oll_27", "F R F R' F R F2 R'");
+
+    assertTrue(AlgorithmVotes.changedSince(current, reported).isEmpty());
   }
 
   private static List<SolveTime> times(int count, String moves) {

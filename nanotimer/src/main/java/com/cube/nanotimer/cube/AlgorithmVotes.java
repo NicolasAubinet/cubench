@@ -33,8 +33,6 @@ public final class AlgorithmVotes {
   /** How many of a case's answers the top one must be before it is a vote. */
   static final int MIN_TIMES = 2;
 
-  private static final String RESTART_PART_SUFFIX = "restart";
-
   private AlgorithmVotes() {
   }
 
@@ -67,15 +65,18 @@ public final class AlgorithmVotes {
   }
 
   /**
-   * The cases whose vote is new or differs from the one last reported, to send. A case missing from
-   * {@code current} is left out rather than withdrawn: its last vote still stands on the server.
+   * The cases whose vote is new or turns differently from the one last reported, to send. Compared
+   * by turning, since an unusual algorithm is spelled from its latest execution and a regrip can
+   * respell it. A case missing from {@code current} is left out rather than withdrawn: its last vote
+   * still stands on the server.
    */
   public static Map<String, String> changedSince(Map<String, String> current,
       Map<String, String> reported) {
     Map<String, String> changed = new TreeMap<String, String>();
     for (Map.Entry<String, String> vote : current.entrySet()) {
       String before = reported == null ? null : reported.get(vote.getKey());
-      if (!vote.getValue().equals(before)) {
+      if (before == null || !(before.equals(vote.getValue())
+          || CaseAlgorithms.sameTurning(vote.getKey(), before, vote.getValue()))) {
         changed.put(vote.getKey(), vote.getValue());
       }
     }
@@ -105,7 +106,7 @@ public final class AlgorithmVotes {
     int only = -1;
     for (int i = 0; i < parts.size(); i++) {
       String name = parts.get(i).getName();
-      if (name != null && name.endsWith(RESTART_PART_SUFFIX)) {
+      if (name != null && name.endsWith(SolveReading.RESTART_PART_SUFFIX)) {
         continue;
       }
       if (only >= 0) {
