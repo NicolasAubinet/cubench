@@ -971,6 +971,7 @@
   <string name="drill_reset">Reset</string>
   <string name="drill_skip">Skip</string>
   <string name="drill_done">Done</string>
+  <string name="drill_again">Again</string>
   <string name="drill_finished">Drill finished</string>
   <string name="drill_rep_skipped">Skipped</string>
   <string name="drill_summary_nothing_timed">Nothing was timed</string>

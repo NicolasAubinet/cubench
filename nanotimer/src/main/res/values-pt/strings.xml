@@ -945,6 +945,7 @@
   <string name="drill_reset">Recomeçar</string>
   <string name="drill_skip">Pular</string>
   <string name="drill_done">Concluído</string>
+  <string name="drill_again">De novo</string>
   <string name="drill_finished">Treino terminado</string>
   <string name="drill_rep_skipped">Pulada</string>
   <string name="drill_summary_nothing_timed">Nada foi cronometrado</string>

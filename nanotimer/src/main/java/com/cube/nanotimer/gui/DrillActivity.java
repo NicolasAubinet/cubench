@@ -1786,6 +1786,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (dailyRun != null && getSupportActionBar() != null) {
       getSupportActionBar().setSubtitle(null); // the case it named is over
     }
+    if (dailyRun != null) {
+      findViewById(R.id.btDrillAgain).setVisibility(View.GONE); // the day's set is dealt once
+    }
 
     // Before the figures give up: a drill where every case was skipped still has something to
     // report, which is which cases they were. It is also what prunes a rep, hence counted().

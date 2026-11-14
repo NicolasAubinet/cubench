@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Under a drill summary: Again as a square beside Done, so the same drill is one press away. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:layout_marginTop="12dp"
+   android:layout_marginLeft="@dimen/space_m"
+   android:layout_marginRight="@dimen/space_m"
+   android:layout_marginBottom="16dp"
+   android:orientation="horizontal">
+
+  <!-- 51dp tall with a 3dp bottom gap: Done's face, without the glow its drawable paints below. -->
+  <ImageButton
+     android:id="@+id/btDrillAgain"
+     android:layout_width="54dp"
+     android:layout_height="51dp"
+     android:layout_marginRight="10dp"
+     android:layout_marginBottom="3dp"
+     android:background="@drawable/accent_ghost_button"
+     android:contentDescription="@string/drill_again"
+     android:scaleType="center"
+     android:src="@drawable/ic_drill_reset"
+     android:tint="@color/lightblue"/>
+
+  <androidx.appcompat.widget.AppCompatButton
+     android:id="@+id/btDrillDone"
+     style="@style/HeroStartButton"
+     android:layout_width="0dp"
+     android:layout_weight="1"
+     android:text="@string/drill_done"/>
+</LinearLayout>

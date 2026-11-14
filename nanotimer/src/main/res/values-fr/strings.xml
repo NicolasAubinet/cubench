@@ -943,6 +943,7 @@
   <string name="drill_reset">Recommencer</string>
   <string name="drill_skip">Passer</string>
   <string name="drill_done">Terminé</string>
+  <string name="drill_again">Refaire</string>
   <string name="drill_finished">Drill terminé</string>
   <string name="drill_rep_skipped">Passé</string>
   <string name="drill_summary_nothing_timed">Rien n\'a été chronométré</string>

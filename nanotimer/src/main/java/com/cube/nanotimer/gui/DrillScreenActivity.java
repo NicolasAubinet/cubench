@@ -1,5 +1,6 @@
 package com.cube.nanotimer.gui;
 
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -213,6 +214,13 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     // Shown because it cannot be changed from here: a set drilled loosely must not be claimable as
     // a result at the end, so the user has to be able to see which mode they locked in.
     ((TextView) findViewById(R.id.tvDrillMode)).setText(modeName());
+
+    // The intent is the whole drill, so the same one opened again is the same drill from rep 1
+    findViewById(R.id.btDrillAgain).setOnClickListener(v -> {
+      Intent again = new Intent(getIntent());
+      finish();
+      startActivity(again);
+    });
 
     // Hands stay on the cube for a whole drill, so nothing here ever touches the screen.
     runningLayout.setKeepScreenOn(true);

@@ -92,14 +92,7 @@
     </LinearLayout>
   </ScrollView>
 
-    <androidx.appcompat.widget.AppCompatButton
-       android:id="@+id/btDrillDone"
-       style="@style/HeroStartButton"
-       android:layout_marginTop="12dp"
-       android:layout_marginLeft="@dimen/space_m"
-       android:layout_marginRight="@dimen/space_m"
-       android:layout_marginBottom="16dp"
-       android:text="@string/drill_done"/>
+    <include layout="@layout/drill_summary_actions"/>
 
   </LinearLayout>
 
