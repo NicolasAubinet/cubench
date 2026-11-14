@@ -49,6 +49,7 @@ public class StepTallies {
   private final Map<String, StepStats> tallies = new LinkedHashMap<String, StepStats>();
   private final Map<String, Integer> rejected = new LinkedHashMap<String, Integer>();
   private final Map<String, Boolean> parts = new LinkedHashMap<String, Boolean>();
+  private final Map<String, List<StepSample>> fumbles = new HashMap<String, List<StepSample>>();
 
   /** @param samples in the order their codes should be listed in, first occurrence first */
   public StepTallies(List<StepSample> samples) {
@@ -72,6 +73,14 @@ public class StepTallies {
     dropFollowers(samples, tooLong, dropped);
     for (Map.Entry<String, List<StepSample>> entry : byCode.entrySet()) {
       tally(entry.getKey(), entry.getValue(), dropped);
+    }
+    for (StepSample fumble : tooLong) {
+      List<StepSample> ofCode = fumbles.get(fumble.getCode());
+      if (ofCode == null) {
+        ofCode = new ArrayList<StepSample>();
+        fumbles.put(fumble.getCode(), ofCode);
+      }
+      ofCode.add(fumble);
     }
   }
 
@@ -244,6 +253,33 @@ public class StepTallies {
       seen += entry.getValue().intValue() + tallies.get(entry.getKey()).getCount();
     }
     return seen == 0 ? 0 : (double) dropped / seen;
+  }
+
+  /**
+   * How often a code's own rule threw an occurrence out as too long, from 0 to 1: a fumble. Unlike
+   * {@link #getRejectionRate}, it leaves out the fast outliers and the occurrences dropped only
+   * because the step before them ran long, which are not this code's fault.
+   */
+  public double getFumbleRate(String code) {
+    List<StepSample> ofCode = fumbles.get(code);
+    StepStats stats = tallies.get(code);
+    if (ofCode == null || stats == null) {
+      return 0;
+    }
+    return (double) ofCode.size() / (stats.getCount() + rejected.get(code).intValue());
+  }
+
+  /** The mean time of a code's fumbles ({@link #getFumbleRate}), or null when it had none. */
+  public Long getFumbleMeanMs(String code) {
+    List<StepSample> ofCode = fumbles.get(code);
+    if (ofCode == null) {
+      return null;
+    }
+    long total = 0;
+    for (StepSample fumble : ofCode) {
+      total += fumble.getTimeMs();
+    }
+    return Long.valueOf(Math.round((double) total / ofCode.size()));
   }
 
   private static boolean matches(String code, String asked) {

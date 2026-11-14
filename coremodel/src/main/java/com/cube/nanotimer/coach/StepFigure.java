@@ -29,10 +29,12 @@ public class StepFigure {
   private final Double skipRate;
   private final Double share;
   private final Long recentMeanMs;
+  private final Double fumbleRate;
+  private final Long fumbleMeanMs;
 
   private StepFigure(String code, int count, long meanMs, Long recognitionMs, long stdDevMs,
       long bestMs, double rejectionRate, Long timeLostMs, Long familyMeanMs, Double skipRate,
-      Double share, Long recentMeanMs) {
+      Double share, Long recentMeanMs, Double fumbleRate, Long fumbleMeanMs) {
     this.code = code;
     this.count = count;
     this.meanMs = meanMs;
@@ -45,6 +47,8 @@ public class StepFigure {
     this.skipRate = skipRate;
     this.share = share;
     this.recentMeanMs = recentMeanMs;
+    this.fumbleRate = fumbleRate;
+    this.fumbleMeanMs = fumbleMeanMs;
   }
 
   /** A step of the method, or one of the parts a step was built from, with how often it was skipped. */
@@ -52,7 +56,7 @@ public class StepFigure {
       double rejectionRate, Double skipRate) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, null, null, skipRate, null, null);
+        rejectionRate, null, null, skipRate, null, null, null, null);
   }
 
   /**
@@ -75,7 +79,17 @@ public class StepFigure {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
         rejectionRate, Long.valueOf(timeLostMs), Long.valueOf(familyMeanMs), null, null,
-        recentMeanMs);
+        recentMeanMs, null, null);
+  }
+
+  /**
+   * This figure with how often its own outlier rule threw it out as too long and what those
+   * occurrences took, so a fumble can be priced; unchanged when there were none.
+   */
+  public StepFigure withFumbles(double rate, Long meanMs) {
+    return rate == 0 || meanMs == null ? this
+        : new StepFigure(code, count, this.meanMs, recognitionMs, stdDevMs, bestMs, rejectionRate,
+            timeLostMs, familyMeanMs, skipRate, share, recentMeanMs, Double.valueOf(rate), meanMs);
   }
 
   /** A figure with neither a family behind it nor cases under it: a whole solve, or a drilled case. */
@@ -83,7 +97,7 @@ public class StepFigure {
       double rejectionRate) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, measuresRecognition), stats.getStdDevMs(), stats.getBestMs(),
-        rejectionRate, null, null, null, null, null);
+        rejectionRate, null, null, null, null, null, null, null);
   }
 
   /**
@@ -93,7 +107,7 @@ public class StepFigure {
   public static StepFigure group(StepStats stats, double rejectionRate, Double share) {
     return new StepFigure(stats.getCode(), stats.getCount(), stats.getMeanMs(),
         recognitionOf(stats, true), stats.getStdDevMs(), stats.getBestMs(), rejectionRate, null,
-        null, null, share, null);
+        null, null, share, null, null, null);
   }
 
   /** A step timed from its own first move has nowhere to put recognition, and 0 there reads as instant. */
@@ -164,6 +178,19 @@ public class StepFigure {
     return recentMeanMs;
   }
 
+  /**
+   * How often a case's own outlier rule threw it out as too long, from 0 to 1, or null for none, for
+   * anything that is not a case, or a payload from an app that did not send it.
+   */
+  public Double getFumbleRate() {
+    return fumbleRate;
+  }
+
+  /** What the occurrences counted in {@link #getFumbleRate()} took on average, or null alongside it. */
+  public Long getFumbleMeanMs() {
+    return fumbleMeanMs;
+  }
+
   JSONObject toJson() throws JSONException {
     JSONObject json = new JSONObject();
     json.put("code", code);
@@ -190,6 +217,10 @@ public class StepFigure {
     if (recentMeanMs != null) {
       json.put("recent_mean_ms", recentMeanMs.longValue());
     }
+    if (fumbleRate != null) {
+      json.put("fumble_rate", round(fumbleRate.doubleValue()));
+      json.put("fumble_mean_ms", fumbleMeanMs.longValue());
+    }
     return json;
   }
 
@@ -201,7 +232,9 @@ public class StepFigure {
         json.has("family_mean_ms") ? Long.valueOf(json.getLong("family_mean_ms")) : null,
         json.has("skip_rate") ? Double.valueOf(json.getDouble("skip_rate")) : null,
         json.has("share") ? Double.valueOf(json.getDouble("share")) : null,
-        json.has("recent_mean_ms") ? Long.valueOf(json.getLong("recent_mean_ms")) : null);
+        json.has("recent_mean_ms") ? Long.valueOf(json.getLong("recent_mean_ms")) : null,
+        json.has("fumble_rate") ? Double.valueOf(json.getDouble("fumble_rate")) : null,
+        json.has("fumble_mean_ms") ? Long.valueOf(json.getLong("fumble_mean_ms")) : null);
   }
 
   /** Rates go out at two decimals: the third is noise the model would read as precision. */

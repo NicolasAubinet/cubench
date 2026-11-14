@@ -22,6 +22,37 @@ public class StepTalliesTest {
   }
 
   @Test
+  public void testAFumbleIsAnOccurrenceItsOwnRuleThrewOutAsTooLong() {
+    List<StepSample> samples = times("pll_gb", 1800, 1900, 2000, 2100, 2200, 2300, 9000, 11000, 100);
+    StepTallies tallies = new StepTallies(samples);
+
+    Assert.assertEquals(3.0 / 9, tallies.getRejectionRate("pll_gb"), 0.001);
+    Assert.assertEquals(2.0 / 9, tallies.getFumbleRate("pll_gb"), 0.001); // the fast one is no fumble
+    Assert.assertEquals(Long.valueOf(10000), tallies.getFumbleMeanMs("pll_gb"));
+  }
+
+  /** The F2L after a long cross is dropped for the cross's sake, so it is the cross's fumble alone. */
+  @Test
+  public void testAStepDroppedAfterALongOneIsNotItsFumble() {
+    StepTallies tallies = new StepTallies(solves(new long[] { 2000, 2100, 2200, 2300, 2400, 10000 },
+        new long[] { 8000, 8200, 8400, 8600, 8800, 7200 }));
+
+    Assert.assertEquals(1.0 / 6, tallies.getFumbleRate("cross"), 0.001);
+    Assert.assertEquals(Long.valueOf(10000), tallies.getFumbleMeanMs("cross"));
+    Assert.assertEquals(0, tallies.getFumbleRate("f2l"), 0.001);
+    Assert.assertNull(tallies.getFumbleMeanMs("f2l"));
+  }
+
+  @Test
+  public void testACaseNeverThrownOutHasNoFumbles() {
+    StepTallies tallies = new StepTallies(times("pll_gb", 1800, 1900, 2000, 2100, 2200, 2300));
+
+    Assert.assertEquals(0, tallies.getFumbleRate("pll_gb"), 0.001);
+    Assert.assertNull(tallies.getFumbleMeanMs("pll_gb"));
+    Assert.assertEquals(0, tallies.getFumbleRate("pll_t"), 0.001);
+  }
+
+  @Test
   public void testNothingIsDroppedFromTooFewOccurrences() {
     StepTallies tallies = new StepTallies(times("pll_gb", 1800, 2000, 20000));
 

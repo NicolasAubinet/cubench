@@ -922,6 +922,13 @@ public class CoachPayload {
     if ("skip_rate".equals(name)) {
       return figure.getSkipRate() == null ? null : figure.getSkipRate();
     }
+    if ("fumble_rate".equals(name)) {
+      return figure.getFumbleRate();
+    }
+    if ("fumble_mean_ms".equals(name)) {
+      return figure.getFumbleMeanMs() == null ? null
+          : Double.valueOf(figure.getFumbleMeanMs().longValue());
+    }
     return "share".equals(name) ? figure.getShare() : null;
   }
 

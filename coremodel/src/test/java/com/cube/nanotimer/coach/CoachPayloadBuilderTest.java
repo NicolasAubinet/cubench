@@ -69,6 +69,23 @@ public class CoachPayloadBuilderTest {
         figure(payload.getCases(), "pll_gb").getRecentMeanMs().longValue());
   }
 
+  @Test
+  public void testACaseCarriesItsFumblesAndACleanCaseNone() {
+    List<StepSample> cases = new ArrayList<StepSample>();
+    cases.addAll(steps("pll_t", 20, 1500, 700));
+    cases.add(new StepSample("pll_t", 7000, 700, false, 21));
+    cases.add(new StepSample("pll_t", 9000, 700, false, 22));
+    cases.addAll(steps("pll_gb", 20, 2900, 1000));
+    CoachPayload payload = CoachPayload.parse(CoachPayloadBuilder.build("3x3", "cfop",
+        solveTimes(20), familySamples(20), cases, 40, Collections.<StepSample>emptyList(), 0,
+        knowledge()).toJson());
+
+    StepFigure fumbled = figure(payload.getCases(), "pll_t");
+    Assert.assertEquals(0.09, fumbled.getFumbleRate(), 1e-9); // 2 of 22, at two decimals
+    Assert.assertEquals(Long.valueOf(8000), fumbled.getFumbleMeanMs());
+    Assert.assertNull(figure(payload.getCases(), "pll_gb").getFumbleRate());
+  }
+
   /** A slot is named relative to the cross face, so the family is worth sending and the slots are not. */
   @Test
   public void testF2lSlotsAreCutAndTheFamilySurvives() {
