@@ -4,7 +4,7 @@
   --ink: #f2f4f5; --ink2: #aab3b9; --ink3: #7d888f;
   --accent: #6ccbec; --accent-ink: #6ccbec; --on-accent: #12181c; --accent-wash: rgba(108,204,236,.12);
   --cross: #6ccbec; --f2l: #4fb35c; --oll: #e3c33c; --pll: #e0763a; --blind: #b49be8;
-  --ok: #7bd983;
+  --ok: #7bd983; --bad: #f07a7a;
   --stage: radial-gradient(ellipse at 50% 42%, #2a3138 0%, #1a1e22 55%, #0f1215 100%);
   --nav: rgba(18,21,24,.82);
   --shadow: 0 30px 60px rgba(0,0,0,.45);
@@ -15,7 +15,7 @@
     --bg: #f5f7f8; --bg2: #ebeff1; --card: #ffffff; --card2: #e8edf0; --line: rgba(18,24,28,.10);
     --ink: #12181c; --ink2: #46535b; --ink3: #6b7880;
     --accent-ink: #0773a0; --accent-wash: rgba(8,131,172,.10);
-    --ok: #2e8a3a;
+    --ok: #2e8a3a; --bad: #c43c3c;
     --nav: rgba(245,247,248,.85);
     --shadow: 0 30px 60px rgba(18,24,28,.22);
     color-scheme: light;
@@ -259,7 +259,7 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
   .phone-land img { border-radius: 15px; }
 }
 @media (max-width: 480px) {
-  .viz.avg:not(.times) span:nth-child(2), .viz.times span:nth-child(n+3), .viz.chips span:nth-child(n+3) { display: none; }
+  .viz.avg:not(.times) span:nth-child(2), .viz.times span:not(.pb):not(.worst), .viz.chips span:nth-child(n+3) { display: none; }
   .viz.scr { font-size: 12px; letter-spacing: 0; }
 }
 /* Cross solver tile: a D face with only the cross solved. */
@@ -270,4 +270,6 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
 .viz.face.cross i:nth-child(2n) { --c: #eef1f3; }
 .viz.face.cross i:nth-child(5) { --c: #eef1f3; }
 .viz.times span { color: var(--ink2); }
+.viz.times { gap: 10px; }
 .viz.times .pb { color: var(--ok); font-weight: 600; }
+.viz.times .worst { color: var(--bad); font-weight: 600; }
