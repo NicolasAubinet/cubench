@@ -392,7 +392,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
 
   /**
    * The listed algorithms in their own order, and under them what is theirs and not on the list:
-   * an algorithm they typed in, and every execution of theirs that is none of the listed ones.
+   * an algorithm they typed in, every execution of theirs that is none of the listed ones, and the
+   * starred one when it is none of those either.
    * Nothing here depends on what is chosen or turned: those mark a row, they do not rearrange them.
    */
   private void refresh() {
@@ -418,6 +419,10 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         yours.addView(
             row(one.moves, false, false, CaseAlgorithms.emptySlotOf(caseCode, one.moves)));
       }
+    }
+    // A star on none of these (an execution gone from the recent solves) still gets its row
+    if (chosen != null && !listedAlready(shown, chosen)) {
+      yours.addView(row(chosen, false, false, CaseAlgorithms.emptySlotOf(caseCode, chosen)));
     }
     boolean any = yours.getChildCount() > 0;
     yoursLabel.setVisibility(any ? View.VISIBLE : View.GONE);
