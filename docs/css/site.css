@@ -4,7 +4,7 @@
   --ink: #f2f4f5; --ink2: #aab3b9; --ink3: #7d888f;
   --accent: #6ccbec; --accent-ink: #6ccbec; --on-accent: #12181c; --accent-wash: rgba(108,204,236,.12);
   --cross: #6ccbec; --f2l: #4fb35c; --oll: #e3c33c; --pll: #e0763a; --blind: #b49be8;
-  --ok: #7bd983;
+  --ok: #7bd983; --bad: #f07a7a;
   --stage: radial-gradient(ellipse at 50% 42%, #2a3138 0%, #1a1e22 55%, #0f1215 100%);
   --nav: rgba(18,21,24,.82);
   --shadow: 0 30px 60px rgba(0,0,0,.45);
@@ -15,7 +15,7 @@
     --bg: #f5f7f8; --bg2: #ebeff1; --card: #ffffff; --card2: #e8edf0; --line: rgba(18,24,28,.10);
     --ink: #12181c; --ink2: #46535b; --ink3: #6b7880;
     --accent-ink: #0773a0; --accent-wash: rgba(8,131,172,.10);
-    --ok: #2e8a3a;
+    --ok: #2e8a3a; --bad: #c43c3c;
     --nav: rgba(245,247,248,.85);
     --shadow: 0 30px 60px rgba(18,24,28,.22);
     color-scheme: light;
@@ -233,3 +233,43 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
   .coach { padding: 24px; }
   .coach ul.points { grid-template-columns: 1fr; }
 }
+
+/* Timer section: landscape graph shot and the denser feature grid. */
+.landscape { margin: 70px auto 0; max-width: 860px; text-align: center; }
+.phone-land { aspect-ratio: 20 / 9; border-radius: 30px; padding: 9px; background: #0b0d0f; border: 1px solid #3a4148; box-shadow: var(--shadow); }
+.phone-land img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 22px; }
+.landscape figcaption { margin-top: 16px; font-size: 15px; color: var(--ink3); }
+.grid3.dense { margin-top: 64px; }
+.viz.avg { gap: 14px; font-size: 13px; color: var(--ink3); white-space: nowrap; }
+.viz.avg b { color: var(--ink); font-weight: 600; }
+.viz.spark polyline { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.viz.chips { gap: 6px; flex-wrap: wrap; overflow: hidden; }
+.viz.chips span { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--card2); color: var(--ink2); white-space: nowrap; }
+.viz.big { font-size: 20px; color: var(--accent-ink); }
+.coach-sec { padding-top: 70px; }
+.coach-sec .coach { margin-top: 0; }
+@media (max-width: 860px) {
+  .grid3.dense { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .grid3.dense .viz { overflow: hidden; white-space: nowrap; flex-wrap: nowrap; }
+  .grid3.dense .tile { padding: 16px; }
+  .grid3.dense .tile h3 { font-size: 16px; }
+  .grid3.dense .tile p { font-size: 14px; }
+  .landscape { margin-top: 40px; }
+  .phone-land { border-radius: 20px; padding: 6px; }
+  .phone-land img { border-radius: 15px; }
+}
+@media (max-width: 480px) {
+  .viz.avg:not(.times) span:nth-child(2), .viz.times span:not(.pb):not(.worst), .viz.chips span:nth-child(n+3) { display: none; }
+  .viz.scr { font-size: 12px; letter-spacing: 0; }
+}
+/* Cross solver tile: a D face with only the cross solved. */
+.viz.face.cross i:nth-child(1) { --c: var(--pll); }
+.viz.face.cross i:nth-child(3) { --c: var(--f2l); }
+.viz.face.cross i:nth-child(7) { --c: var(--cross); }
+.viz.face.cross i:nth-child(9) { --c: var(--oll); }
+.viz.face.cross i:nth-child(2n) { --c: #eef1f3; }
+.viz.face.cross i:nth-child(5) { --c: #eef1f3; }
+.viz.times span { color: var(--ink2); }
+.viz.times { gap: 10px; }
+.viz.times .pb { color: var(--ok); font-weight: 600; }
+.viz.times .worst { color: var(--bad); font-weight: 600; }
