@@ -219,6 +219,8 @@ public class StepFigure {
     }
     if (fumbleRate != null) {
       json.put("fumble_rate", round(fumbleRate.doubleValue()));
+    }
+    if (fumbleMeanMs != null) {
       json.put("fumble_mean_ms", fumbleMeanMs.longValue());
     }
     return json;
