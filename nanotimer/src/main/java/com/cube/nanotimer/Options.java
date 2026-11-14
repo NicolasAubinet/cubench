@@ -108,7 +108,6 @@ public enum Options {
   private static final String USAGE_SHARING_ID_KEY = "usage_sharing_id";
   private static final String USAGE_REPORTED_KEY = "usage_reported";
   public static final String USAGE_SHARING_ON_KEY = "usage_sharing_on";
-  private static final String USAGE_NOTICE_SEEN_KEY = "usage_notice_seen";
   private static final String COACH_PLANS_ON_KEY = "coach_plans_on";
   private static final String COACH_PLANS_SOLVE_TYPE_KEY = "coach_plans_solve_type";
   private static final String COACH_LAST_PLAN_KEY = "coach_last_plan_at";
@@ -478,15 +477,6 @@ public enum Options {
 
   public void setUsageSharingOn(boolean on) {
     sharedPreferences.edit().putBoolean(USAGE_SHARING_ON_KEY, on).commit();
-  }
-
-  /** Whether the cube sheet has said once that sharing is on and where to turn it off. */
-  public boolean isUsageNoticeSeen() {
-    return sharedPreferences.getBoolean(USAGE_NOTICE_SEEN_KEY, false);
-  }
-
-  public void setUsageNoticeSeen() {
-    sharedPreferences.edit().putBoolean(USAGE_NOTICE_SEEN_KEY, true).apply();
   }
 
   /** The votes last accepted by the server, per case ({@code AlgorithmVotes}), empty if none. */

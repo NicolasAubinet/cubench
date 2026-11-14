@@ -7,10 +7,6 @@ import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +37,6 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
-import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.usage.UsageSharing;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import java.util.ArrayList;
@@ -76,8 +71,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private Button btnResync;
   private Button btnDisconnect;
   private CheckBox cbAutoConnect;
-  private TextView tvUsageNotice;
-  private boolean usageNoticeShown;
+  private boolean usageScheduled;
 
   private final List<DiscoveredCube> discovered = new ArrayList<>();
   private boolean scanning;
@@ -162,7 +156,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
       SmartCubeAutoConnect.INSTANCE.holdOff();
       SmartCubeManager.INSTANCE.disconnect();
     });
-    tvUsageNotice = v.findViewById(R.id.tvSmartCubeUsageNotice);
     cbAutoConnect = v.findViewById(R.id.cbSmartCubeAutoConnect);
     cbAutoConnect.setChecked(Options.INSTANCE.isSmartCubeAutoConnect());
     cbAutoConnect.setOnCheckedChangeListener(
@@ -434,37 +427,13 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     cubeList.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.VISIBLE);
     cbAutoConnect.setVisibility(View.VISIBLE);
-    showUsageNotice();
+    if (!usageScheduled) {
+      usageScheduled = true;
+      UsageSharing.schedule(requireContext()); // the first connection starts the daily send
+    }
     setRadarCompact(true);
     showState();
     btnDisconnect.setVisibility(View.VISIBLE);
-  }
-
-  /** The first connection says sharing is on; it stays up for as long as this sheet is open. */
-  private void showUsageNotice() {
-    if (!usageNoticeShown && !Options.INSTANCE.isUsageNoticeSeen()
-        && Options.INSTANCE.isUsageSharingOn() && UsageSharing.isOffered(requireContext())) {
-      usageNoticeShown = true;
-      Options.INSTANCE.setUsageNoticeSeen();
-      UsageSharing.schedule(requireContext());
-    }
-    if (!usageNoticeShown) {
-      tvUsageNotice.setVisibility(View.GONE);
-      return;
-    }
-    SpannableStringBuilder text = new SpannableStringBuilder(getString(R.string.usage_notice))
-        .append(' ');
-    int start = text.length();
-    text.append(getString(R.string.usage_notice_link));
-    text.setSpan(new ClickableSpan() {
-      @Override
-      public void onClick(@NonNull View widget) {
-        Utils.openPrivacyPolicy(widget.getContext(), "usage");
-      }
-    }, start, text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    tvUsageNotice.setText(text);
-    tvUsageNotice.setMovementMethod(LinkMovementMethod.getInstance());
-    tvUsageNotice.setVisibility(View.VISIBLE);
   }
 
   /**
@@ -508,7 +477,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     btnFix.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.GONE);
     cbAutoConnect.setVisibility(View.GONE);
-    tvUsageNotice.setVisibility(View.GONE);
     setRadarCompact(false);
     btnDisconnect.setVisibility(View.GONE);
   }
@@ -582,7 +550,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     cubeList.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.GONE);
     cbAutoConnect.setVisibility(View.GONE);
-    tvUsageNotice.setVisibility(View.GONE);
     setRadarCompact(false);
     btnDisconnect.setVisibility(View.GONE);
   }

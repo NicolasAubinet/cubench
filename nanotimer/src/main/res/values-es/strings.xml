@@ -877,9 +877,7 @@
   <string name="smart_cube_auto_penalty">+2 y DNF automáticos</string>
   <string name="smart_cube_auto_penalty_summary">Dar un +2 a una resolución parada a un movimiento de resuelto, y un DNF a una resolución parada más lejos</string>
   <string name="usage_sharing">Compartir los algoritmos que uso</string>
-  <string name="usage_sharing_summary">Envía el algoritmo que ejecutas en cada caso de OLL, PLL y F2L, con un ID aleatorio no vinculado a nada más, para que Cubench muestre cuáles usan de verdad los cuberos. Solo resoluciones con smart cube</string>
-  <string name="usage_notice">Cubench comparte el algoritmo que usas en cada caso, con un ID aleatorio no vinculado a nada más. Desactívalo en Ajustes › Smart cube.</string>
-  <string name="usage_notice_link">Qué se envía</string>
+  <string name="usage_sharing_summary">Envía el algoritmo que ejecutas en cada caso, con un ID aleatorio, para mostrar cuáles usan los cuberos.</string>
   <string name="drill_pause_setting">Pausa entre casos de los drills</string>
   <string name="drill_pause_off">Ninguna</string>
   <string name="drill_pause_seconds">%1$s s</string>

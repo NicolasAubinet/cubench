@@ -192,19 +192,6 @@
            android:textSize="13sp"
            android:visibility="gone"/>
 
-        <!-- Said once, on the first connection: algorithm usage sharing is on, and where it goes off. -->
-        <TextView
-           android:id="@+id/tvSmartCubeUsageNotice"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="6dp"
-           android:paddingLeft="10dp"
-           android:paddingRight="10dp"
-           android:textColor="@color/secondary_text"
-           android:textColorLink="@color/cube_blue"
-           android:textSize="12sp"
-           android:visibility="gone"/>
-
       </LinearLayout>
 
       <!-- ===== Intro panel: what a smart cube is for, told as the news sheet tells it ===== -->

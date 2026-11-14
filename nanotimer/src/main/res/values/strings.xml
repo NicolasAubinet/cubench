@@ -897,9 +897,7 @@
   <string name="smart_cube_auto_penalty">Auto +2 and DNF</string>
   <string name="smart_cube_auto_penalty_summary">Give a solve stopped one move from solved a +2, and one stopped further out a DNF</string>
   <string name="usage_sharing">Share which algorithms I use</string>
-  <string name="usage_sharing_summary">Sends the algorithm you turn for each OLL, PLL and F2L case, under a random ID linked to nothing else, so Cubench can show which ones solvers really use. Smart cube solves only</string>
-  <string name="usage_notice">Cubench shares which algorithm you use for each case, under a random ID linked to nothing else. Turn it off in Settings › Smart cube.</string>
-  <string name="usage_notice_link">What is sent</string>
+  <string name="usage_sharing_summary">Sends the algorithm you turn for each case, under a random ID, to show which ones cubers use.</string>
   <string name="drill_pause_setting">Pause between drill cases</string>
   <string name="drill_pause_off">Off</string>
   <string name="drill_pause_seconds">%1$s s</string>
