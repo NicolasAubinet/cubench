@@ -52,7 +52,7 @@ public final class SolveReading {
    */
   public static final int VERSION = 11;
 
-  private static final String RESTART_PART_SUFFIX = "restart";
+  static final String RESTART_PART_SUFFIX = "restart";
 
   /** The F2L step, whose parts are read a pair at a time where a last layer step is read whole. */
   public static final String F2L = "f2l";
