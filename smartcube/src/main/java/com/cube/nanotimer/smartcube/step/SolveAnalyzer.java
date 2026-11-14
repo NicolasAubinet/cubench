@@ -203,8 +203,9 @@ public final class SolveAnalyzer {
     long recognitionMs = 0;
     long executionMs = 0;
     if (firstMoveMs != null) { // else it has no moves of its own: a skip
-      recognitionMs = firstMoveMs - previousCompleteMs;
-      executionMs = completeMs - firstMoveMs;
+      long turningFromMs = detector.readsBeforeTurning(step) ? firstMoveMs : previousCompleteMs;
+      recognitionMs = turningFromMs - previousCompleteMs;
+      executionMs = completeMs - turningFromMs;
     }
     return new StepTime(index, firstMoveMs == null ? skipped(name) : name, recognitionMs,
         executionMs, subSteps, true, pieceMarks, wantedName);

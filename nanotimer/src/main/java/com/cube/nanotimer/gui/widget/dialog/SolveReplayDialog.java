@@ -261,7 +261,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     bar.setSteps(steps, colors);
     ArrayList<long[]> pauses = (ArrayList<long[]>) getArguments().getSerializable(ARG_PAUSES);
     if (pauses != null) {
-      bar.setFirstStepPauses(pauses);
+      bar.setPaledPauses(pauses);
     }
     bar.setVisibility(View.VISIBLE);
     bar.setOnSeekListener(new SolveStepBarView.OnSeekListener() {

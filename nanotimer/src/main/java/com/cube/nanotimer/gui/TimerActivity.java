@@ -2121,7 +2121,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     // sheet shows — only the bar leaves it out.
     SolveSolution solution = SolveSolution.from(lastSolveMoves, barSteps, lastSolveMethod);
     List<SolveStep> shown = SolveBreakdown.withoutTail(barSteps);
-    drawStepBar(shown, null, shown.size(), SolveStepBars.firstStepPauses(solution));
+    drawStepBar(shown, null, shown.size(), SolveStepBars.paledPauses(solution, barSteps,
+        lastSolveMethod));
     solveStepBar.animateIn(); // a small sweep-in, so a finished cube solve feels less abrupt
     showSolveStats(solution);
   }
@@ -2190,7 +2191,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    *
    * @param doneCount how many of the steps are solved; the rest draw as the empty slots of a solve
    *     still running
-   * @param pauses the stops to pale in the first step; empty for the user's own steps
+   * @param pauses the stops to pale as thinking; empty for the user's own steps
    */
   private void drawStepBar(List<SolveStep> steps, String[] stepNames, int doneCount,
       List<long[]> pauses) {

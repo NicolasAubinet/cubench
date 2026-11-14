@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import com.cube.nanotimer.cube.SolveMovesFormat.Move;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmSlots;
+import com.cube.nanotimer.smartcube.step.RouxStepDetector;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import java.util.ArrayList;
@@ -138,6 +139,9 @@ public final class SolveSolution {
   public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps,
       CubeMethod method) {
     List<Move> stored = SolveMovesFormat.parse(storedMoves);
+    if (method == CubeMethod.ROUX) {
+      stored = RouxFrames.reread(stored, solveSteps);
+    }
     CubeRotation grip = method == CubeMethod.BLIND ? gripOf(storedMoves) : null;
     BlindChoices choices = grip == null ? null : blindChoices(storedMoves, stored, grip, solveSteps);
     List<Move> moves = inSolversFrame(stored, null, grip, choices, splitsOf(solveSteps));
@@ -147,7 +151,7 @@ public final class SolveSolution {
     if (moves.isEmpty() || solveSteps == null || solveSteps.isEmpty()) {
       return new SolveSolution(new ArrayList<Step>(), 0, 0, 0);
     }
-    List<Step> steps = stepsOf(moves, solveSteps);
+    List<Step> steps = stepsOf(moves, solveSteps, method);
     int total = 0;
     long turningMs = 0;
     int parts = 0;
@@ -165,6 +169,11 @@ public final class SolveSolution {
 
   /** The moves of each step, split again at its parts — the shape a reconstruction is shown in. */
   static List<Step> stepsOf(List<Move> moves, List<SolveStep> solveSteps) {
+    return stepsOf(moves, solveSteps, null);
+  }
+
+  private static List<Step> stepsOf(List<Move> moves, List<SolveStep> solveSteps,
+      CubeMethod method) {
     List<Step> steps = new ArrayList<Step>();
     long turnMs = turnMsOf(moves);
     int taken = 0;
@@ -181,7 +190,9 @@ public final class SolveSolution {
       int end = solveStep.getExecutionMs() > 0 || last ? endOf(moves, taken, boundaryMs) : taken;
       steps.add(new Step(i, solveStep.getName(),
           groupsFor(moves, taken, end, solveStep.getSubSteps(), stepStartMs),
-          pausesOf(moves, taken, end, solveStep, stepStartMs, turnMs), STOP_TURNS * turnMs));
+          pausesOf(moves, taken, end, solveStep, stepStartMs, turnMs,
+              isPausedFromStart(method, solveStep.getStepIndex())),
+          STOP_TURNS * turnMs));
       taken = end;
     }
     return steps;
@@ -220,11 +231,12 @@ public final class SolveSolution {
    * @return each pause as {from, to}, in milliseconds since the solve started
    */
   private static List<long[]> pausesOf(List<Move> moves, int from, int to, SolveStep step,
-      long stepStartMs, long turnMs) {
+      long stepStartMs, long turnMs, boolean fromStart) {
     List<long[]> pauses = new ArrayList<long[]>();
     List<SolveStep> parts = step.getSubSteps();
     if (parts.isEmpty()) {
-      addPauses(moves, from, to, stepStartMs + step.getRecognitionMs(), turnMs, pauses);
+      addPauses(moves, from, to, stepStartMs + step.getRecognitionMs(), turnMs, fromStart,
+          pauses);
       return pauses;
     }
     long boundaryMs = stepStartMs;
@@ -233,15 +245,16 @@ public final class SolveSolution {
       long executionStartMs = boundaryMs + part.getRecognitionMs();
       boundaryMs += part.getTotalMs();
       int end = Math.min(endOf(moves, taken, boundaryMs), to);
-      addPauses(moves, taken, end, executionStartMs, turnMs, pauses);
+      addPauses(moves, taken, end, executionStartMs, turnMs, false, pauses);
       taken = end;
     }
     return pauses;
   }
 
   private static void addPauses(List<Move> moves, int from, int to, long executionStartMs,
-      long turnMs, List<long[]> pauses) {
-    Long turnedUntil = null; // null until the part's first turn
+      long turnMs, boolean fromStart, List<long[]> pauses) {
+    // Null until the part's first turn, unless the wait before that turn is a pause too.
+    Long turnedUntil = fromStart ? Long.valueOf(executionStartMs) : null;
     boolean rotated = false;
     for (int i = from; i < to; i++) {
       Move move = moves.get(i);
@@ -259,6 +272,14 @@ public final class SolveSolution {
       turnedUntil = move.getOffsetMs();
       rotated = false;
     }
+  }
+
+  /**
+   * Whether a step's pauses run from its start rather than from its first turn: Roux's second
+   * block, which has no case to read first (see {@code StepDetector.readsBeforeTurning}).
+   */
+  public static boolean isPausedFromStart(CubeMethod method, int stepIndex) {
+    return method == CubeMethod.ROUX && stepIndex == RouxStepDetector.SB;
   }
 
   /** The stored stream spelled under one set of choices, for a reading that is weighing them. */
@@ -445,6 +466,13 @@ public final class SolveSolution {
     List<FrameAt> frames = new ArrayList<FrameAt>();
     inSolversFrame(SolveMovesFormat.parse(storedMoves), frames, null, null, null);
     return frames;
+  }
+
+  /** The frame the reconstruction leaves the cube in after {@code stored}. */
+  static CubeRotation frameAfter(List<Move> stored) {
+    List<FrameAt> frames = new ArrayList<FrameAt>();
+    inSolversFrame(stored, frames, null, null, null);
+    return frames.isEmpty() ? CubeRotation.byNotation("") : frames.get(frames.size() - 1).getFrame();
   }
 
   /** The frame the reconstruction has the cube in from {@code offsetMs} until the next entry. */

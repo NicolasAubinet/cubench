@@ -68,6 +68,7 @@ public enum App {
 
       refreshCaseKnowledge();
       rereadCfopSolves();
+      rereadRouxSolves();
 
       if (dynamicTranslations == null) {
         dynamicTranslations = new DynamicTranslations();
@@ -124,6 +125,25 @@ public enum App {
           @Override
           public void onData(Void data) {
             Options.INSTANCE.setCfopReadingVersion(SolveReinterpreter.CFOP_READING_VERSION);
+          }
+        });
+      }
+    });
+  }
+
+  /** As {@link #rereadCfopSolves}, for Roux. */
+  private void rereadRouxSolves() {
+    if (Options.INSTANCE.getRouxReadingVersion() == SolveReinterpreter.ROUX_READING_VERSION) {
+      return;
+    }
+    getService().getSmartcubeSolves(CubeMethod.ROUX, new DataCallback<List<SolveTime>>() {
+      @Override
+      public void onData(List<SolveTime> solves) {
+        List<SolveTime> rewritten = SolveReinterpreter.refresh(solves, CubeMethod.ROUX);
+        getService().saveSmartcubeBreakdowns(rewritten, new DataCallback<Void>() {
+          @Override
+          public void onData(Void data) {
+            Options.INSTANCE.setRouxReadingVersion(SolveReinterpreter.ROUX_READING_VERSION);
           }
         });
       }

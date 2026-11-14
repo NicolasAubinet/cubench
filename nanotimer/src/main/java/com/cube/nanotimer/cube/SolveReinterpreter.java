@@ -42,6 +42,9 @@ public final class SolveReinterpreter {
    */
   public static final int CFOP_READING_VERSION = 2;
 
+  /** The same for Roux: 1 counted the wait before the second block as a pause inside it. */
+  public static final int ROUX_READING_VERSION = 1;
+
   private SolveReinterpreter() {
   }
 

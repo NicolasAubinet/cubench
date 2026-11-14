@@ -78,6 +78,15 @@ public interface StepDetector {
     return false;
   }
 
+  /**
+   * Whether the wait before a step's first move is recognition. A step that goes on building what
+   * the last one started has no case to read, so that wait is a pause inside it, as in a cross, and
+   * the whole step counts as turning.
+   */
+  default boolean readsBeforeTurning(int step) {
+    return true;
+  }
+
   boolean isComplete();
 
   /**

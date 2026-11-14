@@ -374,6 +374,12 @@ public final class RouxStepDetector implements StepDetector {
     return move.getFace() == Cubies.faceAt(up);
   }
 
+  /** The second block is planned while the first is built: no case to read before it. */
+  @Override
+  public boolean readsBeforeTurning(int step) {
+    return step != SB;
+  }
+
   @Override
   public int subStepCount(int step) {
     return SUB_STEP_NAMES[step].length;
