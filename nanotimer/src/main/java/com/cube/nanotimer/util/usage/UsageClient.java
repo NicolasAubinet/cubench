@@ -10,13 +10,11 @@ import com.google.android.play.core.integrity.StandardIntegrityManager.PrepareIn
 import com.google.android.play.core.integrity.StandardIntegrityManager.StandardIntegrityTokenProvider;
 import com.google.android.play.core.integrity.StandardIntegrityManager.StandardIntegrityTokenRequest;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -157,13 +155,6 @@ final class UsageClient {
     if (in == null) {
       return null;
     }
-    try (InputStream stream = in) {
-      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-      byte[] buffer = new byte[4096];
-      for (int read; (read = stream.read(buffer)) != -1; ) {
-        bytes.write(buffer, 0, read);
-      }
-      return bytes.toString(StandardCharsets.UTF_8.name());
-    }
+    return UsageShares.read(in);
   }
 }

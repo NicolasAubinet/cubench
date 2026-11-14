@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The daily usage send: reads the recent smart-cube solves, and sends the cases whose vote changed
@@ -28,6 +29,7 @@ public final class UsageWorker extends Worker {
   static final int SOLVES_READ = 300;
   /** After this many tries in a row the send waits for the next day. */
   private static final int MAX_ATTEMPTS = 5;
+  private static final long READ_WAIT_S = 120;
 
   public UsageWorker(@NonNull Context context, @NonNull WorkerParameters parameters) {
     super(context, parameters);
@@ -42,22 +44,31 @@ public final class UsageWorker extends Worker {
     if (!UsageSharing.isActive(context) || client == null || !client.canSend()) {
       return Result.success();
     }
+    // Taken once, before anything slow: a switch-off meanwhile clears it, and must not mint a new one
+    String sharingId = Options.INSTANCE.getUsageSharingId();
     try {
       Map<String, String> changed = AlgorithmVotes.changedSince(
           AlgorithmVotes.readFrom(recentSolves()), Options.INSTANCE.getUsageReported());
-      if (changed.isEmpty()) {
+      if (changed.isEmpty() || !stillSharing(sharingId)) {
         return Result.success();
       }
       UsageReport report = UsageReport.of(changed);
-      UsageReport.Answer answer = client.send(report, Options.INSTANCE.getUsageSharingId());
-      if (answer == null) {
-        return Result.success(); // no integrity token today
+      UsageReport.Answer answer;
+      try {
+        answer = client.send(report, sharingId);
+      } finally {
+        // Turned off while this was on its way: its forget may already have run, so ask again.
+        if (!stillSharing(sharingId)) {
+          UsageSharing.forget(context, sharingId);
+        }
+      }
+      if (answer == null || !stillSharing(sharingId)) {
+        return Result.success(); // no integrity token today, or nothing to keep
       }
       if (answer.getKind() == UsageReport.Kind.RETRY) {
         return retry();
       }
-      // Turned off while this was on its way: the forget deletes it, and nothing is kept here.
-      if (answer.getKind() == UsageReport.Kind.TAKEN && Options.INSTANCE.isUsageSharingOn()) {
+      if (answer.getKind() == UsageReport.Kind.TAKEN) {
         Options.INSTANCE.addUsageReported(answer.getTaken());
       }
       return Result.success();
@@ -73,7 +84,12 @@ public final class UsageWorker extends Worker {
     return getRunAttemptCount() + 1 < MAX_ATTEMPTS ? Result.retry() : Result.success();
   }
 
-  private static List<SolveTime> recentSolves() throws InterruptedException {
+  private static boolean stillSharing(String sharingId) {
+    return Options.INSTANCE.isUsageSharingOn()
+        && sharingId.equals(Options.INSTANCE.peekUsageSharingId());
+  }
+
+  private static List<SolveTime> recentSolves() throws InterruptedException, IOException {
     final CountDownLatch latch = new CountDownLatch(1);
     final CaseHistory[] history = new CaseHistory[1];
     App.INSTANCE.getService().getCaseHistory(SOLVES_READ, new DataCallback<CaseHistory>() {
@@ -83,7 +99,9 @@ public final class UsageWorker extends Worker {
         latch.countDown();
       }
     });
-    latch.await();
+    if (!latch.await(READ_WAIT_S, TimeUnit.SECONDS) || history[0] == null) {
+      throw new IOException("recent solves could not be read"); // retried like a failed send
+    }
     return history[0].getSolves();
   }
 }

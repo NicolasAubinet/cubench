@@ -37,7 +37,6 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
-import com.cube.nanotimer.util.usage.UsageSharing;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
   private Button btnResync;
   private Button btnDisconnect;
   private CheckBox cbAutoConnect;
-  private boolean usageScheduled;
 
   private final List<DiscoveredCube> discovered = new ArrayList<>();
   private boolean scanning;
@@ -427,10 +425,6 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
     cubeList.setVisibility(View.GONE);
     resyncBlock.setVisibility(View.VISIBLE);
     cbAutoConnect.setVisibility(View.VISIBLE);
-    if (!usageScheduled) {
-      usageScheduled = true;
-      UsageSharing.schedule(requireContext()); // the first connection starts the daily send
-    }
     setRadarCompact(true);
     showState();
     btnDisconnect.setVisibility(View.VISIBLE);

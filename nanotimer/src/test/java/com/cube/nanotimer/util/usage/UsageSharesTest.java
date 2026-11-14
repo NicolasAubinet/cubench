@@ -49,5 +49,6 @@ public class UsageSharesTest {
   public void anUnreadableSnapshotIsNone() {
     assertNull(UsageShares.parse("<html>"));
     assertNull(UsageShares.parse("{\"shares\": {}}"));
+    assertNull(UsageShares.parse(null)); // no file, no asset
   }
 }

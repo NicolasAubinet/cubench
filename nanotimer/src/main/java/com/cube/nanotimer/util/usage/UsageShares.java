@@ -41,25 +41,27 @@ public final class UsageShares {
   /** Larger than any snapshot the service can publish; a bigger answer is not read. */
   private static final int MAX_BYTES = 2 * 1024 * 1024;
 
+  private static final Object LOCK = new Object();
+  private static boolean downloaded;
+
   private UsageShares() {
   }
 
   /** Reads the newest snapshot into {@link CaseAlgorithms}. Blocks: off the main thread. */
   public static void load(Context context) {
     File file = new File(context.getFilesDir(), FILE);
-    String text = null;
-    if (file.exists() && file.lastModified() >= lastUpdate(context)) {
-      text = readFile(file);
+    boolean fresh = file.exists() && file.lastModified() >= lastUpdate(context);
+    UsageFigures figures = fresh ? parse(readFile(file)) : null;
+    if (figures == null) {
+      figures = parse(readAsset(context));
     }
-    if (text == null) {
-      text = readAsset(context);
+    if (figures == null && !fresh) {
+      figures = parse(readFile(file));
     }
-    if (text == null && file.exists()) {
-      text = readFile(file);
-    }
-    UsageFigures figures = text == null ? null : parse(text);
-    if (figures != null) {
-      CaseAlgorithms.setUsage(figures);
+    synchronized (LOCK) {
+      if (figures != null && !downloaded) { // a download while this read is newer than it
+        CaseAlgorithms.setUsage(figures);
+      }
     }
   }
 
@@ -85,7 +87,10 @@ public final class UsageShares {
       part.delete();
       throw new IOException("could not keep " + FILE);
     }
-    CaseAlgorithms.setUsage(figures);
+    synchronized (LOCK) {
+      downloaded = true;
+      CaseAlgorithms.setUsage(figures);
+    }
     return true;
   }
 
@@ -94,6 +99,9 @@ public final class UsageShares {
    * "...", "share": 61.5}]}}}}, or null when it does not read. A malformed case is skipped.
    */
   static UsageFigures parse(String text) {
+    if (text == null) {
+      return null;
+    }
     try {
       JSONObject all = new JSONObject(text).getJSONObject("cases");
       Map<String, UsageFigures.Case> cases = new LinkedHashMap<String, UsageFigures.Case>();

@@ -84,11 +84,16 @@ public final class UsageSharing {
     manager.cancelUniqueWork(DAILY);
     String sharingId = Options.INSTANCE.peekUsageSharingId();
     Options.INSTANCE.clearUsageSharing();
-    if (sharingId == null) {
-      return; // nothing was ever sent under one
+    if (sharingId != null) { // otherwise nothing was ever sent under one
+      forget(context, sharingId);
     }
-    // One piece of work per id: turning it on and off again must not cancel an earlier id's forget.
-    manager.enqueueUniqueWork(FORGET_PREFIX + sharingId, ExistingWorkPolicy.KEEP,
+  }
+
+  /** Asks the service to delete what it holds under an id, tried until it goes through. */
+  static void forget(Context context, String sharingId) {
+    // One chain per id, never cancelled; a second ask runs after any forget already under way.
+    WorkManager.getInstance(context.getApplicationContext()).enqueueUniqueWork(
+        FORGET_PREFIX + sharingId, ExistingWorkPolicy.APPEND_OR_REPLACE,
         new OneTimeWorkRequest.Builder(UsageForgetWorker.class)
             .setConstraints(online())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, BACKOFF_MINUTES, TimeUnit.MINUTES)
