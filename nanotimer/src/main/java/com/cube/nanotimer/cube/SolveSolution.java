@@ -138,6 +138,9 @@ public final class SolveSolution {
   public static SolveSolution from(String storedMoves, List<SolveStep> solveSteps,
       CubeMethod method) {
     List<Move> stored = SolveMovesFormat.parse(storedMoves);
+    if (method == CubeMethod.ROUX) {
+      stored = RouxFrames.reread(stored, solveSteps);
+    }
     CubeRotation grip = method == CubeMethod.BLIND ? gripOf(storedMoves) : null;
     BlindChoices choices = grip == null ? null : blindChoices(storedMoves, stored, grip, solveSteps);
     List<Move> moves = inSolversFrame(stored, null, grip, choices, splitsOf(solveSteps));
@@ -445,6 +448,13 @@ public final class SolveSolution {
     List<FrameAt> frames = new ArrayList<FrameAt>();
     inSolversFrame(SolveMovesFormat.parse(storedMoves), frames, null, null, null);
     return frames;
+  }
+
+  /** The frame the reconstruction leaves the cube in after {@code stored}. */
+  static CubeRotation frameAfter(List<Move> stored) {
+    List<FrameAt> frames = new ArrayList<FrameAt>();
+    inSolversFrame(stored, frames, null, null, null);
+    return frames.isEmpty() ? CubeRotation.byNotation("") : frames.get(frames.size() - 1).getFrame();
   }
 
   /** The frame the reconstruction has the cube in from {@code offsetMs} until the next entry. */
