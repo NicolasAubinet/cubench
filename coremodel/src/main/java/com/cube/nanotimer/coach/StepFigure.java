@@ -84,12 +84,13 @@ public class StepFigure {
 
   /**
    * This figure with how often its own outlier rule threw it out as too long and what those
-   * occurrences took, so a fumble can be priced; unchanged when there were none.
+   * occurrences took, so a fumble can be priced. A rate of 0 is still sent, so a case never fumbled
+   * reads apart from one from an app older than the figure; the mean is null then.
    */
   public StepFigure withFumbles(double rate, Long meanMs) {
-    return rate == 0 || meanMs == null ? this
-        : new StepFigure(code, count, this.meanMs, recognitionMs, stdDevMs, bestMs, rejectionRate,
-            timeLostMs, familyMeanMs, skipRate, share, recentMeanMs, Double.valueOf(rate), meanMs);
+    return new StepFigure(code, count, this.meanMs, recognitionMs, stdDevMs, bestMs, rejectionRate,
+        timeLostMs, familyMeanMs, skipRate, share, recentMeanMs, Double.valueOf(rate),
+        rate == 0 ? null : meanMs);
   }
 
   /** A figure with neither a family behind it nor cases under it: a whole solve, or a drilled case. */
@@ -179,8 +180,8 @@ public class StepFigure {
   }
 
   /**
-   * How often a case's own outlier rule threw it out as too long, from 0 to 1, or null for none, for
-   * anything that is not a case, or a payload from an app that did not send it.
+   * How often a case's own outlier rule threw it out as too long, from 0 to 1, or null for anything
+   * that is not a case, or a payload from an app that did not send it.
    */
   public Double getFumbleRate() {
     return fumbleRate;

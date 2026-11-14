@@ -83,7 +83,8 @@ public class CoachPayloadBuilderTest {
     StepFigure fumbled = figure(payload.getCases(), "pll_t");
     Assert.assertEquals(0.09, fumbled.getFumbleRate(), 1e-9); // 2 of 22, at two decimals
     Assert.assertEquals(Long.valueOf(8000), fumbled.getFumbleMeanMs());
-    Assert.assertNull(figure(payload.getCases(), "pll_gb").getFumbleRate());
+    Assert.assertEquals(0, figure(payload.getCases(), "pll_gb").getFumbleRate(), 1e-9);
+    Assert.assertNull(figure(payload.getCases(), "pll_gb").getFumbleMeanMs());
   }
 
   /** A slot is named relative to the cross face, so the family is worth sending and the slots are not. */

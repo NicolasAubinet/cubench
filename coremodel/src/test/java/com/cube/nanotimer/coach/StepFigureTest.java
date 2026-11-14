@@ -25,16 +25,17 @@ public class StepFigureTest {
     Assert.assertTrue(CoachCodes.isPath("cases.oll_45.fumble_mean_ms"));
   }
 
-  /** An older app sends neither, and a case with no fumble must not read as fumbling for 0 ms. */
+  /** A rate of 0 is sent, so the server tells a clean case from an older app, which sends neither. */
   @Test
-  public void testACaseWithoutFumblesSendsNeitherField() throws Exception {
-    JSONObject json = stepCase().withFumbles(0, null).toJson();
+  public void testACaseWithoutFumblesSendsARateOfZeroAndNoMean() throws Exception {
+    JSONObject json = stepCase().withFumbles(0, Long.valueOf(9000)).toJson();
 
-    Assert.assertFalse(json.has("fumble_rate"));
+    Assert.assertEquals(0, json.getDouble("fumble_rate"), 1e-9);
     Assert.assertFalse(json.has("fumble_mean_ms"));
     StepFigure read = StepFigure.fromJson(json);
-    Assert.assertNull(read.getFumbleRate());
+    Assert.assertEquals(0, read.getFumbleRate(), 1e-9);
     Assert.assertNull(CoachPayload.field(read, "fumble_mean_ms"));
+    Assert.assertNull(StepFigure.fromJson(stepCase().toJson()).getFumbleRate());
   }
 
   private static StepFigure stepCase() {
