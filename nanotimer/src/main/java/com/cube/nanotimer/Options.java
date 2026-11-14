@@ -116,6 +116,7 @@ public enum Options {
   private static final String COACH_PLAN_LANGUAGE_KEY = "coach_plan_language";
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
   public static final String CFOP_READING_KEY = "cfop_reading_version";
+  public static final String ROUX_READING_KEY = "roux_reading_version";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   private static final String LEARN_PICK_KEY_PREFIX = "learn_pick_";
   private static final String LEARN_PICK_CLEANED_KEY = "learn_pick_cleaned";
@@ -1080,6 +1081,15 @@ public enum Options {
 
   public void setCfopReadingVersion(int version) {
     sharedPreferences.edit().putInt(CFOP_READING_KEY, version).apply();
+  }
+
+  /** Which reading of Roux solves the stored breakdowns were last written under. */
+  public int getRouxReadingVersion() {
+    return sharedPreferences.getInt(ROUX_READING_KEY, 0);
+  }
+
+  public void setRouxReadingVersion(int version) {
+    sharedPreferences.edit().putInt(ROUX_READING_KEY, version).apply();
   }
 
 }

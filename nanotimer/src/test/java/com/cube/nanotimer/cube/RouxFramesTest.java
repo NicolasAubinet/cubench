@@ -60,7 +60,7 @@ public class RouxFramesTest {
     return SolveSolution.from(smartcube.getString("moves"), steps, method);
   }
 
-  private static JSONObject report() throws Exception {
+  static JSONObject report() throws Exception {
     try (InputStream in = RouxFramesTest.class.getResourceAsStream(REPORT);
         Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name()).useDelimiter("\\A")) {
       return new JSONObject(scanner.next());

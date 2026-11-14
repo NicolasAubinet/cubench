@@ -52,7 +52,7 @@ public class SolveStepBarView extends View {
   private static final float PENDING = 0.35f;
 
   private List<SolveStep> steps = Collections.emptyList();
-  private List<long[]> firstStepPauses = Collections.emptyList();
+  private List<long[]> paledPauses = Collections.emptyList();
   private int[] colors = new int[0];
   private int[] slots = new int[0]; // the palette slot each step draws from, grouped by name
   private int doneCount = Integer.MAX_VALUE; // steps past this are slots waiting for the solver
@@ -88,19 +88,19 @@ public class SolveStepBarView extends View {
     this.colors = colors;
     this.slots = SolveStepBars.colorSlots(this.steps);
     this.doneCount = doneCount;
-    this.firstStepPauses = Collections.emptyList();
+    this.paledPauses = Collections.emptyList();
     invalidate();
   }
 
   /**
-   * Pales the time between turns inside the first step, as its thinking. The first step was
-   * planned in inspection, so time not turning in it is where the plan ran out: the cross's own
-   * recognition.
+   * Pales the time between turns inside the steps that have no recognition of their own, as their
+   * thinking. A step planned ahead (the first, in inspection) shows where the plan ran out this way:
+   * the cross's own recognition. Each pause is drawn in whichever step it falls in.
    *
    * @param pauses each pause as {from, to}, in milliseconds since the solve started, in order
    */
-  public void setFirstStepPauses(List<long[]> pauses) {
-    this.firstStepPauses = pauses;
+  public void setPaledPauses(List<long[]> pauses) {
+    this.paledPauses = pauses;
     invalidate();
   }
 
@@ -224,6 +224,7 @@ public class SolveStepBarView extends View {
 
     // Kept in step with xAt/fractionAt, which lay the same segments out for the playhead and a seek.
     float left = 0;
+    long stepStartMs = 0;
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       if (step.getTotalMs() <= 0) {
@@ -233,8 +234,9 @@ public class SolveStepBarView extends View {
       boolean pending = i >= doneCount;
       float alphaScale = pending ? PENDING : (highlighted < 0 || highlighted == i ? 1f : DIMMED);
       drawStep(canvas, step, pending ? tailColor : colorOf(i), left, stepWidth, height, corner,
-          partGap, alphaScale, i == 0 ? firstStepPauses : Collections.<long[]>emptyList());
+          partGap, alphaScale, paledPauses, stepStartMs);
       left += stepWidth + stepGap;
+      stepStartMs += step.getTotalMs();
     }
     canvas.restore(); // the playhead marks a moment in the solve, it is not part of the reveal
     drawPlayhead(canvas, height);
@@ -341,7 +343,8 @@ public class SolveStepBarView extends View {
   }
 
   private void drawStep(Canvas canvas, SolveStep step, int color, float left, float stepWidth,
-      float height, float corner, float partGap, float alphaScale, List<long[]> pauses) {
+      float height, float corner, float partGap, float alphaScale, List<long[]> pauses,
+      long stepStartMs) {
     canvas.save();
     corners.reset();
     bounds.set(left, 0, left + stepWidth, height);
@@ -353,7 +356,7 @@ public class SolveStepBarView extends View {
         : step.getSubSteps();
 
     float partLeft = left;
-    long partStartMs = 0; // from the step's start, which is the solve's for the only step with pauses
+    long partStartMs = stepStartMs; // pauses are dated from the solve's start
     for (int i = 0; i < parts.size(); i++) {
       SolveStep part = parts.get(i);
       float partWidth = stepWidth * part.getTotalMs() / step.getTotalMs();

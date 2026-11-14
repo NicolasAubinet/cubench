@@ -89,13 +89,13 @@ public class SolveStepBar extends LinearLayout {
   }
 
   /**
-   * @param firstStepPauses the stops the bar pales in its first step, as
-   *     {@link SolveStepBars#firstStepPauses} gives them
+   * @param paledPauses the stops the bar pales as thinking, as
+   *     {@link SolveStepBars#paledPauses} gives them
    */
   public void setSteps(List<SolveStep> steps, String[] stepNames, int doneCount,
-      List<long[]> firstStepPauses) {
+      List<long[]> paledPauses) {
     bar.setSteps(steps, colors, doneCount);
-    bar.setFirstStepPauses(firstStepPauses);
+    bar.setPaledPauses(paledPauses);
     List<SolveStepBars.LegendEntry> legend = SolveStepBars.legend(steps);
     buildLegend(legend.size());
     for (int cell = 0; cell < legend.size(); cell++) {

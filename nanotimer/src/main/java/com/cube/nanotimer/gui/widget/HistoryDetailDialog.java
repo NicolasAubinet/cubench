@@ -816,9 +816,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     int[][] partPositions = Utils.getSmartCubeSubStepPositions(steps);
     SolveStepBarView bar = (SolveStepBarView) v.findViewById(R.id.breakdownBar);
     bar.setSteps(steps, colors);
-    breakdownPauses = split ? SolveStepBars.firstStepPauses(solution) : null;
+    breakdownPauses = split ? SolveStepBars.paledPauses(solution, steps, method) : null;
     if (breakdownPauses != null) {
-      bar.setFirstStepPauses(breakdownPauses);
+      bar.setPaledPauses(breakdownPauses);
     }
 
     BreakdownTable table = (BreakdownTable) v.findViewById(R.id.breakdownTable);
@@ -1167,7 +1167,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private final List<StepRows> breakdownRows = new ArrayList<StepRows>();
   private ArrayList<SolveStep> breakdownSteps; // what the bar in the sheet draws, and the replay scrubs
-  private ArrayList<long[]> breakdownPauses; // the stops in the bar's first step, for the replay's bar
+  private ArrayList<long[]> breakdownPauses; // the stops the bar pales, for the replay's bar
   private String breakdownMoves; // the method breakdown's re-read stream, null under the user's steps
   private CubeRotation blindHold; // the hold this solve's names were read in, null unless blind
   private boolean showMoves;

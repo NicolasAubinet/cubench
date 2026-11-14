@@ -10,6 +10,7 @@ import com.cube.nanotimer.cube.CrossPauses;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.StepStats;
@@ -124,14 +125,22 @@ public final class SolveStepBars {
   }
 
   /**
-   * The time inside a solve's first step when no turn was being made, which a bar pales as
-   * thinking (see {@link SolveStepBarView#setFirstStepPauses}). One rule for every bar of a
-   * method's breakdown, so the timer and the solve's sheet pale the same time. Empty where the
-   * solution has no steps.
+   * The time a bar pales as thinking inside the steps that have no recognition of their own (see
+   * {@link SolveStepBarView#setPaledPauses}): the first step, planned in inspection, and Roux's
+   * second block, planned while the first was built. One rule for every bar of a method's
+   * breakdown, so the timer and the solve's sheet pale the same time.
+   *
+   * @param steps the steps {@code solution} was split by, in the same order
    */
-  public static ArrayList<long[]> firstStepPauses(SolveSolution solution) {
-    return solution.getSteps().isEmpty() ? new ArrayList<long[]>()
-        : new ArrayList<long[]>(solution.getSteps().get(0).getPauseSpans());
+  public static ArrayList<long[]> paledPauses(SolveSolution solution, List<SolveStep> steps,
+      CubeMethod method) {
+    ArrayList<long[]> pauses = new ArrayList<long[]>();
+    for (int i = 0; i < solution.getSteps().size() && i < steps.size(); i++) {
+      if (i == 0 || SolveSolution.isPausedFromStart(method, steps.get(i).getStepIndex())) {
+        pauses.addAll(solution.getSteps().get(i).getPauseSpans());
+      }
+    }
+    return pauses;
   }
 
   /**
