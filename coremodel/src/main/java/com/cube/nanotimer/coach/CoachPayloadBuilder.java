@@ -496,7 +496,9 @@ public class CoachPayloadBuilder {
               tallies.getRejectionRate(stepCase.getCode()),
               statistics.getTimeLostMs(stepCase.getCode()),
               familyStats == null ? 0 : familyStats.getMeanMs(),
-              recentMeans.get(stepCase.getCode())));
+              recentMeans.get(stepCase.getCode()))
+              .withFumbles(tallies.getFumbleRate(stepCase.getCode()),
+                  tallies.getFumbleMeanMs(stepCase.getCode())));
         }
       }
     }
