@@ -1256,21 +1256,23 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * The algorithm it starts on, then the case's listed ones, then the user's own, and a way into
-   * the full popup for anything else, where a star or a typed algorithm comes back as the one tried.
+   * The case's listed ones in the case popup's order, then what is not on the list (the user's own,
+   * the starred, the one it started on), and a way into the full popup for anything else, where a
+   * star or a typed algorithm comes back as the one tried. Like the popup, nothing is lifted to the
+   * front: the one tried is marked in place.
    */
   private void buildChooseRows() {
     chooseList.removeAllViews();
     List<String> shown = new ArrayList<String>();
     String own = Options.INSTANCE.getOwnCaseAlgorithm(choosing);
-    addIfNew(shown, firstAlgorithm);
+    String starred = Options.INSTANCE.getCaseAlgorithm(choosing);
+    String[] spellings = {tryingAlgorithm, firstAlgorithm, own, starred};
     for (CaseAlgorithms.Listed listed : listedFor(choosing)) {
-      // Their own spelling of a listed algorithm stands in its place
-      addIfNew(shown, CaseAlgorithms.sameTurning(choosing, listed.getMoves(), own) ? own
-          : listed.getMoves());
+      addIfNew(shown, spelledAs(listed.getMoves(), spellings));
     }
     addIfNew(shown, own);
-    addIfNew(shown, Options.INSTANCE.getCaseAlgorithm(choosing));
+    addIfNew(shown, starred);
+    addIfNew(shown, firstAlgorithm);
     addIfNew(shown, tryingAlgorithm);
     AlgorithmTimes times = loadTimes(choosing);
     String fastest = times.fastest(shown);
@@ -1291,6 +1293,16 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       }
     });
     chooseList.addView(moreRow);
+  }
+
+  /** A listed algorithm in the first of these spellings that turns the same, so it keeps its check. */
+  private String spelledAs(String listed, String[] spellings) {
+    for (String spelling : spellings) {
+      if (spelling != null && CaseAlgorithms.sameTurning(choosing, listed, spelling)) {
+        return spelling;
+      }
+    }
+    return listed;
   }
 
   /** Adds an algorithm to try, unless it is one already listed or none at all. */
