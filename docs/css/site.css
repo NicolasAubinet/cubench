@@ -259,6 +259,15 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
   .phone-land img { border-radius: 15px; }
 }
 @media (max-width: 480px) {
-  .viz.avg span:nth-child(2) { display: none; }
+  .viz.avg:not(.times) span:nth-child(2), .viz.times span:nth-child(n+3), .viz.chips span:nth-child(n+3) { display: none; }
   .viz.scr { font-size: 12px; letter-spacing: 0; }
 }
+/* Cross solver tile: a D face with only the cross solved. */
+.viz.face.cross i:nth-child(1) { --c: var(--pll); }
+.viz.face.cross i:nth-child(3) { --c: var(--f2l); }
+.viz.face.cross i:nth-child(7) { --c: var(--cross); }
+.viz.face.cross i:nth-child(9) { --c: var(--oll); }
+.viz.face.cross i:nth-child(2n) { --c: #eef1f3; }
+.viz.face.cross i:nth-child(5) { --c: #eef1f3; }
+.viz.times span { color: var(--ink2); }
+.viz.times .pb { color: var(--ok); font-weight: 600; }
