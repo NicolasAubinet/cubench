@@ -10,9 +10,13 @@ import java.util.List;
  * alike: one row per algorithm, most voted first, and the few at the front the case is listed with.
  *
  * <p><b>One row per algorithm, not per spelling.</b> A table writes one algorithm several ways: a
- * wide where another row writes a slice, a mirror behind the rotation that puts it on the other hand.
- * Its vote then arrives split across its spellings and understates it, so the rows are folded first,
- * by the same test an execution is matched with, and each keeps the votes of all its spellings.
+ * wide where another row writes a slice, a rotation naming the same faces differently. Its vote then
+ * arrives split across its spellings and understates it, so rows that turn the very same face turns
+ * are folded first, and each keeps the votes of all its spellings.
+ *
+ * <p><b>A mirror is not folded.</b> Turned with the other hand it is another algorithm to a solver,
+ * so it keeps its own row and votes. An execution of a mirror the table has no row for still matches
+ * the row it mirrors, which {@link AlgorithmForm#indexOfTurning} sees to.
  *
  * <p><b>Listed means holding most of the votes.</b> Rows are taken most voted first until they hold
  * {@link #COVERED_VOTES} percent of the case's votes. A case one algorithm holds 85% of lists that one
@@ -54,10 +58,11 @@ final class AlgorithmList {
       int held = Integer.parseInt(tableRow[1]);
       total += held;
       Spelling spelling = new Spelling(tableRow[0], tableRow[2].isEmpty() ? null : tableRow[2]);
-      int at = AlgorithmForm.indexOfTurning(foldedForms, tableRow[0], drawn);
+      List<String> form = AlgorithmForm.comparable(tableRow[0]);
+      int at = form.isEmpty() ? -1 : foldedForms.indexOf(form);
       if (at < 0) {
         folded.add(new Row(spelling, held));
-        foldedForms.add(AlgorithmForm.comparable(tableRow[0]));
+        foldedForms.add(form);
       } else {
         folded.get(at).votes += held;
         folded.get(at).spellings.add(spelling);
@@ -171,7 +176,9 @@ final class AlgorithmList {
       return new AlgorithmExecution(false, 0, 0);
     }
     int at = AlgorithmForm.indexOfTurning(forms, moves, drawn);
-    boolean unusual = !rows.isEmpty() && (at < 0 || at >= listed);
+    // The other hand's version of a listed algorithm is not unusual, even with its own row unlisted.
+    boolean unusual = !rows.isEmpty() && (at < 0 || at >= listed)
+        && AlgorithmForm.indexOfTurning(forms.subList(0, listed), moves, drawn) < 0;
     return new AlgorithmExecution(unusual, AlgorithmForm.lengthAsDrawn(moves, drawn), shortest());
   }
 

@@ -232,34 +232,37 @@ public class LastLayerCaseAlgorithmsTest {
         LastLayerCaseAlgorithms.matching("oll_5", "z r' U2 R U R' U r z'").getMoves());
   }
 
-  /**
-   * The fold: OLL 45's four rows are one algorithm, turned with either hand and with the wide or the
-   * slice, so the case has one answer rather than the two its rows suggest.
-   */
+  /** OLL 3's r' R2 and M R rows turn the same faces, so their votes add up and rank them first. */
   @Test
   public void foldsTheRowsThatAreOneAlgorithmSaidTwice() {
-    List<LastLayerCaseAlgorithms.Algorithm> folded = LastLayerCaseAlgorithms.folded("oll_45");
+    List<LastLayerCaseAlgorithms.Algorithm> folded = LastLayerCaseAlgorithms.folded("oll_3");
 
-    assertEquals(4, rowsFor("oll_45"));
-    assertEquals(1, folded.size());
-    assertEquals("F R U R' U' F'", folded.get(0).getMoves());
-    assertEquals(100, folded.get(0).getShare());
+    assertEquals(4, rowsFor("oll_3"));
+    assertEquals(3, folded.size());
+    assertEquals("y r' R2 U R' U r U2 r' U M'", folded.get(0).getMoves());
+    assertEquals(38, folded.get(0).getShare()); // 29 + 19 of 128
+  }
+
+  /** OLL 45 is one algorithm turned with either hand, and each hand keeps its own row. */
+  @Test
+  public void keepsAMirrorInItsOwnRow() {
+    assertEquals(2, LastLayerCaseAlgorithms.folded("oll_45").size());
+    assertEquals("M2 U' M2 U2 M2 U' M2", LastLayerCaseAlgorithms.folded("pll_h").get(1).getMoves());
   }
 
   /**
-   * How much of the table it is, pinned: 75 of the 304 rows are another row said differently, a
-   * mirror included. A new row changing these two numbers is expected; one changing only the second
-   * is a duplicate that was not spotted when it was added.
+   * How much of the table it is, pinned. A new row changing these two numbers is expected; one
+   * changing only the second is a duplicate that was not spotted when it was added.
    */
   @Test
-  public void foldsAwayASixthOfTheTable() {
+  public void foldsAwayTheRepeatedSpellings() {
     int folded = 0;
     for (String caseCode : LastLayerScrambles.cases()) {
       folded += LastLayerCaseAlgorithms.folded(caseCode).size();
     }
 
     assertEquals(304, LastLayerCaseAlgorithms.rows().size());
-    assertEquals(229, folded);
+    assertEquals(247, folded);
   }
 
   /** Folding moves votes between spellings of a case and never in or out of it. */
@@ -285,11 +288,11 @@ public class LastLayerCaseAlgorithmsTest {
         .read("pll_jb", "r' F R F' r U2 R' U R U2 R'").isUnusual());
   }
 
-  /** The Z perm's four rows are two algorithms, each also written with U and U' swapped: a mirror. */
+  /** The Z perm's four rows are two algorithms and their mirrors: no hand of a listed one is unusual. */
   @Test
-  public void foldsAMirrorIntoTheAlgorithmItMirrors() {
-    assertEquals(2, LastLayerCaseAlgorithms.folded("pll_z").size());
-    assertEquals(2, LastLayerCaseAlgorithms.listed("pll_z").size());
+  public void readsTheMirrorOfAListedAlgorithmAsUsual() {
+    assertEquals(4, LastLayerCaseAlgorithms.folded("pll_z").size());
+    assertEquals(3, LastLayerCaseAlgorithms.listed("pll_z").size());
     for (String z : new String[] {"M' U M2 U M2 U M' U2 M2", "M2 U' M2 U' M' U2 M2 U2 M'",
         "M' U' M2 U' M2 U' M' U2 M2", "M2 U M2 U M' U2 M2 U2 M'"}) {
       assertFalse(z, LastLayerCaseAlgorithms.read("pll_z", z).isUnusual());

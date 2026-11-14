@@ -50,7 +50,7 @@ public final class F2LTakeOutAlgorithms {
     {"a11", "y2 U' R U' R' L U' L'", "y' U' L' U' L R' U' R"},
     {"a12", "y U2 R U R' L' U L", "y2 U' L U L2 U' L2 U L'", "y U' R U R' U2 L' U' L"},
     {"a13", "y' U R' F R F' R' U' R", "U' L F' L' F U2 R U R'"},
-    {"a14", "y2 U' F R' F' R U L U L'"},
+    {"a14", "y2 U' F R' F' R U L U L'", "L U L' U' L U L' U R U R'"},
     {"a15", "y2 U' L F' L' F L U L'", "y U R' F R F' U2 L' U' L"},
     {"a16", "y' U' R U' R' U f R' f'", "y' U' R U' R' B' R B R'", "y' U' R U' R' r' U' R U M'"},
     {"a17", "y2 U' R U R' U' f' L' f", "y' U2 F U' F' U R' U' R"},

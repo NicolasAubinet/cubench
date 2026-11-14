@@ -7,7 +7,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.model.CubeState;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -112,9 +111,8 @@ public class F2LCaseAlgorithmsTest {
     for (String[] row : F2LCaseAlgorithms.rows()) {
       int turnings = 0;
       for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(row[0])) {
-        if (AlgorithmForm.indexOfTurning(
-            Collections.singletonList(AlgorithmForm.comparable(algorithm.getMoves())), row[1],
-            stood -> F2LCaseAlgorithms.solves(row[0], stood)) >= 0) {
+        if (AlgorithmForm.comparable(algorithm.getMoves())
+            .equals(AlgorithmForm.comparable(row[1]))) {
           turnings++;
         }
       }
