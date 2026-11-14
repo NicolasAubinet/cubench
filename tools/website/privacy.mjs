@@ -37,7 +37,7 @@ const html = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy policy · Cubench</title>
-<meta name="description" content="What Cubench keeps on your phone, and the few things it sends: only if you join the coach or send a reconstruction report.">
+<meta name="description" content="What Cubench keeps on your phone, and the few things it sends, only if you use a smart cube.">
 <link rel="canonical" href="https://cubench.app/privacy.html">
 <meta name="theme-color" content="#121518">
 <link rel="icon" href="img/icon-192.png" type="image/png">

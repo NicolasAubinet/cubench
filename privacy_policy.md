@@ -2,13 +2,31 @@
 
 Cubench (formerly Nano Timer) is a free and open source Android app developed by Nicolas Aubinet. The source code is available on GitHub under the GNU GPL v3.0 license. The app is also available on Google Play.
 
-**In short: everything you record stays on your phone, with two exceptions. If you use the optional coach (by subscription, or free while it is in beta), a summary of your solve statistics is sent once a week so a practice plan can be written for you. If you report a wrong reconstruction, that one solve is sent. Otherwise nothing about you is sent.**
+**In short: everything you record stays on your phone. If you do not use a smart cube, nothing about you is sent. If you do, three things can be sent. Which algorithm you use for each case, under a random ID, so Cubench can show which algorithms cubers really use (on by default, and you can turn it off). If you use the optional coach (by subscription, or free while it is in beta), a summary of your solve statistics once a week, so a practice plan can be written for you. If you report a wrong reconstruction, that one solve. Otherwise nothing about you is sent.**
 
 # Data on your phone
 
 Your solves, times, smart cube recordings and settings are stored on your device only. They are erased when you clear the app's data or uninstall it. The app has no accounts, and I never see this data.
 
 **Bluetooth and location.** The app uses Bluetooth only to connect to a smart cube. On Android 11 and older, Android requires the location permission for any Bluetooth scan; the app never reads or stores your location.
+
+# Algorithm usage sharing (smart cube users)
+
+If you use a smart cube, the app shares which algorithm you turn for each case, so Cubench can show every user which algorithms cubers really use. It is on by default, and you can turn it off in Settings, Smart cube, "Share which algorithms I use". **Until a smart cube has been connected, nothing is sent.**
+
+**What is sent.** For each OLL, PLL and F2L pair case, the one algorithm you turn for it, read from your recent smart cube solves: only cases solved in one look, and only an algorithm you turned at least twice in that case's five latest solves. The first send carries every case; later sends carry only the cases whose algorithm changed. Nothing else about your solves is sent: no times, scrambles, dates or solve type names. With it goes a random sharing ID, created by the app for this alone. It is not your Coach ID, it is shown nowhere, and it is linked to nothing else: no name, email address or Google account.
+
+**When.** At most once a day, in the background, when the phone is online and something has changed.
+
+**Checking the app is genuine.** So that votes cannot be faked in bulk, each send carries a Google Play Integrity token: the app asks Google Play to vouch that it is the real Cubench from Google Play, running on a genuine Android device, and the server has Google check that token. Google Play handles this under Google's own privacy policy. The token says nothing about your solves, and the server does not keep it.
+
+**Who processes it.** The same server as the coach (Google Cloud in Belgium, with its database hosted by Neon in Germany). It is never sent to Anthropic.
+
+**What is kept, and for how long.** Under your sharing ID, the server keeps the algorithm you use for each case and the date the ID was first seen, for as long as sharing stays on. It also keeps a record of each vote it receives for 90 days, so that a batch of fake votes can be removed and the votes it replaced put back. Once a day, it combines everyone's votes into a share per algorithm for each case. A case is published only once 30 users have voted on it, and an algorithm that is not in the app's list only once 5 users turn it. These combined figures name nobody, and they are what the app shows. Your IP address is used only to limit how often sends can be made: the server holds it in memory and never stores it, and the hosting provider's request logs keep it for a day. The sharing ID is never written to the server's logs.
+
+**Turning it off.** Turning the switch off stops the sending, and the app asks the server to delete everything kept under your sharing ID (it keeps asking until the server confirms), then forgets the ID. Turning it back on starts with a new ID. If you uninstall the app without turning sharing off, what was sent stays on the server, under an ID that nobody can link to you.
+
+**Why (legal basis).** Showing every user which algorithms are actually used, from data that identifies nobody and that you can stop sending at any time (legitimate interest, article 6(1)(f) of the GDPR). Turning the switch off is your right to object.
 
 # Reconstruction reports
 
@@ -22,7 +40,7 @@ If a smart cube solve was read wrong, you can tap "Reconstruction wrong?" on it 
 
 # The coach (optional, paid, free while in beta)
 
-The coach reads your solve statistics and writes you a practice plan every week. It runs on a server, which it shares with reconstruction reports; apart from those, it is the one part of the app that sends data over the internet. **Nothing about you is sent unless you subscribe, start the free trial, join the beta, or enter an access code.** When your subscription, the beta or your access ends, sending stops.
+The coach reads your solve statistics and writes you a practice plan every week. It runs on a server, which it shares with reconstruction reports and algorithm usage sharing. **Nothing about you is sent unless you subscribe, start the free trial, join the beta, or enter an access code.** When your subscription, the beta or your access ends, sending stops.
 
 **Beta status.** While the beta runs, the app asks the server about once a day whether it still has places, so it can offer it to you. If you have not joined, that request carries nothing about you: no Coach ID, no statistics. Like any request over the internet, it shows the server your IP address, which is handled as described below. Once the beta has ended, the app stops asking.
 
@@ -46,10 +64,10 @@ The coach reads your solve statistics and writes you a practice plan every week.
 
 # Your rights
 
-You can ask for a copy of the data the server holds about you, or for its deletion, by emailing me your Coach ID (Settings, Coach). Coach summaries, plans and plan ratings are deleted after 30 days in any case. You can also file a complaint with your data protection authority.
+You can ask for a copy of the data the server holds about you, or for its deletion, by emailing me your Coach ID (Settings, Coach). Coach summaries, plans and plan ratings are deleted after 30 days in any case. For algorithm usage, the sharing ID is shown nowhere, so I cannot tell which votes are yours; turning sharing off deletes them. You can also file a complaint with your data protection authority.
 
 # Contact
 
 If you have any questions about this privacy policy, you can contact me by email: contact@cubench.app
 
-Last updated: November 6, 2026
+Last updated: November 14, 2026
