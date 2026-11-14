@@ -44,6 +44,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.usage.UsageShares;
 import com.cube.nanotimer.util.view.SmartCubeMarkLabel;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -204,6 +205,9 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     rows = view.findViewById(R.id.llCaseAlgorithms);
     yours = view.findViewById(R.id.llCaseYours);
     yoursLabel = view.findViewById(R.id.tvCaseYoursLabel);
+    ((TextView) view.findViewById(R.id.tvCaseAlgorithmsOrder)).setText(
+        CaseAlgorithms.hasUsage(caseCode) ? R.string.case_algorithms_order_usage
+            : R.string.case_algorithms_order);
     view.findViewById(R.id.tvCaseAddAlgorithm).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -408,7 +412,8 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       // Their own spelling of a listed algorithm stands in its place
       String moves = CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), own) ? own
           : algorithm.getMoves();
-      rows.addView(row(moves, algorithm.isRecommended(), i == 0, algorithm.getEmptySlot()));
+      rows.addView(row(moves, algorithm.isRecommended(), i == 0, algorithm.getEmptySlot(),
+          algorithm.getShare()));
       shown.add(moves);
     }
     if (own != null && !listedAlready(shown, own)) {
@@ -477,6 +482,12 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
    * @param emptySlot the slot the algorithm needs empty ("fl", "br"), or null
    */
   private View row(final String moves, boolean recommended, boolean top, String emptySlot) {
+    return row(moves, recommended, top, emptySlot, -1);
+  }
+
+  /** @param share the percentage of sharers who turn it, or negative for no figure */
+  private View row(final String moves, boolean recommended, boolean top, String emptySlot,
+      float share) {
     boolean declared = CaseAlgorithms.sameTurning(caseCode, moves, chosen);
     Turned one = turnedFor(moves);
     boolean mine = declared || one != null; // theirs either way, said or done
@@ -513,6 +524,20 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       GUIUtils.setWeight(notation, Typeface.BOLD);
     }
     line.addView(notation);
+
+    if (share >= 0) {
+      TextView percent = GUIUtils.newTextView(getActivity());
+      percent.setText(UsageShares.label(getActivity(), share));
+      percent.setTextSize(top ? 15 : 14);
+      percent.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
+      percent.setFontFeatureSettings("tnum");
+      percent.setPadding(dp(8), 0, 0, 0);
+      LinearLayout.LayoutParams percentParams = new LinearLayout.LayoutParams(
+          LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+      percentParams.gravity = Gravity.CENTER_VERTICAL;
+      percent.setLayoutParams(percentParams);
+      line.addView(percent);
+    }
 
     // Marks rather than labels, and all of them when they all apply: a choice does not stop an
     // algorithm being the recommended one, and watching that word disappear on being tapped reads

@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 public final class UsageSharing {
 
   private static final String DAILY = "usage_daily";
+  private static final String WEEKLY = "usage_shares_weekly";
   private static final String FORGET_PREFIX = "usage_forget_";
   static final String SHARING_ID = "sharing_id";
   private static final long BACKOFF_MINUTES = 30;
@@ -45,8 +46,19 @@ public final class UsageSharing {
     return SmartCubeGate.ENABLED && UsageClient.configured(context) != null;
   }
 
-  /** Keeps the daily send in place while sharing is active. At app start and on a connection. */
+  /**
+   * Keeps the daily send in place while sharing is active, and the weekly download of the figures
+   * for any smart-cube user, sharing or not. At app start and on a connection.
+   */
   public static void schedule(Context context) {
+    if (isOffered(context) && Options.INSTANCE.getSmartCubeLastId() != null) {
+      WorkManager.getInstance(context.getApplicationContext()).enqueueUniquePeriodicWork(WEEKLY,
+          ExistingPeriodicWorkPolicy.KEEP,
+          new PeriodicWorkRequest.Builder(UsageSharesWorker.class, 7, TimeUnit.DAYS)
+              .setConstraints(online())
+              .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, BACKOFF_MINUTES, TimeUnit.MINUTES)
+              .build());
+    }
     if (!isActive(context)) {
       return;
     }

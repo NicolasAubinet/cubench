@@ -38,6 +38,7 @@ final class UsageClient {
   private final Context context;
   private final String usageUrl;
   private final String forgetUrl;
+  private final String sharesUrl;
   private final long cloudProject;
 
   private UsageClient(Context context, String baseUrl, long cloudProject) {
@@ -45,7 +46,25 @@ final class UsageClient {
     String base = baseUrl.replaceAll("/+$", "");
     this.usageUrl = base + "/v1/usage";
     this.forgetUrl = base + "/v1/usage/forget";
+    this.sharesUrl = base + "/v1/usage/shares";
     this.cloudProject = cloudProject;
+  }
+
+  /**
+   * The published usage snapshot, with nothing sent but the request itself. Blocks.
+   *
+   * @return its text, or null when the service answered with anything but 200
+   */
+  String shares() throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL(sharesUrl).openConnection();
+    try {
+      connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+      connection.setReadTimeout(READ_TIMEOUT_MS);
+      return connection.getResponseCode() == 200
+          ? UsageShares.read(connection.getInputStream()) : null;
+    } finally {
+      connection.disconnect();
+    }
   }
 
   /** The client this build can send with, or null when it has no coach address. */

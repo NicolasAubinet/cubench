@@ -1117,6 +1117,9 @@
   <string name="case_slot_front_right">Avant droit</string>
   <string name="case_slot_front_left">Avant gauche</string>
   <string name="case_algorithms_order">Les recommandés d\'abord. Touchez celui que vous utilisez.</string>
+  <string name="case_algorithms_order_usage">Les plus utilisés d\'abord : la part des utilisateurs Cubench avec un smart cube qui exécutent chacun. Touchez celui que vous utilisez.</string>
+  <string name="case_algorithm_share">%1$d %%</string>
+  <string name="case_algorithm_share_small" formatted="false">&lt;1 %</string>
   <string name="case_algorithm_empty_fl">Nécessite le slot avant gauche vide</string>
   <string name="case_algorithm_empty_br">Nécessite le slot arrière droit vide</string>
   <string name="case_algorithms_pair_open">Algorithmes pour cette paire</string>

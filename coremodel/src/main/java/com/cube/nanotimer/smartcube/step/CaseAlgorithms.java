@@ -55,8 +55,35 @@ public final class CaseAlgorithms {
         : caseCode.substring(0, caseCode.length() - slot.length() - 1);
   }
 
-  /** The algorithms the case is listed with, most used first: see {@link AlgorithmList}. */
+  private static volatile UsageFigures usage = UsageFigures.NONE;
+
+  /** The usage figures cases past their floor are ordered by: see {@link UsageFigures}. */
+  public static void setUsage(UsageFigures figures) {
+    usage = figures == null ? UsageFigures.NONE : figures;
+  }
+
+  /** Whether the case is ordered by usage figures, its rows carrying a share. */
+  public static boolean hasUsage(String caseCode) {
+    return slotOf(caseCode) == null && usage.shown(caseCode, byVotes(caseCode)) != null;
+  }
+
+  /**
+   * The algorithms the case is listed with, most used first: by our own usage figures once the case
+   * has them ({@link UsageFigures}), and otherwise by the vote table ({@link AlgorithmList}).
+   */
   public static List<Listed> shown(String caseCode) {
+    List<Listed> byVotes = byVotes(caseCode);
+    if (slotOf(caseCode) == null) {
+      List<Listed> byUse = usage.shown(caseCode, byVotes);
+      if (byUse != null) {
+        return byUse;
+      }
+    }
+    return byVotes;
+  }
+
+  /** The vote table's order, which a case keeps until it has usage figures. */
+  static List<Listed> byVotes(String caseCode) {
     List<Listed> shown = new ArrayList<Listed>();
     String slot = slotOf(caseCode);
     if (slot != null) {
@@ -232,11 +259,27 @@ public final class CaseAlgorithms {
     private final String moves;
     private final boolean recommended;
     private final String emptySlot;
+    private final float share;
 
     Listed(String moves, boolean recommended, String emptySlot) {
+      this(moves, recommended, emptySlot, -1);
+    }
+
+    Listed(String moves, boolean recommended, String emptySlot, float share) {
       this.moves = moves;
       this.recommended = recommended;
       this.emptySlot = emptySlot;
+      this.share = share;
+    }
+
+    /** Whether a usage share comes with it, which only a case past its floor gives. */
+    public boolean hasShare() {
+      return share >= 0;
+    }
+
+    /** The percentage of the case's sharers who turn it, or -1 for none. */
+    public float getShare() {
+      return share;
     }
 
     public String getMoves() {

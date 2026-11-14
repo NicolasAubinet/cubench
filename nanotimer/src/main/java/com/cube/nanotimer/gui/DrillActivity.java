@@ -69,6 +69,7 @@ import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.ScrambleFormatterService;
 import com.cube.nanotimer.util.helper.Utils;
+import com.cube.nanotimer.util.usage.UsageShares;
 import com.cube.nanotimer.gui.widget.GroupLearnedPanel;
 import com.cube.nanotimer.gui.widget.SetLearnedPanel;
 import com.cube.nanotimer.session.CaseKnowledge;
@@ -1327,6 +1328,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     }
     if (CaseAlgorithms.sameTurning(choosing, algorithm, recommendedAlgorithm(choosing))) {
       marks.add(getString(R.string.case_algorithm_recommended));
+    }
+    for (CaseAlgorithms.Listed listed : listedFor(choosing)) {
+      if (listed.hasShare() && CaseAlgorithms.sameTurning(choosing, algorithm, listed.getMoves())) {
+        marks.add(UsageShares.label(this, listed.getShare()));
+        break;
+      }
     }
     return marks.isEmpty() ? null : TextUtils.join(" · ", marks);
   }
