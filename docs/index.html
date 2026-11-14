@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cubench: the free smart cube app for Android</title>
-<meta name="description" content="Connect a GAN, MoYu or QiYi smart cube. Cubench reconstructs every solve, times every OLL, PLL and F2L case, and drills them on your real cube. Free, no account, no ads, open source.">
+<meta name="description" content="Connect a GAN, MoYu or QiYi smart cube. Cubench reconstructs every solve, times every OLL, PLL and F2L case, and drills them on your real cube. Also a complete timer for every WCA puzzle, with stats, sessions and graphs. Free, no account, no ads, open source.">
 <link rel="canonical" href="https://cubench.app/">
 <meta name="theme-color" content="#121518">
 <link rel="icon" href="img/icon-192.png" type="image/png">
@@ -53,7 +53,7 @@
 <section class="hero"><div class="wrap">
   <div>
     <h1>See every turn of <em>every solve.</em></h1>
-    <p class="lede">The free smart cube app for Android: full reconstruction, case stats and drills on your real cube. No account, no ads, open source.</p>
+    <p class="lede">The free smart cube app for Android: full reconstruction, case stats and drills on your real cube. And a complete timer for every WCA puzzle, with or without one. No account, no ads, open source.</p>
     <div class="cta">
       <a class="play" href="https://play.google.com/store/apps/details?id=com.cube.nanotimer&amp;referrer=utm_source%3Dwebsite%26utm_campaign%3Dhero" target="_blank" rel="noopener"><img src="img/google-play-badge.png" alt="Get it on Google Play" width="191" height="74"></a>
       <a class="btn btn-ghost" href="#features">See what it does</a>
@@ -145,23 +145,45 @@
 </div></section>
 
 <section class="feat" id="timer"><div class="wrap">
-  <div class="row">
+  <div class="row flip">
     <div class="text reveal">
-      <h2 class="bar" style="--c:var(--accent)">No smart cube? Still a great timer</h2>
-      <p class="sub">Twelve years of cubers have timed with it.</p>
-      <p>Formerly Nano Timer. Every WCA puzzle, random-state scrambles, and stats that stay out of your way until you want them.</p>
+      <h2 class="bar" style="--c:var(--accent)">A complete cube timer</h2>
+      <p class="sub">With or without a smart cube.</p>
+      <p>Formerly Nano Timer, twelve years in the making. Fair scrambles for every WCA puzzle, every time recorded, and your progress in stats, averages and graphs. Set it up the way you practice.</p>
+      <ul class="points" style="--c:var(--accent)">
+        <li><span><b>Tap anywhere to start and stop.</b> A clean screen with nothing in the way, and WCA inspection if you want it.</span></li>
+        <li><span><b>Time each step</b>: split a solve into cross, F2L, OLL and PLL, or your own stages, and see the average of each.</span></li>
+        <li><span><b>Your own solve types</b>: one-handed, a new method, a warm-up. Each keeps its own history and stats.</span></li>
+      </ul>
     </div>
-    <div class="phones reveal">
-      <div class="phone sm tilt-l"><img src="shots/timer_plain.webp" alt="Timer after a 9.96 solve, with the session's averages" width="540" height="1205" loading="lazy"></div>
-      <div class="phone sm tilt-r"><img src="shots/history.webp" alt="Solve history with Ao5, Ao12 and personal best" width="540" height="1205" loading="lazy"></div>
+    <div class="phones three reveal">
+      <div class="phone"><img src="shots/timer_steps.webp" alt="Multi-step timer: a 13.26 solve split into cross, F2L, OLL and PLL, with Ao5 to Ao100 for each step" width="540" height="1205" loading="lazy"></div>
+      <div class="phone"><img src="shots/timer_plain.webp" alt="Timer after a 9.96 solve, with the session's averages" width="540" height="1205" loading="lazy"></div>
+      <div class="phone"><img src="shots/cross_solver.webp" alt="Cross solver: every optimal D and U cross for the scramble, 6 moves each" width="540" height="1205" loading="lazy"></div>
     </div>
   </div>
-  <div class="grid3 reveal">
-    <div class="tile"><div class="viz face" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><h3>Every WCA puzzle</h3><p>2x2 to 7x7, Megaminx, Pyraminx, Skewb, Square-1, Clock and blind, plus FTO.</p></div>
-    <div class="tile"><div class="viz mono scr" aria-hidden="true">R2 U' F2 D L2 B' U</div><h3>Random-state scrambles</h3><p>Fair scrambles, generated in the background.</p></div>
-    <div class="tile"><div class="viz split" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Steps, stats, graphs</h3><p>Time each step, Ao5 to Ao1000, Mo3 for blind, progress graphs.</p></div>
+  <figure class="landscape reveal">
+    <div class="phone-land"><img src="shots/graph.webp" alt="Progression graph of the last 50 solves with Ao5 and Ao12 lines" width="1200" height="538" loading="lazy"></div>
+    <figcaption>Turn the phone for graphs: progression, solves per day, time distribution.</figcaption>
+  </figure>
+  <div class="grid3 dense reveal">
+    <div class="tile"><div class="viz face" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><h3>Every WCA puzzle</h3><p>2x2 to 7x7, Megaminx, Pyraminx, Skewb, Square-1 and Clock, plus FTO.</p></div>
+    <div class="tile"><div class="viz mono scr" aria-hidden="true">R2 U' F2 D L2 B' U</div><h3>Random-state scrambles</h3><p>For 3x3, 2x2, Square-1, Pyraminx and FTO, made in the background so one is always ready.</p></div>
+    <div class="tile"><div class="viz mono avg" aria-hidden="true"><span>Ao5 <b>12.34</b></span><span>Ao12 <b>12.87</b></span></div><h3>Full statistics</h3><p>Best time, Ao5, Ao12, Ao50, Ao100, mean, and the best of each average.</p></div>
+    <div class="tile"><div class="viz split" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h3>Multi-step timer</h3><p>Break a solve into stages and see which phase costs you the most.</p></div>
+    <div class="tile"><div class="viz spark" aria-hidden="true"><svg viewBox="0 0 150 34" width="150" height="34"><polyline points="0,14 15,10 30,16 45,8 60,13 75,18 90,15 105,22 120,19 135,26 150,30"/></svg></div><h3>Graphs</h3><p>Watch your times and averages drop over days, weeks and months.</p></div>
+    <div class="tile"><div class="viz chips" aria-hidden="true"><span>Nov 14</span><span>Nov 12</span><span>Nov 9</span></div><h3>Sessions</h3><p>Group your solves by sitting and look back at any past session.</p></div>
+    <div class="tile"><div class="viz chips" aria-hidden="true"><span>Default</span><span>OH</span><span>CFOP steps</span></div><h3>Custom solve types</h3><p>Separate histories for the same puzzle, each with its own steps and stats.</p></div>
+    <div class="tile"><div class="viz mono scr" aria-hidden="true">D cross · 6 moves</div><h3>Cross solver</h3><p>Every optimal cross for the scramble, on one color, two, or all six.</p></div>
+    <div class="tile"><div class="viz chips" aria-hidden="true"><span>F2L</span><span>Last layer</span><span>PLL</span></div><h3>Special scrambles</h3><p>Scrambles that skip to the step you want to practice.</p></div>
+    <div class="tile"><div class="viz mono avg" aria-hidden="true"><span>Mo3 <b>1:08.87</b></span><span><b>78%</b></span></div><h3>Blindfolded</h3><p>Success rate, Mo3, best and last average, and the average of your successes.</p></div>
+    <div class="tile"><div class="viz mono big" aria-hidden="true">+2 · DNF</div><h3>Every time recorded</h3><p>Penalties, a full history for every puzzle, CSV export and backups.</p></div>
+    <div class="tile"><div class="viz mono big" aria-hidden="true">GPL v3</div><h3>Free and open source</h3><p>No ads, no account, every timer feature unlocked.</p></div>
   </div>
-  <div class="coach reveal" id="coach">
+</div></section>
+
+<section class="feat coach-sec" id="coach"><div class="wrap">
+  <div class="coach reveal">
     <div class="coach-head"><span class="badge">FREE BETA</span><h3>Want a plan? Try the coach.</h3></div>
     <p class="coach-lede">The free stats show where you stand. The coach tells you what to do next, and whether it worked. For CFOP solvers, for now.</p>
     <ul class="points">
