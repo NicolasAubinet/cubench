@@ -12,10 +12,15 @@ import com.cube.nanotimer.vo.CubeMethod;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public enum Options {
   INSTANCE;
@@ -100,6 +105,8 @@ public enum Options {
   private static final String LEARN_NEXT_COUNT_KEY = "learn_next_count";
   private static final int DEFAULT_LEARN_NEXT_COUNT = 3;
   private static final String COACH_ID_KEY = "coach_id";
+  private static final String USAGE_SHARING_ID_KEY = "usage_sharing_id";
+  private static final String USAGE_REPORTED_KEY = "usage_reported";
   private static final String COACH_PLANS_ON_KEY = "coach_plans_on";
   private static final String COACH_PLANS_SOLVE_TYPE_KEY = "coach_plans_solve_type";
   private static final String COACH_LAST_PLAN_KEY = "coach_last_plan_at";
@@ -442,6 +449,52 @@ public enum Options {
       sharedPreferences.edit().putString(COACH_ID_KEY, id).commit();
     }
     return id;
+  }
+
+  /**
+   * The random id algorithm usage votes are sent under, made the first time it is read. Linked to
+   * nothing else, the coach id included, so it is never derived from or sent beside one.
+   */
+  public synchronized String getUsageSharingId() {
+    String id = sharedPreferences.getString(USAGE_SHARING_ID_KEY, null);
+    if (id == null) {
+      id = UUID.randomUUID().toString();
+      sharedPreferences.edit().putString(USAGE_SHARING_ID_KEY, id).commit();
+    }
+    return id;
+  }
+
+  /** The votes last accepted by the server, per case ({@code AlgorithmVotes}), empty if none. */
+  public Map<String, String> getUsageReported() {
+    Map<String, String> reported = new TreeMap<String, String>();
+    String json = sharedPreferences.getString(USAGE_REPORTED_KEY, null);
+    if (json == null) {
+      return reported;
+    }
+    try {
+      JSONObject object = new JSONObject(json);
+      Iterator<String> keys = object.keys();
+      while (keys.hasNext()) {
+        String key = keys.next();
+        reported.put(key, object.getString(key));
+      }
+    } catch (JSONException e) {
+      reported.clear(); // unreadable: everything is sent again, which the server takes as a replace
+    }
+    return reported;
+  }
+
+  /** Adds the votes the server just accepted to those already reported. */
+  public synchronized void addUsageReported(Map<String, String> accepted) {
+    Map<String, String> reported = getUsageReported();
+    reported.putAll(accepted);
+    sharedPreferences.edit().putString(USAGE_REPORTED_KEY, new JSONObject(reported).toString())
+        .apply();
+  }
+
+  /** Forgets the sharing id and what was sent under it, for when sharing is turned off. */
+  public synchronized void clearUsageSharing() {
+    sharedPreferences.edit().remove(USAGE_SHARING_ID_KEY).remove(USAGE_REPORTED_KEY).commit();
   }
 
   /** Whether the solver agreed to weekly plans, which are asked for in the background. */
