@@ -877,6 +877,10 @@
   <string name="smart_cube_auto_stop_summary">Arrêter le chrono dès que le cube est résolu, plutôt que sur une pression</string>
   <string name="smart_cube_auto_penalty">+2 et DNF automatiques</string>
   <string name="smart_cube_auto_penalty_summary">Donner un +2 à une résolution arrêtée à un mouvement du résolu, et un DNF à une résolution arrêtée plus loin</string>
+  <string name="usage_sharing">Partager les algorithmes que j\'utilise</string>
+  <string name="usage_sharing_summary">Envoie l\'algorithme que vous exécutez pour chaque cas OLL, PLL et F2L, sous un identifiant aléatoire lié à rien d\'autre, pour que Cubench montre ceux que les cubeurs utilisent vraiment. Résolutions au smart cube uniquement</string>
+  <string name="usage_notice">Cubench partage l\'algorithme que vous utilisez pour chaque cas, sous un identifiant aléatoire lié à rien d\'autre. Désactivez-le dans Réglages › Smart cube.</string>
+  <string name="usage_notice_link">Ce qui est envoyé</string>
   <string name="drill_pause_setting">Pause entre les cas des drills</string>
   <string name="drill_pause_off">Aucune</string>
   <string name="drill_pause_seconds">%1$s s</string>

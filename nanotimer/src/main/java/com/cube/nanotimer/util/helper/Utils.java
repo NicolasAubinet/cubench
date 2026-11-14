@@ -158,8 +158,14 @@ public class Utils {
 
   /** Opens the privacy policy in the browser; does nothing on a device with no browser. */
   public static void openPrivacyPolicy(Context context) {
+    openPrivacyPolicy(context, null);
+  }
+
+  /** @param section the anchor of one section of the policy, or null for its top */
+  public static void openPrivacyPolicy(Context context, String section) {
+    String url = section == null ? PRIVACY_POLICY_URL : PRIVACY_POLICY_URL + "#" + section;
     try {
-      context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)));
+      context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
     } catch (ActivityNotFoundException e) {
       // Nothing on the device opens a link.
     }

@@ -107,6 +107,8 @@ public enum Options {
   private static final String COACH_ID_KEY = "coach_id";
   private static final String USAGE_SHARING_ID_KEY = "usage_sharing_id";
   private static final String USAGE_REPORTED_KEY = "usage_reported";
+  public static final String USAGE_SHARING_ON_KEY = "usage_sharing_on";
+  private static final String USAGE_NOTICE_SEEN_KEY = "usage_notice_seen";
   private static final String COACH_PLANS_ON_KEY = "coach_plans_on";
   private static final String COACH_PLANS_SOLVE_TYPE_KEY = "coach_plans_solve_type";
   private static final String COACH_LAST_PLAN_KEY = "coach_last_plan_at";
@@ -462,6 +464,29 @@ public enum Options {
       sharedPreferences.edit().putString(USAGE_SHARING_ID_KEY, id).commit();
     }
     return id;
+  }
+
+  /** The sharing id, or null if none was made yet; never makes one. */
+  public String peekUsageSharingId() {
+    return sharedPreferences.getString(USAGE_SHARING_ID_KEY, null);
+  }
+
+  /** Whether the smart-cube settings' "Share which algorithms I use" is on. On by default. */
+  public boolean isUsageSharingOn() {
+    return sharedPreferences.getBoolean(USAGE_SHARING_ON_KEY, true);
+  }
+
+  public void setUsageSharingOn(boolean on) {
+    sharedPreferences.edit().putBoolean(USAGE_SHARING_ON_KEY, on).commit();
+  }
+
+  /** Whether the cube sheet has said once that sharing is on and where to turn it off. */
+  public boolean isUsageNoticeSeen() {
+    return sharedPreferences.getBoolean(USAGE_NOTICE_SEEN_KEY, false);
+  }
+
+  public void setUsageNoticeSeen() {
+    sharedPreferences.edit().putBoolean(USAGE_NOTICE_SEEN_KEY, true).apply();
   }
 
   /** The votes last accepted by the server, per case ({@code AlgorithmVotes}), empty if none. */
