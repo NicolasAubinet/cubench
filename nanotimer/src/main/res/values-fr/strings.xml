@@ -985,6 +985,7 @@
   <string name="drill_summary_ceiling">Arrêté à %d essais.</string>
   <string name="drill_summary_over_target">Encore au-dessus de l\'objectif : %s</string>
   <string name="drill_summary_still_learning">Pas encore fait sans regarder : %s</string>
+  <string name="drill_summary_all_learned">Tous les cas de cet exercice sont appris. Continuez à les réviser jusqu\'à votre prochain plan.</string>
   <string name="drill_rep_other_alg">un autre algorithme</string>
   <string name="drill_rep_rotated">avec une rotation</string>
   <string name="group_learned_label">Groupe appris</string>

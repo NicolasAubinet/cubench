@@ -1016,6 +1016,7 @@
   <string name="drill_summary_ceiling">Stopped at %d reps.</string>
   <string name="drill_summary_over_target">Still over target: %s</string>
   <string name="drill_summary_still_learning">Not yet turned without looking: %s</string>
+  <string name="drill_summary_all_learned">Every case in this drill is learned. Keep reviewing them until your next plan.</string>
   <string name="drill_rep_other_alg">another algorithm</string>
   <string name="drill_rep_rotated">with a rotation</string>
   <string name="group_learned_label">Shape group learned</string>

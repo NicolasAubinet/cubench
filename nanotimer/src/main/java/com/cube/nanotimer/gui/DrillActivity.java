@@ -1922,7 +1922,18 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
           ? R.string.drill_summary_still_learning : R.string.drill_summary_over_target,
           joined(over)));
     }
+    if (spec.isFromCoach() && spec.isLearning() && allLearned(spec.getCases())) {
+      note.append(note.length() == 0 ? "" : " ")
+          .append(getString(R.string.drill_summary_all_learned));
+    }
     setSummaryNote(note);
+  }
+
+  /** Whether nothing new is left, so every later run until the next plan only reviews. */
+  private boolean allLearned(List<String> cases) {
+    Set<String> learned = learnedCases();
+    learned.addAll(Options.INSTANCE.getLearnedPairCases());
+    return !cases.isEmpty() && learned.containsAll(cases);
   }
 
   /** One case: its chart, how often it was dealt, its wins, its target, and its mean against it. */
