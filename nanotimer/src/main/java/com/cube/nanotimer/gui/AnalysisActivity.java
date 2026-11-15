@@ -46,7 +46,6 @@ import com.cube.nanotimer.gui.widget.CoachPlanView;
 import com.cube.nanotimer.gui.widget.CoachTodayView;
 import com.cube.nanotimer.gui.widget.CoachDailyView;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
-import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
@@ -118,8 +117,7 @@ import java.util.Set;
  * standing over a screen they have a real version of. That is the arrangement never allowed here,
  * because an invented figure beside a real one is what makes the true number look invented.
  */
-public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDialog.Listener,
-    SelectionHandler {
+public class AnalysisActivity extends NanoTimerActivity implements SelectionHandler {
 
   private static final int ID_PLAN_LANGUAGE = 1;
 
@@ -307,6 +305,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       coachClient.checkBetaIfStale();
     }
     showToday(); // solves and drills done since the tab was last drawn
+    redrawPractice();
     if (knownRead) {
       loadKnowledge(); // a drill run from here may have learned cases since
     }
@@ -1205,8 +1204,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     return !planShown && planStatus.getLook() == CoachPlanStatus.Look.FIRST;
   }
 
-  @Override
-  public void onDrillCasesPicked(String family) {
+  /** Back from the learn-next picker, which writes the pick through as it goes. */
+  private void redrawPractice() {
     if (!isFinishing() && !practiceSets.isEmpty()) {
       drawPractice(practiceSets);
     }

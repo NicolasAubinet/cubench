@@ -35,7 +35,6 @@ import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.StepCardBackground;
 import com.cube.nanotimer.gui.widget.cases.CaseTile;
-import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.preferences.LastLayerColourDialog;
 import com.cube.nanotimer.gui.widget.preferences.NumberEntryDialog;
 import com.cube.nanotimer.scrambler.cross.CrossFace;
@@ -76,7 +75,7 @@ import java.util.Set;
  * on cases there is nothing to practise yet.
  */
 public class DrillSetupActivity extends NanoTimerActivity
-    implements DrillCasesDialog.Listener, CubeConnectionListener {
+    implements CubeConnectionListener {
 
   private static final int PRACTICE_PLL = 0;
   private static final int PRACTICE_OLL = 1;
@@ -251,7 +250,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     casesRow.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        DrillCasesDialog.newInstance(family()).show(getSupportFragmentManager(), "drillCases");
+        startActivity(CaseSetActivity.pick(DrillSetupActivity.this, family()));
       }
     });
 
@@ -290,7 +289,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itDrillStats) {
-      startActivity(new Intent(this, DrillStatsActivity.class));
+      startActivity(CaseSetActivity.drillStats(this, family()));
       return true;
     }
     if (item.getItemId() == R.id.itDrillHelp) {
@@ -309,6 +308,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     super.onResume();
     smartCubeChip.start();
     SmartCubeManager.INSTANCE.addConnectionListener(this); // replays the connection at once
+    refreshCasesCount(); // back from the picker, which writes the pick through as it goes
   }
 
   @Override
@@ -491,10 +491,6 @@ public class DrillSetupActivity extends NanoTimerActivity
     }
   }
 
-  @Override
-  public void onDrillCasesPicked(String family) {
-    refreshCasesCount();
-  }
 
   /**
    * What the drill will deal, which is what the user is about to spend the session on. Everything

@@ -1073,7 +1073,6 @@
     <item quantity="one">%d case</item>
     <item quantity="other">%d cases</item>
   </plurals>
-  <string name="drill_stats_hint">Tap a case to see every attempt at it.</string>
   <string name="drill_stats_empty">Nothing recorded yet. Drills run in the focused mode show up here, case by case.</string>
   <string name="drill_stats_empty_window">No drill in this stretch of time.</string>
   <string name="drill_stats_window_today">Today</string>
@@ -1363,6 +1362,7 @@
   <string name="case_sort_solve_mean">Solve mean</string>
   <string name="case_sort_drill_mean">Drill mean</string>
   <string name="case_set_no_times">No times for these cases yet.</string>
+  <string name="case_set_only_these">Only these %d</string>
   <plurals name="case_set_cases">
     <item quantity="one">%d case</item>
     <item quantity="other">%d cases</item>

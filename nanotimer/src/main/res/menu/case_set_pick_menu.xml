@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Picking a drill's cases: the way into the named picks. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <item android:id="@+id/itCasePresets"
+     android:icon="@drawable/ic_preset"
+     android:title="@string/drill_presets"
+     app:showAsAction="always"/>
+</menu>

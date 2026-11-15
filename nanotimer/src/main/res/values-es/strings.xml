@@ -1031,7 +1031,6 @@
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>
   </plurals>
-  <string name="drill_stats_hint">Toca un caso para ver cada uno de sus intentos.</string>
   <string name="drill_stats_empty">Nada registrado todavía. Los drills hechos en modo serio aparecen aquí, caso por caso.</string>
   <string name="drill_stats_empty_window">Ningún drill en este periodo.</string>
   <string name="drill_stats_window_today">Hoy</string>
@@ -1314,6 +1313,7 @@
   <string name="case_sort_solve_mean">Media en resoluciones</string>
   <string name="case_sort_drill_mean">Media en ejercicios</string>
   <string name="case_set_no_times">Aún no hay tiempos para estos casos.</string>
+  <string name="case_set_only_these">Solo estos %d</string>
   <plurals name="case_set_cases">
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>

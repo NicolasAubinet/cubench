@@ -55,7 +55,7 @@ import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
 import com.cube.nanotimer.gui.DrillSetupActivity;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
-import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
+import com.cube.nanotimer.gui.CaseSetActivity;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
@@ -446,7 +446,7 @@ public class CoachPlanView {
       public void onClick(View v) {
         CoachPractice.Set suggested =
             set.firstToLearn(Options.INSTANCE.getLearnNextCount(), learned);
-        DialogUtils.showFragment((FragmentActivity) activity, DrillCasesDialog.newLearning(family,
+        activity.startActivity(CaseSetActivity.learn(activity, family,
             suggested == null ? Collections.<String>emptyList() : suggested.getCases()));
       }
     });

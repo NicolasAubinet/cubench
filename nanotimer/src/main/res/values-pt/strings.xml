@@ -1034,7 +1034,6 @@
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>
   </plurals>
-  <string name="drill_stats_hint">Toque em um caso para ver cada uma das suas tentativas.</string>
   <string name="drill_stats_empty">Nada registrado ainda. Os treinos feitos no modo concentrado aparecem aqui, caso a caso.</string>
   <string name="drill_stats_empty_window">Nenhum treino neste período.</string>
   <string name="drill_stats_window_today">Hoje</string>
@@ -1317,6 +1316,7 @@
   <string name="case_sort_solve_mean">Média em resoluções</string>
   <string name="case_sort_drill_mean">Média em exercícios</string>
   <string name="case_set_no_times">Ainda não há tempos para estes casos.</string>
+  <string name="case_set_only_these">Só estes %d</string>
   <plurals name="case_set_cases">
     <item quantity="one">%d caso</item>
     <item quantity="other">%d casos</item>

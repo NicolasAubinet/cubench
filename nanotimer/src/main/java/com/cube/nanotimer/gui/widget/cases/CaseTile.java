@@ -30,6 +30,9 @@ public final class CaseTile {
   private static final Map<String, LastLayerDiagram> PICTURES =
       new ConcurrentHashMap<String, LastLayerDiagram>();
 
+  /** An unpicked tile's standing dot recedes with its picture. */
+  private static final float DIMMED_STATUS = 0.4f;
+
   private final View view;
   private final LastLayerCaseView chart;
   private final TextView name;
@@ -112,6 +115,9 @@ public final class CaseTile {
   public CaseTile picked(boolean on) {
     picked = on;
     chart.setDimmed(!on);
+    if (status != null) {
+      status.setAlpha(on ? 1f : DIMMED_STATUS);
+    }
     name.setTextColor(ContextCompat.getColor(view.getContext(),
         on ? R.color.case_name : R.color.case_name_off));
     if (shape != null) {
