@@ -220,6 +220,11 @@ public final class CaseExecutions {
       // only CFOP is solved in these cases: nothing else would be read, it would be guessed
       return null;
     }
+    return replayAs(solve, method);
+  }
+
+  /** The solve read again as {@code method}, its steps alone, or null where it cannot be read. */
+  static Replay replayAs(SolveTime solve, CubeMethod method) {
     StoredSolveReplay.Result reread = StoredSolveReplay.reinterpret(solve.getScramble(),
         solve.getSmartcubeMoves(), method, SolveTypeMethod.blindMethodOf(solve.getSolveType()));
     if (reread == null) {
@@ -236,7 +241,8 @@ public final class CaseExecutions {
     }
     StoredSolveReplay.Result reread = replay.reread;
     List<SolveStep> steps = replay.steps;
-    SolveSolution solution = SolveSolution.from(reread.getMoves(), steps);
+    // The method decides Roux's frame and the pauses its second block opens on; CFOP reads as before.
+    SolveSolution solution = SolveSolution.from(reread.getMoves(), steps, reread.getMethod());
     for (int i = 0; i < steps.size() && i < solution.getSteps().size(); i++) {
       if (reread.getStoppedStep() != null
           && reread.getStoppedStep().intValue() == steps.get(i).getStepIndex()) {

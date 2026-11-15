@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -67,14 +68,33 @@ public class TurningFiguresTest {
   public void rouxBlockPausesMatchTheDetailSheet() {
     SolveTime solve = solve(ROUX_SCRAMBLE, ROUX_MOVES, CubeMethod.ROUX, 20772);
     SolveSolution sheet = sheetOf(solve, CubeMethod.ROUX);
+    SolveReadings readings = SolveReadings.none();
 
-    Map<String, Long> pauses = StepPauses.fromSolutions(
-        TurningFigures.solutionsOf(Collections.singletonList(solve), CubeMethod.ROUX));
+    Map<String, Long> pauses = StepPauses.fromReadings(Collections.singletonList(solve),
+        readings, CubeMethod.ROUX);
 
     assertEquals(2, pauses.size());
     assertEquals(sheet.getSteps().get(0).getPauseMs(), (long) pauses.get("fb"));
     assertEquals(sheet.getSteps().get(1).getPauseMs(), (long) pauses.get("sb"));
     assertTrue(pauses.get("fb") > 0 && pauses.get("sb") > 0);
+    assertEquals(1, readings.unkept().size()); // read once, handed back to be kept
+  }
+
+  /** A kept Roux reading comes back as one; a row kept under the other method is read again. */
+  @Test
+  public void aKeptReadingBelongsToTheMethodItWasReadAs() {
+    SolveTime solve = solve(ROUX_SCRAMBLE, ROUX_MOVES, CubeMethod.ROUX, 20772);
+    String rouxRow = SolveReading.toJson(SolveReading.read(solve));
+    SolveReading kept = SolveReading.parse(rouxRow);
+    assertTrue(kept.isReadAs(CubeMethod.ROUX));
+    assertFalse(kept.isReadAs(CubeMethod.CFOP));
+
+    String cfopRow = SolveReading.toJson(new SolveReading(
+        Collections.<SolveReading.Execution>emptyList(),
+        Collections.singletonList(new SolveReading.Turning("cross", 3000, 8, 1, 900, 900)), true));
+    SolveReadings readings = new SolveReadings(Collections.singletonMap(1L, cfopRow));
+    assertEquals("fb", readings.readingOf(solve).getTurnings().get(0).getCode());
+    assertEquals(1, readings.unkept().size());
   }
 
   @Test

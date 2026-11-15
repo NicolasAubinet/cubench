@@ -32,7 +32,6 @@ import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.cube.AlgorithmFiguresReader;
 import com.cube.nanotimer.cube.SolveReading;
 import com.cube.nanotimer.cube.SolveReadings;
-import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.cube.StepPauses;
 import com.cube.nanotimer.cube.TurningFigures;
@@ -744,11 +743,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
         new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(final List<SolveTime> solves) {
-            if (solved != CubeMethod.CFOP) { // nothing kept to read through: read them here
-              List<SolveSolution> solutions = TurningFigures.solutionsOf(solves, solved);
-              showTurningRead(asked, TurningFigures.ofSolutions(solutions),
-                  solved == CubeMethod.ROUX ? StepPauses.fromSolutions(solutions)
-                      : Collections.<String, Long>emptyMap());
+            if (!StepPauses.pales(solved)) { // nothing kept to read through: read them here
+              showTurningRead(asked, TurningFigures.readFrom(solves, SolveReadings.none(), solved),
+                  Collections.<String, Long>emptyMap());
               return;
             }
             App.INSTANCE.getService().getSolveReadings(SolveReadings.idsOf(solves),
@@ -756,27 +753,33 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
                   @Override
                   public void onData(Map<Long, String> kept) { // off the main thread already
                     SolveReadings readings = new SolveReadings(kept);
-                    final Map<String, AlgorithmFigures> figures =
-                        AlgorithmFiguresReader.readFrom(solves, readings);
-                    Map<String, Long> pauses = StepPauses.fromReadings(solves, readings);
+                    Map<String, Long> pauses = StepPauses.fromReadings(solves, readings, solved);
                     TurningFigures turning = TurningFigures.readFrom(solves, readings, solved);
+                    if (solved == CubeMethod.CFOP) {
+                      showAlgorithmsRead(asked, AlgorithmFiguresReader.readFrom(solves, readings));
+                    }
                     App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
                         SolveReading.VERSION, null);
-                    runOnUiThread(new Runnable() {
-                      @Override
-                      public void run() {
-                        if (asked == window && !isFinishing()) {
-                          algorithmFigures = figures;
-                          algorithmsReading = false;
-                          showAlgorithmFigures();
-                        }
-                      }
-                    });
                     showTurningRead(asked, turning, pauses);
                   }
                 });
           }
         });
+  }
+
+  /** Hands the algorithm figures read off the main thread to their card, unless the window changed. */
+  private void showAlgorithmsRead(final AnalysisWindow asked,
+      final Map<String, AlgorithmFigures> figures) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        if (asked == window && !isFinishing()) {
+          algorithmFigures = figures;
+          algorithmsReading = false;
+          showAlgorithmFigures();
+        }
+      }
+    });
   }
 
   /** Hands figures read off the main thread to the strip and the bar, unless the window changed. */
@@ -790,6 +793,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
           turningReading = false;
           stepPauses = pauses;
           showComposition();
+          if (!steps.isEmpty()) {
+            showSteps(); // its meters split as the bar does
+          }
           showTurning();
         }
       }
@@ -1581,13 +1587,16 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       anyOpens |= cases.holds(step.getCode());
     }
     headings.reserveChevron(anyOpens);
-    for (StepStats step : steps) {
+    // The bar's split, so a cross or block's pauses read as thinking here too.
+    List<SolveStep> segments = SolveStepBars.averages(steps, shownPauses());
+    for (int i = 0; i < steps.size(); i++) {
+      StepStats step = steps.get(i);
       CaseRow row = new CaseRow(CaseRow.inflate(inflater, rows));
       int hue = palette.colorFor(step.getCode());
       row.noCount()
           .dot(hue)
           .name(nameOf(step))
-          .meter(step.getMeanRecognitionMs(), step.getMeanExecutionMs(), hue)
+          .meter(segments.get(i).getRecognitionMs(), segments.get(i).getExecutionMs(), hue)
           .value(0, FormatterService.INSTANCE.formatSolveTime(step.getMeanMs()),
               ContextCompat.getColor(this, R.color.white))
           .lead(0)

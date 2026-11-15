@@ -4,7 +4,6 @@ import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,9 +11,9 @@ import java.util.List;
  * way each solve's own detail sheet counts them.
  *
  * <p>Only solves read to the end count, so a solve stopped halfway cannot pull the move count down.
- * CFOP comes off the kept readings; the other methods are read again here, which is cheap without
- * the case matching that makes a CFOP reading worth keeping. Blind solve types never get here: the
- * method solves query leaves them out.
+ * CFOP and Roux come off the kept readings; the other methods are read again here every time,
+ * since nothing keeps their readings. Blind solve types never get here: the method solves query
+ * leaves them out.
  */
 public final class TurningFigures {
 
@@ -35,60 +34,40 @@ public final class TurningFigures {
   }
 
   /**
-   * @param readings where a CFOP solve's steps come from, read there only where none was kept
+   * @param readings where a CFOP or Roux solve's steps come from, read there only where none
+   *     was kept
    * @param method what the solves are read as
    */
   public static TurningFigures readFrom(List<SolveTime> solves, SolveReadings readings,
       CubeMethod method) {
-    if (method != CubeMethod.CFOP) {
-      return ofSolutions(solutionsOf(solves, method));
-    }
     int counted = 0;
     long moves = 0;
     long turningMs = 0;
     for (SolveTime solve : solves) {
-      SolveReading reading = readings.readingOf(solve);
-      if (!reading.isWhole()) {
-        continue;
-      }
-      for (SolveReading.Turning turning : reading.getTurnings()) {
-        moves += turning.getMoves();
-        // As SolveSolution.getTps: a step that turned nothing is not turning time.
-        if (turning.getMoves() > 0) {
-          turningMs += turning.getTimeMs();
+      if (method == CubeMethod.CFOP || method == CubeMethod.ROUX) {
+        SolveReading reading = readings.readingOf(solve);
+        if (!reading.isWhole()) {
+          continue;
         }
+        for (SolveReading.Turning turning : reading.getTurnings()) {
+          moves += turning.getMoves();
+          // As SolveSolution.getTps: a step that turned nothing is not turning time.
+          if (turning.getMoves() > 0) {
+            turningMs += turning.getTimeMs();
+          }
+        }
+        counted++;
+      } else {
+        SolveSolution solution = solutionOf(solve, method);
+        if (solution == null || solution.getMoveCount() == 0 || solution.getTps() <= 0) {
+          continue;
+        }
+        moves += solution.getMoveCount();
+        turningMs += Math.round(solution.getMoveCount() * 1000d / solution.getTps());
+        counted++;
       }
-      counted++;
     }
     return new TurningFigures(counted, moves, turningMs);
-  }
-
-  /** Off solves already read again, as {@link #solutionsOf} gives them. */
-  public static TurningFigures ofSolutions(List<SolveSolution> solutions) {
-    int counted = 0;
-    long moves = 0;
-    long turningMs = 0;
-    for (SolveSolution solution : solutions) {
-      if (solution.getMoveCount() == 0 || solution.getTps() <= 0) {
-        continue;
-      }
-      moves += solution.getMoveCount();
-      turningMs += Math.round(solution.getMoveCount() * 1000d / solution.getTps());
-      counted++;
-    }
-    return new TurningFigures(counted, moves, turningMs);
-  }
-
-  /** The solves read again as the detail sheet reads them, keeping those read to the solved cube. */
-  public static List<SolveSolution> solutionsOf(List<SolveTime> solves, CubeMethod method) {
-    List<SolveSolution> solutions = new ArrayList<SolveSolution>();
-    for (SolveTime solve : solves) {
-      SolveSolution solution = solutionOf(solve, method);
-      if (solution != null) {
-        solutions.add(solution);
-      }
-    }
-    return solutions;
   }
 
   /** Read again from the scramble, as the detail sheet does; null unless it ran to the solved cube. */
