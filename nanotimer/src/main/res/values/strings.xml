@@ -1086,7 +1086,8 @@
   <string name="drill_stats_window_all_long">All time</string>
   <string name="drill_case_stats_title">Case</string>
   <string name="drill_case_stats_attempts">Attempts</string>
-  <string name="drill_case_stats_hint">Tap an attempt for the algorithms, hold it to remove it.</string>
+  <string name="drill_case_stats_hint">Tap the case for its algorithms. Swipe an attempt left to remove it.</string>
+  <string name="drill_case_stats_removed">Attempt removed</string>
   <string name="drill_case_stats_empty">No attempt in this stretch of time.</string>
   <string name="drill_case_stats_cell_worst">Worst %s</string>
   <plurals name="drill_case_stats_resets">
@@ -1094,7 +1095,6 @@
     <item quantity="other">%d restarts</item>
   </plurals>
   <string name="drill_case_stats_when">%1$s · rep %2$d</string>
-  <string name="drill_case_stats_remove_message">%1$s, %2$s. It stays on the list, struck out, and counts toward nothing.</string>
   <!-- Punctuation between what was drilled and the mode it was drilled in. -->
   <string name="drill_summary_subtitle" translatable="false">%1$s · %2$s</string>
   <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>

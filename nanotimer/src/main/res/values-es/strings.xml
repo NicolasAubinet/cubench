@@ -1044,7 +1044,8 @@
   <string name="drill_stats_window_all_long">Desde el principio</string>
   <string name="drill_case_stats_title">Caso</string>
   <string name="drill_case_stats_attempts">Intentos</string>
-  <string name="drill_case_stats_hint">Toca un intento para los algoritmos, mantenlo pulsado para quitarlo.</string>
+  <string name="drill_case_stats_hint">Toca el caso para ver sus algoritmos. Desliza un intento a la izquierda para quitarlo.</string>
+  <string name="drill_case_stats_removed">Intento quitado</string>
   <string name="drill_case_stats_empty">Ningún intento en este periodo.</string>
   <string name="drill_case_stats_cell_worst">Peor %s</string>
   <plurals name="drill_case_stats_resets">
@@ -1052,7 +1053,6 @@
     <item quantity="other">%d reinicios</item>
   </plurals>
   <string name="drill_case_stats_when">%1$s · repetición %2$d</string>
-  <string name="drill_case_stats_remove_message">%1$s, %2$s. Queda en la lista, tachada, y no cuenta para nada.</string>
   <string name="drill_needs_cube">Conecta tu smart cube para hacer un drill.</string>
   <string name="drill_cube_away">Cubo desconectado. Vuelve a conectarlo para seguir.</string>
   <string name="drill_no_known_cases">La aplicación no sabe mezclar ningún caso de este drill.</string>

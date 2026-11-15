@@ -1045,7 +1045,8 @@
   <string name="drill_stats_window_all_long">Depuis le début</string>
   <string name="drill_case_stats_title">Cas</string>
   <string name="drill_case_stats_attempts">Essais</string>
-  <string name="drill_case_stats_hint">Touchez un essai pour les algorithmes, maintenez-le pour le retirer.</string>
+  <string name="drill_case_stats_hint">Touchez le cas pour ses algorithmes. Glissez un essai vers la gauche pour le retirer.</string>
+  <string name="drill_case_stats_removed">Essai retiré</string>
   <string name="drill_case_stats_empty">Aucun essai sur cette période.</string>
   <string name="drill_case_stats_cell_worst">Pire %s</string>
   <plurals name="drill_case_stats_resets">
@@ -1053,7 +1054,6 @@
     <item quantity="other">%d reprises</item>
   </plurals>
   <string name="drill_case_stats_when">%1$s · essai %2$d</string>
-  <string name="drill_case_stats_remove_message">%1$s, %2$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
   <string name="drill_needs_cube">Connectez votre smart cube pour lancer un drill.</string>
   <string name="drill_cube_away">Cube déconnecté. Reconnectez-le pour continuer.</string>
   <string name="drill_no_known_cases">Aucun cas de ce drill ne peut être mélangé par l\'application.</string>
