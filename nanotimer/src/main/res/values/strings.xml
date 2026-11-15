@@ -1164,7 +1164,6 @@
   <string name="case_sheet_in_solves">In solves</string>
   <string name="case_sheet_in_drills">In drills</string>
   <string name="case_sheet_best">Best %s</string>
-  <string name="case_algorithm_exec">Exec %s</string>
   <string name="case_sheet_show_fewer">Show fewer</string>
   <string name="case_algorithm_your_pick">Your pick</string>
   <string name="case_sheet_setup">Setup moves</string>

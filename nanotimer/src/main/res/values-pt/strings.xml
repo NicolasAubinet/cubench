@@ -1121,7 +1121,6 @@
   <string name="case_sheet_in_solves">Em resoluções</string>
   <string name="case_sheet_in_drills">Em exercícios</string>
   <string name="case_sheet_best">Melhor %s</string>
-  <string name="case_algorithm_exec">Exec. %s</string>
   <string name="case_sheet_show_fewer">Mostrar menos</string>
   <string name="case_algorithm_your_pick">Sua escolha</string>
   <string name="case_sheet_setup">Preparação</string>

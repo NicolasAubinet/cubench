@@ -5,11 +5,6 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
-import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,10 +82,10 @@ import java.util.Objects;
  *
  * <p><b>The star and "the one you use" are two marks.</b> The star is a thing the solver said; "the
  * one you use" is read out of their own recent solves, a thing they did. An execution is never
- * written to preferences. Every execution turned more than once gets its row, each with the solver's
- * own execution time on it, and how many of their answers it was where there is more than one. A
- * lone execution waits for its second before it is called theirs: once is how a misread case put
- * right looks.
+ * written to preferences. Every execution turned more than once gets its row, with how many of their
+ * answers it was where there is more than one. No execution time on a row: the In solves card has
+ * it, and the drill's choose step compares algorithms. A lone execution waits for its second before
+ * it is called theirs: once is how a misread case put right looks.
  *
  * <p>Opened from one solve, it shows that solve's execution instead, marked "this solve".
  *
@@ -199,7 +194,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
 
     if (used != null) {
       turned.add(new Turned(CaseAlgorithms.asAlgorithm(caseCode, used),
-          CaseAlgorithms.read(caseCode, used), 1, 1, -1));
+          CaseAlgorithms.read(caseCode, used), 1, 1));
     } else {
       readExecution();
     }
@@ -346,7 +341,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     List<Turned> read = new ArrayList<Turned>();
     for (CaseExecutions.Shown one : CaseExecutions.shownFrom(caseCode, spread)) {
       read.add(new Turned(one.getMoves(), CaseAlgorithms.read(caseCode, one.getExecuted()),
-          one.getTimes(), one.getOf(), one.getMeanExecutionMs()));
+          one.getTimes(), one.getOf()));
     }
     return read;
   }
@@ -614,8 +609,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     if (recommended) {
       row.mark(R.string.case_algorithm_recommended, false);
     }
-    if (one != null && (one.executionMs > 0 || turned.size() > 1)) {
-      row.note(ownFigures(one));
+    if (one != null && turned.size() > 1) {
+      row.note(getString(R.string.case_algorithm_of_last, one.times, one.of));
     }
     if (one != null && one.execution.isUnusual() && one.execution.isLonger()) {
       row.note(getString(R.string.case_algorithm_longer, one.execution.getMoves(),
@@ -629,30 +624,6 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
           : R.string.case_algorithm_empty_br));
     }
     return row.view();
-  }
-
-  /** "Exec 1.39 · 4 of your last 5": the time in white, how often only beside another answer. */
-  private CharSequence ownFigures(Turned one) {
-    SpannableStringBuilder text = new SpannableStringBuilder();
-    if (one.executionMs > 0) {
-      String time = FormatterService.INSTANCE.formatSolveTime(one.executionMs);
-      String exec = getString(R.string.case_algorithm_exec, time);
-      text.append(exec);
-      int at = exec.indexOf(time);
-      if (at >= 0) {
-        text.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getActivity(), R.color.white)),
-            at, at + time.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        text.setSpan(new StyleSpan(Typeface.BOLD), at, at + time.length(),
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-      }
-    }
-    if (turned.size() > 1) {
-      if (text.length() > 0) {
-        text.append("  ·  ");
-      }
-      text.append(getString(R.string.case_algorithm_of_last, one.times, one.of));
-    }
-    return text;
   }
 
   /** Stops an algorithm off the list being pointed out, or starts it again. */
@@ -732,15 +703,12 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     private final AlgorithmExecution execution;
     private final int times;
     private final int of;
-    /** The mean execution time of these answers, or -1 where none was timed. */
-    private final long executionMs;
 
-    Turned(String moves, AlgorithmExecution execution, int times, int of, long executionMs) {
+    Turned(String moves, AlgorithmExecution execution, int times, int of) {
       this.moves = moves;
       this.execution = execution;
       this.times = times;
       this.of = of;
-      this.executionMs = executionMs;
     }
   }
 }
