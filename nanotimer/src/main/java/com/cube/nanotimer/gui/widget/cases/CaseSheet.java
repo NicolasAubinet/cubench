@@ -77,7 +77,8 @@ import java.util.Objects;
  *
  * <p><b>Times from solves and from drills are two cards, never one mean.</b> A drill hands the case
  * over with nothing to recognise and no look-ahead into it, so the two do not measure the same
- * thing. The drill card opens the case's drill attempts, where a bad rep can be thrown out.
+ * thing. Both cards always show, one with nothing in it as dashes, so the sheet never changes
+ * shape. A drill card with reps opens the case's drill attempts, where a bad rep can be thrown out.
  *
  * <p><b>The list is in most-used order and nothing moves.</b> Tapping a row stars it; the order
  * stays the recommended one whatever is picked, and an algorithm of the solver's own sits under the
@@ -122,6 +123,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private static final int SOLVES_READ = 10;
   /** How many of the case's latest solves the In solves card is the mean of. */
   private static final int SOLVE_FIGURES = 50;
+  /** An empty card's figures. */
+  private static final String NONE = "–";
 
   private String caseCode;
   /** The moves turned for the case in the solve the sheet was opened from, or null. */
@@ -200,6 +203,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     } else {
       readExecution();
     }
+    emptyCard(root.findViewById(R.id.icCaseSolves), R.string.case_sheet_in_solves);
+    emptyCard(root.findViewById(R.id.icCaseDrills), R.string.case_sheet_in_drills);
     refresh();
     loadFigures();
     loadStanding();
@@ -374,27 +379,23 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     });
   }
 
+  /** Both cards always, an empty one in dashes, so the sheet keeps one layout whatever was timed. */
   private void showFigures(StepStats solves, DrillCaseStats drills) {
     measured = solves != null || drills != null;
-    root.findViewById(R.id.tvCaseTimesLabel).setVisibility(measured ? View.VISIBLE : View.GONE);
-    root.findViewById(R.id.llCaseFigures).setVisibility(measured ? View.VISIBLE : View.GONE);
     View solveCard = root.findViewById(R.id.icCaseSolves);
     View drillCard = root.findViewById(R.id.icCaseDrills);
-    solveCard.setVisibility(solves == null ? View.GONE : View.VISIBLE);
-    drillCard.setVisibility(drills == null ? View.GONE : View.VISIBLE);
     if (solves != null) {
       fillCard(solveCard, R.string.case_sheet_in_solves, solves.getCount(), solves.getMeanMs(),
           solves.getMeanRecognitionMs(), solves.getMeanExecutionMs(), solves.getBestMs());
+    } else {
+      emptyCard(solveCard, R.string.case_sheet_in_solves);
     }
     if (drills != null) {
       fillCard(drillCard, R.string.case_sheet_in_drills, drills.getCount(), drills.getMeanMs(),
           drills.getMeanRecognitionMs(), drills.getMeanExecutionMs(), drills.getBestMs());
-      drillCard.findViewById(R.id.tvCaseFiguresLink).setVisibility(View.VISIBLE);
       drillCard.setOnClickListener(v -> openAttempts());
-    }
-    if (solves == null || drills == null) {
-      // One card alone takes the row, with no gap kept for the other.
-      ((LinearLayout.LayoutParams) drillCard.getLayoutParams()).leftMargin = 0;
+    } else {
+      emptyCard(drillCard, R.string.case_sheet_in_drills);
     }
     refresh();
   }
@@ -416,6 +417,22 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
         .setSplit(recognitionMs, executionMs, hue);
     ((TextView) card.findViewById(R.id.tvCaseFiguresBest))
         .setText(getString(R.string.case_sheet_best, format.formatSolveTime(bestMs)));
+  }
+
+  private void emptyCard(View card, int source) {
+    ((TextView) card.findViewById(R.id.tvCaseFiguresSource)).setText(source);
+    ((TextView) card.findViewById(R.id.tvCaseFiguresCount)).setText("0");
+    ((TextView) card.findViewById(R.id.tvCaseFiguresMean)).setText(NONE);
+    TextView recognition = card.findViewById(R.id.tvCaseFiguresRecognition);
+    recognition.setText(NONE);
+    recognition.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
+    TextView execution = card.findViewById(R.id.tvCaseFiguresExecution);
+    execution.setText(NONE);
+    execution.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
+    ((DrillSplitBarView) card.findViewById(R.id.vCaseFiguresBar)).setSegments(new long[] {1},
+        new int[] {ContextCompat.getColor(getActivity(), R.color.case_status_unseen)});
+    ((TextView) card.findViewById(R.id.tvCaseFiguresBest))
+        .setText(getString(R.string.case_sheet_best, NONE));
   }
 
   /** The case's drill attempts over every drill, where a rep can be thrown out. */

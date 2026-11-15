@@ -518,7 +518,7 @@ public class CaseSetActivity extends NanoTimerActivity
 
   /** Browsing, a tap opens the sheet. Picking, a tap picks and a hold opens the sheet. */
   private View tile(LayoutInflater inflater, LinearLayout row, final String code) {
-    CaseTile tile = CaseTile.inflate(inflater, row).show(set, code).status(statuses.get(code));
+    CaseTile tile = CaseTile.inflate(inflater, row).show(set, code);
     View view = tile.view();
     if (!isPicking()) {
       view.setOnClickListener(v -> DialogUtils.showFragment(this, CaseSheet.newInstance(code)));

@@ -1164,7 +1164,6 @@
   <string name="case_sheet_in_solves">In solves</string>
   <string name="case_sheet_in_drills">In drills</string>
   <string name="case_sheet_best">Best %s</string>
-  <string name="case_sheet_attempts">Attempts ›</string>
   <string name="case_algorithm_exec">Exec %s</string>
   <string name="case_sheet_show_fewer">Show fewer</string>
   <string name="case_algorithm_your_pick">Your pick</string>
@@ -1346,8 +1345,8 @@
   <string name="case_filter_group">Group</string>
   <string name="case_filter_all_groups">All groups</string>
   <string name="menu_algorithms">Algorithms</string>
-  <string name="case_set_oll_description">Orient the last layer</string>
-  <string name="case_set_pll_description">Permute the last layer</string>
+  <string name="case_set_oll_description">Orient the Last Layer</string>
+  <string name="case_set_pll_description">Permute the Last Layer</string>
   <string name="library_known">%d known</string>
   <string name="library_review">%d to review</string>
   <string name="library_to_learn">%d to learn</string>

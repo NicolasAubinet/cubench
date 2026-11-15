@@ -1,6 +1,5 @@
 package com.cube.nanotimer.gui.widget.cases;
 
-import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,6 @@ import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
-import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 
 import java.util.Map;
@@ -30,15 +28,11 @@ public final class CaseTile {
   private static final Map<String, LastLayerDiagram> PICTURES =
       new ConcurrentHashMap<String, LastLayerDiagram>();
 
-  /** An unpicked tile's standing dot recedes with its picture. */
-  private static final float DIMMED_STATUS = 0.4f;
-
   private final View view;
   private final LastLayerCaseView chart;
   private final TextView name;
   private final TextView shape;
   private final TextView more;
-  private final View status;
   private boolean picked = true;
 
   private CaseTile(View view) {
@@ -47,7 +41,6 @@ public final class CaseTile {
     name = view.findViewById(R.id.tvCaseTileName);
     shape = view.findViewById(R.id.tvCaseTileShape);
     more = view.findViewById(R.id.tvCaseTileMore);
-    status = view.findViewById(R.id.vCaseTileStatus);
     view.setTag(R.id.tvCaseTileName, this);
   }
 
@@ -115,9 +108,6 @@ public final class CaseTile {
   public CaseTile picked(boolean on) {
     picked = on;
     chart.setDimmed(!on);
-    if (status != null) {
-      status.setAlpha(on ? 1f : DIMMED_STATUS);
-    }
     name.setTextColor(ContextCompat.getColor(view.getContext(),
         on ? R.color.case_name : R.color.case_name_off));
     if (shape != null) {
@@ -129,26 +119,6 @@ public final class CaseTile {
 
   public boolean isPicked() {
     return picked;
-  }
-
-  /** Where the case stands, as a dot on the picture; null for nothing known, which shows none. */
-  public CaseTile status(CaseKnowledge.Status standing) {
-    if (status == null) {
-      return this;
-    }
-    status.setVisibility(standing == null ? View.GONE : View.VISIBLE);
-    if (standing != null) {
-      ((GradientDrawable) status.getBackground().mutate())
-          .setColor(ContextCompat.getColor(view.getContext(), colorOf(standing)));
-    }
-    return this;
-  }
-
-  /** The colour a standing is drawn in, the knowledge ring's. */
-  public static int colorOf(CaseKnowledge.Status standing) {
-    return standing == CaseKnowledge.Status.KNOWN ? R.color.case_status_known
-        : standing == CaseKnowledge.Status.NEEDS_REVIEW ? R.color.case_status_review
-        : R.color.case_status_learn;
   }
 
   /** A strip's last slot: how many more cases there is no room for, in place of a case. */

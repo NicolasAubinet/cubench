@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The algorithm library: every set the app knows, as cards grouped by the method they belong to,
+ * The algorithm library: every set the app knows, as cards, a method's sets together,
  * each opening its set. For everyone, cube or none: a timer-only solver reads it as a reference
  * and sees how many algorithms they have picked; a smart cube adds how far through each set they
  * are, from the same case knowledge Analysis reads.
@@ -73,7 +73,7 @@ public class LibraryActivity extends NanoTimerActivity {
   }
 
   private void show() {
-    // The cards and headers sit above the two notes the layout ends on.
+    // The cards sit above the two notes the layout ends on.
     while (library.getChildCount() > 2) {
       library.removeViewAt(0);
     }
@@ -86,10 +86,8 @@ public class LibraryActivity extends NanoTimerActivity {
     }
     int at = 0;
     boolean anything = false;
+    // A method's sets stay together, with no header: the cards name themselves.
     for (String method : methods) {
-      TextView header = (TextView) inflater.inflate(R.layout.library_method, library, false);
-      header.setText(method);
-      library.addView(header, at++);
       for (CaseSet set : CaseSets.all()) {
         if (set.method().equals(method)) {
           View card = inflater.inflate(R.layout.library_set_card, library, false);

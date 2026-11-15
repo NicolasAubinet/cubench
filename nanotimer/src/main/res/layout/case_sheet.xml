@@ -92,8 +92,7 @@
          android:id="@+id/tvCaseTimesLabel"
          style="@style/DialogSectionLabel"
          android:layout_marginTop="20dp"
-         android:text="@string/case_sheet_your_times"
-         android:visibility="gone"/>
+         android:text="@string/case_sheet_your_times"/>
 
       <LinearLayout
          android:id="@+id/llCaseFigures"
@@ -101,8 +100,7 @@
          android:layout_height="wrap_content"
          android:layout_marginTop="8dp"
          android:baselineAligned="false"
-         android:orientation="horizontal"
-         android:visibility="gone">
+         android:orientation="horizontal">
 
         <include
            android:id="@+id/icCaseSolves"

@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- The method a group of sets belongs to. -->
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-   style="@style/DialogSectionLabel"
-   android:layout_marginTop="16dp"
-   android:layout_marginBottom="8dp"/>

@@ -79,14 +79,4 @@
      android:fontFeatureSettings="tnum"
      android:textColor="@color/secondary_text"
      android:textSize="12sp"/>
-
-  <TextView
-     android:id="@+id/tvCaseFiguresLink"
-     android:layout_width="wrap_content"
-     android:layout_height="wrap_content"
-     android:layout_marginTop="4dp"
-     android:text="@string/case_sheet_attempts"
-     android:textColor="@color/lightblue"
-     android:textSize="12sp"
-     android:visibility="gone"/>
 </LinearLayout>
