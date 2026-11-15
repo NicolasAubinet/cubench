@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SmartCubeManager;
@@ -79,6 +80,8 @@ public class SmartCubeNewsSheet extends NanoTimerBottomSheetFragment {
       later.setText(R.string.close);
     } else {
       connect.setOnClickListener(view -> {
+        // This sheet already made the pitch: the connect sheet goes straight to pairing.
+        Options.INSTANCE.setSmartCubeIntroSeen(true);
         dismiss();
         DialogUtils.showFragment(requireActivity(), new SmartCubeConnectDialog());
       });
