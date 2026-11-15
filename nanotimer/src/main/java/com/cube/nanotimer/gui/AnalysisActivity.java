@@ -82,6 +82,7 @@ import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.CaseHistory;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.CubeMethod;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 import com.cube.nanotimer.vo.StepStats;
@@ -808,7 +809,16 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     showTurningCell(R.id.llAnalysisTurningTps, R.string.analysis_turning_tps,
         reading ? wait : String.format(Locale.US, "%.2f", figures.getTps()));
     showTurningCell(R.id.llAnalysisTurningPaused, R.string.analysis_turning_paused,
-        reading ? wait : format.formatSolveTime(figures.getMeanPauseMs()));
+        reading ? wait : format.formatSolveTime(pausedMs()));
+  }
+
+  /** The pale part of the composition bar, off the same segments, so the two always agree. */
+  private long pausedMs() {
+    long paused = 0;
+    for (SolveStep segment : SolveStepBars.averages(steps, sampling() ? 0 : crossPauseMs)) {
+      paused += segment.getRecognitionMs();
+    }
+    return paused;
   }
 
   private void showTurningCell(int id, int label, String value) {

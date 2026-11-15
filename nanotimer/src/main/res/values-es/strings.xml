@@ -1609,7 +1609,7 @@
   <string name="analysis_help_table">La tabla de pasos</string>
   <string name="analysis_help_table_body">Media, mejor y desvío de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha: tócalos para ver sus casos.</string>
   <string name="analysis_help_turning">Movimientos, TPS, en pausa</string>
-  <string name="analysis_help_turning_body">Por resolución, contados igual que en la página de cada resolución. El TPS son los movimientos por segundo mientras giras. En pausa es el tiempo sin girar, en paradas de un cuarto de segundo o más.</string>
+  <string name="analysis_help_turning_body">Por resolución. Los movimientos se cuentan igual que en la página de cada resolución, y el TPS son los movimientos por segundo en toda la resolución. En pausa es la parte pálida de la barra de abajo: el tiempo que pasas mirando en vez de girar.</string>
   <string name="analysis_help_spread">Desvío</string>
   <string name="analysis_help_spread_body">Cuánto varía el tiempo de una resolución a otra. La misma media puede salir de hacerlo siempre igual o de atascarte de vez en cuando.</string>
   <string name="analysis_help_standard">Algoritmos estándar</string>

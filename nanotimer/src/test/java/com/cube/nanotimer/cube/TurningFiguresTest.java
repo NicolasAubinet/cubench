@@ -2,7 +2,6 @@ package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -59,7 +58,6 @@ public class TurningFiguresTest {
     assertEquals(1, figures.getSolves());
     assertEquals(sheet.getMoveCount(), figures.getMeanMoves(), 0.001);
     assertEquals(sheet.getTps(), figures.getTps(), 0.01);
-    assertTrue(figures.getMeanPauseMs() > 0);
   }
 
   @Test
@@ -76,11 +74,10 @@ public class TurningFiguresTest {
 
   @Test
   public void fixedFiguresGiveBackWhatTheyWereMadeFrom() {
-    TurningFigures figures = TurningFigures.of(100, 57.4, 3.96, 3420);
+    TurningFigures figures = TurningFigures.of(100, 57.4, 3.96);
 
     assertEquals(57.4, figures.getMeanMoves(), 0.001);
     assertEquals(3.96, figures.getTps(), 0.001);
-    assertEquals(3420, figures.getMeanPauseMs());
   }
 
   /** What HistoryDetailDialog computes for one solve. */

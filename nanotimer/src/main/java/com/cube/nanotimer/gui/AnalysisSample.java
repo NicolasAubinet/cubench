@@ -80,7 +80,7 @@ public final class AnalysisSample {
 
   /** How the example's solves were turned, in line with its steps' means (about 15 s a solve). */
   public static TurningFigures turning() {
-    return TurningFigures.of(SOLVES, 57.4, 3.96, 3420);
+    return TurningFigures.of(SOLVES, 57.4, 3.96);
   }
 
   /** The example's cases as the Cases table reads them: its solver takes every one in one look. */

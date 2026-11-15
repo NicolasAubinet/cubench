@@ -1610,7 +1610,7 @@
   <string name="analysis_help_table">Le tableau des étapes</string>
   <string name="analysis_help_table_body">Moyenne, meilleur temps et écart pour chaque étape. Touchez un en-tête pour trier. Les étapes avec des cas nommés (OLL et PLL) ont une flèche et ouvrent leurs cas.</string>
   <string name="analysis_help_turning">Mouvements, TPS, en pause</string>
-  <string name="analysis_help_turning_body">Par résolution, comptés comme sur la page de chaque résolution. Le TPS est le nombre de mouvements par seconde pendant que vous tournez. En pause est le temps passé sans tourner, en arrêts d\'un quart de seconde ou plus.</string>
+  <string name="analysis_help_turning_body">Par résolution. Les mouvements sont comptés comme sur la page de chaque résolution, et le TPS est le nombre de mouvements par seconde sur toute la résolution. En pause est la partie pâle de la barre en dessous : le temps passé à regarder plutôt qu\'à tourner.</string>
   <string name="analysis_help_spread">Écart</string>
   <string name="analysis_help_spread_body">À quel point le temps varie d\'une résolution à l\'autre. Une même moyenne peut venir d\'une exécution toujours régulière, ou de blocages de temps en temps.</string>
   <string name="analysis_help_standard">Algorithmes standards</string>

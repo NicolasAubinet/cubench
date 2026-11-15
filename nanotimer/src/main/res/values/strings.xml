@@ -1663,7 +1663,7 @@
   <string name="analysis_help_table">The step table</string>
   <string name="analysis_help_table_body">Mean, best and spread for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
   <string name="analysis_help_turning">Moves, TPS, paused</string>
-  <string name="analysis_help_turning_body">Per solve, counted the same way as on each solve\'s own page. TPS is moves per second while turning. Paused is the time spent not turning, in stops of a quarter second or more.</string>
+  <string name="analysis_help_turning_body">Per solve. Moves are counted the same way as on each solve\'s own page, and TPS is moves per second over the whole solve. Paused is the pale part of the bar below: the time spent looking rather than turning.</string>
   <string name="analysis_help_spread">Spread</string>
   <string name="analysis_help_spread_body">How much the time changes from solve to solve. The same mean can come from doing it the same way every time, or from getting stuck now and then.</string>
   <string name="analysis_help_standard">Standard algorithms</string>
