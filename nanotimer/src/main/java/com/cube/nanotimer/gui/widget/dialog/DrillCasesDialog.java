@@ -25,13 +25,13 @@ import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseSet;
+import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
-import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
-import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.view.StepPalette;
@@ -127,11 +127,9 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
     cases.clear();
     charts.clear();
     picked.clear();
-    for (String code : LastLayerScrambles.cases()) {
-      if (code.startsWith(family)) {
-        cases.add(code);
-        charts.put(code, LastLayerDiagram.forCase(code));
-      }
+    for (String code : CaseSets.ofFamily(family).cases()) {
+      cases.add(code);
+      charts.put(code, LastLayerDiagram.forCase(code));
     }
     if (isLearning()) {
       Set<String> own = Options.INSTANCE.getLearnPick(family);
@@ -438,14 +436,15 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
       chart.setDimmed(!on);
 
       TextView name = cell.findViewById(R.id.tvCaseName);
-      String shortName = LastLayerCaseNames.shortName(code);
+      CaseSet set = CaseSets.ofCase(code);
+      String shortName = set.name(code);
       name.setText(isLearning() && known.contains(code)
           ? getString(R.string.learn_pick_known_case, shortName) : shortName);
       name.setTextColor(ContextCompat.getColor(getActivity(),
           on ? R.color.case_name : R.color.case_name_off));
 
       TextView shape = cell.findViewById(R.id.tvCaseShape);
-      String shapeName = LastLayerCaseNames.shape(code);
+      String shapeName = set.shape(code);
       shape.setText(shapeName == null ? "" : shapeName);
       // A PLL has no shape, and an empty line still took its row on every one of the 21.
       shape.setVisibility(shapeName == null ? View.GONE : View.VISIBLE);

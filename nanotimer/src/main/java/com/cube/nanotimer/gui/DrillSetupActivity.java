@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.DrillFacePicture;
@@ -43,7 +44,6 @@ import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.F2LSlotAlgorithms;
-import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.step.F2lPairCases;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.DialogUtils;
@@ -531,8 +531,10 @@ public class DrillSetupActivity extends NanoTimerActivity
       View cell = getLayoutInflater().inflate(R.layout.drill_setup_case, llPicked, false);
       LastLayerCaseView chart = cell.findViewById(R.id.vDrillCaseChart);
       if (i < charts) {
-        chart.setDiagram(LastLayerDiagram.forCase(picked.get(i)));
-        ((TextView) cell.findViewById(R.id.tvDrillCaseName)).setText(shortName(picked.get(i)));
+        String code = picked.get(i);
+        chart.setDiagram(LastLayerDiagram.forCase(code));
+        ((TextView) cell.findViewById(R.id.tvDrillCaseName))
+            .setText(CaseSets.ofCase(code).name(code));
       } else if (overflow) {
         chart.setVisibility(View.INVISIBLE);
         TextView more = cell.findViewById(R.id.tvDrillCaseMore);
@@ -543,12 +545,6 @@ public class DrillSetupActivity extends NanoTimerActivity
       }
       llPicked.addView(cell);
     }
-  }
-
-  /** A case as a cuber writes it under its chart: Rb, 21. */
-  private static String shortName(String code) {
-    String name = code.substring(code.indexOf('_') + 1);
-    return name.isEmpty() ? name : name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1);
   }
 
   private CharSequence countWithFamilyColour(int picked, int total) {
@@ -739,12 +735,6 @@ public class DrillSetupActivity extends NanoTimerActivity
   }
 
   private static List<String> casesOf(String family) {
-    List<String> cases = new ArrayList<String>();
-    for (String code : LastLayerScrambles.cases()) {
-      if (code.startsWith(family)) {
-        cases.add(code);
-      }
-    }
-    return cases;
+    return new ArrayList<String>(CaseSets.ofFamily(family).cases());
   }
 }

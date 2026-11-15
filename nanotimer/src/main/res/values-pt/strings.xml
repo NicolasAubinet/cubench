@@ -1069,6 +1069,10 @@
   <string name="drill_setup_title">Novo treino</string>
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
+  <string name="case_group_pll_edges">Só arestas</string>
+  <string name="case_group_pll_corners">Só cantos</string>
+  <string name="case_group_pll_adjacent">Troca adjacente</string>
+  <string name="case_group_pll_diagonal">Troca diagonal</string>
   <string name="drill_practice_cross">Cruz</string>
   <string name="drill_practice_hint_pll">Um PLL depois do outro, entre os casos que você escolher.</string>
   <string name="drill_practice_hint_oll">Um OLL depois do outro, entre os casos que você escolher.</string>

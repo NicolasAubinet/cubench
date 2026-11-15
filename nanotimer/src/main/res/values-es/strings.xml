@@ -1066,6 +1066,10 @@
   <string name="drill_setup_title">Nuevo drill</string>
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
+  <string name="case_group_pll_edges">Solo aristas</string>
+  <string name="case_group_pll_corners">Solo esquinas</string>
+  <string name="case_group_pll_adjacent">Intercambio adyacente</string>
+  <string name="case_group_pll_diagonal">Intercambio diagonal</string>
   <string name="drill_practice_cross">Cruz</string>
   <string name="drill_practice_hint_pll">Un PLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_oll">Un OLL tras otro, entre los casos que elijas.</string>

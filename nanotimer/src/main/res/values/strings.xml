@@ -1110,6 +1110,10 @@
   <string name="drill_setup_title">New drill</string>
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
+  <string name="case_group_pll_edges">Edges only</string>
+  <string name="case_group_pll_corners">Corners only</string>
+  <string name="case_group_pll_adjacent">Adjacent swap</string>
+  <string name="case_group_pll_diagonal">Diagonal swap</string>
   <string name="drill_practice_cross">Cross</string>
   <string name="drill_practice_hint_pll">One PLL after another, from the cases you pick.</string>
   <string name="drill_practice_hint_oll">One OLL after another, from the cases you pick.</string>
