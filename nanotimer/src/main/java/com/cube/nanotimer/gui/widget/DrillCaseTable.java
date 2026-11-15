@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
@@ -161,7 +161,7 @@ public class DrillCaseTable {
           if (deleted.contains(rep)) {
             setDeleted(rep, false);
           } else if (!DrillSession.isLookAheadCase(rep.getCaseCode())) {
-            DialogUtils.showFragment(activity, CaseAlgorithmsDialog.newInstance(rep.getCaseCode()));
+            DialogUtils.showFragment(activity, CaseSheet.newInstance(rep.getCaseCode()));
           }
         }
       });

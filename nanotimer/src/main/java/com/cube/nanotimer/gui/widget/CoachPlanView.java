@@ -54,7 +54,7 @@ import com.cube.nanotimer.gui.CrossDrillActivity;
 import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
 import com.cube.nanotimer.gui.DrillSetupActivity;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
@@ -901,7 +901,7 @@ public class CoachPlanView {
       @Override
       public void onClick(View v) {
         DialogUtils.showFragment((FragmentActivity) activity,
-            CaseAlgorithmsDialog.newInstance(code));
+            CaseSheet.newInstance(code));
       }
     };
   }

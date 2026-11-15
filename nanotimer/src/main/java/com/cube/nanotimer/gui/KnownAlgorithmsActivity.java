@@ -15,7 +15,7 @@ import com.cube.nanotimer.cube.CaseExecutions;
 import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
@@ -210,7 +210,7 @@ public class KnownAlgorithmsActivity extends NanoTimerActivity {
         @Override
         public void onClick(View v) {
           DialogUtils.showFragment(KnownAlgorithmsActivity.this,
-              CaseAlgorithmsDialog.newInstance(code));
+              CaseSheet.newInstance(code));
         }
       });
       fill(row, code);

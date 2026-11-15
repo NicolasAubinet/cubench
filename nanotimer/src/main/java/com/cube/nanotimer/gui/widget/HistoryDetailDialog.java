@@ -45,7 +45,7 @@ import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.cube.StoredSolveReplay;
 import com.cube.nanotimer.gui.widget.dialog.BlindSetupPrompt;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.widget.dialog.CommentSolveDialog;
 import com.cube.nanotimer.gui.widget.dialog.CrossSolverDialog;
 import com.cube.nanotimer.gui.widget.dialog.ScrambleViewDialog;
@@ -134,7 +134,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     setUpSwipe(view);
     bindSolve(view);
     // A case muted or picked in its dialog stops being pointed out here at once.
-    getParentFragmentManager().setFragmentResultListener(CaseAlgorithmsDialog.FLAGS_CHANGED, this,
+    getParentFragmentManager().setFragmentResultListener(CaseSheet.FLAGS_CHANGED, this,
         (key, result) -> refreshFlags());
     return dialog;
   }
@@ -1069,7 +1069,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onClick(View view) {
         DialogUtils.showFragment(getActivity(),
-            CaseAlgorithmsDialog.newInstance(caseCode, turned));
+            CaseSheet.newInstance(caseCode, turned));
       }
     });
     ViewCompat.replaceAccessibilityAction(chip, AccessibilityActionCompat.ACTION_CLICK,
@@ -1219,7 +1219,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onClick(View view) {
         DialogUtils.showFragment(getActivity(),
-            CaseAlgorithmsDialog.newInstance(caseCode, moves));
+            CaseSheet.newInstance(caseCode, moves));
       }
     };
     String action = getString(CaseAlgorithms.isPair(caseCode) ? R.string.case_algorithms_pair_open

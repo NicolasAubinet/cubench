@@ -1118,6 +1118,20 @@
   <string name="case_algorithm_recommended">Recomendado</string>
   <string name="case_algorithm_yours">O seu</string>
   <string name="case_algorithm_add">Usar o seu próprio algoritmo</string>
+  <string name="case_sheet_your_times">Seus tempos</string>
+  <string name="case_sheet_in_solves">Em resoluções</string>
+  <string name="case_sheet_in_drills">Em exercícios</string>
+  <string name="case_sheet_best">Melhor %s</string>
+  <string name="case_sheet_attempts">Tentativas ›</string>
+  <string name="case_algorithm_exec">Exec. %s</string>
+  <string name="case_sheet_show_fewer">Mostrar menos</string>
+  <string name="case_algorithm_your_pick">Sua escolha</string>
+  <string name="case_sheet_setup">Preparação</string>
+  <string name="case_sheet_setup_hint">A partir do resolvido, última camada em cima: estes movimentos preparam o caso.</string>
+  <plurals name="case_sheet_show_more">
+    <item quantity="one">Mostrar mais %d</item>
+    <item quantity="other">Mostrar mais %d</item>
+  </plurals>
   <string name="case_algorithms_practice">Praticar este caso</string>
   <string name="case_algorithm_wrong">Isso não resolve este caso. Verifique e tente novamente.</string>
   <string name="case_title_f2l">Par F2L</string>

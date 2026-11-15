@@ -9,6 +9,19 @@ import org.junit.Test;
 public class CaseAlgorithmsTest {
 
   @Test
+  public void listsTheRestOfTheVotesPastTheShownOnes() {
+    for (String code : new String[] {"oll_1", "pll_jb", "pll_ra"}) {
+      for (CaseAlgorithms.Listed extra : CaseAlgorithms.more(code)) {
+        for (CaseAlgorithms.Listed shown : CaseAlgorithms.shown(code)) {
+          assertFalse(CaseAlgorithms.sameTurning(code, shown.getMoves(), extra.getMoves()));
+        }
+        assertTrue(CaseAlgorithms.solves(code, extra.getMoves()));
+      }
+    }
+    assertTrue(CaseAlgorithms.more("pair_4").isEmpty());
+  }
+
+  @Test
   public void pointsOutALastLayerAlgorithmHardlyAnybodyUses() {
     assertTrue(CaseAlgorithms.isWorthPointingOut("pll_jb", "R U2 R' U' R U2 L' U R' U' L"));
     assertFalse(CaseAlgorithms.isWorthPointingOut("pll_jb", "R U R' F' R U R' U' R' F R2 U' R'"));

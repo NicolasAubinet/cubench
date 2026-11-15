@@ -1161,6 +1161,20 @@
   <string name="case_algorithm_recommended">Recommended</string>
   <string name="case_algorithm_yours">Yours</string>
   <string name="case_algorithm_add">Use your own algorithm</string>
+  <string name="case_sheet_your_times">Your times</string>
+  <string name="case_sheet_in_solves">In solves</string>
+  <string name="case_sheet_in_drills">In drills</string>
+  <string name="case_sheet_best">Best %s</string>
+  <string name="case_sheet_attempts">Attempts ›</string>
+  <string name="case_algorithm_exec">Exec %s</string>
+  <string name="case_sheet_show_fewer">Show fewer</string>
+  <string name="case_algorithm_your_pick">Your pick</string>
+  <string name="case_sheet_setup">Setup moves</string>
+  <string name="case_sheet_setup_hint">From solved, last layer on top: these moves set the case up.</string>
+  <plurals name="case_sheet_show_more">
+    <item quantity="one">Show %d more</item>
+    <item quantity="other">Show %d more</item>
+  </plurals>
   <string name="case_algorithms_practice">Practice this case</string>
   <string name="case_algorithm_wrong">That does not solve this case. Check it and try again.</string>
   <string name="case_title_f2l">F2L pair</string>

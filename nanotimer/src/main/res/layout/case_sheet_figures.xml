@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One source of the solver's times for a case: how many, the mean, where it went, the best. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="0dp"
+   android:layout_height="wrap_content"
+   android:background="@drawable/case_alg"
+   android:orientation="vertical"
+   android:padding="12dp">
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="horizontal">
+
+    <TextView
+       android:id="@+id/tvCaseFiguresSource"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:ellipsize="end"
+       android:maxLines="1"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+
+    <TextView
+       android:id="@+id/tvCaseFiguresCount"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:fontFeatureSettings="tnum"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+  </LinearLayout>
+
+  <TextView
+     android:id="@+id/tvCaseFiguresMean"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="2dp"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/white"
+     android:textSize="24sp"
+     android:textStyle="bold"/>
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:gravity="center_vertical"
+     android:orientation="horizontal">
+
+    <TextView
+       android:id="@+id/tvCaseFiguresRecognition"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:fontFeatureSettings="tnum"
+       android:textSize="12sp"/>
+
+    <com.cube.nanotimer.util.view.DrillSplitBarView
+       android:id="@+id/vCaseFiguresBar"
+       android:layout_width="0dp"
+       android:layout_height="5dp"
+       android:layout_marginLeft="5dp"
+       android:layout_marginRight="5dp"
+       android:layout_weight="1"/>
+
+    <TextView
+       android:id="@+id/tvCaseFiguresExecution"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:fontFeatureSettings="tnum"
+       android:textSize="12sp"/>
+  </LinearLayout>
+
+  <TextView
+     android:id="@+id/tvCaseFiguresBest"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:fontFeatureSettings="tnum"
+     android:textColor="@color/secondary_text"
+     android:textSize="12sp"/>
+
+  <TextView
+     android:id="@+id/tvCaseFiguresLink"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:text="@string/case_sheet_attempts"
+     android:textColor="@color/lightblue"
+     android:textSize="12sp"
+     android:visibility="gone"/>
+</LinearLayout>

@@ -60,7 +60,7 @@ import com.cube.nanotimer.gui.widget.DrillCaseTable;
 import com.cube.nanotimer.gui.widget.DrillLiveCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.StepCardBackground;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.smartcube.model.CubeMove;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
@@ -360,7 +360,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       }
     });
     getOnBackPressedDispatcher().addCallback(this, practiceBack);
-    getSupportFragmentManager().setFragmentResultListener(CaseAlgorithmsDialog.FLAGS_CHANGED,
+    getSupportFragmentManager().setFragmentResultListener(CaseSheet.FLAGS_CHANGED,
         this, new FragmentResultListener() {
           @Override
           public void onFragmentResult(String key, Bundle result) {
@@ -383,7 +383,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
         new FragmentManager.FragmentLifecycleCallbacks() {
           @Override
           public void onFragmentViewDestroyed(FragmentManager fm, Fragment f) {
-            if (f instanceof CaseAlgorithmsDialog) {
+            if (f instanceof CaseSheet) {
               restartPractice();
             }
           }
@@ -1007,7 +1007,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     session.markRevealed();
     String first = firstToTry(code);
     if (first == null) {
-      DialogUtils.showFragment(this, CaseAlgorithmsDialog.newInstance(code));
+      DialogUtils.showFragment(this, CaseSheet.newInstance(code));
       return;
     }
     session.lookUp();
@@ -1290,7 +1290,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     moreRow.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        DialogUtils.showFragment(DrillActivity.this, CaseAlgorithmsDialog.newInstance(choosing));
+        DialogUtils.showFragment(DrillActivity.this, CaseSheet.newInstance(choosing));
       }
     });
     chooseList.addView(moreRow);
@@ -1963,7 +1963,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     row.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        DialogUtils.showFragment(DrillActivity.this, CaseAlgorithmsDialog.newInstance(code));
+        DialogUtils.showFragment(DrillActivity.this, CaseSheet.newInstance(code));
       }
     });
     LastLayerCaseView chart = row.findViewById(R.id.vDrillTargetChart);

@@ -26,6 +26,8 @@ import com.cube.nanotimer.util.helper.GUIUtils;
 public final class AlgorithmRow {
 
   private static final float SPACE_SCALE = 0.55f;
+  /** A prime takes a whole cell too, which reads as a gap inside the move it belongs to. */
+  private static final float PRIME_SCALE = 0.5f;
 
   private static Typeface algorithmFace;
 
@@ -68,14 +70,18 @@ public final class AlgorithmRow {
     return this;
   }
 
-  /** A monospace space is a whole cell wide; narrowed, the moves read as moves, not letters. */
+  /** A monospace space and prime are a whole cell wide; narrowed, the moves read as moves. */
   public static CharSequence notation(String moves) {
     if (moves == null) {
       return null;
     }
     SpannableString spaced = new SpannableString(moves);
-    for (int i = moves.indexOf(' '); i >= 0; i = moves.indexOf(' ', i + 1)) {
-      spaced.setSpan(new ScaleXSpan(SPACE_SCALE), i, i + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    for (int i = 0; i < moves.length(); i++) {
+      char c = moves.charAt(i);
+      if (c == ' ' || c == '\'') {
+        spaced.setSpan(new ScaleXSpan(c == ' ' ? SPACE_SCALE : PRIME_SCALE), i, i + 1,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      }
     }
     return spaced;
   }

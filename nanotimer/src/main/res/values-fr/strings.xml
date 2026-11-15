@@ -1116,6 +1116,20 @@
   <string name="case_algorithm_recommended">Recommandé</string>
   <string name="case_algorithm_yours">Le vôtre</string>
   <string name="case_algorithm_add">Utiliser votre propre algorithme</string>
+  <string name="case_sheet_your_times">Vos temps</string>
+  <string name="case_sheet_in_solves">En résolution</string>
+  <string name="case_sheet_in_drills">En exercice</string>
+  <string name="case_sheet_best">Meilleur %s</string>
+  <string name="case_sheet_attempts">Essais ›</string>
+  <string name="case_algorithm_exec">Exéc. %s</string>
+  <string name="case_sheet_show_fewer">Afficher moins</string>
+  <string name="case_algorithm_your_pick">Votre choix</string>
+  <string name="case_sheet_setup">Mise en place</string>
+  <string name="case_sheet_setup_hint">Depuis le cube résolu, dernière couche en haut : ces mouvements préparent le cas.</string>
+  <plurals name="case_sheet_show_more">
+    <item quantity="one">Afficher %d de plus</item>
+    <item quantity="other">Afficher %d de plus</item>
+  </plurals>
   <string name="case_algorithms_practice">Entraîner ce cas</string>
   <string name="case_algorithm_wrong">Cela ne résout pas ce cas. Vérifiez et réessayez.</string>
   <string name="case_title_f2l">Paire F2L</string>

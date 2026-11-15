@@ -142,6 +142,18 @@ public class CaseExecutionsTest {
     assertEquals(3, spread.getTurned().get(0).getTimes());
   }
 
+  /** Each answer's execution time rides with it, averaged over the answers it was; 0 is untimed. */
+  @Test
+  public void averagesTheExecutionTimesOfEachAnswer() {
+    CaseExecutions.Spread spread = CaseExecutions.spreadOf("oll_27", Arrays.asList(
+        "R U R' U R U2 R'", "R' U' R U' R' U2 R", "U R U R' U R U2 R' U'", "R U R' U R U2 R'"),
+        Arrays.asList(1000L, 5000L, 1400L, 0L));
+    List<CaseExecutions.Shown> shown = CaseExecutions.shownFrom("oll_27", spread);
+
+    assertEquals(3, shown.get(0).getTimes());
+    assertEquals(1200, shown.get(0).getMeanExecutionMs());
+  }
+
   /** Both codes a case is recorded under, since a step taking two algorithms names only the part. */
   @Test
   public void namesBothCodesACaseIsRecordedUnder() {

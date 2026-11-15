@@ -1796,6 +1796,51 @@ public class ServiceProviderImpl implements ServiceProvider {
     return cases;
   }
 
+  @Override
+  public StepStats getCaseSolveStats(String caseCode, int lastTimes) {
+    String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
+        + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
+    String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
+        + ", s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION
+        + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
+        + " JOIN " + DB.TABLE_TIMEHISTORY + " h"
+        + "   ON h." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " = ?"
+        + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
+        + "   AND h." + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
+        + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
+        + "   AND " + parts + " < 2"
+        + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC"
+        + " LIMIT " + Math.max(0, lastTimes);
+    int count = 0;
+    long total = 0;
+    long recognition = 0;
+    long best = Long.MAX_VALUE;
+    long worst = 0;
+    double squares = 0;
+    Cursor cursor = db.rawQuery(q, new String[] { caseCode });
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        long time = cursor.getLong(0);
+        count++;
+        total += time;
+        recognition += cursor.getLong(1);
+        best = Math.min(best, time);
+        worst = Math.max(worst, time);
+        squares += 1.0 * time * time;
+      }
+      cursor.close();
+    }
+    return count == 0 ? null
+        : new StepStats(caseCode, count, total, recognition, best, worst, squares);
+  }
+
   /**
    * The ids, timestamps and stopped steps of a solve type's last solves in one method, binding the
    * solve type then the method. The size is written in rather than bound: a bound value arrives as text, and

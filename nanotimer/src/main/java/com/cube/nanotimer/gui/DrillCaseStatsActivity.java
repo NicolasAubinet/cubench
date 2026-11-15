@@ -13,7 +13,7 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
@@ -149,7 +149,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
             setDeleted(attempt, false);
           } else {
             DialogUtils.showFragment(DrillCaseStatsActivity.this,
-                CaseAlgorithmsDialog.newInstance(caseCode));
+                CaseSheet.newInstance(caseCode));
           }
         }
       });

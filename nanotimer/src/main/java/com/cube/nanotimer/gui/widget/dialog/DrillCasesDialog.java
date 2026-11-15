@@ -31,6 +31,7 @@ import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.gui.widget.cases.CaseFilterBar;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.widget.cases.CaseTile;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
@@ -192,7 +193,7 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
     grid.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
       @Override
       public boolean onItemLongClick(AdapterView<?> parent, View item, int position, long id) {
-        CaseAlgorithmsDialog.newInstance(shown.get(position))
+        CaseSheet.newInstance(shown.get(position))
             .show(getParentFragmentManager(), "caseAlgorithms");
         return true;
       }

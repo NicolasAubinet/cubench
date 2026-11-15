@@ -45,7 +45,7 @@ import com.cube.nanotimer.gui.widget.CoachPlanStatus;
 import com.cube.nanotimer.gui.widget.CoachPlanView;
 import com.cube.nanotimer.gui.widget.CoachTodayView;
 import com.cube.nanotimer.gui.widget.CoachDailyView;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
@@ -1409,7 +1409,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     return new AnalysisCases.Listener() {
       @Override
       public void onCasePicked(String caseCode) {
-        CaseAlgorithmsDialog.newInstance(caseCode).show(getSupportFragmentManager(), "case");
+        CaseSheet.newInstance(caseCode).show(getSupportFragmentManager(), "case");
       }
 
       @Override

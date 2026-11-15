@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One case: its picture and name, the solver's own times, and the algorithms it is solved with.
+     The body scrolls; the buttons stay at the foot. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:clipToPadding="false"
+   android:orientation="vertical"
+   android:paddingLeft="20dp"
+   android:paddingTop="8dp"
+   android:paddingRight="20dp"
+   android:paddingBottom="14dp">
+
+  <View
+     android:layout_width="32dp"
+     android:layout_height="4dp"
+     android:layout_gravity="center_horizontal"
+     android:background="@drawable/bottomsheet_drag_handle"/>
+
+  <androidx.core.widget.NestedScrollView
+     android:id="@+id/svCaseSheet"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="10dp"
+     android:layout_marginRight="-12dp"
+     android:layout_weight="1"
+     android:fadeScrollbars="false"
+     android:paddingRight="12dp"
+     android:scrollbarStyle="outsideOverlay"
+     android:scrollbars="vertical">
+
+    <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical">
+
+      <!-- The case beside its name: what to recognise it by and what to call it. -->
+      <LinearLayout
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:gravity="center_vertical"
+         android:orientation="horizontal">
+
+        <com.cube.nanotimer.gui.widget.LastLayerCaseView
+           android:id="@+id/vCaseChart"
+           android:layout_width="104dp"
+           android:layout_height="104dp"/>
+
+        <!-- An F2L pair's case on the 3D cube, with only the cross and the pair in colour. -->
+        <FrameLayout
+           android:id="@+id/flCaseCube"
+           android:layout_width="120dp"
+           android:layout_height="120dp"
+           android:background="@drawable/cube_stage"
+           android:visibility="gone">
+
+          <WebView
+             android:id="@+id/wvCaseCube"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:background="@android:color/transparent"/>
+        </FrameLayout>
+
+        <LinearLayout
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"
+           android:layout_marginLeft="16dp"
+           android:layout_weight="1"
+           android:orientation="vertical">
+
+          <TextView
+             android:id="@+id/tvCaseTitle"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:fontFamily="@font/roboto_medium"
+             android:textColor="@color/white"
+             android:textSize="22sp"
+             app:fontFamily="@font/roboto_medium"/>
+
+          <com.cube.nanotimer.util.view.FlowLayout
+             android:id="@+id/flCaseChips"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="8dp"/>
+        </LinearLayout>
+      </LinearLayout>
+
+      <!-- Solves and drills side by side and never mixed into one mean: a drill hands the case over
+           with nothing to recognise, so the two are not the same measurement. -->
+      <TextView
+         android:id="@+id/tvCaseTimesLabel"
+         style="@style/DialogSectionLabel"
+         android:layout_marginTop="20dp"
+         android:text="@string/case_sheet_your_times"
+         android:visibility="gone"/>
+
+      <LinearLayout
+         android:id="@+id/llCaseFigures"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="8dp"
+         android:baselineAligned="false"
+         android:orientation="horizontal"
+         android:visibility="gone">
+
+        <include
+           android:id="@+id/icCaseSolves"
+           layout="@layout/case_sheet_figures"
+           android:layout_width="0dp"
+           android:layout_height="match_parent"
+           android:layout_weight="1"/>
+
+        <include
+           android:id="@+id/icCaseDrills"
+           layout="@layout/case_sheet_figures"
+           android:layout_width="0dp"
+           android:layout_height="match_parent"
+           android:layout_marginLeft="10dp"
+           android:layout_weight="1"/>
+      </LinearLayout>
+
+      <TextView
+         style="@style/DialogSectionLabel"
+         android:layout_marginTop="20dp"
+         android:text="@string/case_algorithms"/>
+
+      <!-- One row per algorithm, built in code, always in the same order. -->
+      <LinearLayout
+         android:id="@+id/llCaseAlgorithms"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="2dp"
+         android:orientation="vertical"/>
+
+      <!-- The long tail past most of the votes, opened in place. -->
+      <LinearLayout
+         android:id="@+id/llCaseMore"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:visibility="gone"/>
+
+      <TextView
+         android:id="@+id/tvCaseShowMore"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:background="?android:attr/selectableItemBackground"
+         android:paddingTop="12dp"
+         android:paddingBottom="4dp"
+         android:textColor="@color/lightblue"
+         android:textSize="14sp"
+         android:visibility="gone"/>
+
+      <!-- An algorithm of the user's own sits under the list rather than inside it, so having one
+           never moves, hides or renames anything the list was saying. -->
+      <TextView
+         android:id="@+id/tvCaseYoursLabel"
+         style="@style/DialogSectionLabel"
+         android:layout_marginTop="18dp"
+         android:text="@string/case_algorithm_yours"
+         android:visibility="gone"/>
+
+      <LinearLayout
+         android:id="@+id/llCaseYours"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:visibility="gone"/>
+
+      <TextView
+         android:id="@+id/tvCaseAddAlgorithm"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:background="?android:attr/selectableItemBackground"
+         android:paddingTop="12dp"
+         android:paddingBottom="4dp"
+         android:text="@string/case_algorithm_add"
+         android:textColor="@color/lightblue"
+         android:textSize="14sp"/>
+
+      <!-- With no smart cube: the moves that put the case on a real cube, from the picked one. -->
+      <LinearLayout
+         android:id="@+id/llCaseSetup"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <TextView
+           style="@style/DialogSectionLabel"
+           android:layout_marginTop="20dp"
+           android:text="@string/case_sheet_setup"/>
+
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="8dp"
+           android:background="@drawable/case_setup_moves"
+           android:orientation="vertical"
+           android:padding="12dp">
+
+          <TextView
+             android:id="@+id/tvCaseSetupMoves"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:letterSpacing="-0.02"
+             android:textColor="@color/case_name"
+             android:textIsSelectable="true"
+             android:textSize="14sp"/>
+
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="6dp"
+             android:text="@string/case_sheet_setup_hint"
+             android:textColor="@color/secondary_text"
+             android:textSize="12sp"/>
+        </LinearLayout>
+      </LinearLayout>
+
+      <TextView
+         android:id="@+id/tvCaseAlgorithmsOrder"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="14dp"
+         android:text="@string/case_algorithms_order"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"/>
+    </LinearLayout>
+  </androidx.core.widget.NestedScrollView>
+
+  <LinearLayout
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="12dp"
+     android:orientation="horizontal">
+
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buCasePractice"
+       style="@style/DialogActionButton"
+       android:layout_width="0dp"
+       android:layout_marginRight="10dp"
+       android:layout_weight="1.4"
+       android:background="@drawable/dialog_action_button_ghost"
+       android:visibility="gone"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+       android:id="@+id/buCaseClose"
+       style="@style/DialogActionButton"
+       android:layout_width="0dp"
+       android:layout_weight="1"
+       android:text="@string/close"/>
+  </LinearLayout>
+</LinearLayout>

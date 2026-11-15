@@ -83,12 +83,14 @@ public final class CaseExecutions {
   /** @param only the one case to read, or null for every last layer case */
   private static Map<String, Spread> spreadsOf(List<SolveTime> solves, String only) {
     Map<String, List<String>> answers = new LinkedHashMap<String, List<String>>();
+    Map<String, List<Long>> executions = new LinkedHashMap<String, List<Long>>();
     for (SolveTime solve : solves) {
-      collect(solve, answers, only);
+      collect(solve, answers, executions, only);
     }
     Map<String, Spread> spreads = new LinkedHashMap<String, Spread>();
     for (Map.Entry<String, List<String>> answer : answers.entrySet()) {
-      spreads.put(answer.getKey(), spreadOf(answer.getKey(), answer.getValue()));
+      spreads.put(answer.getKey(), spreadOf(answer.getKey(), answer.getValue(),
+          executions.get(answer.getKey())));
     }
     return spreads;
   }
@@ -161,10 +163,12 @@ public final class CaseExecutions {
       // add up to the answers they were counted out of.
       Shown already = writtenAs(shown, moves);
       if (already == null) {
-        shown.add(new Shown(moves, one.getMoves(), one.getTimes(), spread.getOf()));
-      } else {
-        already.times += one.getTimes();
+        already = new Shown(moves, one.getMoves(), 0, spread.getOf());
+        shown.add(already);
       }
+      already.times += one.getTimes();
+      already.executionMs += one.executionMs;
+      already.executionsTimed += one.executionsTimed;
     }
     // Adding two together can carry a row past the one in front of it, and the row in front is the
     // one the words go on.
@@ -194,11 +198,11 @@ public final class CaseExecutions {
 
   /** One solve's cases, or none of them where it cannot be read again. */
   private static void collect(SolveTime solve, final Map<String, List<String>> answers,
-      final String only) {
+      final Map<String, List<Long>> executions, final String only) {
     readSteps(solve, new StepReader() {
       @Override
       public void read(SolveStep step, SolveSolution.Step turned) {
-        add(step, turned, answers, only);
+        add(step, turned, answers, executions, only);
       }
     });
   }
@@ -319,15 +323,17 @@ public final class CaseExecutions {
   }
 
   private static void add(SolveStep step, SolveSolution.Step turned,
-      Map<String, List<String>> answers, String only) {
+      Map<String, List<String>> answers, Map<String, List<Long>> executions, String only) {
     List<SolveStep> parts = step.getSubSteps();
     if (parts.isEmpty()) {
       // Nothing was recorded under it, which is how a step that took one algorithm is stored.
-      keep(answers, caseOfStep(step.getName()), turned.getPartMoves(0), only);
+      keep(answers, executions, caseOfStep(step.getName()), turned.getPartMoves(0),
+          step.getExecutionMs(), only);
       return;
     }
     for (int i = 0; i < parts.size() && i < turned.getGroups().size(); i++) {
-      keep(answers, caseOfPart(parts.get(i).getName()), turned.getPartMoves(i), only);
+      keep(answers, executions, caseOfPart(parts.get(i).getName()), turned.getPartMoves(i),
+          parts.get(i).getExecutionMs(), only);
     }
   }
 
@@ -356,7 +362,8 @@ public final class CaseExecutions {
     return "oll".equals(family) || "pll".equals(family) ? name : null;
   }
 
-  private static void keep(Map<String, List<String>> answers, String caseCode, String moves,
+  private static void keep(Map<String, List<String>> answers,
+      Map<String, List<Long>> executions, String caseCode, String moves, long executionMs,
       String only) {
     if (caseCode == null || moves == null || moves.trim().isEmpty()) {
       return;
@@ -368,9 +375,11 @@ public final class CaseExecutions {
     if (kept == null) {
       kept = new ArrayList<String>();
       answers.put(caseCode, kept);
+      executions.put(caseCode, new ArrayList<Long>());
     }
     if (kept.size() < PER_CASE) {
       kept.add(moves);
+      executions.get(caseCode).add(Long.valueOf(executionMs));
     }
   }
 
@@ -380,9 +389,16 @@ public final class CaseExecutions {
    * way it was turned is more use than an average nobody performed.
    */
   static Spread spreadOf(String caseCode, List<String> answers) {
+    return spreadOf(caseCode, answers, null);
+  }
+
+  /** @param executionsMs each answer's execution time, in step with {@code answers}, or null */
+  static Spread spreadOf(String caseCode, List<String> answers, List<Long> executionsMs) {
     Map<String, Integer> counts = new LinkedHashMap<String, Integer>();
     Map<String, String> firstSeen = new LinkedHashMap<String, String>();
-    for (String moves : answers) {
+    Map<String, long[]> timed = new LinkedHashMap<String, long[]>();
+    for (int at = 0; at < answers.size(); at++) {
+      String moves = answers.get(at);
       // From the frame the case is drawn in, so the same algorithm regripped between solves and
       // left facing another way is one answer rather than two or three.
       String key = CaseAlgorithms.keyAsDrawn(caseCode, moves);
@@ -393,6 +409,12 @@ public final class CaseExecutions {
       counts.put(key, Integer.valueOf(count == null ? 1 : count.intValue() + 1));
       if (!firstSeen.containsKey(key)) {
         firstSeen.put(key, moves); // the list is newest first, so this is the latest of its group
+        timed.put(key, new long[2]);
+      }
+      long executionMs = executionsMs == null ? 0 : executionsMs.get(at).longValue();
+      if (executionMs > 0) {
+        timed.get(key)[0] += executionMs;
+        timed.get(key)[1]++;
       }
     }
     if (counts.isEmpty()) {
@@ -401,7 +423,10 @@ public final class CaseExecutions {
     List<Turned> turned = new ArrayList<Turned>();
     int of = 0;
     for (Map.Entry<String, Integer> count : counts.entrySet()) {
-      turned.add(new Turned(firstSeen.get(count.getKey()), count.getValue().intValue()));
+      Turned one = new Turned(firstSeen.get(count.getKey()), count.getValue().intValue());
+      one.executionMs = timed.get(count.getKey())[0];
+      one.executionsTimed = (int) timed.get(count.getKey())[1];
+      turned.add(one);
       of += count.getValue().intValue();
     }
     Collections.sort(turned, new Comparator<Turned>() {
@@ -418,6 +443,9 @@ public final class CaseExecutions {
 
     private final String moves;
     private final int times;
+    /** The summed execution time of the answers that had one, and how many did. */
+    private long executionMs;
+    private int executionsTimed;
 
     Turned(String moves, int times) {
       this.moves = moves;
@@ -443,6 +471,8 @@ public final class CaseExecutions {
     private final String executed;
     private int times;
     private final int of;
+    private long executionMs;
+    private int executionsTimed;
 
     Shown(String moves, String executed, int times, int of) {
       this.moves = moves;
@@ -468,6 +498,11 @@ public final class CaseExecutions {
     /** How many of the case's answers these were counted out of, the ones left out included. */
     public int getOf() {
       return of;
+    }
+
+    /** The mean execution time of these answers, or -1 where none was timed. */
+    public long getMeanExecutionMs() {
+      return executionsTimed == 0 ? -1 : executionMs / executionsTimed;
     }
   }
 

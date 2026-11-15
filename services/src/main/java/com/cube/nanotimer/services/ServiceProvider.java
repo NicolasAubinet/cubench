@@ -111,6 +111,8 @@ public interface ServiceProvider {
   List<StepStats> getDrillCaseStatistics(int lastDrills);
   /** What each case has cost over the drills done since {@code fromTimestamp}, 0 for all of them. */
   List<DrillCaseStats> getDrillCaseStats(long fromTimestamp);
+
+  StepStats getCaseSolveStats(String caseCode, int lastTimes);
   /** Every rep of one case since {@code fromTimestamp}, latest first, the pruned ones left out. */
   List<DrillCaseAttempt> getDrillCaseAttempts(String caseCode, long fromTimestamp);
 

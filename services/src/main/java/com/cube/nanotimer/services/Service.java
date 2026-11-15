@@ -79,6 +79,12 @@ public interface Service {
   void getOneAlgorithmCaseStatistics(SolveType solveType, CubeMethod method, int lastSolves,
       DataCallback<List<StepStats>> callback);
 
+  /**
+   * One last layer case over the last {@code lastTimes} solves it came up in, of any solve type,
+   * counting only the times it went in one algorithm; null for a case never met in a solve.
+   */
+  void getCaseSolveStats(String caseCode, int lastTimes, DataCallback<StepStats> callback);
+
   /** How many of a solve type's solves a smart cube drove, and so could be read again. */
   void getSmartcubeSolvesCount(SolveType solveType, DataCallback<Integer> callback);
 
