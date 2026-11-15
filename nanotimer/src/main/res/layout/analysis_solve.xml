@@ -42,11 +42,35 @@
        android:textColor="@color/secondary_text"
        android:textSize="14sp"/>
 
+    <!-- How the solve was turned as a whole: moves, turns per second, time paused. -->
+    <LinearLayout
+       android:id="@+id/llAnalysisTurning"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="16dp"
+       android:baselineAligned="false"
+       android:divider="@drawable/analysis_turning_divider"
+       android:orientation="horizontal"
+       android:showDividers="middle">
+
+      <include
+         android:id="@+id/llAnalysisTurningMoves"
+         layout="@layout/analysis_turning_cell"/>
+
+      <include
+         android:id="@+id/llAnalysisTurningTps"
+         layout="@layout/analysis_turning_cell"/>
+
+      <include
+         android:id="@+id/llAnalysisTurningPaused"
+         layout="@layout/analysis_turning_cell"/>
+    </LinearLayout>
+
     <com.cube.nanotimer.util.view.SolveStepBarView
        android:id="@+id/vAnalysisComposition"
        android:layout_width="match_parent"
        android:layout_height="12dp"
-       android:layout_marginTop="14dp"/>
+       android:layout_marginTop="18dp"/>
 
     <!-- Every segment named under the bar, each in its own column: name, time, then share. -->
     <LinearLayout

@@ -1261,9 +1261,12 @@
   <string name="analysis_empty_puzzle">Um smart cube só lê resoluções de 3x3. Não há nada para detalhar aqui.</string>
   <string name="analysis_empty_steps">Este tipo de resolução cronometra suas próprias etapas, então o detalhe dele é o que você marca no cronômetro.</string>
   <plurals name="analysis_hero_caption">
-    <item quantity="one">média de %1$d resolução · melhor %2$s</item>
-    <item quantity="other">média de %1$d resoluções · melhor %2$s</item>
+    <item quantity="one">média de %1$d resolução</item>
+    <item quantity="other">média de %1$d resoluções</item>
   </plurals>
+  <string name="analysis_turning_moves">Movimentos</string>
+  <string name="analysis_turning_tps">TPS</string>
+  <string name="analysis_turning_paused">Em pausa</string>
   <string name="analysis_column_step">Etapa</string>
   <string name="analysis_delta_label">Em relação a uma resolu\u00e7\u00e3o %s t\u00edpica</string>
   <string name="analysis_delta_zero_sum">(as etapas somam zero)</string>
@@ -1608,6 +1611,8 @@
   <string name="analysis_help_delta_body">Quanto cada etapa pesa na sua resolução, comparado ao peso dela numa resolução típica. As diferenças somam zero, então uma etapa rápida faz as outras parecerem lentas.</string>
   <string name="analysis_help_table">A tabela de etapas</string>
   <string name="analysis_help_table_body">Média, melhor e desvio de cada etapa. Toque em um cabeçalho para ordenar por ele. As etapas com casos nomeados, OLL e PLL, têm uma seta e abrem esses casos.</string>
+  <string name="analysis_help_turning">Movimentos, TPS, em pausa</string>
+  <string name="analysis_help_turning_body">Por resolução, contados como na página de cada resolução. O TPS são os movimentos por segundo enquanto você gira. Em pausa é o tempo sem girar, em paradas de um quarto de segundo ou mais.</string>
   <string name="analysis_help_spread">Desvio</string>
   <string name="analysis_help_spread_body">Quanto o tempo varia de uma resolução para outra. A mesma média pode vir de fazer sempre do mesmo jeito, ou de travar de vez em quando.</string>
   <string name="analysis_help_standard">Algoritmos padrão</string>

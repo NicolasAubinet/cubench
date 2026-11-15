@@ -1306,9 +1306,13 @@
   <string name="analysis_empty_puzzle">A smart cube only reads 3x3 solves. There is nothing to break down here.</string>
   <string name="analysis_empty_steps">This solve type times its own steps, so its breakdown is the one you tap on the timer.</string>
   <plurals name="analysis_hero_caption">
-    <item quantity="one">mean of %1$d solve · best %2$s</item>
-    <item quantity="other">mean of %1$d solves · best %2$s</item>
+    <item quantity="one">mean of %1$d solve</item>
+    <item quantity="other">mean of %1$d solves</item>
   </plurals>
+  <string name="analysis_turning_wait" translatable="false">…</string>
+  <string name="analysis_turning_moves">Moves</string>
+  <string name="analysis_turning_tps">TPS</string>
+  <string name="analysis_turning_paused">Paused</string>
   <string name="analysis_column_step">Step</string>
   <string name="analysis_delta_label">Against a typical %s solve</string>
   <string name="analysis_delta_zero_sum">(zero-sum steps)</string>
@@ -1658,6 +1662,8 @@
   <string name="analysis_help_delta_body">Each step\'s share of your solve, against its share in a typical solve. The differences add up to zero, so a fast step makes the others look slow.</string>
   <string name="analysis_help_table">The step table</string>
   <string name="analysis_help_table_body">Mean, best and spread for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
+  <string name="analysis_help_turning">Moves, TPS, paused</string>
+  <string name="analysis_help_turning_body">Per solve, counted the same way as on each solve\'s own page. TPS is moves per second while turning. Paused is the time spent not turning, in stops of a quarter second or more.</string>
   <string name="analysis_help_spread">Spread</string>
   <string name="analysis_help_spread_body">How much the time changes from solve to solve. The same mean can come from doing it the same way every time, or from getting stuck now and then.</string>
   <string name="analysis_help_standard">Standard algorithms</string>

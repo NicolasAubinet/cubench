@@ -34,6 +34,7 @@ import com.cube.nanotimer.cube.CrossPauses;
 import com.cube.nanotimer.cube.SolveReading;
 import com.cube.nanotimer.cube.SolveReadings;
 import com.cube.nanotimer.cube.SolveTypeMethod;
+import com.cube.nanotimer.cube.TurningFigures;
 import com.cube.nanotimer.gui.widget.AnalysisCases;
 import com.cube.nanotimer.gui.widget.AnalysisHelpDialog;
 import com.cube.nanotimer.gui.widget.CaseRow;
@@ -214,6 +215,9 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private long crossPauseMs;
   /** Whether that read is on its way, which is what the card shows in place of its rows. */
   private boolean algorithmsReading;
+  /** Moves, TPS and pauses over the window, null until its solves have been read. */
+  private TurningFigures turningFigures;
+  private boolean turningReading;
   /**
    * Whether a cube has ever read a solve of theirs, of any solve type. Null until that read lands.
    * It is what separates the two readers an empty window otherwise looks the same to: one who owns
@@ -724,17 +728,24 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private void loadAlgorithmFigures() {
     algorithmFigures = null;
     crossPauseMs = 0;
+    turningFigures = null;
     final AnalysisWindow asked = window;
-    CubeMethod solved = SolveTypeMethod.of(solveType);
+    final CubeMethod solved = SolveTypeMethod.of(solveType);
     algorithmsReading = solved == CubeMethod.CFOP && readAsSolve();
+    turningReading = readAsSolve() && solved != CubeMethod.BLIND; // the method solves query skips blind
     showAlgorithmFigures();
-    if (!algorithmsReading) {
+    showTurning();
+    if (!turningReading) {
       return;
     }
     App.INSTANCE.getService().getMethodSolves(solveType, solved, window.solves(),
         new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(final List<SolveTime> solves) {
+            if (solved != CubeMethod.CFOP) { // nothing kept to read through: read them here
+              showTurningRead(asked, TurningFigures.readFrom(solves, SolveReadings.none(), solved));
+              return;
+            }
             App.INSTANCE.getService().getSolveReadings(SolveReadings.idsOf(solves),
                 SolveReading.VERSION, new DataCallback<Map<Long, String>>() {
                   @Override
@@ -743,6 +754,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
                     final Map<String, AlgorithmFigures> figures =
                         AlgorithmFiguresReader.readFrom(solves, readings);
                     final long crossPause = CrossPauses.meanOf(solves, readings);
+                    TurningFigures turning = TurningFigures.readFrom(solves, readings, solved);
                     App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
                         SolveReading.VERSION, null);
                     runOnUiThread(new Runnable() {
@@ -757,10 +769,53 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
                         }
                       }
                     });
+                    showTurningRead(asked, turning);
                   }
                 });
           }
         });
+  }
+
+  /** Hands figures read off the main thread to the strip, unless the window changed meanwhile. */
+  private void showTurningRead(final AnalysisWindow asked, final TurningFigures figures) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        if (asked == window && !isFinishing()) {
+          turningFigures = figures;
+          turningReading = false;
+          showTurning();
+        }
+      }
+    });
+  }
+
+  /** Moves, TPS and time paused per solve, under the mean; a placeholder while they are read. */
+  private void showTurning() {
+    View strip = findViewById(R.id.llAnalysisTurning);
+    TurningFigures figures = sampling() ? AnalysisSample.turning() : turningFigures;
+    boolean reading = turningReading && !sampling();
+    if (!reading && (figures == null || figures.getSolves() == 0)) {
+      strip.setVisibility(View.GONE);
+      return;
+    }
+    strip.setVisibility(View.VISIBLE);
+    String wait = getString(R.string.analysis_turning_wait);
+    FormatterService format = FormatterService.INSTANCE;
+    // A dot in every language, as the time beside them has: one row, one decimal mark.
+    showTurningCell(R.id.llAnalysisTurningMoves, R.string.analysis_turning_moves, reading ? wait
+        : String.format(Locale.US, "%.1f", figures.getMeanMoves()));
+    showTurningCell(R.id.llAnalysisTurningTps, R.string.analysis_turning_tps,
+        reading ? wait : String.format(Locale.US, "%.2f", figures.getTps()));
+    showTurningCell(R.id.llAnalysisTurningPaused, R.string.analysis_turning_paused,
+        reading ? wait : format.formatSolveTime(figures.getMeanPauseMs()));
+  }
+
+  private void showTurningCell(int id, int label, String value) {
+    View cell = findViewById(id);
+    ((TextView) cell.findViewById(R.id.tvAnalysisTurningValue)).setText(value);
+    ((TextView) cell.findViewById(R.id.tvAnalysisTurningLabel)).setText(
+        getString(label).toUpperCase(getResources().getConfiguration().locale));
   }
 
   private void showAlgorithmFigures() {
@@ -1377,26 +1432,18 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   /** The mean of the whole solve, and what it was made of. */
   private void showHero(MethodStatistics statistics) {
     long total = 0;
-    long best = 0;
     for (StepStats step : steps) {
       total += step.getMeanMs();
-      best += step.getBestMs();
     }
-    ((TextView) findViewById(R.id.tvAnalysisMean))
-        .setText(FormatterService.INSTANCE.formatSolveTime(total));
     // Of the steps rather than of the solve: a solve is timed from its first move and its steps do
     // not have to add up to it, so calling this the solve's own mean would be a different figure.
-    String bestText = FormatterService.INSTANCE.formatSolveTime(best);
-    String caption = getResources().getQuantityString(R.plurals.analysis_hero_caption,
-        statistics.getSolveCount(), statistics.getSolveCount(), bestText);
-    SpannableStringBuilder captionText = new SpannableStringBuilder(caption);
-    int bestAt = caption.lastIndexOf(bestText);
-    if (bestAt >= 0) {
-      captionText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.white)),
-          bestAt, bestAt + bestText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    }
-    ((TextView) findViewById(R.id.tvAnalysisMeanOf)).setText(captionText);
+    ((TextView) findViewById(R.id.tvAnalysisMean))
+        .setText(FormatterService.INSTANCE.formatSolveTime(total));
+    // No best beside it: a sum of each step's best reads as a real solve, and none was ever that fast.
+    ((TextView) findViewById(R.id.tvAnalysisMeanOf)).setText(getResources().getQuantityString(
+        R.plurals.analysis_hero_caption, statistics.getSolveCount(), statistics.getSolveCount()));
 
+    showTurning();
     showComposition();
     showLegend(total);
   }

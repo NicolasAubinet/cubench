@@ -1,5 +1,6 @@
 package com.cube.nanotimer.gui;
 
+import com.cube.nanotimer.cube.TurningFigures;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
@@ -75,6 +76,11 @@ public final class AnalysisSample {
     steps.addAll(orientations());
     steps.addAll(permutations());
     return new MethodStatistics(steps, SOLVES);
+  }
+
+  /** How the example's solves were turned, in line with its steps' means (about 15 s a solve). */
+  public static TurningFigures turning() {
+    return TurningFigures.of(SOLVES, 57.4, 3.96, 3420);
   }
 
   /** The example's cases as the Cases table reads them: its solver takes every one in one look. */

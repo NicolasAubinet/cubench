@@ -84,6 +84,11 @@
            android:textSize="13.5sp"/>
 
         <LinearLayout style="@style/HelpTermRow">
+          <TextView android:text="@string/analysis_help_turning" style="@style/HelpTermName"/>
+          <TextView android:text="@string/analysis_help_turning_body" style="@style/HelpTermText"/>
+        </LinearLayout>
+
+        <LinearLayout style="@style/HelpTermRow">
           <TextView android:text="@string/analysis_help_bar" style="@style/HelpTermName"/>
           <TextView android:text="@string/analysis_help_bar_body" style="@style/HelpTermText"/>
         </LinearLayout>

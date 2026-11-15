@@ -1259,9 +1259,12 @@
   <string name="analysis_empty_puzzle">Un smart cube ne lit que les résolutions de 3x3. Il n\'y a rien à détailler ici.</string>
   <string name="analysis_empty_steps">Ce type de résolution chronomètre ses propres étapes, son détail est donc celui que vous tapez sur le chrono.</string>
   <plurals name="analysis_hero_caption">
-    <item quantity="one">moyenne de %1$d résolution · meilleur %2$s</item>
-    <item quantity="other">moyenne de %1$d résolutions · meilleur %2$s</item>
+    <item quantity="one">moyenne de %1$d résolution</item>
+    <item quantity="other">moyenne de %1$d résolutions</item>
   </plurals>
+  <string name="analysis_turning_moves">Mouvements</string>
+  <string name="analysis_turning_tps">TPS</string>
+  <string name="analysis_turning_paused">En pause</string>
   <string name="analysis_column_step">\u00c9tape</string>
   <string name="analysis_delta_label">Par rapport \u00e0 une r\u00e9solution %s typique</string>
   <string name="analysis_delta_zero_sum">(étapes à somme nulle)</string>
@@ -1606,6 +1609,8 @@
   <string name="analysis_help_delta_body">La part de chaque étape dans votre résolution, comparée à une résolution typique. Les écarts s\'annulent : une étape rapide fait paraître les autres lentes.</string>
   <string name="analysis_help_table">Le tableau des étapes</string>
   <string name="analysis_help_table_body">Moyenne, meilleur temps et écart pour chaque étape. Touchez un en-tête pour trier. Les étapes avec des cas nommés (OLL et PLL) ont une flèche et ouvrent leurs cas.</string>
+  <string name="analysis_help_turning">Mouvements, TPS, en pause</string>
+  <string name="analysis_help_turning_body">Par résolution, comptés comme sur la page de chaque résolution. Le TPS est le nombre de mouvements par seconde pendant que vous tournez. En pause est le temps passé sans tourner, en arrêts d\'un quart de seconde ou plus.</string>
   <string name="analysis_help_spread">Écart</string>
   <string name="analysis_help_spread_body">À quel point le temps varie d\'une résolution à l\'autre. Une même moyenne peut venir d\'une exécution toujours régulière, ou de blocages de temps en temps.</string>
   <string name="analysis_help_standard">Algorithmes standards</string>

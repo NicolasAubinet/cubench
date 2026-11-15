@@ -1258,9 +1258,12 @@
   <string name="analysis_empty_puzzle">Un smart cube solo lee resoluciones de 3x3. No hay nada que desglosar aquí.</string>
   <string name="analysis_empty_steps">Este tipo de resolución cronometra sus propios pasos, así que su desglose es el que tocas en el cronómetro.</string>
   <plurals name="analysis_hero_caption">
-    <item quantity="one">media de %1$d resolución · mejor %2$s</item>
-    <item quantity="other">media de %1$d resoluciones · mejor %2$s</item>
+    <item quantity="one">media de %1$d resolución</item>
+    <item quantity="other">media de %1$d resoluciones</item>
   </plurals>
+  <string name="analysis_turning_moves">Movimientos</string>
+  <string name="analysis_turning_tps">TPS</string>
+  <string name="analysis_turning_paused">En pausa</string>
   <string name="analysis_column_step">Paso</string>
   <string name="analysis_delta_label">Frente a una resoluci\u00f3n %s t\u00edpica</string>
   <string name="analysis_delta_zero_sum">(suman cero)</string>
@@ -1605,6 +1608,8 @@
   <string name="analysis_help_delta_body">Qué parte de tu resolución se lleva cada paso, comparada con la de una resolución típica. Las diferencias suman cero, así que un paso rápido hace que los demás parezcan lentos.</string>
   <string name="analysis_help_table">La tabla de pasos</string>
   <string name="analysis_help_table_body">Media, mejor y desvío de cada paso. Toca una cabecera para ordenar por ella. Los pasos con casos con nombre, OLL y PLL, llevan una flecha: tócalos para ver sus casos.</string>
+  <string name="analysis_help_turning">Movimientos, TPS, en pausa</string>
+  <string name="analysis_help_turning_body">Por resolución, contados igual que en la página de cada resolución. El TPS son los movimientos por segundo mientras giras. En pausa es el tiempo sin girar, en paradas de un cuarto de segundo o más.</string>
   <string name="analysis_help_spread">Desvío</string>
   <string name="analysis_help_spread_body">Cuánto varía el tiempo de una resolución a otra. La misma media puede salir de hacerlo siempre igual o de atascarte de vez en cuando.</string>
   <string name="analysis_help_standard">Algoritmos estándar</string>

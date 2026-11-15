@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One figure of the turning strip under the hero mean: the value, then its name in caps. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="0dp"
+   android:layout_height="wrap_content"
+   android:layout_weight="1"
+   android:gravity="center_horizontal"
+   android:orientation="vertical">
+
+  <TextView
+     android:id="@+id/tvAnalysisTurningValue"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:fontFeatureSettings="tnum"
+     android:includeFontPadding="false"
+     android:singleLine="true"
+     android:textColor="@color/white"
+     android:textSize="20sp"
+     android:textStyle="bold"/>
+
+  <TextView
+     android:id="@+id/tvAnalysisTurningLabel"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="4dp"
+     android:letterSpacing="0.09"
+     android:singleLine="true"
+     android:textColor="@color/secondary_text"
+     android:textSize="11sp"/>
+</LinearLayout>
