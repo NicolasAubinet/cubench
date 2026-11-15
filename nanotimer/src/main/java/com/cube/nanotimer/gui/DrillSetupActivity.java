@@ -31,10 +31,10 @@ import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.gui.widget.DrillFacePicture;
 import com.cube.nanotimer.gui.widget.DrillHelpDialog;
-import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.StepCardBackground;
+import com.cube.nanotimer.gui.widget.cases.CaseTile;
 import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
 import com.cube.nanotimer.gui.widget.preferences.LastLayerColourDialog;
 import com.cube.nanotimer.gui.widget.preferences.NumberEntryDialog;
@@ -42,7 +42,6 @@ import com.cube.nanotimer.scrambler.cross.CrossFace;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.model.CubeConnection;
 import com.cube.nanotimer.smartcube.model.CubeConnectionListener;
-import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.F2LSlotAlgorithms;
 import com.cube.nanotimer.step.F2lPairCases;
 import com.cube.nanotimer.util.DrillCasePreset;
@@ -528,22 +527,17 @@ public class DrillSetupActivity extends NanoTimerActivity
     int charts = overflow ? STRIP_SLOTS - 1 : picked.size();
     // Every slot is laid out, empty ones invisible, so a short pick keeps the same cell width.
     for (int i = 0; i < STRIP_SLOTS; i++) {
-      View cell = getLayoutInflater().inflate(R.layout.drill_setup_case, llPicked, false);
-      LastLayerCaseView chart = cell.findViewById(R.id.vDrillCaseChart);
+      CaseTile tile = CaseTile.inflate(getLayoutInflater(), llPicked,
+          R.layout.case_tile_small);
       if (i < charts) {
         String code = picked.get(i);
-        chart.setDiagram(LastLayerDiagram.forCase(code));
-        ((TextView) cell.findViewById(R.id.tvDrillCaseName))
-            .setText(CaseSets.ofCase(code).name(code));
+        tile.show(CaseSets.ofCase(code), code);
       } else if (overflow) {
-        chart.setVisibility(View.INVISIBLE);
-        TextView more = cell.findViewById(R.id.tvDrillCaseMore);
-        more.setVisibility(View.VISIBLE);
-        more.setText(getString(R.string.drill_cases_more, picked.size() - charts));
+        tile.more(getString(R.string.drill_cases_more, picked.size() - charts));
       } else {
-        cell.setVisibility(View.INVISIBLE);
+        tile.view().setVisibility(View.INVISIBLE);
       }
-      llPicked.addView(cell);
+      llPicked.addView(tile.view());
     }
   }
 

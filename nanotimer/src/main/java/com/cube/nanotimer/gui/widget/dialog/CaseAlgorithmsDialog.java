@@ -4,10 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.res.Configuration;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
@@ -31,6 +29,7 @@ import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
+import com.cube.nanotimer.gui.widget.cases.AlgorithmRow;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
@@ -42,7 +41,6 @@ import com.cube.nanotimer.smartcube.step.F2LCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.helper.DialogUtils;
-import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.usage.UsageShares;
 import com.cube.nanotimer.util.view.SmartCubeMarkLabel;
@@ -412,19 +410,19 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       // Their own spelling of a listed algorithm stands in its place
       String moves = CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), own) ? own
           : algorithm.getMoves();
-      rows.addView(row(moves, algorithm.isRecommended(), i == 0, algorithm.getEmptySlot(),
+      rows.addView(row(moves, algorithm.isRecommended(), algorithm.getEmptySlot(),
           algorithm.getShare()));
       shown.add(moves);
     }
     if (own != null && !listedAlready(shown, own)) {
       shown.add(own);
-      yours.addView(row(own, false, false, CaseAlgorithms.emptySlotOf(caseCode, own)));
+      yours.addView(row(own, false, CaseAlgorithms.emptySlotOf(caseCode, own)));
     }
     for (Turned one : turned) {
       if (!listedAlready(shown, one.moves)) {
         shown.add(one.moves);
         yours.addView(
-            row(one.moves, false, false, CaseAlgorithms.emptySlotOf(caseCode, one.moves)));
+            row(one.moves, false, CaseAlgorithms.emptySlotOf(caseCode, one.moves)));
       }
     }
     // A star on none of these (an execution gone from the recent solves) still gets its row
@@ -433,7 +431,7 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
     }
     if (starredRow != null && !listedAlready(shown, starredRow)) {
       yours.addView(
-          row(starredRow, false, false, CaseAlgorithms.emptySlotOf(caseCode, starredRow)));
+          row(starredRow, false, CaseAlgorithms.emptySlotOf(caseCode, starredRow)));
     }
     boolean any = yours.getChildCount() > 0;
     yoursLabel.setVisibility(any ? View.VISIBLE : View.GONE);
@@ -475,132 +473,68 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
   }
 
   /**
-   * One algorithm. The first is set a size larger and heavier: it is first because it is the one
-   * most people use, and a column of identical rows says nothing about an order that is the whole
-   * content of the list.
+   * One algorithm, as every list of a case's algorithms draws it.
    *
    * @param emptySlot the slot the algorithm needs empty ("fl", "br"), or null
    */
-  private View row(final String moves, boolean recommended, boolean top, String emptySlot) {
-    return row(moves, recommended, top, emptySlot, -1);
+  private View row(final String moves, boolean recommended, String emptySlot) {
+    return row(moves, recommended, emptySlot, -1);
   }
 
   /** @param share the percentage of sharers who turn it, or negative for no figure */
-  private View row(final String moves, boolean recommended, boolean top, String emptySlot,
+  private View row(final String moves, boolean recommended, String emptySlot,
       float share) {
     boolean declared = CaseAlgorithms.sameTurning(caseCode, moves, chosen);
     Turned one = turnedFor(moves);
     boolean mine = declared || one != null; // theirs either way, said or done
 
-    LinearLayout row = new LinearLayout(getActivity());
-    row.setOrientation(LinearLayout.VERTICAL);
-    row.setPadding(dp(10), dp(9), dp(10), dp(9));
-    row.setBackgroundResource(mine ? R.drawable.case_alg_mine : R.drawable.case_alg);
-    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    params.topMargin = dp(6);
-    row.setLayoutParams(params);
-    row.setClickable(true);
-    row.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        choose(moves);
-      }
-    });
-
-    LinearLayout line = new LinearLayout(getActivity());
-    line.setOrientation(LinearLayout.HORIZONTAL);
-    line.setLayoutParams(new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-    row.addView(line);
-
-    TextView notation = GUIUtils.newTextView(getActivity());
-    notation.setText(moves);
-    notation.setTextSize(top ? 16 : 15);
-    notation.setTextColor(ContextCompat.getColor(getActivity(), R.color.white));
-    notation.setLayoutParams(new LinearLayout.LayoutParams(0,
-        LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-    if (top) {
-      GUIUtils.setWeight(notation, Typeface.BOLD);
-    }
-    line.addView(notation);
-
-    if (share >= 0) {
-      TextView percent = GUIUtils.newTextView(getActivity());
-      percent.setText(UsageShares.label(getActivity(), share));
-      percent.setTextSize(top ? 15 : 14);
-      percent.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
-      percent.setFontFeatureSettings("tnum");
-      percent.setPadding(dp(8), 0, 0, 0);
-      LinearLayout.LayoutParams percentParams = new LinearLayout.LayoutParams(
-          LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-      percentParams.gravity = Gravity.CENTER_VERTICAL;
-      percent.setLayoutParams(percentParams);
-      line.addView(percent);
-    }
-
-    // Marks rather than labels, and all of them when they all apply: a choice does not stop an
-    // algorithm being the recommended one, and watching that word disappear on being tapped reads
-    // as having broken something.
-    LinearLayout marks = new LinearLayout(getActivity());
-    marks.setOrientation(LinearLayout.VERTICAL);
-    marks.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
-    marks.setPadding(dp(7), 0, 0, 0);
-    LinearLayout.LayoutParams markParams = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    markParams.gravity = Gravity.CENTER_VERTICAL;
-    marks.setLayoutParams(markParams);
-    // Only the execution says this, and only the one they turn most: a tap says which one they mean
-    // to use, not which one they do.
-    // On the starred row "The one you use" repeats the star; it shows only where the two differ.
+    AlgorithmRow row = AlgorithmRow.inflate(LayoutInflater.from(getActivity()), rows)
+        .moves(moves)
+        .share(share >= 0 ? UsageShares.label(getActivity(), share) : null)
+        .starred(declared)
+        .mine(mine)
+        .onClick(new View.OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            choose(moves);
+          }
+        });
+    // All marks that apply: a choice does not stop an algorithm being the recommended one.
+    // "The one you use" comes from the execution, and only shows where it differs from the star.
     if (one != null && one == turned.get(0) && (used != null || !declared)) {
-      marks.addView(chip(used != null ? R.string.case_algorithm_used : R.string.case_algorithm_mine,
-          true));
+      row.mark(used != null ? R.string.case_algorithm_used : R.string.case_algorithm_mine, true);
     }
     if (one != null && one.execution.isUnusual()) {
-      marks.addView(chip(R.string.case_algorithm_unusual, false));
+      row.mark(R.string.case_algorithm_unusual, false);
     }
     if (recommended) {
-      marks.addView(chip(R.string.case_algorithm_recommended, false));
-    }
-    line.addView(marks);
-
-    if (declared) {
-      TextView star = GUIUtils.newTextView(getActivity());
-      star.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_case_mine, 0, 0, 0);
-      star.setGravity(Gravity.CENTER_VERTICAL);
-      LinearLayout.LayoutParams starParams = new LinearLayout.LayoutParams(
-          LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-      starParams.gravity = Gravity.CENTER_VERTICAL;
-      starParams.leftMargin = dp(6);
-      star.setLayoutParams(starParams);
-      line.addView(star);
+      row.mark(R.string.case_algorithm_recommended, false);
     }
     // How often, only where there is another answer to be compared with.
     if (one != null && turned.size() > 1) {
-      row.addView(note(getString(R.string.case_algorithm_of_last, one.times, one.of)));
+      row.note(getString(R.string.case_algorithm_of_last, one.times, one.of));
     }
     if (one != null && one.execution.isUnusual() && one.execution.isLonger()) {
-      row.addView(note(getString(R.string.case_algorithm_longer, one.execution.getMoves(),
-          one.execution.getUsualMoves())));
+      row.note(getString(R.string.case_algorithm_longer, one.execution.getMoves(),
+          one.execution.getUsualMoves()));
     }
     if (one != null && one.execution.isUnusual()) {
-      row.addView(muteToggle(one.moves));
+      muteToggle(row, one.moves);
     }
     if (emptySlot != null) {
-      row.addView(note(getString("fl".equals(emptySlot) ? R.string.case_algorithm_empty_fl
-          : R.string.case_algorithm_empty_br)));
+      row.note(getString("fl".equals(emptySlot) ? R.string.case_algorithm_empty_fl
+          : R.string.case_algorithm_empty_br));
     }
-    return row;
+    return row.view();
   }
 
   /**
    * Stops an algorithm off the list being pointed out, or starts it again: for a solver who turns it
    * on purpose. The algorithm alone, so another way of turning the case is still pointed out.
    */
-  private TextView muteToggle(final String moves) {
+  private void muteToggle(AlgorithmRow row, final String moves) {
     final boolean muted = CaseFlags.isMuted(caseCode, moves);
-    TextView toggle = note(getString(muted ? R.string.case_algorithm_unmute
+    TextView toggle = row.note(getString(muted ? R.string.case_algorithm_unmute
         : R.string.case_algorithm_mute));
     toggle.setTextColor(ContextCompat.getColor(getActivity(), R.color.color_accent));
     toggle.setOnClickListener(new View.OnClickListener() {
@@ -611,24 +545,10 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
         refresh();
       }
     });
-    return toggle;
   }
 
   private void flagsChanged() {
     getParentFragmentManager().setFragmentResult(FLAGS_CHANGED, new Bundle());
-  }
-
-  /** A line under an algorithm, for what will not fit in a chip. */
-  private TextView note(String text) {
-    TextView note = GUIUtils.newTextView(getActivity());
-    note.setText(text);
-    note.setTextSize(12);
-    note.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
-    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    params.topMargin = dp(4);
-    note.setLayoutParams(params);
-    return note;
   }
 
   /** One execution of the case, named the way it is shown and read against the vote table. */
@@ -645,18 +565,6 @@ public class CaseAlgorithmsDialog extends NanoTimerDialogFragment {
       this.times = times;
       this.of = of;
     }
-  }
-
-  private TextView chip(int textResId, boolean accent) {
-    TextView chip = new TextView(getActivity(), null, 0,
-        accent ? R.style.RowChipAccent : R.style.RowChip);
-    chip.setText(textResId);
-    chip.setTextSize(10);
-    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-    params.topMargin = dp(2);
-    chip.setLayoutParams(params);
-    return chip;
   }
 
   /** Tapping the one already kept lets it go, so a wrong tap is undone the same way it was made. */

@@ -18,6 +18,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
@@ -25,13 +26,14 @@ import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseGroup;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
-import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
+import com.cube.nanotimer.gui.widget.cases.CaseFilterBar;
+import com.cube.nanotimer.gui.widget.cases.CaseTile;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
-import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.helper.GUIUtils;
 import com.cube.nanotimer.util.view.StepPalette;
@@ -39,11 +41,9 @@ import com.cube.nanotimer.util.view.ViewSegments;
 import com.cube.nanotimer.vo.CaseHistory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -81,7 +81,6 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
 
   private String family;
   private final List<String> cases = new ArrayList<String>();
-  private final Map<String, LastLayerDiagram> charts = new HashMap<String, LastLayerDiagram>();
   private final Set<String> picked = new LinkedHashSet<String>();
   private List<DrillCasePreset> presets;
 
@@ -90,6 +89,7 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
   private final Set<String> known = new HashSet<String>();
   private final List<String> shown = new ArrayList<String>();
   private CheckBox cbShowKnown;
+  private CaseFilterBar filter;
 
   private TextView tvCount;
   private TextView tvAll;
@@ -125,22 +125,20 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
     family = getArguments().getString(ARG_FAMILY);
     suggested = getArguments().getStringArrayList(ARG_SUGGESTED);
     cases.clear();
-    charts.clear();
     picked.clear();
     for (String code : CaseSets.ofFamily(family).cases()) {
       cases.add(code);
-      charts.put(code, LastLayerDiagram.forCase(code));
     }
     if (isLearning()) {
       Set<String> own = Options.INSTANCE.getLearnPick(family);
       picked.addAll(own == null ? suggested : own);
       known.addAll(Options.INSTANCE.getLearnedCases());
-      loadKnown();
     } else {
       Set<String> stored = Options.INSTANCE.getDrillCases(family);
       picked.addAll(stored == null ? cases : stored);
     }
     presets = Options.INSTANCE.getDrillCasePresets(family);
+    loadKnown();
 
     View view = LayoutInflater.from(getActivity()).inflate(R.layout.drill_cases_dialog, null);
     tvCount = view.findViewById(R.id.tvCasesCount);
@@ -163,6 +161,17 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
       title.setText(family.startsWith("oll") ? R.string.drill_cases_title_oll
           : R.string.drill_cases_title_pll);
     }
+    filter = new CaseFilterBar(getActivity(), CaseSets.ofFamily(family),
+        new CaseFilterBar.Listener() {
+          @Override
+          public void onGroupPicked(CaseGroup group) {
+            refreshShown();
+            refreshCount();
+          }
+        }).known(known);
+    LinearLayout filters = view.findViewById(R.id.llCasesFilters);
+    filters.addView(filter.chip(LayoutInflater.from(getActivity()), filters,
+        R.layout.case_filter_chip_small));
     refreshShown();
     adapter = new CasesAdapter();
     grid = view.findViewById(R.id.gvCases);
@@ -273,10 +282,16 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
   }
 
   /** @param all every case, or when choosing what to learn, the suggestion */
+  /** With a group picked, only its shown cases are picked or let go; the rest keep their state. */
   private void pickAll(boolean all) {
-    picked.clear();
+    List<String> scope = filter.getGroup() == null ? cases : shown;
+    picked.removeAll(scope);
     if (all) {
-      picked.addAll(isLearning() ? suggested : cases);
+      for (String code : isLearning() ? suggested : cases) {
+        if (scope.contains(code)) {
+          picked.add(code);
+        }
+      }
     }
     save();
   }
@@ -329,6 +344,7 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
               }
             }
             if (adapter != null && isAdded()) {
+              filter.known(known);
               refreshShown();
             }
           }
@@ -342,7 +358,9 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
     shown.clear();
     boolean showKnown = cbShowKnown == null || cbShowKnown.isChecked();
     for (String code : cases) {
-      if (!isLearning() || showKnown || !known.contains(code) || picked.contains(code)) {
+      boolean hidden = isLearning() && !showKnown && known.contains(code)
+          && !picked.contains(code);
+      if (!hidden && filter.shows(code)) {
         shown.add(code);
       }
     }
@@ -382,9 +400,18 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
           at, at + count.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
     tvCount.setText(spanned);
-    markSegment(tvAll, isLearning() ? Options.INSTANCE.getLearnPick(family) == null
-        : picked.size() == cases.size());
-    markSegment(tvNone, picked.isEmpty());
+    if (filter.getGroup() != null) {
+      int pickedShown = 0;
+      for (String code : shown) {
+        pickedShown += picked.contains(code) ? 1 : 0;
+      }
+      markSegment(tvAll, !isLearning() && pickedShown == shown.size());
+      markSegment(tvNone, pickedShown == 0);
+    } else {
+      markSegment(tvAll, isLearning() ? Options.INSTANCE.getLearnPick(family) == null
+          : picked.size() == cases.size());
+      markSegment(tvNone, picked.isEmpty());
+    }
     refreshPresets(preset);
   }
 
@@ -421,36 +448,14 @@ public class DrillCasesDialog extends NanoTimerDialogFragment
 
     @Override
     public View getView(int position, View recycled, ViewGroup parent) {
-      View cell = recycled;
-      if (cell == null) {
-        cell = LayoutInflater.from(getActivity())
-            .inflate(R.layout.drill_cases_cell, parent, false);
-      }
       String code = shown.get(position);
-      boolean on = picked.contains(code);
-
-      LastLayerCaseView chart = cell.findViewById(R.id.vCaseChart);
-      chart.setDiagram(charts.get(code));
-      // Turned down rather than hidden: an unpicked case still has to be findable to be picked
-      // again. The chart dims itself, so the name and the edge keep the colours they were given.
-      chart.setDimmed(!on);
-
-      TextView name = cell.findViewById(R.id.tvCaseName);
       CaseSet set = CaseSets.ofCase(code);
-      String shortName = set.name(code);
-      name.setText(isLearning() && known.contains(code)
-          ? getString(R.string.learn_pick_known_case, shortName) : shortName);
-      name.setTextColor(ContextCompat.getColor(getActivity(),
-          on ? R.color.case_name : R.color.case_name_off));
-
-      TextView shape = cell.findViewById(R.id.tvCaseShape);
-      String shapeName = set.shape(code);
-      shape.setText(shapeName == null ? "" : shapeName);
-      // A PLL has no shape, and an empty line still took its row on every one of the 21.
-      shape.setVisibility(shapeName == null ? View.GONE : View.VISIBLE);
-      shape.setTextColor(ContextCompat.getColor(getActivity(),
-          on ? R.color.case_shape : R.color.case_shape_off));
-      return cell;
+      CaseTile tile = CaseTile.of(recycled, LayoutInflater.from(getActivity()), parent)
+          .show(set, code).picked(picked.contains(code));
+      if (isLearning() && known.contains(code)) {
+        tile.name(getString(R.string.learn_pick_known_case, set.name(code)));
+      }
+      return tile.view();
     }
   }
 }

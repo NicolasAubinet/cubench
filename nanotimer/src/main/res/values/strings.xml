@@ -1337,6 +1337,8 @@
   <string name="analysis_column_case">Case</string>
   <string name="analysis_shape_title">Shape</string>
   <string name="analysis_shape_all">All shapes</string>
+  <string name="case_filter_group">Group</string>
+  <string name="case_filter_all_groups">All groups</string>
   <string name="analysis_shape_known">%1$d/%2$d known</string>
   <string name="analysis_shape_all_known">All known</string>
   <string name="analysis_shape_groups_known">%1$d of %2$d groups fully known</string>

@@ -1289,6 +1289,8 @@
   <string name="analysis_column_case">Cas</string>
   <string name="analysis_shape_title">Forme</string>
   <string name="analysis_shape_all">Toutes les formes</string>
+  <string name="case_filter_group">Groupe</string>
+  <string name="case_filter_all_groups">Tous les groupes</string>
   <string name="analysis_shape_known">%1$d/%2$d connus</string>
   <string name="analysis_shape_all_known">Tous connus</string>
   <string name="analysis_shape_groups_known">%1$d groupes entièrement connus sur %2$d</string>

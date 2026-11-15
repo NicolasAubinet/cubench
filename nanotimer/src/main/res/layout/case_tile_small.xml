@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A case the drill will deal: its chart over its name. Six slots share the strip equally. -->
+<!-- A case tile for a strip: a small picture over its name. Strip slots share the width equally. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="0dp"
    android:layout_height="wrap_content"
@@ -12,13 +12,13 @@
      android:layout_height="44dp">
 
     <com.cube.nanotimer.gui.widget.LastLayerCaseView
-       android:id="@+id/vDrillCaseChart"
+       android:id="@+id/vCaseTileChart"
        android:layout_width="match_parent"
        android:layout_height="match_parent"/>
 
-    <!-- In the last slot, how many more cases the strip has no room for. -->
+    <!-- In a strip's last slot, how many more cases there is no room for. -->
     <TextView
-       android:id="@+id/tvDrillCaseMore"
+       android:id="@+id/tvCaseTileMore"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
        android:background="@drawable/drill_case_more"
@@ -30,7 +30,7 @@
   </FrameLayout>
 
   <TextView
-     android:id="@+id/tvDrillCaseName"
+     android:id="@+id/tvCaseTileName"
      android:layout_width="wrap_content"
      android:layout_height="wrap_content"
      android:layout_marginTop="4dp"

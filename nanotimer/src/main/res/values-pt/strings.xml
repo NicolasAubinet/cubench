@@ -1291,6 +1291,8 @@
   <string name="analysis_column_case">Caso</string>
   <string name="analysis_shape_title">Forma</string>
   <string name="analysis_shape_all">Todas as formas</string>
+  <string name="case_filter_group">Grupo</string>
+  <string name="case_filter_all_groups">Todos os grupos</string>
   <string name="analysis_shape_known">%1$d/%2$d conhecidos</string>
   <string name="analysis_shape_all_known">Todos conhecidos</string>
   <string name="analysis_shape_groups_known">%1$d de %2$d grupos totalmente conhecidos</string>
