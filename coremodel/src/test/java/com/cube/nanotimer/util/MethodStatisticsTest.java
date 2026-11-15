@@ -174,6 +174,35 @@ public class MethodStatisticsTest {
     Assert.assertEquals("pair_27", stats.getCases("pair").get(0).getCode());
   }
 
+  // Roux codes its parts under the step itself (lse_eo), which used to hide LSE as a part.
+  @Test
+  public void testAStepWhosePartsCarryItsNameIsStillAStep() {
+    List<StepStats> steps = new ArrayList<StepStats>();
+    steps.add(tally("fb", 2, 40000));
+    steps.add(tally("sb", 2, 50000));
+    steps.add(tally("cmll", 2, 8000));
+    steps.add(tally("lse", 2, 38000));
+    List<StepStats> parts = new ArrayList<StepStats>();
+    parts.add(tally("cmll_orient", 1, 2000));
+    parts.add(tally("cmll_permute", 1, 2000));
+    parts.add(tally("lse_eo", 2, 16000));
+    parts.add(tally("lse_ulur", 2, 18000));
+    parts.add(tally("lse_l4e", 2, 4000));
+    MethodStatistics stats = new MethodStatistics(steps, parts, 2);
+
+    List<StepStats> families = stats.getFamilies();
+    Assert.assertEquals(4, families.size());
+    Assert.assertEquals("cmll", families.get(2).getCode());
+    Assert.assertEquals("lse", families.get(3).getCode());
+    Assert.assertEquals(2, stats.getFamily("lse").getCount()); // the parts are not counted in again
+    Assert.assertEquals(19000, stats.getFamily("lse").getMeanMs());
+    Assert.assertEquals(4000, stats.getFamily("cmll").getMeanMs());
+    Assert.assertTrue(stats.getCases("lse").isEmpty());
+
+    Assert.assertEquals(5, stats.getParts().size());
+    Assert.assertEquals(8000, stats.getFamily("lse_eo").getMeanMs());
+  }
+
   // A case is what the pair was handed, whichever slot it went into, so the slots add up to one.
   @Test
   public void testAPairCaseIsOneCaseAcrossSlots() {

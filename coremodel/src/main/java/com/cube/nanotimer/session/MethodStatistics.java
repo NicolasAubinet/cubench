@@ -4,8 +4,10 @@ import com.cube.nanotimer.vo.StepStats;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,6 +39,10 @@ public class MethodStatistics implements Serializable {
   private static final Set<String> PLACED_FAMILIES = Collections.singleton("pair");
   /** A slot's two faces, which a pair stored before its case was read has in the case's place. */
   private static final Pattern SLOT = Pattern.compile("[udfblr]{2}");
+  /** Steps whose parts are coded under the step itself ({@code lse_eo}): each part is a figure of its
+   * own, never a case of the step, or the step would be hidden as a part. */
+  private static final Set<String> STEP_NAMED_PARTS =
+      new HashSet<String>(Arrays.asList("cmll", "lse"));
 
   private final int solveCount;
   private final Map<String, StepStats> families = new LinkedHashMap<String, StepStats>();
@@ -57,11 +63,17 @@ public class MethodStatistics implements Serializable {
    */
   public MethodStatistics(List<StepStats> steps, List<StepStats> parts, int solveCount) {
     this.solveCount = solveCount;
-    for (StepStats part : parts) {
-      partFamilies.add(familyOf(part.getCode()));
-    }
     List<StepStats> all = new ArrayList<StepStats>(steps);
-    all.addAll(parts);
+    for (StepStats part : parts) {
+      String code = part.getCode();
+      if (STEP_NAMED_PARTS.contains(familyOf(code))) {
+        partFamilies.add(code);
+        families.put(code, StepStats.merge(code, families.get(code), part));
+      } else {
+        partFamilies.add(familyOf(code));
+        all.add(part);
+      }
+    }
     for (StepStats step : all) {
       String family = familyOf(step.getCode());
       String caseName = caseOf(step.getCode());
