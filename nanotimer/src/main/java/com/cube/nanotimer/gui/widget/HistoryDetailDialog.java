@@ -252,7 +252,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         .setText(solveTime.canUndoDNF() ? R.string.undo_dnf : R.string.DNF);
     v.findViewById(R.id.imgPb).setVisibility(solveTime.isPb() ? View.VISIBLE : View.GONE);
 
-    final View scrambleCard = v.findViewById(R.id.scrambleCard);
+    final FrameLayout scrambleCard = v.findViewById(R.id.scrambleCard); // View.setForeground is API 23, FrameLayout's is not
     if (solveTime.getScramble() != null) {
       tvScramble.setText(ScrambleFormatterService.INSTANCE.formatToColoredScramble(solveTime.getScramble(), cubeType));
       scrambleCard.setOnClickListener(new OnClickListener() {
@@ -349,7 +349,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     blindHold = null; // or the solve swiped to keeps the last one's hold line
     pickedStep = -1;
 
-    View scrambleCard = v.findViewById(R.id.scrambleCard);
+    FrameLayout scrambleCard = v.findViewById(R.id.scrambleCard);
     scrambleCard.setClickable(true);
     TypedValue background = new TypedValue();
     getActivity().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, background, true);
