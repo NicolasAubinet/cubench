@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The algorithm library: one card per set, grouped by the method the sets belong to. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:background="@color/graybg"
+   android:fitsSystemWindows="true">
+
+  <LinearLayout
+     android:id="@+id/llLibrary"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingLeft="16dp"
+     android:paddingTop="8dp"
+     android:paddingRight="16dp"
+     android:paddingBottom="16dp">
+
+    <TextView
+       android:id="@+id/tvLibraryHint"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="16dp"
+       android:gravity="center"
+       android:text="@string/library_nothing_picked"
+       android:textColor="@color/secondary_text"
+       android:textSize="13sp"
+       android:visibility="gone"/>
+
+    <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginTop="16dp"
+       android:gravity="center"
+       android:text="@string/library_more_later"
+       android:textColor="@color/secondary_text"
+       android:textSize="12sp"/>
+  </LinearLayout>
+</ScrollView>

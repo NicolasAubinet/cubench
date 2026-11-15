@@ -113,6 +113,8 @@ public interface ServiceProvider {
   List<DrillCaseStats> getDrillCaseStats(long fromTimestamp);
 
   StepStats getCaseSolveStats(String caseCode, int lastTimes);
+
+  List<DrillCaseStats> getCaseSolveTable(int lastSolves);
   /** Every rep of one case since {@code fromTimestamp}, latest first, the pruned ones left out. */
   List<DrillCaseAttempt> getDrillCaseAttempts(String caseCode, long fromTimestamp);
 

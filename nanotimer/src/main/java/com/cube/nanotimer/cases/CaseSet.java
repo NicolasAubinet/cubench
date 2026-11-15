@@ -28,6 +28,15 @@ public interface CaseSet {
   /** The set as a solver writes it, "OLL". Cubing vocabulary, so never translated. */
   String title();
 
+  /** What the set does, "Orient the last layer", as a string resource. */
+  int descriptionRes();
+
+  /** The method the set belongs to, "CFOP", which the library groups sets under. */
+  String method();
+
+  /** The case the set's card is drawn with. */
+  String coverCase();
+
   /** Every case, in the set's own order (OLL by number, PLL by letter). */
   List<String> cases();
 

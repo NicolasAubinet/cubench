@@ -1232,17 +1232,10 @@
     <item quantity="one">%d tipo de tiempo</item>
     <item quantity="other">%d tipos de tiempo</item>
   </plurals>
-  <string name="known_algorithms_title">Algoritmos que conoces</string>
-  <string name="known_algorithms_count">%1$d de %2$d en un solo algoritmo</string>
-  <string name="known_algorithms_subtitle">Deducido de tus resoluciones y tus drills.</string>
   <string name="known_algorithms_status_known">Conocido</string>
   <string name="known_algorithms_status_review">Para repasar</string>
   <string name="known_algorithms_status_to_learn">Para aprender</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
-  <string name="known_algorithms_no_moves">Sin caso registrado</string>
-  <string name="known_algorithms_hint">Toca un caso para ver sus algoritmos. Un caso cuenta como conocido la primera vez que lo haces con un solo algoritmo en un resuelto, o tras una serie de repeticiones limpias en un drill. Si vuelves a hacerlo en 2-look, queda para repasar; uno que nunca has hecho con un solo algoritmo queda para aprender.</string>
-  <string name="known_algorithms_empty">Aquí no hay nada todavía. Resuelve con un smart cube conectado y aparecerán los casos que haces sin ayuda.</string>
-  <string name="known_algorithms_reading">Leyendo tus resoluciones...</string>
   <string name="blind_setup_summary">%2$s, %1$s, búferes %3$s y %4$s</string>
   <string name="blind_setup">Resoluciones a ciegas</string>
   <string name="blind_setup_why">Tus resoluciones a ciegas se reconstruyen a partir de estas respuestas.</string>
@@ -1304,6 +1297,27 @@
   <string name="analysis_shape_all">Todas las formas</string>
   <string name="case_filter_group">Grupo</string>
   <string name="case_filter_all_groups">Todos los grupos</string>
+  <string name="menu_algorithms">Algoritmos</string>
+  <string name="case_set_oll_description">Orientar la última capa</string>
+  <string name="case_set_pll_description">Permutar la última capa</string>
+  <string name="library_known">%d conocidos</string>
+  <string name="library_review">%d por repasar</string>
+  <string name="library_to_learn">%d por aprender</string>
+  <string name="library_picked">%d elegidos</string>
+  <string name="library_nothing_picked">Toca un conjunto para ver sus casos y marcar los algoritmos que usas.</string>
+  <string name="library_more_later">Pronto habrá más conjuntos.</string>
+  <string name="case_filter_status">Estado</string>
+  <string name="case_filter_all_statuses">Todos</string>
+  <string name="case_sort_title">Ordenar</string>
+  <string name="case_sort_order">Orden</string>
+  <string name="case_sort_status">Estado</string>
+  <string name="case_sort_solve_mean">Media en resoluciones</string>
+  <string name="case_sort_drill_mean">Media en ejercicios</string>
+  <string name="case_set_no_times">Aún no hay tiempos para estos casos.</string>
+  <plurals name="case_set_cases">
+    <item quantity="one">%d caso</item>
+    <item quantity="other">%d casos</item>
+  </plurals>
   <string name="analysis_shape_known">%1$d/%2$d conocidos</string>
   <string name="analysis_shape_all_known">Todos conocidos</string>
   <string name="analysis_shape_groups_known">%1$d de %2$d grupos conocidos por completo</string>

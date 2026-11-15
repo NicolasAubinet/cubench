@@ -209,6 +209,11 @@
   <color name="case_name_off">@color/bluegray500</color>
   <color name="case_shape">@color/secondary_text</color>
   <color name="case_shape_off">@color/bluegray600</color>
+  <!-- Where a case stands, on its tile and in a set's progress: the knowledge ring's shades. -->
+  <color name="case_status_known">#6CCCEC</color>
+  <color name="case_status_review">#4A9DB5</color>
+  <color name="case_status_learn">#3E6E80</color>
+  <color name="case_status_unseen">#3A4147</color>
 
   <!-- An algorithm row, on the same near black the stage runs out to. -->
   <color name="case_alg_row">@color/stage_flat</color>

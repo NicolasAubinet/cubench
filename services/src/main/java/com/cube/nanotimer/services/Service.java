@@ -85,6 +85,12 @@ public interface Service {
    */
   void getCaseSolveStats(String caseCode, int lastTimes, DataCallback<StepStats> callback);
 
+  /**
+   * Every last layer case over the last {@code lastSolves} solves of any solve type, counting the
+   * times it went in one algorithm, in the shape a drill's case table reads.
+   */
+  void getCaseSolveTable(int lastSolves, DataCallback<List<DrillCaseStats>> callback);
+
   /** How many of a solve type's solves a smart cube drove, and so could be read again. */
   void getSmartcubeSolvesCount(SolveType solveType, DataCallback<Integer> callback);
 

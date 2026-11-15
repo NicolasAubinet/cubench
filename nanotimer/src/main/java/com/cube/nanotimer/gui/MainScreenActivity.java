@@ -155,15 +155,17 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
    */
   private static final int MENU_SETTINGS = 0;
   private static final int MENU_GRAPHS = 1;
-  private static final int MENU_DRILLS = 2;
-  private static final int MENU_ANALYSIS = 3;
-  private static final int MENU_COACHING = 4;
+  /** The algorithm library: outside the smart cube section, since it works without one. */
+  private static final int MENU_ALGORITHMS = 2;
+  private static final int MENU_DRILLS = 3;
+  private static final int MENU_ANALYSIS = 4;
+  private static final int MENU_COACHING = 5;
   private static final String COACH_INVITE_TAG = "coach_invite";
-  private static final int MENU_IMPORT_EXPORT = 5;
-  private static final int MENU_CLEAR_HISTORY = 6;
-  private static final int MENU_LANGUAGE = 7;
-  private static final int MENU_ABOUT = 8;
-  private static final int MENU_RATE = 9;
+  private static final int MENU_IMPORT_EXPORT = 6;
+  private static final int MENU_CLEAR_HISTORY = 7;
+  private static final int MENU_LANGUAGE = 8;
+  private static final int MENU_ABOUT = 9;
+  private static final int MENU_RATE = 10;
 
   /** A row that names the group under it rather than leading anywhere, and cannot be tapped. */
   private static final int MENU_HEADER = -1;
@@ -632,6 +634,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
         break;
       case MENU_GRAPHS:
         openGraph();
+        break;
+      case MENU_ALGORITHMS:
+        startActivity(new Intent(this, LibraryActivity.class));
         break;
       case MENU_ANALYSIS:
         openAnalysis();
@@ -1671,6 +1676,9 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
             break;
           case MENU_GRAPHS:
             imageResource = R.drawable.menu_graph;
+            break;
+          case MENU_ALGORITHMS:
+            imageResource = R.drawable.menu_algorithms;
             break;
           case MENU_ANALYSIS:
             imageResource = R.drawable.menu_analysis;

@@ -16,19 +16,25 @@ import java.util.Map;
 /** OLL or PLL: the cases of the algorithm table under one prefix, drawn from above. */
 final class LastLayerSet implements CaseSet {
 
-  static final LastLayerSet OLL = new LastLayerSet("oll", "OLL");
-  static final LastLayerSet PLL = new LastLayerSet("pll", "PLL");
+  static final LastLayerSet OLL = new LastLayerSet("oll", "OLL", R.string.case_set_oll_description,
+      "oll_27");
+  static final LastLayerSet PLL = new LastLayerSet("pll", "PLL", R.string.case_set_pll_description,
+      "pll_t");
 
   private final String id;
   private final String title;
+  private final int descriptionRes;
+  private final String coverCase;
   private final String prefix;
   private final List<String> cases;
   private final List<CaseGroup> groups;
   private final Map<String, CaseGroup> groupOfCase = new LinkedHashMap<String, CaseGroup>();
 
-  private LastLayerSet(String id, String title) {
+  private LastLayerSet(String id, String title, int descriptionRes, String coverCase) {
     this.id = id;
     this.title = title;
+    this.descriptionRes = descriptionRes;
+    this.coverCase = coverCase;
     this.prefix = id + "_";
     List<String> codes = new ArrayList<String>();
     for (String code : LastLayerScrambles.cases()) {
@@ -92,6 +98,21 @@ final class LastLayerSet implements CaseSet {
   @Override
   public String title() {
     return title;
+  }
+
+  @Override
+  public int descriptionRes() {
+    return descriptionRes;
+  }
+
+  @Override
+  public String method() {
+    return "CFOP";
+  }
+
+  @Override
+  public String coverCase() {
+    return coverCase;
   }
 
   @Override

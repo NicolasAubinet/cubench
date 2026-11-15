@@ -8,10 +8,25 @@
    android:orientation="vertical"
    android:paddingBottom="2dp">
 
-  <com.cube.nanotimer.gui.widget.LastLayerCaseView
-     android:id="@+id/vCaseTileChart"
+  <FrameLayout
      android:layout_width="match_parent"
-     android:layout_height="wrap_content"/>
+     android:layout_height="wrap_content">
+
+    <com.cube.nanotimer.gui.widget.LastLayerCaseView
+       android:id="@+id/vCaseTileChart"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"/>
+
+    <!-- Where the case stands, in a set's grid; gone everywhere else. -->
+    <View
+       android:id="@+id/vCaseTileStatus"
+       android:layout_width="12dp"
+       android:layout_height="12dp"
+       android:layout_gravity="top|right"
+       android:layout_margin="3dp"
+       android:background="@drawable/case_status_pip"
+       android:visibility="gone"/>
+  </FrameLayout>
 
   <TextView
      android:id="@+id/tvCaseTileName"

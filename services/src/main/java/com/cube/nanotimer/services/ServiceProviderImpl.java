@@ -1797,6 +1797,48 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
+  public List<DrillCaseStats> getCaseSolveTable(int lastSolves) {
+    String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
+        + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
+    String window = "SELECT " + DB.COL_ID + ", " + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " IS NOT NULL"
+        + " ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastSolves);
+    String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME
+        + ", COUNT(*), SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + ")"
+        + ", MIN(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", MAX(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", SUM(1.0 * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
+        + "      * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
+        + " JOIN (" + window + ") h ON h." + DB.COL_ID
+        + "    = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
+        + "   AND substr(s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ", 1, 4) IN ('oll_', 'pll_')"
+        + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
+        + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
+        + "   AND " + parts + " < 2"
+        + " GROUP BY s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME;
+    List<DrillCaseStats> cases = new ArrayList<DrillCaseStats>();
+    Cursor cursor = db.rawQuery(q, null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        cases.add(new DrillCaseStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
+            cursor.getLong(3), cursor.getLong(4), cursor.getLong(5), cursor.getDouble(6)));
+      }
+      cursor.close();
+    }
+    return cases;
+  }
+
+  @Override
   public StepStats getCaseSolveStats(String caseCode, int lastTimes) {
     String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
         + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
