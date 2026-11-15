@@ -102,6 +102,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
 
   public void stop() {
     recordMoves(); // the screen is going away: hand the solve over now rather than lose it
+    SmartCubeManager.INSTANCE.setSolving(false);
     SmartCubeManager.INSTANCE.removeStateListener(this);
     SmartCubeManager.INSTANCE.removeMoveListener(this);
     SmartCubeManager.INSTANCE.removeConnectionListener(connectionListener);
@@ -150,6 +151,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
    */
   public void onTimerStarted() {
     timerStartMs = System.currentTimeMillis(); // the cube's stamps are fitted to this same clock
+    SmartCubeManager.INSTANCE.setSolving(true); // no gyro reconnect under a running solve
     usedPickup = null; // whatever the last solve was read through is not this one's
     recordMoves(); // this solve's moves would land in the trackers the previous one still reads
     if (cubeDriven && SmartCubeManager.INSTANCE.isConnected()) {
@@ -177,6 +179,7 @@ public class SmartCubeSolveController implements CubeStateListener, CubeMoveList
     // reached solved — a botched PLL is exactly the solve worth looking at. What still earns none is
     // a method the milestones never fitted, or a prefix too short to tell the methods apart.
     boolean cubeDrove = analyzing;
+    SmartCubeManager.INSTANCE.setSolving(false);
     // Judged from the state at the tap rather than the one at the handover, which is late enough
     // for the cube to have been put down and picked up again. A solve is judged on the state it was
     // stopped in, and the window only ever takes that verdict back down (see StopSettle).

@@ -40,6 +40,12 @@ import java.util.concurrent.Executors;
  * It lives here because it is worth exactly one gyro session — the cube's own fusion establishes
  * its yaw zero at power-up, so a reference outliving the connection measures against a zero that no
  * longer exists.
+ *
+ * <p>It also watches that gyro. A GAN i4 sometimes opens a connection with its gyro silent while
+ * moves arrive normally, and only a new connection starts it again (2026-11-15: Reset orientation
+ * did nothing, disconnecting and reconnecting fixed it). So a cube that has streamed a reading
+ * before, and is awake but silent for {@link #GYRO_SILENT_MS} (over 30 GAN report periods), is
+ * reconnected, never under a running timed solve, and at most {@link #GYRO_RECONNECTS} times in a row.
  */
 public enum SmartCubeManager {
   INSTANCE;
@@ -83,6 +89,18 @@ public enum SmartCubeManager {
    */
   private static final int BATTERY_RETRIES = 5;
 
+  /** No reading for this long from an awake cube known to have a gyro: its stream has stopped. */
+  private static final long GYRO_SILENT_MS = 3000;
+
+  /** Reconnects tried for one silence before deciding the gyro is off for good (or disabled). */
+  private static final int GYRO_RECONNECTS = 2;
+
+  /** How long after a failed gyro reconnect to try once more. */
+  private static final long GYRO_RETRY_MS = 1000;
+
+  /** No gyro reconnect this soon after a solve ends: its last moves can still be arriving. */
+  private static final long SOLVE_QUIET_MS = 2000;
+
   private Context context;
   private CubeScanner scanner;
   private SmartCubeScanListener scanOwner; // main thread only
@@ -105,6 +123,18 @@ public enum SmartCubeManager {
   /** The grip a straighten waiting on the cube to be still declared, or null for a plain anchor. */
   private CubeRotation holdingGrip;
   private StraightenListener holdingListener;
+
+  // The gyro watch, main thread only. See GYRO_SILENT_MS.
+  private boolean gyroCheckPending;
+  private boolean solving;
+  private boolean gyroReconnectOwed;
+  private long solveEndedAt = Long.MIN_VALUE / 2;
+  private int gyroReconnects;
+  /** A retry of a failed gyro reconnect, dropped if the user connects or disconnects first. */
+  private Runnable gyroRetry;
+  /** What the last connect was given, so the watch can make the same one again. */
+  private volatile DiscoveredCube lastDevice;
+  private volatile String lastMacAddress;
 
   private final CopyOnWriteArrayList<CubeConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
   private final CopyOnWriteArrayList<GyroReferenceListener> gyroReferenceListeners = new CopyOnWriteArrayList<>();
@@ -168,6 +198,23 @@ public enum SmartCubeManager {
   }
 
   public void connect(DiscoveredCube device, String macAddress, ConnectCallback callback) {
+    mainHandler.post(() -> {
+      gyroReconnects = 0; // a connect the user asked for starts the count over
+      cancelGyroRetry();
+    });
+    connectInternal(device, macAddress, callback);
+  }
+
+  private void cancelGyroRetry() {
+    if (gyroRetry != null) {
+      mainHandler.removeCallbacks(gyroRetry);
+      gyroRetry = null;
+    }
+  }
+
+  private void connectInternal(DiscoveredCube device, String macAddress, ConnectCallback callback) {
+    lastDevice = device;
+    lastMacAddress = macAddress;
     ensureScanner();
     stopScan();
     updateConnection(CubeConnection.CONNECTING);
@@ -191,6 +238,7 @@ public enum SmartCubeManager {
   }
 
   public void disconnect() {
+    mainHandler.post(this::cancelGyroRetry);
     stopScan();
     bleExecutor.execute(this::disconnectInternal);
   }
@@ -524,10 +572,28 @@ public enum SmartCubeManager {
         : CubeStateCorrection.stored(Options.INSTANCE.getSmartCubeStateOffset(device.getMacAddress()));
     currentState = correction.apply(connected.getCurrentState());
     battery = connected.getBatteryLevel();
-    connected.addConnectionListener(this::onCubeConnection);
-    connected.addBatteryListener(this::onCubeBattery);
-    connected.addStateListener(this::onCubeState);
-    connected.addMoveListener(this::onCubeMove);
+    // Each listener checks the cube is still the current one. A replaced cube's transport reports
+    // its own disconnect late, and that LOST must not drop the cube that replaced it.
+    connected.addConnectionListener(c -> {
+      if (cube == connected) {
+        onCubeConnection(c);
+      }
+    });
+    connected.addBatteryListener(level -> {
+      if (cube == connected) {
+        onCubeBattery(level);
+      }
+    });
+    connected.addStateListener(state -> {
+      if (cube == connected) {
+        onCubeState(state);
+      }
+    });
+    connected.addMoveListener(move -> {
+      if (cube == connected) {
+        onCubeMove(move);
+      }
+    });
     connected.requestBattery();
     updateConnection(connected.getConnection());
     mainHandler.removeCallbacks(batteryPoll);
@@ -600,6 +666,90 @@ public enum SmartCubeManager {
       for (CubeMoveListener listener : moveListeners) {
         listener.onMove(move);
       }
+      scheduleGyroCheck(); // a turn says the cube is awake, so a silent gyro then is a stopped one
+    });
+  }
+
+  /**
+   * Tells the gyro watch a timed solve is running, so it does not reconnect under it. A reconnect
+   * that came due meanwhile waits for one more check after the solve ends, which is past the
+   * solve's own settle window for late moves.
+   */
+  public void setSolving(boolean solving) {
+    mainHandler.post(() -> {
+      this.solving = solving;
+      if (!solving) {
+        solveEndedAt = SystemClock.uptimeMillis();
+      }
+      if (!solving && gyroReconnectOwed) {
+        gyroReconnectOwed = false;
+        scheduleGyroCheck();
+      }
+    });
+  }
+
+  /** Main thread. One check at a time: rescheduling on every move would push it back forever. */
+  private void scheduleGyroCheck() {
+    if (!gyroCheckPending) {
+      gyroCheckPending = true;
+      mainHandler.postDelayed(gyroCheck, GYRO_SILENT_MS);
+    }
+  }
+
+  private final Runnable gyroCheck = () -> {
+    gyroCheckPending = false;
+    checkGyro();
+  };
+
+  private void checkGyro() {
+    SmartCube current = cube;
+    DiscoveredCube device = connectedDevice;
+    if (current == null || device == null || connection != CubeConnection.READY) {
+      return;
+    }
+    String mac = device.getMacAddress();
+    long now = System.currentTimeMillis();
+    if (!current.getOrientationsBetween(now - GYRO_SILENT_MS, now).isEmpty()) {
+      gyroReconnects = 0;
+      if (mac != null) {
+        Options.INSTANCE.setSmartCubeGyroSeen(mac);
+      }
+      return;
+    }
+    // Only a cube seen streaming before: one with no gyro, or with it switched off, is silent always.
+    if (mac == null || !Options.INSTANCE.isSmartCubeGyroSeen(mac) || gyroReconnects >= GYRO_RECONNECTS) {
+      return;
+    }
+    if (solving) {
+      gyroReconnectOwed = true;
+      return;
+    }
+    if (SystemClock.uptimeMillis() - solveEndedAt < SOLVE_QUIET_MS) {
+      scheduleGyroCheck(); // a check left over from the solve's moves: let its late moves land first
+      return;
+    }
+    gyroReconnects++;
+    Log.i("SmartCube", "gyro silent for " + GYRO_SILENT_MS + " ms, reconnecting (" + gyroReconnects + ")");
+    reconnectForGyro(lastDevice != null ? lastDevice : device, lastMacAddress, true);
+  }
+
+  /** A reconnect straight after a disconnect can fail, and must not leave the solver with no cube. */
+  private void reconnectForGyro(DiscoveredCube device, String macAddress, boolean retry) {
+    connectInternal(device, macAddress, new ConnectCallback() {
+      @Override
+      public void onConnected() {
+      }
+
+      @Override
+      public void onError(Exception e) {
+        if (retry && connection == CubeConnection.DISCONNECTED) {
+          gyroRetry = () -> {
+            gyroRetry = null;
+            reconnectForGyro(device, macAddress, false);
+          };
+          mainHandler.postDelayed(gyroRetry, GYRO_RETRY_MS);
+        }
+      }
     });
   }
 
@@ -610,6 +760,7 @@ public enum SmartCubeManager {
         // A fresh gyro session, with a yaw zero of its own: take the grip it opens in. Not forced,
         // so a cube merely re-reporting ready does not re-square what the solver already squared.
         anchorGyro(false);
+        scheduleGyroCheck();
       } else if (newConnection != CubeConnection.CONNECTING) {
         forgetGyroReference(); // the zero it was measured against went with the connection
       }

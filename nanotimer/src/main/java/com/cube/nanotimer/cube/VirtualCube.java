@@ -371,16 +371,16 @@ public class VirtualCube implements GyroReferenceListener {
     if (floor) {
       evaluate("window.ntLiveFloor(true);");
     }
-    if (pattern == null) {
-      return;
+    if (pattern != null) {
+      evaluate("window.ntLiveState(" + JSONObject.quote(pattern) + ");");
+      if (stickering != null) {
+        evaluate("window.ntLiveStickering(" + JSONObject.quote(stickering) + ");");
+      }
+      for (String move : movesSinceState) {
+        evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
+      }
     }
-    evaluate("window.ntLiveState(" + JSONObject.quote(pattern) + ");");
-    if (stickering != null) {
-      evaluate("window.ntLiveStickering(" + JSONObject.quote(stickering) + ");");
-    }
-    for (String move : movesSinceState) {
-      evaluate("window.ntLiveMove(" + JSONObject.quote(move) + ");");
-    }
+    // Even with no state yet: refreshGyro only sends a change, so a gyro skipped here stays off.
     // Pushed rather than compared: the page is fresh and knows nothing of what was on before it.
     // The hold goes first, since ntLiveGyro(false) is what stands the cube at it.
     evaluate(holdCall());

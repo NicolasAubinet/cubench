@@ -92,6 +92,7 @@ public enum Options {
   public static final String SMART_CUBE_AUTO_PENALTY_KEY = "smart_cube_auto_penalty";
   public static final String DRILL_PAUSE_KEY = "drill_pause";
   public static final String SMART_CUBE_OFFSET_KEY_PREFIX = "smart_cube_offset_";
+  private static final String SMART_CUBE_GYRO_SEEN_KEY_PREFIX = "smart_cube_gyro_seen_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
   private static final String ANALYSIS_WINDOW_KEY = "analysisWindow";
   private static final String COACH_PENDING_KEY_PREFIX = "coach_pending_";
@@ -1130,6 +1131,17 @@ public enum Options {
       sharedPreferences.edit().remove(key).apply();
     } else {
       sharedPreferences.edit().putString(key, offsetFacelets).apply();
+    }
+  }
+
+  /** Whether this cube has ever streamed a gyro reading, which makes a silent gyro a fault. */
+  public boolean isSmartCubeGyroSeen(String macAddress) {
+    return sharedPreferences.getBoolean(SMART_CUBE_GYRO_SEEN_KEY_PREFIX + macAddress, false);
+  }
+
+  public void setSmartCubeGyroSeen(String macAddress) {
+    if (!isSmartCubeGyroSeen(macAddress)) {
+      sharedPreferences.edit().putBoolean(SMART_CUBE_GYRO_SEEN_KEY_PREFIX + macAddress, true).apply();
     }
   }
 
