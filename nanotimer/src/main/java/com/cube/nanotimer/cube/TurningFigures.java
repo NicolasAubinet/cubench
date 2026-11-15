@@ -11,9 +11,9 @@ import java.util.List;
  * way each solve's own detail sheet counts them.
  *
  * <p>Only solves read to the end count, so a solve stopped halfway cannot pull the move count down.
- * CFOP comes off the kept readings; the other methods are read again here, which is cheap without
- * the case matching that makes a CFOP reading worth keeping. Blind solve types never get here: the
- * method solves query leaves them out.
+ * CFOP and Roux come off the kept readings; the other methods are read again here every time,
+ * since nothing keeps their readings. Blind solve types never get here: the method solves query
+ * leaves them out.
  */
 public final class TurningFigures {
 
@@ -34,7 +34,8 @@ public final class TurningFigures {
   }
 
   /**
-   * @param readings where a CFOP solve's steps come from, read there only where none was kept
+   * @param readings where a CFOP or Roux solve's steps come from, read there only where none
+   *     was kept
    * @param method what the solves are read as
    */
   public static TurningFigures readFrom(List<SolveTime> solves, SolveReadings readings,
@@ -43,7 +44,7 @@ public final class TurningFigures {
     long moves = 0;
     long turningMs = 0;
     for (SolveTime solve : solves) {
-      if (method == CubeMethod.CFOP) {
+      if (method == CubeMethod.CFOP || method == CubeMethod.ROUX) {
         SolveReading reading = readings.readingOf(solve);
         if (!reading.isWhole()) {
           continue;

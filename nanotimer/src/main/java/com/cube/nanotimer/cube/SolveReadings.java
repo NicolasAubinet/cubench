@@ -50,6 +50,9 @@ public final class SolveReadings {
     }
     String text = kept.get(id);
     reading = text == null ? null : SolveReading.parse(text, solve.getId());
+    if (reading != null && !reading.isReadAs(SolveTypeMethod.of(solve.getSolveType()))) {
+      reading = null; // kept before the solve type changed method
+    }
     if (reading == null) { // never read, read by another version, or kept as text nothing reads
       reading = SolveReading.read(solve);
       unkept.put(id, SolveReading.toJson(reading));

@@ -6,6 +6,7 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.AlgorithmForm;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -63,6 +64,8 @@ public final class SolveReading {
   private final List<PairRotation> rotations;
   private final CrossTurn cross;
   private final Long finalAufMs;
+  /** Read as Roux, its steps alone; a CFOP row carries no mark, so rows from before still read. */
+  private boolean roux;
 
   /**
    * @param turnings each step as it was turned, in solving order
@@ -129,6 +132,14 @@ public final class SolveReading {
    */
   public Long getFinalAufMs() {
     return finalAufMs;
+  }
+
+  /**
+   * Whether this was read as the method the solve is read as now. Changing a solve type's method
+   * reads its solves again but leaves their kept rows, which then belong to the other method.
+   */
+  public boolean isReadAs(CubeMethod method) {
+    return roux == (method == CubeMethod.ROUX);
   }
 
   public boolean isEmpty() {
@@ -259,10 +270,13 @@ public final class SolveReading {
    * Reads a solve, which means solving its scramble again. The expensive path, and the one a kept
    * reading exists to skip.
    *
-   * @return its executions and steps in solving order, empty for a solve that is not a readable
-   *     CFOP one
+   * @return its executions and steps in solving order: only the steps for a Roux solve, whose
+   *     cases are not matched, and empty for a solve that is neither a readable CFOP nor Roux one
    */
   public static SolveReading read(SolveTime solve) {
+    if (SolveTypeMethod.of(solve.getSolveType()) == CubeMethod.ROUX) {
+      return readTurnings(CaseExecutions.replayAs(solve, CubeMethod.ROUX));
+    }
     final List<Execution> executions = new ArrayList<Execution>();
     final List<Turning> turnings = new ArrayList<Turning>();
     CaseExecutions.Replay replay = CaseExecutions.replay(solve);
@@ -288,6 +302,24 @@ public final class SolveReading {
     CrossTurn cross = whole ? readCross(solve, replay) : null;
     Long finalAuf = whole ? readFinalAuf(solve, replay) : null;
     return new SolveReading(executions, turnings, whole, rotations, cross, finalAuf);
+  }
+
+  /** A method with no cases read: its steps' turning only, kept so it is replayed once. */
+  private static SolveReading readTurnings(CaseExecutions.Replay replay) {
+    final List<Turning> turnings = new ArrayList<Turning>();
+    boolean whole = CaseExecutions.readSteps(replay, new CaseExecutions.StepReader() {
+      @Override
+      public void read(SolveStep step, SolveSolution.Step turned) {
+        if (!SolveBreakdown.UNFINISHED_STEP.equals(step.getName())) {
+          turnings.add(new Turning(step.getName(), step.getTotalMs(),
+              turned.getMoveCount(), turned.getStops(), turned.getPauseMs(),
+              turned.getStopMs()));
+        }
+      }
+    });
+    SolveReading reading = new SolveReading(Collections.<Execution>emptyList(), turnings, whole);
+    reading.roux = true;
+    return reading;
   }
 
   private static Long readFinalAuf(SolveTime solve, CaseExecutions.Replay replay) {
@@ -422,6 +454,9 @@ public final class SolveReading {
       if (reading.finalAufMs != null) {
         json.put("final_auf", reading.finalAufMs.longValue());
       }
+      if (reading.roux) {
+        json.put("method", CubeMethod.ROUX.getCode());
+      }
       return json.toString();
     } catch (JSONException e) {
       throw new IllegalStateException("Cannot write a solve reading", e);
@@ -465,10 +500,12 @@ public final class SolveReading {
             gaps(json.getJSONArray("start")), gaps(json.getJSONArray("inside"))));
       }
       JSONArray cross = reading.optJSONArray("cross");
-      return new SolveReading(executions, turnings, reading.getBoolean("whole"), rotations,
-          cross == null ? null
+      SolveReading parsed = new SolveReading(executions, turnings, reading.getBoolean("whole"),
+          rotations, cross == null ? null
               : new CrossTurn(solveId, cross.getInt(0), cross.getInt(1), cross.getInt(2)),
           reading.has("final_auf") ? Long.valueOf(reading.getLong("final_auf")) : null);
+      parsed.roux = CubeMethod.ROUX.getCode().equals(reading.optString("method", null));
+      return parsed;
     } catch (JSONException e) {
       return null;
     }
