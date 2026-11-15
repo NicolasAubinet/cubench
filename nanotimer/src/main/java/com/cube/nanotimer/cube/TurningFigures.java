@@ -50,7 +50,8 @@ public final class TurningFigures {
         }
         for (SolveReading.Turning turning : reading.getTurnings()) {
           moves += turning.getMoves();
-          if (turning.getMoves() > 0) { // as SolveSolution.getTps: a step that turned nothing is not turning time
+          // As SolveSolution.getTps: a step that turned nothing is not turning time.
+          if (turning.getMoves() > 0) {
             turningMs += turning.getTimeMs();
           }
         }

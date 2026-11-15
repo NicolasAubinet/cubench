@@ -216,7 +216,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private long crossPauseMs;
   /** Whether that read is on its way, which is what the card shows in place of its rows. */
   private boolean algorithmsReading;
-  /** Moves, TPS and pauses over the window, null until its solves have been read. */
+  /** Moves and TPS over the window, null until its solves have been read. */
   private TurningFigures turningFigures;
   private boolean turningReading;
   /**
