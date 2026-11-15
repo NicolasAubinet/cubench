@@ -40,10 +40,10 @@ import android.widget.Toast;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.cube.CrossPauses;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SolveTypeMethod;
+import com.cube.nanotimer.cube.StepPauses;
 import com.cube.nanotimer.gui.widget.AboutDialog;
 import com.cube.nanotimer.gui.widget.CoachPurchaseSheet;
 import com.cube.nanotimer.gui.widget.ReleaseNotes;
@@ -115,8 +115,8 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
   private View heroStatsRow;
   private View stepBarBlock;
   private SolveStepBarView heroStepBar;
-  /** The cross's mean stops the bar last drew and for which type, so a refresh does not flicker. */
-  private long heroCrossPauseMs;
+  /** The step pauses the bar last drew and for which type, so a refresh does not flicker. */
+  private Map<String, Long> heroStepPauses = new HashMap<String, Long>();
   private long heroPauseSolveTypeId = -1;
   private View tvNoSolves;
   private Button buStart;
@@ -938,15 +938,16 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
                 return; // the user moved on while this was loading
               }
               if (heroPauseSolveTypeId != solveType.getId()) {
-                heroCrossPauseMs = 0; // another type's stops say nothing about this one's
+                // another type's stops say nothing about this one's
+                heroStepPauses = new HashMap<String, Long>();
               }
               showStepBar(statistics);
             }
           });
           // Read after the bar is up: a solve not read before costs a replay
-          CrossPauses.read(solveType, method, solves, new DataCallback<Long>() {
+          StepPauses.read(solveType, method, solves, new DataCallback<Map<String, Long>>() {
             @Override
-            public void onData(final Long pause) {
+            public void onData(final Map<String, Long> pauses) {
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -954,7 +955,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
                     return;
                   }
                   heroPauseSolveTypeId = solveType.getId();
-                  heroCrossPauseMs = pause.longValue();
+                  heroStepPauses = pauses;
                   showStepBar(statistics);
                 }
               });
@@ -980,7 +981,7 @@ public class MainScreenActivity extends DrawerLayoutActivity implements Selectio
     for (int i = 0; i < families.size(); i++) {
       colors[i] = palette.colorFor(families.get(i).getCode());
     }
-    heroStepBar.setSteps(SolveStepBars.averages(families, heroCrossPauseMs), colors);
+    heroStepBar.setSteps(SolveStepBars.averages(families, heroStepPauses), colors);
   }
 
   /**

@@ -2,6 +2,7 @@ package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
@@ -12,6 +13,7 @@ import com.cube.nanotimer.vo.SolveType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 
 /** The Analysis strip's moves and TPS against the figures each solve's own detail sheet shows. */
@@ -58,6 +60,21 @@ public class TurningFiguresTest {
     assertEquals(1, figures.getSolves());
     assertEquals(sheet.getMoveCount(), figures.getMeanMoves(), 0.001);
     assertEquals(sheet.getTps(), figures.getTps(), 0.01);
+  }
+
+  /** The blocks' mean pauses are what the solve's own bar pales inside them. */
+  @Test
+  public void rouxBlockPausesMatchTheDetailSheet() {
+    SolveTime solve = solve(ROUX_SCRAMBLE, ROUX_MOVES, CubeMethod.ROUX, 20772);
+    SolveSolution sheet = sheetOf(solve, CubeMethod.ROUX);
+
+    Map<String, Long> pauses = StepPauses.fromSolutions(
+        TurningFigures.solutionsOf(Collections.singletonList(solve), CubeMethod.ROUX));
+
+    assertEquals(2, pauses.size());
+    assertEquals(sheet.getSteps().get(0).getPauseMs(), (long) pauses.get("fb"));
+    assertEquals(sheet.getSteps().get(1).getPauseMs(), (long) pauses.get("sb"));
+    assertTrue(pauses.get("fb") > 0 && pauses.get("sb") > 0);
   }
 
   @Test

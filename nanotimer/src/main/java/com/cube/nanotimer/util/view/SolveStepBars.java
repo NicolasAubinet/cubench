@@ -6,7 +6,6 @@ import android.content.res.TypedArray;
 import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.cube.CrossPauses;
 import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.util.helper.Utils;
@@ -18,6 +17,7 @@ import com.cube.nanotimer.vo.StepStats;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What a {@link SolveStepBarView} is fed, and the colours it paints with.
@@ -145,18 +145,19 @@ public final class SolveStepBars {
 
   /**
    * A solve type's average steps as a bar draws them: each step's mean thinking, then its turning.
-   * The cross is planned in inspection, so its thinking is the mean of the pauses inside it, the
-   * ones a solve's own bar pales; they come out of its turning, so no step's total changes.
+   * The steps with no recognition of their own (CFOP's cross, Roux's two blocks) take as thinking
+   * the mean of the pauses inside them, the ones a solve's own bar pales; they come out of the
+   * step's turning, so no step's total changes.
    *
-   * @param crossPauseMs the cross's mean pause time, as {@link com.cube.nanotimer.cube.CrossPauses}
-   *     reads them; 0 for none
+   * @param stepPauses each such step's mean pause time by step code, as
+   *     {@link com.cube.nanotimer.cube.StepPauses} reads them; a step missing has none
    */
-  public static List<SolveStep> averages(List<StepStats> steps, long crossPauseMs) {
+  public static List<SolveStep> averages(List<StepStats> steps, Map<String, Long> stepPauses) {
     List<SolveStep> segments = new ArrayList<SolveStep>(steps.size());
     for (int i = 0; i < steps.size(); i++) {
       StepStats step = steps.get(i);
-      long pause = CrossPauses.CROSS.equals(step.getCode())
-          ? Math.min(crossPauseMs, step.getMeanExecutionMs()) : 0;
+      Long paused = stepPauses.get(step.getCode());
+      long pause = paused == null ? 0 : Math.min(paused, step.getMeanExecutionMs());
       segments.add(new SolveStep(i, step.getCode(), step.getMeanRecognitionMs() + pause,
           step.getMeanExecutionMs() - pause, Collections.<SolveStep>emptyList()));
     }

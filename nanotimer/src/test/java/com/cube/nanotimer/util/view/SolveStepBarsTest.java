@@ -8,7 +8,9 @@ import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.StepStats;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 
 /**
@@ -135,13 +137,37 @@ public class SolveStepBarsTest {
     List<StepStats> stats = new ArrayList<StepStats>();
     stats.add(new StepStats("cross", 2, 6000, 0, 2500, 3500, 0));
     stats.add(new StepStats("f2l", 2, 20000, 4000, 9000, 11000, 0));
-    List<SolveStep> bar = SolveStepBars.averages(stats, 700);
+    List<SolveStep> bar = SolveStepBars.averages(stats, pauses("cross", 700));
     assertEquals(700, bar.get(0).getRecognitionMs());
     assertEquals(3000, bar.get(0).getTotalMs());
     assertEquals(2000, bar.get(1).getRecognitionMs());
     assertEquals(10000, bar.get(1).getTotalMs());
     // Never more than the turning it comes out of
-    assertEquals(3000, SolveStepBars.averages(stats, 5000).get(0).getRecognitionMs());
+    assertEquals(3000,
+        SolveStepBars.averages(stats, pauses("cross", 5000)).get(0).getRecognitionMs());
+  }
+
+  /** Roux's blocks are planned without a recognition, like the cross: both pale their pauses. */
+  @Test
+  public void palesBothRouxBlocksInAnAverageBar() {
+    List<StepStats> stats = new ArrayList<StepStats>();
+    stats.add(new StepStats("fb", 2, 30000, 0, 14000, 16000, 0));
+    stats.add(new StepStats("sb", 2, 40000, 0, 19000, 21000, 0));
+    stats.add(new StepStats("cmll", 2, 8000, 3000, 3500, 4500, 0));
+    Map<String, Long> pauses = pauses("fb", 4000);
+    pauses.put("sb", 6000L);
+    List<SolveStep> bar = SolveStepBars.averages(stats, pauses);
+    assertEquals(4000, bar.get(0).getRecognitionMs());
+    assertEquals(15000, bar.get(0).getTotalMs());
+    assertEquals(6000, bar.get(1).getRecognitionMs());
+    assertEquals(20000, bar.get(1).getTotalMs());
+    assertEquals(1500, bar.get(2).getRecognitionMs()); // CMLL keeps its own recognition
+  }
+
+  private static Map<String, Long> pauses(String code, long ms) {
+    Map<String, Long> pauses = new HashMap<String, Long>();
+    pauses.put(code, ms);
+    return pauses;
   }
 
   private static SolveStep step(String name, long totalMs) {
