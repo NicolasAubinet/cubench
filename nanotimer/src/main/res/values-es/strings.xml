@@ -479,7 +479,12 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.1.2 <i>(Nueva versión)</i></b></u><br/>
+    <u><b>v2.1.3 <i>(Nueva versión)</i></b></u><br/>
+    <ul>
+      <li>Corregido un cierre inesperado al abrir una resolución del historial en Android 5</li>
+      <li>Corregido un cierre inesperado al empezar una resolución en Android 5.0</li>
+    </ul>
+    <u><b>v2.1.2</b></u><br/>
     <ul>
       <li>Corregido un cierre inesperado en la pantalla del cronómetro, sobre todo en tabletas</li>
       <li>Corregido el cronómetro, que gastaba batería y memoria en segundo plano, o se bloqueaba al tocarlo, tras salir de él durante una resolución</li>

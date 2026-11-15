@@ -481,7 +481,12 @@
 
   <string name="release_notes_features_html">
     <![CDATA[
-    <u><b>v2.1.2 <i>(Nova versão)</i></b></u><br/>
+    <u><b>v2.1.3 <i>(Nova versão)</i></b></u><br/>
+    <ul>
+      <li>Corrigido um erro que fechava o app ao abrir uma resolução do histórico no Android 5</li>
+      <li>Corrigido um erro que fechava o app ao iniciar uma resolução no Android 5.0</li>
+    </ul>
+    <u><b>v2.1.2</b></u><br/>
     <ul>
       <li>Corrigido um erro que fechava o app na tela do cronômetro, principalmente em tablets</li>
       <li>Corrigido o cronômetro, que gastava bateria e memória em segundo plano, ou travava ao tocar, depois de sair dele durante uma resolução</li>
