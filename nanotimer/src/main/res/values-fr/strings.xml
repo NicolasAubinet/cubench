@@ -1798,7 +1798,10 @@
     <item quantity="one">%d essai de drill aujourd\'hui.</item>
     <item quantity="other">%d essais de drill aujourd\'hui.</item>
   </plurals>
-  <string name="coach_recap_open">Voyez comment avancent vos points.</string>
+  <string name="coach_recap_faster_mean">Votre moyenne du jour : %1$s s de mieux que d\'habitude.</string>
+  <string name="coach_recap_faster_step">%1$s : %2$s s de mieux que d\'habitude aujourd\'hui.</string>
+  <string name="coach_recap_drill_waiting">Le drill du jour vous attend : %1$d répétitions, environ %2$d min.</string>
+  <string name="coach_recap_drill_left">Drill du jour : encore %1$d répétitions, environ %2$d min.</string>
   <string name="coach_notifications">Notifications</string>
   <string name="coach_notifications_summary">Plan prêt, rappel de résolutions et bilan du jour</string>
   <string name="coach_notifications_all">Notifications du coach</string>

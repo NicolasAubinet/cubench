@@ -121,6 +121,7 @@ public enum Options {
   public static final String COACH_RECAP_TIME_KEY = "coach_recap_time";
   public static final int COACH_RECAP_DEFAULT_MINUTES = 19 * 60;
   private static final String COACH_LAST_RECAP_KEY = "coach_last_recap_day";
+  private static final String COACH_RECAP_SAID_KEY = "coach_recap_said";
   private static final String COACH_FEEDBACK_CHOICE_KEY = "coach_feedback_choice";
   private static final String COACH_PLAN_LANGUAGE_KEY = "coach_plan_language";
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
@@ -590,6 +591,15 @@ public enum Options {
 
   public void setCoachLastRecapDay(int day) {
     sharedPreferences.edit().putInt(COACH_LAST_RECAP_KEY, day).apply();
+  }
+
+  /** What the recaps said of the plan's focuses, as {@code SincePlanNews} keeps it; or null. */
+  public String getCoachRecapSaid() {
+    return sharedPreferences.getString(COACH_RECAP_SAID_KEY, null);
+  }
+
+  public void setCoachRecapSaid(String said) {
+    sharedPreferences.edit().putString(COACH_RECAP_SAID_KEY, said).apply();
   }
 
   /** When the solver was last reminded, 0 when never. */

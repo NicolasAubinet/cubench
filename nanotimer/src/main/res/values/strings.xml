@@ -1851,7 +1851,10 @@
     <item quantity="one">%d drill rep today.</item>
     <item quantity="other">%d drill reps today.</item>
   </plurals>
-  <string name="coach_recap_open">See how your focuses are moving.</string>
+  <string name="coach_recap_faster_mean">Your mean was %1$s s faster than usual today.</string>
+  <string name="coach_recap_faster_step">%1$s: %2$s s faster than usual today.</string>
+  <string name="coach_recap_drill_waiting">Today\'s drill is waiting: %1$d reps, about %2$d min.</string>
+  <string name="coach_recap_drill_left">Today\'s drill: %1$d reps left, about %2$d min.</string>
   <string name="coach_notifications">Notifications</string>
   <string name="coach_notifications_summary">Plan ready, solve reminder and daily recap</string>
   <string name="coach_notifications_all">Coach notifications</string>

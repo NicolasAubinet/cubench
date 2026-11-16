@@ -26,6 +26,7 @@ import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.session.TimesStatistics;
+import com.cube.nanotimer.session.TodayVsUsual;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.BlindMethod;
 import com.cube.nanotimer.vo.CaseHistory;
@@ -1962,9 +1963,10 @@ public class ServiceProviderImpl implements ServiceProvider {
     int[] drilled = getDrillsSince(dayStart);
     int drills = drilled[0];
     int drillReps = drilled[1];
+    TodayVsUsual.Gain todayGain = getTodayGain(solveType, method, dayStart);
     StoredCoachPlan last = getCoachPlan(solveType);
     if (last == null) {
-      return new CoachDay(today, drills, drillReps, 0, null);
+      return new CoachDay(today, drills, drillReps, 0, null, todayGain);
     }
     int solvesSince = getMethodSolvesCountSince(solveType, method, last.getWrittenAt());
     int window = Math.min(solvesSince, CoachPayloadBuilder.FAMILY_WINDOW);
@@ -1972,7 +1974,56 @@ public class ServiceProviderImpl implements ServiceProvider {
         method.getCode().toLowerCase(Locale.US), solvesSince,
         getMethodSolveTimes(solveType, method, window),
         getMethodStepSamples(solveType, method, window), turnings, getPlanDrillReps(last));
-    return new CoachDay(today, drills, drillReps, solvesSince, FocusProgress.of(last, sincePlan));
+    return new CoachDay(today, drills, drillReps, solvesSince, FocusProgress.of(last, sincePlan),
+        todayGain);
+  }
+
+  /** Today's method solves and their steps against the {@link TodayVsUsual#USUAL_WINDOW} before. */
+  private TodayVsUsual.Gain getTodayGain(SolveType solveType, CubeMethod method, long dayStart) {
+    Map<Long, Boolean> isToday = new HashMap<Long, Boolean>();
+    Map<String, List<Long>> today = new HashMap<String, List<Long>>();
+    Map<String, List<Long>> usual = new HashMap<String, List<Long>>();
+    int todayCount = 0;
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_ID + ", " + DB.COL_TIMEHISTORY_TIME + ", "
+        + DB.COL_TIMEHISTORY_TIMESTAMP + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
+        + "   AND " + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
+        + "   AND " + DB.COL_TIMEHISTORY_TIMESTAMP + " < ?"
+        + " ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC",
+        new String[] { String.valueOf(solveType.getId()), method.getCode(),
+            String.valueOf(dayStart + 86_400_000L) });
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        boolean ofToday = cursor.getLong(2) >= dayStart;
+        if (!ofToday && isToday.size() - todayCount >= TodayVsUsual.USUAL_WINDOW) {
+          break;
+        }
+        todayCount += ofToday ? 1 : 0;
+        isToday.put(Long.valueOf(cursor.getLong(0)), Boolean.valueOf(ofToday));
+        add(ofToday ? today : usual, TodayVsUsual.SOLVE, cursor.getLong(1));
+      }
+      cursor.close();
+    }
+    if (todayCount == 0) {
+      return null;
+    }
+    for (StepSample sample : getMethodStepSamples(solveType, method, isToday.size())) {
+      Boolean ofToday = isToday.get(Long.valueOf(sample.getSolveId()));
+      if (ofToday != null && !sample.isPart()) {
+        add(ofToday.booleanValue() ? today : usual, sample.getCode(), sample.getTimeMs());
+      }
+    }
+    return TodayVsUsual.best(today, usual);
+  }
+
+  private static void add(Map<String, List<Long>> times, String code, long time) {
+    List<Long> list = times.get(code);
+    if (list == null) {
+      list = new ArrayList<Long>();
+      times.put(code, list);
+    }
+    list.add(Long.valueOf(time));
   }
 
   /**

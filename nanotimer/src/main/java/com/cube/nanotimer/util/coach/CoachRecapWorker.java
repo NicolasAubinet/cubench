@@ -13,21 +13,26 @@ import androidx.work.WorkerParameters;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.coach.FocusProgress;
 import com.cube.nanotimer.coach.PlanSchedule;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.session.CoachDay;
+import com.cube.nanotimer.session.SincePlanNews;
+import com.cube.nanotimer.smartcube.drill.DailyRun;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
  * The evening recap: once a local day, from the time the solver chose (19:00 unless changed), and
  * only once the session is over, no solve of the plan's type for {@link PlanSchedule#QUIET_MS}. A
  * day with no solve of that type gets none, and a recap still held at midnight is dropped. Coach
- * subscribers with weekly plans and a plan only. Computed on the phone: nothing is sent anywhere.
+ * subscribers with weekly plans and a plan only. Computed on the phone, save today's drill: asked
+ * for here when the Plan tab has not asked yet, so the recap can remind of it.
  */
 public final class CoachRecapWorker extends Worker {
 
@@ -153,10 +158,22 @@ public final class CoachRecapWorker extends Worker {
     if (title == null || !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
       return 0; // no solve today, or nowhere to show it
     }
+    List<FocusProgress> progress = day.get().getProgress();
+    String said = Options.INSTANCE.getCoachRecapSaid();
+    int news = SincePlanNews.pick(progress, stored.getWrittenAt(), said);
+    FocusProgress sincePlan = news < 0 ? null : progress.get(news);
+    DailyRun drill = CoachDaily.waiting(solveType, CoachDaily.keptOrAsk(
+        CoachClient.configured(context), solveType, CubeMethod.CFOP, stored));
+    int drillLeft = drill == null ? 0 : drill.repsPlanned() - drill.getRepsDealt();
+    String body = text.recapText(day.get(), sincePlan, drillLeft,
+        drill != null && drill.getRepsDealt() > 0);
     Options.INSTANCE.setCoachLastRecapDay(CoachDays.dayKey(now));
+    if (sincePlan != null) {
+      Options.INSTANCE.setCoachRecapSaid(
+          SincePlanNews.said(said, stored.getWrittenAt(), news, sincePlan.getSince()));
+    }
     CoachPlanJob.notify(context, CHANNEL, R.string.coach_channel_recap, NOTIF_ID,
-        R.drawable.ic_stat_recap, title,
-        text.recapText(day.get()), solveType);
+        R.drawable.ic_stat_recap, title, body, solveType);
     return 0;
   }
 

@@ -31,6 +31,11 @@ public final class CoachDailyView {
   private final Activity activity;
   private final View section;
 
+  /** About how many minutes the given reps take, never under one. */
+  public static int minutes(int reps) {
+    return Math.max(1, Math.round(reps * SECONDS_A_REP / 60f));
+  }
+
   public CoachDailyView(Activity activity, View section) {
     this.activity = activity;
     this.section = section;
@@ -63,7 +68,7 @@ public final class CoachDailyView {
     }
     int left = run.repsPlanned() - run.getRepsDealt();
     reps.setText(activity.getString(run.getRepsDealt() > 0 ? R.string.coach_daily_reps_left
-        : R.string.coach_daily_reps, left, Math.max(1, Math.round(left * SECONDS_A_REP / 60f))));
+        : R.string.coach_daily_reps, left, minutes(left)));
     start.setText(run.getRepsDealt() > 0 ? R.string.coach_daily_resume
         : R.string.coach_daily_start);
     start.setOnClickListener(new View.OnClickListener() {

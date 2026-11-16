@@ -5,8 +5,10 @@ import android.content.Context;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.FocusProgress;
+import com.cube.nanotimer.gui.widget.CoachDailyView;
 import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.session.TodayVsUsual;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
 
@@ -101,21 +103,38 @@ public final class CoachDayText {
         : plural(R.plurals.coach_recap_title_no_mean, solves);
   }
 
-  /** The recap's body: the focus that moved most, the best Ao5 and the drill reps. */
-  public String recapText(CoachDay day) {
+  /**
+   * The recap's body: what was faster than usual today, the best Ao5, a focus that moved since the
+   * plan when that is news, the drill reps, and today's drill while it waits. Empty when none apply.
+   *
+   * @param sincePlan the focus to report as moved since the plan, or null
+   * @param drillRepsLeft the reps today's drill still has, 0 when done or nothing is due
+   * @param drillStarted whether today's drill has had a rep yet
+   */
+  public String recapText(CoachDay day, FocusProgress sincePlan, int drillRepsLeft,
+      boolean drillStarted) {
     StringBuilder text = new StringBuilder();
-    FocusProgress best = day.getBestMove();
-    if (best != null) {
-      text.append(context.getString(R.string.coach_recap_moved, label(best), value(best)));
+    TodayVsUsual.Gain gain = day.getTodayGain();
+    if (gain != null) {
+      String by = seconds(gain.getGainMs());
+      append(text, TodayVsUsual.SOLVE.equals(gain.getCode())
+          ? context.getString(R.string.coach_recap_faster_mean, by)
+          : context.getString(R.string.coach_recap_faster_step, step(gain.getCode()), by));
     }
     if (day.getBestAo5() > 0) {
       append(text, context.getString(R.string.coach_recap_best_ao5, time(day.getBestAo5())));
     }
+    if (sincePlan != null) {
+      append(text, context.getString(R.string.coach_recap_moved, label(sincePlan),
+          value(sincePlan)));
+    }
     if (day.getDrillReps() > 0) {
       append(text, plural(R.plurals.coach_recap_drilled, day.getDrillReps()));
     }
-    if (best == null) {
-      append(text, context.getString(R.string.coach_recap_open));
+    if (drillRepsLeft > 0) {
+      append(text, context.getString(drillStarted ? R.string.coach_recap_drill_left
+          : R.string.coach_recap_drill_waiting, drillRepsLeft,
+          CoachDailyView.minutes(drillRepsLeft)));
     }
     return text.toString();
   }

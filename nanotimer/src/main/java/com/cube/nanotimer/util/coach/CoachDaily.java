@@ -6,6 +6,9 @@ import android.os.Looper;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.coach.CoachPayload;
+import com.cube.nanotimer.coach.FocusArea;
+import com.cube.nanotimer.coach.StoredCoachPlan;
+import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.drill.DailyRun;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -97,13 +100,7 @@ public final class CoachDaily {
             new Thread(new Runnable() {
               @Override
               public void run() {
-                String reply = client.requestDaily(CoachClient.requestBody(
-                    payload.withLanguage(CoachAsk.planLanguage()), learned, focus));
-                if (isAnswer(reply)) {
-                  // Dated on arrival: asked at 23:59 and answered at 00:01, it is the new day's.
-                  Options.INSTANCE.setCoachDaily(solveType.getId(), reply,
-                      System.currentTimeMillis());
-                }
+                String reply = ask(client, solveType, payload, learned, focus);
                 ASKING.remove(solveType.getId());
                 if (!isAnswer(reply)) {
                   return;
@@ -119,6 +116,66 @@ public final class CoachDaily {
             }).start();
           }
         });
+  }
+
+  /**
+   * Today's drill, asked for now when none was kept today, or null when the service did not
+   * answer. Blocks on the service and the network, so never on the main thread.
+   */
+  public static List<DailyRun.Block> keptOrAsk(CoachClient client, SolveType solveType,
+      CubeMethod method, StoredCoachPlan plan) throws InterruptedException {
+    if (answeredToday(solveType)) {
+      return kept(solveType);
+    }
+    if (client == null || !client.hasAccess() || !ASKING.add(solveType.getId())) {
+      return null;
+    }
+    try {
+      CoachPlanJob.Held<CoachPayload> payload = new CoachPlanJob.Held<CoachPayload>();
+      App.INSTANCE.getService().getDailyPayload(solveType, method, payload);
+      String reply = ask(client, solveType, payload.get(),
+          new ArrayList<String>(Options.INSTANCE.getLearnedCases()), focusCases(plan));
+      return isAnswer(reply) ? DailyRun.parse(reply) : null;
+    } finally {
+      ASKING.remove(solveType.getId());
+    }
+  }
+
+  /** The cases the plan's drills run, which the service may add a few of to the day's drill. */
+  public static List<String> focusCases(StoredCoachPlan plan) {
+    List<String> focus = new ArrayList<String>();
+    for (FocusArea area : plan.getPlan().getFocus()) {
+      if (area.getDrill() != null) {
+        try {
+          focus.addAll(DrillSpec.fromJson(area.getDrill()).getCases());
+        } catch (IllegalArgumentException e) {
+          // a drill this app cannot read has no focus cases to offer
+        }
+      }
+    }
+    return focus;
+  }
+
+  /** Today's drill as far as it was run, or null when it is done or nothing is due. */
+  public static DailyRun waiting(SolveType solveType, List<DailyRun.Block> blocks) {
+    if (blocks == null || blocks.isEmpty()) {
+      return null;
+    }
+    String progress = progress(solveType);
+    DailyRun run = new DailyRun(blocks);
+    run.restore(progress);
+    return DailyRun.isDone(progress) || run.isDone() ? null : run;
+  }
+
+  private static String ask(CoachClient client, SolveType solveType, CoachPayload payload,
+      List<String> learned, Collection<String> focus) {
+    String reply = client.requestDaily(CoachClient.requestBody(
+        payload.withLanguage(CoachAsk.planLanguage()), learned, focus));
+    if (isAnswer(reply)) {
+      // Dated on arrival: asked at 23:59 and answered at 00:01, it is the new day's.
+      Options.INSTANCE.setCoachDaily(solveType.getId(), reply, System.currentTimeMillis());
+    }
+    return reply;
   }
 
   /** Text holding a blocks array, an empty one included: a day with nothing due is an answer. */

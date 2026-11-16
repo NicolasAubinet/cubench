@@ -1800,7 +1800,10 @@
     <item quantity="one">%d repetição hoje.</item>
     <item quantity="other">%d repetições hoje.</item>
   </plurals>
-  <string name="coach_recap_open">Veja como seus focos estão evoluindo.</string>
+  <string name="coach_recap_faster_mean">Sua média de hoje: %1$s s melhor que o normal.</string>
+  <string name="coach_recap_faster_step">%1$s: %2$s s melhor que o normal hoje.</string>
+  <string name="coach_recap_drill_waiting">O treino do dia está esperando: %1$d repetições, cerca de %2$d min.</string>
+  <string name="coach_recap_drill_left">Treino do dia: faltam %1$d repetições, cerca de %2$d min.</string>
   <string name="coach_notifications">Notificações</string>
   <string name="coach_notifications_summary">Plano pronto, lembrete de resoluções e resumo diário</string>
   <string name="coach_notifications_all">Notificações do coach</string>

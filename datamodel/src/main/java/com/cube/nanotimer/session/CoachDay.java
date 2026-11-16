@@ -24,6 +24,7 @@ public final class CoachDay {
   private final int drillReps;
   private final int solvesSince;
   private final List<FocusProgress> progress;
+  private final TodayVsUsual.Gain todayGain;
 
   /**
    * @param todayTimes today's times, newest first, -1 for a DNF
@@ -34,6 +35,13 @@ public final class CoachDay {
    */
   public CoachDay(List<Long> todayTimes, int drillCount, int drillReps, int solvesSince,
       List<FocusProgress> progress) {
+    this(todayTimes, drillCount, drillReps, solvesSince, progress, null);
+  }
+
+  /** @param todayGain what was clearly faster today than usual, or null */
+  public CoachDay(List<Long> todayTimes, int drillCount, int drillReps, int solvesSince,
+      List<FocusProgress> progress, TodayVsUsual.Gain todayGain) {
+    this.todayGain = todayGain;
     this.todayTimes = Collections.unmodifiableList(new ArrayList<Long>(todayTimes));
     this.drillCount = drillCount;
     this.drillReps = drillReps;
@@ -79,6 +87,11 @@ public final class CoachDay {
 
   public int getSolvesSince() {
     return solvesSince;
+  }
+
+  /** The whole solve or step that was clearly faster today than usual, or null. */
+  public TodayVsUsual.Gain getTodayGain() {
+    return todayGain;
   }
 
   public List<FocusProgress> getProgress() {

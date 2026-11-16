@@ -67,8 +67,6 @@ import com.cube.nanotimer.util.coach.CoachPlanWorker;
 import com.cube.nanotimer.util.coach.CoachPlans;
 import com.cube.nanotimer.util.coach.CoachDaily;
 import com.cube.nanotimer.util.coach.CoachPractice;
-import com.cube.nanotimer.coach.FocusArea;
-import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.smartcube.drill.DailyRun;
 import com.cube.nanotimer.util.coach.CoachRead;
 import com.cube.nanotimer.util.coach.CoachReply;
@@ -1328,16 +1326,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private void showDaily() {
     dailyView.show(solveType, CoachDaily.answeredToday(solveType) ? CoachDaily.kept(solveType)
         : null);
-    List<String> focus = new ArrayList<String>();
-    for (FocusArea area : shownPlan.getPlan().getFocus()) {
-      if (area.getDrill() != null) {
-        try {
-          focus.addAll(DrillSpec.fromJson(area.getDrill()).getCases());
-        } catch (IllegalArgumentException e) {
-          // a drill this app cannot read has no focus cases to offer
-        }
-      }
-    }
+    List<String> focus = CoachDaily.focusCases(shownPlan);
     CoachDaily.refresh(coachClient, solveType, method, focus, new CoachDaily.Listener() {
       @Override
       public void onDaily(List<DailyRun.Block> blocks) {
