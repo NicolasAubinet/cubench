@@ -22,6 +22,7 @@ public final class StepTime {
   private final List<StepTime> subSteps;
   private final List<PieceMark> pieceMarks;
   private final String wantedName;
+  private final long finalAufMs;
 
   public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
       List<StepTime> subSteps) {
@@ -41,6 +42,14 @@ public final class StepTime {
 
   public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
       List<StepTime> subSteps, boolean complete, List<PieceMark> pieceMarks, String wantedName) {
+    this(stepIndex, stepName, recognitionMs, executionMs, subSteps, complete, pieceMarks,
+        wantedName, 0);
+  }
+
+  public StepTime(int stepIndex, String stepName, long recognitionMs, long executionMs,
+      List<StepTime> subSteps, boolean complete, List<PieceMark> pieceMarks, String wantedName,
+      long finalAufMs) {
+    this.finalAufMs = finalAufMs;
     this.stepIndex = stepIndex;
     this.stepName = stepName;
     this.recognitionMs = recognitionMs;
@@ -91,6 +100,14 @@ public final class StepTime {
   /** The cycle the cube wanted here, where the step carries a wrong piece. Null everywhere else. */
   public String getWantedName() {
     return wantedName;
+  }
+
+  /**
+   * The part of the execution after the algorithm's last turn: the final AUF and the pause before
+   * it. Kept in the step, left out of its case's times. 0 for a step with none.
+   */
+  public long getFinalAufMs() {
+    return finalAufMs;
   }
 
   @Override

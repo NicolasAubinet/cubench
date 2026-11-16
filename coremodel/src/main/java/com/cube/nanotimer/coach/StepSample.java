@@ -15,6 +15,7 @@ public class StepSample {
   private final long solveId;
   private final Integer partIndex;
   private final Integer stepIndex;
+  private final long finalAufMs;
 
   /**
    * @param code the step code as the breakdown stores it, {@code cross} or {@code pll_gb}
@@ -44,6 +45,16 @@ public class StepSample {
    */
   public StepSample(String code, long timeMs, long recognitionMs, boolean part, long solveId,
       Integer partIndex, Integer stepIndex) {
+    this(code, timeMs, recognitionMs, part, solveId, partIndex, stepIndex, 0);
+  }
+
+  /**
+   * @param finalAufMs the share of {@code timeMs} after the algorithm's last turn, the PLL's final
+   *     AUF: part of the step, not of its case
+   */
+  public StepSample(String code, long timeMs, long recognitionMs, boolean part, long solveId,
+      Integer partIndex, Integer stepIndex, long finalAufMs) {
+    this.finalAufMs = finalAufMs;
     this.code = code;
     this.timeMs = timeMs;
     this.recognitionMs = recognitionMs;
@@ -59,6 +70,16 @@ public class StepSample {
 
   public long getTimeMs() {
     return timeMs;
+  }
+
+  /** The final AUF inside {@link #getTimeMs()}, 0 where the step closes on none. */
+  public long getFinalAufMs() {
+    return finalAufMs;
+  }
+
+  /** The occurrence as its case is timed: without the final AUF. */
+  public long getCaseTimeMs() {
+    return timeMs - finalAufMs;
   }
 
   public long getRecognitionMs() {

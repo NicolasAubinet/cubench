@@ -335,6 +335,34 @@ public class SolveAnalyzerTest {
     StepTime pll = step(CFOPStepDetector.PLL);
     assertEquals(800 + 300, pll.getRecognitionMs()); // the think, the AUF, and the think after it
     assertEquals(1400, pll.getExecutionMs()); // only the algorithm
+    assertEquals(0, pll.getFinalAufMs());
+  }
+
+  @Test
+  public void setsTheFinalAufApartFromThePll() {
+    // The step keeps the AUF that closes it, and says how much of it was that AUF, look included.
+    startFrom("U'", T_PERM);
+
+    play(T_PERM, 300, 100);
+    play("U", 700, 100);
+
+    StepTime pll = step(CFOPStepDetector.PLL);
+    assertEquals(300, pll.getRecognitionMs());
+    assertEquals(1400 + 700, pll.getExecutionMs());
+    assertEquals(700, pll.getFinalAufMs());
+  }
+
+  @Test
+  public void keepsAnOllsTurnsWhole() {
+    // Only the PLL ends on an AUF: the OLL closes on its own last turn.
+    startFrom("U2", T_PERM, SUNE);
+
+    play(ANTI_SUNE, 500, 100);
+    play(T_PERM, 300, 100);
+    play("U2", 600, 100);
+
+    assertEquals(0, step(CFOPStepDetector.OLL).getFinalAufMs());
+    assertEquals(600 + 100, step(CFOPStepDetector.PLL).getFinalAufMs());
   }
 
   @Test

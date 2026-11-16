@@ -197,10 +197,11 @@ public class CoachPayloadBuilder {
     StepTallies familyTallies = new StepTallies(familySamples);
     MethodStatistics families =
         new MethodStatistics(familyTallies.getSteps(), familyTallies.getParts(), solveTimes.size());
-    StepTallies caseTallies = new StepTallies(caseSamples);
+    // A case is timed without the PLL's final AUF, as the screens time it; a family keeps it.
+    StepTallies caseTallies = new StepTallies(caseSamples, true);
     MethodStatistics cases =
         new MethodStatistics(caseTallies.getSteps(), caseTallies.getParts(), caseSolveCount);
-    StepTallies recentTallies = new StepTallies(latestOfEachCase(caseSamples));
+    StepTallies recentTallies = new StepTallies(latestOfEachCase(caseSamples), true);
     MethodStatistics recentCases = new MethodStatistics(recentTallies.getSteps(),
         recentTallies.getParts(), caseSolveCount);
     StepTallies drillTallies = new StepTallies(drillSamples);

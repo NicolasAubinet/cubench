@@ -21,6 +21,20 @@ public class StepTalliesTest {
     Assert.assertEquals(1.0 / 7, tallies.getRejectionRate("pll_gb"), 0.001);
   }
 
+  /** A case is timed without its final AUF; the same occurrences as steps keep it. */
+  @Test
+  public void testCaseTimesLeaveTheFinalAufOut() {
+    List<StepSample> samples = new ArrayList<StepSample>();
+    samples.add(new StepSample("pll_gb", 2500, 600, false, 1, null, 4, 500));
+    samples.add(new StepSample("pll_gb", 2000, 600, false, 2, null, 4, 0));
+
+    Assert.assertEquals(2250, new StepTallies(samples).get("pll_gb").getMeanMs());
+    StepTallies cases = new StepTallies(samples, true);
+    Assert.assertEquals(2000, cases.get("pll_gb").getMeanMs());
+    Assert.assertEquals(600, cases.get("pll_gb").getMeanRecognitionMs());
+    Assert.assertEquals(2000, cases.get("pll_gb").getWorstMs());
+  }
+
   @Test
   public void testAFumbleIsAnOccurrenceItsOwnRuleThrewOutAsTooLong() {
     List<StepSample> samples = times("pll_gb", 1800, 1900, 2000, 2100, 2200, 2300, 9000, 11000, 100);

@@ -40,6 +40,8 @@ public enum App {
   private SoundManager soundManager;
 
   private static final int SCRAMBLE_NOTIF_ID = 1;
+  /** Bumped to time the stored PLL drill reps again: 1 took their final AUF out. */
+  private static final int PLL_DRILL_REPS_VERSION = 1;
 
   public Context getContext() {
     return context;
@@ -69,6 +71,7 @@ public enum App {
       initRandomStateGenListener(context);
 
       refreshCaseKnowledge();
+      retimePllDrillReps();
       rereadCfopSolves();
       rereadRouxSolves();
 
@@ -129,6 +132,19 @@ public enum App {
             Options.INSTANCE.setCfopReadingVersion(SolveReinterpreter.CFOP_READING_VERSION);
           }
         });
+      }
+    });
+  }
+
+  /** Times the PLL drill reps stored before a case was timed without its final AUF, once. */
+  private void retimePllDrillReps() {
+    if (Options.INSTANCE.getPllDrillRepsVersion() == PLL_DRILL_REPS_VERSION) {
+      return;
+    }
+    getService().refreshPllDrillReps(new DataCallback<Void>() {
+      @Override
+      public void onData(Void data) {
+        Options.INSTANCE.setPllDrillRepsVersion(PLL_DRILL_REPS_VERSION);
       }
     });
   }

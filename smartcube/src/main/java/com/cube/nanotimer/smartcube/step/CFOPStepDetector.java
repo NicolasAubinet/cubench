@@ -341,6 +341,11 @@ public final class CFOPStepDetector implements StepDetector {
   }
 
   @Override
+  public boolean endsOnAuf(int step) {
+    return step == PLL;
+  }
+
+  @Override
   public int subStepCount(int step) {
     if (step == F2L) {
       return SLOT_COUNT;

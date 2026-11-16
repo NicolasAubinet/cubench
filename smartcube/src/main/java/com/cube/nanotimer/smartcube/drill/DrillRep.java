@@ -14,8 +14,8 @@ import java.util.List;
  * <p>Recognition is the gap from the case appearing on screen to the first move of the algorithm, so
  * every rep has one, the first included. It used to run from the end of the previous rep instead,
  * which left that first rep with nothing to measure from and charged any pause between reps to the
- * user. The AUF turns that only square a case up to be read are looking too, and so land in it; the
- * AUF that finishes one is the case being solved, and stays in the execution.
+ * user. The AUF turns that only square a case up to be read are looking too, and so land in it. The
+ * AUF that finishes a PLL is in neither: a case is timed without its final AUF, as in a solve.
  */
 public final class DrillRep {
 

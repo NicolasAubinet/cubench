@@ -46,6 +46,8 @@ public class MethodStatistics implements Serializable {
 
   private final int solveCount;
   private final Map<String, StepStats> families = new LinkedHashMap<String, StepStats>();
+  /** The families as their cases are timed, which is what a case is weighed against. */
+  private final Map<String, StepStats> caseFamilies;
   private final Map<String, Map<String, StepStats>> cases =
       new LinkedHashMap<String, Map<String, StepStats>>();
   private final Map<String, StepStats> skips = new LinkedHashMap<String, StepStats>();
@@ -62,7 +64,34 @@ public class MethodStatistics implements Serializable {
    * @param solveCount how many solves those tallies were read from
    */
   public MethodStatistics(List<StepStats> steps, List<StepStats> parts, int solveCount) {
+    this(steps, parts, steps, parts, solveCount);
+  }
+
+  /**
+   * A family's figures are the step as it was solved, while its cases are timed without the PLL's
+   * final AUF, so two sets of tallies come in for the same occurrences.
+   *
+   * @param caseSteps {@code steps} timed as their cases are: what the cases, and the family means
+   *     they are weighed against, are read from
+   * @param caseParts the same for {@code parts}
+   */
+  public MethodStatistics(List<StepStats> steps, List<StepStats> parts, List<StepStats> caseSteps,
+      List<StepStats> caseParts, int solveCount) {
     this.solveCount = solveCount;
+    fill(steps, parts, families, cases, skips, partFamilies);
+    if (caseSteps == steps && caseParts == parts) {
+      caseFamilies = families;
+    } else {
+      caseFamilies = new LinkedHashMap<String, StepStats>();
+      cases.clear();
+      fill(caseSteps, caseParts, caseFamilies, cases, new LinkedHashMap<String, StepStats>(),
+          new LinkedHashSet<String>());
+    }
+  }
+
+  private static void fill(List<StepStats> steps, List<StepStats> parts,
+      Map<String, StepStats> families, Map<String, Map<String, StepStats>> cases,
+      Map<String, StepStats> skips, Set<String> partFamilies) {
     List<StepStats> all = new ArrayList<StepStats>(steps);
     for (StepStats part : parts) {
       String code = part.getCode();
@@ -250,7 +279,7 @@ public class MethodStatistics implements Serializable {
    * @return 0 for a case at or under its family's mean, and for one the window does not hold
    */
   public long getTimeLostMs(String code) {
-    StepStats family = families.get(familyOf(code));
+    StepStats family = caseFamilies.get(familyOf(code));
     String caseCode = caseCodeOf(code);
     StepStats stepCase = family == null || caseCode == null ? null
         : cases.get(familyOf(code)).get(caseCode);
@@ -266,7 +295,7 @@ public class MethodStatistics implements Serializable {
    * times, a tenth clear of its mean, and ranked by what that costs rather than by how slow.
    */
   public List<StepStats> getWorstCases(String family, int minCount) {
-    StepStats familyStats = families.get(family);
+    StepStats familyStats = caseFamilies.get(family);
     if (familyStats == null) {
       return new ArrayList<StepStats>();
     }
