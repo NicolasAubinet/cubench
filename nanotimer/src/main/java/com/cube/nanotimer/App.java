@@ -2,6 +2,7 @@ package com.cube.nanotimer;
 
 import android.app.Application;
 import android.content.Context;
+import com.cube.nanotimer.cube.PairOutcomes;
 import com.cube.nanotimer.cube.SmartCubeAutoConnect;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.SolveReinterpreter;
@@ -71,6 +72,7 @@ public enum App {
       refreshCaseKnowledge();
       rereadCfopSolves();
       rereadRouxSolves();
+      PairOutcomes.catchUp();
 
       if (dynamicTranslations == null) {
         dynamicTranslations = new DynamicTranslations();
@@ -127,6 +129,7 @@ public enum App {
           @Override
           public void onData(Void data) {
             Options.INSTANCE.setCfopReadingVersion(SolveReinterpreter.CFOP_READING_VERSION);
+            PairOutcomes.catchUp(); // the solves read again lost their pairs
           }
         });
       }

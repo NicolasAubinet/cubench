@@ -157,6 +157,23 @@ public interface Service {
   /** Keeps readings the caller had to make for itself, so the next window does not make them again. */
   void saveSolveReadings(Map<Long, String> readings, int version, DataCallback<Void> callback);
 
+  /**
+   * Smart-cube solves whose F2L pairs have not been handed over yet, newest first, without their
+   * stored steps: the caller replays them.
+   */
+  void getSolvesWithoutPairOutcomes(int solves, DataCallback<List<SolveTime>> callback);
+
+  /**
+   * Keeps the F2L pairs the caller read out of each solve, as {case, moves}, an empty list for a
+   * solve with none, and reads the knowledge of their cases again: all of it when {@code rebuild},
+   * which is cheaper for a large batch.
+   */
+  void savePairOutcomes(Map<Long, List<String[]>> outcomes, boolean rebuild,
+      DataCallback<Void> callback);
+
+  /** Throws every solve's pairs away, for them to be read again. */
+  void forgetPairOutcomes(DataCallback<Void> callback);
+
   void getCoachPayload(SolveType solveType, CubeMethod method, List<PairExecution> executions,
       List<StepTurning> turnings, DataCallback<CoachPayload> callback);
   /** {@link ServiceProvider#getDailyPayload}, read now. */

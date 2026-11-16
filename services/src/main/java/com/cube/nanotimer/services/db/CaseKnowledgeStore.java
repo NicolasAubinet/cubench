@@ -10,6 +10,8 @@ import com.cube.nanotimer.coach.CaseRecall;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.PairEvidence;
 import com.cube.nanotimer.vo.ScrambleType;
 
 import java.util.ArrayList;
@@ -41,6 +43,8 @@ import java.util.Set;
  *   <li>A clean drill rep counts towards a run, by the size of the pool its drill dealt from, and a
  *       {@code revealed} one starts the run again: the algorithm was on screen.
  *   <li>A row of {@code case_cleared} is a learning drill clearing the case, read as a whole run.
+ *   <li>An F2L pair a solve put in, from {@code pair_outcome}, counts only when {@link PairEvidence}
+ *       calls it clean; any other one says nothing.
  *   <li>The step a solve stopped inside is left out. It holds only the parts that were finished, so
  *       counting them would read an abandoned step as one clean algorithm.
  * </ul>
@@ -249,6 +253,7 @@ public final class CaseKnowledgeStore {
       }
       cursor.close();
     }
+    codes.addAll(PairOutcomeStore.cases(db));
     return codes;
   }
 
@@ -343,7 +348,34 @@ public final class CaseKnowledgeStore {
       }
       cursor.close();
     }
+    if (CaseAlgorithms.isPair(code)) {
+      addPairSolves(db, code, occurrences);
+    }
     return occurrences;
+  }
+
+  /** A pair's clean solves, each placed by its time among the occurrences already read. */
+  private static void addPairSolves(SQLiteDatabase db, String code, List<Occurrence> occurrences) {
+    List<PairOutcomeStore.Execution> executions = PairOutcomeStore.executions(db, code);
+    if (executions.isEmpty()) {
+      return;
+    }
+    List<String> moves = new ArrayList<String>();
+    for (PairOutcomeStore.Execution execution : executions) {
+      moves.add(execution.moves);
+    }
+    boolean[] clean = PairEvidence.clean(code, moves);
+    for (int i = 0; i < clean.length; i++) {
+      if (!clean[i]) {
+        continue;
+      }
+      long atMs = executions.get(i).atMs;
+      int at = occurrences.size();
+      while (at > 0 && occurrences.get(at - 1).atMs > atMs) {
+        at--;
+      }
+      occurrences.add(at, new Occurrence(CaseKnowledge.Evidence.UNAIDED, atMs));
+    }
   }
 
   /** What a clean rep of this drill says: from the daily drill, a large pool, or a small one. */

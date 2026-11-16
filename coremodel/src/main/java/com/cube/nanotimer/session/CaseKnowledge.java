@@ -41,6 +41,11 @@ import java.util.List;
  * A solve says {@link Evidence#UNAIDED} where its last layer step went in one algorithm and
  * {@link Evidence#HELPED} where it took more.
  *
+ * <p><b>An F2L pair in a solve only ever says {@link Evidence#UNAIDED}.</b> It does when it went in
+ * with a listed algorithm or with one the solver turns for it again and again
+ * ({@code PairEvidence}); any other execution says nothing, since F2L is mostly turned by sight and
+ * a pair put in some other way is not a pair the solver does not know (owner, 2026-11-16).
+ *
  * <p><b>Drill reps count as a run, never one at a time.</b> A drill never names the case, so a clean
  * rep was recognised, but out of a pool the solver picked and with no solve around it. That is
  * weaker than a solve, so it takes {@link #RUN_TO_KNOW} clean reps in a row to call a case known, or
@@ -112,7 +117,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 9;
+  public static final int RULE_VERSION = 10;
 
   /** Clean drill reps in a row that make a case known. */
   public static final int RUN_TO_KNOW = 5;
@@ -126,7 +131,7 @@ public class CaseKnowledge {
   /** What one occurrence of a case says about whether the solver knows it. */
   public enum Evidence {
 
-    /** A solve whose last layer step went in one algorithm. */
+    /** A solve whose last layer step went in one algorithm, or that put an F2L pair in with one. */
     UNAIDED,
 
     /** A solve whose last layer step took more than one algorithm. */

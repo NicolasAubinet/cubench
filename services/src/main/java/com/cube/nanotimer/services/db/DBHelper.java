@@ -129,6 +129,23 @@ public class DBHelper extends SQLiteOpenHelper {
     createCaseKnowledgeTable(db);
     createCaseClearedTable(db);
     createSolveReadingTable(db);
+    createPairOutcomeTable(db);
+  }
+
+  /** The pairs each solve put in; from {@link #createTables} and the upgrade to 40. */
+  private void createPairOutcomeTable(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE " + DB.TABLE_PAIR_OUTCOME + "(" +
+        DB.COL_PAIR_OUTCOME_SOLVE_ID + " INTEGER NOT NULL, " +
+        DB.COL_PAIR_OUTCOME_CASE + " TEXT, " +
+        DB.COL_PAIR_OUTCOME_MOVES + " TEXT" +
+      ");"
+    );
+    db.execSQL("CREATE INDEX " + DB.IDX_PAIR_OUTCOME_SOLVE +
+        " ON " + DB.TABLE_PAIR_OUTCOME + " (" + DB.COL_PAIR_OUTCOME_SOLVE_ID + ");"
+    );
+    db.execSQL("CREATE INDEX " + DB.IDX_PAIR_OUTCOME_CASE +
+        " ON " + DB.TABLE_PAIR_OUTCOME + " (" + DB.COL_PAIR_OUTCOME_CASE + ");"
+    );
   }
 
   /**
@@ -562,6 +579,11 @@ public class DBHelper extends SQLiteOpenHelper {
     }
     if (oldVersion < 39) {
       createCaseClearedTable(db);
+    }
+
+    // Filled by the app reading the solves again in the background (PairOutcomes).
+    if (oldVersion < 40) {
+      createPairOutcomeTable(db);
     }
 
 //    progressDialog.hide();

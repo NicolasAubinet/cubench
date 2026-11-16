@@ -84,6 +84,9 @@ public interface ServiceProvider {
   CoachPayload getDailyPayload(SolveType solveType, CubeMethod method, long now);
   Map<Long, String> getSolveReadings(List<Long> solveIds, int version);
   void saveSolveReadings(Map<Long, String> readings, int version);
+  List<SolveTime> getSolvesWithoutPairOutcomes(int solves);
+  void savePairOutcomes(Map<Long, List<String[]>> outcomes, boolean rebuild);
+  void forgetPairOutcomes();
   void saveCoachPlan(SolveType solveType, StoredCoachPlan plan);
   StoredCoachPlan getCoachPlan(SolveType solveType);
   List<Integer> getPlanDrillReps(StoredCoachPlan plan);

@@ -42,6 +42,7 @@ import com.cube.nanotimer.Options.SessionTimesDisplay;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
 import com.cube.nanotimer.cube.LiveCubeView;
+import com.cube.nanotimer.cube.PairOutcomes;
 import com.cube.nanotimer.cube.ScrambleFollower;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
@@ -2756,6 +2757,9 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
   private class SolveAverageCallback extends DataCallback<SolveAverages> {
     @Override
     public synchronized void onData(final SolveAverages data) {
+      if (data.getSolveTime() != null && data.getSolveTime().hasSmartcubeMoves()) {
+        PairOutcomes.catchUp(); // its pairs count towards what the solver knows
+      }
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
