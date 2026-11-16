@@ -1070,6 +1070,13 @@
   <string name="case_group_pll_corners">Coins seuls</string>
   <string name="case_group_pll_adjacent">Échange adjacent</string>
   <string name="case_group_pll_diagonal">Échange en diagonale</string>
+  <string name="case_group_f2l_top">Les deux en haut</string>
+  <string name="case_group_f2l_corner">Coin dans son slot</string>
+  <string name="case_group_f2l_edge">Arête dans son slot</string>
+  <string name="case_group_f2l_both">Les deux dans leur slot</string>
+  <string name="case_group_f2l_stuck_corner">Coin coincé dans un autre slot</string>
+  <string name="case_group_f2l_stuck_edge">Arête coincée dans un autre slot</string>
+  <string name="case_group_f2l_stuck_both">Les deux coincés dans un autre slot</string>
   <string name="drill_practice_cross">Croix</string>
   <string name="drill_practice_hint_pll">Les PLL l\'un après l\'autre, parmi les cas que vous choisissez.</string>
   <string name="drill_practice_hint_oll">Les OLL l\'un après l\'autre, parmi les cas que vous choisissez.</string>
@@ -1300,6 +1307,7 @@
   <string name="menu_algorithms">Algorithmes</string>
   <string name="case_set_oll_description">Orienter la dernière couche</string>
   <string name="case_set_pll_description">Permuter la dernière couche</string>
+  <string name="case_set_f2l_description">Les deux premières couches</string>
   <string name="library_known">%d connus</string>
   <string name="library_review">%d à revoir</string>
   <string name="library_to_learn">%d à apprendre</string>

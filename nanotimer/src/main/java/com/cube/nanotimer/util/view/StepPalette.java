@@ -69,6 +69,15 @@ public final class StepPalette {
     return at < 0 || colors.length == 0 ? unknown : colors[at % colors.length];
   }
 
+  /**
+   * The colour of a case of the algorithm library, or of a set by its prefix ({@code "pair_"}): an
+   * F2L pair's case takes the F2L step's, which {@link #colorFor} leaves neutral.
+   */
+  public int colorForCase(String code) {
+    return code != null && "pair".equals(MethodStatistics.familyOf(code)) ? colorFor("f2l")
+        : colorFor(code);
+  }
+
   /** The same hue, receded: the fill standing for the looking rather than the turning. */
   public static int wash(int color) {
     return alpha(color, WASH_ALPHA);

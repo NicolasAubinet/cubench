@@ -16,6 +16,8 @@ import com.cube.nanotimer.cases.CaseGroup;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
+import com.cube.nanotimer.gui.widget.PairCaseView;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 
 import java.util.ArrayList;
@@ -75,13 +77,15 @@ public final class CaseFilterBar {
         groups.add(candidate);
       }
     }
-    Collections.sort(groups, new Comparator<CaseGroup>() {
-      @Override
-      public int compare(CaseGroup a, CaseGroup b) {
-        int size = b.getCases().size() - a.getCases().size();
-        return size != 0 ? size : a.getName(context).compareTo(b.getName(context));
-      }
-    });
+    if (!set.sectioned()) { // a sectioned set's groups keep the order its sections are drawn in
+      Collections.sort(groups, new Comparator<CaseGroup>() {
+        @Override
+        public int compare(CaseGroup a, CaseGroup b) {
+          int size = b.getCases().size() - a.getCases().size();
+          return size != 0 ? size : a.getName(context).compareTo(b.getName(context));
+        }
+      });
+    }
     offered = groups;
     if (group != null && !offered.contains(group)) {
       group = null;
@@ -170,8 +174,11 @@ public final class CaseFilterBar {
     for (CaseGroup each : set.groups()) {
       complete += known.containsAll(each.getCases()) ? 1 : 0;
     }
-    ((TextView) body.findViewById(R.id.tvShapeGroupsKnown)).setText(context.getString(
-        R.string.analysis_shape_groups_known, complete, set.groups().size()));
+    TextView groupsKnown = body.findViewById(R.id.tvShapeGroupsKnown);
+    groupsKnown.setText(context.getString(R.string.analysis_shape_groups_known, complete,
+        set.groups().size()));
+    // Nothing known is nothing said (an F2L pair never gets a standing), not "0 known".
+    groupsKnown.setVisibility(known.isEmpty() ? View.GONE : View.VISIBLE);
     TextView all = body.findViewById(R.id.tvShapeAll);
     String allLabel = context.getString(isShapes() ? R.string.analysis_shape_all
         : R.string.case_filter_all_groups);
@@ -190,8 +197,16 @@ public final class CaseFilterBar {
       }
       CaseGroup each = offered.get(i);
       View tile = inflater.inflate(R.layout.analysis_shape_tile, row, false);
-      ((LastLayerCaseView) tile.findViewById(R.id.vShapeChart))
-          .setDiagram(LastLayerDiagram.forCase(each.getCases().get(0)));
+      String first = each.getCases().get(0);
+      if (set.picture() == CaseSet.Picture.PAIR) {
+        tile.findViewById(R.id.vShapeChart).setVisibility(View.GONE);
+        PairCaseView pair = tile.findViewById(R.id.vShapePair);
+        pair.setVisibility(View.VISIBLE);
+        pair.setPicture(CaseAlgorithms.pairPicture(first));
+      } else {
+        ((LastLayerCaseView) tile.findViewById(R.id.vShapeChart))
+            .setDiagram(LastLayerDiagram.forCase(first));
+      }
       int here = 0;
       if (matching != null) {
         for (String code : each.getCases()) {
@@ -208,6 +223,7 @@ public final class CaseFilterBar {
       TextView count = tile.findViewById(R.id.tvShapeCount);
       count.setText(context.getString(R.string.analysis_shape_known, knownHere,
           each.getCases().size()));
+      count.setVisibility(known.isEmpty() ? View.GONE : View.VISIBLE);
       if (whole) {
         count.setTextColor(ContextCompat.getColor(context, R.color.lightblue));
       }

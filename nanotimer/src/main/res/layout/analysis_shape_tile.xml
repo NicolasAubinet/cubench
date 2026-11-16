@@ -20,6 +20,12 @@
      android:layout_width="match_parent"
      android:layout_height="wrap_content"/>
 
+  <com.cube.nanotimer.gui.widget.PairCaseView
+     android:id="@+id/vShapePair"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:visibility="gone"/>
+
   <TextView
      android:id="@+id/tvShapeName"
      android:layout_width="match_parent"
@@ -28,7 +34,7 @@
      android:ellipsize="end"
      android:fontFamily="@font/roboto_medium"
      android:gravity="center_horizontal"
-     android:maxLines="2"
+     android:maxLines="4"
      android:textColor="@color/case_name"
      android:textSize="13sp"
      app:fontFamily="@font/roboto_medium"/>

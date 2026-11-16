@@ -216,6 +216,31 @@ public class F2LCaseAlgorithmsTest {
         Notation.apply(facelets, "z2 U' R U2 R' U' R U2 R' z2"));
   }
 
+  /** Each named case's picture lights the pair's five stickers, greys the rest, and reads as it. */
+  @Test
+  public void picturesEveryNamedCaseWithOnlyThePairInColour() {
+    StringBuilder wrong = new StringBuilder();
+    for (String code : CaseAlgorithms.pairCases()) {
+      String pairCase = CaseAlgorithms.pairCase(code);
+      String picture = CaseAlgorithms.pairPicture(code);
+      int bright = 0;
+      int grey = 0;
+      for (char sticker : picture.toCharArray()) {
+        bright += Character.isUpperCase(sticker) ? 1 : 0;
+        grey += sticker == '.' ? 1 : 0;
+      }
+      // Grey: the 8 last-layer pieces' 20 stickers and the top centre, and a stuck-in slot's 5.
+      int greyed = F2LCases.isBasic(pairCase) ? 21 : 26;
+      String read = F2LCases.pairCase(picture.toUpperCase(Locale.ROOT).replace('.', 'U'), Cubies.D,
+          Cubies.DFR, Cubies.FR);
+      if (bright != 5 || grey != greyed || !pairCase.equals(read)) {
+        wrong.append(code).append(": ").append(picture).append('\n');
+      }
+    }
+    assertEquals(92, CaseAlgorithms.pairCases().size());
+    assertEquals("", wrong.toString());
+  }
+
   @Test
   public void keepsOnlyWhatSolvesTheCase() {
     assertTrue(F2LCaseAlgorithms.solves("7", "U' R U2 R' U' R U2 R'"));

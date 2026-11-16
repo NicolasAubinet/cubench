@@ -398,7 +398,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private void fillCard(View card, int source, int count, long meanMs, long recognitionMs,
       long executionMs, long bestMs) {
     FormatterService format = FormatterService.INSTANCE;
-    int hue = StepPalette.cfop(getActivity()).colorFor(caseCode);
+    int hue = StepPalette.cfop(getActivity()).colorForCase(caseCode);
     ((TextView) card.findViewById(R.id.tvCaseFiguresSource)).setText(source);
     ((TextView) card.findViewById(R.id.tvCaseFiguresCount)).setText(String.valueOf(count));
     ((TextView) card.findViewById(R.id.tvCaseFiguresMean)).setText(format.formatSolveTime(meanMs));

@@ -10,6 +10,8 @@ import androidx.core.content.ContextCompat;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
+import com.cube.nanotimer.gui.widget.PairCaseView;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 
 import java.util.Map;
@@ -17,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * One case of a set as a tile: its picture over its name, and its shape where the set gives one.
+ * An F2L case has no name to give, so its tile is the 3D pair alone.
  * The grid of the drill picker and the strip of drill setup draw it; the library will.
  *
  * <p>Filled the way {@code CaseRow} is: a caller sets the parts its screen has, the others stay as
@@ -27,9 +30,12 @@ public final class CaseTile {
   /** Pictures are worked out from the case's algorithm, so a grid redrawn on scroll reuses them. */
   private static final Map<String, LastLayerDiagram> PICTURES =
       new ConcurrentHashMap<String, LastLayerDiagram>();
+  private static final Map<String, String> PAIRS = new ConcurrentHashMap<String, String>();
 
   private final View view;
   private final LastLayerCaseView chart;
+  /** The 3D pair an F2L case is drawn as, in layouts that hold one; null in the others. */
+  private final PairCaseView pair;
   private final TextView name;
   private final TextView shape;
   private final TextView more;
@@ -38,6 +44,7 @@ public final class CaseTile {
   private CaseTile(View view) {
     this.view = view;
     chart = view.findViewById(R.id.vCaseTileChart);
+    pair = view.findViewById(R.id.vCaseTilePair);
     name = view.findViewById(R.id.tvCaseTileName);
     shape = view.findViewById(R.id.tvCaseTileShape);
     more = view.findViewById(R.id.tvCaseTileMore);
@@ -68,8 +75,17 @@ public final class CaseTile {
   }
 
   public CaseTile show(CaseSet set, String code) {
-    chart.setVisibility(View.VISIBLE);
-    chart.setDiagram(picture(code));
+    boolean inPair = pair != null && set.picture() == CaseSet.Picture.PAIR;
+    chart.setVisibility(inPair ? View.GONE : View.VISIBLE);
+    if (inPair) {
+      pair.setVisibility(View.VISIBLE);
+      pair.setPicture(pairPicture(code));
+    } else {
+      if (pair != null) {
+        pair.setVisibility(View.GONE);
+      }
+      chart.setDiagram(picture(code));
+    }
     if (more != null) {
       more.setVisibility(View.GONE);
     }
@@ -94,6 +110,17 @@ public final class CaseTile {
     return picture;
   }
 
+  private static String pairPicture(String code) {
+    String picture = PAIRS.get(code);
+    if (picture == null) {
+      picture = CaseAlgorithms.pairPicture(code);
+      if (picture != null) {
+        PAIRS.put(code, picture);
+      }
+    }
+    return picture;
+  }
+
   /** What the name line says, in place of the set's name for the case. */
   public CaseTile name(CharSequence text) {
     name.setText(text);
@@ -108,6 +135,9 @@ public final class CaseTile {
   public CaseTile picked(boolean on) {
     picked = on;
     chart.setDimmed(!on);
+    if (pair != null) {
+      pair.setDimmed(!on);
+    }
     name.setTextColor(ContextCompat.getColor(view.getContext(),
         on ? R.color.case_name : R.color.case_name_off));
     if (shape != null) {
@@ -124,6 +154,9 @@ public final class CaseTile {
   /** A strip's last slot: how many more cases there is no room for, in place of a case. */
   public CaseTile more(CharSequence count) {
     chart.setVisibility(View.INVISIBLE);
+    if (pair != null) {
+      pair.setVisibility(View.GONE);
+    }
     name.setVisibility(View.INVISIBLE);
     more.setVisibility(View.VISIBLE);
     more.setText(count);

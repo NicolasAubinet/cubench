@@ -22,6 +22,7 @@ import androidx.core.graphics.drawable.DrawableCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseGroup;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.gui.widget.DrillStatCells;
@@ -292,7 +293,7 @@ public class CaseSetActivity extends NanoTimerActivity
   }
 
   private int familyColour() {
-    return StepPalette.cfop(this).colorFor(set.id() + "_");
+    return StepPalette.cfop(this).colorForCase(set.id() + "_");
   }
 
   @Override
@@ -517,13 +518,34 @@ public class CaseSetActivity extends NanoTimerActivity
     return STATUS_FILTERS.length;
   }
 
-  /** The grid, or sorted by standing one grid per standing under its name and count. */
+  /**
+   * The grid; for a sectioned set one grid per group under its name and count; sorted by standing,
+   * one per standing instead.
+   */
   private void drawGrid(LinearLayout grid) {
+    LayoutInflater inflater = LayoutInflater.from(this);
+    if (sort != SORT_STATUS && set.sectioned()) {
+      for (CaseGroup group : set.groups()) {
+        List<String> inGroup = new ArrayList<String>();
+        for (String code : shown) {
+          if (group.contains(code)) {
+            inGroup.add(code);
+          }
+        }
+        if (!inGroup.isEmpty()) {
+          TextView header = (TextView) inflater.inflate(R.layout.case_set_section, grid, false);
+          header.setText(getString(R.string.known_algorithms_status_count,
+              group.getName(this), inGroup.size()));
+          grid.addView(header);
+          drawTiles(grid, inGroup);
+        }
+      }
+      return;
+    }
     if (sort != SORT_STATUS) {
       drawTiles(grid, shown);
       return;
     }
-    LayoutInflater inflater = LayoutInflater.from(this);
     for (int i = 0; i < STATUS_FILTERS.length; i++) {
       List<String> standing = new ArrayList<String>();
       for (String code : shown) {

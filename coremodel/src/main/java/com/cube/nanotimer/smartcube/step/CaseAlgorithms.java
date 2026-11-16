@@ -38,6 +38,24 @@ public final class CaseAlgorithms {
     return isPair(caseCode) && F2LCases.isBasic(pairCase(caseCode));
   }
 
+  /**
+   * Every named F2L case as a case code ({@code pair_27}, {@code pair_a1a}): the basic ones by
+   * number, then the advanced ones, each beside its "a" twin.
+   */
+  public static List<String> pairCases() {
+    List<String> codes = new ArrayList<String>();
+    for (String name : F2LCases.named()) {
+      codes.add(PAIR_PREFIX + name);
+    }
+    return Collections.unmodifiableList(codes);
+  }
+
+  /** The pair's case as {@link F2LCaseAlgorithms#picture} draws it, or null for none. */
+  public static String pairPicture(String caseCode) {
+    return isPair(caseCode) && slotOf(caseCode) == null
+        ? F2LCaseAlgorithms.picture(pairCase(caseCode)) : null;
+  }
+
   /** The slot a drill deals the pair into, put in without a rotation, or null for none. */
   public static String slotOf(String caseCode) {
     return F2lPairCases.slotOf(caseCode);
