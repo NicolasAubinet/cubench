@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A standing's heading when a set is sorted by standing, its colour swatch set in code. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   style="@style/DialogSectionLabel"
+   android:layout_width="match_parent"
+   android:layout_marginTop="12dp"
+   android:layout_marginBottom="8dp"
+   android:drawablePadding="8dp"
+   android:gravity="center_vertical"
+   android:paddingStart="@dimen/space_xs"/>

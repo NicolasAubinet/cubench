@@ -44,11 +44,15 @@ public final class CaseFilterBar {
   /** Two rows of seven fit a landscape screen; seven across a portrait one leave no room to read. */
   private static final int COLUMNS = 4;
   private static final int COLUMNS_WIDE = 7;
+  /** A group the other filters leave empty: still pickable, but read as holding nothing. */
+  private static final float EMPTY_ALPHA = 0.4f;
 
   private final Context context;
   private final CaseSet set;
   private final Listener listener;
   private final Set<String> known = new HashSet<String>();
+  /** The cases the screen's other filters let through, counted per group; null for no counts. */
+  private Set<String> matching;
   private List<CaseGroup> offered;
   private CaseGroup group;
   private TextView chip;
@@ -89,6 +93,15 @@ public final class CaseFilterBar {
   public CaseFilterBar known(Collection<String> knownCases) {
     known.clear();
     known.addAll(knownCases);
+    return this;
+  }
+
+  /**
+   * Counts beside each group the cases of it these are, so a group's number is what picking it
+   * would show under the screen's other filters. Null shows no counts.
+   */
+  public CaseFilterBar matching(Collection<String> cases) {
+    matching = cases == null ? null : new HashSet<String>(cases);
     return this;
   }
 
@@ -160,7 +173,10 @@ public final class CaseFilterBar {
     ((TextView) body.findViewById(R.id.tvShapeGroupsKnown)).setText(context.getString(
         R.string.analysis_shape_groups_known, complete, set.groups().size()));
     TextView all = body.findViewById(R.id.tvShapeAll);
-    all.setText(isShapes() ? R.string.analysis_shape_all : R.string.case_filter_all_groups);
+    String allLabel = context.getString(isShapes() ? R.string.analysis_shape_all
+        : R.string.case_filter_all_groups);
+    all.setText(matching == null ? allLabel
+        : context.getString(R.string.known_algorithms_status_count, allLabel, matching.size()));
     all.setSelected(group == null);
     all.setOnClickListener(picking(dialog, null));
     int columns = context.getResources().getConfiguration().orientation
@@ -176,7 +192,19 @@ public final class CaseFilterBar {
       View tile = inflater.inflate(R.layout.analysis_shape_tile, row, false);
       ((LastLayerCaseView) tile.findViewById(R.id.vShapeChart))
           .setDiagram(LastLayerDiagram.forCase(each.getCases().get(0)));
+      int here = 0;
+      if (matching != null) {
+        for (String code : each.getCases()) {
+          here += matching.contains(code) ? 1 : 0;
+        }
+        tile.setAlpha(here == 0 ? EMPTY_ALPHA : 1f);
+      }
       ((TextView) tile.findViewById(R.id.tvShapeName)).setText(each.getName(context));
+      if (matching != null) {
+        TextView badge = tile.findViewById(R.id.tvShapeMatching);
+        badge.setText(String.valueOf(here));
+        badge.setVisibility(View.VISIBLE);
+      }
       int knownHere = 0;
       for (String code : each.getCases()) {
         knownHere += known.contains(code) ? 1 : 0;

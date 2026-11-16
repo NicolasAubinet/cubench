@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Browsing a set: the sort, apart from the filter chips so it does not read as one. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <item android:id="@+id/itCaseSort"
+     android:icon="@drawable/ic_sort_order"
+     android:title="@string/case_sort_title"
+     app:showAsAction="always"/>
+</menu>
