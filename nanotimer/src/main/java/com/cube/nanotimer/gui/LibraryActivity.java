@@ -130,6 +130,12 @@ public class LibraryActivity extends NanoTimerActivity {
         .setText(getResources().getQuantityString(R.plurals.case_set_cases, size, size));
     ((TextView) card.findViewById(R.id.tvLibrarySetDescription)).setText(set.descriptionRes());
 
+    if (set.picture() == CaseSet.Picture.PAIR) {
+      // A pair has no standing, and a pick count would never move for a smart-cube solver.
+      card.findViewById(R.id.vLibrarySetProgress).setVisibility(View.GONE);
+      card.findViewById(R.id.tvLibrarySetProgress).setVisibility(View.GONE);
+      return false;
+    }
     int known = 0;
     int review = 0;
     int learn = 0;
