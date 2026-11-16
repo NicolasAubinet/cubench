@@ -23,6 +23,7 @@ public class SolveStep implements Serializable {
   private final List<PieceMark> pieceMarks;
   // And the cycle the cube wanted of it, where what it shot went wrong. Read, never stored.
   private final String wantedName;
+  private final long finalAufMs;
 
   public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
       List<SolveStep> subSteps) {
@@ -42,6 +43,14 @@ public class SolveStep implements Serializable {
 
   public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
       List<SolveStep> subSteps, boolean complete, List<PieceMark> pieceMarks, String wantedName) {
+    this(stepIndex, name, recognitionMs, executionMs, subSteps, complete, pieceMarks, wantedName,
+        0);
+  }
+
+  public SolveStep(int stepIndex, String name, long recognitionMs, long executionMs,
+      List<SolveStep> subSteps, boolean complete, List<PieceMark> pieceMarks, String wantedName,
+      long finalAufMs) {
+    this.finalAufMs = finalAufMs;
     this.stepIndex = stepIndex;
     this.name = name;
     this.recognitionMs = recognitionMs;
@@ -70,6 +79,19 @@ public class SolveStep implements Serializable {
 
   public long getTotalMs() {
     return recognitionMs + executionMs;
+  }
+
+  /**
+   * The part of the execution after the algorithm's last turn, the final AUF and the pause before
+   * it: kept in the step, left out of its case's times. 0 for a step with none.
+   */
+  public long getFinalAufMs() {
+    return finalAufMs;
+  }
+
+  /** The step's time as its case is timed: without the final AUF. */
+  public long getCaseMs() {
+    return getTotalMs() - finalAufMs;
   }
 
   /** False when the solve stopped inside this step: only its finished parts are here, and it ends

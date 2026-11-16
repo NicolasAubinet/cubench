@@ -87,6 +87,14 @@ public interface StepDetector {
     return true;
   }
 
+  /**
+   * Whether the alignment moves that close a step are an AUF set apart from its case: CFOP's PLL,
+   * whose algorithm never ends on a last-layer turn, so the trailing ones only line the layer up.
+   */
+  default boolean endsOnAuf(int step) {
+    return false;
+  }
+
   boolean isComplete();
 
   /**

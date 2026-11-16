@@ -128,6 +128,7 @@ public enum Options {
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
   public static final String CFOP_READING_KEY = "cfop_reading_version";
   public static final String ROUX_READING_KEY = "roux_reading_version";
+  private static final String PLL_DRILL_REPS_KEY = "pll_drill_reps_version";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   private static final String LEARN_PICK_KEY_PREFIX = "learn_pick_";
   private static final String LEARN_PICK_CLEANED_KEY = "learn_pick_cleaned";
@@ -1190,6 +1191,15 @@ public enum Options {
 
   public void setRouxReadingVersion(int version) {
     sharedPreferences.edit().putInt(ROUX_READING_KEY, version).apply();
+  }
+
+  /** Whether the stored PLL drill reps were timed again without their final AUF: 1 once done. */
+  public int getPllDrillRepsVersion() {
+    return sharedPreferences.getInt(PLL_DRILL_REPS_KEY, 0);
+  }
+
+  public void setPllDrillRepsVersion(int version) {
+    sharedPreferences.edit().putInt(PLL_DRILL_REPS_KEY, version).apply();
   }
 
 }

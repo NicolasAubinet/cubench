@@ -142,6 +142,8 @@ public final class DrillSession {
   private long firstMoveMs;
   /** The first turn that was not an AUF, which is where the algorithm really started. */
   private long algStartMs;
+  /** The last turn that was not of the layer: where a PLL's algorithm ended, before its AUF. */
+  private long algEndMs;
   private long lastMoveMs;
   /** Host wall-clock, converted to the cube's clock when it is read. See {@link #markCaseShown}. */
   private long caseShownAtMs = NOT_SHOWN;
@@ -374,6 +376,7 @@ public final class DrillSession {
     moves.clear();
     firstMoveMs = 0;
     algStartMs = 0;
+    algEndMs = 0;
     lastMoveMs = 0;
     firstPairInMs = NOT_SHOWN;
     pairTwoStartMs = NOT_SHOWN;
@@ -763,6 +766,7 @@ public final class DrillSession {
     moves.clear();
     firstMoveMs = 0;
     algStartMs = 0;
+    algEndMs = 0;
     lastMoveMs = 0;
     firstPairInMs = NOT_SHOWN;
     pairTwoStartMs = NOT_SHOWN;
@@ -810,8 +814,11 @@ public final class DrillSession {
     if (moves.isEmpty()) {
       firstMoveMs = at;
     }
-    if (algStartMs == 0 && move.getFace() != Face.valueOf(layerFace)) {
-      algStartMs = at;
+    if (move.getFace() != Face.valueOf(layerFace)) {
+      if (algStartMs == 0) {
+        algStartMs = at;
+      }
+      algEndMs = at;
     }
     if (firstPairInMs != NOT_SHOWN && pairTwoStartMs == NOT_SHOWN) {
       pairTwoStartMs = at; // the first turn after a pair came in ends the pause
@@ -899,6 +906,10 @@ public final class DrillSession {
    */
   private boolean isCaseDone() {
     return isCaseDone(cube);
+  }
+
+  private boolean isPermutation() {
+    return !pairs && !lookAhead && currentCase != null && currentCase.startsWith("pll_");
   }
 
   private boolean isCaseDone(CubieCube state) {
@@ -1040,9 +1051,9 @@ public final class DrillSession {
 
   /**
    * A turn of the layer's own face before the algorithm only squared the case up to be read, so it
-   * is looking rather than solving; the one that closes an algorithm falls inside the execution by
-   * construction. A rep of nothing but those has no algorithm to have started, and is split at its
-   * first turn as before.
+   * is looking rather than solving. A PLL's turns of it after the algorithm are its final AUF,
+   * which a case is timed without, as in a solve; any other case's closing turn is its own. A rep
+   * of nothing but those has no algorithm to have started, and is split at its first turn.
    */
   private DrillRep complete(boolean abandoned) {
     // A look-ahead rep reads a turn of the layer as part of a pair, as a solve's F2L does.
@@ -1051,7 +1062,8 @@ public final class DrillSession {
     // rep is stored with are measured from this.
     long shownAt = caseShownOnCubeClock();
     long recognition = moves.isEmpty() ? 0 : Math.max(0, algStart - shownAt);
-    long execution = moves.isEmpty() ? 0 : Math.max(0, lastMoveMs - algStart);
+    long algEnd = algEndMs > 0 && isPermutation() && !abandoned ? algEndMs : lastMoveMs;
+    long execution = moves.isEmpty() ? 0 : Math.max(0, algEnd - algStart);
     boolean practice = practiceCase != null;
     String taughtAlgorithm = taught.get(currentCase);
     String turned = backSlots ? turnsAsHeld() : DrillRep.notation(moves);

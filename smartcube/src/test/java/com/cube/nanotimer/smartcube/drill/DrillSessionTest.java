@@ -142,25 +142,56 @@ public class DrillSessionTest {
         straight.getRecognitionMs() + 2 * GAP_MS, aligned.getRecognitionMs());
   }
 
-  /** The AUF that finishes a case is the case being solved, so it stays inside the turning. */
+  /** A PLL is timed without the AUF that finishes it, as a solve's case is. */
   @Test
-  public void theAufThatFinishesACaseIsTurning() {
+  public void theAufThatFinishesAPllIsLeftOut() {
+    DrillSession session = new DrillSession(spec("pll_ja", 12), new Random(3));
+    Hand hand = new Hand(session);
+    int closedOnAuf = 0;
+    while (hand.next()) {
+      String solution = inverse(session.getCurrentScramble());
+      int leading = aufMoves(asReported(solution));
+      List<CubeMove> backwards = new ArrayList<CubeMove>(asReported(solution));
+      Collections.reverse(backwards);
+      int trailing = aufMoves(backwards);
+      closedOnAuf += trailing > 0 ? 1 : 0;
+      DrillRep rep = hand.execute(solution);
+      assertNotNull(rep);
+      assertEquals("execution runs to the algorithm's last turn",
+          (rep.getMoveCount() - leading - trailing - 1) * GAP_MS, rep.getExecutionMs());
+    }
+    assertTrue("no rep closed on an AUF, so nothing was tested", closedOnAuf > 0);
+  }
+
+  /** And the pause before that AUF goes with it. */
+  @Test
+  public void thePauseBeforeTheFinalAufIsLeftOut() {
     DrillSession session = new DrillSession(spec("pll_ja", 12), new Random(3));
     Hand hand = new Hand(session);
     while (hand.next()) {
-      String solution = inverse(session.getCurrentScramble());
-      int alignment = leadingAufMoves(solution);
-      DrillRep rep = hand.execute(solution);
+      List<CubeMove> solution = asReported(inverse(session.getCurrentScramble()));
+      List<CubeMove> backwards = new ArrayList<CubeMove>(solution);
+      Collections.reverse(backwards);
+      int trailing = aufMoves(backwards);
+      if (trailing == 0) {
+        hand.execute(solution);
+        continue;
+      }
+      List<CubeMove> algorithm = solution.subList(0, solution.size() - trailing);
+      assertNull(hand.execute(algorithm));
+      hand.idle(900); // a long look before the AUF
+      DrillRep rep = hand.execute(solution.subList(solution.size() - trailing, solution.size()));
       assertNotNull(rep);
-      assertEquals("execution runs to the last turn, whatever that turn was",
-          (rep.getMoveCount() - alignment - 1) * GAP_MS, rep.getExecutionMs());
+      assertEquals((algorithm.size() - aufMoves(solution) - 1) * GAP_MS, rep.getExecutionMs());
+      return;
     }
+    throw new AssertionError("no rep closed on an AUF, so nothing was tested");
   }
 
-  /** How many turns at the head of a solution only put the case where it could be read. */
-  private static int leadingAufMoves(String algorithm) {
+  /** How many turns at the head of a list only line the layer up. */
+  private static int aufMoves(List<CubeMove> moves) {
     int alignment = 0;
-    for (CubeMove move : asReported(algorithm)) {
+    for (CubeMove move : moves) {
       if (move.getFace() != Face.U) {
         break;
       }
@@ -1926,7 +1957,12 @@ public class DrillSessionTest {
 
     /** Execute an algorithm, stopping the moment the rep is finished. */
     DrillRep execute(String algorithm) {
-      for (CubeMove move : asReported(algorithm)) {
+      return execute(asReported(algorithm));
+    }
+
+    /** The same with the turns as the cube reports them. */
+    DrillRep execute(List<CubeMove> moves) {
+      for (CubeMove move : moves) {
         CubeMove timed = new CubeMove(move.getFace(), move.isPrime(), clock);
         clock += GAP_MS;
         DrillRep rep = session.onMove(timed);

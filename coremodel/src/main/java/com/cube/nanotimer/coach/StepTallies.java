@@ -50,9 +50,19 @@ public class StepTallies {
   private final Map<String, Integer> rejected = new LinkedHashMap<String, Integer>();
   private final Map<String, Boolean> parts = new LinkedHashMap<String, Boolean>();
   private final Map<String, List<StepSample>> fumbles = new HashMap<String, List<StepSample>>();
+  private final boolean caseTimes;
 
   /** @param samples in the order their codes should be listed in, first occurrence first */
   public StepTallies(List<StepSample> samples) {
+    this(samples, false);
+  }
+
+  /**
+   * @param caseTimes whether to read each occurrence as its case is timed, the PLL's final AUF left
+   *     out ({@link StepSample#getCaseTimeMs}), rather than as the step it was in the solve
+   */
+  public StepTallies(List<StepSample> samples, boolean caseTimes) {
+    this.caseTimes = caseTimes;
     Map<String, List<StepSample>> byCode = new LinkedHashMap<String, List<StepSample>>();
     for (StepSample sample : samples) {
       List<StepSample> ofCode = byCode.get(sample.getCode());
@@ -68,7 +78,7 @@ public class StepTallies {
     Set<StepSample> dropped = Collections.newSetFromMap(new IdentityHashMap<StepSample, Boolean>());
     List<StepSample> tooLong = new ArrayList<StepSample>();
     for (List<StepSample> ofCode : byCode.values()) {
-      judge(ofCode, dropped, tooLong);
+      judge(ofCode, dropped, tooLong, caseTimes);
     }
     dropFollowers(samples, tooLong, dropped);
     for (Map.Entry<String, List<StepSample>> entry : byCode.entrySet()) {
@@ -86,12 +96,12 @@ public class StepTallies {
 
   /** Adds the code's outliers to {@code dropped}, and the ones over its median to {@code tooLong}. */
   private static void judge(List<StepSample> ofCode, Set<StepSample> dropped,
-      List<StepSample> tooLong) {
+      List<StepSample> tooLong, boolean caseTimes) {
     // A skip is a step that never happened rather than a fast one, so there is no spread to judge.
     if (ofCode.size() < MIN_SAMPLES_TO_FILTER || isSkip(ofCode.get(0).getCode())) {
       return;
     }
-    double[] times = times(ofCode);
+    double[] times = times(ofCode, caseTimes);
     boolean[] kept = kept(times);
     double median = median(times);
     for (int i = 0; i < kept.length; i++) {
@@ -153,14 +163,15 @@ public class StepTallies {
         continue;
       }
       count++;
-      totalMs += sample.getTimeMs();
+      long timeMs = timeOf(sample, caseTimes);
+      totalMs += timeMs;
       recognitionMs += sample.getRecognitionMs();
       // An occurrence that took no time came free rather than fast, so it is nobody's best.
-      if (sample.getTimeMs() > 0) {
-        bestMs = Math.min(bestMs, sample.getTimeMs());
+      if (timeMs > 0) {
+        bestMs = Math.min(bestMs, timeMs);
       }
-      worstMs = Math.max(worstMs, sample.getTimeMs());
-      sumOfSquares += (double) sample.getTimeMs() * sample.getTimeMs();
+      worstMs = Math.max(worstMs, timeMs);
+      sumOfSquares += (double) timeMs * timeMs;
     }
     if (bestMs == Long.MAX_VALUE) {
       bestMs = 0; // nothing but free occurrences: there is no best to report
@@ -198,12 +209,16 @@ public class StepTallies {
     return mad == 0 ? -1 : MAX_Z * mad / MAD_TO_SIGMA;
   }
 
-  private static double[] times(List<StepSample> ofCode) {
+  private static double[] times(List<StepSample> ofCode, boolean caseTimes) {
     double[] times = new double[ofCode.size()];
     for (int i = 0; i < times.length; i++) {
-      times[i] = ofCode.get(i).getTimeMs();
+      times[i] = timeOf(ofCode.get(i), caseTimes);
     }
     return times;
+  }
+
+  private static long timeOf(StepSample sample, boolean caseTimes) {
+    return caseTimes ? sample.getCaseTimeMs() : sample.getTimeMs();
   }
 
   private static double median(double[] values) {
@@ -277,7 +292,7 @@ public class StepTallies {
     }
     long total = 0;
     for (StepSample fumble : ofCode) {
-      total += fumble.getTimeMs();
+      total += timeOf(fumble, caseTimes);
     }
     return Long.valueOf(Math.round((double) total / ofCode.size()));
   }

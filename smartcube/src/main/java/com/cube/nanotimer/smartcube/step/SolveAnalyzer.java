@@ -207,8 +207,39 @@ public final class SolveAnalyzer {
       recognitionMs = turningFromMs - previousCompleteMs;
       executionMs = completeMs - turningFromMs;
     }
+    long finalAufMs = firstMoveMs == null ? 0
+        : Math.min(executionMs, finalAufMs(step, previousCompleteMs, completeMs, includeStartMove));
     return new StepTime(index, firstMoveMs == null ? skipped(name) : name, recognitionMs,
-        executionMs, subSteps, true, pieceMarks, wantedName);
+        executionMs, subSteps, true, pieceMarks, wantedName, finalAufMs);
+  }
+
+  /**
+   * From the last turn of the step's algorithm to the step's end, where the step closes on an AUF.
+   * Only a step that completed counts: one the solve stopped inside never reached its AUF.
+   */
+  private long finalAufMs(int step, long previousCompleteMs, long completeMs,
+      boolean includeStart) {
+    if (!detector.endsOnAuf(step)
+        || !Long.valueOf(completeMs).equals(detector.getStepTimestampMs(step))) {
+      return 0;
+    }
+    boolean trailing = false;
+    for (int i = moves.size() - 1; i >= 0; i--) {
+      CubeMove move = moves.get(i);
+      long timestampMs = move.getCubeTimestampMs();
+      if (timestampMs > completeMs) {
+        continue;
+      }
+      if (timestampMs < previousCompleteMs
+          || (timestampMs == previousCompleteMs && !includeStart)) {
+        return 0; // nothing but alignment turns: no algorithm to have ended
+      }
+      if (!detector.isAlignmentMove(step, move, true)) {
+        return trailing ? completeMs - timestampMs : 0;
+      }
+      trailing = true;
+    }
+    return 0;
   }
 
   /** A slot that came free named as the skip it is, the way a detector names a solved last layer. */
@@ -221,12 +252,15 @@ public final class SolveAnalyzer {
       boolean complete) {
     long recognitionMs = 0;
     long executionMs = 0;
+    long finalAufMs = 0;
     for (StepTime subStep : subSteps) {
       recognitionMs += subStep.getRecognitionMs();
       executionMs += subStep.getExecutionMs();
+      finalAufMs += subStep.getFinalAufMs();
     }
     return new StepTime(step, name, recognitionMs, executionMs,
-        split ? subSteps : new ArrayList<>(), complete);
+        split ? subSteps : new ArrayList<>(), complete, Collections.<PieceMark>emptyList(), null,
+        finalAufMs);
   }
 
   /** Only one part actually done — a one-look OLL or PLL, or a step the scramble half-gave: the

@@ -255,6 +255,9 @@ public interface Service {
    */
   void refreshCaseKnowledge(List<String> clearedBefore, DataCallback<Void> callback);
 
+  /** Times the PLL drill reps stored before a case was timed without its final AUF the same way. */
+  void refreshPllDrillReps(DataCallback<Void> callback);
+
   /** A learning drill has just cleared the case: stored as evidence of it being known. */
   void recordCaseCleared(String caseCode, DataCallback<Void> callback);
 

@@ -37,10 +37,10 @@ public final class SolveReinterpreter {
   /**
    * How stored CFOP breakdowns are read, bumped whenever a change to the reading should reach the
    * solves already stored: 1 named each F2L pair by its case, 2 dated a pair when the cross is back
-   * rather than when it first sits in its slot. The app reads the history again once per bump,
-   * through {@link #refresh}.
+   * rather than when it first sits in its slot, 3 stored the PLL's final AUF. The app reads the
+   * history again once per bump, through {@link #refresh}.
    */
-  public static final int CFOP_READING_VERSION = 2;
+  public static final int CFOP_READING_VERSION = 3;
 
   /** The same for Roux: 1 counted the wait before the second block as a pause inside it. */
   public static final int ROUX_READING_VERSION = 1;

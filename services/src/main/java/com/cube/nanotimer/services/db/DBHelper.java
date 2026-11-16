@@ -105,6 +105,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_SMARTCUBE_SOLVESTEP_NAME + " TEXT, " +
         DB.COL_SMARTCUBE_SOLVESTEP_TIME + " INTEGER NOT NULL, " +
         DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + " INTEGER NOT NULL, " +
+        DB.COL_SMARTCUBE_SOLVESTEP_FINAL_AUF + " INTEGER NOT NULL DEFAULT 0, " +
         DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " INTEGER, " +
         "FOREIGN KEY (" + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + ") REFERENCES " + DB.TABLE_TIMEHISTORY + " (" + DB.COL_ID + ") " +
       ");"
@@ -562,6 +563,12 @@ public class DBHelper extends SQLiteOpenHelper {
     }
     if (oldVersion < 39) {
       createCaseClearedTable(db);
+    }
+
+    // Filled by the CFOP re-read the reading version bump runs once, never here.
+    if (oldVersion < 40) {
+      db.execSQL("ALTER TABLE " + DB.TABLE_SMARTCUBE_SOLVESTEP + " ADD COLUMN "
+          + DB.COL_SMARTCUBE_SOLVESTEP_FINAL_AUF + " INTEGER NOT NULL DEFAULT 0");
     }
 
 //    progressDialog.hide();

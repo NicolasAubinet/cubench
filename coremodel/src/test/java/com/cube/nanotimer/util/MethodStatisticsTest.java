@@ -266,6 +266,23 @@ public class MethodStatisticsTest {
     Assert.assertNull(MethodStatistics.caseOf("cross"));
   }
 
+  /** A family is the step as solved; its cases, and what they are weighed against, are not. */
+  @Test
+  public void testCasesAreReadFromTheirOwnTallies() {
+    List<StepStats> steps = new ArrayList<StepStats>();
+    steps.add(tally("pll_gb", 2, 6000));
+    steps.add(tally("pll_t", 2, 4000));
+    List<StepStats> cases = new ArrayList<StepStats>();
+    cases.add(tally("pll_gb", 2, 5000));
+    cases.add(tally("pll_t", 2, 3000));
+    List<StepStats> none = new ArrayList<StepStats>();
+    MethodStatistics stats = new MethodStatistics(steps, none, cases, none, 4);
+
+    Assert.assertEquals(2500, stats.getFamily("pll").getMeanMs());
+    Assert.assertEquals(2500, stats.getCases("pll").get(0).getMeanMs());
+    Assert.assertEquals((2500 - 2000) * 2, stats.getTimeLostMs("pll_gb"));
+  }
+
   /** A tally of one code: {@code count} solves totalling {@code totalMs}, evenly spread. */
   private StepStats tally(String code, int count, long totalMs) {
     long each = count == 0 ? 0 : totalMs / count;

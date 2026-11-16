@@ -136,6 +136,8 @@ public interface ServiceProvider {
    */
   void refreshCaseKnowledge(List<String> clearedBefore);
 
+  void refreshPllDrillReps();
+
   /** Stores that a learning drill has just cleared the case, and reads its status again. */
   void recordCaseCleared(String caseCode, long atMs);
 

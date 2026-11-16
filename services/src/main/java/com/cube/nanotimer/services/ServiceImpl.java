@@ -873,6 +873,19 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void refreshPllDrillReps(final DataCallback<Void> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.refreshPllDrillReps();
+        if (callback != null) {
+          callback.onData(null);
+        }
+      }
+    });
+  }
+
+  @Override
   public void recordCaseCleared(final String caseCode, final DataCallback<Void> callback) {
     final long atMs = System.currentTimeMillis();
     run(new Runnable() {

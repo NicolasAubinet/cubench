@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 39;
+  public static final int DB_VERSION = 40;
 
   public static final String COL_ID = "id";
 
@@ -61,6 +61,7 @@ public class DB {
   public static final String COL_SMARTCUBE_SOLVESTEP_NAME = "name"; // step code (ex: "cross", "pair"), translated when displayed
   public static final String COL_SMARTCUBE_SOLVESTEP_TIME = "time";
   public static final String COL_SMARTCUBE_SOLVESTEP_RECOGNITION = "recognition"; // execution time is the remainder of the step time
+  public static final String COL_SMARTCUBE_SOLVESTEP_FINAL_AUF = "final_auf"; // the PLL's final AUF, inside time but out of its case's times
   public static final String COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID = "timehistory_id";
   public static final String IDX_SMARTCUBE_SOLVESTEP_TIMEHISTORY = "idx_smartcube_solvestep_timehistory";
   public static final String IDX_SMARTCUBE_SOLVESTEP_NAME = "idx_smartcube_solvestep_name";

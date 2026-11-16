@@ -17,6 +17,7 @@ import com.cube.nanotimer.coach.StepSample;
 import com.cube.nanotimer.coach.StepTallies;
 import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
+import com.cube.nanotimer.drill.PllFinalAuf;
 import com.cube.nanotimer.services.db.AverageRecordsStore;
 import com.cube.nanotimer.services.db.CaseKnowledgeStore;
 import com.cube.nanotimer.services.db.SolveReadingStore;
@@ -34,6 +35,7 @@ import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
 import com.cube.nanotimer.vo.FrequencyData;
+import com.cube.nanotimer.vo.PieceMark;
 import com.cube.nanotimer.vo.ProgressListener;
 import com.cube.nanotimer.vo.ScrambleType;
 import com.cube.nanotimer.vo.SessionDetails;
@@ -72,6 +74,10 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 public class ServiceProviderImpl implements ServiceProvider {
+
+  /** A step row's time as its case is timed, the PLL's final AUF left out. */
+  private static final String CASE_TIME = "(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
+      + " - s." + DB.COL_SMARTCUBE_SOLVESTEP_FINAL_AUF + ")";
 
   /**
    * Keeps look-ahead and back-slot reps out of the per-case figures: two pairs are not a case, and
@@ -905,6 +911,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_SMARTCUBE_SOLVESTEP_NAME, step.getName());
     values.put(DB.COL_SMARTCUBE_SOLVESTEP_TIME, step.getTotalMs());
     values.put(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION, step.getRecognitionMs());
+    values.put(DB.COL_SMARTCUBE_SOLVESTEP_FINAL_AUF, step.getFinalAufMs());
     values.put(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID, historyId);
     db.insert(DB.TABLE_SMARTCUBE_SOLVESTEP, null, values);
   }
@@ -923,6 +930,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
     q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
     q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION);
+    q.append("     , ").append(DB.COL_SMARTCUBE_SOLVESTEP_FINAL_AUF);
     q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP);
     q.append(" WHERE ").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID).append(" = ?");
     q.append(" ORDER BY ").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
@@ -934,6 +942,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     String name = null;
     long recognitionMs = 0;
     long timeMs = 0;
+    long finalAufMs = 0;
     boolean pending = false;
     Cursor cursor = db.rawQuery(q.toString(), getStringArray(solveTimeId));
     if (cursor != null) {
@@ -941,24 +950,28 @@ public class ServiceProviderImpl implements ServiceProvider {
         if (cursor.isNull(1)) { // a step: close the previous one, then start this one
           if (pending) {
             steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps,
-                stoppedStep == null || stoppedStep != stepIndex));
+                stoppedStep == null || stoppedStep != stepIndex,
+                Collections.<PieceMark>emptyList(), null, finalAufMs));
           }
           stepIndex = cursor.getInt(0);
           name = cursor.getString(2);
           timeMs = cursor.getLong(3);
           recognitionMs = cursor.getLong(4);
+          finalAufMs = cursor.getLong(5);
           subSteps = new ArrayList<SolveStep>();
           pending = true;
         } else { // a part of the step being read
           long partTime = cursor.getLong(3);
           long partRecognition = cursor.getLong(4);
           subSteps.add(new SolveStep(cursor.getInt(1), cursor.getString(2),
-              partRecognition, partTime - partRecognition, new ArrayList<SolveStep>()));
+              partRecognition, partTime - partRecognition, new ArrayList<SolveStep>(), true,
+              Collections.<PieceMark>emptyList(), null, cursor.getLong(5)));
         }
       }
       if (pending) {
         steps.add(new SolveStep(stepIndex, name, recognitionMs, timeMs - recognitionMs, subSteps,
-            !Integer.valueOf(stepIndex).equals(stoppedStep)));
+            !Integer.valueOf(stepIndex).equals(stoppedStep), Collections.<PieceMark>emptyList(),
+            null, finalAufMs));
       }
       cursor.close();
     }
@@ -1748,8 +1761,9 @@ public class ServiceProviderImpl implements ServiceProvider {
       }
     });
     StepTallies tallies = new StepTallies(samples);
-    return new MethodStatistics(tallies.getSteps(), tallies.getParts(),
-        getMethodSolvesCount(solveType, method, windowSize));
+    StepTallies caseTallies = new StepTallies(samples, true);
+    return new MethodStatistics(tallies.getSteps(), tallies.getParts(), caseTallies.getSteps(),
+        caseTallies.getParts(), getMethodSolvesCount(solveType, method, windowSize));
   }
 
   /**
@@ -1770,7 +1784,7 @@ public class ServiceProviderImpl implements ServiceProvider {
 
     StringBuilder q = new StringBuilder();
     q.append("SELECT s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
-    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
+    q.append("     , ").append(CASE_TIME);
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION);
     q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
     q.append("  JOIN (").append(methodSolvesWindow(Integer.MAX_VALUE)).append(") h");
@@ -1835,12 +1849,11 @@ public class ServiceProviderImpl implements ServiceProvider {
         + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " IS NOT NULL"
         + " ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastSolves);
     String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME
-        + ", COUNT(*), SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", COUNT(*), SUM(" + CASE_TIME + ")"
         + ", SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + ")"
-        + ", MIN(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
-        + ", MAX(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
-        + ", SUM(1.0 * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
-        + "      * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", MIN(" + CASE_TIME + ")"
+        + ", MAX(" + CASE_TIME + ")"
+        + ", SUM(1.0 * " + CASE_TIME + " * " + CASE_TIME + ")"
         + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + " JOIN (" + window + ") h ON h." + DB.COL_ID
         + "    = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -1871,7 +1884,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
         + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
-    String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
+    String q = "SELECT " + CASE_TIME
         + ", s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION
         + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + " JOIN " + DB.TABLE_TIMEHISTORY + " h"
@@ -2352,6 +2365,43 @@ public class ServiceProviderImpl implements ServiceProvider {
     CaseKnowledgeStore.rebuild(db);
   }
 
+  /** In one transaction, so a run killed part way leaves every rep as it was, to be done again. */
+  @Override
+  public void refreshPllDrillReps() {
+    String q = "SELECT " + DB.COL_DRILL_REP_DRILL_ID + ", " + DB.COL_DRILL_REP_POSITION
+        + ", " + DB.COL_DRILL_REP_SCRAMBLE
+        + ", " + DB.COL_DRILL_REP_MOVES + ", " + DB.COL_DRILL_REP_RECOGNITION
+        + ", " + DB.COL_DRILL_REP_EXECUTION
+        + " FROM " + DB.TABLE_DRILL_REP
+        + " WHERE substr(" + DB.COL_DRILL_REP_CASE + ", 1, 4) = 'pll_'"
+        + "   AND " + DB.COL_DRILL_REP_ABANDONED + " = 0";
+    List<long[]> executions = new ArrayList<long[]>(); // {drill, position, execution}
+    Cursor cursor = db.rawQuery(q, null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        Long execution = PllFinalAuf.executionMs(cursor.getString(2), cursor.getString(3),
+            cursor.getLong(4));
+        if (execution != null && execution.longValue() < cursor.getLong(5)) {
+          executions.add(new long[] { cursor.getLong(0), cursor.getLong(1), execution });
+        }
+      }
+      cursor.close();
+    }
+    db.beginTransaction();
+    try {
+      for (long[] rep : executions) {
+        ContentValues values = new ContentValues();
+        values.put(DB.COL_DRILL_REP_EXECUTION, rep[2]);
+        db.update(DB.TABLE_DRILL_REP, values, DB.COL_DRILL_REP_DRILL_ID + " = ? AND "
+            + DB.COL_DRILL_REP_POSITION + " = ?",
+            new String[] { String.valueOf(rep[0]), String.valueOf(rep[1]) });
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+
   @Override
   public void recordCaseCleared(String caseCode, long atMs) {
     CaseKnowledgeStore.recordCleared(db, caseCode, atMs);
@@ -2538,6 +2588,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX);
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
     q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX);
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_FINAL_AUF);
     q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
     q.append("  JOIN (").append(window).append(") h");
     q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
@@ -2555,7 +2606,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         boolean part = !cursor.isNull(3); // its sub_index is where it came in its step
         samples.add(new StepSample(cursor.getString(0), cursor.getLong(1), cursor.getLong(2),
             part, cursor.getLong(4), part ? Integer.valueOf(cursor.getInt(3)) : null,
-            Integer.valueOf(cursor.getInt(5))));
+            Integer.valueOf(cursor.getInt(5)), cursor.getLong(6)));
       }
       cursor.close();
     }
