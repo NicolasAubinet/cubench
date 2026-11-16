@@ -1,6 +1,5 @@
 package com.cube.nanotimer.services.db;
 
-import com.cube.nanotimer.step.F2lPairCases;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -49,6 +48,9 @@ public final class CaseKnowledgeStore {
 
   /** The case a step is under when it was already solved on arrival: no case was executed. */
   private static final String SKIPPED = MethodStatistics.SKIP;
+
+  /** The family every F2L pair code is under, a drill's slot codes included. */
+  private static final String PAIR_FAMILY = "pair";
 
   private CaseKnowledgeStore() {
   }
@@ -196,12 +198,14 @@ public final class CaseKnowledgeStore {
 
   /**
    * A step naming no case, or one already solved on arrival, is evidence about nothing; nor is a
-   * look-ahead rep, whose code reads like an F2L case and is two pairs.
+   * look-ahead rep, whose code reads like an F2L case and is two pairs. An F2L pair gets no standing
+   * at all: it can be put in any way, so "known" would only mean "met" (owner, 2026-11-16).
    */
   private static boolean namesACase(String code) {
     String caseName = code == null ? null : MethodStatistics.caseOf(code);
     return caseName != null && !SKIPPED.equals(caseName)
-        && !DB.DRILL_REP_LOOKAHEAD_CASE.equals(code) && F2lPairCases.slotOf(code) == null;
+        && !DB.DRILL_REP_LOOKAHEAD_CASE.equals(code)
+        && !PAIR_FAMILY.equals(MethodStatistics.familyOf(code));
   }
 
   private static void write(SQLiteDatabase db, String caseSet, String caseName,
