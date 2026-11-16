@@ -1283,7 +1283,9 @@
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
   <string name="analysis_window_title">Le\u00eddo sobre</string>
+  <string name="analysis_case_window_title">Cada caso, leído sobre</string>
   <string name="analysis_window_chip">%s \u25be</string>
+  <string name="analysis_window_10">Últimas 10</string>
   <string name="analysis_window_50">\u00daltimas 50</string>
   <string name="analysis_window_100">\u00daltimas 100</string>
   <string name="analysis_window_1000">Últimas 1000</string>
@@ -1663,12 +1665,12 @@
   <string name="analysis_help_plan_new">Un plan nuevo</string>
   <string name="analysis_help_plan_new_body">Se basa en tus últimas 100 resoluciones con smart cube, así que para el primero hacen falta esas 100. Después llega uno nuevo cada semana, cuando hayas hecho 25 resoluciones más y tu sesión haya terminado.</string>
   <string name="analysis_help_cases_title">Caso por caso</string>
-  <string name="analysis_help_cases_body">Los casos del paso elegido que resolviste en un solo look, en el rango elegido arriba. Las resoluciones en dos looks no cuentan.</string>
+  <string name="analysis_help_cases_body">Los casos del paso elegido que resolviste en un solo look, cada uno sobre sus propias últimas resoluciones: el número de arriba. Un caso que salió solo 3 veces se lee sobre esas 3. Las resoluciones en dos looks no cuentan.</string>
   <string name="analysis_help_standing">Estado de un caso</string>
   <string name="analysis_help_standing_body">Conocido: resuelto en un solo look y sin ayuda, hace poco, así que aún cuenta. Para repasar: antes salía en un solo look, pero las dos últimas veces necesitó dos. Para aprender: nunca ha salido en un solo look. Todo esto sale de tus resoluciones y tus drills.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">En OLL, el botón Forma limita la tabla a un grupo de formas, con el número de casos de cada grupo al lado.</string>
-  <string name="analysis_help_rest_body">Bajo la tabla, los casos que no resolviste en un solo look en este rango, agrupados según su estado en todas tus resoluciones. Toca uno para ver sus algoritmos.</string>
+  <string name="analysis_help_rest_body">Bajo la tabla, los casos que nunca resolviste en un solo look con este tipo de resolución, agrupados según su estado en todas tus resoluciones. Toca uno para ver sus algoritmos.</string>
   <string name="analysis_help_sample">Ejemplo</string>
   <string name="analysis_help_sample_body">Son datos de ejemplo. Se muestran hasta tu primera resolución con un smart cube.</string>
 

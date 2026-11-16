@@ -153,6 +153,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   private SolveType solveType;
   private CubeMethod method;
   private AnalysisWindow window;
+  /** The Cases tab's own window: each case's last solves, not the hub's last solves. */
+  private AnalysisCaseWindow caseWindow;
   private SegmentedControl tabs;
   private CaseTableHeadings headings;
   private StepPalette palette;
@@ -251,6 +253,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     readablePuzzle = solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId();
     window = AnalysisWindow.of(Options.INSTANCE.getAnalysisWindow(
         AnalysisWindow.HUNDRED.ordinal()));
+    caseWindow = AnalysisCaseWindow.of(Options.INSTANCE.getAnalysisCaseWindow(
+        AnalysisCaseWindow.FIFTY.ordinal()));
     palette = StepPalette.cfop(this);
 
     showContext();
@@ -341,6 +345,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
       public void onClick(View v) {
         if (sampleOffered()) {
           askForMode();
+        } else if (tab == TAB_CASES) {
+          askForCaseWindow();
         } else {
           askForWindow();
         }
@@ -398,9 +404,10 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     if (windowItem == null) {
       return;
     }
-    // A trainer has no window worth offering: no slice of it will ever hold a step.
-    windowItem.setVisible(readAsSolve());
-    if (!readAsSolve()) {
+    // A trainer has no window worth offering: no slice of it will ever hold a step. Plan reads none.
+    boolean offered = readAsSolve() && tab != TAB_PLAN;
+    windowItem.setVisible(offered);
+    if (!offered) {
       return;
     }
     boolean sampling = sampling();
@@ -409,7 +416,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     if (sampleOffered()) {
       label = sampling ? R.string.analysis_sample_chip : R.string.analysis_sample_mine;
     } else {
-      label = window.getLabelId();
+      label = tab == TAB_CASES ? caseWindow.getLabelId() : window.getLabelId();
     }
     chip.setText(getString(R.string.analysis_window_chip, getString(label)));
     chip.setBackgroundResource(sampling ? R.drawable.analysis_sample_chip : R.drawable.row_chip);
@@ -457,6 +464,40 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
           }
         })
         .show();
+  }
+
+  private void askForCaseWindow() {
+    AnalysisCaseWindow[] windows = AnalysisCaseWindow.values();
+    String[] labels = new String[windows.length];
+    for (int i = 0; i < labels.length; i++) {
+      labels[i] = getString(windows[i].getLabelId());
+    }
+    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.analysis_case_window_title)
+        .setSingleChoiceItems(labels, caseWindow.ordinal(), (dialog, which) -> {
+          dialog.dismiss();
+          caseWindow = windows[which];
+          Options.INSTANCE.setAnalysisCaseWindow(caseWindow.ordinal());
+          showWindow();
+          loadCases();
+        })
+        .show();
+  }
+
+  /** Reads the Cases tab's table again alone, dropping an answer that lands after another pick. */
+  private void loadCases() {
+    final AnalysisCaseWindow asked = caseWindow;
+    App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, method, asked.perCase(),
+        new DataCallback<List<StepStats>>() {
+          @Override
+          public void onData(final List<StepStats> oneAlgorithm) {
+            runOnUiThread(() -> {
+              if (asked == caseWindow && !isFinishing() && read != null) {
+                show(read, oneAlgorithm);
+              }
+            });
+          }
+        });
   }
 
   /**
@@ -548,6 +589,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     }
     showWhatIsReadable();
     showPlanMenu();
+    showWindow(); // each tab has its own window, and Plan none
     if (moved) {
       // A tab is a different question, so it starts at its own first answer rather than at
       // whatever depth the last one was left scrolled to.
@@ -705,7 +747,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
           @Override
           public void onData(final MethodStatistics statistics) {
             App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, method,
-                window.solves(), new DataCallback<List<StepStats>>() {
+                caseWindow.perCase(), new DataCallback<List<StepStats>>() {
                   @Override
                   public void onData(final List<StepStats> oneAlgorithm) {
                     runOnUiThread(new Runnable() {

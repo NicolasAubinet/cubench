@@ -67,7 +67,7 @@ public interface ServiceProvider {
   List<FrequencyData> getFrequencyData(SolveType solveType, Long from);
   MethodStatistics getMethodStatistics(SolveType solveType, CubeMethod method, int lastSolves);
   List<StepStats> getOneAlgorithmCaseStatistics(SolveType solveType, CubeMethod method,
-      int lastSolves);
+      int perCase);
   int getSmartcubeSolvesCount(SolveType solveType);
 
   boolean hasAnySmartcubeSolve();

@@ -1332,7 +1332,9 @@
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
   <string name="analysis_window_title">Read over</string>
+  <string name="analysis_case_window_title">Each case, read over</string>
   <string name="analysis_window_chip">%s \u25be</string>
+  <string name="analysis_window_10">Last 10</string>
   <string name="analysis_window_50">Last 50</string>
   <string name="analysis_window_100">Last 100</string>
   <string name="analysis_window_1000">Last 1000</string>
@@ -1717,12 +1719,12 @@
   <string name="analysis_help_plan_new">A new plan</string>
   <string name="analysis_help_plan_new_body">Written from your last 100 smart cube solves, so the first one needs that many. After that a new plan comes every week, once you have done 25 more solves and your session is over.</string>
   <string name="analysis_help_cases_title">Case by case</string>
-  <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look, over the window shown at the top. Two-look solves are left out.</string>
+  <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look, each over its own last solves: the number at the top. A case that came up only 3 times is read over those 3. Two-look solves are left out.</string>
   <string name="analysis_help_standing">Where a case stands</string>
   <string name="analysis_help_standing_body">Known: solved in one look, without help, recently enough to still count. Needs review: solved in one look before, but in two looks the last two times. To learn: never solved in one look. All of this comes from your solves and drills.</string>
   <string name="analysis_help_shape">Shape</string>
   <string name="analysis_help_shape_body">On OLL, a Shape button narrows the table to one group of shapes, with each group\'s size beside it.</string>
-  <string name="analysis_help_rest_body">Under the table, the cases you did not solve in one look in this window, grouped by where they stand across all your solves. Tap one for its algorithms.</string>
+  <string name="analysis_help_rest_body">Under the table, the cases you have never solved in one look with this solve type, grouped by where they stand across all your solves. Tap one for its algorithms.</string>
   <string name="analysis_help_sample">Example</string>
   <string name="analysis_help_sample_body">This is example data, shown until your first solve with a smart cube.</string>
 

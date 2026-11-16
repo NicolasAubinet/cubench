@@ -52,7 +52,8 @@ import java.util.Set;
  * slow it runs, how good it has been and how steady it is, and the reader weighs them.
  *
  * <p><b>The set is shown whole, in two parts, and they run on two different clocks.</b> The table is
- * the window's cases that went in with one algorithm, each figure over those solves only, since a
+ * the cases that went in with one algorithm, each read over its own last solves (the tab's own
+ * window, {@link com.cube.nanotimer.gui.AnalysisCaseWindow}) and only those, since a
  * two-look time is not the time of an algorithm the solver has; the section under it is the rest of
  * the set, and where each of those stands is read from every solve there has ever been. That is
  * not a "never seen" list: a case known cold that did not come up in the last hundred solves is in
@@ -171,7 +172,7 @@ public class AnalysisCases {
   }
 
   /**
-   * @param oneAlgorithm each case over only the window's solves where it went in one algorithm,
+   * @param oneAlgorithm each case over its own last solves where it went in one algorithm,
    *     which is all the table shows: a two-looked case is not one the solver has an algorithm for
    */
   public void show(MethodStatistics statistics, List<StepStats> oneAlgorithm,
@@ -241,8 +242,15 @@ public class AnalysisCases {
     // The method's own steps only. A part is coded by the algorithm that answered a case, so
     // taking parts as well would list one case twice, once as dealt and once as answered.
     for (StepStats step : statistics.getFamilies()) {
-      if (!drawnCases(step.getCode()).isEmpty()) {
+      if (!drawnCodes(step.getCode()).isEmpty()) {
         families.add(step.getCode());
+      }
+    }
+    // The table reads each case's own last solves, which can reach back past the hub's window
+    for (StepStats stepCase : oneAlgorithm) {
+      String of = MethodStatistics.familyOf(stepCase.getCode());
+      if (DRAWN.containsKey(stepCase.getCode()) && !families.contains(of)) {
+        families.add(of);
       }
     }
     if (!families.isEmpty() && !families.contains(family)) {
@@ -283,7 +291,7 @@ public class AnalysisCases {
         group = picked;
         redraw();
       }
-    }).offer(codesOf(drawnCases(family))).known(knownCodes()).setGroup(group);
+    }).offer(drawnCodes(family)).known(knownCodes()).setGroup(group);
     if (!filter.hasGroups()) {
       return;
     }
@@ -303,20 +311,12 @@ public class AnalysisCases {
 
   /** Whether the window drew any of the group's cases, which is what offers it. */
   private boolean anyDrawn(CaseGroup candidate) {
-    for (String code : codesOf(drawnCases(family))) {
+    for (String code : drawnCodes(family)) {
       if (candidate.contains(code)) {
         return true;
       }
     }
     return false;
-  }
-
-  private static List<String> codesOf(List<StepStats> cases) {
-    List<String> codes = new ArrayList<String>();
-    for (StepStats stepCase : cases) {
-      codes.add(stepCase.getCode());
-    }
-    return codes;
   }
 
   private void addSegment(LinearLayout segments, LayoutInflater inflater, final String code,
@@ -479,13 +479,8 @@ public class AnalysisCases {
 
   /**
    * The rest of the step's set: every case of it the table does not hold, grouped under where it
-   * stands. A case the window only saw two-looked is here, under its standing.
-   *
-   * <p><b>Where a case stands is read over every solve, and the table above is read over the
-   * window.</b> Two clocks on one screen: a case the solver knows cold that has not come up in the
-   * last hundred solves belongs here, and it belongs here as known. This is not a list of cases they
-   * have never seen. That distinction was said in a line over the section and is now only on the
-   * help sheet, the headings being clear enough on their own to pay for the two rows it took.
+   * stands: a case this solve type only ever two-looked, or never met. Where it stands is read over
+   * every solve of any type, so a case known from drills or another solve type is here as known.
    *
    * <p>A case with nothing behind it is grouped under the words the ring above already counts it
    * with, and never under anything reading as "you do not know this": absence is not evidence.

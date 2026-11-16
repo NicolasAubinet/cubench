@@ -73,10 +73,10 @@ public interface Service {
       DataCallback<MethodStatistics> callback);
 
   /**
-   * Each step over the same window as {@link #getMethodStatistics}, counting only the solves where
-   * it went in one algorithm: a last layer case over the times it was not two-looked.
+   * Each case of the solve type's method over its own last {@code perCase} solves where it went in
+   * one algorithm (not two-looked), so a rare case is read over as many times as a common one.
    */
-  void getOneAlgorithmCaseStatistics(SolveType solveType, CubeMethod method, int lastSolves,
+  void getOneAlgorithmCaseStatistics(SolveType solveType, CubeMethod method, int perCase,
       DataCallback<List<StepStats>> callback);
 
   /**
