@@ -8,9 +8,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.CaseTableHeadings;
 import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
@@ -27,6 +29,7 @@ import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -52,6 +55,10 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
 
   private static final int[] VALUE_IDS = {R.id.tvDrillAttemptRecognition,
       R.id.tvDrillAttemptExecution, R.id.tvDrillAttemptTotal};
+  /** No count column; then the three figures, which open slowest first like the other tables. */
+  private static final int[] HEADING_LABELS = {0, R.string.drill_summary_column_recognition,
+      R.string.drill_summary_column_execution, R.string.drill_summary_column_total};
+  private static final boolean[] OPENS_DESCENDING = {false, true, true, true};
 
   /** A thrown-out line: still legible, and plainly not one of the attempts being read. */
   private static final float DELETED_ALPHA = 0.45f;
@@ -75,6 +82,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     findViewById(R.id.llDrillCaseUndo).setVisibility(View.GONE);
   };
   private LinearLayout rows;
+  private CaseTableHeadings headings;
   private final List<DrillCaseAttempt> attempts = new ArrayList<DrillCaseAttempt>();
   private final TimeColorScale[] scales = new TimeColorScale[VALUE_IDS.length];
   /** The one family this screen ever reads, since it is reading one case of it. */
@@ -100,6 +108,11 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     findViewById(R.id.llDrillCaseStatsHeader).setOnClickListener(
         v -> DialogUtils.showFragment(this, CaseSheet.newInstance(caseCode)));
     findViewById(R.id.tvDrillCaseUndo).setOnClickListener(v -> undo());
+    headings = new CaseTableHeadings(findViewById(R.id.llDrillCaseStatsSection), HEADING_LABELS,
+        OPENS_DESCENDING, CaseTableHeadings.LABEL_COLUMN, (column, descending) -> order());
+    headings.setLabel(R.string.drill_case_stats_attempts);
+    headings.rankableLabel(true); // newest first
+    headings.setAccent(hue);
 
     // The attempts survive a rotation rather than being read again, because reading them again
     // would lose the struck lines: a rep thrown out is gone from the query at once, and this screen
@@ -154,10 +167,43 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
       }
       final View line = inflater.inflate(R.layout.drill_case_attempt_row, rows, false);
       SwipeToRemove.attach(line, row -> remove(attempt, row));
+      ((TextView) line.findViewById(R.id.tvDrillAttemptTotal))
+          .setTypeface(ResourcesCompat.getFont(this, R.font.roboto_bold));
       line.setTag(attempt);
       rows.addView(line);
     }
+    order();
     refresh();
+  }
+
+  /** Puts the lines in the order the headings ask for; an attempt with no time sinks either way. */
+  private void order() {
+    final int column = headings.column();
+    final boolean descending = headings.descending();
+    List<View> lines = new ArrayList<View>();
+    for (int i = 0; i < rows.getChildCount(); i++) {
+      lines.add(rows.getChildAt(i));
+    }
+    Collections.sort(lines, (a, b) -> {
+      DrillCaseRep repA = ((DrillCaseAttempt) a.getTag()).getRep();
+      DrillCaseRep repB = ((DrillCaseAttempt) b.getTag()).getRep();
+      if (column == CaseTableHeadings.LABEL_COLUMN) {
+        int byDate = Long.compare(((DrillCaseAttempt) a.getTag()).getTimestamp(),
+            ((DrillCaseAttempt) b.getTag()).getTimestamp());
+        int order = byDate != 0 ? byDate : Integer.compare(repA.getPosition(), repB.getPosition());
+        return descending ? -order : order;
+      }
+      if (repA.isAbandoned() != repB.isAbandoned()) {
+        return repA.isAbandoned() ? 1 : -1;
+      }
+      int order = Long.compare(value(repA, column - 1), value(repB, column - 1));
+      return descending ? -order : order;
+    });
+    rows.removeAllViews();
+    for (View line : lines) {
+      rows.addView(line);
+    }
+    headings.refresh();
   }
 
   /** The attempts still on the list, the ones swiped away left out. */
@@ -298,6 +344,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
       line.setAlpha(1f);
       rows.addView(line, Math.min(at, rows.getChildCount()));
       setDeleted(attempt, false);
+      order();
     };
     View bar = findViewById(R.id.llDrillCaseUndo);
     bar.setVisibility(View.VISIBLE);

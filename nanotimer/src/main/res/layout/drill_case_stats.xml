@@ -87,8 +87,8 @@
        android:orientation="vertical"
        android:visibility="gone">
 
-      <!-- Newest first, and not sortable: a list of attempts at one case is read as a run of them,
-           and ranking it by time would take away the one thing it is here to show. -->
+      <!-- case_table's heading ids, so CaseTableHeadings sorts it like every other table:
+           "Attempts" by date (newest first), the three figures by time. -->
       <LinearLayout
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
@@ -99,22 +99,33 @@
          android:paddingRight="@dimen/space_xs">
 
         <TextView
+           android:id="@+id/tvCaseTableSortCount"
+           style="@style/DrillCasePositionColumn"/>
+
+        <TextView
+           android:id="@+id/tvCaseTableLabel"
            style="@style/DialogSectionLabel"
            android:layout_width="0dp"
-           android:layout_weight="1"
-           android:text="@string/drill_case_stats_attempts"/>
+           android:layout_weight="1"/>
 
         <TextView
-           style="@style/DrillCaseColumn"
-           android:text="@string/drill_summary_column_recognition"/>
+           android:id="@+id/tvCaseTableSortOne"
+           style="@style/DrillCaseColumn"/>
 
         <TextView
-           style="@style/DrillCaseColumn"
-           android:text="@string/drill_summary_column_execution"/>
+           android:id="@+id/tvCaseTableSortTwo"
+           style="@style/DrillCaseColumn"/>
 
         <TextView
+           android:id="@+id/tvCaseTableSortThree"
            style="@style/DrillCaseColumn"
-           android:text="@string/drill_summary_column_total"/>
+           android:layout_width="@dimen/drill_case_lead_column"/>
+
+        <View
+           android:id="@+id/vCaseTableChevronSpace"
+           android:layout_width="20dp"
+           android:layout_height="1dp"
+           android:visibility="gone"/>
       </LinearLayout>
 
       <View
