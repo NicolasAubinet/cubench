@@ -604,44 +604,6 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
-  public void getSolvesWithoutPairOutcomes(final int solves,
-      final DataCallback<List<SolveTime>> callback) {
-    run(new Runnable() {
-      @Override
-      public void run() {
-        callback.onData(provider.getSolvesWithoutPairOutcomes(solves));
-      }
-    });
-  }
-
-  @Override
-  public void savePairOutcomes(final Map<Long, List<String[]>> outcomes, final boolean rebuild,
-      final DataCallback<Void> callback) {
-    run(new Runnable() {
-      @Override
-      public void run() {
-        provider.savePairOutcomes(outcomes, rebuild);
-        if (callback != null) {
-          callback.onData(null);
-        }
-      }
-    });
-  }
-
-  @Override
-  public void forgetPairOutcomes(final DataCallback<Void> callback) {
-    run(new Runnable() {
-      @Override
-      public void run() {
-        provider.forgetPairOutcomes();
-        if (callback != null) {
-          callback.onData(null);
-        }
-      }
-    });
-  }
-
-  @Override
   public void getCoachPayload(final SolveType solveType, final CubeMethod method,
       final List<PairExecution> executions, final List<StepTurning> turnings,
       final DataCallback<CoachPayload> callback) {

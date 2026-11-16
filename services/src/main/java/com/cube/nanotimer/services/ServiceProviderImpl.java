@@ -19,7 +19,6 @@ import com.cube.nanotimer.coach.StoredCoachPlan;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.services.db.AverageRecordsStore;
 import com.cube.nanotimer.services.db.CaseKnowledgeStore;
-import com.cube.nanotimer.services.db.PairOutcomeStore;
 import com.cube.nanotimer.services.db.SolveReadingStore;
 import com.cube.nanotimer.services.db.DB;
 import com.cube.nanotimer.session.AverageRecords;
@@ -69,7 +68,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -291,7 +289,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_TIMEHISTORY_PB, solveTime.isPb() ? 1 : 0);
     db.update(DB.TABLE_TIMEHISTORY, values, DB.COL_ID + " = ?", getStringArray(solveTime.getId()));
     // A DNF has no time to read a case out of, and taking one back hands the case back.
-    CaseKnowledgeStore.update(db, knowledgeCodes(solveTime.getId()));
+    CaseKnowledgeStore.update(db, smartcubeStepNames(solveTime.getId()));
     synchronized (cacheSyncHelper) {
       for (CachedTime ct : cachedSolveTimes) {
         if (ct.getSolveId() == solveTime.getId()) {
@@ -661,11 +659,10 @@ public class ServiceProviderImpl implements ServiceProvider {
     }
 
     // remove from DB
-    List<String> cases = knowledgeCodes(solveTime.getId()); // read before the rows go
+    List<String> cases = smartcubeStepNames(solveTime.getId()); // read before the rows go
     db.delete(DB.TABLE_TIMEHISTORYSTEP, DB.COL_TIMEHISTORYSTEP_TIMEHISTORY_ID + " = ?", getStringArray(solveTime.getId()));
     db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " = ?", getStringArray(solveTime.getId()));
     SolveReadingStore.forget(db, solveTime.getId());
-    PairOutcomeStore.forget(db, solveTime.getId());
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_ID + " = ?", getStringArray(solveTime.getId()));
     CaseKnowledgeStore.update(db, cases); // the solve no longer says anything about its cases
 
@@ -885,13 +882,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     return cases;
   }
 
-  /** The cases a solve is evidence about: its steps, and the F2L pairs it put in. */
-  private List<String> knowledgeCodes(int solveTimeId) {
-    List<String> codes = smartcubeStepNames(solveTimeId);
-    codes.addAll(PairOutcomeStore.casesOf(db, solveTimeId));
-    return codes;
-  }
-
   /** The step codes of one solve's breakdown, its parts included. */
   private List<String> smartcubeStepNames(int solveTimeId) {
     List<String> names = new ArrayList<String>();
@@ -980,7 +970,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     db.delete(DB.TABLE_TIMEHISTORYSTEP, null, null);
     db.delete(DB.TABLE_SMARTCUBE_SOLVESTEP, null, null);
     SolveReadingStore.forgetAll(db);
-    PairOutcomeStore.forgetAll(db);
     db.delete(DB.TABLE_TIMEHISTORY, null, null);
     db.delete(DB.TABLE_COACH_PLAN, null, null); // a plan is a reading of the history, not a thing beside it
     CaseKnowledgeStore.rebuild(db);
@@ -996,7 +985,6 @@ public class ServiceProviderImpl implements ServiceProvider {
         DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID + " IN (SELECT " + DB.COL_ID + " FROM " + DB.TABLE_TIMEHISTORY
             + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?)", getStringArray(solveType.getId()));
     SolveReadingStore.forgetSolveType(db, solveType.getId());
-    PairOutcomeStore.forgetSolveType(db, solveType.getId());
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     CaseKnowledgeStore.rebuild(db);
@@ -1607,7 +1595,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     for (SolveTypeStep step : solveType.getSteps()) {
       db.delete(DB.TABLE_TIMEHISTORYSTEP, DB.COL_TIMEHISTORYSTEP_SOLVETYPESTEP_ID + " = ?", getStringArray(step.getId()));
     }
-    PairOutcomeStore.forgetSolveType(db, solveType.getId());
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_SOLVETYPESTEP, DB.COL_SOLVETYPESTEP_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
@@ -2368,28 +2355,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     SolveReadingStore.write(db, readings, version);
   }
 
-  @Override
-  public List<SolveTime> getSolvesWithoutPairOutcomes(int solves) {
-    return smartcubeSolves(" AND NOT EXISTS (SELECT 1 FROM " + DB.TABLE_PAIR_OUTCOME + " p"
-        + " WHERE p." + DB.COL_PAIR_OUTCOME_SOLVE_ID + " = h." + DB.COL_ID + ")", null, solves,
-        false);
-  }
-
-  @Override
-  public void savePairOutcomes(Map<Long, List<String[]>> outcomes, boolean rebuild) {
-    Set<String> cases = PairOutcomeStore.write(db, outcomes);
-    if (rebuild) {
-      CaseKnowledgeStore.rebuild(db);
-    } else {
-      CaseKnowledgeStore.update(db, cases);
-    }
-  }
-
-  @Override
-  public void forgetPairOutcomes() {
-    PairOutcomeStore.forgetAll(db);
-  }
-
   /**
    * The statuses and the solves behind them in one read. The moves a case was answered with are not
    * stored anywhere on their own: they are part of the solve, so the solves come up whole and the
@@ -2772,7 +2737,6 @@ public class ServiceProviderImpl implements ServiceProvider {
             getStringArray(solveTime.getId()));
         // A solve read again is a solve whose cases may be read differently: the old reading goes.
         SolveReadingStore.forget(db, solveTime.getId());
-        PairOutcomeStore.forget(db, solveTime.getId());
         if (solveTime.getSmartcubeSteps() != null) {
           insertSmartcubeSteps(solveTime.getId(), solveTime.getSmartcubeSteps());
         }
@@ -2789,7 +2753,6 @@ public class ServiceProviderImpl implements ServiceProvider {
     values.put(DB.COL_TIMEHISTORY_SMARTCUBE_MOVES, solveTime.getSmartcubeMoves());
     db.update(DB.TABLE_TIMEHISTORY, values, DB.COL_ID + " = ?",
         getStringArray(solveTime.getId()));
-    PairOutcomeStore.forget(db, solveTime.getId()); // its pairs are read again from the new moves
   }
 
   /** The last drills that hold a rep, so a run of cross drills does not shrink how far back the figures reach. */

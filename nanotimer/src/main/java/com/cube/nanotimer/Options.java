@@ -127,7 +127,6 @@ public enum Options {
   private static final String COACH_PLAN_LANGUAGE_KEY = "coach_plan_language";
   public static final String CASE_KNOWLEDGE_RULE_KEY = "case_knowledge_rule";
   public static final String CFOP_READING_KEY = "cfop_reading_version";
-  public static final String PAIR_OUTCOMES_KEY = "pair_outcomes_version";
   public static final String ROUX_READING_KEY = "roux_reading_version";
   public static final String DRILL_CASES_KEY_PREFIX = "drill_cases_";
   private static final String LEARN_PICK_KEY_PREFIX = "learn_pick_";
@@ -1173,15 +1172,6 @@ public enum Options {
 
   public void setCaseKnowledgeRuleVersion(int version) {
     sharedPreferences.edit().putInt(CASE_KNOWLEDGE_RULE_KEY, version).apply();
-  }
-
-  /** Which {@code PairOutcomes.VERSION} the stored F2L pairs of the solves were read under. */
-  public int getPairOutcomesVersion() {
-    return sharedPreferences.getInt(PAIR_OUTCOMES_KEY, 0);
-  }
-
-  public void setPairOutcomesVersion(int version) {
-    sharedPreferences.edit().putInt(PAIR_OUTCOMES_KEY, version).apply();
   }
 
   /** Which reading of CFOP solves the stored breakdowns were last written under. */

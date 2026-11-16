@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 40;
+  public static final int DB_VERSION = 39;
 
   public static final String COL_ID = "id";
 
@@ -166,15 +166,5 @@ public class DB {
   public static final String COL_SOLVE_READING_SOLVE_ID = "solve_id";
   public static final String COL_SOLVE_READING_VERSION = "version"; // SolveReading.VERSION when it was written: a newer reading ignores older rows rather than trusting them
   public static final String COL_SOLVE_READING_READING = "reading"; // the executions as JSON text, so fields a later version adds survive being stored
-
-  // Each F2L pair a solve put in, with the moves it was put in with, read once by replaying the solve
-  // (only the app can). What case knowledge reads a pair's solves from; matched at read time, so a
-  // change to the algorithm lists needs no replay. A solve read with no pair keeps one row with no case.
-  public static final String TABLE_PAIR_OUTCOME = "pair_outcome";
-  public static final String COL_PAIR_OUTCOME_SOLVE_ID = "solve_id";
-  public static final String COL_PAIR_OUTCOME_CASE = "case_code"; // pair_27, null on a solve's no-pair row
-  public static final String COL_PAIR_OUTCOME_MOVES = "moves";
-  public static final String IDX_PAIR_OUTCOME_SOLVE = "idx_pair_outcome_solve";
-  public static final String IDX_PAIR_OUTCOME_CASE = "idx_pair_outcome_case";
 
 }
