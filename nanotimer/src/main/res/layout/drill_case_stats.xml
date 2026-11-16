@@ -8,19 +8,14 @@
    android:background="@color/graybg"
    android:fitsSystemWindows="true">
 
-<ScrollView
-   android:layout_width="match_parent"
-   android:layout_height="match_parent"
-   android:fillViewport="true">
-
+<!-- The case and its figures stay put; only the attempts scroll. -->
   <LinearLayout
      android:layout_width="match_parent"
-     android:layout_height="wrap_content"
+     android:layout_height="match_parent"
      android:orientation="vertical"
      android:paddingLeft="16dp"
      android:paddingRight="16dp"
-     android:paddingTop="12dp"
-     android:paddingBottom="16dp">
+     android:paddingTop="12dp">
 
     <!-- The case opens its sheet: the attempts below are rows, not ways into the case. -->
     <LinearLayout
@@ -87,7 +82,8 @@
     <LinearLayout
        android:id="@+id/llDrillCaseStatsSection"
        android:layout_width="match_parent"
-       android:layout_height="wrap_content"
+       android:layout_height="0dp"
+       android:layout_weight="1"
        android:orientation="vertical"
        android:visibility="gone">
 
@@ -126,26 +122,38 @@
          android:layout_height="1dp"
          android:background="@color/hero_divider"/>
 
-      <!-- One drill_case_attempt_row per rep, filled in code. -->
-      <LinearLayout
-         android:id="@+id/llDrillCaseStatsRows"
+      <ScrollView
          android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:divider="@drawable/stat_rule_h"
-         android:orientation="vertical"
-         android:showDividers="middle"/>
+         android:layout_height="0dp"
+         android:layout_weight="1">
 
-      <TextView
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="12dp"
-         android:text="@string/drill_case_stats_hint"
-         android:textColor="@color/secondary_text"
-         android:textSize="12sp"/>
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           android:paddingBottom="16dp">
+
+          <!-- One drill_case_attempt_row per rep, filled in code. -->
+          <LinearLayout
+             android:id="@+id/llDrillCaseStatsRows"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:divider="@drawable/stat_rule_h"
+             android:orientation="vertical"
+             android:showDividers="middle"/>
+
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="12dp"
+             android:text="@string/drill_case_stats_hint"
+             android:textColor="@color/secondary_text"
+             android:textSize="12sp"/>
+        </LinearLayout>
+      </ScrollView>
     </LinearLayout>
 
   </LinearLayout>
-</ScrollView>
 
   <!-- After a swipe: the attempt is out of the figures until this is tapped. -->
   <LinearLayout
