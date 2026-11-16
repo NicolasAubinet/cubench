@@ -1,5 +1,6 @@
 package com.cube.nanotimer.cases;
 
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 
 import org.junit.Test;
@@ -20,11 +21,53 @@ public class CaseSetsTest {
   public void testSetsHoldEveryLastLayerCaseOnce() {
     assertEquals(57, CaseSets.OLL.cases().size());
     assertEquals(21, CaseSets.PLL.cases().size());
-    Set<String> seen = new HashSet<String>();
-    for (CaseSet set : CaseSets.all()) {
-      seen.addAll(set.cases());
-    }
+    Set<String> seen = new HashSet<String>(CaseSets.OLL.cases());
+    seen.addAll(CaseSets.PLL.cases());
     assertEquals(new HashSet<String>(LastLayerScrambles.cases()), seen);
+  }
+
+  @Test
+  public void testF2LHoldsEveryNamedPairCaseBasicFirst() {
+    assertEquals(new HashSet<String>(CaseAlgorithms.pairCases()),
+        new HashSet<String>(CaseSets.F2L.cases()));
+    assertEquals(92, CaseSets.F2L.cases().size());
+    assertEquals("pair_1", CaseSets.F2L.cases().get(0));
+    assertEquals("pair_a1", CaseSets.F2L.cases().get(41));
+    int[] sizes = {24, 6, 6, 5, 18, 15, 18};
+    for (int i = 0; i < sizes.length; i++) {
+      assertEquals(CaseSets.F2L.groups().get(i).getId(), sizes[i],
+          CaseSets.F2L.groups().get(i).getCases().size());
+    }
+  }
+
+  /** Each F2L group is where its picture puts the pieces: own slot, another slot, or on top. */
+  @Test
+  public void testF2LGroupsAreWhereThePiecesAre() {
+    int[] ownCorner = {29, 26, 15};
+    int[] ownEdge = {23, 12};
+    int[] otherCorners = {27, 44, 24, 33, 53, 42, 35, 17, 51};
+    int[] otherEdges = {21, 41, 50, 39, 48, 14};
+    for (String code : CaseSets.F2L.cases()) {
+      String picture = CaseAlgorithms.pairPicture(code);
+      String group = CaseSets.F2L.groupOf(code).getId();
+      boolean cornerHome = lit(picture, ownCorner);
+      boolean edgeHome = lit(picture, ownEdge);
+      boolean cornerStuck = lit(picture, otherCorners);
+      boolean edgeStuck = lit(picture, otherEdges);
+      String read = cornerStuck && edgeStuck ? "stuck_both" : cornerStuck ? "stuck_corner"
+          : edgeStuck ? "stuck_edge" : cornerHome && edgeHome ? "both" : cornerHome ? "corner"
+          : edgeHome ? "edge" : "top";
+      assertEquals(code, read, group);
+    }
+  }
+
+  private static boolean lit(String picture, int[] facelets) {
+    for (int facelet : facelets) {
+      if (Character.isUpperCase(picture.charAt(facelet))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Test
@@ -68,6 +111,7 @@ public class CaseSetsTest {
     assertEquals("Jb", CaseSets.PLL.name("pll_jb"));
     assertNull(CaseSets.PLL.shape("pll_jb"));
     assertNull(CaseSets.PLL.name("oll_27"));
+    assertNull(CaseSets.F2L.name("pair_27"));
   }
 
   @Test
@@ -75,7 +119,10 @@ public class CaseSetsTest {
     assertSame(CaseSets.OLL, CaseSets.ofCase("oll_3"));
     assertSame(CaseSets.PLL, CaseSets.ofFamily("pll_"));
     assertSame(CaseSets.PLL, CaseSets.byId("pll"));
-    assertNull(CaseSets.ofCase("pair_27"));
+    assertSame(CaseSets.F2L, CaseSets.ofCase("pair_27"));
+    assertSame(CaseSets.F2L, CaseSets.ofCase("pair_a1a"));
+    assertNull(CaseSets.ofCase("pair_27_fl"));
+    assertSame(CaseSets.F2L, CaseSets.ofFamily("pair_"));
     assertFalse(CaseSets.OLL.contains("pll_t"));
   }
 

@@ -216,6 +216,59 @@ public class F2LCaseAlgorithmsTest {
         Notation.apply(facelets, "z2 U' R U2 R' U' R U2 R' z2"));
   }
 
+  /** Each named case's picture marks the pair's five stickers, greys the last layer, reads as it. */
+  @Test
+  public void picturesEveryNamedCaseWithOnlyThePairInColour() {
+    StringBuilder wrong = new StringBuilder();
+    for (String code : CaseAlgorithms.pairCases()) {
+      String pairCase = CaseAlgorithms.pairCase(code);
+      String picture = CaseAlgorithms.pairPicture(code);
+      int bright = 0;
+      int grey = 0;
+      for (char sticker : picture.toCharArray()) {
+        bright += Character.isUpperCase(sticker) ? 1 : 0;
+        grey += sticker == '.' ? 1 : 0;
+      }
+      // Grey: the 8 last-layer pieces' 20 stickers and the top centre.
+      int greyed = 21;
+      String read = F2LCases.pairCase(picture.toUpperCase(Locale.ROOT).replace('.', 'U'), Cubies.D,
+          Cubies.DFR, Cubies.FR);
+      if (bright != 5 || grey != greyed || !pairCase.equals(read)) {
+        wrong.append(code).append(": ").append(picture).append('\n');
+      }
+    }
+    assertEquals(92, CaseAlgorithms.pairCases().size());
+    assertEquals("", wrong.toString());
+  }
+
+  /** A sheet's setup moves, from solved with the cross down, deal the case its algorithm solves. */
+  @Test
+  public void setUpMovesDealEveryListedAlgorithmsCase() {
+    StringBuilder wrong = new StringBuilder();
+    for (String code : CaseAlgorithms.pairCases()) {
+      for (CaseAlgorithms.Listed listed : CaseAlgorithms.shown(code)) {
+        String setup = LastLayerScrambles.forAlgorithm(listed.getMoves());
+        String dealt = Notation.apply(CubeState.SOLVED_FACELETS, setup);
+        if (!CaseAlgorithms.pairCase(code).equals(
+            F2LCases.pairCase(dealt, Cubies.D, Cubies.DFR, Cubies.FR))) {
+          wrong.append(code).append(": ").append(listed.getMoves()).append(" <- ").append(setup)
+              .append('\n');
+        }
+      }
+    }
+    assertEquals("", wrong.toString());
+  }
+
+  /** Past the listed rows, the rest of a case's table, most voted first, none twice. */
+  @Test
+  public void offersTheRestOfTheTableBehindMore() {
+    List<CaseAlgorithms.Listed> shown = CaseAlgorithms.shown("pair_1");
+    List<CaseAlgorithms.Listed> more = CaseAlgorithms.more("pair_1");
+    assertEquals(F2LCaseAlgorithms.forCase("1").size(), shown.size() + more.size());
+    assertEquals("y' r' U' R U M'", more.get(0).getMoves());
+    assertTrue(CaseAlgorithms.more("pair_1_fl").isEmpty());
+  }
+
   @Test
   public void keepsOnlyWhatSolvesTheCase() {
     assertTrue(F2LCaseAlgorithms.solves("7", "U' R U2 R' U' R U2 R'"));

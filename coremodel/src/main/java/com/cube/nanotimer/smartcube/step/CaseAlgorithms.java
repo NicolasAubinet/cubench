@@ -4,6 +4,8 @@ import com.cube.nanotimer.step.F2lPairCases;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The algorithms of a case, asked of whichever table holds them: {@link LastLayerCaseAlgorithms} for
@@ -22,6 +24,9 @@ public final class CaseAlgorithms {
 
   private static final String PAIR_PREFIX = "pair_";
 
+  /** Pictures are worked out from an algorithm, so a grid or table redrawn reuses them. */
+  private static final Map<String, String> PAIR_PICTURES = new ConcurrentHashMap<String, String>();
+
   private CaseAlgorithms() {
   }
 
@@ -36,6 +41,33 @@ public final class CaseAlgorithms {
   /** Whether the code names one of the {@link #BASIC_PAIR_CASES} F2L cases ({@code pair_27}). */
   public static boolean isBasicPair(String caseCode) {
     return isPair(caseCode) && F2LCases.isBasic(pairCase(caseCode));
+  }
+
+  /**
+   * Every named F2L case as a case code ({@code pair_27}, {@code pair_a1a}): the basic ones by
+   * number, then the advanced ones, each beside its "a" twin.
+   */
+  public static List<String> pairCases() {
+    List<String> codes = new ArrayList<String>();
+    for (String name : F2LCases.named()) {
+      codes.add(PAIR_PREFIX + name);
+    }
+    return Collections.unmodifiableList(codes);
+  }
+
+  /** The pair's case as {@link F2LCaseAlgorithms#picture} draws it, or null for none. */
+  public static String pairPicture(String caseCode) {
+    if (!isPair(caseCode) || slotOf(caseCode) != null) {
+      return null;
+    }
+    String picture = PAIR_PICTURES.get(caseCode);
+    if (picture == null) {
+      picture = F2LCaseAlgorithms.picture(pairCase(caseCode));
+      if (picture != null) {
+        PAIR_PICTURES.put(caseCode, picture);
+      }
+    }
+    return picture;
   }
 
   /** The slot a drill deals the pair into, put in without a rotation, or null for none. */
@@ -84,21 +116,34 @@ public final class CaseAlgorithms {
 
   /**
    * The case's other algorithms, past the ones {@link #shown} lists, most voted first: the long tail
-   * a sheet offers behind "Show more". Last layer cases only; empty for an F2L pair.
+   * a sheet offers behind "Show more". Empty for a pair dealt into a slot, whose table is short.
    */
   public static List<Listed> more(String caseCode) {
     List<Listed> more = new ArrayList<Listed>();
-    if (caseCode == null || isPair(caseCode)) {
+    if (caseCode == null || slotOf(caseCode) != null) {
       return more;
     }
     List<Listed> shown = shown(caseCode);
-    for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
+    List<String> all = new ArrayList<String>();
+    List<String> emptySlots = new ArrayList<String>();
+    if (isPair(caseCode)) {
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(pairCase(caseCode))) {
+        all.add(algorithm.getMoves());
+        emptySlots.add(algorithm.getEmptySlot());
+      }
+    } else {
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
+        all.add(algorithm.getMoves());
+        emptySlots.add(null);
+      }
+    }
+    for (int i = 0; i < all.size(); i++) {
       boolean listed = false;
       for (Listed one : shown) {
-        listed |= sameTurning(caseCode, one.getMoves(), algorithm.getMoves());
+        listed |= sameTurning(caseCode, one.getMoves(), all.get(i));
       }
       if (!listed) {
-        more.add(new Listed(algorithm.getMoves(), false, null));
+        more.add(new Listed(all.get(i), false, emptySlots.get(i)));
       }
     }
     return Collections.unmodifiableList(more);

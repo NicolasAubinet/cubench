@@ -1072,6 +1072,13 @@
   <string name="case_group_pll_corners">Só cantos</string>
   <string name="case_group_pll_adjacent">Troca adjacente</string>
   <string name="case_group_pll_diagonal">Troca diagonal</string>
+  <string name="case_group_f2l_top">As duas em cima</string>
+  <string name="case_group_f2l_corner">Canto no seu slot</string>
+  <string name="case_group_f2l_edge">Aresta no seu slot</string>
+  <string name="case_group_f2l_both">As duas no seu slot</string>
+  <string name="case_group_f2l_stuck_corner">Canto preso em outro slot</string>
+  <string name="case_group_f2l_stuck_edge">Aresta presa em outro slot</string>
+  <string name="case_group_f2l_stuck_both">As duas presas em outro slot</string>
   <string name="drill_practice_cross">Cruz</string>
   <string name="drill_practice_hint_pll">Um PLL depois do outro, entre os casos que você escolher.</string>
   <string name="drill_practice_hint_oll">Um OLL depois do outro, entre os casos que você escolher.</string>
@@ -1302,6 +1309,7 @@
   <string name="menu_algorithms">Algoritmos</string>
   <string name="case_set_oll_description">Orientar a última camada</string>
   <string name="case_set_pll_description">Permutar a última camada</string>
+  <string name="case_set_f2l_description">As duas primeiras camadas</string>
   <string name="library_known">%d conhecidos</string>
   <string name="library_review">%d para revisar</string>
   <string name="library_to_learn">%d para aprender</string>

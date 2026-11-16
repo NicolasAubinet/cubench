@@ -1,6 +1,7 @@
 package com.cube.nanotimer.smartcube.step;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -915,6 +916,58 @@ public final class F2LCaseAlgorithms {
     List<Algorithm> algorithms = forCase(pairCase);
     return algorithms.isEmpty() ? null
         : Notation.caseState("z2 " + algorithms.get(0).getMoves() + " z2");
+  }
+
+  /**
+   * The case as its picture shows it, cross down and the slot at front right, in URFDLB facelets:
+   * the face letter on the pair's own stickers, the same in lower case on the rest of the first two
+   * layers, and '.' on a last-layer piece's. Read off the most voted algorithm that needs no other
+   * slot empty, so no other pair is drawn out of its slot. Null for a case with no algorithm.
+   */
+  public static String picture(String pairCase) {
+    String moves = null;
+    for (Algorithm algorithm : forCase(pairCase)) {
+      if (moves == null || algorithm.getEmptySlot() == null) {
+        moves = algorithm.getMoves();
+        if (algorithm.getEmptySlot() == null) {
+          break;
+        }
+      }
+    }
+    if (moves == null) {
+      return null;
+    }
+    String state;
+    try {
+      state = Notation.caseState(moves);
+    } catch (IllegalStateException e) {
+      return null; // a row that does not end upright draws blank rather than closing the screen
+    }
+    char[] picture = new char[state.length()];
+    for (int[] piece : Cubies.PIECES) {
+      String sorted = colours(state, piece);
+      boolean grey = sorted.indexOf('U') >= 0;
+      boolean pair = sorted.equals("DFR") || sorted.equals("FR");
+      for (int facelet : piece) {
+        char colour = state.charAt(facelet);
+        picture[facelet] = grey ? '.' : pair ? colour : Character.toLowerCase(colour);
+      }
+    }
+    for (int face = 0; face < 6; face++) {
+      char centre = state.charAt(face * 9 + 4);
+      picture[face * 9 + 4] = centre == 'U' ? '.' : Character.toLowerCase(centre);
+    }
+    return new String(picture);
+  }
+
+  /** A piece's colours, sorted, so a piece reads the same wherever it sits and however twisted. */
+  private static String colours(String state, int[] piece) {
+    char[] chars = new char[piece.length];
+    for (int i = 0; i < piece.length; i++) {
+      chars[i] = state.charAt(piece[i]);
+    }
+    Arrays.sort(chars);
+    return new String(chars);
   }
 
   private static AlgorithmForm.Drawn drawn(final String pairCase) {

@@ -18,8 +18,10 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
+import com.cube.nanotimer.gui.widget.PairCaseView;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
@@ -101,7 +103,7 @@ public class LibraryActivity extends NanoTimerActivity {
 
   /** @return whether the solver has anything in the set, known or picked */
   private boolean fill(View card, final CaseSet set) {
-    int hue = StepPalette.cfop(this).colorFor(set.id() + "_");
+    int hue = StepPalette.cfop(this).colorForCase(set.id() + "_");
     GradientDrawable ground = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
         new int[] {ColorUtils.blendARGB(ContextCompat.getColor(this, R.color.case_alg_row), hue,
             CARD_WASH), ContextCompat.getColor(this, R.color.case_alg_row)});
@@ -113,14 +115,27 @@ public class LibraryActivity extends NanoTimerActivity {
       startActivity(intent);
     });
 
-    ((LastLayerCaseView) card.findViewById(R.id.vLibrarySetCover))
-        .setDiagram(LastLayerDiagram.forCase(set.coverCase()));
+    if (set.picture() == CaseSet.Picture.PAIR) {
+      card.findViewById(R.id.vLibrarySetCover).setVisibility(View.GONE);
+      PairCaseView cover = card.findViewById(R.id.vLibrarySetPair);
+      cover.setVisibility(View.VISIBLE);
+      cover.setPicture(CaseAlgorithms.pairPicture(set.coverCase()));
+    } else {
+      ((LastLayerCaseView) card.findViewById(R.id.vLibrarySetCover))
+          .setDiagram(LastLayerDiagram.forCase(set.coverCase()));
+    }
     ((TextView) card.findViewById(R.id.tvLibrarySetName)).setText(set.title());
     int size = set.cases().size();
     ((TextView) card.findViewById(R.id.tvLibrarySetCount))
         .setText(getResources().getQuantityString(R.plurals.case_set_cases, size, size));
     ((TextView) card.findViewById(R.id.tvLibrarySetDescription)).setText(set.descriptionRes());
 
+    if (set.picture() == CaseSet.Picture.PAIR) {
+      // A pair has no standing, and a pick count would never move for a smart-cube solver.
+      card.findViewById(R.id.vLibrarySetProgress).setVisibility(View.GONE);
+      card.findViewById(R.id.tvLibrarySetProgress).setVisibility(View.GONE);
+      return false;
+    }
     int known = 0;
     int review = 0;
     int learn = 0;

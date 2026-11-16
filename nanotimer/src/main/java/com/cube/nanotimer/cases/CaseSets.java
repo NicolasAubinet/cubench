@@ -4,14 +4,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** Every set the app knows, and the way from a case code or an id back to its set. */
+/** Every set the app knows, in the order a method solves them, and the way back to one. */
 public final class CaseSets {
 
+  public static final CaseSet F2L = F2LSet.INSTANCE;
   public static final CaseSet OLL = LastLayerSet.OLL;
   public static final CaseSet PLL = LastLayerSet.PLL;
 
   private static final List<CaseSet> ALL = Collections.unmodifiableList(
-      Arrays.<CaseSet>asList(OLL, PLL));
+      Arrays.<CaseSet>asList(F2L, OLL, PLL));
 
   private CaseSets() {
   }
@@ -30,7 +31,7 @@ public final class CaseSets {
     return null;
   }
 
-  /** The set a case belongs to, or null for a code no set holds (an F2L pair, for now). */
+  /** The set a case belongs to, or null for a code no set holds (a pair dealt into a slot). */
   public static CaseSet ofCase(String caseCode) {
     for (CaseSet set : ALL) {
       if (set.contains(caseCode)) {

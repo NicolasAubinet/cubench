@@ -41,6 +41,10 @@ import java.util.List;
  * A solve says {@link Evidence#UNAIDED} where its last layer step went in one algorithm and
  * {@link Evidence#HELPED} where it took more.
  *
+ * <p><b>Last layer cases only.</b> An F2L pair can be put in any way at all, so a pair "known" would
+ * only mean a pair met; which algorithm the solver turns for it is read and shown instead
+ * (owner, 2026-11-16). Version 10 was a build that read pairs from solves and was reverted.
+ *
  * <p><b>Drill reps count as a run, never one at a time.</b> A drill never names the case, so a clean
  * rep was recognised, but out of a pool the solver picked and with no solve around it. That is
  * weaker than a solve, so it takes {@link #RUN_TO_KNOW} clean reps in a row to call a case known, or
@@ -112,7 +116,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 9;
+  public static final int RULE_VERSION = 11;
 
   /** Clean drill reps in a row that make a case known. */
   public static final int RUN_TO_KNOW = 5;

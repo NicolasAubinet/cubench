@@ -22,6 +22,7 @@ import androidx.core.graphics.drawable.DrawableCompat;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseGroup;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.gui.widget.DrillStatCells;
@@ -168,6 +169,9 @@ public class CaseSetActivity extends NanoTimerActivity
     suggested = getIntent().getStringArrayListExtra(EXTRA_SUGGESTED);
     sort = isPicking() ? SORT_ORDER : getIntent().getIntExtra(EXTRA_SORT,
         Options.INSTANCE.getDrillChoice(sortKey(), SORT_ORDER));
+    if (sort == SORT_STATUS && !hasStandings()) {
+      sort = SORT_ORDER;
+    }
     table = new DrillStatsTable(this, this);
 
     LinearLayout filters = findViewById(R.id.llCaseSetFilters);
@@ -292,7 +296,7 @@ public class CaseSetActivity extends NanoTimerActivity
   }
 
   private int familyColour() {
-    return StepPalette.cfop(this).colorFor(set.id() + "_");
+    return StepPalette.cfop(this).colorForCase(set.id() + "_");
   }
 
   @Override
@@ -490,7 +494,7 @@ public class CaseSetActivity extends NanoTimerActivity
         .setText(format.formatSolveTime((total - recognition) / reps));
     setCell(R.id.tvDrillCellKeyThree, R.id.tvDrillCellValueThree, R.id.tvDrillCellSubThree,
         getString(R.string.drill_summary_cell_best), format.formatSolveTime(best),
-        Utils.toSmartCubeCaseHeadline(this, bestCase));
+        DrillStatsTable.nameOf(this, bestCase));
   }
 
   private void setCell(int keyId, int valueId, int subId, String key, String value, String sub) {
@@ -517,13 +521,34 @@ public class CaseSetActivity extends NanoTimerActivity
     return STATUS_FILTERS.length;
   }
 
-  /** The grid, or sorted by standing one grid per standing under its name and count. */
+  /**
+   * The grid; for a sectioned set one grid per group under its name and count; sorted by standing,
+   * one per standing instead.
+   */
   private void drawGrid(LinearLayout grid) {
+    LayoutInflater inflater = LayoutInflater.from(this);
+    if (sort != SORT_STATUS && set.sectioned()) {
+      for (CaseGroup group : set.groups()) {
+        List<String> inGroup = new ArrayList<String>();
+        for (String code : shown) {
+          if (group.contains(code)) {
+            inGroup.add(code);
+          }
+        }
+        if (!inGroup.isEmpty()) {
+          TextView header = (TextView) inflater.inflate(R.layout.case_set_section, grid, false);
+          header.setText(getString(R.string.known_algorithms_status_count,
+              group.getName(this), inGroup.size()));
+          grid.addView(header);
+          drawTiles(grid, inGroup);
+        }
+      }
+      return;
+    }
     if (sort != SORT_STATUS) {
       drawTiles(grid, shown);
       return;
     }
-    LayoutInflater inflater = LayoutInflater.from(this);
     for (int i = 0; i < STATUS_FILTERS.length; i++) {
       List<String> standing = new ArrayList<String>();
       for (String code : shown) {
@@ -739,15 +764,26 @@ public class CaseSetActivity extends NanoTimerActivity
     dialog.show();
   }
 
+  /** Whether the set's cases can have a standing: an F2L pair never does. */
+  private boolean hasStandings() {
+    return set.picture() != CaseSet.Picture.PAIR;
+  }
+
   private void pickSort() {
-    String[] labels = new String[SORT_LABELS.length];
+    final List<Integer> offered = new ArrayList<Integer>();
+    for (int i = 0; i < SORT_LABELS.length; i++) {
+      if (i != SORT_STATUS || hasStandings()) {
+        offered.add(i);
+      }
+    }
+    String[] labels = new String[offered.size()];
     for (int i = 0; i < labels.length; i++) {
-      labels[i] = getString(SORT_LABELS[i]);
+      labels[i] = getString(SORT_LABELS[offered.get(i)]);
     }
     new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
         .setTitle(R.string.case_sort_title)
-        .setSingleChoiceItems(labels, sort, (dialog, which) -> {
-          sort = which;
+        .setSingleChoiceItems(labels, offered.indexOf(sort), (dialog, which) -> {
+          sort = offered.get(which);
           Options.INSTANCE.setDrillChoice(sortKey(), sort);
           dialog.dismiss();
           paintSort();
