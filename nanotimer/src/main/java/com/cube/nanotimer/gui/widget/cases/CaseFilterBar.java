@@ -51,7 +51,7 @@ public final class CaseFilterBar {
   private final CaseSet set;
   private final Listener listener;
   private final Set<String> known = new HashSet<String>();
-  /** The cases the screen's other filters let through, counted per group; null for no counts. */
+  /** The cases the screen's other filters let through, or null. */
   private Set<String> matching;
   private List<CaseGroup> offered;
   private CaseGroup group;
@@ -97,8 +97,8 @@ public final class CaseFilterBar {
   }
 
   /**
-   * Counts beside each group the cases of it these are, so a group's number is what picking it
-   * would show under the screen's other filters. Null shows no counts.
+   * The cases the screen's other filters let through: "All" carries their count and a group holding
+   * none of them is dimmed. Null for neither.
    */
   public CaseFilterBar matching(Collection<String> cases) {
     matching = cases == null ? null : new HashSet<String>(cases);
@@ -200,19 +200,14 @@ public final class CaseFilterBar {
         tile.setAlpha(here == 0 ? EMPTY_ALPHA : 1f);
       }
       ((TextView) tile.findViewById(R.id.tvShapeName)).setText(each.getName(context));
-      if (matching != null) {
-        TextView badge = tile.findViewById(R.id.tvShapeMatching);
-        badge.setText(String.valueOf(here));
-        badge.setVisibility(View.VISIBLE);
-      }
       int knownHere = 0;
       for (String code : each.getCases()) {
         knownHere += known.contains(code) ? 1 : 0;
       }
       boolean whole = knownHere == each.getCases().size();
       TextView count = tile.findViewById(R.id.tvShapeCount);
-      count.setText(whole ? context.getString(R.string.analysis_shape_all_known)
-          : context.getString(R.string.analysis_shape_known, knownHere, each.getCases().size()));
+      count.setText(context.getString(R.string.analysis_shape_known, knownHere,
+          each.getCases().size()));
       if (whole) {
         count.setTextColor(ContextCompat.getColor(context, R.color.lightblue));
       }

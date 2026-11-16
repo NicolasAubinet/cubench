@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- How many of a group's cases the other filters leave, pinned to the group's picture. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-   android:shape="rectangle">
-  <solid android:color="@color/lightblue"/>
-  <corners android:radius="10dp"/>
-</shape>

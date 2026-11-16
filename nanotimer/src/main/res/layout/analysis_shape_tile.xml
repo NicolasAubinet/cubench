@@ -15,33 +15,10 @@
    android:paddingEnd="6dp"
    android:paddingBottom="8dp">
 
-  <FrameLayout
+  <com.cube.nanotimer.gui.widget.LastLayerCaseView
+     android:id="@+id/vShapeChart"
      android:layout_width="match_parent"
-     android:layout_height="wrap_content">
-
-    <com.cube.nanotimer.gui.widget.LastLayerCaseView
-       android:id="@+id/vShapeChart"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"/>
-
-    <!-- Only where the screen has other filters: how many of the group's cases they leave. -->
-    <TextView
-       android:id="@+id/tvShapeMatching"
-       android:layout_width="wrap_content"
-       android:layout_height="20dp"
-       android:layout_gravity="top|end"
-       android:layout_marginTop="0dp"
-       android:layout_marginEnd="0dp"
-       android:background="@drawable/case_count_badge"
-       android:fontFamily="@font/roboto_medium"
-       android:gravity="center"
-       android:minWidth="20dp"
-       android:paddingStart="6dp"
-       android:paddingEnd="6dp"
-       android:textColor="@color/black"
-       android:textSize="12sp"
-       android:visibility="gone"/>
-  </FrameLayout>
+     android:layout_height="wrap_content"/>
 
   <TextView
      android:id="@+id/tvShapeName"
