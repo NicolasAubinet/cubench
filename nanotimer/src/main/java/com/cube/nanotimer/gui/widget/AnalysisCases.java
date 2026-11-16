@@ -576,25 +576,31 @@ public class AnalysisCases {
     return cases;
   }
 
-  /** One family's cases that the app has a picture and a set for. */
-  private List<StepStats> drawnCases(String family) {
-    List<StepStats> drawn = new ArrayList<StepStats>();
+  /** One family's cases that the app has a picture and a set for, from the window or the table. */
+  private List<String> drawnCodes(String family) {
+    List<String> drawn = new ArrayList<String>();
     for (StepStats stepCase : statistics.getCases(family)) {
       if (DRAWN.containsKey(stepCase.getCode())) {
-        drawn.add(stepCase);
+        drawn.add(stepCase.getCode());
+      }
+    }
+    for (StepStats stepCase : oneAlgorithm) {
+      String code = stepCase.getCode();
+      if (DRAWN.containsKey(code) && family.equals(MethodStatistics.familyOf(code))
+          && !drawn.contains(code)) {
+        drawn.add(code);
       }
     }
     return drawn;
   }
 
   /**
-   * Whether a figure of this case is worth ranking the table on. A case the window holds once has
-   * no spread at all, since 0.00 off one solve would read as the steadiest case there is, and its
-   * mean is that one solve, which would stand a fluke at the top of the table. Ordering by the case
-   * itself is exempt: a set is read in its own order, whether or not it has been seen.
+   * Whether this case has a figure in that column. Only the spread can be missing: a case read
+   * once has none, since 0.00 off one solve would read as the steadiest case there is. Its mean and
+   * best are real figures and rank with the rest.
    */
   private boolean quotable(StepStats stepCase, int column) {
-    return column == CaseTableHeadings.LABEL_COLUMN || stepCase.getCount() >= 2;
+    return column != SPREAD_COLUMN || stepCase.getCount() >= 2;
   }
 
   private long value(StepStats stepCase, int column) {
