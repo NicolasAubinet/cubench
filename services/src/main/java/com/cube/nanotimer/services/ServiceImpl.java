@@ -481,11 +481,11 @@ public class ServiceImpl extends DBHelper implements Service {
 
   @Override
   public void getOneAlgorithmCaseStatistics(final SolveType solveType, final CubeMethod method,
-      final int lastSolves, final DataCallback<List<StepStats>> callback) {
+      final int perCase, final DataCallback<List<StepStats>> callback) {
     run(new Runnable() {
       @Override
       public void run() {
-        callback.onData(provider.getOneAlgorithmCaseStatistics(solveType, method, lastSolves));
+        callback.onData(provider.getOneAlgorithmCaseStatistics(solveType, method, perCase));
       }
     });
   }
@@ -893,6 +893,28 @@ public class ServiceImpl extends DBHelper implements Service {
       @Override
       public void run() {
         callback.onData(provider.getDrillCaseStats(fromTimestamp));
+      }
+    });
+  }
+
+  @Override
+  public void getCaseSolveStats(final String caseCode, final int lastTimes,
+      final DataCallback<StepStats> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getCaseSolveStats(caseCode, lastTimes));
+      }
+    });
+  }
+
+  @Override
+  public void getCaseSolveTable(final int lastSolves,
+      final DataCallback<List<DrillCaseStats>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getCaseSolveTable(lastSolves));
       }
     });
   }

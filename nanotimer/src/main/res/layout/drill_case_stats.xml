@@ -2,25 +2,29 @@
 <!-- One case, and every attempt at it in the window the stats screen was left on. The chart is
      drawn large at the top because the case is what the screen is about: everything under it is
      that one picture measured. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
    android:background="@color/graybg"
-   android:fillViewport="true"
    android:fitsSystemWindows="true">
 
+<!-- The case and its figures stay put; only the attempts scroll. -->
   <LinearLayout
      android:layout_width="match_parent"
-     android:layout_height="wrap_content"
+     android:layout_height="match_parent"
      android:orientation="vertical"
      android:paddingLeft="16dp"
      android:paddingRight="16dp"
-     android:paddingTop="12dp"
-     android:paddingBottom="16dp">
+     android:paddingTop="12dp">
 
+    <!-- The case opens its sheet: the attempts below are rows, not ways into the case. -->
     <LinearLayout
+       android:id="@+id/llDrillCaseStatsHeader"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
+       android:background="?android:attr/selectableItemBackground"
+       android:clickable="true"
+       android:focusable="true"
        android:gravity="center_vertical"
        android:orientation="horizontal">
 
@@ -78,12 +82,13 @@
     <LinearLayout
        android:id="@+id/llDrillCaseStatsSection"
        android:layout_width="match_parent"
-       android:layout_height="wrap_content"
+       android:layout_height="0dp"
+       android:layout_weight="1"
        android:orientation="vertical"
        android:visibility="gone">
 
-      <!-- Newest first, and not sortable: a list of attempts at one case is read as a run of them,
-           and ranking it by time would take away the one thing it is here to show. -->
+      <!-- case_table's heading ids, so CaseTableHeadings sorts it like every other table:
+           "Attempts" by date (newest first), the three figures by time. -->
       <LinearLayout
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
@@ -94,22 +99,33 @@
          android:paddingRight="@dimen/space_xs">
 
         <TextView
+           android:id="@+id/tvCaseTableSortCount"
+           style="@style/DrillCasePositionColumn"/>
+
+        <TextView
+           android:id="@+id/tvCaseTableLabel"
            style="@style/DialogSectionLabel"
            android:layout_width="0dp"
-           android:layout_weight="1"
-           android:text="@string/drill_case_stats_attempts"/>
+           android:layout_weight="1"/>
 
         <TextView
-           style="@style/DrillCaseColumn"
-           android:text="@string/drill_summary_column_recognition"/>
+           android:id="@+id/tvCaseTableSortOne"
+           style="@style/DrillCaseColumn"/>
 
         <TextView
-           style="@style/DrillCaseColumn"
-           android:text="@string/drill_summary_column_execution"/>
+           android:id="@+id/tvCaseTableSortTwo"
+           style="@style/DrillCaseColumn"/>
 
         <TextView
+           android:id="@+id/tvCaseTableSortThree"
            style="@style/DrillCaseColumn"
-           android:text="@string/drill_summary_column_total"/>
+           android:layout_width="@dimen/drill_case_lead_column"/>
+
+        <View
+           android:id="@+id/vCaseTableChevronSpace"
+           android:layout_width="20dp"
+           android:layout_height="1dp"
+           android:visibility="gone"/>
       </LinearLayout>
 
       <View
@@ -117,23 +133,73 @@
          android:layout_height="1dp"
          android:background="@color/hero_divider"/>
 
-      <!-- One drill_case_attempt_row per rep, filled in code. -->
-      <LinearLayout
-         android:id="@+id/llDrillCaseStatsRows"
+      <ScrollView
          android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:divider="@drawable/stat_rule_h"
-         android:orientation="vertical"
-         android:showDividers="middle"/>
+         android:layout_height="0dp"
+         android:layout_weight="1">
 
-      <TextView
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="12dp"
-         android:text="@string/drill_case_stats_hint"
-         android:textColor="@color/secondary_text"
-         android:textSize="12sp"/>
+        <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           android:paddingBottom="16dp">
+
+          <!-- One drill_case_attempt_row per rep, filled in code. -->
+          <LinearLayout
+             android:id="@+id/llDrillCaseStatsRows"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:divider="@drawable/stat_rule_h"
+             android:orientation="vertical"
+             android:showDividers="middle"/>
+
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="12dp"
+             android:text="@string/drill_case_stats_hint"
+             android:textColor="@color/secondary_text"
+             android:textSize="12sp"/>
+        </LinearLayout>
+      </ScrollView>
     </LinearLayout>
 
   </LinearLayout>
-</ScrollView>
+
+  <!-- After a swipe: the attempt is out of the figures until this is tapped. -->
+  <LinearLayout
+     android:id="@+id/llDrillCaseUndo"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_gravity="bottom"
+     android:layout_margin="16dp"
+     android:background="@drawable/drill_case_undo_bar"
+     android:elevation="6dp"
+     android:gravity="center_vertical"
+     android:orientation="horizontal"
+     android:paddingLeft="16dp"
+     android:visibility="gone">
+
+    <TextView
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:text="@string/drill_case_stats_removed"
+       android:textColor="@color/white"
+       android:textSize="14sp"/>
+
+    <TextView
+       android:id="@+id/tvDrillCaseUndo"
+       android:layout_width="wrap_content"
+       android:layout_height="48dp"
+       android:background="?android:attr/selectableItemBackground"
+       android:fontFamily="@font/roboto_medium"
+       android:gravity="center"
+       android:paddingLeft="16dp"
+       android:paddingRight="16dp"
+       android:text="@string/smartcube_step_undo"
+       android:textAllCaps="true"
+       android:textColor="@color/lightblue"
+       android:textSize="14sp"/>
+  </LinearLayout>
+</FrameLayout>

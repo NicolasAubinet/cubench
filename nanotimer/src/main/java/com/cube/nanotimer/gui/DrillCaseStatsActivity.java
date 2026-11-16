@@ -8,25 +8,28 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.CaseTableHeadings;
 import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
-import com.cube.nanotimer.util.YesNoListener;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
+import com.cube.nanotimer.util.view.SwipeToRemove;
 import com.cube.nanotimer.vo.drill.DrillCaseAttempt;
 import com.cube.nanotimer.vo.drill.DrillCaseRep;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,11 +40,9 @@ import java.util.List;
  * knocked, or where the user stopped half way through, is not a measurement of the case, and this
  * is the only screen where such a rep can still be reached once the drill it belongs to is over.
  *
- * <p><b>A rep thrown out is flagged, not deleted.</b> It leaves every figure at once and stays on
- * the list, struck through, so it can be put back by the tap that would otherwise ask about the
- * case. The stored row survives too: a rep pruned by hand is itself a signal, and a reader looking
- * for times far outside the usual wants the ones that were. It is gone from the list the next time
- * the screen is opened, having been disowned rather than hidden.
+ * <p><b>A rep is thrown out by swiping it left</b>, and the bar at the foot offers it back for a
+ * few seconds. It leaves the list and every figure at once, but is flagged, not deleted: a rep
+ * pruned by hand is itself a signal. The rows open nothing; the case at the top opens its sheet.
  *
  * <p>Attempts that were never measurements are shown but not counted: one given up on and one where
  * the algorithm was looked up both say something about the case, and neither is a time.
@@ -54,6 +55,10 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
 
   private static final int[] VALUE_IDS = {R.id.tvDrillAttemptRecognition,
       R.id.tvDrillAttemptExecution, R.id.tvDrillAttemptTotal};
+  /** No count column; then the three figures, which open slowest first like the other tables. */
+  private static final int[] HEADING_LABELS = {0, R.string.drill_summary_column_recognition,
+      R.string.drill_summary_column_execution, R.string.drill_summary_column_total};
+  private static final boolean[] OPENS_DESCENDING = {false, true, true, true};
 
   /** A thrown-out line: still legible, and plainly not one of the attempts being read. */
   private static final float DELETED_ALPHA = 0.45f;
@@ -65,9 +70,19 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     }
   };
 
+  /** How long a removed attempt can be brought back from the bar. */
+  private static final long UNDO_MS = 5000;
+
   private String caseCode;
   private DrillStatsWindow window;
+  /** Puts the last removed attempt back, or null once the bar has gone. */
+  private Runnable undoing;
+  private final Runnable hideUndo = () -> {
+    undoing = null;
+    findViewById(R.id.llDrillCaseUndo).setVisibility(View.GONE);
+  };
   private LinearLayout rows;
+  private CaseTableHeadings headings;
   private final List<DrillCaseAttempt> attempts = new ArrayList<DrillCaseAttempt>();
   private final TimeColorScale[] scales = new TimeColorScale[VALUE_IDS.length];
   /** The one family this screen ever reads, since it is reading one case of it. */
@@ -90,6 +105,14 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     ((TextView) findViewById(R.id.tvDrillCaseStatsName))
         .setText(Utils.toSmartCubeCaseHeadline(this, caseCode));
     ((TextView) findViewById(R.id.tvDrillCaseStatsWindow)).setText(window.getLongLabelId());
+    findViewById(R.id.llDrillCaseStatsHeader).setOnClickListener(
+        v -> DialogUtils.showFragment(this, CaseSheet.newInstance(caseCode)));
+    findViewById(R.id.tvDrillCaseUndo).setOnClickListener(v -> undo());
+    headings = new CaseTableHeadings(findViewById(R.id.llDrillCaseStatsSection), HEADING_LABELS,
+        OPENS_DESCENDING, CaseTableHeadings.LABEL_COLUMN, (column, descending) -> order());
+    headings.setLabel(R.string.drill_case_stats_attempts);
+    headings.rankableLabel(true); // newest first
+    headings.setAccent(hue);
 
     // The attempts survive a rotation rather than being read again, because reading them again
     // would lose the struck lines: a rep thrown out is gone from the query at once, and this screen
@@ -139,31 +162,57 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     LayoutInflater inflater = LayoutInflater.from(this);
     rows.removeAllViews();
     for (final DrillCaseAttempt attempt : attempts) {
+      if (attempt.getRep().isDeleted()) {
+        continue; // swiped away before a rotation
+      }
       final View line = inflater.inflate(R.layout.drill_case_attempt_row, rows, false);
-      line.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          // A thrown-out line is put back by the same tap that would otherwise ask about the case.
-          // Undoing is not destructive, so unlike throwing one out it asks nothing first.
-          if (attempt.getRep().isDeleted()) {
-            setDeleted(attempt, false);
-          } else {
-            DialogUtils.showFragment(DrillCaseStatsActivity.this,
-                CaseAlgorithmsDialog.newInstance(caseCode));
-          }
-        }
-      });
-      line.setOnLongClickListener(new View.OnLongClickListener() {
-        @Override
-        public boolean onLongClick(View v) {
-          askToDelete(attempt);
-          return true;
-        }
-      });
+      SwipeToRemove.attach(line, row -> remove(attempt, row));
+      ((TextView) line.findViewById(R.id.tvDrillAttemptTotal))
+          .setTypeface(ResourcesCompat.getFont(this, R.font.roboto_bold));
       line.setTag(attempt);
       rows.addView(line);
     }
+    order();
     refresh();
+  }
+
+  /** Puts the lines in the order the headings ask for; an attempt with no time sinks either way. */
+  private void order() {
+    final int column = headings.column();
+    final boolean descending = headings.descending();
+    List<View> lines = new ArrayList<View>();
+    for (int i = 0; i < rows.getChildCount(); i++) {
+      lines.add(rows.getChildAt(i));
+    }
+    Collections.sort(lines, (a, b) -> {
+      DrillCaseRep repA = ((DrillCaseAttempt) a.getTag()).getRep();
+      DrillCaseRep repB = ((DrillCaseAttempt) b.getTag()).getRep();
+      if (column == CaseTableHeadings.LABEL_COLUMN) {
+        int byDate = Long.compare(((DrillCaseAttempt) a.getTag()).getTimestamp(),
+            ((DrillCaseAttempt) b.getTag()).getTimestamp());
+        int order = byDate != 0 ? byDate : Integer.compare(repA.getPosition(), repB.getPosition());
+        return descending ? -order : order;
+      }
+      if (repA.isAbandoned() != repB.isAbandoned()) {
+        return repA.isAbandoned() ? 1 : -1;
+      }
+      int order = Long.compare(value(repA, column - 1), value(repB, column - 1));
+      return descending ? -order : order;
+    });
+    rows.removeAllViews();
+    for (View line : lines) {
+      rows.addView(line);
+    }
+    headings.refresh();
+  }
+
+  /** The attempts still on the list, the ones swiped away left out. */
+  private int listed() {
+    int listed = 0;
+    for (DrillCaseAttempt attempt : attempts) {
+      listed += attempt.getRep().isDeleted() ? 0 : 1;
+    }
+    return listed;
   }
 
   /** Everything the figures are made of: the attempts that measured the case and were kept. */
@@ -231,7 +280,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     setCell(R.id.tvDrillCellKeyOne, R.id.tvDrillCellValueOne, R.id.tvDrillCellSubOne,
         getString(R.string.drill_summary_cell_reps), String.valueOf(reps),
         // Only where they differ: "12 of 12" would be arithmetic dressed as a fact.
-        reps == attempts.size() ? "" : getString(R.string.drill_summary_cell_of, attempts.size()));
+        reps == listed() ? "" : getString(R.string.drill_summary_cell_of, listed()));
 
     ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
     DrillStatCells.nameHalves(this, hue);
@@ -282,25 +331,33 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     note.setVisibility(text == null ? View.GONE : View.VISIBLE);
   }
 
-  /** Asks before throwing an attempt out, naming which one so a line held by accident is not lost. */
-  private void askToDelete(final DrillCaseAttempt attempt) {
-    if (attempt.getRep().isDeleted()) {
-      setDeleted(attempt, false); // a hold on a struck line puts it back, as a tap does
-      return;
+  /**
+   * A swiped attempt leaves the list and every figure at once, and the bar at the foot offers it
+   * back for a while. Nothing is asked first: the swipe is deliberate, and the undo is the guard.
+   */
+  private void remove(DrillCaseAttempt attempt, View line) {
+    final int at = rows.indexOfChild(line);
+    rows.removeView(line);
+    setDeleted(attempt, true);
+    undoing = () -> {
+      line.setTranslationX(0);
+      line.setAlpha(1f);
+      rows.addView(line, Math.min(at, rows.getChildCount()));
+      setDeleted(attempt, false);
+      order();
+    };
+    View bar = findViewById(R.id.llDrillCaseUndo);
+    bar.setVisibility(View.VISIBLE);
+    bar.removeCallbacks(hideUndo);
+    bar.postDelayed(hideUndo, UNDO_MS);
+  }
+
+  private void undo() {
+    if (undoing != null) {
+      undoing.run();
+      undoing = null;
     }
-    // Carries its unit here where it stands in a sentence, unlike in the table where the column
-    // heading says what the figure is. An attempt with no time says so instead, and takes no unit.
-    String time = attempt.getRep().isAbandoned() ? getString(R.string.drill_rep_skipped)
-        : getString(R.string.drill_case_seconds,
-            FormatterService.INSTANCE.formatSolveTime(attempt.getRep().getTotalMs()));
-    String message = getString(R.string.drill_case_stats_remove_message, when(attempt), time);
-    DialogUtils.showDestructiveConfirmDialog(this, R.string.drill_case_remove_title, message,
-        R.string.drill_case_remove, R.string.cancel, new YesNoListener() {
-          @Override
-          public void onYes() {
-            setDeleted(attempt, true);
-          }
-        });
+    hideUndo.run();
   }
 
   /** Throws an attempt out of every figure, or puts it back, on the screen and in the database. */
@@ -324,11 +381,6 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
   /** What has to be said about an attempt before its figures are read, or null when nothing has. */
   private String note(DrillCaseRep rep) {
     List<String> parts = new ArrayList<String>();
-    // First, because it is the one that says the rest of the line is not being counted. It carries
-    // the way back too: nothing else on screen says a struck line can be put back.
-    if (rep.isDeleted()) {
-      parts.add(getString(R.string.drill_case_removed));
-    }
     if (rep.isAbandoned()) {
       parts.add(getString(R.string.drill_rep_skipped));
     }

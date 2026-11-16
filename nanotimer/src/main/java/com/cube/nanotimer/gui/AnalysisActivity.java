@@ -45,8 +45,7 @@ import com.cube.nanotimer.gui.widget.CoachPlanStatus;
 import com.cube.nanotimer.gui.widget.CoachPlanView;
 import com.cube.nanotimer.gui.widget.CoachTodayView;
 import com.cube.nanotimer.gui.widget.CoachDailyView;
-import com.cube.nanotimer.gui.widget.dialog.CaseAlgorithmsDialog;
-import com.cube.nanotimer.gui.widget.dialog.DrillCasesDialog;
+import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.gui.widget.SelectionHandler;
@@ -116,8 +115,7 @@ import java.util.Set;
  * standing over a screen they have a real version of. That is the arrangement never allowed here,
  * because an invented figure beside a real one is what makes the true number look invented.
  */
-public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDialog.Listener,
-    SelectionHandler {
+public class AnalysisActivity extends NanoTimerActivity implements SelectionHandler {
 
   private static final int ID_PLAN_LANGUAGE = 1;
 
@@ -153,6 +151,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
   private SolveType solveType;
   private CubeMethod method;
   private AnalysisWindow window;
+  /** The Cases tab's own window: each case's last solves, not the hub's last solves. */
+  private AnalysisCaseWindow caseWindow;
   private SegmentedControl tabs;
   private CaseTableHeadings headings;
   private StepPalette palette;
@@ -251,6 +251,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     readablePuzzle = solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId();
     window = AnalysisWindow.of(Options.INSTANCE.getAnalysisWindow(
         AnalysisWindow.HUNDRED.ordinal()));
+    caseWindow = AnalysisCaseWindow.of(Options.INSTANCE.getAnalysisCaseWindow(
+        AnalysisCaseWindow.FIFTY.ordinal()));
     palette = StepPalette.cfop(this);
 
     showContext();
@@ -305,6 +307,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       coachClient.checkBetaIfStale();
     }
     showToday(); // solves and drills done since the tab was last drawn
+    redrawPractice();
     if (knownRead) {
       loadKnowledge(); // a drill run from here may have learned cases since
     }
@@ -340,6 +343,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
       public void onClick(View v) {
         if (sampleOffered()) {
           askForMode();
+        } else if (tab == TAB_CASES) {
+          askForCaseWindow();
         } else {
           askForWindow();
         }
@@ -397,9 +402,10 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     if (windowItem == null) {
       return;
     }
-    // A trainer has no window worth offering: no slice of it will ever hold a step.
-    windowItem.setVisible(readAsSolve());
-    if (!readAsSolve()) {
+    // A trainer has no window worth offering: no slice of it will ever hold a step. Plan reads none.
+    boolean offered = readAsSolve() && tab != TAB_PLAN;
+    windowItem.setVisible(offered);
+    if (!offered) {
       return;
     }
     boolean sampling = sampling();
@@ -408,7 +414,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     if (sampleOffered()) {
       label = sampling ? R.string.analysis_sample_chip : R.string.analysis_sample_mine;
     } else {
-      label = window.getLabelId();
+      label = tab == TAB_CASES ? caseWindow.getLabelId() : window.getLabelId();
     }
     chip.setText(getString(R.string.analysis_window_chip, getString(label)));
     chip.setBackgroundResource(sampling ? R.drawable.analysis_sample_chip : R.drawable.row_chip);
@@ -456,6 +462,40 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
           }
         })
         .show();
+  }
+
+  private void askForCaseWindow() {
+    AnalysisCaseWindow[] windows = AnalysisCaseWindow.values();
+    String[] labels = new String[windows.length];
+    for (int i = 0; i < labels.length; i++) {
+      labels[i] = getString(windows[i].getLabelId());
+    }
+    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.analysis_case_window_title)
+        .setSingleChoiceItems(labels, caseWindow.ordinal(), (dialog, which) -> {
+          dialog.dismiss();
+          caseWindow = windows[which];
+          Options.INSTANCE.setAnalysisCaseWindow(caseWindow.ordinal());
+          showWindow();
+          loadCases();
+        })
+        .show();
+  }
+
+  /** Reads the Cases tab's table again alone, dropping an answer that lands after another pick. */
+  private void loadCases() {
+    final AnalysisCaseWindow asked = caseWindow;
+    App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, method, asked.perCase(),
+        new DataCallback<List<StepStats>>() {
+          @Override
+          public void onData(final List<StepStats> oneAlgorithm) {
+            runOnUiThread(() -> {
+              if (asked == caseWindow && !isFinishing() && read != null) {
+                show(read, oneAlgorithm);
+              }
+            });
+          }
+        });
   }
 
   /**
@@ -547,6 +587,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     }
     showWhatIsReadable();
     showPlanMenu();
+    showWindow(); // each tab has its own window, and Plan none
     if (moved) {
       // A tab is a different question, so it starts at its own first answer rather than at
       // whatever depth the last one was left scrolled to.
@@ -704,7 +745,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
           @Override
           public void onData(final MethodStatistics statistics) {
             App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, method,
-                window.solves(), new DataCallback<List<StepStats>>() {
+                caseWindow.perCase(), new DataCallback<List<StepStats>>() {
                   @Override
                   public void onData(final List<StepStats> oneAlgorithm) {
                     runOnUiThread(new Runnable() {
@@ -1203,8 +1244,8 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     return !planShown && planStatus.getLook() == CoachPlanStatus.Look.FIRST;
   }
 
-  @Override
-  public void onDrillCasesPicked(String family) {
+  /** Back from the learn-next picker, which writes the pick through as it goes. */
+  private void redrawPractice() {
     if (!isFinishing() && !practiceSets.isEmpty()) {
       drawPractice(practiceSets);
     }
@@ -1398,7 +1439,7 @@ public class AnalysisActivity extends NanoTimerActivity implements DrillCasesDia
     return new AnalysisCases.Listener() {
       @Override
       public void onCasePicked(String caseCode) {
-        CaseAlgorithmsDialog.newInstance(caseCode).show(getSupportFragmentManager(), "case");
+        CaseSheet.newInstance(caseCode).show(getSupportFragmentManager(), "case");
       }
 
       @Override

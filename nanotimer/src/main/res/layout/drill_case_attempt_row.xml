@@ -59,8 +59,11 @@
      android:id="@+id/tvDrillAttemptExecution"
      style="@style/DrillCaseValue"/>
 
+  <!-- The lead figure, as every case table has one: bigger, bold in code, and wider to keep a gap. -->
   <com.cube.nanotimer.util.view.FontFitTextView
      android:id="@+id/tvDrillAttemptTotal"
-     style="@style/DrillCaseValue"/>
+     style="@style/DrillCaseValue"
+     android:layout_width="@dimen/drill_case_lead_column"
+     android:textSize="19sp"/>
 
 </LinearLayout>

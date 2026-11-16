@@ -73,11 +73,23 @@ public interface Service {
       DataCallback<MethodStatistics> callback);
 
   /**
-   * Each step over the same window as {@link #getMethodStatistics}, counting only the solves where
-   * it went in one algorithm: a last layer case over the times it was not two-looked.
+   * Each case of the solve type's method over its own last {@code perCase} solves where it went in
+   * one algorithm (not two-looked), so a rare case is read over as many times as a common one.
    */
-  void getOneAlgorithmCaseStatistics(SolveType solveType, CubeMethod method, int lastSolves,
+  void getOneAlgorithmCaseStatistics(SolveType solveType, CubeMethod method, int perCase,
       DataCallback<List<StepStats>> callback);
+
+  /**
+   * One last layer case over the last {@code lastTimes} solves it came up in, of any solve type,
+   * counting only the times it went in one algorithm; null for a case never met in a solve.
+   */
+  void getCaseSolveStats(String caseCode, int lastTimes, DataCallback<StepStats> callback);
+
+  /**
+   * Every last layer case over the last {@code lastSolves} solves of any solve type, counting the
+   * times it went in one algorithm, in the shape a drill's case table reads.
+   */
+  void getCaseSolveTable(int lastSolves, DataCallback<List<DrillCaseStats>> callback);
 
   /** How many of a solve type's solves a smart cube drove, and so could be read again. */
   void getSmartcubeSolvesCount(SolveType solveType, DataCallback<Integer> callback);

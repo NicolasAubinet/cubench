@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1752,12 +1753,14 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   /**
-   * One algorithm is fewer than two parts, as in {@link CaseKnowledgeStore}: parts are only stored
-   * where a step took more than one.
+   * Each case over its own last {@code perCase} one-algorithm solves, so a rare case keeps its rows
+   * however long ago it came up. One algorithm is fewer than two parts, as in
+   * {@link CaseKnowledgeStore}: parts are only stored where a step took more than one. Capped here
+   * rather than in SQL: a window function needs SQLite 3.25, which Android has only from API 30.
    */
   @Override
   public List<StepStats> getOneAlgorithmCaseStatistics(SolveType solveType, CubeMethod method,
-      int lastSolves) {
+      int perCase) {
     String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
         + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -1767,34 +1770,142 @@ public class ServiceProviderImpl implements ServiceProvider {
 
     StringBuilder q = new StringBuilder();
     q.append("SELECT s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
-    q.append("     , COUNT(*)");
-    q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    q.append("     , SUM(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION).append(")");
-    q.append("     , MIN(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    q.append("     , MAX(s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
-    q.append("     , SUM(1.0 * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
-    q.append("            * s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME).append(")");
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIME);
+    q.append("     , s.").append(DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION);
     q.append("  FROM ").append(DB.TABLE_SMARTCUBE_SOLVESTEP).append(" s");
-    q.append("  JOIN (").append(methodSolvesWindow(lastSolves)).append(") h");
+    q.append("  JOIN (").append(methodSolvesWindow(Integer.MAX_VALUE)).append(") h");
     q.append("    ON h.").append(DB.COL_ID).append(" = s.").append(DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID);
     q.append(" WHERE s.").append(DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX).append(" IS NULL");
     q.append("   AND (h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP).append(" IS NULL");
     q.append("     OR h.").append(DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP);
     q.append("    <> s.").append(DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX).append(")");
     q.append("   AND ").append(parts).append(" < 2");
-    q.append(" GROUP BY s.").append(DB.COL_SMARTCUBE_SOLVESTEP_NAME);
+    q.append(" ORDER BY h.").append(DB.COL_TIMEHISTORY_TIMESTAMP).append(" DESC");
 
-    List<StepStats> cases = new ArrayList<StepStats>();
+    // name -> {count, total, recognition, best, worst}, squares kept apart as a double
+    Map<String, long[]> sums = new LinkedHashMap<String, long[]>();
+    Map<String, Double> squares = new HashMap<String, Double>();
+    int cap = Math.max(0, perCase);
     Cursor cursor = db.rawQuery(q.toString(),
         new String[] { String.valueOf(solveType.getId()), method.getCode() });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        cases.add(new StepStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
+        String name = cursor.getString(0);
+        long[] sum = sums.get(name);
+        if (sum == null) {
+          sum = new long[] { 0, 0, 0, Long.MAX_VALUE, 0 };
+          sums.put(name, sum);
+          squares.put(name, 0.0);
+        }
+        if (sum[0] >= cap) {
+          continue;
+        }
+        long time = cursor.getLong(1);
+        sum[0]++;
+        sum[1] += time;
+        sum[2] += cursor.getLong(2);
+        sum[3] = Math.min(sum[3], time);
+        sum[4] = Math.max(sum[4], time);
+        squares.put(name, squares.get(name) + 1.0 * time * time);
+      }
+      cursor.close();
+    }
+    List<StepStats> cases = new ArrayList<StepStats>();
+    for (Map.Entry<String, long[]> entry : sums.entrySet()) {
+      long[] sum = entry.getValue();
+      if (sum[0] > 0) {
+        cases.add(new StepStats(entry.getKey(), (int) sum[0], sum[1], sum[2], sum[3], sum[4],
+            squares.get(entry.getKey())));
+      }
+    }
+    return cases;
+  }
+
+  @Override
+  public List<DrillCaseStats> getCaseSolveTable(int lastSolves) {
+    String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
+        + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
+    String window = "SELECT " + DB.COL_ID + ", " + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + " FROM " + DB.TABLE_TIMEHISTORY
+        + " WHERE " + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " IS NOT NULL"
+        + " ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastSolves);
+    String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME
+        + ", COUNT(*), SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + ")"
+        + ", MIN(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", MAX(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", SUM(1.0 * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
+        + "      * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
+        + " JOIN (" + window + ") h ON h." + DB.COL_ID
+        + "    = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
+        + "   AND substr(s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ", 1, 4) IN ('oll_', 'pll_')"
+        + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
+        + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
+        + "   AND " + parts + " < 2"
+        + " GROUP BY s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME;
+    List<DrillCaseStats> cases = new ArrayList<DrillCaseStats>();
+    Cursor cursor = db.rawQuery(q, null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        cases.add(new DrillCaseStats(cursor.getString(0), cursor.getInt(1), cursor.getLong(2),
             cursor.getLong(3), cursor.getLong(4), cursor.getLong(5), cursor.getDouble(6)));
       }
       cursor.close();
     }
     return cases;
+  }
+
+  @Override
+  public StepStats getCaseSolveStats(String caseCode, int lastTimes) {
+    String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
+        + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
+    String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
+        + ", s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION
+        + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
+        + " JOIN " + DB.TABLE_TIMEHISTORY + " h"
+        + "   ON h." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " = ?"
+        + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
+        + "   AND h." + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
+        + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
+        + "   AND " + parts + " < 2"
+        + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC"
+        + " LIMIT " + Math.max(0, lastTimes);
+    int count = 0;
+    long total = 0;
+    long recognition = 0;
+    long best = Long.MAX_VALUE;
+    long worst = 0;
+    double squares = 0;
+    Cursor cursor = db.rawQuery(q, new String[] { caseCode });
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        long time = cursor.getLong(0);
+        count++;
+        total += time;
+        recognition += cursor.getLong(1);
+        best = Math.min(best, time);
+        worst = Math.max(worst, time);
+        squares += 1.0 * time * time;
+      }
+      cursor.close();
+    }
+    return count == 0 ? null
+        : new StepStats(caseCode, count, total, recognition, best, worst, squares);
   }
 
   /**

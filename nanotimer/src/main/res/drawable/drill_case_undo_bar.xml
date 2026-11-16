@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The bar offering to undo a removed attempt: a raised surface above the list. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <solid android:color="@color/dialog_surface"/>
+  <stroke android:width="1dp" android:color="@color/hero_divider"/>
+  <corners android:radius="10dp"/>
+</shape>

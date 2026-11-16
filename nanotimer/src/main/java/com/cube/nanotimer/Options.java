@@ -95,6 +95,7 @@ public enum Options {
   private static final String SMART_CUBE_GYRO_SEEN_KEY_PREFIX = "smart_cube_gyro_seen_";
   public static final String DRILL_CHOICE_KEY_PREFIX = "drill_choice_";
   private static final String ANALYSIS_WINDOW_KEY = "analysisWindow";
+  private static final String ANALYSIS_CASE_WINDOW_KEY = "analysisCaseWindow";
   private static final String COACH_PENDING_KEY_PREFIX = "coach_pending_";
   private static final String COACH_PENDING_AT_KEY_PREFIX = "coach_pending_at_";
   private static final String COACH_PRACTICE_KEY_PREFIX = "coach_practice_";
@@ -359,6 +360,15 @@ public enum Options {
 
   public void setAnalysisWindow(int ordinal) {
     sharedPreferences.edit().putInt(ANALYSIS_WINDOW_KEY, ordinal).apply();
+  }
+
+  /** How many solves per case the Analysis hub's Cases tab was last read over, by ordinal. */
+  public int getAnalysisCaseWindow(int defaultValue) {
+    return sharedPreferences.getInt(ANALYSIS_CASE_WINDOW_KEY, defaultValue);
+  }
+
+  public void setAnalysisCaseWindow(int ordinal) {
+    sharedPreferences.edit().putInt(ANALYSIS_CASE_WINDOW_KEY, ordinal).apply();
   }
 
   /** The plan request a solve type sent and never got a plan back for, or null. */

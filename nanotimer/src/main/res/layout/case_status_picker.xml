@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Status picker's body: one case_status_row per standing, filled in code. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content">
+
+  <LinearLayout
+     android:id="@+id/llStatusRows"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:paddingStart="20dp"
+     android:paddingTop="4dp"
+     android:paddingEnd="20dp"
+     android:paddingBottom="12dp"/>
+
+</ScrollView>

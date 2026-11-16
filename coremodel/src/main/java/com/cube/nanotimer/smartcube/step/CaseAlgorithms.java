@@ -82,6 +82,28 @@ public final class CaseAlgorithms {
     return byVotes;
   }
 
+  /**
+   * The case's other algorithms, past the ones {@link #shown} lists, most voted first: the long tail
+   * a sheet offers behind "Show more". Last layer cases only; empty for an F2L pair.
+   */
+  public static List<Listed> more(String caseCode) {
+    List<Listed> more = new ArrayList<Listed>();
+    if (caseCode == null || isPair(caseCode)) {
+      return more;
+    }
+    List<Listed> shown = shown(caseCode);
+    for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
+      boolean listed = false;
+      for (Listed one : shown) {
+        listed |= sameTurning(caseCode, one.getMoves(), algorithm.getMoves());
+      }
+      if (!listed) {
+        more.add(new Listed(algorithm.getMoves(), false, null));
+      }
+    }
+    return Collections.unmodifiableList(more);
+  }
+
   /** The vote table's order, which a case keeps until it has usage figures. */
   static List<Listed> byVotes(String caseCode) {
     List<Listed> shown = new ArrayList<Listed>();

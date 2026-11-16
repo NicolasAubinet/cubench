@@ -1,24 +1,23 @@
 package com.cube.nanotimer.gui.widget;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseGroup;
+import com.cube.nanotimer.cases.CaseSet;
+import com.cube.nanotimer.cases.CaseSets;
+import com.cube.nanotimer.gui.widget.cases.CaseFilterBar;
+import com.cube.nanotimer.gui.widget.cases.CaseTile;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
-import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
-import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
-import com.cube.nanotimer.step.OllShapes;
 import com.cube.nanotimer.util.FormatterService;
-import com.cube.nanotimer.util.OllGroups;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.FlowLayout;
 import com.cube.nanotimer.util.view.KnowledgeRingView;
@@ -53,7 +52,8 @@ import java.util.Set;
  * slow it runs, how good it has been and how steady it is, and the reader weighs them.
  *
  * <p><b>The set is shown whole, in two parts, and they run on two different clocks.</b> The table is
- * the window's cases that went in with one algorithm, each figure over those solves only, since a
+ * the cases that went in with one algorithm, each read over its own last solves (the tab's own
+ * window, {@link com.cube.nanotimer.gui.AnalysisCaseWindow}) and only those, since a
  * two-look time is not the time of an algorithm the solver has; the section under it is the rest of
  * the set, and where each of those stands is read from every solve there has ever been. That is
  * not a "never seen" list: a case known cold that did not come up in the last hundred solves is in
@@ -90,18 +90,12 @@ public class AnalysisCases {
 
   private static final int OPAQUE = 255;
 
-  /** Every shape, which is how a family opens once it has been picked. */
-  private static final String ANY = "";
-
   /**
    * Every case the app has a picture and a set for, which is what this table may list, each against
    * its place in the set: an OLL by its number, a PLL by its letter, which is the order every chart
    * of them is printed in.
    */
   private static final Map<String, Integer> DRAWN = drawn();
-
-  /** How many cases each shape groups, which is a fact about the set and not about a window. */
-  private static final Map<String, Integer> SHAPE_SIZES = shapeSizes();
 
   /**
    * The rest of the set, grouped in the order the known-algorithms screen already walks it: learnt,
@@ -110,35 +104,6 @@ public class AnalysisCases {
    */
   private static final CaseKnowledge.Status[] STANDINGS = {CaseKnowledge.Status.KNOWN,
       CaseKnowledge.Status.NEEDS_REVIEW, CaseKnowledge.Status.TO_LEARN, null};
-
-  /** Each shape's picture in the picker: its first case in the set's order. */
-  private static final Map<String, String> SHAPE_PICTURES = shapePictures();
-  /** Two rows of seven fit a landscape screen; seven across a portrait one leave no room to read. */
-  private static final int SHAPE_COLUMNS = 4;
-  private static final int SHAPE_COLUMNS_WIDE = 7;
-
-  private static Map<String, String> shapePictures() {
-    Map<String, String> pictures = new LinkedHashMap<String, String>();
-    for (String code : DRAWN.keySet()) {
-      String name = LastLayerCaseNames.group(code);
-      if (name != null && !pictures.containsKey(name)) {
-        pictures.put(name, code);
-      }
-    }
-    return pictures;
-  }
-
-  private static Map<String, Integer> shapeSizes() {
-    Map<String, Integer> sizes = new LinkedHashMap<String, Integer>();
-    for (String code : DRAWN.keySet()) {
-      String name = LastLayerCaseNames.group(code);
-      if (name != null) {
-        Integer held = sizes.get(name);
-        sizes.put(name, Integer.valueOf(held == null ? 1 : held.intValue() + 1));
-      }
-    }
-    return sizes;
-  }
 
   private static Map<String, Integer> drawn() {
     Map<String, Integer> order = new LinkedHashMap<String, Integer>();
@@ -170,7 +135,8 @@ public class AnalysisCases {
   private final List<String> families = new ArrayList<String>();
   /** The step being read, which is null only until the first read says what the steps are. */
   private String family;
-  private String shape = ANY;
+  /** The group the family is narrowed to, or null for all of it. */
+  private CaseGroup group;
 
   public AnalysisCases(Context context, View root, Listener listener) {
     this.context = context;
@@ -206,7 +172,7 @@ public class AnalysisCases {
   }
 
   /**
-   * @param oneAlgorithm each case over only the window's solves where it went in one algorithm,
+   * @param oneAlgorithm each case over its own last solves where it went in one algorithm,
    *     which is all the table shows: a two-looked case is not one the solver has an algorithm for
    */
   public void show(MethodStatistics statistics, List<StepStats> oneAlgorithm,
@@ -276,8 +242,15 @@ public class AnalysisCases {
     // The method's own steps only. A part is coded by the algorithm that answered a case, so
     // taking parts as well would list one case twice, once as dealt and once as answered.
     for (StepStats step : statistics.getFamilies()) {
-      if (!drawnCases(step.getCode()).isEmpty()) {
+      if (!drawnCodes(step.getCode()).isEmpty()) {
         families.add(step.getCode());
+      }
+    }
+    // The table reads each case's own last solves, which can reach back past the hub's window
+    for (StepStats stepCase : oneAlgorithm) {
+      String of = MethodStatistics.familyOf(stepCase.getCode());
+      if (DRAWN.containsKey(stepCase.getCode()) && !families.contains(of)) {
+        families.add(of);
       }
     }
     if (!families.isEmpty() && !families.contains(family)) {
@@ -285,8 +258,8 @@ public class AnalysisCases {
       // about. Either way the tab opens on the first step the method solves.
       family = families.get(0);
     }
-    if (!ANY.equals(shape) && !shapesOf(family).contains(shape)) {
-      shape = ANY;
+    if (group != null && !anyDrawn(group)) {
+      group = null;
     }
   }
 
@@ -300,98 +273,30 @@ public class AnalysisCases {
     for (String code : families) {
       addSegment(segments, inflater, code, Utils.toSmartCubeStepLocalizedName(context, code, 0));
     }
-    showShapePicker(row, inflater);
+    showGroupFilter(row, inflater);
   }
 
   /**
-   * The shape picker, offered after the family chips behind a rule.
-   *
-   * <p>Only under one family, and never beside them all: a shape is how one family's cases are
-   * recognised, so it says nothing about a PLL and nothing at all about a list holding both.
+   * The family's group filter, after the family chips behind a rule: one family's, never all of
+   * them at once, since a group is how one set's cases are recognised.
    */
-  private void showShapePicker(LinearLayout row, LayoutInflater inflater) {
-    if (shapesOf(family).isEmpty()) {
+  private void showGroupFilter(LinearLayout row, LayoutInflater inflater) {
+    CaseSet set = CaseSets.ofFamily(family);
+    if (set == null) {
+      return;
+    }
+    CaseFilterBar filter = new CaseFilterBar(context, set, new CaseFilterBar.Listener() {
+      @Override
+      public void onGroupPicked(CaseGroup picked) {
+        group = picked;
+        redraw();
+      }
+    }).offer(drawnCodes(family)).known(knownCodes()).setGroup(group);
+    if (!filter.hasGroups()) {
       return;
     }
     row.addView(inflater.inflate(R.layout.analysis_chip_rule, row, false));
-    TextView chip = (TextView) inflater.inflate(R.layout.analysis_shape_chip, row, false);
-    chip.setText(context.getString(R.string.analysis_window_chip,
-        ANY.equals(shape) ? context.getString(R.string.analysis_shape_title) : shape));
-    chip.setSelected(!ANY.equals(shape));
-    chip.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        pickShape();
-      }
-    });
-    row.addView(chip);
-  }
-
-  /**
-   * The groups to narrow to, biggest first, each with how many of its cases are known, and over
-   * them how many groups of the whole set are complete.
-   *
-   * <p>Size order puts the groups with the most in them at the top, and the count beside each is
-   * what makes that order explain itself. Neither works in a scrolling row, which is the whole
-   * reason this is a list.
-   */
-  private void pickShape() {
-    List<String> shapes = shapesOf(family);
-    LayoutInflater inflater = LayoutInflater.from(context);
-    View body = inflater.inflate(R.layout.analysis_shape_picker, null);
-    LinearLayout grid = body.findViewById(R.id.llShapeGrid);
-    // The window chip's dialog theme: this is the same kind of control one row up.
-    final AlertDialog dialog = new AlertDialog.Builder(context, R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.analysis_shape_title)
-        .setView(body)
-        .create();
-
-    Set<String> known = knownCodes();
-    ((TextView) body.findViewById(R.id.tvShapeGroupsKnown)).setText(context.getString(
-        R.string.analysis_shape_groups_known, OllGroups.countComplete(known),
-        OllGroups.getAll().size()));
-    View all = body.findViewById(R.id.tvShapeAll);
-    all.setSelected(ANY.equals(shape));
-    all.setOnClickListener(shapePick(dialog, ANY));
-    int columns = context.getResources().getConfiguration().orientation
-        == Configuration.ORIENTATION_LANDSCAPE ? SHAPE_COLUMNS_WIDE : SHAPE_COLUMNS;
-    LinearLayout row = null;
-    for (int i = 0; i < shapes.size(); i++) {
-      if (i % columns == 0) {
-        row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        grid.addView(row);
-      }
-      String name = shapes.get(i);
-      View tile = inflater.inflate(R.layout.analysis_shape_tile, row, false);
-      ((LastLayerCaseView) tile.findViewById(R.id.vShapeChart))
-          .setDiagram(LastLayerDiagram.forCase(SHAPE_PICTURES.get(name)));
-      ((TextView) tile.findViewById(R.id.tvShapeName)).setText(name);
-      List<String> group = OllShapes.casesOf(name);
-      int knownHere = 0;
-      for (String code : group) {
-        knownHere += known.contains(code) ? 1 : 0;
-      }
-      boolean complete = knownHere == group.size();
-      TextView count = tile.findViewById(R.id.tvShapeCount);
-      count.setText(complete
-          ? context.getString(R.string.analysis_shape_all_known)
-          : context.getString(R.string.analysis_shape_known, knownHere, group.size()));
-      if (complete) {
-        count.setTextColor(ContextCompat.getColor(context, R.color.lightblue));
-      }
-      tile.setSelected(name.equals(shape));
-      tile.setOnClickListener(shapePick(dialog, name));
-      row.addView(tile);
-    }
-    // Empty cells keep the last row's tiles the width of the others.
-    for (int left = (columns - shapes.size() % columns) % columns; left > 0;
-        left--) {
-      View spacer = inflater.inflate(R.layout.analysis_shape_tile, row, false);
-      spacer.setVisibility(View.INVISIBLE);
-      row.addView(spacer);
-    }
-    dialog.show();
+    row.addView(filter.chip(inflater, row));
   }
 
   private Set<String> knownCodes() {
@@ -404,37 +309,14 @@ public class AnalysisCases {
     return known;
   }
 
-  private View.OnClickListener shapePick(final AlertDialog dialog, final String picked) {
-    return new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        shape = picked;
-        dialog.dismiss();
-        redraw();
-      }
-    };
-  }
-
-  /**
-   * The shapes one family's cases in this window are grouped by, biggest group first and ties by
-   * name. Left in the cubing vocabulary the app already keeps its case names in.
-   */
-  private List<String> shapesOf(String picked) {
-    List<String> shapes = new ArrayList<String>();
-    for (StepStats stepCase : drawnCases(picked)) {
-      String name = LastLayerCaseNames.group(stepCase.getCode());
-      if (name != null && !shapes.contains(name)) {
-        shapes.add(name);
+  /** Whether the window drew any of the group's cases, which is what offers it. */
+  private boolean anyDrawn(CaseGroup candidate) {
+    for (String code : drawnCodes(family)) {
+      if (candidate.contains(code)) {
+        return true;
       }
     }
-    Collections.sort(shapes, new Comparator<String>() {
-      @Override
-      public int compare(String a, String b) {
-        int size = SHAPE_SIZES.get(b).compareTo(SHAPE_SIZES.get(a));
-        return size != 0 ? size : a.compareTo(b);
-      }
-    });
-    return shapes;
+    return false;
   }
 
   private void addSegment(LinearLayout segments, LayoutInflater inflater, final String code,
@@ -446,7 +328,7 @@ public class AnalysisCases {
       @Override
       public void onClick(View v) {
         family = code;
-        shape = ANY; // a shape narrows the step it belongs to, so it cannot outlive the pick
+        group = null; // a group narrows the step it belongs to, so it cannot outlive the pick
         redraw();
       }
     });
@@ -527,7 +409,7 @@ public class AnalysisCases {
     List<String> set = new ArrayList<String>();
     for (String code : DRAWN.keySet()) {
       if (family.equals(MethodStatistics.familyOf(code))
-          && (ANY.equals(shape) || shape.equals(LastLayerCaseNames.group(code)))) {
+          && (group == null || group.contains(code))) {
         set.add(code);
       }
     }
@@ -597,13 +479,8 @@ public class AnalysisCases {
 
   /**
    * The rest of the step's set: every case of it the table does not hold, grouped under where it
-   * stands. A case the window only saw two-looked is here, under its standing.
-   *
-   * <p><b>Where a case stands is read over every solve, and the table above is read over the
-   * window.</b> Two clocks on one screen: a case the solver knows cold that has not come up in the
-   * last hundred solves belongs here, and it belongs here as known. This is not a list of cases they
-   * have never seen. That distinction was said in a line over the section and is now only on the
-   * help sheet, the headings being clear enough on their own to pay for the two rows it took.
+   * stands: a case this solve type only ever two-looked, or never met. Where it stands is read over
+   * every solve of any type, so a case known from drills or another solve type is here as known.
    *
    * <p>A case with nothing behind it is grouped under the words the ring above already counts it
    * with, and never under anything reading as "you do not know this": absence is not evidence.
@@ -641,11 +518,8 @@ public class AnalysisCases {
             context.getString(standingName(standing)), Integer.valueOf(group.size())));
     FlowLayout cases = view.findViewById(R.id.flAnalysisRestCases);
     for (final String code : group) {
-      View cell = inflater.inflate(R.layout.analysis_rest_cell, cases, false);
-      ((LastLayerCaseView) cell.findViewById(R.id.vAnalysisRestChart))
-          .setDiagram(LastLayerDiagram.forCase(code));
-      ((TextView) cell.findViewById(R.id.tvAnalysisRestName))
-          .setText(LastLayerCaseNames.shortName(code));
+      View cell = CaseTile.inflate(inflater, cases, R.layout.analysis_rest_cell)
+          .show(CaseSets.ofCase(code), code).view();
       cell.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -684,38 +558,44 @@ public class AnalysisCases {
     return rest;
   }
 
-  /** The picked family's cases the window put in with one algorithm, narrowed to the picked shape. */
+  /** The picked family's cases the window put in with one algorithm, narrowed to the picked group. */
   private List<StepStats> casesOf(String picked) {
     List<StepStats> cases = new ArrayList<StepStats>();
     for (StepStats stepCase : oneAlgorithm) {
       String code = stepCase.getCode();
       if (DRAWN.containsKey(code) && picked.equals(MethodStatistics.familyOf(code))
-          && (ANY.equals(shape) || shape.equals(LastLayerCaseNames.group(code)))) {
+          && (group == null || group.contains(code))) {
         cases.add(stepCase);
       }
     }
     return cases;
   }
 
-  /** One family's cases that the app has a picture and a set for. */
-  private List<StepStats> drawnCases(String family) {
-    List<StepStats> drawn = new ArrayList<StepStats>();
+  /** One family's cases that the app has a picture and a set for, from the window or the table. */
+  private List<String> drawnCodes(String family) {
+    List<String> drawn = new ArrayList<String>();
     for (StepStats stepCase : statistics.getCases(family)) {
       if (DRAWN.containsKey(stepCase.getCode())) {
-        drawn.add(stepCase);
+        drawn.add(stepCase.getCode());
+      }
+    }
+    for (StepStats stepCase : oneAlgorithm) {
+      String code = stepCase.getCode();
+      if (DRAWN.containsKey(code) && family.equals(MethodStatistics.familyOf(code))
+          && !drawn.contains(code)) {
+        drawn.add(code);
       }
     }
     return drawn;
   }
 
   /**
-   * Whether a figure of this case is worth ranking the table on. A case the window holds once has
-   * no spread at all, since 0.00 off one solve would read as the steadiest case there is, and its
-   * mean is that one solve, which would stand a fluke at the top of the table. Ordering by the case
-   * itself is exempt: a set is read in its own order, whether or not it has been seen.
+   * Whether this case has a figure in that column. Only the spread can be missing: a case read
+   * once has none, since 0.00 off one solve would read as the steadiest case there is. Its mean and
+   * best are real figures and rank with the rest.
    */
   private boolean quotable(StepStats stepCase, int column) {
-    return column == CaseTableHeadings.LABEL_COLUMN || stepCase.getCount() >= 2;
+    return column != SPREAD_COLUMN || stepCase.getCount() >= 2;
   }
 
   private long value(StepStats stepCase, int column) {

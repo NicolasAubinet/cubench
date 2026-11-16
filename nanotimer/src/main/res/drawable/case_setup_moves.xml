@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Setup moves: a dashed outline, so they read as a means to the case and not one of its algorithms. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="rectangle">
+  <stroke
+     android:width="1dp"
+     android:color="@color/gray700"
+     android:dashWidth="5dp"
+     android:dashGap="4dp"/>
+  <corners android:radius="8dp"/>
+</shape>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One standing: its colour from the library's progress bars, its name, how many cases it holds. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:layout_marginTop="4dp"
+   android:layout_marginBottom="4dp"
+   android:background="@drawable/shape_all_tile"
+   android:gravity="center_vertical"
+   android:minHeight="52dp"
+   android:orientation="horizontal"
+   android:paddingStart="16dp"
+   android:paddingEnd="16dp">
+
+  <View
+     android:id="@+id/vStatusSwatch"
+     android:layout_width="14dp"
+     android:layout_height="14dp"
+     android:layout_marginEnd="14dp"/>
+
+  <TextView
+     android:id="@+id/tvStatusName"
+     android:layout_width="0dp"
+     android:layout_height="wrap_content"
+     android:layout_weight="1"
+     android:fontFamily="@font/roboto_medium"
+     android:textColor="@color/case_name"
+     android:textSize="15sp"/>
+
+  <TextView
+     android:id="@+id/tvStatusCount"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:textColor="@color/secondary_text"
+     android:textSize="15sp"/>
+
+</LinearLayout>

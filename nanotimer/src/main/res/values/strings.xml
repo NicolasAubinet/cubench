@@ -1073,7 +1073,6 @@
     <item quantity="one">%d case</item>
     <item quantity="other">%d cases</item>
   </plurals>
-  <string name="drill_stats_hint">Tap a case to see every attempt at it.</string>
   <string name="drill_stats_empty">Nothing recorded yet. Drills run in the focused mode show up here, case by case.</string>
   <string name="drill_stats_empty_window">No drill in this stretch of time.</string>
   <string name="drill_stats_window_today">Today</string>
@@ -1086,7 +1085,8 @@
   <string name="drill_stats_window_all_long">All time</string>
   <string name="drill_case_stats_title">Case</string>
   <string name="drill_case_stats_attempts">Attempts</string>
-  <string name="drill_case_stats_hint">Tap an attempt for the algorithms, hold it to remove it.</string>
+  <string name="drill_case_stats_hint">Tap the case for its algorithms. Swipe an attempt left to remove it.</string>
+  <string name="drill_case_stats_removed">Attempt removed</string>
   <string name="drill_case_stats_empty">No attempt in this stretch of time.</string>
   <string name="drill_case_stats_cell_worst">Worst %s</string>
   <plurals name="drill_case_stats_resets">
@@ -1094,7 +1094,6 @@
     <item quantity="other">%d restarts</item>
   </plurals>
   <string name="drill_case_stats_when">%1$s · rep %2$d</string>
-  <string name="drill_case_stats_remove_message">%1$s, %2$s. It stays on the list, struck out, and counts toward nothing.</string>
   <!-- Punctuation between what was drilled and the mode it was drilled in. -->
   <string name="drill_summary_subtitle" translatable="false">%1$s · %2$s</string>
   <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>
@@ -1110,6 +1109,10 @@
   <string name="drill_setup_title">New drill</string>
   <string name="drill_practice_pll">PLL</string>
   <string name="drill_practice_oll">OLL</string>
+  <string name="case_group_pll_edges">Edges only</string>
+  <string name="case_group_pll_corners">Corners only</string>
+  <string name="case_group_pll_adjacent">Adjacent swap</string>
+  <string name="case_group_pll_diagonal">Diagonal swap</string>
   <string name="drill_practice_cross">Cross</string>
   <string name="drill_practice_hint_pll">One PLL after another, from the cases you pick.</string>
   <string name="drill_practice_hint_oll">One OLL after another, from the cases you pick.</string>
@@ -1157,6 +1160,18 @@
   <string name="case_algorithm_recommended">Recommended</string>
   <string name="case_algorithm_yours">Yours</string>
   <string name="case_algorithm_add">Use your own algorithm</string>
+  <string name="case_sheet_your_times">Your times</string>
+  <string name="case_sheet_in_solves">In solves</string>
+  <string name="case_sheet_in_drills">In drills</string>
+  <string name="case_sheet_best">Best %s</string>
+  <string name="case_sheet_show_fewer">Show fewer</string>
+  <string name="case_algorithm_your_pick">Your pick</string>
+  <string name="case_sheet_setup">Setup moves</string>
+  <string name="case_sheet_setup_hint">From solved, last layer on top: these moves set the case up.</string>
+  <plurals name="case_sheet_show_more">
+    <item quantity="one">Show %d more</item>
+    <item quantity="other">Show %d more</item>
+  </plurals>
   <string name="case_algorithms_practice">Practice this case</string>
   <string name="case_algorithm_wrong">That does not solve this case. Check it and try again.</string>
   <string name="case_title_f2l">F2L pair</string>
@@ -1261,17 +1276,10 @@
     <item quantity="other">%d solve types</item>
   </plurals>
   <!-- The cases the solver puts in unaided, and what they turn for each. -->
-  <string name="known_algorithms_title">Algorithms you know</string>
-  <string name="known_algorithms_count">%1$d of %2$d in one algorithm</string>
-  <string name="known_algorithms_subtitle">Worked out from your solves and your drills.</string>
   <string name="known_algorithms_status_known">Known</string>
   <string name="known_algorithms_status_review">Needs review</string>
   <string name="known_algorithms_status_to_learn">To learn</string>
   <string name="known_algorithms_status_count">%1$s (%2$d)</string>
-  <string name="known_algorithms_no_moves">No case recorded yet</string>
-  <string name="known_algorithms_hint">Tap a case for the algorithms it can be solved with. A case counts as known the first time you put it in with one algorithm in a solve, or after a run of clean reps in a drill. Take it in two looks again and it needs review; one you have never yet put in with a single algorithm is still to learn.</string>
-  <string name="known_algorithms_empty">Nothing here yet. Solve with a smart cube connected and the cases you put in unaided will show up.</string>
-  <string name="known_algorithms_reading">Reading your solves...</string>
   <string name="blind_setup_summary">%2$s, %1$s, buffers %3$s and %4$s</string>
   <string name="blind_setup">Blindfolded solves</string>
   <string name="blind_setup_why">Your blindfolded solves are reconstructed from these answers.</string>
@@ -1324,7 +1332,9 @@
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
   <string name="analysis_window_title">Read over</string>
+  <string name="analysis_case_window_title">Each case, read over</string>
   <string name="analysis_window_chip">%s \u25be</string>
+  <string name="analysis_window_10">Last 10</string>
   <string name="analysis_window_50">Last 50</string>
   <string name="analysis_window_100">Last 100</string>
   <string name="analysis_window_1000">Last 1000</string>
@@ -1333,8 +1343,31 @@
   <string name="analysis_column_case">Case</string>
   <string name="analysis_shape_title">Shape</string>
   <string name="analysis_shape_all">All shapes</string>
+  <string name="case_filter_group">Group</string>
+  <string name="case_filter_all_groups">All groups</string>
+  <string name="menu_algorithms">Algorithms</string>
+  <string name="case_set_oll_description">Orient the Last Layer</string>
+  <string name="case_set_pll_description">Permute the Last Layer</string>
+  <string name="library_known">%d known</string>
+  <string name="library_review">%d to review</string>
+  <string name="library_to_learn">%d to learn</string>
+  <string name="library_picked">%d picked</string>
+  <string name="library_nothing_picked">Tap a set to browse its cases and star the algorithms you use.</string>
+  <string name="library_more_later">More sets to come.</string>
+  <string name="case_filter_status">Status</string>
+  <string name="case_filter_all_statuses">All</string>
+  <string name="case_sort_title">Sort</string>
+  <string name="case_sort_order">Order</string>
+  <string name="case_sort_status">Status</string>
+  <string name="case_sort_solve_mean">Solve mean</string>
+  <string name="case_sort_drill_mean">Drill mean</string>
+  <string name="case_set_no_times">No times for these cases yet.</string>
+  <string name="case_set_only_these">Only these %d</string>
+  <plurals name="case_set_cases">
+    <item quantity="one">%d case</item>
+    <item quantity="other">%d cases</item>
+  </plurals>
   <string name="analysis_shape_known">%1$d/%2$d known</string>
-  <string name="analysis_shape_all_known">All known</string>
   <string name="analysis_shape_groups_known">%1$d of %2$d groups fully known</string>
   <string name="analysis_knowledge_of">of %d</string>
   <string name="analysis_knowledge_unseen">Not yet seen</string>
@@ -1685,12 +1718,12 @@
   <string name="analysis_help_plan_new">A new plan</string>
   <string name="analysis_help_plan_new_body">Written from your last 100 smart cube solves, so the first one needs that many. After that a new plan comes every week, once you have done 25 more solves and your session is over.</string>
   <string name="analysis_help_cases_title">Case by case</string>
-  <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look, over the window shown at the top. Two-look solves are left out.</string>
+  <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look, each over its own last solves: the number at the top. A case that came up only 3 times is read over those 3. Two-look solves are left out.</string>
   <string name="analysis_help_standing">Where a case stands</string>
   <string name="analysis_help_standing_body">Known: solved in one look, without help, recently enough to still count. Needs review: solved in one look before, but in two looks the last two times. To learn: never solved in one look. All of this comes from your solves and drills.</string>
   <string name="analysis_help_shape">Shape</string>
   <string name="analysis_help_shape_body">On OLL, a Shape button narrows the table to one group of shapes, with each group\'s size beside it.</string>
-  <string name="analysis_help_rest_body">Under the table, the cases you did not solve in one look in this window, grouped by where they stand across all your solves. Tap one for its algorithms.</string>
+  <string name="analysis_help_rest_body">Under the table, the cases you have never solved in one look with this solve type, grouped by where they stand across all your solves. Tap one for its algorithms.</string>
   <string name="analysis_help_sample">Example</string>
   <string name="analysis_help_sample_body">This is example data, shown until your first solve with a smart cube.</string>
 
