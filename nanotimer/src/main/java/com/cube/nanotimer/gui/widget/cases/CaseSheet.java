@@ -33,6 +33,7 @@ import com.cube.nanotimer.gui.DrillCaseStatsActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
 import com.cube.nanotimer.gui.DrillStatsWindow;
 import com.cube.nanotimer.gui.widget.LastLayerCaseView;
+import com.cube.nanotimer.gui.widget.PairCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerBottomSheetFragment;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.services.db.DataCallback;
@@ -212,9 +213,20 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     CaseSet set = CaseSets.ofCase(caseCode);
     if (CaseAlgorithms.isPair(caseCode)) {
       root.findViewById(R.id.vCaseChart).setVisibility(View.GONE);
-      root.findViewById(R.id.flCaseCube).setVisibility(View.VISIBLE);
-      showPairCase((WebView) root.findViewById(R.id.wvCaseCube));
+      String picture = CaseAlgorithms.pairPicture(caseCode);
+      if (picture != null) {
+        PairCaseView pair = root.findViewById(R.id.vCasePair);
+        pair.setVisibility(View.VISIBLE);
+        pair.setPicture(picture);
+      } else {
+        root.findViewById(R.id.flCaseCube).setVisibility(View.VISIBLE);
+        showPairCase((WebView) root.findViewById(R.id.wvCaseCube));
+      }
       title.setText(Utils.toSmartCubeCaseHeadline(getActivity(), caseCode));
+      CaseGroup group = set == null ? null : set.groupOf(caseCode);
+      if (group != null) {
+        addChip(group.getName(getActivity()), false);
+      }
       return;
     }
     ((LastLayerCaseView) root.findViewById(R.id.vCaseChart))
@@ -348,7 +360,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
 
   /** The two figures cards. Both are asked before deciding the sheet is a timer-only one. */
   private void loadFigures() {
-    final boolean pair = CaseAlgorithms.isPair(caseCode);
+    final boolean slotted = CaseAlgorithms.slotOf(caseCode) != null;
     App.INSTANCE.getService().getDrillCaseStats(0, new DataCallback<List<DrillCaseStats>>() {
       @Override
       public void onData(List<DrillCaseStats> all) {
@@ -359,7 +371,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
           }
         }
         final DrillCaseStats drills = found;
-        if (pair) {
+        if (slotted) { // a pair dealt into a slot is a drill's case, never met in a solve
           onUi(() -> showFigures(null, drills));
           return;
         }
@@ -478,7 +490,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
 
   /** No smart cube has ever timed the case, so the sheet is a reference card. */
   private boolean isTimerOnly() {
-    return Boolean.FALSE.equals(measured) && turned.isEmpty() && !CaseAlgorithms.isPair(caseCode);
+    return Boolean.FALSE.equals(measured) && turned.isEmpty()
+        && CaseAlgorithms.slotOf(caseCode) == null;
   }
 
   /**
@@ -529,7 +542,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     }
     if (moreOpen) {
       for (Listed extra : rest) {
-        more.addView(row(more, extra.getMoves(), false, null, -1));
+        more.addView(row(more, extra.getMoves(), false, extra.getEmptySlot(), -1));
       }
     }
     more.setVisibility(moreOpen && !rest.isEmpty() ? View.VISIBLE : View.GONE);

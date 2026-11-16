@@ -80,14 +80,16 @@ public interface Service {
       DataCallback<List<StepStats>> callback);
 
   /**
-   * One last layer case over the last {@code lastTimes} solves it came up in, of any solve type,
-   * counting only the times it went in one algorithm; null for a case never met in a solve.
+   * One case over the last {@code lastTimes} solves it came up in, of any solve type: a last layer
+   * case counting only the times it went in one algorithm, an F2L pair ({@code pair_27}) from any
+   * slot; null for a case never met in a solve.
    */
   void getCaseSolveStats(String caseCode, int lastTimes, DataCallback<StepStats> callback);
 
   /**
    * Every last layer case over the last {@code lastSolves} solves of any solve type, counting the
-   * times it went in one algorithm, in the shape a drill's case table reads.
+   * times it went in one algorithm, and every F2L pair's case from any slot ({@code pair_27}), in
+   * the shape a drill's case table reads.
    */
   void getCaseSolveTable(int lastSolves, DataCallback<List<DrillCaseStats>> callback);
 

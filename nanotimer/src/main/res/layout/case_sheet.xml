@@ -47,7 +47,14 @@
            android:layout_width="104dp"
            android:layout_height="104dp"/>
 
-        <!-- An F2L pair's case on the 3D cube, with only the cross and the pair in colour. -->
+        <!-- An F2L case of the library, drawn as its tile is. -->
+        <com.cube.nanotimer.gui.widget.PairCaseView
+           android:id="@+id/vCasePair"
+           android:layout_width="104dp"
+           android:layout_height="104dp"
+           android:visibility="gone"/>
+
+        <!-- A pair dealt into a slot, on the 3D cube, with only the cross and the pair in colour. -->
         <FrameLayout
            android:id="@+id/flCaseCube"
            android:layout_width="120dp"

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.view.DrillRepParts;
@@ -70,23 +71,35 @@ public class CaseRow {
   }
 
   public CaseRow chartSize(int px) {
-    View chart = line.findViewById(R.id.vCaseRowChart);
-    ViewGroup.LayoutParams params = chart.getLayoutParams();
-    params.width = px;
-    params.height = px;
-    chart.setLayoutParams(params);
+    for (int id : new int[] {R.id.vCaseRowChart, R.id.vCaseRowPair}) {
+      View chart = line.findViewById(id);
+      ViewGroup.LayoutParams params = chart.getLayoutParams();
+      params.width = px;
+      params.height = px;
+      chart.setLayoutParams(params);
+    }
     return this;
   }
 
+  /** The case's chart, or for an F2L case of the library its 3D pair. */
   public CaseRow chart(String caseCode) {
-    ((LastLayerCaseView) line.findViewById(R.id.vCaseRowChart))
-        .setDiagram(LastLayerDiagram.forCase(caseCode));
+    String pair = CaseAlgorithms.pairPicture(caseCode);
+    View chart = line.findViewById(R.id.vCaseRowChart);
+    PairCaseView pairView = line.findViewById(R.id.vCaseRowPair);
+    chart.setVisibility(pair == null ? View.VISIBLE : View.GONE);
+    pairView.setVisibility(pair == null ? View.GONE : View.VISIBLE);
+    if (pair == null) {
+      ((LastLayerCaseView) chart).setDiagram(LastLayerDiagram.forCase(caseCode));
+    } else {
+      pairView.setPicture(pair);
+    }
     return this;
   }
 
   /** What a step carries in place of a chart, since a step of the solve has no picture. */
   public CaseRow dot(int color) {
     line.findViewById(R.id.vCaseRowChart).setVisibility(View.GONE);
+    line.findViewById(R.id.vCaseRowPair).setVisibility(View.GONE);
     View dot = line.findViewById(R.id.vCaseRowDot);
     dot.setVisibility(View.VISIBLE);
     GradientDrawable shape = new GradientDrawable();
@@ -151,6 +164,7 @@ public class CaseRow {
   public CaseRow proportion(List<DrillRepParts.Part> parts, float share, int heightPx) {
     DrillRepParts.draw(bar(), parts);
     line.findViewById(R.id.vCaseRowChart).setVisibility(View.GONE);
+    line.findViewById(R.id.vCaseRowPair).setVisibility(View.GONE);
     line.findViewById(R.id.vCaseRowDot).setVisibility(View.GONE);
     ((View) line.findViewById(R.id.tvCaseRowName).getParent()).setVisibility(View.GONE);
     line.findViewById(R.id.tvCaseRowRecognition).setVisibility(View.GONE);

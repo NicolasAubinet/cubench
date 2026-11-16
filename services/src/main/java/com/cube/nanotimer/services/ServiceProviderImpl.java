@@ -1821,6 +1821,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     return cases;
   }
 
+  /** An F2L pair's step name and case code start with this ({@code pair_27_rf}, {@code pair_27}). */
+  private static final String PAIR_PREFIX = "pair_";
+
   @Override
   public List<DrillCaseStats> getCaseSolveTable(int lastSolves) {
     String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
@@ -1860,11 +1863,63 @@ public class ServiceProviderImpl implements ServiceProvider {
       }
       cursor.close();
     }
+    cases.addAll(pairSolveTable(window));
+    return cases;
+  }
+
+  /** F2L pairs, parts of the F2L step, each case's slots (pair_27_rf, pair_27_fl) read as one. */
+  private List<DrillCaseStats> pairSolveTable(String window) {
+    String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME
+        + ", COUNT(*), SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", SUM(s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + ")"
+        + ", MIN(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", MAX(s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + ", SUM(1.0 * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME
+        + "      * s." + DB.COL_SMARTCUBE_SOLVESTEP_TIME + ")"
+        + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
+        + " JOIN (" + window + ") h ON h." + DB.COL_ID
+        + "    = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL"
+        + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " GLOB '" + PAIR_PREFIX + "*_*'"
+        + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
+        + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+        + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
+        + " GROUP BY s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME;
+    // case -> {count, total, recognition, best, worst}, squares kept apart as a double
+    Map<String, long[]> sums = new LinkedHashMap<String, long[]>();
+    Map<String, Double> squares = new HashMap<String, Double>();
+    Cursor cursor = db.rawQuery(q, null);
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        String name = cursor.getString(0);
+        String code = name.substring(0, name.lastIndexOf('_'));
+        long[] sum = sums.get(code);
+        if (sum == null) {
+          sum = new long[] { 0, 0, 0, Long.MAX_VALUE, 0 };
+          sums.put(code, sum);
+          squares.put(code, 0.0);
+        }
+        sum[0] += cursor.getInt(1);
+        sum[1] += cursor.getLong(2);
+        sum[2] += cursor.getLong(3);
+        sum[3] = Math.min(sum[3], cursor.getLong(4));
+        sum[4] = Math.max(sum[4], cursor.getLong(5));
+        squares.put(code, squares.get(code) + cursor.getDouble(6));
+      }
+      cursor.close();
+    }
+    List<DrillCaseStats> cases = new ArrayList<DrillCaseStats>();
+    for (Map.Entry<String, long[]> entry : sums.entrySet()) {
+      long[] sum = entry.getValue();
+      cases.add(new DrillCaseStats(entry.getKey(), (int) sum[0], sum[1], sum[2], sum[3], sum[4],
+          squares.get(entry.getKey())));
+    }
     return cases;
   }
 
   @Override
   public StepStats getCaseSolveStats(String caseCode, int lastTimes) {
+    boolean pair = caseCode.startsWith(PAIR_PREFIX);
     String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
         + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -1876,13 +1931,17 @@ public class ServiceProviderImpl implements ServiceProvider {
         + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + " JOIN " + DB.TABLE_TIMEHISTORY + " h"
         + "   ON h." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
-        + " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " = ?"
-        + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
+        + (pair
+            // A pair is a part of the F2L step, stored once per slot it went into: pair_27_rf.
+            ? " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " GLOB ?"
+            + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL"
+            : " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " = ?"
+            + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
+            + "   AND " + parts + " < 2")
         + "   AND h." + DB.COL_TIMEHISTORY_TIME + " > 0"
         + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
         + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
         + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
-        + "   AND " + parts + " < 2"
         + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC"
         + " LIMIT " + Math.max(0, lastTimes);
     int count = 0;
@@ -1891,7 +1950,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     long best = Long.MAX_VALUE;
     long worst = 0;
     double squares = 0;
-    Cursor cursor = db.rawQuery(q, new String[] { caseCode });
+    Cursor cursor = db.rawQuery(q, new String[] { pair ? caseCode + "_*" : caseCode });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         long time = cursor.getLong(0);

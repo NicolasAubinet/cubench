@@ -32,6 +32,12 @@
      android:layout_width="36dp"
      android:layout_height="36dp"/>
 
+  <com.cube.nanotimer.gui.widget.PairCaseView
+     android:id="@+id/vCaseRowPair"
+     android:layout_width="36dp"
+     android:layout_height="36dp"
+     android:visibility="gone"/>
+
   <!-- What a step of the solve carries instead of a chart: it has no picture, and a blank the width
        of one would leave the names hanging off an empty column. -->
   <View

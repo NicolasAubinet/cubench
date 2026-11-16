@@ -8,6 +8,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseGroup;
+import com.cube.nanotimer.cases.CaseSet;
+import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.TimeColorScale;
 import com.cube.nanotimer.util.helper.Utils;
@@ -163,14 +166,22 @@ public class DrillStatsTable {
     headings.refresh();
   }
 
+  /** An F2L case has no name to show, so its row says where its pieces are instead. */
+  private String nameOf(String code) {
+    CaseSet set = CaseSets.ofCase(code);
+    CaseGroup group = set != null && set.name(code) == null ? set.groupOf(code) : null;
+    return group != null ? group.getName(activity)
+        : Utils.toSmartCubeCaseHeadline(activity, code);
+  }
+
   private void fill(CaseRow row, DrillCaseStats caseStats) {
     row.count(String.valueOf(caseStats.getCount()))
         .chart(caseStats.getCaseCode())
-        .name(Utils.toSmartCubeCaseHeadline(activity, caseStats.getCaseCode()))
+        .name(nameOf(caseStats.getCaseCode()))
         // One hue for the whole meter, so the line says which family it is even scrolled away from
         // the family it was picked under.
         .meter(caseStats.getMeanRecognitionMs(), caseStats.getMeanExecutionMs(),
-            palette.colorFor(caseStats.getCaseCode()));
+            palette.colorForCase(caseStats.getCaseCode()));
 
     for (int column = 0; column < CaseRow.COLUMNS; column++) {
       long time = value(caseStats, column + 1);

@@ -102,21 +102,34 @@ public final class CaseAlgorithms {
 
   /**
    * The case's other algorithms, past the ones {@link #shown} lists, most voted first: the long tail
-   * a sheet offers behind "Show more". Last layer cases only; empty for an F2L pair.
+   * a sheet offers behind "Show more". Empty for a pair dealt into a slot, whose table is short.
    */
   public static List<Listed> more(String caseCode) {
     List<Listed> more = new ArrayList<Listed>();
-    if (caseCode == null || isPair(caseCode)) {
+    if (caseCode == null || slotOf(caseCode) != null) {
       return more;
     }
     List<Listed> shown = shown(caseCode);
-    for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
+    List<String> all = new ArrayList<String>();
+    List<String> emptySlots = new ArrayList<String>();
+    if (isPair(caseCode)) {
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(pairCase(caseCode))) {
+        all.add(algorithm.getMoves());
+        emptySlots.add(algorithm.getEmptySlot());
+      }
+    } else {
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
+        all.add(algorithm.getMoves());
+        emptySlots.add(null);
+      }
+    }
+    for (int i = 0; i < all.size(); i++) {
       boolean listed = false;
       for (Listed one : shown) {
-        listed |= sameTurning(caseCode, one.getMoves(), algorithm.getMoves());
+        listed |= sameTurning(caseCode, one.getMoves(), all.get(i));
       }
       if (!listed) {
-        more.add(new Listed(algorithm.getMoves(), false, null));
+        more.add(new Listed(all.get(i), false, emptySlots.get(i)));
       }
     }
     return Collections.unmodifiableList(more);

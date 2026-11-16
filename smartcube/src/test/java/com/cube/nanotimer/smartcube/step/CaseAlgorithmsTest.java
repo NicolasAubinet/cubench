@@ -10,7 +10,7 @@ public class CaseAlgorithmsTest {
 
   @Test
   public void listsTheRestOfTheVotesPastTheShownOnes() {
-    for (String code : new String[] {"oll_1", "pll_jb", "pll_ra"}) {
+    for (String code : new String[] {"oll_1", "pll_jb", "pll_ra", "pair_4", "pair_a12"}) {
       for (CaseAlgorithms.Listed extra : CaseAlgorithms.more(code)) {
         for (CaseAlgorithms.Listed shown : CaseAlgorithms.shown(code)) {
           assertFalse(CaseAlgorithms.sameTurning(code, shown.getMoves(), extra.getMoves()));
@@ -18,7 +18,8 @@ public class CaseAlgorithmsTest {
         assertTrue(CaseAlgorithms.solves(code, extra.getMoves()));
       }
     }
-    assertTrue(CaseAlgorithms.more("pair_4").isEmpty());
+    assertFalse(CaseAlgorithms.more("pair_4").isEmpty());
+    assertTrue(CaseAlgorithms.more("pair_4_fl").isEmpty());
   }
 
   @Test
