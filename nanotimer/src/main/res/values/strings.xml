@@ -1846,11 +1846,7 @@
     <item quantity="other">Today: %d solves</item>
   </plurals>
   <string name="coach_recap_moved">%1$s: %2$s since the plan.</string>
-  <string name="coach_recap_best_ao5">Best Ao5 today: %1$s.</string>
-  <plurals name="coach_recap_drilled">
-    <item quantity="one">%d drill rep today.</item>
-    <item quantity="other">%d drill reps today.</item>
-  </plurals>
+  <string name="coach_recap_title_ao5">%1$s, best Ao5 %2$s</string>
   <string name="coach_recap_faster_mean">Your mean was %1$s s faster than usual today.</string>
   <string name="coach_recap_faster_step">%1$s: %2$s s faster than usual today.</string>
   <string name="coach_recap_drill_waiting">Today\'s drill is waiting: %1$d reps, about %2$d min.</string>

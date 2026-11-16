@@ -90,22 +90,25 @@ public final class CoachDayText {
     }
   }
 
-  /** The recap's title, or null on a day with no solves. */
+  /** The recap's title: solves, mean and best Ao5; null on a day with no solves. */
   public String recapTitle(CoachDay day) {
     int solves = day.getSolveCount();
     if (solves == 0) {
       return null;
     }
     long mean = day.getMean();
-    return mean > 0
+    String title = mean > 0
         ? context.getResources().getQuantityString(R.plurals.coach_recap_title, solves, solves,
             time(mean))
         : plural(R.plurals.coach_recap_title_no_mean, solves);
+    return day.getBestAo5() > 0
+        ? context.getString(R.string.coach_recap_title_ao5, title, time(day.getBestAo5()))
+        : title;
   }
 
   /**
-   * The recap's body: what was faster than usual today, the best Ao5, a focus that moved since the
-   * plan when that is news, the drill reps, and today's drill while it waits. Empty when none apply.
+   * The recap's body: what was faster than usual today, a focus that moved since the plan when that
+   * is news, and today's drill while it waits. Empty when none apply.
    *
    * @param sincePlan the focus to report as moved since the plan, or null
    * @param drillRepsLeft the reps today's drill still has, 0 when done or nothing is due
@@ -121,15 +124,9 @@ public final class CoachDayText {
           ? context.getString(R.string.coach_recap_faster_mean, by)
           : context.getString(R.string.coach_recap_faster_step, step(gain.getCode()), by));
     }
-    if (day.getBestAo5() > 0) {
-      append(text, context.getString(R.string.coach_recap_best_ao5, time(day.getBestAo5())));
-    }
     if (sincePlan != null) {
       append(text, context.getString(R.string.coach_recap_moved, label(sincePlan),
           value(sincePlan)));
-    }
-    if (day.getDrillReps() > 0) {
-      append(text, plural(R.plurals.coach_recap_drilled, day.getDrillReps()));
     }
     if (drillRepsLeft > 0) {
       append(text, context.getString(drillStarted ? R.string.coach_recap_drill_left

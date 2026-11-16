@@ -1795,11 +1795,7 @@
     <item quantity="other">Hoje: %d resoluções</item>
   </plurals>
   <string name="coach_recap_moved">%1$s: %2$s desde o plano.</string>
-  <string name="coach_recap_best_ao5">Melhor Ao5 de hoje: %1$s.</string>
-  <plurals name="coach_recap_drilled">
-    <item quantity="one">%d repetição hoje.</item>
-    <item quantity="other">%d repetições hoje.</item>
-  </plurals>
+  <string name="coach_recap_title_ao5">%1$s, melhor Ao5 %2$s</string>
   <string name="coach_recap_faster_mean">Sua média de hoje: %1$s s melhor que o normal.</string>
   <string name="coach_recap_faster_step">%1$s: %2$s s melhor que o normal hoje.</string>
   <string name="coach_recap_drill_waiting">O treino do dia está esperando: %1$d repetições, cerca de %2$d min.</string>

@@ -1792,11 +1792,7 @@
     <item quantity="other">Hoy: %d resoluciones</item>
   </plurals>
   <string name="coach_recap_moved">%1$s: %2$s desde el plan.</string>
-  <string name="coach_recap_best_ao5">Mejor Ao5 de hoy: %1$s.</string>
-  <plurals name="coach_recap_drilled">
-    <item quantity="one">%d repetición hoy.</item>
-    <item quantity="other">%d repeticiones hoy.</item>
-  </plurals>
+  <string name="coach_recap_title_ao5">%1$s, mejor Ao5 %2$s</string>
   <string name="coach_recap_faster_mean">Tu media de hoy: %1$s s mejor que de costumbre.</string>
   <string name="coach_recap_faster_step">%1$s: %2$s s mejor que de costumbre hoy.</string>
   <string name="coach_recap_drill_waiting">El drill del día te espera: %1$d repeticiones, unos %2$d min.</string>
