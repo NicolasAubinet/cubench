@@ -60,12 +60,20 @@ public final class TodayVsUsual {
   }
 
   /**
-   * The figure most clearly faster today, by share of its usual, or null when none was.
+   * The whole solve when it was clearly faster today, as it is what the solver feels; else the step
+   * faster by the largest share of its usual; null when none was.
    *
    * @param today each figure's times today, keyed by {@link #SOLVE} or step code
    * @param usual the same figures over the solves before today
    */
   public static Gain best(Map<String, List<Long>> today, Map<String, List<Long>> usual) {
+    List<Long> solves = today.get(SOLVE);
+    if (solves != null && usual.get(SOLVE) != null) {
+      Gain mean = clear(SOLVE, solves, usual.get(SOLVE));
+      if (mean != null) {
+        return mean;
+      }
+    }
     Gain best = null;
     for (Map.Entry<String, List<Long>> entry : today.entrySet()) {
       List<Long> before = usual.get(entry.getKey());

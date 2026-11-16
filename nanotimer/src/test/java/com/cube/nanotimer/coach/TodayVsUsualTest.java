@@ -51,6 +51,17 @@ public class TodayVsUsualTest {
     Assert.assertEquals("cross", TodayVsUsual.best(today, usual).getCode());
   }
 
+  /** A faster mean leads over a step that gained a larger share of its own usual. */
+  @Test
+  public void testAFasterMeanLeads() {
+    Map<String, List<Long>> today = figures("cross", around(2100, 100, 8));
+    today.put(TodayVsUsual.SOLVE, around(14000, 300, 8)); // 7% against the cross's 16%
+    Map<String, List<Long>> usual = figures("cross", around(2500, 100, 40));
+    usual.put(TodayVsUsual.SOLVE, around(15000, 300, 40));
+
+    Assert.assertEquals(TodayVsUsual.SOLVE, TodayVsUsual.best(today, usual).getCode());
+  }
+
   /** One popped solve in the usual does not turn an ordinary day into a fast one. */
   @Test
   public void testAPoppedSolveDoesNotMakeAGain() {
