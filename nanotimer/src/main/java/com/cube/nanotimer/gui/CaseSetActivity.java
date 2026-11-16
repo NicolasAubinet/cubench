@@ -169,6 +169,9 @@ public class CaseSetActivity extends NanoTimerActivity
     suggested = getIntent().getStringArrayListExtra(EXTRA_SUGGESTED);
     sort = isPicking() ? SORT_ORDER : getIntent().getIntExtra(EXTRA_SORT,
         Options.INSTANCE.getDrillChoice(sortKey(), SORT_ORDER));
+    if (sort == SORT_STATUS && !hasStandings()) {
+      sort = SORT_ORDER;
+    }
     table = new DrillStatsTable(this, this);
 
     LinearLayout filters = findViewById(R.id.llCaseSetFilters);
@@ -491,7 +494,7 @@ public class CaseSetActivity extends NanoTimerActivity
         .setText(format.formatSolveTime((total - recognition) / reps));
     setCell(R.id.tvDrillCellKeyThree, R.id.tvDrillCellValueThree, R.id.tvDrillCellSubThree,
         getString(R.string.drill_summary_cell_best), format.formatSolveTime(best),
-        Utils.toSmartCubeCaseHeadline(this, bestCase));
+        DrillStatsTable.nameOf(this, bestCase));
   }
 
   private void setCell(int keyId, int valueId, int subId, String key, String value, String sub) {
@@ -761,15 +764,26 @@ public class CaseSetActivity extends NanoTimerActivity
     dialog.show();
   }
 
+  /** Whether the set's cases can have a standing: an F2L pair never does. */
+  private boolean hasStandings() {
+    return set.picture() != CaseSet.Picture.PAIR;
+  }
+
   private void pickSort() {
-    String[] labels = new String[SORT_LABELS.length];
+    final List<Integer> offered = new ArrayList<Integer>();
+    for (int i = 0; i < SORT_LABELS.length; i++) {
+      if (i != SORT_STATUS || hasStandings()) {
+        offered.add(i);
+      }
+    }
+    String[] labels = new String[offered.size()];
     for (int i = 0; i < labels.length; i++) {
-      labels[i] = getString(SORT_LABELS[i]);
+      labels[i] = getString(SORT_LABELS[offered.get(i)]);
     }
     new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
         .setTitle(R.string.case_sort_title)
-        .setSingleChoiceItems(labels, sort, (dialog, which) -> {
-          sort = which;
+        .setSingleChoiceItems(labels, offered.indexOf(sort), (dialog, which) -> {
+          sort = offered.get(which);
           Options.INSTANCE.setDrillChoice(sortKey(), sort);
           dialog.dismiss();
           paintSort();

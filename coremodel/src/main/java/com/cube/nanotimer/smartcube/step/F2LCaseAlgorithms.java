@@ -937,7 +937,12 @@ public final class F2LCaseAlgorithms {
     if (moves == null) {
       return null;
     }
-    String state = Notation.caseState(moves);
+    String state;
+    try {
+      state = Notation.caseState(moves);
+    } catch (IllegalStateException e) {
+      return null; // a row that does not end upright draws blank rather than closing the screen
+    }
     char[] picture = new char[state.length()];
     for (int[] piece : Cubies.PIECES) {
       String sorted = colours(state, piece);

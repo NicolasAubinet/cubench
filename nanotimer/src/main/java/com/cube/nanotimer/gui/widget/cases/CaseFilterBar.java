@@ -177,8 +177,9 @@ public final class CaseFilterBar {
     TextView groupsKnown = body.findViewById(R.id.tvShapeGroupsKnown);
     groupsKnown.setText(context.getString(R.string.analysis_shape_groups_known, complete,
         set.groups().size()));
-    // Nothing known is nothing said (an F2L pair never gets a standing), not "0 known".
-    groupsKnown.setVisibility(known.isEmpty() ? View.GONE : View.VISIBLE);
+    // An F2L pair never gets a standing, so its set says nothing rather than "0 known".
+    final boolean standings = set.picture() != CaseSet.Picture.PAIR;
+    groupsKnown.setVisibility(standings ? View.VISIBLE : View.GONE);
     TextView all = body.findViewById(R.id.tvShapeAll);
     String allLabel = context.getString(isShapes() ? R.string.analysis_shape_all
         : R.string.case_filter_all_groups);
@@ -223,7 +224,7 @@ public final class CaseFilterBar {
       TextView count = tile.findViewById(R.id.tvShapeCount);
       count.setText(context.getString(R.string.analysis_shape_known, knownHere,
           each.getCases().size()));
-      count.setVisibility(known.isEmpty() ? View.GONE : View.VISIBLE);
+      count.setVisibility(standings ? View.VISIBLE : View.GONE);
       if (whole) {
         count.setTextColor(ContextCompat.getColor(context, R.color.lightblue));
       }

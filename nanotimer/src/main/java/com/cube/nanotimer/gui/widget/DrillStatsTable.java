@@ -1,5 +1,6 @@
 package com.cube.nanotimer.gui.widget;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -167,17 +168,17 @@ public class DrillStatsTable {
   }
 
   /** An F2L case has no name to show, so its row says where its pieces are instead. */
-  private String nameOf(String code) {
+  public static String nameOf(Context context, String code) {
     CaseSet set = CaseSets.ofCase(code);
     CaseGroup group = set != null && set.name(code) == null ? set.groupOf(code) : null;
-    return group != null ? group.getName(activity)
-        : Utils.toSmartCubeCaseHeadline(activity, code);
+    return group != null ? group.getName(context)
+        : Utils.toSmartCubeCaseHeadline(context, code);
   }
 
   private void fill(CaseRow row, DrillCaseStats caseStats) {
     row.count(String.valueOf(caseStats.getCount()))
         .chart(caseStats.getCaseCode())
-        .name(nameOf(caseStats.getCaseCode()))
+        .name(nameOf(activity, caseStats.getCaseCode()))
         // One hue for the whole meter, so the line says which family it is even scrolled away from
         // the family it was picked under.
         .meter(caseStats.getMeanRecognitionMs(), caseStats.getMeanExecutionMs(),
