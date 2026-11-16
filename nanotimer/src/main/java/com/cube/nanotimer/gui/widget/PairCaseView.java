@@ -17,15 +17,16 @@ import androidx.core.graphics.ColorUtils;
 import com.cube.nanotimer.R;
 
 /**
- * An F2L case as a small 3D cube, cross down and the pair's slot at front right: the pair in its
- * colours, the rest of the first two layers dimmed, the last layer grey. Drawn on a canvas rather
+ * An F2L case as a small 3D cube, cross down and the pair's slot at front right: the first two
+ * layers in their colours, the last layer grey. Drawn on a canvas rather
  * than by the 3D cube, since a grid holds dozens of them.
  *
  * <p>Seen from the front right, unless a piece of the pair is stuck in back left, which only the
  * left side shows: then from the front left.
  *
  * <p>Takes the picture {@code CaseAlgorithms.pairPicture} writes: URFDLB facelets, a face letter
- * on the pair, lower case on the rest of the first two layers, '.' on the last layer.
+ * on the pair, lower case on the rest of the first two layers (drawn the same), '.' on the last
+ * layer.
  */
 public class PairCaseView extends View {
 
@@ -33,8 +34,6 @@ public class PairCaseView extends View {
   private static final float[] SHADE = {1f, 0.84f, 0.68f};
   /** Half a sticker, of a cubie's width. */
   private static final float STICKER = 0.43f;
-  /** How far a dimmed sticker goes towards the ground. */
-  private static final float DIM_STICKER = 0.62f;
   /** How much of a sticker is left on a case that is turned down. */
   private static final float TURNED_DOWN = 0.42f;
   /** The drawing's extent in cube units, across and down (the cube projects 5.2 by 6). */
@@ -50,7 +49,6 @@ public class PairCaseView extends View {
   private final Path path = new Path();
   private final RectF ground = new RectF();
   private GradientDrawable stage;
-  private int groundColor;
   private int blankColor;
   private int bodyColor;
 
@@ -70,7 +68,6 @@ public class PairCaseView extends View {
   }
 
   private void init() {
-    groundColor = ContextCompat.getColor(getContext(), R.color.dialog_surface);
     blankColor = ContextCompat.getColor(getContext(), R.color.case_blank);
     bodyColor = 0xFF0C0E10;
     fill.setStyle(Paint.Style.FILL_AND_STROKE);
@@ -249,9 +246,7 @@ public class PairCaseView extends View {
       case 'B': res = R.color.cube_blue; break;
       default: return blankColor;
     }
-    int colour = ContextCompat.getColor(getContext(), res);
-    return Character.isLowerCase(sticker)
-        ? ColorUtils.blendARGB(colour, groundColor, DIM_STICKER) : colour;
+    return ContextCompat.getColor(getContext(), res);
   }
 
   private int ink(int colour) {

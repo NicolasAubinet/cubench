@@ -1,15 +1,11 @@
 package com.cube.nanotimer.smartcube.step;
 
-import com.cube.nanotimer.smartcube.model.CubeState;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The algorithms F2L cases are usually solved with, for every case {@link F2LCases} names: the 41
@@ -925,7 +921,7 @@ public final class F2LCaseAlgorithms {
   /**
    * The case as its picture shows it, cross down and the slot at front right, in URFDLB facelets:
    * the face letter on the pair's own stickers, the same in lower case on the rest of the first two
-   * layers, and '.' on a last-layer piece's and on those of a slot a piece is stuck in. Read off the most voted algorithm that needs no other
+   * layers, and '.' on a last-layer piece's. Read off the most voted algorithm that needs no other
    * slot empty, so no other pair is drawn out of its slot. Null for a case with no algorithm.
    */
   public static String picture(String pairCase) {
@@ -942,18 +938,10 @@ public final class F2LCaseAlgorithms {
       return null;
     }
     String state = Notation.caseState(moves);
-    // A slot a piece is stuck in is unsolved: its own pieces could be anywhere, so they are grey.
-    Set<String> unsolved = new HashSet<>();
-    for (int[] slot : OTHER_SLOTS) {
-      if (isPairPiece(state, Cubies.CORNERS[slot[0]]) || isPairPiece(state, Cubies.EDGES[slot[1]])) {
-        unsolved.add(colours(CubeState.SOLVED_FACELETS, Cubies.CORNERS[slot[0]]));
-        unsolved.add(colours(CubeState.SOLVED_FACELETS, Cubies.EDGES[slot[1]]));
-      }
-    }
     char[] picture = new char[state.length()];
     for (int[] piece : Cubies.PIECES) {
       String sorted = colours(state, piece);
-      boolean grey = sorted.indexOf('U') >= 0 || unsolved.contains(sorted);
+      boolean grey = sorted.indexOf('U') >= 0;
       boolean pair = sorted.equals("DFR") || sorted.equals("FR");
       for (int facelet : piece) {
         char colour = state.charAt(facelet);
@@ -975,11 +963,6 @@ public final class F2LCaseAlgorithms {
     }
     Arrays.sort(chars);
     return new String(chars);
-  }
-
-  private static boolean isPairPiece(String state, int[] piece) {
-    String colours = colours(state, piece);
-    return colours.equals("DFR") || colours.equals("FR");
   }
 
   private static AlgorithmForm.Drawn drawn(final String pairCase) {

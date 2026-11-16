@@ -216,7 +216,7 @@ public class F2LCaseAlgorithmsTest {
         Notation.apply(facelets, "z2 U' R U2 R' U' R U2 R' z2"));
   }
 
-  /** Each named case's picture lights the pair's five stickers, greys the rest, and reads as it. */
+  /** Each named case's picture marks the pair's five stickers, greys the last layer, reads as it. */
   @Test
   public void picturesEveryNamedCaseWithOnlyThePairInColour() {
     StringBuilder wrong = new StringBuilder();
@@ -229,8 +229,8 @@ public class F2LCaseAlgorithmsTest {
         bright += Character.isUpperCase(sticker) ? 1 : 0;
         grey += sticker == '.' ? 1 : 0;
       }
-      // Grey: the 8 last-layer pieces' 20 stickers and the top centre, and a stuck-in slot's 5.
-      int greyed = F2LCases.isBasic(pairCase) ? 21 : 26;
+      // Grey: the 8 last-layer pieces' 20 stickers and the top centre.
+      int greyed = 21;
       String read = F2LCases.pairCase(picture.toUpperCase(Locale.ROOT).replace('.', 'U'), Cubies.D,
           Cubies.DFR, Cubies.FR);
       if (bright != 5 || grey != greyed || !pairCase.equals(read)) {
