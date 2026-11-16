@@ -587,7 +587,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
       float share) {
     boolean declared = CaseAlgorithms.sameTurning(caseCode, moves, chosen);
     Turned one = turnedFor(moves);
-    boolean mine = declared || one != null; // theirs either way, said or done
+    // The outline follows the star; with none, the algorithm their solves turn
+    boolean mine = chosen != null ? declared : one != null && one == turned.get(0);
 
     AlgorithmRow row = AlgorithmRow.inflate(LayoutInflater.from(getActivity()), parent)
         .moves(moves)
