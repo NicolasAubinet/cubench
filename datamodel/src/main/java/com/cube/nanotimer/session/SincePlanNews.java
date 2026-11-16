@@ -10,14 +10,17 @@ import java.util.Map;
 /**
  * Which focus of the plan the evening recap may report as moved since the plan, so it is news and
  * not the same line every evening. A focus is news once its figure is clearly better than before
- * the plan over at least {@link #MIN_OCCURRENCES} occurrences, and then again only once it is
+ * the plan over at least {@link #MIN_SOLVES} solves, and then again only once it is
  * clearly better than what the recap last said of it. What was said is kept per plan, as text in
  * the form {@code writtenAt|index=since;index=since}.
  */
 public final class SincePlanNews {
 
-  /** Twice the floor the Today card shows a figure from: a recap claim needs more behind it. */
-  public static final int MIN_OCCURRENCES = 20;
+  /**
+   * The solves a plan is written from: a recap claim needs more than the Today card's floor. Solves,
+   * not occurrences, since a stuck-pairs share that improves has fewer occurrences.
+   */
+  public static final int MIN_SOLVES = 25;
 
   private SincePlanNews() {
   }
@@ -25,15 +28,19 @@ public final class SincePlanNews {
   /**
    * The index of the focus to report, the one that moved most among those that are news, or -1.
    *
+   * @param solvesSince the solves of the plan's method since it was written
    * @param said what earlier recaps said, as {@link #said} wrote it, or null
    */
-  public static int pick(List<FocusProgress> progress, long planWrittenAt, String said) {
+  public static int pick(List<FocusProgress> progress, int solvesSince, long planWrittenAt,
+      String said) {
+    if (solvesSince < MIN_SOLVES) {
+      return -1;
+    }
     Map<Integer, Double> before = read(said, planWrittenAt);
     int best = -1;
     for (int i = 0; i < progress.size(); i++) {
       FocusProgress one = progress.get(i);
-      if (one.getChange() != FocusProgress.Change.BETTER
-          || one.getOccurrences() < MIN_OCCURRENCES) {
+      if (one.getChange() != FocusProgress.Change.BETTER) {
         continue;
       }
       Double last = before.get(Integer.valueOf(i));

@@ -1989,10 +1989,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         + " WHERE " + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
         + "   AND " + DB.COL_TIMEHISTORY_TIME + " > 0"
         + "   AND " + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
-        + "   AND " + DB.COL_TIMEHISTORY_TIMESTAMP + " < ?"
         + " ORDER BY " + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC",
-        new String[] { String.valueOf(solveType.getId()), method.getCode(),
-            String.valueOf(dayStart + 86_400_000L) });
+        new String[] { String.valueOf(solveType.getId()), method.getCode() });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         boolean ofToday = cursor.getLong(2) >= dayStart;

@@ -20,30 +20,30 @@ public class SincePlanNewsTest {
 
   @Test
   public void testAClearMoveOverEnoughSolvesIsNews() {
-    Assert.assertEquals(0, SincePlanNews.pick(stuck(20, 1), WRITTEN_AT, null));
+    Assert.assertEquals(0, SincePlanNews.pick(stuck(25, 1), 25, WRITTEN_AT, null));
   }
 
   /** Ten solves are enough for the Today card, not for the recap to claim progress. */
   @Test
   public void testTooFewSolvesAreNotNews() {
-    Assert.assertEquals(-1, SincePlanNews.pick(stuck(12, 1), WRITTEN_AT, null));
+    Assert.assertEquals(-1, SincePlanNews.pick(stuck(24, 1), 24, WRITTEN_AT, null));
   }
 
   @Test
   public void testAMoveThatHeldIsNotNews() {
-    Assert.assertEquals(-1, SincePlanNews.pick(stuck(30, 2), WRITTEN_AT, null));
+    Assert.assertEquals(-1, SincePlanNews.pick(stuck(30, 2), 30, WRITTEN_AT, null));
   }
 
   /** Said once, it waits until it clearly beats what was said. */
   @Test
   public void testTheSameFigureIsNotSaidTwice() {
-    List<FocusProgress> progress = stuck(20, 1);
+    List<FocusProgress> progress = stuck(25, 1);
     String said = SincePlanNews.said(null, WRITTEN_AT, 0, progress.get(0).getSince());
 
-    Assert.assertEquals(-1, SincePlanNews.pick(stuck(25, 1), WRITTEN_AT, said));
-    Assert.assertEquals(-1, SincePlanNews.pick(stuck(25, 1), WRITTEN_AT,
+    Assert.assertEquals(-1, SincePlanNews.pick(stuck(25, 1), 25, WRITTEN_AT, said));
+    Assert.assertEquals(-1, SincePlanNews.pick(stuck(25, 1), 25, WRITTEN_AT,
         SincePlanNews.said(null, WRITTEN_AT, 0, 0.28)));
-    Assert.assertEquals(0, SincePlanNews.pick(stuck(25, 1), WRITTEN_AT,
+    Assert.assertEquals(0, SincePlanNews.pick(stuck(25, 1), 25, WRITTEN_AT,
         SincePlanNews.said(null, WRITTEN_AT, 0, 0.40))); // 0.25 now clearly beats 0.40
   }
 
@@ -51,14 +51,14 @@ public class SincePlanNewsTest {
   public void testANewPlanStartsAfresh() {
     String said = SincePlanNews.said(null, WRITTEN_AT, 0, 0.25);
 
-    Assert.assertEquals(0, SincePlanNews.pick(stuck(20, 1), WRITTEN_AT + 1, said));
+    Assert.assertEquals(0, SincePlanNews.pick(stuck(25, 1), 25, WRITTEN_AT + 1, said));
     Assert.assertEquals("2000|0=0.2500", SincePlanNews.said(said, 2000, 0, 0.25));
   }
 
   @Test
   public void testUnreadableTextIsSaidAfresh() {
-    Assert.assertEquals(0, SincePlanNews.pick(stuck(20, 1), WRITTEN_AT, "1000|x=y"));
-    Assert.assertEquals(0, SincePlanNews.pick(stuck(20, 1), WRITTEN_AT, "garbage"));
+    Assert.assertEquals(0, SincePlanNews.pick(stuck(25, 1), 25, WRITTEN_AT, "1000|x=y"));
+    Assert.assertEquals(0, SincePlanNews.pick(stuck(25, 1), 25, WRITTEN_AT, "garbage"));
   }
 
   /** A stuck pieces plan written at two stuck pairs of four, read over solves with {@code stuck}. */

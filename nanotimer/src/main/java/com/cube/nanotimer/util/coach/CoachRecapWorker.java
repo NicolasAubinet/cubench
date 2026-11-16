@@ -160,7 +160,8 @@ public final class CoachRecapWorker extends Worker {
     }
     List<FocusProgress> progress = day.get().getProgress();
     String said = Options.INSTANCE.getCoachRecapSaid();
-    int news = SincePlanNews.pick(progress, stored.getWrittenAt(), said);
+    int news = SincePlanNews.pick(progress, day.get().getSolvesSince(),
+        stored.getWrittenAt(), said);
     FocusProgress sincePlan = news < 0 ? null : progress.get(news);
     DailyRun drill = CoachDaily.waiting(solveType, CoachDaily.keptOrAsk(
         CoachClient.configured(context), solveType, CubeMethod.CFOP, stored));
