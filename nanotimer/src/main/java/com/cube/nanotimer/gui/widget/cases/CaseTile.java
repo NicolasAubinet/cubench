@@ -30,7 +30,6 @@ public final class CaseTile {
   /** Pictures are worked out from the case's algorithm, so a grid redrawn on scroll reuses them. */
   private static final Map<String, LastLayerDiagram> PICTURES =
       new ConcurrentHashMap<String, LastLayerDiagram>();
-  private static final Map<String, String> PAIRS = new ConcurrentHashMap<String, String>();
 
   private final View view;
   private final LastLayerCaseView chart;
@@ -79,7 +78,7 @@ public final class CaseTile {
     chart.setVisibility(inPair ? View.GONE : View.VISIBLE);
     if (inPair) {
       pair.setVisibility(View.VISIBLE);
-      pair.setPicture(pairPicture(code));
+      pair.setPicture(CaseAlgorithms.pairPicture(code));
     } else {
       if (pair != null) {
         pair.setVisibility(View.GONE);
@@ -105,17 +104,6 @@ public final class CaseTile {
       picture = LastLayerDiagram.forCase(code);
       if (picture != null) {
         PICTURES.put(code, picture);
-      }
-    }
-    return picture;
-  }
-
-  private static String pairPicture(String code) {
-    String picture = PAIRS.get(code);
-    if (picture == null) {
-      picture = CaseAlgorithms.pairPicture(code);
-      if (picture != null) {
-        PAIRS.put(code, picture);
       }
     }
     return picture;

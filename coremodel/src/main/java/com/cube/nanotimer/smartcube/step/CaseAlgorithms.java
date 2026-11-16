@@ -4,6 +4,8 @@ import com.cube.nanotimer.step.F2lPairCases;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The algorithms of a case, asked of whichever table holds them: {@link LastLayerCaseAlgorithms} for
@@ -21,6 +23,9 @@ import java.util.List;
 public final class CaseAlgorithms {
 
   private static final String PAIR_PREFIX = "pair_";
+
+  /** Pictures are worked out from an algorithm, so a grid or table redrawn reuses them. */
+  private static final Map<String, String> PAIR_PICTURES = new ConcurrentHashMap<String, String>();
 
   private CaseAlgorithms() {
   }
@@ -52,8 +57,17 @@ public final class CaseAlgorithms {
 
   /** The pair's case as {@link F2LCaseAlgorithms#picture} draws it, or null for none. */
   public static String pairPicture(String caseCode) {
-    return isPair(caseCode) && slotOf(caseCode) == null
-        ? F2LCaseAlgorithms.picture(pairCase(caseCode)) : null;
+    if (!isPair(caseCode) || slotOf(caseCode) != null) {
+      return null;
+    }
+    String picture = PAIR_PICTURES.get(caseCode);
+    if (picture == null) {
+      picture = F2LCaseAlgorithms.picture(pairCase(caseCode));
+      if (picture != null) {
+        PAIR_PICTURES.put(caseCode, picture);
+      }
+    }
+    return picture;
   }
 
   /** The slot a drill deals the pair into, put in without a rotation, or null for none. */

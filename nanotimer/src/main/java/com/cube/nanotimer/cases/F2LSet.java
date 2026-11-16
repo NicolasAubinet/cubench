@@ -22,8 +22,6 @@ final class F2LSet implements CaseSet {
 
   static final F2LSet INSTANCE = new F2LSet();
 
-  private static final String PREFIX = "pair_";
-
   private final List<String> cases;
   private final List<CaseGroup> groups;
   private final Map<String, CaseGroup> groupOfCase = new LinkedHashMap<String, CaseGroup>();
@@ -52,9 +50,8 @@ final class F2LSet implements CaseSet {
   private static CaseGroup group(String id, int nameRes, boolean advanced, int first, int last) {
     List<String> codes = new ArrayList<String>();
     for (String code : CaseAlgorithms.pairCases()) {
-      String pairCase = code.substring(PREFIX.length());
-      if (pairCase.startsWith("a") == advanced) {
-        int number = Integer.parseInt(pairCase.replaceAll("\\D", ""));
+      if (CaseAlgorithms.isBasicPair(code) != advanced) {
+        int number = Integer.parseInt(CaseAlgorithms.pairCase(code).replaceAll("\\D", ""));
         if (number >= first && number <= last) {
           codes.add(code);
         }
