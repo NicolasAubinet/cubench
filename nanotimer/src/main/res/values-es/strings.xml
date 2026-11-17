@@ -1349,6 +1349,7 @@
   <string name="analysis_plan_point_plans">Un plan semanal práctico, basado en tus resoluciones</string>
   <string name="analysis_plan_point_worked">Comprueba si el trabajo de la semana pasada marcó la diferencia</string>
   <string name="analysis_plan_point_practice">Practica los casos que más tiempo te cuestan</string>
+  <string name="analysis_plan_point_algs">Detecta algoritmos poco comunes en cualquier drill</string>
   <string name="analysis_plan_point_learn">Aprende los algoritmos que antes dan fruto</string>
   <string name="analysis_plan_point_f2l">Optimiza tus algoritmos de F2L, rotaciones y look-ahead</string>
   <string name="analysis_plan_point_daily">Un drill diario a medida para los casos que fallan</string>

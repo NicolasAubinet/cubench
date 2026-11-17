@@ -1398,6 +1398,7 @@
   <string name="analysis_plan_point_plans">A weekly plan you can act on, from your solves</string>
   <string name="analysis_plan_point_worked">Find out whether last week\'s work made a difference</string>
   <string name="analysis_plan_point_practice">Practice the cases costing you the most time</string>
+  <string name="analysis_plan_point_algs">Spot unusual algs in any drill</string>
   <string name="analysis_plan_point_learn">Learn the algorithms that pay off soonest</string>
   <string name="analysis_plan_point_f2l">Optimize F2L algs, rotations and look-ahead</string>
   <string name="analysis_plan_point_daily">A custom daily drill for the cases that slip</string>

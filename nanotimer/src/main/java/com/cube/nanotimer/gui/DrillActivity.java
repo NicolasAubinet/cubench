@@ -41,6 +41,7 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.drill.AlgorithmTimes;
 import com.cube.nanotimer.smartcube.drill.CaseTally;
 import com.cube.nanotimer.smartcube.drill.DailyRun;
+import com.cube.nanotimer.util.coach.CoachClient;
 import com.cube.nanotimer.util.coach.CoachDaily;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
@@ -189,6 +190,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The offer to practise a case just turned off its list, and the case it is for. */
   private TextView practiceOffer;
   private String offeredCase;
+  /** A coach subscriber gets the offer in every drill, not only in the coach's own. */
+  private boolean coachAccess;
   private TextView practiceAlgorithm;
   /** The algorithm line with its case picture, shown and faded as one. */
   private View practiceAlgorithmRow;
@@ -286,6 +289,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     super.onCreate(savedInstanceState);
     setContentView(R.layout.drill_screen);
     bindDrillScreen();
+    CoachClient coachClient = CoachClient.configured(this);
+    coachAccess = coachClient != null && coachClient.hasAccess();
 
     lastRepRow = findViewById(R.id.llDrillLastRep);
     repWash = findViewById(R.id.drillRepWash);
@@ -1017,13 +1022,13 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * Offers to practise the case after a coach drill's rep: one turned off the case's list, as the
-   * bulb in solve details lights, so never for an algorithm the user muted, picked or typed in; or
-   * in a learning drill, a rep where the algorithm did not stick.
+   * Offers to practise the case after a rep of a coach drill, or of any drill for a subscriber: one
+   * turned off the case's list, as the bulb in solve details lights, so never for an algorithm the
+   * user muted, picked or typed in; or in a learning drill, a rep where the algorithm did not stick.
    */
   private void offerPractice(DrillRep rep) {
     hidePracticeOffer();
-    if (!session.getSpec().isFromCoach() || rep.isPractice()
+    if (!offersPractice() || rep.isPractice()
         || DrillSession.isLookAheadCase(rep.getCaseCode())
         || !(isTurnedOffList(rep) || didNotStick(rep))) {
       return;
@@ -1388,10 +1393,13 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     drawCase();
   }
 
-  /** A coach drill keeps the offer's room, so the cube does not jump when it shows. */
+  /** A drill that can offer keeps the offer's room, so the cube does not jump when it shows. */
   private void hidePracticeOffer() {
-    boolean coach = session != null && session.getSpec().isFromCoach();
-    practiceOffer.setVisibility(coach ? View.INVISIBLE : View.GONE);
+    practiceOffer.setVisibility(session != null && offersPractice() ? View.INVISIBLE : View.GONE);
+  }
+
+  private boolean offersPractice() {
+    return session.getSpec().isFromCoach() || coachAccess;
   }
 
   /** Practice counts no case, so the drill's progress steps aside until it is over. */

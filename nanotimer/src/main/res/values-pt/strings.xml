@@ -1352,6 +1352,7 @@
   <string name="analysis_plan_point_plans">Um plano semanal prático, feito a partir das suas resoluções</string>
   <string name="analysis_plan_point_worked">Veja se o trabalho da semana passada fez diferença</string>
   <string name="analysis_plan_point_practice">Pratique os casos que mais tomam seu tempo</string>
+  <string name="analysis_plan_point_algs">Detecte algoritmos pouco comuns em qualquer treino</string>
   <string name="analysis_plan_point_learn">Aprenda primeiro os algoritmos que rendem mais rápido</string>
   <string name="analysis_plan_point_f2l">Otimize seus algoritmos de F2L, rotações e look-ahead</string>
   <string name="analysis_plan_point_daily">Um treino diário sob medida para os casos que escapam</string>
