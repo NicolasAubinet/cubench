@@ -62,6 +62,14 @@ public class OneLookOllTest {
   }
 
   @Test
+  public void readsTheListedOll3And4AsOneAlgorithmWhateverTheStop() {
+    // f R U R' U' f' then a turn of the layer, then F R U R' U' F': the second half starts at 7.
+    check("oll_3", faceTurns("f R U R' U' f' U' F R U R' U' F'"), 2500);
+    check("oll_4", faceTurns("f R U R' U' f' U F R U R' U' F'"), 2500);
+    assertTrue("not read as one algorithm: " + wrong, wrong.isEmpty());
+  }
+
+  @Test
   public void readsTheHalvesOfNoListedAlgorithmAsTwoLooks() {
     // Edges with F R U R' U' F', then a Sune: on OLL 40 that is two looks, not a listed algorithm.
     CFOPStepDetector detector = play("F R U R' U' F' R U2 R' U' R U' R'", 6, 700);
@@ -111,6 +119,13 @@ public class OneLookOllTest {
       }
     }
     return detector;
+  }
+
+  /** The algorithm as the outer turns a cube reports, a wide one as its face. */
+  private static String faceTurns(String algorithm) {
+    List<String> turns = AlgorithmForm.of(algorithm);
+    assertEquals(algorithm, algorithm.split(" ").length, turns.size());
+    return String.join(" ", turns);
   }
 
   private static List<String> names(CFOPStepDetector detector) {

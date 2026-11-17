@@ -1,8 +1,11 @@
 package com.cube.nanotimer.smartcube.step;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import org.junit.Test;
 
 /** Reps recorded on a phone, layer dealt onto D. */
@@ -33,6 +36,22 @@ public class RepAlgorithmsTest {
         + "F'@9278 U'@9374 L'@9566";
     assertEquals(Integer.valueOf(1),
         RepAlgorithms.count("oll_3", "U2 F U R U' R' F' U B L U L' U' B' U", moves));
+  }
+
+  @Test
+  public void joinsTheHalvesOfTheAlgorithmsShownOnly() {
+    assertTrue(AlgorithmTrack.isListed(false, "3", Arrays.asList("44", "45")));
+    assertTrue(AlgorithmTrack.isListed(false, "4", Arrays.asList("44", "45")));
+    assertTrue(AlgorithmTrack.isListed(false, "41", Arrays.asList("27", "45")));
+    assertTrue(AlgorithmTrack.isListed(false, "42", Arrays.asList("26", "45")));
+    assertTrue(AlgorithmTrack.isListed(false, "12", Arrays.asList("45", "45")));
+    assertTrue(AlgorithmTrack.isListed(false, "2", Arrays.asList("45", "44")));
+    // Low-voted spellings that are a plain two-look: not on the list a solver is shown.
+    assertFalse(AlgorithmTrack.isListed(false, "35", Arrays.asList("44", "27")));
+    assertFalse(AlgorithmTrack.isListed(false, "46", Arrays.asList("45", "27")));
+    assertFalse(AlgorithmTrack.isListed(false, "50", Arrays.asList("26", "45")));
+    // Halves of a listed algorithm, but turned on another case.
+    assertFalse(AlgorithmTrack.isListed(false, "40", Arrays.asList("44", "45")));
   }
 
   @Test
