@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -183,8 +184,10 @@ final class AlgorithmTrack {
   }
 
   /**
-   * The parts each listed algorithm reads as, where that is more than one, by case: every row of
-   * the table turned from the case it solves. Read once, on first use.
+   * The parts each listed algorithm reads as, where that is more than one, by case: every algorithm
+   * a solver is shown for the case, turned from the case it solves. A low-voted spelling is left
+   * out, since several are a plain two-look (OLL 35 as {@code f R U R' U' f'} then a Sune). Read
+   * once, on first use.
    */
   private static final class Composites {
 
@@ -192,45 +195,56 @@ final class AlgorithmTrack {
 
     private static Map<String, Set<List<String>>> read() {
       Map<String, Set<List<String>>> byCase = new HashMap<>();
+      Set<String> codes = new LinkedHashSet<>();
       for (String[] row : LastLayerCaseAlgorithms.rows()) {
-        boolean permutes = row[0].startsWith("pll_");
-        if (!permutes && !row[0].startsWith("oll_")) {
+        codes.add(row[0]);
+      }
+      for (String code : codes) {
+        boolean permutes = code.startsWith("pll_");
+        if (!permutes && !code.startsWith("oll_")) {
           continue;
         }
-        List<String> turns;
-        try {
-          turns = AlgorithmForm.of(row[1]);
-        } catch (IllegalArgumentException e) {
-          continue;
-        }
-        CubieCube cube = new CubieCube();
-        for (int i = turns.size() - 1; i >= 0; i--) {
-          turn(cube, turns.get(i), true);
-        }
-        String handed = cube.toFaceCube();
-        AlgorithmTrack track = new AlgorithmTrack(permutes, false);
-        track.track(handed, true, handed, 0, TABLE_CROSS_FACE);
-        for (String turn : turns) {
-          String quarter = turn.endsWith("'") ? turn.substring(0, 1) + "'" : turn.substring(0, 1);
-          for (int q = turn.endsWith("2") ? 2 : 1; q > 0; q--) {
-            turn(cube, quarter, false);
-            String facelets = cube.toFaceCube();
-            track.track(handed, resting(facelets, TABLE_CROSS_FACE, permutes), facelets, 0,
-                TABLE_CROSS_FACE);
-          }
-        }
-        List<String> parts = track.algorithms();
-        if (track.isFinished() && parts.size() > 1) {
-          String key = (permutes ? "pll_" : "oll_") + track.handedCase(TABLE_CROSS_FACE);
-          Set<List<String>> halves = byCase.get(key);
-          if (halves == null) {
-            halves = new HashSet<>();
-            byCase.put(key, halves);
-          }
-          halves.add(parts);
+        for (LastLayerCaseAlgorithms.Algorithm listed : LastLayerCaseAlgorithms.listed(code)) {
+          read(byCase, permutes, listed.getMoves());
         }
       }
       return byCase;
+    }
+
+    private static void read(Map<String, Set<List<String>>> byCase, boolean permutes,
+        String algorithm) {
+      List<String> turns;
+      try {
+        turns = AlgorithmForm.of(algorithm);
+      } catch (IllegalArgumentException e) {
+        return;
+      }
+      CubieCube cube = new CubieCube();
+      for (int i = turns.size() - 1; i >= 0; i--) {
+        turn(cube, turns.get(i), true);
+      }
+      String handed = cube.toFaceCube();
+      AlgorithmTrack track = new AlgorithmTrack(permutes, false);
+      track.track(handed, true, handed, 0, TABLE_CROSS_FACE);
+      for (String turn : turns) {
+        String quarter = turn.endsWith("'") ? turn.substring(0, 1) + "'" : turn.substring(0, 1);
+        for (int q = turn.endsWith("2") ? 2 : 1; q > 0; q--) {
+          turn(cube, quarter, false);
+          String facelets = cube.toFaceCube();
+          track.track(handed, resting(facelets, TABLE_CROSS_FACE, permutes), facelets, 0,
+              TABLE_CROSS_FACE);
+        }
+      }
+      List<String> parts = track.algorithms();
+      if (track.isFinished() && parts.size() > 1) {
+        String key = (permutes ? "pll_" : "oll_") + track.handedCase(TABLE_CROSS_FACE);
+        Set<List<String>> halves = byCase.get(key);
+        if (halves == null) {
+          halves = new HashSet<>();
+          byCase.put(key, halves);
+        }
+        halves.add(parts);
+      }
     }
 
     /** One face turn, or its inverse. */
