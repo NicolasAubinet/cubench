@@ -1,5 +1,6 @@
 package com.cube.nanotimer.smartcube.step;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
@@ -25,7 +26,7 @@ public class OneLookOllTest {
 
   /**
    * The standard OLL 42 and 41, an Antisune or a Sune and then the T, with the layers standing in
-   * between. Turned straight through they are one algorithm; a stop between the halves is two looks.
+   * between. Listed, so one algorithm however long the stop between the halves.
    */
   private static final String[] COMPOSITES = {
     "R' U' R U' R' U2 R F R U R' U' F'",
@@ -52,21 +53,19 @@ public class OneLookOllTest {
   }
 
   @Test
-  public void readsACompositeWithAStopBetweenItsHalvesAsTwoLooks() {
-    for (String composite : COMPOSITES) {
-      CFOPStepDetector detector = play(composite, SECOND_HALF, 700);
-      if (detector.subStepCount(CFOPStepDetector.OLL) != 2) {
-        wrong.add(composite + " -> " + names(detector));
-      }
-    }
-    assertTrue("not read as two algorithms: " + wrong, wrong.isEmpty());
+  public void readsAListedCompositeAsOneAlgorithmWhateverTheStop() {
+    check("oll_41", COMPOSITES[1], 350);
+    check("oll_42", COMPOSITES[0], 350);
+    check("oll_41", COMPOSITES[1], 2500);
+    check("oll_42", COMPOSITES[0], 2500);
+    assertTrue("not read as one algorithm: " + wrong, wrong.isEmpty());
   }
 
   @Test
-  public void readsACompositeWithAShortBreathAsOneAlgorithm() {
-    check("oll_41", COMPOSITES[1], 350);
-    check("oll_42", COMPOSITES[0], 350);
-    assertTrue("not read as one algorithm: " + wrong, wrong.isEmpty());
+  public void readsTheHalvesOfNoListedAlgorithmAsTwoLooks() {
+    // Edges with F R U R' U' F', then a Sune: on OLL 40 that is two looks, not a listed algorithm.
+    CFOPStepDetector detector = play("F R U R' U' F' R U2 R' U' R U' R'", 6, 700);
+    assertEquals(names(detector).toString(), 2, detector.subStepCount(CFOPStepDetector.OLL));
   }
 
   /** The one algorithm names the case the step was handed: it is the case it solved. */
