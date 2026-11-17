@@ -9,6 +9,7 @@ import com.cube.nanotimer.coach.CaseRecall;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.RepAlgorithms;
 import com.cube.nanotimer.vo.ScrambleType;
 
 import java.util.ArrayList;
@@ -287,6 +288,8 @@ public final class CaseKnowledgeStore {
         + "     , h." + DB.COL_TIMEHISTORY_TIMESTAMP + " AS seen_at"
         + "     , 0 AS ordinal"
         + "     , 0 AS drill"
+        + "     , NULL AS scramble"
+        + "     , NULL AS moves"
         + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + "  JOIN " + DB.TABLE_TIMEHISTORY + " h ON h." + DB.COL_ID
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -308,6 +311,8 @@ public final class CaseKnowledgeStore {
         + "     , d." + DB.COL_DRILL_TIMESTAMP + " AS seen_at"
         + "     , r." + DB.COL_DRILL_REP_POSITION + " AS ordinal"
         + "     , d." + DB.COL_ID + " AS drill"
+        + "     , r." + DB.COL_DRILL_REP_SCRAMBLE + " AS scramble"
+        + "     , r." + DB.COL_DRILL_REP_MOVES + " AS moves"
         + "  FROM " + DB.TABLE_DRILL_REP + " r"
         + "  JOIN " + DB.TABLE_DRILL + " d ON d." + DB.COL_ID + " = r." + DB.COL_DRILL_REP_DRILL_ID
         + " WHERE r." + DB.COL_DRILL_REP_CASE + " = ?"
@@ -323,6 +328,8 @@ public final class CaseKnowledgeStore {
         + "     , " + DB.COL_CASE_CLEARED_AT + " AS seen_at"
         + "     , " + Integer.MAX_VALUE + " AS ordinal"
         + "     , 0 AS drill"
+        + "     , NULL AS scramble"
+        + "     , NULL AS moves"
         + "  FROM " + DB.TABLE_CASE_CLEARED
         + " WHERE " + DB.COL_CASE_CLEARED_CASE + " = ?";
 
@@ -331,7 +338,7 @@ public final class CaseKnowledgeStore {
         + " ORDER BY seen_at DESC, ordinal DESC", new String[] { code, code, code });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        // unaided, from_solve, seen_at, ordinal, drill: the order every part of the union selects in.
+        // unaided, from_solve, seen_at, ordinal, drill, scramble, moves: every part's column order.
         boolean unaided = cursor.getInt(0) == 1;
         CaseKnowledge.Evidence says;
         if (cursor.getInt(1) == 2) {
@@ -340,6 +347,8 @@ public final class CaseKnowledgeStore {
           says = unaided ? CaseKnowledge.Evidence.UNAIDED : CaseKnowledge.Evidence.HELPED;
         } else if (!unaided) {
           says = CaseKnowledge.Evidence.LOOKED_UP;
+        } else if (twoLooked(code, cursor.getString(5), cursor.getString(6))) {
+          says = CaseKnowledge.Evidence.HELPED;
         } else {
           says = cleanKindOf(db, cursor.getLong(4), cleanKinds);
         }
@@ -348,6 +357,12 @@ public final class CaseKnowledgeStore {
       cursor.close();
     }
     return occurrences;
+  }
+
+  /** A rep turned in more than one algorithm, read as a solve's last layer step is. */
+  private static boolean twoLooked(String code, String scramble, String moves) {
+    Integer parts = RepAlgorithms.count(code, scramble, moves);
+    return parts != null && parts.intValue() >= 2;
   }
 
   /** What a clean rep of this drill says: from the daily drill, a large pool, or a small one. */

@@ -49,9 +49,10 @@ public final class SolveReading {
    * come with their gyro tracks (version 5 rows hold none), version 7 stops counting a last layer
    * false start as one of the step's algorithms, version 8 drops pauses under 250 ms, version 9
    * where each pair's slot sat in the grip, version 10 the cross against its optimal, version 11
-   * the pause before the final AUF, version 12 times a PLL without its final AUF.
+   * the pause before the final AUF, version 12 times a PLL without its final AUF, version 13 reads
+   * the halves of any listed algorithm as one, whatever the pause.
    */
-  public static final int VERSION = 12;
+  public static final int VERSION = 13;
 
   static final String RESTART_PART_SUFFIX = "restart";
 

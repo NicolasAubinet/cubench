@@ -51,9 +51,10 @@ import java.util.List;
  * {@link #RUN_TO_KNOW_LARGE_POOL} from a pool of at least {@link #LARGE_POOL} cases, where picking
  * the case out of many is most of the work, or from the coach's daily drill, which deals a case
  * needing review until it holds (owner, 2026-11-13). A rep with the algorithm looked up or on screen starts
- * the run again and says nothing else: the panel is also opened to compare algorithms, so only a
- * solve moves a case down. A restarted rep breaks the run the same way; a skipped one never reaches
- * the rule at all.
+ * the run again and says nothing else: the panel is also opened to compare algorithms. A restarted
+ * rep breaks the run the same way; a skipped one never reaches the rule at all. A rep turned in
+ * more than one algorithm is {@link Evidence#HELPED}, as a solve is: two looks are not knowing the
+ * case, wherever they were taken (owner, 2026-11-17).
  *
  * <p><b>A learning drill's clear is its own evidence.</b> That drill decides with rules of its own
  * (a reset takes one dot back, a rep on another algorithm empties them), and its reps may not even
@@ -61,7 +62,7 @@ import java.util.List;
  *
  * <p><b>Known from drills alone gets no grace.</b> The single lapse forgiven above is forgiven only
  * where a solve has put the case in alone since the lapse before it. A case drills made known and
- * then taken in two looks in its next solve has shown what drills cannot: it needs review.
+ * then taken in two looks, in a solve or a drill, needs review.
  *
  * <p><b>Absence is still never evidence.</b> A case with nothing behind it has no status at all
  * rather than a bad one, and nothing downstream may read that silence as "does not know it".
@@ -116,7 +117,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 11;
+  public static final int RULE_VERSION = 12;
 
   /** Clean drill reps in a row that make a case known. */
   public static final int RUN_TO_KNOW = 5;
@@ -133,7 +134,7 @@ public class CaseKnowledge {
     /** A solve whose last layer step went in one algorithm. */
     UNAIDED,
 
-    /** A solve whose last layer step took more than one algorithm. */
+    /** A solve whose last layer step took more than one algorithm, or a drill rep that did. */
     HELPED,
 
     /** A clean drill rep, dealt out of a small pool. */
