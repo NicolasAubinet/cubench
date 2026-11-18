@@ -77,7 +77,7 @@ public class AlgorithmVotesTest {
     assertTrue(votes.get(caseCode), CmllCases.solves(caseCode, votes.get(caseCode)));
   }
 
-  /** Orient then permute: the case it was handed sees two algorithms, so no vote. */
+  /** Orient then permute is stored as two parts, neither named for the case, so no vote. */
   @Test
   public void aTwoLookCmllNeverVotes() {
     List<SolveTime> solves = roux(times(3, SUNE + " " + TPERM));
