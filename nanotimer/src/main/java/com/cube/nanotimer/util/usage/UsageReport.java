@@ -25,7 +25,7 @@ public final class UsageReport {
 
   static final int USAGE_VERSION = 1;
   /** The service takes at most this many cases a send; the rest go the next day. */
-  static final int MAX_VOTES = 150;
+  static final int MAX_VOTES = 200;
 
   /** What a send's answer means for the votes it carried. */
   public enum Kind {

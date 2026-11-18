@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.smartcube.step.CmllCases;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Collections;
@@ -63,6 +65,27 @@ public class UsageReportTest {
     assertEquals(UsageReport.MAX_VOTES, sent.size());
     assertTrue(sent.containsKey("pair_000"));
     assertFalse(sent.containsKey(String.format("pair_%03d", UsageReport.MAX_VOTES)));
+  }
+
+  /** 57 OLL, 21 PLL, 41 pairs and 42 CMLL: a first send carries them all. */
+  @Test
+  public void everyCaseGoesInOneSend() {
+    Map<String, String> all = new TreeMap<String, String>();
+    for (int i = 1; i <= 57; i++) {
+      all.put("oll_" + i, "R U R'");
+    }
+    for (String pll : new String[] {"aa", "ab", "e", "f", "ga", "gb", "gc", "gd", "h", "ja", "jb",
+        "na", "nb", "ra", "rb", "t", "ua", "ub", "v", "y", "z"}) {
+      all.put("pll_" + pll, "R U R'");
+    }
+    for (int i = 1; i <= 41; i++) {
+      all.put("pair_" + i, "R U R'");
+    }
+    for (String cmll : CmllCases.codes()) {
+      all.put(cmll, "R U R'");
+    }
+    assertEquals(161, all.size());
+    assertEquals(all, UsageReport.of(all).getVotes());
   }
 
   @Test
