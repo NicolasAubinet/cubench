@@ -3,17 +3,16 @@ package com.cube.nanotimer.gui;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.style.DynamicDrawableSpan;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.ImageSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -61,8 +60,8 @@ import java.util.Set;
  *
  * <p><b>Browsing</b>, its cases are a grid of tiles, filtered by group and, once a smart cube has
  * read any of them, by standing; each choice in both pickers counts the cases it would show under
- * the other filter. Several standings may be ticked at once; the chip then shows their colours,
- * not their names, so it never outgrows the row. The sort is an app bar icon, apart from the filters, lit while the set is out
+ * the other filter. Several standings may be ticked at once; the chip names them, the last ones
+ * folded into a "+1" once they outgrow the room beside the group chip. The sort is an app bar icon, apart from the filters, lit while the set is out
  * of its own order. Sorted by standing, the grid splits under one heading per standing; sorted by
  * a mean, it becomes the case table the drill screens read, since a grid has nowhere to put a
  * figure. A tap opens the case sheet, as everywhere. The library may sort by the solver's measured
@@ -119,6 +118,7 @@ public class CaseSetActivity extends NanoTimerActivity
   /** Indices into {@link #STATUS_FILTERS} ticked; empty for every case, never all of them. */
   private final Set<Integer> statusFilter = new HashSet<Integer>();
   private CaseFilterBar groups;
+  private View groupChip;
   private TextView statusChip;
   private MenuItem sortItem;
   private DrillStatsTable table;
@@ -182,11 +182,14 @@ public class CaseSetActivity extends NanoTimerActivity
     LinearLayout filters = findViewById(R.id.llCaseSetFilters);
     LayoutInflater inflater = LayoutInflater.from(this);
     groups = new CaseFilterBar(this, set, group -> show());
-    filters.addView(groups.chip(inflater, filters, R.layout.case_filter_chip_small));
+    groupChip = groups.chip(inflater, filters, R.layout.case_filter_chip_small);
+    filters.addView(groupChip);
     statusChip = (TextView) inflater.inflate(R.layout.case_filter_chip_small, filters, false);
     statusChip.setOnClickListener(v -> pickStatus());
     statusChip.setVisibility(View.GONE); // until a standing is known
     filters.addView(statusChip);
+    // The room for the names is only known once the group chip is laid out.
+    filters.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> paintChips());
     setUpWindow();
     if (isPicking()) {
       setUpPicking();
@@ -575,15 +578,11 @@ public class CaseSetActivity extends NanoTimerActivity
 
   /** A standing's colour as a small rounded square, as the Status picker and the headers show it. */
   private GradientDrawable swatch(int status) {
-    return swatch(status, 12);
-  }
-
-  private GradientDrawable swatch(int status, int sizeDp) {
     float density = getResources().getDisplayMetrics().density;
     GradientDrawable swatch = new GradientDrawable();
     swatch.setColor(ContextCompat.getColor(this, STATUS_COLOURS[status]));
     swatch.setCornerRadius(3 * density);
-    int size = (int) (sizeDp * density);
+    int size = (int) (12 * density);
     swatch.setSize(size, size);
     return swatch;
   }
@@ -717,39 +716,37 @@ public class CaseSetActivity extends NanoTimerActivity
   }
 
   private void paintChips() {
-    statusChip.setText(statusLabel());
+    CharSequence label = statusLabel();
+    if (!label.toString().equals(statusChip.getText().toString())) {
+      statusChip.setText(label); // only on a change: setting it relays out, which calls back here
+    }
     statusChip.setSelected(!statusFilter.isEmpty());
   }
 
-  /** "Status" for every case, a standing's name for one, and their colours for several. */
+  /** "Status" for every case, else the standings ticked, as many named as fit beside the group. */
   private CharSequence statusLabel() {
-    if (statusFilter.size() == 1) {
-      return getString(R.string.analysis_window_chip,
-          getString(STATUS_LABELS[statusFilter.iterator().next()]));
+    if (statusFilter.isEmpty()) {
+      return getString(R.string.analysis_window_chip, getString(R.string.case_filter_status));
     }
-    String name = getString(R.string.case_filter_status);
-    StringBuilder marks = new StringBuilder();
-    for (int i = 0; i < STATUS_FILTERS.length; i++) {
-      marks.append(statusFilter.contains(i) ? " \uFFFC" : "");
-    }
-    String text = getString(R.string.analysis_window_chip, name + marks);
-    SpannableString spanned = new SpannableString(text);
-    int at = text.indexOf(name) + name.length();
-    int align = Build.VERSION.SDK_INT >= 29 ? DynamicDrawableSpan.ALIGN_CENTER
-        : DynamicDrawableSpan.ALIGN_BASELINE;
+    StringBuilder names = new StringBuilder();
     for (int i = 0; i < STATUS_FILTERS.length; i++) {
       if (statusFilter.contains(i)) {
-        at = text.indexOf('\uFFFC', at);
-        GradientDrawable swatch = swatch(i, 10);
-        swatch.setStroke((int) getResources().getDisplayMetrics().density,
-            ContextCompat.getColor(this, R.color.lightblue)); // dark shades vanish on the lit chip
-        swatch.setBounds(0, 0, swatch.getIntrinsicWidth(), swatch.getIntrinsicHeight());
-        spanned.setSpan(new ImageSpan(swatch, align), at, at + 1,
-            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        at++;
+        names.append(names.length() == 0 ? "" : ", ").append(getString(STATUS_LABELS[i]));
       }
     }
-    return spanned;
+    String arrow = getString(R.string.analysis_window_chip, "");
+    View row = (View) statusChip.getParent().getParent();
+    float room = row.getWidth() - row.getPaddingLeft() - row.getPaddingRight()
+        - groupChip.getWidth() - groupMargin() - statusChip.getPaddingLeft()
+        - statusChip.getPaddingRight() - statusChip.getPaint().measureText(arrow);
+    CharSequence fitted = row.getWidth() == 0 ? names : TextUtils.commaEllipsize(names,
+        statusChip.getPaint(), Math.max(0, room), "+1", "+%d");
+    return getString(R.string.analysis_window_chip,
+        fitted.length() == 0 ? "+" + statusFilter.size() : fitted);
+  }
+
+  private int groupMargin() {
+    return ((ViewGroup.MarginLayoutParams) groupChip.getLayoutParams()).rightMargin;
   }
 
   /** The sort icon lights up in the accent while the set is not in its own order. */
