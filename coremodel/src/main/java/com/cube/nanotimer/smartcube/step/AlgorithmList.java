@@ -188,12 +188,6 @@ final class AlgorithmList {
     return at < 0 ? 0 : forms.get(at).size();
   }
 
-  /** That same algorithm as the table spells it, or null where the case is listed with none. */
-  Row shortestListed() {
-    int at = shortestAt();
-    return at < 0 ? null : rows.get(at);
-  }
-
   private int shortestAt() {
     int at = -1;
     for (int i = 0; i < listed; i++) {

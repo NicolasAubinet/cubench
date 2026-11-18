@@ -783,12 +783,6 @@ public final class F2LCaseAlgorithms {
     return Collections.unmodifiableList(listed);
   }
 
-  /** The shortest algorithm the case is listed with, the one extra moves are counted over. */
-  public static String shortestListed(String pairCase) {
-    AlgorithmList.Row row = pairCase == null ? null : listOf(pairCase).shortestListed();
-    return row == null ? null : row.getMoves();
-  }
-
   /**
    * Which of the case's algorithms an execution was, listed or not, or null for none of them.
    * Compared as {@link AlgorithmForm}s from every grip, so a back slot's pair, a regrip, the turn

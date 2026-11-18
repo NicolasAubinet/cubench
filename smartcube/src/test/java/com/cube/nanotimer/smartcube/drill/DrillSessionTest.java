@@ -1320,7 +1320,7 @@ public class DrillSessionTest {
             session.abandon();
           }
           DrillRep rep = hand.execute(LayerRotation.toFace(
-              CaseAlgorithms.shortestListed(backCode), face));
+              CaseAlgorithms.firstListed(backCode), face));
           assertNotNull(backCode + " on " + face, rep);
           assertEquals(backCode, rep.getCaseCode());
         }
@@ -1383,7 +1383,7 @@ public class DrillSessionTest {
             while (hand.next() && !backCode.equals(session.getCurrentCase())) {
               session.abandon();
             }
-            String alg = CaseAlgorithms.shortestListed(backCode);
+            String alg = CaseAlgorithms.firstListed(backCode);
             session.setTaughtAlgorithm(backCode, alg);
             DrillRep rep = hand.execute(
                 LayerRotation.toFace(LayerRotation.spun(alg, turned), face));
@@ -1435,7 +1435,7 @@ public class DrillSessionTest {
       session.setRotationReader((moves, shownHostMs, skewMs) -> turned);
       Hand hand = new Hand(session);
       assertTrue(hand.next());
-      DrillRep rep = hand.execute(CaseAlgorithms.shortestListed(session.getCurrentCase()));
+      DrillRep rep = hand.execute(CaseAlgorithms.firstListed(session.getCurrentCase()));
       assertNotNull(rep);
       assertEquals(turned, rep.isRotated());
       assertEquals(!turned, session.getTally().isWin(rep));
@@ -1460,7 +1460,7 @@ public class DrillSessionTest {
     session.setRotationReader((moves, shownHostMs, skewMs) -> true);
     Hand hand = new Hand(session);
     assertTrue(hand.next());
-    String alg = CaseAlgorithms.shortestListed("pair_24_fl");
+    String alg = CaseAlgorithms.firstListed("pair_24_fl");
     assertTrue(hand.execute(alg).isRotated());
     read[0] = turnedHold;
     hand.practise("pair_24_fl", alg);
@@ -1489,7 +1489,7 @@ public class DrillSessionTest {
     assertFalse(session.abandon().isRotated());
     read[0] = turnedHold;
     assertTrue(hand.next());
-    assertNotNull(hand.execute(CaseAlgorithms.shortestListed("pair_24_fl")));
+    assertNotNull(hand.execute(CaseAlgorithms.firstListed("pair_24_fl")));
   }
 
   /** Straightening declares green in front: the case up is dealt again for it, not as a reset. */
@@ -1506,7 +1506,7 @@ public class DrillSessionTest {
     session.setGripReader(() -> held);
     Hand hand = new Hand(session);
     assertTrue(hand.next());
-    String alg = CaseAlgorithms.shortestListed("pair_24_fl");
+    String alg = CaseAlgorithms.firstListed("pair_24_fl");
     assertNull(hand.execute("U"));
     assertTrue(hand.straighten());
     DrillRep rep = hand.execute(alg);
@@ -1536,7 +1536,7 @@ public class DrillSessionTest {
     assertTrue(session.lookUp());
     read[0] = turnedHold;
     assertTrue(hand.next());
-    assertNotNull(hand.execute(CaseAlgorithms.shortestListed("pair_24_fl")));
+    assertNotNull(hand.execute(CaseAlgorithms.firstListed("pair_24_fl")));
   }
 
   private static DrillSpec backSlotSpec(String... codes) {

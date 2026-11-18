@@ -57,7 +57,7 @@ public class F2LBackSlotAlgorithmsTest {
     assertEquals("4", CaseAlgorithms.pairCase("pair_4_bl"));
     assertEquals("pair_a12_br", CaseAlgorithms.inSlot("pair_a12", "br"));
     assertTrue(CaseAlgorithms.isBasicPair("pair_4_br"));
-    assertEquals("L U L'", CaseAlgorithms.shortestListed("pair_4_bl"));
+    assertEquals("L U L'", CaseAlgorithms.firstListed("pair_4_bl"));
     assertTrue(CaseAlgorithms.solves("pair_4_bl", "L U L'"));
     assertFalse(CaseAlgorithms.solves("pair_4_bl", "R U R'"));
     assertFalse(CaseAlgorithms.isWorthPointingOut("pair_4_bl", "R U R'"));

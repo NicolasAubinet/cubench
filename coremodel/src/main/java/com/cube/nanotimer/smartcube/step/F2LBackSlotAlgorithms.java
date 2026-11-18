@@ -10,10 +10,11 @@ import java.util.List;
  * teaches in place of turning the cube to bring the slot to the front.
  *
  * <p>Up to three per slot: the community's most voted algorithms for that case and slot (votes taken
- * 31 Oct 2026), most votes first, ties to the shorter one. A slice algorithm only leads when no
- * other has half its votes, as slices read less reliably on some cubes. Only algorithms the drill
- * can read are kept: wide moves, B and slices are fine, but no rotation, no u or E (the core turning
- * about the vertical reads as a rotation) and none that ends with the core turned.
+ * 31 Oct 2026), most votes first, ties in the order the votes list them. A slice algorithm only
+ * leads when no other has half its votes, as slices read less reliably on some cubes. Only
+ * algorithms the drill can read are kept: wide moves, B and slices are fine, but no rotation, no u
+ * or E (the core turning about the vertical reads as a rotation) and none that ends with the core
+ * turned.
  *
  * <p>{@code F2LBackSlotAlgorithmsTest} checks every row puts its case's pair into its slot and
  * leaves the cross and the other slots as they were.
@@ -124,8 +125,8 @@ public final class F2LBackSlotAlgorithms {
     {"20", "bl", "d' R' U2 R U' R' U R"},
     {"20", "bl", "U' L U L' U l U' l' U2 l U l'"},
     {"21", "br", "r' U r U2 r' U' r"},
-    {"21", "br", "f U R2 U' f'"},
     {"21", "br", "U f U R U' R f'"},
+    {"21", "br", "f U R2 U' f'"},
     {"21", "bl", "L U' L' U2 L U L'"},
     {"21", "bl", "U2 L U L' U L U' L'"},
     {"21", "bl", "L F U2 F' L'"},
@@ -164,8 +165,8 @@ public final class F2LBackSlotAlgorithms {
     {"27", "bl", "L U' L' U L U' L'"},
     {"28", "br", "R' U R U' R' U R"},
     {"28", "bl", "L U2 L F' L' F L'"},
-    {"28", "bl", "L U2 L' U f' L f"},
     {"28", "bl", "L U L' U' l U L' U' M'"},
+    {"28", "bl", "L U2 L' U f' L f"},
     {"29", "br", "R' U' R U R' U' R"},
     {"29", "br", "U R' U2 R U2 R' U' R"},
     {"29", "bl", "U2 L U' L' f' L' f"},

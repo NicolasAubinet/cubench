@@ -261,14 +261,13 @@ public final class CaseAlgorithms {
         : matched.getEmptySlot();
   }
 
-  /** The shortest algorithm the case is listed with, the one extra moves are counted over. */
-  public static String shortestListed(String caseCode) {
-    if (slotOf(caseCode) != null) {
-      List<Listed> listed = shown(caseCode);
-      return listed.isEmpty() ? null : listed.get(0).getMoves();
-    }
-    return isPair(caseCode) ? F2LCaseAlgorithms.shortestListed(pairCase(caseCode))
-        : LastLayerCaseAlgorithms.shortestListed(caseCode);
+  /**
+   * The algorithm the case is listed with first, most voted or most used: what every screen starts
+   * on, suggests or names the case by. Null where it is listed with none.
+   */
+  public static String firstListed(String caseCode) {
+    List<Listed> listed = shown(caseCode);
+    return listed.isEmpty() ? null : listed.get(0).getMoves();
   }
 
   /** @see AlgorithmList#read */

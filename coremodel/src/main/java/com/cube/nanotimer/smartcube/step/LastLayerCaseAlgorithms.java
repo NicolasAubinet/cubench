@@ -360,12 +360,6 @@ public final class LastLayerCaseAlgorithms {
     return Collections.unmodifiableList(rows);
   }
 
-  /** The shortest algorithm the case is listed with, the one extra moves are counted over. */
-  public static String shortestListed(String caseCode) {
-    AlgorithmList.Row row = caseCode == null ? null : listOf(caseCode).shortestListed();
-    return row == null ? null : row.getMoves();
-  }
-
   /** What to show a solver for a case: the algorithms it is listed with, most used first. */
   public static List<Algorithm> listed(String caseCode) {
     AlgorithmList list = listOf(caseCode);

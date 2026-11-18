@@ -1118,8 +1118,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   /**
    * The algorithm a case's choose step starts on: the starred one, else the one a learning drill
-   * names (for a pair, the shortest listed, which its coach card names it by), else the one the
-   * case popup recommends, else the first listed. Null when there is none.
+   * names, else the top of the list, most voted first. Null when there is none.
    */
   private String firstToTry(String code) {
     String starred = Options.INSTANCE.getCaseAlgorithm(code);
@@ -1127,13 +1126,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return starred;
     }
     boolean learning = session.getSpec().isLearning();
-    if (learning && (session.getSpec().getCaseAlgorithm(code) != null
-        || CaseAlgorithms.isPair(code))) {
+    if (learning && session.getSpec().getCaseAlgorithm(code) != null) {
       return learningAlgorithm(code);
-    }
-    String recommended = recommendedAlgorithm(code);
-    if (recommended != null) {
-      return recommended;
     }
     List<CaseAlgorithms.Listed> listed = listedFor(code);
     if (!listed.isEmpty()) {
@@ -1486,8 +1480,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * The user's chosen algorithm, else the one the drill names if it solves the case, else the usual:
-   * for a pair the shortest listed, which its extra moves are counted against.
+   * The user's chosen algorithm, else the one the drill names if it solves the case, else the top of
+   * the case's list, most voted first.
    */
   private String learningAlgorithm(String code) {
     String chosen = Options.INSTANCE.getCaseAlgorithm(code);
@@ -1498,8 +1492,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (named != null && CaseAlgorithms.solves(code, named)) {
       return named;
     }
-    return CaseAlgorithms.isPair(code) ? CaseAlgorithms.shortestListed(code)
-        : LastLayerAlgorithms.forCaseCode(code);
+    List<CaseAlgorithms.Listed> listed = listedFor(code);
+    return !listed.isEmpty() ? listed.get(0).getMoves()
+        : CaseAlgorithms.isPair(code) ? null : LastLayerAlgorithms.forCaseCode(code);
   }
 
   /** Whether an algorithm is on screen for the case up: practice, or one shown again. */
