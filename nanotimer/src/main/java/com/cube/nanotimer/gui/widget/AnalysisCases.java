@@ -92,8 +92,8 @@ public class AnalysisCases {
 
   /**
    * Every case the app has a picture and a set for, which is what this table may list, each against
-   * its place in the set: an OLL by its number, a PLL by its letter, which is the order every chart
-   * of them is printed in.
+   * its place in the set: an OLL by its number, a PLL by its letter, a CMLL in SpeedCubeDB's order,
+   * which is the order every chart of them is printed in.
    */
   private static final Map<String, Integer> DRAWN = drawn();
 
@@ -108,6 +108,9 @@ public class AnalysisCases {
   private static Map<String, Integer> drawn() {
     Map<String, Integer> order = new LinkedHashMap<String, Integer>();
     for (String code : LastLayerScrambles.cases()) {
+      order.put(code, Integer.valueOf(order.size()));
+    }
+    for (String code : CaseSets.CMLL.cases()) {
       order.put(code, Integer.valueOf(order.size()));
     }
     return order;
@@ -192,8 +195,9 @@ public class AnalysisCases {
         .setVisibility(anything ? View.VISIBLE : View.GONE);
     root.findViewById(R.id.svAnalysisFamilies).setVisibility(anything ? View.VISIBLE : View.GONE);
     root.findViewById(R.id.llAnalysisCaseTable).setVisibility(anything ? View.VISIBLE : View.GONE);
+    // The plan it leads to is written for CFOP only.
     root.findViewById(R.id.llAnalysisRecommended)
-        .setVisibility(anything ? View.VISIBLE : View.GONE);
+        .setVisibility(anything && method == CubeMethod.CFOP ? View.VISIBLE : View.GONE);
     TextView empty = (TextView) root.findViewById(R.id.tvAnalysisCasesEmpty);
     empty.setVisibility(anything ? View.GONE : View.VISIBLE);
     empty.setText(emptyLine(method));
