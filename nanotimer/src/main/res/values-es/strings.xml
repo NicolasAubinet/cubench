@@ -1110,6 +1110,7 @@
   <string name="drill_presets_delete_confirm">¿Estás seguro que quieres eliminar la selección \'%1$s\'?</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
+  <string name="case_title_cmll">CMLL %s</string>
   <string name="case_algorithms">Algoritmos</string>
   <string name="case_algorithm_mine">El que usas</string>
   <string name="case_algorithm_unusual">Poco común</string>
@@ -1307,12 +1308,12 @@
   <string name="case_set_oll_description">Orientar la última capa</string>
   <string name="case_set_pll_description">Permutar la última capa</string>
   <string name="case_set_f2l_description">Las dos primeras capas</string>
+  <string name="case_set_cmll_description">Esquinas de la última capa</string>
   <string name="library_known">%d conocidos</string>
   <string name="library_review">%d por repasar</string>
   <string name="library_to_learn">%d por aprender</string>
   <string name="library_picked">%d elegidos</string>
   <string name="library_nothing_picked">Toca un conjunto para ver sus casos y marcar los algoritmos que usas.</string>
-  <string name="library_more_later">Pronto habrá más conjuntos.</string>
   <string name="case_filter_status">Estado</string>
   <string name="case_filter_all_statuses">Todos</string>
   <string name="case_sort_title">Ordenar</string>

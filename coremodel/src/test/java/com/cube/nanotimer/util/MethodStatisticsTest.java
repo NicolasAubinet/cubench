@@ -203,6 +203,24 @@ public class MethodStatisticsTest {
     Assert.assertEquals(8000, stats.getFamily("lse_eo").getMeanMs());
   }
 
+  @Test
+  public void testACmllNamedByItsCaseSplitsIntoCasesBesideItsParts() {
+    List<StepStats> steps = new ArrayList<StepStats>();
+    steps.add(tally("sb", 2, 50000));
+    steps.add(tally("cmll_suneleftbar", 1, 3000));
+    steps.add(tally("cmll_hrows", 1, 5000));
+    List<StepStats> parts = new ArrayList<StepStats>();
+    parts.add(tally("cmll_orient", 1, 2000));
+    parts.add(tally("cmll_permute", 1, 3000));
+    MethodStatistics stats = new MethodStatistics(steps, parts, 2);
+
+    Assert.assertEquals("cmll", stats.getFamilies().get(1).getCode());
+    Assert.assertEquals(2, stats.getFamily("cmll").getCount());
+    Assert.assertEquals(4000, stats.getFamily("cmll").getMeanMs());
+    Assert.assertEquals("cmll_hrows", stats.getCases("cmll").get(0).getCode());
+    Assert.assertEquals(2, stats.getCases("cmll").size());
+  }
+
   // A case is what the pair was handed, whichever slot it went into, so the slots add up to one.
   @Test
   public void testAPairCaseIsOneCaseAcrossSlots() {

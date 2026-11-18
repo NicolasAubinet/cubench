@@ -231,10 +231,12 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     }
     ((LastLayerCaseView) root.findViewById(R.id.vCaseChart))
         .setDiagram(LastLayerDiagram.forCase(caseCode));
-    title.setText(set == null ? Utils.toSmartCubeCaseHeadline(getActivity(), caseCode)
+    // A CMLL's title already says its group and its name, so it takes no chip.
+    boolean named = set == null || set == CaseSets.CMLL;
+    title.setText(named ? Utils.toSmartCubeCaseHeadline(getActivity(), caseCode)
         : getString(set == CaseSets.OLL ? R.string.case_title_oll : R.string.case_title_pll,
             set.name(caseCode)));
-    if (set != null) {
+    if (!named) {
       String shape = set.shape(caseCode);
       CaseGroup group = set.groupOf(caseCode);
       String word = shape != null ? shape : group == null ? null : group.getName(getActivity());
@@ -253,9 +255,11 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     chips.addView(chip);
   }
 
-  /** Not inside a drill, where the drill's own Alg is the way, and two drills would share a cube. */
+  /** Not inside a drill, where the drill's own Alg is the way and two drills would share a cube,
+   * nor for a CMLL, which no drill deals yet. */
   private boolean offersPractice() {
-    return !(getActivity() instanceof DrillScreenActivity);
+    return !(getActivity() instanceof DrillScreenActivity)
+        && CaseSets.ofCase(caseCode) != CaseSets.CMLL;
   }
 
   private void showPracticeButton() {

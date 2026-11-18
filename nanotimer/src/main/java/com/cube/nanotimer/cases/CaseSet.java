@@ -5,7 +5,7 @@ import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import java.util.List;
 
 /**
- * One set of cases a solver learns (F2L, OLL, PLL; later CMLL), asked the same questions by every
+ * One set of cases a solver learns (F2L, OLL, PLL, CMLL), asked the same questions by every
  * screen that shows cases: the tile, the row, the filter bar, the case sheet, the library and the
  * drill picker. A new set plugs in by answering them, with no new screen.
  *
@@ -22,7 +22,7 @@ public interface CaseSet {
     PAIR
   }
 
-  /** {@code "oll"}, {@code "pll"}, {@code "pair"}: stable, kept in preferences, the codes' prefix. */
+  /** {@code "oll"}, {@code "pll"}, {@code "pair"}, {@code "cmll"}: stable, kept in preferences, the codes' prefix. */
   String id();
 
   /** The set as a solver writes it, "OLL". Cubing vocabulary, so never translated. */

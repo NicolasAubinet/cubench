@@ -195,6 +195,11 @@ public class LastLayerCaseView extends View {
    * scatter them anyway, so there they are drawn as blank or as the layer's colour turned sideways.
    */
   private int sideColor(char face) {
+    if (diagram.isCornersOnly() && face != 'U') {
+      // A CMLL is read off its corners' own colours; its edges are the next step's.
+      return face == LastLayerDiagram.BLANK ? blankColor
+          : ContextCompat.getColor(getContext(), Utils.getFaceColorRes(face));
+    }
     if (diagram.isPermutation()) {
       return ContextCompat.getColor(getContext(), Utils.getFaceColorRes(face));
     }

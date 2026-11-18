@@ -75,8 +75,8 @@ public class LibraryActivity extends NanoTimerActivity {
   }
 
   private void show() {
-    // The cards sit above the two notes the layout ends on.
-    while (library.getChildCount() > 2) {
+    // The cards sit above the note the layout ends on.
+    while (library.getChildCount() > 1) {
       library.removeViewAt(0);
     }
     LayoutInflater inflater = LayoutInflater.from(this);
