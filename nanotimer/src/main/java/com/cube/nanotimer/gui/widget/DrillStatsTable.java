@@ -194,6 +194,8 @@ public class DrillStatsTable {
             ContextCompat.getColor(activity, R.color.secondary_text));
       }
     }
+    // The mean is the figure the table is read by, as on the Analysis tables.
+    row.lead(0);
   }
 
   /**
