@@ -16,6 +16,7 @@ import com.cube.nanotimer.gui.widget.cases.CaseFilterBar;
 import com.cube.nanotimer.gui.widget.cases.CaseTile;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
@@ -455,7 +456,7 @@ public class AnalysisCases {
       row.noCount()
           .chartSize(chartPx)
           .chart(code)
-          .name(Utils.toSmartCubeCaseHeadline(context, code))
+          .name(rowName(code))
           .meter(stepCase.getMeanRecognitionMs(), stepCase.getMeanExecutionMs(), hue)
           .scaleBar((float) (stepCase.getMeanRecognitionMs() + stepCase.getMeanExecutionMs())
               / slowest)
@@ -479,6 +480,12 @@ public class AnalysisCases {
       rows.addView(row.view());
     }
     headings.refresh();
+  }
+
+  /** A CMLL's name alone: the segment already says CMLL, and the prefix cut the longer names short. */
+  private String rowName(String code) {
+    String cmll = CmllCases.fullName(code);
+    return cmll != null ? cmll : Utils.toSmartCubeCaseHeadline(context, code);
   }
 
   /**
