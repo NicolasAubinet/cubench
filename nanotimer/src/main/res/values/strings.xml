@@ -1680,7 +1680,6 @@
   <string name="coach_learn_next">Next OLLs to learn</string>
   <string name="coach_learn_next_pll">Next PLLs to learn</string>
   <string name="learn_pick_suggested">Suggested</string>
-  <string name="learn_pick_show_known">Show cases I already know</string>
   <string name="learn_pick_known_case" translatable="false">✓ %s</string>
   <string name="learn_pick_own">Your pick</string>
   <plurals name="coach_learn_next_count">

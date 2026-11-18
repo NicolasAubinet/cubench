@@ -1631,7 +1631,6 @@
   <string name="coach_learn_next">Prochains OLL à apprendre</string>
   <string name="coach_learn_next_pll">Prochains PLL à apprendre</string>
   <string name="learn_pick_suggested">Suggérés</string>
-  <string name="learn_pick_show_known">Afficher les cas déjà connus</string>
   <string name="learn_pick_own">Votre choix</string>
   <plurals name="coach_learn_next_count">
     <item quantity="one">%d cas</item>
