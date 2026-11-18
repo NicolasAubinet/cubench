@@ -1316,7 +1316,6 @@
   <string name="library_known">%d connus</string>
   <string name="library_review">%d à revoir</string>
   <string name="library_to_learn">%d à apprendre</string>
-  <string name="library_picked">%d choisis</string>
   <string name="library_nothing_picked">Touchez un ensemble pour parcourir ses cas et marquer les algorithmes que vous utilisez.</string>
   <string name="case_filter_status">Statut</string>
   <string name="case_filter_all_statuses">Tous</string>
