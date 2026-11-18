@@ -79,16 +79,6 @@ public final class AnalysisSample {
    * <p>OLL and PLL are handed over as cases and never as a step of their own: a code carrying a case
    * already counts into its family, so a bare {@code "oll"} row beside them would double it.
    */
-  public static MethodStatistics statistics() {
-    return statistics(CubeMethod.CFOP);
-  }
-
-  /** The method the example solves for a solve type read as {@code own}. */
-  public static CubeMethod methodFor(CubeMethod own) {
-    return own == CubeMethod.ROUX ? CubeMethod.ROUX : CubeMethod.CFOP;
-  }
-
-  /** As {@link #statistics()}, for the solver of that method. */
   public static MethodStatistics statistics(CubeMethod method) {
     List<StepStats> steps = new ArrayList<StepStats>();
     if (method == CubeMethod.ROUX) {
@@ -107,12 +97,15 @@ public final class AnalysisSample {
     return new MethodStatistics(steps, SOLVES);
   }
 
-  /** How the example's solves were turned, in line with its steps' means (about 15 s a solve). */
-  public static TurningFigures turning() {
-    return turning(CubeMethod.CFOP);
+  /** The method the example solves for a solve type read as {@code own}. */
+  public static CubeMethod methodFor(CubeMethod own) {
+    return own == CubeMethod.ROUX ? CubeMethod.ROUX : CubeMethod.CFOP;
   }
 
-  /** As {@link #turning()}: a Roux solve takes fewer moves at a slower turn for the same time. */
+  /**
+   * How the example's solves were turned, in line with its steps' means (about 15 s a solve). A
+   * Roux solve takes fewer moves at a slower turn for the same time.
+   */
   public static TurningFigures turning(CubeMethod method) {
     return method == CubeMethod.ROUX ? TurningFigures.of(SOLVES, 48.2, 3.27)
         : TurningFigures.of(SOLVES, 57.4, 3.96);
@@ -148,11 +141,6 @@ public final class AnalysisSample {
   }
 
   /** The example's cases as the Cases table reads them: its solver takes every one in one look. */
-  public static List<StepStats> oneAlgorithmCases() {
-    return oneAlgorithmCases(CubeMethod.CFOP);
-  }
-
-  /** As {@link #oneAlgorithmCases()}, for the solver of that method. */
   public static List<StepStats> oneAlgorithmCases(CubeMethod method) {
     if (method == CubeMethod.ROUX) {
       return new ArrayList<StepStats>(cmlls());
@@ -169,12 +157,9 @@ public final class AnalysisSample {
    *
    * <p>Read off {@link LastLayerScrambles#cases()} rather than listed, so the ring's denominator and
    * the groups under the table cannot drift apart from the set the app actually draws.
+   *
+   * <p>Over the CMLLs for a Roux solver.
    */
-  public static List<CaseKnowledge> knowledge() {
-    return knowledge(CubeMethod.CFOP);
-  }
-
-  /** As {@link #knowledge()}, over the CMLLs for a Roux solver. */
   public static List<CaseKnowledge> knowledge(CubeMethod method) {
     List<CaseKnowledge> known = new ArrayList<CaseKnowledge>();
     for (String code : method == CubeMethod.ROUX ? CmllCases.codes() : LastLayerScrambles.cases()) {

@@ -1390,7 +1390,6 @@
   <string name="analysis_algorithms_not_seen">Not seen</string>
   <string name="analysis_algorithms_reading">Reading your solves…</string>
   <string name="analysis_rest_title">The rest of the set</string>
-  <string name="analysis_cases_empty">Connect a smart cube and do some solves to have the cases it reads ranked here.</string>
   <string name="analysis_cases_blind">A blindfolded solve has no cases. It is read as a memo and the pieces it solved.</string>
   <string name="analysis_cases_method">Only CFOP and Roux solves have their cases named so far, so there is nothing to rank here.</string>
   <string name="analysis_cases_none">No case of this step solved in one algorithm yet.</string>

@@ -1341,7 +1341,6 @@
   <string name="analysis_algorithms_not_seen">No vistos</string>
   <string name="analysis_algorithms_reading">Leyendo tus resoluciones…</string>
   <string name="analysis_rest_title">El resto del conjunto</string>
-  <string name="analysis_cases_empty">Conecta un smart cube y haz algunas resoluciones para ver aquí ordenados los casos que lea.</string>
   <string name="analysis_cases_blind">Una resolución a ciegas no tiene casos. Se lee como una memorización y las piezas resueltas.</string>
   <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP y Roux tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
   <string name="analysis_cases_none">Todavía ningún caso de este paso resuelto con un solo algoritmo.</string>

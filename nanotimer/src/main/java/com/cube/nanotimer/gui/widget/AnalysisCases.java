@@ -216,17 +216,15 @@ public class AnalysisCases {
   }
 
   /**
-   * Why this tab is empty, which is three different things and only one of them is a matter of
-   * solving more. A blind solve has no set to be dealt from, and a method whose steps this app has
-   * no charts for cannot name a case however many solves it reads: telling either reader to go and
-   * solve with a cube connected is advice that will never work.
+   * Why this tab is empty, which only a method with no sets ever is: CFOP and Roux always list
+   * theirs. A blind solve has no set to be dealt from, and a method whose steps this app has no
+   * charts for cannot name a case however many solves it reads.
    */
   private int emptyLine(CubeMethod method) {
     if (method == CubeMethod.BLIND) {
       return R.string.analysis_cases_blind;
     }
-    return method == CubeMethod.CFOP || method == CubeMethod.ROUX ? R.string.analysis_cases_empty
-        : R.string.analysis_cases_method;
+    return R.string.analysis_cases_method;
   }
 
   /** The segments, the ring, the table and the rest of the set as the pick now leaves them. */

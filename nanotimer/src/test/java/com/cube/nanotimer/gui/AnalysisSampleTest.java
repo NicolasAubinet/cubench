@@ -28,7 +28,7 @@ import org.junit.Test;
  */
 public class AnalysisSampleTest {
 
-  private static final MethodStatistics STATISTICS = AnalysisSample.statistics();
+  private static final MethodStatistics STATISTICS = AnalysisSample.statistics(CubeMethod.CFOP);
 
   private static StepStats step(String code) {
     StepStats step = STATISTICS.getFamily(code);
@@ -148,7 +148,7 @@ public class AnalysisSampleTest {
   @Test
   public void everyDrawnCaseHasAStanding() {
     Set<String> covered = new HashSet<String>();
-    for (CaseKnowledge caseKnown : AnalysisSample.knowledge()) {
+    for (CaseKnowledge caseKnown : AnalysisSample.knowledge(CubeMethod.CFOP)) {
       covered.add(caseKnown.getCode());
     }
     List<String> silent = new ArrayList<String>();
@@ -173,7 +173,7 @@ public class AnalysisSampleTest {
 
   private int standing(String family, CaseKnowledge.Status status) {
     int count = 0;
-    for (CaseKnowledge caseKnown : AnalysisSample.knowledge()) {
+    for (CaseKnowledge caseKnown : AnalysisSample.knowledge(CubeMethod.CFOP)) {
       if (family.equals(caseKnown.getCaseSet()) && caseKnown.getStatus() == status) {
         count++;
       }

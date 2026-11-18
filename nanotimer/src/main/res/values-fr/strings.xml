@@ -1342,7 +1342,6 @@
   <string name="analysis_algorithms_not_seen">Pas vus</string>
   <string name="analysis_algorithms_reading">Lecture de vos résolutions…</string>
   <string name="analysis_rest_title">Le reste de l\'ensemble</string>
-  <string name="analysis_cases_empty">Connectez un smart cube et faites quelques résolutions pour voir les cas qu\'il lit classés ici.</string>
   <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
   <string name="analysis_cases_method">Seules les résolutions CFOP et Roux ont leurs cas nommés pour l\'instant, il n\'y a donc rien à classer ici.</string>
   <string name="analysis_cases_none">Aucun cas de cette étape résolu en un seul algorithme pour l\'instant.</string>
