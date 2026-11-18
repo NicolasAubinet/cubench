@@ -108,4 +108,52 @@ public class RepAlgorithmsTest {
     }
     return inverted.toString();
   }
+  private static final String SUNE = "R U R' U R U2 R'";
+  private static final String PI_RIGHT_BAR = "F R U R' U' R U R' U' F'";
+
+  /** Every listed CMLL turned in face turns alone reads as one look, joined halves included. */
+  @Test
+  public void readsEveryListedCmllAsOne() {
+    for (String code : CmllCases.codes()) {
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.listed(code)) {
+        String moves = algorithm.getMoves().replace("(", "").replace(")", "").trim();
+        if (!moves.matches("[URFDLB2' ]+")) {
+          continue; // a wide, slice or rotation reaches a cube as other turns
+        }
+        assertEquals(code + " " + moves, Integer.valueOf(1),
+            RepAlgorithms.count(code, Notation.inverse(moves), timed(moves)));
+      }
+    }
+  }
+
+  @Test
+  public void readsACmllTurnedThroughAnotherCaseAsTwo() {
+    String scramble = Notation.inverse(SUNE + " " + PI_RIGHT_BAR);
+    String code = CmllCases.PREFIX + CmllCases.of(Notation.apply(Cubies.SOLVED, scramble));
+    assertEquals(Integer.valueOf(2),
+        RepAlgorithms.count(code, scramble, timed(SUNE + " " + PI_RIGHT_BAR)));
+  }
+
+  /** The slice and the layer are the last six edges' business. */
+  @Test
+  public void readsACmllLeftWithTheSliceTurnedAsOne() {
+    assertEquals(Integer.valueOf(1), RepAlgorithms.count("cmll_pirightbar",
+        Notation.inverse(PI_RIGHT_BAR), timed(PI_RIGHT_BAR + " R L' U")));
+  }
+
+  @Test
+  public void readsNothingForACmllNeverFinished() {
+    assertNull(RepAlgorithms.count("cmll_pirightbar", Notation.inverse(PI_RIGHT_BAR),
+        timed("F R U R'")));
+  }
+
+  private static String timed(String moves) {
+    StringBuilder timed = new StringBuilder();
+    int at = 100;
+    for (String move : moves.trim().split(" +")) {
+      timed.append(timed.length() == 0 ? "" : " ").append(move).append('@').append(at);
+      at += 100;
+    }
+    return timed.toString();
+  }
 }

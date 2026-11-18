@@ -2,13 +2,14 @@ package com.cube.nanotimer.smartcube.step;
 
 import com.cube.nanotimer.smartcube.cube.CubieCube;
 import com.cube.nanotimer.smartcube.model.Face;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * How many algorithms a stored OLL or PLL drill rep was turned in, read off its scramble and turns
- * the way a solve's last layer step is: a case put in with two looks is not known, in a drill as in
- * a solve (owner, 2026-11-17). The halves of a listed algorithm are one, as in a solve. Moves that
- * came back to the case they left are a fumble, not a look, so they count for nothing.
+ * How many algorithms a stored OLL, PLL or CMLL drill rep was turned in, read off its scramble and
+ * turns the way a solve's last layer step is: a case put in with two looks is not known, in a drill
+ * as in a solve (owner, 2026-11-17). The halves of a listed algorithm are one, as in a solve. Moves
+ * that came back to the case they left are a fumble, not a look, so they count for nothing.
  */
 public final class RepAlgorithms {
 
@@ -27,6 +28,9 @@ public final class RepAlgorithms {
   public static Integer count(String caseCode, String scramble, String moves) {
     if (caseCode == null || scramble == null || moves == null) {
       return null;
+    }
+    if (CmllCases.isCase(caseCode)) {
+      return cmll(scramble, moves);
     }
     boolean permutes = caseCode.startsWith("pll_");
     if (!permutes && !caseCode.startsWith("oll_")) {
@@ -70,6 +74,26 @@ public final class RepAlgorithms {
       return Integer.valueOf(1); // a fumble undone inside a listed algorithm's halves
     }
     return Integer.valueOf(algorithms.size());
+  }
+
+  /** A CMLL rep, read against its blocks with the slice anywhere: see {@link CmllCases#looks}. */
+  private static Integer cmll(String scramble, String moves) {
+    CubieCube cube = new CubieCube();
+    for (String turn : scramble.trim().split("\\s+")) {
+      if (!turn.isEmpty() && !apply(cube, turn)) {
+        return null;
+      }
+    }
+    List<String> states = new ArrayList<String>();
+    states.add(cube.toFaceCube());
+    for (String token : moves.trim().split(" +")) {
+      int at = token.lastIndexOf('@');
+      if (at > 0 && faceOf(token.charAt(0)) != null) {
+        apply(cube, token.substring(0, at));
+        states.add(cube.toFaceCube());
+      }
+    }
+    return CmllCases.looks(states);
   }
 
   /** The one face the first two layers are built on, or -1 where none or several are. */

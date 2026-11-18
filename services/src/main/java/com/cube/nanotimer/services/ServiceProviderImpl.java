@@ -88,6 +88,12 @@ public class ServiceProviderImpl implements ServiceProvider {
         + alias + DB.COL_DRILL_REP_CASE + " NOT LIKE 'pair\\_%\\_b_' ESCAPE '\\')";
   }
 
+  /** The per-case reps the coach reads: never a CMLL, which the coach does not speak of. */
+  private static String coachCaseRep(String alias) {
+    return "(" + perCaseRep(alias) + " AND " + alias + DB.COL_DRILL_REP_CASE
+        + " NOT LIKE 'cmll\\_%' ESCAPE '\\')";
+  }
+
   private SQLiteDatabase db;
 
   private SolveType currentSolveType;
@@ -2687,7 +2693,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     q.append("   AND r.").append(DB.COL_DRILL_REP_RESET_COUNT).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_DELETED).append(" = 0");
     q.append("   AND r.").append(DB.COL_DRILL_REP_PRACTICE).append(" = 0");
-    q.append("   AND ").append(perCaseRep("r."));
+    q.append("   AND ").append(coachCaseRep("r."));
 
     List<StepSample> samples = new ArrayList<StepSample>();
     Cursor cursor = db.rawQuery(q.toString(), null);
@@ -2814,7 +2820,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         + "                    = " + DB.TABLE_DRILL + "." + DB.COL_ID
         + "                  AND " + DB.COL_DRILL_REP_DELETED + " = 0"
         + "                  AND " + DB.COL_DRILL_REP_PRACTICE + " = 0"
-        + "                  AND " + perCaseRep("") + ")"
+        + "                  AND " + coachCaseRep("") + ")"
         + " ORDER BY " + DB.COL_DRILL_TIMESTAMP + " DESC LIMIT " + Math.max(0, lastDrills);
   }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A case tile for a strip: a small picture over its name. Strip slots share the width equally. -->
+<!-- A case tile for a strip: a small picture over its name, a CMLL's over its group. Strip slots
+     share the width equally. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="0dp"
    android:layout_height="wrap_content"
@@ -37,5 +38,17 @@
      android:maxLines="1"
      android:textColor="@color/secondary_text"
      android:textSize="11sp"/>
+
+  <!-- Only a CMLL keeps it: its group alone repeats across six cases. Held to the slot's width. -->
+  <TextView
+     android:id="@+id/tvCaseTileShape"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:ellipsize="end"
+     android:gravity="center_horizontal"
+     android:maxLines="2"
+     android:textColor="@color/case_shape"
+     android:textSize="10sp"
+     android:visibility="gone"/>
 
 </LinearLayout>

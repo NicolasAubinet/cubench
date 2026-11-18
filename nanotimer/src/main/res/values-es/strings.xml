@@ -1077,8 +1077,10 @@
   <string name="case_group_f2l_stuck_edge">Arista atrapada en otro slot</string>
   <string name="case_group_f2l_stuck_both">Las dos atrapadas en otro slot</string>
   <string name="drill_practice_cross">Cruz</string>
+  <string name="drill_practice_cmll">CMLL</string>
   <string name="drill_practice_hint_pll">Un PLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_oll">Un OLL tras otro, entre los casos que elijas.</string>
+  <string name="drill_practice_hint_cmll">Un CMLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_cross">Una mezcla completa, y la cruz más corta que encuentres en ella.</string>
   <string name="drill_practice_f2l">F2L</string>
   <string name="drill_practice_hint_f2l">Un par F2L tras otro, los casos comunes más a menudo.</string>
@@ -1087,6 +1089,7 @@
   <string name="drill_cases_count">%1$d de %2$d elegidos</string>
   <string name="drill_cases_title_oll">Casos OLL</string>
   <string name="drill_cases_title_pll">Casos PLL</string>
+  <string name="drill_cases_title_cmll">Casos CMLL</string>
   <string name="drill_cases_all">Todos</string>
   <string name="drill_cases_none">Ninguno</string>
   <string name="drill_cases_empty">Elige al menos un caso para practicar.</string>

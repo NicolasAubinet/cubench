@@ -30,6 +30,11 @@ public final class LastLayerScrambles {
     return LastLayerAlgorithms.caseCodes();
   }
 
+  /** Every CMLL a scramble can be asked for, apart from {@link #cases()}, which the coach reads. */
+  public static List<String> cmllCases() {
+    return CmllCases.codes();
+  }
+
   /**
    * A scramble leaving the given case, or null if that is not a case there is one for. Since it is
    * the case's own algorithm undone, executing that algorithm ends on a solved cube: an OLL is
@@ -101,7 +106,70 @@ public final class LastLayerScrambles {
   /** The scramble with its two alignment turns chosen rather than drawn. */
   static String forCase(String caseCode, int beforeQuarters, int afterQuarters) {
     String algorithm = algorithmFor(caseCode);
-    return algorithm == null ? null : undoing(algorithm, beforeQuarters, afterQuarters);
+    if (algorithm == null) {
+      return null;
+    }
+    return CmllCases.isCase(caseCode) ? undoingCmll(algorithm, beforeQuarters, afterQuarters)
+        : undoing(algorithm, beforeQuarters, afterQuarters);
+  }
+
+  /**
+   * A scramble leaving the CMLL an algorithm solves at its own angle, blocks on their centres. Null
+   * if the moves cannot be read.
+   */
+  public static String forCmllAlgorithm(String algorithm) {
+    if (algorithm == null) {
+      return null;
+    }
+    try {
+      return undoingCmll(algorithm.replace("(", "").replace(")", ""), 0, 0);
+    } catch (RuntimeException e) {
+      return null; // a token that is not a turn
+    }
+  }
+
+  /**
+   * Undone as a cube reports it, then the blocks put back on their centres: picking the cube up, as
+   * {@link #upright} does, leaves them off when an algorithm ends with the slice turned.
+   */
+  private static String undoingCmll(String algorithm, int beforeQuarters, int afterQuarters) {
+    List<Move> reported = new ArrayList<Move>();
+    int[] at = {Cubies.U, Cubies.R, Cubies.F, Cubies.D, Cubies.L, Cubies.B};
+    for (Move move : faceTurns(parse(algorithm))) {
+      if (move.kind == Move.ROTATION) {
+        at = turned(at, move);
+      } else {
+        reported.add(new Move(move.kind, at[move.face], move.quarters));
+      }
+    }
+    List<Move> moves = new ArrayList<Move>();
+    alignment(moves, beforeQuarters);
+    moves.addAll(inverse(reported));
+    alignment(moves, afterQuarters);
+    return blocksOnCentres(format(merged(moves)));
+  }
+
+  /** Seen from a turn about x and with {@code R L'} after it, as needed to stand the blocks on
+   * their centres with the corners on top. */
+  private static String blocksOnCentres(String scramble) {
+    List<Move> moves = parse(scramble);
+    int[] at = {Cubies.U, Cubies.R, Cubies.F, Cubies.D, Cubies.L, Cubies.B};
+    for (int view = 0; view < 4; view++) {
+      List<Move> seen = new ArrayList<Move>();
+      for (Move move : moves) {
+        seen.add(new Move(move.kind, at[move.face], move.quarters));
+      }
+      for (int quarters = 0; quarters < 4; quarters++) {
+        String candidate = format(merged(seen));
+        if (CmllCases.key(Notation.apply(Cubies.SOLVED, candidate)) != null) {
+          return candidate;
+        }
+        seen.add(new Move(Move.OUTER, Cubies.R, 1));
+        seen.add(new Move(Move.OUTER, Cubies.L, 3));
+      }
+      at = turned(at, new Move(Move.ROTATION, Cubies.R, 1));
+    }
+    return scramble;
   }
 
   /**
@@ -116,7 +184,12 @@ public final class LastLayerScrambles {
     return format(merged(moves));
   }
 
+  /** A CMLL is dealt off its most voted algorithm, and stays out of the coach's table. */
   private static String algorithmFor(String caseCode) {
+    if (CmllCases.codes().contains(caseCode)) {
+      List<LastLayerCaseAlgorithms.Algorithm> listed = LastLayerCaseAlgorithms.listed(caseCode);
+      return listed.isEmpty() ? null : listed.get(0).getMoves().replace("(", "").replace(")", "");
+    }
     return LastLayerAlgorithms.forCaseCode(caseCode);
   }
 
