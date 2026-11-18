@@ -301,9 +301,12 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
 .waitlist [data-form] [class*="_checked_"] label[class*="_input-checkbox__label"] { color: var(--ink); }
 .waitlist [data-form] .emailoctopus-form input[type=submit] { height: 48px; border-radius: 999px; font-weight: 700; margin: 4px 0 0 !important; cursor: pointer; }
 .waitlist [data-form] .emailoctopus-form input[type=submit]:hover { filter: brightness(1.08); }
-.waitlist [data-form] .emailoctopus-success-message, .waitlist [data-form] .emailoctopus-error-message { font-size: 16px; margin: 0; }
-.waitlist [data-form] .emailoctopus-success-message { color: var(--ok); }
-.waitlist [data-form] .emailoctopus-error-message { color: var(--bad); }
+/* Their messages force color: var(--text-colour) !important, so set the variable. */
+.waitlist [data-form] .emailoctopus-success-message, .waitlist [data-form] .emailoctopus-error-message { font: 17px/1.5 Roboto, system-ui, sans-serif !important; }
+.waitlist [data-form] .emailoctopus-success-message { --text-colour: var(--ink); font-weight: 500 !important; }
+.waitlist [data-form] .emailoctopus-success-message:not(:empty) { padding: 18px 0 6px !important; }
+.waitlist [data-form] .emailoctopus-error-message { --text-colour: var(--bad); }
+.waitlist [data-form] .emailoctopus-error-message:not(:empty) { margin-bottom: 14px !important; }
 .waitlist [data-form] .mastfoot { display: block; margin-top: 14px !important; }
 .waitlist [data-form] .mastfoot p { color: var(--ink3) !important; background: none !important; border: 0 !important; text-indent: 0 !important; width: auto !important; height: auto !important; overflow: visible !important; font: 400 12px/1.5 Roboto, sans-serif !important; }
 .waitlist [data-form] .mastfoot a { position: static !important; color: var(--ink3); font-size: 12px; font-weight: 500; text-decoration: underline; }
