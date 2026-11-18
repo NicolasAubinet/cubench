@@ -61,8 +61,8 @@ import java.util.Set;
  * <p><b>Browsing</b>, its cases are a grid of tiles, filtered by group and, once a smart cube has
  * read any of them, by standing; each choice in both pickers counts the cases it would show under
  * the other filter. Several standings may be ticked at once; the chip names them, the last ones
- * folded into a "+1" once they outgrow the room beside the group chip. The sort is an app bar icon, apart from the filters, lit while the set is out
- * of its own order. Sorted by standing, the grid splits under one heading per standing; sorted by
+ * folded into a "+1" once they outgrow the room beside the group chip. The sort is an app bar
+ * icon, apart from the filters, lit while the set is out of its own order. Sorted by standing, the grid splits under one heading per standing; sorted by
  * a mean, it becomes the case table the drill screens read, since a grid has nowhere to put a
  * figure. A tap opens the case sheet, as everywhere. The library may sort by the solver's measured
  * figures; picking what to drill from them is the coach's job, so nothing here offers to.
@@ -117,6 +117,8 @@ public class CaseSetActivity extends NanoTimerActivity
   private int sort;
   /** Indices into {@link #STATUS_FILTERS} ticked; empty for every case, never all of them. */
   private final Set<Integer> statusFilter = new HashSet<Integer>();
+  /** What the screen opens on: a learn pick leaves Known out, everything else shows every case. */
+  private final Set<Integer> defaultStatuses = new HashSet<Integer>();
   private CaseFilterBar groups;
   private View groupChip;
   private TextView statusChip;
@@ -189,7 +191,8 @@ public class CaseSetActivity extends NanoTimerActivity
     statusChip.setVisibility(View.GONE); // until a standing is known
     filters.addView(statusChip);
     // The room for the names is only known once the group chip is laid out.
-    filters.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> paintChips());
+    filters.addOnLayoutChangeListener(
+        (v, l, t, r, b, ol, ot, or, ob) -> statusChip.post(this::paintChips));
     setUpWindow();
     if (isPicking()) {
       setUpPicking();
@@ -249,7 +252,10 @@ public class CaseSetActivity extends NanoTimerActivity
     if (isLearning()) {
       Set<String> own = Options.INSTANCE.getLearnPick(family);
       picked.addAll(own == null ? suggested : own);
-      statusFilter.addAll(defaultStatuses());
+      for (int status : LEARN_STATUSES) {
+        defaultStatuses.add(status);
+      }
+      statusFilter.addAll(defaultStatuses);
     } else {
       Set<String> stored = Options.INSTANCE.getDrillCases(family);
       picked.addAll(stored == null ? set.cases() : stored);
@@ -397,6 +403,9 @@ public class CaseSetActivity extends NanoTimerActivity
   private boolean passes(String code, boolean byGroup, boolean byStatus) {
     if (!set.contains(code) || byGroup && !groups.shows(code)) {
       return false;
+    }
+    if (isLearning() && byStatus && !statusNarrowed() && picked.contains(code)) {
+      return true; // a picked one stays, whatever its standing, so it can be let go
     }
     return !byStatus || statusFilter.isEmpty() || statusFilter.contains(rank(statuses.get(code)));
   }
@@ -737,15 +746,16 @@ public class CaseSetActivity extends NanoTimerActivity
     String arrow = getString(R.string.analysis_window_chip, "");
     View row = (View) statusChip.getParent().getParent();
     float room = row.getWidth() - row.getPaddingLeft() - row.getPaddingRight()
-        - groupChip.getWidth() - groupMargin() - statusChip.getPaddingLeft()
+        - groupChip.getWidth() - 2 * chipMargin() - statusChip.getPaddingLeft()
         - statusChip.getPaddingRight() - statusChip.getPaint().measureText(arrow);
     CharSequence fitted = row.getWidth() == 0 ? names : TextUtils.commaEllipsize(names,
         statusChip.getPaint(), Math.max(0, room), "+1", "+%d");
     return getString(R.string.analysis_window_chip,
-        fitted.length() == 0 ? "+" + statusFilter.size() : fitted);
+        fitted.length() == 0 ? TextUtils.ellipsize(names, statusChip.getPaint(), Math.max(0, room),
+            TextUtils.TruncateAt.END) : fitted);
   }
 
-  private int groupMargin() {
+  private int chipMargin() {
     return ((ViewGroup.MarginLayoutParams) groupChip.getLayoutParams()).rightMargin;
   }
 
@@ -804,20 +814,10 @@ public class CaseSetActivity extends NanoTimerActivity
         .show();
   }
 
-  /** What the screen opens on: a learn pick leaves Known out, everything else shows every case. */
-  private Set<Integer> defaultStatuses() {
-    Set<Integer> statuses = new HashSet<Integer>();
-    if (isLearning()) {
-      for (int status : LEARN_STATUSES) {
-        statuses.add(status);
-      }
-    }
-    return statuses;
-  }
 
   /** Whether the standing filter departs from the default, so All / None act on just the shown. */
   private boolean statusNarrowed() {
-    return !statusFilter.equals(defaultStatuses());
+    return !statusFilter.equals(defaultStatuses);
   }
 
   private void toggleStatus(int status) {
