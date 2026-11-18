@@ -28,6 +28,7 @@ import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.cube.VirtualCube;
+import com.cube.nanotimer.gui.CaseSolvesActivity;
 import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillCaseStatsActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
@@ -74,7 +75,8 @@ import java.util.Objects;
  * <p><b>Times from solves and from drills are two cards, never one mean.</b> A drill hands the case
  * over with nothing to recognise and no look-ahead into it, so the two do not measure the same
  * thing. Both cards always show, one with nothing in it as dashes, so the sheet never changes
- * shape. A drill card with reps opens the case's drill attempts, where a bad rep can be thrown out.
+ * shape. A drill card with reps opens the case's drill attempts, where a bad rep can be thrown out;
+ * a solve card with times opens the solves they were taken from.
  *
  * <p><b>The list is in most-used order and nothing moves.</b> Tapping a row stars it; the order
  * stays the recommended one whatever is picked, and an algorithm of the solver's own sits under the
@@ -135,6 +137,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   /** Whether a solve or a drill ever timed the case; null until both have been asked. */
   private Boolean measured;
   private int answersRead;
+  /** Gone to the solves behind the In solves card, where one may be deleted or made a DNF. */
+  private boolean listingSolves;
 
   private View root;
   private LinearLayout rows;
@@ -309,6 +313,10 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     if (cube != null) {
       cube.onResume();
     }
+    if (listingSolves) {
+      listingSolves = false;
+      loadFigures();
+    }
     // Back from practice, where an algorithm may have been kept
     String nowChosen = Options.INSTANCE.getCaseAlgorithm(caseCode);
     String nowOwn = Options.INSTANCE.getOwnCaseAlgorithm(caseCode);
@@ -398,8 +406,11 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     if (solves != null) {
       fillCard(solveCard, R.string.case_sheet_in_solves, solves.getCount(), solves.getMeanMs(),
           solves.getMeanRecognitionMs(), solves.getMeanExecutionMs(), solves.getBestMs());
+      solveCard.setOnClickListener(v -> openSolves());
     } else {
       emptyCard(solveCard, R.string.case_sheet_in_solves);
+      solveCard.setOnClickListener(null);
+      solveCard.setClickable(false);
     }
     if (drills != null) {
       fillCard(drillCard, R.string.case_sheet_in_drills, drills.getCount(), drills.getMeanMs(),
@@ -451,6 +462,15 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     Intent intent = new Intent(getActivity(), DrillCaseStatsActivity.class);
     intent.putExtra(DrillCaseStatsActivity.EXTRA_CASE, caseCode);
     intent.putExtra(DrillCaseStatsActivity.EXTRA_WINDOW, DrillStatsWindow.ALL.name());
+    startActivity(intent);
+  }
+
+  /** The solves the In solves card is the mean of, over every solve type. */
+  private void openSolves() {
+    listingSolves = true;
+    Intent intent = new Intent(getActivity(), CaseSolvesActivity.class);
+    intent.putExtra(CaseSolvesActivity.EXTRA_CASE, caseCode);
+    intent.putExtra(CaseSolvesActivity.EXTRA_LAST, SOLVE_FIGURES);
     startActivity(intent);
   }
 

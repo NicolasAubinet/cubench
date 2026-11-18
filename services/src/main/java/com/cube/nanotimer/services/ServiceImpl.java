@@ -12,6 +12,7 @@ import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CaseHistory;
+import com.cube.nanotimer.vo.CaseSolve;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -917,6 +918,17 @@ public class ServiceImpl extends DBHelper implements Service {
       @Override
       public void run() {
         callback.onData(provider.getCaseSolveStats(caseCode, lastTimes));
+      }
+    });
+  }
+
+  @Override
+  public void getCaseSolveList(final String caseCode, final int lastTimes,
+      final DataCallback<List<CaseSolve>> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.getCaseSolveList(caseCode, lastTimes));
       }
     });
   }

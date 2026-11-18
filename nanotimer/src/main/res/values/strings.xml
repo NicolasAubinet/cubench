@@ -1174,6 +1174,16 @@
   <string name="case_sheet_your_times">Your times</string>
   <string name="case_sheet_in_solves">In solves</string>
   <string name="case_sheet_in_drills">In drills</string>
+  <string name="case_solves_label">Solves</string>
+  <string name="case_solves_hint">Tap the case for its algorithms, a solve to open it.</string>
+  <string name="case_solves_empty">No solve has timed this case.</string>
+  <string name="case_solves_cell_count">Times</string>
+  <string name="case_solves_note">Solve %s</string>
+  <string name="case_solves_note_type">Solve %1$s · %2$s</string>
+  <plurals name="case_solves_window_types">
+    <item quantity="one">From %d solve type</item>
+    <item quantity="other">From %d solve types</item>
+  </plurals>
   <string name="case_sheet_best">Best %s</string>
   <string name="case_sheet_show_fewer">Show fewer</string>
   <string name="case_algorithm_your_pick">Your pick</string>
