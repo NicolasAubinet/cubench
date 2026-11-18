@@ -50,9 +50,9 @@ public final class SolveReading {
    * false start as one of the step's algorithms, version 8 drops pauses under 250 ms, version 9
    * where each pair's slot sat in the grip, version 10 the cross against its optimal, version 11
    * the pause before the final AUF, version 12 times a PLL without its final AUF, version 13 reads
-   * the halves of any listed algorithm as one, whatever the pause.
+   * the halves of any listed algorithm as one, whatever the pause, version 14 a Roux solve's CMLL.
    */
-  public static final int VERSION = 13;
+  public static final int VERSION = 14;
 
   static final String RESTART_PART_SUFFIX = "restart";
 
@@ -271,12 +271,12 @@ public final class SolveReading {
    * Reads a solve, which means solving its scramble again. The expensive path, and the one a kept
    * reading exists to skip.
    *
-   * @return its executions and steps in solving order: only the steps for a Roux solve, whose
-   *     cases are not matched, and empty for a solve that is neither a readable CFOP nor Roux one
+   * @return its executions and steps in solving order: a Roux solve's CMLL is its one execution,
+   *     and a solve that is neither a readable CFOP nor Roux one has none
    */
   public static SolveReading read(SolveTime solve) {
     if (SolveTypeMethod.of(solve.getSolveType()) == CubeMethod.ROUX) {
-      return readTurnings(CaseExecutions.replayAs(solve, CubeMethod.ROUX));
+      return readRoux(CaseExecutions.replayAs(solve, CubeMethod.ROUX));
     }
     final List<Execution> executions = new ArrayList<Execution>();
     final List<Turning> turnings = new ArrayList<Turning>();
@@ -305,8 +305,9 @@ public final class SolveReading {
     return new SolveReading(executions, turnings, whole, rotations, cross, finalAuf);
   }
 
-  /** A method with no cases read: its steps' turning only, kept so it is replayed once. */
-  private static SolveReading readTurnings(CaseExecutions.Replay replay) {
+  /** A Roux solve: its steps' turning and its CMLL, kept so it is replayed once. */
+  private static SolveReading readRoux(CaseExecutions.Replay replay) {
+    final List<Execution> executions = new ArrayList<Execution>();
     final List<Turning> turnings = new ArrayList<Turning>();
     boolean whole = CaseExecutions.readSteps(replay, new CaseExecutions.StepReader() {
       @Override
@@ -316,9 +317,10 @@ public final class SolveReading {
               turned.getMoveCount(), turned.getStops(), turned.getPauseMs(),
               turned.getStopMs()));
         }
+        readLastLayer(step, turned, executions); // only the CMLL names a case
       }
     });
-    SolveReading reading = new SolveReading(Collections.<Execution>emptyList(), turnings, whole);
+    SolveReading reading = new SolveReading(executions, turnings, whole);
     reading.roux = true;
     return reading;
   }

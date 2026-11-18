@@ -771,7 +771,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     turningFigures = null;
     final AnalysisWindow asked = window;
     final CubeMethod solved = SolveTypeMethod.of(solveType);
-    algorithmsReading = solved == CubeMethod.CFOP && readAsSolve();
+    algorithmsReading = (solved == CubeMethod.CFOP || solved == CubeMethod.ROUX) && readAsSolve();
     turningReading = readAsSolve() && solved != CubeMethod.BLIND; // the method solves query skips blind
     showAlgorithmFigures();
     showTurning();
@@ -794,8 +794,9 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
                     SolveReadings readings = new SolveReadings(kept);
                     Map<String, Long> pauses = StepPauses.fromReadings(solves, readings, solved);
                     TurningFigures turning = TurningFigures.readFrom(solves, readings, solved);
-                    if (solved == CubeMethod.CFOP) {
-                      showAlgorithmsRead(asked, AlgorithmFiguresReader.readFrom(solves, readings));
+                    if (solved == CubeMethod.CFOP || solved == CubeMethod.ROUX) {
+                      showAlgorithmsRead(asked,
+                          AlgorithmFiguresReader.readFrom(solves, readings, solved));
                     }
                     App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
                         SolveReading.VERSION, null);
