@@ -221,7 +221,7 @@ public class AnalysisCases {
     if (method == CubeMethod.BLIND) {
       return R.string.analysis_cases_blind;
     }
-    return method == CubeMethod.CFOP ? R.string.analysis_cases_empty
+    return method == CubeMethod.CFOP || method == CubeMethod.ROUX ? R.string.analysis_cases_empty
         : R.string.analysis_cases_method;
   }
 

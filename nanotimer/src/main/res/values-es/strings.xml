@@ -1343,7 +1343,7 @@
   <string name="analysis_rest_title">El resto del conjunto</string>
   <string name="analysis_cases_empty">Conecta un smart cube y haz algunas resoluciones para ver aquí ordenados los casos que lea.</string>
   <string name="analysis_cases_blind">Una resolución a ciegas no tiene casos. Se lee como una memorización y las piezas resueltas.</string>
-  <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
+  <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP y Roux tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
   <string name="analysis_plan_headline">Un plan cada semana</string>
   <string name="analysis_plan_for_cfop">Solo CFOP por ahora</string>
   <string name="analysis_plan_cfop_only">El coach escribe planes solo para CFOP.</string>
