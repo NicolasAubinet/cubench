@@ -5,6 +5,7 @@ import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.AlgorithmForm;
 import com.cube.nanotimer.smartcube.step.CFOPStepDetector;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
@@ -195,7 +196,10 @@ public final class CaseExecutions {
   /** One solve's cases, or none of them where it cannot be read again. */
   private static void collect(SolveTime solve, final Map<String, List<String>> answers,
       final String only) {
-    readSteps(solve, new StepReader() {
+    // A CMLL is only ever met in a Roux solve, so that is the one way it is read again.
+    boolean roux = CmllCases.isCase(only)
+        && SolveTypeMethod.of(solve.getSolveType()) == CubeMethod.ROUX;
+    readSteps(roux ? replayAs(solve, CubeMethod.ROUX) : replay(solve), new StepReader() {
       @Override
       public void read(SolveStep step, SolveSolution.Step turned) {
         add(step, turned, answers, only);
@@ -346,14 +350,14 @@ public final class CaseExecutions {
         || MethodStatistics.SKIP.equals(caseName) ? null : pair;
   }
 
-  /** The case a last layer step was handed, or null for any other step. */
+  /** The case a last layer step or a CMLL was handed, or null for any other step. */
   public static String caseOfStep(String name) {
     String caseName = MethodStatistics.caseOf(name);
     if (caseName == null || MethodStatistics.SKIP.equals(caseName)) {
       return null;
     }
     String family = MethodStatistics.familyOf(name);
-    return "oll".equals(family) || "pll".equals(family) ? name : null;
+    return "oll".equals(family) || "pll".equals(family) || CmllCases.isCase(name) ? name : null;
   }
 
   private static void keep(Map<String, List<String>> answers, String caseCode, String moves,

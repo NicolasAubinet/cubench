@@ -154,6 +154,29 @@ public class RouxStepDetectorTest {
   }
 
   @Test
+  public void namesTheCornersCaseTheBlocksHandedOver() {
+    String[] solve = {SOLVE[FIRST_BLOCK], SOLVE[SECOND_BLOCK], ONE_LOOK_CORNERS,
+        SOLVE[EO], SOLVE[SIDE_EDGES], SOLVE[LAST_FOUR]};
+    startFrom(solve);
+    assertEquals("cmll", detector.stepName(RouxStepDetector.CMLL));
+    play(solve);
+
+    // The second block ends on a slice, so the case is read through the drift.
+    assertEquals("cmll_tleftbar", detector.stepName(RouxStepDetector.CMLL));
+    assertEquals("lse", detector.stepName(RouxStepDetector.LSE));
+  }
+
+  @Test
+  public void namesATwoLookCaseByWhereItStarted() {
+    startTilted(SOLVE);
+    for (String step : SOLVE) {
+      playTilted(step);
+    }
+    assertEquals(CmllCases.PREFIX + CmllCases.solvedBy(SUNE + " " + T_PERM),
+        detector.stepName(RouxStepDetector.CMLL));
+  }
+
+  @Test
   public void findsBlocksBuiltOnAnyPairOfFaces() {
     // The same solve held a quarter turn away: the blocks are built either side of the front face.
     startTilted(SOLVE);

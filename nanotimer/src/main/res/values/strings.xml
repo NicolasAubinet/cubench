@@ -1156,6 +1156,7 @@
   <string name="drill_presets_delete_confirm">Are you sure you want to delete the preset \'%1$s\'?</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
+  <string name="case_title_cmll">CMLL %s</string>
   <string name="case_algorithms">Algorithms</string>
   <string name="case_algorithm_mine">The one you use</string>
   <string name="case_algorithm_unusual">Unusual</string>
@@ -1356,12 +1357,12 @@
   <string name="case_set_oll_description">Orient the Last Layer</string>
   <string name="case_set_pll_description">Permute the Last Layer</string>
   <string name="case_set_f2l_description">First Two Layers</string>
+  <string name="case_set_cmll_description">Corners of the Last Layer</string>
   <string name="library_known">%d known</string>
   <string name="library_review">%d to review</string>
   <string name="library_to_learn">%d to learn</string>
   <string name="library_picked">%d picked</string>
   <string name="library_nothing_picked">Tap a set to browse its cases and star the algorithms you use.</string>
-  <string name="library_more_later">More sets to come.</string>
   <string name="case_filter_status">Status</string>
   <string name="case_filter_all_statuses">All</string>
   <string name="case_sort_title">Sort</string>

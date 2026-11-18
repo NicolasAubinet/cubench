@@ -52,6 +52,9 @@ public final class LastLayerDiagram {
   /** Where a piece lives, by the faces its side stickers show: {@code "B"} is the back edge. */
   private static final String[] HOME_FACES = {"BL", "B", "BR", "L", "", "R", "FL", "F", "FR"};
 
+  /** A sticker the picture leaves out: a CMLL's edges. */
+  public static final char BLANK = '.';
+
   /** The turns that put the layer home after an algorithm, which the solver makes and nobody writes. */
   private static final String[] LAYER_HOME = {"", "U", "U2", "U'"};
 
@@ -82,6 +85,9 @@ public final class LastLayerDiagram {
       return null;
     }
     String moves = algorithms.get(0).getMoves();
+    if (caseCode.startsWith(CmllCases.PREFIX)) {
+      return corners(caseCode, moves);
+    }
     return caseCode.startsWith("pll_")
         ? recognised(caseCode, moves)
         : new LastLayerDiagram(caseCode, false, Notation.caseState(moves));
@@ -98,12 +104,34 @@ public final class LastLayerDiagram {
     }
     String cleaned = moves.replace("(", "").replace(")", "").trim();
     try {
+      if (caseCode.startsWith(CmllCases.PREFIX)) {
+        return corners(caseCode, cleaned);
+      }
       return caseCode.startsWith("pll_")
           ? recognised(caseCode, cleaned)
           : new LastLayerDiagram(caseCode, false, Notation.caseState(cleaned));
     } catch (RuntimeException e) {
       return null; // a token that is not a turn, or moves that do not keep the centres home
     }
+  }
+
+  /**
+   * A CMLL: the corners the algorithm solves, read against the blocks, with the edges left blank
+   * since the case says nothing about them. Null for moves that are no CMLL algorithm.
+   */
+  private static LastLayerDiagram corners(String caseCode, String moves) {
+    String state = CmllCases.caseState(moves);
+    if (state == null) {
+      return null;
+    }
+    char[] blanked = state.toCharArray();
+    for (int[] edge : Cubies.EDGES) {
+      if (Cubies.touches(edge, Cubies.U)) {
+        blanked[edge[0]] = BLANK;
+        blanked[edge[1]] = BLANK;
+      }
+    }
+    return new LastLayerDiagram(caseCode, false, new String(blanked));
   }
 
   /**
@@ -186,6 +214,11 @@ public final class LastLayerDiagram {
     return facelets;
   }
 
+  /** Whether only the corners are drawn, in their own colours: a CMLL. */
+  public boolean isCornersOnly() {
+    return caseCode.startsWith(CmllCases.PREFIX);
+  }
+
   /** Whether the layer is already one colour and only the pieces are in the wrong places. */
   public boolean isPermutation() {
     return permutation;
@@ -196,7 +229,8 @@ public final class LastLayerDiagram {
     return top[cell] == 'U';
   }
 
-  /** The face a side sticker belongs to, {@code 'U'} for one of the layer's turned sideways. */
+  /** The face a side sticker belongs to, {@code 'U'} for one of the layer's turned sideways, and
+   * {@link #BLANK} for one the picture leaves out. */
   public char sideFace(int side) {
     return sides[side];
   }

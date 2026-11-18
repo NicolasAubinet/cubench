@@ -71,10 +71,12 @@ public final class StepPalette {
 
   /**
    * The colour of a case of the algorithm library, or of a set by its prefix ({@code "pair_"}): an
-   * F2L pair's case takes the F2L step's, which {@link #colorFor} leaves neutral.
+   * F2L pair's case takes the F2L step's, which {@link #colorFor} leaves neutral, and a CMLL the
+   * third step's, which is where Roux's solve bars draw it.
    */
   public int colorForCase(String code) {
-    return code != null && "pair".equals(MethodStatistics.familyOf(code)) ? colorFor("f2l")
+    String family = code == null ? null : MethodStatistics.familyOf(code);
+    return "pair".equals(family) ? colorFor("f2l") : "cmll".equals(family) ? colorFor("oll")
         : colorFor(code);
   }
 
