@@ -49,4 +49,6 @@
   <!-- The cross drill's move count and its button; smaller on its side, where height is short. -->
   <dimen name="drill_cross_count_size">40sp</dimen>
   <dimen name="drill_cross_button_height">54dp</dimen>
+  <!-- A CMLL tile under the Cases table, wider than its picture to hold its name. -->
+  <dimen name="analysis_rest_cell_cmll_width">64dp</dimen>
 </resources>

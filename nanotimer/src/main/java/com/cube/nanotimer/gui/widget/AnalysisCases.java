@@ -529,8 +529,15 @@ public class AnalysisCases {
             context.getString(standingName(standing)), Integer.valueOf(group.size())));
     FlowLayout cases = view.findViewById(R.id.flAnalysisRestCases);
     for (final String code : group) {
+      CaseSet set = CaseSets.ofCase(code);
       View cell = CaseTile.inflate(inflater, cases, R.layout.analysis_rest_cell)
-          .show(CaseSets.ofCase(code), code).view();
+          .show(set, code).view();
+      if (set == CaseSets.CMLL) {
+        cell.setMinimumWidth(context.getResources() // FlowLayout measures cells to their content
+            .getDimensionPixelSize(R.dimen.analysis_rest_cell_cmll_width));
+      } else {
+        cell.findViewById(R.id.tvCaseTileShape).setVisibility(View.GONE); // the number is unique
+      }
       cell.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
