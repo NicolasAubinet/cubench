@@ -107,17 +107,17 @@ import java.util.Set;
  * because a best is read as a record, where a worst is read as a description of how bad the step
  * routinely gets, which is not what a maximum measures.
  *
- * <p><b>Where a reader has no cube-read solve anywhere, the screen reads {@link AnalysisSample}
- * instead.</b> Someone who owns no cube cannot be told to go and do more solves with one, and a hub
- * that answers them with one grey sentence sells neither the cube nor itself. The condition is
- * about the reader and not about the window: a reader who owns a cube and has simply not used it on
- * this solve type is told exactly that, since for them the example would be somebody else's figures
- * standing over a screen they have a real version of. That is the arrangement never allowed here,
- * because an invented figure beside a real one is what makes the true number look invented.
+ * <p><b>Where this solve type has no cube-read solve, the Solve tab reads {@link AnalysisSample}
+ * instead</b>, under a banner saying so. Its figures are about the solve type, and an empty one has
+ * nothing real for the example to stand beside.
  *
- * <p><b>A cube owner's empty window is drawn blank, never left empty.</b> The method's steps and
- * sets are laid out with nothing in them, every time a dash, so the reader sees what their solves
- * will fill rather than one grey sentence.
+ * <p><b>The Cases tab follows the reader, not the solve type.</b> Which cases they know is read over
+ * every solve and drill, so for anyone a cube has ever read it shows their own standings, even
+ * where the Solve tab is the example; only a reader with no cube-read solve anywhere gets the
+ * example there too. The Plan tab is theirs alike.
+ *
+ * <p>A reader who picks their own solves over the example sees the method's steps with a dash for
+ * every figure, never one grey sentence.
  */
 public class AnalysisActivity extends NanoTimerActivity implements SelectionHandler {
 
@@ -351,7 +351,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     chip.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (sampleOffered()) {
+        if (modeOffered()) {
           askForMode();
         } else if (tab == TAB_CASES) {
           askForCaseWindow();
@@ -372,7 +372,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == R.id.itAnalysisHelp) {
-      DialogUtils.showFragment(this, AnalysisHelpDialog.newInstance(tab, sampling()));
+      DialogUtils.showFragment(this, AnalysisHelpDialog.newInstance(tab, exampleOnTab()));
       return true;
     }
     if (item.getItemId() == R.id.itAnalysisPlanFeedback) {
@@ -418,10 +418,10 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     if (!offered) {
       return;
     }
-    boolean sampling = sampling();
+    boolean sampling = exampleOnTab();
     TextView chip = (TextView) windowItem.getActionView();
     int label;
-    if (sampleOffered()) {
+    if (modeOffered()) {
       label = sampling ? R.string.analysis_sample_chip : R.string.analysis_sample_mine;
     } else {
       label = tab == TAB_CASES ? caseWindow.getLabelId() : window.getLabelId();
@@ -441,7 +441,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     }
     // The context is what the screen is about rather than a control, so it rides on the app bar.
     String name = Utils.toSolveTypeLocalizedName(this, solveType.getName());
-    if (sampling()) {
+    if (exampleOnTab()) {
       bar.setSubtitle(getString(R.string.analysis_sample_subtitle));
     } else if (readAsSolve()) {
       bar.setSubtitle(getString(R.string.analysis_context, name,
@@ -495,7 +495,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   /** Reads the Cases tab's table again alone, dropping an answer that lands after another pick. */
   private void loadCases() {
     final AnalysisCaseWindow asked = caseWindow;
-    App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, method, asked.perCase(),
+    App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, ownMethod(),
+        asked.perCase(),
         new DataCallback<List<StepStats>>() {
           @Override
           public void onData(final List<StepStats> oneAlgorithm) {
@@ -598,6 +599,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     showWhatIsReadable();
     showPlanMenu();
     showWindow(); // each tab has its own window, and Plan none
+    showContext();
+    showSample();
     if (moved) {
       // A tab is a different question, so it starts at its own first answer rather than at
       // whatever depth the last one was left scrolled to.
@@ -680,7 +683,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
    * ever say so, and a plan is written out of cases. One tab is not a choice, so the strip goes.
    */
   private boolean onlySolve() {
-    return method == CubeMethod.BLIND;
+    return ownMethod() == CubeMethod.BLIND && !sampleEverywhere();
   }
 
   /**
@@ -716,7 +719,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
             readKnown = history.getCases();
             knownRead = true;
             // Which read lands first is not fixed, and the sample owns both halves or neither.
-            if (!sampling()) {
+            if (!sampleEverywhere()) {
               known = readKnown;
               showCases();
             }
@@ -752,11 +755,11 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
 
   private void load() {
     loadAlgorithmFigures();
-    App.INSTANCE.getService().getMethodStatistics(solveType, method, window.solves(),
+    App.INSTANCE.getService().getMethodStatistics(solveType, ownMethod(), window.solves(),
         new DataCallback<MethodStatistics>() {
           @Override
           public void onData(final MethodStatistics statistics) {
-            App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, method,
+            App.INSTANCE.getService().getOneAlgorithmCaseStatistics(solveType, ownMethod(),
                 caseWindow.perCase(), new DataCallback<List<StepStats>>() {
                   @Override
                   public void onData(final List<StepStats> oneAlgorithm) {
@@ -969,13 +972,31 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   }
 
   /**
-   * Whether the example is on offer at all. Three things have to hold: this solve type makes whole
-   * solves, its window holds none of them, and no cube has ever read one of theirs anywhere. The
-   * last is what keeps an invented figure away from anybody who has a real one to compare it with.
+   * Whether the example is on offer at all: this solve type makes whole solves, its window holds
+   * none of them, and it is known whether a cube ever read one of the reader's anywhere.
    */
   private boolean sampleOffered() {
     return readAsSolve() && loaded && read != null && read.getFamilies().isEmpty()
-        && Boolean.FALSE.equals(hasOwnSolves);
+        && hasOwnSolves != null;
+  }
+
+  /** Whether no cube has ever read a solve of the reader's, so the example stands in on every tab. */
+  private boolean sampleEverywhere() {
+    return sampling() && Boolean.FALSE.equals(hasOwnSolves);
+  }
+
+  /** Whether the tab being shown reads the example. */
+  private boolean exampleOnTab() {
+    return tab == TAB_SOLVE ? sampling() : sampleEverywhere();
+  }
+
+  /** Whether the chip offers the example or the reader's own, rather than a window. */
+  private boolean modeOffered() {
+    return sampleOffered() && (tab == TAB_SOLVE || Boolean.FALSE.equals(hasOwnSolves));
+  }
+
+  private CubeMethod ownMethod() {
+    return SolveTypeMethod.of(solveType);
   }
 
   /** Everything the figures decide, off whichever set of them is being read. */
@@ -983,13 +1004,14 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     boolean sampling = sampling();
     // The example solves Roux for a Roux type and CFOP for any other, and a figure keyed on the
     // method has to name the solve being drawn rather than the one that is not there.
-    CubeMethod own = SolveTypeMethod.of(solveType);
+    CubeMethod own = ownMethod();
     method = sampling ? AnalysisSample.methodFor(own) : own;
     statistics = sampling ? AnalysisSample.statistics(method)
         : blank() ? blankStatistics(method) : read;
-    oneAlgorithmCases = sampling ? AnalysisSample.oneAlgorithmCases(method) : readOneAlgorithm;
-    known = sampling ? AnalysisSample.knowledge(method) : readKnown;
-    showTabStrip(); // the example never solves blind, so it has the other two tabs even here
+    boolean everywhere = sampleEverywhere();
+    oneAlgorithmCases = everywhere ? AnalysisSample.oneAlgorithmCases(method) : readOneAlgorithm;
+    known = everywhere ? AnalysisSample.knowledge(method) : readKnown;
+    showTabStrip();
     showContext();
     showWindow();
     showSample();
@@ -1024,8 +1046,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
    * a reader the example is not for, once it is known which reader that is.
    */
   private boolean blank() {
-    return readAsSolve() && loaded && read != null && read.getFamilies().isEmpty()
-        && !sampling() && (hasOwnSolves != null || leftSample);
+    return sampleOffered() && !sampling();
   }
 
   private static Map<CubeMethod, String[]> blankSteps() {
@@ -1071,15 +1092,18 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
    * the scroll, because it is a caveat on every figure under it rather than a card among them.
    */
   private void showSample() {
-    boolean sampling = sampling();
-    findViewById(R.id.llAnalysisSampleBanner).setVisibility(sampling ? View.VISIBLE : View.GONE);
-    if (sampling) {
-      ((TextView) findViewById(R.id.tvAnalysisSampleBanner)).setText(
-          getString(R.string.analysis_sample_banner, statistics.getSolveCount()));
+    boolean shown = exampleOnTab();
+    boolean everywhere = sampleEverywhere();
+    findViewById(R.id.llAnalysisSampleBanner).setVisibility(shown ? View.VISIBLE : View.GONE);
+    if (shown) {
+      ((TextView) findViewById(R.id.tvAnalysisSampleBanner)).setText(getString(everywhere
+          ? R.string.analysis_sample_banner : R.string.analysis_sample_banner_owner,
+          AnalysisSample.SOLVES));
     }
-    // At the foot of Solve, so the whole reading is walked before anything is asked for.
+    // At the foot of Solve, so the whole reading is walked before anything is asked for. A reader
+    // with a cube has nothing to connect.
     findViewById(R.id.llAnalysisSampleCta)
-        .setVisibility(sampling && !ctaDismissed ? View.VISIBLE : View.GONE);
+        .setVisibility(everywhere && !ctaDismissed ? View.VISIBLE : View.GONE);
   }
 
   private void wireRead() {
@@ -1177,7 +1201,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   private void showRead() {
     planStatus.refresh();
     showPractice(coachClient != null && readAsSolve() && loaded && method == CubeMethod.CFOP
-        && planStatus.getLook() != CoachPlanStatus.Look.ALONE, sampling());
+        && planStatus.getLook() != CoachPlanStatus.Look.ALONE, sampleEverywhere());
     showAskNow();
   }
 
@@ -1279,7 +1303,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     practiceAsked = true;
     learnedAtAsk = Options.INSTANCE.getLearnedCases();
     drawPractice(CoachPractice.kept(solveType));
-    CoachPractice.refresh(coachClient, solveType, method, new CoachPractice.Listener() {
+    CoachPractice.refresh(coachClient, solveType, ownMethod(), new CoachPractice.Listener() {
       @Override
       public void onPractice(List<CoachPractice.Set> sets) {
         if (!isFinishing()) {
@@ -1425,7 +1449,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     dailyView.show(solveType, CoachDaily.answeredToday(solveType) ? CoachDaily.kept(solveType)
         : null);
     List<String> focus = CoachDaily.focusCases(shownPlan);
-    CoachDaily.refresh(coachClient, solveType, method, focus, new CoachDaily.Listener() {
+    CoachDaily.refresh(coachClient, solveType, ownMethod(), focus, new CoachDaily.Listener() {
       @Override
       public void onDaily(List<DailyRun.Block> blocks) {
         if (isFinishing() || shownPlan == null) {
@@ -1487,7 +1511,12 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
 
   /** The Cases tab, which waits on two reads and is drawn by whichever of them lands second. */
   private void showCases() {
-    if (statistics != null) {
+    if (statistics == null) {
+      return;
+    }
+    if (sampling() && !sampleEverywhere()) {
+      cases.show(read, readOneAlgorithm, readKnown, palette, ownMethod());
+    } else {
       cases.show(statistics, oneAlgorithmCases, known, palette, method);
     }
   }

@@ -1644,6 +1644,7 @@
   <string name="analysis_sample_mine">Mis resoluciones</string>
   <string name="analysis_sample_showing">Mostrando</string>
   <string name="analysis_sample_banner">Datos de ejemplo de %d resoluciones ficticias. Conecta un smart cube para ver las tuyas.</string>
+  <string name="analysis_sample_banner_owner">Datos de ejemplo de %d resoluciones ficticias. Haz una resolución con tu smart cube en este tipo de resolución para ver las tuyas.</string>
   <string name="analysis_sample_cta_title">Esto es lo que diría tu cubo</string>
   <string name="analysis_sample_cta_body">Cubench lee cada giro de un smart cube, parte la resolución en sus pasos y nombra el caso de cada uno. Recorre todo el ejemplo y luego conecta un cubo para ver las tuyas.</string>
   <string name="analysis_sample_connect">Conectar un cubo</string>

@@ -1698,6 +1698,7 @@
   <string name="analysis_sample_mine">My solves</string>
   <string name="analysis_sample_showing">Showing</string>
   <string name="analysis_sample_banner">Example data from %d dummy solves. Connect a smart cube to see your own.</string>
+  <string name="analysis_sample_banner_owner">Example data from %d dummy solves. Do a solve with your smart cube on this solve type to see your own.</string>
   <string name="analysis_sample_cta_title">This is what your cube would say</string>
   <string name="analysis_sample_cta_body">Cubench reads every turn off a smart cube, splits the solve into its steps and names the case each one was. Browse the whole example, then connect a cube to see your own.</string>
   <string name="analysis_sample_connect">Connect a cube</string>
