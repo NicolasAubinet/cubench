@@ -16,6 +16,7 @@ import com.cube.nanotimer.gui.widget.cases.CaseFilterBar;
 import com.cube.nanotimer.gui.widget.cases.CaseTile;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.Utils;
@@ -92,8 +93,8 @@ public class AnalysisCases {
 
   /**
    * Every case the app has a picture and a set for, which is what this table may list, each against
-   * its place in the set: an OLL by its number, a PLL by its letter, which is the order every chart
-   * of them is printed in.
+   * its place in the set: an OLL by its number, a PLL by its letter, a CMLL in SpeedCubeDB's order,
+   * which is the order every chart of them is printed in.
    */
   private static final Map<String, Integer> DRAWN = drawn();
 
@@ -108,6 +109,9 @@ public class AnalysisCases {
   private static Map<String, Integer> drawn() {
     Map<String, Integer> order = new LinkedHashMap<String, Integer>();
     for (String code : LastLayerScrambles.cases()) {
+      order.put(code, Integer.valueOf(order.size()));
+    }
+    for (String code : CaseSets.CMLL.cases()) {
       order.put(code, Integer.valueOf(order.size()));
     }
     return order;
@@ -192,8 +196,9 @@ public class AnalysisCases {
         .setVisibility(anything ? View.VISIBLE : View.GONE);
     root.findViewById(R.id.svAnalysisFamilies).setVisibility(anything ? View.VISIBLE : View.GONE);
     root.findViewById(R.id.llAnalysisCaseTable).setVisibility(anything ? View.VISIBLE : View.GONE);
+    // The plan it leads to is written for CFOP only.
     root.findViewById(R.id.llAnalysisRecommended)
-        .setVisibility(anything ? View.VISIBLE : View.GONE);
+        .setVisibility(anything && method == CubeMethod.CFOP ? View.VISIBLE : View.GONE);
     TextView empty = (TextView) root.findViewById(R.id.tvAnalysisCasesEmpty);
     empty.setVisibility(anything ? View.GONE : View.VISIBLE);
     empty.setText(emptyLine(method));
@@ -451,7 +456,7 @@ public class AnalysisCases {
       row.noCount()
           .chartSize(chartPx)
           .chart(code)
-          .name(Utils.toSmartCubeCaseHeadline(context, code))
+          .name(rowName(code))
           .meter(stepCase.getMeanRecognitionMs(), stepCase.getMeanExecutionMs(), hue)
           .scaleBar((float) (stepCase.getMeanRecognitionMs() + stepCase.getMeanExecutionMs())
               / slowest)
@@ -475,6 +480,12 @@ public class AnalysisCases {
       rows.addView(row.view());
     }
     headings.refresh();
+  }
+
+  /** A CMLL's name alone: the segment already says CMLL, and the prefix cut the longer names short. */
+  private String rowName(String code) {
+    String cmll = CmllCases.fullName(code);
+    return cmll != null ? cmll : Utils.toSmartCubeCaseHeadline(context, code);
   }
 
   /**
@@ -518,8 +529,15 @@ public class AnalysisCases {
             context.getString(standingName(standing)), Integer.valueOf(group.size())));
     FlowLayout cases = view.findViewById(R.id.flAnalysisRestCases);
     for (final String code : group) {
+      CaseSet set = CaseSets.ofCase(code);
       View cell = CaseTile.inflate(inflater, cases, R.layout.analysis_rest_cell)
-          .show(CaseSets.ofCase(code), code).view();
+          .show(set, code).view();
+      if (set == CaseSets.CMLL) {
+        cell.setMinimumWidth(context.getResources() // FlowLayout measures cells to their content
+            .getDimensionPixelSize(R.dimen.analysis_rest_cell_cmll_width));
+      } else {
+        cell.findViewById(R.id.tvCaseTileShape).setVisibility(View.GONE); // the number is unique
+      }
       cell.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {

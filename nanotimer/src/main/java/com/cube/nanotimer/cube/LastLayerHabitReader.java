@@ -27,8 +27,9 @@ public final class LastLayerHabitReader {
     List<PairExecution> executions = new ArrayList<PairExecution>();
     for (SolveTime solve : solves) {
       for (SolveReading.Execution execution : readings.of(solve)) {
-        if (SolveReading.F2L.equals(execution.getFamily()) || !execution.isRead()
-            || execution.getAlgorithms() > 1) {
+        boolean lastLayer = AlgorithmFiguresReader.OLL.equals(execution.getFamily())
+            || AlgorithmFiguresReader.PLL.equals(execution.getFamily()); // a Roux CMLL is not
+        if (!lastLayer || !execution.isRead() || execution.getAlgorithms() > 1) {
           continue;
         }
         executions.add(PairExecution.of(solve.getId(), execution.getCaseCode(),

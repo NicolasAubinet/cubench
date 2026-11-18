@@ -3,7 +3,9 @@ package com.cube.nanotimer.cube;
 import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveTime;
 
 import java.util.LinkedHashMap;
@@ -11,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The {@link AlgorithmFigures} of a CFOP window's F2L, OLL and PLL, read out of its solves.
+ * The {@link AlgorithmFigures} of a CFOP window's F2L, OLL and PLL, or a Roux window's CMLL, read
+ * out of its solves.
  *
  * <p>Standard is what the reconstruction's bulb asks, {@link CaseAlgorithms#read}, with two
  * differences the figures need: a last layer case taken in more than one algorithm is not standard,
@@ -25,6 +28,7 @@ public final class AlgorithmFiguresReader {
   public static final String F2L = SolveReading.F2L;
   public static final String OLL = "oll";
   public static final String PLL = "pll";
+  public static final String CMLL = "cmll";
 
   private AlgorithmFiguresReader() {
   }
@@ -36,10 +40,20 @@ public final class AlgorithmFiguresReader {
    */
   public static Map<String, AlgorithmFigures> readFrom(List<SolveTime> solves,
       SolveReadings readings) {
+    return readFrom(solves, readings, CubeMethod.CFOP);
+  }
+
+  /** As above, for the families of that method: Roux has its CMLL alone. */
+  public static Map<String, AlgorithmFigures> readFrom(List<SolveTime> solves,
+      SolveReadings readings, CubeMethod method) {
     Map<String, AlgorithmFigures> figures = new LinkedHashMap<String, AlgorithmFigures>();
-    figures.put(F2L, new AlgorithmFigures(CaseAlgorithms.BASIC_PAIR_CASES));
-    figures.put(OLL, new AlgorithmFigures(setSize(OLL)));
-    figures.put(PLL, new AlgorithmFigures(setSize(PLL)));
+    if (method == CubeMethod.ROUX) {
+      figures.put(CMLL, new AlgorithmFigures(CmllCases.codes().size()));
+    } else {
+      figures.put(F2L, new AlgorithmFigures(CaseAlgorithms.BASIC_PAIR_CASES));
+      figures.put(OLL, new AlgorithmFigures(setSize(OLL)));
+      figures.put(PLL, new AlgorithmFigures(setSize(PLL)));
+    }
     for (SolveTime solve : solves) {
       if (complete(figures)) {
         break; // every case has had its latest say
