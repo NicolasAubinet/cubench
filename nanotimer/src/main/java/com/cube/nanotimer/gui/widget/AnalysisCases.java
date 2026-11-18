@@ -28,6 +28,7 @@ import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -137,6 +138,7 @@ public class AnalysisCases {
   private final Map<String, CaseKnowledge.Status> statuses =
       new LinkedHashMap<String, CaseKnowledge.Status>();
   private final List<String> families = new ArrayList<String>();
+  private CubeMethod method;
   /** The step being read, which is null only until the first read says what the steps are. */
   private String family;
   /** The group the family is narrowed to, or null for all of it. */
@@ -188,6 +190,7 @@ public class AnalysisCases {
     for (CaseKnowledge caseKnown : known) {
       statuses.put(caseKnown.getCode(), caseKnown.getStatus());
     }
+    this.method = method;
     findFamilies();
     boolean anything = !families.isEmpty();
     // The heading strip goes with the rows it heads: an empty table still drew its label, four
@@ -206,6 +209,7 @@ public class AnalysisCases {
         .setVisibility(anything ? View.VISIBLE : View.GONE);
     if (!anything) {
       rows.removeAllViews();
+      root.findViewById(R.id.tvAnalysisCasesNone).setVisibility(View.GONE);
       return;
     }
     redraw();
@@ -244,10 +248,12 @@ public class AnalysisCases {
    */
   private void findFamilies() {
     families.clear();
+    // The method's sets are listed even with nothing read yet, so the tab shows what it will hold.
+    families.addAll(caseFamiliesOf(method));
     // The method's own steps only. A part is coded by the algorithm that answered a case, so
     // taking parts as well would list one case twice, once as dealt and once as answered.
     for (StepStats step : statistics.getFamilies()) {
-      if (!drawnCodes(step.getCode()).isEmpty()) {
+      if (!drawnCodes(step.getCode()).isEmpty() && !families.contains(step.getCode())) {
         families.add(step.getCode());
       }
     }
@@ -266,6 +272,14 @@ public class AnalysisCases {
     if (group != null && !anyDrawn(group)) {
       group = null;
     }
+  }
+
+  private static List<String> caseFamiliesOf(CubeMethod method) {
+    if (method == CubeMethod.CFOP) {
+      return Arrays.asList("oll", "pll");
+    }
+    return method == CubeMethod.ROUX ? Collections.singletonList("cmll")
+        : Collections.<String>emptyList();
   }
 
   private void showFamilies() {
@@ -441,6 +455,10 @@ public class AnalysisCases {
     });
 
     rows.removeAllViews();
+    root.findViewById(R.id.llAnalysisCaseTable)
+        .setVisibility(cases.isEmpty() ? View.GONE : View.VISIBLE);
+    root.findViewById(R.id.tvAnalysisCasesNone)
+        .setVisibility(cases.isEmpty() ? View.VISIBLE : View.GONE);
     LayoutInflater inflater = LayoutInflater.from(context);
     long slowest = 1;
     for (StepStats stepCase : cases) {

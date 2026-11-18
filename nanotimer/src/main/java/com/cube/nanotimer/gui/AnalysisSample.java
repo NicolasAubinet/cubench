@@ -1,9 +1,14 @@
 package com.cube.nanotimer.gui;
 
+import com.cube.nanotimer.cube.AlgorithmFiguresReader;
 import com.cube.nanotimer.cube.TurningFigures;
+import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
@@ -36,15 +41,20 @@ import java.util.Map;
  * orientations came up in a hundred solves and five of them reached the five occurrences a cost is
  * quoted at, so most of the OLL table says N/A in its last column, which is exactly what the
  * reader's own first hundred solves will say.
+ *
+ * <p>A Roux solve type gets a Roux solver of the same speed, with 36 of the 42 CMLLs met. Every other
+ * method, LBL and blind included, is shown the CFOP one.
  */
 public final class AnalysisSample {
 
   /** How many solves the example is read over, which the banner and the hero line both print. */
   public static final int SOLVES = 100;
 
-  /** The steps solved, which is CFOP: the example is a CFOP solver whatever the reader is. */
   private static final String CROSS = "cross";
   private static final String F2L = "f2l";
+  private static final String FIRST_BLOCK = "fb";
+  private static final String SECOND_BLOCK = "sb";
+  private static final String LSE = "lse";
 
   /**
    * How far a case swings around its own mean, as a share of it. One constant rather than a column,
@@ -57,7 +67,8 @@ public final class AnalysisSample {
   private static final Map<String, CaseKnowledge.Status> STANDINGS = standings();
 
   /** Cases nothing is known about either way, which every set has some of. */
-  private static final List<String> SILENT = Arrays.asList("oll_56", "oll_57");
+  private static final List<String> SILENT =
+      Arrays.asList("oll_56", "oll_57", "cmll_odiagonal", "cmll_antisunex");
 
   private AnalysisSample() {
   }
@@ -69,7 +80,25 @@ public final class AnalysisSample {
    * already counts into its family, so a bare {@code "oll"} row beside them would double it.
    */
   public static MethodStatistics statistics() {
+    return statistics(CubeMethod.CFOP);
+  }
+
+  /** The method the example solves for a solve type read as {@code own}. */
+  public static CubeMethod methodFor(CubeMethod own) {
+    return own == CubeMethod.ROUX ? CubeMethod.ROUX : CubeMethod.CFOP;
+  }
+
+  /** As {@link #statistics()}, for the solver of that method. */
+  public static MethodStatistics statistics(CubeMethod method) {
     List<StepStats> steps = new ArrayList<StepStats>();
+    if (method == CubeMethod.ROUX) {
+      // The first block is timed from the solve's first move, as the cross is.
+      steps.add(step(FIRST_BLOCK, SOLVES, 2900, 0, 1500, 5600, 760));
+      steps.add(step(SECOND_BLOCK, SOLVES, 4500, 1300, 2900, 7900, 980));
+      steps.addAll(cmlls());
+      steps.add(step(LSE, SOLVES, 4600, 1100, 2700, 7600, 1050));
+      return new MethodStatistics(steps, SOLVES);
+    }
     // The cross is timed from the solve's own first move, so it has nowhere to put recognition.
     steps.add(step(CROSS, SOLVES, 1780, 0, 980, 3120, 420));
     steps.add(step(F2L, SOLVES, 7550, 2760, 5810, 12400, 1350));
@@ -80,11 +109,54 @@ public final class AnalysisSample {
 
   /** How the example's solves were turned, in line with its steps' means (about 15 s a solve). */
   public static TurningFigures turning() {
-    return TurningFigures.of(SOLVES, 57.4, 3.96);
+    return turning(CubeMethod.CFOP);
+  }
+
+  /** As {@link #turning()}: a Roux solve takes fewer moves at a slower turn for the same time. */
+  public static TurningFigures turning(CubeMethod method) {
+    return method == CubeMethod.ROUX ? TurningFigures.of(SOLVES, 48.2, 3.27)
+        : TurningFigures.of(SOLVES, 57.4, 3.96);
+  }
+
+  /**
+   * How many of each set's cases went in with a standard algorithm, as the Algorithms card reads
+   * them: most do, a few run longer, and the cases the example never met count as not seen.
+   */
+  public static Map<String, AlgorithmFigures> algorithms(CubeMethod method) {
+    Map<String, AlgorithmFigures> figures = new LinkedHashMap<String, AlgorithmFigures>();
+    if (method == CubeMethod.ROUX) {
+      figures.put(AlgorithmFiguresReader.CMLL,
+          tally(CmllCases.codes().size(), cmlls().size(), 3, 7));
+      return figures;
+    }
+    figures.put(AlgorithmFiguresReader.F2L, tally(CaseAlgorithms.BASIC_PAIR_CASES,
+        CaseAlgorithms.BASIC_PAIR_CASES, 6, 17));
+    figures.put(AlgorithmFiguresReader.OLL, tally(57, orientations().size(), 4, 9));
+    figures.put(AlgorithmFiguresReader.PLL, tally(21, permutations().size(), 1, 2));
+    return figures;
+  }
+
+  /** A set's figures off its counts: {@code seen} cases, {@code longer} of them over by {@code extra}. */
+  private static AlgorithmFigures tally(int setSize, int seen, int longer, int extra) {
+    AlgorithmFigures figures = new AlgorithmFigures(setSize);
+    for (int i = 0; i < seen; i++) {
+      boolean standard = i >= longer;
+      int over = standard ? 0 : extra / longer + (i < extra % longer ? 1 : 0);
+      figures.add("sample_" + i, standard, 10 + over, 10);
+    }
+    return figures;
   }
 
   /** The example's cases as the Cases table reads them: its solver takes every one in one look. */
   public static List<StepStats> oneAlgorithmCases() {
+    return oneAlgorithmCases(CubeMethod.CFOP);
+  }
+
+  /** As {@link #oneAlgorithmCases()}, for the solver of that method. */
+  public static List<StepStats> oneAlgorithmCases(CubeMethod method) {
+    if (method == CubeMethod.ROUX) {
+      return new ArrayList<StepStats>(cmlls());
+    }
     List<StepStats> cases = new ArrayList<StepStats>(orientations());
     cases.addAll(permutations());
     return cases;
@@ -99,8 +171,13 @@ public final class AnalysisSample {
    * the groups under the table cannot drift apart from the set the app actually draws.
    */
   public static List<CaseKnowledge> knowledge() {
+    return knowledge(CubeMethod.CFOP);
+  }
+
+  /** As {@link #knowledge()}, over the CMLLs for a Roux solver. */
+  public static List<CaseKnowledge> knowledge(CubeMethod method) {
     List<CaseKnowledge> known = new ArrayList<CaseKnowledge>();
-    for (String code : LastLayerScrambles.cases()) {
+    for (String code : method == CubeMethod.ROUX ? CmllCases.codes() : LastLayerScrambles.cases()) {
       if (SILENT.contains(code)) {
         continue; // no row at all: absence is never evidence
       }
@@ -120,6 +197,14 @@ public final class AnalysisSample {
     }
     // Learnt and slipping: three of these are the orientations the table also ranks as costly.
     for (String code : new String[] {"oll_1", "oll_3", "oll_47", "oll_50", "oll_53", "pll_na"}) {
+      standings.put(code, CaseKnowledge.Status.NEEDS_REVIEW);
+    }
+    // The CMLLs: two of the unmet still to learn, and the three slowest slipping.
+    for (String code : new String[] {"cmll_hrow", "cmll_ttoprow"}) {
+      standings.put(code, CaseKnowledge.Status.TO_LEARN);
+    }
+    for (String code : new String[] {"cmll_ldiagonal", "cmll_lfrontcommutator",
+        "cmll_pidownslash"}) {
       standings.put(code, CaseKnowledge.Status.NEEDS_REVIEW);
     }
     return Collections.unmodifiableMap(standings);
@@ -186,6 +271,47 @@ public final class AnalysisSample {
         stepCase("oll_47", 1, 3310, 990, 2680),
         stepCase("oll_48", 1, 3020, 930, 2360),
         stepCase("oll_53", 1, 3500, 1040, 2900));
+  }
+
+  /** Thirty-six of the 42 CMLLs, 100 occurrences, the L commutators and the diagonal the slowest. */
+  private static List<StepStats> cmlls() {
+    return Arrays.asList(
+        stepCase("cmll_hcolumn", 7, 2550, 820, 2050),
+        stepCase("cmll_ldiagonal", 5, 3630, 1150, 3010),
+        stepCase("cmll_pirightbar", 4, 2970, 840, 2180),
+        stepCase("cmll_pidownslash", 4, 3570, 1150, 2600),
+        stepCase("cmll_piupslash", 4, 3140, 1000, 2700),
+        stepCase("cmll_tleftbar", 4, 2330, 650, 1950),
+        stepCase("cmll_tcolumns", 4, 3100, 950, 2610),
+        stepCase("cmll_sunecolumns", 4, 2900, 830, 2320),
+        stepCase("cmll_antisunecolumns", 4, 2170, 740, 1700),
+        stepCase("cmll_lfrontcommutator", 4, 3630, 1130, 3010),
+        stepCase("cmll_hrows", 3, 2010, 660, 1610),
+        stepCase("cmll_picolumns", 3, 2740, 890, 2310),
+        stepCase("cmll_uupslash", 3, 2910, 900, 2180),
+        stepCase("cmll_ubottomrow", 3, 2710, 790, 2100),
+        stepCase("cmll_ux", 3, 2460, 830, 2010),
+        stepCase("cmll_uupperrow", 3, 2630, 760, 1960),
+        stepCase("cmll_tbottomrow", 3, 2280, 770, 1850),
+        stepCase("cmll_suneleftbar", 3, 3080, 930, 2390),
+        stepCase("cmll_sunedownslash", 3, 2130, 670, 1580),
+        stepCase("cmll_antisunerightbar", 3, 2450, 770, 1930),
+        stepCase("cmll_antisuneupslash", 3, 2540, 780, 2070),
+        stepCase("cmll_lbest", 3, 2520, 810, 2140),
+        stepCase("cmll_pileftbar", 2, 2500, 840, 1920),
+        stepCase("cmll_urows", 2, 2420, 800, 2040),
+        stepCase("cmll_sunex", 2, 2170, 690, 1580),
+        stepCase("cmll_antisunedownslash", 2, 2740, 780, 2010),
+        stepCase("cmll_lgood", 2, 3280, 980, 2660),
+        stepCase("cmll_lpure", 2, 2140, 670, 1810),
+        stepCase("cmll_oadjacent", 1, 2910, 840, 2820),
+        stepCase("cmll_hcolumns", 1, 3250, 940, 3150),
+        stepCase("cmll_udownslash", 1, 2420, 780, 2350),
+        stepCase("cmll_trightbar", 1, 2240, 670, 2170),
+        stepCase("cmll_trows", 1, 2850, 900, 2760),
+        stepCase("cmll_suneupslash", 1, 2130, 650, 2070),
+        stepCase("cmll_sunerightbar", 1, 2810, 950, 2730),
+        stepCase("cmll_antisuneleftbar", 1, 2800, 820, 2720));
   }
 
   /** Nineteen of the 21 permutations, 100 occurrences, and the G perms costing the most. */

@@ -1345,6 +1345,7 @@
   <string name="analysis_cases_empty">Connectez un smart cube et faites quelques résolutions pour voir les cas qu\'il lit classés ici.</string>
   <string name="analysis_cases_blind">Une résolution en aveugle n\'a pas de cas. Elle est lue comme une mémorisation et les pièces résolues.</string>
   <string name="analysis_cases_method">Seules les résolutions CFOP et Roux ont leurs cas nommés pour l\'instant, il n\'y a donc rien à classer ici.</string>
+  <string name="analysis_cases_none">Aucun cas de cette étape résolu en un seul algorithme pour l\'instant.</string>
   <string name="analysis_plan_headline">Un plan chaque semaine</string>
   <string name="analysis_plan_for_cfop">CFOP uniquement pour l\'instant</string>
   <string name="analysis_plan_cfop_only">Le coach écrit des plans pour le CFOP uniquement.</string>
