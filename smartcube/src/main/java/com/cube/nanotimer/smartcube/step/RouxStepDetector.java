@@ -108,6 +108,10 @@ public final class RouxStepDetector implements StepDetector {
 
   private final int[] liveDrift = new int[ORIENTATIONS];
 
+  /** The state the second block was finished in, and the slice's turn then: what names the CMLL. */
+  private final String[] handedStates = new String[ORIENTATIONS];
+  private final int[] handedDrifts = new int[ORIENTATIONS];
+
   private Integer orientation; // provisional until the second block confirms it
   private boolean confirmed;
   private long lastTimestampMs;
@@ -120,6 +124,7 @@ public final class RouxStepDetector implements StepDetector {
       Arrays.fill(subGoalTimes[candidate], null);
       lastEdgesOutAtSecondBlock[candidate] = null;
       liveDrift[candidate] = FaceletRotations.IDENTITY;
+      handedStates[candidate] = null;
     }
     Arrays.fill(reported, null);
     orientation = null;
@@ -170,6 +175,10 @@ public final class RouxStepDetector implements StepDetector {
         continue;
       }
       liveDrift[candidate] = drift;
+      if (times[candidate][SB] == null) {
+        handedStates[candidate] = facelets;
+        handedDrifts[candidate] = drift;
+      }
       markStep(candidate, SB, true, timestampMs);
       if (lastEdgesOutAtSecondBlock[candidate] == null) {
         lastEdgesOutAtSecondBlock[candidate] =
@@ -349,8 +358,17 @@ public final class RouxStepDetector implements StepDetector {
     return STEP_NAMES.length;
   }
 
+  /**
+   * The step's code; CMLL's carries the case the blocks handed it ({@code "cmll_suneleftbar"}), as
+   * CFOP's OLL does. Plain {@code "cmll"} before the blocks are done.
+   */
   @Override
   public String stepName(int index) {
+    if (index == CMLL && orientation != null && handedStates[orientation] != null) {
+      String handed = CmllCases.handed(handedStates[orientation], orientation,
+          handedDrifts[orientation]);
+      return handed == null ? STEP_NAMES[index] : STEP_NAMES[index] + "_" + handed;
+    }
     return STEP_NAMES[index];
   }
 

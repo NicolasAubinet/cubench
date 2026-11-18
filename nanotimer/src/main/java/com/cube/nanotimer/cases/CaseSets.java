@@ -10,9 +10,10 @@ public final class CaseSets {
   public static final CaseSet F2L = F2LSet.INSTANCE;
   public static final CaseSet OLL = LastLayerSet.OLL;
   public static final CaseSet PLL = LastLayerSet.PLL;
+  public static final CaseSet CMLL = CmllSet.INSTANCE;
 
   private static final List<CaseSet> ALL = Collections.unmodifiableList(
-      Arrays.<CaseSet>asList(F2L, OLL, PLL));
+      Arrays.<CaseSet>asList(F2L, OLL, PLL, CMLL));
 
   private CaseSets() {
   }

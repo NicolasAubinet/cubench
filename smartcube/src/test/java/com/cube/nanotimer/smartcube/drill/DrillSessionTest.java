@@ -19,6 +19,7 @@ import com.cube.nanotimer.smartcube.step.F2LPairScrambles;
 import com.cube.nanotimer.step.LastLayerAlgorithms;
 import com.cube.nanotimer.smartcube.step.FaceTurns;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.smartcube.step.LastLayerCaseAlgorithms;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1032,6 +1033,47 @@ public class DrillSessionTest {
         wins, showings, null);
   }
 
+  /**
+   * A CMLL rep ends on the corners solved against the blocks, the edges, slice and layer's turn left
+   * to the last six edges. Each case's most voted algorithm, as a cube reports it.
+   */
+  @Test
+  public void everyCmllFinishesOnItsMostVotedAlgorithm() {
+    for (String code : LastLayerScrambles.cmllCases()) {
+      String algorithm = LastLayerCaseAlgorithms.listed(code).get(0).getMoves();
+      DrillSession session = new DrillSession(spec(code, 1), noAlignment());
+      Hand hand = new Hand(session);
+      assertTrue(code, hand.next());
+      DrillRep rep = hand.execute(algorithm.replace("(", "").replace(")", ""));
+      assertNotNull(code + " was not finished by " + algorithm, rep);
+      assertEquals(code, rep.getCaseCode());
+    }
+  }
+
+  /** Ending with the slice a quarter off, as an r algorithm does, still finishes the rep. */
+  @Test
+  public void aCmllEndingOnATurnedSliceFinishes() {
+    assertFinishes("cmll_tbottomrow", "R' U r U2 R2 F R F' r");
+    assertFinishes("cmll_hcolumns", "r U' r' U' r U r' U r U r'");
+  }
+
+  @Test
+  public void aCmllIsNotFinishedByAnotherCasesAlgorithm() {
+    DrillSession session = new DrillSession(spec("cmll_hrows", 1), noAlignment());
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    assertNull(hand.execute("R U R' U R U2 R'"));
+  }
+
+  /** On a yellow-on-D solver's cube the layer is underneath, and the check follows it there. */
+  @Test
+  public void aCmllFinishesWithTheLayerOnAnotherFace() {
+    DrillSession session = new DrillSession(spec("cmll_pirightbar", 1), noAlignment(), null, "D");
+    Hand hand = new Hand(session);
+    assertTrue(hand.next());
+    assertNotNull(hand.execute(inverse(session.getCurrentScramble())));
+  }
+
   private static void assertFinishes(String code, String algorithm) {
     DrillSession session = new DrillSession(spec(code, 1), noAlignment());
     Hand hand = new Hand(session);
@@ -1320,7 +1362,7 @@ public class DrillSessionTest {
             session.abandon();
           }
           DrillRep rep = hand.execute(LayerRotation.toFace(
-              CaseAlgorithms.shortestListed(backCode), face));
+              CaseAlgorithms.firstListed(backCode), face));
           assertNotNull(backCode + " on " + face, rep);
           assertEquals(backCode, rep.getCaseCode());
         }
@@ -1383,7 +1425,7 @@ public class DrillSessionTest {
             while (hand.next() && !backCode.equals(session.getCurrentCase())) {
               session.abandon();
             }
-            String alg = CaseAlgorithms.shortestListed(backCode);
+            String alg = CaseAlgorithms.firstListed(backCode);
             session.setTaughtAlgorithm(backCode, alg);
             DrillRep rep = hand.execute(
                 LayerRotation.toFace(LayerRotation.spun(alg, turned), face));
@@ -1435,7 +1477,7 @@ public class DrillSessionTest {
       session.setRotationReader((moves, shownHostMs, skewMs) -> turned);
       Hand hand = new Hand(session);
       assertTrue(hand.next());
-      DrillRep rep = hand.execute(CaseAlgorithms.shortestListed(session.getCurrentCase()));
+      DrillRep rep = hand.execute(CaseAlgorithms.firstListed(session.getCurrentCase()));
       assertNotNull(rep);
       assertEquals(turned, rep.isRotated());
       assertEquals(!turned, session.getTally().isWin(rep));
@@ -1460,7 +1502,7 @@ public class DrillSessionTest {
     session.setRotationReader((moves, shownHostMs, skewMs) -> true);
     Hand hand = new Hand(session);
     assertTrue(hand.next());
-    String alg = CaseAlgorithms.shortestListed("pair_24_fl");
+    String alg = CaseAlgorithms.firstListed("pair_24_fl");
     assertTrue(hand.execute(alg).isRotated());
     read[0] = turnedHold;
     hand.practise("pair_24_fl", alg);
@@ -1489,7 +1531,7 @@ public class DrillSessionTest {
     assertFalse(session.abandon().isRotated());
     read[0] = turnedHold;
     assertTrue(hand.next());
-    assertNotNull(hand.execute(CaseAlgorithms.shortestListed("pair_24_fl")));
+    assertNotNull(hand.execute(CaseAlgorithms.firstListed("pair_24_fl")));
   }
 
   /** Straightening declares green in front: the case up is dealt again for it, not as a reset. */
@@ -1506,7 +1548,7 @@ public class DrillSessionTest {
     session.setGripReader(() -> held);
     Hand hand = new Hand(session);
     assertTrue(hand.next());
-    String alg = CaseAlgorithms.shortestListed("pair_24_fl");
+    String alg = CaseAlgorithms.firstListed("pair_24_fl");
     assertNull(hand.execute("U"));
     assertTrue(hand.straighten());
     DrillRep rep = hand.execute(alg);
@@ -1536,7 +1578,7 @@ public class DrillSessionTest {
     assertTrue(session.lookUp());
     read[0] = turnedHold;
     assertTrue(hand.next());
-    assertNotNull(hand.execute(CaseAlgorithms.shortestListed("pair_24_fl")));
+    assertNotNull(hand.execute(CaseAlgorithms.firstListed("pair_24_fl")));
   }
 
   private static DrillSpec backSlotSpec(String... codes) {

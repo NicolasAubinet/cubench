@@ -5,8 +5,11 @@ import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.vo.CubeMethod;
+import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveTime;
+import com.cube.nanotimer.vo.SolveType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -69,6 +72,30 @@ public class AlgorithmFiguresReaderTest {
 
     assertFigures(AlgorithmFiguresReader.readFrom(solves).get(AlgorithmFiguresReader.OLL),
         57, 0, 0);
+  }
+
+  /** The recorded Roux solve's Pi Columns CMLL counts once, against the 42, and nothing else. */
+  @Test
+  public void readsARouxSolvesCmll() {
+    SolveType solveType = new SolveType(1, "Roux", false, null, CubeType.THREE_BY_THREE.getId());
+    solveType.setMethod(CubeMethod.ROUX);
+    SolveTime solve = new SolveTime();
+    solve.setId(1);
+    solve.setSolveType(solveType);
+    solve.setScramble(RecordedSolveReplayTest.SCRAMBLE);
+    solve.setSmartcubeMoves(RecordedSolveReplayTest.MOVES);
+    solve.setSmartcubeMethod(CubeMethod.ROUX);
+    solve.setTime(68_764);
+
+    Map<String, AlgorithmFigures> figures = AlgorithmFiguresReader.readFrom(
+        Collections.singletonList(solve), SolveReadings.none(), CubeMethod.ROUX);
+
+    assertEquals(Collections.singleton(AlgorithmFiguresReader.CMLL), figures.keySet());
+    AlgorithmFigures cmll = figures.get(AlgorithmFiguresReader.CMLL);
+    assertEquals(42, cmll.getSetSize());
+    assertEquals(41, cmll.getNotSeen());
+    assertEquals("cmll_picolumns",
+        SolveReading.read(solve).getExecutions().get(0).getCaseCode());
   }
 
   private static void assertFigures(AlgorithmFigures figures, int set, int standard,

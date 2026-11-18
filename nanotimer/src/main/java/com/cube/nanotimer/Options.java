@@ -673,7 +673,8 @@ public enum Options {
       }
       sharedPreferences.edit().putBoolean(LEARN_PICK_CLEANED_KEY, true).apply();
     }
-    return getCodes(LEARN_PICK_KEY_PREFIX + family);
+    Set<String> pick = getCodes(LEARN_PICK_KEY_PREFIX + family);
+    return pick == null || pick.isEmpty() ? null : pick; // an empty pick left by a killed picker
   }
 
   /** Takes a case just cleared in a learning drill out of its family's own pick. */

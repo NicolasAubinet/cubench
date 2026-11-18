@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One standing: its colour from the library's progress bars, its name, how many cases it holds. -->
+<!-- One standing: its colour from the library's progress bars, its name, how many cases it holds,
+     and its tick. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
@@ -33,5 +34,16 @@
      android:layout_height="wrap_content"
      android:textColor="@color/secondary_text"
      android:textSize="15sp"/>
+
+  <CheckBox
+     android:id="@+id/cbStatusTick"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_marginStart="14dp"
+     android:background="@null"
+     android:button="@drawable/release_notes_check"
+     android:clickable="false"
+     android:focusable="false"
+     android:importantForAccessibility="no"/>
 
 </LinearLayout>

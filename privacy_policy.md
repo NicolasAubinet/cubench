@@ -14,7 +14,7 @@ Your solves, times, smart cube recordings and settings are stored on your device
 
 If you use a smart cube, the app shares which algorithm you turn for each case, so Cubench can show every user which algorithms cubers really use. It is on by default, and you can turn it off in Settings, Smart cube, "Share which algorithms I use". **Until a smart cube has been connected, nothing is sent.**
 
-**What is sent.** For each OLL, PLL and F2L pair case, the one algorithm you turn for it, read from your recent smart cube solves: only cases solved in one look, and only an algorithm you turned at least twice in that case's five latest solves. The first send carries every case; later sends carry only the cases whose algorithm changed. Nothing else about your solves is sent: no times, scrambles, dates or solve type names. With it goes a random sharing ID, created by the app for this alone. It is not your Coach ID, it is shown nowhere, and it is linked to nothing else: no name, email address or Google account.
+**What is sent.** For each OLL, PLL, F2L pair and CMLL case (Roux), the one algorithm you turn for it, read from your recent smart cube solves: only cases solved in one look, and only an algorithm you turned at least twice in that case's five latest solves. The first send carries every case; later sends carry only the cases whose algorithm changed. Nothing else about your solves is sent: no times, scrambles, dates or solve type names. With it goes a random sharing ID, created by the app for this alone. It is not your Coach ID, it is shown nowhere, and it is linked to nothing else: no name, email address or Google account.
 
 **When.** At most once a day, in the background, when the phone is online and something has changed.
 
@@ -84,4 +84,4 @@ You can ask for a copy of the data the server holds about you, or for its deleti
 
 If you have any questions about this privacy policy, you can contact me by email: contact@cubench.app
 
-Last updated: November 17, 2026
+Last updated: November 18, 2026

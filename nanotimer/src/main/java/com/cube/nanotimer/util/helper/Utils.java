@@ -19,6 +19,7 @@ import com.cube.nanotimer.cube.SolveBreakdown;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.step.AlgorithmSlots;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ScrambleType;
@@ -41,7 +42,8 @@ public class Utils {
   /** The parts that carry the slot they went into, which is shown as their order instead. */
   private static final String[] SLOT_CODE_PREFIXES = { PAIR_CODE_PREFIX, "corner_", "edge_" };
 
-  /** The steps whose code carries the last-layer case they were left with ("pll_jb", "oll_21"). */
+  /** The steps whose code carries the last-layer case they were left with ("pll_jb", "oll_21"); a
+   * CMLL's ("cmll_suneleftbar") is told from its parts by {@link CmllCases#isCase}. */
   private static final String[] CASE_CODE_PREFIXES = { "oll_", "pll_" };
   /** The parts of a last layer step: the algorithms that were run, each named by the case it solves
    * ("alg_jb" for a PLL, "ollalg_45" for an OLL). */
@@ -284,7 +286,8 @@ public class Utils {
         return prefix.substring(0, prefix.length() - 1);
       }
     }
-    return code;
+    // Only a case: CMLL's own parts ("cmll_orient") share its prefix and have names of their own.
+    return CmllCases.isCase(code) ? code.substring(0, code.indexOf('_')) : code;
   }
 
   /**
@@ -335,6 +338,10 @@ public class Utils {
   private static String caseNameOf(String code) {
     if (code == null) {
       return null;
+    }
+    if (CmllCases.isCase(code)) {
+      String name = CmllCases.fullName(code);
+      return name == null ? SKIPPED_CASE : name;
     }
     for (String prefix : CASE_CODE_PREFIXES) {
       if (code.startsWith(prefix)) {
@@ -394,6 +401,9 @@ public class Utils {
     }
     if (isAlgorithmCode(code)) {
       return toSmartCubeStepLocalizedName(context, code, 0); // already names its own case
+    }
+    if (CmllCases.fullName(code) != null) {
+      return context.getString(R.string.case_title_cmll, CmllCases.fullName(code));
     }
     int split = code.indexOf('_');
     String name = split < 0 ? code : code.substring(split + 1);

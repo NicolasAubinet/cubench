@@ -352,18 +352,12 @@ public final class LastLayerCaseAlgorithms {
    */
   public static List<Algorithm> forCase(String caseCode) {
     List<Algorithm> rows = new ArrayList<Algorithm>();
-    for (String[] row : ALGORITHMS) {
+    for (String[] row : tableOf(caseCode)) {
       if (row[0].equals(caseCode)) {
         rows.add(new Algorithm(row[1], 0, false));
       }
     }
     return Collections.unmodifiableList(rows);
-  }
-
-  /** The shortest algorithm the case is listed with, the one extra moves are counted over. */
-  public static String shortestListed(String caseCode) {
-    AlgorithmList.Row row = caseCode == null ? null : listOf(caseCode).shortestListed();
-    return row == null ? null : row.getMoves();
   }
 
   /** What to show a solver for a case: the algorithms it is listed with, most used first. */
@@ -417,7 +411,7 @@ public final class LastLayerCaseAlgorithms {
       AlgorithmList list = LISTS.get(caseCode);
       if (list == null) {
         List<String[]> rows = new ArrayList<String[]>();
-        for (String[] row : ALGORITHMS) {
+        for (String[] row : tableOf(caseCode)) {
           if (row[0].equals(caseCode)) {
             rows.add(new String[] {row[1], row[2], ""});
           }
@@ -427,6 +421,12 @@ public final class LastLayerCaseAlgorithms {
       }
       return list;
     }
+  }
+
+  /** A CMLL's rows are a table of their own, read by the same rules. */
+  private static String[][] tableOf(String caseCode) {
+    return caseCode != null && caseCode.startsWith(CmllCases.PREFIX)
+        ? CmllCaseAlgorithms.ALGORITHMS : ALGORITHMS;
   }
 
   private static AlgorithmForm.Drawn drawn(final String caseCode) {
@@ -522,6 +522,9 @@ public final class LastLayerCaseAlgorithms {
   public static boolean solves(String caseCode, String algorithm) {
     if (caseCode == null || algorithm == null || algorithm.trim().isEmpty()) {
       return false;
+    }
+    if (caseCode.startsWith(CmllCases.PREFIX)) {
+      return CmllCases.solves(caseCode, algorithm); // corners against the blocks, slice left free
     }
     try {
       String state = Notation.caseState(algorithm);

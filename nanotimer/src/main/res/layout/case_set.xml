@@ -75,23 +75,6 @@
     </LinearLayout>
   </LinearLayout>
 
-  <!-- Choosing cases to learn only: known cases are left out unless this is ticked. -->
-  <CheckBox
-     android:id="@+id/cbCasesShowKnown"
-     android:layout_width="wrap_content"
-     android:layout_height="wrap_content"
-     android:layout_marginLeft="16dp"
-     android:layout_marginTop="4dp"
-     android:background="@null"
-     android:button="@drawable/release_notes_check"
-     android:minHeight="36dp"
-     android:paddingLeft="10dp"
-     android:paddingStart="10dp"
-     android:text="@string/learn_pick_show_known"
-     android:textColor="@color/secondary_text"
-     android:textSize="13sp"
-     android:visibility="gone"/>
-
   <!-- How far back a drill mean reads; only while that sort is on. -->
   <LinearLayout
      android:id="@+id/llDrillStatsWindow"

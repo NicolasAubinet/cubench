@@ -49,7 +49,7 @@ public class StoredSolveReplayTest {
     assertEquals(4, result.getSteps().size());
     assertEquals("fb", result.getSteps().get(0).getName());
     assertEquals("sb", result.getSteps().get(1).getName());
-    assertEquals("cmll", result.getSteps().get(2).getName());
+    assertEquals("cmll_picolumns", result.getSteps().get(2).getName()); // named by its case
     assertEquals("lse", result.getSteps().get(3).getName());
     assertNull("the cube saw this solve finish", result.getStoppedStep());
   }

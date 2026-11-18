@@ -1077,8 +1077,10 @@
   <string name="case_group_f2l_stuck_edge">Arista atrapada en otro slot</string>
   <string name="case_group_f2l_stuck_both">Las dos atrapadas en otro slot</string>
   <string name="drill_practice_cross">Cruz</string>
+  <string name="drill_practice_cmll">CMLL</string>
   <string name="drill_practice_hint_pll">Un PLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_oll">Un OLL tras otro, entre los casos que elijas.</string>
+  <string name="drill_practice_hint_cmll">Un CMLL tras otro, entre los casos que elijas.</string>
   <string name="drill_practice_hint_cross">Una mezcla completa, y la cruz más corta que encuentres en ella.</string>
   <string name="drill_practice_f2l">F2L</string>
   <string name="drill_practice_hint_f2l">Un par F2L tras otro, los casos comunes más a menudo.</string>
@@ -1087,6 +1089,7 @@
   <string name="drill_cases_count">%1$d de %2$d elegidos</string>
   <string name="drill_cases_title_oll">Casos OLL</string>
   <string name="drill_cases_title_pll">Casos PLL</string>
+  <string name="drill_cases_title_cmll">Casos CMLL</string>
   <string name="drill_cases_all">Todos</string>
   <string name="drill_cases_none">Ninguno</string>
   <string name="drill_cases_empty">Elige al menos un caso para practicar.</string>
@@ -1110,6 +1113,7 @@
   <string name="drill_presets_delete_confirm">¿Estás seguro que quieres eliminar la selección \'%1$s\'?</string>
   <string name="case_title_pll">PLL %s</string>
   <string name="case_title_oll">OLL %s</string>
+  <string name="case_title_cmll">CMLL %s</string>
   <string name="case_algorithms">Algoritmos</string>
   <string name="case_algorithm_mine">El que usas</string>
   <string name="case_algorithm_unusual">Poco común</string>
@@ -1307,12 +1311,12 @@
   <string name="case_set_oll_description">Orientar la última capa</string>
   <string name="case_set_pll_description">Permutar la última capa</string>
   <string name="case_set_f2l_description">Las dos primeras capas</string>
+  <string name="case_set_cmll_description">Esquinas de la última capa</string>
   <string name="library_known">%d conocidos</string>
   <string name="library_review">%d por repasar</string>
   <string name="library_to_learn">%d por aprender</string>
   <string name="library_picked">%d elegidos</string>
   <string name="library_nothing_picked">Toca un conjunto para ver sus casos y marcar los algoritmos que usas.</string>
-  <string name="library_more_later">Pronto habrá más conjuntos.</string>
   <string name="case_filter_status">Estado</string>
   <string name="case_filter_all_statuses">Todos</string>
   <string name="case_sort_title">Ordenar</string>
@@ -1629,7 +1633,6 @@
   <string name="coach_learn_next">Próximos OLL por aprender</string>
   <string name="coach_learn_next_pll">Próximos PLL por aprender</string>
   <string name="learn_pick_suggested">Sugeridos</string>
-  <string name="learn_pick_show_known">Mostrar los casos que ya conozco</string>
   <string name="learn_pick_own">Tu elección</string>
   <plurals name="coach_learn_next_count">
     <item quantity="one">%d caso</item>

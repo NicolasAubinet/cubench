@@ -2,6 +2,7 @@ package com.cube.nanotimer.coach;
 
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.step.LastLayerAlgorithms;
 import com.cube.nanotimer.vo.StepStats;
 
@@ -543,7 +544,8 @@ public class CoachPayloadBuilder {
   private static List<StepFigure> drillFigures(StepTallies tallies) {
     List<StepFigure> figures = new ArrayList<StepFigure>();
     for (StepStats drilled : tallies.getSteps()) {
-      if (drilled.getCount() >= CASE_FLOOR) {
+      // A CMLL is drilled in the app but never spoken of by the coach (owner, 2026-11-18).
+      if (drilled.getCount() >= CASE_FLOOR && !CmllCases.isCase(drilled.getCode())) {
         figures.add(StepFigure.plain(drilled, measuresRecognition(drilled.getCode()),
             tallies.getRejectionRate(drilled.getCode())));
       }

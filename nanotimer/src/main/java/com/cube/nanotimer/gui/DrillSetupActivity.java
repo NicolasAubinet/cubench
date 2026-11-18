@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.cube.SmartCubeChip;
 import com.cube.nanotimer.cube.SmartCubeManager;
@@ -81,10 +82,11 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final int PRACTICE_OLL = 1;
   private static final int PRACTICE_CROSS = 2;
   private static final int PRACTICE_F2L = 3;
+  private static final int PRACTICE_CMLL = 4;
 
   /** The tabs in the order drawn. The value is what is stored, so a tab can move. */
   private static final int[] PRACTICE_ORDER =
-      {PRACTICE_PLL, PRACTICE_OLL, PRACTICE_F2L, PRACTICE_CROSS};
+      {PRACTICE_PLL, PRACTICE_OLL, PRACTICE_F2L, PRACTICE_CROSS, PRACTICE_CMLL};
 
   /** Which F2L pairs a drill deals, in the order the segments are drawn. */
   private static final int F2L_BASIC = 0;
@@ -112,7 +114,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   private static final int TILE_ALPHA = 0x2E;
   private static final int CHIP_ALPHA = 0x29;
   /** The step colour of each practice, in StepPalette's codes. */
-  private static final String[] PRACTICE_CODES = {"pll", "oll", "cross", "f2l"};
+  private static final String[] PRACTICE_CODES = {"pll", "oll", "cross", "f2l", "cmll"};
 
   private static final String KEY_PRACTICE = "practice";
   private static final String KEY_REPS = "reps";
@@ -124,6 +126,7 @@ public class DrillSetupActivity extends NanoTimerActivity
 
   private static final String FAMILY_PLL = "pll_";
   private static final String FAMILY_OLL = "oll_";
+  private static final String FAMILY_CMLL = "cmll_";
 
   private final List<View> practiceTiles = new ArrayList<View>();
   private int practiceIndex;
@@ -341,16 +344,17 @@ public class DrillSetupActivity extends NanoTimerActivity
   private void buildPracticeTiles() {
     LinearLayout row = findViewById(R.id.llDrillPractice);
     String[] names = {getString(R.string.drill_practice_pll), getString(R.string.drill_practice_oll),
-        getString(R.string.drill_practice_f2l), getString(R.string.drill_practice_cross)};
+        getString(R.string.drill_practice_f2l), getString(R.string.drill_practice_cross),
+        getString(R.string.drill_practice_cmll)};
     int[] icons = {R.drawable.ic_practice_pll, R.drawable.ic_practice_oll,
-        R.drawable.ic_practice_f2l, R.drawable.ic_practice_cross};
+        R.drawable.ic_practice_f2l, R.drawable.ic_practice_cross, R.drawable.ic_practice_cmll};
     for (int i = 0; i < PRACTICE_ORDER.length; i++) {
       final int index = i;
       View tile = getLayoutInflater().inflate(R.layout.drill_practice_tile, row, false);
       ((ImageView) tile.findViewById(R.id.ivPracticeIcon)).setImageResource(icons[i]);
       ((TextView) tile.findViewById(R.id.tvPracticeName)).setText(names[i]);
       if (i > 0) {
-        ((LinearLayout.LayoutParams) tile.getLayoutParams()).leftMargin = dp(8);
+        ((LinearLayout.LayoutParams) tile.getLayoutParams()).leftMargin = dp(4);
       }
       tile.setOnClickListener(new View.OnClickListener() {
         @Override
@@ -437,7 +441,7 @@ public class DrillSetupActivity extends NanoTimerActivity
   }
 
   private int practiceColour(int practiceValue) {
-    return palette.colorFor(PRACTICE_CODES[practiceValue]);
+    return palette.colorForCase(PRACTICE_CODES[practiceValue]);
   }
 
   private static int withAlpha(int colour, int alpha) {
@@ -469,6 +473,8 @@ public class DrillSetupActivity extends NanoTimerActivity
       hint = R.string.drill_practice_hint_f2l;
     } else if (picked == PRACTICE_OLL) {
       hint = R.string.drill_practice_hint_oll;
+    } else if (picked == PRACTICE_CMLL) {
+      hint = R.string.drill_practice_hint_cmll;
     } else {
       hint = R.string.drill_practice_hint_pll;
     }
@@ -485,8 +491,7 @@ public class DrillSetupActivity extends NanoTimerActivity
     findViewById(R.id.llDrillRecord).setVisibility(f2l ? View.GONE : View.VISIBLE);
     if (!noSet) {
       ((TextView) findViewById(R.id.tvDrillCasesFamily)).setText(getString(
-          R.string.drill_cases_family, getString(picked == PRACTICE_OLL
-              ? R.string.drill_practice_oll : R.string.drill_practice_pll)));
+          R.string.drill_cases_family, getString(familyName())));
       refreshCasesCount();
     }
   }
@@ -523,7 +528,11 @@ public class DrillSetupActivity extends NanoTimerActivity
           R.layout.case_tile_small);
       if (i < charts) {
         String code = picked.get(i);
-        tile.show(CaseSets.ofCase(code), code);
+        CaseSet set = CaseSets.ofCase(code);
+        tile.show(set, code);
+        if (set != CaseSets.CMLL) {
+          tile.view().findViewById(R.id.tvCaseTileShape).setVisibility(View.GONE); // name is unique
+        }
       } else if (overflow) {
         tile.more(getString(R.string.drill_cases_more, picked.size() - charts));
       } else {
@@ -554,11 +563,19 @@ public class DrillSetupActivity extends NanoTimerActivity
   }
 
   private int familyColour() {
-    return StepPalette.cfop(this).colorFor(family());
+    return palette.colorForCase(family());
   }
 
   private String family() {
-    return chosenPractice() == PRACTICE_OLL ? FAMILY_OLL : FAMILY_PLL;
+    int picked = chosenPractice();
+    return picked == PRACTICE_OLL ? FAMILY_OLL : picked == PRACTICE_CMLL ? FAMILY_CMLL : FAMILY_PLL;
+  }
+
+  /** The case drill's label, as its tile names it. */
+  private int familyName() {
+    int picked = chosenPractice();
+    return picked == PRACTICE_OLL ? R.string.drill_practice_oll
+        : picked == PRACTICE_CMLL ? R.string.drill_practice_cmll : R.string.drill_practice_pll;
   }
 
   /** The cases the drill will deal: what was picked, or the whole family if nothing ever was. */
@@ -671,8 +688,7 @@ public class DrillSetupActivity extends NanoTimerActivity
       intent.putExtra(DrillActivity.EXTRA_SPEC, new DrillSpec("local-" + family() + "picked",
           DrillSpec.Type.CASE_EXECUTION, DrillSpec.Delivery.VIRTUAL, cases,
           DrillSpec.Selection.ROUND_ROBIN, repCount, 0,
-          getString(chosenPractice() == PRACTICE_OLL ? R.string.drill_practice_oll
-              : R.string.drill_practice_pll)).toJson());
+          getString(familyName())).toJson());
     }
     intent.putExtra(DrillScreenActivity.EXTRA_RECORDING, isRecording());
     startActivity(intent);

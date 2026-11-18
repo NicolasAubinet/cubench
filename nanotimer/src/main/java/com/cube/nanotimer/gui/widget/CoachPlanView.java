@@ -907,12 +907,13 @@ public class CoachPlanView {
   }
 
   /**
-   * An F2L case, named by the algorithm its extra moves are counted over and never by its number,
-   * which is the site's and not something a solver knows it by. The button shows the case itself.
+   * An F2L case, named by its most voted algorithm, the one its drill starts on, and never by its
+   * number, which is the site's and not something a solver knows it by. The button shows the case
+   * itself.
    */
   private View pairRow(LinearLayout parent, CoachPayload payload, final String code) {
     View row = inflater.inflate(R.layout.coach_pair_row, parent, false);
-    fill(row, R.id.tvCoachCaseName, CaseAlgorithms.shortestListed(code));
+    fill(row, R.id.tvCoachCaseName, CaseAlgorithms.firstListed(code));
     Double extra = payload.value("f2l_habits." + code + ".extra_moves");
     fill(row, R.id.tvCoachCaseFigures,
         activity.getString(R.string.coach_pair_extra, moves(extra)));

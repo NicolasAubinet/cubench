@@ -17,6 +17,23 @@ import java.util.List;
 @RunWith(JUnit4.class)
 public class CoachPayloadBuilderTest {
 
+  /** CMLL drill reps stay in the app: the coach never mentions Roux or CMLL. */
+  @Test
+  public void leavesCmllDrillRepsOut() {
+    List<StepSample> drilled = new ArrayList<StepSample>();
+    for (int i = 0; i < 12; i++) {
+      drilled.add(new StepSample("cmll_suneleftbar", 2000, 500, false, 0));
+      drilled.add(new StepSample("pll_t", 2000, 500, false, 0));
+    }
+    CoachPayload payload = CoachPayload.parse(CoachPayloadBuilder.build("3x3", "cfop",
+        solveTimes(20), familySamples(20), Collections.<StepSample>emptyList(), 20, drilled, 2,
+        knowledge()).toJson());
+
+    Assert.assertNotNull(figure(payload.getDrillCases(), "pll_t"));
+    Assert.assertNull(figure(payload.getDrillCases(), "cmll_suneleftbar"));
+    Assert.assertFalse(payload.toJson().contains("cmll"));
+  }
+
   @Test
   public void testCrossCarriesNoRecognition() {
     CoachPayload payload = build();

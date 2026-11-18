@@ -49,6 +49,7 @@ import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.LayerRotation;
 import com.cube.nanotimer.smartcube.drill.PairWeights;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
@@ -1118,8 +1119,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
 
   /**
    * The algorithm a case's choose step starts on: the starred one, else the one a learning drill
-   * names (for a pair, the shortest listed, which its coach card names it by), else the one the
-   * case popup recommends, else the first listed. Null when there is none.
+   * names, else the top of the list, most voted first. Null when there is none.
    */
   private String firstToTry(String code) {
     String starred = Options.INSTANCE.getCaseAlgorithm(code);
@@ -1127,13 +1127,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       return starred;
     }
     boolean learning = session.getSpec().isLearning();
-    if (learning && (session.getSpec().getCaseAlgorithm(code) != null
-        || CaseAlgorithms.isPair(code))) {
+    if (learning && session.getSpec().getCaseAlgorithm(code) != null) {
       return learningAlgorithm(code);
-    }
-    String recommended = recommendedAlgorithm(code);
-    if (recommended != null) {
-      return recommended;
     }
     List<CaseAlgorithms.Listed> listed = listedFor(code);
     if (!listed.isEmpty()) {
@@ -1147,7 +1142,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     choosing = code;
     firstAlgorithm = first;
     tryingAlgorithm = first;
-    setTitle(getString(R.string.drill_choose_title, CaseAlgorithms.isPair(code)
+    setTitle(getString(R.string.drill_choose_title,
+        CaseAlgorithms.isPair(code) || CmllCases.isCase(code)
         ? Utils.toSmartCubeCaseHeadline(this, code)
         : getString(code.startsWith("oll_") ? R.string.case_title_oll : R.string.case_title_pll,
             LastLayerCaseNames.shortName(code))));
@@ -1431,7 +1427,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    */
   private void followAlgorithm(String code, String algorithm) {
     LastLayerDiagram diagram = algorithm != null && code != null
-        && (code.startsWith("oll_") || code.startsWith("pll_"))
+        && (code.startsWith("oll_") || code.startsWith("pll_") || CmllCases.isCase(code))
         ? LastLayerDiagram.forAlgorithm(code, algorithm) : null;
     practiceCasePicture.setDiagram(diagram);
     practiceCasePicture.setVisibility(diagram != null ? View.VISIBLE : View.GONE);
@@ -1486,8 +1482,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   /**
-   * The user's chosen algorithm, else the one the drill names if it solves the case, else the usual:
-   * for a pair the shortest listed, which its extra moves are counted against.
+   * The user's chosen algorithm, else the one the drill names if it solves the case, else the top of
+   * the case's list, most voted first.
    */
   private String learningAlgorithm(String code) {
     String chosen = Options.INSTANCE.getCaseAlgorithm(code);
@@ -1498,8 +1494,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (named != null && CaseAlgorithms.solves(code, named)) {
       return named;
     }
-    return CaseAlgorithms.isPair(code) ? CaseAlgorithms.shortestListed(code)
-        : LastLayerAlgorithms.forCaseCode(code);
+    List<CaseAlgorithms.Listed> listed = listedFor(code);
+    return !listed.isEmpty() ? listed.get(0).getMoves()
+        : CaseAlgorithms.isPair(code) ? null : LastLayerAlgorithms.forCaseCode(code);
   }
 
   /** Whether an algorithm is on screen for the case up: practice, or one shown again. */
@@ -1682,7 +1679,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (CaseAlgorithms.isPair(code) || DrillSession.isLookAheadCase(code)) {
       return R.color.step_f2l;
     }
-    return code != null && code.startsWith(FAMILY_OLL) ? R.color.step_oll : R.color.step_pll;
+    return code != null && (code.startsWith(FAMILY_OLL) || CmllCases.isCase(code))
+        ? R.color.step_oll : R.color.step_pll; // a CMLL in OLL's colour, as the Cases tab draws it
   }
 
   /**
