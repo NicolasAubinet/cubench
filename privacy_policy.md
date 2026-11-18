@@ -14,7 +14,7 @@ Your solves, times, smart cube recordings and settings are stored on your device
 
 If you use a smart cube, the app shares which algorithm you turn for each case, so Cubench can show every user which algorithms cubers really use. It is on by default, and you can turn it off in Settings, Smart cube, "Share which algorithms I use". **Until a smart cube has been connected, nothing is sent.**
 
-**What is sent.** For each OLL, PLL and F2L pair case, the one algorithm you turn for it, read from your recent smart cube solves: only cases solved in one look, and only an algorithm you turned at least twice in that case's five latest solves. The first send carries every case; later sends carry only the cases whose algorithm changed. Nothing else about your solves is sent: no times, scrambles, dates or solve type names. With it goes a random sharing ID, created by the app for this alone. It is not your Coach ID, it is shown nowhere, and it is linked to nothing else: no name, email address or Google account.
+**What is sent.** For each OLL, PLL, F2L pair and CMLL case (Roux), the one algorithm you turn for it, read from your recent smart cube solves: only cases solved in one look, and only an algorithm you turned at least twice in that case's five latest solves. The first send carries every case; later sends carry only the cases whose algorithm changed. Nothing else about your solves is sent: no times, scrambles, dates or solve type names. With it goes a random sharing ID, created by the app for this alone. It is not your Coach ID, it is shown nowhere, and it is linked to nothing else: no name, email address or Google account.
 
 **When.** At most once a day, in the background, when the phone is online and something has changed.
 
@@ -62,6 +62,20 @@ The coach reads your solve statistics and writes you a practice plan every week.
 
 **Payments.** Subscriptions are handled by Google Play. I never see your payment details.
 
+# Other platforms waitlist (website)
+
+The website has a form where you can ask to hear when Cubench comes to another platform (the web, Windows, Mac, Linux or iPhone). This has nothing to do with the app: nothing is collected unless you fill in the form.
+
+**What is collected.** Your email address, the platforms you ticked, and the two optional boxes: whether you would like to test a beta, and whether you have a smart cube. You first get one email asking you to confirm your address; until you confirm, you are not on the list and get nothing else.
+
+**What it is used for.** To email you when Cubench comes to a platform you picked, or earlier with a beta to test if you ticked that box, and to count how many people want each platform, which decides what gets built. It is never used for anything else, and never sold or shared.
+
+**Who processes it.** The list is held by EmailOctopus (Three Hearts Digital Ltd, United Kingdom), which stores it on Amazon Web Services in the European Union and sends the emails.
+
+**How long, and how to leave.** Until you unsubscribe: every email has a one-click unsubscribe link, or you can email me and I will delete your entry.
+
+**Why (legal basis).** You choose to sign up (your consent, article 6(1)(a) of the GDPR), and you can withdraw it at any time by unsubscribing.
+
 # Your rights
 
 You can ask for a copy of the data the server holds about you, or for its deletion, by emailing me your Coach ID (Settings, Coach). Coach summaries, plans and plan ratings are deleted after 30 days in any case. For algorithm usage, the sharing ID is shown nowhere, so I cannot tell which votes are yours; turning sharing off deletes them. You can also file a complaint with your data protection authority.
@@ -70,4 +84,4 @@ You can ask for a copy of the data the server holds about you, or for its deleti
 
 If you have any questions about this privacy policy, you can contact me by email: contact@cubench.app
 
-Last updated: November 14, 2026
+Last updated: November 18, 2026

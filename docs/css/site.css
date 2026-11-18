@@ -273,3 +273,40 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
 .viz.times { gap: 10px; }
 .viz.times .pb { color: var(--ok); font-weight: 600; }
 .viz.times .worst { color: var(--bad); font-weight: 600; }
+
+/* Platforms waitlist: EmailOctopus's embedded form sits in this card. */
+.waitlist { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; margin: 32px 0 14px; min-height: 120px; }
+.page p.waitlist-note { font-size: 14px; color: var(--ink3); margin: 0; }
+@media (max-width: 480px) { .waitlist { padding: 20px 18px; } }
+/* Their rules sit at [data-form] .emailoctopus-form; .waitlist in front out-ranks them. Hashed classes matched by prefix. */
+.waitlist [data-form].inline-container { max-width: none !important; }
+.waitlist [data-form] .emailoctopus-form-wrapper { margin-top: 0 !important; }
+.waitlist [data-form] .emailoctopus-form, .waitlist [data-form] .emailoctopus-form [data-theme] {
+  --font-family: Roboto, system-ui, sans-serif; --font-family-body: Roboto, system-ui, sans-serif; --base-font-size: 16px; --label-size: 15px;
+  --label-colour: var(--ink); --text-icon-primary: var(--ink); --field-colour: var(--bg2); --field-border-colour: var(--line);
+  --button-colour: var(--accent); --button-text-colour: var(--on-accent);
+  --eo-form-font-color: var(--ink); --eo-form-placeholder: var(--ink3);
+  --controls-inputs-boolean-background-default: transparent; --controls-inputs-boolean-foreground-default: var(--ink3);
+  --controls-inputs-boolean-background-selected: var(--accent); --controls-inputs-boolean-foreground-selected: var(--on-accent);
+  --controls-inputs-boolean-background-selected-hover: var(--accent); --controls-inputs-boolean-foreground-selected-hover: var(--on-accent);
+  --controls-inputs-boolean-outline-focus: var(--accent);
+}
+.waitlist [data-form] .emailoctopus-form-row { margin: 0 0 22px !important; min-width: 0; }
+.waitlist [data-form] .emailoctopus-form .form-control { height: 48px; border-radius: 10px; color: var(--ink); padding: 0 14px; }
+.waitlist [data-form] .emailoctopus-form .form-control::placeholder { color: var(--ink3); }
+.waitlist [data-form] .emailoctopus-form .form-control:focus { background: var(--bg2); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+.waitlist [data-form] .emailoctopus-form label[class*="_label_"] { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.waitlist [data-form] .emailoctopus-form label[class*="_input-checkbox__label"] { font-size: 15px !important; font-weight: 400; color: var(--ink2); }
+.waitlist [data-form] [class*="_input-checkbox__button"] { border-width: 2px; border-radius: 5px; }
+.waitlist [data-form] [class*="_checked_"] label[class*="_input-checkbox__label"] { color: var(--ink); }
+.waitlist [data-form] .emailoctopus-form input[type=submit] { height: 48px; border-radius: 999px; font-weight: 700; margin: 4px 0 0 !important; cursor: pointer; }
+.waitlist [data-form] .emailoctopus-form input[type=submit]:hover { filter: brightness(1.08); }
+/* Their messages force color: var(--text-colour) !important, so set the variable. */
+.waitlist [data-form] .emailoctopus-success-message, .waitlist [data-form] .emailoctopus-error-message { font: 17px/1.5 Roboto, system-ui, sans-serif !important; }
+.waitlist [data-form] .emailoctopus-success-message { --text-colour: var(--ink); font-weight: 500 !important; }
+.waitlist [data-form] .emailoctopus-success-message:not(:empty) { padding: 18px 0 6px !important; }
+.waitlist [data-form] .emailoctopus-error-message { --text-colour: var(--bad); }
+.waitlist [data-form] .emailoctopus-error-message:not(:empty) { margin-bottom: 14px !important; }
+.waitlist [data-form] .mastfoot { display: block; margin-top: 14px !important; }
+.waitlist [data-form] .mastfoot p { color: var(--ink3) !important; background: none !important; border: 0 !important; text-indent: 0 !important; width: auto !important; height: auto !important; overflow: visible !important; font: 400 12px/1.5 Roboto, sans-serif !important; }
+.waitlist [data-form] .mastfoot a { position: static !important; color: var(--ink3); font-size: 12px; font-weight: 500; text-decoration: underline; }
