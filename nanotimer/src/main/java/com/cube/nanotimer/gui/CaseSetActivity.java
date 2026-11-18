@@ -3,10 +3,13 @@ package com.cube.nanotimer.gui;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.style.DynamicDrawableSpan;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -58,7 +61,8 @@ import java.util.Set;
  *
  * <p><b>Browsing</b>, its cases are a grid of tiles, filtered by group and, once a smart cube has
  * read any of them, by standing; each choice in both pickers counts the cases it would show under
- * the other filter. The sort is an app bar icon, apart from the filters, lit while the set is out
+ * the other filter. Several standings may be ticked at once; the chip then shows their colours,
+ * not their names, so it never outgrows the row. The sort is an app bar icon, apart from the filters, lit while the set is out
  * of its own order. Sorted by standing, the grid splits under one heading per standing; sorted by
  * a mean, it becomes the case table the drill screens read, since a grid has nowhere to put a
  * figure. A tap opens the case sheet, as everywhere. The library may sort by the solver's measured
@@ -71,6 +75,7 @@ import java.util.Set;
  * lets go, a hold opens the sheet, All and None act on the cases shown, and Only these keeps just
  * those. Every tap writes through, so a pick survives a rotation or a Back with the same answer.
  * An unpicked case is turned down rather than hidden, so it can still be found to pick again.
+ * Choosing what to learn opens on every standing but Known.
  */
 public class CaseSetActivity extends NanoTimerActivity
     implements DrillStatsTable.Listener, DrillPresetsDialog.Listener {
@@ -91,6 +96,7 @@ public class CaseSetActivity extends NanoTimerActivity
   /** The narrowest a tile may be, which sets how many fit across. */
   private static final int TILE_MIN_DP = 80;
   private static final String KEY_WINDOW = "stats_window";
+  private static final String KEY_STATUSES = "caseSetStatuses";
   /** A standing the group picked leaves empty: still pickable, but read as holding nothing. */
   private static final float EMPTY_ALPHA = 0.4f;
 
@@ -100,6 +106,8 @@ public class CaseSetActivity extends NanoTimerActivity
   private static final int[] STATUS_LABELS = {R.string.known_algorithms_status_known,
       R.string.known_algorithms_status_review, R.string.known_algorithms_status_to_learn,
       R.string.analysis_knowledge_unseen};
+  /** What a learn pick opens on: every standing but Known, as indices into STATUS_FILTERS. */
+  private static final int[] LEARN_STATUSES = {1, 2, 3};
   /** The library's progress bar shades, so a standing has one colour wherever it is drawn. */
   private static final int[] STATUS_COLOURS = {R.color.case_status_known,
       R.color.case_status_review, R.color.case_status_learn, R.color.case_status_unseen};
@@ -108,8 +116,8 @@ public class CaseSetActivity extends NanoTimerActivity
 
   private CaseSet set;
   private int sort;
-  /** Index into {@link #STATUS_FILTERS}, or -1 for every case. */
-  private int statusFilter = -1;
+  /** Indices into {@link #STATUS_FILTERS} ticked; empty for every case, never all of them. */
+  private final Set<Integer> statusFilter = new HashSet<Integer>();
   private CaseFilterBar groups;
   private TextView statusChip;
   private MenuItem sortItem;
@@ -128,10 +136,7 @@ public class CaseSetActivity extends NanoTimerActivity
   /** Picking what to learn next rather than a drill's cases: the coach's suggestion, else null. */
   private List<String> suggested;
   private final Set<String> picked = new LinkedHashSet<String>();
-  /** Picking what to learn: cases counted as learned, left out unless asked for. */
-  private final Set<String> learned = new HashSet<String>();
   private List<DrillCasePreset> presets;
-  private CheckBox showKnown;
 
   /** The drill picker: a family's cases to pick from, written through to the drill's pick. */
   public static Intent pick(Context context, String family) {
@@ -189,7 +194,17 @@ public class CaseSetActivity extends NanoTimerActivity
       setTitle(sort == SORT_DRILL_MEAN && getIntent().hasExtra(EXTRA_SORT)
           ? getString(R.string.drill_stats_title) + " · " + set.title() : set.title());
     }
+    if (savedInstanceState != null && savedInstanceState.containsKey(KEY_STATUSES)) {
+      statusFilter.clear();
+      statusFilter.addAll(savedInstanceState.getIntegerArrayList(KEY_STATUSES));
+    }
     paintChips();
+  }
+
+  @Override
+  protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putIntegerArrayList(KEY_STATUSES, new ArrayList<Integer>(statusFilter));
   }
 
   private boolean isPicking() {
@@ -231,7 +246,7 @@ public class CaseSetActivity extends NanoTimerActivity
     if (isLearning()) {
       Set<String> own = Options.INSTANCE.getLearnPick(family);
       picked.addAll(own == null ? suggested : own);
-      learned.addAll(Options.INSTANCE.getLearnedCases());
+      statusFilter.addAll(defaultStatuses());
     } else {
       Set<String> stored = Options.INSTANCE.getDrillCases(family);
       picked.addAll(stored == null ? set.cases() : stored);
@@ -245,9 +260,6 @@ public class CaseSetActivity extends NanoTimerActivity
     TextView all = findViewById(R.id.tvCasesAll);
     if (isLearning()) {
       all.setText(R.string.learn_pick_suggested);
-      showKnown = findViewById(R.id.cbCasesShowKnown);
-      showKnown.setVisibility(View.VISIBLE);
-      showKnown.setOnCheckedChangeListener((button, checked) -> show());
     }
     all.setOnClickListener(v -> pickAll(true));
     findViewById(R.id.tvCasesNone).setOnClickListener(v -> pickAll(false));
@@ -324,9 +336,6 @@ public class CaseSetActivity extends NanoTimerActivity
           for (CaseKnowledge known : history.getCases()) {
             if (set.contains(known.getCode())) {
               statuses.put(known.getCode(), known.getStatus());
-              if (isLearning() && known.getStatus() == CaseKnowledge.Status.KNOWN) {
-                learned.add(known.getCode()); // known cases count as learned for the pick too
-              }
             }
           }
           Set<String> known = new HashSet<String>();
@@ -376,7 +385,7 @@ public class CaseSetActivity extends NanoTimerActivity
     }
   }
 
-  /** Whether a case passes the group and standing filters, and in a learning pick the known one. */
+  /** Whether a case passes the group and standing filters. */
   private boolean passes(String code) {
     return passes(code, true, true);
   }
@@ -386,11 +395,7 @@ public class CaseSetActivity extends NanoTimerActivity
     if (!set.contains(code) || byGroup && !groups.shows(code)) {
       return false;
     }
-    if (isLearning() && !showKnown.isChecked() && learned.contains(code)
-        && !picked.contains(code)) {
-      return false; // a picked one stays, so it can be let go
-    }
-    return !byStatus || statusFilter < 0 || statuses.get(code) == STATUS_FILTERS[statusFilter];
+    return !byStatus || statusFilter.isEmpty() || statusFilter.contains(rank(statuses.get(code)));
   }
 
   private void show() {
@@ -570,11 +575,15 @@ public class CaseSetActivity extends NanoTimerActivity
 
   /** A standing's colour as a small rounded square, as the Status picker and the headers show it. */
   private GradientDrawable swatch(int status) {
+    return swatch(status, 12);
+  }
+
+  private GradientDrawable swatch(int status, int sizeDp) {
     float density = getResources().getDisplayMetrics().density;
     GradientDrawable swatch = new GradientDrawable();
     swatch.setColor(ContextCompat.getColor(this, STATUS_COLOURS[status]));
     swatch.setCornerRadius(3 * density);
-    int size = (int) (12 * density);
+    int size = (int) (sizeDp * density);
     swatch.setSize(size, size);
     return swatch;
   }
@@ -611,7 +620,7 @@ public class CaseSetActivity extends NanoTimerActivity
       return view;
     }
     tile.picked(picked.contains(code));
-    if (isLearning() && learned.contains(code)) {
+    if (isLearning() && statuses.get(code) == CaseKnowledge.Status.KNOWN) {
       tile.name(getString(R.string.learn_pick_known_case, set.name(code)));
     }
     view.setOnClickListener(v -> {
@@ -636,7 +645,7 @@ public class CaseSetActivity extends NanoTimerActivity
 
   /** With a group shown, only its cases are picked or let go; the rest keep their state. */
   private void pickAll(boolean all) {
-    boolean narrowed = groups.getGroup() != null || statusFilter >= 0;
+    boolean narrowed = groups.getGroup() != null || statusNarrowed();
     List<String> scope = narrowed ? new ArrayList<String>(shown) : set.cases();
     picked.removeAll(scope);
     if (all) {
@@ -689,7 +698,7 @@ public class CaseSetActivity extends NanoTimerActivity
     }
     ((TextView) findViewById(R.id.tvCasesCount)).setText(spanned);
 
-    boolean narrowed = groups.getGroup() != null || statusFilter >= 0;
+    boolean narrowed = groups.getGroup() != null || statusNarrowed();
     int pickedShown = 0;
     for (String code : shown) {
       pickedShown += picked.contains(code) ? 1 : 0;
@@ -708,9 +717,39 @@ public class CaseSetActivity extends NanoTimerActivity
   }
 
   private void paintChips() {
-    statusChip.setText(getString(R.string.analysis_window_chip, statusFilter < 0
-        ? getString(R.string.case_filter_status) : getString(STATUS_LABELS[statusFilter])));
-    statusChip.setSelected(statusFilter >= 0);
+    statusChip.setText(statusLabel());
+    statusChip.setSelected(!statusFilter.isEmpty());
+  }
+
+  /** "Status" for every case, a standing's name for one, and their colours for several. */
+  private CharSequence statusLabel() {
+    if (statusFilter.size() == 1) {
+      return getString(R.string.analysis_window_chip,
+          getString(STATUS_LABELS[statusFilter.iterator().next()]));
+    }
+    String name = getString(R.string.case_filter_status);
+    StringBuilder marks = new StringBuilder();
+    for (int i = 0; i < STATUS_FILTERS.length; i++) {
+      marks.append(statusFilter.contains(i) ? " \uFFFC" : "");
+    }
+    String text = getString(R.string.analysis_window_chip, name + marks);
+    SpannableString spanned = new SpannableString(text);
+    int at = text.indexOf(name) + name.length();
+    int align = Build.VERSION.SDK_INT >= 29 ? DynamicDrawableSpan.ALIGN_CENTER
+        : DynamicDrawableSpan.ALIGN_BASELINE;
+    for (int i = 0; i < STATUS_FILTERS.length; i++) {
+      if (statusFilter.contains(i)) {
+        at = text.indexOf('\uFFFC', at);
+        GradientDrawable swatch = swatch(i, 10);
+        swatch.setStroke((int) getResources().getDisplayMetrics().density,
+            ContextCompat.getColor(this, R.color.lightblue)); // dark shades vanish on the lit chip
+        swatch.setBounds(0, 0, swatch.getIntrinsicWidth(), swatch.getIntrinsicHeight());
+        spanned.setSpan(new ImageSpan(swatch, align), at, at + 1,
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        at++;
+      }
+    }
+    return spanned;
   }
 
   /** The sort icon lights up in the accent while the set is not in its own order. */
@@ -722,9 +761,12 @@ public class CaseSetActivity extends NanoTimerActivity
         ContextCompat.getColor(this, sort == SORT_ORDER ? R.color.white : R.color.lightblue));
   }
 
-  /** Every standing with its colour and how many cases it holds under the group picked. */
+  /**
+   * Every standing with its colour and how many cases it holds under the group picked. A tap ticks
+   * or unticks one; from every case it ticks just that one, and ticking them all is "All" again.
+   */
   private void pickStatus() {
-    int[] counts = new int[STATUS_FILTERS.length];
+    final int[] counts = new int[STATUS_FILTERS.length];
     int all = 0;
     for (String code : set.cases()) {
       if (passes(code, true, false)) {
@@ -735,10 +777,7 @@ public class CaseSetActivity extends NanoTimerActivity
     LayoutInflater inflater = LayoutInflater.from(this);
     View body = inflater.inflate(R.layout.case_status_picker, null);
     LinearLayout rows = body.findViewById(R.id.llStatusRows);
-    final AlertDialog dialog = new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.case_filter_status)
-        .setView(body)
-        .create();
+    final List<View> rowViews = new ArrayList<View>();
     for (int i = -1; i < STATUS_FILTERS.length; i++) {
       View row = inflater.inflate(R.layout.case_status_row, rows, false);
       View swatch = row.findViewById(R.id.vStatusSwatch);
@@ -749,19 +788,61 @@ public class CaseSetActivity extends NanoTimerActivity
       }
       ((TextView) row.findViewById(R.id.tvStatusName)).setText(
           i < 0 ? R.string.case_filter_all_statuses : STATUS_LABELS[i]);
-      int count = i < 0 ? all : counts[i];
-      ((TextView) row.findViewById(R.id.tvStatusCount)).setText(String.valueOf(count));
-      row.setAlpha(count == 0 && i != statusFilter ? EMPTY_ALPHA : 1f);
-      row.setSelected(i == statusFilter);
-      final int pickedStatus = i;
+      ((TextView) row.findViewById(R.id.tvStatusCount)).setText(
+          String.valueOf(i < 0 ? all : counts[i]));
+      final int status = i;
       row.setOnClickListener(v -> {
-        statusFilter = pickedStatus;
-        dialog.dismiss();
+        toggleStatus(status);
+        paintStatusRows(rowViews, counts);
         show();
       });
       rows.addView(row);
+      rowViews.add(row);
     }
-    dialog.show();
+    paintStatusRows(rowViews, counts);
+    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
+        .setTitle(R.string.case_filter_status)
+        .setView(body)
+        .setPositiveButton(R.string.close, null)
+        .show();
+  }
+
+  /** What the screen opens on: a learn pick leaves Known out, everything else shows every case. */
+  private Set<Integer> defaultStatuses() {
+    Set<Integer> statuses = new HashSet<Integer>();
+    if (isLearning()) {
+      for (int status : LEARN_STATUSES) {
+        statuses.add(status);
+      }
+    }
+    return statuses;
+  }
+
+  /** Whether the standing filter departs from the default, so All / None act on just the shown. */
+  private boolean statusNarrowed() {
+    return !statusFilter.equals(defaultStatuses());
+  }
+
+  private void toggleStatus(int status) {
+    if (status < 0) {
+      statusFilter.clear();
+    } else if (!statusFilter.remove(status)) {
+      statusFilter.add(status);
+      if (statusFilter.size() == STATUS_FILTERS.length) {
+        statusFilter.clear();
+      }
+    }
+  }
+
+  /** Rows ticked as the filter stands; an empty standing is dimmed unless ticked. */
+  private void paintStatusRows(List<View> rowViews, int[] counts) {
+    for (int i = -1; i < STATUS_FILTERS.length; i++) {
+      View row = rowViews.get(i + 1);
+      boolean ticked = i < 0 ? statusFilter.isEmpty() : statusFilter.contains(i);
+      row.setSelected(ticked);
+      ((CheckBox) row.findViewById(R.id.cbStatusTick)).setChecked(ticked);
+      row.setAlpha(i >= 0 && counts[i] == 0 && !ticked ? EMPTY_ALPHA : 1f);
+    }
   }
 
   /** Whether the set's cases can have a standing: an F2L pair never does. */

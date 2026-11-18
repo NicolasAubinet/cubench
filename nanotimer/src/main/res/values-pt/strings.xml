@@ -1633,7 +1633,6 @@
   <string name="coach_learn_next">Próximos OLL a aprender</string>
   <string name="coach_learn_next_pll">Próximos PLL a aprender</string>
   <string name="learn_pick_suggested">Sugeridos</string>
-  <string name="learn_pick_show_known">Mostrar os casos que já conheço</string>
   <string name="learn_pick_own">Sua escolha</string>
   <plurals name="coach_learn_next_count">
     <item quantity="one">%d caso</item>
