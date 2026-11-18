@@ -97,11 +97,12 @@ public interface Service {
   void getSmartcubeSolvesCount(SolveType solveType, DataCallback<Integer> callback);
 
   /**
-   * Whether a smart cube has ever driven a solve, of any solve type. Asked by a screen deciding
+   * Whether a smart cube has ever read anything of theirs: a solve of any type, a drill rep or a
+   * learning-drill clear, every source case knowledge is built from. Asked by a screen deciding
    * whether the reader has figures of their own anywhere, which is not the same question as whether
    * the one it is showing has any.
    */
-  void hasAnySmartcubeSolve(DataCallback<Boolean> callback);
+  void hasAnySmartcubeReading(DataCallback<Boolean> callback);
 
   /**
    * A solve type's cube-driven solves, carrying what it takes to read them again: the scramble and

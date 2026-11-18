@@ -502,11 +502,11 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
-  public void hasAnySmartcubeSolve(final DataCallback<Boolean> callback) {
+  public void hasAnySmartcubeReading(final DataCallback<Boolean> callback) {
     run(new Runnable() {
       @Override
       public void run() {
-        callback.onData(provider.hasAnySmartcubeSolve());
+        callback.onData(provider.hasAnySmartcubeReading());
       }
     });
   }

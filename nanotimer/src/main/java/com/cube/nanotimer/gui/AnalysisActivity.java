@@ -222,10 +222,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   private TurningFigures turningFigures;
   private boolean turningReading;
   /**
-   * Whether a cube has ever read a solve of theirs, of any solve type. Null until that read lands.
-   * It is what separates the two readers an empty window otherwise looks the same to: one who owns
-   * no cube, for whom the example is the only way to see what the screen is, and one who owns one
-   * and has simply not used it here, for whom it is somebody else's figures over their own screen.
+   * Whether a cube has ever read anything of theirs, a solve of any type or a drill. Null until that
+   * read lands. It decides whether the example also stands in on the Cases and Plan tabs.
    */
   private Boolean hasOwnSolves;
   /** Whether this solve type's scrambles make a whole solve, which is what a breakdown reads. */
@@ -436,8 +434,9 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     if (exampleOnTab()) {
       bar.setSubtitle(getString(R.string.analysis_sample_subtitle));
     } else if (readAsSolve()) {
+      // Their own method: off the example's tab, the example's method is not what is shown.
       bar.setSubtitle(getString(R.string.analysis_context, name,
-          getString(SolveTypeMethod.nameOf(method))));
+          getString(SolveTypeMethod.nameOf(ownMethod()))));
     } else {
       // Naming a method here would claim these solves are read as one, which is the whole point of
       // what this screen is refusing to do for a trainer.
@@ -708,7 +707,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
 
   /** Asked once for the life of the screen: owning a cube is not a fact about the window. */
   private void loadOwnSolves() {
-    App.INSTANCE.getService().hasAnySmartcubeSolve(new DataCallback<Boolean>() {
+    App.INSTANCE.getService().hasAnySmartcubeReading(new DataCallback<Boolean>() {
       @Override
       public void onData(final Boolean any) {
         runOnUiThread(new Runnable() {
@@ -995,7 +994,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     showSteps();
   }
 
-
   private void wireSample() {
     findViewById(R.id.buAnalysisSampleConnect).setOnClickListener(new View.OnClickListener() {
       @Override
@@ -1125,7 +1123,9 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
    */
   private void showRead() {
     planStatus.refresh();
-    showPractice(coachClient != null && readAsSolve() && loaded && method == CubeMethod.CFOP
+    // A cube owner's Plan is their own, so it follows their method, not the Solve tab's example.
+    CubeMethod planned = sampleEverywhere() ? method : ownMethod();
+    showPractice(coachClient != null && readAsSolve() && loaded && planned == CubeMethod.CFOP
         && planStatus.getLook() != CoachPlanStatus.Look.ALONE, sampleEverywhere());
     showAskNow();
   }
