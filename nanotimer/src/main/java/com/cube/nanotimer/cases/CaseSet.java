@@ -22,7 +22,10 @@ public interface CaseSet {
     PAIR
   }
 
-  /** {@code "oll"}, {@code "pll"}, {@code "pair"}, {@code "cmll"}: stable, kept in preferences, the codes' prefix. */
+  /**
+   * {@code "oll"}, {@code "pll"}, {@code "pair"}, {@code "cmll"}: stable, kept in preferences, the
+   * codes' prefix.
+   */
   String id();
 
   /** The set as a solver writes it, "OLL". Cubing vocabulary, so never translated. */

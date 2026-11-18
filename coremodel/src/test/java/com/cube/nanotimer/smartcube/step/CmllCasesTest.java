@@ -53,7 +53,7 @@ public class CmllCasesTest {
     assertEquals(42, CmllCases.codes().size());
   }
 
-  /** Every arrangement of the four corners, placed and twisted, is one of the 42 cases or a skip. */
+  /** Every arrangement of the four corners, placed and twisted, is one of the cases or a skip. */
   @Test
   public void theKeysCoverEveryCornerState() {
     Set<String> seen = new HashSet<String>();
