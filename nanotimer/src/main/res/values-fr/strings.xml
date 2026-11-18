@@ -146,13 +146,13 @@
   <string name="solvetypes_help_title">À propos des types de résolution</string>
   <string name="solvetypes_help_body">Chacun a son propre historique pour ce puzzle. Le sélecteur du chrono les affiche dans l\'ordre de cette liste.</string>
   <string name="solvetypes_help_reorder">Réordonner</string>
-  <string name="solvetypes_help_edit_body">Touchez une ligne pour modifier son nom et ses réglages, lui ajouter des étapes ou la supprimer.</string>
+  <string name="solvetypes_help_edit_body">Appuyez sur une ligne pour modifier son nom et ses réglages, lui ajouter des étapes ou la supprimer.</string>
   <string name="solvetypes_help_reorder_body">Faites glisser une ligne par sa poignée, à droite, pour la déplacer dans la liste.</string>
   <string name="solvetypes_help_add_body">Le + dans la barre en crée un nouveau, vide.</string>
   <string name="solvetypes_steps_count">%1$d étapes</string>
   <string name="solvetypes_no_inspection">Sans inspection</string>
   <string name="solvetypes_empty_title">Aucun type de résolution</string>
-  <string name="solvetypes_empty_summary">Touchez + pour en créer un et garder un historique séparé pour ce casse-tête.</string>
+  <string name="solvetypes_empty_summary">Appuyez sur + pour en créer un et garder un historique séparé pour ce casse-tête.</string>
   <string name="clear_all_history">Supprimer tous les temps</string>
   <string name="yes">Oui</string>
   <string name="no">Non</string>
@@ -355,7 +355,7 @@
   <string name="scramble_view_3d">3D</string>
   <string name="no_solve_for_action">Aucune résolution à laquelle appliquer ceci</string>
   <string name="last_solve">Dernière résolution</string>
-  <string name="last_solve_hint">Votre cube a enregistré cette résolution. Touchez ici pour voir sa décomposition, sa reconstruction et son replay 3D.</string>
+  <string name="last_solve_hint">Votre cube a enregistré cette résolution. Appuyez ici pour voir sa décomposition, sa reconstruction et son replay 3D.</string>
 
   <string name="breakdown">Décomposition</string>
   <string name="breakdown_step">Étape</string>
@@ -517,7 +517,7 @@
     <ul>
       <li>Les mélanges 2x2 font maintenant 11 mouvements, uniquement en R, U et F, comme les mélanges officiels</li>
       <li>L\'historique peut maintenant être trié par meilleure Ao5, Ao12, Ao50 ou Ao100</li>
-      <li>Toucher une moyenne dans les détails d\'une résolution affiche les résolutions qui la composent</li>
+      <li>Appuyer sur une moyenne dans les détails d\'une résolution affiche les résolutions qui la composent</li>
       <li>Une session ou une moyenne peut être copiée avec le mélange de chaque résolution, pour la coller n\'importe où</li>
       <li>Un temps inférieur à la moitié de votre record personnel demande confirmation avant d\'être enregistré comme record, au cas où le chronomètre aurait été arrêté par erreur</li>
       <li>Nouveau réglage « Couleur de la dernière couche » pour les types de mélange comme Last Layer, PLL ou F2L</li>
@@ -829,7 +829,7 @@
   <string name="smart_cube_straightened">Orientation du cube réalignée</string>
   <string name="smart_cube_solve_first">Résolvez votre cube pour commencer</string>
   <string name="smart_cube_ready_to_solve">Prêt à résoudre</string>
-  <string name="smart_cube_ready_to_memo">Touchez pour lancer la mémo</string>
+  <string name="smart_cube_ready_to_memo">Appuyez pour lancer la mémo</string>
   <string name="smart_cube_solving">Résolution en cours</string>
   <string name="smart_cube_undo">Annulez vos mauvais mouvements</string>
 
@@ -843,8 +843,8 @@
   <string name="smart_cube_searching_body">Faites un quart de tour pour réveiller votre cube, et gardez-le près du téléphone.</string>
   <string name="smart_cube_none_yet">Aucun cube pour l\'instant</string>
   <plurals name="smart_cube_found_count">
-    <item quantity="one">%d cube à proximité · touchez pour connecter</item>
-    <item quantity="other">%d cubes à proximité · touchez pour connecter</item>
+    <item quantity="one">%d cube à proximité · appuyez pour connecter</item>
+    <item quantity="other">%d cubes à proximité · appuyez pour connecter</item>
   </plurals>
   <string name="smart_cube_connected_battery">Connecté · %1$d%%</string>
   <string name="smart_cube_bluetooth_off_title">Le Bluetooth est désactivé</string>
@@ -1025,7 +1025,7 @@
   <string name="drill_case_remove_message">%1$s (essai %2$d), %3$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
   <string name="drill_case_seconds">%1$s s</string>
   <string name="drill_case_remove">Retirer</string>
-  <string name="drill_case_removed">Retiré, touchez pour rétablir</string>
+  <string name="drill_case_removed">Retiré, appuyez pour rétablir</string>
   <string name="drill_stats_title">Stats de drill</string>
   <string name="drill_stats_column_spread">Écart</string>
   <plurals name="drill_stats_cell_cases">
@@ -1044,7 +1044,7 @@
   <string name="drill_stats_window_all_long">Depuis le début</string>
   <string name="drill_case_stats_title">Cas</string>
   <string name="drill_case_stats_attempts">Essais</string>
-  <string name="drill_case_stats_hint">Touchez le cas pour voir ses algorithmes. Glissez un essai vers la gauche pour le retirer.</string>
+  <string name="drill_case_stats_hint">Appuyez sur le cas pour voir ses algorithmes. Glissez un essai vers la gauche pour le retirer.</string>
   <string name="drill_case_stats_removed">Essai retiré</string>
   <string name="drill_case_stats_empty">Aucun essai sur cette période.</string>
   <string name="drill_case_stats_cell_worst">Pire %s</string>
@@ -1130,7 +1130,7 @@
   <string name="case_sheet_in_solves">En résolution</string>
   <string name="case_sheet_in_drills">En exercice</string>
   <string name="case_solves_label">Résolutions</string>
-  <string name="case_solves_hint">Touchez le cas pour voir ses algorithmes, et une résolution pour l\'ouvrir.</string>
+  <string name="case_solves_hint">Appuyez sur le cas pour voir ses algorithmes, et sur une résolution pour l\'ouvrir.</string>
   <string name="case_solves_empty">Aucune résolution n\'a chronométré ce cas.</string>
   <string name="case_solves_cell_count">Fois</string>
   <string name="case_solves_note">Résolution %s</string>
@@ -1159,8 +1159,8 @@
   <string name="case_slot_back_left">Arrière gauche</string>
   <string name="case_slot_front_right">Avant droit</string>
   <string name="case_slot_front_left">Avant gauche</string>
-  <string name="case_algorithms_order">Les recommandés d\'abord. Touchez celui que vous utilisez.</string>
-  <string name="case_algorithms_order_usage">Les plus utilisés d\'abord : la part des utilisateurs Cubench avec un smart cube qui exécutent chacun. Touchez celui que vous utilisez.</string>
+  <string name="case_algorithms_order">Les recommandés d\'abord. Appuyez sur celui que vous utilisez.</string>
+  <string name="case_algorithms_order_usage">Les plus utilisés d\'abord : la part des utilisateurs Cubench avec un smart cube qui exécutent chacun. Appuyez sur celui que vous utilisez.</string>
   <string name="case_algorithm_share">%1$d %%</string>
   <string name="case_algorithm_share_small" formatted="false">&lt;1 %</string>
   <string name="case_algorithm_empty_fl">Nécessite le slot avant gauche vide</string>
@@ -1327,7 +1327,7 @@
   <string name="library_review">%d à revoir</string>
   <string name="library_to_learn">%d à apprendre</string>
   <string name="library_picked">%d choisis</string>
-  <string name="library_nothing_picked">Touchez un ensemble pour parcourir ses cas et marquer les algorithmes que vous utilisez.</string>
+  <string name="library_nothing_picked">Appuyez sur un ensemble pour parcourir ses cas et marquer les algorithmes que vous utilisez.</string>
   <string name="case_filter_status">Statut</string>
   <string name="case_filter_all_statuses">Tous</string>
   <string name="case_sort_title">Trier</string>
@@ -1668,7 +1668,7 @@
   <string name="analysis_help_delta">Face à une résolution typique</string>
   <string name="analysis_help_delta_body">La part de chaque étape dans votre résolution, comparée à une résolution typique. Les écarts s\'annulent : une étape rapide fait paraître les autres lentes.</string>
   <string name="analysis_help_table">Le tableau des étapes</string>
-  <string name="analysis_help_table_body">Moyenne, meilleur temps et écart pour chaque étape. Touchez un en-tête pour trier. Les étapes avec des cas nommés (OLL et PLL) ont une flèche et ouvrent leurs cas.</string>
+  <string name="analysis_help_table_body">Moyenne, meilleur temps et écart pour chaque étape. Appuyez sur un en-tête pour trier. Les étapes avec des cas nommés (OLL et PLL) ont une flèche et ouvrent leurs cas.</string>
   <string name="analysis_help_turning">Mouvements, TPS, en pause</string>
   <string name="analysis_help_turning_body">Par résolution. Les mouvements sont comptés comme sur la page de chaque résolution, et le TPS est le nombre de mouvements par seconde sur toute la résolution. En pause est la partie pâle de la barre en dessous : le temps passé à regarder plutôt qu\'à tourner.</string>
   <string name="analysis_help_spread">Écart</string>
@@ -1692,7 +1692,7 @@
   <string name="analysis_help_standing_body">Connu : fait en un seul look, sans aide, assez récemment pour compter. À revoir : fait en un seul look avant, mais en deux looks les deux dernières fois. À apprendre : jamais fait en un seul look. Tout est tiré de vos résolutions et de vos drills.</string>
   <string name="analysis_help_shape">Forme</string>
   <string name="analysis_help_shape_body">En OLL, le bouton Forme limite le tableau à un groupe de formes, avec le nombre de cas de chaque groupe.</string>
-  <string name="analysis_help_rest_body">Sous le tableau, les cas que vous n\'avez jamais faits en un seul look avec ce type de résolution, classés selon où ils en sont sur l\'ensemble de vos résolutions. Touchez-en un pour voir ses algorithmes.</string>
+  <string name="analysis_help_rest_body">Sous le tableau, les cas que vous n\'avez jamais faits en un seul look avec ce type de résolution, classés selon où ils en sont sur l\'ensemble de vos résolutions. Appuyez sur l\'un d\'eux pour voir ses algorithmes.</string>
   <string name="analysis_help_sample">Exemple</string>
   <string name="analysis_help_sample_body">Ce sont des données d\'exemple, affichées jusqu\'à votre première résolution avec un smart cube.</string>
 
