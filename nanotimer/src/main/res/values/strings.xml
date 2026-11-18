@@ -1695,8 +1695,6 @@
        reader's, and a name only adds a question the screen never answers. -->
   <string name="analysis_sample_subtitle">Not your solves</string>
   <string name="analysis_sample_chip">Example</string>
-  <string name="analysis_sample_mine">My solves</string>
-  <string name="analysis_sample_showing">Showing</string>
   <string name="analysis_sample_banner">Example data from %d dummy solves. Connect a smart cube to see your own.</string>
   <string name="analysis_sample_banner_owner">Example data from %d dummy solves. Do a solve with your smart cube on this solve type to see your own.</string>
   <string name="analysis_sample_cta_title">This is what your cube would say</string>

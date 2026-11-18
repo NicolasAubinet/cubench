@@ -1644,8 +1644,6 @@
 
   <string name="analysis_sample_subtitle">Não são seus tempos</string>
   <string name="analysis_sample_chip">Exemplo</string>
-  <string name="analysis_sample_mine">Minhas resoluções</string>
-  <string name="analysis_sample_showing">Mostrando</string>
   <string name="analysis_sample_banner">Dados de exemplo de %d resoluções fictícias. Conecte um smart cube para ver as suas.</string>
   <string name="analysis_sample_banner_owner">Dados de exemplo de %d resoluções fictícias. Faça uma resolução com seu smart cube neste tipo de resolução para ver as suas.</string>
   <string name="analysis_sample_cta_title">É isso que seu cubo diria</string>

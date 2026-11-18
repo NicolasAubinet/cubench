@@ -1642,8 +1642,6 @@
 
   <string name="analysis_sample_subtitle">Pas vos résolutions</string>
   <string name="analysis_sample_chip">Exemple</string>
-  <string name="analysis_sample_mine">Mes résolutions</string>
-  <string name="analysis_sample_showing">Affichage</string>
   <string name="analysis_sample_banner">Données d\'exemple : %d résolutions fictives. Connectez un smart cube pour voir les vôtres.</string>
   <string name="analysis_sample_banner_owner">Données d\'exemple : %d résolutions fictives. Faites une résolution avec votre smart cube sur ce type de résolution pour voir les vôtres.</string>
   <string name="analysis_sample_cta_title">Voilà ce que votre cube dirait</string>

@@ -116,8 +116,8 @@ import java.util.Set;
  * where the Solve tab is the example; only a reader with no cube-read solve anywhere gets the
  * example there too. The Plan tab is theirs alike.
  *
- * <p>A reader who picks their own solves over the example sees the method's steps with a dash for
- * every figure, never one grey sentence.
+ * <p>The example cannot be swapped for the reader's own: on a solve type with no read solve that
+ * would be an empty screen, and their first read solve replaces the example anyway.
  */
 public class AnalysisActivity extends NanoTimerActivity implements SelectionHandler {
 
@@ -136,12 +136,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   /** Room left above a card scrolled to, so it does not sit flush on the tab strip. */
   private static final int PRACTICE_SCROLL_GAP_DP = 16;
 
-
-  /** What a figure with no solve behind it reads, as the timer's own averages do. */
-  private static final String NO_FIGURE = "-";
-
-  /** Each method's steps in solving order, which a blank window is drawn with. */
-  private static final Map<CubeMethod, String[]> BLANK_STEPS = blankSteps();
 
   /** How the shares are written, which is a whole number of points either way. */
   private static final String PERCENT_FORMAT = "%d%%";
@@ -238,8 +232,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   private boolean wholeSolve;
   /** Whether a smart cube can read this puzzle at all, which only a 3x3 can. */
   private boolean readablePuzzle;
-  /** Whether they asked to see their own instead, which is an empty screen and honestly so. */
-  private boolean leftSample;
   private boolean ctaDismissed;
   private int[] chipPadding = {0, 0, 0, 0};
 
@@ -351,9 +343,10 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     chip.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        if (modeOffered()) {
-          askForMode();
-        } else if (tab == TAB_CASES) {
+        if (exampleOnTab()) {
+          return; // the example is a label, not a window to pick
+        }
+        if (tab == TAB_CASES) {
           askForCaseWindow();
         } else {
           askForWindow();
@@ -420,13 +413,12 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     }
     boolean sampling = exampleOnTab();
     TextView chip = (TextView) windowItem.getActionView();
-    int label;
-    if (modeOffered()) {
-      label = sampling ? R.string.analysis_sample_chip : R.string.analysis_sample_mine;
+    if (sampling) {
+      chip.setText(R.string.analysis_sample_chip); // no arrow: there is nothing to pick
     } else {
-      label = tab == TAB_CASES ? caseWindow.getLabelId() : window.getLabelId();
+      int label = tab == TAB_CASES ? caseWindow.getLabelId() : window.getLabelId();
+      chip.setText(getString(R.string.analysis_window_chip, getString(label)));
     }
-    chip.setText(getString(R.string.analysis_window_chip, getString(label)));
     chip.setBackgroundResource(sampling ? R.drawable.analysis_sample_chip : R.drawable.row_chip);
     chip.setPadding(chipPadding[0], chipPadding[1], chipPadding[2], chipPadding[3]);
     chip.setTextColor(ContextCompat.getColor(this,
@@ -507,26 +499,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
             });
           }
         });
-  }
-
-  /**
-   * Whose figures the hub is reading. Offered only where their own window holds nothing, and their
-   * own is still one tap away, which is what stops the sample being something done to them.
-   */
-  private void askForMode() {
-    String[] labels = {getString(R.string.analysis_sample_chip),
-        getString(R.string.analysis_sample_mine)};
-    new AlertDialog.Builder(this, R.style.NanoTimerDialogTheme)
-        .setTitle(R.string.analysis_sample_showing)
-        .setSingleChoiceItems(labels, sampling() ? 0 : 1, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            dialog.dismiss();
-            leftSample = which == 1;
-            draw();
-          }
-        })
-        .show();
   }
 
   /**
@@ -629,8 +601,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     findViewById(R.id.llAnalysisPlan).setVisibility(tab == TAB_PLAN ? View.VISIBLE : View.GONE);
     // Nothing at all until the first read lands, rather than a moment of "you have no solves".
     TextView empty = (TextView) findViewById(R.id.tvAnalysisEmpty);
-    // Nor while it is unknown whether the reader gets the example or a blank window.
-    boolean deciding = readAsSolve() && loaded && hasOwnSolves == null && !leftSample;
+    // Nor while it is unknown whether the reader gets the example.
+    boolean deciding = readAsSolve() && loaded && hasOwnSolves == null;
     empty.setVisibility(measured && loaded && !readable && !deciding ? View.VISIBLE : View.GONE);
     empty.setText(emptyLine());
   }
@@ -860,13 +832,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   /** Moves, TPS and time paused per solve, under the mean; a placeholder while they are read. */
   private void showTurning() {
     View strip = findViewById(R.id.llAnalysisTurning);
-    if (blank()) {
-      strip.setVisibility(View.VISIBLE);
-      showTurningCell(R.id.llAnalysisTurningMoves, R.string.analysis_turning_moves, NO_FIGURE);
-      showTurningCell(R.id.llAnalysisTurningTps, R.string.analysis_turning_tps, NO_FIGURE);
-      showTurningCell(R.id.llAnalysisTurningPaused, R.string.analysis_turning_paused, NO_FIGURE);
-      return;
-    }
     TurningFigures figures = sampling() ? AnalysisSample.turning(method) : turningFigures;
     boolean reading = turningReading && !sampling();
     if (!reading && (figures == null || figures.getSolves() == 0)) {
@@ -919,7 +884,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
         any |= figures.getNotSeen() < figures.getSetSize();
       }
     }
-    boolean shown = any || reading || (blank() && shownFigures != null);
+    boolean shown = any || reading;
     card.setVisibility(shown ? View.VISIBLE : View.GONE);
     LinearLayout rows = findViewById(R.id.llAnalysisAlgorithmsRows);
     ViewGroup key = findViewById(R.id.llAnalysisAlgorithmsKey);
@@ -972,10 +937,10 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   }
 
   /**
-   * Whether the example is on offer at all: this solve type makes whole solves, its window holds
-   * none of them, and it is known whether a cube ever read one of the reader's anywhere.
+   * Whether the example stands in for the reader's figures: this solve type makes whole solves,
+   * its window holds none of them, and it is known whether a cube ever read one of theirs.
    */
-  private boolean sampleOffered() {
+  private boolean sampling() {
     return readAsSolve() && loaded && read != null && read.getFamilies().isEmpty()
         && hasOwnSolves != null;
   }
@@ -990,11 +955,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     return tab == TAB_SOLVE ? sampling() : sampleEverywhere();
   }
 
-  /** Whether the chip offers the example or the reader's own, rather than a window. */
-  private boolean modeOffered() {
-    return sampleOffered() && (tab == TAB_SOLVE || Boolean.FALSE.equals(hasOwnSolves));
-  }
-
   private CubeMethod ownMethod() {
     return SolveTypeMethod.of(solveType);
   }
@@ -1006,8 +966,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     // method has to name the solve being drawn rather than the one that is not there.
     CubeMethod own = ownMethod();
     method = sampling ? AnalysisSample.methodFor(own) : own;
-    statistics = sampling ? AnalysisSample.statistics(method)
-        : blank() ? blankStatistics(method) : read;
+    statistics = sampling ? AnalysisSample.statistics(method) : read;
     boolean everywhere = sampleEverywhere();
     oneAlgorithmCases = everywhere ? AnalysisSample.oneAlgorithmCases(method) : readOneAlgorithm;
     known = everywhere ? AnalysisSample.knowledge(method) : readKnown;
@@ -1036,40 +995,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     showSteps();
   }
 
-  /** Whether the example is standing in for a window of the reader's that holds none. */
-  private boolean sampling() {
-    return sampleOffered() && !leftSample;
-  }
-
-  /**
-   * Whether the window holds no solve and is drawn as the method's steps with nothing in them: for
-   * a reader the example is not for, once it is known which reader that is.
-   */
-  private boolean blank() {
-    return sampleOffered() && !sampling();
-  }
-
-  private static Map<CubeMethod, String[]> blankSteps() {
-    Map<CubeMethod, String[]> steps = new LinkedHashMap<CubeMethod, String[]>();
-    steps.put(CubeMethod.CFOP, new String[] {"cross", "f2l", "oll", "pll"});
-    steps.put(CubeMethod.ROUX, new String[] {"fb", "sb", "cmll", "lse"});
-    steps.put(CubeMethod.LBL, new String[] {"cross", "layer1", "layer2", "ll"});
-    steps.put(CubeMethod.BLIND, new String[] {"memo", "edges", "corners"});
-    return steps;
-  }
-
-  private static MethodStatistics blankStatistics(CubeMethod method) {
-    List<StepStats> steps = new ArrayList<StepStats>();
-    for (String code : BLANK_STEPS.get(method)) {
-      steps.add(new StepStats(code, 0, 0, 0, 0, 0, 0));
-    }
-    return new MethodStatistics(steps, 0);
-  }
-
-  /** A step's time, or a dash where no solve has timed it. */
-  private String timeOf(StepStats step, long ms) {
-    return step.getCount() == 0 ? NO_FIGURE : FormatterService.INSTANCE.formatSolveTime(ms);
-  }
 
   private void wireSample() {
     findViewById(R.id.buAnalysisSampleConnect).setOnClickListener(new View.OnClickListener() {
@@ -1580,7 +1505,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     // Of the steps rather than of the solve: a solve is timed from its first move and its steps do
     // not have to add up to it, so calling this the solve's own mean would be a different figure.
     ((TextView) findViewById(R.id.tvAnalysisMean))
-        .setText(blank() ? NO_FIGURE : FormatterService.INSTANCE.formatSolveTime(total));
+        .setText(FormatterService.INSTANCE.formatSolveTime(total));
     // No best beside it: a sum of each step's best reads as a real solve, and none was ever that fast.
     ((TextView) findViewById(R.id.tvAnalysisMeanOf)).setText(getResources().getQuantityString(
         R.plurals.analysis_hero_caption, statistics.getSolveCount(), statistics.getSolveCount()));
@@ -1614,10 +1539,10 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
       TextView name = cell.findViewById(R.id.tvAnalysisLegendName);
       name.setText(nameOf(step));
       name.setTextColor(palette.colorFor(step.getCode()));
-      ((TextView) cell.findViewById(R.id.tvAnalysisLegendShare)).setText(total == 0 ? NO_FIGURE
-          : percent((double) step.getMeanMs() / total));
+      ((TextView) cell.findViewById(R.id.tvAnalysisLegendShare))
+          .setText(percent(total == 0 ? 0 : (double) step.getMeanMs() / total));
       ((TextView) cell.findViewById(R.id.tvAnalysisLegendTime))
-          .setText(timeOf(step, step.getMeanMs()));
+          .setText(FormatterService.INSTANCE.formatSolveTime(step.getMeanMs()));
       legend.addView(cell);
     }
   }
@@ -1644,10 +1569,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     Map<String, Double> expected =
         StepBaseline.shares(method.getCode().toLowerCase(Locale.US), familyCodes());
     View card = findViewById(R.id.llAnalysisDeltaCard);
-    // With no solve there is no share to set against the baseline, only every step at minus it.
-    boolean none = expected.isEmpty() || blank();
-    card.setVisibility(none ? View.GONE : View.VISIBLE);
-    if (none) {
+    card.setVisibility(expected.isEmpty() ? View.GONE : View.VISIBLE);
+    if (expected.isEmpty()) {
       return;
     }
 
@@ -1713,16 +1636,14 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
       int hue = palette.colorFor(step.getCode());
       row.noCount()
           .dot(hue)
-          .name(nameOf(step));
-      if (step.getCount() > 0) { // no split to draw for a step nothing has timed
-        row.meter(segments.get(i).getRecognitionMs(), segments.get(i).getExecutionMs(), hue);
-      }
-      row.value(0, timeOf(step, step.getMeanMs()), ContextCompat.getColor(this, R.color.white))
+          .name(nameOf(step))
+          .meter(segments.get(i).getRecognitionMs(), segments.get(i).getExecutionMs(), hue)
+          .value(0, FormatterService.INSTANCE.formatSolveTime(step.getMeanMs()),
+              ContextCompat.getColor(this, R.color.white))
           .lead(0)
-          .value(1, timeOf(step, step.getBestMs()),
+          .value(1, FormatterService.INSTANCE.formatSolveTime(step.getBestMs()),
               ContextCompat.getColor(this, R.color.secondary_text))
-          .value(2, step.getCount() == 0 ? NO_FIGURE : quotable(step, 3)
-                  ? FormatterService.INSTANCE.formatSolveTime(step.getStdDevMs())
+          .value(2, quotable(step, 3) ? FormatterService.INSTANCE.formatSolveTime(step.getStdDevMs())
                   : getString(R.string.NA),
               ContextCompat.getColor(this, R.color.secondary_text));
       // The chevron is a promise, so only a step whose cases the next tab can list carries one.
