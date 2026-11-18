@@ -71,7 +71,7 @@ public interface ServiceProvider {
       int perCase);
   int getSmartcubeSolvesCount(SolveType solveType);
 
-  boolean hasAnySmartcubeSolve();
+  boolean hasAnySmartcubeReading();
   List<SolveTime> getSmartcubeSolves(SolveType solveType);
   List<SolveTime> getSmartcubeSolves(CubeMethod method);
   void saveSmartcubeBreakdowns(List<SolveTime> solveTimes);

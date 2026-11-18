@@ -34,9 +34,8 @@ import java.util.Map;
 
 /**
  * The algorithm library: every set the app knows, as cards, a method's sets together,
- * each opening its set. For everyone, cube or none: a timer-only solver reads it as a reference
- * and sees how many algorithms they have picked; a smart cube adds how far through each set they
- * are, from the same case knowledge Analysis reads.
+ * each opening its set. Each card says how many of its cases the solver knows, from the same case
+ * knowledge Analysis reads; starred algorithms don't count, so a set never read says "0 known".
  */
 public class LibraryActivity extends NanoTimerActivity {
 
@@ -101,7 +100,7 @@ public class LibraryActivity extends NanoTimerActivity {
     findViewById(R.id.tvLibraryHint).setVisibility(anything ? View.GONE : View.VISIBLE);
   }
 
-  /** @return whether the solver has anything in the set, known or picked */
+  /** @return whether the solver has anything in the set, a standing or a starred algorithm */
   private boolean fill(View card, final CaseSet set) {
     int hue = StepPalette.cfop(this).colorForCase(set.id() + "_");
     GradientDrawable ground = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
@@ -147,28 +146,21 @@ public class LibraryActivity extends NanoTimerActivity {
       learn += status == CaseKnowledge.Status.TO_LEARN ? 1 : 0;
       picked += Options.INSTANCE.getCaseAlgorithm(code) != null ? 1 : 0;
     }
+    // Where the solver stands in the set, in the knowledge ring's shades; stars don't count.
     DrillSplitBarView bar = card.findViewById(R.id.vLibrarySetProgress);
-    TextView progress = card.findViewById(R.id.tvLibrarySetProgress);
+    bar.setSegments(new long[] {known, review, learn, size - known - review - learn},
+        new int[] {color(R.color.case_status_known), color(R.color.case_status_review),
+            color(R.color.case_status_learn), color(R.color.case_status_unseen)});
     List<String> words = new ArrayList<String>();
-    if (known + review + learn > 0) {
-      // Where the solver stands in the set, in the knowledge ring's shades.
-      bar.setSegments(new long[] {known, review, learn, size - known - review - learn},
-          new int[] {color(R.color.case_status_known), color(R.color.case_status_review),
-              color(R.color.case_status_learn), color(R.color.case_status_unseen)});
-      words.add(getString(R.string.library_known, known));
-      if (review > 0) {
-        words.add(getString(R.string.library_review, review));
-      }
-      if (learn > 0) {
-        words.add(getString(R.string.library_to_learn, learn));
-      }
-    } else {
-      // No smart cube has read the set: how many of its algorithms the solver has picked.
-      bar.setSegments(new long[] {picked, size - picked},
-          new int[] {color(R.color.case_status_known), color(R.color.case_status_unseen)});
-      words.add(getString(R.string.library_picked, picked));
+    words.add(getString(R.string.library_known, known));
+    if (review > 0) {
+      words.add(getString(R.string.library_review, review));
     }
-    progress.setText(TextUtils.join("  ·  ", words));
+    if (learn > 0) {
+      words.add(getString(R.string.library_to_learn, learn));
+    }
+    ((TextView) card.findViewById(R.id.tvLibrarySetProgress))
+        .setText(TextUtils.join("  ·  ", words));
     return known + review + learn + picked > 0;
   }
 

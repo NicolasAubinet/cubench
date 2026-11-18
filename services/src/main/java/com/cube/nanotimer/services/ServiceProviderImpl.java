@@ -2091,10 +2091,14 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
-  public boolean hasAnySmartcubeSolve() {
+  public boolean hasAnySmartcubeReading() {
     // EXISTS rather than a count: the answer is settled by the first row, however long the history.
+    // Drills count too: a drill-only reader has case knowledge of their own.
     Cursor cursor = db.rawQuery("SELECT EXISTS(SELECT 1 FROM " + DB.TABLE_TIMEHISTORY
-        + " WHERE " + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL)", null);
+        + " WHERE " + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL)"
+        + " OR EXISTS(SELECT 1 FROM " + DB.TABLE_DRILL_REP + ")"
+        + " OR EXISTS(SELECT 1 FROM " + DB.TABLE_DRILL_CROSS_REP + ")"
+        + " OR EXISTS(SELECT 1 FROM " + DB.TABLE_CASE_CLEARED + ")", null);
     boolean any = false;
     if (cursor != null) {
       if (cursor.moveToFirst()) {

@@ -6,7 +6,10 @@ import static org.junit.Assert.assertTrue;
 import com.cube.nanotimer.coach.StepBaseline;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.session.AlgorithmFigures;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.StepStats;
 
 import java.util.ArrayList;
@@ -25,7 +28,7 @@ import org.junit.Test;
  */
 public class AnalysisSampleTest {
 
-  private static final MethodStatistics STATISTICS = AnalysisSample.statistics();
+  private static final MethodStatistics STATISTICS = AnalysisSample.statistics(CubeMethod.CFOP);
 
   private static StepStats step(String code) {
     StepStats step = STATISTICS.getFamily(code);
@@ -145,7 +148,7 @@ public class AnalysisSampleTest {
   @Test
   public void everyDrawnCaseHasAStanding() {
     Set<String> covered = new HashSet<String>();
-    for (CaseKnowledge caseKnown : AnalysisSample.knowledge()) {
+    for (CaseKnowledge caseKnown : AnalysisSample.knowledge(CubeMethod.CFOP)) {
       covered.add(caseKnown.getCode());
     }
     List<String> silent = new ArrayList<String>();
@@ -170,7 +173,7 @@ public class AnalysisSampleTest {
 
   private int standing(String family, CaseKnowledge.Status status) {
     int count = 0;
-    for (CaseKnowledge caseKnown : AnalysisSample.knowledge()) {
+    for (CaseKnowledge caseKnown : AnalysisSample.knowledge(CubeMethod.CFOP)) {
       if (family.equals(caseKnown.getCaseSet()) && caseKnown.getStatus() == status) {
         count++;
       }
@@ -188,6 +191,67 @@ public class AnalysisSampleTest {
       assertTrue(family.getCode(), family.getStdDevMs() > 0);
       assertTrue(family.getCode(), family.getStdDevMs() < family.getMeanMs());
     }
+  }
+
+  /** A Roux type gets a Roux solver, about as fast, whose CMLL is its cases put together. */
+  @Test
+  public void rouxReadsAsAWholeRouxSolve() {
+    MethodStatistics roux = AnalysisSample.statistics(CubeMethod.ROUX);
+    List<String> codes = new ArrayList<String>();
+    long total = 0;
+    for (StepStats family : roux.getFamilies()) {
+      codes.add(family.getCode());
+      total += family.getMeanMs();
+    }
+    assertEquals("[fb, sb, cmll, lse]", codes.toString());
+    assertEquals(14745, total);
+    List<StepStats> cases = roux.getCases("cmll");
+    assertEquals(36, cases.size());
+    int count = 0;
+    for (StepStats stepCase : cases) {
+      assertTrue(stepCase.getCode(), CmllCases.isCase(stepCase.getCode()));
+      count += stepCase.getCount();
+    }
+    assertEquals(AnalysisSample.SOLVES, count);
+    assertEquals(36, AnalysisSample.oneAlgorithmCases(CubeMethod.ROUX).size());
+  }
+
+  /** Every CMLL has a standing but the two left silent, and only an unmet case is still to learn. */
+  @Test
+  public void rouxRingCoversTheCmlls() {
+    assertEquals(40, AnalysisSample.knowledge(CubeMethod.ROUX).size());
+    int toLearn = 0;
+    int review = 0;
+    for (CaseKnowledge caseKnown : AnalysisSample.knowledge(CubeMethod.ROUX)) {
+      assertEquals("cmll", caseKnown.getCaseSet());
+      toLearn += caseKnown.getStatus() == CaseKnowledge.Status.TO_LEARN ? 1 : 0;
+      review += caseKnown.getStatus() == CaseKnowledge.Status.NEEDS_REVIEW ? 1 : 0;
+    }
+    assertEquals(2, toLearn);
+    assertEquals(3, review);
+  }
+
+  /** The Algorithms card's sets see exactly the cases the Cases tab lists. */
+  @Test
+  public void algorithmsSeeTheSampledCases() {
+    Map<String, AlgorithmFigures> cfop = AnalysisSample.algorithms(CubeMethod.CFOP);
+    assertEquals("[f2l, oll, pll]", cfop.keySet().toString());
+    assertEquals(57 - 42, cfop.get("oll").getNotSeen());
+    assertEquals(21 - 19, cfop.get("pll").getNotSeen());
+    assertEquals(0, cfop.get("f2l").getNotSeen());
+    assertEquals(4, cfop.get("oll").getNotStandard());
+    AlgorithmFigures cmll = AnalysisSample.algorithms(CubeMethod.ROUX).get("cmll");
+    assertEquals(42 - 36, cmll.getNotSeen());
+    assertEquals(3, cmll.getNotStandard());
+    assertEquals(7, cmll.getExtraMoves());
+  }
+
+  /** LBL and blind types are shown the CFOP solver: there is no example of their own. */
+  @Test
+  public void otherMethodsSampleCfop() {
+    assertEquals(CubeMethod.CFOP, AnalysisSample.methodFor(CubeMethod.LBL));
+    assertEquals(CubeMethod.CFOP, AnalysisSample.methodFor(CubeMethod.BLIND));
+    assertEquals(CubeMethod.ROUX, AnalysisSample.methodFor(CubeMethod.ROUX));
   }
 
   private int percent(String code) {

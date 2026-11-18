@@ -107,6 +107,20 @@
      android:layout_height="wrap_content"
      android:layout_marginTop="16dp"/>
 
+  <!-- In the table's place while no case of the step went in with one algorithm. -->
+  <TextView
+     android:id="@+id/tvAnalysisCasesNone"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:layout_marginTop="16dp"
+     android:gravity="center"
+     android:paddingLeft="16dp"
+     android:paddingRight="16dp"
+     android:text="@string/analysis_cases_none"
+     android:textColor="@color/secondary_text"
+     android:textSize="14sp"
+     android:visibility="gone"/>
+
   <!-- Where the plan is, for anyone reading the ranking. It opens the Plan tab rather than a drill:
        which of these cases to drill is the plan's to say, and the same button stands for everyone. -->
   <LinearLayout

@@ -1325,7 +1325,6 @@
   <string name="library_known">%d conocidos</string>
   <string name="library_review">%d por repasar</string>
   <string name="library_to_learn">%d por aprender</string>
-  <string name="library_picked">%d elegidos</string>
   <string name="library_nothing_picked">Toca un conjunto para ver sus casos y marcar los algoritmos que usas.</string>
   <string name="case_filter_status">Estado</string>
   <string name="case_filter_all_statuses">Todos</string>
@@ -1352,9 +1351,9 @@
   <string name="analysis_algorithms_not_seen">No vistos</string>
   <string name="analysis_algorithms_reading">Leyendo tus resoluciones…</string>
   <string name="analysis_rest_title">El resto del conjunto</string>
-  <string name="analysis_cases_empty">Conecta un smart cube y haz algunas resoluciones para ver aquí ordenados los casos que lea.</string>
   <string name="analysis_cases_blind">Una resolución a ciegas no tiene casos. Se lee como una memorización y las piezas resueltas.</string>
-  <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
+  <string name="analysis_cases_method">Por ahora solo las resoluciones CFOP y Roux tienen sus casos nombrados, así que no hay nada que ordenar aquí.</string>
+  <string name="analysis_cases_none">Todavía ningún caso de este paso resuelto con un solo algoritmo.</string>
   <string name="analysis_plan_headline">Un plan cada semana</string>
   <string name="analysis_plan_for_cfop">Solo CFOP por ahora</string>
   <string name="analysis_plan_cfop_only">El coach escribe planes solo para CFOP.</string>
@@ -1651,9 +1650,8 @@
 
   <string name="analysis_sample_subtitle">No son tus tiempos</string>
   <string name="analysis_sample_chip">Ejemplo</string>
-  <string name="analysis_sample_mine">Mis resoluciones</string>
-  <string name="analysis_sample_showing">Mostrando</string>
   <string name="analysis_sample_banner">Datos de ejemplo de %d resoluciones ficticias. Conecta un smart cube para ver las tuyas.</string>
+  <string name="analysis_sample_banner_owner">Datos de ejemplo de %d resoluciones ficticias. Haz una resolución con tu smart cube en este tipo de resolución para ver las tuyas.</string>
   <string name="analysis_sample_cta_title">Esto es lo que diría tu cubo</string>
   <string name="analysis_sample_cta_body">Cubench lee cada giro de un smart cube, parte la resolución en sus pasos y nombra el caso de cada uno. Recorre todo el ejemplo y luego conecta un cubo para ver las tuyas.</string>
   <string name="analysis_sample_connect">Conectar un cubo</string>
