@@ -57,6 +57,7 @@
     <activity android:name=".gui.AnalysisActivity"/>
     <activity android:name=".gui.DrillSetupActivity"/>
     <activity android:name=".gui.DrillCaseStatsActivity"/>
+    <activity android:name=".gui.CaseSolvesActivity"/>
     <activity android:name=".gui.LibraryActivity"/>
     <activity android:name=".gui.CaseSetActivity"/>
     <!-- Handle their own rotations: recreating would throw away a drill that is halfway through. -->

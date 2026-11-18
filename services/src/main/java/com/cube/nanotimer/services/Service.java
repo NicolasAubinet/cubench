@@ -10,6 +10,7 @@ import com.cube.nanotimer.session.CoachDay;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.vo.BackupCounts;
 import com.cube.nanotimer.vo.CaseHistory;
+import com.cube.nanotimer.vo.CaseSolve;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.ExportResult;
@@ -85,6 +86,12 @@ public interface Service {
    * slot; null for a case never met in a solve.
    */
   void getCaseSolveStats(String caseCode, int lastTimes, DataCallback<StepStats> callback);
+
+  /**
+   * The executions {@link #getCaseSolveStats} is the mean of, newest first, each with its whole
+   * solve loaded the way the history loads one, ready to be opened.
+   */
+  void getCaseSolveList(String caseCode, int lastTimes, DataCallback<List<CaseSolve>> callback);
 
   /**
    * Every last layer case over the last {@code lastSolves} solves of any solve type, counting the

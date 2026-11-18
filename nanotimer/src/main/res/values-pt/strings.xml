@@ -1131,6 +1131,16 @@
   <string name="case_sheet_your_times">Seus tempos</string>
   <string name="case_sheet_in_solves">Em resoluções</string>
   <string name="case_sheet_in_drills">Em exercícios</string>
+  <string name="case_solves_label">Resoluções</string>
+  <string name="case_solves_hint">Toque no caso para ver os algoritmos, numa resolução para abri-la.</string>
+  <string name="case_solves_empty">Nenhuma resolução cronometrou este caso.</string>
+  <string name="case_solves_cell_count">Vezes</string>
+  <string name="case_solves_note">Resolução %s</string>
+  <string name="case_solves_note_type">Resolução %1$s · %2$s</string>
+  <plurals name="case_solves_window_types">
+    <item quantity="one">De %d tipo de resolução</item>
+    <item quantity="other">De %d tipos de resolução</item>
+  </plurals>
   <string name="case_sheet_best">Melhor %s</string>
   <string name="case_sheet_show_fewer">Mostrar menos</string>
   <string name="case_algorithm_your_pick">Sua escolha</string>

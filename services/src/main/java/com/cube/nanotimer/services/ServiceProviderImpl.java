@@ -43,6 +43,7 @@ import com.cube.nanotimer.vo.SolveAverages;
 import com.cube.nanotimer.vo.SolveHistory;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SessionTimes;
+import com.cube.nanotimer.vo.CaseSolve;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveTimeAverages;
 import com.cube.nanotimer.vo.SolveType;
@@ -1938,6 +1939,98 @@ public class ServiceProviderImpl implements ServiceProvider {
 
   @Override
   public StepStats getCaseSolveStats(String caseCode, int lastTimes) {
+    int count = 0;
+    long total = 0;
+    long recognition = 0;
+    long best = Long.MAX_VALUE;
+    long worst = 0;
+    double squares = 0;
+    Cursor cursor = db.rawQuery(caseSolvesQuery(caseCode, "", lastTimes),
+        caseSolvesArgs(caseCode));
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        long time = cursor.getLong(0);
+        count++;
+        total += time;
+        recognition += cursor.getLong(1);
+        best = Math.min(best, time);
+        worst = Math.max(worst, time);
+        squares += 1.0 * time * time;
+      }
+      cursor.close();
+    }
+    return count == 0 ? null
+        : new StepStats(caseCode, count, total, recognition, best, worst, squares);
+  }
+
+  /** The very rows {@link #getCaseSolveStats} is the mean of, each with its whole solve. */
+  @Override
+  public List<CaseSolve> getCaseSolveList(String caseCode, int lastTimes) {
+    List<long[]> found = new ArrayList<long[]>(); // {solve, solve type, case time, recognition}
+    Cursor cursor = db.rawQuery(caseSolvesQuery(caseCode, ", h." + DB.COL_ID
+        + ", h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID, lastTimes), caseSolvesArgs(caseCode));
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        found.add(new long[] { cursor.getLong(2), cursor.getLong(3), cursor.getLong(0),
+            cursor.getLong(1) });
+      }
+      cursor.close();
+    }
+    Map<Long, SolveType> types = new HashMap<Long, SolveType>();
+    Map<Long, SolveTime> solves = new HashMap<Long, SolveTime>();
+    List<CaseSolve> list = new ArrayList<CaseSolve>();
+    for (long[] row : found) {
+      if (!types.containsKey(row[1])) {
+        types.put(row[1], getSolveType((int) row[1]));
+      }
+      SolveType type = types.get(row[1]);
+      if (type == null) {
+        continue;
+      }
+      if (!solves.containsKey(row[0])) {
+        List<SolveTime> one = readHistoryTimes(type, historySelect(false)
+            + "   AND " + DB.COL_ID + " = ?", getStringArray(type.getId(), row[0]), false);
+        solves.put(row[0], one.isEmpty() ? null : one.get(0));
+      }
+      SolveTime solve = solves.get(row[0]);
+      if (solve != null) {
+        list.add(new CaseSolve(solve, row[3], row[2]));
+      }
+    }
+    return list;
+  }
+
+  /** One solve type in full, steps and method included, as the history holds the one it lists. */
+  private SolveType getSolveType(int solveTypeId) {
+    Cursor cursor = db.rawQuery("SELECT " + DB.COL_SOLVETYPE_CUBETYPE_ID
+        + " FROM " + DB.TABLE_SOLVETYPE + " WHERE " + DB.COL_ID + " = ?",
+        getStringArray(solveTypeId));
+    CubeType cubeType = null;
+    if (cursor != null) {
+      if (cursor.moveToFirst()) {
+        cubeType = CubeType.getCubeType(cursor.getInt(0));
+      }
+      cursor.close();
+    }
+    if (cubeType != null) {
+      for (SolveType type : getSolveTypes(cubeType)) {
+        if (type.getId() == solveTypeId) {
+          return type;
+        }
+      }
+    }
+    return null;
+  }
+
+  private static String[] caseSolvesArgs(String caseCode) {
+    return new String[] { caseCode.startsWith(PAIR_PREFIX) ? caseCode + "_*" : caseCode };
+  }
+
+  /**
+   * A case's last {@code lastTimes} executions in solves, newest first: the case time and its
+   * recognition, then {@code more}. A last layer case counts only where it went in one algorithm.
+   */
+  private static String caseSolvesQuery(String caseCode, String more, int lastTimes) {
     boolean pair = caseCode.startsWith(PAIR_PREFIX);
     String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
         + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -1945,8 +2038,8 @@ public class ServiceProviderImpl implements ServiceProvider {
         + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
         + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
-    String q = "SELECT " + CASE_TIME
-        + ", s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION
+    return "SELECT " + CASE_TIME
+        + ", s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + more
         + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + " JOIN " + DB.TABLE_TIMEHISTORY + " h"
         + "   ON h." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -1963,27 +2056,6 @@ public class ServiceProviderImpl implements ServiceProvider {
         + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
         + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC"
         + " LIMIT " + Math.max(0, lastTimes);
-    int count = 0;
-    long total = 0;
-    long recognition = 0;
-    long best = Long.MAX_VALUE;
-    long worst = 0;
-    double squares = 0;
-    Cursor cursor = db.rawQuery(q, new String[] { pair ? caseCode + "_*" : caseCode });
-    if (cursor != null) {
-      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        long time = cursor.getLong(0);
-        count++;
-        total += time;
-        recognition += cursor.getLong(1);
-        best = Math.min(best, time);
-        worst = Math.max(worst, time);
-        squares += 1.0 * time * time;
-      }
-      cursor.close();
-    }
-    return count == 0 ? null
-        : new StepStats(caseCode, count, total, recognition, best, worst, squares);
   }
 
   /**
