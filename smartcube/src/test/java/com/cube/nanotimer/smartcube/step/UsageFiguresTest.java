@@ -16,6 +16,7 @@ public class UsageFiguresTest {
 
   private static final String T_LISTED = "R U R' U' R' F R2 U' R' U' R U R' F'";
   private static final String T_OTHER = "F R U' R' U R U R2 F' R U R U' R'";
+  private static final String SUNE_CMLL = "cmll_suneleftbar";
   private static final String[] PLLS = {"aa", "ab", "e", "f", "ga", "gb", "gc", "gd", "h", "ja",
       "jb", "na", "nb", "ra", "rb", "t", "ua", "ub", "v", "y", "z"};
 
@@ -77,6 +78,38 @@ public class UsageFiguresTest {
     use("pair_27_fl", 50, share("R U R'", 100));
     assertFalse(CaseAlgorithms.hasUsage("pair_27_fl"));
     assertEquals(before, moves(CaseAlgorithms.shown("pair_27_fl")));
+  }
+
+  @Test
+  public void aCmllCaseSwitchesAtTheSameFloor() {
+    String top = CaseAlgorithms.byVotes(SUNE_CMLL).get(0).getMoves();
+    String second = CaseAlgorithms.byVotes(SUNE_CMLL).get(1).getMoves();
+
+    use(SUNE_CMLL, UsageFigures.CASE_FLOOR - 1, share(second, 80), share(top, 20));
+    assertFalse(CaseAlgorithms.hasUsage(SUNE_CMLL));
+    assertEquals(top, CaseAlgorithms.shown(SUNE_CMLL).get(0).getMoves());
+
+    use(SUNE_CMLL, UsageFigures.CASE_FLOOR, share(second, 80), share(top, 20));
+    assertTrue(CaseAlgorithms.hasUsage(SUNE_CMLL));
+    assertEquals(Arrays.asList(second, top), moves(CaseAlgorithms.shown(SUNE_CMLL)));
+    assertEquals(80f, CaseAlgorithms.shown(SUNE_CMLL).get(0).getShare(), 0f);
+  }
+
+  /** A starred CMLL nobody shares still has a row to stand on once the case switches. */
+  @Test
+  public void aCmllAlgorithmNoSharerUsesStaysUnderShowMore() {
+    String top = CaseAlgorithms.byVotes(SUNE_CMLL).get(0).getMoves();
+    String second = CaseAlgorithms.byVotes(SUNE_CMLL).get(1).getMoves();
+    use(SUNE_CMLL, 40, share(second, 100));
+
+    assertFalse(moves(CaseAlgorithms.shown(SUNE_CMLL)).contains(top));
+    assertTrue(moves(CaseAlgorithms.more(SUNE_CMLL)).contains(top));
+  }
+
+  @Test
+  public void aCmllShareThatSolvesAnotherCaseIsDropped() {
+    use(SUNE_CMLL, 40, share(T_LISTED, 90));
+    assertFalse(CaseAlgorithms.hasUsage(SUNE_CMLL));
   }
 
   private static String caseWithTwoListed() {

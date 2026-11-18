@@ -4,7 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.vo.CubeMethod;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 
 import java.util.ArrayList;
@@ -56,11 +58,41 @@ public class AlgorithmVotesTest {
   }
 
   @Test
-  public void readsNothingOutOfASolveThatIsNotCfop() {
+  public void readsNothingOutOfASolveThatIsNeitherCfopNorRoux() {
     List<SolveTime> solves = times(2, SUNE + " " + TPERM);
     for (SolveTime solve : solves) {
-      solve.getSolveType().setMethod(CubeMethod.ROUX);
+      solve.getSolveType().setMethod(CubeMethod.LBL);
     }
+
+    assertTrue(AlgorithmVotes.readFrom(solves).isEmpty());
+  }
+
+  @Test
+  public void aOneLookCmllInARouxSolveVotes() {
+    Map<String, String> votes = AlgorithmVotes.readFrom(roux(times(2, SUNE)));
+
+    assertEquals(1, votes.size());
+    String caseCode = votes.keySet().iterator().next();
+    assertTrue(caseCode, CmllCases.isCase(caseCode));
+    assertTrue(votes.get(caseCode), CmllCases.solves(caseCode, votes.get(caseCode)));
+  }
+
+  /** Orient then permute: the case it was handed sees two algorithms, so no vote. */
+  @Test
+  public void aTwoLookCmllNeverVotes() {
+    List<SolveTime> solves = roux(times(3, SUNE + " " + TPERM));
+    final List<SolveStep> cmll = new ArrayList<SolveStep>();
+    CaseExecutions.readSteps(CaseExecutions.replayAs(solves.get(0), CubeMethod.ROUX),
+        new CaseExecutions.StepReader() {
+          @Override
+          public void read(SolveStep step, SolveSolution.Step turned) {
+            if (CmllCases.isCase(step.getName())) {
+              cmll.add(step);
+            }
+          }
+        });
+    assertEquals(1, cmll.size());
+    assertEquals(2, cmll.get(0).getSubSteps().size());
 
     assertTrue(AlgorithmVotes.readFrom(solves).isEmpty());
   }
@@ -93,6 +125,14 @@ public class AlgorithmVotesTest {
     current.put("oll_27", "F R F R' F R F2 R'");
 
     assertTrue(AlgorithmVotes.changedSince(current, reported).isEmpty());
+  }
+
+  private static List<SolveTime> roux(List<SolveTime> solves) {
+    for (SolveTime solve : solves) {
+      solve.getSolveType().setMethod(CubeMethod.ROUX);
+      solve.setSmartcubeMethod(CubeMethod.ROUX);
+    }
+    return solves;
   }
 
   private static List<SolveTime> times(int count, String moves) {

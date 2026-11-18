@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 
@@ -26,7 +27,8 @@ import java.util.TreeMap;
  *   OLL as a vote for the one-look algorithm of the case it passed through. A false start
  *   ({@code ollrestart}) is not an algorithm, as in {@link SolveReading}.
  * </ul>
- * F2L pairs are read too, each pair being one algorithm by construction.
+ * F2L pairs are read too, each pair being one algorithm by construction, and so is a Roux solve's
+ * CMLL, under the same one-look rule: a two-look CMLL is stored with an orient and a permute part.
  */
 public final class AlgorithmVotes {
 
@@ -38,14 +40,14 @@ public final class AlgorithmVotes {
 
   /**
    * @param solves the most recent solves, newest first, whatever they were solved as: only smart-cube
-   *     CFOP solves are read
-   * @return each case's vote ({@code oll_27}, {@code pll_t}, {@code pair_4} to its algorithm), sorted
-   *     by case code
+   *     CFOP and Roux solves are read
+   * @return each case's vote ({@code oll_27}, {@code pll_t}, {@code pair_4}, {@code cmll_suneleftbar}
+   *     to its algorithm), sorted by case code
    */
   public static Map<String, String> readFrom(List<SolveTime> solves) {
     final Map<String, List<String>> answers = new LinkedHashMap<String, List<String>>();
     for (SolveTime solve : solves) {
-      CaseExecutions.readSteps(solve, new CaseExecutions.StepReader() {
+      CaseExecutions.readSteps(replay(solve), new CaseExecutions.StepReader() {
         @Override
         public void read(SolveStep step, SolveSolution.Step turned) {
           collect(step, turned, answers);
@@ -81,6 +83,11 @@ public final class AlgorithmVotes {
       }
     }
     return Collections.unmodifiableMap(changed);
+  }
+
+  private static CaseExecutions.Replay replay(SolveTime solve) {
+    return SolveTypeMethod.of(solve.getSolveType()) == CubeMethod.ROUX
+        ? CaseExecutions.replayAs(solve, CubeMethod.ROUX) : CaseExecutions.replay(solve);
   }
 
   private static void collect(SolveStep step, SolveSolution.Step turned,
