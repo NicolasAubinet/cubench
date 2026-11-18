@@ -1078,8 +1078,10 @@
   <string name="case_group_f2l_stuck_edge">Arête coincée dans un autre slot</string>
   <string name="case_group_f2l_stuck_both">Les deux coincés dans un autre slot</string>
   <string name="drill_practice_cross">Croix</string>
+  <string name="drill_practice_cmll">CMLL</string>
   <string name="drill_practice_hint_pll">Les PLL l\'un après l\'autre, parmi les cas que vous choisissez.</string>
   <string name="drill_practice_hint_oll">Les OLL l\'un après l\'autre, parmi les cas que vous choisissez.</string>
+  <string name="drill_practice_hint_cmll">Les CMLL l\'un après l\'autre, parmi les cas que vous choisissez.</string>
   <string name="drill_practice_hint_cross">Un mélange complet, et la croix la plus courte que vous y trouvez.</string>
   <string name="drill_practice_f2l">F2L</string>
   <string name="drill_practice_hint_f2l">Les paires F2L l\'une après l\'autre, les cas fréquents plus souvent.</string>
@@ -1088,6 +1090,7 @@
   <string name="drill_cases_count">%1$d sur %2$d choisis</string>
   <string name="drill_cases_title_oll">Cas OLL</string>
   <string name="drill_cases_title_pll">Cas PLL</string>
+  <string name="drill_cases_title_cmll">Cas CMLL</string>
   <string name="drill_cases_all">Tous</string>
   <string name="drill_cases_none">Aucun</string>
   <string name="drill_cases_empty">Choisissez au moins un cas à travailler.</string>

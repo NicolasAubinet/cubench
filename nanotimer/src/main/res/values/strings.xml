@@ -1121,8 +1121,10 @@
   <string name="case_group_f2l_stuck_edge">Edge stuck in another slot</string>
   <string name="case_group_f2l_stuck_both">Both stuck in another slot</string>
   <string name="drill_practice_cross">Cross</string>
+  <string name="drill_practice_cmll">CMLL</string>
   <string name="drill_practice_hint_pll">One PLL after another, from the cases you pick.</string>
   <string name="drill_practice_hint_oll">One OLL after another, from the cases you pick.</string>
+  <string name="drill_practice_hint_cmll">One CMLL after another, from the cases you pick.</string>
   <string name="drill_practice_hint_cross">A whole scramble, and the shortest cross you can find in it.</string>
   <string name="drill_practice_f2l">F2L</string>
   <string name="drill_practice_hint_f2l">One F2L pair after another, the common cases more often.</string>
@@ -1131,6 +1133,7 @@
   <string name="drill_cases_count">%1$d of %2$d picked</string>
   <string name="drill_cases_title_oll">OLL cases</string>
   <string name="drill_cases_title_pll">PLL cases</string>
+  <string name="drill_cases_title_cmll">CMLL cases</string>
   <string name="drill_cases_all">All</string>
   <string name="drill_cases_none">None</string>
   <string name="drill_cases_empty">Pick at least one case to drill.</string>

@@ -177,6 +177,132 @@ public final class CmllCases {
     return of(new String(framed));
   }
 
+  /**
+   * Whether a CMLL is done on a cube with its last layer on {@code layerFace}: both blocks intact
+   * and the four corners solved against them, up to a turn of the layer. The edges and the centres
+   * the middle slice carries are never read, so the slice may be left anywhere.
+   *
+   * @param facelets the cube against its own centres, URFDLB
+   * @param layerFace the face the last layer is on, as its letter
+   */
+  public static boolean isDone(String facelets, String layerFace) {
+    int up = Cubies.FACES.indexOf(layerFace);
+    for (int orientation = 0; orientation < FaceletRotations.COUNT; orientation++) {
+      if (FaceletRotations.face(orientation, Cubies.U) == up
+          && SKIP.equals(reading(facelets, orientation))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Algorithms a CMLL took: one more than the other cases landed on before the corners were solved.
+   * A return to the case left is a fumble; a listed algorithm's halves are one. Null if unreadable.
+   */
+  static Integer looks(List<String> states) {
+    if (states.isEmpty()) {
+      return null;
+    }
+    int frame = frameOf(states.get(0));
+    if (frame < 0) {
+      return null;
+    }
+    String handed = reading(states.get(0), frame);
+    List<String> landings = landings(handed, states.subList(1, states.size()), frame);
+    if (landings == null) {
+      return null;
+    }
+    if (landings.size() > 0 && compositesOf(handed).contains(landings)) {
+      return Integer.valueOf(1);
+    }
+    return Integer.valueOf(landings.size() + 1);
+  }
+
+  /** The cases landed on between the one handed and the skip, or null if it is never reached. */
+  private static List<String> landings(String handed, List<String> states, int frame) {
+    List<String> landings = new ArrayList<String>();
+    String landed = handed;
+    boolean left = false;
+    for (String state : states) {
+      String read = frame < 0 ? readAny(state) : reading(state, frame);
+      if (read == null) {
+        left = true;
+      } else if (SKIP.equals(read)) {
+        return landings;
+      } else if (left && !read.equals(landed)) {
+        landings.add(read);
+        landed = read;
+        left = false;
+      } else {
+        left = false; // still on the case, or back on it
+      }
+    }
+    return SKIP.equals(handed) ? landings : null;
+  }
+
+  /** Per case, the cases its listed algorithms pass through, which are not a second look. */
+  private static final Map<String, List<List<String>>> COMPOSITES =
+      new ConcurrentHashMap<String, List<List<String>>>();
+
+  private static List<List<String>> compositesOf(String name) {
+    List<List<String>> found = COMPOSITES.get(name);
+    if (found != null) {
+      return found;
+    }
+    found = new ArrayList<List<String>>();
+    for (LastLayerCaseAlgorithms.Algorithm algorithm
+        : LastLayerCaseAlgorithms.listed(PREFIX + name)) {
+      String moves = algorithm.getMoves().replace("(", "").replace(")", "").trim();
+      String state = caseState(moves);
+      if (state == null) {
+        continue;
+      }
+      List<String> states = new ArrayList<String>();
+      for (String token : moves.split("\\s+")) {
+        state = Notation.apply(state, token);
+        states.add(state);
+      }
+      List<String> landings = landings(name, states, -1); // turns of the cube move the frame
+      if (landings != null && !landings.isEmpty()) {
+        found.add(landings);
+      }
+    }
+    COMPOSITES.put(name, found);
+    return found;
+  }
+
+  /** A frame with the blocks home on this state, an orientation, or -1 where there is none. */
+  private static int frameOf(String facelets) {
+    for (int orientation = 0; orientation < FaceletRotations.COUNT; orientation++) {
+      if (reading(facelets, orientation) != null) {
+        return orientation;
+      }
+    }
+    return -1;
+  }
+
+  /** The case read in any frame, for moves that turn the whole cube along the way. */
+  private static String readAny(String facelets) {
+    int frame = frameOf(facelets);
+    return frame < 0 ? null : reading(facelets, frame);
+  }
+
+  /** The case read in one frame, the slice turned any way, or null when the blocks are not home. */
+  private static String reading(String facelets, int orientation) {
+    int left = FaceletRotations.face(orientation, Cubies.L);
+    int right = FaceletRotations.face(orientation, Cubies.R);
+    for (int drift : FaceletRotations.about(left)) {
+      if (FaceletRotations.face(drift, right) == right) {
+        String read = handed(facelets, orientation, drift);
+        if (read != null) {
+          return read;
+        }
+      }
+    }
+    return null;
+  }
+
   /** The case a state is at, blocks on L and R and the layer on U, or null when it is not one. */
   static String of(String state) {
     String key = key(state);

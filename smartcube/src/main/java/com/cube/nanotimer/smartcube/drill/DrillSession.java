@@ -9,6 +9,7 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.Face;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.F2LSlotAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LPairScrambles;
 import com.cube.nanotimer.smartcube.step.FaceTurns;
@@ -220,7 +221,9 @@ public final class DrillSession {
     } else {
       List<String> known = pairs ? F2LPairScrambles.cases() : LastLayerScrambles.cases();
       for (String code : spec.getCases()) {
-        (known.contains(code) ? cases : unknownCases).add(code);
+        boolean dealt = known.contains(code)
+            || (!pairs && LastLayerScrambles.cmllCases().contains(code));
+        (dealt ? cases : unknownCases).add(code);
       }
     }
     if (spec.getWorkingSet() > 0 && weights != null) {
@@ -362,9 +365,10 @@ public final class DrillSession {
       pairCorner = LayerRotation.piece("DFR", spins, layerFace);
       pairEdge = LayerRotation.piece("FR", spins, layerFace);
     } else {
-      String atItsAngle = practiceCase != null && practiceAlgorithm != null
-          ? LastLayerScrambles.forAlgorithm(
-              LastLayerScrambles.withoutLeadingY(practiceAlgorithm)) : null;
+      String bare = practiceCase != null && practiceAlgorithm != null
+          ? LastLayerScrambles.withoutLeadingY(practiceAlgorithm) : null;
+      String atItsAngle = bare == null ? null : isCmll(currentCase)
+          ? LastLayerScrambles.forCmllAlgorithm(bare) : LastLayerScrambles.forAlgorithm(bare);
       currentScramble = LayerRotation.toFace(atItsAngle != null ? atItsAngle
           : LastLayerScrambles.forCase(currentCase, random), layerFace);
     }
@@ -902,7 +906,8 @@ public final class DrillSession {
    * way; a scramble here is one particular algorithm inverted, so ending on a solved cube would ask
    * the user to reproduce that algorithm rather than the one they know, and any other correct
    * algorithm would orient the face and then never finish. A PLL restores the permutation, so for
-   * one of those a solved cube is exactly the question.
+   * one of those a solved cube is exactly the question. A CMLL is done when the corners are solved
+   * against the blocks, with the slice and the layer's turn left to the last six edges.
    */
   private boolean isCaseDone() {
     return isCaseDone(cube);
@@ -923,7 +928,14 @@ public final class DrillSession {
     if (currentCase != null && currentCase.startsWith("oll_")) {
       return isLayerOriented(state);
     }
+    if (isCmll(currentCase)) {
+      return CmllCases.isDone(state.toFaceCube(), layerFace);
+    }
     return state.isSolved();
+  }
+
+  private static boolean isCmll(String code) {
+    return code != null && code.startsWith(CmllCases.PREFIX);
   }
 
   /**

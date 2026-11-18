@@ -248,7 +248,8 @@ public class CaseSetActivity extends NanoTimerActivity
   private void setUpPicking() {
     setTitle(isLearning() ? (set == CaseSets.OLL ? R.string.coach_learn_next
         : R.string.coach_learn_next_pll)
-        : set == CaseSets.OLL ? R.string.drill_cases_title_oll : R.string.drill_cases_title_pll);
+        : set == CaseSets.OLL ? R.string.drill_cases_title_oll
+        : set == CaseSets.CMLL ? R.string.drill_cases_title_cmll : R.string.drill_cases_title_pll);
     if (isLearning()) {
       Set<String> own = Options.INSTANCE.getLearnPick(family);
       picked.addAll(own == null ? suggested : own);
