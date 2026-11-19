@@ -3,11 +3,17 @@ package com.cube.nanotimer.gui.widget.cases;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Outline;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.ColorUtils;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
@@ -43,6 +50,7 @@ import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms.Listed;
+import com.cube.nanotimer.smartcube.step.CmllCases;
 import com.cube.nanotimer.smartcube.step.F2LCaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LSlotAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
@@ -92,6 +100,11 @@ import java.util.Objects;
  *
  * <p>Opened from one solve, it shows that solve's execution instead, marked "this solve".
  *
+ * <p><b>The top is washed in the case's step colour</b> (PLL orange, OLL yellow, F2L green), fading
+ * out under the figures, and the picture lies on it with a shadow, like a card put down. A top view
+ * is tilted a little; an F2L picture is drawn in 3D, so turning it would skew its edges, and it
+ * stays straight. The tilt is this sheet's alone: nothing else in the app is turned.
+ *
  * <p><b>With no smart cube behind it</b> (no solve or drill ever read the case) the sheet is the
  * reference: the star reads as "Your pick", and the setup moves for the picked algorithm put the
  * case on a real cube. <b>Practice this case</b> opens the case's drill on a connected cube, or the
@@ -123,6 +136,17 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private static final int SOLVE_FIGURES = 50;
   /** An empty card's figures. */
   private static final String NONE = "–";
+  /** Degrees a top-view picture is turned on the band. */
+  private static final float PICTURE_TILT = -4;
+  private static final int PICTURE_ELEVATION_DP = 10;
+  /** Of the picture's size, as {@code LastLayerCaseView} rounds its well. */
+  private static final float PICTURE_RADIUS = 0.10f;
+  /** A name this short is set large; a longer one would wrap. */
+  private static final int SHORT_NAME = 3;
+  /** How far the band runs past the figures before it has faded out, and the sheet's top radius. */
+  private static final int BAND_TAIL_DP = 12;
+  private static final int SHEET_RADIUS_DP = 24;
+  private static final String SEPARATOR = " \u00b7 ";
 
   private String caseCode;
   /** The moves turned for the case in the solve the sheet was opened from, or null. */
@@ -148,6 +172,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private View yoursLabel;
   private Button practice;
   private VirtualCube cube;
+  /** The case's step colour: the band, the bars, the share rings. */
+  private int hue;
 
   public static CaseSheet newInstance(String caseCode) {
     return newInstance(caseCode, null);
@@ -174,6 +200,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     chosen = Options.INSTANCE.getCaseAlgorithm(caseCode);
     own = Options.INSTANCE.getOwnCaseAlgorithm(caseCode);
     root = inflater.inflate(R.layout.case_sheet, container, false);
+    hue = StepPalette.cfop(getActivity()).colorForCase(caseCode);
+    showBand();
     showCase();
 
     rows = root.findViewById(R.id.llCaseAlgorithms);
@@ -211,10 +239,28 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     return root;
   }
 
-  /** The picture, the title and the group the case is learnt in. */
+  /** The step's colour behind the top of the sheet, run down to just under the figures. */
+  private void showBand() {
+    final CaseBandDrawable band = new CaseBandDrawable(hue, dp(SHEET_RADIUS_DP));
+    root.setBackground(band);
+    final View scroll = root.findViewById(R.id.svCaseSheet);
+    root.findViewById(R.id.llCaseFigures).addOnLayoutChangeListener(
+        (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+          int[] at = new int[2];
+          int[] origin = new int[2];
+          v.getLocationInWindow(at);
+          root.getLocationInWindow(origin);
+          band.setBandHeight(at[1] - origin[1] + scroll.getScrollY() + v.getHeight()
+              + dp(BAND_TAIL_DP));
+        });
+  }
+
+  /** The picture, the title and, over it, the set and the group the case is learnt in. */
   private void showCase() {
     TextView title = root.findViewById(R.id.tvCaseTitle);
     CaseSet set = CaseSets.ofCase(caseCode);
+    CaseGroup group = set == null ? null : set.groupOf(caseCode);
+    String groupName = group == null ? null : group.getName(getActivity());
     if (CaseAlgorithms.isPair(caseCode)) {
       root.findViewById(R.id.vCaseChart).setVisibility(View.GONE);
       String picture = CaseAlgorithms.pairPicture(caseCode);
@@ -222,32 +268,52 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
         PairCaseView pair = root.findViewById(R.id.vCasePair);
         pair.setVisibility(View.VISIBLE);
         pair.setPicture(picture);
+        lift(pair);
       } else {
         root.findViewById(R.id.flCaseCube).setVisibility(View.VISIBLE);
         showPairCase((WebView) root.findViewById(R.id.wvCaseCube));
       }
-      title.setText(Utils.toSmartCubeCaseHeadline(getActivity(), caseCode));
-      CaseGroup group = set == null ? null : set.groupOf(caseCode);
-      if (group != null) {
-        addChip(group.getName(getActivity()), false);
-      }
+      // The headline already says F2L, so the line over it is the group alone
+      showTitle(title, Utils.toSmartCubeCaseHeadline(getActivity(), caseCode), null, groupName);
       return;
     }
-    ((LastLayerCaseView) root.findViewById(R.id.vCaseChart))
-        .setDiagram(LastLayerDiagram.forCase(caseCode));
-    // A CMLL's title already says its group and its name, so it takes no chip.
-    boolean named = set == null || set == CaseSets.CMLL;
-    title.setText(named ? Utils.toSmartCubeCaseHeadline(getActivity(), caseCode)
-        : getString(set == CaseSets.OLL ? R.string.case_title_oll : R.string.case_title_pll,
-            set.name(caseCode)));
-    if (!named) {
+    View chart = root.findViewById(R.id.vCaseChart);
+    ((LastLayerCaseView) chart).setDiagram(LastLayerDiagram.forCase(caseCode));
+    lift(chart);
+    chart.setRotation(PICTURE_TILT);
+    if (set == CaseSets.CMLL && CmllCases.variant(caseCode) != null) {
+      showTitle(title, CmllCases.variant(caseCode), set.title(), groupName);
+    } else if (set == null || set == CaseSets.CMLL) {
+      showTitle(title, Utils.toSmartCubeCaseHeadline(getActivity(), caseCode), null, null);
+    } else {
       String shape = set.shape(caseCode);
-      CaseGroup group = set.groupOf(caseCode);
-      String word = shape != null ? shape : group == null ? null : group.getName(getActivity());
-      if (word != null) {
-        addChip(word, false);
-      }
+      showTitle(title, set.name(caseCode), set.title(), shape != null ? shape : groupName);
     }
+  }
+
+  /** The name, large when it is short, under the set and the group it is learnt in. */
+  private void showTitle(TextView title, String name, String setTitle, String word) {
+    title.setText(name);
+    title.setTextSize(name != null && name.length() <= SHORT_NAME ? 36 : 24);
+    String kicker = setTitle == null ? word : word == null ? setTitle : setTitle + SEPARATOR + word;
+    if (kicker != null) {
+      TextView over = root.findViewById(R.id.tvCaseKicker);
+      over.setText(kicker);
+      over.setTextColor(ColorUtils.blendARGB(hue, Color.WHITE, 0.45f));
+      over.setVisibility(View.VISIBLE);
+    }
+  }
+
+  /** The picture laid on the band, with the shadow of something put down. */
+  private void lift(View picture) {
+    picture.setElevation(dp(PICTURE_ELEVATION_DP));
+    picture.setOutlineProvider(new ViewOutlineProvider() {
+      @Override
+      public void getOutline(View view, Outline outline) {
+        int size = Math.min(view.getWidth(), view.getHeight());
+        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), size * PICTURE_RADIUS);
+      }
+    });
   }
 
   private void addChip(String text, boolean accent) {
@@ -425,36 +491,55 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private void fillCard(View card, int source, int count, long meanMs, long recognitionMs,
       long executionMs, long bestMs) {
     FormatterService format = FormatterService.INSTANCE;
-    int hue = StepPalette.cfop(getActivity()).colorForCase(caseCode);
-    ((TextView) card.findViewById(R.id.tvCaseFiguresSource)).setText(source);
-    ((TextView) card.findViewById(R.id.tvCaseFiguresCount)).setText(String.valueOf(count));
+    showSource(card, source, count);
     ((TextView) card.findViewById(R.id.tvCaseFiguresMean)).setText(format.formatSolveTime(meanMs));
-    TextView recognition = card.findViewById(R.id.tvCaseFiguresRecognition);
-    recognition.setText(format.formatSolveTime(recognitionMs));
-    recognition.setTextColor(StepPalette.dim(hue));
-    TextView execution = card.findViewById(R.id.tvCaseFiguresExecution);
-    execution.setText(format.formatSolveTime(executionMs));
-    execution.setTextColor(hue);
+    showSplit(card, format.formatSolveTime(recognitionMs), format.formatSolveTime(executionMs),
+        StepPalette.dim(hue), hue);
     ((DrillSplitBarView) card.findViewById(R.id.vCaseFiguresBar))
         .setSplit(recognitionMs, executionMs, hue);
+    String best = format.formatSolveTime(bestMs);
     ((TextView) card.findViewById(R.id.tvCaseFiguresBest))
-        .setText(getString(R.string.case_sheet_best, format.formatSolveTime(bestMs)));
+        .setText(whiteFigure(getString(R.string.case_sheet_best, best), best));
   }
 
   private void emptyCard(View card, int source) {
-    ((TextView) card.findViewById(R.id.tvCaseFiguresSource)).setText(source);
-    ((TextView) card.findViewById(R.id.tvCaseFiguresCount)).setText("0");
+    showSource(card, source, 0);
     ((TextView) card.findViewById(R.id.tvCaseFiguresMean)).setText(NONE);
-    TextView recognition = card.findViewById(R.id.tvCaseFiguresRecognition);
-    recognition.setText(NONE);
-    recognition.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
-    TextView execution = card.findViewById(R.id.tvCaseFiguresExecution);
-    execution.setText(NONE);
-    execution.setTextColor(ContextCompat.getColor(getActivity(), R.color.secondary_text));
+    int none = ContextCompat.getColor(getActivity(), R.color.secondary_text);
+    showSplit(card, NONE, NONE, none, none);
     ((DrillSplitBarView) card.findViewById(R.id.vCaseFiguresBar)).setSegments(new long[] {1},
         new int[] {ContextCompat.getColor(getActivity(), R.color.case_status_unseen)});
     ((TextView) card.findViewById(R.id.tvCaseFiguresBest))
         .setText(getString(R.string.case_sheet_best, NONE));
+  }
+
+  /** "In solves · 24", the count in white. */
+  private void showSource(View card, int source, int count) {
+    String number = String.valueOf(count);
+    ((TextView) card.findViewById(R.id.tvCaseFiguresSource))
+        .setText(whiteFigure(getString(source) + SEPARATOR + number, number));
+  }
+
+  /** Each half of the bar named under its own end. */
+  private void showSplit(View card, String recognition, String execution, int recognitionColor,
+      int executionColor) {
+    TextView looking = card.findViewById(R.id.tvCaseFiguresRecognition);
+    looking.setText(getString(R.string.drill_summary_column_recognition) + " " + recognition);
+    looking.setTextColor(recognitionColor);
+    TextView turning = card.findViewById(R.id.tvCaseFiguresExecution);
+    turning.setText(getString(R.string.drill_summary_column_execution) + " " + execution);
+    turning.setTextColor(executionColor);
+  }
+
+  /** The figure at the end of a label in white, the words left in the label's colour. */
+  private static CharSequence whiteFigure(String text, String figure) {
+    SpannableString line = new SpannableString(text);
+    int at = text.lastIndexOf(figure);
+    if (at >= 0) {
+      line.setSpan(new ForegroundColorSpan(Color.WHITE), at, at + figure.length(),
+          Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+    return line;
   }
 
   /** The case's drill attempts over every drill, where a rep can be thrown out. */
@@ -534,8 +619,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
       // Their own spelling of a listed algorithm stands in its place
       String moves = CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), own) ? own
           : algorithm.getMoves();
-      rows.addView(row(rows, moves, algorithm.isRecommended(), algorithm.getEmptySlot(),
-          algorithm.getShare()));
+      rows.addView(row(rows, moves, shown.size() + 1, algorithm.isRecommended(),
+          algorithm.getEmptySlot(), algorithm.getShare()));
       shown.add(moves);
     }
     List<String> theirs = new ArrayList<String>();
@@ -562,11 +647,13 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
       }
     }
     for (String moves : theirs) {
-      yours.addView(row(yours, moves, false, CaseAlgorithms.emptySlotOf(caseCode, moves), -1));
+      yours.addView(row(yours, moves, 0, false, CaseAlgorithms.emptySlotOf(caseCode, moves), -1));
     }
     if (moreOpen) {
+      // The rest of the votes go on counting from the list
+      int place = shown.size();
       for (Listed extra : rest) {
-        more.addView(row(more, extra.getMoves(), false, extra.getEmptySlot(), -1));
+        more.addView(row(more, extra.getMoves(), ++place, false, extra.getEmptySlot(), -1));
       }
     }
     more.setVisibility(moreOpen && !rest.isEmpty() ? View.VISIBLE : View.GONE);
@@ -617,11 +704,12 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   /**
    * One algorithm, as every list of a case's algorithms draws it.
    *
+   * @param place its place in the vote order, from 1, or 0 for one of the solver's own
    * @param emptySlot the slot the algorithm needs empty ("fl", "br"), or null
    * @param share the percentage of sharers who turn it, or negative for no figure
    */
-  private View row(ViewGroup parent, final String moves, boolean recommended, String emptySlot,
-      float share) {
+  private View row(ViewGroup parent, final String moves, int place, boolean recommended,
+      String emptySlot, float share) {
     boolean declared = CaseAlgorithms.sameTurning(caseCode, moves, chosen);
     Turned one = turnedFor(moves);
     // The outline follows the star; with none, the algorithm their solves turn
@@ -629,7 +717,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
 
     AlgorithmRow row = AlgorithmRow.inflate(LayoutInflater.from(getActivity()), parent)
         .moves(moves)
-        .share(share >= 0 ? UsageShares.label(getActivity(), share) : null)
+        .rank(place)
+        .share(share >= 0 ? UsageShares.label(getActivity(), share) : null, share, hue)
         .starred(declared)
         .mine(mine)
         .onClick(v -> choose(moves));

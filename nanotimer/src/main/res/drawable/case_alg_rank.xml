@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An algorithm's place in the list, most used first. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="oval">
+  <solid android:color="@color/case_alg_line"/>
+</shape>

@@ -1,66 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One algorithm of a case: the moves with their share and star on one line, so the notation keeps
-     the width; marks and the solver's own figures go on the lines under it. -->
+<!-- One algorithm of a case, a line of the list rather than a box: its place in the list, the moves
+     with what is said about them under, the share as a ring, and the star. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
-   android:layout_marginTop="6dp"
-   android:background="@drawable/case_alg"
+   android:background="?android:attr/selectableItemBackground"
    android:clickable="true"
    android:focusable="true"
-   android:orientation="vertical"
-   android:paddingLeft="12dp"
-   android:paddingTop="10dp"
-   android:paddingRight="10dp"
-   android:paddingBottom="10dp">
+   android:orientation="vertical">
 
   <LinearLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:gravity="center_vertical"
-     android:orientation="horizontal">
+     android:minHeight="56dp"
+     android:orientation="horizontal"
+     android:paddingTop="10dp"
+     android:paddingBottom="10dp">
 
     <TextView
-       android:id="@+id/tvAlgorithmRowMoves"
+       android:id="@+id/tvAlgorithmRowRank"
+       android:layout_width="26dp"
+       android:layout_height="26dp"
+       android:layout_marginRight="12dp"
+       android:background="@drawable/case_alg_rank"
+       android:fontFeatureSettings="tnum"
+       android:gravity="center"
+       android:importantForAccessibility="no"
+       android:textColor="@color/case_alg_rank_text"
+       android:textSize="12sp"
+       android:textStyle="bold"/>
+
+    <LinearLayout
        android:layout_width="0dp"
        android:layout_height="wrap_content"
        android:layout_weight="1"
-       android:letterSpacing="-0.02"
-       android:lineSpacingExtra="2dp"
-       android:textColor="@color/white"
-       android:textSize="14sp"/>
+       android:orientation="vertical">
 
-    <TextView
-       android:id="@+id/tvAlgorithmRowShare"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginLeft="8dp"
-       android:fontFeatureSettings="tnum"
-       android:textColor="@color/secondary_text"
-       android:textSize="13sp"
+      <TextView
+         android:id="@+id/tvAlgorithmRowMoves"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:letterSpacing="-0.02"
+         android:lineSpacingExtra="2dp"
+         android:textColor="@color/white"
+         android:textSize="14sp"/>
+
+      <TextView
+         android:id="@+id/tvAlgorithmRowMeta"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_marginTop="3dp"
+         android:fontFeatureSettings="tnum"
+         android:textColor="@color/secondary_text"
+         android:textSize="12sp"
+         android:visibility="gone"/>
+
+      <LinearLayout
+         android:id="@+id/llAlgorithmRowNotes"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:orientation="vertical"
+         android:visibility="gone"/>
+    </LinearLayout>
+
+    <com.cube.nanotimer.util.view.ShareRingView
+       android:id="@+id/vAlgorithmRowShare"
+       android:layout_width="26dp"
+       android:layout_height="26dp"
+       android:layout_marginLeft="10dp"
        android:visibility="gone"/>
 
     <ImageView
        android:id="@+id/ivAlgorithmRowStar"
        android:layout_width="20dp"
        android:layout_height="20dp"
-       android:layout_marginLeft="8dp"
+       android:layout_marginLeft="12dp"
        android:importantForAccessibility="no"
        android:src="@drawable/ic_case_star_off"/>
   </LinearLayout>
 
-  <com.cube.nanotimer.util.view.FlowLayout
-     android:id="@+id/flAlgorithmRowMarks"
+  <View
      android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:layout_marginTop="7dp"
-     android:visibility="gone"/>
-
-  <LinearLayout
-     android:id="@+id/llAlgorithmRowNotes"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:orientation="vertical"
-     android:visibility="gone"/>
-
+     android:layout_height="1dp"
+     android:background="@color/case_alg_line"/>
 </LinearLayout>
