@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- An algorithm with no place on the list: one of the solver's own. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+   android:shape="oval">
+  <stroke android:width="1.5dp" android:color="@color/case_alg_line"/>
+</shape>

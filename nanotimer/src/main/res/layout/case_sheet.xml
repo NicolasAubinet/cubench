@@ -35,23 +35,30 @@
        android:layout_height="wrap_content"
        android:orientation="vertical">
 
-      <!-- The case beside its name: what to recognise it by and what to call it. -->
+      <!-- The case beside its name: what to recognise it by and what to call it. Room is left round
+           the picture for its tilt and its shadow. -->
       <LinearLayout
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
+         android:clipChildren="false"
+         android:clipToPadding="false"
          android:gravity="center_vertical"
-         android:orientation="horizontal">
+         android:orientation="horizontal"
+         android:paddingTop="6dp"
+         android:paddingBottom="8dp">
 
         <com.cube.nanotimer.gui.widget.LastLayerCaseView
            android:id="@+id/vCaseChart"
            android:layout_width="104dp"
-           android:layout_height="104dp"/>
+           android:layout_height="104dp"
+           android:layout_marginLeft="4dp"/>
 
         <!-- An F2L case of the library, drawn as its tile is. -->
         <com.cube.nanotimer.gui.widget.PairCaseView
            android:id="@+id/vCasePair"
            android:layout_width="104dp"
            android:layout_height="104dp"
+           android:layout_marginLeft="4dp"
            android:visibility="gone"/>
 
         <!-- A pair dealt into a slot, on the 3D cube, with only the cross and the pair in colour. -->
@@ -72,18 +79,31 @@
         <LinearLayout
            android:layout_width="0dp"
            android:layout_height="wrap_content"
-           android:layout_marginLeft="16dp"
+           android:layout_marginLeft="18dp"
            android:layout_weight="1"
            android:orientation="vertical">
+
+          <TextView
+             android:id="@+id/tvCaseKicker"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:fontFamily="@font/roboto_medium"
+             android:letterSpacing="0.12"
+             android:textAllCaps="true"
+             android:textSize="11sp"
+             android:visibility="gone"
+             app:fontFamily="@font/roboto_medium"/>
 
           <TextView
              android:id="@+id/tvCaseTitle"
              android:layout_width="wrap_content"
              android:layout_height="wrap_content"
-             android:fontFamily="@font/roboto_medium"
+             android:fontFamily="@font/roboto_bold"
+             android:includeFontPadding="false"
+             android:letterSpacing="-0.02"
              android:textColor="@color/white"
-             android:textSize="22sp"
-             app:fontFamily="@font/roboto_medium"/>
+             android:textSize="24sp"
+             app:fontFamily="@font/roboto_bold"/>
 
           <com.cube.nanotimer.util.view.FlowLayout
              android:id="@+id/flCaseChips"
@@ -95,17 +115,11 @@
 
       <!-- Solves and drills side by side and never mixed into one mean: a drill hands the case over
            with nothing to recognise, so the two are not the same measurement. -->
-      <TextView
-         android:id="@+id/tvCaseTimesLabel"
-         style="@style/DialogSectionLabel"
-         android:layout_marginTop="20dp"
-         android:text="@string/case_sheet_your_times"/>
-
       <LinearLayout
          android:id="@+id/llCaseFigures"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginTop="8dp"
+         android:layout_marginTop="10dp"
          android:baselineAligned="false"
          android:orientation="horizontal">
 
@@ -114,20 +128,27 @@
            layout="@layout/case_sheet_figures"
            android:layout_width="0dp"
            android:layout_height="match_parent"
+           android:layout_marginRight="14dp"
            android:layout_weight="1"/>
+
+        <View
+           android:layout_width="1dp"
+           android:layout_height="match_parent"
+           android:background="@color/white_wash_12"/>
 
         <include
            android:id="@+id/icCaseDrills"
            layout="@layout/case_sheet_figures"
            android:layout_width="0dp"
            android:layout_height="match_parent"
-           android:layout_marginLeft="10dp"
+           android:layout_marginLeft="14dp"
            android:layout_weight="1"/>
       </LinearLayout>
 
       <TextView
+         android:id="@+id/tvCaseAlgorithmsLabel"
          style="@style/DialogSectionLabel"
-         android:layout_marginTop="20dp"
+         android:layout_marginTop="24dp"
          android:text="@string/case_algorithms"/>
 
       <!-- One row per algorithm, built in code, always in the same order. -->

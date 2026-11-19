@@ -217,6 +217,11 @@
 
   <!-- An algorithm row, on the same near black the stage runs out to. -->
   <color name="case_alg_row">@color/stage_flat</color>
+  <!-- The case sheet's colour band and the list under it. -->
+  <color name="case_band_label">#D3D6D9</color>
+  <color name="case_alg_line">#33383D</color>
+  <color name="case_alg_rank_text">#CFD3D6</color>
+  <color name="case_alg_rank_mine_text">#0E2830</color>
 
   <!-- Solve steps, in solve order: cross, F2L, then the warm last-layer pair. Past the fourth there
        is no method step left to name, only a position, and a solve type may define eight: with four
