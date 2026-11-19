@@ -36,9 +36,9 @@ public final class AlgorithmRow {
   /** A prime takes a whole cell too, which reads as a gap inside the move it belongs to. */
   private static final float PRIME_SCALE = 0.5f;
 
-  private static Typeface algorithmFace;
-
   private static final String SEPARATOR = " · ";
+
+  private static Typeface algorithmFace;
 
   private final View view;
   private final TextView rank;
