@@ -101,8 +101,9 @@ import java.util.Objects;
  * <p>Opened from one solve, it shows that solve's execution instead, marked "this solve".
  *
  * <p><b>The top is washed in the case's step colour</b> (PLL orange, OLL yellow, F2L green), fading
- * out under the figures, and a flat picture lies a little tilted on it, like a card put down. The
- * tilt is this sheet's alone: nothing else in the app is turned, and the 3D cube never is.
+ * out under the figures, and the picture lies on it with a shadow, like a card put down. A top view
+ * is tilted a little; an F2L picture is drawn in 3D, so turning it would skew its edges, and it
+ * stays straight. The tilt is this sheet's alone: nothing else in the app is turned.
  *
  * <p><b>With no smart cube behind it</b> (no solve or drill ever read the case) the sheet is the
  * reference: the star reads as "Your pick", and the setup moves for the picked algorithm put the
@@ -135,7 +136,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private static final int SOLVE_FIGURES = 50;
   /** An empty card's figures. */
   private static final String NONE = "–";
-  /** Degrees the flat picture is turned on the band. */
+  /** Degrees a top-view picture is turned on the band. */
   private static final float PICTURE_TILT = -4;
   private static final int PICTURE_ELEVATION_DP = 10;
   /** Of the picture's size, as {@code LastLayerCaseView} rounds its well. */
@@ -267,7 +268,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
         PairCaseView pair = root.findViewById(R.id.vCasePair);
         pair.setVisibility(View.VISIBLE);
         pair.setPicture(picture);
-        tilt(pair);
+        lift(pair);
       } else {
         root.findViewById(R.id.flCaseCube).setVisibility(View.VISIBLE);
         showPairCase((WebView) root.findViewById(R.id.wvCaseCube));
@@ -278,7 +279,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     }
     View chart = root.findViewById(R.id.vCaseChart);
     ((LastLayerCaseView) chart).setDiagram(LastLayerDiagram.forCase(caseCode));
-    tilt(chart);
+    lift(chart);
+    chart.setRotation(PICTURE_TILT);
     if (set == CaseSets.CMLL && CmllCases.variant(caseCode) != null) {
       showTitle(title, CmllCases.variant(caseCode), set.title(), groupName);
     } else if (set == null || set == CaseSets.CMLL) {
@@ -302,9 +304,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     }
   }
 
-  /** A flat picture laid a little turned on the band, with the shadow of something put down. */
-  private void tilt(View picture) {
-    picture.setRotation(PICTURE_TILT);
+  /** The picture laid on the band, with the shadow of something put down. */
+  private void lift(View picture) {
     picture.setElevation(dp(PICTURE_ELEVATION_DP));
     picture.setOutlineProvider(new ViewOutlineProvider() {
       @Override
