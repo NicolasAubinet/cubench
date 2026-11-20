@@ -201,6 +201,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private Button showAlg;
   /** Whether the rep up had its algorithm brought back. */
   private boolean shownThisRep;
+  /** Whether the cube carries a grey mask the next case may have to take off. */
+  private boolean stickered;
   /**
    * A learning drill's cases with no algorithm kept yet, each chosen for before the first rep. The
    * case is practised meanwhile, so whichever algorithm is tapped can be tried on the cube.
@@ -1563,6 +1565,10 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (session.getShownEdges() != null) {
       cube.setStickering(
           CubeStickering.pieces(session.getShownEdges(), session.getShownCorners()));
+      stickered = true;
+    } else if (stickered) {
+      cube.setStickering(CubeStickering.allShown()); // an OLL or PLL after a CMLL in one drill
+      stickered = false;
     }
     cube.setState(CubePatternFormat.format(session.getFacelets()));
     shownThisRep = false;

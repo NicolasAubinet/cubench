@@ -1172,6 +1172,29 @@ public class DrillSessionTest {
     assertNull(lastLayer.getShownEdges());
   }
 
+  /** A CMLL colours the eight corners and the six block edges, each one home as dealt. */
+  @Test
+  public void aCmllRepColoursTheBlocksAndTheCorners() {
+    for (String face : new String[] {"U", "D", "R", "L", "F", "B"}) {
+      DrillSession session =
+          new DrillSession(spec("cmll_hrows", 1), new Random(3), null, face);
+      assertTrue(session.nextRep());
+      assertEquals(face, 8, session.getShownCorners().length);
+      assertEquals(face, 6, session.getShownEdges().length);
+      CubieCube dealt = new CubieCube();
+      assertTrue(dealt.fromFacelet(session.getFacelets()));
+      int[] cp = new int[8];
+      int[] co = new int[8];
+      int[] ep = new int[12];
+      int[] eo = new int[12];
+      dealt.toPermutation(cp, co, ep, eo);
+      for (int edge : session.getShownEdges()) {
+        assertEquals(face, edge, ep[edge]);
+        assertEquals(face, 0, eo[edge]);
+      }
+    }
+  }
+
   /**
    * On every face, two pairs are dealt and undoing the scramble puts both in, F2L whole and the
    * last layer still out. The case shown is the cross, the two slots in and the two dealt pairs.
