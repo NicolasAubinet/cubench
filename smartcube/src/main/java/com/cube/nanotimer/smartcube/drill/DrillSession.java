@@ -96,6 +96,9 @@ public final class DrillSession {
   private static final String[][] SLOTS = {{"DFR", "FR"}, {"DLF", "FL"}, {"DBL", "BL"},
       {"DRB", "BR"}};
 
+  /** The edges of the two Roux blocks with the last layer on U and the blocks on L and R. */
+  private static final String[] CMLL_BLOCK_EDGES = {"DL", "FL", "BL", "DR", "FR", "BR"};
+
   private final DrillSpec spec;
   private final Random random;
   private final Map<String, Long> weights;
@@ -376,6 +379,11 @@ public final class DrillSession {
     FaceTurns.apply(cube, currentScramble);
     if (pairs || lookAhead) {
       readShownPieces();
+    } else if (isCmll(currentCase)) {
+      readCmllShownPieces();
+    } else {
+      shownEdges = null;
+      shownCorners = null;
     }
     moves.clear();
     firstMoveMs = 0;
@@ -1004,6 +1012,19 @@ public final class DrillSession {
     shownCorners = toArray(corners);
   }
 
+  /**
+   * The pieces a CMLL's rep is drawn with: both blocks and the eight corners. The last layer's edges
+   * and the slice's two are grey, since the case leaves them anywhere.
+   */
+  private void readCmllShownPieces() {
+    List<Integer> edges = new ArrayList<Integer>();
+    for (String edge : CMLL_BLOCK_EDGES) {
+      edges.add(F2LPairScrambles.edgeIndex(LayerRotation.piece(edge, 0, layerFace)));
+    }
+    shownEdges = toArray(edges);
+    shownCorners = new int[] {0, 1, 2, 3, 4, 5, 6, 7};
+  }
+
   private static int[] toArray(List<Integer> values) {
     int[] array = new int[values.size()];
     for (int i = 0; i < array.length; i++) {
@@ -1012,7 +1033,7 @@ public final class DrillSession {
     return array;
   }
 
-  /** The edges a pair's rep colours, by the slot each belongs in. Null for any other drill. */
+  /** The edges a pair's or a CMLL's rep colours, by the slot each belongs in. Null otherwise. */
   public int[] getShownEdges() {
     return shownEdges == null ? null : shownEdges.clone();
   }

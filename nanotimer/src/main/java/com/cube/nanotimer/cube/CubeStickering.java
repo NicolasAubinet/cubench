@@ -29,6 +29,11 @@ public final class CubeStickering {
     return mask(all(EDGES, false), all(CORNERS, false), all(CENTERS, false));
   }
 
+  /** Every sticker in its colour, as the player draws a cube with no mask. */
+  public static String allShown() {
+    return mask(all(EDGES, true), all(CORNERS, true), all(CENTERS, true));
+  }
+
   /**
    * The four edges of a cross and the six centres, everything else grey.
    *
