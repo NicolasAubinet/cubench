@@ -46,6 +46,7 @@ import com.cube.nanotimer.util.coach.CoachDaily;
 import com.cube.nanotimer.smartcube.drill.DrillRep;
 import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
+import com.cube.nanotimer.smartcube.drill.DrillRuns;
 import com.cube.nanotimer.smartcube.drill.LayerRotation;
 import com.cube.nanotimer.smartcube.drill.PairWeights;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
@@ -160,6 +161,8 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private DrillSession session;
   /** How the daily drill deals and what it has come to, or null for any other drill. */
   private DailyRun dailyRun;
+  /** A coach drill's earlier runs as this one began, or null for a drill that keeps none. */
+  private DrillRuns runsAtStart;
   /** The solve type the daily drill is kept for, and its reps dealt before this run. */
   private int dailySolveTypeId = -1;
   private int dailyBefore;
@@ -498,6 +501,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       learned.addAll(Options.INSTANCE.getLearnedPairCases());
       session.keepRunCases(learned);
     }
+    runsAtStart = null;
+    if (daily == null && !chooseOnly && DrillRuns.applies(spec)) {
+      runsAtStart = DrillRuns.of(spec,
+          Options.INSTANCE.getDrillRuns(runsSolveTypeId(), spec.getId()));
+      session.orderFromRuns(runsAtStart);
+    }
     if (spec.getType() == DrillSpec.Type.F2L_BACK_SLOT) {
       final char layer = layerFace == null ? 'U' : layerFace.charAt(0);
       session.setRotationReader((moves, shownHostMs, skewMs) -> {
@@ -691,6 +700,11 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    */
   private void onRepFinished(DrillRep rep) {
     recorder.record(rep);
+    if (runsAtStart != null) {
+      // Saved rep by rep, so a run left part way still moves the next one on.
+      Options.INSTANCE.setDrillRuns(runsSolveTypeId(), session.getSpec().getId(),
+          runsAtStart.after(session.getSpec(), session.getReps()).toText());
+    }
     if (dailyRun != null) {
       dailyRun.record(rep);
       if (dailySolveTypeId >= 0 && !rep.isPractice()) {
@@ -718,6 +732,12 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       DrillRepFlourish.play(repWash, lastRepRow);
     }
     holdThenNext();
+  }
+
+  /** The solve type a coach drill's runs are kept under: two plans can share a drill's id. */
+  private int runsSolveTypeId() {
+    SolveType type = (SolveType) getIntent().getSerializableExtra(EXTRA_SOLVE_TYPE);
+    return type == null ? -1 : type.getId();
   }
 
   /** A counted coach-drill rep that missed its case's target. */

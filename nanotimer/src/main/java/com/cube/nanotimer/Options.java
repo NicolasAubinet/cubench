@@ -134,6 +134,7 @@ public enum Options {
   private static final String LEARN_PICK_CLEANED_KEY = "learn_pick_cleaned";
   public static final String CASE_ALGORITHM_KEY_PREFIX = "case_alg_";
   private static final String LEARNED_CASES_KEY = "learned_cases";
+  private static final String DRILL_RUNS_KEY_PREFIX = "drill_runs_";
   private static final String LEARNED_PAIR_CASES_KEY = "learned_pair_cases";
   private static final String KEPT_ALGORITHM_CASES_KEY = "kept_algorithm_cases";
   private static final String CELEBRATED_GROUPS_KEY = "celebrated_groups";
@@ -760,6 +761,16 @@ public enum Options {
    */
   public String getCaseAlgorithm(String caseCode) {
     return sharedPreferences.getString(CASE_ALGORITHM_KEY_PREFIX + caseCode, null);
+  }
+
+  /** What earlier runs of a coach drill left behind ({@code DrillRuns}), or null before the first. */
+  public String getDrillRuns(int solveTypeId, String specId) {
+    return sharedPreferences.getString(DRILL_RUNS_KEY_PREFIX + solveTypeId + "_" + specId, null);
+  }
+
+  public void setDrillRuns(int solveTypeId, String specId, String runs) {
+    sharedPreferences.edit().putString(DRILL_RUNS_KEY_PREFIX + solveTypeId + "_" + specId, runs)
+        .apply();
   }
 
   /** The cases cleared in a learning drill, which count as learned for a shape group's completion. */
