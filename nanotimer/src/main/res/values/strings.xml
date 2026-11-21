@@ -1682,6 +1682,10 @@
   <string name="coach_bar_best">Best</string>
   <string name="coach_drill_case">Drill this case</string>
   <string name="coach_drill_cases">Drill these cases</string>
+  <plurals name="coach_drill_more_cases">
+    <item quantity="one">+%d more as these are cleared</item>
+    <item quantity="other">+%d more as these are cleared</item>
+  </plurals>
   <string name="coach_learn_cases">Learn these cases</string>
   <string name="coach_drill_lookahead">Look-ahead drill</string>
   <string name="coach_drill_back_slots">Back slots without rotating</string>

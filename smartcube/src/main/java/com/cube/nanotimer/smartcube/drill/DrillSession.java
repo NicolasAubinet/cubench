@@ -1171,6 +1171,13 @@ public final class DrillSession {
     cases.retainAll(run); // the spec's order, which a round-robin pass is drawn from anyway
   }
 
+  /** Puts a coach card's cases in the order its earlier runs leave them, before the first deal. */
+  public void orderFromRuns(DrillRuns runs) {
+    List<String> ordered = runs.order(cases);
+    cases.clear();
+    cases.addAll(ordered);
+  }
+
   /** The cases this app can deal, in the order the spec named them. */
   public List<String> getCases() {
     return Collections.unmodifiableList(cases);

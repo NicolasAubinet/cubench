@@ -10,6 +10,8 @@ import android.net.Uri;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +58,7 @@ import com.cube.nanotimer.gui.DrillScreenActivity;
 import com.cube.nanotimer.gui.DrillSetupActivity;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.CaseSetActivity;
+import com.cube.nanotimer.smartcube.drill.DrillRuns;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
@@ -520,6 +523,28 @@ public class CoachPlanView {
     }
   }
 
+  /**
+   * The cases a drill's next run opens on, of those the card shows: a drill with a working set may
+   * hold the whole step, and moves on from the ones its earlier runs beat.
+   */
+  private List<String> openingCases(DrillSpec drill, List<String> shown) {
+    if (drill.getWorkingSet() == 0 || shown.size() <= drill.getWorkingSet()) {
+      return shown;
+    }
+    List<String> order = drill.getCases();
+    if (DrillRuns.applies(drill)) {
+      order = DrillRuns.of(drill, Options.INSTANCE.getDrillRuns(
+          solveType == null ? -1 : solveType.getId(), drill.getId())).order(drill.getCases());
+    }
+    List<String> opening = new ArrayList<String>();
+    for (String code : order) {
+      if (opening.size() < drill.getWorkingSet() && shown.contains(code)) {
+        opening.add(code);
+      }
+    }
+    return opening;
+  }
+
   /** A case as a cuber writes it under its chart: Rb, 21. */
   private static String shortName(String code) {
     String name = code.substring(code.indexOf('_') + 1);
@@ -587,11 +612,23 @@ public class CoachPlanView {
         }
       }
       if (!bare.isEmpty()) {
+        List<String> opening = openingCases(drill, bare);
         LinearLayout row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(0, activity.getResources().getDimensionPixelSize(R.dimen.space_s), 0, 0);
-        addCaseCharts(row, bare);
+        addCaseCharts(row, opening);
         cases.addView(row);
+        if (opening.size() < bare.size()) {
+          TextView more = new TextView(activity);
+          more.setTextColor(ContextCompat.getColor(activity, R.color.secondary_text));
+          more.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
+          more.setGravity(Gravity.CENTER_HORIZONTAL);
+          more.setPadding(0, activity.getResources().getDimensionPixelSize(R.dimen.space_xs), 0, 0);
+          int left = bare.size() - opening.size();
+          more.setText(activity.getResources().getQuantityString(R.plurals.coach_drill_more_cases,
+              left, left));
+          cases.addView(more);
+        }
       }
     }
     return card;
