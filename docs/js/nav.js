@@ -2,6 +2,7 @@
 (function () {
   var nav = document.querySelector('.nav'), btn = nav && nav.querySelector('.menu');
   if (!btn) return;
+  nav.classList.add('has-menu');
   function set(open) { nav.classList.toggle('open', open); btn.setAttribute('aria-expanded', open); }
   btn.addEventListener('click', function () { set(!nav.classList.contains('open')); });
   nav.querySelectorAll('.links a').forEach(function (a) { a.addEventListener('click', function () { set(false); }); });

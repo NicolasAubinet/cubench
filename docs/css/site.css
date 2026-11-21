@@ -189,7 +189,7 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
   .nav.open .links a { padding: 13px 12px; border-radius: 10px; color: var(--ink); }
   .nav.open .links a:hover, .nav .links a[aria-current] { background: var(--card); }
   .nav .btn { margin-left: auto; padding: 8px 14px; }
-  .nav .menu { display: inline-flex; }
+  .nav.has-menu .menu { display: inline-flex; }
   .hero { padding: 40px 0 36px; }
   .hero .wrap, .row { grid-template-columns: minmax(0, 1fr); gap: 36px; }
   .row.flip .text { order: 0; }
