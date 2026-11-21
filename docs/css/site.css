@@ -48,6 +48,8 @@ img { max-width: 100%; }
 .btn-ghost { border: 1px solid var(--line); color: var(--ink); }
 .btn-ghost:hover { background: var(--card); }
 .nav .btn { padding: 8px 16px; font-size: 14px; }
+.nav .menu { display: none; width: 40px; height: 40px; margin-right: -8px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--ink); cursor: pointer; align-items: center; justify-content: center; }
+.nav .menu:hover, .nav.open .menu { background: var(--card); }
 .play { display: inline-block; line-height: 0; }
 .play img { height: 74px; width: auto; margin: -11px; } /* the official badge carries its own padding */
 
@@ -181,8 +183,13 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
 
 @media (max-width: 860px) {
   body { font-size: 16px; }
+  .nav .wrap { gap: 8px; }
   .nav .links { display: none; }
-  .nav .btn { margin-left: auto; }
+  .nav.open .links { display: flex; flex-direction: column; gap: 0; position: absolute; top: 100%; left: 0; right: 0; padding: 8px 12px 14px; background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: 0 18px 30px rgba(0,0,0,.25); font-size: 17px; }
+  .nav.open .links a { padding: 13px 12px; border-radius: 10px; color: var(--ink); }
+  .nav.open .links a:hover, .nav .links a[aria-current] { background: var(--card); }
+  .nav .btn { margin-left: auto; padding: 8px 14px; }
+  .nav.has-menu .menu { display: inline-flex; }
   .hero { padding: 40px 0 36px; }
   .hero .wrap, .row { grid-template-columns: minmax(0, 1fr); gap: 36px; }
   .row.flip .text { order: 0; }
@@ -258,6 +265,7 @@ textarea.copy { width: 100%; min-height: 70px; background: var(--card); color: v
   .phone-land { border-radius: 20px; padding: 6px; }
   .phone-land img { border-radius: 15px; }
 }
+@media (max-width: 350px) { .brand span { display: none; } }
 @media (max-width: 480px) {
   .viz.avg:not(.times) span:nth-child(2), .viz.times span:not(.pb):not(.worst), .viz.chips span:nth-child(n+3) { display: none; }
   .viz.scr { font-size: 12px; letter-spacing: 0; }
