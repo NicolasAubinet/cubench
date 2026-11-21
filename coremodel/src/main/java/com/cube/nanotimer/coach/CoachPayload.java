@@ -39,9 +39,16 @@ public class CoachPayload {
    * ({@link #SLOT_DRILL_VERSION}), 15 the cross's moves against its optimal
    * ({@link #CROSS_MOVES_VERSION}), 16 the pause before the final AUF, 17 the basic F2L pairs
    * less each solve's last, and an app that shows a take-out stuck-pair drill
-   * ({@link #TAKE_OUT_VERSION}), 18 how each learned case is holding ({@link #CASE_RECALL_VERSION});
-   * an older payload is still read, and is simply missing them. */
-  public static final int VERSION = 18;
+   * ({@link #TAKE_OUT_VERSION}), 18 how each learned case is holding ({@link #CASE_RECALL_VERSION}),
+   * 19 nothing new but that the app shows a step drill holding more cases than it deals at once
+   * ({@link #LONG_STEP_DRILL_VERSION}); an older payload is still read, and is simply missing them. */
+  public static final int VERSION = 19;
+
+  /**
+   * The first payload from an app whose plan card shows a long step drill by the cases it opens on
+   * and whose runs move on from the cases beaten; an older app is sent its five costliest only.
+   */
+  public static final int LONG_STEP_DRILL_VERSION = 19;
 
   /** The first payload that can carry {@link #getCaseRecall}, from an app that runs a daily drill. */
   public static final int CASE_RECALL_VERSION = 18;
