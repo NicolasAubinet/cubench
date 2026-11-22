@@ -5,6 +5,9 @@ import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.F2LPairScrambles;
 import com.cube.nanotimer.vo.StepStats;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +48,28 @@ public final class PairWeights {
       weights.put(code, weight);
     }
     return weights;
+  }
+
+  /**
+   * The cases heaviest first, ties in the order given: what a drill with a working set opens on, so
+   * a card showing its opening pairs shows the ones the drill will deal.
+   */
+  public static List<String> heaviestFirst(List<String> cases, final Map<String, Long> weights) {
+    List<String> sorted = new ArrayList<String>(cases);
+    if (weights != null) {
+      Collections.sort(sorted, new Comparator<String>() {
+        @Override
+        public int compare(String a, String b) {
+          return Long.compare(weightOf(weights, b), weightOf(weights, a));
+        }
+      });
+    }
+    return sorted;
+  }
+
+  static long weightOf(Map<String, Long> weights, String code) {
+    Long weight = weights == null ? null : weights.get(code);
+    return weight == null || weight <= 0 ? 1 : weight;
   }
 
   /** The solver's mean over every basic pair, or null where there were none. */

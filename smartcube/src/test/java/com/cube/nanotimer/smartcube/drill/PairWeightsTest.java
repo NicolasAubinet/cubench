@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import org.junit.Test;
 
 public class PairWeightsTest {
@@ -55,6 +56,18 @@ public class PairWeightsTest {
     assertEquals(F2LPairScrambles.placements("pair_a1"), weights.get("pair_a1").longValue());
     assertEquals(PairWeights.LEAN * F2LPairScrambles.placements("pair_a25"),
         weights.get("pair_a25").longValue());
+  }
+
+  /** What a card shows as a pair drill's opening is what the session deals first. */
+  @Test
+  public void heaviestFirstIsTheOrderAWorkingSetOpensOn() {
+    DrillSpec spec = spec(CASES, Collections.<String, Long>emptyMap()).withWorkingSet(2);
+    Map<String, Long> weights = PairWeights.of(spec, recent());
+
+    DrillSession session = new DrillSession(spec, new Random(1), weights, null);
+
+    assertEquals(PairWeights.heaviestFirst(CASES, weights).subList(0, 2),
+        session.getActiveCases());
   }
 
   /** Two basic pairs averaging 1200, a stuck one at 2500 and another at 900. */

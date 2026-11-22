@@ -17,7 +17,6 @@ import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -231,12 +230,9 @@ public final class DrillSession {
     }
     if (spec.getWorkingSet() > 0 && weights != null) {
       // Heaviest first, so the working set opens on what is costing most; ties keep the spec's order.
-      Collections.sort(cases, new Comparator<String>() {
-        @Override
-        public int compare(String a, String b) {
-          return Long.compare(weightOf(b), weightOf(a));
-        }
-      });
+      List<String> sorted = PairWeights.heaviestFirst(cases, weights);
+      cases.clear();
+      cases.addAll(sorted);
     }
   }
 
