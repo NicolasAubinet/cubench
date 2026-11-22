@@ -11,9 +11,12 @@ public class CaseAlgorithmsTest {
   @Test
   public void listsTheRestOfTheVotesPastTheShownOnes() {
     for (String code : new String[] {"oll_1", "pll_jb", "pll_ra", "pair_4", "pair_a12"}) {
+      // A basic pair lists each spelling: only the very same one is never offered twice
+      boolean bySpelling = CaseAlgorithms.isBasicPair(code);
       for (CaseAlgorithms.Listed extra : CaseAlgorithms.more(code)) {
         for (CaseAlgorithms.Listed shown : CaseAlgorithms.shown(code)) {
-          assertFalse(CaseAlgorithms.sameTurning(code, shown.getMoves(), extra.getMoves()));
+          assertFalse(bySpelling ? shown.getMoves().equals(extra.getMoves())
+              : CaseAlgorithms.sameTurning(code, shown.getMoves(), extra.getMoves()));
         }
         assertTrue(CaseAlgorithms.solves(code, extra.getMoves()));
       }

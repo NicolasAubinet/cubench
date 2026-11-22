@@ -124,6 +124,18 @@ public final class CaseAlgorithms {
       return more;
     }
     List<Listed> shown = shown(caseCode);
+    if (isBasicPair(caseCode)) { // listed by spelling: every other spelling has its own row
+      List<String> up = new ArrayList<String>();
+      for (Listed one : shown) {
+        up.add(one.getMoves());
+      }
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.unshown(pairCase(caseCode))) {
+        if (!up.contains(algorithm.getMoves())) {
+          more.add(new Listed(algorithm.getMoves(), false, algorithm.getEmptySlot()));
+        }
+      }
+      return Collections.unmodifiableList(more);
+    }
     List<String> all = new ArrayList<String>();
     List<String> emptySlots = new ArrayList<String>();
     if (isPair(caseCode)) {

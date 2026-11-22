@@ -7,6 +7,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.model.CubeState;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -298,23 +300,33 @@ public class F2LCaseAlgorithmsTest {
     assertEquals("", wrong.toString());
   }
 
-  /** Past the listed rows, the rest of a case's algorithms, most voted first, none twice. */
+  /** Past the shown rows, every other spelling once, by its votes in all four slots. */
   @Test
-  public void offersTheRestOfTheTableBehindMore() {
-    List<CaseAlgorithms.Listed> shown = CaseAlgorithms.shown("pair_1");
-    List<CaseAlgorithms.Listed> more = CaseAlgorithms.more("pair_1");
-    assertEquals("y U F' L F L2 U L", more.get(0).getMoves());
-    for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase("1")) {
-      int offered = 0;
-      for (CaseAlgorithms.Listed one : concat(shown, more)) {
-        offered += CaseAlgorithms.sameTurning("pair_1", one.getMoves(), algorithm.getMoves()) ? 1 : 0;
+  public void offersEveryOtherSpellingBehindMoreByAllItsVotes() {
+    for (int basic = 1; basic <= 41; basic++) {
+      String code = "pair_" + basic;
+      List<String> offered = new ArrayList<String>();
+      for (CaseAlgorithms.Listed one : concat(CaseAlgorithms.shown(code),
+          CaseAlgorithms.more(code))) {
+        assertFalse(code + ": " + one.getMoves(), offered.contains(one.getMoves()));
+        offered.add(one.getMoves());
       }
-      assertTrue(algorithm.getMoves(), offered >= 1);
-    }
-    for (int i = 0; i < more.size(); i++) {
-      for (int j = i + 1; j < more.size(); j++) {
-        assertFalse(more.get(j).getMoves(),
-            CaseAlgorithms.sameTurning("pair_1", more.get(i).getMoves(), more.get(j).getMoves()));
+      List<String> table = new ArrayList<String>();
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(String.valueOf(basic))) {
+        table.add(algorithm.getMoves());
+      }
+      assertEquals(code, new HashSet<String>(table), new HashSet<String>(offered));
+      AlgorithmList list = F2LCaseAlgorithms.listOf(String.valueOf(basic));
+      int last = Integer.MAX_VALUE;
+      for (CaseAlgorithms.Listed one : CaseAlgorithms.more(code)) {
+        int votes = -1;
+        for (AlgorithmList.Row row : list.all()) {
+          if (row.getMoves().equals(one.getMoves())) {
+            votes = row.getVotes() + row.otherVotes();
+          }
+        }
+        assertTrue(code + ": " + one.getMoves(), votes <= last);
+        last = votes;
       }
     }
     assertTrue(CaseAlgorithms.more("pair_1_fl").isEmpty());

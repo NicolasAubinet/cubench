@@ -1186,6 +1186,23 @@ public final class F2LCaseAlgorithms {
     return Collections.unmodifiableList(all);
   }
 
+  /**
+   * A basic case's spellings left off its sheet, by their votes in all four slots: the sheet's own
+   * order is front right's, but past it a spelling voted for only in another slot still ranks.
+   */
+  public static List<Algorithm> unshown(String pairCase) {
+    AlgorithmList list = listOf(pairCase);
+    List<AlgorithmList.Row> rest = new ArrayList<>(list.all());
+    rest.removeAll(list.listed());
+    rest.sort((a, b) -> Integer.compare(b.getVotes() + b.otherVotes(),
+        a.getVotes() + a.otherVotes())); // stable: ties keep front right's order
+    List<Algorithm> unshown = new ArrayList<>();
+    for (AlgorithmList.Row row : rest) {
+      unshown.add(new Algorithm(row.getMoves(), row.getEmptySlot(), row.getShare(), false));
+    }
+    return Collections.unmodifiableList(unshown);
+  }
+
   /** What to show a solver for a case: the algorithms it is listed with, most voted first. */
   public static List<Algorithm> listed(String pairCase) {
     AlgorithmList list = listOf(pairCase);
