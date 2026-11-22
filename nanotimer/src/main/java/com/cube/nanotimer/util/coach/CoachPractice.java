@@ -139,8 +139,7 @@ public final class CoachPractice {
     List<String> learned = new ArrayList<String>(Options.INSTANCE.getLearnedCases());
     // The daily drill's cases are left to it, so the sets are asked again once it is in.
     List<String> daily = CoachDaily.keptCases(solveType);
-    String with = daily.isEmpty() ? askedWith(learned)
-        : askedWith(learned) + "|" + askedWith(daily);
+    String with = askKey(learned, daily);
     int id = solveType.getId();
     if (!due(Options.INSTANCE.getCoachPractice(id), Options.INSTANCE.getCoachPracticeAt(id),
         Options.INSTANCE.getCoachPracticeWith(id), System.currentTimeMillis(), with,
@@ -158,6 +157,16 @@ public final class CoachPractice {
       TimeZone zone) {
     return kept == null || askedAt <= 0 || !with.equals(askedWith)
         || !sameDay(askedAt, now, zone);
+  }
+
+  /**
+   * What an ask is compared by: the payload version, so an update that can take more sets asks at
+   * once rather than the next day, then the cleared cases and the daily drill's.
+   */
+  static String askKey(List<String> learned, List<String> daily) {
+    String with = daily.isEmpty() ? askedWith(learned)
+        : askedWith(learned) + "|" + askedWith(daily);
+    return "v" + CoachPayload.VERSION + ":" + with;
   }
 
   /** The cleared cases, sorted, as one string to compare an earlier ask by. */

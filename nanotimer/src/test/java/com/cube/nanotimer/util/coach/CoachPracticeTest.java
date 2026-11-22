@@ -103,6 +103,12 @@ public class CoachPracticeTest {
 
   @Test
   public void theOrderTheCasesComeInChangesNothing() {
+    // An app that can take more sets asks again the day it is updated
+    String old = CoachPractice.askedWith(Collections.<String>emptyList());
+    String now = CoachPractice.askKey(Collections.<String>emptyList(),
+        Collections.<String>emptyList());
+    Assert.assertTrue(CoachPractice.due("{}", MORNING, old, MORNING + HOUR, now, ZONE));
+    Assert.assertFalse(CoachPractice.due("{}", MORNING, now, MORNING + HOUR, now, ZONE));
     Assert.assertEquals(CoachPractice.askedWith(Arrays.asList("b", "a")),
         CoachPractice.askedWith(Arrays.asList("a", "b")));
   }
