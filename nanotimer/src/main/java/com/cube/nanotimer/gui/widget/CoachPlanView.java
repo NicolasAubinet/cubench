@@ -324,7 +324,7 @@ public class CoachPlanView {
   public void setPractice(LinearLayout into, List<CoachPractice.Set> sets) {
     into.removeAllViews();
     for (CoachPractice.Set set : sets) {
-      if (F2L_PRACTICE.equals(set.getFamily()) && planDrillsPairs(set)) {
+      if (F2L_PRACTICE.equals(set.getFamily()) && planDrillsPairs()) {
         continue;
       }
       View card = set.isLearning() ? learningCard(into, set) : practiceCard(into, set);
@@ -593,8 +593,11 @@ public class CoachPlanView {
     return more;
   }
 
-  /** Whether a card of the plan already drills every pair of this F2L set. */
-  private boolean planDrillsPairs(CoachPractice.Set set) {
+  /**
+   * Whether a card of the plan already drills every pair, as a stalling or slow F2L card does: its
+   * pairs were fixed when the plan was written, so it is told by holding every basic pair.
+   */
+  private boolean planDrillsPairs() {
     if (plan == null) {
       return false;
     }
@@ -602,9 +605,14 @@ public class CoachPlanView {
       if (area.getDrill() == null) {
         continue;
       }
-      DrillSpec drill = DrillSpec.fromJson(area.getDrill());
-      if (drill.getType() == DrillSpec.Type.F2L_PAIR
-          && drill.getCases().containsAll(set.getCases())) {
+      DrillSpec drill;
+      try {
+        drill = DrillSpec.fromJson(area.getDrill());
+      } catch (RuntimeException e) {
+        continue; // a drill this app cannot read, as CoachPlan.undealableDrills skips it
+      }
+      if (drill.getType() == DrillSpec.Type.F2L_PAIR && !drill.isLearning()
+          && drill.getCases().containsAll(F2lPairCases.basicCodes())) {
         return true;
       }
     }
