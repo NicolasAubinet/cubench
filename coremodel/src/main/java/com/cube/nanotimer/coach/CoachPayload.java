@@ -41,8 +41,12 @@ public class CoachPayload {
    * less each solve's last, and an app that shows a take-out stuck-pair drill
    * ({@link #TAKE_OUT_VERSION}), 18 how each learned case is holding ({@link #CASE_RECALL_VERSION}),
    * 19 nothing new but that the app shows a step drill holding more cases than it deals at once
-   * ({@link #LONG_STEP_DRILL_VERSION}); an older payload is still read, and is simply missing them. */
-  public static final int VERSION = 19;
+   * ({@link #LONG_STEP_DRILL_VERSION}), 20 nothing new but that the app shows an F2L practice set
+   * ({@link #F2L_PRACTICE_VERSION}); an older payload is still read, and is simply missing them. */
+  public static final int VERSION = 20;
+
+  /** The first payload from an app that shows an F2L practice set; an older one gets OLL/PLL only. */
+  public static final int F2L_PRACTICE_VERSION = 20;
 
   /**
    * The first payload from an app whose plan card shows a long step drill by the cases it opens on

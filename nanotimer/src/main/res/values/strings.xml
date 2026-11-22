@@ -1693,6 +1693,7 @@
   <string name="coach_practice_title">Practice any time</string>
   <string name="coach_practice_body">Always here, updated every day from your latest solves.</string>
   <string name="coach_practice_set">Your costliest %1$s cases</string>
+  <string name="coach_practice_pairs">Your F2L pairs</string>
   <string name="coach_learn_next">Next OLLs to learn</string>
   <string name="coach_learn_next_pll">Next PLLs to learn</string>
   <string name="learn_pick_suggested">Suggested</string>
