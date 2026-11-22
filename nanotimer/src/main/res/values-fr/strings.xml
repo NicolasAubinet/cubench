@@ -1644,6 +1644,7 @@
   <string name="coach_practice_title">Pratique libre</string>
   <string name="coach_practice_body">Toujours là, mis à jour chaque jour avec vos dernières résolutions.</string>
   <string name="coach_practice_set">Vos cas de %1$s les plus coûteux</string>
+  <string name="coach_practice_pairs">Vos paires F2L</string>
   <string name="coach_learn_next">Prochains OLL à apprendre</string>
   <string name="coach_learn_next_pll">Prochains PLL à apprendre</string>
   <string name="learn_pick_suggested">Suggérés</string>

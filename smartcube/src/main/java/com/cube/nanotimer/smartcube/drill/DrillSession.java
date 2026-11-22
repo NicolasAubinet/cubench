@@ -17,7 +17,6 @@ import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -185,8 +184,9 @@ public final class DrillSession {
   }
 
   /**
-   * @param weights what each case is costing, for a spec drawing by weight. A case with no weight
-   *     still comes up, since nothing known about it is not a reason to never practise it.
+   * @param weights what each case is costing, for a spec drawing by weight, iterating in the order
+   *     a working set opens on ({@link PairWeights#of}). A case with no weight still comes up,
+   *     since nothing known about it is not a reason to never practise it.
    * @param layerFace the face to deal the last layer onto. Not the sender's business and not on the
    *     spec: which colour a solver finishes on is theirs, and a drill prescribed from outside has
    *     no way of knowing it.
@@ -230,13 +230,10 @@ public final class DrillSession {
       }
     }
     if (spec.getWorkingSet() > 0 && weights != null) {
-      // Heaviest first, so the working set opens on what is costing most; ties keep the spec's order.
-      Collections.sort(cases, new Comparator<String>() {
-        @Override
-        public int compare(String a, String b) {
-          return Long.compare(weightOf(b), weightOf(a));
-        }
-      });
+      // The working set opens on what is costing most; the rest keep the spec's order
+      List<String> sorted = PairWeights.openingOrder(cases, weights);
+      cases.clear();
+      cases.addAll(sorted);
     }
   }
 

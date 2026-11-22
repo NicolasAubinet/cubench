@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A case in a practice set: its chart over its name. Five share the row equally. -->
+<!-- A case in a practice set: its chart over its name, or an F2L pair's picture alone. Five share the row equally. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="0dp"
    android:layout_height="wrap_content"
@@ -12,6 +12,12 @@
      android:id="@+id/vCoachPracticeChart"
      android:layout_width="48dp"
      android:layout_height="48dp"/>
+
+  <com.cube.nanotimer.gui.widget.PairCaseView
+     android:id="@+id/vCoachPracticePair"
+     android:layout_width="48dp"
+     android:layout_height="48dp"
+     android:visibility="gone"/>
 
   <TextView
      android:id="@+id/tvCoachPracticeName"

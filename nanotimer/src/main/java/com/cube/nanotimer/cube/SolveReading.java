@@ -50,9 +50,10 @@ public final class SolveReading {
    * false start as one of the step's algorithms, version 8 drops pauses under 250 ms, version 9
    * where each pair's slot sat in the grip, version 10 the cross against its optimal, version 11
    * the pause before the final AUF, version 12 times a PLL without its final AUF, version 13 reads
-   * the halves of any listed algorithm as one, whatever the pause, version 14 a Roux solve's CMLL.
+   * the halves of any listed algorithm as one, whatever the pause, version 14 a Roux solve's CMLL,
+   * version 15 marks each pair turned with moves undone or stopped inside.
    */
-  public static final int VERSION = 14;
+  public static final int VERSION = 15;
 
   static final String RESTART_PART_SUFFIX = "restart";
 
@@ -209,6 +210,8 @@ public final class SolveReading {
     private final int usualMoves;
     private final boolean listed;
     private final int algorithms;
+    private boolean undone;
+    private boolean stopped;
 
     /**
      * @param family the step it belongs to, {@code f2l} / {@code oll} / {@code pll}
@@ -265,7 +268,26 @@ public final class SolveReading {
     public boolean isRead() {
       return caseCode != null && usualMoves > 0;
     }
+
+    /** An F2L pair where side turns were messed up and taken back ({@link #UNDONE_TURNS}). */
+    public boolean isUndone() {
+      return undone;
+    }
+
+    /** An F2L pair with a stop inside its turning, past its recognition. */
+    public boolean isStopped() {
+      return stopped;
+    }
+
+    Execution marked(boolean undone, boolean stopped) {
+      this.undone = undone;
+      this.stopped = stopped;
+      return this;
+    }
   }
+
+  /** Side quarter turns taken back that make a pair's moves a mess-up rather than a regrip. */
+  static final int UNDONE_TURNS = 2;
 
   /**
    * Reads a solve, which means solving its scramble again. The expensive path, and the one a kept
@@ -280,7 +302,8 @@ public final class SolveReading {
     }
     final List<Execution> executions = new ArrayList<Execution>();
     final List<Turning> turnings = new ArrayList<Turning>();
-    CaseExecutions.Replay replay = CaseExecutions.replay(solve);
+    final CaseExecutions.Replay replay = CaseExecutions.replay(solve);
+    final long[] stepStart = {0};
     boolean whole = CaseExecutions.readSteps(replay, new CaseExecutions.StepReader() {
       @Override
       public void read(SolveStep step, SolveSolution.Step turned) {
@@ -290,10 +313,12 @@ public final class SolveReading {
               turned.getStopMs()));
         }
         if (F2L.equals(step.getName())) {
-          readPairs(step, turned, executions);
+          long stopMs = 2 * SolveSolution.turnMsOf(SolveSolution.timedSolution(replay.getMoves()));
+          readPairs(step, turned, executions, stepStart[0], stopMs);
         } else {
           readLastLayer(step, turned, executions);
         }
+        stepStart[0] += step.getTotalMs();
       }
     });
     List<PairRotation> rotations = !whole || solve.getSmartcubeGyroTrack() == null
@@ -343,11 +368,18 @@ public final class SolveReading {
     }
   }
 
+  /**
+   * @param startMs when the step began in the solve, which the pause spans are timed from
+   * @param stopMs how long a pause has to be to count as a stop: twice the solve's turn time
+   */
   private static void readPairs(SolveStep step, SolveSolution.Step turned,
-      List<Execution> executions) {
+      List<Execution> executions, long startMs, long stopMs) {
     List<SolveStep> parts = step.getSubSteps();
+    long partStart = startMs;
     for (int i = 0; i < parts.size(); i++) {
       long timeMs = parts.get(i).getTotalMs();
+      long turningFrom = partStart + parts.get(i).getRecognitionMs();
+      partStart += timeMs;
       if (i >= turned.getGroups().size()) {
         executions.add(unread(F2L, timeMs)); // no moves to set against
         continue;
@@ -357,11 +389,48 @@ public final class SolveReading {
         continue; // a skip: nothing turned, so nothing over the usual either
       }
       CaseExecutions.Pair pair = CaseExecutions.pairOf(parts.get(i), moves);
-      executions.add(pair == null ? unread(F2L, timeMs)
+      boolean stopped = false;
+      for (long[] span : turned.getPauseSpans()) {
+        stopped |= span[0] >= turningFrom && span[0] < partStart && span[1] - span[0] > stopMs;
+      }
+      executions.add((pair == null ? unread(F2L, timeMs)
           : new Execution(F2L, pair.getCaseCode(), timeMs,
               pair.getExecution().getMoves(), pair.getExecution().getUsualMoves(),
-              pair.isListed(), 1));
+              pair.isListed(), 1)).marked(undoneTurns(moves) >= UNDONE_TURNS, stopped));
     }
+  }
+
+  /** Side-face quarter turns a later turn of the same face cancelled; U/D and rotations aside. */
+  static int undoneTurns(String moves) {
+    List<String> faces = new ArrayList<String>();
+    List<int[]> turns = new ArrayList<int[]>(); // net quarter turns, quarter turns spent
+    int undone = 0;
+    for (String move : moves.trim().split("\\s+")) {
+      if (move.isEmpty()) {
+        continue;
+      }
+      String face = move.replaceAll("[2']", "");
+      int amount = move.contains("2") ? 2 : move.endsWith("'") ? 3 : 1;
+      int top = faces.size() - 1;
+      if (top >= 0 && faces.get(top).equals(face)) {
+        int[] sofar = turns.get(top);
+        int net = (sofar[0] + amount) % 4;
+        int spent = sofar[1] + Math.min(amount, 4 - amount);
+        if (net == 0) {
+          faces.remove(top);
+          turns.remove(top);
+          if (!face.matches("[UDudExyz]")) {
+            undone += spent;
+          }
+        } else {
+          turns.set(top, new int[] {net, spent});
+        }
+      } else {
+        faces.add(face);
+        turns.add(new int[] {amount, Math.min(amount, 4 - amount)});
+      }
+    }
+    return undone;
   }
 
   private static void readLastLayer(SolveStep step, SolveSolution.Step turned,
@@ -415,6 +484,12 @@ public final class SolveReading {
         json.put("usual_moves", execution.usualMoves);
         json.put("listed", execution.listed);
         json.put("algorithms", execution.algorithms);
+        if (execution.undone) {
+          json.put("undone", true);
+        }
+        if (execution.stopped) {
+          json.put("stopped", true);
+        }
         executions.put(json);
       }
       JSONArray steps = new JSONArray();
@@ -485,7 +560,8 @@ public final class SolveReading {
         JSONObject json = array.getJSONObject(i);
         executions.add(new Execution(json.getString("family"), json.optString("case", null),
             json.getLong("time_ms"), json.getInt("moves"), json.getInt("usual_moves"),
-            json.getBoolean("listed"), json.getInt("algorithms")));
+            json.getBoolean("listed"), json.getInt("algorithms"))
+            .marked(json.optBoolean("undone"), json.optBoolean("stopped")));
       }
       array = reading.getJSONArray("steps");
       for (int i = 0; i < array.length(); i++) {

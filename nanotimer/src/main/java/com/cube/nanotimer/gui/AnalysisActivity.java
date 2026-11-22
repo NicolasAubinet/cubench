@@ -1407,8 +1407,12 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     showPlanMenu();
     // A written plan's card takes the countdown to the next one.
     planStatus.dockIn(stored == null ? null : (ViewGroup) findViewById(R.id.llAnalysisPlanDock));
-    showRead();
+    // The plan goes in first: whether the F2L practice set shows depends on its cards.
     planView.setPlan(stored);
+    showRead();
+    if (practiceAsked && !practiceTeaser) {
+      redrawPractice();
+    }
     int written = stored == null ? View.GONE : View.VISIBLE;
     findViewById(R.id.llAnalysisPlanWritten).setVisibility(written);
     findViewById(R.id.llAnalysisPlanAreas).setVisibility(written);

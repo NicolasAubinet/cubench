@@ -18,8 +18,10 @@ import java.util.Random;
  * is saved so the plan card shows the cases the run will open on. The working set brings in the
  * next in line as one is beaten, as it does within a run.
  *
- * <p>Kept for one set of cases and targets only: a new plan writes new targets, and its first run
- * starts clean. Saved as a line of text, {@code <hash>;<case>:<reps>,...}, with {@link #MISSED}
+ * <p>A plan card's runs are kept for one set of cases and targets only: a new plan writes new
+ * targets, and its first run starts clean. A standing practice set ({@link #PRACTICE_PREFIX}) is
+ * fetched again every day with targets following the solver's means, so its runs are kept by its
+ * id alone; a case it no longer deals is passed over, one new to it comes as never dealt. Saved as a line of text, {@code <hash>;<case>:<reps>,...}, with {@link #MISSED}
  * for a case dealt and not beaten.
  */
 public final class DrillRuns {
@@ -29,6 +31,9 @@ public final class DrillRuns {
 
   /** A case its latest run dealt and did not beat. */
   static final int MISSED = -1;
+
+  /** How the coach names its standing practice sets, {@code coach-practice-f2l}. */
+  static final String PRACTICE_PREFIX = "coach-practice-";
 
   private final String specHash;
   /** Reps each case took to be beaten in the latest run that dealt it, or {@link #MISSED}. */
@@ -67,6 +72,9 @@ public final class DrillRuns {
 
   /** The cases and their targets, which a new plan rewrites; not the JSON, whose key order varies. */
   static String hashOf(DrillSpec spec) {
+    if (spec.getId() != null && spec.getId().startsWith(PRACTICE_PREFIX)) {
+      return Integer.toHexString(spec.getId().hashCode());
+    }
     StringBuilder key = new StringBuilder();
     for (String code : spec.getCases()) {
       key.append(code).append('=').append(spec.getTargetMs(code)).append(',');

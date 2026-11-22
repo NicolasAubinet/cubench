@@ -40,6 +40,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.fragment.app.FragmentActivity;
 
+import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.CoachPayload;
@@ -48,10 +49,11 @@ import com.cube.nanotimer.coach.Evidence;
 import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.StepShares;
 import com.cube.nanotimer.coach.StoredCoachPlan;
+import com.cube.nanotimer.cube.PairSightings;
 import com.cube.nanotimer.drill.DrillSpec;
+import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.step.F2lPairCases;
 import com.cube.nanotimer.vo.SolveType;
-import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.gui.CrossDrillActivity;
 import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
@@ -59,6 +61,8 @@ import com.cube.nanotimer.gui.DrillSetupActivity;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.CaseSetActivity;
 import com.cube.nanotimer.smartcube.drill.DrillRuns;
+import com.cube.nanotimer.smartcube.drill.PairSighting;
+import com.cube.nanotimer.smartcube.drill.PairWeights;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
@@ -89,6 +93,9 @@ public class CoachPlanView {
   /** What the teaser draws: the families the service sends sets for, at a full set's size. */
   private static final String[] TEASER_FAMILIES = {"oll", "pll"};
   private static final int TEASER_CASES = 5;
+
+  /** The F2L practice set's family, as the service names it. */
+  private static final String F2L_PRACTICE = "f2l";
   /** The kinds of focus the preview draws blank, with the step each is coloured by. */
   private static final FocusArea.Reason[] PREVIEW_REASONS = {FocusArea.Reason.SLOW_CASE,
       FocusArea.Reason.RECOGNITION_HEAVY};
@@ -312,15 +319,18 @@ public class CoachPlanView {
     }
   }
 
-  /** The standing practice sets, one outlined card per family, into their own container. */
   /** The tag a step's costliest-cases card carries, for {@link View#findViewWithTag}. */
   public static String practiceTag(String family) {
     return "practice_" + family;
   }
 
+  /** The standing practice sets, one outlined card per family, into their own container. */
   public void setPractice(LinearLayout into, List<CoachPractice.Set> sets) {
     into.removeAllViews();
     for (CoachPractice.Set set : sets) {
+      if (F2L_PRACTICE.equals(set.getFamily()) && planDrillsPairs()) {
+        continue;
+      }
       View card = set.isLearning() ? learningCard(into, set) : practiceCard(into, set);
       if (card != null) {
         into.addView(card);
@@ -487,10 +497,29 @@ public class CoachPlanView {
   private View practiceCard(LinearLayout parent, final CoachPractice.Set set) {
     View card = inflater.inflate(R.layout.coach_practice_set, parent, false);
     card.setTag(practiceTag(set.getFamily()));
-    ((TextView) card.findViewById(R.id.tvCoachPracticeTitle)).setText(activity.getString(
-        R.string.coach_practice_set,
-        Utils.toSmartCubeStepLocalizedName(activity, set.getFamily(), 0)));
-    addCaseCharts((LinearLayout) card.findViewById(R.id.llCoachPracticeCases), set.getCases());
+    LinearLayout row = card.findViewById(R.id.llCoachPracticeCases);
+    if (F2L_PRACTICE.equals(set.getFamily())) {
+      ((TextView) card.findViewById(R.id.tvCoachPracticeTitle)).setText(
+          R.string.coach_practice_pairs);
+      row.setOrientation(LinearLayout.VERTICAL);
+      LinearLayout pictures = new LinearLayout(activity);
+      pictures.setOrientation(LinearLayout.HORIZONTAL);
+      row.addView(pictures);
+      int opening = Math.min(set.getDrill().getWorkingSet() > 0 ? set.getDrill().getWorkingSet()
+          : set.getCases().size(), set.getCases().size());
+      for (int i = 0; i < opening; i++) {
+        pictures.addView(inflater.inflate(R.layout.coach_practice_case, pictures, false));
+      }
+      if (opening < set.getCases().size()) {
+        row.addView(moreCases(set.getCases().size() - opening));
+      }
+      showOpeningPairs(pictures, set.getDrill());
+    } else {
+      ((TextView) card.findViewById(R.id.tvCoachPracticeTitle)).setText(activity.getString(
+          R.string.coach_practice_set,
+          Utils.toSmartCubeStepLocalizedName(activity, set.getFamily(), 0)));
+      addCaseCharts(row, set.getCases());
+    }
     Button button = card.findViewById(R.id.buCoachPracticeDrill);
     button.setText(withPlay(button, set.getCases().size() == 1 ? R.string.coach_drill_case
         : R.string.coach_drill_cases));
@@ -512,12 +541,25 @@ public class CoachPlanView {
   private void addCaseCharts(LinearLayout row, List<String> codes, Set<String> ticked) {
     for (String code : codes) {
       View cell = inflater.inflate(R.layout.coach_practice_case, row, false);
-      LastLayerDiagram diagram = LastLayerDiagram.forCase(code);
       LastLayerCaseView chart = cell.findViewById(R.id.vCoachPracticeChart);
-      chart.setDiagram(diagram);
-      chart.setVisibility(diagram == null ? View.INVISIBLE : View.VISIBLE);
-      ((TextView) cell.findViewById(R.id.tvCoachPracticeName)).setText(ticked.contains(code)
-          ? activity.getString(R.string.learn_pick_known_case, shortName(code)) : shortName(code));
+      TextView name = cell.findViewById(R.id.tvCoachPracticeName);
+      if (CaseAlgorithms.isPair(code)) {
+        // A pair's number is internal, so its picture goes alone.
+        String picture = CaseAlgorithms.pairPicture(code);
+        PairCaseView pair = cell.findViewById(R.id.vCoachPracticePair);
+        chart.setVisibility(View.GONE);
+        name.setVisibility(View.GONE);
+        pair.setVisibility(picture == null ? View.INVISIBLE : View.VISIBLE);
+        if (picture != null) {
+          pair.setPicture(picture);
+        }
+      } else {
+        LastLayerDiagram diagram = LastLayerDiagram.forCase(code);
+        chart.setDiagram(diagram);
+        chart.setVisibility(diagram == null ? View.INVISIBLE : View.VISIBLE);
+        name.setText(ticked.contains(code)
+            ? activity.getString(R.string.learn_pick_known_case, shortName(code)) : shortName(code));
+      }
       cell.setOnClickListener(caseOpener(code));
       row.addView(cell);
     }
@@ -526,15 +568,17 @@ public class CoachPlanView {
   /**
    * The cases a drill's next run opens on, of those the card shows: a drill with a working set may
    * hold the whole step, and moves on from the ones its earlier runs beat.
+   *
+   * @param dealt the drill's cases in the order its session holds them before any run
    */
-  private List<String> openingCases(DrillSpec drill, List<String> shown) {
+  private List<String> openingCases(DrillSpec drill, List<String> shown, List<String> dealt) {
     if (drill.getWorkingSet() == 0 || shown.size() <= drill.getWorkingSet()) {
       return shown;
     }
-    List<String> order = drill.getCases();
+    List<String> order = dealt;
     if (DrillRuns.applies(drill)) {
       order = DrillRuns.of(drill, Options.INSTANCE.getDrillRuns(
-          solveType == null ? -1 : solveType.getId(), drill.getId())).order(drill.getCases());
+          solveType == null ? -1 : solveType.getId(), drill.getId())).order(dealt);
     }
     List<String> opening = new ArrayList<String>();
     for (String code : order) {
@@ -543,6 +587,68 @@ public class CoachPlanView {
       }
     }
     return opening;
+  }
+
+  /**
+   * Draws the pairs a pair drill opens on into the blank cells already holding their room, once the
+   * recent solves that lean the drill's order are read, so the card shows what the drill deals.
+   */
+  private void showOpeningPairs(final LinearLayout pictures, final DrillSpec drill) {
+    PairSightings.read(solveType, new DataCallback<List<PairSighting>>() {
+      @Override
+      public void onData(final List<PairSighting> sightings) {
+        activity.runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            if (activity.isFinishing()) {
+              return;
+            }
+            List<String> order = PairWeights.openingOrder(drill.getCases(),
+                PairWeights.of(drill, sightings));
+            pictures.removeAllViews();
+            addCaseCharts(pictures, openingCases(drill, order, order));
+          }
+        });
+      }
+    });
+  }
+
+  /** The line under a drill's opening cases saying how many come after them. */
+  private TextView moreCases(int left) {
+    TextView more = new TextView(activity);
+    more.setTextColor(ContextCompat.getColor(activity, R.color.secondary_text));
+    more.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
+    more.setGravity(Gravity.CENTER_HORIZONTAL);
+    more.setPadding(0, activity.getResources().getDimensionPixelSize(R.dimen.space_xs), 0, 0);
+    more.setText(activity.getResources().getQuantityString(R.plurals.coach_drill_more_cases,
+        left, left));
+    return more;
+  }
+
+  /**
+   * Whether a card of the plan already drills every pair, as a stalling or slow F2L card does: its
+   * pairs were fixed when the plan was written, so it is told by holding every basic pair.
+   */
+  private boolean planDrillsPairs() {
+    if (plan == null) {
+      return false;
+    }
+    for (FocusArea area : plan.getFocus()) {
+      if (area.getDrill() == null) {
+        continue;
+      }
+      DrillSpec drill;
+      try {
+        drill = DrillSpec.fromJson(area.getDrill());
+      } catch (RuntimeException e) {
+        continue; // a drill this app cannot read, as CoachPlan.undealableDrills skips it
+      }
+      if (drill.getType() == DrillSpec.Type.F2L_PAIR && !drill.isLearning()
+          && drill.getCases().containsAll(F2lPairCases.basicCodes())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /** A case as a cuber writes it under its chart: Rb, 21. */
@@ -612,22 +718,14 @@ public class CoachPlanView {
         }
       }
       if (!bare.isEmpty()) {
-        List<String> opening = openingCases(drill, bare);
+        List<String> opening = openingCases(drill, bare, drill.getCases());
         LinearLayout row = new LinearLayout(activity);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(0, activity.getResources().getDimensionPixelSize(R.dimen.space_s), 0, 0);
         addCaseCharts(row, opening);
         cases.addView(row);
         if (opening.size() < bare.size()) {
-          TextView more = new TextView(activity);
-          more.setTextColor(ContextCompat.getColor(activity, R.color.secondary_text));
-          more.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
-          more.setGravity(Gravity.CENTER_HORIZONTAL);
-          more.setPadding(0, activity.getResources().getDimensionPixelSize(R.dimen.space_xs), 0, 0);
-          int left = bare.size() - opening.size();
-          more.setText(activity.getResources().getQuantityString(R.plurals.coach_drill_more_cases,
-              left, left));
-          cases.addView(more);
+          cases.addView(moreCases(bare.size() - opening.size()));
         }
       }
     }
