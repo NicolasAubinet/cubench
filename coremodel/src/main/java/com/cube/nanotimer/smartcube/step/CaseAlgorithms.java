@@ -124,6 +124,18 @@ public final class CaseAlgorithms {
       return more;
     }
     List<Listed> shown = shown(caseCode);
+    if (isBasicPair(caseCode)) { // listed by spelling: every other spelling has its own row
+      List<String> up = new ArrayList<String>();
+      for (Listed one : shown) {
+        up.add(one.getMoves());
+      }
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.unshown(pairCase(caseCode))) {
+        if (!up.contains(algorithm.getMoves())) {
+          more.add(new Listed(algorithm.getMoves(), false, algorithm.getEmptySlot()));
+        }
+      }
+      return Collections.unmodifiableList(more);
+    }
     List<String> all = new ArrayList<String>();
     List<String> emptySlots = new ArrayList<String>();
     if (isPair(caseCode)) {
@@ -140,6 +152,9 @@ public final class CaseAlgorithms {
     for (int i = 0; i < all.size(); i++) {
       boolean listed = false;
       for (Listed one : shown) {
+        listed |= sameTurning(caseCode, one.getMoves(), all.get(i));
+      }
+      for (Listed one : more) { // an F2L algorithm's other spellings: its most voted one stands
         listed |= sameTurning(caseCode, one.getMoves(), all.get(i));
       }
       if (!listed) {
@@ -292,6 +307,18 @@ public final class CaseAlgorithms {
     }
     return isPair(caseCode) ? F2LCaseAlgorithms.sameTurning(pairCase(caseCode), moves, other)
         : LastLayerCaseAlgorithms.sameTurning(caseCode, moves, other);
+  }
+
+  /**
+   * Whether two spellings write the same moves in the grip held, rotations and regrips aside: a
+   * stricter fold than {@link #sameTurning}, which also matches a grip the solver never holds.
+   */
+  public static boolean sameForm(String moves, String other) {
+    if (moves == null || other == null) {
+      return false;
+    }
+    List<String> form = AlgorithmForm.comparable(moves);
+    return !form.isEmpty() && form.equals(AlgorithmForm.comparable(other));
   }
 
   /** @see LastLayerCaseAlgorithms#keyAsDrawn */

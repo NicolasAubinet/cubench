@@ -7,6 +7,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.model.CubeState;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -106,18 +108,44 @@ public class F2LCaseAlgorithmsTest {
     assertEquals("U R U' R'", F2LCaseAlgorithms.forCase("1").get(0).getMoves());
   }
 
+  /** A basic case holds each spelling once; a stuck-piece case, each algorithm once. */
   @Test
-  public void holdsEachAlgorithmOnce() {
+  public void holdsEachSpellingOnce() {
     for (String[] row : F2LCaseAlgorithms.rows()) {
-      int turnings = 0;
+      boolean basic = row.length > 4;
+      int found = 0;
       for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(row[0])) {
-        if (AlgorithmForm.comparable(algorithm.getMoves())
-            .equals(AlgorithmForm.comparable(row[1]))) {
-          turnings++;
+        if (basic ? algorithm.getMoves().equals(row[1]) : AlgorithmForm.comparable(
+            algorithm.getMoves()).equals(AlgorithmForm.comparable(row[1]))) {
+          found++;
         }
       }
-      assertEquals(row[1], 1, turnings);
+      assertEquals(row[0] + ": " + row[1], 1, found);
     }
+  }
+
+  /** Case 28: one algorithm three ways, each ranked by its own front-right votes. */
+  @Test
+  public void ranksEachSpellingByItsOwnFrontRightVotes() {
+    List<F2LCaseAlgorithms.Algorithm> shown = F2LCaseAlgorithms.listed("28");
+
+    assertEquals("R U R' U' F R' F' R", shown.get(0).getMoves());
+    assertTrue(shown.get(0).isRecommended());
+    assertEquals("y L' U L U' L' U L", shown.get(1).getMoves());
+    assertEquals("F' U F U' F' U F", shown.get(2).getMoves());
+  }
+
+  /** Case 2's back-right R' U R holds no front-right votes of its own, so it ranks no spelling. */
+  @Test
+  public void neverRanksAFrontRightSpellingByAnotherSlotsVotes() {
+    assertEquals("F R' F' R", F2LCaseAlgorithms.listed("2").get(0).getMoves());
+  }
+
+  /** Inserted into back right the way people do there, a pair is not flagged on any slot. */
+  @Test
+  public void readsAnotherSlotsUsualAlgorithmAsListed() {
+    assertFalse(F2LCaseAlgorithms.read("1", "y' U f R' f'").isUnusual());
+    assertFalse(F2LCaseAlgorithms.read("28", "y' R' U R U' R' U R").isUnusual());
   }
 
   @Test
@@ -143,19 +171,32 @@ public class F2LCaseAlgorithmsTest {
     return Cubies.inPlace(state, Cubies.CORNERS[corner]) && Cubies.inPlace(state, Cubies.EDGES[edge]);
   }
 
-  /** Listed by the last layer rules: case 7's top three hold 71%, so a fourth is needed for 80. */
+  /** Case 7: 37 against 29 front-right votes is too close to recommend either. */
   @Test
   public void listsUntilMostVotesAreHeldWithoutARecommendationOnACloseVote() {
     List<F2LCaseAlgorithms.Algorithm> shown = F2LCaseAlgorithms.listed("7");
 
-    assertEquals(4, shown.size());
+    assertEquals(3, shown.size());
     assertEquals("U' R U2 R' U' R U2 R'", shown.get(0).getMoves());
     assertFalse(shown.get(0).isRecommended());
   }
 
   @Test
   public void showsOnlyTheMostVotedWhereNothingElseComesClose() {
-    assertEquals(1, F2LCaseAlgorithms.listed("3").size());
+    assertEquals(1, F2LCaseAlgorithms.listed("17").size());
+  }
+
+  /** A spelling a handful of voters picked is not shown, but still reads as its algorithm. */
+  @Test
+  public void showsNoSpellingUnderItsShareOfTheVotes() {
+    for (int basic = 1; basic <= 41; basic++) {
+      AlgorithmList list = F2LCaseAlgorithms.listOf(String.valueOf(basic));
+      List<AlgorithmList.Row> shown = list.listed();
+      for (AlgorithmList.Row row : shown.subList(1, shown.size())) {
+        assertTrue(basic + ": " + row.getMoves(),
+            row.getVotes() * 100 >= AlgorithmList.SHOWN_SHARE * list.votes());
+      }
+    }
   }
 
   /** Into front left: the regrips folded into the faces turned, one rotation stands it in FR. */
@@ -259,14 +300,43 @@ public class F2LCaseAlgorithmsTest {
     assertEquals("", wrong.toString());
   }
 
-  /** Past the listed rows, the rest of a case's table, most voted first, none twice. */
+  /** Past the shown rows, every other spelling once, by its votes in all four slots. */
   @Test
-  public void offersTheRestOfTheTableBehindMore() {
-    List<CaseAlgorithms.Listed> shown = CaseAlgorithms.shown("pair_1");
-    List<CaseAlgorithms.Listed> more = CaseAlgorithms.more("pair_1");
-    assertEquals(F2LCaseAlgorithms.forCase("1").size(), shown.size() + more.size());
-    assertEquals("y' r' U' R U M'", more.get(0).getMoves());
+  public void offersEveryOtherSpellingBehindMoreByAllItsVotes() {
+    for (int basic = 1; basic <= 41; basic++) {
+      String code = "pair_" + basic;
+      List<String> offered = new ArrayList<String>();
+      for (CaseAlgorithms.Listed one : concat(CaseAlgorithms.shown(code),
+          CaseAlgorithms.more(code))) {
+        assertFalse(code + ": " + one.getMoves(), offered.contains(one.getMoves()));
+        offered.add(one.getMoves());
+      }
+      List<String> table = new ArrayList<String>();
+      for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.forCase(String.valueOf(basic))) {
+        table.add(algorithm.getMoves());
+      }
+      assertEquals(code, new HashSet<String>(table), new HashSet<String>(offered));
+      AlgorithmList list = F2LCaseAlgorithms.listOf(String.valueOf(basic));
+      int last = Integer.MAX_VALUE;
+      for (CaseAlgorithms.Listed one : CaseAlgorithms.more(code)) {
+        int votes = -1;
+        for (AlgorithmList.Row row : list.all()) {
+          if (row.getMoves().equals(one.getMoves())) {
+            votes = row.getVotes() + row.otherVotes();
+          }
+        }
+        assertTrue(code + ": " + one.getMoves(), votes <= last);
+        last = votes;
+      }
+    }
     assertTrue(CaseAlgorithms.more("pair_1_fl").isEmpty());
+  }
+
+  private static List<CaseAlgorithms.Listed> concat(List<CaseAlgorithms.Listed> one,
+      List<CaseAlgorithms.Listed> other) {
+    List<CaseAlgorithms.Listed> both = new java.util.ArrayList<CaseAlgorithms.Listed>(one);
+    both.addAll(other);
+    return both;
   }
 
   @Test

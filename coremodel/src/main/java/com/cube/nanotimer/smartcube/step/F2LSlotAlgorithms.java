@@ -116,11 +116,23 @@ public final class F2LSlotAlgorithms {
       for (int i = 1; i <= F2LCases.BASIC; i++) {
         String pairCase = String.valueOf(i);
         List<String> kept = new ArrayList<String>();
+        List<List<String>> forms = new ArrayList<List<String>>();
+        // The sheet lists spellings: one entry per algorithm, in a spelling with no rotation
         for (F2LCaseAlgorithms.Algorithm algorithm : F2LCaseAlgorithms.listed(pairCase)) {
-          if (kept.size() < PER_SLOT && algorithm.getEmptySlot() == null
-              && !TURNS_THE_CUBE.matcher(algorithm.getMoves()).find()
-              && solves(pairCase, FRONT_RIGHT, algorithm.getMoves())) {
-            kept.add(algorithm.getMoves());
+          List<String> form = AlgorithmForm.comparable(algorithm.getMoves());
+          if (kept.size() >= PER_SLOT || forms.contains(form)) {
+            continue;
+          }
+          String moves = drillable(pairCase, algorithm) ? algorithm.getMoves() : null;
+          for (F2LCaseAlgorithms.Algorithm spelling : F2LCaseAlgorithms.forCase(pairCase)) {
+            if (moves == null && drillable(pairCase, spelling)
+                && form.equals(AlgorithmForm.comparable(spelling.getMoves()))) {
+              moves = spelling.getMoves();
+            }
+          }
+          if (moves != null) {
+            kept.add(moves);
+            forms.add(form);
           }
         }
         table.put(pairCase, Collections.unmodifiableList(kept));
@@ -128,6 +140,13 @@ public final class F2LSlotAlgorithms {
       frontRight = table;
     }
     return frontRight;
+  }
+
+  /** Into front right as the solver holds the cube, with nothing else to empty. */
+  private static boolean drillable(String pairCase, F2LCaseAlgorithms.Algorithm algorithm) {
+    return algorithm.getEmptySlot() == null
+        && !TURNS_THE_CUBE.matcher(algorithm.getMoves()).find()
+        && solves(pairCase, FRONT_RIGHT, algorithm.getMoves());
   }
 
   private static synchronized Map<String, List<String>> frontLeft() {

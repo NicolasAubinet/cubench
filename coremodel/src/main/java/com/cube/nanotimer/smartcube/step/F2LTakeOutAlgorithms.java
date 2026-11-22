@@ -29,7 +29,7 @@ public final class F2LTakeOutAlgorithms {
 
   /** Case, then its ways, the most voted first. */
   private static final String[][] ROWS = {
-    {"a1", "y' R U' R' y R U' R'", "L' U' L U R U' R'"},
+    {"a1", "y' R U' R' y R U' R'", "L' U' L U R U' R'", "y' R U' R' U R2 F R F' R"},
     {"a1a", "y' F' U' F R' U' R", "y' U2 R U' R' U' R' U' R", "y' U' R U R2 U' R U' R' U R"},
     {"a2", "y2 R U' R' L U2 L'", "y' L' U' L y R U' R'", "L U' L' U' R U' R'"},
     {"a2a", "y2 R' F R F' L U2 L'", "y2 R' F R F' U' L U' L'", "y2 F' U' F U' y2 F' U' F"},

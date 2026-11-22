@@ -44,6 +44,9 @@ final class AlgorithmList {
   private final int votes;
   private final AlgorithmForm.Drawn drawn;
   private final List<List<String>> forms = new ArrayList<List<String>>();
+  /** Per spelling only: the rows shown, and the forms an execution is not unusual for. */
+  private final List<Row> shown;
+  private final List<List<String>> listedForms;
 
   /**
    * @param tableRows each {moves, votes, the slot it needs empty or ""}, spelled for the cube held
@@ -81,7 +84,138 @@ final class AlgorithmList {
       forms.add(AlgorithmForm.comparable(row.getMoves()));
     }
     this.listed = listedCount(folded, total);
+    this.shown = null;
+    this.listedForms = null;
   }
+
+  /**
+   * One row per spelling, for a table that counts each slot's votes apart (the F2L table). A
+   * spelling is ranked, recommended and shown by its own front-right votes, since two spellings of
+   * one algorithm are not the same to the hands. Spellings still fold into one algorithm for what
+   * an execution is and whether it is unusual: an algorithm is listed when its spellings hold the
+   * front of any one slot's votes, so a back slot's usual insertion is not flagged.
+   *
+   * @param tableRows each {moves, front-right votes, the slot it needs empty or "", front-left,
+   *     back-left and back-right votes}, spelled for the pair going into front right
+   */
+  static AlgorithmList bySpelling(List<String[]> tableRows, AlgorithmForm.Drawn drawn) {
+    return new AlgorithmList(tableRows, drawn, true);
+  }
+
+  private AlgorithmList(List<String[]> tableRows, AlgorithmForm.Drawn drawn, boolean bySpelling) {
+    this.drawn = drawn;
+    List<Row> spelled = new ArrayList<Row>();
+    int total = 0;
+    for (String[] tableRow : tableRows) {
+      Row row = new Row(new Spelling(tableRow[0], tableRow[2].isEmpty() ? null : tableRow[2]),
+          Integer.parseInt(tableRow[1]));
+      for (int slot = 1; slot < SLOTS; slot++) {
+        row.slotVotes[slot] = tableRow.length > slot + 2 ? Integer.parseInt(tableRow[slot + 2]) : 0;
+      }
+      row.slotVotes[0] = row.votes;
+      total += row.votes;
+      spelled.add(row);
+    }
+    Collections.sort(spelled, new Comparator<Row>() {
+      @Override
+      public int compare(Row one, Row other) {
+        return other.votes != one.votes ? other.votes - one.votes
+            : other.otherVotes() - one.otherVotes(); // stable: ties keep the table's order
+      }
+    });
+    this.rows = Collections.unmodifiableList(spelled);
+    this.votes = total;
+    for (Row row : spelled) {
+      row.share = total == 0 ? 0 : Math.round(row.votes * 100f / total);
+      forms.add(AlgorithmForm.comparable(row.getMoves()));
+    }
+    for (int i = 0; i < spelled.size(); i++) {
+      for (int j = 0; j < spelled.size(); j++) {
+        if (!forms.get(i).isEmpty() && forms.get(i).equals(forms.get(j))) {
+          spelled.get(i).siblings.add(spelled.get(j));
+        }
+      }
+    }
+    List<List<String>> frontRight = listedFolds(spelled, 0);
+    List<List<String>> listedFolds = new ArrayList<List<String>>();
+    for (int slot = 0; slot < SLOTS; slot++) {
+      for (List<String> form : listedFolds(spelled, slot)) {
+        addForm(listedFolds, form);
+      }
+    }
+    List<Row> front = new ArrayList<Row>();
+    for (int i = 0; i < spelled.size(); i++) {
+      Row row = spelled.get(i);
+      // On the votes, not the rounded share: 4.7% is under the cut
+      if (front.isEmpty() || (frontRight.contains(forms.get(i))
+          && row.votes * 100 >= SHOWN_SHARE * total)) {
+        front.add(row);
+      }
+    }
+    this.shown = Collections.unmodifiableList(front);
+    this.listedForms = Collections.unmodifiableList(listedFolds);
+    this.listed = front.size();
+  }
+
+  /**
+   * The share of a case's front-right votes a spelling needs to be shown, in percent. A full vote
+   * list has a long tail of spellings a few people voted for, which a share of the votes would
+   * otherwise bring onto the case's sheet; they still read as the algorithm they spell.
+   */
+  static final int SHOWN_SHARE = 5;
+
+  /** The four slots a table may count votes for: front right, front left, back left, back right. */
+  private static final int SLOTS = 4;
+
+  private static boolean addForm(List<List<String>> forms, List<String> form) {
+    if (form.isEmpty() || forms.contains(form)) {
+      return false;
+    }
+    return forms.add(form);
+  }
+
+  /** The algorithms holding the front of one slot's votes, their spellings' votes together. */
+  private List<List<String>> listedFolds(List<Row> spelled, int slot) {
+    final List<List<String>> folds = new ArrayList<List<String>>();
+    final List<Integer> held = new ArrayList<Integer>();
+    int slotTotal = 0;
+    for (int i = 0; i < spelled.size(); i++) {
+      int slotVotes = spelled.get(i).slotVotes[slot];
+      slotTotal += slotVotes;
+      List<String> form = forms.get(i);
+      if (slotVotes == 0 || form.isEmpty()) {
+        continue;
+      }
+      int at = folds.indexOf(form);
+      if (at < 0) {
+        folds.add(form);
+        held.add(slotVotes);
+      } else {
+        held.set(at, held.get(at) + slotVotes);
+      }
+    }
+    List<Integer> order = new ArrayList<Integer>();
+    for (int i = 0; i < folds.size(); i++) {
+      order.add(i);
+    }
+    Collections.sort(order, new Comparator<Integer>() {
+      @Override
+      public int compare(Integer one, Integer other) {
+        return held.get(other) - held.get(one);
+      }
+    });
+    List<List<String>> listedFolds = new ArrayList<List<String>>();
+    int covered = 0;
+    for (int at : order) {
+      if (covered * 100 >= COVERED_VOTES * slotTotal) {
+        break;
+      }
+      listedFolds.add(folds.get(at));
+      covered += held.get(at);
+    }
+    return listedFolds;
+  }
+
 
   private static int listedCount(List<Row> rows, int votes) {
     if (votes == 0) {
@@ -98,18 +232,25 @@ final class AlgorithmList {
   }
 
   /** Every algorithm of the case, most voted first. */
+  /** The case's front-right votes, every spelling's together. */
+  int votes() {
+    return votes;
+  }
+
   List<Row> all() {
     return rows;
   }
 
   /** The algorithms the case is listed with, most voted first. */
   List<Row> listed() {
-    return rows.subList(0, listed);
+    return shown != null ? shown : rows.subList(0, listed);
   }
 
   /** Whether the most voted algorithm is far enough ahead of the next listed one to recommend. */
   boolean leadIsClear() {
-    return listed > 1 && votes > 0 && rows.get(0).votes >= rows.get(1).votes * CLEAR_LEAD;
+    List<Row> listed = listed();
+    return listed.size() > 1 && votes > 0
+        && listed.get(0).votes >= listed.get(1).votes * CLEAR_LEAD;
   }
 
   /**
@@ -132,6 +273,9 @@ final class AlgorithmList {
    * execution makes that reading wrong, and everything about the solver's hands does.
    */
   private Row asTurned(Row row, String moves) {
+    if (!row.siblings.isEmpty()) {
+      return asTurnedSibling(row, moves);
+    }
     if (row.spellings.size() == 1) {
       return row;
     }
@@ -151,6 +295,26 @@ final class AlgorithmList {
     }
     Spelling spelled = sameFaces != null ? sameFaces : sameTurning;
     return spelled == null ? row : row.spelled(spelled);
+  }
+
+  /** As {@link #asTurned}, where each spelling is its own row with its own votes. */
+  private Row asTurnedSibling(Row row, String moves) {
+    List<String> turned = AlgorithmForm.comparable(moves);
+    String key = AlgorithmForm.keyAsDrawn(moves, drawn);
+    Row sameFaces = null;
+    Row sameTurning = null;
+    for (Row sibling : row.siblings) {
+      String spelling = sibling.getMoves();
+      if (!turned.isEmpty() && turned.equals(AlgorithmForm.comparable(spelling))
+          && (sameFaces == null || rotations(spelling) < rotations(sameFaces.getMoves()))) {
+        sameFaces = sibling;
+      }
+      if (sameTurning == null && key != null
+          && key.equals(AlgorithmForm.keyAsDrawn(spelling, drawn))) {
+        sameTurning = sibling;
+      }
+    }
+    return sameFaces != null ? sameFaces : sameTurning != null ? sameTurning : row;
   }
 
   /**
@@ -175,6 +339,11 @@ final class AlgorithmList {
     if (moves == null || AlgorithmForm.key(moves) == null) {
       return new AlgorithmExecution(false, 0, 0);
     }
+    if (listedForms != null) {
+      boolean unusual = !rows.isEmpty()
+          && AlgorithmForm.indexOfTurning(listedForms, moves, drawn) < 0;
+      return new AlgorithmExecution(unusual, AlgorithmForm.lengthAsDrawn(moves, drawn), shortest());
+    }
     int at = AlgorithmForm.indexOfTurning(forms, moves, drawn);
     // The other hand's version of a listed algorithm is not unusual, even with its own row unlisted.
     boolean unusual = !rows.isEmpty() && (at < 0 || at >= listed)
@@ -182,27 +351,29 @@ final class AlgorithmList {
     return new AlgorithmExecution(unusual, AlgorithmForm.lengthAsDrawn(moves, drawn), shortest());
   }
 
-  /** The shortest listed algorithm, which is what a long execution is measured against. */
+  /**
+   * The shortest algorithm shown, which is what a long execution is measured against: not one only
+   * another slot lists, which a few voters can bring in.
+   */
   private int shortest() {
-    int at = shortestAt();
-    return at < 0 ? 0 : forms.get(at).size();
-  }
-
-  private int shortestAt() {
-    int at = -1;
-    for (int i = 0; i < listed; i++) {
-      int length = forms.get(i).size();
-      if (length > 0 && (at < 0 || length < forms.get(at).size())) {
-        at = i;
+    int shortest = 0;
+    for (int i = 0; i < rows.size(); i++) {
+      List<String> form = forms.get(i);
+      boolean counted = shown != null ? shown.contains(rows.get(i)) : i < listed;
+      if (counted && !form.isEmpty() && (shortest == 0 || form.size() < shortest)) {
+        shortest = form.size();
       }
     }
-    return at;
+    return shortest;
   }
 
   /** One algorithm and every spelling of it the table holds, as the most voted one spells it. */
   static final class Row {
 
     private final List<Spelling> spellings = new ArrayList<Spelling>();
+    /** Per spelling only: every row spelling the same algorithm, this one included. */
+    private final List<Row> siblings = new ArrayList<Row>();
+    private final int[] slotVotes = new int[SLOTS];
     private int votes;
     private int share;
 
@@ -220,9 +391,18 @@ final class AlgorithmList {
       return share;
     }
 
+    int getVotes() {
+      return votes;
+    }
+
     /** The slot ("fl", "br") an F2L algorithm needs empty, or null. */
     String getEmptySlot() {
       return spellings.get(0).emptySlot;
+    }
+
+    /** Its votes in the slots other than front right, for a table that counts them. */
+    int otherVotes() {
+      return slotVotes[1] + slotVotes[2] + slotVotes[3];
     }
 
     /**

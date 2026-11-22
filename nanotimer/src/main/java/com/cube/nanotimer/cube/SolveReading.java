@@ -51,9 +51,10 @@ public final class SolveReading {
    * where each pair's slot sat in the grip, version 10 the cross against its optimal, version 11
    * the pause before the final AUF, version 12 times a PLL without its final AUF, version 13 reads
    * the halves of any listed algorithm as one, whatever the pause, version 14 a Roux solve's CMLL,
-   * version 15 marks each pair turned with moves undone or stopped inside.
+   * version 15 marks each pair turned with moves undone or stopped inside, version 16 the F2L
+   * lists counted per slot and per spelling.
    */
-  public static final int VERSION = 15;
+  public static final int VERSION = 16;
 
   static final String RESTART_PART_SUFFIX = "restart";
 
