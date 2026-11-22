@@ -297,6 +297,18 @@ public final class CaseAlgorithms {
         : LastLayerCaseAlgorithms.sameTurning(caseCode, moves, other);
   }
 
+  /**
+   * Whether two spellings write the same moves in the grip held, rotations and regrips aside: a
+   * stricter fold than {@link #sameTurning}, which also matches a grip the solver never holds.
+   */
+  public static boolean sameForm(String moves, String other) {
+    if (moves == null || other == null) {
+      return false;
+    }
+    List<String> form = AlgorithmForm.comparable(moves);
+    return !form.isEmpty() && form.equals(AlgorithmForm.comparable(other));
+  }
+
   /** @see LastLayerCaseAlgorithms#keyAsDrawn */
   public static String keyAsDrawn(String caseCode, String moves) {
     if (slotOf(caseCode) != null) {

@@ -1229,7 +1229,7 @@ public final class F2LCaseAlgorithms {
     return read;
   }
 
-  private static AlgorithmList listOf(String pairCase) {
+  static AlgorithmList listOf(String pairCase) {
     synchronized (LISTS) {
       AlgorithmList list = LISTS.get(pairCase);
       if (list == null) {

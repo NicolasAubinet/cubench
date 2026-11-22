@@ -38,6 +38,22 @@ public class F2LSlotAlgorithmsTest {
   }
 
   /** Front left is the left hand's mirror of the front-right algorithm, never one with a y. */
+  /** The sheet lists spellings; a drill's slot table holds each algorithm once, rotation free. */
+  @Test
+  public void aFrontSlotHoldsEachAlgorithmOnce() {
+    for (String slot : new String[] {"fr", "fl"}) {
+      for (int i = 1; i <= F2LCases.BASIC; i++) {
+        List<List<String>> forms = new ArrayList<List<String>>();
+        for (String moves : F2LSlotAlgorithms.forCase(String.valueOf(i), slot)) {
+          List<String> form = AlgorithmForm.comparable(moves);
+          assertFalse(slot + " " + i + ": " + moves, forms.contains(form));
+          forms.add(form);
+        }
+      }
+    }
+    assertTrue(F2LSlotAlgorithms.forCase("34", "fr").contains("U F' U F U2 F' U F"));
+  }
+
   @Test
   public void frontLeftIsTheMirrorOfFrontRight() {
     assertEquals("L' U' L", F2LSlotAlgorithms.forCase("3", "fl").get(0));

@@ -621,7 +621,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
       shown.add(algorithm.getMoves());
     }
     // Their own spelling stands in for one listed spelling of the same turning, not for all
-    String ownAt = rowFor(shown, own);
+    String ownAt = rowFor(shown, own, true);
     if (ownAt != null) {
       shown.set(shown.indexOf(ownAt), own);
     }
@@ -700,13 +700,21 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     return false;
   }
 
-  /** The row text that carries a turning's marks: its exact spelling if up, else the first. */
-  private String rowFor(List<String> texts, String moves) {
+  /**
+   * The row text that carries a turning's marks: the first in vote order, or for a spelling the
+   * user wrote ({@code exact}) that spelling where it is up.
+   */
+  private String rowFor(List<String> texts, String moves, boolean exact) {
     if (moves == null) {
       return null;
     }
-    if (texts.contains(moves)) {
+    if (exact && texts.contains(moves)) {
       return moves;
+    }
+    for (String text : texts) { // the same moves in the grip held, before a far grip's match
+      if (CaseAlgorithms.sameForm(text, moves)) {
+        return text;
+      }
     }
     for (String text : texts) {
       if (CaseAlgorithms.sameTurning(caseCode, text, moves)) {
@@ -716,19 +724,23 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     return null;
   }
 
-  /** Whether this row carries the marks of a turning (other spellings of it stay plain). */
-  private boolean carries(String row, String moves) {
+  /**
+   * Whether this row carries the marks of a turning (other spellings of it stay plain). A solve
+   * cannot tell spellings apart, so what it turned goes to the most voted; what the user wrote
+   * ({@code exact}) to its own spelling.
+   */
+  private boolean carries(String row, String moves, boolean exact) {
     if (moves == null || !CaseAlgorithms.sameTurning(caseCode, row, moves)) {
       return false;
     }
-    String at = rowFor(placed, moves);
+    String at = rowFor(placed, moves, exact);
     return at == null || at.equals(row);
   }
 
   /** What the solver turns for this row, by the turning, or null for none of their executions. */
   private Turned turnedFor(String moves) {
     for (Turned one : turned) {
-      if (carries(moves, one.moves)) {
+      if (carries(moves, one.moves, false)) {
         return one;
       }
     }
@@ -744,7 +756,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
    */
   private View row(ViewGroup parent, final String moves, int place, boolean recommended,
       String emptySlot, float share) {
-    boolean declared = carries(moves, chosen);
+    boolean declared = carries(moves, chosen, true);
     Turned one = turnedFor(moves);
     // The outline follows the star; with none, the algorithm their solves turn
     boolean mine = chosen != null ? declared : one != null && one == turned.get(0);
@@ -806,7 +818,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
 
   /** Tapping the one already kept lets it go, so a wrong tap is undone the same way it was made. */
   private void choose(String moves) {
-    chosen = CaseAlgorithms.sameTurning(caseCode, moves, chosen) ? null : moves;
+    // Another spelling of the starred turning takes the star rather than dropping it
+    chosen = carries(moves, chosen, true) ? null : moves;
     Options.INSTANCE.setCaseAlgorithm(caseCode, chosen);
     flagsChanged();
     refresh();

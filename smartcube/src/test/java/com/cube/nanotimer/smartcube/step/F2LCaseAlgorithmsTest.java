@@ -188,10 +188,11 @@ public class F2LCaseAlgorithmsTest {
   @Test
   public void showsNoSpellingUnderItsShareOfTheVotes() {
     for (int basic = 1; basic <= 41; basic++) {
-      List<F2LCaseAlgorithms.Algorithm> shown = F2LCaseAlgorithms.listed(String.valueOf(basic));
-      for (F2LCaseAlgorithms.Algorithm algorithm : shown.subList(1, shown.size())) {
-        assertTrue(basic + ": " + algorithm.getMoves(),
-            algorithm.getShare() >= AlgorithmList.SHOWN_SHARE);
+      AlgorithmList list = F2LCaseAlgorithms.listOf(String.valueOf(basic));
+      List<AlgorithmList.Row> shown = list.listed();
+      for (AlgorithmList.Row row : shown.subList(1, shown.size())) {
+        assertTrue(basic + ": " + row.getMoves(),
+            row.getVotes() * 100 >= AlgorithmList.SHOWN_SHARE * list.votes());
       }
     }
   }

@@ -146,7 +146,9 @@ final class AlgorithmList {
     List<Row> front = new ArrayList<Row>();
     for (int i = 0; i < spelled.size(); i++) {
       Row row = spelled.get(i);
-      if (front.isEmpty() || (frontRight.contains(forms.get(i)) && row.share >= SHOWN_SHARE)) {
+      // On the votes, not the rounded share: 4.7% is under the cut
+      if (front.isEmpty() || (frontRight.contains(forms.get(i))
+          && row.votes * 100 >= SHOWN_SHARE * total)) {
         front.add(row);
       }
     }
@@ -230,6 +232,11 @@ final class AlgorithmList {
   }
 
   /** Every algorithm of the case, most voted first. */
+  /** The case's front-right votes, every spelling's together. */
+  int votes() {
+    return votes;
+  }
+
   List<Row> all() {
     return rows;
   }
@@ -382,6 +389,10 @@ final class AlgorithmList {
     /** The share of its case's votes this algorithm holds, in percent. */
     int getShare() {
       return share;
+    }
+
+    int getVotes() {
+      return votes;
     }
 
     /** The slot ("fl", "br") an F2L algorithm needs empty, or null. */
