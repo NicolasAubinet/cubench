@@ -142,6 +142,9 @@ public final class CaseAlgorithms {
       for (Listed one : shown) {
         listed |= sameTurning(caseCode, one.getMoves(), all.get(i));
       }
+      for (Listed one : more) { // an F2L algorithm's other spellings: its most voted one stands
+        listed |= sameTurning(caseCode, one.getMoves(), all.get(i));
+      }
       if (!listed) {
         more.add(new Listed(all.get(i), false, emptySlots.get(i)));
       }

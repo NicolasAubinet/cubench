@@ -157,6 +157,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private String starredRow;
   /** Everything they turn for the case, most turned first, empty until the solves have been read. */
   private List<Turned> turned = new ArrayList<Turned>();
+  /** Every row text up on the sheet but the opened rest, in order; a turning's marks go to one. */
+  private List<String> placed = new ArrayList<String>();
   private boolean moreOpen;
   /** Whether a solve or a drill ever timed the case; null until both have been asked. */
   private Boolean measured;
@@ -616,12 +618,12 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     List<Listed> listed = CaseAlgorithms.shown(caseCode);
     List<String> shown = new ArrayList<String>();
     for (Listed algorithm : listed) {
-      // Their own spelling of a listed algorithm stands in its place
-      String moves = CaseAlgorithms.sameTurning(caseCode, algorithm.getMoves(), own) ? own
-          : algorithm.getMoves();
-      rows.addView(row(rows, moves, shown.size() + 1, algorithm.isRecommended(),
-          algorithm.getEmptySlot(), algorithm.getShare()));
-      shown.add(moves);
+      shown.add(algorithm.getMoves());
+    }
+    // Their own spelling stands in for one listed spelling of the same turning, not for all
+    String ownAt = rowFor(shown, own);
+    if (ownAt != null) {
+      shown.set(shown.indexOf(ownAt), own);
     }
     List<String> theirs = new ArrayList<String>();
     if (own != null && !listedAlready(shown, own)) {
@@ -639,6 +641,13 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     if (starredRow != null && !listedAlready(shown, starredRow)
         && !listedAlready(theirs, starredRow)) {
       theirs.add(starredRow);
+    }
+    placed = new ArrayList<String>(shown);
+    placed.addAll(theirs);
+    for (int i = 0; i < listed.size(); i++) {
+      Listed algorithm = listed.get(i);
+      rows.addView(row(rows, shown.get(i), i + 1, algorithm.isRecommended(),
+          algorithm.getEmptySlot(), algorithm.getShare()));
     }
     List<Listed> rest = new ArrayList<Listed>();
     for (Listed extra : CaseAlgorithms.more(caseCode)) {
@@ -691,10 +700,35 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     return false;
   }
 
+  /** The row text that carries a turning's marks: its exact spelling if up, else the first. */
+  private String rowFor(List<String> texts, String moves) {
+    if (moves == null) {
+      return null;
+    }
+    if (texts.contains(moves)) {
+      return moves;
+    }
+    for (String text : texts) {
+      if (CaseAlgorithms.sameTurning(caseCode, text, moves)) {
+        return text;
+      }
+    }
+    return null;
+  }
+
+  /** Whether this row carries the marks of a turning (other spellings of it stay plain). */
+  private boolean carries(String row, String moves) {
+    if (moves == null || !CaseAlgorithms.sameTurning(caseCode, row, moves)) {
+      return false;
+    }
+    String at = rowFor(placed, moves);
+    return at == null || at.equals(row);
+  }
+
   /** What the solver turns for this row, by the turning, or null for none of their executions. */
   private Turned turnedFor(String moves) {
     for (Turned one : turned) {
-      if (CaseAlgorithms.sameTurning(caseCode, one.moves, moves)) {
+      if (carries(moves, one.moves)) {
         return one;
       }
     }
@@ -710,7 +744,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
    */
   private View row(ViewGroup parent, final String moves, int place, boolean recommended,
       String emptySlot, float share) {
-    boolean declared = CaseAlgorithms.sameTurning(caseCode, moves, chosen);
+    boolean declared = carries(moves, chosen);
     Turned one = turnedFor(moves);
     // The outline follows the star; with none, the algorithm their solves turn
     boolean mine = chosen != null ? declared : one != null && one == turned.get(0);
