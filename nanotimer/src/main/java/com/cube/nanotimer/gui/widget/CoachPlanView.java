@@ -44,18 +44,16 @@ import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.coach.CoachPayload;
-import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.coach.CoachPlan;
 import com.cube.nanotimer.coach.Evidence;
 import com.cube.nanotimer.coach.FocusArea;
 import com.cube.nanotimer.coach.StepShares;
 import com.cube.nanotimer.coach.StoredCoachPlan;
-import com.cube.nanotimer.cube.SolveTypeMethod;
+import com.cube.nanotimer.cube.PairSightings;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.step.F2lPairCases;
 import com.cube.nanotimer.vo.SolveType;
-import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.gui.CrossDrillActivity;
 import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
@@ -63,6 +61,7 @@ import com.cube.nanotimer.gui.DrillSetupActivity;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.CaseSetActivity;
 import com.cube.nanotimer.smartcube.drill.DrillRuns;
+import com.cube.nanotimer.smartcube.drill.PairSighting;
 import com.cube.nanotimer.smartcube.drill.PairWeights;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
@@ -595,24 +594,23 @@ public class CoachPlanView {
    * recent solves that lean the drill's order are read, so the card shows what the drill deals.
    */
   private void showOpeningPairs(final LinearLayout pictures, final DrillSpec drill) {
-    App.INSTANCE.getService().getMethodStatistics(solveType, SolveTypeMethod.of(solveType),
-        CoachPayloadBuilder.FAMILY_WINDOW, new DataCallback<MethodStatistics>() {
+    PairSightings.read(solveType, new DataCallback<List<PairSighting>>() {
+      @Override
+      public void onData(final List<PairSighting> sightings) {
+        activity.runOnUiThread(new Runnable() {
           @Override
-          public void onData(final MethodStatistics statistics) {
-            activity.runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                if (activity.isFinishing()) {
-                  return;
-                }
-                List<String> order = PairWeights.heaviestFirst(drill.getCases(),
-                    PairWeights.of(drill, statistics));
-                pictures.removeAllViews();
-                addCaseCharts(pictures, openingCases(drill, order, order));
-              }
-            });
+          public void run() {
+            if (activity.isFinishing()) {
+              return;
+            }
+            List<String> order = PairWeights.openingOrder(drill.getCases(),
+                PairWeights.of(drill, sightings));
+            pictures.removeAllViews();
+            addCaseCharts(pictures, openingCases(drill, order, order));
           }
         });
+      }
+    });
   }
 
   /** The line under a drill's opening cases saying how many come after them. */

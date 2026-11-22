@@ -105,6 +105,27 @@ public class SolveReadingTest {
   }
 
   /** A pair set against nothing still happened, so it survives being kept as one. */
+  /** A side turn taken back is a mess-up; a regrip on U or D, or a single slip back, is not. */
+  @Test
+  public void countsSideTurnsTakenBackByTheSameFace() {
+    assertEquals(0, SolveReading.undoneTurns("R U R' U' R U R'"));
+    assertEquals(2, SolveReading.undoneTurns("R R' U R U' R'"));
+    assertEquals(0, SolveReading.undoneTurns("U U' R U R' D D'"));
+    assertEquals(6, SolveReading.undoneTurns("F R2 R2 F'"));
+    assertEquals(0, SolveReading.undoneTurns("L L L"));
+  }
+
+  @Test
+  public void keepsAPairsMessUpAndStopThroughTheKeptText() {
+    SolveReading.Execution pair = new SolveReading.Execution(SolveReading.F2L, "pair_7", 2400,
+        9, 7, true, 1).marked(true, false);
+    SolveReading.Execution round = SolveReading.parse(SolveReading.toJson(
+        new SolveReading(Collections.singletonList(pair)))).getExecutions().get(0);
+
+    assertTrue(round.isUndone());
+    assertFalse(round.isStopped());
+  }
+
   @Test
   public void keepsAPairThatCanBeSetAgainstNothingAsAPairThatHappened() {
     List<SolveReading.Execution> round = SolveReading.parse(SolveReading.toJson(

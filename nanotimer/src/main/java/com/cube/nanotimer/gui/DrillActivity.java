@@ -28,16 +28,14 @@ import androidx.fragment.app.FragmentResultListener;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
-import com.cube.nanotimer.coach.CoachPayloadBuilder;
 import com.cube.nanotimer.cube.AlgorithmFollower;
 import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.cube.CubePatternFormat;
 import com.cube.nanotimer.cube.CubeStickering;
 import com.cube.nanotimer.cube.RepRotations;
 import com.cube.nanotimer.cube.SmartCubeManager;
-import com.cube.nanotimer.cube.SolveTypeMethod;
+import com.cube.nanotimer.cube.PairSightings;
 import com.cube.nanotimer.services.db.DataCallback;
-import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.drill.AlgorithmTimes;
 import com.cube.nanotimer.smartcube.drill.CaseTally;
 import com.cube.nanotimer.smartcube.drill.DailyRun;
@@ -48,6 +46,7 @@ import com.cube.nanotimer.smartcube.drill.DrillRepOrder;
 import com.cube.nanotimer.smartcube.drill.DrillSession;
 import com.cube.nanotimer.smartcube.drill.DrillRuns;
 import com.cube.nanotimer.smartcube.drill.LayerRotation;
+import com.cube.nanotimer.smartcube.drill.PairSighting;
 import com.cube.nanotimer.smartcube.drill.PairWeights;
 import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
 import com.cube.nanotimer.smartcube.step.CmllCases;
@@ -465,22 +464,21 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     }
   }
 
-  /** The pairs' recent figures lean the draw, so the session waits for them. */
+  /** The pairs' recent solves lean the draw and pick the opening, so the session waits for them. */
   private void loadPairWeights(final DrillSpec spec, SolveType solveType) {
-    App.INSTANCE.getService().getMethodStatistics(solveType, SolveTypeMethod.of(solveType),
-        CoachPayloadBuilder.FAMILY_WINDOW, new DataCallback<MethodStatistics>() {
+    PairSightings.read(solveType, new DataCallback<List<PairSighting>>() {
+      @Override
+      public void onData(final List<PairSighting> sightings) {
+        runOnUiThread(new Runnable() {
           @Override
-          public void onData(final MethodStatistics statistics) {
-            runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                if (!isFinishing()) {
-                  begin(spec, PairWeights.of(spec, statistics));
-                }
-              }
-            });
+          public void run() {
+            if (!isFinishing()) {
+              begin(spec, PairWeights.of(spec, sightings));
+            }
           }
         });
+      }
+    });
   }
 
   private void begin(DrillSpec spec, Map<String, Long> weights) {
