@@ -103,6 +103,18 @@ public class DrillRunsTest {
     assertEquals(CASES, DrillRuns.of(SPEC, "garbage").order(CASES));
   }
 
+  /** A practice set is fetched daily with targets following the means: its runs carry over. */
+  @Test
+  public void aPracticeSetKeepsItsRunsWhenItsTargetsMove() {
+    DrillSpec today = spec("coach-practice-pll", 2000);
+    String text = DrillRuns.of(today, null).after(today,
+        Arrays.asList(rep("pll_ub", 3000), rep("pll_t", 1000), rep("pll_t", 1000))).toText();
+
+    DrillSpec tomorrow = spec("coach-practice-pll", 2300);
+    assertEquals("pll_ub", DrillRuns.of(tomorrow, text).order(CASES).get(1));
+    assertEquals(CASES, DrillRuns.of(spec("coach-practice-oll", 2000), text).order(CASES));
+  }
+
   @Test
   public void aPracticeRepDealsNothing() {
     DrillRep practice = new DrillRep("pll_v", "", Collections.<CubeMove>emptyList(), 0, 300, 700,

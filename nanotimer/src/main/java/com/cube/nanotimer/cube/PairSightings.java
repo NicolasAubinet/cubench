@@ -7,6 +7,7 @@ import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,11 +39,43 @@ public final class PairSightings {
     return sightings;
   }
 
+  /** Callers waiting on a read already running, by solve type: one read serves them all. */
+  private static final Map<Integer, List<DataCallback<List<PairSighting>>>> WAITING =
+      new HashMap<Integer, List<DataCallback<List<PairSighting>>>>();
+
   /**
    * Reads the solve type's last {@link #WINDOW} solves, keeping what had to be read. The callback
-   * runs off the main thread.
+   * runs off the main thread. A read asked for while one runs for the same solve type joins it,
+   * since a cold window replays every solve.
    */
-  public static void read(SolveType solveType, final DataCallback<List<PairSighting>> callback) {
+  public static void read(SolveType solveType, DataCallback<List<PairSighting>> callback) {
+    final Integer key = Integer.valueOf(solveType.getId());
+    synchronized (WAITING) {
+      List<DataCallback<List<PairSighting>>> waiting = WAITING.get(key);
+      if (waiting != null) {
+        waiting.add(callback);
+        return;
+      }
+      waiting = new ArrayList<DataCallback<List<PairSighting>>>();
+      waiting.add(callback);
+      WAITING.put(key, waiting);
+    }
+    readNow(solveType, new DataCallback<List<PairSighting>>() {
+      @Override
+      public void onData(List<PairSighting> sightings) {
+        List<DataCallback<List<PairSighting>>> waiting;
+        synchronized (WAITING) {
+          waiting = WAITING.remove(key);
+        }
+        for (DataCallback<List<PairSighting>> one : waiting) {
+          one.onData(sightings);
+        }
+      }
+    });
+  }
+
+  private static void readNow(SolveType solveType,
+      final DataCallback<List<PairSighting>> callback) {
     App.INSTANCE.getService().getMethodSolves(solveType, SolveTypeMethod.of(solveType), WINDOW,
         new DataCallback<List<SolveTime>>() {
           @Override
@@ -52,9 +85,15 @@ public final class PairSightings {
                   @Override
                   public void onData(Map<Long, String> kept) {
                     SolveReadings readings = new SolveReadings(kept);
-                    List<PairSighting> sightings = fromReadings(solves, readings);
-                    App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
-                        SolveReading.VERSION, null);
+                    List<PairSighting> sightings = new ArrayList<PairSighting>();
+                    try {
+                      sightings = fromReadings(solves, readings);
+                    } catch (RuntimeException e) {
+                      // a solve that cannot be read: the drill falls back to its spec's order
+                    } finally {
+                      App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
+                          SolveReading.VERSION, null);
+                    }
                     callback.onData(sightings);
                   }
                 });

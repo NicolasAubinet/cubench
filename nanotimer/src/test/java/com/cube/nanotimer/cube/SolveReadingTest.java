@@ -104,8 +104,7 @@ public class SolveReadingTest {
     assertFalse("it should have been read and kept", readings.unkept().isEmpty());
   }
 
-  /** A pair set against nothing still happened, so it survives being kept as one. */
-  /** A side turn taken back is a mess-up; a regrip on U or D, or a single slip back, is not. */
+  /** A side turn and its undo count both quarter turns; U or D taken back is a regrip, not one. */
   @Test
   public void countsSideTurnsTakenBackByTheSameFace() {
     assertEquals(0, SolveReading.undoneTurns("R U R' U' R U R'"));
@@ -126,6 +125,7 @@ public class SolveReadingTest {
     assertFalse(round.isStopped());
   }
 
+  /** A pair set against nothing still happened, so it survives being kept as one. */
   @Test
   public void keepsAPairThatCanBeSetAgainstNothingAsAPairThatHappened() {
     List<SolveReading.Execution> round = SolveReading.parse(SolveReading.toJson(
