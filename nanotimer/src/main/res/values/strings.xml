@@ -1683,8 +1683,8 @@
   <string name="coach_drill_case">Drill this case</string>
   <string name="coach_drill_cases">Drill these cases</string>
   <plurals name="coach_drill_more_cases">
-    <item quantity="one">+%d more as these are cleared</item>
-    <item quantity="other">+%d more as these are cleared</item>
+    <item quantity="one">+%d more in later drills</item>
+    <item quantity="other">+%d more in later drills</item>
   </plurals>
   <string name="coach_learn_cases">Learn these cases</string>
   <string name="coach_drill_lookahead">Look-ahead drill</string>

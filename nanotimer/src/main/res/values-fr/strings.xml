@@ -1634,8 +1634,8 @@
   <string name="coach_drill_case">Travailler ce cas</string>
   <string name="coach_drill_cases">Travailler ces cas</string>
   <plurals name="coach_drill_more_cases">
-    <item quantity="one">+%d autre à mesure que ceux-ci sont validés</item>
-    <item quantity="other">+%d autres à mesure que ceux-ci sont validés</item>
+    <item quantity="one">+%d autre dans les prochains exercices</item>
+    <item quantity="other">+%d autres dans les prochains exercices</item>
   </plurals>
   <string name="coach_learn_cases">Apprendre ces cas</string>
   <string name="coach_drill_lookahead">Drill de look-ahead</string>

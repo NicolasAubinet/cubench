@@ -580,9 +580,9 @@ public final class DrillSpec {
   }
 
   /**
-   * How many cases are dealt from at once, or 0 for all of them. A learning drill holds at most
-   * {@link #LEARNING_AT_ONCE}, whatever it was sent with: new algorithms are learned a few at a
-   * time, the next coming in as one is learned (owner, 2026-11-05).
+   * How many cases one run deals, or 0 for all of them; the rest wait for later runs, never joining
+   * part way. A learning drill holds at most {@link #LEARNING_AT_ONCE}, whatever it was sent with:
+   * new algorithms are learned a few at a time (owner, 2026-11-05).
    */
   public int getWorkingSet() {
     if (!learning) {

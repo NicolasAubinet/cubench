@@ -1316,7 +1316,7 @@ public class DrillSessionTest {
     assertFalse(session.isFirstPairIn());
   }
 
-  /** Only the first few cases are dealt, and the next one comes in as one retires. */
+  /** Only the first few cases are dealt, and none comes in as one retires: the run ends on them. */
   @Test
   public void aWorkingSetDealsFromTheHeaviestCasesFirst() {
     List<String> codes = Arrays.asList("pll_t", "pll_h", "pll_z", "pll_ua");
@@ -1338,7 +1338,8 @@ public class DrillSessionTest {
               || session.isRetired(session.getCurrentCase()));
       assertNotNull(hand.execute(inverse(session.getCurrentScramble())));
     }
-    assertEquals(new HashSet<String>(codes), dealt);
+    assertEquals(new HashSet<String>(Arrays.asList("pll_z", "pll_ua")), dealt);
+    assertEquals(Arrays.asList("pll_z", "pll_ua"), session.getRunCases());
   }
 
   @Test

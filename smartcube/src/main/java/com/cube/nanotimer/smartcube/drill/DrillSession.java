@@ -1181,15 +1181,21 @@ public final class DrillSession {
   }
 
   /**
-   * The cases still being dealt, in the order the spec named them, or by weight for a drill with a
-   * working set, which deals from only the first of them that have not retired.
+   * The cases this run deals: all of them, or for a drill with a working set only the first that
+   * many, fixed from the first deal. A beaten case is never replaced within the run: a case joining
+   * part way makes the drill's length unknowable (owner, 2026-11-23). Later runs move on instead.
    */
+  public List<String> getRunCases() {
+    int limit = spec.getWorkingSet() > 0 ? spec.getWorkingSet() : Integer.MAX_VALUE;
+    return new ArrayList<String>(cases.subList(0, Math.min(limit, cases.size())));
+  }
+
+  /** This run's cases still being dealt, the ones not yet retired. */
   public List<String> getActiveCases() {
     CaseTally tally = getTally();
-    int limit = spec.getWorkingSet() > 0 ? spec.getWorkingSet() : Integer.MAX_VALUE;
     List<String> active = new ArrayList<String>();
-    for (String code : cases) {
-      if (active.size() < limit && !tally.isCleared(code)) {
+    for (String code : getRunCases()) {
+      if (!tally.isCleared(code)) {
         active.add(code);
       }
     }

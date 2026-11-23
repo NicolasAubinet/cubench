@@ -15,8 +15,8 @@ import java.util.Random;
  * opening on the same cases all week (owner, 2026-11-21). A run opens on {@link #REVIEWS} cases
  * beaten before, those that took the most reps first, then the cases a run dealt without beating,
  * then ones never dealt; once every case is beaten, it deals them in a random order, drawn from what
- * is saved so the plan card shows the cases the run will open on. The working set brings in the
- * next in line as one is beaten, as it does within a run.
+ * is saved so the plan card shows the cases the run will deal. A run deals only its working set:
+ * the next in line come in on the next run, never part way through one.
  *
  * <p>A plan card's runs are kept for one set of cases and targets only: a new plan writes new
  * targets, and its first run starts clean. A standing practice set ({@link #PRACTICE_PREFIX}) is

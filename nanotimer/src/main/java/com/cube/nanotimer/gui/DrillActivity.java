@@ -1115,7 +1115,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     if (!teachesAlgorithm()) {
       return;
     }
-    for (String code : session.getActiveCases()) { // the rest are chosen for as they come in
+    for (String code : session.getActiveCases()) {
       if (!Options.INSTANCE.isAlgorithmKept(code)) {
         toChoose.add(code);
       }
@@ -1731,7 +1731,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   }
 
   private void refreshCaseProgress() {
-    List<String> cases = shownCases(true);
+    List<String> cases = shownCases();
     CaseTally tally = session.getTally();
     boolean won = lastRep != null && CaseTally.isClean(lastRep) && tally.isWin(lastRep);
     casePips.show(cases, tally, session.getSpec().getWinsToRetire(),
@@ -1746,33 +1746,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     }
   }
 
-  /**
-   * The cases to count progress over. A drill with a working set may hold far more cases than it
-   * reaches, so only those dealt so far are shown, plus while it runs those in the set. A learning
-   * drill's few cases are all shown, the ones not reached yet included: they are still to learn.
-   */
-  private List<String> shownCases(boolean running) {
-    DrillSpec spec = session.getSpec();
-    if (spec.getWorkingSet() == 0 || spec.isLearning()) {
-      return session.getCases();
-    }
-    List<String> active = running ? session.getActiveCases() : Collections.<String>emptyList();
-    List<String> shown = new ArrayList<String>();
-    for (String code : session.getCases()) {
-      if (active.contains(code) || wasDealt(code)) {
-        shown.add(code);
-      }
-    }
-    return shown;
-  }
-
-  private boolean wasDealt(String code) {
-    for (DrillRep rep : session.getReps()) {
-      if (code.equals(rep.getCaseCode())) {
-        return true;
-      }
-    }
-    return false;
+  /** The cases to count progress over: the run's, all of them from the first rep. */
+  private List<String> shownCases() {
+    return session.getRunCases();
   }
 
   /** How the rep did against its case's target, said only once the rep is over. */
@@ -1928,7 +1904,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
    */
   private void showTargets(List<DrillRep> reps) {
     DrillSpec spec = session.getSpec();
-    List<String> cases = shownCases(false);
+    List<String> cases = shownCases();
     CaseTally tally = CaseTally.of(spec, reps);
     List<String> over = new ArrayList<String>();
     LinearLayout rows = findViewById(R.id.llDrillTargetRows);
