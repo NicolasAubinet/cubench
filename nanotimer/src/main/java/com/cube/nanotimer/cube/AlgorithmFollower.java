@@ -328,9 +328,18 @@ public class AlgorithmFollower {
 
   /** The most algorithm turns done along an angle that does, or does not, finish the case. */
   private int furthest(boolean right) {
+    // A grip that only landed on one of its states later would grey turns not made yet
+    int since = Integer.MAX_VALUE;
+    for (int i = 0; i < followers.size(); i++) {
+      if (rightAngle.get(i) == right && !followers.get(i).isWrong()) {
+        since = Math.min(since, followingSince.get(i));
+      }
+    }
     int turned = 0;
     for (int i = 0; i < followers.size(); i++) {
-      if (rightAngle.get(i) == right) {
+      boolean kept = since == Integer.MAX_VALUE
+          || !followers.get(i).isWrong() && followingSince.get(i) == since;
+      if (rightAngle.get(i) == right && kept) {
         int done = followers.get(i).getDoneCount() - (prefixed.get(i) ? 1 : 0);
         turned = Math.max(turned, done);
       }

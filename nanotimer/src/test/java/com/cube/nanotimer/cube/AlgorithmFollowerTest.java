@@ -264,6 +264,17 @@ public class AlgorithmFollowerTest {
     assertEquals("R'", solver.follower.getUndoMoves());
   }
 
+  /** Another grip landing on one of its later states must not grey turns not made yet. */
+  @Test
+  public void aGripLandingAheadDoesNotSkipTheGreying() {
+    Solver oll = new Solver("f R U R' U' f' U' F R U R' U' F'");
+    oll.turn("f", "R", "U", "R'", "U'", "f'");
+    assertEquals(6, oll.follower.getDoneCount());
+    Solver sune = new Solver("y F R U R' U' F' U' R U R' U R U2 R'");
+    sune.turn("y", "F", "R", "U", "R'");
+    assertEquals(5, sune.follower.getDoneCount());
+  }
+
   /** A turn the cube dropped, recovered from its next state, is followed like a reported one. */
   @Test
   public void aTurnTheCubeDroppedIsFollowedOnceRecovered() {
