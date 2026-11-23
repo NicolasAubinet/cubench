@@ -1610,6 +1610,26 @@ public class DrillSessionTest {
         DrillSpec.Selection.ROUND_ROBIN, 400, 5, Collections.<String, String>emptyMap(), null);
   }
 
+  /** A pair practised at its algorithm's angle: an opening U' does not finish it, from any side. */
+  @Test
+  public void aPractisedPairFinishesOnlyFromItsAngle() {
+    String algorithm = "U F' U' F U' R U R'";
+    List<String> turns = Arrays.asList(algorithm.split(" "));
+    for (int seed = 0; seed < 10; seed++) {
+      DrillSession session = new DrillSession(pairSpec("pair_36"), new Random(seed), null, "U");
+      session.startPractice("pair_36", algorithm);
+      assertTrue(session.wouldFinish(turns));
+      for (int sides = 0; sides < 4; sides++) {
+        List<String> wrong = new ArrayList<String>();
+        wrong.add("U'");
+        for (String turn : turns.subList(1, turns.size())) {
+          wrong.add(LayerRotation.piece(turn.substring(0, 1), sides, "U") + turn.substring(1));
+        }
+        assertFalse(session.wouldFinish(wrong));
+      }
+    }
+  }
+
   private static DrillSpec pairSpec(String code) {
     return new DrillSpec("test", DrillSpec.Type.F2L_PAIR, DrillSpec.Delivery.VIRTUAL,
         Collections.singletonList(code), DrillSpec.Selection.ROUND_ROBIN, 1, 0, null);
