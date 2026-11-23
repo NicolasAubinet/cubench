@@ -40,6 +40,17 @@ public class PlanScheduleTest {
     Assert.assertEquals(0, PlanSchedule.of(0, 300, 0, 0, PLAN).getDaysUntilDue());
   }
 
+  /** The last day counts in hours, a started hour counting. */
+  @Test
+  public void testTheHoursLeftCountAStartedHour() {
+    long due = PLAN + 7 * DAY;
+    Assert.assertEquals(24, PlanSchedule.of(PLAN, 300, 0, 0, due - DAY).getHoursUntilDue());
+    Assert.assertEquals(5, PlanSchedule.of(PLAN, 300, 0, 0, due - 4 * 60 * MINUTE - 1)
+        .getHoursUntilDue());
+    Assert.assertEquals(1, PlanSchedule.of(PLAN, 300, 0, 0, due - MINUTE).getHoursUntilDue());
+    Assert.assertEquals(0, PlanSchedule.of(PLAN, 300, 0, 0, due).getHoursUntilDue());
+  }
+
   @Test
   public void testADuePlanWaitsForTheNewSolves() {
     PlanSchedule schedule = PlanSchedule.of(PLAN, 300, SINCE - 12, OLD_SOLVE, PLAN + 30 * DAY);

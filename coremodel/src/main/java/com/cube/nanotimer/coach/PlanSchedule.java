@@ -9,7 +9,8 @@ package com.cube.nanotimer.coach;
  */
 public final class PlanSchedule {
 
-  private static final long DAY_MS = 24L * 60 * 60 * 1000;
+  private static final long HOUR_MS = 60L * 60 * 1000;
+  private static final long DAY_MS = 24 * HOUR_MS;
 
   /** How long after a plan the next one is due. */
   public static final long PERIOD_MS = 7 * DAY_MS;
@@ -90,6 +91,12 @@ public final class PlanSchedule {
   public int getDaysUntilDue() {
     long left = getDueAt() - now;
     return left <= 0 ? 0 : (int) ((left + DAY_MS - 1) / DAY_MS);
+  }
+
+  /** How many hours are left before the next plan is due, a started hour counting, 0 once it is. */
+  public int getHoursUntilDue() {
+    long left = getDueAt() - now;
+    return left <= 0 ? 0 : (int) ((left + HOUR_MS - 1) / HOUR_MS);
   }
 
   /** When the last solve stops holding a plan back, 0 when there is no solve. */

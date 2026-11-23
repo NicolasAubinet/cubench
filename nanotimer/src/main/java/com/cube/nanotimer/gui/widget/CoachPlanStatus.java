@@ -340,7 +340,9 @@ public class CoachPlanStatus {
     } else {
       switch (schedule.getState()) {
         case NOT_DUE:
-          String days = quantity(R.plurals.coach_days, schedule.getDaysUntilDue());
+          String days = lastDay(schedule)
+              ? quantity(R.plurals.coach_hours, schedule.getHoursUntilDue())
+              : quantity(R.plurals.coach_days, schedule.getDaysUntilDue());
           value = schedule.getSolvesNeeded() == 0 ? lit(days) : TextUtils.concat(lit(days),
               " · ", lit(quantity(R.plurals.coach_more_solves, schedule.getSolvesNeeded())));
           break;
@@ -375,7 +377,9 @@ public class CoachPlanStatus {
     boolean due = held && schedule.getState() != PlanSchedule.State.NOT_DUE
         && schedule.getState() != PlanSchedule.State.NEEDS_SOLVES;
     if (held && schedule.getState() == PlanSchedule.State.NOT_DUE) {
-      value = lit(quantity(R.plurals.coach_fb_next_in, schedule.getDaysUntilDue()));
+      value = lit(lastDay(schedule)
+          ? quantity(R.plurals.coach_fb_next_in_hours, schedule.getHoursUntilDue())
+          : quantity(R.plurals.coach_fb_next_in, schedule.getDaysUntilDue()));
     } else if (due) {
       SpannableString amber = new SpannableString(activity.getString(R.string.coach_fb_due_held));
       amber.setSpan(new ForegroundColorSpan(ContextCompat.getColor(activity, R.color.warning)), 0,
@@ -812,6 +816,11 @@ public class CoachPlanStatus {
     CoachPlans.moveTo(to);
     checked = false;
     refresh();
+  }
+
+  /** Under a day left, "1 day" says nothing about when: the strip counts hours instead. */
+  private static boolean lastDay(PlanSchedule schedule) {
+    return schedule.getHoursUntilDue() < 24;
   }
 
   private String quantity(int plural, int count) {

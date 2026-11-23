@@ -1481,6 +1481,10 @@
     <item quantity="one">%d dia</item>
     <item quantity="other">%d dias</item>
   </plurals>
+  <plurals name="coach_hours">
+    <item quantity="one">%d hora</item>
+    <item quantity="other">%d horas</item>
+  </plurals>
   <plurals name="coach_more_solves">
     <item quantity="one">mais %d resolução</item>
     <item quantity="other">mais %d resoluções</item>
@@ -1787,6 +1791,10 @@
   <plurals name="coach_fb_next_in">
     <item quantity="one">Em %d dia, depois de avaliado</item>
     <item quantity="other">Em %d dias, depois de avaliado</item>
+  </plurals>
+  <plurals name="coach_fb_next_in_hours">
+    <item quantity="one">Em %d hora, depois de avaliado</item>
+    <item quantity="other">Em %d horas, depois de avaliado</item>
   </plurals>
   <string name="coach_fb_rate_before">Avalie este plano quando quiser até lá.</string>
   <string name="coach_fb_rate_now">Avaliar ↓</string>

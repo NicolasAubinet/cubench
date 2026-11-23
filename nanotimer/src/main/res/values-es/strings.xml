@@ -1478,6 +1478,10 @@
     <item quantity="one">%d día</item>
     <item quantity="other">%d días</item>
   </plurals>
+  <plurals name="coach_hours">
+    <item quantity="one">%d hora</item>
+    <item quantity="other">%d horas</item>
+  </plurals>
   <plurals name="coach_more_solves">
     <item quantity="one">%d resolución más</item>
     <item quantity="other">%d resoluciones más</item>
@@ -1784,6 +1788,10 @@
   <plurals name="coach_fb_next_in">
     <item quantity="one">En %d día, una vez valorado</item>
     <item quantity="other">En %d días, una vez valorado</item>
+  </plurals>
+  <plurals name="coach_fb_next_in_hours">
+    <item quantity="one">En %d hora, una vez valorado</item>
+    <item quantity="other">En %d horas, una vez valorado</item>
   </plurals>
   <string name="coach_fb_rate_before">Valora este plan cuando quieras antes de esa fecha.</string>
   <string name="coach_fb_rate_now">Valorar ↓</string>

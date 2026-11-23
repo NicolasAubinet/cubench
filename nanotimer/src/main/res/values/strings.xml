@@ -1527,6 +1527,10 @@
     <item quantity="one">%d day</item>
     <item quantity="other">%d days</item>
   </plurals>
+  <plurals name="coach_hours">
+    <item quantity="one">%d hour</item>
+    <item quantity="other">%d hours</item>
+  </plurals>
   <plurals name="coach_more_solves">
     <item quantity="one">%d more solve</item>
     <item quantity="other">%d more solves</item>
@@ -1838,6 +1842,10 @@
   <plurals name="coach_fb_next_in">
     <item quantity="one">In %d day, once rated</item>
     <item quantity="other">In %d days, once rated</item>
+  </plurals>
+  <plurals name="coach_fb_next_in_hours">
+    <item quantity="one">In %d hour, once rated</item>
+    <item quantity="other">In %d hours, once rated</item>
   </plurals>
   <string name="coach_fb_rate_before">Rate this plan any time before then.</string>
   <string name="coach_fb_rate_now">Rate now ↓</string>
