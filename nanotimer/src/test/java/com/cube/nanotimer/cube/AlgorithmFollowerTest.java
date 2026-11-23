@@ -101,6 +101,18 @@ public class AlgorithmFollowerTest {
 
   private static final String SUNE = "R U R' U R U2 R'";
 
+  /** An F2L case dealt at its angle: an opening U' is a slip, not a layer turn before it. */
+  @Test
+  public void aWrongOpeningLayerTurnIsASlip() {
+    String pair = "U F' U' F U' R U R'";
+    AlgorithmFollower follower = new AlgorithmFollower(pair, "U", finishes(pair));
+    turn(follower, "U'");
+    assertEquals("U", follower.getUndoMoves());
+    turn(follower, "U U");
+    assertEquals("", follower.getUndoMoves());
+    assertEquals(1, follower.getDoneCount());
+  }
+
   /** A Sune dealt so that it is started from the front, R first. */
   @Test
   public void greysFromTheAngleThatFinishesTheCase() {

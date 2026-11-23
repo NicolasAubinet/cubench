@@ -1455,8 +1455,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     algorithmFollower = null;
     if (algorithm != null) {
       try {
+        // Every case, not only pictured ones: without it any layer turn reads as a free AUF
         algorithmFollower = new AlgorithmFollower(algorithm, layerFace,
-            diagram != null && session != null ? session::wouldFinish : null);
+            session != null ? session::wouldFinish : null);
       } catch (IllegalArgumentException e) {
         algorithmFollower = null; // shown as written, just not greyed
       }
