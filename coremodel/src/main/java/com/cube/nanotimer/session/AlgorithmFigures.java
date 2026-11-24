@@ -1,5 +1,6 @@
 package com.cube.nanotimer.session;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,7 @@ public final class AlgorithmFigures {
 
   private final int setSize;
   private final Set<String> counted = new HashSet<String>();
+  private final Set<String> notStandardCases = new HashSet<String>();
   private int standard;
   private int extraMoves;
 
@@ -60,6 +62,8 @@ public final class AlgorithmFigures {
     }
     if (isStandard) {
       standard++;
+    } else {
+      notStandardCases.add(caseCode);
     }
     extraMoves += extraMoves(isStandard, moves, usualMoves);
   }
@@ -79,6 +83,11 @@ public final class AlgorithmFigures {
 
   public int getNotStandard() {
     return counted.size() - standard;
+  }
+
+  /** The counted cases that were not standard, by case code. */
+  public Set<String> getNotStandardCases() {
+    return Collections.unmodifiableSet(notStandardCases);
   }
 
   public int getNotSeen() {
