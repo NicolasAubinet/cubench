@@ -787,11 +787,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
         });
   }
 
-  /**
-   * Reads the standard-algorithms card over the whole history rather than the window: each case
-   * counts as it was last turned, and a rare one can be hundreds of solves back. Only each case's
-   * latest solve is read, so the cost does not grow with the history. Asked once per screen.
-   */
+  /** Whole history, not the window: a rare case's last say can be hundreds of solves back. */
   private void loadAlgorithmFigures() {
     algorithmFigures = null;
     final CubeMethod solved = SolveTypeMethod.of(solveType);
