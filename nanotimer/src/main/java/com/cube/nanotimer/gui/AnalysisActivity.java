@@ -7,6 +7,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,6 +36,8 @@ import com.cube.nanotimer.cube.SolveReadings;
 import com.cube.nanotimer.cube.SolveTypeMethod;
 import com.cube.nanotimer.cube.StepPauses;
 import com.cube.nanotimer.cube.TurningFigures;
+import com.cube.nanotimer.cases.CaseSet;
+import com.cube.nanotimer.cases.CaseSets;
 import com.cube.nanotimer.gui.widget.AnalysisCases;
 import com.cube.nanotimer.gui.widget.AnalysisHelpDialog;
 import com.cube.nanotimer.gui.widget.CaseRow;
@@ -931,6 +934,18 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
           R.string.analysis_algorithms_count, figures.getStandard(), figures.getSetSize()));
       ((TextView) row.findViewById(R.id.tvAnalysisAlgorithmsExtra))
           .setText(String.valueOf(figures.getExtraMoves()));
+      final Set<String> notStandard = figures.getNotStandardCases();
+      final CaseSet set = notStandard.isEmpty() ? null
+          : CaseSets.ofCase(notStandard.iterator().next());
+      // The example's cases are invented: nothing of the reader's to open.
+      if (!sampling && set != null) {
+        row.findViewById(R.id.ivAnalysisAlgorithmsChevron).setVisibility(View.VISIBLE);
+        TypedValue ripple = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
+        row.setBackgroundResource(ripple.resourceId);
+        row.setOnClickListener(v -> startActivity(
+            CaseSetActivity.notStandard(this, set.id(), notStandard)));
+      }
       rows.addView(row);
     }
 

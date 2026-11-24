@@ -150,6 +150,7 @@
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:layout_marginLeft="8dp"
+         android:layout_marginRight="20dp"
          android:gravity="right"
          android:letterSpacing="0.09"
          android:text="@string/analysis_algorithms_extra"

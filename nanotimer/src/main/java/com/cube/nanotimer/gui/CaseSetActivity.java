@@ -2,6 +2,7 @@ package com.cube.nanotimer.gui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -28,9 +29,6 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.cases.CaseGroup;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
-import com.cube.nanotimer.cube.AlgorithmFiguresReader;
-import com.cube.nanotimer.cube.SolveReading;
-import com.cube.nanotimer.cube.SolveReadings;
 import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.DrillStatsTable;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
@@ -39,7 +37,6 @@ import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.gui.widget.cases.CaseTile;
 import com.cube.nanotimer.gui.widget.dialog.DrillPresetsDialog;
 import com.cube.nanotimer.services.db.DataCallback;
-import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.util.DrillCasePreset;
 import com.cube.nanotimer.util.FormatterService;
@@ -48,11 +45,10 @@ import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.util.view.ViewSegments;
 import com.cube.nanotimer.vo.CaseHistory;
-import com.cube.nanotimer.vo.CubeMethod;
-import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -91,6 +87,7 @@ public class CaseSetActivity extends NanoTimerActivity
   public static final String EXTRA_SORT = "caseSetSort";
   private static final String EXTRA_PICK = "caseSetPick";
   private static final String EXTRA_SUGGESTED = "caseSetSuggested";
+  private static final String EXTRA_NOT_STANDARD = "caseSetNotStandard";
 
   public static final int SORT_ORDER = 0;
   public static final int SORT_STATUS = 1;
@@ -131,7 +128,7 @@ public class CaseSetActivity extends NanoTimerActivity
   private View groupChip;
   private TextView statusChip;
   private TextView unusualChip;
-  /** Cases last turned with an algorithm off their list, as the Analysis card counts them. */
+  /** The cases the Analysis card counted as not standard, when it opened this screen on them. */
   private final Set<String> notStandard = new HashSet<String>();
   private boolean notStandardOnly;
   private MenuItem sortItem;
@@ -164,6 +161,14 @@ public class CaseSetActivity extends NanoTimerActivity
   public static Intent learn(Context context, String family, List<String> suggested) {
     Intent intent = pick(context, family);
     intent.putStringArrayListExtra(EXTRA_SUGGESTED, new ArrayList<String>(suggested));
+    return intent;
+  }
+
+  /** The set narrowed to the cases the Analysis card counted as not standard. */
+  public static Intent notStandard(Context context, String setId, Collection<String> cases) {
+    Intent intent = new Intent(context, CaseSetActivity.class);
+    intent.putExtra(EXTRA_SET, setId);
+    intent.putStringArrayListExtra(EXTRA_NOT_STANDARD, new ArrayList<String>(cases));
     return intent;
   }
 
@@ -204,12 +209,23 @@ public class CaseSetActivity extends NanoTimerActivity
     filters.addView(statusChip);
     unusualChip = (TextView) inflater.inflate(R.layout.case_filter_chip_small, filters, false);
     unusualChip.setText(R.string.analysis_algorithms_not_standard);
+    float density = getResources().getDisplayMetrics().density;
+    Drawable cross = DrawableCompat.wrap(
+        ContextCompat.getDrawable(this, R.drawable.ic_cancel_solve).mutate());
+    DrawableCompat.setTint(cross, ContextCompat.getColor(this, R.color.lightblue));
+    cross.setBounds(0, 0, (int) (16 * density), (int) (16 * density));
+    unusualChip.setCompoundDrawablesRelative(null, null, cross, null);
+    unusualChip.setCompoundDrawablePadding((int) (6 * density));
+    unusualChip.setPaddingRelative(unusualChip.getPaddingStart(), 0, (int) (10 * density), 0);
     unusualChip.setOnClickListener(v -> {
-      notStandardOnly = !notStandardOnly;
+      notStandardOnly = false; // only the Analysis card turns it on
       show();
     });
-    unusualChip.setVisibility(View.GONE); // until one is read
     filters.addView(unusualChip);
+    List<String> handed = getIntent().getStringArrayListExtra(EXTRA_NOT_STANDARD);
+    if (handed != null) {
+      notStandard.addAll(handed);
+    }
     // The room for the names is only known once the group chip is laid out.
     filters.addOnLayoutChangeListener(
         (v, l, t, r, b, ol, ot, or, ob) -> statusChip.post(this::paintChips));
@@ -224,8 +240,8 @@ public class CaseSetActivity extends NanoTimerActivity
       statusFilter.clear();
       statusFilter.addAll(savedInstanceState.getIntegerArrayList(KEY_STATUSES));
     }
-    notStandardOnly = savedInstanceState != null
-        && savedInstanceState.getBoolean(KEY_NOT_STANDARD);
+    notStandardOnly = savedInstanceState == null ? !notStandard.isEmpty()
+        : savedInstanceState.getBoolean(KEY_NOT_STANDARD);
     paintChips();
   }
 
@@ -383,48 +399,6 @@ public class CaseSetActivity extends NanoTimerActivity
         });
       }
     });
-    loadNotStandard();
-  }
-
-  /** Each case's latest solve across every solve type, read as the Analysis card reads them. */
-  private void loadNotStandard() {
-    final CubeMethod method = CubeMethod.fromCode(set.method());
-    App.INSTANCE.getService().getLatestCaseSolves(null, method,
-        new DataCallback<List<SolveTime>>() {
-          @Override
-          public void onData(final List<SolveTime> solves) {
-            App.INSTANCE.getService().getSolveReadings(SolveReadings.idsOf(solves),
-                SolveReading.VERSION, new DataCallback<Map<Long, String>>() {
-                  @Override
-                  public void onData(Map<Long, String> kept) { // off the main thread already
-                    SolveReadings readings = new SolveReadings(kept);
-                    Set<String> read = new HashSet<String>();
-                    for (AlgorithmFigures family
-                        : AlgorithmFiguresReader.readFrom(solves, readings, method).values()) {
-                      read.addAll(family.getNotStandardCases());
-                    }
-                    App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
-                        SolveReading.VERSION, null);
-                    runOnUiThread(() -> showNotStandard(read));
-                  }
-                });
-          }
-        });
-  }
-
-  private void showNotStandard(Set<String> read) {
-    if (isFinishing()) {
-      return;
-    }
-    notStandard.clear();
-    for (String code : read) {
-      if (set.contains(code)) {
-        notStandard.add(code);
-      }
-    }
-    notStandardOnly &= !notStandard.isEmpty(); // nothing left to narrow to
-    unusualChip.setVisibility(notStandard.isEmpty() ? View.GONE : View.VISIBLE);
-    show();
   }
 
   /** Nothing chosen to learn is no choice: back to following the suggestion. */
@@ -797,7 +771,8 @@ public class CaseSetActivity extends NanoTimerActivity
       statusChip.setText(label); // only on a change: setting it relays out, which calls back here
     }
     statusChip.setSelected(!statusFilter.isEmpty());
-    unusualChip.setSelected(notStandardOnly);
+    unusualChip.setSelected(true);
+    unusualChip.setVisibility(notStandardOnly ? View.VISIBLE : View.GONE);
   }
 
   /** "Status" for every case, else the standings ticked, as many named as fit beside the group. */

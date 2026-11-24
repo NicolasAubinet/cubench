@@ -43,4 +43,14 @@
      android:minWidth="40dp"
      android:textColor="@color/white"
      android:textSize="13sp"/>
+
+  <!-- Kept in place on every row so the columns line up; shown where the row opens its cases. -->
+  <ImageView
+     android:id="@+id/ivAnalysisAlgorithmsChevron"
+     android:layout_width="16dp"
+     android:layout_height="16dp"
+     android:layout_marginLeft="4dp"
+     android:contentDescription="@null"
+     android:src="@drawable/ic_chevron_right"
+     android:visibility="invisible"/>
 </LinearLayout>

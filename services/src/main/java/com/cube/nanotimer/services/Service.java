@@ -263,8 +263,6 @@ public interface Service {
    * The latest solve each case of the method came up in, by the step names stored with the solves,
    * newest first and with the moves to read them again by. Reading these newest first gives every
    * case its last say without reading the solves in between.
-   *
-   * @param solveType the solve type to read, or null for every type's full-scramble solves
    */
   void getLatestCaseSolves(SolveType solveType, CubeMethod method,
       DataCallback<List<SolveTime>> callback);

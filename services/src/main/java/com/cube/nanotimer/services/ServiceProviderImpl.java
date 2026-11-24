@@ -2500,40 +2500,24 @@ public class ServiceProviderImpl implements ServiceProvider {
         Math.max(0, lastSolves), true);
   }
 
-  /**
-   * Each step name's latest solve, so a case's last say is read without the solves in between. With
-   * no solve type, every type's full-scramble solves, as case knowledge reads them.
-   */
+  /** Each step name's latest solve, so a case's last say is read without the solves in between. */
   @Override
   public List<SolveTime> getLatestCaseSolves(SolveType solveType, CubeMethod method) {
-    String and = caseSolvesScope(solveType, "t", "h")
+    String and = " AND h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
         + " AND h." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
         + " AND h." + DB.COL_TIMEHISTORY_TIMESTAMP + " IN ("
         + "SELECT MAX(h2." + DB.COL_TIMEHISTORY_TIMESTAMP + ")"
         + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + "  JOIN " + DB.TABLE_TIMEHISTORY + " h2"
         + "    ON h2." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
-        + "  JOIN " + DB.TABLE_SOLVETYPE + " t2"
-        + "    ON t2." + DB.COL_ID + " = h2." + DB.COL_TIMEHISTORY_SOLVETYPE_ID
-        + " WHERE t2." + DB.COL_SOLVETYPE_BLIND + " = 0"
-        + caseSolvesScope(solveType, "t2", "h2")
+        + " WHERE h2." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
         + "   AND h2." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
         + "   AND h2." + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL"
         + "   AND h2." + DB.COL_TIMEHISTORY_TIME + " > 0"
         + " GROUP BY s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ")";
-    String[] args = solveType == null
-        ? new String[] { method.getCode(), method.getCode() }
-        : new String[] { String.valueOf(solveType.getId()), method.getCode(),
-            String.valueOf(solveType.getId()), method.getCode() };
-    return smartcubeSolves(and, args, Integer.MAX_VALUE, true);
-  }
-
-  /** That solve type's solves, or with none every type's full-scramble ones. */
-  private static String caseSolvesScope(SolveType solveType, String type, String history) {
-    return solveType != null
-        ? " AND " + history + "." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
-        : " AND COALESCE(" + type + "." + DB.COL_SOLVETYPE_SCRAMBLE_TYPE + ", '') IN ('', '"
-            + ScrambleType.DEFAULT_NAME + "')";
+    String id = String.valueOf(solveType.getId());
+    return smartcubeSolves(and, new String[] { id, method.getCode(), id, method.getCode() },
+        Integer.MAX_VALUE, true);
   }
 
   @Override
