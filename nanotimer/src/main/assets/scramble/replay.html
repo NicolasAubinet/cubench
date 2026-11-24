@@ -429,8 +429,8 @@
    *
    * Each turn is guaranteed room to be seen, taken from the slack before it — which for a rotation
    * is also the truthful placement, since it is recorded against the move it precedes but was made
-   * during the pause before that move. Only when there is no slack left to take does the replay run
-   * longer than the solve.
+   * during the pause before that move. Only when there is no slack left to take, or a burst would
+   * need more of it than maxLead, does the replay run longer than the solve.
    */
   function layOut(tokens, realMs) {
     var n = tokens.length;
@@ -453,12 +453,19 @@
       floors.push(rotation ? MIN_ROTATION_MS : afterRotation ? caps[i] : MIN_TURN_MS);
       realAt.push(realMs[i] - realMs[0]);
     }
+    // ⚠️ Bounded to a rotation pair and its turn: unbounded, a dense burst pulled every turn before
+    // it through the whole recognition, and the clock skipped the pause.
+    var maxLead = 2 * Math.max(2 * turnMs, MIN_ROTATION_MS) + Math.max(turnMs, MIN_TURN_MS);
     var at = realAt.slice();
     for (var b = n - 1; b >= 1; b--) { // node b needs room before it: start the one before earlier
-      at[b - 1] = Math.min(at[b - 1], at[b] - floors[b]);
+      at[b - 1] = Math.max(Math.min(at[b - 1], at[b] - floors[b]), realAt[b - 1] - maxLead);
     }
-    for (var f = 1; f < n; f++) {      // where there was none to take, the replay runs long
-      at[f] = Math.max(at[f], at[f - 1] + floors[f]);
+    // Where there was none to take the replay runs long, carrying everything after it later so the
+    // overrun does not eat the next recognition.
+    var late = 0;
+    for (var f = 1; f < n; f++) {
+      late = Math.max(late, at[f - 1] + floors[f] - at[f]);
+      at[f] += late;
     }
     var lead = floors[0]; // the first turn needs room of its own to run into
     for (var k = 0; k < n; k++) {
