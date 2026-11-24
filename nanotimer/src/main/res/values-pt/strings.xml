@@ -1683,7 +1683,7 @@
   <string name="analysis_help_spread">Desvio</string>
   <string name="analysis_help_spread_body">Quanto o tempo varia de uma resolução para outra. A mesma média pode vir de fazer sempre do mesmo jeito, ou de travar de vez em quando.</string>
   <string name="analysis_help_standard">Algoritmos padrão</string>
-  <string name="analysis_help_standard_body">Os casos do conjunto em que você usou um dos algoritmos listados na última vez que o caso apareceu. Este cartão lê todas as suas resoluções, não só o intervalo escolhido no topo, para que os casos raros também contem.</string>
+  <string name="analysis_help_standard_body">Os casos do conjunto em que você usou um dos algoritmos listados na última vez que o caso apareceu. Lido das suas últimas 1000 resoluções, seja qual for o intervalo no topo.</string>
   <string name="analysis_help_extra">Movimentos a mais</string>
   <string name="analysis_help_extra_body">Os movimentos a mais que esses casos custaram a você, comparados ao algoritmo padrão mais curto.</string>
   <string name="analysis_help_plan_title">Seu plano</string>

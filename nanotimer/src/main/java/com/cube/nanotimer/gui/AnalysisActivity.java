@@ -141,6 +141,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   private static final String PERCENT_FORMAT = "%d%%";
   /** Solves whose kept readings are fetched at once by the algorithms card's whole-history read. */
   private static final int ALGORITHM_CHUNK = 200;
+  /** How far back the algorithms card reads: the rarest OLL, 1 in 216, comes up in 99% of them. */
+  private static final int ALGORITHM_SOLVES = 1000;
 
   /** The narrowest the delta scale ever gets, so a solver in proportion does not read as wild. */
   private static final double MIN_DELTA_SCALE = 1.5;
@@ -214,7 +216,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   private List<StepStats> readOneAlgorithm = Collections.emptyList();
   private List<CaseKnowledge> readKnown = Collections.emptyList();
   private boolean knownRead;
-  /** The standard-algorithms card's figures over the whole history, null until read. */
+  /** The standard-algorithms card's figures over the last 1000 solves, null until read. */
   private Map<String, AlgorithmFigures> algorithmFigures;
   /** The mean pauses of the steps planned without recognition, by step code; empty until read. */
   private Map<String, Long> stepPauses = Collections.emptyMap();
@@ -790,9 +792,11 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   }
 
   /**
-   * Reads the standard-algorithms card over the whole history rather than the window: each case
-   * counts as it was last turned, and a rare one can be hundreds of solves back. Asked once for the
-   * life of the screen, newest first and a chunk at a time, stopping once every case is counted.
+   * Reads the standard-algorithms card over the last {@link #ALGORITHM_SOLVES} solves rather than
+   * the window: each case counts as it was last turned, and a rare one can be hundreds of solves
+   * back. Asked once for the life of the screen, a chunk at a time, stopping once every case is
+   * counted. The cap is there because a set is rarely ever complete, so without it the read would
+   * replay the whole history.
    */
   private void loadAlgorithmFigures() {
     algorithmFigures = null;
@@ -802,7 +806,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     if (!algorithmsReading) {
       return;
     }
-    App.INSTANCE.getService().getMethodSolves(solveType, solved, Integer.MAX_VALUE,
+    App.INSTANCE.getService().getMethodSolves(solveType, solved, ALGORITHM_SOLVES,
         new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(List<SolveTime> solves) {
