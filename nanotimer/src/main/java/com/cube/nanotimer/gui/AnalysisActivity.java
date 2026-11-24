@@ -139,6 +139,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
 
   /** How the shares are written, which is a whole number of points either way. */
   private static final String PERCENT_FORMAT = "%d%%";
+  /** Solves whose kept readings are fetched at once by the algorithms card's whole-history read. */
+  private static final int ALGORITHM_CHUNK = 200;
 
   /** The narrowest the delta scale ever gets, so a solver in proportion does not read as wild. */
   private static final double MIN_DELTA_SCALE = 1.5;
@@ -212,7 +214,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   private List<StepStats> readOneAlgorithm = Collections.emptyList();
   private List<CaseKnowledge> readKnown = Collections.emptyList();
   private boolean knownRead;
-  /** The standard-algorithms card's figures, null until the window's solves have been read again. */
+  /** The standard-algorithms card's figures over the whole history, null until read. */
   private Map<String, AlgorithmFigures> algorithmFigures;
   /** The mean pauses of the steps planned without recognition, by step code; empty until read. */
   private Map<String, Long> stepPauses = Collections.emptyMap();
@@ -296,6 +298,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     loadOwnSolves();
     findViewById(R.id.pbAnalysisPlanLoading).postDelayed(showPlanLoading, 200);
     loadPlan();
+    loadAlgorithmFigures();
     load();
   }
 
@@ -725,7 +728,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   }
 
   private void load() {
-    loadAlgorithmFigures();
+    loadTurning();
     App.INSTANCE.getService().getMethodStatistics(solveType, ownMethod(), window.solves(),
         new DataCallback<MethodStatistics>() {
           @Override
@@ -751,15 +754,12 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
    * and drops an answer that lands after the window has changed again. What it had to read is
    * handed back to be kept, so opening this tab again reads nothing.
    */
-  private void loadAlgorithmFigures() {
-    algorithmFigures = null;
+  private void loadTurning() {
     stepPauses = Collections.emptyMap();
     turningFigures = null;
     final AnalysisWindow asked = window;
     final CubeMethod solved = SolveTypeMethod.of(solveType);
-    algorithmsReading = (solved == CubeMethod.CFOP || solved == CubeMethod.ROUX) && readAsSolve();
     turningReading = readAsSolve() && solved != CubeMethod.BLIND; // the method solves query skips blind
-    showAlgorithmFigures();
     showTurning();
     if (!turningReading) {
       return;
@@ -780,10 +780,6 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
                     SolveReadings readings = new SolveReadings(kept);
                     Map<String, Long> pauses = StepPauses.fromReadings(solves, readings, solved);
                     TurningFigures turning = TurningFigures.readFrom(solves, readings, solved);
-                    if (solved == CubeMethod.CFOP || solved == CubeMethod.ROUX) {
-                      showAlgorithmsRead(asked,
-                          AlgorithmFiguresReader.readFrom(solves, readings, solved));
-                    }
                     App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
                         SolveReading.VERSION, null);
                     showTurningRead(asked, turning, pauses);
@@ -793,13 +789,60 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
         });
   }
 
-  /** Hands the algorithm figures read off the main thread to their card, unless the window changed. */
-  private void showAlgorithmsRead(final AnalysisWindow asked,
+  /**
+   * Reads the standard-algorithms card over the whole history rather than the window: each case
+   * counts as it was last turned, and a rare one can be hundreds of solves back. Asked once for the
+   * life of the screen, newest first and a chunk at a time, stopping once every case is counted.
+   */
+  private void loadAlgorithmFigures() {
+    algorithmFigures = null;
+    final CubeMethod solved = SolveTypeMethod.of(solveType);
+    algorithmsReading = (solved == CubeMethod.CFOP || solved == CubeMethod.ROUX) && readAsSolve();
+    showAlgorithmFigures();
+    if (!algorithmsReading) {
+      return;
+    }
+    App.INSTANCE.getService().getMethodSolves(solveType, solved, Integer.MAX_VALUE,
+        new DataCallback<List<SolveTime>>() {
+          @Override
+          public void onData(List<SolveTime> solves) {
+            readAlgorithmChunk(solves, 0, AlgorithmFiguresReader.empty(solved));
+          }
+        });
+  }
+
+  /** Counts the next chunk of history in, then the one after, until nothing older can count. */
+  private void readAlgorithmChunk(final List<SolveTime> solves, final int from,
       final Map<String, AlgorithmFigures> figures) {
+    if (from >= solves.size() || isFinishing()) {
+      showAlgorithmsRead(figures);
+      return;
+    }
+    final List<SolveTime> chunk =
+        solves.subList(from, Math.min(solves.size(), from + ALGORITHM_CHUNK));
+    App.INSTANCE.getService().getSolveReadings(SolveReadings.idsOf(chunk), SolveReading.VERSION,
+        new DataCallback<Map<Long, String>>() {
+          @Override
+          public void onData(Map<Long, String> kept) { // off the main thread already
+            SolveReadings readings = new SolveReadings(kept);
+            boolean complete = AlgorithmFiguresReader.add(figures, chunk, readings);
+            App.INSTANCE.getService().saveSolveReadings(readings.unkept(),
+                SolveReading.VERSION, null);
+            if (complete) {
+              showAlgorithmsRead(figures);
+            } else {
+              readAlgorithmChunk(solves, from + chunk.size(), figures);
+            }
+          }
+        });
+  }
+
+  /** Hands the algorithm figures read off the main thread to their card. */
+  private void showAlgorithmsRead(final Map<String, AlgorithmFigures> figures) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (asked == window && !isFinishing()) {
+        if (!isFinishing()) {
           algorithmFigures = figures;
           algorithmsReading = false;
           showAlgorithmFigures();

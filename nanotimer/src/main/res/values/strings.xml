@@ -1734,7 +1734,7 @@
   <string name="analysis_help_spread">Spread</string>
   <string name="analysis_help_spread_body">How much the time changes from solve to solve. The same mean can come from doing it the same way every time, or from getting stuck now and then.</string>
   <string name="analysis_help_standard">Standard algorithms</string>
-  <string name="analysis_help_standard_body">The cases of the set where your last solve used one of the listed algorithms.</string>
+  <string name="analysis_help_standard_body">The cases of the set where you used one of the listed algorithms the last time the case came up. This card reads all your solves, not just the window at the top, so rare cases count too.</string>
   <string name="analysis_help_extra">Extra moves</string>
   <string name="analysis_help_extra_body">The extra turns those cases cost you, compared with the shortest standard algorithm.</string>
   <string name="analysis_help_plan_title">Your plan</string>

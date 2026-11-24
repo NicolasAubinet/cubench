@@ -1,6 +1,7 @@
 package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.session.AlgorithmFigures;
@@ -63,6 +64,19 @@ public class AlgorithmFiguresReaderTest {
         .get(AlgorithmFiguresReader.F2L);
 
     assertFigures(f2l, 41, 1, 0);
+  }
+
+  /** History read a chunk at a time adds up, and a case met again in an older chunk counts once. */
+  @Test
+  public void addsOlderChunksBehindNewerOnes() {
+    Map<String, AlgorithmFigures> figures = AlgorithmFiguresReader.empty(CubeMethod.CFOP);
+    assertFalse(AlgorithmFiguresReader.add(figures,
+        CaseExecutionsTest.solves(TWO_LOOK + " " + TPERM), SolveReadings.none()));
+    AlgorithmFiguresReader.add(figures, CaseExecutionsTest.solves(SUNE + " " + TPERM),
+        SolveReadings.none());
+
+    assertFigures(figures.get(AlgorithmFiguresReader.OLL), 57, 1, 1);
+    assertFigures(figures.get(AlgorithmFiguresReader.PLL), 21, 1, 0);
   }
 
   @Test
