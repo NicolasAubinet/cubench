@@ -260,6 +260,14 @@ public interface Service {
       DataCallback<List<SolveTime>> callback);
 
   /**
+   * The latest solve each case of the method came up in, by the step names stored with the solves,
+   * newest first and with the moves to read them again by. Reading these newest first gives every
+   * case its last say without reading the solves in between.
+   */
+  void getLatestCaseSolves(SolveType solveType, CubeMethod method,
+      DataCallback<List<SolveTime>> callback);
+
+  /**
    * Works out every case's status again from the solves and drill reps behind it. The statuses are
    * a cache, so this only ever has to be asked for when the rule that reads them has changed.
    */

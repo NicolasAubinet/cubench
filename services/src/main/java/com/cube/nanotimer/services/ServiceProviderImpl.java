@@ -2500,6 +2500,26 @@ public class ServiceProviderImpl implements ServiceProvider {
         Math.max(0, lastSolves), true);
   }
 
+  /** Each step name's latest solve, so a case's last say is read without the solves in between. */
+  @Override
+  public List<SolveTime> getLatestCaseSolves(SolveType solveType, CubeMethod method) {
+    String and = " AND h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
+        + " AND h." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
+        + " AND h." + DB.COL_TIMEHISTORY_TIMESTAMP + " IN ("
+        + "SELECT MAX(h2." + DB.COL_TIMEHISTORY_TIMESTAMP + ")"
+        + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
+        + "  JOIN " + DB.TABLE_TIMEHISTORY + " h2"
+        + "    ON h2." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + " WHERE h2." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
+        + "   AND h2." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
+        + "   AND h2." + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL"
+        + "   AND h2." + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + " GROUP BY s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ")";
+    String id = String.valueOf(solveType.getId());
+    return smartcubeSolves(and, new String[] { id, method.getCode(), id, method.getCode() },
+        Integer.MAX_VALUE, true);
+  }
+
   @Override
   public void refreshCaseKnowledge(List<String> clearedBefore) {
     CaseKnowledgeStore.backfillCleared(db, clearedBefore);

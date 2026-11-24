@@ -1681,7 +1681,7 @@
   <string name="analysis_help_spread">Écart</string>
   <string name="analysis_help_spread_body">À quel point le temps varie d\'une résolution à l\'autre. Une même moyenne peut venir d\'une exécution toujours régulière, ou de blocages de temps en temps.</string>
   <string name="analysis_help_standard">Algorithmes standards</string>
-  <string name="analysis_help_standard_body">Les cas de l\'ensemble où vous avez utilisé l\'un des algorithmes listés la dernière fois que le cas est sorti. Lu sur vos 1000 dernières résolutions, quelle que soit la période en haut.</string>
+  <string name="analysis_help_standard_body">Les cas de l\'ensemble où vous avez utilisé l\'un des algorithmes listés la dernière fois que le cas est sorti. Lu sur toutes vos résolutions, quelle que soit la période en haut.</string>
   <string name="analysis_help_extra">Coups en trop</string>
   <string name="analysis_help_extra_body">Les coups en trop que ces cas vous ont coûtés, par rapport à l\'algorithme standard le plus court.</string>
   <string name="analysis_help_plan_title">Votre plan</string>

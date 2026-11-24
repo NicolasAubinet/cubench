@@ -46,13 +46,6 @@ public final class AlgorithmFiguresReader {
   /** As above, for the families of that method: Roux has its CMLL alone. */
   public static Map<String, AlgorithmFigures> readFrom(List<SolveTime> solves,
       SolveReadings readings, CubeMethod method) {
-    Map<String, AlgorithmFigures> figures = empty(method);
-    add(figures, solves, readings);
-    return figures;
-  }
-
-  /** The figures of that method's families with nothing counted yet, for {@link #add} to fill. */
-  public static Map<String, AlgorithmFigures> empty(CubeMethod method) {
     Map<String, AlgorithmFigures> figures = new LinkedHashMap<String, AlgorithmFigures>();
     if (method == CubeMethod.ROUX) {
       figures.put(CMLL, new AlgorithmFigures(CmllCases.codes().size()));
@@ -61,18 +54,6 @@ public final class AlgorithmFiguresReader {
       figures.put(OLL, new AlgorithmFigures(setSize(OLL)));
       figures.put(PLL, new AlgorithmFigures(setSize(PLL)));
     }
-    return figures;
-  }
-
-  /**
-   * Counts older solves into figures already holding newer ones, so history can be read a chunk at
-   * a time.
-   *
-   * @param solves solves older than any counted so far, newest first
-   * @return whether every case is now counted, so older solves can change nothing
-   */
-  public static boolean add(Map<String, AlgorithmFigures> figures, List<SolveTime> solves,
-      SolveReadings readings) {
     for (SolveTime solve : solves) {
       if (complete(figures)) {
         break; // every case has had its latest say
@@ -88,7 +69,7 @@ public final class AlgorithmFiguresReader {
         }
       }
     }
-    return complete(figures);
+    return figures;
   }
 
   /** As above, reading every solve and keeping nothing. */
