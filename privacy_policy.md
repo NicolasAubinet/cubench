@@ -62,6 +62,12 @@ The coach reads your solve statistics and writes you a practice plan every week.
 
 **Payments.** Subscriptions are handled by Google Play. I never see your payment details.
 
+# Website visits
+
+The website counts its visits with Cloudflare Web Analytics, to know how many people come, to which pages and from where. It sets no cookies and does not fingerprint you or follow you from site to site. What it sees is the page you opened, the site that sent you there, your browser and type of device, your country, and how fast the page loaded. It is run by Cloudflare (Cloudflare, Inc., United States). This is the website only: the app sends nothing to it.
+
+**Why (legal basis).** Knowing how many people visit, and from where, without identifying anyone (legitimate interest, article 6(1)(f) of the GDPR).
+
 # Other platforms waitlist (website)
 
 The website has a form where you can ask to hear when Cubench comes to another platform (the web, Windows, Mac, Linux or iPhone). This has nothing to do with the app: nothing is collected unless you fill in the form.
@@ -84,4 +90,4 @@ You can ask for a copy of the data the server holds about you, or for its deleti
 
 If you have any questions about this privacy policy, you can contact me by email: contact@cubench.app
 
-Last updated: November 21, 2026
+Last updated: November 25, 2026
