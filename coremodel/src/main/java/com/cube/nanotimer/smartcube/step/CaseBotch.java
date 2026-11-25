@@ -14,9 +14,11 @@ import java.util.List;
  *   <li>fewer than {@link #MIN_TURNS} turns left: nothing was really tried, no verdict;</li>
  *   <li>the start of one of them, or all of it: a clean run cut short, which is a pop or a lock,
  *       not a slip;</li>
- *   <li>the start of a first look ({@link #firstLooks}): on a case the solver has not learnt, a
- *       two-look solve stopped before the look was done, which is just as clean; on one learnt,
- *       a fall back to two looks;</li>
+ *   <li>a whole first look ({@link #firstLooks}) and at least {@link #MIN_TURNS} turns of a
+ *       second: on a case the solver has learnt, a fall back to two looks; on one not learnt, a
+ *       two-look solve as planned, which is clean;</li>
+ *   <li>a first look alone, with less of a second, or the start of one: clean, since nothing says
+ *       the solver was taking two looks rather than stopping;</li>
  *   <li>all of another case's algorithm, or a long start of one ({@link #MISREAD_TURNS}): the
  *       case was read as that one;</li>
  *   <li>anything else: botched.</li>
@@ -58,7 +60,7 @@ public final class CaseBotch {
   public enum Verdict {
     /** Too little turned, or a clean start of one of the case's algorithms. */
     CLEAN,
-    /** A first look on a case the solver has learnt: one algorithm was not recalled. */
+    /** A whole first look then a second, on a case the solver has learnt: one was not recalled. */
     TWO_LOOKED,
     /** Another case's algorithm: the case was misread. */
     MISREAD,
@@ -113,8 +115,13 @@ public final class CaseBotch {
     if (startsAny(executed, formsOf(known), 0)) {
       return new CaseBotch(Verdict.CLEAN, null);
     }
-    if (startsAny(executed, formsOf(firstLooks(caseCode)), 0)) {
+    List<List<String>> looks = formsOf(firstLooks(caseCode));
+    int second = afterFirstLook(executed, looks);
+    if (second >= MIN_TURNS) {
       return new CaseBotch(learned ? Verdict.TWO_LOOKED : Verdict.CLEAN, null);
+    }
+    if (second >= 0 || startsAny(executed, looks, 0)) {
+      return new CaseBotch(Verdict.CLEAN, null);
     }
     for (String other : LastLayerCaseAlgorithms.casesLike(caseCode)) {
       if (other.equals(caseCode)) {
@@ -219,6 +226,20 @@ public final class CaseBotch {
       }
     }
     return forms;
+  }
+
+  /** The most turns after a whole one of the forms, alignment off, or -1 where none opens it. */
+  private static int afterFirstLook(List<List<String>> executed, List<List<String>> forms) {
+    int most = -1;
+    for (List<String> stood : executed) {
+      for (List<String> form : forms) {
+        if (stood.size() > form.size() && stood.subList(0, form.size()).equals(form)) {
+          most = Math.max(most,
+              AlgorithmForm.withoutAlignment(stood.subList(form.size(), stood.size())).size());
+        }
+      }
+    }
+    return most;
   }
 
   /** Whether a grip of the execution is one of the forms, or a start of at least minStart turns. */

@@ -2584,13 +2584,7 @@ public class ServiceProviderImpl implements ServiceProvider {
   @Override
   public void recordCaseBotched(String caseCode, String verdict, String misreadAs,
       int solveTypeId, long atMs) {
-    ContentValues values = new ContentValues();
-    values.put(DB.COL_CASE_BOTCHED_CASE, caseCode);
-    values.put(DB.COL_CASE_BOTCHED_VERDICT, verdict);
-    values.put(DB.COL_CASE_BOTCHED_AT, atMs);
-    values.put(DB.COL_CASE_BOTCHED_MISREAD_AS, misreadAs);
-    values.put(DB.COL_CASE_BOTCHED_SOLVETYPE_ID, solveTypeId);
-    db.insert(DB.TABLE_CASE_BOTCHED, null, values);
+    CaseKnowledgeStore.recordBotched(db, caseCode, verdict, misreadAs, solveTypeId, atMs);
   }
 
   /**

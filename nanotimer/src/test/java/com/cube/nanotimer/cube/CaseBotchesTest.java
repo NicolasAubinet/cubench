@@ -57,8 +57,8 @@ public class CaseBotchesTest {
         "F R U R' U' F' R U R' U"));
 
     assertEquals("oll_40", stopped.caseCode);
-    assertNull(stopped.moves);
     assertEquals("F R U R' U' F'", stopped.firstLook);
+    assertEquals(3, CaseBotch.turnCount(stopped.moves)); // the second look, begun
   }
 
   @Test

@@ -39,7 +39,8 @@ import java.util.List;
  *
  * <p><b>What counts as an occurrence.</b> A solve that was handed the case, and a drill rep of it.
  * A solve says {@link Evidence#UNAIDED} where its last layer step went in one algorithm and
- * {@link Evidence#HELPED} where it took more.
+ * {@link Evidence#HELPED} where it took more. A solve thrown away inside a case it two-looked,
+ * misread or botched is kept as {@link Evidence#HELPED} too, as it would have read had it been saved.
  *
  * <p><b>Last layer cases only.</b> An F2L pair can be put in any way at all, so a pair "known" would
  * only mean a pair met; which algorithm the solver turns for it is read and shown instead
@@ -117,7 +118,7 @@ public class CaseKnowledge {
    * hang an upgrade off. Bumping this is what tells the app to throw the table away once and read it
    * back. <b>Bump it for any change to {@link #read}.</b>
    */
-  public static final int RULE_VERSION = 12;
+  public static final int RULE_VERSION = 13;
 
   /** Clean drill reps in a row that make a case known. */
   public static final int RUN_TO_KNOW = 5;
@@ -134,7 +135,10 @@ public class CaseKnowledge {
     /** A solve whose last layer step went in one algorithm. */
     UNAIDED,
 
-    /** A solve whose last layer step took more than one algorithm, or a drill rep that did. */
+    /**
+     * A solve whose last layer step took more than one algorithm, or was thrown away with its case
+     * gone wrong, or a drill rep turned in more than one.
+     */
     HELPED,
 
     /** A clean drill rep, dealt out of a small pool. */

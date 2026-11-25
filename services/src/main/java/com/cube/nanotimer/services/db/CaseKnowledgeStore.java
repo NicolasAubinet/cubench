@@ -41,6 +41,8 @@ import java.util.Set;
  *   <li>A clean drill rep counts towards a run, by the size of the pool its drill dealt from, and a
  *       {@code revealed} one starts the run again: the algorithm was on screen.
  *   <li>A row of {@code case_cleared} is a learning drill clearing the case, read as a whole run.
+ *   <li>A row of {@code case_botched} is a thrown-away solve whose case went wrong (two-looked,
+ *       misread or botched), read as a solve that took the case in more than one algorithm.
  *   <li>The step a solve stopped inside is left out. It holds only the parts that were finished, so
  *       counting them would read an abandoned step as one clean algorithm.
  * </ul>
@@ -172,6 +174,25 @@ public final class CaseKnowledgeStore {
     }
   }
 
+  /** A thrown-away solve's case went wrong: stored as evidence, and its status read again. */
+  public static void recordBotched(SQLiteDatabase db, String code, String verdict,
+      String misreadAs, int solveTypeId, long atMs) {
+    db.beginTransaction();
+    try {
+      ContentValues values = new ContentValues();
+      values.put(DB.COL_CASE_BOTCHED_CASE, code);
+      values.put(DB.COL_CASE_BOTCHED_VERDICT, verdict);
+      values.put(DB.COL_CASE_BOTCHED_AT, atMs);
+      values.put(DB.COL_CASE_BOTCHED_MISREAD_AS, misreadAs);
+      values.put(DB.COL_CASE_BOTCHED_SOLVETYPE_ID, solveTypeId);
+      db.insert(DB.TABLE_CASE_BOTCHED, null, values);
+      update(db, Collections.singletonList(code));
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+
   /**
    * Stores a clear for each case that has none, for cases cleared before clears were stored. Dated
    * at the case's last recorded drill, or 0 where none is left. The caller rebuilds afterwards.
@@ -246,7 +267,8 @@ public final class CaseKnowledgeStore {
         + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP
         + " WHERE " + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
         + " UNION SELECT DISTINCT " + DB.COL_DRILL_REP_CASE + " FROM " + DB.TABLE_DRILL_REP
-        + " UNION SELECT DISTINCT " + DB.COL_CASE_CLEARED_CASE + " FROM " + DB.TABLE_CASE_CLEARED,
+        + " UNION SELECT DISTINCT " + DB.COL_CASE_CLEARED_CASE + " FROM " + DB.TABLE_CASE_CLEARED
+        + " UNION SELECT DISTINCT " + DB.COL_CASE_BOTCHED_CASE + " FROM " + DB.TABLE_CASE_BOTCHED,
         null);
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
@@ -333,9 +355,25 @@ public final class CaseKnowledgeStore {
         + "  FROM " + DB.TABLE_CASE_CLEARED
         + " WHERE " + DB.COL_CASE_CLEARED_CASE + " = ?";
 
+    // A thrown-away solve's case gone wrong reads as a saved solve that took it in two algorithms.
+    String botched = "SELECT 0 AS unaided"
+        + "     , 1 AS from_solve"
+        + "     , b." + DB.COL_CASE_BOTCHED_AT + " AS seen_at"
+        + "     , 0 AS ordinal"
+        + "     , 0 AS drill"
+        + "     , NULL AS scramble"
+        + "     , NULL AS moves"
+        + "  FROM " + DB.TABLE_CASE_BOTCHED + " b"
+        + "  JOIN " + DB.TABLE_SOLVETYPE + " t ON t." + DB.COL_ID
+        + "     = b." + DB.COL_CASE_BOTCHED_SOLVETYPE_ID
+        + " WHERE COALESCE(t." + DB.COL_SOLVETYPE_SCRAMBLE_TYPE + ", '') IN ('', '"
+        + ScrambleType.DEFAULT_NAME + "')"
+        + "   AND b." + DB.COL_CASE_BOTCHED_CASE + " = ?";
+
     List<Occurrence> occurrences = new ArrayList<Occurrence>();
     Cursor cursor = db.rawQuery(solved + " UNION ALL " + drilled + " UNION ALL " + cleared
-        + " ORDER BY seen_at DESC, ordinal DESC", new String[] { code, code, code });
+        + " UNION ALL " + botched + " ORDER BY seen_at DESC, ordinal DESC",
+        new String[] { code, code, code, code });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
         // unaided, from_solve, seen_at, ordinal, drill, scramble, moves: every part's column order.

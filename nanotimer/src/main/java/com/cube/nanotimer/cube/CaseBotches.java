@@ -20,7 +20,8 @@ import java.util.List;
  *
  * <p>A solve gets discarded or deleted because something went wrong, and the case that went wrong
  * is the evidence a coach most wants. The time and the moves still go, as the user asked; only the
- * case, the verdict and the date stay behind, in {@code case_botched}.
+ * case, the verdict and the date stay behind, in {@code case_botched}, and count towards the case's
+ * knowledge as a saved solve gone wrong would: the coach and its daily drill read them from there.
  *
  * <p>Every way a solve is thrown away comes here: the cross and the back button during a run, the
  * discard after a stop, and a delete from the timer or from the history.
@@ -38,7 +39,7 @@ public final class CaseBotches {
   /** The case a solve stopped inside and what was turned in it, as read from the solve. */
   static final class Stopped {
     final String caseCode;
-    /** What was turned in the case, or null where a first look was already done in it. */
+    /** What was turned in the case, or after its first look where one was done. */
     final String moves;
     /** The first of two looks, where one was done before the solve stopped. */
     final String firstLook;
@@ -81,7 +82,7 @@ public final class CaseBotches {
     App.INSTANCE.getService().isCaseLearned(stopped.caseCode, new DataCallback<Boolean>() {
       @Override
       public void onData(final Boolean learned) {
-        if (stopped.moves == null) {
+        if (stopped.firstLook != null) {
           firstLookDone(solve, stopped, Boolean.TRUE.equals(learned));
           return;
         }
@@ -105,10 +106,13 @@ public final class CaseBotches {
     });
   }
 
+  /** Two-looked only on a learnt case, and once the second look has really started. */
   private static void firstLookDone(SolveTime solve, Stopped stopped, boolean learned) {
-    Log.i(TAG, stopped.caseCode + (learned ? " (learnt) " + CaseBotch.Verdict.TWO_LOOKED
-        : " first look done, not learnt") + ": " + stopped.firstLook);
-    if (learned) {
+    boolean second = turnCount(stopped.moves) >= CaseBotch.MIN_TURNS;
+    Log.i(TAG, stopped.caseCode + (learned ? " (learnt)" : " (not learnt)")
+        + (learned && second ? " " + CaseBotch.Verdict.TWO_LOOKED : " first look, no verdict")
+        + ": " + stopped.firstLook + " | " + stopped.moves);
+    if (learned && second) {
       store(solve, stopped.caseCode, CaseBotch.Verdict.TWO_LOOKED, null);
     }
   }
@@ -165,17 +169,17 @@ public final class CaseBotches {
     if (turned.size() != steps.size()) {
       return null;
     }
+    String moves = turned.get(turned.size() - 1).getPartMoves(0);
     for (int i = 0; i < steps.size() - 1; i++) { // the tail carries the stopped index too
       if (steps.get(i).getStepIndex() == stoppedStep) {
-        // a finished part: a first look leaves the tail another case, anything else was this case's try
+        // a finished part: a first look leaves the tail its second, anything else was this case's try
         String part = turned.get(i).getPartMoves(0);
         if (turnCount(part) >= CaseBotch.MIN_TURNS) { // not a look done on arrival (a Sune CMLL)
-          return CaseBotch.isFirstLook(caseCode, part) ? new Stopped(caseCode, null, part)
+          return CaseBotch.isFirstLook(caseCode, part) ? new Stopped(caseCode, moves, part)
               : new Stopped(caseCode, part, null);
         }
       }
     }
-    String moves = turned.get(turned.size() - 1).getPartMoves(0);
     return moves.trim().isEmpty() ? null : new Stopped(caseCode, moves, null);
   }
 

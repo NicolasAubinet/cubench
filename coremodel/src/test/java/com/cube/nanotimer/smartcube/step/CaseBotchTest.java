@@ -97,13 +97,32 @@ public class CaseBotchTest {
   }
 
   @Test
-  public void firstLookOnALearntCaseIsTwoLooked() {
+  public void firstLookThenASecondOnALearntCaseIsTwoLooked() {
     String tPerm = LastLayerCaseAlgorithms.listed("pll_t").get(0).getMoves();
-    CaseBotch botch = CaseBotch.judge("pll_ga", tPerm, NONE, true);
+    CaseBotch botch = CaseBotch.judge("pll_ga", tPerm + " U R U' R U", NONE, true);
     assertEquals(CaseBotch.Verdict.TWO_LOOKED, botch.getVerdict());
     assertTrue(botch.counts());
     assertEquals(CaseBotch.Verdict.TWO_LOOKED,
+        CaseBotch.judge("oll_40", "F R U R' U' F' U2 R U2 R'", NONE, true).getVerdict());
+  }
+
+  @Test
+  public void firstLookThenASecondOnACaseNotLearntIsClean() {
+    String tPerm = LastLayerCaseAlgorithms.listed("pll_t").get(0).getMoves();
+    assertEquals(CaseBotch.Verdict.CLEAN,
+        CaseBotch.judge("pll_ga", tPerm + " U R U' R U", NONE, false).getVerdict());
+  }
+
+  @Test
+  public void firstLookAloneOrCutShortIsCleanEvenOnALearntCase() {
+    String tPerm = LastLayerCaseAlgorithms.listed("pll_t").get(0).getMoves();
+    assertEquals(CaseBotch.Verdict.CLEAN, CaseBotch.judge("pll_ga", tPerm, NONE, true).getVerdict());
+    assertEquals(CaseBotch.Verdict.CLEAN,
+        CaseBotch.judge("pll_ga", tPerm + " U R", NONE, true).getVerdict());
+    assertEquals(CaseBotch.Verdict.CLEAN,
         CaseBotch.judge("oll_40", "F R U R' U'", NONE, true).getVerdict());
+    assertEquals(CaseBotch.Verdict.CLEAN,
+        CaseBotch.judge("cmll_picolumns", "R U R'", NONE, true).getVerdict());
   }
 
   @Test
