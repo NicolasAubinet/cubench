@@ -33,8 +33,17 @@ public class GyroReferenceUpFaceTest {
   @Test
   public void aGripAnchoredUpsideDownIsNotSquare() {
     assertEquals("z2", frame(held("z2"), held("z2")));
-    assertEquals("x2", frame(held("x2"), held("x2")));
     assertEquals("z", frame(held("z"), held("z")));
+  }
+
+  /** Yellow up has no yaw of its own, so the grip is taken as green in front, whatever was there. */
+  @Test
+  public void aGripAnchoredYellowUpIsGreenFront() {
+    for (CubeRotation grip : CubeRotation.withFaceUp('D')) {
+      String name = grip.getNotation();
+      assertEquals(name, "z2", frame(held(name), held(name)));
+    }
+    assertEquals("z2", frame(tipped(held("x2"), 12), held("x2")));
   }
 
   /** And the cube turned back the right way up from such an anchor reads as square. */

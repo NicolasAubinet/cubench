@@ -46,12 +46,23 @@ public final class GyroReference {
    * at moments that mean it — a fresh connection, or the solver saying so — rather than fed
    * speculatively, so the newest answer is the right one. A reading that is not there anchors
    * nothing, and leaves the previous grip standing.
+   *
+   * <p>With a side face up, front is whichever face the smallest tilt from white up and green front
+   * leaves there. Yellow up has no smallest tilt, so it is taken as held with green in front.
    */
   public void anchor(CubeOrientation reading) {
-    if (reading != null) {
-      reference = CubeRotation.yawOnly(CubeRotation.upright(reading));
+    if (reading == null) {
+      return;
     }
+    CubeOrientation upright = CubeRotation.upright(reading);
+    // Yellow up is a half turn about a horizontal axis, so it has no yaw to keep: front is declared.
+    if (CubeRotation.upFace(reading) == 'D' && anchorHolding(upright, YELLOW_UP_GREEN_FRONT)) {
+      return;
+    }
+    reference = CubeRotation.yawOnly(upright);
   }
+
+  private static final CubeRotation YELLOW_UP_GREEN_FRONT = CubeRotation.holding('D', 'F');
 
   /**
    * The reference that reads {@code reading} as {@code grip} exactly, for a solver saying how they
