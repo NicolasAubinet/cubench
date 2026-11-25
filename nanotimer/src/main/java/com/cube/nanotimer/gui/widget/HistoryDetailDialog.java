@@ -863,9 +863,9 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         View partMoves = tape(table, dim(partGroupOf(solution, i, j)),
             partMoveCountOf(solution, i, j));
         stepRows.partMoves.add(partMoves);
-        markPart(CaseExecutions.caseOfPart(parts.get(j).getName()), partMovesOf(solution, i, j),
-            partRow, bulb, i);
-        if (isShownCase(CaseExecutions.caseOfPart(parts.get(j).getName()))) {
+        String partCase = CaseExecutions.caseOfPart(parts.get(j).getName());
+        markPart(partCase, partMovesOf(solution, i, j), partRow, bulb, i);
+        if (isShownCase(partCase)) {
           partRow.setBackgroundColor(ColorUtils.setAlphaComponent(stepRows.color, 0x38));
           markShownTape(partMoves, stepRows.color);
           shownPart = shownPart == null ? partRow : shownPart;
