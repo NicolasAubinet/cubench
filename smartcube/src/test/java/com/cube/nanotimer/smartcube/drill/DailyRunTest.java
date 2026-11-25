@@ -190,6 +190,14 @@ public class DailyRunTest {
     Assert.assertEquals(2 + 3 + 2, run.repsPlanned());
   }
 
+  /** A prune replays the day's reps into a fresh run, which must still find the slow ones. */
+  @Test
+  public void aReplayedDayStillFindsTheSlowRep() {
+    DailyRun again = shaky().afresh();
+    again.record(rep("pll_h", 800, false));
+    Assert.assertEquals(3 + 3 + 2, again.repsPlanned());
+  }
+
   @Test
   public void aCaseWithNoDrillBaselineIsNeverSlow() {
     DailyRun run = new DailyRun(DailyRun.parse(SHAKY));

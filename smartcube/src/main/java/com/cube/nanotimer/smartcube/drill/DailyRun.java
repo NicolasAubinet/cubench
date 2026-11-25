@@ -220,6 +220,13 @@ public final class DailyRun implements DrillSession.Dealer {
     this.usualRecognition = new HashMap<String, Long>(usualRecognition);
   }
 
+  /** The same day with nothing dealt, its usual recognitions kept, to replay reps into. */
+  public DailyRun afresh() {
+    DailyRun run = new DailyRun(blocks);
+    run.usualRecognition = usualRecognition;
+    return run;
+  }
+
   public List<Block> getBlocks() {
     return blocks;
   }

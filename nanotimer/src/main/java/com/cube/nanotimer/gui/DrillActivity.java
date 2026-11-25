@@ -1861,7 +1861,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     showFigures(counted);
     if (dailyRun != null) {
       // The pruned rep no longer counts towards Known, so it no longer counts towards the day.
-      DailyRun again = new DailyRun(dailyRun.getBlocks());
+      DailyRun again = dailyRun.afresh();
       again.restore(dailyAtStart);
       for (DrillRep rep : counted) {
         again.record(rep);
