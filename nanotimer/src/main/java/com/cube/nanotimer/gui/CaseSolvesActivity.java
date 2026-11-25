@@ -246,7 +246,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
 
   private void open(SolveTime solve) {
     DialogUtils.showFragment(this, HistoryDetailDialog.newInstance(solve,
-        CubeType.getCubeType(solve.getSolveType().getCubeTypeId()), this, this));
+        CubeType.getCubeType(solve.getSolveType().getCubeTypeId()), this, this, caseCode));
   }
 
   /** A solve opened from here was changed: a DNF leaves the list, a +2 does not move the case. */
