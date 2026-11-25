@@ -92,12 +92,14 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
   private static final String ARG_SOLVETIME = "solvetime";
   private static final String ARG_CUBETYPE = "cubetype";
+  private static final String ARG_CASE = "case";
 
   private TimeChangedHandler handler;
   private SolveNavigator navigator;
 
   private SolveTime solveTime; // the solve on show, which a swipe moves along the list
   private CubeType cubeType;
+  private String shownCase; // the case the sheet was opened for, lit in every solve swiped to
   private View view;
   private BottomSheetDialog dialog;
 
@@ -108,6 +110,12 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
   /** With a navigator the sheet can be swiped along the list the solve was opened from. */
   public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType,
       TimeChangedHandler handler, SolveNavigator navigator) {
+    return newInstance(solveTime, cubeType, handler, navigator, null);
+  }
+
+  /** Opened from one case's solves: the rows that turned that case are picked out in each solve. */
+  public static HistoryDetailDialog newInstance(SolveTime solveTime, CubeType cubeType,
+      TimeChangedHandler handler, SolveNavigator navigator, String caseCode) {
     HistoryDetailDialog hd = new HistoryDetailDialog();
     hd.handler = handler;
     hd.navigator = navigator;
@@ -115,6 +123,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     Bundle bundle = new Bundle();
     bundle.putSerializable(ARG_SOLVETIME, solveTime);
     bundle.putSerializable(ARG_CUBETYPE, cubeType);
+    bundle.putString(ARG_CASE, caseCode);
     hd.setArguments(bundle);
     return hd;
   }
@@ -126,6 +135,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     Bundle args = getArguments();
     solveTime = (SolveTime) args.getSerializable(ARG_SOLVETIME);
     cubeType = (CubeType) args.getSerializable(ARG_CUBETYPE);
+    shownCase = args.getString(ARG_CASE);
 
     dialog = new BottomSheetDialog(getActivity(), getTheme());
     dialog.setContentView(view);
@@ -825,6 +835,8 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
 
     BreakdownTable table = (BreakdownTable) v.findViewById(R.id.breakdownTable);
     table.addView(headerRow(split));
+    int shownStep = -1;
+    View shownPart = null;
     for (int i = 0; i < steps.size(); i++) {
       SolveStep step = steps.get(i);
       List<SolveStep> parts = step.getSubSteps();
@@ -836,6 +848,10 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       table.addView(row);
       stepRows.row = row;
       stepRows.moves = tape(table, dim(groupsOf(solution, i)), moveCountOf(solution, i));
+      if (parts.isEmpty() && isShownCase(CaseExecutions.caseOfStep(step.getName()))) {
+        shownStep = i;
+        markShownTape(stepRows.moves, stepRows.color);
+      }
 
       List<View> ruled = new ArrayList<View>();
       ruled.add(stepRows.moves);
@@ -847,8 +863,13 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
         View partMoves = tape(table, dim(partGroupOf(solution, i, j)),
             partMoveCountOf(solution, i, j));
         stepRows.partMoves.add(partMoves);
-        markPart(CaseExecutions.caseOfPart(parts.get(j).getName()), partMovesOf(solution, i, j),
-            partRow, bulb, i);
+        String partCase = CaseExecutions.caseOfPart(parts.get(j).getName());
+        markPart(partCase, partMovesOf(solution, i, j), partRow, bulb, i);
+        if (isShownCase(partCase)) {
+          partRow.setBackgroundColor(ColorUtils.setAlphaComponent(stepRows.color, 0x38));
+          markShownTape(partMoves, stepRows.color);
+          shownPart = shownPart == null ? partRow : shownPart;
+        }
         ruled.add(partRow);
         ruled.add(partMoves);
       }
@@ -864,6 +885,35 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
     buildMovesSwitch(v, solution, label, method);
     applyRowVisibility();
     v.findViewById(R.id.breakdownSection).setVisibility(View.VISIBLE);
+    if (shownStep >= 0) {
+      pickStep(v, shownStep, false);
+    } else if (shownPart != null) {
+      scrollRowIntoView(v, shownPart);
+    }
+  }
+
+  /** The moves the shown case was turned with, framed in its step's colour. */
+  private void markShownTape(View tape, int color) {
+    if (tape == null) {
+      return;
+    }
+    GradientDrawable frame = new GradientDrawable();
+    frame.setCornerRadius(dp(6));
+    frame.setColor(ColorUtils.setAlphaComponent(color, 0x30));
+    frame.setStroke(Math.max(1, dp(1)), ColorUtils.setAlphaComponent(color, 0xB0));
+    tape.setBackground(frame);
+  }
+
+  /** Whether a row's case is the one the sheet was opened for: a pair in any slot it went into. */
+  private boolean isShownCase(String caseCode) {
+    if (shownCase == null || caseCode == null) {
+      return false;
+    }
+    if (CaseAlgorithms.isPair(shownCase)) {
+      return CaseAlgorithms.isPair(caseCode)
+          && CaseAlgorithms.pairCase(caseCode).equals(CaseAlgorithms.pairCase(shownCase));
+    }
+    return caseCode.equals(shownCase);
   }
 
   /**
