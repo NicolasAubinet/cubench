@@ -49,6 +49,28 @@ public class CaseBotchesTest {
   }
 
   @Test
+  public void aTwoLookStoppedAfterItsFirstLookNamesThatLook() {
+    String planned = "F R U R' U' F' " + SUNE + " " + TPERM;
+    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(planned,
+        "F R U R' U' F' R U R' U"));
+
+    assertEquals("oll_40", stopped.caseCode);
+    assertNull(stopped.moves);
+    assertEquals("F R U R' U' F'", stopped.firstLook);
+  }
+
+  @Test
+  public void aCmllPermutedOnArrivalIsStillReadWhole() {
+    SolveTime solve = solve(SUNE, "R U R' U' R' F");
+    solve.getSolveType().setMethod(CubeMethod.ROUX);
+
+    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve);
+
+    assertEquals("cmll_suneleftbar", stopped.caseCode);
+    assertEquals("R U R' U' R' F", stopped.moves);
+  }
+
+  @Test
   public void aFinishedSolveStoppedInNothing() {
     String moves = SUNE + " " + TPERM;
     assertNull(CaseBotches.stoppedIn(solve(moves, moves)));

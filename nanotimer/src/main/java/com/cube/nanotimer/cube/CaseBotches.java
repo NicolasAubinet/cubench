@@ -38,11 +38,15 @@ public final class CaseBotches {
   /** The case a solve stopped inside and what was turned in it, as read from the solve. */
   static final class Stopped {
     final String caseCode;
+    /** What was turned in the case, or null where a first look was already done in it. */
     final String moves;
+    /** The first of two looks, where one was done before the solve stopped. */
+    final String firstLook;
 
-    Stopped(String caseCode, String moves) {
+    Stopped(String caseCode, String moves, String firstLook) {
       this.caseCode = caseCode;
       this.moves = moves;
+      this.firstLook = firstLook;
     }
   }
 
@@ -77,6 +81,10 @@ public final class CaseBotches {
     App.INSTANCE.getService().isCaseLearned(stopped.caseCode, new DataCallback<Boolean>() {
       @Override
       public void onData(final Boolean learned) {
+        if (stopped.moves == null) {
+          firstLookDone(solve, stopped, Boolean.TRUE.equals(learned));
+          return;
+        }
         App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(stopped.caseCode),
             OWN_SOLVES_READ, new DataCallback<List<SolveTime>>() {
               @Override
@@ -84,13 +92,25 @@ public final class CaseBotches {
                 new Thread(new Runnable() { // replaying them is not work for the database thread
                   @Override
                   public void run() {
-                    judge(solve, stopped, solves, Boolean.TRUE.equals(learned));
+                    try {
+                      judge(solve, stopped, solves, Boolean.TRUE.equals(learned));
+                    } catch (RuntimeException e) {
+                      Log.w(TAG, "could not judge the discarded solve", e);
+                    }
                   }
                 }).start();
               }
             });
       }
     });
+  }
+
+  private static void firstLookDone(SolveTime solve, Stopped stopped, boolean learned) {
+    Log.i(TAG, stopped.caseCode + (learned ? " (learnt) " + CaseBotch.Verdict.TWO_LOOKED
+        : " first look done, not learnt") + ": " + stopped.firstLook);
+    if (learned) {
+      store(solve, stopped.caseCode, CaseBotch.Verdict.TWO_LOOKED, null);
+    }
   }
 
   private static void judge(SolveTime solve, Stopped stopped, List<SolveTime> solves,
@@ -101,9 +121,16 @@ public final class CaseBotches {
         + (botch.getMisreadAs() == null ? "" : " as " + botch.getMisreadAs())
         + ": " + stopped.moves);
     if (botch.counts()) {
-      App.INSTANCE.getService().recordCaseBotched(stopped.caseCode, botch.getVerdict().code(),
-          botch.getMisreadAs(), solve.getSolveType().getId(), null);
+      store(solve, stopped.caseCode, botch.getVerdict(), botch.getMisreadAs());
     }
+  }
+
+  private static void store(SolveTime solve, String caseCode, CaseBotch.Verdict verdict,
+      String misreadAs) {
+    // the solve's own time: a solve deleted from the history months later botched back then
+    long atMs = solve.getTimestamp() > 0 ? solve.getTimestamp() : System.currentTimeMillis();
+    App.INSTANCE.getService().recordCaseBotched(caseCode, verdict.code(), misreadAs,
+        solve.getSolveType().getId(), atMs, null);
   }
 
   /**
@@ -132,32 +159,45 @@ public final class CaseBotches {
     if (!SolveBreakdown.UNFINISHED_STEP.equals(steps.get(steps.size() - 1).getName())) {
       return null; // no turning after the last milestone
     }
-    for (SolveStep step : steps.subList(0, steps.size() - 1)) { // the tail carries the index too
-      if (step.getStepIndex() == stoppedStep) {
-        return null; // a two-look case with its first look done: the tail is not the case it was handed
-      }
-    }
     SolveSolution solution = SolveSolution.from(replay.getMoves(), steps,
         replay.getReread().getMethod());
     List<SolveSolution.Step> turned = solution.getSteps();
     if (turned.size() != steps.size()) {
       return null;
     }
+    for (int i = 0; i < steps.size() - 1; i++) { // the tail carries the stopped index too
+      if (steps.get(i).getStepIndex() == stoppedStep) {
+        // a two-look case with its first look done: the tail is not the case it was handed
+        String firstLook = turned.get(i).getPartMoves(0);
+        if (turnCount(firstLook) >= CaseBotch.MIN_TURNS) { // not a look done on arrival (a Sune CMLL)
+          return new Stopped(caseCode, null, firstLook);
+        }
+      }
+    }
     String moves = turned.get(turned.size() - 1).getPartMoves(0);
-    return moves.trim().isEmpty() ? null : new Stopped(caseCode, moves);
+    return moves.trim().isEmpty() ? null : new Stopped(caseCode, moves, null);
   }
 
-  /** The solver's own executions of the case, from the recent solves it came up in. */
-  private static List<String> own(List<SolveTime> solves, String caseCode) {
+  private static int turnCount(String moves) {
+    try {
+      return CaseBotch.turnCount(moves);
+    } catch (RuntimeException e) {
+      return 0;
+    }
+  }
+
+  /**
+   * The solver's own executions of the case, from the recent solves it came up in. One turned once
+   * is left out, as the case sheet leaves it out: a misread rebuilt into a solve is not a habit.
+   */
+  static List<String> own(List<SolveTime> solves, String caseCode) {
     if (solves == null || solves.isEmpty()) {
       return Collections.emptyList();
     }
-    CaseExecutions.Spread spread = CaseExecutions.spreadFrom(solves, caseCode);
     List<String> own = new ArrayList<String>();
-    if (spread != null) {
-      for (CaseExecutions.Turned turned : spread.getTurned()) {
-        own.add(turned.getMoves());
-      }
+    for (CaseExecutions.Shown shown
+        : CaseExecutions.shownFrom(caseCode, CaseExecutions.spreadFrom(solves, caseCode))) {
+      own.add(shown.getExecuted());
     }
     return own;
   }

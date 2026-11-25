@@ -923,8 +923,8 @@ public class ServiceImpl extends DBHelper implements Service {
 
   @Override
   public void recordCaseBotched(final String caseCode, final String verdict,
-      final String misreadAs, final int solveTypeId, final DataCallback<Void> callback) {
-    final long atMs = System.currentTimeMillis();
+      final String misreadAs, final int solveTypeId, final long atMs,
+      final DataCallback<Void> callback) {
     run(new Runnable() {
       @Override
       public void run() {

@@ -287,9 +287,10 @@ public interface Service {
    *
    * @param verdict how it went wrong: "botched", "misread" or "two_looked"
    * @param misreadAs the case whose algorithm was turned instead, for a misread
+   * @param atMs when the solve was turned, not when it was thrown away
    */
   void recordCaseBotched(String caseCode, String verdict, String misreadAs, int solveTypeId,
-      DataCallback<Void> callback);
+      long atMs, DataCallback<Void> callback);
 
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);

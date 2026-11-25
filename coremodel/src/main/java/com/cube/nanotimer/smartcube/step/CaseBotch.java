@@ -50,6 +50,11 @@ public final class CaseBotch {
     "pll_t", "pll_jb", "pll_ja", "pll_y", "pll_aa", "pll_ab", "pll_v"
   };
 
+  /** The PLLs a two-look solver takes in two: neither a corner algorithm nor an edge one. */
+  private static final String[] TWO_LOOK_PLLS = {
+    "pll_e", "pll_f", "pll_ga", "pll_gb", "pll_gc", "pll_gd", "pll_ra", "pll_rb", "pll_na", "pll_nb"
+  };
+
   public enum Verdict {
     /** Too little turned, or a clean start of one of the case's algorithms. */
     CLEAN,
@@ -98,16 +103,12 @@ public final class CaseBotch {
       boolean learned) {
     List<List<String>> executed = new ArrayList<List<String>>();
     try {
-      List<String> turns = AlgorithmForm.of(moves);
-      int shortest = Integer.MAX_VALUE;
-      for (char[] grip : AlgorithmForm.grips()) {
-        List<String> stood = AlgorithmForm.withoutAlignment(AlgorithmForm.conjugatedBy(turns, grip));
-        shortest = Math.min(shortest, stood.size());
-        executed.add(stood);
-      }
+      int shortest = addGrips(executed, AlgorithmForm.of(moves));
       if (shortest < MIN_TURNS) {
         return new CaseBotch(Verdict.CLEAN, null);
       }
+      // a regrip the solver did not take back renames the letters after it, as tidied() reads them
+      addGrips(executed, AlgorithmForm.asHeld(AlgorithmForm.withoutOpeningGrip(moves)));
     } catch (RuntimeException e) {
       return new CaseBotch(Verdict.CLEAN, null); // notation nothing can read says nothing
     }
@@ -137,22 +138,50 @@ public final class CaseBotch {
     return new CaseBotch(Verdict.BOTCHED, null);
   }
 
+  /** How many turns the moves come to, undone ones folded away and alignment off both ends. */
+  public static int turnCount(String moves) {
+    return AlgorithmForm.withoutAlignment(AlgorithmForm.of(moves)).size();
+  }
+
+  /** Adds the turns as stood in every grip, alignment off both ends; returns the shortest. */
+  private static int addGrips(List<List<String>> executed, List<String> turns) {
+    int shortest = Integer.MAX_VALUE;
+    for (char[] grip : AlgorithmForm.grips()) {
+      List<String> stood = AlgorithmForm.withoutAlignment(AlgorithmForm.conjugatedBy(turns, grip));
+      shortest = Math.min(shortest, stood.size());
+      executed.add(stood);
+    }
+    return shortest;
+  }
+
   /**
    * What a two-look solver turns first on the case: the edges for an OLL, the corners for a PLL
-   * and the corners' orientation for a CMLL.
+   * and the corners' orientation for a CMLL. Only for a case that takes two looks at all: not an
+   * OLL with its edges oriented, a PLL that is itself a corner or an edge algorithm, nor a CMLL
+   * with its corners oriented. There another case's algorithm is a misread, never a first look.
    */
   static List<String> firstLooks(String caseCode) {
     List<String> looks = new ArrayList<String>();
-    if (caseCode.startsWith("oll_")) {
+    if (caseCode.startsWith("oll_") && !contains(CORNER_ORIENTATIONS, caseCode)) {
       for (String look : EDGE_ORIENTATIONS) {
         looks.add(look);
       }
-    } else if (caseCode.startsWith("pll_")) {
+    } else if (contains(TWO_LOOK_PLLS, caseCode)) {
       addAll(looks, CORNER_PERMUTATIONS);
-    } else if (caseCode.startsWith(CmllCases.PREFIX)) {
+    } else if (caseCode.startsWith(CmllCases.PREFIX)
+        && !caseCode.startsWith(CmllCases.PREFIX + "o")) {
       addAll(looks, CORNER_ORIENTATIONS);
     }
     return looks;
+  }
+
+  private static boolean contains(String[] codes, String code) {
+    for (String one : codes) {
+      if (one.equals(code)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static void addAll(List<String> looks, String[] cases) {
@@ -192,8 +221,9 @@ public final class CaseBotch {
   }
 
   /**
-   * Whether the turns open the form. The last may be part of its turn ({@code R} of an {@code R2}),
-   * or the second of a pair turning out of each other's way, which folding writes in one order.
+   * Whether the turns open the form. The last may be half of a double turn ({@code R} of an
+   * {@code R2}), or the second of a pair turning out of each other's way, which folding writes in
+   * one order; a quarter turn the wrong way is a slip, not a start.
    */
   static boolean isStartOf(List<String> turns, List<String> form) {
     int last = turns.size() - 1;
@@ -205,12 +235,16 @@ public final class CaseBotch {
         return false;
       }
     }
-    char face = turns.get(last).charAt(0);
-    if (face == form.get(last).charAt(0)) {
+    String turn = turns.get(last);
+    if (partOf(turn, form.get(last))) {
       return true;
     }
-    return last + 1 < form.size() && face == form.get(last + 1).charAt(0)
-        && across(form.get(last).charAt(0), face);
+    return last + 1 < form.size() && partOf(turn, form.get(last + 1))
+        && across(form.get(last).charAt(0), turn.charAt(0));
+  }
+
+  private static boolean partOf(String turn, String of) {
+    return turn.equals(of) || (of.endsWith("2") && turn.charAt(0) == of.charAt(0));
   }
 
   private static boolean across(char face, char other) {

@@ -112,6 +112,33 @@ public class CaseBotchTest {
   }
 
   @Test
+  public void aCornerAlgorithmOnACornerCaseIsAMisreadNotAFirstLook() {
+    String aa = LastLayerCaseAlgorithms.listed("pll_aa").get(0).getMoves();
+    CaseBotch botch = CaseBotch.judge("pll_ab", aa, NONE, false);
+    assertEquals(CaseBotch.Verdict.MISREAD, botch.getVerdict());
+    assertEquals("pll_aa", botch.getMisreadAs());
+  }
+
+  @Test
+  public void anOcllHasNoEdgeFirstLook() {
+    assertTrue(CaseBotch.firstLooks("oll_27").isEmpty());
+    assertTrue(CaseBotch.firstLooks("pll_ua").isEmpty());
+    assertTrue(CaseBotch.firstLooks("cmll_oadjacent").isEmpty());
+  }
+
+  @Test
+  public void lastTurnTheWrongWayIsASlip() {
+    assertEquals(CaseBotch.Verdict.BOTCHED,
+        CaseBotch.judge("pll_aa", "x R' U R' D2 R U' R", NONE, false).getVerdict());
+  }
+
+  @Test
+  public void regripHalfwayIsStillAStart() {
+    assertEquals(CaseBotch.Verdict.CLEAN,
+        CaseBotch.judge("pll_aa", "x R' U R' y2 D2 R U'", NONE, false).getVerdict());
+  }
+
+  @Test
   public void cmllThatGoesWrongIsBotched() {
     assertEquals(CaseBotch.Verdict.BOTCHED,
         CaseBotch.judge("cmll_picolumns", "R U R' F2 D B R'", NONE, false).getVerdict());
