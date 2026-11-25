@@ -22,6 +22,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -96,6 +97,8 @@ public class CoachPlanView {
 
   /** The F2L practice set's family, as the service names it. */
   private static final String F2L_PRACTICE = "f2l";
+  /** How long the pair pictures may take before a spinner stands in for them. */
+  private static final long LOADING_DELAY_MS = 300;
   /** The kinds of focus the preview draws blank, with the step each is coloured by. */
   private static final FocusArea.Reason[] PREVIEW_REASONS = {FocusArea.Reason.SLOW_CASE,
       FocusArea.Reason.RECOGNITION_HEAVY};
@@ -504,12 +507,11 @@ public class CoachPlanView {
       row.setOrientation(LinearLayout.VERTICAL);
       LinearLayout pictures = new LinearLayout(activity);
       pictures.setOrientation(LinearLayout.HORIZONTAL);
+      pictures.setGravity(Gravity.CENTER);
+      pictures.setMinimumHeight(Math.round(48 * activity.getResources().getDisplayMetrics().density));
       row.addView(pictures);
       int opening = Math.min(set.getDrill().getWorkingSet() > 0 ? set.getDrill().getWorkingSet()
           : set.getCases().size(), set.getCases().size());
-      for (int i = 0; i < opening; i++) {
-        pictures.addView(inflater.inflate(R.layout.coach_practice_case, pictures, false));
-      }
       if (opening < set.getCases().size()) {
         row.addView(moreCases(set.getCases().size() - opening));
       }
@@ -590,10 +592,24 @@ public class CoachPlanView {
   }
 
   /**
-   * Draws the pairs a pair drill opens on into the blank cells already holding their room, once the
-   * recent solves that lean the drill's order are read, so the card shows what the drill deals.
+   * Draws the pairs a pair drill opens on, once the recent solves that lean the drill's order are
+   * read, so the card shows what the drill deals. A spinner holds their row meanwhile.
    */
   private void showOpeningPairs(final LinearLayout pictures, final DrillSpec drill) {
+    final ProgressBar loading = new ProgressBar(activity);
+    int size = Math.round(24 * activity.getResources().getDisplayMetrics().density);
+    loading.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+    loading.setVisibility(View.INVISIBLE);
+    pictures.addView(loading);
+    // Only a cold read (after an update changes how solves are read) takes long enough to show it.
+    pictures.postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        if (loading.getParent() != null) {
+          loading.setVisibility(View.VISIBLE);
+        }
+      }
+    }, LOADING_DELAY_MS);
     PairSightings.read(solveType, new DataCallback<List<PairSighting>>() {
       @Override
       public void onData(final List<PairSighting> sightings) {

@@ -55,7 +55,7 @@ public class PairCaseView extends View {
   private String picture;
   private boolean fromLeft;
   private boolean dimmed;
-  private boolean staged = true;
+  private boolean staged;
 
   public PairCaseView(Context context) {
     super(context);
@@ -95,7 +95,7 @@ public class PairCaseView extends View {
     invalidate();
   }
 
-  /** Whether the cube stands in the tiles' well, or straight on whatever is behind the view. */
+  /** Whether the cube stands in the tiles' well, rather than straight on what is behind the view. */
   public void setStaged(boolean staged) {
     this.staged = staged;
     invalidate();
