@@ -107,6 +107,21 @@ public class CaseBotchTest {
   }
 
   @Test
+  public void aSlipInAnAlgorithmThatOpensWithAFirstLookIsBotched() {
+    for (String caseCode : Arrays.asList("oll_3", "oll_4", "oll_35")) {
+      String own = null;
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
+        if (algorithm.getMoves().startsWith("f R U R' U' f' ")) {
+          own = algorithm.getMoves();
+        }
+      }
+      String slipped = own.substring(0, own.lastIndexOf(' ', own.lastIndexOf(' ') - 1)) + " B";
+      assertEquals(caseCode, CaseBotch.Verdict.BOTCHED,
+          CaseBotch.judge(caseCode, slipped, NONE, true).getVerdict());
+    }
+  }
+
+  @Test
   public void firstLookThenASecondOnACaseNotLearntIsClean() {
     String tPerm = LastLayerCaseAlgorithms.listed("pll_t").get(0).getMoves();
     assertEquals(CaseBotch.Verdict.CLEAN,

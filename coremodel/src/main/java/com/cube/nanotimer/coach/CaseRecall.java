@@ -19,10 +19,10 @@ import java.util.TimeZone;
  *
  * <p>Dated in local days ago rather than timestamps: spaced repetition needs to know when a case
  * was last reviewed, and a count of days says that with nothing finer. A slip is a solve that took
- * two looks at the case, a thrown-away solve that misread or botched it, or a drill rep turned with
- * the algorithm looked up or restarted. A clean
- * day is a local day the case went in clean at least once, in a solve or a drill, so a drill of
- * five reps is one review and not five.
+ * two looks at the case, a solve thrown away or stopped inside it that misread or botched it, or a
+ * drill rep turned with the algorithm looked up or restarted. A clean day is a local day the case
+ * went in clean at least once, in a solve or a drill, so a drill of five reps is one review and not
+ * five.
  */
 public final class CaseRecall {
 
@@ -35,7 +35,7 @@ public final class CaseRecall {
   /** What a slip was, as the payload names it. */
   public static final String TWO_LOOKS = "two_looks";
   public static final String LOOKED_UP = "looked_up";
-  /** A thrown-away solve that turned another case's algorithm, or went wrong in the case's own. */
+  /** A solve thrown away or stopped in the case: another case's algorithm, or its own wrong. */
   public static final String MISREAD = "misread";
   public static final String BOTCHED = "botched";
 
@@ -176,7 +176,10 @@ public final class CaseRecall {
     return slipDaysAgo;
   }
 
-  /** {@link #TWO_LOOKS}, {@link #LOOKED_UP}, {@link #MISREAD} or {@link #BOTCHED} for its newest slip, or null. */
+  /**
+   * {@link #TWO_LOOKS}, {@link #LOOKED_UP}, {@link #MISREAD} or {@link #BOTCHED} for its newest
+   * slip, or null.
+   */
   public String getSlipKind() {
     return slipKind;
   }

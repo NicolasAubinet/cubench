@@ -16,7 +16,8 @@ import java.util.List;
  *       not a slip;</li>
  *   <li>a whole first look ({@link #firstLooks}) and at least {@link #MIN_TURNS} turns of a
  *       second: on a case the solver has learnt, a fall back to two looks; on one not learnt, a
- *       two-look solve as planned, which is clean;</li>
+ *       two-look solve as planned, which is clean. Not a look one of the case's own algorithms
+ *       opens with ({@code oll_3}): going wrong after it is a slip in that algorithm;</li>
  *   <li>a first look alone, with less of a second, or the start of one: clean, since nothing says
  *       the solver was taking two looks rather than stopping;</li>
  *   <li>all of another case's algorithm, or a long start of one ({@link #MISREAD_TURNS}): the
@@ -116,7 +117,7 @@ public final class CaseBotch {
       return new CaseBotch(Verdict.CLEAN, null);
     }
     List<List<String>> looks = formsOf(firstLooks(caseCode));
-    int second = afterFirstLook(executed, looks);
+    int second = afterFirstLook(executed, notOpening(looks, formsOf(known)));
     if (second >= MIN_TURNS) {
       return new CaseBotch(learned ? Verdict.TWO_LOOKED : Verdict.CLEAN, null);
     }
@@ -226,6 +227,28 @@ public final class CaseBotch {
       }
     }
     return forms;
+  }
+
+  /** The looks none of the case's own algorithms opens with, in any grip: after one, a slip. */
+  private static List<List<String>> notOpening(List<List<String>> looks,
+      List<List<String>> known) {
+    List<List<String>> opened = new ArrayList<List<String>>();
+    for (List<String> form : known) {
+      for (char[] grip : AlgorithmForm.grips()) {
+        opened.add(AlgorithmForm.withoutAlignment(AlgorithmForm.conjugatedBy(form, grip)));
+      }
+    }
+    List<List<String>> kept = new ArrayList<List<String>>();
+    for (List<String> look : looks) {
+      boolean opens = false;
+      for (List<String> form : opened) {
+        opens |= form.size() > look.size() && form.subList(0, look.size()).equals(look);
+      }
+      if (!opens) {
+        kept.add(look);
+      }
+    }
+    return kept;
   }
 
   /** The most turns after a whole one of the forms, alignment off, or -1 where none opens it. */
