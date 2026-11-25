@@ -270,8 +270,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
       if (picture != null) {
         PairCaseView pair = root.findViewById(R.id.vCasePair);
         pair.setVisibility(View.VISIBLE);
-        pair.setPicture(picture);
-        lift(pair);
+        pair.setPicture(picture); // not lifted: with no well, the shadow would draw a bare square
       } else {
         root.findViewById(R.id.flCaseCube).setVisibility(View.VISIBLE);
         showPairCase((WebView) root.findViewById(R.id.wvCaseCube));
