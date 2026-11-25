@@ -52,9 +52,9 @@ public final class SolveReading {
    * the pause before the final AUF, version 12 times a PLL without its final AUF, version 13 reads
    * the halves of any listed algorithm as one, whatever the pause, version 14 a Roux solve's CMLL,
    * version 15 marks each pair turned with moves undone or stopped inside, version 16 the F2L
-   * lists counted per slot and per spelling.
+   * lists counted per slot and per spelling, version 17 a stricter rule for a standard algorithm.
    */
-  public static final int VERSION = 16;
+  public static final int VERSION = 17;
 
   static final String RESTART_PART_SUFFIX = "restart";
 

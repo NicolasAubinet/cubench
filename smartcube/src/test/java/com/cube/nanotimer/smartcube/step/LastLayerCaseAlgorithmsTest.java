@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -129,6 +130,45 @@ public class LastLayerCaseAlgorithmsTest {
       assertTrue(code + " holds " + held, held >= AlgorithmList.COVERED_VOTES - 2); // rounding
       assertTrue(code + " already held " + beforeLast, beforeLast < AlgorithmList.COVERED_VOTES + 2);
     }
+  }
+
+  @Test
+  public void standardTakesUpToSixtyPercentThenWhatIsCloseBehind() {
+    assertEquals(4, AlgorithmList.standardCount(Arrays.asList(40, 20, 17, 14, 8, 5), 104));
+    assertEquals(8, AlgorithmList.standardCount(
+        Arrays.asList(12, 12, 11, 10, 10, 9, 8, 8, 3, 2), 85));
+  }
+
+  @Test
+  public void standardIsNotDraggedInByATopJustShortOfTheFill() {
+    assertEquals(1, AlgorithmList.standardCount(Arrays.asList(53, 7, 5, 5, 4, 3, 2, 1), 100));
+    assertEquals(1, AlgorithmList.standardCount(Arrays.asList(41, 8, 8, 7, 5, 4), 73));
+  }
+
+  @Test
+  public void standardKeepsAQuarterOfTheVotesWhateverTheTop() {
+    assertEquals(2, AlgorithmList.standardCount(Arrays.asList(64, 36), 100));
+  }
+
+  @Test
+  public void standardDoesNotSlideDownAGentleTail() {
+    assertEquals(4, AlgorithmList.standardCount(Arrays.asList(35, 18, 13, 9, 7, 5, 3), 90));
+  }
+
+  @Test
+  public void standardKeepsSplitCasesWhole() {
+    assertEquals(4, AlgorithmList.standardCount(Arrays.asList(29, 26, 23, 22), 100));
+    assertEquals(2, AlgorithmList.standardCount(Arrays.asList(35, 32, 17, 16), 100));
+  }
+
+  /** Ga perm's second algorithm (14%) stays on show as a choice but is not standard. */
+  @Test
+  public void listsAnAlgorithmThatIsNotStandard() {
+    String second = "R2 u R' U R' U' R u' R2 F' U F";
+    assertEquals(second, LastLayerCaseAlgorithms.listed("pll_ga").get(1).getMoves());
+    assertTrue(LastLayerCaseAlgorithms.read("pll_ga", second).isUnusual());
+    assertFalse(LastLayerCaseAlgorithms.read("pll_ga", "R2 U R' U R' U' R U' R2 D U' R' U R D'")
+        .isUnusual());
   }
 
   /** A case everyone solves the same way is listed one way, whatever else is on file. */
