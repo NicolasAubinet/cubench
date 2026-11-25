@@ -120,24 +120,9 @@ public final class GyroTrackFormat {
   }
 
   /**
-   * As above, but as the <b>residual</b> left once the frame the reconstruction already has the
-   * cube in is taken back out.
-   *
-   * <p>⚠️ <b>Without this the cube is turned twice.</b> A replay animates the solver's rotations, so
-   * the cube on screen is already reoriented; the gyro track measures that same physical turning
-   * from the scramble reference. Rotating the puzzle object by the whole pose on top of that turns
-   * it a second time and the last layer comes up under the wrong face. What the renderer wants is
-   * only the part the reconstruction does not already express: the tilts and peeks, which is the
-   * whole reason the track is kept.
-   *
-   * <p>⚠️ <b>And the frame is NOT the emitted rotation tokens.</b> A slice rocks the core, turning
-   * the frame while emitting no token, so re-deriving the frame from the tokens under-counts it —
-   * measured on the Roux capture, the residual then still swings a full 180°. It comes from
-   * {@link SolveSolution#framesOf}, which is the reconstruction's own accumulated frame.
-   *
-   * <p>Both are world-frame rotations from the same reference, so the wobble the eye should see is
-   * {@code D = P·F⁻¹}, and the renderer draws {@code D·F} — the cube at its reconstructed frame,
-   * perturbed by exactly how far the real one sat from it.
+   * As above, with the reconstruction's frame taken back out: what is left is how far the real cube
+   * sat from where the reconstruction put it, which is how the frame accounting is measured
+   * ({@code GyroTrackResidualTest}). The replay does not draw this; see {@link #replayPosesOf}.
    *
    * @param frames the reconstruction's frame over time ({@link SolveSolution#framesOf})
    */
@@ -167,9 +152,25 @@ public final class GyroTrackFormat {
    * The poses a replay draws: {@link #posesOf(String)} with each delivery batch spread back over
    * its gap ({@link #unbatched}) and the whole redrawn smoothly ({@link #smoothed}). For display
    * only: smoothing moves a pose a few degrees, which nothing that reads the track may inherit.
+   *
+   * <p>A track with no reference starts at its own first pose, which draws the cube white up and
+   * green front whatever grip it was picked up in. There {@code grip} is put back in front of every
+   * pose, so the replay opens in the grip the reconstruction read and follows the gyro from there.
+   *
+   * @param grip the reconstruction's frame at the first turn; used only for a track with no
+   *     reference, and may be null
    */
-  public static List<Keyframe> replayPosesOf(String stored) {
-    return smoothed(unbatched(posesOf(stored)));
+  public static List<Keyframe> replayPosesOf(String stored, CubeRotation grip) {
+    List<Keyframe> poses = posesOf(stored);
+    GyroTrack track = parse(stored);
+    if (track != null && track.getReference() == null && grip != null) {
+      List<Keyframe> held = new ArrayList<Keyframe>(poses.size());
+      for (Keyframe pose : poses) {
+        held.add(new Keyframe(pose.offsetMs, grip.quaternion().multiply(pose.orientation)));
+      }
+      poses = held;
+    }
+    return smoothed(unbatched(poses));
   }
 
   /**

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class ReplayGyroTest {
       String gyro = smartcube(report).getString("gyro");
       List<GyroTrackFormat.Keyframe> recorded =
           GyroTrackFormat.unbatched(GyroTrackFormat.posesOf(gyro));
-      List<GyroTrackFormat.Keyframe> replayed = GyroTrackFormat.replayPosesOf(gyro);
+      List<GyroTrackFormat.Keyframe> replayed = GyroTrackFormat.replayPosesOf(gyro, null);
       double shakeBefore = 0;
       double shakeAfter = 0;
       List<Double> off = new ArrayList<Double>();
@@ -77,6 +78,32 @@ public class ReplayGyroTest {
   }
 
   @Test
+  public void aTrackWithNoReferenceOpensInTheGripTheReconstructionRead() throws Exception {
+    JSONObject smartcube = smartcube(SHAKY);
+    String gyro = smartcube.getString("gyro");
+    byte[] bytes = java.util.Base64.getDecoder().decode(gyro);
+    java.util.Arrays.fill(bytes, 1, 9, (byte) 0); // the reference, as an unanchored session stores it
+    String unanchored = java.util.Base64.getEncoder().withoutPadding().encodeToString(bytes);
+    String moves = smartcube.getString("moves");
+    CubeRotation grip = SolveReplayDialog.openingGrip(SolveSolution.timedSolution(moves),
+        SolveSolution.framesOf(moves));
+    assertEquals("y2 x'", grip.getNotation());
+
+    List<GyroTrackFormat.Keyframe> anchored = GyroTrackFormat.replayPosesOf(gyro, null);
+    List<GyroTrackFormat.Keyframe> held = GyroTrackFormat.replayPosesOf(unanchored, grip);
+    List<GyroTrackFormat.Keyframe> bare = GyroTrackFormat.replayPosesOf(unanchored, null);
+    double opening = held.get(0).getOrientation().angleToDegrees(grip.quaternion());
+    assertTrue("should open in the grip: " + opening, opening < 10); // smoothed with what follows
+    double heldOff = medianOff(held, anchored);
+    double bareOff = medianOff(bare, anchored);
+    System.out.printf("unanchored track: median %.0f deg off with the grip, %.0f without%n",
+        heldOff, bareOff);
+    // Not zero: the solver's real pick-up sat a little off square, and the reference knew it.
+    assertTrue("should open where the anchored track does: " + heldOff, heldOff < 25);
+    assertTrue("without the grip the whole replay is turned: " + bareOff, bareOff > 90);
+  }
+
+  @Test
   public void theRawMovesPlayedWithTheGyroSolveTheScramble() throws Exception {
     for (String report : new String[] {SHAKY, ROUX}) {
       JSONObject solve = solve(report);
@@ -89,6 +116,16 @@ public class ReplayGyroTest {
       assertTrue(report, DisplayedSolutionReplay.solves(solve.getString("scramble").trim(),
           raw.toString().trim()));
     }
+  }
+
+  private static double medianOff(List<GyroTrackFormat.Keyframe> a,
+      List<GyroTrackFormat.Keyframe> b) {
+    List<Double> off = new ArrayList<Double>();
+    for (int i = 0; i < a.size(); i++) {
+      off.add(a.get(i).getOrientation().angleToDegrees(b.get(i).getOrientation()));
+    }
+    Collections.sort(off);
+    return off.get(off.size() / 2);
   }
 
   /** How much the path bends at its middle point: direction changes, which read as shaking. */

@@ -33,6 +33,7 @@ import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
+import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.ViewSegments;
@@ -119,6 +120,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private boolean gyroShown; // remembered across replays, see Options.isReplayShowGyro
   private boolean pageReady;  // the page has defined its functions; before that, evaluate() is lost
   private String pendingGyroJs; // the track, waiting for the page if it got here first
+  private CubeRotation openingGrip; // stands in for a track's missing reference
 
   private final Runnable hideProgressRunnable = new Runnable() {
     @Override
@@ -191,9 +193,11 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     String stored = getArguments().getString(ARG_MOVES);
     String rawScramble = scramble; // the raw moves start from it as it is, grip and all
     List<SolveMovesFormat.Move> moves;
+    List<SolveSolution.FrameAt> frames;
     if (getArguments().getBoolean(ARG_BLIND)) {
+      frames = new ArrayList<SolveSolution.FrameAt>();
       moves = SolveSolution.timedBlindSolution(stored,
-          (ArrayList<SolveStep>) getArguments().getSerializable(ARG_STEPS), null);
+          (ArrayList<SolveStep>) getArguments().getSerializable(ARG_STEPS), frames);
       // The grip leads at 0: part of the starting state, not a turn to animate.
       if (!moves.isEmpty() && SolveMovesFormat.isRotation(moves.get(0).getNotation())) {
         String grip = moves.remove(0).getNotation();
@@ -201,7 +205,9 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
       }
     } else {
       moves = SolveSolution.timedSolution(stored);
+      frames = SolveSolution.framesOf(stored);
     }
+    openingGrip = openingGrip(moves, frames);
     // Seeded here so the label reads sensibly even if the page never signals ready; the page owns
     // the timeline and overrides it in onReady. Measured from the first turn, as the page does —
     // a blind solve's memorisation is not part of what gets replayed.
@@ -360,7 +366,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
       return; // the dialog went away while the track was being read
     }
     // The physical pose: shown, it goes with the raw moves, which make no rotation of their own.
-    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.replayPosesOf(track);
+    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.replayPosesOf(track, openingGrip);
     if (poses.isEmpty()) {
       return;
     }
@@ -446,6 +452,20 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     } catch (Throwable t) {
       return false; // e.g. no WebView implementation installed on this device
     }
+  }
+
+  /** The frame the reconstruction has the cube in at the first turn: the grip it was picked up in. */
+  public static CubeRotation openingGrip(List<SolveMovesFormat.Move> moves,
+      List<SolveSolution.FrameAt> frames) {
+    long firstMs = moves.isEmpty() ? 0 : moves.get(0).getOffsetMs();
+    CubeRotation grip = CubeRotation.byNotation("");
+    for (SolveSolution.FrameAt frame : frames) {
+      if (frame.getOffsetMs() > firstMs) {
+        break;
+      }
+      grip = frame.getFrame();
+    }
+    return grip;
   }
 
   /**
