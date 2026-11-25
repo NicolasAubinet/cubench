@@ -132,8 +132,8 @@ public interface ServiceProvider {
   /** The newest {@code lastSolves} solves a method's figures are read from, with their moves. */
   List<SolveTime> getMethodSolves(SolveType solveType, CubeMethod method, int lastSolves);
 
-  /** The latest solve of each step name of a method, newest first, with their moves. */
-  List<SolveTime> getLatestCaseSolves(SolveType solveType, CubeMethod method);
+  /** The last {@code perCase} solves of each step name of a method, newest first, with moves. */
+  List<SolveTime> getRecentCaseSolves(SolveType solveType, CubeMethod method, int perCase);
 
   /**
    * Reads every case's status again from the history behind it, first storing a clear for each of

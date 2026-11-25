@@ -260,11 +260,11 @@ public interface Service {
       DataCallback<List<SolveTime>> callback);
 
   /**
-   * The latest solve each case of the method came up in, by the step names stored with the solves,
-   * newest first and with the moves to read them again by. Reading these newest first gives every
-   * case its last say without reading the solves in between.
+   * The last {@code perCase} solves each case of the method came up in, by the step names stored
+   * with the solves, newest first and with the moves to read them again by. Reading these newest
+   * first gives every case its last says without reading the solves in between.
    */
-  void getLatestCaseSolves(SolveType solveType, CubeMethod method,
+  void getRecentCaseSolves(SolveType solveType, CubeMethod method, int perCase,
       DataCallback<List<SolveTime>> callback);
 
   /**

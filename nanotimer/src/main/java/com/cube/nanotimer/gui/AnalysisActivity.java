@@ -799,7 +799,7 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     if (!algorithmsReading) {
       return;
     }
-    App.INSTANCE.getService().getLatestCaseSolves(solveType, solved,
+    App.INSTANCE.getService().getRecentCaseSolves(solveType, solved, AlgorithmFigures.RECENT,
         new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(final List<SolveTime> solves) {

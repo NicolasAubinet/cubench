@@ -33,7 +33,7 @@ import java.util.Set;
 public final class AlgorithmFigures {
 
   /** How many of a case's latest executions its verdict is the majority of. */
-  static final int RECENT = 3;
+  public static final int RECENT = 3;
 
   private final int setSize;
   /** Each case's latest executions, newest first: {standard 1/0, extra moves}. */

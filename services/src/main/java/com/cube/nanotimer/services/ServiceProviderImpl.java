@@ -64,13 +64,16 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -2503,24 +2506,45 @@ public class ServiceProviderImpl implements ServiceProvider {
         Math.max(0, lastSolves), true);
   }
 
-  /** Each step name's latest solve, so a case's last say is read without the solves in between. */
+  /** Each step name's last few solves: a case's last says, without the solves in between. */
   @Override
-  public List<SolveTime> getLatestCaseSolves(SolveType solveType, CubeMethod method) {
-    String and = " AND h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
-        + " AND h." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
-        + " AND h." + DB.COL_TIMEHISTORY_TIMESTAMP + " IN ("
-        + "SELECT MAX(h2." + DB.COL_TIMEHISTORY_TIMESTAMP + ")"
+  public List<SolveTime> getRecentCaseSolves(SolveType solveType, CubeMethod method, int perCase) {
+    String q = "SELECT s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ", h." + DB.COL_ID
         + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
-        + "  JOIN " + DB.TABLE_TIMEHISTORY + " h2"
-        + "    ON h2." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
-        + " WHERE h2." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
-        + "   AND h2." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
-        + "   AND h2." + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL"
-        + "   AND h2." + DB.COL_TIMEHISTORY_TIME + " > 0"
-        + " GROUP BY s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + ")";
-    String id = String.valueOf(solveType.getId());
-    return smartcubeSolves(and, new String[] { id, method.getCode(), id, method.getCode() },
-        Integer.MAX_VALUE, true);
+        + "  JOIN " + DB.TABLE_TIMEHISTORY + " h"
+        + "    ON h." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + " WHERE h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?"
+        + "   AND h." + DB.COL_TIMEHISTORY_SMARTCUBE_METHOD + " = ?"
+        + "   AND h." + DB.COL_TIMEHISTORY_SMARTCUBE_MOVES + " IS NOT NULL"
+        + "   AND h." + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC";
+    Map<String, Set<Long>> byName = new HashMap<String, Set<Long>>();
+    Set<Long> ids = new LinkedHashSet<Long>();
+    Cursor cursor = db.rawQuery(q,
+        new String[] { String.valueOf(solveType.getId()), method.getCode() });
+    if (cursor != null) {
+      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+        Set<Long> solves = byName.get(cursor.getString(0));
+        if (solves == null) {
+          solves = new HashSet<Long>();
+          byName.put(cursor.getString(0), solves);
+        }
+        long id = cursor.getLong(1);
+        if (solves.size() < perCase && solves.add(id)) {
+          ids.add(id);
+        }
+      }
+      cursor.close();
+    }
+    if (ids.isEmpty()) {
+      return new ArrayList<SolveTime>();
+    }
+    StringBuilder in = new StringBuilder();
+    for (Long id : ids) {
+      in.append(in.length() == 0 ? "" : ",").append(id);
+    }
+    String and = " AND h." + DB.COL_ID + " IN (" + in + ")";
+    return smartcubeSolves(and, new String[0], Integer.MAX_VALUE, true);
   }
 
   @Override
