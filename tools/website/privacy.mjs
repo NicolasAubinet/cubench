@@ -45,6 +45,7 @@ const html = `<!doctype html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/site.css">
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "5d72ebfbd5a5409ea868b7841756d23e"}'></script><!-- End Cloudflare Web Analytics -->
 </head>
 <body>
 <!-- Generated from privacy_policy.md by tools/website/privacy.mjs. Edit the markdown, not this file. -->
