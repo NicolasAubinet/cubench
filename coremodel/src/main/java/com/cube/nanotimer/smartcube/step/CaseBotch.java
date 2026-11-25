@@ -14,8 +14,9 @@ import java.util.List;
  *   <li>fewer than {@link #MIN_TURNS} turns left: nothing was really tried, no verdict;</li>
  *   <li>the start of one of them, or all of it: a clean run cut short, which is a pop or a lock,
  *       not a slip;</li>
- *   <li>the start of a first look ({@link #firstLooks}): a two-look solver stopped before the
- *       look was done, which is just as clean;</li>
+ *   <li>the start of a first look ({@link #firstLooks}): on a case the solver has not learnt, a
+ *       two-look solve stopped before the look was done, which is just as clean; on one learnt,
+ *       a fall back to two looks;</li>
  *   <li>all of another case's algorithm, or a long start of one ({@link #MISREAD_TURNS}): the
  *       case was read as that one;</li>
  *   <li>anything else: botched.</li>
@@ -44,13 +45,25 @@ public final class CaseBotch {
     "oll_21", "oll_22", "oll_23", "oll_24", "oll_25", "oll_26", "oll_27"
   };
 
+  /** The PLLs two-look PLL's first look permutes the corners with. */
+  private static final String[] CORNER_PERMUTATIONS = {
+    "pll_t", "pll_jb", "pll_ja", "pll_y", "pll_aa", "pll_ab", "pll_v"
+  };
+
   public enum Verdict {
     /** Too little turned, or a clean start of one of the case's algorithms. */
     CLEAN,
+    /** A first look on a case the solver has learnt: one algorithm was not recalled. */
+    TWO_LOOKED,
     /** Another case's algorithm: the case was misread. */
     MISREAD,
     /** None of the case's algorithms, nor a start of one. */
-    BOTCHED
+    BOTCHED;
+
+    /** Stored under this, never under the enum's own name. */
+    public String code() {
+      return name().toLowerCase(java.util.Locale.US);
+    }
   }
 
   private final Verdict verdict;
@@ -70,7 +83,7 @@ public final class CaseBotch {
     return misreadAs;
   }
 
-  /** Whether the case goes down as gone wrong: botched or misread. */
+  /** Whether the case goes down as gone wrong: botched, misread or two-looked. */
   public boolean counts() {
     return verdict != Verdict.CLEAN;
   }
@@ -79,8 +92,10 @@ public final class CaseBotch {
    * @param caseCode the case the step was handed ({@code oll_45}, {@code pll_jb}, {@code cmll_h_1})
    * @param moves what was turned in the step until the solve stopped, in the solver's frame
    * @param own the solver's own executions of the case, which count as known algorithms
+   * @param learned whether the solver has done the case in one look (known, or needing review)
    */
-  public static CaseBotch judge(String caseCode, String moves, List<String> own) {
+  public static CaseBotch judge(String caseCode, String moves, List<String> own,
+      boolean learned) {
     List<List<String>> executed = new ArrayList<List<String>>();
     try {
       List<String> turns = AlgorithmForm.of(moves);
@@ -101,9 +116,11 @@ public final class CaseBotch {
     for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
       known.add(algorithm.getMoves());
     }
-    known.addAll(firstLooks(caseCode));
     if (startsAny(executed, formsOf(known), 0)) {
       return new CaseBotch(Verdict.CLEAN, null);
+    }
+    if (startsAny(executed, formsOf(firstLooks(caseCode)), 0)) {
+      return new CaseBotch(learned ? Verdict.TWO_LOOKED : Verdict.CLEAN, null);
     }
     for (String other : LastLayerCaseAlgorithms.casesLike(caseCode)) {
       if (other.equals(caseCode)) {
@@ -121,8 +138,8 @@ public final class CaseBotch {
   }
 
   /**
-   * What a two-look solver turns first on the case: the edges for an OLL, the corners' orientation
-   * for a CMLL. A two-look PLL's first look is a whole PLL (a T for a G), so it reads as a misread.
+   * What a two-look solver turns first on the case: the edges for an OLL, the corners for a PLL
+   * and the corners' orientation for a CMLL.
    */
   static List<String> firstLooks(String caseCode) {
     List<String> looks = new ArrayList<String>();
@@ -130,14 +147,20 @@ public final class CaseBotch {
       for (String look : EDGE_ORIENTATIONS) {
         looks.add(look);
       }
+    } else if (caseCode.startsWith("pll_")) {
+      addAll(looks, CORNER_PERMUTATIONS);
     } else if (caseCode.startsWith(CmllCases.PREFIX)) {
-      for (String orientation : CORNER_ORIENTATIONS) {
-        for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(orientation)) {
-          looks.add(algorithm.getMoves());
-        }
-      }
+      addAll(looks, CORNER_ORIENTATIONS);
     }
     return looks;
+  }
+
+  private static void addAll(List<String> looks, String[] cases) {
+    for (String look : cases) {
+      for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(look)) {
+        looks.add(algorithm.getMoves());
+      }
+    }
   }
 
   private static List<List<String>> formsOf(List<String> algorithms) {

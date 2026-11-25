@@ -163,6 +163,7 @@ public class DB {
   public static final String TABLE_CASE_BOTCHED = "case_botched";
   public static final String COL_CASE_BOTCHED_CASE = "case_code"; // "pll_aa"
   public static final String COL_CASE_BOTCHED_AT = "botched_at";
+  public static final String COL_CASE_BOTCHED_VERDICT = "verdict"; // "botched", "misread", "two_looked"
   public static final String COL_CASE_BOTCHED_MISREAD_AS = "misread_as"; // the case whose algorithm was turned instead, null for a botch
   public static final String COL_CASE_BOTCHED_SOLVETYPE_ID = "solvetype_id";
   public static final String IDX_CASE_BOTCHED_CASE = "idx_case_botched_case";

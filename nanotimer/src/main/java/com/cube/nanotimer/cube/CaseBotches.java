@@ -74,26 +74,36 @@ public final class CaseBotches {
       Log.i(TAG, "discarded solve did not stop inside a last layer case");
       return;
     }
-    App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(stopped.caseCode),
-        OWN_SOLVES_READ, new DataCallback<List<SolveTime>>() {
-          @Override
-          public void onData(final List<SolveTime> solves) {
-            new Thread(new Runnable() { // replaying them is not work for the database thread
+    App.INSTANCE.getService().isCaseLearned(stopped.caseCode, new DataCallback<Boolean>() {
+      @Override
+      public void onData(final Boolean learned) {
+        App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(stopped.caseCode),
+            OWN_SOLVES_READ, new DataCallback<List<SolveTime>>() {
               @Override
-              public void run() {
-                CaseBotch botch = CaseBotch.judge(stopped.caseCode, stopped.moves, own(solves,
-                    stopped.caseCode));
-                Log.i(TAG, stopped.caseCode + " " + botch.getVerdict()
-                    + (botch.getMisreadAs() == null ? "" : " as " + botch.getMisreadAs())
-                    + ": " + stopped.moves);
-                if (botch.counts()) {
-                  App.INSTANCE.getService().recordCaseBotched(stopped.caseCode,
-                      botch.getMisreadAs(), solve.getSolveType().getId(), null);
-                }
+              public void onData(final List<SolveTime> solves) {
+                new Thread(new Runnable() { // replaying them is not work for the database thread
+                  @Override
+                  public void run() {
+                    judge(solve, stopped, solves, Boolean.TRUE.equals(learned));
+                  }
+                }).start();
               }
-            }).start();
-          }
-        });
+            });
+      }
+    });
+  }
+
+  private static void judge(SolveTime solve, Stopped stopped, List<SolveTime> solves,
+      boolean learned) {
+    CaseBotch botch = CaseBotch.judge(stopped.caseCode, stopped.moves,
+        own(solves, stopped.caseCode), learned);
+    Log.i(TAG, stopped.caseCode + (learned ? " (learnt) " : " ") + botch.getVerdict()
+        + (botch.getMisreadAs() == null ? "" : " as " + botch.getMisreadAs())
+        + ": " + stopped.moves);
+    if (botch.counts()) {
+      App.INSTANCE.getService().recordCaseBotched(stopped.caseCode, botch.getVerdict().code(),
+          botch.getMisreadAs(), solve.getSolveType().getId(), null);
+    }
   }
 
   /**

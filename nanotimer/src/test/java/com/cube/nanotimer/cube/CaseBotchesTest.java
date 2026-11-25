@@ -75,7 +75,7 @@ public class CaseBotchesTest {
   }
 
   private static CaseBotch.Verdict judge(CaseBotches.Stopped stopped) {
-    return CaseBotch.judge(stopped.caseCode, stopped.moves, Collections.<String>emptyList())
+    return CaseBotch.judge(stopped.caseCode, stopped.moves, Collections.<String>emptyList(), false)
         .getVerdict();
   }
 

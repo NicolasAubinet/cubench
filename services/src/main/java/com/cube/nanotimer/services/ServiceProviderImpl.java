@@ -2569,9 +2569,21 @@ public class ServiceProviderImpl implements ServiceProvider {
   }
 
   @Override
-  public void recordCaseBotched(String caseCode, String misreadAs, int solveTypeId, long atMs) {
+  public boolean isCaseLearned(String caseCode) {
+    for (CaseKnowledge stepCase : CaseKnowledgeStore.read(db)) {
+      if (stepCase.getCode().equals(caseCode)) {
+        return stepCase.getStatus().isLearned();
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void recordCaseBotched(String caseCode, String verdict, String misreadAs,
+      int solveTypeId, long atMs) {
     ContentValues values = new ContentValues();
     values.put(DB.COL_CASE_BOTCHED_CASE, caseCode);
+    values.put(DB.COL_CASE_BOTCHED_VERDICT, verdict);
     values.put(DB.COL_CASE_BOTCHED_AT, atMs);
     values.put(DB.COL_CASE_BOTCHED_MISREAD_AS, misreadAs);
     values.put(DB.COL_CASE_BOTCHED_SOLVETYPE_ID, solveTypeId);

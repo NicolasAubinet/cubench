@@ -912,13 +912,23 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
-  public void recordCaseBotched(final String caseCode, final String misreadAs,
-      final int solveTypeId, final DataCallback<Void> callback) {
+  public void isCaseLearned(final String caseCode, final DataCallback<Boolean> callback) {
+    run(new Runnable() {
+      @Override
+      public void run() {
+        callback.onData(provider.isCaseLearned(caseCode));
+      }
+    });
+  }
+
+  @Override
+  public void recordCaseBotched(final String caseCode, final String verdict,
+      final String misreadAs, final int solveTypeId, final DataCallback<Void> callback) {
     final long atMs = System.currentTimeMillis();
     run(new Runnable() {
       @Override
       public void run() {
-        provider.recordCaseBotched(caseCode, misreadAs, solveTypeId, atMs);
+        provider.recordCaseBotched(caseCode, verdict, misreadAs, solveTypeId, atMs);
         if (callback != null) {
           callback.onData(null);
         }

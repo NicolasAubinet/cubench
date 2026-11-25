@@ -308,6 +308,7 @@ public class DBHelper extends SQLiteOpenHelper {
         DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
         DB.COL_CASE_BOTCHED_CASE + " TEXT NOT NULL, " +
         DB.COL_CASE_BOTCHED_AT + " INTEGER NOT NULL, " +
+        DB.COL_CASE_BOTCHED_VERDICT + " TEXT NOT NULL, " +
         DB.COL_CASE_BOTCHED_MISREAD_AS + " TEXT, " +
         DB.COL_CASE_BOTCHED_SOLVETYPE_ID + " INTEGER" +
       ");"
