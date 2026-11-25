@@ -107,8 +107,9 @@ import java.util.Objects;
  *
  * <p><b>With no smart cube behind it</b> (no solve or drill ever read the case) the sheet is the
  * reference: the star reads as "Your pick", and the setup moves for the picked algorithm put the
- * case on a real cube. <b>Practice this case</b> opens the case's drill on a connected cube, or the
- * connect sheet, from any screen but a drill.
+ * case on a real cube. <b>Practice this case</b> opens the case's choose step on a connected cube,
+ * where each algorithm is timed against the others, or the connect sheet, from any screen but a
+ * drill.
  */
 public class CaseSheet extends NanoTimerBottomSheetFragment {
 
@@ -341,10 +342,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
 
   private void practice() {
     if (SmartCubeManager.INSTANCE.isConnected()) {
-      // A starred algorithm is known to be theirs: drill the case, recorded; else choose one first.
-      startActivity(Options.INSTANCE.getCaseAlgorithm(caseCode) != null
-          ? DrillActivity.drillFor(getActivity(), caseCode)
-          : DrillActivity.chooseFor(getActivity(), caseCode));
+      // The choose step times each algorithm, so one can be compared with another
+      startActivity(DrillActivity.chooseFor(getActivity(), caseCode));
     } else {
       DialogUtils.showFragment(getActivity(), new SmartCubeConnectDialog());
     }
