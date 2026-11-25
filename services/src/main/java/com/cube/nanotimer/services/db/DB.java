@@ -3,7 +3,7 @@ package com.cube.nanotimer.services.db;
 public class DB {
 
   public static final String DB_NAME = "nanoTimerDB";
-  public static final int DB_VERSION = 40;
+  public static final int DB_VERSION = 41;
 
   public static final String COL_ID = "id";
 
@@ -157,6 +157,15 @@ public class DB {
   public static final String COL_CASE_CLEARED_CASE = "case_code"; // "oll_53", as drill_rep.case_code
   public static final String COL_CASE_CLEARED_AT = "cleared_at";
   public static final String IDX_CASE_CLEARED_CASE = "idx_case_cleared_case";
+
+  // Each time a solve was thrown away stopped inside a case whose algorithm went wrong. Its only
+  // trace: the solve and its moves are gone, so a row cannot be read again.
+  public static final String TABLE_CASE_BOTCHED = "case_botched";
+  public static final String COL_CASE_BOTCHED_CASE = "case_code"; // "pll_aa"
+  public static final String COL_CASE_BOTCHED_AT = "botched_at";
+  public static final String COL_CASE_BOTCHED_MISREAD_AS = "misread_as"; // the case whose algorithm was turned instead, null for a botch
+  public static final String COL_CASE_BOTCHED_SOLVETYPE_ID = "solvetype_id";
+  public static final String IDX_CASE_BOTCHED_CASE = "idx_case_botched_case";
 
   // What was turned for each case of one solve, read once and kept. Nothing stores a case's moves:
   // they are a slice of the solve, so reading them means solving the scramble again and setting

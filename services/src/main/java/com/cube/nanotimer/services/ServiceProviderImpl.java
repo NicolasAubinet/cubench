@@ -2568,6 +2568,16 @@ public class ServiceProviderImpl implements ServiceProvider {
     CaseKnowledgeStore.recordCleared(db, caseCode, atMs);
   }
 
+  @Override
+  public void recordCaseBotched(String caseCode, String misreadAs, int solveTypeId, long atMs) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_CASE_BOTCHED_CASE, caseCode);
+    values.put(DB.COL_CASE_BOTCHED_AT, atMs);
+    values.put(DB.COL_CASE_BOTCHED_MISREAD_AS, misreadAs);
+    values.put(DB.COL_CASE_BOTCHED_SOLVETYPE_ID, solveTypeId);
+    db.insert(DB.TABLE_CASE_BOTCHED, null, values);
+  }
+
   /**
    * The most recent solves a cube recorded the moves of, optionally narrowed by {@code and}. The
    * moves a case was answered with are not stored anywhere on their own: they are part of the solve,

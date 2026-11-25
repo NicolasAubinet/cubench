@@ -145,6 +145,7 @@ public interface ServiceProvider {
 
   /** Stores that a learning drill has just cleared the case, and reads its status again. */
   void recordCaseCleared(String caseCode, long atMs);
+  void recordCaseBotched(String caseCode, String misreadAs, int solveTypeId, long atMs);
 
   int addSolveType(SolveType solveType);
   void addSolveTypeSteps(SolveType solveType);

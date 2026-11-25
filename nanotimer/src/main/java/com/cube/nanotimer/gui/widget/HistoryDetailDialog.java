@@ -37,6 +37,7 @@ import android.widget.TextView;
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.cube.CaseBotches;
 import com.cube.nanotimer.cube.CaseExecutions;
 import com.cube.nanotimer.cube.CaseFlags;
 import com.cube.nanotimer.cube.SolveBreakdown;
@@ -387,6 +388,7 @@ public class HistoryDetailDialog extends NanoTimerBottomSheetFragment {
       @Override
       public void onClick(View view) {
         final SolveTime deleted = solveTime;
+        CaseBotches.record(deleted);
         App.INSTANCE.getService().deleteTime(deleted, new DataCallback<SolveAverages>() {
           public void onData(SolveAverages data) {
             if (handler != null) { // a dialog Android recreated has none

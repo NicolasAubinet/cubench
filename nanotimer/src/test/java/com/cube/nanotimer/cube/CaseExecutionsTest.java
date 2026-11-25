@@ -317,7 +317,7 @@ public class CaseExecutionsTest {
   }
 
   /** The scramble that leaves a cube needing exactly these moves: the solve, taken backwards. */
-  private static String inverted(String moves) {
+  static String inverted(String moves) {
     String[] tokens = moves.split(" ");
     StringBuilder sb = new StringBuilder();
     for (int i = tokens.length - 1; i >= 0; i--) {

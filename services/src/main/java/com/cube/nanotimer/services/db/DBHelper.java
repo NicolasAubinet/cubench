@@ -129,6 +129,7 @@ public class DBHelper extends SQLiteOpenHelper {
     createCoachPlanTable(db);
     createCaseKnowledgeTable(db);
     createCaseClearedTable(db);
+    createCaseBotchedTable(db);
     createSolveReadingTable(db);
   }
 
@@ -298,6 +299,21 @@ public class DBHelper extends SQLiteOpenHelper {
     );
     db.execSQL("CREATE INDEX " + DB.IDX_CASE_CLEARED_CASE +
         " ON " + DB.TABLE_CASE_CLEARED + " (" + DB.COL_CASE_CLEARED_CASE + ");"
+    );
+  }
+
+  /** Algorithms gone wrong in thrown-away solves; from {@link #createTables} and the upgrade to 41. */
+  private void createCaseBotchedTable(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE " + DB.TABLE_CASE_BOTCHED + "(" +
+        DB.COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        DB.COL_CASE_BOTCHED_CASE + " TEXT NOT NULL, " +
+        DB.COL_CASE_BOTCHED_AT + " INTEGER NOT NULL, " +
+        DB.COL_CASE_BOTCHED_MISREAD_AS + " TEXT, " +
+        DB.COL_CASE_BOTCHED_SOLVETYPE_ID + " INTEGER" +
+      ");"
+    );
+    db.execSQL("CREATE INDEX " + DB.IDX_CASE_BOTCHED_CASE +
+        " ON " + DB.TABLE_CASE_BOTCHED + " (" + DB.COL_CASE_BOTCHED_CASE + ");"
     );
   }
 
@@ -569,6 +585,10 @@ public class DBHelper extends SQLiteOpenHelper {
     if (oldVersion < 40) {
       db.execSQL("ALTER TABLE " + DB.TABLE_SMARTCUBE_SOLVESTEP + " ADD COLUMN "
           + DB.COL_SMARTCUBE_SOLVESTEP_FINAL_AUF + " INTEGER NOT NULL DEFAULT 0");
+    }
+
+    if (oldVersion < 41) {
+      createCaseBotchedTable(db);
     }
 
 //    progressDialog.hide();

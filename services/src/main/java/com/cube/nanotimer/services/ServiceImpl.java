@@ -912,6 +912,21 @@ public class ServiceImpl extends DBHelper implements Service {
   }
 
   @Override
+  public void recordCaseBotched(final String caseCode, final String misreadAs,
+      final int solveTypeId, final DataCallback<Void> callback) {
+    final long atMs = System.currentTimeMillis();
+    run(new Runnable() {
+      @Override
+      public void run() {
+        provider.recordCaseBotched(caseCode, misreadAs, solveTypeId, atMs);
+        if (callback != null) {
+          callback.onData(null);
+        }
+      }
+    });
+  }
+
+  @Override
   public void getDrillCaseStats(final long fromTimestamp,
       final DataCallback<List<DrillCaseStats>> callback) {
     run(new Runnable() {
