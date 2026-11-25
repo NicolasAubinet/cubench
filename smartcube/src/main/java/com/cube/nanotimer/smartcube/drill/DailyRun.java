@@ -19,12 +19,22 @@ import java.util.Set;
  * How the coach's daily drill deals its cases: block by block in solve order, never mixed, each
  * block's cases in turn. A case needing review is dealt until it is clean {@link #REVIEW_RUN}
  * times running, at most its planned reps; any other case gets its planned reps (owner,
- * 2026-11-13). Read from the service's answer to {@code POST /v1/daily}.
+ * 2026-11-13), and one more, up to {@link #BAD_REP_CAP}, once a rep of it goes badly: looked up,
+ * restarted, or its recognition well over the case's usual one in drills (owner, 2026-11-25): a
+ * solve's recognition is read off a different moment, so it is no baseline for a drill rep. Read from the
+ * service's answer to {@code POST /v1/daily}.
  */
 public final class DailyRun implements DrillSession.Dealer {
 
   /** Clean reps in a row that bring a case needing review back to Known. */
   public static final int REVIEW_RUN = 3;
+
+  /** The reps a case not needing review grows to once a rep of it goes badly. */
+  public static final int BAD_REP_CAP = 3;
+
+  /** A recognition this much over the case's usual one, and {@link #SLOW_MIN_MS} more, is slow. */
+  static final double SLOW_RATIO = 1.3;
+  static final long SLOW_MIN_MS = 300;
 
   /** Why a case is in today's drill, as the service names it. */
   public static final String REVIEW = "review";
@@ -107,6 +117,8 @@ public final class DailyRun implements DrillSession.Dealer {
   private final Map<String, Integer> cleanRun = new HashMap<String, Integer>();
   private final Map<String, Integer> cleanCount = new HashMap<String, Integer>();
   private final Set<String> slipped = new LinkedHashSet<String>();
+  private final Set<String> grown = new LinkedHashSet<String>();
+  private Map<String, Long> usualRecognition = Collections.emptyMap();
   private String lastDealt;
 
   public DailyRun(List<Block> blocks) {
@@ -203,6 +215,18 @@ public final class DailyRun implements DrillSession.Dealer {
         label);
   }
 
+  /** Each case's usual recognition in drills, against which a rep is slow; a case missing has none. */
+  public void setUsualRecognition(Map<String, Long> usualRecognition) {
+    this.usualRecognition = new HashMap<String, Long>(usualRecognition);
+  }
+
+  /** The same day with nothing dealt, its usual recognitions kept, to replay reps into. */
+  public DailyRun afresh() {
+    DailyRun run = new DailyRun(blocks);
+    run.usualRecognition = usualRecognition;
+    return run;
+  }
+
   public List<Block> getBlocks() {
     return blocks;
   }
@@ -244,8 +268,13 @@ public final class DailyRun implements DrillSession.Dealer {
   /** A finished rep of the day, which moves its case on. */
   public void record(DrillRep rep) {
     String code = rep.getCaseCode();
-    if (entry(code) == null || rep.isPractice()) {
+    Entry entry = entry(code);
+    if (entry == null || rep.isPractice()) {
       return;
+    }
+    if (!entry.isReview() && !rep.isAbandoned() && (rep.getResetCount() > 0 || rep.wasRevealed()
+        || isSlow(rep, usualRecognition.get(code)))) {
+      grown.add(code);
     }
     lastDealt = code;
     dealt.put(code, count(dealt, code) + 1);
@@ -263,7 +292,19 @@ public final class DailyRun implements DrillSession.Dealer {
     if (entry.isReview() && count(cleanRun, entry.code) >= REVIEW_RUN) {
       return true;
     }
-    return done >= entry.reps;
+    return done >= target(entry);
+  }
+
+  /** The reps a case gets: its planned ones, grown to {@link #BAD_REP_CAP} after a bad rep. */
+  int target(Entry entry) {
+    return grown.contains(entry.code) ? Math.max(entry.reps, BAD_REP_CAP) : entry.reps;
+  }
+
+  static boolean isSlow(DrillRep rep, Long usual) {
+    long recognition = rep.getRecognitionMs();
+    return usual != null && usual.longValue() > 0
+        && recognition - usual.longValue() >= SLOW_MIN_MS
+        && recognition >= usual.longValue() * SLOW_RATIO;
   }
 
   /** The block a case belongs to, or null. */
@@ -315,7 +356,7 @@ public final class DailyRun implements DrillSession.Dealer {
       int done = count(dealt, entry.code);
       int left = isDone(entry) ? 0 : entry.isReview()
           ? Math.min(REVIEW_RUN - count(cleanRun, entry.code), entry.reps - done)
-          : entry.reps - done;
+          : target(entry) - done;
       total += done + left;
     }
     return total;
@@ -340,7 +381,8 @@ public final class DailyRun implements DrillSession.Dealer {
     try {
       return new JSONObject().put("dealt", new JSONObject(dealt))
           .put("clean_run", new JSONObject(cleanRun)).put("clean", new JSONObject(cleanCount))
-          .put("slipped", new JSONArray(slipped)).put("last", lastDealt == null ? "" : lastDealt)
+          .put("slipped", new JSONArray(slipped)).put("grown", new JSONArray(grown))
+          .put("last", lastDealt == null ? "" : lastDealt)
           .put("done", isDone()).toString();
     } catch (JSONException e) {
       throw new IllegalStateException(e);
@@ -361,6 +403,10 @@ public final class DailyRun implements DrillSession.Dealer {
       for (int i = 0; i < slips.length(); i++) {
         slipped.add(slips.getString(i));
       }
+      JSONArray grew = json.optJSONArray("grown"); // absent from a day kept before it existed
+      for (int i = 0; grew != null && i < grew.length(); i++) {
+        grown.add(grew.getString(i));
+      }
       String last = json.optString("last", "");
       lastDealt = last.isEmpty() ? null : last;
     } catch (JSONException e) {
@@ -368,6 +414,7 @@ public final class DailyRun implements DrillSession.Dealer {
       cleanRun.clear();
       cleanCount.clear();
       slipped.clear();
+      grown.clear();
       lastDealt = null;
     }
   }

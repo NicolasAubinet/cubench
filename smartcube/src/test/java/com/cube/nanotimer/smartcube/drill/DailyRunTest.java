@@ -159,6 +159,63 @@ public class DailyRunTest {
     Assert.assertEquals("two_looks", blocks.get(1).getEntries().get(0).getSlipKind());
   }
 
+  private static final String SHAKY = "{\"blocks\":[{\"family\":\"pll\",\"cases\":["
+      + "{\"code\":\"pll_h\",\"reason\":\"due\",\"reps\":2},"
+      + "{\"code\":\"pll_z\",\"reason\":\"slip\",\"reps\":3},"
+      + "{\"code\":\"pll_e\",\"reason\":\"cost\",\"reps\":2}]}]}";
+
+  @Test
+  public void aBadRepDealsItsCaseOnceMoreUpToThree() {
+    DailyRun run = shaky();
+    Assert.assertEquals(2 + 3 + 2, run.repsPlanned());
+
+    run.record(rep("pll_h", 800, false)); // 300 ms over a 500 ms usual: slow
+    run.record(rep("pll_z", 400, true)); // already at three
+    run.record(rep("pll_e", 400, false));
+    Assert.assertEquals(3 + 3 + 2, run.repsPlanned());
+    run.record(rep("pll_h", 800, true));
+    Assert.assertEquals(3 + 3 + 2, run.repsPlanned());
+
+    DailyRun again = shaky();
+    again.restore(run.progressJson());
+    Assert.assertEquals(run.repsPlanned(), again.repsPlanned());
+  }
+
+  @Test
+  public void aCleanQuickRepOrASkipKeepsThePlannedReps() {
+    DailyRun run = shaky();
+    run.record(rep("pll_h", 700, false)); // 200 ms over: within the case's usual
+    run.record(new DrillRep("pll_e", "", Collections.<CubeMove>emptyList(), 0, 900, 1500, 12, 0,
+        true, true)); // skipped
+    Assert.assertEquals(2 + 3 + 2, run.repsPlanned());
+  }
+
+  /** A prune replays the day's reps into a fresh run, which must still find the slow ones. */
+  @Test
+  public void aReplayedDayStillFindsTheSlowRep() {
+    DailyRun again = shaky().afresh();
+    again.record(rep("pll_h", 800, false));
+    Assert.assertEquals(3 + 3 + 2, again.repsPlanned());
+  }
+
+  @Test
+  public void aCaseWithNoDrillBaselineIsNeverSlow() {
+    DailyRun run = new DailyRun(DailyRun.parse(SHAKY));
+    run.record(rep("pll_h", 5000, false));
+    Assert.assertEquals(2 + 3 + 2, run.repsPlanned());
+  }
+
+  private static DailyRun shaky() {
+    DailyRun run = new DailyRun(DailyRun.parse(SHAKY));
+    run.setUsualRecognition(Collections.singletonMap("pll_h", Long.valueOf(500)));
+    return run;
+  }
+
+  private static DrillRep rep(String code, long recognitionMs, boolean revealed) {
+    return new DrillRep(code, "", Collections.<CubeMove>emptyList(), 0, recognitionMs, 1500, 12, 0,
+        revealed, false);
+  }
+
   private static int count(List<String> dealt, String code) {
     return Collections.frequency(dealt, code);
   }

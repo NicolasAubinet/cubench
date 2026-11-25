@@ -8,6 +8,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -54,6 +55,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerCaseNames;
 import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 import com.cube.nanotimer.vo.SolveType;
+import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.gui.widget.CoachDailyView;
 import com.cube.nanotimer.gui.widget.DrillCasePips;
@@ -92,6 +94,7 @@ import com.cube.nanotimer.util.view.StepPalette;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +152,13 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   private static final long REP_HOLD_MS = DrillRepFlourish.PLAY_BEAT_MS;
   /** The least a titled pause holds for, even with the pause between cases turned off. */
   private static final long TITLED_PAUSE_MS = 2000;
+  /** Daily rep times believed (as the coach holds them), outside a break; each new one's weight. */
+  private static final long DAILY_REP_MIN_MS = 3000;
+  private static final long DAILY_REP_MAX_MS = 30_000;
+  private static final double DAILY_PACE_WEIGHT = 0.2;
+  /** Drills read for a case's usual drill recognition, and the reps it needs to have one. */
+  private static final int DAILY_BASELINE_DRILLS = 50;
+  private static final int DAILY_BASELINE_REPS = 3;
   /** Gyro readings taken either side of a back-slot rep, for the poses at its two ends. */
   private static final long ROTATION_LEAD_MS = 500;
   /** How far back the grip a back-slot case is dealt into is read, so a settling reading can't win. */
@@ -165,6 +175,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
   /** The solve type the daily drill is kept for, and its reps dealt before this run. */
   private int dailySolveTypeId = -1;
   private int dailyBefore;
+  private long lastDailyRepAt; // when the previous daily rep ended, to time the next one
   /** The day's progress as this run found it, for the reps a prune leaves to be read again. */
   private String dailyAtStart;
   /** What this drill is called, for the summary once the bar that named it has gone. */
@@ -478,6 +489,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       dailyRun.restore(dailyAtStart); // a day left part way picks up there
       dailyBefore = dailyRun.getRepsDealt();
       session.setDealer(dailyRun);
+      loadDailyBaselines();
     }
     if (!chooseOnly) {
       Set<String> learned = Options.INSTANCE.getLearnedCases();
@@ -692,6 +704,9 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       dailyRun.record(rep);
       if (dailySolveTypeId >= 0 && !rep.isPractice()) {
         Options.INSTANCE.setCoachDailyProgress(dailySolveTypeId, dailyRun.progressJson());
+        timeDailyRep();
+      } else if (rep.isPractice()) {
+        lastDailyRepAt = 0; // the next daily rep would carry the practice in its time
       }
     }
     noteLearned(rep);
@@ -715,6 +730,19 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
       DrillRepFlourish.play(repWash, lastRepRow);
     }
     holdThenNext();
+  }
+
+  /** Folds the time since the previous daily rep into the solver's pace, a break left out. */
+  private void timeDailyRep() {
+    long now = SystemClock.elapsedRealtime();
+    if (lastDailyRepAt > 0) {
+      long repMs = now - lastDailyRepAt;
+      if (repMs >= DAILY_REP_MIN_MS && repMs <= DAILY_REP_MAX_MS) {
+        long pace = Options.INSTANCE.getCoachDailyRepMs();
+        Options.INSTANCE.setCoachDailyRepMs(Math.round(pace + (repMs - pace) * DAILY_PACE_WEIGHT));
+      }
+    }
+    lastDailyRepAt = now;
   }
 
   /** The solve type a coach drill's runs are kept under: two plans can share a drill's id. */
@@ -874,6 +902,30 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     for (String code : session.getCases()) {
       session.setTaughtAlgorithm(code, learningAlgorithm(code));
     }
+  }
+
+  /** Each case's usual recognition in drills, against which the daily drill finds a slow rep. */
+  private void loadDailyBaselines() {
+    App.INSTANCE.getService().getDrillCaseStatistics(DAILY_BASELINE_DRILLS,
+        new DataCallback<List<StepStats>>() {
+          @Override
+          public void onData(List<StepStats> stats) {
+            final Map<String, Long> usual = new HashMap<String, Long>();
+            for (StepStats one : stats) {
+              if (one.getCount() >= DAILY_BASELINE_REPS) {
+                usual.put(one.getCode(), one.getMeanRecognitionMs());
+              }
+            }
+            runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                if (dailyRun != null) {
+                  dailyRun.setUsualRecognition(usual);
+                }
+              }
+            });
+          }
+        });
   }
 
   /** The cases the solves say are learned, read once for a shape group's completion. */
@@ -1809,7 +1861,7 @@ public class DrillActivity extends DrillScreenActivity implements DrillCaseTable
     showFigures(counted);
     if (dailyRun != null) {
       // The pruned rep no longer counts towards Known, so it no longer counts towards the day.
-      DailyRun again = new DailyRun(dailyRun.getBlocks());
+      DailyRun again = dailyRun.afresh();
       again.restore(dailyAtStart);
       for (DrillRep rep : counted) {
         again.record(rep);

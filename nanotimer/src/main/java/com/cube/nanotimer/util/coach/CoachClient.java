@@ -537,6 +537,17 @@ public final class CoachClient {
     }
   }
 
+  /** A daily request: as {@link #requestBody}, with the solver's measured time a rep beside it. */
+  static String dailyBody(CoachPayload payload, Collection<String> learned,
+      Collection<String> drilled, long repMs) {
+    try {
+      return new JSONObject(requestBody(payload, learned, drilled)).put("rep_ms", repMs)
+          .toString();
+    } catch (JSONException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   private static String read(InputStream in) throws IOException {
     try (InputStream stream = in) {
       ByteArrayOutputStream bytes = new ByteArrayOutputStream();

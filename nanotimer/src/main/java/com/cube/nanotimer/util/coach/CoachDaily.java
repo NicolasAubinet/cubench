@@ -169,8 +169,9 @@ public final class CoachDaily {
 
   private static String ask(CoachClient client, SolveType solveType, CoachPayload payload,
       List<String> learned, Collection<String> focus) {
-    String reply = client.requestDaily(CoachClient.requestBody(
-        payload.withLanguage(CoachAsk.planLanguage()), learned, focus));
+    String reply = client.requestDaily(CoachClient.dailyBody(
+        payload.withLanguage(CoachAsk.planLanguage()), learned, focus,
+        Options.INSTANCE.getCoachDailyRepMs()));
     if (isAnswer(reply)) {
       // Dated on arrival: asked at 23:59 and answered at 00:01, it is the new day's.
       Options.INSTANCE.setCoachDaily(solveType.getId(), reply, System.currentTimeMillis());
