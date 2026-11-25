@@ -294,7 +294,7 @@ public final class CaseAlgorithms {
         : LastLayerCaseAlgorithms.read(caseCode, moves);
   }
 
-  /** Whether an execution is none of the algorithms its case is listed with: see {@link #read}. */
+  /** Whether an execution is none of its case's standard algorithms: see {@link #read}. */
   public static boolean isWorthPointingOut(String caseCode, String moves) {
     return caseCode != null && moves != null && !moves.trim().isEmpty()
         && read(caseCode, moves).isUnusual();
