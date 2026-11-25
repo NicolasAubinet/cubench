@@ -42,8 +42,8 @@ import java.util.Set;
  *   <li>A clean drill rep counts towards a run, by the size of the pool its drill dealt from, and a
  *       {@code revealed} one starts the run again: the algorithm was on screen.
  *   <li>A row of {@code case_cleared} is a learning drill clearing the case, read as a whole run.
- *   <li>A row of {@code case_botched} is a thrown-away solve whose case went wrong (two-looked,
- *       misread or botched), read as a solve that took the case in more than one algorithm.
+ *   <li>A row of {@code case_botched} is a thrown-away or stopped-short solve whose case went wrong
+ *       (two-looked, misread or botched), read as a solve that took it in more than one algorithm.
  *   <li>The step a solve stopped inside is left out. It holds only the parts that were finished, so
  *       counting them would read an abandoned step as one clean algorithm.
  * </ul>
@@ -176,11 +176,21 @@ public final class CaseKnowledgeStore {
     }
   }
 
-  /** A thrown-away solve's case went wrong: stored as evidence, and its status read again. */
+  /**
+   * A thrown-away or stopped-short solve's case gone wrong: stored as evidence, and its status read
+   * again. A solve already stored is left alone: one kept stopped short and then deleted comes twice.
+   */
   public static void recordBotched(SQLiteDatabase db, String code, String verdict,
       String misreadAs, int solveTypeId, long atMs) {
     db.beginTransaction();
     try {
+      if (DatabaseUtils.queryNumEntries(db, DB.TABLE_CASE_BOTCHED,
+          DB.COL_CASE_BOTCHED_CASE + " = ? AND " + DB.COL_CASE_BOTCHED_AT + " = ? AND "
+              + DB.COL_CASE_BOTCHED_SOLVETYPE_ID + " = ?",
+          new String[] { code, String.valueOf(atMs), String.valueOf(solveTypeId) }) > 0) {
+        db.setTransactionSuccessful();
+        return;
+      }
       ContentValues values = new ContentValues();
       values.put(DB.COL_CASE_BOTCHED_CASE, code);
       values.put(DB.COL_CASE_BOTCHED_VERDICT, verdict);

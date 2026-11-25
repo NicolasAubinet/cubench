@@ -24,7 +24,9 @@ import java.util.List;
  * knowledge as a saved solve gone wrong would: the coach and its daily drill read them from there.
  *
  * <p>Every way a solve is thrown away comes here: the cross and the back button during a run, the
- * discard after a stop, and a delete from the timer or from the history.
+ * discard after a stop, and a delete from the timer or from the history. So does a solve kept
+ * though it stopped inside a case (a DNF kept as one), since case knowledge leaves that step out;
+ * deleting it later stores nothing twice.
  */
 public final class CaseBotches {
 
@@ -52,7 +54,8 @@ public final class CaseBotches {
   }
 
   /**
-   * Reads the thrown-away solve in the background, and stores its case if the algorithm went wrong.
+   * Reads the thrown-away or stopped-short solve in the background, and stores its case if the
+   * algorithm went wrong.
    * Safe to call for any solve: one no cube timed, or one that did not stop in a last layer case,
    * leaves nothing behind.
    */

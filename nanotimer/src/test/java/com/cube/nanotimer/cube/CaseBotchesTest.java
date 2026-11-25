@@ -8,11 +8,13 @@ import static org.junit.Assert.assertTrue;
 import com.cube.nanotimer.smartcube.step.CaseBotch;
 import com.cube.nanotimer.vo.CubeMethod;
 import com.cube.nanotimer.vo.CubeType;
+import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -98,6 +100,30 @@ public class CaseBotchesTest {
   public void aFinishedSolveStoppedInNothing() {
     String moves = SUNE + " " + TPERM;
     assertNull(CaseBotches.stoppedIn(solve(moves, moves)));
+  }
+
+  @Test
+  public void aBotchThatBrokeF2lAndWasRepairedKeepsItsCaseInTwoParts() {
+    String redone = "R U R' F' U F R U' R'"; // a pair taken out, put back another way: a new OLL
+    String moves = redone + " " + SUNE + " " + TPERM;
+    SolveTime solve = solve(moves, moves);
+
+    List<SolveStep> steps = CaseExecutions.replayAs(solve, CubeMethod.CFOP).getSteps();
+
+    assertNull(CaseBotches.stoppedIn(solve));
+    assertEquals("oll_7", steps.get(0).getName());
+    assertEquals(2, steps.get(0).getSubSteps().size()); // kept, it reads as a lapse
+  }
+
+  @Test
+  public void aBotchThatBrokeF2lThenStoppedIsJudgedOnItsCase() {
+    String redone = "R U R' F' U F R U' R'";
+    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(redone + " " + SUNE + " " + TPERM,
+        redone + " R U R' U R"));
+
+    assertEquals("oll_7", stopped.caseCode);
+    assertEquals(redone, stopped.moves);
+    assertEquals(CaseBotch.Verdict.BOTCHED, judge(stopped));
   }
 
   @Test
