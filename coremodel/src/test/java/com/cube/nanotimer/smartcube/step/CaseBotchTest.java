@@ -127,6 +127,14 @@ public class CaseBotchTest {
   }
 
   @Test
+  public void onlyAWholeFirstLookIsOne() {
+    assertTrue(CaseBotch.isFirstLook("oll_40", "y F R U R' U' F'"));
+    assertFalse(CaseBotch.isFirstLook("oll_40", "F R U R' U'"));
+    assertFalse(CaseBotch.isFirstLook("oll_27", "F R U R' U' F'"));
+    assertFalse(CaseBotch.isFirstLook("oll_27", "R U U R' U' R U' R'"));
+  }
+
+  @Test
   public void lastTurnTheWrongWayIsASlip() {
     assertEquals(CaseBotch.Verdict.BOTCHED,
         CaseBotch.judge("pll_aa", "x R' U R' D2 R U' R", NONE, false).getVerdict());

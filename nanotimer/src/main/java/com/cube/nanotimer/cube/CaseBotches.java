@@ -167,10 +167,11 @@ public final class CaseBotches {
     }
     for (int i = 0; i < steps.size() - 1; i++) { // the tail carries the stopped index too
       if (steps.get(i).getStepIndex() == stoppedStep) {
-        // a two-look case with its first look done: the tail is not the case it was handed
-        String firstLook = turned.get(i).getPartMoves(0);
-        if (turnCount(firstLook) >= CaseBotch.MIN_TURNS) { // not a look done on arrival (a Sune CMLL)
-          return new Stopped(caseCode, null, firstLook);
+        // a finished part: a first look leaves the tail another case, anything else was this case's try
+        String part = turned.get(i).getPartMoves(0);
+        if (turnCount(part) >= CaseBotch.MIN_TURNS) { // not a look done on arrival (a Sune CMLL)
+          return CaseBotch.isFirstLook(caseCode, part) ? new Stopped(caseCode, null, part)
+              : new Stopped(caseCode, part, null);
         }
       }
     }
@@ -197,7 +198,9 @@ public final class CaseBotches {
     List<String> own = new ArrayList<String>();
     for (CaseExecutions.Shown shown
         : CaseExecutions.shownFrom(caseCode, CaseExecutions.spreadFrom(solves, caseCode))) {
-      own.add(shown.getExecuted());
+      if (shown.getTimes() > 1) { // shownFrom keeps its top row even when turned once
+        own.add(shown.getExecuted());
+      }
     }
     return own;
   }

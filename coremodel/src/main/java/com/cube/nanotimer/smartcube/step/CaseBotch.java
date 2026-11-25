@@ -101,16 +101,9 @@ public final class CaseBotch {
    */
   public static CaseBotch judge(String caseCode, String moves, List<String> own,
       boolean learned) {
-    List<List<String>> executed = new ArrayList<List<String>>();
-    try {
-      int shortest = addGrips(executed, AlgorithmForm.of(moves));
-      if (shortest < MIN_TURNS) {
-        return new CaseBotch(Verdict.CLEAN, null);
-      }
-      // a regrip the solver did not take back renames the letters after it, as tidied() reads them
-      addGrips(executed, AlgorithmForm.asHeld(AlgorithmForm.withoutOpeningGrip(moves)));
-    } catch (RuntimeException e) {
-      return new CaseBotch(Verdict.CLEAN, null); // notation nothing can read says nothing
+    List<List<String>> executed = gripsOf(moves);
+    if (executed == null) {
+      return new CaseBotch(Verdict.CLEAN, null);
     }
 
     List<String> known = new ArrayList<String>(own == null ? new ArrayList<String>() : own);
@@ -138,6 +131,36 @@ public final class CaseBotch {
     return new CaseBotch(Verdict.BOTCHED, null);
   }
 
+  /** Whether the moves are all of one of the case's first looks, from any grip. */
+  public static boolean isFirstLook(String caseCode, String moves) {
+    List<List<String>> executed = gripsOf(moves);
+    if (executed == null) {
+      return false;
+    }
+    List<List<String>> looks = formsOf(firstLooks(caseCode));
+    for (List<String> stood : executed) {
+      if (looks.contains(stood)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** The moves in every grip, also as held after a regrip; null when too short or unreadable. */
+  private static List<List<String>> gripsOf(String moves) {
+    List<List<String>> executed = new ArrayList<List<String>>();
+    try {
+      if (addGrips(executed, AlgorithmForm.of(moves)) < MIN_TURNS) {
+        return null;
+      }
+      // a regrip the solver did not take back renames the letters after it, as tidied() reads them
+      addGrips(executed, AlgorithmForm.asHeld(AlgorithmForm.withoutOpeningGrip(moves)));
+    } catch (RuntimeException e) {
+      return null; // notation nothing can read says nothing
+    }
+    return executed;
+  }
+
   /** How many turns the moves come to, undone ones folded away and alignment off both ends. */
   public static int turnCount(String moves) {
     return AlgorithmForm.withoutAlignment(AlgorithmForm.of(moves)).size();
@@ -154,12 +177,7 @@ public final class CaseBotch {
     return shortest;
   }
 
-  /**
-   * What a two-look solver turns first on the case: the edges for an OLL, the corners for a PLL
-   * and the corners' orientation for a CMLL. Only for a case that takes two looks at all: not an
-   * OLL with its edges oriented, a PLL that is itself a corner or an edge algorithm, nor a CMLL
-   * with its corners oriented. There another case's algorithm is a misread, never a first look.
-   */
+  /** A two-look solver's first look on the case; none for a case not taken in two looks. */
   static List<String> firstLooks(String caseCode) {
     List<String> looks = new ArrayList<String>();
     if (caseCode.startsWith("oll_") && !contains(CORNER_ORIENTATIONS, caseCode)) {
@@ -203,11 +221,7 @@ public final class CaseBotch {
     return forms;
   }
 
-  /**
-   * Whether any grip of the execution is one of the forms, or the start of one.
-   *
-   * @param minStart how long a start has to be to count; a whole form always counts
-   */
+  /** Whether a grip of the execution is one of the forms, or a start of at least minStart turns. */
   private static boolean startsAny(List<List<String>> executed, List<List<String>> forms,
       int minStart) {
     for (List<String> stood : executed) {
@@ -220,11 +234,7 @@ public final class CaseBotch {
     return false;
   }
 
-  /**
-   * Whether the turns open the form. The last may be half of a double turn ({@code R} of an
-   * {@code R2}), or the second of a pair turning out of each other's way, which folding writes in
-   * one order; a quarter turn the wrong way is a slip, not a start.
-   */
+  /** Whether the turns open the form; the last may be half a double turn or swapped with its opposite. */
   static boolean isStartOf(List<String> turns, List<String> form) {
     int last = turns.size() - 1;
     if (turns.isEmpty() || last >= form.size()) {

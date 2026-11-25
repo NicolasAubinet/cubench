@@ -3,6 +3,7 @@ package com.cube.nanotimer.cube;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.cube.nanotimer.smartcube.step.CaseBotch;
 import com.cube.nanotimer.vo.CubeMethod;
@@ -10,6 +11,7 @@ import com.cube.nanotimer.vo.CubeType;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Test;
@@ -57,6 +59,28 @@ public class CaseBotchesTest {
     assertEquals("oll_40", stopped.caseCode);
     assertNull(stopped.moves);
     assertEquals("F R U R' U' F'", stopped.firstLook);
+  }
+
+  @Test
+  public void anotherCasesWholeAlgorithmIsAMisreadNotAFirstLook() {
+    String antiSune = "R U U R' U' R U' R'";
+    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
+        antiSune + " R U"));
+
+    assertEquals("oll_27", stopped.caseCode);
+    assertNull(stopped.firstLook);
+    assertEquals(CaseBotch.Verdict.MISREAD, judge(stopped));
+  }
+
+  @Test
+  public void anExecutionTurnedOnceIsNotTheSolversOwn() {
+    String moves = SUNE + " " + TPERM;
+    SolveTime once = solve(moves, moves);
+    SolveTime twice = solve(moves, moves);
+    twice.setId(2);
+
+    assertTrue(CaseBotches.own(Arrays.asList(once), "pll_t").isEmpty());
+    assertEquals(1, CaseBotches.own(Arrays.asList(once, twice), "pll_t").size());
   }
 
   @Test
