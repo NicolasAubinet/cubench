@@ -468,6 +468,78 @@ public final class SolveSolution {
     return frames;
   }
 
+  /**
+   * A replay's moves split into the single tokens the player animates, each with the frame it
+   * leaves the cube in, so the page can take the frame <em>it is showing</em> back out of a gyro pose,
+   * part-way through a rotation included. Taking out the frame by time instead turned the cube
+   * twice through every rotation's animation and snapped it back afterwards.
+   *
+   * @param moves  {@link #timedSolution} or {@link #timedBlindSolution}, whole
+   * @param frames the frames the same call recorded ({@link #framesOf}, or its framesOut)
+   */
+  public static List<ReplayToken> replayTokens(List<Move> moves, List<FrameAt> frames) {
+    List<ReplayToken> tokens = new ArrayList<ReplayToken>();
+    CubeRotation frame = CubeRotation.byNotation("");
+    int next = 0;
+    for (int i = 0; i < moves.size(); i++) {
+      CubeRotation recorded = null;
+      while (next < frames.size() && frames.get(next).moveIndex <= i) {
+        recorded = frames.get(next++).frame;
+      }
+      String[] parts = moves.get(i).getNotation().trim().split("\\s+");
+      for (int p = 0; p < parts.length; p++) {
+        CubeRotation before = frame;
+        CubeRotation turn = SolveMovesFormat.isRotation(parts[p])
+            ? CubeRotation.byNotation(parts[p]) : null;
+        if (recorded != null) {
+          // A composite reorientation's last token lands on the recorded frame exactly.
+          frame = p == parts.length - 1 ? recorded : turn != null ? frame.then(turn) : frame;
+        }
+        CubeRotation halfway = null;
+        if (turn != null && turn.isHalfTurn() && frame != before) {
+          // Which way round a half turn goes is not in its two ends: name the quarter it passes.
+          halfway = before.then(CubeRotation.byNotation(parts[p].replace("2", "")));
+        }
+        tokens.add(new ReplayToken(parts[p], moves.get(i).getOffsetMs(), frame, halfway));
+      }
+    }
+    return tokens;
+  }
+
+  /** One token a replay animates, and the frame the cube is in once it has. */
+  public static final class ReplayToken {
+
+    private final String notation;
+    private final long offsetMs;
+    private final CubeRotation frame;
+    private final CubeRotation halfway;
+
+    private ReplayToken(String notation, long offsetMs, CubeRotation frame,
+        CubeRotation halfway) {
+      this.notation = notation;
+      this.offsetMs = offsetMs;
+      this.frame = frame;
+      this.halfway = halfway;
+    }
+
+    public String getNotation() {
+      return notation;
+    }
+
+    public long getOffsetMs() {
+      return offsetMs;
+    }
+
+    public CubeRotation getFrame() {
+      return frame;
+    }
+
+    /** The frame half-way through a half-turn rotation, null for anything else. */
+    public CubeRotation getHalfway() {
+      return halfway;
+    }
+  }
+
   /** The frame the reconstruction leaves the cube in after {@code stored}. */
   static CubeRotation frameAfter(List<Move> stored) {
     List<FrameAt> frames = new ArrayList<FrameAt>();
@@ -480,10 +552,12 @@ public final class SolveSolution {
 
     private final long offsetMs;
     private final CubeRotation frame;
+    private final int moveIndex; // the rewritten move that turned it
 
-    private FrameAt(long offsetMs, CubeRotation frame) {
+    private FrameAt(long offsetMs, CubeRotation frame, int moveIndex) {
       this.offsetMs = offsetMs;
       this.frame = frame;
+      this.moveIndex = moveIndex;
     }
 
     public long getOffsetMs() {
@@ -521,7 +595,7 @@ public final class SolveSolution {
     List<Move> rewritten = new ArrayList<Move>(stored.size());
     if (heldIn != null && !heldIn.getNotation().isEmpty()) {
       rewritten.add(new Move(heldIn.getNotation(), 0)); // shown, so it follows from the scramble
-      record(framesOut, 0, frame);
+      record(framesOut, rewritten, 0, frame);
     }
     for (int i = 0; i < stored.size(); i++) {
       Move move = stored.get(i);
@@ -542,7 +616,7 @@ public final class SolveSolution {
             }
             rewritten.add(new Move(wide, face.getOffsetMs()));
             frame = frame.then(spin);
-            record(framesOut, face.getOffsetMs(), frame);
+            record(framesOut, rewritten, face.getOffsetMs(), frame);
             i = far > i ? far : i + 1; // the face, and any far half, are spoken for
             continue;
           }
@@ -561,7 +635,7 @@ public final class SolveSolution {
         CubeRotation seen = rotation.seenFrom(frame);
         rewritten.add(new Move(seen.getNotation(), move.getOffsetMs()));
         frame = frame.then(seen); // the solver-frame rotation: then() composes in that frame
-        record(framesOut, move.getOffsetMs(), frame);
+        record(framesOut, rewritten, move.getOffsetMs(), frame);
       } else {
         boolean sensed = sliceCoreSpin(stored, i) != null
             && (choices == null || choices.foldsSlice(move.getOffsetMs()));
@@ -584,7 +658,7 @@ public final class SolveSolution {
               relabelFace(frame, notation), relabelFace(frame, next.getNotation()));
           rewritten.add(new Move(slice[0], move.getOffsetMs()));
           frame = frame.then(CubeRotation.byNotation(spin).seenFrom(frame));
-          record(framesOut, move.getOffsetMs(), frame);
+          record(framesOut, rewritten, move.getOffsetMs(), frame);
           i = sensed ? far + 1 : far; // the gyro's own spin token is spoken for too
         } else {
           rewritten.add(new Move(frame.mapFace(notation.charAt(0)) + notation.substring(1),
@@ -772,9 +846,10 @@ public final class SolveSolution {
     return grip == null ? CubeRotation.byNotation("") : grip;
   }
 
-  private static void record(List<FrameAt> framesOut, long offsetMs, CubeRotation frame) {
+  private static void record(List<FrameAt> framesOut, List<Move> rewritten, long offsetMs,
+      CubeRotation frame) {
     if (framesOut != null) {
-      framesOut.add(new FrameAt(offsetMs, frame));
+      framesOut.add(new FrameAt(offsetMs, frame, rewritten.size() - 1));
     }
   }
 

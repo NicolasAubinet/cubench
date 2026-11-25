@@ -58,6 +58,11 @@ public final class GyroTrackFormat {
   private static final int MAX_GAP_MS = 0xFFFF;
   private static final double SCALE = 32767;
 
+  /** Closer than any two readings a ~20 Hz cube takes: these came in one delivery batch. */
+  private static final long BATCH_MS = 10;
+  /** How often the cube reports its orientation, which a batch is spread back across. */
+  private static final long SAMPLE_MS = 50;
+
   private GyroTrackFormat() {
   }
 
@@ -139,7 +144,7 @@ public final class GyroTrackFormat {
     List<Keyframe> poses = new ArrayList<Keyframe>();
     CubeRotation frame = CubeRotation.byNotation("");
     int next = 0;
-    for (Keyframe keyframe : track.getKeyframes()) {
+    for (Keyframe keyframe : unbatched(track.getKeyframes())) {
       while (next < frames.size() && frames.get(next).getOffsetMs() <= keyframe.getOffsetMs()) {
         frame = frames.get(next++).getFrame();
       }
@@ -149,6 +154,33 @@ public final class GyroTrackFormat {
           physical.multiply(frame.quaternion().inverse())));
     }
     return poses;
+  }
+
+  /**
+   * The keyframes with each delivery batch spread back over the gap before it. Readings are stamped
+   * when Android hands them over, which it does in bursts: a quarter of one solve's keyframes shared
+   * a millisecond, so playback crept, froze, then jumped the whole burst in a single frame.
+   */
+  static List<Keyframe> unbatched(List<Keyframe> keyframes) {
+    List<Keyframe> out = new ArrayList<Keyframe>(keyframes);
+    int start = 0;
+    while (start < out.size()) {
+      int end = start;
+      while (end + 1 < out.size()
+          && out.get(end + 1).offsetMs - out.get(end).offsetMs <= BATCH_MS) {
+        end++;
+      }
+      if (end > start) {
+        long last = out.get(end).offsetMs; // the batch arrived late, so its last reading stays put
+        long floor = start > 0 ? out.get(start - 1).offsetMs : 0;
+        double spacing = Math.min(SAMPLE_MS, (last - floor) / (double) (end - start + 1));
+        for (int i = start; i < end; i++) {
+          out.set(i, new Keyframe(Math.round(last - (end - i) * spacing), out.get(i).orientation));
+        }
+      }
+      start = end + 1;
+    }
+    return out;
   }
 
   /** Reads a stored track back, or null for anything it cannot read as one. */

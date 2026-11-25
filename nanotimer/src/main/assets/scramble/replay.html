@@ -8,17 +8,21 @@
   3D; scramble.html forces visualization="2D" for its diagrams.
 
   Java -> JS surface:
-    ntReplayLoad(puzzle, setupAlg, moves, solveMs, turnMs)
-        moves   = [{m:"R'", t:180}, ...], t = ms from solve start
+    ntReplayLoad(puzzle, setupAlg, moves, solveMs, turnMs, startFrame)
+        moves   = [{m:"R'", t:180, f:[w,x,y,z], h:[w,x,y,z]}, ...], t = ms from solve start,
+                  f = the frame the cube is in once this move is made, h = half-way through
+                  a half-turn rotation (absent otherwise); startFrame = the frame before
+                  the first move. Both only matter while the gyro track is shown.
         solveMs = the length the position is reported against (see displayMs)
         turnMs  = how long one of this solve's turns takes, as its step bar draws them
     ntReplayPlay()  ntReplayPause()  ntReplaySpeed(x)
     ntReplaySeek(ms)  ms is a moment of the SOLVE, as onState reports it, never the
                       replay's own clock: the two are not the same scale
     ntReplayGyro(poses)   poses = [{t:ms, q:[w,x,y,z]}, ...], t = ms from solve start,
-                          q already in the cube's own axes with the reference applied
-                          (Java does that: see GyroTrackFormat.posesOf). [] or null
-                          drops the track. Passing it does NOT turn it on.
+                          q the physical pose in the cube's own axes, reference applied
+                          (GyroTrackFormat.posesOf). The page takes out the frame it is
+                          showing, see shownFrame. [] or null drops the track. Passing it
+                          does NOT turn it on.
     ntReplayGyroShow(on)  show the physical orientation, or keep the cube square
 
   JS -> Java, both optional (the app has a timeout as a safety net):
@@ -158,6 +162,9 @@
   // render only when its timeline moves, which is the real problem: see draw().
 
   var poses = [];       // [{t, q:[w,x,y,z]}] ordered by t
+  var frameAfter = [];  // per alg node, the frame it leaves the cube in
+  var halfway = [];     // per alg node, the frame half-way through a half-turn rotation, or null
+  var startFrame = [1, 0, 0, 0];
   var gyroOn = false;
   var puzzleObject = null;
   var poseHooked = false;
@@ -215,6 +222,51 @@
     return out;
   }
 
+  /** Hamilton product, as CubeOrientation.multiply. */
+  function multiply(a, b) {
+    return [
+      a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+      a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+      a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+      a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]];
+  }
+
+  /** The player's own easing of a turn (smootherstep), so the frame turns with the pieces. */
+  function ease(f) {
+    return f * f * f * (10 - f * (15 - 6 * f));
+  }
+
+  /**
+   * The frame the player is drawing the cube in at `ms`, part-way through a turn included.
+   *
+   * ⚠️ Taking out the frame by the solve's time instead turned the cube twice: a rotation is drawn
+   * in the pause BEFORE its timestamp, so the old frame was still being taken out while the pieces
+   * had already swung, and the cube went a quarter turn too far, then snapped back.
+   */
+  function shownFrame(ms) {
+    var k = pending(ms);
+    var before = k > 0 ? frameAfter[k - 1] : startFrame;
+    if (k >= doneAt.length || ms <= doneAt[k] - anims[k]) {
+      return before;
+    }
+    var after = frameAfter[k];
+    var f = ease(Math.min(1, (ms - (doneAt[k] - anims[k])) / anims[k]));
+    if (halfway[k]) {
+      return f < 0.5 ? slerp(before, halfway[k], 2 * f) : slerp(halfway[k], after, 2 * f - 1);
+    }
+    var dot = Math.abs(before[0] * after[0] + before[1] * after[1] + before[2] * after[2]
+        + before[3] * after[3]);
+    // A half turn with no half-way frame could be taken either way round: switch at its end.
+    return dot < 0.1 ? (f < 1 ? before : after) : slerp(before, after, f);
+  }
+
+  /** The physical pose with the frame on screen taken out: what is left is the tilts and peeks. */
+  function residualAt() {
+    var pose = poseAt(displayMs());
+    var frame = shownFrame(clamped());
+    return multiply(pose, [frame[0], -frame[1], -frame[2], -frame[3]]);
+  }
+
   var lastApplied = null;
 
   /**
@@ -227,7 +279,7 @@
     if (!object) {
       return;
     }
-    var q = (!gyroOn || !poses.length) ? [1, 0, 0, 0] : poseAt(displayMs());
+    var q = (!gyroOn || !poses.length) ? [1, 0, 0, 0] : residualAt();
     if (lastApplied
         && Math.abs(q[0] - lastApplied[0]) < 1e-4 && Math.abs(q[1] - lastApplied[1]) < 1e-4
         && Math.abs(q[2] - lastApplied[2]) < 1e-4 && Math.abs(q[3] - lastApplied[3]) < 1e-4) {
@@ -484,8 +536,9 @@
     }
   }
 
-  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs, solveTurnMs) {
+  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs, solveTurnMs, start) {
     turnMs = solveTurnMs > 0 ? solveTurnMs : 150;
+    startFrame = start && start.length === 4 ? start : [1, 0, 0, 0];
     pause();
     readyNotified = false;
     poses = []; // the previous solve's, if the dialog is reused; the new one's arrive separately
@@ -497,10 +550,18 @@
     // the same instant, and each still gets its own room from the floors above.
     var tokens = [];
     var stamps = [];
+    frameAfter = [];
+    halfway = [];
+    var frame = startFrame;
     for (var i = 0; i < list.length; i++) {
-      var parts = String(list[i].m).split(/\s+/);
+      var parts = String(list[i].m).split(/\s+/).filter(function (part) { return part; });
       for (var j = 0; j < parts.length; j++) {
-        if (parts[j]) { tokens.push(parts[j]); stamps.push(list[i].t); }
+        var last = j === parts.length - 1;
+        if (last && list[i].f && list[i].f.length === 4) { frame = list[i].f; }
+        tokens.push(parts[j]);
+        stamps.push(list[i].t);
+        frameAfter.push(frame);
+        halfway.push(last && list[i].h && list[i].h.length === 4 ? list[i].h : null);
       }
     }
     layOut(tokens, stamps);
