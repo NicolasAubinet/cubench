@@ -992,6 +992,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     SolveReadingStore.forgetAll(db);
     db.delete(DB.TABLE_TIMEHISTORY, null, null);
     db.delete(DB.TABLE_COACH_PLAN, null, null); // a plan is a reading of the history, not a thing beside it
+    db.delete(DB.TABLE_CASE_BOTCHED, null, null);
     CaseKnowledgeStore.rebuild(db);
     clearCaches();
   }
@@ -1007,6 +1008,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     SolveReadingStore.forgetSolveType(db, solveType.getId());
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
+    db.delete(DB.TABLE_CASE_BOTCHED, DB.COL_CASE_BOTCHED_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     CaseKnowledgeStore.rebuild(db);
     if (solveType.equals(currentSolveType)) {
       clearCaches();
@@ -1618,6 +1620,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     db.delete(DB.TABLE_TIMEHISTORY, DB.COL_TIMEHISTORY_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_SOLVETYPESTEP, DB.COL_SOLVETYPESTEP_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_COACH_PLAN, DB.COL_COACH_PLAN_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
+    db.delete(DB.TABLE_CASE_BOTCHED, DB.COL_CASE_BOTCHED_SOLVETYPE_ID + " = ?", getStringArray(solveType.getId()));
     db.delete(DB.TABLE_SOLVETYPE, DB.COL_ID + " = ?", getStringArray(solveType.getId()));
     CaseKnowledgeStore.rebuild(db); // the solves that said what the solver knows went with it
     if (solveType.equals(currentSolveType)) {
@@ -2566,6 +2569,28 @@ public class ServiceProviderImpl implements ServiceProvider {
   @Override
   public void recordCaseCleared(String caseCode, long atMs) {
     CaseKnowledgeStore.recordCleared(db, caseCode, atMs);
+  }
+
+  @Override
+  public boolean isCaseLearned(String caseCode) {
+    for (CaseKnowledge stepCase : CaseKnowledgeStore.read(db)) {
+      if (stepCase.getCode().equals(caseCode)) {
+        return stepCase.getStatus().isLearned();
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void recordCaseBotched(String caseCode, String verdict, String misreadAs,
+      int solveTypeId, long atMs) {
+    ContentValues values = new ContentValues();
+    values.put(DB.COL_CASE_BOTCHED_CASE, caseCode);
+    values.put(DB.COL_CASE_BOTCHED_VERDICT, verdict);
+    values.put(DB.COL_CASE_BOTCHED_AT, atMs);
+    values.put(DB.COL_CASE_BOTCHED_MISREAD_AS, misreadAs);
+    values.put(DB.COL_CASE_BOTCHED_SOLVETYPE_ID, solveTypeId);
+    db.insert(DB.TABLE_CASE_BOTCHED, null, values);
   }
 
   /**

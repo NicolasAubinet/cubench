@@ -41,6 +41,7 @@ import com.cube.nanotimer.Options.InspectionMode;
 import com.cube.nanotimer.Options.SessionTimesDisplay;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.SoundManager;
+import com.cube.nanotimer.cube.CaseBotches;
 import com.cube.nanotimer.cube.LiveCubeView;
 import com.cube.nanotimer.cube.ScrambleFollower;
 import com.cube.nanotimer.cube.SmartCubeChip;
@@ -1125,6 +1126,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
       return;
     }
     forgetRecordsOfDeletedSolve();
+    CaseBotches.record(lastSolveTime);
     App.INSTANCE.getService().deleteTime(lastSolveTime, solveAverageCallback);
     cubeSession.deleteLast();
     historySolvesCount--;
@@ -1571,6 +1573,8 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     showStepBreakdown(solveDurationMs);
     if (save) {
       saveTime(timeToSave, autoPenalty());
+    } else {
+      CaseBotches.record(newSolveTime(timeToSave)); // abandoned unsaved: its case may still have gone wrong
     }
     generateScramble();
   }
@@ -1724,6 +1728,27 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
    *     stored solve is the judged one and the reading it was judged on is stored with it
    */
   private void saveTime(long time, StopPenalty penalty) {
+    SolveTime solveTime = newSolveTime(time);
+    applyAutoPenalty(solveTime, penalty);
+    // A cross-button stop already asks; asking twice would be the same question.
+    fastSolvePending = !skipRecordPanel && isSuspiciouslyFast(solveTime.getTime());
+    boolean cubeTimed = time > 0 && !lastSolveMoves.isEmpty();
+    if (cubeTimed) {
+      putLastSolveInBar();
+    }
+    lastSolveHintDue = cubeTimed && !Options.INSTANCE.isLastSolveHintSeen();
+
+    addTimeToUI(solveTime);
+    save(solveTime);
+
+    if (solveTime.getTime() > 0 && !reviewRequested) { // ask for a review after a completed solve, never after a DNF
+      reviewRequested = true;
+      InAppReviewManager.maybeRequestReview(this, historySolvesCount);
+    }
+  }
+
+  /** The solve just stopped, with what the cube recorded of it, before any penalty. */
+  private SolveTime newSolveTime(long time) {
     SolveTime solveTime = new SolveTime();
     solveTime.setTime(time);
     solveTime.setTimestamp(System.currentTimeMillis());
@@ -1754,22 +1779,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
         solveTime.setSmartcubeCube(lastSolveCube);
       }
     }
-    applyAutoPenalty(solveTime, penalty);
-    // A cross-button stop already asks; asking twice would be the same question.
-    fastSolvePending = !skipRecordPanel && isSuspiciouslyFast(solveTime.getTime());
-    boolean cubeTimed = time > 0 && !lastSolveMoves.isEmpty();
-    if (cubeTimed) {
-      putLastSolveInBar();
-    }
-    lastSolveHintDue = cubeTimed && !Options.INSTANCE.isLastSolveHintSeen();
-
-    addTimeToUI(solveTime);
-    save(solveTime);
-
-    if (solveTime.getTime() > 0 && !reviewRequested) { // ask for a review after a completed solve, never after a DNF
-      reviewRequested = true;
-      InAppReviewManager.maybeRequestReview(this, historySolvesCount);
-    }
+    return solveTime;
   }
 
   /** Stores a solve, new or marked again: either can change what the next coach plan waits for. */

@@ -312,6 +312,10 @@ public final class CaseExecutions {
       return reread.getMoves();
     }
 
+    StoredSolveReplay.Result getReread() {
+      return reread;
+    }
+
     List<SolveStep> getSteps() {
       return steps;
     }

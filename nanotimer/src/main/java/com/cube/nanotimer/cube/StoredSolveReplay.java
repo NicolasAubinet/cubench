@@ -68,6 +68,7 @@ public final class StoredSolveReplay {
     private final ParityCheck parityCheck;
     private final boolean reachedSolved;
     private final CubeRotation grip;
+    private String stoppedStepName;
 
     Result(String moves, CubeMethod method, List<SolveStep> steps, Integer stoppedStep,
         BlindResidual residual, LostReading lostReading, ParityCheck parityCheck,
@@ -109,6 +110,11 @@ public final class StoredSolveReplay {
 
     public Integer getStoppedStep() {
       return stoppedStep;
+    }
+
+    /** The name of the step it stopped inside, its case included ({@code pll_jb}), or null. */
+    public String getStoppedStepName() {
+      return stoppedStepName;
     }
 
     /** What the cube was left in, where the method can say it: never stored, always read again. */
@@ -219,9 +225,12 @@ public final class StoredSolveReplay {
       }
       String moves = grip == null ? storedMoves
           : SolveMovesFormat.withPickup(storedMoves, grip.getNotation());
-      return new Result(moves, method, SolveStepConverter.toSolveSteps(analyzer.getStepTimes()),
-          stoppedStep, analyzer.getResidual(), analyzer.getLostReading(),
-          analyzer.getParityCheck(), reachedSolved, grip);
+      Result result = new Result(moves, method,
+          SolveStepConverter.toSolveSteps(analyzer.getStepTimes()), stoppedStep,
+          analyzer.getResidual(), analyzer.getLostReading(), analyzer.getParityCheck(),
+          reachedSolved, grip);
+      result.stoppedStepName = analyzer.getStoppedStepName();
+      return result;
     } catch (RuntimeException e) {
       return null; // a scramble in another puzzle's notation, a truncated stream: fall back
     }

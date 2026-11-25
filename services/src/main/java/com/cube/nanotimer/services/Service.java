@@ -279,6 +279,19 @@ public interface Service {
   /** A learning drill has just cleared the case: stored as evidence of it being known. */
   void recordCaseCleared(String caseCode, DataCallback<Void> callback);
 
+  /** Whether the case has been done in one look: known now, or known and needing review. */
+  void isCaseLearned(String caseCode, DataCallback<Boolean> callback);
+
+  /**
+   * A solve thrown away (discarded or deleted) stopped inside a case whose algorithm went wrong.
+   *
+   * @param verdict how it went wrong: "botched", "misread" or "two_looked"
+   * @param misreadAs the case whose algorithm was turned instead, for a misread
+   * @param atMs when the solve was turned, not when it was thrown away
+   */
+  void recordCaseBotched(String caseCode, String verdict, String misreadAs, int solveTypeId,
+      long atMs, DataCallback<Void> callback);
+
   void addSolveType(SolveType solveType, DataCallback<Integer> callback);
   void addSolveTypeSteps(SolveType solveType, DataCallback<Void> callback);
   void updateSolveType(SolveType solveType, boolean recalculateAverages, DataCallback<Void> callback);

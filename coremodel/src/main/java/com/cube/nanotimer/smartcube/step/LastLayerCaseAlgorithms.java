@@ -380,6 +380,22 @@ public final class LastLayerCaseAlgorithms {
     return Collections.unmodifiableList(all);
   }
 
+  /** Every case of the family the case is in ({@code oll_}, {@code pll_}, {@code cmll_}), itself included. */
+  public static List<String> casesLike(String caseCode) {
+    List<String> cases = new ArrayList<String>();
+    int cut = caseCode == null ? -1 : caseCode.indexOf('_');
+    if (cut < 0) {
+      return cases;
+    }
+    String family = caseCode.substring(0, cut + 1);
+    for (String[] row : tableOf(caseCode)) {
+      if (row[0].startsWith(family) && !cases.contains(row[0])) {
+        cases.add(row[0]);
+      }
+    }
+    return cases;
+  }
+
   /**
    * Which algorithm an execution was, listed or not, or null for one that is none of the case's.
    *

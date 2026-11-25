@@ -147,6 +147,15 @@ public final class SolveAnalyzer {
   }
 
   /**
+   * The name of the step the solve stopped inside ({@code oll_45} once the case it was handed is
+   * known), or null when it ran to the end.
+   */
+  public String getStoppedStepName() {
+    Integer step = getStoppedStep();
+    return step == null ? null : detector.stepName(step);
+  }
+
+  /**
    * The step the solve stopped inside: the parts it did finish, ending at the last of them. Null when
    * it got nowhere, or has no parts to report (a botched PLL) — then it is all tail. A lone part is
    * kept rather than collapsed: it is the only record of a step that reached no milestone.
