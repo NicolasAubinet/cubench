@@ -5,6 +5,7 @@ import com.cube.nanotimer.smartcube.step.LastLayerScrambles;
 
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,13 +44,23 @@ public class CaseSetsTest {
   /** Each F2L group is where its picture puts the pieces: own slot, another slot, or on top. */
   @Test
   public void testF2LGroupsAreWhereThePiecesAre() {
-    int[] ownCorner = {29, 26, 15};
-    int[] ownEdge = {23, 12};
-    int[] otherCorners = {27, 44, 24, 33, 53, 42, 35, 17, 51};
-    int[] otherEdges = {21, 41, 50, 39, 48, 14};
+    // Each slot's corner and edge facelets, in fr, fl, br, bl order.
+    int[][] corners = {{29, 26, 15}, {27, 44, 24}, {35, 17, 51}, {33, 53, 42}};
+    int[][] edges = {{23, 12}, {21, 41}, {48, 14}, {50, 39}};
     for (String code : CaseSets.F2L.cases()) {
       String picture = CaseAlgorithms.pairPicture(code);
       String group = CaseSets.F2L.groupOf(code).getId();
+      int own = Arrays.asList("fr", "fl", "br", "bl").indexOf(CaseAlgorithms.pictureSlot(code));
+      int[] ownCorner = corners[own];
+      int[] ownEdge = edges[own];
+      int[] otherCorners = new int[0];
+      int[] otherEdges = new int[0];
+      for (int slot = 0; slot < 4; slot++) {
+        if (slot != own) {
+          otherCorners = concat(otherCorners, corners[slot]);
+          otherEdges = concat(otherEdges, edges[slot]);
+        }
+      }
       boolean cornerHome = lit(picture, ownCorner);
       boolean edgeHome = lit(picture, ownEdge);
       boolean cornerStuck = lit(picture, otherCorners);
@@ -59,6 +70,12 @@ public class CaseSetsTest {
           : edgeHome ? "edge" : "top";
       assertEquals(code, read, group);
     }
+  }
+
+  private static int[] concat(int[] a, int[] b) {
+    int[] both = Arrays.copyOf(a, a.length + b.length);
+    System.arraycopy(b, 0, both, a.length, b.length);
+    return both;
   }
 
   private static boolean lit(String picture, int[] facelets) {

@@ -1166,6 +1166,15 @@ public final class F2LCaseAlgorithms {
 
   private static final Map<String, AlgorithmList> LISTS = new HashMap<>();
 
+  private static final Map<String, Integer> PICTURE_TURNS =
+      new java.util.concurrent.ConcurrentHashMap<>();
+  private static final String[] SPINS_BY_QUARTERS = {"", "y", "y2", "y'"};
+  /** By {@link #pictureTurn}: the slot the pair goes into as pictured, and its pieces' colours. */
+  private static final String[] PICTURED_SLOTS = {"fr", "br", "bl", "fl"};
+  private static final String[][] PICTURED_PAIRS = {
+    {"DFR", "FR"}, {"BDR", "BR"}, {"BDL", "BL"}, {"DFL", "FL"},
+  };
+
   private F2LCaseAlgorithms() {
   }
 
@@ -1338,17 +1347,86 @@ public final class F2LCaseAlgorithms {
    */
   public static String crossUpFacelets(String pairCase) {
     List<Algorithm> algorithms = forCase(pairCase);
-    return algorithms.isEmpty() ? null
-        : Notation.caseState("z2 " + algorithms.get(0).getMoves() + " z2");
+    return algorithms.isEmpty() ? null : Notation.caseState(
+        "z2 " + asPictured(pairCase, algorithms.get(0).getMoves()) + " z2");
   }
 
   /**
-   * The case as its picture shows it, cross down and the slot at front right, in URFDLB facelets:
-   * the face letter on the pair's own stickers, the same in lower case on the rest of the first two
-   * layers, and '.' on a last-layer piece's. Read off the most voted algorithm that needs no other
-   * slot empty, so no other pair is drawn out of its slot. Null for a case with no algorithm.
+   * The slot the pair goes into as the case is pictured: front right, but for a stuck-piece case,
+   * which is pictured with the stuck piece in front right, as the sheets draw one.
    */
-  public static String picture(String pairCase) {
+  public static String pictureSlot(String pairCase) {
+    return PICTURED_SLOTS[pictureTurn(pairCase)];
+  }
+
+  /**
+   * An algorithm as it reads from the picture: for a stuck-piece case, with the turn of the cube
+   * that brings the pair's own slot to front right folded into its opening rotation.
+   */
+  public static String asPictured(String pairCase, String moves) {
+    return spun(pictureTurn(pairCase), moves); // the turn back from the picture to the table's grip
+  }
+
+  /** The reverse of {@link #asPictured}: an algorithm read off the picture, in the table's grip. */
+  public static String fromPictured(String pairCase, String moves) {
+    return spun(4 - pictureTurn(pairCase), moves);
+  }
+
+  /** The moves with y quarter turns in front, folded into their opening rotation. */
+  private static String spun(int quarters, String moves) {
+    if (quarters % 4 == 0 || moves == null || moves.trim().isEmpty()) {
+      return moves;
+    }
+    String[] tokens = moves.trim().split("\\s+");
+    int at = 0;
+    for (; at < tokens.length && quartersOf(tokens[at]) >= 0; at++) {
+      quarters += quartersOf(tokens[at]);
+    }
+    StringBuilder pictured = new StringBuilder(SPINS_BY_QUARTERS[quarters % 4]);
+    for (; at < tokens.length; at++) {
+      pictured.append(pictured.length() == 0 ? "" : " ").append(tokens[at]);
+    }
+    return pictured.toString();
+  }
+
+  private static int quartersOf(String token) {
+    switch (token) {
+      case "y": return 1;
+      case "y2": case "y2'": return 2;
+      case "y'": return 3;
+      default: return -1;
+    }
+  }
+
+  /**
+   * The quarter turns (y) from the picture's grip to the table's: 0 where the pair's pieces show
+   * from front right, else the turn that puts the stuck piece's slot there (front left 1, back
+   * left 2, back right 3).
+   */
+  private static int pictureTurn(String pairCase) {
+    Integer turn = PICTURE_TURNS.get(pairCase);
+    if (turn == null) {
+      turn = 0;
+      String moves = pictureMoves(pairCase);
+      try {
+        String state = moves == null ? null : Notation.caseState(moves);
+        for (int slot = 0; state != null && slot < OTHER_SLOTS.length; slot++) {
+          String corner = colours(state, Cubies.CORNERS[OTHER_SLOTS[slot][0]]);
+          String edge = colours(state, Cubies.EDGES[OTHER_SLOTS[slot][1]]);
+          if (corner.equals("DFR") || edge.equals("FR")) {
+            turn = slot + 1;
+          }
+        }
+      } catch (IllegalStateException e) {
+        // drawn in the table's grip, as the picture of a row that does not end upright is blank
+      }
+      PICTURE_TURNS.put(pairCase, turn);
+    }
+    return turn;
+  }
+
+  /** The most voted algorithm that needs no other slot empty, or the most voted of all. */
+  private static String pictureMoves(String pairCase) {
     String moves = null;
     for (Algorithm algorithm : forCase(pairCase)) {
       if (moves == null || algorithm.getEmptySlot() == null) {
@@ -1358,19 +1436,32 @@ public final class F2LCaseAlgorithms {
         }
       }
     }
+    return moves;
+  }
+
+  /**
+   * The case as its picture shows it, cross down, in URFDLB facelets: the face letter on the pair's
+   * own stickers, the same in lower case on the rest of the first two layers, and '.' on a
+   * last-layer piece's. The pair goes into {@link #pictureSlot}. Read off the most voted algorithm
+   * that needs no other slot empty, so no other pair is drawn out of its slot. Null for a case with
+   * no algorithm.
+   */
+  public static String picture(String pairCase) {
+    String moves = pictureMoves(pairCase);
     if (moves == null) {
       return null;
     }
     String state;
     try {
-      state = Notation.caseState(moves);
+      state = Notation.caseState(asPictured(pairCase, moves));
     } catch (IllegalStateException e) {
       return null; // a row that does not end upright draws blank rather than closing the screen
     }
+    String[] pairColours = PICTURED_PAIRS[pictureTurn(pairCase)];
     char[] picture = new char[state.length()];
     for (int[] piece : Cubies.PIECES) {
       String sorted = colours(state, piece);
-      boolean pair = sorted.equals("DFR") || sorted.equals("FR");
+      boolean pair = sorted.equals(pairColours[0]) || sorted.equals(pairColours[1]);
       // Another slot's piece knocked out by a stuck one would read as a second pair.
       boolean grey = sorted.indexOf('U') >= 0 || !pair && !home(state, piece);
       for (int facelet : piece) {

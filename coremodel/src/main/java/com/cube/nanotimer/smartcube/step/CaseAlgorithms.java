@@ -70,6 +70,27 @@ public final class CaseAlgorithms {
     return picture;
   }
 
+  /**
+   * An algorithm written as it reads from the case's picture. A stuck-piece pair is pictured with
+   * the stuck piece in front right, so its algorithms lose or gain the turn to the table's grip.
+   */
+  public static String asPictured(String caseCode, String moves) {
+    return isPair(caseCode) && slotOf(caseCode) == null
+        ? F2LCaseAlgorithms.asPictured(pairCase(caseCode), moves) : moves;
+  }
+
+  /** The reverse of {@link #asPictured}: moves read off the picture, in the table's grip. */
+  public static String fromPictured(String caseCode, String moves) {
+    return isPair(caseCode) && slotOf(caseCode) == null
+        ? F2LCaseAlgorithms.fromPictured(pairCase(caseCode), moves) : moves;
+  }
+
+  /** The slot ("fr", "br") a pair's picture puts it into, or null for a case that is no pair. */
+  public static String pictureSlot(String caseCode) {
+    return isPair(caseCode) && slotOf(caseCode) == null
+        ? F2LCaseAlgorithms.pictureSlot(pairCase(caseCode)) : null;
+  }
+
   /** The slot a drill deals the pair into, put in without a rotation, or null for none. */
   public static String slotOf(String caseCode) {
     return F2lPairCases.slotOf(caseCode);

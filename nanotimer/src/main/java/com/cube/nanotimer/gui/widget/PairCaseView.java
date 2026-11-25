@@ -17,12 +17,9 @@ import androidx.core.graphics.ColorUtils;
 import com.cube.nanotimer.R;
 
 /**
- * An F2L case as a small 3D cube, cross down and the pair's slot at front right: the first two
- * layers in their colours, the last layer grey. Drawn on a canvas rather
- * than by the 3D cube, since a grid holds dozens of them.
- *
- * <p>Seen from the front right, unless a piece of the pair is stuck in back left, which only the
- * left side shows: then from the front left.
+ * An F2L case as a small 3D cube, cross down, seen from the front right: the first two layers in
+ * their colours, the last layer grey. Drawn on a canvas rather than by the 3D cube, since a grid
+ * holds dozens of them. A stuck piece is pictured in front right, so the pair always shows.
  *
  * <p>Takes the picture {@code CaseAlgorithms.pairPicture} writes: URFDLB facelets, a face letter
  * on the pair, lower case on the rest of the first two layers (drawn the same), '.' on the last
@@ -46,9 +43,6 @@ public class PairCaseView extends View {
 
   private static final float STAGE_RADIUS = 0.10f;
 
-  /** The facelets back left holds: the corner DBL and the edge BL. */
-  private static final int[] BACK_LEFT = {33, 53, 42, 50, 39};
-
   private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
   private final Path path = new Path();
@@ -58,7 +52,6 @@ public class PairCaseView extends View {
   private int bodyColor;
 
   private String picture;
-  private boolean fromLeft;
   private boolean dimmed;
   private boolean staged;
 
@@ -85,12 +78,6 @@ public class PairCaseView extends View {
 
   public void setPicture(String picture) {
     this.picture = picture;
-    fromLeft = false;
-    if (picture != null) {
-      for (int facelet : BACK_LEFT) {
-        fromLeft |= Character.isUpperCase(picture.charAt(facelet));
-      }
-    }
     invalidate();
   }
 
@@ -169,12 +156,12 @@ public class PairCaseView extends View {
 
   private void drawSticker(Canvas canvas, int facelet) {
     float[] centre = centre(facelet);
-    float[] normal = turned(normal(facelet / 9));
+    float[] normal = normal(facelet / 9);
     int seen = normal[1] > 0.5f ? 0 : normal[2] > 0.5f ? 1 : normal[0] > 0.5f ? 2 : -1;
     if (seen < 0) {
       return;
     }
-    float[] at = turned(centre);
+    float[] at = centre;
     int[] across = new int[2];
     for (int axis = 0, n = 0; axis < 3; axis++) {
       if (Math.abs(normal[axis]) < 0.5f) {
@@ -194,13 +181,10 @@ public class PairCaseView extends View {
   }
 
   private void polygon(Canvas canvas, float[][] corners) {
-    // The green face stays the wider side: on the right once the view is turned to the left.
-    float cos = fromLeft ? YAW_SIN : YAW_COS;
-    float sin = fromLeft ? YAW_COS : YAW_SIN;
     path.reset();
     for (int i = 0; i < corners.length; i++) {
-      float x = (corners[i][0] * cos - corners[i][2] * sin) * 1.2247f;
-      float y = -corners[i][1] + (corners[i][0] * sin + corners[i][2] * cos) * 0.7071f;
+      float x = (corners[i][0] * YAW_COS - corners[i][2] * YAW_SIN) * 1.2247f;
+      float y = -corners[i][1] + (corners[i][0] * YAW_SIN + corners[i][2] * YAW_COS) * 0.7071f;
       if (i == 0) {
         path.moveTo(x, y);
       } else {
@@ -209,11 +193,6 @@ public class PairCaseView extends View {
     }
     path.close();
     canvas.drawPath(path, fill);
-  }
-
-  /** The view turned a quarter about the vertical, so the left side faces where the front did. */
-  private float[] turned(float[] point) {
-    return fromLeft ? new float[] {point[2], point[1], -point[0]} : point;
   }
 
   /** A facelet's centre, the cube spanning -1.5 to 1.5 with y up and z towards the front. */

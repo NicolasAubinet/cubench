@@ -257,6 +257,24 @@ public class F2LCaseAlgorithmsTest {
         Notation.apply(facelets, "z2 U' R U2 R' U' R U2 R' z2"));
   }
 
+  /** A stuck-piece case reads as the sheets write it, from the stuck piece in front right. */
+  @Test
+  public void stuckPieceAlgorithmsReadFromThePicture() {
+    assertEquals("S R' S'", CaseAlgorithms.asPictured("pair_a1", "y' S R' S'"));
+    assertEquals("y L' U' L U R U' R'",
+        CaseAlgorithms.asPictured("pair_a1", "L' U' L U R U' R'"));
+    assertEquals("L F' U2 F L'", CaseAlgorithms.asPictured("pair_a2", "y2 L F' U2 F L'"));
+    assertEquals("R U' R' U F' r U r'", CaseAlgorithms.asPictured("pair_a3", "y R U' R' U F' r U r'"));
+    assertEquals("U R U' R'", CaseAlgorithms.asPictured("pair_1", "U R U' R'"));
+    for (String code : CaseAlgorithms.pairCases()) {
+      for (CaseAlgorithms.Listed listed : CaseAlgorithms.shown(code)) {
+        String back = CaseAlgorithms.fromPictured(code,
+            CaseAlgorithms.asPictured(code, listed.getMoves()));
+        assertTrue(code + ": " + back, CaseAlgorithms.solves(code, back));
+      }
+    }
+  }
+
   /** Each named case's picture marks the pair's five stickers, greys the last layer, reads as it. */
   @Test
   public void picturesEveryNamedCaseWithOnlyThePairInColour() {
@@ -277,9 +295,23 @@ public class F2LCaseAlgorithmsTest {
       // Grey: the 8 last-layer pieces' 20 stickers and the top centre, plus a stuck case's
       // knocked-out pieces.
       boolean greyed = CaseAlgorithms.isBasicPair(code) ? grey == 21 : grey > 21;
+      int slot = F2LSlotAlgorithms.SLOTS.indexOf(CaseAlgorithms.pictureSlot(code));
+      int[] corners = {Cubies.DFR, Cubies.DLF, Cubies.DRB, Cubies.DBL};
+      int[] edges = {Cubies.FR, Cubies.FL, Cubies.BR, Cubies.BL};
       String read = F2LCases.pairCase(picture.toUpperCase(Locale.ROOT).replace('.', 'U'), Cubies.D,
-          Cubies.DFR, Cubies.FR);
-      if (bright != 5 || !greyed || strayInColour || !pairCase.equals(read)) {
+          corners[slot], edges[slot]);
+      // Each pair piece shows from front right: a sticker on the top, right or front face.
+      boolean hidden = false;
+      for (int[] piece : Cubies.PIECES) {
+        boolean pair = false;
+        boolean seen = false;
+        for (int facelet : piece) {
+          pair |= Character.isUpperCase(picture.charAt(facelet));
+          seen |= facelet / 9 <= 2; // U, R or F
+        }
+        hidden |= pair && !seen;
+      }
+      if (bright != 5 || !greyed || strayInColour || !pairCase.equals(read) || hidden) {
         wrong.append(code).append(": ").append(picture).append('\n');
       }
     }

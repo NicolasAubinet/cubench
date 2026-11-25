@@ -368,7 +368,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     cube.setCameraDistance(CAMERA_DISTANCE);
     cube.setNudge(0);
     cube.setState(CubePatternFormat.format(facelets));
-    int at = Math.max(0, F2LSlotAlgorithms.SLOTS.indexOf(slot)); // front right for a plain pair
+    int at = F2LSlotAlgorithms.SLOTS.indexOf(slot == null
+        ? CaseAlgorithms.pictureSlot(caseCode) : slot);
     cube.setStickering(CubeStickering.crossAndPair(CROSS_UP_EDGES, CROSS_UP_CORNERS[at],
         CROSS_UP_SLOT_EDGES[at]));
   }
@@ -760,7 +761,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     boolean mine = chosen != null ? declared : one != null && one == turned.get(0);
 
     AlgorithmRow row = AlgorithmRow.inflate(LayoutInflater.from(getActivity()), parent)
-        .moves(moves)
+        .moves(CaseAlgorithms.asPictured(caseCode, moves))
         .rank(place)
         .share(share >= 0 ? UsageShares.label(getActivity(), share) : null, share, hue)
         .starred(declared)
@@ -845,6 +846,8 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     // Bound after showing, so a rejected algorithm leaves the dialog up with what was typed.
     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
       String typed = field.getText().toString().trim().replaceAll("\\s+", " ");
+      String read = CaseAlgorithms.fromPictured(caseCode, typed); // typed from the picture
+      typed = CaseAlgorithms.solves(caseCode, read) ? read : typed;
       if (!CaseAlgorithms.solves(caseCode, typed)) {
         DialogUtils.showInfoMessage(getActivity(), R.string.case_algorithm_wrong);
         return;
