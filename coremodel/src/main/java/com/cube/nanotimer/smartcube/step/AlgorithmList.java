@@ -20,9 +20,25 @@ import java.util.List;
  *
  * <p><b>Listed means holding most of the votes.</b> Rows are taken most voted first until they hold
  * {@link #COVERED_VOTES} percent of the case's votes. A case one algorithm holds 85% of lists that one
- * alone, and a case the world is split many ways on lists every way it is split. An execution that
- * is none of the listed rows is the one worth pointing out. A case nobody voted on lists every row,
- * having nothing to rank them by.
+ * alone, and a case the world is split many ways on lists every way it is split. Listed is what a
+ * case is shown with; every other row stays a choice behind it. A case nobody voted on lists every
+ * row, having nothing to rank them by.
+ *
+ * <p><b>Standard is stricter than listed, and only judges executions.</b> Filling up to 80% pulls
+ * in whatever is next, a 9% algorithm behind a 75% one, and an algorithm one solver in ten turns is
+ * not standard. Taken most voted first, an algorithm is standard when it is:
+ * <ul>
+ *   <li>the most voted one;
+ *   <li>at least {@link #STANDARD_SHARE}% of the votes;
+ *   <li>needed to reach {@link #STANDARD_FILL}% together, while at least a third of the top one's
+ *       votes, so a 53% top does not drag in a 7% second to make up the total;
+ *   <li>or at least two thirds of the last one the fill took, so algorithms close to it come along
+ *       (Z perm 35 32 | 17 16, V perm 29 26 23 22, F2L 15: 22 19 18 16 | 7).
+ * </ul>
+ * Every threshold is relative to the case itself, so the cut falls where its votes drop, not at a
+ * fixed number between two near-equal algorithms. Measuring against the fill's last algorithm, not
+ * each one's predecessor, keeps a long gentle tail (7 5 5 4 3...) from sliding in a step at a time.
+ * An execution that is not standard is the one worth pointing out.
  *
  * <p><b>It cannot say an execution is bad, and must not be made to.</b> The tables hold the
  * algorithms a case is usually taught with, not every algorithm there is, so an execution off the
@@ -33,6 +49,16 @@ final class AlgorithmList {
   /** The share of a case's votes its listed algorithms hold between them, in percent. */
   static final int COVERED_VOTES = 80;
 
+  /** The share of a case's votes that makes an algorithm standard on its own, in percent. */
+  static final int STANDARD_SHARE = 25;
+  /** The share the most voted standard algorithms are taken up to, in percent. */
+  static final int STANDARD_FILL = 60;
+  /**
+   * A slot tally under this many votes is not read for standard: there one voter is a tenth of it.
+   * Front right is always read.
+   */
+  static final int STANDARD_SLOT_VOTES = 15;
+
   /**
    * How far ahead the most voted algorithm has to be before it is called the recommended one: half
    * again the next one's votes. A case the world is split on has no recommendation to make.
@@ -41,12 +67,14 @@ final class AlgorithmList {
 
   private final List<Row> rows;
   private final int listed;
+  /** How many rows at the front are standard; unused per spelling, which keeps standardForms. */
+  private final int standard;
   private final int votes;
   private final AlgorithmForm.Drawn drawn;
   private final List<List<String>> forms = new ArrayList<List<String>>();
   /** Per spelling only: the rows shown, and the forms an execution is not unusual for. */
   private final List<Row> shown;
-  private final List<List<String>> listedForms;
+  private final List<List<String>> standardForms;
 
   /**
    * @param tableRows each {moves, votes, the slot it needs empty or ""}, spelled for the cube held
@@ -84,8 +112,13 @@ final class AlgorithmList {
       forms.add(AlgorithmForm.comparable(row.getMoves()));
     }
     this.listed = listedCount(folded, total);
+    List<Integer> held = new ArrayList<Integer>();
+    for (Row row : folded) {
+      held.add(row.votes);
+    }
+    this.standard = total == 0 ? folded.size() : standardCount(held, total);
     this.shown = null;
-    this.listedForms = null;
+    this.standardForms = null;
   }
 
   /**
@@ -136,11 +169,11 @@ final class AlgorithmList {
         }
       }
     }
-    List<List<String>> frontRight = listedFolds(spelled, 0);
-    List<List<String>> listedFolds = new ArrayList<List<String>>();
+    List<List<String>> frontRight = listedFolds(spelled, 0, false);
+    List<List<String>> standardFolds = new ArrayList<List<String>>();
     for (int slot = 0; slot < SLOTS; slot++) {
-      for (List<String> form : listedFolds(spelled, slot)) {
-        addForm(listedFolds, form);
+      for (List<String> form : listedFolds(spelled, slot, true)) {
+        addForm(standardFolds, form);
       }
     }
     List<Row> front = new ArrayList<Row>();
@@ -153,8 +186,9 @@ final class AlgorithmList {
       }
     }
     this.shown = Collections.unmodifiableList(front);
-    this.listedForms = Collections.unmodifiableList(listedFolds);
+    this.standardForms = Collections.unmodifiableList(standardFolds);
     this.listed = front.size();
+    this.standard = 0;
   }
 
   /**
@@ -174,8 +208,11 @@ final class AlgorithmList {
     return forms.add(form);
   }
 
-  /** The algorithms holding the front of one slot's votes, their spellings' votes together. */
-  private List<List<String>> listedFolds(List<Row> spelled, int slot) {
+  /**
+   * The algorithms listed for one slot's votes, their spellings' votes together, or with
+   * {@code standard} the standard ones: none from a back slot too thinly voted to say.
+   */
+  private List<List<String>> listedFolds(List<Row> spelled, int slot, boolean standard) {
     final List<List<String>> folds = new ArrayList<List<String>>();
     final List<Integer> held = new ArrayList<Integer>();
     int slotTotal = 0;
@@ -205,6 +242,20 @@ final class AlgorithmList {
       }
     });
     List<List<String>> listedFolds = new ArrayList<List<String>>();
+    if (standard) {
+      if (slot > 0 && slotTotal < STANDARD_SLOT_VOTES) {
+        return listedFolds;
+      }
+      List<Integer> sorted = new ArrayList<Integer>();
+      for (int at : order) {
+        sorted.add(held.get(at));
+      }
+      int count = slotTotal == 0 ? order.size() : standardCount(sorted, slotTotal);
+      for (int i = 0; i < count; i++) {
+        listedFolds.add(folds.get(order.get(i)));
+      }
+      return listedFolds;
+    }
     int covered = 0;
     for (int at : order) {
       if (covered * 100 >= COVERED_VOTES * slotTotal) {
@@ -216,6 +267,28 @@ final class AlgorithmList {
     return listedFolds;
   }
 
+  /** How many of the votes, most first, are standard: see the class comment. */
+  static int standardCount(List<Integer> held, int total) {
+    int top = held.isEmpty() ? 0 : held.get(0);
+    int taken = 0;
+    int covered = 0;
+    int anchor = top;
+    boolean filling = true;
+    for (int votes : held) {
+      boolean fill = filling && covered * 100 < STANDARD_FILL * total && votes * 3 >= top;
+      if (fill) {
+        anchor = votes;
+      } else {
+        filling = false;
+      }
+      if (taken > 0 && votes * 100 < STANDARD_SHARE * total && !fill && votes * 3 < anchor * 2) {
+        break;
+      }
+      taken++;
+      covered += votes;
+    }
+    return taken;
+  }
 
   private static int listedCount(List<Row> rows, int votes) {
     if (votes == 0) {
@@ -332,22 +405,22 @@ final class AlgorithmList {
   }
 
   /**
-   * Whether an execution is off the list, and how long it is beside the shortest listed algorithm.
+   * Whether an execution is not standard, and how long it is beside the shortest listed algorithm.
    * Notation nothing can read is not off the list, it is unknown.
    */
   AlgorithmExecution read(String moves) {
     if (moves == null || AlgorithmForm.key(moves) == null) {
       return new AlgorithmExecution(false, 0, 0);
     }
-    if (listedForms != null) {
+    if (standardForms != null) {
       boolean unusual = !rows.isEmpty()
-          && AlgorithmForm.indexOfTurning(listedForms, moves, drawn) < 0;
+          && AlgorithmForm.indexOfTurning(standardForms, moves, drawn) < 0;
       return new AlgorithmExecution(unusual, AlgorithmForm.lengthAsDrawn(moves, drawn), shortest());
     }
     int at = AlgorithmForm.indexOfTurning(forms, moves, drawn);
-    // The other hand's version of a listed algorithm is not unusual, even with its own row unlisted.
-    boolean unusual = !rows.isEmpty() && (at < 0 || at >= listed)
-        && AlgorithmForm.indexOfTurning(forms.subList(0, listed), moves, drawn) < 0;
+    // The other hand's version of a standard algorithm is standard, even with its own row not.
+    boolean unusual = !rows.isEmpty() && (at < 0 || at >= standard)
+        && AlgorithmForm.indexOfTurning(forms.subList(0, standard), moves, drawn) < 0;
     return new AlgorithmExecution(unusual, AlgorithmForm.lengthAsDrawn(moves, drawn), shortest());
   }
 
