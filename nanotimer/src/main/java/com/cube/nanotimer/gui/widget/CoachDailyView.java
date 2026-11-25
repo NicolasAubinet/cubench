@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.cube.nanotimer.Options;
 import com.cube.nanotimer.R;
 import com.cube.nanotimer.gui.DrillActivity;
 import com.cube.nanotimer.gui.DrillScreenActivity;
@@ -25,15 +26,12 @@ import java.util.Locale;
  */
 public final class CoachDailyView {
 
-  /** About how long a rep takes with its pause, for the minutes the card quotes. */
-  private static final int SECONDS_A_REP = 20;
-
   private final Activity activity;
   private final View section;
 
-  /** About how many minutes the given reps take, never under one. */
+  /** About how many minutes the given reps take at the solver's measured pace, never under one. */
   public static int minutes(int reps) {
-    return Math.max(1, Math.round(reps * SECONDS_A_REP / 60f));
+    return Math.max(1, Math.round(reps * Options.INSTANCE.getCoachDailyRepMs() / 60_000f));
   }
 
   public CoachDailyView(Activity activity, View section) {

@@ -104,6 +104,9 @@ public enum Options {
   private static final String COACH_DAILY_KEY_PREFIX = "coach_daily_";
   private static final String COACH_DAILY_AT_KEY_PREFIX = "coach_daily_at_";
   private static final String COACH_DAILY_PROGRESS_KEY_PREFIX = "coach_daily_progress_";
+  private static final String COACH_DAILY_REP_MS_KEY = "coach_daily_rep_ms";
+  /** A daily rep with its pause before any was timed: about 4 s of rep and 3 s between. */
+  public static final long DEFAULT_DAILY_REP_MS = 7_000;
   private static final String LEARN_NEXT_COUNT_KEY = "learn_next_count";
   private static final int DEFAULT_LEARN_NEXT_COUNT = 3;
   private static final String COACH_ID_KEY = "coach_id";
@@ -445,6 +448,15 @@ public enum Options {
   public void setCoachDailyProgress(int solveTypeId, String progress) {
     sharedPreferences.edit().putString(COACH_DAILY_PROGRESS_KEY_PREFIX + solveTypeId, progress)
         .apply();
+  }
+
+  /** How long a daily drill rep takes, pause included, as measured on the solver's own drills. */
+  public long getCoachDailyRepMs() {
+    return sharedPreferences.getLong(COACH_DAILY_REP_MS_KEY, DEFAULT_DAILY_REP_MS);
+  }
+
+  public void setCoachDailyRepMs(long repMs) {
+    sharedPreferences.edit().putLong(COACH_DAILY_REP_MS_KEY, repMs).apply();
   }
 
   /** How many OLLs the "learn next" practice set shows, as the solver picked it. */

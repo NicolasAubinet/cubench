@@ -46,6 +46,15 @@ public class CoachDailyTest {
         sent.getJSONObject("payload").getInt("schema_version"));
   }
 
+  @Test
+  public void theDailyAskSendsTheSolversTimeARep() throws Exception {
+    JSONObject sent = new JSONObject(CoachClient.dailyBody(payload(), Arrays.asList("oll_26"),
+        Arrays.asList("pll_t"), 6500));
+
+    Assert.assertEquals(6500, sent.getLong("rep_ms"));
+    Assert.assertEquals("pll_t", sent.getJSONArray("drilled_cases").getString(0));
+  }
+
   private static CoachPayload payload() {
     return CoachPayload.parse(
         "{\"schema_version\":" + CoachPayload.VERSION + ",\"puzzle\":\"3x3\",\"method\":\"cfop\"}");
