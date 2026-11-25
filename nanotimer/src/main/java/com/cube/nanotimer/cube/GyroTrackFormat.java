@@ -62,6 +62,13 @@ public final class GyroTrackFormat {
   private static final long BATCH_MS = 10;
   /** How often the cube reports its orientation, which a batch is spread back across. */
   private static final long SAMPLE_MS = 50;
+  /** The spacing a track is redrawn at before it is smoothed. */
+  private static final long RESAMPLE_MS = 40;
+  /**
+   * The smoothing's reach: hand tremor (around 10 Hz) is averaged away, a peek (several hundred
+   * ms) keeps its shape.
+   */
+  private static final double SMOOTH_SIGMA_MS = 60;
 
   private GyroTrackFormat() {
   }
@@ -144,7 +151,7 @@ public final class GyroTrackFormat {
     List<Keyframe> poses = new ArrayList<Keyframe>();
     CubeRotation frame = CubeRotation.byNotation("");
     int next = 0;
-    for (Keyframe keyframe : unbatched(track.getKeyframes())) {
+    for (Keyframe keyframe : track.getKeyframes()) {
       while (next < frames.size() && frames.get(next).getOffsetMs() <= keyframe.getOffsetMs()) {
         frame = frames.get(next++).getFrame();
       }
@@ -154,6 +161,15 @@ public final class GyroTrackFormat {
           physical.multiply(frame.quaternion().inverse())));
     }
     return poses;
+  }
+
+  /**
+   * The poses a replay draws: {@link #posesOf(String)} with each delivery batch spread back over
+   * its gap ({@link #unbatched}) and the whole redrawn smoothly ({@link #smoothed}). For display
+   * only: smoothing moves a pose a few degrees, which nothing that reads the track may inherit.
+   */
+  public static List<Keyframe> replayPosesOf(String stored) {
+    return smoothed(unbatched(posesOf(stored)));
   }
 
   /**
@@ -181,6 +197,85 @@ public final class GyroTrackFormat {
       start = end + 1;
     }
     return out;
+  }
+
+  /**
+   * The track redrawn every {@link #RESAMPLE_MS} and smoothed. Drawn keyframe to keyframe, the cube
+   * changed direction abruptly every ~75 ms and the gyro's own back-and-forth showed as a tremor,
+   * as if the cube were held in shaking hands.
+   *
+   * <p>A keyframe is kept once the cube is 5° past the last one, so the reading before it was still
+   * near that last one: across a long gap the cube is held there until a sample before the next
+   * keyframe, not crept across the whole gap.
+   */
+  static List<Keyframe> smoothed(List<Keyframe> keyframes) {
+    if (keyframes.size() < 2) {
+      return keyframes;
+    }
+    List<Keyframe> grid = new ArrayList<Keyframe>();
+    for (int i = 0; i + 1 < keyframes.size(); i++) {
+      Keyframe a = keyframes.get(i);
+      Keyframe b = keyframes.get(i + 1);
+      grid.add(a);
+      long moveFrom = Math.max(a.offsetMs, b.offsetMs - SAMPLE_MS);
+      if (moveFrom > a.offsetMs + RESAMPLE_MS) {
+        grid.add(new Keyframe(moveFrom, a.orientation)); // held, then the move to b
+      }
+      for (long t = moveFrom + RESAMPLE_MS; t < b.offsetMs; t += RESAMPLE_MS) {
+        double f = (t - moveFrom) / (double) (b.offsetMs - moveFrom);
+        grid.add(new Keyframe(t, slerp(a.orientation, b.orientation, f)));
+      }
+    }
+    grid.add(keyframes.get(keyframes.size() - 1));
+
+    List<Keyframe> out = new ArrayList<Keyframe>(grid.size());
+    long reachMs = Math.round(3 * SMOOTH_SIGMA_MS);
+    int from = 0;
+    for (int i = 0; i < grid.size(); i++) {
+      Keyframe centre = grid.get(i);
+      while (grid.get(from).offsetMs < centre.offsetMs - reachMs) {
+        from++;
+      }
+      double w = 0;
+      double x = 0;
+      double y = 0;
+      double z = 0;
+      for (int j = from; j < grid.size() && grid.get(j).offsetMs <= centre.offsetMs + reachMs; j++) {
+        CubeOrientation q = grid.get(j).orientation;
+        double dt = grid.get(j).offsetMs - centre.offsetMs;
+        // q and -q are one rotation: each is counted on the centre's side.
+        double weight = Math.exp(-dt * dt / (2 * SMOOTH_SIGMA_MS * SMOOTH_SIGMA_MS))
+            * (q.dot(centre.orientation) < 0 ? -1 : 1);
+        w += weight * q.getW();
+        x += weight * q.getX();
+        y += weight * q.getY();
+        z += weight * q.getZ();
+      }
+      double norm = Math.sqrt(w * w + x * x + y * y + z * z);
+      out.add(new Keyframe(centre.offsetMs, norm == 0 ? centre.orientation
+          : new CubeOrientation(w / norm, x / norm, y / norm, z / norm)));
+    }
+    return out;
+  }
+
+  private static CubeOrientation slerp(CubeOrientation a, CubeOrientation b, double f) {
+    double dot = a.dot(b);
+    double sign = dot < 0 ? -1 : 1;
+    dot = Math.min(1, Math.abs(dot));
+    double wa = 1 - f;
+    double wb = f;
+    if (dot < 0.9995) {
+      double theta = Math.acos(dot);
+      wa = Math.sin((1 - f) * theta) / Math.sin(theta);
+      wb = Math.sin(f * theta) / Math.sin(theta);
+    }
+    wb *= sign;
+    double w = wa * a.getW() + wb * b.getW();
+    double x = wa * a.getX() + wb * b.getX();
+    double y = wa * a.getY() + wb * b.getY();
+    double z = wa * a.getZ() + wb * b.getZ();
+    double norm = Math.sqrt(w * w + x * x + y * y + z * z);
+    return new CubeOrientation(w / norm, x / norm, y / norm, z / norm);
   }
 
   /** Reads a stored track back, or null for anything it cannot read as one. */

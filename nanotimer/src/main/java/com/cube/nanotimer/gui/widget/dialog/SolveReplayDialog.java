@@ -365,7 +365,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
       return; // the dialog went away while the track was being read
     }
     // The physical pose; the page takes out the frame it is showing, which needs the animation.
-    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.posesOf(track);
+    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.replayPosesOf(track);
     if (poses.isEmpty()) {
       return;
     }

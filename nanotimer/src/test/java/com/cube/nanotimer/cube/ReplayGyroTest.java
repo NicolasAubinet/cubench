@@ -4,9 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.smartcube.model.CubeOrientation;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import org.json.JSONObject;
@@ -25,7 +28,7 @@ public class ReplayGyroTest {
   public void aDeliveryBatchIsSpreadBackOverTheGapBeforeIt() throws Exception {
     String gyro = smartcube(SHAKY).getString("gyro");
     List<GyroTrackFormat.Keyframe> stored = GyroTrackFormat.parse(gyro).getKeyframes();
-    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.posesOf(gyro);
+    List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.unbatched(stored);
     assertEquals(stored.size(), poses.size());
     double before = jumped(stored);
     double after = jumped(poses);
@@ -35,6 +38,43 @@ public class ReplayGyroTest {
     assertTrue("batches should no longer jump: " + after, after < before / 20);
     assertEquals(stored.get(stored.size() - 1).getOffsetMs(),
         poses.get(poses.size() - 1).getOffsetMs());
+  }
+
+  @Test
+  public void theReplayedTrackHasNoTremorAndStaysWithTheCube() throws Exception {
+    for (String report : new String[] {SHAKY, ROUX}) {
+      String gyro = smartcube(report).getString("gyro");
+      List<GyroTrackFormat.Keyframe> recorded =
+          GyroTrackFormat.unbatched(GyroTrackFormat.posesOf(gyro));
+      List<GyroTrackFormat.Keyframe> replayed = GyroTrackFormat.replayPosesOf(gyro);
+      double shakeBefore = 0;
+      double shakeAfter = 0;
+      List<Double> off = new ArrayList<Double>();
+      CubeOrientation[] r = new CubeOrientation[3];
+      CubeOrientation[] p = new CubeOrientation[3];
+      long end = recorded.get(recorded.size() - 1).getOffsetMs();
+      for (long t = 0; t <= end; t += 10) {
+        r[0] = r[1];
+        r[1] = r[2];
+        r[2] = at(recorded, t);
+        p[0] = p[1];
+        p[1] = p[2];
+        p[2] = at(replayed, t);
+        if (r[0] != null) {
+          shakeBefore += turned(r);
+          shakeAfter += turned(p);
+        }
+        off.add(r[2].angleToDegrees(p[2]));
+      }
+      Collections.sort(off);
+      double median = off.get(off.size() / 2);
+      double p90 = off.get(off.size() * 9 / 10);
+      System.out.printf("%s: direction changes %.0f -> %.0f deg, off the cube median %.1f p90 %.1f%n",
+          report, shakeBefore, shakeAfter, median, p90);
+      assertTrue(report + " should shake far less", shakeAfter < shakeBefore / 3);
+      assertTrue(report + " should stay with the cube: " + median, median < 4);
+      assertTrue(report + " should stay with the cube: " + p90, p90 < 10);
+    }
   }
 
   @Test
@@ -78,6 +118,33 @@ public class ReplayGyroTest {
       }
     }
     return degrees;
+  }
+
+  /** How much the path bends at its middle point: direction changes, which read as shaking. */
+  private static double turned(CubeOrientation[] q) {
+    return q[0].angleToDegrees(q[1]) + q[1].angleToDegrees(q[2]) - q[0].angleToDegrees(q[2]);
+  }
+
+  /** The pose drawn at {@code t}, interpolated as the page does. */
+  private static CubeOrientation at(List<GyroTrackFormat.Keyframe> k, long t) {
+    int i = 0;
+    while (i + 1 < k.size() && k.get(i + 1).getOffsetMs() <= t) {
+      i++;
+    }
+    CubeOrientation a = k.get(i).getOrientation();
+    if (i + 1 >= k.size()) {
+      return a;
+    }
+    CubeOrientation b = k.get(i + 1).getOrientation();
+    double span = k.get(i + 1).getOffsetMs() - k.get(i).getOffsetMs();
+    double f = span <= 0 ? 1 : (t - k.get(i).getOffsetMs()) / span;
+    double s = a.dot(b) < 0 ? -f : f;
+    double w = (1 - f) * a.getW() + s * b.getW();
+    double x = (1 - f) * a.getX() + s * b.getX();
+    double y = (1 - f) * a.getY() + s * b.getY();
+    double z = (1 - f) * a.getZ() + s * b.getZ();
+    double n = Math.sqrt(w * w + x * x + y * y + z * z);
+    return new CubeOrientation(w / n, x / n, y / n, z / n);
   }
 
   private static JSONObject smartcube(String report) throws Exception {
