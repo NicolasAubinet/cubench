@@ -31,13 +31,42 @@ public class AlgorithmFiguresTest {
   }
 
   @Test
-  public void theLatestExecutionOfACaseDecides() {
+  public void oneOddExecutionDoesNotFlipACase() {
+    AlgorithmFigures figures = new AlgorithmFigures(41);
+    figures.add("15", false, 12, 7); // latest, met from another angle
+    figures.add("15", true, 7, 7);
+    figures.add("15", true, 7, 7);
+    assertEquals(1, figures.getStandard());
+    assertTrue(figures.getNotStandardCases().isEmpty());
+    assertEquals(0, figures.getExtraMoves());
+  }
+
+  @Test
+  public void aNewAlgorithmCountsAfterTwo() {
     AlgorithmFigures figures = new AlgorithmFigures(21);
     figures.add("pll_ja", true, 10, 10);
-    figures.add("pll_ja", false, 13, 10); // older, so ignored
+    figures.add("pll_ja", true, 10, 10);
+    figures.add("pll_ja", false, 13, 10);
+    figures.add("pll_ja", false, 13, 10); // a fourth back counts no more
     assertEquals(1, figures.getStandard());
-    assertEquals(0, figures.getNotStandard());
-    assertEquals(0, figures.getExtraMoves());
+  }
+
+  @Test
+  public void twoExecutionsThatDisagreeGoByTheLaterOne() {
+    AlgorithmFigures figures = new AlgorithmFigures(21);
+    figures.add("pll_ja", false, 13, 10);
+    figures.add("pll_ja", true, 10, 10);
+    assertEquals(0, figures.getStandard());
+    assertEquals(3, figures.getExtraMoves());
+  }
+
+  @Test
+  public void extraMovesComeFromTheLatestExecutionOfTheMajority() {
+    AlgorithmFigures figures = new AlgorithmFigures(21);
+    figures.add("pll_ja", false, 12, 10);
+    figures.add("pll_ja", true, 10, 10);
+    figures.add("pll_ja", false, 15, 10);
+    assertEquals(2, figures.getExtraMoves());
   }
 
   @Test
@@ -53,14 +82,22 @@ public class AlgorithmFiguresTest {
   }
 
   @Test
-  public void aFullSetTakesNoMore() {
+  public void aFullSetTakesNoMoreCases() {
     AlgorithmFigures figures = new AlgorithmFigures(2);
     figures.add("a", true, 5, 5);
-    assertFalse(figures.isComplete());
     figures.add("b", true, 5, 5);
     figures.add("c", false, 9, 5);
-    assertTrue(figures.isComplete());
     assertEquals(0, figures.getNotSeen());
     assertEquals(0, figures.getExtraMoves());
+  }
+
+  @Test
+  public void completeOnceEveryCaseHasItsThree() {
+    AlgorithmFigures figures = new AlgorithmFigures(1);
+    figures.add("a", true, 5, 5);
+    figures.add("a", true, 5, 5);
+    assertFalse(figures.isComplete());
+    figures.add("a", true, 5, 5);
+    assertTrue(figures.isComplete());
   }
 }

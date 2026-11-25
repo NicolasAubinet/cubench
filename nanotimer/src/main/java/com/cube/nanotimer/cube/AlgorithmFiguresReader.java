@@ -56,7 +56,7 @@ public final class AlgorithmFiguresReader {
     }
     for (SolveTime solve : solves) {
       if (complete(figures)) {
-        break; // every case has had its latest say
+        break; // every case has had its last few says
       }
       for (SolveReading.Execution execution : readings.of(solve)) {
         AlgorithmFigures family = figures.get(execution.getFamily());

@@ -1,18 +1,22 @@
 package com.cube.nanotimer.session;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * How one step's cases were turned against the algorithms each case is usually taught with: how many
  * of the set went in with one of them, how many did not, and how many moves they cost over the usual.
  *
- * <p><b>Each case counts once, as it was turned the last time it came up</b>, the rule
- * {@link CaseKnowledge} reads a case by, so relearning a case moves the figure the next time it comes
- * up. Executions are therefore added newest first, and a case already counted keeps its later one.
- * Every case of the set is in one of three groups, standard, not standard or not seen, so the three
- * always add up to the set.
+ * <p><b>Each case counts once, as it is usually turned: the majority of its last
+ * {@link #RECENT} executions</b>, so one odd execution (a case met from an unusual angle) does not
+ * flip it, and switching to a new algorithm shows after two. A case seen twice with two verdicts
+ * goes by the later one. Executions are added newest first. Every case of the set is in one of three
+ * groups, standard, not standard or not seen, so the three always add up to the set.
  *
  * <p><b>Standard means on the case's list and nothing else.</b> A case taken in two algorithms is not
  * standard, and neither is an algorithm of the solver's own, even one they asked not to be flagged
@@ -28,11 +32,13 @@ import java.util.Set;
  */
 public final class AlgorithmFigures {
 
+  /** How many of a case's latest executions its verdict is the majority of. */
+  static final int RECENT = 3;
+
   private final int setSize;
-  private final Set<String> counted = new HashSet<String>();
-  private final Set<String> notStandardCases = new HashSet<String>();
-  private int standard;
-  private int extraMoves;
+  /** Each case's latest executions, newest first: {standard 1/0, extra moves}. */
+  private final Map<String, List<int[]>> recent = new LinkedHashMap<String, List<int[]>>();
+  private int full;
 
   /** @param setSize how many cases the step's set holds, seen or not */
   public AlgorithmFigures(int setSize) {
@@ -51,26 +57,50 @@ public final class AlgorithmFigures {
   }
 
   /**
-   * Counts one execution of a case, unless a later one of that case was counted already.
+   * Counts one execution of a case, unless {@link #RECENT} later ones of that case were counted
+   * already.
    *
    * @param moves the turns it took, and {@code usualMoves} those of the shortest listed algorithm,
    *     both counted as the tables count them
    */
   public void add(String caseCode, boolean isStandard, int moves, int usualMoves) {
-    if (counted.size() >= setSize || !counted.add(caseCode)) {
+    List<int[]> executions = recent.get(caseCode);
+    if (executions == null) {
+      if (recent.size() >= setSize) {
+        return;
+      }
+      executions = new ArrayList<int[]>();
+      recent.put(caseCode, executions);
+    }
+    if (executions.size() >= RECENT) {
       return;
     }
-    if (isStandard) {
-      standard++;
-    } else {
-      notStandardCases.add(caseCode);
+    executions.add(new int[] {isStandard ? 1 : 0, extraMoves(isStandard, moves, usualMoves)});
+    if (executions.size() == RECENT) {
+      full++;
     }
-    extraMoves += extraMoves(isStandard, moves, usualMoves);
   }
 
-  /** Whether every case of the set has been counted, so older solves can change nothing. */
+  /** The execution a case is judged by: the latest one agreeing with the majority. */
+  private static int[] usual(List<int[]> executions) {
+    int standard = 0;
+    for (int[] execution : executions) {
+      standard += execution[0];
+    }
+    int other = executions.size() - standard;
+    // A tie, only possible over two, goes to the later one
+    int verdict = standard == other ? executions.get(0)[0] : standard > other ? 1 : 0;
+    for (int[] execution : executions) {
+      if (execution[0] == verdict) {
+        return execution;
+      }
+    }
+    return executions.get(0);
+  }
+
+  /** Whether every case has been counted {@link #RECENT} times, so older solves change nothing. */
   public boolean isComplete() {
-    return counted.size() >= setSize;
+    return full >= setSize;
   }
 
   public int getSetSize() {
@@ -78,24 +108,38 @@ public final class AlgorithmFigures {
   }
 
   public int getStandard() {
+    int standard = 0;
+    for (List<int[]> executions : recent.values()) {
+      standard += usual(executions)[0];
+    }
     return standard;
   }
 
   public int getNotStandard() {
-    return counted.size() - standard;
+    return recent.size() - getStandard();
   }
 
   /** The counted cases that were not standard, by case code. */
   public Set<String> getNotStandardCases() {
-    return Collections.unmodifiableSet(notStandardCases);
+    Set<String> cases = new HashSet<String>();
+    for (Map.Entry<String, List<int[]>> entry : recent.entrySet()) {
+      if (usual(entry.getValue())[0] == 0) {
+        cases.add(entry.getKey());
+      }
+    }
+    return Collections.unmodifiableSet(cases);
   }
 
   public int getNotSeen() {
-    return setSize - counted.size();
+    return setSize - recent.size();
   }
 
   /** The extra moves of every counted case, added up. */
   public int getExtraMoves() {
-    return extraMoves;
+    int extra = 0;
+    for (List<int[]> executions : recent.values()) {
+      extra += usual(executions)[1];
+    }
+    return extra;
   }
 }
