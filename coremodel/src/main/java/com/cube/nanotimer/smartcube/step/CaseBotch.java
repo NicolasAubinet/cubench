@@ -20,8 +20,9 @@ import java.util.List;
  *       opens with ({@code oll_3}): going wrong after it is a slip in that algorithm;</li>
  *   <li>a first look alone, with less of a second, or the start of one: clean, since nothing says
  *       the solver was taking two looks rather than stopping;</li>
- *   <li>all of another case's algorithm, or a long start of one ({@link #MISREAD_TURNS}): the
- *       case was read as that one;</li>
+ *   <li>all of another case's algorithm, a long start of one ({@link #MISREAD_TURNS}), or all of
+ *       it then more (a repair, as a finished solve has it) where none of the case's own opens
+ *       with it: the case was read as that one;</li>
  *   <li>anything else: botched.</li>
  * </ul>
  *
@@ -113,11 +114,12 @@ public final class CaseBotch {
     for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
       known.add(algorithm.getMoves());
     }
-    if (startsAny(executed, formsOf(known), 0)) {
+    List<List<String>> knownForms = formsOf(known);
+    if (startsAny(executed, knownForms, 0)) {
       return new CaseBotch(Verdict.CLEAN, null);
     }
     List<List<String>> looks = formsOf(firstLooks(caseCode));
-    int second = afterFirstLook(executed, notOpening(looks, formsOf(known)));
+    int second = afterFirstLook(executed, notOpening(looks, knownForms));
     if (second >= MIN_TURNS) {
       return new CaseBotch(learned ? Verdict.TWO_LOOKED : Verdict.CLEAN, null);
     }
@@ -132,7 +134,10 @@ public final class CaseBotch {
       for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(other)) {
         theirs.add(algorithm.getMoves());
       }
-      if (startsAny(executed, formsOf(theirs), MISREAD_TURNS)) {
+      List<List<String>> theirForms = formsOf(theirs);
+      // all of theirs and then a repair, as a finished solve has it; not one opening ours
+      if (startsAny(executed, theirForms, MISREAD_TURNS)
+          || afterFirstLook(executed, notOpening(theirForms, knownForms)) >= 0) {
         return new CaseBotch(Verdict.MISREAD, other);
       }
     }
@@ -229,7 +234,7 @@ public final class CaseBotch {
     return forms;
   }
 
-  /** The looks none of the case's own algorithms opens with, in any grip: after one, a slip. */
+  /** The forms none of the case's own algorithms opens with, in any grip: after one, a slip. */
   private static List<List<String>> notOpening(List<List<String>> looks,
       List<List<String>> known) {
     List<List<String>> opened = new ArrayList<List<String>>();

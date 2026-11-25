@@ -158,8 +158,8 @@ public class DB {
   public static final String COL_CASE_CLEARED_AT = "cleared_at";
   public static final String IDX_CASE_CLEARED_CASE = "idx_case_cleared_case";
 
-  // Each solve, thrown away or kept, that stopped inside a case whose algorithm went wrong. For a
-  // thrown-away one its only trace: the solve and its moves are gone, so a row cannot be read again.
+  // Each case whose algorithm went wrong in a solve thrown away, or that a kept solve stopped inside.
+  // For a thrown-away one its only trace: the solve and its moves are gone, so a row cannot be read again.
   public static final String TABLE_CASE_BOTCHED = "case_botched";
   public static final String COL_CASE_BOTCHED_CASE = "case_code"; // "pll_aa"
   public static final String COL_CASE_BOTCHED_AT = "botched_at";

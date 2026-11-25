@@ -283,8 +283,9 @@ public interface Service {
   void isCaseLearned(String caseCode, DataCallback<Boolean> callback);
 
   /**
-   * A solve thrown away (discarded or deleted), or kept though it stopped short, stopped inside a
-   * case whose algorithm went wrong. Stored once per case and solve time, however often it is told.
+   * A case whose algorithm went wrong in a solve thrown away (discarded or deleted), or the one a
+   * solve kept though it stopped short stopped inside. Stored once per case and solve time, however
+   * often it is told.
    *
    * @param verdict how it went wrong: "botched", "misread" or "two_looked"
    * @param misreadAs the case whose algorithm was turned instead, for a misread

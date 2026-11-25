@@ -73,6 +73,15 @@ public class CaseBotchTest {
   }
 
   @Test
+  public void anotherCasesAlgorithmThenARepairIsStillAMisread() {
+    String gb = LastLayerCaseAlgorithms.listed("pll_gb").get(0).getMoves();
+    CaseBotch botch = CaseBotch.judge("pll_ga", gb + " U R U R' F' R U R' U' R' F R2 U' R'",
+        NONE, true);
+    assertEquals(CaseBotch.Verdict.MISREAD, botch.getVerdict());
+    assertEquals("pll_gb", botch.getMisreadAs());
+  }
+
+  @Test
   public void mirrorCaseIsAMisreadNotTheSameAlgorithm() {
     String rb = LastLayerCaseAlgorithms.listed("pll_rb").get(0).getMoves();
     assertEquals(CaseBotch.Verdict.MISREAD, CaseBotch.judge("pll_ra", rb, NONE, false).getVerdict());

@@ -39,8 +39,8 @@ import java.util.List;
  *
  * <p><b>What counts as an occurrence.</b> A solve that was handed the case, and a drill rep of it.
  * A solve says {@link Evidence#UNAIDED} where its last layer step went in one algorithm and
- * {@link Evidence#HELPED} where it took more. A solve thrown away, or kept though it stopped,
- * inside a case it two-looked, misread or botched is {@link Evidence#HELPED} too.
+ * {@link Evidence#HELPED} where it took more. A case a solve thrown away two-looked, misread or
+ * botched, or the one a kept solve stopped inside so, is {@link Evidence#HELPED} too.
  *
  * <p><b>Last layer cases only.</b> An F2L pair can be put in any way at all, so a pair "known" would
  * only mean a pair met; which algorithm the solver turns for it is read and shown instead

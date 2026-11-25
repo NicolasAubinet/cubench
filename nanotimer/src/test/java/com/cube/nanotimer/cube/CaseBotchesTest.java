@@ -12,6 +12,7 @@ import com.cube.nanotimer.vo.SolveStep;
 import com.cube.nanotimer.vo.SolveTime;
 import com.cube.nanotimer.vo.SolveType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +27,7 @@ public class CaseBotchesTest {
 
   @Test
   public void namesTheCaseTheSolveStoppedInAndWhatWasTurnedInIt() {
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
         SUNE + " R U R' U' R' F R R U R'"));
 
     assertNotNull(stopped);
@@ -36,7 +37,7 @@ public class CaseBotchesTest {
 
   @Test
   public void aCleanStartCutShortIsNotABotch() {
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
         SUNE + " R U R' U' R' F"));
 
     assertEquals("pll_t", stopped.caseCode);
@@ -45,7 +46,7 @@ public class CaseBotchesTest {
 
   @Test
   public void readsAnOllTheSolveStoppedIn() {
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
         "R U R' U' F F R"));
 
     assertEquals("oll_27", stopped.caseCode);
@@ -55,7 +56,7 @@ public class CaseBotchesTest {
   @Test
   public void aTwoLookStoppedAfterItsFirstLookNamesThatLook() {
     String planned = "F R U R' U' F' " + SUNE + " " + TPERM;
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(planned,
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve(planned,
         "F R U R' U' F' R U R' U"));
 
     assertEquals("oll_40", stopped.caseCode);
@@ -66,7 +67,7 @@ public class CaseBotchesTest {
   @Test
   public void anotherCasesWholeAlgorithmIsAMisreadNotAFirstLook() {
     String antiSune = "R U U R' U' R U' R'";
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve(SUNE + " " + TPERM,
         antiSune + " R U"));
 
     assertEquals("oll_27", stopped.caseCode);
@@ -90,7 +91,7 @@ public class CaseBotchesTest {
     SolveTime solve = solve(SUNE, "R U R' U' R' F");
     solve.getSolveType().setMethod(CubeMethod.ROUX);
 
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve);
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve);
 
     assertEquals("cmll_suneleftbar", stopped.caseCode);
     assertEquals("R U R' U' R' F", stopped.moves);
@@ -118,7 +119,7 @@ public class CaseBotchesTest {
   @Test
   public void aBotchThatBrokeF2lThenStoppedIsJudgedOnItsCase() {
     String redone = "R U R' F' U F R U' R'";
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve(redone + " " + SUNE + " " + TPERM,
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve(redone + " " + SUNE + " " + TPERM,
         redone + " R U R' U R"));
 
     assertEquals("oll_7", stopped.caseCode);
@@ -139,16 +140,102 @@ public class CaseBotchesTest {
     solve.setSmartcubeMoves(cut.toString());
     solve.setTime(70_000);
 
-    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve);
+    CaseBotches.Attempt stopped = CaseBotches.stoppedIn(solve);
 
     assertEquals("cmll_picolumns", stopped.caseCode);
     assertEquals("U' R U2 R2 U' R2 U'", stopped.moves);
     assertEquals(CaseBotch.Verdict.CLEAN, judge(stopped));
   }
 
-  private static CaseBotch.Verdict judge(CaseBotches.Stopped stopped) {
+  @Test
+  public void aRepairedBotchInAFinishedSolveThrownAwayIsJudgedWhole() {
+    String redone = "R U R' F' U F R U' R'";
+    String moves = redone + " " + SUNE + " " + TPERM;
+
+    List<CaseBotches.Attempt> attempts = CaseBotches.attemptsIn(asRead(solve(moves, moves)), true);
+
+    assertEquals(1, attempts.size());
+    assertEquals("oll_7", attempts.get(0).caseCode);
+    assertEquals(redone + " R U R' U R U2 R'", attempts.get(0).moves); // the Sune, as written
+    assertTrue(CaseBotch.judge("oll_7", attempts.get(0).moves, Collections.<String>emptyList(),
+        true).counts());
+  }
+
+  @Test
+  public void aFinishedSolveKeptIsNotReadAgainForItsFinishedSteps() {
+    String moves = "R U R' F' U F R U' R' " + SUNE + " " + TPERM;
+    assertTrue(CaseBotches.attemptsIn(asRead(solve(moves, moves)), false).isEmpty());
+  }
+
+  @Test
+  public void aFinishedDnfSaysNothingOfItsSteps() {
+    String moves = "R U R' F' U F R U' R' " + SUNE + " " + TPERM;
+    SolveTime solve = asRead(solve(moves, moves));
+    solve.setDNF();
+
+    assertTrue(CaseBotches.attemptsIn(solve, true).isEmpty());
+  }
+
+  @Test
+  public void aFinishedSolveInOneAlgorithmEachHasNothingToJudge() {
+    String moves = SUNE + " " + TPERM;
+    assertTrue(CaseBotches.attemptsIn(asRead(solve(moves, moves)), true).isEmpty());
+  }
+
+  @Test
+  public void aFinishedTwoLookIsTwoLookedOnlyOnALearntCase() {
+    String moves = "F R U R' U' F' " + SUNE + " " + TPERM;
+
+    List<CaseBotches.Attempt> attempts = CaseBotches.attemptsIn(asRead(solve(moves, moves)), true);
+
+    assertEquals(1, attempts.size());
+    CaseBotches.Attempt oll = attempts.get(0);
+    assertEquals("oll_40", oll.caseCode);
+    assertEquals(CaseBotch.Verdict.CLEAN, judge(oll));
+    assertEquals(CaseBotch.Verdict.TWO_LOOKED, CaseBotch.judge(oll.caseCode, oll.moves,
+        Collections.<String>emptyList(), true).getVerdict());
+  }
+
+  @Test
+  public void aSolveStoppedShortGivesOnlyTheCaseItStoppedIn() {
+    String planned = "F R U R' U' F' " + SUNE + " " + TPERM;
+    SolveTime solve = asRead(solve(planned, "F R U R' U' F' " + SUNE + " R U R' U' R' F R R U R'"));
+
+    List<CaseBotches.Attempt> attempts = CaseBotches.attemptsIn(solve, true);
+
+    assertEquals(1, attempts.size()); // its finished two-look OLL is left out, never added
+    assertEquals("pll_t", attempts.get(0).caseCode);
+  }
+
+  @Test
+  public void aStepTheSolvesOwnReadingHasInOnePartIsNotJudged() {
+    String moves = "R U R' F' U F R U' R' " + SUNE + " " + TPERM;
+    SolveTime solve = asRead(solve(moves, moves));
+    List<SolveStep> read = new ArrayList<SolveStep>();
+    for (SolveStep step : solve.getSmartcubeSteps()) { // the OLL as read at the time: one part
+      read.add(step.getName().startsWith("oll_") ? new SolveStep(step.getStepIndex(),
+          step.getName(), 0, 0, new ArrayList<SolveStep>()) : step);
+    }
+    solve.setSmartcubeSteps(read);
+
+    assertTrue(CaseBotches.attemptsIn(solve, true).isEmpty());
+  }
+
+  @Test
+  public void aFinishedSolveWithNoReadingOfItsOwnIsNotJudged() {
+    String moves = "R U R' F' U F R U' R' " + SUNE + " " + TPERM;
+    assertTrue(CaseBotches.attemptsIn(solve(moves, moves), true).isEmpty());
+  }
+
+  private static CaseBotch.Verdict judge(CaseBotches.Attempt stopped) {
     return CaseBotch.judge(stopped.caseCode, stopped.moves, Collections.<String>emptyList(), false)
         .getVerdict();
+  }
+
+  /** The solve with the reading it would have been saved with. */
+  private static SolveTime asRead(SolveTime solve) {
+    solve.setSmartcubeSteps(CaseExecutions.replayAs(solve, CubeMethod.CFOP).getSteps());
+    return solve;
   }
 
   /** A solve scrambled for {@code planned} that turned {@code turned} before it was stopped. */

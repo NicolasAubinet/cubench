@@ -1741,7 +1741,7 @@ public class TimerActivity extends NanoTimerActivity implements ResultListener, 
     addTimeToUI(solveTime);
     save(solveTime);
     if (solveTime.getSmartcubeStoppedStep() != null) {
-      CaseBotches.record(solveTime); // kept though it stopped short: its case is otherwise left out
+      CaseBotches.recordKept(solveTime); // kept though it stopped short: its case is otherwise left out
     }
 
     if (solveTime.getTime() > 0 && !reviewRequested) { // ask for a review after a completed solve, never after a DNF
