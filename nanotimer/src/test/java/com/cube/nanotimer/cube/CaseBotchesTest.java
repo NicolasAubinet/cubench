@@ -54,6 +54,26 @@ public class CaseBotchesTest {
     assertNull(CaseBotches.stoppedIn(solve(moves, moves)));
   }
 
+  @Test
+  public void readsTheCmllARouxSolveStoppedIn() {
+    String[] moves = RecordedSolveReplayTest.MOVES.split(" ");
+    StringBuilder cut = new StringBuilder();
+    for (int i = 0; i < 68; i++) { // inside its two-look CMLL's orientation
+      cut.append(i == 0 ? "" : " ").append(moves[i]);
+    }
+    SolveTime solve = solve("", "R");
+    solve.getSolveType().setMethod(CubeMethod.ROUX);
+    solve.setScramble(RecordedSolveReplayTest.SCRAMBLE);
+    solve.setSmartcubeMoves(cut.toString());
+    solve.setTime(70_000);
+
+    CaseBotches.Stopped stopped = CaseBotches.stoppedIn(solve);
+
+    assertEquals("cmll_picolumns", stopped.caseCode);
+    assertEquals("U' R U2 R2 U' R2 U'", stopped.moves);
+    assertEquals(CaseBotch.Verdict.CLEAN, judge(stopped));
+  }
+
   private static CaseBotch.Verdict judge(CaseBotches.Stopped stopped) {
     return CaseBotch.judge(stopped.caseCode, stopped.moves, Collections.<String>emptyList())
         .getVerdict();

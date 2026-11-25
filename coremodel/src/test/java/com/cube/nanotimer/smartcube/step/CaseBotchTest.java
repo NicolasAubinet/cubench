@@ -79,6 +79,24 @@ public class CaseBotchTest {
   }
 
   @Test
+  public void twoLookOllStoppedInItsEdgesIsClean() {
+    assertEquals(CaseBotch.Verdict.CLEAN,
+        CaseBotch.judge("oll_40", "F R U R' U'", NONE).getVerdict());
+  }
+
+  @Test
+  public void twoLookCmllStoppedInItsOrientationIsClean() {
+    assertEquals(CaseBotch.Verdict.CLEAN,
+        CaseBotch.judge("cmll_picolumns", "U' R U2 R2 U' R2 U'", NONE).getVerdict());
+  }
+
+  @Test
+  public void cmllThatGoesWrongIsBotched() {
+    assertEquals(CaseBotch.Verdict.BOTCHED,
+        CaseBotch.judge("cmll_picolumns", "R U R' F2 D B R'", NONE).getVerdict());
+  }
+
+  @Test
   public void unreadableMovesSayNothing() {
     assertFalse(CaseBotch.judge("pll_aa", "Q R U", NONE).counts());
   }

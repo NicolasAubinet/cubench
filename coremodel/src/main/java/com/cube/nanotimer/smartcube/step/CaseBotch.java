@@ -14,6 +14,8 @@ import java.util.List;
  *   <li>fewer than {@link #MIN_TURNS} turns left: nothing was really tried, no verdict;</li>
  *   <li>the start of one of them, or all of it: a clean run cut short, which is a pop or a lock,
  *       not a slip;</li>
+ *   <li>the start of a first look ({@link #firstLooks}): a two-look solver stopped before the
+ *       look was done, which is just as clean;</li>
  *   <li>all of another case's algorithm, or a long start of one ({@link #MISREAD_TURNS}): the
  *       case was read as that one;</li>
  *   <li>anything else: botched.</li>
@@ -31,6 +33,16 @@ public final class CaseBotch {
 
   /** How much of another case's algorithm reads as having taken the case for that one. */
   public static final int MISREAD_TURNS = 6;
+
+  /** Two-look OLL's first look: the edges, a line, an L or the dot (both). */
+  private static final String[] EDGE_ORIENTATIONS = {
+    "F R U R' U' F'", "f R U R' U' f'", "F U R U' R' F'", "F R U R' U' F' f R U R' U' f'"
+  };
+
+  /** The corner orientation cases, whose algorithms are two-look CMLL's first look. */
+  private static final String[] CORNER_ORIENTATIONS = {
+    "oll_21", "oll_22", "oll_23", "oll_24", "oll_25", "oll_26", "oll_27"
+  };
 
   public enum Verdict {
     /** Too little turned, or a clean start of one of the case's algorithms. */
@@ -89,6 +101,7 @@ public final class CaseBotch {
     for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(caseCode)) {
       known.add(algorithm.getMoves());
     }
+    known.addAll(firstLooks(caseCode));
     if (startsAny(executed, formsOf(known), 0)) {
       return new CaseBotch(Verdict.CLEAN, null);
     }
@@ -105,6 +118,26 @@ public final class CaseBotch {
       }
     }
     return new CaseBotch(Verdict.BOTCHED, null);
+  }
+
+  /**
+   * What a two-look solver turns first on the case: the edges for an OLL, the corners' orientation
+   * for a CMLL. A two-look PLL's first look is a whole PLL (a T for a G), so it reads as a misread.
+   */
+  static List<String> firstLooks(String caseCode) {
+    List<String> looks = new ArrayList<String>();
+    if (caseCode.startsWith("oll_")) {
+      for (String look : EDGE_ORIENTATIONS) {
+        looks.add(look);
+      }
+    } else if (caseCode.startsWith(CmllCases.PREFIX)) {
+      for (String orientation : CORNER_ORIENTATIONS) {
+        for (LastLayerCaseAlgorithms.Algorithm algorithm : LastLayerCaseAlgorithms.folded(orientation)) {
+          looks.add(algorithm.getMoves());
+        }
+      }
+    }
+    return looks;
   }
 
   private static List<List<String>> formsOf(List<String> algorithms) {
