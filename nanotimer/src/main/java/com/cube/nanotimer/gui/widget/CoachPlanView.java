@@ -1064,7 +1064,8 @@ public class CoachPlanView {
    */
   private View pairRow(LinearLayout parent, CoachPayload payload, final String code) {
     View row = inflater.inflate(R.layout.coach_pair_row, parent, false);
-    fill(row, R.id.tvCoachCaseName, CaseAlgorithms.firstListed(code));
+    fill(row, R.id.tvCoachCaseName,
+        CaseAlgorithms.asPictured(code, CaseAlgorithms.firstListed(code)));
     Double extra = payload.value("f2l_habits." + code + ".extra_moves");
     fill(row, R.id.tvCoachCaseFigures,
         activity.getString(R.string.coach_pair_extra, moves(extra)));
