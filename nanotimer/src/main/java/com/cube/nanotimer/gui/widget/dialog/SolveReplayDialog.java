@@ -33,7 +33,6 @@ import com.cube.nanotimer.cube.SolveSolution;
 import com.cube.nanotimer.gui.widget.NanoTimerDialogFragment;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
-import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.view.SolveStepBarView;
 import com.cube.nanotimer.util.view.ViewSegments;
@@ -61,6 +60,11 @@ import java.util.List;
  *
  * <p>A blind solve is the exception: it plays {@link SolveSolution#timedBlindSolution}, held in its
  * grip from the first frame and never rotated. Only the gyro track, when shown, moves it.</p>
+ *
+ * <p>With the gyro track shown, any solve plays {@link #rawMoves} instead: the faces the cube
+ * reported, in its own frame, under the physical pose. Taking the reconstruction's frame back out
+ * of the pose was right on a paused frame but shook in playback, since the player draws its pieces
+ * a few frames after the pose is set and every rotation came out of step.</p>
  */
 public class SolveReplayDialog extends NanoTimerDialogFragment {
 
@@ -115,8 +119,6 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   private boolean gyroShown; // remembered across replays, see Options.isReplayShowGyro
   private boolean pageReady;  // the page has defined its functions; before that, evaluate() is lost
   private String pendingGyroJs; // the track, waiting for the page if it got here first
-  private List<SolveSolution.ReplayToken> tokens; // what the page animates, with the frame each leaves
-  private CubeRotation startFrame = CubeRotation.byNotation(""); // a blind solve starts in its grip
 
   private final Runnable hideProgressRunnable = new Runnable() {
     @Override
@@ -187,25 +189,18 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     fallbackText = getString(R.string.solve_replay_unavailable);
 
     String stored = getArguments().getString(ARG_MOVES);
+    String rawScramble = scramble; // the raw moves start from it as it is, grip and all
     List<SolveMovesFormat.Move> moves;
-    List<SolveSolution.FrameAt> frames;
     if (getArguments().getBoolean(ARG_BLIND)) {
-      frames = new ArrayList<SolveSolution.FrameAt>();
       moves = SolveSolution.timedBlindSolution(stored,
-          (ArrayList<SolveStep>) getArguments().getSerializable(ARG_STEPS), frames);
-      tokens = SolveSolution.replayTokens(moves, frames);
+          (ArrayList<SolveStep>) getArguments().getSerializable(ARG_STEPS), null);
       // The grip leads at 0: part of the starting state, not a turn to animate.
       if (!moves.isEmpty() && SolveMovesFormat.isRotation(moves.get(0).getNotation())) {
         String grip = moves.remove(0).getNotation();
         scramble = scramble == null || scramble.isEmpty() ? scramble : scramble + " " + grip;
-        for (int i = grip.trim().split("\\s+").length; i > 0 && !tokens.isEmpty(); i--) {
-          startFrame = tokens.remove(0).getFrame();
-        }
       }
     } else {
       moves = SolveSolution.timedSolution(stored);
-      frames = SolveSolution.framesOf(stored);
-      tokens = SolveSolution.replayTokens(moves, frames);
     }
     // Seeded here so the label reads sensibly even if the page never signals ready; the page owns
     // the timeline and overrides it in onReady. Measured from the first turn, as the page does —
@@ -216,7 +211,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     heroTime.setText(totalText); // the header, and it stands whether or not the cube can be drawn
 
     if (scramble == null || scramble.isEmpty() || moves.isEmpty()
-        || !setupWebView(puzzleId, scramble, moves)) {
+        || !setupWebView(puzzleId, scramble, moves, rawScramble, rawMoves(stored))) {
       showFallback();
     } else {
       setUpControls();
@@ -364,7 +359,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
     if (webView == null || gyroRow == null) {
       return; // the dialog went away while the track was being read
     }
-    // The physical pose; the page takes out the frame it is showing, which needs the animation.
+    // The physical pose: shown, it goes with the raw moves, which make no rotation of their own.
     List<GyroTrackFormat.Keyframe> poses = GyroTrackFormat.replayPosesOf(track);
     if (poses.isEmpty()) {
       return;
@@ -375,7 +370,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
         CubeOrientation q = pose.getOrientation();
         JSONObject o = new JSONObject();
         o.put("t", pose.getOffsetMs() - startOffsetMs); // the page dates everything from the first turn
-        o.put("q", quaternion(q));
+        o.put("q", new JSONArray(new double[] {q.getW(), q.getX(), q.getY(), q.getZ()}));
         arr.put(o);
       }
     } catch (JSONException e) {
@@ -400,7 +395,8 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   }
 
   private boolean setupWebView(final String puzzleId, final String scramble,
-      final List<SolveMovesFormat.Move> moves) {
+      final List<SolveMovesFormat.Move> moves, final String rawScramble,
+      final List<SolveMovesFormat.Move> rawMoves) {
     try {
       final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
           .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(getActivity()))
@@ -432,7 +428,7 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
 
         @Override
         public void onPageFinished(WebView v, String url) {
-          load(puzzleId, scramble, moves);
+          load(puzzleId, scramble, moves, rawScramble, rawMoves);
           v.postDelayed(hideProgressRunnable, READY_TIMEOUT_MS);
         }
 
@@ -453,35 +449,46 @@ public class SolveReplayDialog extends NanoTimerDialogFragment {
   }
 
   /**
-   * The whole Java-&gt;JS handover: the starting state, then the moves with their offsets and the
-   * frame each leaves the cube in.
+   * The solve as the cube reported it: its own frame, every rotation left out. Played while the
+   * gyro track is shown, which then carries all of the turning in hand, so nothing has to be taken
+   * back out of the pose.
    */
-  private void load(String puzzleId, String scramble, List<SolveMovesFormat.Move> moves) {
-    JSONArray arr = new JSONArray();
-    JSONArray start;
-    try {
-      start = quaternion(startFrame.quaternion());
-      for (SolveSolution.ReplayToken token : tokens) {
-        JSONObject o = new JSONObject();
-        o.put("m", token.getNotation());
-        o.put("t", token.getOffsetMs());
-        o.put("f", quaternion(token.getFrame().quaternion()));
-        if (token.getHalfway() != null) {
-          o.put("h", quaternion(token.getHalfway().quaternion()));
-        }
-        arr.put(o);
+  public static List<SolveMovesFormat.Move> rawMoves(String stored) {
+    List<SolveMovesFormat.Move> raw = new ArrayList<SolveMovesFormat.Move>();
+    for (SolveMovesFormat.Move move : SolveMovesFormat.parse(stored)) {
+      if (!SolveMovesFormat.isRotation(move.getNotation())) {
+        raw.add(move);
       }
+    }
+    return raw;
+  }
+
+  /** The whole Java-&gt;JS handover: the starting state, then the moves with their offsets. */
+  private void load(String puzzleId, String scramble, List<SolveMovesFormat.Move> moves,
+      String rawScramble, List<SolveMovesFormat.Move> rawMoves) {
+    JSONArray arr;
+    JSONArray raw;
+    try {
+      arr = toJson(moves);
+      raw = toJson(rawMoves);
     } catch (JSONException e) {
       return; // nothing sane to play; the spinner times out and the cube stays at the scramble
     }
     // The turn time the step bar draws with, so the cube turns where the bar is solid.
     evaluate("window.ntReplayLoad(" + JSONObject.quote(puzzleId) + "," + JSONObject.quote(scramble)
         + "," + arr + "," + solveMs + "," + SolveSolution.turnMsOf(moves) + ","
-        + start + ");");
+        + JSONObject.quote(rawScramble) + "," + raw + ");");
   }
 
-  private static JSONArray quaternion(CubeOrientation q) throws JSONException {
-    return new JSONArray(new double[] {q.getW(), q.getX(), q.getY(), q.getZ()});
+  private static JSONArray toJson(List<SolveMovesFormat.Move> moves) throws JSONException {
+    JSONArray arr = new JSONArray();
+    for (SolveMovesFormat.Move move : moves) {
+      JSONObject o = new JSONObject();
+      o.put("m", move.getNotation());
+      o.put("t", move.getOffsetMs());
+      arr.put(o);
+    }
+    return arr;
   }
 
   /** BuildConfig is not generated for this module, and the manifest flag says the same thing. */

@@ -8,11 +8,10 @@
   3D; scramble.html forces visualization="2D" for its diagrams.
 
   Java -> JS surface:
-    ntReplayLoad(puzzle, setupAlg, moves, solveMs, turnMs, startFrame)
-        moves   = [{m:"R'", t:180, f:[w,x,y,z], h:[w,x,y,z]}, ...], t = ms from solve start,
-                  f = the frame the cube is in once this move is made, h = half-way through
-                  a half-turn rotation (absent otherwise); startFrame = the frame before
-                  the first move. Both only matter while the gyro track is shown.
+    ntReplayLoad(puzzle, setupAlg, moves, solveMs, turnMs, rawSetupAlg, rawMoves)
+        moves   = [{m:"R'", t:180}, ...], t = ms from solve start
+        rawSetupAlg, rawMoves = the same solve as the cube reported it: in its own
+                  frame, no rotations. Played instead while the gyro track is shown.
         solveMs = the length the position is reported against (see displayMs)
         turnMs  = how long one of this solve's turns takes, as its step bar draws them
     ntReplayPlay()  ntReplayPause()  ntReplaySpeed(x)
@@ -20,9 +19,8 @@
                       replay's own clock: the two are not the same scale
     ntReplayGyro(poses)   poses = [{t:ms, q:[w,x,y,z]}, ...], t = ms from solve start,
                           q the physical pose in the cube's own axes, reference applied
-                          (GyroTrackFormat.posesOf). The page takes out the frame it is
-                          showing, see shownFrame. [] or null drops the track. Passing it
-                          does NOT turn it on.
+                          (GyroTrackFormat.replayPosesOf). [] or null drops the track.
+                          Passing it does NOT turn it on.
     ntReplayGyroShow(on)  show the physical orientation, or keep the cube square
 
   JS -> Java, both optional (the app has a timeout as a safety net):
@@ -151,10 +149,13 @@
     return from + Math.min(1, (ms - began) / anims[k]) * (to - from);
   }
 
-  // ---- the gyro track: how the cube was physically held, between the named rotations ----------
+  // ---- the gyro track: how the cube was physically held ----------------------------------------
   //
-  // Poses arrive already in the cube's own axes with the reference applied, so nothing here knows
-  // anything about gyro frames — it interpolates and hands the result to three.js.
+  // Shown, the track replaces the solver's rotations rather than adding to them: the raw moves are
+  // played, in the cube's own frame with no rotation at all, and the puzzle object is turned to the
+  // physical pose. Nothing has to cancel. Taking the reconstruction's frame back out of the pose
+  // instead was measured right on a paused frame and still shook in playback, because the player
+  // draws its pieces a few frames after the pose is set and every rotation came out of step.
   //
   // The pose is applied from experimentalCurrentThreeJSPuzzleObject's per-render callback, which
   // is the hook the player provides for it. Measured on the device, the player does NOT then
@@ -162,9 +163,6 @@
   // render only when its timeline moves, which is the real problem: see draw().
 
   var poses = [];       // [{t, q:[w,x,y,z]}] ordered by t
-  var frameAfter = [];  // per alg node, the frame it leaves the cube in
-  var halfway = [];     // per alg node, the frame half-way through a half-turn rotation, or null
-  var startFrame = [1, 0, 0, 0];
   var gyroOn = false;
   var puzzleObject = null;
   var poseHooked = false;
@@ -222,51 +220,6 @@
     return out;
   }
 
-  /** Hamilton product, as CubeOrientation.multiply. */
-  function multiply(a, b) {
-    return [
-      a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
-      a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
-      a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
-      a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]];
-  }
-
-  /** The player's own easing of a turn (smootherstep), so the frame turns with the pieces. */
-  function ease(f) {
-    return f * f * f * (10 - f * (15 - 6 * f));
-  }
-
-  /**
-   * The frame the player is drawing the cube in at `ms`, part-way through a turn included.
-   *
-   * ⚠️ Taking out the frame by the solve's time instead turned the cube twice: a rotation is drawn
-   * in the pause BEFORE its timestamp, so the old frame was still being taken out while the pieces
-   * had already swung, and the cube went a quarter turn too far, then snapped back.
-   */
-  function shownFrame(ms) {
-    var k = pending(ms);
-    var before = k > 0 ? frameAfter[k - 1] : startFrame;
-    if (k >= doneAt.length || ms <= doneAt[k] - anims[k]) {
-      return before;
-    }
-    var after = frameAfter[k];
-    var f = ease(Math.min(1, (ms - (doneAt[k] - anims[k])) / anims[k]));
-    if (halfway[k]) {
-      return f < 0.5 ? slerp(before, halfway[k], 2 * f) : slerp(halfway[k], after, 2 * f - 1);
-    }
-    var dot = Math.abs(before[0] * after[0] + before[1] * after[1] + before[2] * after[2]
-        + before[3] * after[3]);
-    // A half turn with no half-way frame could be taken either way round: switch at its end.
-    return dot < 0.1 ? (f < 1 ? before : after) : slerp(before, after, f);
-  }
-
-  /** The physical pose with the frame on screen taken out: what is left is the tilts and peeks. */
-  function residualAt() {
-    var pose = poseAt(displayMs());
-    var frame = shownFrame(clamped());
-    return multiply(pose, [frame[0], -frame[1], -frame[2], -frame[3]]);
-  }
-
   var lastApplied = null;
 
   /**
@@ -279,7 +232,7 @@
     if (!object) {
       return;
     }
-    var q = (!gyroOn || !poses.length) ? [1, 0, 0, 0] : residualAt();
+    var q = program && program === programs.raw ? poseAt(displayMs()) : [1, 0, 0, 0];
     if (lastApplied
         && Math.abs(q[0] - lastApplied[0]) < 1e-4 && Math.abs(q[1] - lastApplied[1]) < 1e-4
         && Math.abs(q[2] - lastApplied[2]) < 1e-4 && Math.abs(q[3] - lastApplied[3]) < 1e-4) {
@@ -331,8 +284,8 @@
    * seen. Only while the track is being shown, so nothing else pays for the extra renders.
    */
   function draw() {
-    if (!player) {
-      return;
+    if (!player || tlStarts.length !== doneAt.length) {
+      return; // a timeline being swapped in: nothing to draw from until its indexer is read
     }
     var timeline = timelineAt(clockMs);
     if (gyroOn && poses.length) {
@@ -484,7 +437,7 @@
    * during the pause before that move. Only when there is no slack left to take, or a burst would
    * need more of it than maxLead, does the replay run longer than the solve.
    */
-  function layOut(tokens, realMs) {
+  function layOut(tokens, realMs, base) {
     var n = tokens.length;
     realAt = [];
     doneAt = [];
@@ -503,7 +456,7 @@
       var afterRotation = !rotation && i > 0 && isRotation(tokens[i - 1])
           && realMs[i - 1] === realMs[i];
       floors.push(rotation ? MIN_ROTATION_MS : afterRotation ? caps[i] : MIN_TURN_MS);
-      realAt.push(realMs[i] - realMs[0]);
+      realAt.push(realMs[i] - base);
     }
     // ⚠️ Bounded to a rotation pair and its turn: unbounded, a dense burst pulled every turn before
     // it through the whole recognition, and the clock skipped the pause.
@@ -536,40 +489,88 @@
     }
   }
 
-  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs, solveTurnMs, start) {
+  var programs = null; // {base, plain, raw}: what the replay can play, see ntReplayLoad
+  var program = null;   // the one the player has now
+
+  /**
+   * One alg node per token: a reorientation can be recorded as a pair ("y x'") under a single
+   * timestamp, and the timeline indexes nodes, not our moves. The pair's two halves then sit at
+   * the same instant, and each still gets its own room from the floors above.
+   */
+  function programOf(setup, list) {
+    var tokens = [];
+    var stamps = [];
+    for (var i = 0; i < (list || []).length; i++) {
+      var parts = String(list[i].m).split(/\s+/);
+      for (var j = 0; j < parts.length; j++) {
+        if (parts[j]) { tokens.push(parts[j]); stamps.push(list[i].t); }
+      }
+    }
+    return { setup: setup || "", tokens: tokens, stamps: stamps };
+  }
+
+  /** The raw moves while the gyro track is shown, the solver's spelling otherwise. */
+  function wantedProgram() {
+    return gyroOn && poses.length && programs.raw && programs.raw.tokens.length
+        ? programs.raw : programs.plain;
+  }
+
+  /** Hands the player a program; `then` runs once its timeline can be read. */
+  function install(prog, then) {
+    program = prog;
+    layOut(prog.tokens, prog.stamps, programs.base);
+    knot();
+    tlStarts = []; // draw() holds off until the new timeline is read
+    lastApplied = null;
+    player.experimentalSetupAlg = prog.setup;
+    player.alg = prog.tokens.join(" ");
+    player.experimentalModel.indexer.get().then(function (indexer) {
+      if (program !== prog) {
+        return; // swapped again before this one was read
+      }
+      var starts = [];
+      for (var i = 0; i < prog.tokens.length; i++) {
+        starts.push(indexer.indexToMoveStartTimestamp(i));
+      }
+      tlStarts = starts;
+      tlEnd = indexer.algDuration();
+      then();
+    }).catch(then);
+  }
+
+  /** Swaps program when the track is shown or hidden, keeping the moment of the solve on screen. */
+  function refreshProgram() {
+    if (!programs || !player || wantedProgram() === program) {
+      return;
+    }
+    var real = displayMs();
+    var wasPlaying = playing;
+    pause();
+    install(wantedProgram(), function () {
+      clockMs = Math.max(0, Math.min(clockAt(real), totalMs));
+      draw();
+      if (wasPlaying) {
+        window.ntReplayPlay();
+      } else {
+        report(true);
+      }
+    });
+  }
+
+  window.ntReplayLoad = function (puzzle, setup, moveList, solveMs, solveTurnMs, rawSetup,
+      rawList) {
     turnMs = solveTurnMs > 0 ? solveTurnMs : 150;
-    startFrame = start && start.length === 4 ? start : [1, 0, 0, 0];
     pause();
     readyNotified = false;
     poses = []; // the previous solve's, if the dialog is reused; the new one's arrive separately
     lastApplied = null;
-    var list = moveList || [];
-
-    // One alg node per token: a reorientation can be recorded as a pair ("y x'") under a single
-    // timestamp, and the timeline indexes nodes, not our moves. The pair's two halves then sit at
-    // the same instant, and each still gets its own room from the floors above.
-    var tokens = [];
-    var stamps = [];
-    frameAfter = [];
-    halfway = [];
-    var frame = startFrame;
-    for (var i = 0; i < list.length; i++) {
-      var parts = String(list[i].m).split(/\s+/).filter(function (part) { return part; });
-      for (var j = 0; j < parts.length; j++) {
-        var last = j === parts.length - 1;
-        if (last && list[i].f && list[i].f.length === 4) { frame = list[i].f; }
-        tokens.push(parts[j]);
-        stamps.push(list[i].t);
-        frameAfter.push(frame);
-        halfway.push(last && list[i].h && list[i].h.length === 4 ? list[i].h : null);
-      }
-    }
-    layOut(tokens, stamps);
-    reportedTotal = solveMs > 0 ? solveMs : (realAt.length ? realAt[realAt.length - 1] : 0);
-    knot();
-    clockMs = 0;
-    reportedMs = -1;
-    reportedAt = 0;
+    var plain = programOf(setup, moveList);
+    // Both are timed from the first turn the solver's spelling makes, so a swap keeps its moment.
+    programs = { base: plain.stamps.length ? plain.stamps[0] : 0, plain: plain,
+        raw: rawList ? programOf(rawSetup, rawList) : null };
+    program = null;
+    var plainSpan = plain.stamps.length ? plain.stamps[plain.stamps.length - 1] - programs.base : 0;
+    reportedTotal = solveMs > 0 ? solveMs : plainSpan;
 
     if (!player) {
       player = document.createElement("twisty-player");
@@ -585,21 +586,16 @@
       player.cameraDistance = 5.6;
       document.getElementById("host").appendChild(player);
     }
-    player.experimentalSetupAlg = setup || "";
-    player.alg = tokens.join(" ");
-
-    player.experimentalModel.indexer.get().then(function (indexer) {
-      tlStarts = [];
-      for (var i = 0; i < tokens.length; i++) {
-        tlStarts.push(indexer.indexToMoveStartTimestamp(i));
-      }
-      tlEnd = indexer.algDuration();
+    install(wantedProgram(), function () {
+      clockMs = 0;
+      reportedMs = -1;
+      reportedAt = 0;
       draw();
       // Prefer signalling after a paint, but never depend on it: a WebView that is not drawing
       // starves requestAnimationFrame, and the app would hold its spinner until the timeout.
       requestAnimationFrame(function () { requestAnimationFrame(notifyReady); });
       setTimeout(notifyReady, 300);
-    }).catch(notifyReady);
+    });
   };
 
   window.ntReplayPlay = function () {
@@ -642,6 +638,7 @@
       }
     }
     hookPose();
+    refreshProgram();
     draw();
   };
 
@@ -650,6 +647,7 @@
     if (poseRaf) { cancelAnimationFrame(poseRaf); poseRaf = null; }
     if (gyroOn) { poseRaf = requestAnimationFrame(poseLoop); }
     hookPose();
+    refreshProgram();
     draw();
   };
 })();

@@ -1,11 +1,10 @@
 package com.cube.nanotimer.cube;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import com.cube.nanotimer.gui.widget.dialog.SolveReplayDialog;
 import com.cube.nanotimer.smartcube.model.CubeOrientation;
-import com.cube.nanotimer.smartcube.model.CubeRotation;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import org.junit.Test;
 
 /**
  * What the replay is handed for its gyro overlay, on a MoYu V11 report whose replay shook badly:
- * a quarter of its keyframes came in delivery batches, and every rotation turned the cube twice.
+ * a quarter of its keyframes came in delivery batches, and the track drawn as kept trembled.
  */
 public class ReplayGyroTest {
 
@@ -78,46 +77,18 @@ public class ReplayGyroTest {
   }
 
   @Test
-  public void everyTokenLeavesTheFrameTheReconstructionRecorded() throws Exception {
+  public void theRawMovesPlayedWithTheGyroSolveTheScramble() throws Exception {
     for (String report : new String[] {SHAKY, ROUX}) {
-      String moves = smartcube(report).getString("moves");
-      List<SolveSolution.FrameAt> frames = SolveSolution.framesOf(moves);
-      List<SolveSolution.ReplayToken> tokens =
-          SolveSolution.replayTokens(SolveSolution.timedSolution(moves), frames);
-      CubeRotation before = CubeRotation.byNotation("");
-      int frameChanges = 0;
-      for (SolveSolution.ReplayToken token : tokens) {
-        CubeRotation turn = SolveMovesFormat.isRotation(token.getNotation())
-            ? CubeRotation.byNotation(token.getNotation()) : null;
-        if (turn != null) {
-          // Each token, a composite's halves included, turns the frame the way the player turns it.
-          assertSame(report + " " + token.getNotation() + "@" + token.getOffsetMs(),
-              before.then(turn), token.getFrame());
-        }
-        if (token.getHalfway() != null) {
-          assertSame(token.getHalfway().then(CubeRotation.byNotation(
-              token.getNotation().replace("2", ""))), token.getFrame());
-        }
-        if (token.getFrame() != before) {
-          frameChanges++;
-        }
-        before = token.getFrame();
+      JSONObject solve = solve(report);
+      StringBuilder raw = new StringBuilder();
+      for (SolveMovesFormat.Move move
+          : SolveReplayDialog.rawMoves(smartcube(report).getString("moves"))) {
+        assertTrue(move.getNotation(), !SolveMovesFormat.isRotation(move.getNotation()));
+        raw.append(move.getNotation()).append(' ');
       }
-      assertSame(frames.get(frames.size() - 1).getFrame(), before);
-      assertTrue(report + " should reorient", frameChanges > 5);
+      assertTrue(report, DisplayedSolutionReplay.solves(solve.getString("scramble").trim(),
+          raw.toString().trim()));
     }
-  }
-
-  /** How far the cube turns between keyframes less than 10 ms apart, which playback shows as a jump. */
-  private static double jumped(List<GyroTrackFormat.Keyframe> keyframes) {
-    double degrees = 0;
-    for (int i = 1; i < keyframes.size(); i++) {
-      if (keyframes.get(i).getOffsetMs() - keyframes.get(i - 1).getOffsetMs() < 10) {
-        degrees += keyframes.get(i).getOrientation()
-            .angleToDegrees(keyframes.get(i - 1).getOrientation());
-      }
-    }
-    return degrees;
   }
 
   /** How much the path bends at its middle point: direction changes, which read as shaking. */
@@ -147,10 +118,30 @@ public class ReplayGyroTest {
     return new CubeOrientation(w / n, x / n, y / n, z / n);
   }
 
+  /** How far the cube turns between keyframes less than 10 ms apart, which playback shows as a jump. */
+  private static double jumped(List<GyroTrackFormat.Keyframe> keyframes) {
+    double degrees = 0;
+    for (int i = 1; i < keyframes.size(); i++) {
+      if (keyframes.get(i).getOffsetMs() - keyframes.get(i - 1).getOffsetMs() < 10) {
+        degrees += keyframes.get(i).getOrientation()
+            .angleToDegrees(keyframes.get(i - 1).getOrientation());
+      }
+    }
+    return degrees;
+  }
+
   private static JSONObject smartcube(String report) throws Exception {
+    return json(report).getJSONObject("smartcube");
+  }
+
+  private static JSONObject solve(String report) throws Exception {
+    return json(report).getJSONObject("solve");
+  }
+
+  private static JSONObject json(String report) throws Exception {
     try (InputStream in = ReplayGyroTest.class.getResourceAsStream(report);
         Scanner scanner = new Scanner(in, StandardCharsets.UTF_8.name()).useDelimiter("\\A")) {
-      return new JSONObject(scanner.next()).getJSONObject("smartcube");
+      return new JSONObject(scanner.next());
     }
   }
 }
