@@ -490,12 +490,14 @@
       <li>Cubench ahora se conecta a los smart cubes Bluetooth GAN, MoYu y QiYi</li>
       <li>El cronómetro arranca con tu primer giro y se detiene cuando el cubo está resuelto</li>
       <li>La mezcla sigue tus giros, y un movimiento equivocado se detecta y se corrige</li>
-      <li>Cada resolución se divide en sus pasos (cruz, pares F2L, OLL, PLL), con tiempos de búsqueda y de giro y la reconstrucción completa</li>
+      <li>Cada resolución se divide en sus pasos, con tiempos de búsqueda y de giro y la reconstrucción completa: CFOP, Roux, capa por capa y a ciegas</li>
       <li>Cualquier resolución se puede volver a ver en 3D</li>
       <li>Nueva pantalla de Análisis: tus pasos y casos más lentos, y los algoritmos que usas</li>
-      <li>Nuevos drills, para practicar casos en tu propio cubo</li>
-      <li>Nuevo coach, con suscripción: un plan de práctica semanal escrito a partir de tus resoluciones</li>
+      <li>Nueva pantalla de Algoritmos: los casos OLL, PLL, F2L y CMLL, los algoritmos más usados y los que te sabes</li>
+      <li>Nuevos drills, para practicar casos OLL, PLL, F2L, CMLL y de cruz en tu propio cubo</li>
+      <li>Nuevo coach, con suscripción: un plan de práctica semanal escrito a partir de tus resoluciones, y un drill corto cada día</li>
       <li>El último cubo puede reconectarse automáticamente al abrir la aplicación</li>
+      <li>Nuevo, activado por defecto: el algoritmo que usas en cada caso se comparte con un identificador aleatorio, para mostrar cuáles usan los cuberos. Se puede desactivar en Ajustes, Smart cube. No se envía nada sin un smart cube.</li>
     </ul>
     <b>Otras novedades</b>
     <ul>

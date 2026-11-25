@@ -509,12 +509,14 @@
       <li>Cubench now connects to GAN, MoYu and QiYi Bluetooth smart cubes</li>
       <li>The timer starts on your first turn and stops when the cube is solved</li>
       <li>The scramble follows your turns, and a wrong move is caught and corrected</li>
-      <li>Every solve is split into its steps (cross, F2L pairs, OLL, PLL), with thinking and turning times and the full reconstruction</li>
+      <li>Every solve is split into its steps, with thinking and turning times and the full reconstruction: CFOP, Roux, layer by layer and blind</li>
       <li>Any solve can be replayed in 3D</li>
       <li>New Analysis screen: your slowest steps and cases, and the algorithms you use</li>
-      <li>New drills, to practise cases on your own cube</li>
-      <li>New coach, by subscription: a weekly practice plan written from your solves</li>
+      <li>New Algorithms screen: OLL, PLL, F2L and CMLL cases, the algorithms cubers use most, and the ones you know</li>
+      <li>New drills, to practise OLL, PLL, F2L, CMLL and cross cases on your own cube</li>
+      <li>New coach, by subscription: a weekly practice plan written from your solves, and a short drill every day</li>
       <li>The last cube can be reconnected automatically when the app opens</li>
+      <li>New, on by default: the algorithm you turn for each case is shared under a random ID, to show which ones cubers use. Turn it off in Settings, Smart cube. Nothing is sent without a smart cube.</li>
     </ul>
     <b>Also new</b>
     <ul>
