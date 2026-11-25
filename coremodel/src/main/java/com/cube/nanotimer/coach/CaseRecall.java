@@ -19,7 +19,8 @@ import java.util.TimeZone;
  *
  * <p>Dated in local days ago rather than timestamps: spaced repetition needs to know when a case
  * was last reviewed, and a count of days says that with nothing finer. A slip is a solve that took
- * two looks at the case or a drill rep turned with the algorithm looked up or restarted. A clean
+ * two looks at the case, a thrown-away solve that misread or botched it, or a drill rep turned with
+ * the algorithm looked up or restarted. A clean
  * day is a local day the case went in clean at least once, in a solve or a drill, so a drill of
  * five reps is one review and not five.
  */
@@ -34,6 +35,9 @@ public final class CaseRecall {
   /** What a slip was, as the payload names it. */
   public static final String TWO_LOOKS = "two_looks";
   public static final String LOOKED_UP = "looked_up";
+  /** A thrown-away solve that turned another case's algorithm, or went wrong in the case's own. */
+  public static final String MISREAD = "misread";
+  public static final String BOTCHED = "botched";
 
   private static final long DAY_MS = 24L * 60 * 60 * 1000;
 
@@ -41,10 +45,17 @@ public final class CaseRecall {
   public static final class Occurrence {
     private final CaseKnowledge.Evidence says;
     private final long atMs;
+    private final String slipKind;
 
     public Occurrence(CaseKnowledge.Evidence says, long atMs) {
+      this(says, atMs, null);
+    }
+
+    /** @param slipKind what the slip was where the evidence alone cannot say, or null */
+    public Occurrence(CaseKnowledge.Evidence says, long atMs, String slipKind) {
       this.says = says;
       this.atMs = atMs;
+      this.slipKind = slipKind;
     }
   }
 
@@ -91,7 +102,7 @@ public final class CaseRecall {
     for (int i = occurrences.size() - 1; i >= 0; i--) {
       Occurrence occurrence = occurrences.get(i);
       int daysAgo = (int) Math.max(0, today - dayOf(occurrence.atMs, zone));
-      String kind = slipKind(occurrence.says);
+      String kind = occurrence.slipKind != null ? occurrence.slipKind : slipKind(occurrence.says);
       if (kind != null) {
         if (slipDaysAgo == null) {
           slipDaysAgo = Integer.valueOf(daysAgo);
@@ -165,7 +176,7 @@ public final class CaseRecall {
     return slipDaysAgo;
   }
 
-  /** {@link #TWO_LOOKS} or {@link #LOOKED_UP} for its newest slip, or null. */
+  /** {@link #TWO_LOOKS}, {@link #LOOKED_UP}, {@link #MISREAD} or {@link #BOTCHED} for its newest slip, or null. */
   public String getSlipKind() {
     return slipKind;
   }

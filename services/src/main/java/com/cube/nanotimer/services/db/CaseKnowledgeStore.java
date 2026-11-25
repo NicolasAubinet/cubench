@@ -9,6 +9,7 @@ import com.cube.nanotimer.coach.CaseRecall;
 import com.cube.nanotimer.drill.DrillSpec;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.session.MethodStatistics;
+import com.cube.nanotimer.smartcube.step.CaseBotch;
 import com.cube.nanotimer.smartcube.step.RepAlgorithms;
 import com.cube.nanotimer.vo.ScrambleType;
 
@@ -155,7 +156,8 @@ public final class CaseKnowledgeStore {
       }
       List<CaseRecall.Occurrence> dated = new ArrayList<CaseRecall.Occurrence>();
       for (Occurrence occurrence : occurrences(db, code, cleanKinds)) {
-        dated.add(new CaseRecall.Occurrence(occurrence.says, occurrence.atMs));
+        dated.add(new CaseRecall.Occurrence(occurrence.says, occurrence.atMs,
+            occurrence.slipKind));
       }
       history.put(code, dated);
     }
@@ -312,6 +314,7 @@ public final class CaseKnowledgeStore {
         + "     , 0 AS drill"
         + "     , NULL AS scramble"
         + "     , NULL AS moves"
+        + "     , NULL AS verdict"
         + "  FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + "  JOIN " + DB.TABLE_TIMEHISTORY + " h ON h." + DB.COL_ID
         + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
@@ -335,6 +338,7 @@ public final class CaseKnowledgeStore {
         + "     , d." + DB.COL_ID + " AS drill"
         + "     , r." + DB.COL_DRILL_REP_SCRAMBLE + " AS scramble"
         + "     , r." + DB.COL_DRILL_REP_MOVES + " AS moves"
+        + "     , NULL AS verdict"
         + "  FROM " + DB.TABLE_DRILL_REP + " r"
         + "  JOIN " + DB.TABLE_DRILL + " d ON d." + DB.COL_ID + " = r." + DB.COL_DRILL_REP_DRILL_ID
         + " WHERE r." + DB.COL_DRILL_REP_CASE + " = ?"
@@ -352,6 +356,7 @@ public final class CaseKnowledgeStore {
         + "     , 0 AS drill"
         + "     , NULL AS scramble"
         + "     , NULL AS moves"
+        + "     , NULL AS verdict"
         + "  FROM " + DB.TABLE_CASE_CLEARED
         + " WHERE " + DB.COL_CASE_CLEARED_CASE + " = ?";
 
@@ -363,6 +368,7 @@ public final class CaseKnowledgeStore {
         + "     , 0 AS drill"
         + "     , NULL AS scramble"
         + "     , NULL AS moves"
+        + "     , b." + DB.COL_CASE_BOTCHED_VERDICT + " AS verdict"
         + "  FROM " + DB.TABLE_CASE_BOTCHED + " b"
         + "  JOIN " + DB.TABLE_SOLVETYPE + " t ON t." + DB.COL_ID
         + "     = b." + DB.COL_CASE_BOTCHED_SOLVETYPE_ID
@@ -376,7 +382,7 @@ public final class CaseKnowledgeStore {
         new String[] { code, code, code, code });
     if (cursor != null) {
       for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-        // unaided, from_solve, seen_at, ordinal, drill, scramble, moves: every part's column order.
+        // unaided, from_solve, seen_at, ordinal, drill, scramble, moves, verdict: every part's order.
         boolean unaided = cursor.getInt(0) == 1;
         CaseKnowledge.Evidence says;
         if (cursor.getInt(1) == 2) {
@@ -390,11 +396,23 @@ public final class CaseKnowledgeStore {
         } else {
           says = cleanKindOf(db, cursor.getLong(4), cleanKinds);
         }
-        occurrences.add(0, new Occurrence(says, cursor.getLong(2)));
+        occurrences.add(0,
+            new Occurrence(says, cursor.getLong(2), slipKindOf(cursor.getString(7))));
       }
       cursor.close();
     }
     return occurrences;
+  }
+
+  /** A thrown-away solve's verdict as the coach names its slip; null for any other occurrence. */
+  private static String slipKindOf(String verdict) {
+    if (CaseBotch.Verdict.MISREAD.code().equals(verdict)) {
+      return CaseRecall.MISREAD;
+    }
+    if (CaseBotch.Verdict.BOTCHED.code().equals(verdict)) {
+      return CaseRecall.BOTCHED;
+    }
+    return CaseBotch.Verdict.TWO_LOOKED.code().equals(verdict) ? CaseRecall.TWO_LOOKS : null;
   }
 
   /** A rep turned in more than one algorithm, read as a solve's last layer step is. */
@@ -447,10 +465,12 @@ public final class CaseKnowledgeStore {
   private static final class Occurrence {
     private final CaseKnowledge.Evidence says;
     private final long atMs;
+    private final String slipKind; // a thrown-away solve's, which its evidence alone cannot say
 
-    Occurrence(CaseKnowledge.Evidence says, long atMs) {
+    Occurrence(CaseKnowledge.Evidence says, long atMs, String slipKind) {
       this.says = says;
       this.atMs = atMs;
+      this.slipKind = slipKind;
     }
   }
 }

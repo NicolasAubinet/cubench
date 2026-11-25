@@ -39,6 +39,17 @@ public class CaseRecallTest {
   }
 
   @Test
+  public void testAThrownAwaySolveNamesItsOwnSlip() throws Exception {
+    CaseRecall recall = recall(CaseKnowledge.Status.KNOWN, at(Evidence.UNAIDED, 30),
+        new CaseRecall.Occurrence(Evidence.HELPED, NOW - 4 * DAY, CaseRecall.BOTCHED),
+        new CaseRecall.Occurrence(Evidence.HELPED, NOW - 2 * DAY, CaseRecall.MISREAD));
+
+    Assert.assertEquals(2, recall.getSlips());
+    Assert.assertEquals(CaseRecall.MISREAD, recall.getSlipKind());
+    Assert.assertEquals("misread", recall.toJson().getString("slip_kind"));
+  }
+
+  @Test
   public void testCountsTheWeeksSlipsAndNamesTheNewest() {
     CaseRecall recall = recall(CaseKnowledge.Status.NEEDS_REVIEW,
         at(Evidence.UNAIDED, 30), at(Evidence.HELPED, 6), at(Evidence.LOOKED_UP, 2));
