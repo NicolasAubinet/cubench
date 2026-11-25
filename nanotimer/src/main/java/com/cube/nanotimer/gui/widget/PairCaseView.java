@@ -39,6 +39,11 @@ public class PairCaseView extends View {
   /** The drawing's extent in cube units, across and down (the cube projects 5.2 by 6). */
   private static final float EXTENT = 6.2f;
 
+  /** The view's turn off the front face; 45 would show front and right alike. */
+  private static final double YAW = Math.toRadians(32);
+  private static final float YAW_COS = (float) Math.cos(YAW);
+  private static final float YAW_SIN = (float) Math.sin(YAW);
+
   private static final float STAGE_RADIUS = 0.10f;
 
   /** The facelets back left holds: the corner DBL and the edge BL. */
@@ -189,10 +194,13 @@ public class PairCaseView extends View {
   }
 
   private void polygon(Canvas canvas, float[][] corners) {
+    // The green face stays the wider side: on the right once the view is turned to the left.
+    float cos = fromLeft ? YAW_SIN : YAW_COS;
+    float sin = fromLeft ? YAW_COS : YAW_SIN;
     path.reset();
     for (int i = 0; i < corners.length; i++) {
-      float x = (corners[i][0] - corners[i][2]) * 0.866f;
-      float y = -corners[i][1] + (corners[i][0] + corners[i][2]) * 0.5f;
+      float x = (corners[i][0] * cos - corners[i][2] * sin) * 1.2247f;
+      float y = -corners[i][1] + (corners[i][0] * sin + corners[i][2] * cos) * 0.7071f;
       if (i == 0) {
         path.moveTo(x, y);
       } else {
