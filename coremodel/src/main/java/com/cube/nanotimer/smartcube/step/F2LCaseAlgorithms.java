@@ -1370,8 +1370,9 @@ public final class F2LCaseAlgorithms {
     char[] picture = new char[state.length()];
     for (int[] piece : Cubies.PIECES) {
       String sorted = colours(state, piece);
-      boolean grey = sorted.indexOf('U') >= 0;
       boolean pair = sorted.equals("DFR") || sorted.equals("FR");
+      // Another slot's piece knocked out by a stuck one would read as a second pair.
+      boolean grey = sorted.indexOf('U') >= 0 || !pair && !home(state, piece);
       for (int facelet : piece) {
         char colour = state.charAt(facelet);
         picture[facelet] = grey ? '.' : pair ? colour : Character.toLowerCase(colour);
@@ -1382,6 +1383,16 @@ public final class F2LCaseAlgorithms {
       picture[face * 9 + 4] = centre == 'U' ? '.' : Character.toLowerCase(centre);
     }
     return new String(picture);
+  }
+
+  /** Whether a piece sits solved, each sticker on its own face. */
+  private static boolean home(String state, int[] piece) {
+    for (int facelet : piece) {
+      if (state.charAt(facelet) != state.charAt(facelet / 9 * 9 + 4)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /** A piece's colours, sorted, so a piece reads the same wherever it sits and however twisted. */

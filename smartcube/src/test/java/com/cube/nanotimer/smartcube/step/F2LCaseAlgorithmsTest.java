@@ -266,15 +266,20 @@ public class F2LCaseAlgorithmsTest {
       String picture = CaseAlgorithms.pairPicture(code);
       int bright = 0;
       int grey = 0;
-      for (char sticker : picture.toCharArray()) {
+      boolean strayInColour = false;
+      for (int i = 0; i < picture.length(); i++) {
+        char sticker = picture.charAt(i);
         bright += Character.isUpperCase(sticker) ? 1 : 0;
         grey += sticker == '.' ? 1 : 0;
+        // A coloured piece other than the pair must be solved, or it reads as a second pair.
+        strayInColour |= Character.isLowerCase(sticker) && sticker != picture.charAt(i / 9 * 9 + 4);
       }
-      // Grey: the 8 last-layer pieces' 20 stickers and the top centre.
-      int greyed = 21;
+      // Grey: the 8 last-layer pieces' 20 stickers and the top centre, plus a stuck case's
+      // knocked-out pieces.
+      boolean greyed = CaseAlgorithms.isBasicPair(code) ? grey == 21 : grey > 21;
       String read = F2LCases.pairCase(picture.toUpperCase(Locale.ROOT).replace('.', 'U'), Cubies.D,
           Cubies.DFR, Cubies.FR);
-      if (bright != 5 || grey != greyed || !pairCase.equals(read)) {
+      if (bright != 5 || !greyed || strayInColour || !pairCase.equals(read)) {
         wrong.append(code).append(": ").append(picture).append('\n');
       }
     }
