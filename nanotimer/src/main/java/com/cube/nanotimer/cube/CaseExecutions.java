@@ -1,5 +1,6 @@
 package com.cube.nanotimer.cube;
 
+import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.AlgorithmForm;
@@ -42,6 +43,9 @@ public final class CaseExecutions {
 
   /** How many of a case's answers are looked at. Enough to see which is the usual one. */
   static final int PER_CASE = 5;
+
+  /** How many of a case's latest answers a screen judges it by, as Analysis does. */
+  public static final int RECENT = AlgorithmFigures.RECENT;
 
   /** A pair placed in a way no case is named for ({@code pair_other_rf}). */
   private static final String UNNAMED_PAIR = "other";
@@ -182,6 +186,124 @@ public final class CaseExecutions {
       }
     }
     return kept;
+  }
+
+  /**
+   * A case's last {@link #RECENT} answers in solves, the way Analysis judges the case: an F2L pair
+   * each time it came up, in any slot, and a last layer case or a CMLL each solve it was handed in,
+   * not one where only its algorithm was turned as a look of another case.
+   *
+   * @param solves solves the case came up in, newest first
+   */
+  public static Recent recentOf(List<SolveTime> solves, final String caseCode) {
+    final List<String> answers = new ArrayList<String>();
+    final boolean pair = CaseAlgorithms.isPair(caseCode);
+    for (SolveTime solve : solves) {
+      boolean roux = CmllCases.isCase(caseCode)
+          && SolveTypeMethod.of(solve.getSolveType()) == CubeMethod.ROUX;
+      readSteps(roux ? replayAs(solve, CubeMethod.ROUX) : replay(solve), new StepReader() {
+        @Override
+        public void read(SolveStep step, SolveSolution.Step turned) {
+          if (!pair) {
+            String answer = caseCode.equals(caseOfStep(step.getName()))
+                ? answerOf(step, turned) : "";
+            if (answer == null || !answer.trim().isEmpty()) {
+              answers.add(answer);
+            }
+            return;
+          }
+          List<SolveStep> parts = step.getSubSteps();
+          for (int i = 0; i < parts.size() && i < turned.getGroups().size(); i++) {
+            String moves = turned.getPartMoves(i);
+            if (caseCode.equals(caseOfPart(parts.get(i).getName())) && !moves.trim().isEmpty()) {
+              answers.add(moves);
+            }
+          }
+        }
+      });
+    }
+    return recentOf(caseCode, answers.subList(0, Math.min(RECENT, answers.size())));
+  }
+
+  /**
+   * The answers grouped by what they turn, most turned first and a tie to the later. The usual one
+   * is a majority, or the later of two; none where two looks have it or all three differ.
+   *
+   * @param answers newest first, null for a two-look
+   */
+  static Recent recentOf(String caseCode, List<String> answers) {
+    List<String> oneLooks = new ArrayList<String>();
+    for (String moves : answers) {
+      if (moves != null) {
+        oneLooks.add(moves);
+      }
+    }
+    int twoLooks = answers.size() - oneLooks.size();
+    List<Shown> shown = new ArrayList<Shown>();
+    if (!oneLooks.isEmpty()) {
+      for (Turned one : spreadOf(caseCode, oneLooks).getTurned()) {
+        shown.add(new Shown(asAlgorithm(caseCode, one.getMoves()), one.getMoves(), one.getTimes(),
+            answers.size()));
+      }
+    }
+    Shown top = shown.isEmpty() ? null : shown.get(0);
+    // A group is spelled as its latest answer, so that answer's place is the group's latest
+    boolean twoLooksWin = top != null && (twoLooks > top.times
+        || twoLooks == top.times && answers.indexOf(null) < answers.indexOf(top.executed));
+    Shown usual = top != null && !twoLooksWin && top.times * 2 >= answers.size() ? top : null;
+    return new Recent(Collections.unmodifiableList(shown), usual, twoLooks, answers.size());
+  }
+
+  /** The moves of a one-look step, null for a two-look, empty for none. A false start is not a look. */
+  private static String answerOf(SolveStep step, SolveSolution.Step turned) {
+    List<SolveStep> parts = step.getSubSteps();
+    if (parts.isEmpty()) {
+      return turned.getPartMoves(0);
+    }
+    String moves = null;
+    int looks = 0;
+    for (int i = 0; i < parts.size() && i < turned.getGroups().size(); i++) {
+      String name = parts.get(i).getName();
+      if (name == null || !name.endsWith(SolveReading.RESTART_PART_SUFFIX)) {
+        looks++;
+        moves = turned.getPartMoves(i);
+      }
+    }
+    return looks == 0 ? "" : looks == 1 ? moves : null;
+  }
+
+  /** A case's last answers: each one-look algorithm, how many took two looks, and the usual one. */
+  public static final class Recent {
+
+    private final List<Shown> shown;
+    private final Shown usual;
+    private final int twoLooks;
+    private final int of;
+
+    private Recent(List<Shown> shown, Shown usual, int twoLooks, int of) {
+      this.shown = shown;
+      this.usual = usual;
+      this.twoLooks = twoLooks;
+      this.of = of;
+    }
+
+    /** Each algorithm answered with, most turned first. */
+    public List<Shown> getShown() {
+      return shown;
+    }
+
+    /** The answer most of them were, or null for none. */
+    public Shown getUsual() {
+      return usual;
+    }
+
+    public int getTwoLooks() {
+      return twoLooks;
+    }
+
+    public int getOf() {
+      return of;
+    }
   }
 
   private static Shown writtenAs(List<Shown> shown, String moves) {

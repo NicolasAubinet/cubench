@@ -15,18 +15,13 @@ import java.util.TreeMap;
 /**
  * The algorithm a solver uses for each case, as one vote per case for the shared usage counts.
  *
- * <p>Read the way the case popup reads "the one you use" ({@link CaseExecutions}): the case's five
- * latest answers grouped by what they turn, the top group spelled as the popup spells it, so two
- * solvers' spellings of one algorithm land on one row. Two things are stricter than the popup:
- * <ul>
- *   <li><b>Turned at least twice.</b> The popup shows its top answer whatever its count, so a case
- *   solved once still has a row; a vote from one solve would be a fumble as often as a habit.
- *   <li><b>One look only.</b> A last layer step counts only when it took one algorithm, under the
- *   case it was handed. The popup also reads the second algorithm of a two-look ({@code ollalg_27})
- *   as an answer to that case, which is right for showing what was turned but would count a two-look
- *   OLL as a vote for the one-look algorithm of the case it passed through. A false start
- *   ({@code ollrestart}) is not an algorithm, as in {@link SolveReading}.
- * </ul>
+ * <p>Read the way the case popup reads "the one you use" ({@link CaseExecutions#recentOf}): the
+ * case's last {@link CaseExecutions#RECENT} answers, the majority one spelled as the popup spells
+ * it, so two solvers' spellings of one algorithm land on one row. A last layer case counts each
+ * solve it was handed in, a two-look as an answer of its own, so a case mostly two-looked casts no
+ * vote; a false start ({@code ollrestart}) is not a look, as in {@link SolveReading}. One thing is
+ * stricter than the popup: <b>turned at least twice</b>, since the popup marks a case answered once
+ * and a vote from one solve would be a fumble as often as a habit.
  * F2L pairs are read too, each pair being one algorithm by construction, and so is a Roux solve's
  * CMLL, under the same one-look rule: a two-look CMLL is stored with an orient and a permute part.
  */
@@ -57,10 +52,9 @@ public final class AlgorithmVotes {
     Map<String, String> votes = new TreeMap<String, String>();
     for (Map.Entry<String, List<String>> answer : answers.entrySet()) {
       String caseCode = answer.getKey();
-      List<CaseExecutions.Shown> shown = CaseExecutions.shownFrom(caseCode,
-          CaseExecutions.spreadOf(caseCode, answer.getValue()));
-      if (!shown.isEmpty() && shown.get(0).getTimes() >= MIN_TIMES) {
-        votes.put(caseCode, shown.get(0).getMoves());
+      CaseExecutions.Shown usual = CaseExecutions.recentOf(caseCode, answer.getValue()).getUsual();
+      if (usual != null && usual.getTimes() >= MIN_TIMES) {
+        votes.put(caseCode, usual.getMoves());
       }
     }
     return votes;
@@ -117,7 +111,8 @@ public final class AlgorithmVotes {
         continue;
       }
       if (only >= 0) {
-        return; // a second algorithm: a two-look
+        keep(answers, caseCode, null); // a second algorithm: a two-look
+        return;
       }
       only = i;
     }
@@ -127,8 +122,9 @@ public final class AlgorithmVotes {
     }
   }
 
+  /** @param moves the answer, or null for a two-look */
   private static void keep(Map<String, List<String>> answers, String caseCode, String moves) {
-    if (moves == null || moves.trim().isEmpty()) {
+    if (moves != null && moves.trim().isEmpty()) {
       return;
     }
     List<String> kept = answers.get(caseCode);
@@ -136,7 +132,7 @@ public final class AlgorithmVotes {
       kept = new ArrayList<String>();
       answers.put(caseCode, kept);
     }
-    if (kept.size() < CaseExecutions.PER_CASE) {
+    if (kept.size() < CaseExecutions.RECENT) {
       kept.add(moves);
     }
   }

@@ -68,6 +68,7 @@ import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -96,7 +97,10 @@ import java.util.Objects;
  * written to preferences. Every execution turned more than once gets its row, with how many of their
  * answers it was where there is more than one. No execution time on a row: the In solves card has
  * it, and the drill's choose step compares algorithms. A lone execution waits for its second before
- * it is called theirs: once is how a misread case put right looks.
+ * it is called theirs: once is how a misread case put right looks. A case is read over its last
+ * {@link CaseExecutions#RECENT} answers, as Analysis reads it: "the one you use" is their majority,
+ * none where most took two looks, and two looks get a row of their own under "Yours", with no moves
+ * since they are two algorithms.
  *
  * <p>Opened from one solve, it shows that solve's execution instead, marked "this solve".
  *
@@ -131,8 +135,6 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private static final int[] CROSS_UP_CORNERS = {1, 0, 2, 3};
   private static final int[] CROSS_UP_SLOT_EDGES = {9, 8, 10, 11};
 
-  /** How many of the case's solves are replayed for the moves: the cost of opening the sheet. */
-  private static final int SOLVES_READ = 10;
   /** How many of the case's latest solves the In solves card is the mean of. */
   private static final int SOLVE_FIGURES = 50;
   /** An empty card's figures. */
@@ -158,6 +160,11 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private String starredRow;
   /** Everything they turn for the case, most turned first, empty until the solves have been read. */
   private List<Turned> turned = new ArrayList<Turned>();
+  /** The answer most of the case's last solves gave, marked "the one you use", or null for none. */
+  private Turned usual;
+  /** How many of those last answers took two looks, and how many answers there were. */
+  private int twoLooks;
+  private int answers;
   /** Every row text up on the sheet but the opened rest, in order; a turning's marks go to one. */
   private List<String> placed = new ArrayList<String>();
   private boolean moreOpen;
@@ -231,6 +238,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     if (used != null) {
       turned.add(new Turned(CaseAlgorithms.asAlgorithm(caseCode, used),
           CaseAlgorithms.read(caseCode, used), 1, 1));
+      usual = turned.get(0);
     } else {
       readExecution();
     }
@@ -412,29 +420,40 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     super.onDestroyView();
   }
 
-  /** Reads the case out of the handful of solves it came up in; the marks arrive when it is done. */
+  /**
+   * Reads the case out of its last solves, as Analysis judges it: the majority answer is the one
+   * they use, none where most took two looks or all differ. The marks arrive when it is done.
+   */
   private void readExecution() {
-    App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(caseCode), SOLVES_READ,
+    // A last layer case by its own step alone: a solve turning its algorithm as a look of another
+    // case is no answer to it. A few spare, for a solve stopped inside the case.
+    List<String> codes = CaseAlgorithms.isPair(caseCode) ? CaseExecutions.codesFor(caseCode)
+        : Collections.singletonList(caseCode);
+    App.INSTANCE.getService().getCaseSolves(codes, CaseExecutions.RECENT + 2,
         new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(List<SolveTime> solves) {
-            final List<Turned> read = read(CaseExecutions.spreadFrom(solves, caseCode));
+            CaseExecutions.Recent recent = CaseExecutions.recentOf(solves, caseCode);
+            List<Turned> read = new ArrayList<Turned>();
+            Turned found = null;
+            for (CaseExecutions.Shown one : recent.getShown()) {
+              Turned each = new Turned(one.getMoves(),
+                  CaseAlgorithms.read(caseCode, one.getExecuted()), one.getTimes(), one.getOf());
+              read.add(each);
+              if (one == recent.getUsual()) {
+                found = each;
+              }
+            }
+            final Turned usualRead = found;
             onUi(() -> {
               turned = read;
+              usual = usualRead;
+              twoLooks = recent.getTwoLooks();
+              answers = recent.getOf();
               refresh();
             });
           }
         });
-  }
-
-  /** Each execution named and read against the vote table, off the main thread. */
-  private List<Turned> read(CaseExecutions.Spread spread) {
-    List<Turned> read = new ArrayList<Turned>();
-    for (CaseExecutions.Shown one : CaseExecutions.shownFrom(caseCode, spread)) {
-      read.add(new Turned(one.getMoves(), CaseAlgorithms.read(caseCode, one.getExecuted()),
-          one.getTimes(), one.getOf()));
-    }
-    return read;
   }
 
   /** The two figures cards. Both are asked before deciding the sheet is a timer-only one. */
@@ -629,7 +648,9 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
       theirs.add(own);
     }
     for (Turned one : turned) {
-      if (!listedAlready(shown, one.moves) && !listedAlready(theirs, one.moves)) {
+      // A lone answer off the list waits for a second before it is called theirs
+      if ((one == usual || one.times > 1)
+          && !listedAlready(shown, one.moves) && !listedAlready(theirs, one.moves)) {
         theirs.add(one.moves);
       }
     }
@@ -656,6 +677,14 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     }
     for (String moves : theirs) {
       yours.addView(row(yours, moves, 0, false, CaseAlgorithms.emptySlotOf(caseCode, moves), -1));
+    }
+    if (twoLooks > 0) {
+      AlgorithmRow twoLook = AlgorithmRow.inflate(LayoutInflater.from(getActivity()), yours)
+          .words(getString(R.string.case_algorithm_two_looks))
+          .rank(0)
+          .noStar();
+      twoLook.note(getString(R.string.case_algorithm_of_last, twoLooks, answers));
+      yours.addView(twoLook.view());
     }
     if (moreOpen) {
       // The rest of the votes go on counting from the list
@@ -758,7 +787,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     boolean declared = carries(moves, chosen, true);
     Turned one = turnedFor(moves);
     // The outline follows the star; with none, the algorithm their solves turn
-    boolean mine = chosen != null ? declared : one != null && one == turned.get(0);
+    boolean mine = chosen != null ? declared : one != null && one == usual;
 
     AlgorithmRow row = AlgorithmRow.inflate(LayoutInflater.from(getActivity()), parent)
         .moves(CaseAlgorithms.asPictured(caseCode, moves))
@@ -769,7 +798,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
         .onClick(v -> choose(moves));
     // All marks that apply: a choice does not stop an algorithm being the recommended one.
     // "The one you use" comes from the execution, and only shows where it differs from the star.
-    if (one != null && one == turned.get(0) && (used != null || !declared)) {
+    if (one != null && one == usual && (used != null || !declared)) {
       row.mark(used != null ? R.string.case_algorithm_used : R.string.case_algorithm_mine, true);
     }
     if (declared && isTimerOnly()) {
@@ -781,7 +810,7 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     if (recommended) {
       row.mark(R.string.case_algorithm_recommended, false);
     }
-    if (one != null && turned.size() > 1) {
+    if (one != null && (turned.size() > 1 || twoLooks > 0)) {
       row.note(getString(R.string.case_algorithm_of_last, one.times, one.of));
     }
     if (one != null && one.execution.isUnusual() && one.execution.isLonger()) {

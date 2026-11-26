@@ -90,6 +90,13 @@ public final class AlgorithmRow {
     return this;
   }
 
+  /** Words where the moves go, in the text face: a way of answering the case that has no moves. */
+  public AlgorithmRow words(CharSequence text) {
+    moves.setText(text);
+    moves.setTypeface(Typeface.DEFAULT);
+    return this;
+  }
+
   /** A monospace space and prime are a whole cell wide; narrowed, the moves read as moves. */
   public static CharSequence notation(String moves) {
     if (moves == null) {
