@@ -29,7 +29,7 @@ import com.cube.nanotimer.R;
 import com.cube.nanotimer.cases.CaseGroup;
 import com.cube.nanotimer.cases.CaseSet;
 import com.cube.nanotimer.cases.CaseSets;
-import com.cube.nanotimer.gui.widget.DrillStatCells;
+import com.cube.nanotimer.gui.widget.CaseListHero;
 import com.cube.nanotimer.gui.widget.DrillStatsTable;
 import com.cube.nanotimer.gui.widget.SegmentedControl;
 import com.cube.nanotimer.gui.widget.cases.CaseFilterBar;
@@ -39,7 +39,6 @@ import com.cube.nanotimer.gui.widget.dialog.DrillPresetsDialog;
 import com.cube.nanotimer.services.db.DataCallback;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.util.DrillCasePreset;
-import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.StepPalette;
@@ -93,6 +92,7 @@ public class CaseSetActivity extends NanoTimerActivity
   public static final int SORT_STATUS = 1;
   public static final int SORT_SOLVE_MEAN = 2;
   public static final int SORT_DRILL_MEAN = 3;
+  private static final String EYEBROW_SEPARATOR = " · ";
 
   /** How many of the latest solves the solve means are read over. */
   private static final int SOLVES_READ = 1000;
@@ -133,6 +133,7 @@ public class CaseSetActivity extends NanoTimerActivity
   private boolean notStandardOnly;
   private MenuItem sortItem;
   private DrillStatsTable table;
+  private CaseListHero hero;
   private SegmentedControl window;
   private final Map<String, CaseKnowledge.Status> statuses =
       new LinkedHashMap<String, CaseKnowledge.Status>();
@@ -488,7 +489,7 @@ public class CaseSetActivity extends NanoTimerActivity
     grid.removeAllViews();
     grid.setVisibility(mean ? View.GONE : View.VISIBLE);
     View section = findViewById(R.id.llDrillStatsSection);
-    View cells = findViewById(R.id.icCaseSetCells);
+    View cells = findViewById(R.id.llCaseSetHero);
     TextView empty = findViewById(R.id.tvCaseSetEmpty);
     empty.setVisibility(View.GONE);
     cells.setVisibility(View.GONE);
@@ -513,25 +514,25 @@ public class CaseSetActivity extends NanoTimerActivity
     empty.setText(sort == SORT_DRILL_MEAN && window().since() != 0
         ? R.string.drill_stats_empty_window : sort == SORT_DRILL_MEAN
         ? R.string.drill_stats_empty : R.string.case_set_no_times);
-    if (anything && sort == SORT_DRILL_MEAN) {
+    if (anything) {
       showCells(rows);
     }
     table.setStats(rows);
   }
 
   /**
-   * The cells over the drill table, from every rep in the period rather than from the cases: a mean
-   * of case means would weigh a case seen twice as heavily as one seen forty times.
+   * The card over a mean table, from every time in it rather than from the cases: a mean of case
+   * means would weigh a case seen twice as heavily as one seen forty times.
    */
   private void showCells(List<DrillCaseStats> rows) {
-    findViewById(R.id.icCaseSetCells).setVisibility(View.VISIBLE);
-    int reps = 0;
+    findViewById(R.id.llCaseSetHero).setVisibility(View.VISIBLE);
+    int count = 0;
     long total = 0;
     long recognition = 0;
     long best = Long.MAX_VALUE;
     String bestCase = null;
     for (DrillCaseStats stats : rows) {
-      reps += stats.getCount();
+      count += stats.getCount();
       total += stats.getTotalMs();
       recognition += stats.getRecognitionMs();
       if (stats.getBestMs() < best) {
@@ -539,26 +540,18 @@ public class CaseSetActivity extends NanoTimerActivity
         bestCase = stats.getCaseCode();
       }
     }
-    FormatterService format = FormatterService.INSTANCE;
-    setCell(R.id.tvDrillCellKeyOne, R.id.tvDrillCellValueOne, R.id.tvDrillCellSubOne,
-        getString(R.string.drill_summary_cell_reps), String.valueOf(reps),
+    if (hero == null) {
+      hero = new CaseListHero(findViewById(R.id.llCaseSetHero), familyColour());
+    }
+    boolean drills = sort == SORT_DRILL_MEAN;
+    hero.setEyebrow(drills ? getString(R.string.case_sheet_in_drills) + EYEBROW_SEPARATOR
+        + getString(window().getLongLabelId()) : getString(R.string.case_sheet_in_solves));
+    hero.setMean(recognition / count, (total - recognition) / count);
+    hero.setCount(getString(drills ? R.string.drill_summary_cell_reps
+            : R.string.case_solves_cell_count), count,
         getResources().getQuantityString(R.plurals.drill_stats_cell_cases, rows.size(),
             rows.size()));
-    ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
-    DrillStatCells.nameHalves(this, familyColour());
-    ((TextView) findViewById(R.id.tvDrillMeanRecognition))
-        .setText(format.formatSolveTime(recognition / reps));
-    ((TextView) findViewById(R.id.tvDrillMeanExecution))
-        .setText(format.formatSolveTime((total - recognition) / reps));
-    setCell(R.id.tvDrillCellKeyThree, R.id.tvDrillCellValueThree, R.id.tvDrillCellSubThree,
-        getString(R.string.drill_summary_cell_best), format.formatSolveTime(best),
-        DrillStatsTable.nameOf(this, bestCase));
-  }
-
-  private void setCell(int keyId, int valueId, int subId, String key, String value, String sub) {
-    ((TextView) findViewById(keyId)).setText(key);
-    ((TextView) findViewById(valueId)).setText(value);
-    ((TextView) findViewById(subId)).setText(sub);
+    hero.setBest(best, null, bestCase);
   }
 
   /** Known first, then slipping, then to learn, then nothing known; the set's order within each. */

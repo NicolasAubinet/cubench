@@ -844,6 +844,17 @@
     <item name="android:fontFeatureSettings">tnum</item>
   </style>
 
+  <!-- The bold line over a drill card's figure, lit in code in the step colour. -->
+  <style name="DrillSummaryEyebrow">
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:ellipsize">end</item>
+    <item name="android:letterSpacing">0.14</item>
+    <item name="android:maxLines">3</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:textSize">11sp</item>
+    <item name="android:textStyle">bold</item>
+  </style>
+
   <!-- The finished drill's card: the legend under its bar, and its two cells. -->
   <style name="DrillSummaryLegend">
     <item name="android:layout_height">wrap_content</item>

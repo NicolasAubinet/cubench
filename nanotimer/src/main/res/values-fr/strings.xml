@@ -1043,9 +1043,8 @@
   <string name="drill_stats_window_week_long">7 derniers jours</string>
   <string name="drill_stats_window_month_long">30 derniers jours</string>
   <string name="drill_stats_window_all_long">Depuis le début</string>
-  <string name="drill_case_stats_title">Cas</string>
   <string name="drill_case_stats_attempts">Essais</string>
-  <string name="drill_case_stats_hint">Appuyez sur le cas pour voir ses algorithmes. Glissez un essai vers la gauche pour le retirer.</string>
+  <string name="drill_case_stats_hint">Glissez un essai vers la gauche pour le retirer.</string>
   <string name="drill_case_stats_removed">Essai retiré</string>
   <string name="drill_case_stats_empty">Aucun essai sur cette période.</string>
   <string name="drill_case_stats_cell_worst">Pire %s</string>
@@ -1131,7 +1130,6 @@
   <string name="case_sheet_in_solves">En résolution</string>
   <string name="case_sheet_in_drills">En exercice</string>
   <string name="case_solves_label">Résolutions</string>
-  <string name="case_solves_hint">Appuyez sur le cas pour voir ses algorithmes, et sur une résolution pour l\'ouvrir.</string>
   <string name="case_solves_empty">Aucune résolution n\'a chronométré ce cas.</string>
   <string name="case_solves_cell_count">Fois</string>
   <string name="case_solves_note">Résolution %s</string>

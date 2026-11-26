@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- One case, and the times in solves the case sheet's In solves card is the mean of. Shaped like
-     the drill attempts screen, so the two read alike. -->
+     the drill attempts screen, so the two read alike, under a finished drill's card. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="match_parent"
@@ -17,60 +17,7 @@
      android:paddingTop="12dp">
 
     <!-- The case opens its sheet; each row below opens its solve. -->
-    <LinearLayout
-       android:id="@+id/llCaseSolvesHeader"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:background="?android:attr/selectableItemBackground"
-       android:clickable="true"
-       android:focusable="true"
-       android:gravity="center_vertical"
-       android:orientation="horizontal">
-
-      <com.cube.nanotimer.gui.widget.LastLayerCaseView
-         android:id="@+id/vCaseSolvesChart"
-         android:layout_width="64dp"
-         android:layout_height="64dp"/>
-
-      <com.cube.nanotimer.gui.widget.PairCaseView
-         android:id="@+id/vCaseSolvesPair"
-         android:layout_width="64dp"
-         android:layout_height="64dp"
-         android:visibility="gone"/>
-
-      <LinearLayout
-         android:layout_width="0dp"
-         android:layout_height="wrap_content"
-         android:layout_weight="1"
-         android:layout_marginLeft="14dp"
-         android:orientation="vertical">
-
-        <TextView
-           android:id="@+id/tvCaseSolvesName"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:ellipsize="end"
-           android:fontFamily="@font/roboto_medium"
-           android:maxLines="1"
-           android:textColor="@color/white"
-           android:textSize="22sp"/>
-
-        <TextView
-           android:id="@+id/tvCaseSolvesWindow"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="2dp"
-           android:textColor="@color/secondary_text"
-           android:textSize="13sp"/>
-      </LinearLayout>
-    </LinearLayout>
-
-    <!-- The same three cells the stats screen and a finished drill are read from. -->
-    <include
-       layout="@layout/drill_stat_cells"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="16dp"/>
+    <include layout="@layout/case_list_hero"/>
 
     <TextView
        android:id="@+id/tvCaseSolvesEmpty"
@@ -156,13 +103,6 @@
              android:orientation="vertical"
              android:showDividers="middle"/>
 
-          <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:layout_marginTop="12dp"
-             android:text="@string/case_solves_hint"
-             android:textColor="@color/secondary_text"
-             android:textSize="12sp"/>
         </LinearLayout>
       </ScrollView>
     </LinearLayout>

@@ -66,4 +66,14 @@
      android:layout_width="@dimen/drill_case_lead_column"
      android:textSize="19sp"/>
 
+  <!-- Only on a list whose rows open something. -->
+  <ImageView
+     android:id="@+id/ivDrillAttemptChevron"
+     android:layout_width="16dp"
+     android:layout_height="16dp"
+     android:layout_marginLeft="@dimen/space_xs"
+     android:contentDescription="@null"
+     android:src="@drawable/ic_chevron_right"
+     android:visibility="gone"/>
+
 </LinearLayout>

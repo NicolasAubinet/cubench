@@ -12,16 +12,13 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.CaseListHero;
 import com.cube.nanotimer.gui.widget.CaseTableHeadings;
-import com.cube.nanotimer.gui.widget.DrillStatCells;
-import com.cube.nanotimer.gui.widget.LastLayerCaseView;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.services.db.DataCallback;
-import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
-import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.util.view.SwipeToRemove;
@@ -59,6 +56,8 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
   private static final int[] HEADING_LABELS = {0, R.string.drill_summary_column_recognition,
       R.string.drill_summary_column_execution, R.string.drill_summary_column_total};
   private static final boolean[] OPENS_DESCENDING = {false, true, true, true};
+  /** The one figure a row is coloured by; the halves are drawn by the bar under the date. */
+  private static final int TOTAL = 2;
 
   /** A thrown-out line: still legible, and plainly not one of the attempts being read. */
   private static final float DELETED_ALPHA = 0.45f;
@@ -87,26 +86,23 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
   private final TimeColorScale[] scales = new TimeColorScale[VALUE_IDS.length];
   /** The one family this screen ever reads, since it is reading one case of it. */
   private int hue;
+  private CaseListHero hero;
 
   @SuppressWarnings("unchecked") // the only thing this screen ever retains is its own attempts
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.drill_case_stats);
-    setTitle(R.string.drill_case_stats_title);
+    setTitle(R.string.case_sheet_in_drills);
 
     caseCode = getIntent().getStringExtra(EXTRA_CASE);
     hue = StepPalette.cfop(this).colorFor(caseCode);
     window = DrillStatsWindow.of(getIntent().getStringExtra(EXTRA_WINDOW));
     rows = findViewById(R.id.llDrillCaseStatsRows);
 
-    ((LastLayerCaseView) findViewById(R.id.vDrillCaseStatsChart))
-        .setDiagram(LastLayerDiagram.forCase(caseCode));
-    ((TextView) findViewById(R.id.tvDrillCaseStatsName))
-        .setText(Utils.toSmartCubeCaseHeadline(this, caseCode));
-    ((TextView) findViewById(R.id.tvDrillCaseStatsWindow)).setText(window.getLongLabelId());
-    findViewById(R.id.llDrillCaseStatsHeader).setOnClickListener(
-        v -> DialogUtils.showFragment(this, CaseSheet.newInstance(caseCode)));
+    hero = new CaseListHero(findViewById(android.R.id.content), hue);
+    hero.showCase(caseCode, v -> DialogUtils.showFragment(this, CaseSheet.newInstance(caseCode)));
+    hero.setSub(getString(window.getLongLabelId()));
     findViewById(R.id.tvDrillCaseUndo).setOnClickListener(v -> undo());
     headings = new CaseTableHeadings(findViewById(R.id.llDrillCaseStatsSection), HEADING_LABELS,
         OPENS_DESCENDING, CaseTableHeadings.LABEL_COLUMN, (column, descending) -> order());
@@ -154,7 +150,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     TextView empty = findViewById(R.id.tvDrillCaseStatsEmpty);
     empty.setVisibility(anything ? View.GONE : View.VISIBLE);
     if (!anything) {
-      findViewById(R.id.llDrillSummaryCells).setVisibility(View.GONE);
+      hero.showFigures(false);
       empty.setText(R.string.drill_case_stats_empty);
       return;
     }
@@ -176,14 +172,14 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     refresh();
   }
 
-  /** Puts the lines in the order the headings ask for; an attempt with no time sinks either way. */
+  /**
+   * Puts the lines in the order the headings ask for; an attempt with no time sinks either way. In
+   * date order each drill's attempts go under one line naming the drill.
+   */
   private void order() {
     final int column = headings.column();
     final boolean descending = headings.descending();
-    List<View> lines = new ArrayList<View>();
-    for (int i = 0; i < rows.getChildCount(); i++) {
-      lines.add(rows.getChildAt(i));
-    }
+    List<View> lines = attemptLines();
     Collections.sort(lines, (a, b) -> {
       DrillCaseRep repA = ((DrillCaseAttempt) a.getTag()).getRep();
       DrillCaseRep repB = ((DrillCaseAttempt) b.getTag()).getRep();
@@ -200,10 +196,34 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
       return descending ? -order : order;
     });
     rows.removeAllViews();
+    boolean grouped = column == CaseTableHeadings.LABEL_COLUMN;
+    long drill = -1;
+    LayoutInflater inflater = LayoutInflater.from(this);
     for (View line : lines) {
+      DrillCaseAttempt attempt = (DrillCaseAttempt) line.getTag();
+      if (grouped && attempt.getDrillId() != drill) {
+        drill = attempt.getDrillId();
+        TextView group = (TextView) inflater.inflate(R.layout.drill_case_attempt_group, rows, false);
+        group.setText(FormatterService.INSTANCE.formatSessionStart(attempt.getTimestamp()));
+        rows.addView(group);
+      }
+      ((TextView) line.findViewById(R.id.tvDrillAttemptWhen)).setText(grouped
+          ? getString(R.string.drill_summary_rep_number, attempt.getRep().getPosition() + 1)
+          : when(attempt));
       rows.addView(line);
     }
     headings.refresh();
+  }
+
+  /** The attempt lines on the list, its drill headings left out. */
+  private List<View> attemptLines() {
+    List<View> lines = new ArrayList<View>();
+    for (int i = 0; i < rows.getChildCount(); i++) {
+      if (rows.getChildAt(i).getTag() instanceof DrillCaseAttempt) {
+        lines.add(rows.getChildAt(i));
+      }
+    }
+    return lines;
   }
 
   /** The attempts still on the list, the ones swiped away left out. */
@@ -235,8 +255,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     List<DrillCaseAttempt> counted = counted();
     buildScales(counted);
     showFigures(counted);
-    for (int i = 0; i < rows.getChildCount(); i++) {
-      View line = rows.getChildAt(i);
+    for (View line : attemptLines()) {
       fill(line, (DrillCaseAttempt) line.getTag());
     }
   }
@@ -252,10 +271,10 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     }
   }
 
-  /** The three cells, in the shape every drill screen reports its figures in. */
+  /** The card's figures, in the shape a finished drill reports them in. */
   private void showFigures(List<DrillCaseAttempt> counted) {
     boolean timed = !counted.isEmpty();
-    findViewById(R.id.llDrillSummaryCells).setVisibility(timed ? View.VISIBLE : View.GONE);
+    hero.showFigures(timed);
     TextView empty = findViewById(R.id.tvDrillCaseStatsEmpty);
     // Every attempt was a skip, a look-up or was thrown out: there are lines to read and no figures.
     empty.setVisibility(timed ? View.GONE : View.VISIBLE);
@@ -276,24 +295,12 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
       worst = Math.max(worst, rep.getTotalMs());
     }
     int reps = counted.size();
-
-    setCell(R.id.tvDrillCellKeyOne, R.id.tvDrillCellValueOne, R.id.tvDrillCellSubOne,
-        getString(R.string.drill_summary_cell_reps), String.valueOf(reps),
-        // Only where they differ: "12 of 12" would be arithmetic dressed as a fact.
-        reps == listed() ? "" : getString(R.string.drill_summary_cell_of, listed()));
-
-    ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
-    DrillStatCells.nameHalves(this, hue);
-    ((TextView) findViewById(R.id.tvDrillMeanRecognition))
-        .setText(FormatterService.INSTANCE.formatSolveTime(recognition / reps));
-    ((TextView) findViewById(R.id.tvDrillMeanExecution))
-        .setText(FormatterService.INSTANCE.formatSolveTime((total - recognition) / reps));
-
-    setCell(R.id.tvDrillCellKeyThree, R.id.tvDrillCellValueThree, R.id.tvDrillCellSubThree,
-        getString(R.string.drill_summary_cell_best),
-        FormatterService.INSTANCE.formatSolveTime(best),
-        getString(R.string.drill_case_stats_cell_worst,
-            FormatterService.INSTANCE.formatSolveTime(worst)));
+    hero.setMean(recognition / reps, (total - recognition) / reps);
+    // Only where they differ: "12 of 12" would be arithmetic dressed as a fact.
+    hero.setCount(getString(R.string.drill_summary_cell_reps), reps,
+        reps == listed() ? null : getString(R.string.drill_summary_cell_of, listed()));
+    hero.setBest(best, getString(R.string.drill_case_stats_cell_worst,
+        FormatterService.INSTANCE.formatSolveTime(worst)), null);
   }
 
   private void fill(View line, DrillCaseAttempt attempt) {
@@ -301,9 +308,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     boolean gone = rep.isDeleted();
     line.setAlpha(gone ? DELETED_ALPHA : 1f);
 
-    TextView when = line.findViewById(R.id.tvDrillAttemptWhen);
-    when.setText(when(attempt));
-    strikeThrough(when, gone);
+    strikeThrough((TextView) line.findViewById(R.id.tvDrillAttemptWhen), gone);
 
     for (int column = 0; column < VALUE_IDS.length; column++) {
       TextView value = line.findViewById(VALUE_IDS[column]);
@@ -316,8 +321,8 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
       } else {
         long time = value(rep, column);
         value.setText(FormatterService.INSTANCE.formatSolveTime(time));
-        value.setTextColor(attempt.isCounted() ? scales[column].colorFor(time, false)
-            : color(R.color.secondary_text));
+        value.setTextColor(!attempt.isCounted() ? color(R.color.secondary_text)
+            : column == TOTAL ? scales[column].colorFor(time, false) : color(R.color.gray400));
       }
     }
 
@@ -339,6 +344,7 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
     final int at = rows.indexOfChild(line);
     rows.removeView(line);
     setDeleted(attempt, true);
+    order(); // a drill left with no attempt loses its heading
     undoing = () -> {
       line.setTranslationX(0);
       line.setAlpha(1f);
@@ -413,12 +419,6 @@ public class DrillCaseStatsActivity extends NanoTimerActivity {
       default:
         return rep.getTotalMs();
     }
-  }
-
-  private void setCell(int keyId, int valueId, int subId, String key, String value, String sub) {
-    ((TextView) findViewById(keyId)).setText(key);
-    ((TextView) findViewById(valueId)).setText(value);
-    ((TextView) findViewById(subId)).setText(sub);
   }
 
   private void strikeThrough(TextView view, boolean struck) {

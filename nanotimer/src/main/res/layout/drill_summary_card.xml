@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- A finished drill's card, shared by both summaries and lit in code in the step colour, as the
-     setup screen's card is. A case drill shows the bar, a cross drill the strip. -->
+     setup screen's card is. A case drill shows the bar, a cross drill the strip. The case lists
+     read their figures from it too, through case_list_hero. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:id="@+id/llDrillSummaryCard"
    android:layout_width="match_parent"
@@ -19,15 +20,9 @@
 
     <TextView
        android:id="@+id/tvDrillSummaryEyebrow"
+       style="@style/DrillSummaryEyebrow"
        android:layout_width="0dp"
-       android:layout_height="wrap_content"
-       android:layout_weight="1"
-       android:ellipsize="end"
-       android:letterSpacing="0.14"
-       android:maxLines="3"
-       android:textAllCaps="true"
-       android:textSize="11sp"
-       android:textStyle="bold"/>
+       android:layout_weight="1"/>
 
     <!-- Fixed before the drill, so it is said rather than offered. -->
     <TextView

@@ -1042,9 +1042,8 @@
   <string name="drill_stats_window_week_long">Últimos 7 días</string>
   <string name="drill_stats_window_month_long">Últimos 30 días</string>
   <string name="drill_stats_window_all_long">Desde el principio</string>
-  <string name="drill_case_stats_title">Caso</string>
   <string name="drill_case_stats_attempts">Intentos</string>
-  <string name="drill_case_stats_hint">Toca el caso para ver sus algoritmos. Desliza un intento a la izquierda para quitarlo.</string>
+  <string name="drill_case_stats_hint">Desliza un intento a la izquierda para quitarlo.</string>
   <string name="drill_case_stats_removed">Intento quitado</string>
   <string name="drill_case_stats_empty">Ningún intento en este periodo.</string>
   <string name="drill_case_stats_cell_worst">Peor %s</string>
@@ -1130,7 +1129,6 @@
   <string name="case_sheet_in_solves">En resoluciones</string>
   <string name="case_sheet_in_drills">En ejercicios</string>
   <string name="case_solves_label">Resoluciones</string>
-  <string name="case_solves_hint">Toca el caso para ver sus algoritmos, una resolución para abrirla.</string>
   <string name="case_solves_empty">Ninguna resolución ha cronometrado este caso.</string>
   <string name="case_solves_cell_count">Veces</string>
   <string name="case_solves_note">Resolución %s</string>

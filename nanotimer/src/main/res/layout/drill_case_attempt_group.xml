@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The drill a run of attempts came from, over them while the list is in date order. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="match_parent"
+   android:layout_height="wrap_content"
+   android:letterSpacing="0.1"
+   android:paddingLeft="@dimen/space_xs"
+   android:paddingTop="14dp"
+   android:paddingRight="@dimen/space_xs"
+   android:paddingBottom="4dp"
+   android:singleLine="true"
+   android:textAllCaps="true"
+   android:textColor="@color/secondary_text"
+   android:textSize="11sp"/>
