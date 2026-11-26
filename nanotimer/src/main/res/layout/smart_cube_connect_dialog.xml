@@ -132,8 +132,8 @@
              android:layout_height="wrap_content"
              android:orientation="vertical"/>
 
-          <!-- Realigning a cube that has lost track of itself: the explanation and its button, kept
-               together in one well so the button never reads as a general-purpose action. -->
+          <!-- Realigning a cube that has lost track of itself: the picture and its buttons, kept
+               together in one well so the buttons never read as general-purpose actions. -->
           <LinearLayout
              android:id="@+id/smartCubeResyncBlock"
              android:layout_width="match_parent"
@@ -143,9 +143,8 @@
              android:background="@drawable/cross_section_card"
              android:padding="10dp"
              android:visibility="gone">
-            <!-- The state the app currently reads off the cube, so "the app thinks your cube is
-                 scrambled" is something to check rather than something to guess at. It follows the
-                 cube's own orientation, so it can be held up against the one in the hand.
+            <!-- The state the app currently reads off the cube, held up against the one in the hand
+                 to see whether it needs "My cube is solved". It follows the cube's own orientation.
 
                  Kept deliberately short: the well sits at the bottom of a sheet that also carries
                  the halo, the title and three buttons, and every dp here is one that pushes the last
@@ -155,12 +154,6 @@
                android:layout_width="match_parent"
                android:layout_height="72dp"
                android:layout_marginBottom="4dp"/>
-            <TextView
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:text="@string/smart_cube_resync_hint"
-               android:textColor="@color/secondary_text"
-               android:textSize="12.5sp"/>
             <Button
                android:id="@+id/btnSmartCubeResync"
                android:layout_width="match_parent"

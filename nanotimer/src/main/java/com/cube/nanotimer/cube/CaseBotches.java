@@ -297,7 +297,7 @@ public final class CaseBotches {
 
   /**
    * The solver's own executions of the case, from the recent solves it came up in. One turned once
-   * is left out, as the case sheet leaves it out: a misread rebuilt into a solve is not a habit.
+   * is left out: a misread rebuilt into a solve is not a habit.
    */
   static List<String> own(List<SolveTime> solves, String caseCode) {
     if (solves == null || solves.isEmpty()) {

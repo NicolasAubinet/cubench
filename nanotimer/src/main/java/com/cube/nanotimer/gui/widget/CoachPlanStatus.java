@@ -54,7 +54,8 @@ import java.util.List;
  * One whose access has ended reads there that it has, with the way back to the purchase.
  *
  * <p>An install that never had the coach reads the offer inside the card that explains a plan:
- * how far it is from the solves a first plan needs, then the button that opens the purchase.
+ * how far it is from the solves a first plan needs, then the button that opens the purchase. An
+ * open beta offers Join from the first smart cube solve on the type on screen, meter still shown.
  */
 public class CoachPlanStatus {
 
@@ -273,7 +274,8 @@ public class CoachPlanStatus {
 
   /**
    * The purchase is offered once a solve type has the solves a first plan needs, so the free weeks
-   * are not spent waiting for one. Until then the card counts the solves of the type on screen.
+   * are not spent waiting for one. Until then the card counts the solves of the type on screen; an
+   * open beta still offers Join under that count from the type's first smart cube solve.
    */
   private void loadOffer() {
     App.INSTANCE.getService().getSolveTypes(CubeType.THREE_BY_THREE,

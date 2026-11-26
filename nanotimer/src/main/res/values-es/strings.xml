@@ -823,7 +823,6 @@
   <string name="smart_cube_done">Hecho</string>
   <string name="smart_cube_auto_connect">Conectar este cubo al abrir la aplicación</string>
   <string name="smart_cube_resync">Mi cubo está resuelto</string>
-  <string name="smart_cube_resync_hint">Si la aplicación cree que tu cubo está mezclado cuando no lo está, el cubo ha perdido la cuenta. Resuélvelo y pulsa el botón de abajo.</string>
   <string name="smart_cube_resynced">Estado del cubo realineado</string>
   <string name="smart_cube_straighten">Reiniciar la orientación</string>
   <string name="smart_cube_straightened">Orientación del cubo realineada</string>
