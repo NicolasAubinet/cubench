@@ -157,6 +157,8 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
 
   /** The step colour the summary is lit in, which its bar takes too. */
   private int summaryHue;
+  /** How long the drill ran, from the screen opening to the summary, or -1 when not known. */
+  private long durationMs = -1;
   /** Whether the summary counts finishes on the strip rather than dividing time on the bar. */
   private boolean stripShown;
 
@@ -701,7 +703,25 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
 
   /** The line over the hero, which by default only says the drill is over. */
   protected void setSummaryEyebrow(CharSequence text) {
-    ((TextView) findViewById(R.id.tvDrillSummaryEyebrow)).setText(text);
+    ((TextView) findViewById(R.id.tvDrillSummaryEyebrow)).setText(withDuration(text));
+  }
+
+  /** The eyebrow's text with how long the drill lasted after it, pauses included. */
+  private CharSequence withDuration(CharSequence text) {
+    if (durationMs < 0) {
+      return text;
+    }
+    long seconds = durationMs / 1000;
+    String duration;
+    if (seconds < 60) {
+      duration = getString(R.string.drill_summary_duration_seconds, seconds);
+    } else if (seconds < 3600) {
+      duration = getString(R.string.drill_summary_duration_minutes, Math.round(seconds / 60.0));
+    } else {
+      duration = getString(R.string.drill_summary_duration_hours, seconds / 3600,
+          (seconds % 3600) / 60);
+    }
+    return getString(R.string.drill_summary_subtitle, text, duration);
   }
 
   /**
@@ -797,6 +817,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
   protected void showSummaryFor(int hue) {
     if (recorder != null) {
       recorder.end(endReason);
+      durationMs = System.currentTimeMillis() - recorder.getStartedAtMs(); // negative if the clock went back
     }
     summaryHue = hue;
     runningLayout.setVisibility(View.GONE);
@@ -804,7 +825,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     StepCardBackground.paint(findViewById(R.id.llDrillSummaryCard), hue);
     TextView eyebrow = findViewById(R.id.tvDrillSummaryEyebrow);
     eyebrow.setTextColor(hue);
-    eyebrow.setText(R.string.drill_finished);
+    eyebrow.setText(withDuration(getString(R.string.drill_finished)));
     ((TextView) findViewById(R.id.tvDrillSummaryMode)).setText(modeName());
   }
 

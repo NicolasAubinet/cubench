@@ -1097,6 +1097,10 @@
   <string name="drill_case_stats_when">%1$s · rep %2$d</string>
   <!-- Punctuation between what was drilled and the mode it was drilled in. -->
   <string name="drill_summary_subtitle" translatable="false">%1$s · %2$s</string>
+  <!-- How long a drill lasted, said the same way in every language. -->
+  <string name="drill_summary_duration_seconds" translatable="false">%1$d s</string>
+  <string name="drill_summary_duration_minutes" translatable="false">%1$d min</string>
+  <string name="drill_summary_duration_hours" translatable="false">%1$d h %2$02d</string>
   <string name="drill_needs_cube">Connect your smart cube to run a drill.</string>
   <string name="drill_cube_away">Cube disconnected. Reconnect it to carry on.</string>
   <string name="drill_no_known_cases">This drill has no case this app knows how to scramble.</string>
