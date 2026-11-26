@@ -1722,8 +1722,10 @@
   <string name="news_analysis_body">Suas etapas e casos mais lentos, e os algoritmos que você realmente usa.</string>
   <string name="news_drills_title">Treinos</string>
   <string name="news_drills_body">Pratique seus casos mais fracos, com metas que te deixam mais rápido.</string>
-  <string name="news_coach_title">Coach</string>
-  <string name="news_coach_body">Um plano de treino escrito a partir das suas próprias resoluções, toda semana.</string>
+  <string name="news_learn_title">Aprenda novos algoritmos</string>
+  <string name="news_learn_body">Escolha os próximos casos a aprender, selecione um algoritmo e treine até dominá-lo. A análise também mostra onde você usa um pouco comum.</string>
+  <string name="news_coach_title">Coach com IA</string>
+  <string name="news_coach_body">Um smart cube registra cada giro, cada pausa e cada erro, muito mais do que alguém conseguiria revisar à mão. O coach analisa tudo e escreve para você, toda semana, um plano focado nos seus hábitos e pontos fracos.</string>
   <string name="news_cubes">Funciona com smart cubes GAN, MoYu e QiYi.</string>
   <string name="news_all_notes">Todas as notas de versão</string>
   <string name="news_later">Depois</string>
@@ -1750,7 +1752,7 @@
   <string name="coach_beta_offer_note">Grátis enquanto o coach estiver em beta. Nada é cobrado quando terminar.</string>
   <string name="coach_beta_private">Nada sai do seu celular a menos que você entre no beta ou envie um relatório.</string>
   <string name="coach_beta_drawer_free">Grátis durante o beta</string>
-  <string name="coach_beta_news_line">Um coach com IA, grátis enquanto estiver em beta</string>
+  <string name="news_coach_free_tag">Grátis no beta</string>
   <string name="coach_beta_end_title">Obrigado por testar o coach</string>
   <string name="coach_beta_end_sub">O beta terminou</string>
   <string name="coach_beta_end_body">Como agradecimento, seus dois primeiros meses no plano mensal saem pela metade do preço se quiser continuar.</string>

@@ -1720,8 +1720,10 @@
   <string name="news_analysis_body">Vos étapes et cas les plus lents, et les algorithmes que vous utilisez vraiment.</string>
   <string name="news_drills_title">Drills</string>
   <string name="news_drills_body">Travaillez vos cas les plus faibles, avec des objectifs qui vous font progresser.</string>
-  <string name="news_coach_title">Coach</string>
-  <string name="news_coach_body">Un plan de travail écrit à partir de vos propres résolutions, chaque semaine.</string>
+  <string name="news_learn_title">Apprendre de nouveaux algorithmes</string>
+  <string name="news_learn_body">Sélectionnez les prochains cas à apprendre, choisissez un algorithme et entraînez-le jusqu\'à le maîtriser. L\'analyse montre aussi où vous utilisez un algorithme inhabituel.</string>
+  <string name="news_coach_title">Coach IA</string>
+  <string name="news_coach_body">Un smart cube enregistre chaque mouvement, chaque pause et chaque erreur, bien plus que ce qu\'on pourrait relire à la main. Le coach analyse tout et vous écrit chaque semaine un plan centré sur vos habitudes et vos points faibles.</string>
   <string name="news_cubes">Compatible avec les smart cubes GAN, MoYu et QiYi.</string>
   <string name="news_all_notes">Toutes les notes de version</string>
   <string name="news_later">Plus tard</string>
@@ -1748,7 +1750,7 @@
   <string name="coach_beta_offer_note">Gratuit tant que le coach est en bêta. Rien n\'est facturé à la fin.</string>
   <string name="coach_beta_private">Rien ne quitte votre téléphone sans inscription à la bêta ou rapport envoyé.</string>
   <string name="coach_beta_drawer_free">Gratuit pendant la bêta</string>
-  <string name="coach_beta_news_line">Un coach IA, gratuit tant qu\'il est en bêta</string>
+  <string name="news_coach_free_tag">Gratuit en bêta</string>
   <string name="coach_beta_end_title">Merci d\'avoir testé le coach</string>
   <string name="coach_beta_end_sub">La bêta est terminée</string>
   <string name="coach_beta_end_body">Pour vous remercier, vos deux premiers mois de l\'abonnement mensuel sont à moitié prix si vous voulez continuer.</string>

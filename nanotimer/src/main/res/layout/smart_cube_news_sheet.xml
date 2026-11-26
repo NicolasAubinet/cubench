@@ -17,93 +17,109 @@
      android:background="@drawable/bottomsheet_drag_handle"/>
 
   <!-- The bar sits in the sheet's side margin, clear of the text, and never fades. -->
-  <androidx.core.widget.NestedScrollView
+  <FrameLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
-     android:layout_marginTop="4dp"
-     android:layout_marginRight="-12dp"
-     android:layout_marginEnd="-12dp"
-     android:paddingRight="12dp"
-     android:paddingEnd="12dp"
-     android:scrollbars="vertical"
-     android:fadeScrollbars="false"
-     android:scrollbarStyle="outsideOverlay"
-     android:scrollbarSize="4dp"
-     android:scrollbarThumbVertical="@drawable/sheet_scroll_thumb"
-     android:scrollbarTrackVertical="@drawable/sheet_scroll_track">
-
-    <LinearLayout
+     android:layout_marginTop="4dp">
+    <androidx.core.widget.NestedScrollView
+       android:id="@+id/newsScroll"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:orientation="vertical">
+       android:requiresFadingEdge="vertical"
+       android:fadingEdgeLength="56dp"
+       android:layout_marginRight="-12dp"
+       android:layout_marginEnd="-12dp"
+       android:paddingRight="12dp"
+       android:paddingEnd="12dp"
+       android:scrollbars="vertical"
+       android:fadeScrollbars="false"
+       android:scrollbarStyle="outsideOverlay"
+       android:scrollbarSize="4dp"
+       android:scrollbarThumbVertical="@drawable/sheet_scroll_thumb"
+       android:scrollbarTrackVertical="@drawable/sheet_scroll_track">
 
-      <!-- The pill rides on the top of the mark's glow, so it takes no line of its own. -->
-      <FrameLayout
-         android:layout_width="wrap_content"
+      <LinearLayout
+         android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_gravity="center_horizontal">
+         android:orientation="vertical">
 
-        <include
-           layout="@layout/smart_cube_hero"
-           android:layout_width="120dp"
-           android:layout_height="120dp"
-           android:layout_marginTop="8dp"/>
-
-        <TextView
-           android:id="@+id/tvNewsPill"
+        <!-- The pill rides on the top of the mark's glow, so it takes no line of its own. -->
+        <FrameLayout
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:layout_gravity="top|center_horizontal"
-           android:background="@drawable/smart_cube_pill"
-           android:backgroundTint="@color/pill_scan_bg"
-           android:paddingLeft="12dp"
-           android:paddingRight="12dp"
-           android:paddingTop="3dp"
-           android:paddingBottom="3dp"
-           android:textAllCaps="true"
+           android:layout_gravity="center_horizontal">
+
+          <include
+             layout="@layout/smart_cube_hero"
+             android:layout_width="120dp"
+             android:layout_height="120dp"
+             android:layout_marginTop="8dp"/>
+
+          <TextView
+             android:id="@+id/tvNewsPill"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_gravity="top|center_horizontal"
+             android:background="@drawable/smart_cube_pill"
+             android:backgroundTint="@color/pill_scan_bg"
+             android:paddingLeft="12dp"
+             android:paddingRight="12dp"
+             android:paddingTop="3dp"
+             android:paddingBottom="3dp"
+             android:textAllCaps="true"
+             android:textColor="@color/lightblue"
+             android:textSize="11.5sp"
+             android:textStyle="bold"
+             android:letterSpacing="0.08"/>
+        </FrameLayout>
+
+        <TextView
+           android:id="@+id/tvNewsTitle"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="10dp"
+           android:gravity="center"
+           android:textColor="@color/white"
+           android:textSize="24sp"
+           android:textStyle="bold"/>
+
+        <TextView
+           android:id="@+id/tvNewsBody"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="8dp"
+           android:gravity="center"
+           android:lineSpacingMultiplier="1.15"
+           android:textColor="@color/secondary_text"
+           android:textSize="14sp"/>
+
+        <include layout="@layout/smart_cube_features"/>
+
+
+        <TextView
+           android:id="@+id/tvNewsAllNotes"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_gravity="center_horizontal"
+           android:layout_marginTop="6dp"
+           android:padding="8dp"
+           android:background="?android:attr/selectableItemBackground"
+           android:text="@string/news_all_notes"
            android:textColor="@color/lightblue"
-           android:textSize="11.5sp"
-           android:textStyle="bold"
-           android:letterSpacing="0.08"/>
-      </FrameLayout>
-
-      <TextView
-         android:id="@+id/tvNewsTitle"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="10dp"
-         android:gravity="center"
-         android:textColor="@color/white"
-         android:textSize="24sp"
-         android:textStyle="bold"/>
-
-      <TextView
-         android:id="@+id/tvNewsBody"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_marginTop="8dp"
-         android:gravity="center"
-         android:lineSpacingMultiplier="1.15"
-         android:textColor="@color/secondary_text"
-         android:textSize="14sp"/>
-
-      <include layout="@layout/smart_cube_features"/>
-
-
-      <TextView
-         android:id="@+id/tvNewsAllNotes"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_gravity="center_horizontal"
-         android:layout_marginTop="6dp"
-         android:padding="8dp"
-         android:background="?android:attr/selectableItemBackground"
-         android:text="@string/news_all_notes"
-         android:textColor="@color/lightblue"
-         android:textSize="13sp"/>
-    </LinearLayout>
-  </androidx.core.widget.NestedScrollView>
+           android:textSize="13sp"/>
+      </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <!-- More below: shown until the end of the list is in sight. -->
+    <ImageView
+       android:id="@+id/imgScrollHint"
+       android:layout_width="28dp"
+       android:layout_height="28dp"
+       android:layout_gravity="bottom|center_horizontal"
+       android:src="@drawable/ic_chevron_down"
+       android:tint="@color/lightblue"
+       android:importantForAccessibility="no"/>
+  </FrameLayout>
 
   <LinearLayout
      android:layout_width="match_parent"

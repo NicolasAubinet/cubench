@@ -18,7 +18,7 @@ import java.util.List;
  */
 public final class SmartCubeFeatures {
 
-  /** The smart cube's features, icon, title and sentence, in the order they are listed. */
+  /** Each feature's icon, title and sentence, in order; the coach last, where its tag goes. */
   private static final int[][] FEATURES = {
       {R.drawable.ic_intro_timing, R.string.news_timing_title, R.string.news_timing_body},
       {R.drawable.ic_intro_scramble, R.string.news_scramble_title, R.string.news_scramble_body},
@@ -26,6 +26,7 @@ public final class SmartCubeFeatures {
       {R.drawable.ic_solve_replay, R.string.news_replay_title, R.string.news_replay_body},
       {R.drawable.menu_analysis, R.string.news_analysis_title, R.string.news_analysis_body},
       {R.drawable.ic_menu_drill, R.string.news_drills_title, R.string.news_drills_body},
+      {R.drawable.ic_coach_point_learn, R.string.news_learn_title, R.string.news_learn_body},
       {R.drawable.menu_coach, R.string.news_coach_title, R.string.news_coach_body}};
 
   private SmartCubeFeatures() {
@@ -47,10 +48,11 @@ public final class SmartCubeFeatures {
       features.addView(row);
       rows.add(row);
     }
-    // Read when drawn, so a beta that has ended takes its line away.
+    // Read when drawn, so a beta that has ended takes the coach's tag away.
     CoachBetaLook look = CoachBetaLook.of(root.getContext());
-    root.findViewById(R.id.llNewsCoachBeta).setVisibility(
-        look != null && look.newsLine() ? View.VISIBLE : View.GONE);
+    if (look != null && look.newsLine()) {
+      rows.get(rows.size() - 1).findViewById(R.id.tvNewsRowTag).setVisibility(View.VISIBLE);
+    }
     return rows;
   }
 }

@@ -30,205 +30,221 @@
        android:contentDescription="@string/smart_cube_help"/>
   </FrameLayout>
 
-  <androidx.core.widget.NestedScrollView
+  <FrameLayout
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
      android:layout_marginTop="4dp">
-
-    <FrameLayout
+    <androidx.core.widget.NestedScrollView
+       android:id="@+id/smartCubeScroll"
        android:layout_width="match_parent"
-       android:layout_height="wrap_content">
+       android:layout_height="wrap_content"
+       android:requiresFadingEdge="vertical"
+       android:fadingEdgeLength="56dp">
 
-      <!-- ===== Pairing panel ===== -->
-      <LinearLayout
-         android:id="@+id/smartCubePairPanel"
+      <FrameLayout
          android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:orientation="vertical"
-         android:gravity="center_horizontal">
+         android:layout_height="wrap_content">
 
-        <FrameLayout
-           android:id="@+id/smartCubeRadarWell"
-           android:layout_width="148dp"
-           android:layout_height="148dp">
-          <com.cube.nanotimer.util.view.SmartCubeRadarView
-             android:id="@+id/smartCubeRadar"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"/>
-          <ImageView
-             android:id="@+id/imgSmartCubeGlyph"
-             android:layout_width="46dp"
-             android:layout_height="46dp"
-             android:layout_gravity="center"
-             android:src="@drawable/ic_smart_cube"
-             android:tint="@color/lightblue"
-             android:contentDescription="@null"/>
-        </FrameLayout>
-
-        <TextView
-           android:id="@+id/tvSmartCubeStatusPill"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginBottom="8dp"
-           android:background="@drawable/smart_cube_pill"
-           android:paddingLeft="11dp"
-           android:paddingRight="11dp"
-           android:paddingTop="3dp"
-           android:paddingBottom="3dp"
-           android:textSize="12sp"
-           android:textStyle="bold"
-           android:visibility="gone"/>
-
-        <TextView
-           android:id="@+id/tvSmartCubeStatusTitle"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:gravity="center"
-           android:textColor="@color/white"
-           android:textSize="17sp"
-           android:textStyle="bold"/>
-
-        <TextView
-           android:id="@+id/tvSmartCubeStatusBody"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="4dp"
-           android:gravity="center"
-           android:textColor="@color/secondary_text"
-           android:textSize="13sp"/>
-
-        <!-- The way out of a problem state, next to the sentence that describes it. -->
-        <Button
-           android:id="@+id/buSmartCubeFix"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="14dp"
-           android:visibility="gone"
-           style="@style/DialogActionButton"/>
-
-        <!-- Counts what the scan has turned up, and says the rows are tappable. A sentence rather
-             than a section label: it changes as cubes arrive. -->
-        <TextView
-           android:id="@+id/tvSmartCubeListLabel"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="16dp"
-           android:layout_marginBottom="8dp"
-           android:textColor="@color/secondary_text"
-           android:textSize="12sp"
-           android:visibility="gone"/>
-
-        <!-- Discovered cubes, one smart_cube_list_item per row. -->
+        <!-- ===== Pairing panel ===== -->
         <LinearLayout
-           android:id="@+id/smartCubeList"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="vertical"/>
-
-        <!-- Realigning a cube that has lost track of itself: the explanation and its button, kept
-             together in one well so the button never reads as a general-purpose action. -->
-        <LinearLayout
-           android:id="@+id/smartCubeResyncBlock"
+           android:id="@+id/smartCubePairPanel"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
            android:orientation="vertical"
-           android:layout_marginTop="12dp"
-           android:background="@drawable/cross_section_card"
-           android:padding="10dp"
-           android:visibility="gone">
-          <!-- The state the app currently reads off the cube, so "the app thinks your cube is
-               scrambled" is something to check rather than something to guess at. It follows the
-               cube's own orientation, so it can be held up against the one in the hand.
+           android:gravity="center_horizontal">
 
-               Kept deliberately short: the well sits at the bottom of a sheet that also carries
-               the halo, the title and three buttons, and every dp here is one that pushes the last
-               of them off the screen. -->
-          <WebView
-             android:id="@+id/wvSmartCubeState"
+          <FrameLayout
+             android:id="@+id/smartCubeRadarWell"
+             android:layout_width="148dp"
+             android:layout_height="148dp">
+            <com.cube.nanotimer.util.view.SmartCubeRadarView
+               android:id="@+id/smartCubeRadar"
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"/>
+            <ImageView
+               android:id="@+id/imgSmartCubeGlyph"
+               android:layout_width="46dp"
+               android:layout_height="46dp"
+               android:layout_gravity="center"
+               android:src="@drawable/ic_smart_cube"
+               android:tint="@color/lightblue"
+               android:contentDescription="@null"/>
+          </FrameLayout>
+
+          <TextView
+             android:id="@+id/tvSmartCubeStatusPill"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_marginBottom="8dp"
+             android:background="@drawable/smart_cube_pill"
+             android:paddingLeft="11dp"
+             android:paddingRight="11dp"
+             android:paddingTop="3dp"
+             android:paddingBottom="3dp"
+             android:textSize="12sp"
+             android:textStyle="bold"
+             android:visibility="gone"/>
+
+          <TextView
+             android:id="@+id/tvSmartCubeStatusTitle"
              android:layout_width="match_parent"
-             android:layout_height="72dp"
-             android:layout_marginBottom="4dp"/>
+             android:layout_height="wrap_content"
+             android:gravity="center"
+             android:textColor="@color/white"
+             android:textSize="17sp"
+             android:textStyle="bold"/>
+
+          <TextView
+             android:id="@+id/tvSmartCubeStatusBody"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="4dp"
+             android:gravity="center"
+             android:textColor="@color/secondary_text"
+             android:textSize="13sp"/>
+
+          <!-- The way out of a problem state, next to the sentence that describes it. -->
+          <Button
+             android:id="@+id/buSmartCubeFix"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="14dp"
+             android:visibility="gone"
+             style="@style/DialogActionButton"/>
+
+          <!-- Counts what the scan has turned up, and says the rows are tappable. A sentence rather
+               than a section label: it changes as cubes arrive. -->
+          <TextView
+             android:id="@+id/tvSmartCubeListLabel"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="16dp"
+             android:layout_marginBottom="8dp"
+             android:textColor="@color/secondary_text"
+             android:textSize="12sp"
+             android:visibility="gone"/>
+
+          <!-- Discovered cubes, one smart_cube_list_item per row. -->
+          <LinearLayout
+             android:id="@+id/smartCubeList"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical"/>
+
+          <!-- Realigning a cube that has lost track of itself: the explanation and its button, kept
+               together in one well so the button never reads as a general-purpose action. -->
+          <LinearLayout
+             android:id="@+id/smartCubeResyncBlock"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="vertical"
+             android:layout_marginTop="12dp"
+             android:background="@drawable/cross_section_card"
+             android:padding="10dp"
+             android:visibility="gone">
+            <!-- The state the app currently reads off the cube, so "the app thinks your cube is
+                 scrambled" is something to check rather than something to guess at. It follows the
+                 cube's own orientation, so it can be held up against the one in the hand.
+
+                 Kept deliberately short: the well sits at the bottom of a sheet that also carries
+                 the halo, the title and three buttons, and every dp here is one that pushes the last
+                 of them off the screen. -->
+            <WebView
+               android:id="@+id/wvSmartCubeState"
+               android:layout_width="match_parent"
+               android:layout_height="72dp"
+               android:layout_marginBottom="4dp"/>
+            <TextView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:text="@string/smart_cube_resync_hint"
+               android:textColor="@color/secondary_text"
+               android:textSize="12.5sp"/>
+            <Button
+               android:id="@+id/btnSmartCubeResync"
+               android:layout_width="match_parent"
+               android:layout_height="40dp"
+               android:layout_marginTop="8dp"
+               android:text="@string/smart_cube_resync"
+               android:background="@drawable/dialog_action_button_ghost"
+               style="@style/DialogActionButton"/>
+            <!-- The other half of "the picture is wrong": the colours are the cube's to fix, the way
+                 round it is drawn is the grip's. A drill deals a scrambled cube on purpose, so
+                 squaring the view must not ask for a solved one first. -->
+            <Button
+               android:id="@+id/btnSmartCubeStraighten"
+               android:layout_width="match_parent"
+               android:layout_height="40dp"
+               android:layout_marginTop="6dp"
+               android:text="@string/smart_cube_straighten"
+               android:background="@drawable/dialog_action_button_ghost"
+               android:textColor="@color/lightblue"
+               style="@style/DialogActionButton"/>
+          </LinearLayout>
+
+          <CheckBox
+             android:id="@+id/cbSmartCubeAutoConnect"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="2dp"
+             android:minHeight="36dp"
+             android:button="@drawable/release_notes_check"
+             android:background="@null"
+             android:paddingLeft="10dp"
+             android:paddingStart="10dp"
+             android:text="@string/smart_cube_auto_connect"
+             android:textColor="@color/secondary_text"
+             android:textSize="13sp"
+             android:visibility="gone"/>
+
+        </LinearLayout>
+
+        <!-- ===== Intro panel: what a smart cube is for, told as the news sheet tells it ===== -->
+        <LinearLayout
+           android:id="@+id/smartCubeIntroPanel"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical"
+           android:visibility="gone">
+
+          <include layout="@layout/smart_cube_hero"/>
+
           <TextView
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
-             android:text="@string/smart_cube_resync_hint"
-             android:textColor="@color/secondary_text"
-             android:textSize="12.5sp"/>
-          <Button
-             android:id="@+id/btnSmartCubeResync"
-             android:layout_width="match_parent"
-             android:layout_height="40dp"
-             android:layout_marginTop="8dp"
-             android:text="@string/smart_cube_resync"
-             android:background="@drawable/dialog_action_button_ghost"
-             style="@style/DialogActionButton"/>
-          <!-- The other half of "the picture is wrong": the colours are the cube's to fix, the way
-               round it is drawn is the grip's. A drill deals a scrambled cube on purpose, so
-               squaring the view must not ask for a solved one first. -->
-          <Button
-             android:id="@+id/btnSmartCubeStraighten"
-             android:layout_width="match_parent"
-             android:layout_height="40dp"
              android:layout_marginTop="6dp"
-             android:text="@string/smart_cube_straighten"
-             android:background="@drawable/dialog_action_button_ghost"
-             android:textColor="@color/lightblue"
-             style="@style/DialogActionButton"/>
+             android:gravity="center"
+             android:text="@string/smart_cube_intro_title"
+             android:textColor="@color/white"
+             android:textSize="24sp"
+             android:textStyle="bold"/>
+
+          <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:layout_marginTop="8dp"
+             android:gravity="center"
+             android:lineSpacingMultiplier="1.15"
+             android:text="@string/news_body"
+             android:textColor="@color/secondary_text"
+             android:textSize="14sp"/>
+
+          <include layout="@layout/smart_cube_features"/>
         </LinearLayout>
 
-        <CheckBox
-           android:id="@+id/cbSmartCubeAutoConnect"
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="2dp"
-           android:minHeight="36dp"
-           android:button="@drawable/release_notes_check"
-           android:background="@null"
-           android:paddingLeft="10dp"
-           android:paddingStart="10dp"
-           android:text="@string/smart_cube_auto_connect"
-           android:textColor="@color/secondary_text"
-           android:textSize="13sp"
-           android:visibility="gone"/>
-
-      </LinearLayout>
-
-      <!-- ===== Intro panel: what a smart cube is for, told as the news sheet tells it ===== -->
-      <LinearLayout
-         android:id="@+id/smartCubeIntroPanel"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:orientation="vertical"
-         android:visibility="gone">
-
-        <include layout="@layout/smart_cube_hero"/>
-
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="6dp"
-           android:gravity="center"
-           android:text="@string/smart_cube_intro_title"
-           android:textColor="@color/white"
-           android:textSize="24sp"
-           android:textStyle="bold"/>
-
-        <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="8dp"
-           android:gravity="center"
-           android:lineSpacingMultiplier="1.15"
-           android:text="@string/news_body"
-           android:textColor="@color/secondary_text"
-           android:textSize="14sp"/>
-
-        <include layout="@layout/smart_cube_features"/>
-      </LinearLayout>
-
-    </FrameLayout>
-  </androidx.core.widget.NestedScrollView>
+      </FrameLayout>
+    </androidx.core.widget.NestedScrollView>
+    <!-- More below: shown until the end of the list is in sight. -->
+    <ImageView
+       android:id="@+id/imgScrollHint"
+       android:layout_width="28dp"
+       android:layout_height="28dp"
+       android:layout_gravity="bottom|center_horizontal"
+       android:src="@drawable/ic_chevron_down"
+       android:tint="@color/lightblue"
+       android:importantForAccessibility="no"/>
+  </FrameLayout>
 
   <!-- Actions. Only one of the two rows is on screen at a time, matching the panel above it. -->
   <androidx.appcompat.widget.AppCompatButton

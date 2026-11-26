@@ -37,6 +37,7 @@ import com.cube.nanotimer.smartcube.model.CubeState;
 import com.cube.nanotimer.smartcube.model.CubeStateListener;
 import com.cube.nanotimer.smartcube.model.DiscoveredCube;
 import com.cube.nanotimer.util.helper.DialogUtils;
+import com.cube.nanotimer.util.view.ScrollHint;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +116,7 @@ public class SmartCubeConnectDialog extends NanoTimerBottomSheetFragment {
 
     introPanel = v.findViewById(R.id.smartCubeIntroPanel);
     SmartCubeFeatures.fill(introPanel, inflater);
+    ScrollHint.attach(v.findViewById(R.id.smartCubeScroll), v.findViewById(R.id.imgScrollHint));
     // The rings are the news sheet's look, not a scan: nothing scans behind the intro.
     ((SmartCubeRadarView) introPanel.findViewById(R.id.smartCubeHeroRadar)).showSearching();
     pairPanel = v.findViewById(R.id.smartCubePairPanel);
