@@ -265,6 +265,43 @@ public class CaseExecutionsTest {
     assertFalse(CaseExecutions.readFrom(solves).containsKey("pair_4"));
   }
 
+  /** A pair is judged by its last 3 times, in any slot, as Analysis judges it. */
+  @Test
+  public void judgesAPairByItsLastThreeTimes() {
+    CaseExecutions.Recent recent = CaseExecutions.recentOf(solves(PAIRS + " " + SUNE + " " + TPERM),
+        "pair_4");
+
+    assertEquals(3, recent.getOf());
+    assertEquals(3, recent.getUsual().getTimes());
+    assertEquals("R U R'", recent.getUsual().getMoves());
+    assertEquals(0, recent.getTwoLooks());
+  }
+
+  @Test
+  public void theUsualAnswerIsTheMajorityOfTheLastOnes() {
+    String other = "y' R' U' R U' R' U2 R";
+    assertEquals(2, recent(SUNE, SUNE, other).getUsual().getTimes());
+    assertEquals(1, recent(other, SUNE).getUsual().getTimes()); // a tie goes to the later
+    assertEquals(other, recent(other, SUNE).getUsual().getExecuted());
+    assertNull(recent(SUNE, other, "R U2 R' U' R U' R'").getUsual());
+  }
+
+  @Test
+  public void twoLooksTakeTheUsualPlaceWhenTheyAreMost() {
+    CaseExecutions.Recent mostly = recent(SUNE, null, null);
+    assertNull(mostly.getUsual());
+    assertEquals(2, mostly.getTwoLooks());
+    assertEquals(3, mostly.getOf());
+
+    assertNull(recent(null, SUNE).getUsual());
+    assertNotNull(recent(SUNE, null).getUsual());
+    assertNotNull(recent(SUNE, SUNE, null).getUsual());
+  }
+
+  private static CaseExecutions.Recent recent(String... answers) {
+    return CaseExecutions.recentOf("oll_27", Arrays.asList(answers));
+  }
+
   @Test
   public void asksForAPairInEverySlotItCanGoInto() {
     List<String> codes = CaseExecutions.codesFor("pair_27");

@@ -1,5 +1,6 @@
 package com.cube.nanotimer.cube;
 
+import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.MethodStatistics;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
 import com.cube.nanotimer.smartcube.step.AlgorithmForm;
@@ -13,6 +14,7 @@ import com.cube.nanotimer.vo.SolveTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,9 @@ public final class CaseExecutions {
 
   /** How many of a case's answers are looked at. Enough to see which is the usual one. */
   static final int PER_CASE = 5;
+
+  /** How many of a case's latest answers a screen judges it by, as Analysis does. */
+  public static final int RECENT = AlgorithmFigures.RECENT;
 
   /** A pair placed in a way no case is named for ({@code pair_other_rf}). */
   private static final String UNNAMED_PAIR = "other";
@@ -185,30 +190,80 @@ public final class CaseExecutions {
   }
 
   /**
-   * How a last layer case or a CMLL went in, in solves the case itself was handed, newest first:
-   * the moves of a one-look answer, or null for a two-look. A solve where only the case's algorithm
-   * was turned, as one look of another case, is not one of them. A false start is not a look.
+   * A case's last {@link #RECENT} answers in solves, the way Analysis judges the case: an F2L pair
+   * each time it came up, in any slot, and a last layer case or a CMLL each solve it was handed in,
+   * not one where only its algorithm was turned as a look of another case.
    *
-   * @param solves solves the case was handed in, newest first
+   * @param solves solves the case came up in, newest first
    */
-  public static List<String> answersTo(List<SolveTime> solves, final String caseCode) {
+  public static Recent recentOf(List<SolveTime> solves, final String caseCode) {
     final List<String> answers = new ArrayList<String>();
+    final boolean pair = CaseAlgorithms.isPair(caseCode);
     for (SolveTime solve : solves) {
       boolean roux = CmllCases.isCase(caseCode)
           && SolveTypeMethod.of(solve.getSolveType()) == CubeMethod.ROUX;
       readSteps(roux ? replayAs(solve, CubeMethod.ROUX) : replay(solve), new StepReader() {
         @Override
         public void read(SolveStep step, SolveSolution.Step turned) {
-          if (caseCode.equals(caseOfStep(step.getName()))) {
-            answers.add(answerOf(step, turned));
+          if (!pair) {
+            if (caseCode.equals(caseOfStep(step.getName()))) {
+              answers.add(answerOf(step, turned));
+            }
+            return;
+          }
+          List<SolveStep> parts = step.getSubSteps();
+          for (int i = 0; i < parts.size() && i < turned.getGroups().size(); i++) {
+            String moves = turned.getPartMoves(i);
+            if (caseCode.equals(caseOfPart(parts.get(i).getName())) && !moves.trim().isEmpty()) {
+              answers.add(moves);
+            }
           }
         }
       });
     }
-    return answers;
+    return recentOf(caseCode, answers.subList(0, Math.min(RECENT, answers.size())));
   }
 
-  /** The moves of a one-look step, or null for a two-look. */
+  /**
+   * The answers grouped by what they turn, most turned first and a tie to the later. The usual one
+   * is a majority, or the later of two; none where two looks have it or all three differ.
+   *
+   * @param answers newest first, null for a two-look
+   */
+  static Recent recentOf(String caseCode, List<String> answers) {
+    Map<String, Shown> byKey = new LinkedHashMap<String, Shown>();
+    Map<Shown, Integer> latest = new HashMap<Shown, Integer>();
+    int twoLooks = 0;
+    for (int i = 0; i < answers.size(); i++) {
+      String moves = answers.get(i);
+      if (moves == null) {
+        twoLooks++;
+        continue;
+      }
+      String key = CaseAlgorithms.keyAsDrawn(caseCode, moves);
+      Shown group = byKey.get(key == null ? moves : key);
+      if (group == null) {
+        group = new Shown(asAlgorithm(caseCode, moves), moves, 0, answers.size());
+        byKey.put(key == null ? moves : key, group);
+        latest.put(group, i);
+      }
+      group.times++;
+    }
+    List<Shown> shown = new ArrayList<Shown>(byKey.values());
+    Collections.sort(shown, new Comparator<Shown>() { // stable: a tie keeps the later first
+      @Override
+      public int compare(Shown one, Shown other) {
+        return other.times - one.times;
+      }
+    });
+    Shown top = shown.isEmpty() ? null : shown.get(0);
+    boolean twoLooksWin = top != null && (twoLooks > top.times
+        || twoLooks == top.times && answers.indexOf(null) < latest.get(top));
+    Shown usual = top != null && !twoLooksWin && top.times * 2 >= answers.size() ? top : null;
+    return new Recent(Collections.unmodifiableList(shown), usual, twoLooks, answers.size());
+  }
+
+  /** The moves of a one-look step, or null for a two-look. A false start is not a look. */
   private static String answerOf(SolveStep step, SolveSolution.Step turned) {
     List<SolveStep> parts = step.getSubSteps();
     if (parts.isEmpty()) {
@@ -224,6 +279,40 @@ public final class CaseExecutions {
       }
     }
     return looks == 1 ? moves : null;
+  }
+
+  /** A case's last answers: each one-look algorithm, how many took two looks, and the usual one. */
+  public static final class Recent {
+
+    private final List<Shown> shown;
+    private final Shown usual;
+    private final int twoLooks;
+    private final int of;
+
+    private Recent(List<Shown> shown, Shown usual, int twoLooks, int of) {
+      this.shown = shown;
+      this.usual = usual;
+      this.twoLooks = twoLooks;
+      this.of = of;
+    }
+
+    /** Each algorithm answered with, most turned first. */
+    public List<Shown> getShown() {
+      return shown;
+    }
+
+    /** The answer most of them were, or null for none. */
+    public Shown getUsual() {
+      return usual;
+    }
+
+    public int getTwoLooks() {
+      return twoLooks;
+    }
+
+    public int getOf() {
+      return of;
+    }
   }
 
   private static Shown writtenAs(List<Shown> shown, String moves) {

@@ -45,7 +45,6 @@ import com.cube.nanotimer.gui.widget.PairCaseView;
 import com.cube.nanotimer.gui.widget.NanoTimerBottomSheetFragment;
 import com.cube.nanotimer.gui.widget.SmartCubeConnectDialog;
 import com.cube.nanotimer.services.db.DataCallback;
-import com.cube.nanotimer.session.AlgorithmFigures;
 import com.cube.nanotimer.session.CaseKnowledge;
 import com.cube.nanotimer.smartcube.model.CubeRotation;
 import com.cube.nanotimer.smartcube.step.AlgorithmExecution;
@@ -69,10 +68,7 @@ import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -100,10 +96,10 @@ import java.util.Objects;
  * written to preferences. Every execution turned more than once gets its row, with how many of their
  * answers it was where there is more than one. No execution time on a row: the In solves card has
  * it, and the drill's choose step compares algorithms. A lone execution waits for its second before
- * it is called theirs: once is how a misread case put right looks. A last layer case or a CMLL is
- * read over the last {@link AlgorithmFigures#RECENT} solves it was handed in, as Analysis reads it:
- * "the one you use" is their majority answer, none where most took two looks, and two looks get a
- * row of their own under "Yours", with no moves since they are two algorithms.
+ * it is called theirs: once is how a misread case put right looks. A case is read over its last
+ * {@link CaseExecutions#RECENT} answers, as Analysis reads it: "the one you use" is their majority,
+ * none where most took two looks, and two looks get a row of their own under "Yours", with no moves
+ * since they are two algorithms.
  *
  * <p>Opened from one solve, it shows that solve's execution instead, marked "this solve".
  *
@@ -139,7 +135,6 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private static final int[] CROSS_UP_SLOT_EDGES = {9, 8, 10, 11};
 
   /** How many of the case's solves are replayed for the moves: the cost of opening the sheet. */
-  private static final int SOLVES_READ = 10;
   /** How many of the case's latest solves the In solves card is the mean of. */
   private static final int SOLVE_FIGURES = 50;
   /** An empty card's figures. */
@@ -425,84 +420,37 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
     super.onDestroyView();
   }
 
-  /** Reads the case out of the handful of solves it came up in; the marks arrive when it is done. */
-  private void readExecution() {
-    if (!CaseAlgorithms.isPair(caseCode)) {
-      readAnswers();
-      return;
-    }
-    App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(caseCode), SOLVES_READ,
-        new DataCallback<List<SolveTime>>() {
-          @Override
-          public void onData(List<SolveTime> solves) {
-            final List<Turned> read = read(CaseExecutions.spreadFrom(solves, caseCode));
-            onUi(() -> {
-              turned = read;
-              usual = read.isEmpty() ? null : read.get(0);
-              refresh();
-            });
-          }
-        });
-  }
-
   /**
-   * A last layer case or a CMLL over the last solves it was handed in, as Analysis judges it: the
-   * majority answer is the one they use, and none is where most took two looks or all differ.
+   * Reads the case out of its last solves, as Analysis judges it: the majority answer is the one
+   * they use, none where most took two looks or all differ. The marks arrive when it is done.
    */
-  private void readAnswers() {
-    App.INSTANCE.getService().getCaseSolves(Collections.singletonList(caseCode),
-        AlgorithmFigures.RECENT, new DataCallback<List<SolveTime>>() {
+  private void readExecution() {
+    // A few spare, for a solve stopped inside the case or one that cannot be read again
+    App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(caseCode),
+        CaseExecutions.RECENT + 2, new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(List<SolveTime> solves) {
-            final List<String> said = CaseExecutions.answersTo(solves, caseCode);
-            final List<Turned> read = new ArrayList<Turned>();
-            int split = 0;
-            // Grouped by how they are written, newest first, so a tie goes to the later one
-            Map<String, int[]> counts = new LinkedHashMap<String, int[]>();
-            Map<String, String> executed = new LinkedHashMap<String, String>();
-            for (String moves : said) {
-              if (moves == null) {
-                split++;
-                continue;
+            CaseExecutions.Recent recent = CaseExecutions.recentOf(solves, caseCode);
+            List<Turned> read = new ArrayList<Turned>();
+            Turned found = null;
+            for (CaseExecutions.Shown one : recent.getShown()) {
+              Turned each = new Turned(one.getMoves(),
+                  CaseAlgorithms.read(caseCode, one.getExecuted()), one.getTimes(), one.getOf());
+              read.add(each);
+              if (one == recent.getUsual()) {
+                found = each;
               }
-              String written = CaseExecutions.asAlgorithm(caseCode, moves);
-              if (!counts.containsKey(written)) {
-                counts.put(written, new int[1]);
-                executed.put(written, moves);
-              }
-              counts.get(written)[0]++;
             }
-            for (Map.Entry<String, int[]> count : counts.entrySet()) {
-              read.add(new Turned(count.getKey(),
-                  CaseAlgorithms.read(caseCode, executed.get(count.getKey())), count.getValue()[0],
-                  said.size()));
-            }
-            Collections.sort(read, (one, other) -> other.times - one.times); // stable: ties stay newest first
-            Turned top = read.isEmpty() ? null : read.get(0);
-            // A tie between the top answer and two looks goes to whichever came last
-            boolean beaten = top != null && (split > top.times || split == top.times
-                && said.indexOf(null) < said.indexOf(executed.get(top.moves)));
-            final Turned found = top != null && !beaten && top.times * 2 >= said.size() ? top : null;
-            final int twoLooked = split;
+            final Turned usualRead = found;
             onUi(() -> {
               turned = read;
-              usual = found;
-              twoLooks = twoLooked;
-              answers = said.size();
+              usual = usualRead;
+              twoLooks = recent.getTwoLooks();
+              answers = recent.getOf();
               refresh();
             });
           }
         });
-  }
-
-  /** Each execution named and read against the vote table, off the main thread. */
-  private List<Turned> read(CaseExecutions.Spread spread) {
-    List<Turned> read = new ArrayList<Turned>();
-    for (CaseExecutions.Shown one : CaseExecutions.shownFrom(caseCode, spread)) {
-      read.add(new Turned(one.getMoves(), CaseAlgorithms.read(caseCode, one.getExecuted()),
-          one.getTimes(), one.getOf()));
-    }
-    return read;
   }
 
   /** The two figures cards. Both are asked before deciding the sheet is a timer-only one. */
