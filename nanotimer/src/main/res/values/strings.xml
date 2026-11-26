@@ -1773,8 +1773,10 @@
   <string name="news_analysis_body">Your slowest steps and cases, and the algorithms you really use.</string>
   <string name="news_drills_title">Drills</string>
   <string name="news_drills_body">Practise your weakest cases, with targets that get you faster.</string>
-  <string name="news_coach_title">Coach</string>
-  <string name="news_coach_body">A practice plan written from your own solves, every week.</string>
+  <string name="news_learn_title">Learn new algorithms</string>
+  <string name="news_learn_body">Pick the cases to learn next, choose an algorithm, and drill it until it sticks. Analysis also shows where you use an unusual one.</string>
+  <string name="news_coach_title">AI coach</string>
+  <string name="news_coach_body">A smart cube records every turn, pause and mistake, far more than anyone could review by hand. The coach reads it all and writes you a weekly plan around your own habits and weak points.</string>
   <string name="news_cubes">Works with GAN, MoYu and QiYi smart cubes.</string>
   <string name="news_all_notes">All release notes</string>
   <string name="news_later">Later</string>
@@ -1801,7 +1803,7 @@
   <string name="coach_beta_offer_note">Free while the coach is in beta. Nothing is charged when it ends.</string>
   <string name="coach_beta_private">Nothing leaves your phone unless you join or send a report.</string>
   <string name="coach_beta_drawer_free">Free while in beta</string>
-  <string name="coach_beta_news_line">An AI coach, free while it\'s in beta</string>
+  <string name="news_coach_free_tag">Free in beta</string>
   <string name="coach_beta_end_title">Thank you for testing the coach</string>
   <string name="coach_beta_end_sub">The beta has ended</string>
   <string name="coach_beta_end_body">As thanks, your first two months on the monthly plan are half price if you\'d like to keep going.</string>

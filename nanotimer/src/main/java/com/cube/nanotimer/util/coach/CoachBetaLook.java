@@ -115,7 +115,7 @@ public final class CoachBetaLook {
     return member || paid ? Drawer.BETA : Drawer.BETA_FREE;
   }
 
-  /** The "and an AI coach, free while it's in beta" line on the smart cube news sheet. */
+  /** The "Free in beta" tag on the coach row of the smart cube news sheet. */
   public boolean newsLine() {
     return running();
   }

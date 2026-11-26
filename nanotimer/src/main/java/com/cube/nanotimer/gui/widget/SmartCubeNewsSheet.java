@@ -17,6 +17,7 @@ import com.cube.nanotimer.cube.SmartCubeGate;
 import com.cube.nanotimer.cube.SmartCubeManager;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.view.EnterAnimation;
+import com.cube.nanotimer.util.view.ScrollHint;
 import com.cube.nanotimer.util.view.SmartCubeRadarView;
 import java.util.List;
 
@@ -66,6 +67,7 @@ public class SmartCubeNewsSheet extends NanoTimerBottomSheetFragment {
     ((TextView) v.findViewById(R.id.tvNewsBody)).setText(R.string.news_body);
 
     List<View> rows = SmartCubeFeatures.fill(v, inflater);
+    ScrollHint.attach(v.findViewById(R.id.newsScroll), v.findViewById(R.id.imgScrollHint));
 
     v.findViewById(R.id.tvNewsAllNotes).setOnClickListener(view -> {
       dismiss();
