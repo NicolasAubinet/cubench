@@ -144,6 +144,10 @@ public class CoachPlanStatus {
     boolean sighted = solveType.getCubeTypeId() == CubeType.THREE_BY_THREE.getId()
         && !solveType.isBlind();
     boolean cfop = sighted && SolveTypeMethod.of(solveType) == CubeMethod.CFOP;
+    if (client.hasAccess() || client.accessEnded() || Options.INSTANCE.isCoachPlansOn()
+        || !CoachPlans.eligible(solveType)) {
+      openOffer = false; // no offer to open, and none must open by itself on a later visit
+    }
     if (client.hasAccess()) {
       showNoOffer();
       if (Options.INSTANCE.isCoachPlansOn() && sighted) {
@@ -305,8 +309,8 @@ public class CoachPlanStatus {
       if (counts.get(i) >= CoachPayloadBuilder.PLAN_FLOOR && (ready == null || shown)) {
         ready = eligible.get(i);
       }
-      if (counts.get(i) > 0 && (started == null || shown)) {
-        started = eligible.get(i);
+      if (shown && counts.get(i) > 0) {
+        started = eligible.get(i); // the meter counts this type, so Join must be for it too
       }
     }
     final int solves = here;
@@ -326,6 +330,7 @@ public class CoachPlanStatus {
           showGate(solves, true);
           showOffer(early);
         } else {
+          openOffer = false;
           showGate(solves, false);
         }
       }
@@ -784,7 +789,8 @@ public class CoachPlanStatus {
     noteView.setText(note);
     noteView.setVisibility(note == null ? View.GONE : View.VISIBLE);
     billing.readPlans(false);
-    if (openOffer) {
+    // Drawn from a callback, not a tap: a screen already stopped keeps it for its next refresh.
+    if (openOffer && !activity.getSupportFragmentManager().isStateSaved()) {
       openOffer = false;
       openPurchase(offered);
     }
