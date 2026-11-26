@@ -68,6 +68,7 @@ import com.cube.nanotimer.vo.StepStats;
 import com.cube.nanotimer.vo.drill.DrillCaseStats;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -134,7 +135,6 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
   private static final int[] CROSS_UP_CORNERS = {1, 0, 2, 3};
   private static final int[] CROSS_UP_SLOT_EDGES = {9, 8, 10, 11};
 
-  /** How many of the case's solves are replayed for the moves: the cost of opening the sheet. */
   /** How many of the case's latest solves the In solves card is the mean of. */
   private static final int SOLVE_FIGURES = 50;
   /** An empty card's figures. */
@@ -425,9 +425,12 @@ public class CaseSheet extends NanoTimerBottomSheetFragment {
    * they use, none where most took two looks or all differ. The marks arrive when it is done.
    */
   private void readExecution() {
-    // A few spare, for a solve stopped inside the case or one that cannot be read again
-    App.INSTANCE.getService().getCaseSolves(CaseExecutions.codesFor(caseCode),
-        CaseExecutions.RECENT + 2, new DataCallback<List<SolveTime>>() {
+    // A last layer case by its own step alone: a solve turning its algorithm as a look of another
+    // case is no answer to it. A few spare, for a solve stopped inside the case.
+    List<String> codes = CaseAlgorithms.isPair(caseCode) ? CaseExecutions.codesFor(caseCode)
+        : Collections.singletonList(caseCode);
+    App.INSTANCE.getService().getCaseSolves(codes, CaseExecutions.RECENT + 2,
+        new DataCallback<List<SolveTime>>() {
           @Override
           public void onData(List<SolveTime> solves) {
             CaseExecutions.Recent recent = CaseExecutions.recentOf(solves, caseCode);

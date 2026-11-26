@@ -14,7 +14,6 @@ import com.cube.nanotimer.vo.SolveTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,8 +205,10 @@ public final class CaseExecutions {
         @Override
         public void read(SolveStep step, SolveSolution.Step turned) {
           if (!pair) {
-            if (caseCode.equals(caseOfStep(step.getName()))) {
-              answers.add(answerOf(step, turned));
+            String answer = caseCode.equals(caseOfStep(step.getName()))
+                ? answerOf(step, turned) : "";
+            if (answer == null || !answer.trim().isEmpty()) {
+              answers.add(answer);
             }
             return;
           }
@@ -231,39 +232,29 @@ public final class CaseExecutions {
    * @param answers newest first, null for a two-look
    */
   static Recent recentOf(String caseCode, List<String> answers) {
-    Map<String, Shown> byKey = new LinkedHashMap<String, Shown>();
-    Map<Shown, Integer> latest = new HashMap<Shown, Integer>();
-    int twoLooks = 0;
-    for (int i = 0; i < answers.size(); i++) {
-      String moves = answers.get(i);
-      if (moves == null) {
-        twoLooks++;
-        continue;
+    List<String> oneLooks = new ArrayList<String>();
+    for (String moves : answers) {
+      if (moves != null) {
+        oneLooks.add(moves);
       }
-      String key = CaseAlgorithms.keyAsDrawn(caseCode, moves);
-      Shown group = byKey.get(key == null ? moves : key);
-      if (group == null) {
-        group = new Shown(asAlgorithm(caseCode, moves), moves, 0, answers.size());
-        byKey.put(key == null ? moves : key, group);
-        latest.put(group, i);
-      }
-      group.times++;
     }
-    List<Shown> shown = new ArrayList<Shown>(byKey.values());
-    Collections.sort(shown, new Comparator<Shown>() { // stable: a tie keeps the later first
-      @Override
-      public int compare(Shown one, Shown other) {
-        return other.times - one.times;
+    int twoLooks = answers.size() - oneLooks.size();
+    List<Shown> shown = new ArrayList<Shown>();
+    if (!oneLooks.isEmpty()) {
+      for (Turned one : spreadOf(caseCode, oneLooks).getTurned()) {
+        shown.add(new Shown(asAlgorithm(caseCode, one.getMoves()), one.getMoves(), one.getTimes(),
+            answers.size()));
       }
-    });
+    }
     Shown top = shown.isEmpty() ? null : shown.get(0);
+    // A group is spelled as its latest answer, so that answer's place is the group's latest
     boolean twoLooksWin = top != null && (twoLooks > top.times
-        || twoLooks == top.times && answers.indexOf(null) < latest.get(top));
+        || twoLooks == top.times && answers.indexOf(null) < answers.indexOf(top.executed));
     Shown usual = top != null && !twoLooksWin && top.times * 2 >= answers.size() ? top : null;
     return new Recent(Collections.unmodifiableList(shown), usual, twoLooks, answers.size());
   }
 
-  /** The moves of a one-look step, or null for a two-look. A false start is not a look. */
+  /** The moves of a one-look step, null for a two-look, empty for none. A false start is not a look. */
   private static String answerOf(SolveStep step, SolveSolution.Step turned) {
     List<SolveStep> parts = step.getSubSteps();
     if (parts.isEmpty()) {
@@ -278,7 +269,7 @@ public final class CaseExecutions {
         moves = turned.getPartMoves(i);
       }
     }
-    return looks == 1 ? moves : null;
+    return looks == 0 ? "" : looks == 1 ? moves : null;
   }
 
   /** A case's last answers: each one-look algorithm, how many took two looks, and the usual one. */

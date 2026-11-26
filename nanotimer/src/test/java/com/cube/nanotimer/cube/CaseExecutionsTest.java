@@ -294,6 +294,8 @@ public class CaseExecutionsTest {
     assertEquals(3, mostly.getOf());
 
     assertNull(recent(null, SUNE).getUsual());
+    assertNull(recent(null, null).getUsual()); // nothing to group, and nothing to crash on
+    assertTrue(recent(null, null).getShown().isEmpty());
     assertNotNull(recent(SUNE, null).getUsual());
     assertNotNull(recent(SUNE, SUNE, null).getUsual());
   }
