@@ -21,15 +21,15 @@
      android:layout_width="match_parent"
      android:layout_height="wrap_content"
      android:layout_weight="1"
-     android:layout_marginTop="4dp">
+     android:layout_marginTop="4dp"
+     android:layout_marginRight="-12dp"
+     android:layout_marginEnd="-12dp">
     <androidx.core.widget.NestedScrollView
        android:id="@+id/newsScroll"
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
        android:requiresFadingEdge="vertical"
        android:fadingEdgeLength="56dp"
-       android:layout_marginRight="-12dp"
-       android:layout_marginEnd="-12dp"
        android:paddingRight="12dp"
        android:paddingEnd="12dp"
        android:scrollbars="vertical"
@@ -116,6 +116,8 @@
        android:layout_width="28dp"
        android:layout_height="28dp"
        android:layout_gravity="bottom|center_horizontal"
+       android:layout_marginRight="6dp"
+       android:layout_marginEnd="6dp"
        android:src="@drawable/ic_chevron_down"
        android:tint="@color/lightblue"
        android:importantForAccessibility="no"/>
