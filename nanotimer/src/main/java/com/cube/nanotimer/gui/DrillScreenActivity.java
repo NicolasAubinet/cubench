@@ -716,7 +716,7 @@ public abstract class DrillScreenActivity extends NanoTimerActivity
     if (seconds < 60) {
       duration = getString(R.string.drill_summary_duration_seconds, seconds);
     } else if (seconds < 3600) {
-      duration = getString(R.string.drill_summary_duration_minutes, Math.round(seconds / 60.0));
+      duration = getString(R.string.drill_summary_duration_minutes, seconds / 60, seconds % 60);
     } else {
       duration = getString(R.string.drill_summary_duration_hours, seconds / 3600,
           (seconds % 3600) / 60);
