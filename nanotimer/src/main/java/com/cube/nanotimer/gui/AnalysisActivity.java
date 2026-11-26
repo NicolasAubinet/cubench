@@ -129,6 +129,8 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
   public static final String EXTRA_SOLVE_TYPE = "analysisSolveType";
   /** Which tab to open on, by ordinal, for a door that knows what it is pointing at. */
   public static final String EXTRA_TAB = "analysisTab";
+  /** Opens the coach's join or purchase sheet over the Plan tab, for a door that already pitched it. */
+  public static final String EXTRA_OPEN_OFFER = "analysisOpenOffer";
   /** The family the Cases tab opens narrowed to, for a door that knows which step it came from. */
   public static final String EXTRA_FAMILY = "analysisFamily";
 
@@ -295,6 +297,9 @@ public class AnalysisActivity extends NanoTimerActivity implements SelectionHand
     int asked = getIntent().getIntExtra(EXTRA_TAB, TAB_SOLVE);
     tabs.setSelection(onlySolve() || (asked == TAB_PLAN && coachClient == null) ? TAB_SOLVE : asked);
     showTab(tabs.getSelection());
+    if (savedInstanceState == null && getIntent().getBooleanExtra(EXTRA_OPEN_OFFER, false)) {
+      planStatus.openOfferWhenShown();
+    }
     loadKnowledge();
     loadOwnSolves();
     findViewById(R.id.pbAnalysisPlanLoading).postDelayed(showPlanLoading, 200);

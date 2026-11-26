@@ -1421,6 +1421,7 @@
   <string name="coach_retry_unreachable">Impossible de joindre le coach. Nouvel essai automatique dès que vous serez connecté.</string>
   <string name="coach_retry_unavailable">Le coach n\'est pas disponible pour le moment. Nouvel essai automatique un peu plus tard.</string>
   <string name="coach_gate_title">Le coach s\'ouvre à %1$d résolutions au smart cube</string>
+  <string name="coach_gate_first">Votre premier plan arrive à %1$d résolutions au smart cube</string>
   <string name="coach_gate_count">%1$d sur %2$d</string>
   <string name="coach_offer_try_free">Essayer le coach, essai gratuit de %1$s</string>
   <string name="coach_offer_try">Prendre le coach</string>
