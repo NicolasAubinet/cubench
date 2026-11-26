@@ -1724,7 +1724,7 @@
   <string name="news_drills_title">Treinos</string>
   <string name="news_drills_body">Pratique seus casos mais fracos, com metas que te deixam mais rápido.</string>
   <string name="news_learn_title">Aprenda novos algoritmos</string>
-  <string name="news_learn_body">Escolha os próximos casos a aprender, selecione um algoritmo e treine até dominá-lo. A análise também mostra onde você usa um pouco comum.</string>
+  <string name="news_learn_body">Escolha os próximos casos a aprender, selecione um algoritmo e treine até dominá-lo. A análise também mostra onde você usa um algoritmo pouco comum.</string>
   <string name="news_coach_title">Coach com IA</string>
   <string name="news_coach_body">Um smart cube registra cada giro, cada pausa e cada erro, muito mais do que alguém conseguiria revisar à mão. O coach analisa tudo e escreve para você, toda semana, um plano focado nos seus hábitos e pontos fracos.</string>
   <string name="news_cubes">Funciona com smart cubes GAN, MoYu e QiYi.</string>
