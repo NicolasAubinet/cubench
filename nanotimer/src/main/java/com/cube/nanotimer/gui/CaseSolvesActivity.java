@@ -6,25 +6,21 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.cube.nanotimer.App;
 import com.cube.nanotimer.R;
+import com.cube.nanotimer.gui.widget.CaseListHero;
 import com.cube.nanotimer.gui.widget.CaseTableHeadings;
-import com.cube.nanotimer.gui.widget.DrillStatCells;
 import com.cube.nanotimer.gui.widget.HistoryDetailDialog;
-import com.cube.nanotimer.gui.widget.LastLayerCaseView;
-import com.cube.nanotimer.gui.widget.PairCaseView;
 import com.cube.nanotimer.gui.widget.SolveNavigator;
 import com.cube.nanotimer.gui.widget.TimeChangedHandler;
 import com.cube.nanotimer.gui.widget.cases.CaseSheet;
 import com.cube.nanotimer.services.db.DataCallback;
-import com.cube.nanotimer.smartcube.step.CaseAlgorithms;
-import com.cube.nanotimer.smartcube.step.LastLayerDiagram;
 import com.cube.nanotimer.util.FormatterService;
 import com.cube.nanotimer.util.helper.DialogUtils;
 import com.cube.nanotimer.util.helper.TimeColorScale;
-import com.cube.nanotimer.util.helper.Utils;
 import com.cube.nanotimer.util.view.DrillSplitBarView;
 import com.cube.nanotimer.util.view.StepPalette;
 import com.cube.nanotimer.vo.CaseSolve;
@@ -58,6 +54,8 @@ public class CaseSolvesActivity extends NanoTimerActivity
   private static final int[] HEADING_LABELS = {0, R.string.drill_summary_column_recognition,
       R.string.drill_summary_column_execution, R.string.drill_summary_column_total};
   private static final boolean[] OPENS_DESCENDING = {false, true, true, true};
+  /** The one figure a row is coloured by; the halves are drawn by the bar under the date. */
+  private static final int TOTAL = 2;
 
   private String caseCode;
   private int last;
@@ -66,6 +64,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
   private final List<CaseSolve> solves = new ArrayList<CaseSolve>();
   private final TimeColorScale[] scales = new TimeColorScale[VALUE_IDS.length];
   private int hue;
+  private CaseListHero hero;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -78,32 +77,15 @@ public class CaseSolvesActivity extends NanoTimerActivity
     hue = StepPalette.cfop(this).colorFor(caseCode);
     rows = findViewById(R.id.llCaseSolvesRows);
 
-    showCase();
-    findViewById(R.id.llCaseSolvesHeader).setOnClickListener(
-        v -> DialogUtils.showFragment(this, CaseSheet.newInstance(caseCode)));
+    hero = new CaseListHero(findViewById(android.R.id.content), hue);
+    hero.showCase(caseCode, v -> DialogUtils.showFragment(this, CaseSheet.newInstance(caseCode)));
     headings = new CaseTableHeadings(findViewById(R.id.llCaseSolvesSection), HEADING_LABELS,
         OPENS_DESCENDING, CaseTableHeadings.LABEL_COLUMN, (column, descending) -> order());
     headings.setLabel(R.string.case_solves_label);
     headings.rankableLabel(true); // newest first
     headings.setAccent(hue);
+    headings.reserveChevron(true);
     load();
-  }
-
-  private void showCase() {
-    ((TextView) findViewById(R.id.tvCaseSolvesName))
-        .setText(Utils.toSmartCubeCaseHeadline(this, caseCode));
-    LastLayerCaseView chart = findViewById(R.id.vCaseSolvesChart);
-    if (CaseAlgorithms.isPair(caseCode)) {
-      chart.setVisibility(View.GONE);
-      String picture = CaseAlgorithms.pairPicture(caseCode);
-      if (picture != null) {
-        PairCaseView pair = findViewById(R.id.vCaseSolvesPair);
-        pair.setVisibility(View.VISIBLE);
-        pair.setPicture(picture);
-      }
-    } else {
-      chart.setDiagram(LastLayerDiagram.forCase(caseCode));
-    }
   }
 
   private void load() {
@@ -126,7 +108,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
   private void show() {
     boolean anything = !solves.isEmpty();
     findViewById(R.id.llCaseSolvesSection).setVisibility(anything ? View.VISIBLE : View.GONE);
-    findViewById(R.id.llDrillSummaryCells).setVisibility(anything ? View.VISIBLE : View.GONE);
+    hero.showFigures(anything);
     TextView empty = findViewById(R.id.tvCaseSolvesEmpty);
     empty.setVisibility(anything ? View.GONE : View.VISIBLE);
     empty.setText(R.string.case_solves_empty);
@@ -135,8 +117,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
     for (CaseSolve one : solves) {
       types.add(one.getSolve().getSolveType().getId());
     }
-    TextView window = findViewById(R.id.tvCaseSolvesWindow);
-    window.setText(types.size() > 1
+    hero.setSub(types.size() > 1
         ? getResources().getQuantityString(R.plurals.case_solves_window_types, types.size(),
             types.size())
         : solves.isEmpty() ? "" : solves.get(0).getSolve().getSolveType().getName());
@@ -154,6 +135,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
           .setTypeface(ResourcesCompat.getFont(this, R.font.roboto_bold));
       line.setTag(one);
       line.setOnClickListener(v -> open(one.getSolve()));
+      line.findViewById(R.id.ivDrillAttemptChevron).setVisibility(View.VISIBLE);
       fill(line, one, types.size() > 1);
       rows.addView(line);
     }
@@ -194,7 +176,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
     }
   }
 
-  /** The drill screens' three cells, over the same rows as the In solves card. */
+  /** The card's figures, over the same rows as the In solves card. */
   private void showFigures() {
     long total = 0;
     long recognition = 0;
@@ -207,32 +189,24 @@ public class CaseSolvesActivity extends NanoTimerActivity
       worst = Math.max(worst, one.getTotalMs());
     }
     int count = solves.size();
-    FormatterService format = FormatterService.INSTANCE;
-
-    setCell(R.id.tvDrillCellKeyOne, R.id.tvDrillCellValueOne, R.id.tvDrillCellSubOne,
-        getString(R.string.case_solves_cell_count), String.valueOf(count), "");
-    ((TextView) findViewById(R.id.tvDrillCellKeyTwo)).setText(R.string.drill_summary_cell_mean);
-    DrillStatCells.nameHalves(this, hue);
-    ((TextView) findViewById(R.id.tvDrillMeanRecognition))
-        .setText(format.formatSolveTime(recognition / count));
-    ((TextView) findViewById(R.id.tvDrillMeanExecution))
-        .setText(format.formatSolveTime((total - recognition) / count));
-    setCell(R.id.tvDrillCellKeyThree, R.id.tvDrillCellValueThree, R.id.tvDrillCellSubThree,
-        getString(R.string.drill_summary_cell_best), format.formatSolveTime(best),
-        getString(R.string.drill_case_stats_cell_worst, format.formatSolveTime(worst)));
+    hero.setMean(recognition / count, (total - recognition) / count);
+    hero.setCount(getString(R.string.case_solves_cell_count), count, null);
+    hero.setBest(best, getString(R.string.drill_case_stats_cell_worst,
+        FormatterService.INSTANCE.formatSolveTime(worst)), null);
   }
 
   /** @param named whether the list spans solve types, so each row says which one it is from */
   private void fill(View line, CaseSolve one, boolean named) {
     SolveTime solve = one.getSolve();
     FormatterService format = FormatterService.INSTANCE;
+    int halves = ContextCompat.getColor(this, R.color.gray400);
     ((TextView) line.findViewById(R.id.tvDrillAttemptWhen))
         .setText(format.formatSessionStart(solve.getTimestamp()));
     for (int column = 0; column < VALUE_IDS.length; column++) {
       TextView value = line.findViewById(VALUE_IDS[column]);
       long time = value(one, column);
       value.setText(format.formatSolveTime(time));
-      value.setTextColor(scales[column].colorFor(time, false));
+      value.setTextColor(column == TOTAL ? scales[column].colorFor(time, false) : halves);
     }
     ((DrillSplitBarView) line.findViewById(R.id.vDrillAttemptBar))
         .setSplit(one.getRecognitionMs(), one.getExecutionMs(), hue);
@@ -291,11 +265,5 @@ public class CaseSolvesActivity extends NanoTimerActivity
       default:
         return one.getTotalMs();
     }
-  }
-
-  private void setCell(int keyId, int valueId, int subId, String key, String value, String sub) {
-    ((TextView) findViewById(keyId)).setText(key);
-    ((TextView) findViewById(valueId)).setText(value);
-    ((TextView) findViewById(subId)).setText(sub);
   }
 }

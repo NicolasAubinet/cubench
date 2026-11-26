@@ -129,14 +129,17 @@
          android:textSize="12sp"
          android:visibility="gone"/>
 
-      <!-- The drill stats cells, over the drill mean table: every rep in the window. -->
-      <include
-         android:id="@+id/icCaseSetCells"
-         layout="@layout/drill_stat_cells"
+      <!-- A finished drill's card over a mean table: every time in it, whichever case. -->
+      <LinearLayout
+         android:id="@+id/llCaseSetHero"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:layout_marginBottom="14dp"
-         android:visibility="gone"/>
+         android:layout_marginBottom="6dp"
+         android:orientation="vertical"
+         android:visibility="gone">
+
+        <include layout="@layout/case_list_hero"/>
+      </LinearLayout>
 
       <TextView
          android:id="@+id/tvCaseSetEmpty"

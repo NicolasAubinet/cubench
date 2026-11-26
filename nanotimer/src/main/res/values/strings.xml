@@ -1084,9 +1084,8 @@
   <string name="drill_stats_window_week_long">Last 7 days</string>
   <string name="drill_stats_window_month_long">Last 30 days</string>
   <string name="drill_stats_window_all_long">All time</string>
-  <string name="drill_case_stats_title">Case</string>
   <string name="drill_case_stats_attempts">Attempts</string>
-  <string name="drill_case_stats_hint">Tap the case for its algorithms. Swipe an attempt left to remove it.</string>
+  <string name="drill_case_stats_hint">Swipe an attempt left to remove it.</string>
   <string name="drill_case_stats_removed">Attempt removed</string>
   <string name="drill_case_stats_empty">No attempt in this stretch of time.</string>
   <string name="drill_case_stats_cell_worst">Worst %s</string>
@@ -1180,7 +1179,6 @@
   <string name="case_sheet_in_solves">In solves</string>
   <string name="case_sheet_in_drills">In drills</string>
   <string name="case_solves_label">Solves</string>
-  <string name="case_solves_hint">Tap the case for its algorithms, a solve to open it.</string>
   <string name="case_solves_empty">No solve has timed this case.</string>
   <string name="case_solves_cell_count">Times</string>
   <string name="case_solves_note">Solve %s</string>
