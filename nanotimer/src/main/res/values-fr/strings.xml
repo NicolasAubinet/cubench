@@ -823,8 +823,8 @@
   <string name="smart_cube_connect_failed">Échec de la connexion: %s</string>
   <string name="smart_cube_done">Terminé</string>
   <string name="smart_cube_auto_connect">Se connecter à ce cube à l\'ouverture de l\'application</string>
-  <string name="smart_cube_resync">Réinitialiser l\'état</string>
-  <string name="smart_cube_resync_hint">Si l\'application croit que votre cube est mélangé alors qu\'il ne l\'est pas, c\'est que le cube s\'est perdu. Résolvez-le, puis réinitialisez l\'état.</string>
+  <string name="smart_cube_resync">Mon cube est résolu</string>
+  <string name="smart_cube_resync_hint">Si l\'application croit que votre cube est mélangé alors qu\'il ne l\'est pas, c\'est que le cube s\'est perdu. Résolvez-le, puis appuyez sur le bouton ci-dessous.</string>
   <string name="smart_cube_resynced">État du cube réaligné</string>
   <string name="smart_cube_straighten">Réinitialiser l\'orientation</string>
   <string name="smart_cube_straightened">Orientation du cube réalignée</string>

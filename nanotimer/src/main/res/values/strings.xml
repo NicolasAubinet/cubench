@@ -842,8 +842,8 @@
   <string name="smart_cube_connect_failed">Connection failed: %s</string>
   <string name="smart_cube_done">Done</string>
   <string name="smart_cube_auto_connect">Connect to this cube when the app opens</string>
-  <string name="smart_cube_resync">Reset state</string>
-  <string name="smart_cube_resync_hint">If the app thinks your cube is scrambled when it is not, the cube has lost track of itself. Solve it, then reset the state.</string>
+  <string name="smart_cube_resync">My cube is solved</string>
+  <string name="smart_cube_resync_hint">If the app thinks your cube is scrambled when it is not, the cube has lost track of itself. Solve it, then press the button below.</string>
   <string name="smart_cube_resynced">Cube state realigned</string>
   <string name="smart_cube_straighten">Reset orientation</string>
   <string name="smart_cube_straightened">Cube orientation realigned</string>
