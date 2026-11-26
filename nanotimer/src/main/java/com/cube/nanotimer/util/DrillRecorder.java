@@ -74,6 +74,10 @@ public class DrillRecorder {
     this.recording = recording;
   }
 
+  public long getStartedAtMs() {
+    return startedAtMs;
+  }
+
   public synchronized void record(DrillRep rep) {
     if (!recording) {
       if (rep.isPractice()) {

@@ -24,7 +24,7 @@
        android:layout_weight="1"
        android:ellipsize="end"
        android:letterSpacing="0.14"
-       android:maxLines="2"
+       android:maxLines="3"
        android:textAllCaps="true"
        android:textSize="11sp"
        android:textStyle="bold"/>
