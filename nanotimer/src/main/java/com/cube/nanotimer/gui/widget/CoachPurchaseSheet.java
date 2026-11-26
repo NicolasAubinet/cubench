@@ -361,9 +361,9 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
   }
 
   /**
-   * The invitation: why it opened, then the beta's Free tile and weekly loop, or after the beta what
-   * the coach gives and the trial line. No prices and no upload text: those are agreed to on the
-   * Plan tab, where the button leads.
+   * The invitation: why it opened, what the coach gives, then the beta's Free tile or after the beta
+   * the trial line. No prices and no upload text: those are agreed to in the sheet the button opens
+   * over the Plan tab, which also shows the beta's weekly loop.
    */
   private void showInvitation() {
     CoachBetaLook.Sheet sheet = sheet();
@@ -386,13 +386,15 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
     content.findViewById(R.id.llCoachPurchaseHow).setVisibility(View.GONE);
     content.findViewById(R.id.tvCoachPurchaseNote).setVisibility(View.GONE);
     content.findViewById(R.id.buCoachBetaClose).setVisibility(View.GONE);
-    // Rating is a step of the week only during the beta; after it, what the coach gives instead.
-    boolean join = sheet == CoachBetaLook.Sheet.JOIN;
-    content.findViewById(R.id.llCoachBetaLoop).setVisibility(join ? View.VISIBLE : View.GONE);
-    content.findViewById(R.id.tvCoachBetaLoopNote).setVisibility(join ? View.VISIBLE : View.GONE);
-    content.findViewById(R.id.llCoachInvitePoints)
-        .setVisibility(sheet == CoachBetaLook.Sheet.PAID ? View.VISIBLE : View.GONE);
-    showLoop();
+    content.findViewById(R.id.llCoachBetaLoop).setVisibility(View.GONE);
+    content.findViewById(R.id.tvCoachBetaLoopNote).setVisibility(View.GONE);
+    content.findViewById(R.id.llCoachInvitePoints).setVisibility(View.VISIBLE);
+    CoachBetaLook look = CoachBetaLook.of(requireContext());
+    if (look != null) {
+      TextView last = content.findViewById(R.id.tvAnalysisPlanPointSupport);
+      last.setCompoundDrawablesRelativeWithIntrinsicBounds(look.pitchPointIcon(), 0, 0, 0);
+      last.setText(look.pitchPointText());
+    }
     setOrHide((TextView) content.findViewById(R.id.tvCoachInviteReady),
         getString(R.string.coach_invite_ready, inviteSolves));
     TextView button = content.findViewById(R.id.buCoachPurchase);
@@ -404,7 +406,8 @@ public class CoachPurchaseSheet extends NanoTimerBottomSheetFragment
   private void goToCoach() {
     startActivity(new Intent(requireContext(), AnalysisActivity.class)
         .putExtra(AnalysisActivity.EXTRA_SOLVE_TYPE, picked)
-        .putExtra(AnalysisActivity.EXTRA_TAB, AnalysisActivity.TAB_PLAN));
+        .putExtra(AnalysisActivity.EXTRA_TAB, AnalysisActivity.TAB_PLAN)
+        .putExtra(AnalysisActivity.EXTRA_OPEN_OFFER, true));
     dismiss();
   }
 

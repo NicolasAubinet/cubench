@@ -1423,6 +1423,7 @@
   <string name="coach_retry_unreachable">Não foi possível falar com o coach. Ele tenta de novo sozinho quando você estiver online.</string>
   <string name="coach_retry_unavailable">O coach não está disponível neste momento. Ele tenta de novo sozinho.</string>
   <string name="coach_gate_title">O coach abre às %1$d resoluções com smart cube</string>
+  <string name="coach_gate_first">Seu primeiro plano chega às %1$d resoluções com smart cube</string>
   <string name="coach_gate_count">%1$d de %2$d</string>
   <string name="coach_offer_try_free">Experimentar o coach, %1$s grátis</string>
   <string name="coach_offer_try">Obter o coach</string>

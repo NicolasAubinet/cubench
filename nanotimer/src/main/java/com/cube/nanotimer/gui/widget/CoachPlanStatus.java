@@ -78,6 +78,8 @@ public class CoachPlanStatus {
   private View endCard;
   private Look look = Look.PITCH;
   private LookListener lookListener;
+  /** Opens the offer's sheet the first time the offer is drawn, for a visit from the invitation. */
+  private boolean openOffer;
 
   /** What the rest of the tab shows around the card while this type has no plan of its own. */
   public enum Look {
@@ -122,6 +124,11 @@ public class CoachPlanStatus {
       place(false);
     }
     this.dock = dock;
+  }
+
+  /** Opens the sheet by itself once the offer is drawn, saving the tap on its button. */
+  public void openOfferWhenShown() {
+    openOffer = true;
   }
 
   /** Reads the access and the schedule again and redraws. Main thread only. */
@@ -289,6 +296,7 @@ public class CoachPlanStatus {
     }
     int here = 0;
     SolveType ready = null;
+    SolveType started = null;
     for (int i = 0; i < eligible.size(); i++) {
       boolean shown = eligible.get(i).getId() == solveType.getId();
       if (shown) {
@@ -297,9 +305,13 @@ public class CoachPlanStatus {
       if (counts.get(i) >= CoachPayloadBuilder.PLAN_FLOOR && (ready == null || shown)) {
         ready = eligible.get(i);
       }
+      if (counts.get(i) > 0 && (started == null || shown)) {
+        started = eligible.get(i);
+      }
     }
     final int solves = here;
     final SolveType offered = ready;
+    final SolveType early = started;
     show(new Runnable() {
       @Override
       public void run() {
@@ -307,10 +319,14 @@ public class CoachPlanStatus {
         if (client.hasAccess()) {
           return;
         }
-        if (offered == null) {
-          showGate(solves);
-        } else {
+        if (offered != null) {
+          tab.findViewById(R.id.llCoachGate).setVisibility(View.GONE);
           showOffer(offered);
+        } else if (early != null && joinsEarly()) {
+          showGate(solves, true);
+          showOffer(early);
+        } else {
+          showGate(solves, false);
         }
       }
     });
@@ -714,15 +730,27 @@ public class CoachPlanStatus {
     return text;
   }
 
-  /** @param solves how many smart cube solves the solve type on screen has */
-  private void showGate(int solves) {
+  /**
+   * The beta takes a smart cube owner before the first plan's solves, so the seat waits for them.
+   * The purchase still waits: its free weeks would run out before the first plan.
+   */
+  private boolean joinsEarly() {
+    CoachBetaLook look = CoachBetaLook.of(activity);
+    return look != null && look.sheet() == CoachBetaLook.Sheet.JOIN;
+  }
+
+  /**
+   * @param solves how many smart cube solves the solve type on screen has
+   * @param early whether the offer is drawn under it, so the count is to a first plan
+   */
+  private void showGate(int solves, boolean early) {
     int floor = CoachPayloadBuilder.PLAN_FLOOR;
     tab.findViewById(R.id.tvAnalysisPlanCites).setVisibility(View.GONE);
     showPoints(true);
     tab.findViewById(R.id.llCoachOffer).setVisibility(View.GONE);
     tab.findViewById(R.id.llCoachGate).setVisibility(View.VISIBLE);
-    ((TextView) tab.findViewById(R.id.tvCoachGateTitle))
-        .setText(activity.getString(R.string.coach_gate_title, floor));
+    ((TextView) tab.findViewById(R.id.tvCoachGateTitle)).setText(activity.getString(
+        early ? R.string.coach_gate_first : R.string.coach_gate_title, floor));
     ((TextView) tab.findViewById(R.id.tvCoachGateCount))
         .setText(activity.getString(R.string.coach_gate_count, solves, floor));
     ProgressBar meter = tab.findViewById(R.id.pbCoachGate);
@@ -734,7 +762,6 @@ public class CoachPlanStatus {
   private void showOffer(final SolveType offered) {
     tab.findViewById(R.id.tvAnalysisPlanCites).setVisibility(View.GONE);
     showPoints(true);
-    tab.findViewById(R.id.llCoachGate).setVisibility(View.GONE);
     tab.findViewById(R.id.llCoachOffer).setVisibility(View.VISIBLE);
     // During the beta the same card offers it, free: no price may show before a sheet that says so.
     CoachBetaLook look = CoachBetaLook.of(activity);
@@ -757,6 +784,10 @@ public class CoachPlanStatus {
     noteView.setText(note);
     noteView.setVisibility(note == null ? View.GONE : View.VISIBLE);
     billing.readPlans(false);
+    if (openOffer) {
+      openOffer = false;
+      openPurchase(offered);
+    }
   }
 
   /** Says why a 3x3 type gets no plan when its method or hands are the reason. */
