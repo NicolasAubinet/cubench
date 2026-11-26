@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class UsageWorker extends Worker {
 
-  /** About five showings of each OLL case; the votes read a case's five latest answers. */
+  /** About five showings of each OLL case; the votes read a case's three latest answers. */
   static final int SOLVES_READ = 300;
   /** After this many tries in a row the send waits for the next day. */
   private static final int MAX_ATTEMPTS = 5;
