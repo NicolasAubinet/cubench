@@ -184,6 +184,48 @@ public final class CaseExecutions {
     return kept;
   }
 
+  /**
+   * How a last layer case or a CMLL went in, in solves the case itself was handed, newest first:
+   * the moves of a one-look answer, or null for a two-look. A solve where only the case's algorithm
+   * was turned, as one look of another case, is not one of them. A false start is not a look.
+   *
+   * @param solves solves the case was handed in, newest first
+   */
+  public static List<String> answersTo(List<SolveTime> solves, final String caseCode) {
+    final List<String> answers = new ArrayList<String>();
+    for (SolveTime solve : solves) {
+      boolean roux = CmllCases.isCase(caseCode)
+          && SolveTypeMethod.of(solve.getSolveType()) == CubeMethod.ROUX;
+      readSteps(roux ? replayAs(solve, CubeMethod.ROUX) : replay(solve), new StepReader() {
+        @Override
+        public void read(SolveStep step, SolveSolution.Step turned) {
+          if (caseCode.equals(caseOfStep(step.getName()))) {
+            answers.add(answerOf(step, turned));
+          }
+        }
+      });
+    }
+    return answers;
+  }
+
+  /** The moves of a one-look step, or null for a two-look. */
+  private static String answerOf(SolveStep step, SolveSolution.Step turned) {
+    List<SolveStep> parts = step.getSubSteps();
+    if (parts.isEmpty()) {
+      return turned.getPartMoves(0);
+    }
+    String moves = null;
+    int looks = 0;
+    for (int i = 0; i < parts.size() && i < turned.getGroups().size(); i++) {
+      String name = parts.get(i).getName();
+      if (name == null || !name.endsWith(SolveReading.RESTART_PART_SUFFIX)) {
+        looks++;
+        moves = turned.getPartMoves(i);
+      }
+    }
+    return looks == 1 ? moves : null;
+  }
+
   private static Shown writtenAs(List<Shown> shown, String moves) {
     for (Shown one : shown) {
       if (one.moves.equals(moves)) {
