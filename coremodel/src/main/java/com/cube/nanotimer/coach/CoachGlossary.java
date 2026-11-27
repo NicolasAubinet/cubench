@@ -236,6 +236,8 @@ public final class CoachGlossary {
         new Phrasing("OLL, PLL and F2L are masculine: \"un OLL\", \"aucun PLL\", \"l'OLL 7 appris juste"
             + " avant\", \"vos F2L\"", "une oll", "une pll", "aucune oll", "aucune pll",
             "cette oll", "cette pll", "la oll", "la pll"),
+        new Phrasing("a rep is feminine: \"une rep\", \"la dernière rep\", \"aucune rep\", \"deux reps"
+            + " réussies\"", "un rep", "le rep", "ce rep", "du rep", "au rep", "aucun rep"),
         new Phrasing("a step is résolu or fait in two algorithms, never pris: \"aucun PLL fait en deux"
             + " algorithmes\", \"44 ont résolu l'orientation de la dernière couche en plus d'un"
             + " algorithme\"", "pris en plus d'un algorithme", "prise en plus d'un algorithme",
