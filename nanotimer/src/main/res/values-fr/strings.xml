@@ -1133,6 +1133,8 @@
   <string name="case_solves_cell_count">Fois</string>
   <string name="case_solves_note">Résolution %s</string>
   <string name="case_solves_note_type">Résolution %1$s · %2$s</string>
+  <!-- On a solve the timer was stopped in while this case was being turned, so its time is cut short. -->
+  <string name="case_solves_stopped">Arrêtée</string>
   <plurals name="case_solves_window_types">
     <item quantity="one">De %d type de résolution</item>
     <item quantity="other">De %d types de résolution</item>

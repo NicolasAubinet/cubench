@@ -1182,6 +1182,8 @@
   <string name="case_solves_cell_count">Times</string>
   <string name="case_solves_note">Solve %s</string>
   <string name="case_solves_note_type">Solve %1$s · %2$s</string>
+  <!-- On a solve the timer was stopped in while this case was being turned, so its time is cut short. -->
+  <string name="case_solves_stopped">Stopped</string>
   <plurals name="case_solves_window_types">
     <item quantity="one">From %d solve type</item>
     <item quantity="other">From %d solve types</item>

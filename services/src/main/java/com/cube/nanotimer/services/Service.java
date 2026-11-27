@@ -88,7 +88,8 @@ public interface Service {
   void getCaseSolveStats(String caseCode, int lastTimes, DataCallback<StepStats> callback);
 
   /**
-   * The executions {@link #getCaseSolveStats} is the mean of, newest first, each with its whole
+   * The executions {@link #getCaseSolveStats} is the mean of, and every other time the case came up
+   * since the oldest of them, marked with why it is left out; newest first, each with its whole
    * solve loaded the way the history loads one, ready to be opened.
    */
   void getCaseSolveList(String caseCode, int lastTimes, DataCallback<List<CaseSolve>> callback);

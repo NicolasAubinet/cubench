@@ -35,8 +35,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * One case, and the times in solves the case sheet's In solves card is the mean of: the same rows,
- * of every solve type, so the card and the list can never disagree. Each row opens its solve as the
+ * One case, and every time it came up in a solve, of every solve type: the rows the case sheet's In
+ * solves card is the mean of, and the others in between marked with why they are not (a DNF, a
+ * solve stopped inside the case, two looks, a false start), so the solves the sheet reads its last
+ * answers from are all here. The figures are the card's own. Each row opens its solve as the
  * history does, and the sheet can be swiped along the list.
  *
  * <p>Nothing is thrown out here, unlike a drill rep: a solve is removed from its own sheet, and the
@@ -46,7 +48,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
     implements TimeChangedHandler, SolveNavigator {
 
   public static final String EXTRA_CASE = "caseSolvesCase";
-  /** How many of the case's latest times are listed: the In solves card's own window. */
+  /** How many of the case's latest counted times are listed: the In solves card's own window. */
   public static final String EXTRA_LAST = "caseSolvesLast";
 
   private static final int[] VALUE_IDS = {R.id.tvDrillAttemptRecognition,
@@ -108,7 +110,8 @@ public class CaseSolvesActivity extends NanoTimerActivity
   private void show() {
     boolean anything = !solves.isEmpty();
     findViewById(R.id.llCaseSolvesSection).setVisibility(anything ? View.VISIBLE : View.GONE);
-    hero.showFigures(anything);
+    List<CaseSolve> counted = counted();
+    hero.showFigures(!counted.isEmpty());
     TextView empty = findViewById(R.id.tvCaseSolvesEmpty);
     empty.setVisibility(anything ? View.GONE : View.VISIBLE);
     empty.setText(R.string.case_solves_empty);
@@ -126,8 +129,10 @@ public class CaseSolvesActivity extends NanoTimerActivity
     if (!anything) {
       return;
     }
-    buildScales();
-    showFigures();
+    buildScales(counted);
+    if (!counted.isEmpty()) {
+      showFigures(counted);
+    }
     LayoutInflater inflater = LayoutInflater.from(this);
     for (final CaseSolve one : solves) {
       View line = inflater.inflate(R.layout.drill_case_attempt_row, rows, false);
@@ -165,10 +170,10 @@ public class CaseSolvesActivity extends NanoTimerActivity
     headings.refresh();
   }
 
-  private void buildScales() {
+  private void buildScales(List<CaseSolve> counted) {
     for (int column = 0; column < VALUE_IDS.length; column++) {
       List<Long> times = new ArrayList<Long>();
-      for (CaseSolve one : solves) {
+      for (CaseSolve one : counted) {
         times.add(value(one, column));
       }
       scales[column] = new TimeColorScale(this);
@@ -177,18 +182,18 @@ public class CaseSolvesActivity extends NanoTimerActivity
   }
 
   /** The card's figures, over the same rows as the In solves card. */
-  private void showFigures() {
+  private void showFigures(List<CaseSolve> counted) {
     long total = 0;
     long recognition = 0;
     long best = Long.MAX_VALUE;
     long worst = 0;
-    for (CaseSolve one : solves) {
+    for (CaseSolve one : counted) {
       total += one.getTotalMs();
       recognition += one.getRecognitionMs();
       best = Math.min(best, one.getTotalMs());
       worst = Math.max(worst, one.getTotalMs());
     }
-    int count = solves.size();
+    int count = counted.size();
     hero.setMean(recognition / count, (total - recognition) / count);
     hero.setCount(getString(R.string.case_solves_cell_count), count, null);
     hero.setBest(best, getString(R.string.drill_case_stats_cell_worst,
@@ -200,22 +205,51 @@ public class CaseSolvesActivity extends NanoTimerActivity
     SolveTime solve = one.getSolve();
     FormatterService format = FormatterService.INSTANCE;
     int halves = ContextCompat.getColor(this, R.color.gray400);
+    int left = ContextCompat.getColor(this, R.color.secondary_text);
+    boolean isCounted = one.getMark() == null;
     ((TextView) line.findViewById(R.id.tvDrillAttemptWhen))
         .setText(format.formatSessionStart(solve.getTimestamp()));
     for (int column = 0; column < VALUE_IDS.length; column++) {
       TextView value = line.findViewById(VALUE_IDS[column]);
       long time = value(one, column);
       value.setText(format.formatSolveTime(time));
-      value.setTextColor(column == TOTAL ? scales[column].colorFor(time, false) : halves);
+      value.setTextColor(!isCounted ? left
+          : column == TOTAL ? scales[column].colorFor(time, false) : halves);
     }
     ((DrillSplitBarView) line.findViewById(R.id.vDrillAttemptBar))
         .setSplit(one.getRecognitionMs(), one.getExecutionMs(), hue);
 
     TextView note = line.findViewById(R.id.tvDrillAttemptNote);
     String time = format.formatSolveTime(solve);
-    note.setText(named ? getString(R.string.case_solves_note_type, time,
-        solve.getSolveType().getName()) : getString(R.string.case_solves_note, time));
+    String text = named ? getString(R.string.case_solves_note_type, time,
+        solve.getSolveType().getName()) : getString(R.string.case_solves_note, time);
+    String mark = markText(one.getMark());
+    note.setText(mark == null ? text : text + getString(R.string.drill_case_note_separator) + mark);
     note.setVisibility(View.VISIBLE);
+  }
+
+  /** Why a row is out of the figures, or null where it is in them or its time already says so. */
+  private String markText(CaseSolve.Mark mark) {
+    switch (mark == null ? CaseSolve.Mark.DNF : mark) {
+      case STOPPED:
+        return getString(R.string.case_solves_stopped);
+      case TWO_LOOKS:
+        return getString(R.string.case_algorithm_two_looks);
+      case RESTART:
+        return getString(R.string.smartcube_step_restart);
+      default:
+        return null; // a DNF's time is written as one
+    }
+  }
+
+  private List<CaseSolve> counted() {
+    List<CaseSolve> counted = new ArrayList<CaseSolve>();
+    for (CaseSolve one : solves) {
+      if (one.getMark() == null) {
+        counted.add(one);
+      }
+    }
+    return counted;
   }
 
   private void open(SolveTime solve) {
@@ -223,7 +257,7 @@ public class CaseSolvesActivity extends NanoTimerActivity
         CubeType.getCubeType(solve.getSolveType().getCubeTypeId()), this, this, caseCode));
   }
 
-  /** A solve opened from here was changed: a DNF leaves the list, a +2 does not move the case. */
+  /** A solve opened from here was changed: a DNF leaves the figures, a +2 leaves the case alone. */
   @Override
   public void onTimeChanged(SolveTime solveTime) {
     load();
