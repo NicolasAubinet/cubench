@@ -1183,7 +1183,7 @@
   <string name="drill_summary_not_recorded">Não salvo</string>
   <string name="drill_help_title">Sobre este treino</string>
   <string name="drill_help_body">As configurações deste treino.</string>
-  <string name="drill_help_record">Quando ativado, cada repetição é salva: o tempo e se você pediu para ver o algoritmo. As repetições salvas alimentam as Estatísticas de treino e \"Algoritmos que você conhece\" em Análise. Desative para treinar sem afetá-las.</string>
+  <string name="drill_help_record">Quando ativado, cada repetição é salva: o tempo e se você pediu para ver o algoritmo. As repetições salvas contam nas Estatísticas de treino e para saber quais casos você conhece. Desative para treinar sem afetá-las.</string>
   <string name="drill_planning_limit">Limite de planejamento</string>
   <string name="drill_planning_seconds">segundos</string>
   <string name="drill_planning_hint">Desativado por padrão: aprender a cruz completa leva mais do que os 15 segundos oficiais.</string>
@@ -1679,11 +1679,11 @@
   <string name="analysis_help_delta">Em relação a uma resolução típica</string>
   <string name="analysis_help_delta_body">Quanto cada etapa pesa na sua resolução, comparado ao peso dela numa resolução típica. As diferenças somam zero, então uma etapa rápida faz as outras parecerem lentas.</string>
   <string name="analysis_help_table">A tabela de etapas</string>
-  <string name="analysis_help_table_body">Média, melhor e desvio de cada etapa. Toque em um cabeçalho para ordenar por ele. As etapas com casos nomeados, OLL e PLL, têm uma seta e abrem esses casos.</string>
+  <string name="analysis_help_table_body">Média, melhor e desvio de cada etapa. Toque em um cabeçalho para ordenar por ele. Toque em uma etapa com seta para ver os casos dela.</string>
   <string name="analysis_help_turning">Movimentos, TPS, em pausa</string>
   <string name="analysis_help_turning_body">Por resolução. Os movimentos são contados como na página de cada resolução, e o TPS é o número de movimentos por segundo na resolução inteira. Em pausa é a parte clara da barra abaixo: o tempo de procura, e não de execução.</string>
   <string name="analysis_help_spread">Desvio</string>
-  <string name="analysis_help_spread_body">Quanto o tempo varia de uma resolução para outra. A mesma média pode vir de fazer sempre do mesmo jeito, ou de travar de vez em quando.</string>
+  <string name="analysis_help_spread_body">Quanto o tempo varia de uma resolução para outra. Quanto mais alto, menos consistente você é.</string>
   <string name="analysis_help_standard">Algoritmos padrão</string>
   <string name="analysis_help_standard_body">Os casos do conjunto em que você usou um dos algoritmos listados na maioria das três últimas vezes que o caso apareceu. Lido de todas as suas resoluções, seja qual for o intervalo no topo.</string>
   <string name="analysis_help_extra">Movimentos a mais</string>
@@ -1691,19 +1691,19 @@
   <string name="analysis_help_plan_title">Seu plano</string>
   <string name="analysis_help_plan_body">Os planos fazem parte do coach do Cubench. O coach lê suas resoluções com smart cube, encontra onde você mais perde tempo e monta um plano para a semana, com treinos para os seus pontos fracos.</string>
   <string name="analysis_help_plan_cards">Em que se concentrar</string>
-  <string name="analysis_help_plan_cards_body">Até três pontos para trabalhar, começando pelo que vale mais. Cada um diz o que está acontecendo, por quê, e uma coisa a fazer a respeito.</string>
+  <string name="analysis_help_plan_cards_body">Até três pontos para trabalhar, começando pelo que vale mais. Cada um diz o que está acontecendo, por quê e o que fazer.</string>
   <string name="analysis_help_plan_drills">Treinos</string>
-  <string name="analysis_help_plan_drills_body">O botão de cada ponto abre um treino feito para ele. Um caso sai do treino quando você bate a meta dele algumas vezes.</string>
+  <string name="analysis_help_plan_drills_body">O botão de cada ponto abre um treino feito para você. Um caso sai do treino quando você bate a meta dele algumas vezes.</string>
   <string name="analysis_help_plan_practice_body">Abaixo do plano, os casos que mais custam tempo a você, prontos para treinar entre um plano e outro.</string>
   <string name="analysis_help_plan_new">Um novo plano</string>
   <string name="analysis_help_plan_new_body">Feito a partir das suas últimas 100 resoluções com smart cube, então o primeiro só sai depois delas. Depois, chega um plano novo toda semana, quando você tiver feito mais 25 resoluções e a sua sessão tiver terminado.</string>
   <string name="analysis_help_cases_title">Caso a caso</string>
-  <string name="analysis_help_cases_body">Os casos da etapa escolhida que você resolveu em um só look, cada um nas suas próprias últimas resoluções: o número no topo. Um caso que apareceu só 3 vezes é lido nessas 3. As resoluções em 2-look ficam de fora.</string>
+  <string name="analysis_help_cases_body">Os casos da etapa escolhida que você resolveu em um só look. O número no topo diz quantas das últimas resoluções de cada caso são usadas, ou menos se o caso apareceu menos vezes. As resoluções em 2-look ficam de fora.</string>
   <string name="analysis_help_standing">Situação de um caso</string>
-  <string name="analysis_help_standing_body">Conhecido: resolvido em um só look, sem ajuda, e há pouco tempo o bastante para ainda contar. Para revisar: já saiu em um só look, mas precisou de 2-look nas duas últimas vezes. Para aprender: nunca saiu em um só look. Tudo isso vem das suas resoluções e treinos.</string>
+  <string name="analysis_help_standing_body">Conhecido: resolvido em um só look, sem ajuda, na última vez que apareceu (um deslize é tolerado). Para revisar: já saiu em um só look, mas precisou de 2-look nas duas últimas vezes. Para aprender: nunca saiu em um só look. Tudo isso vem das suas resoluções e treinos.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">No OLL, um botão Forma limita a tabela a um grupo de formas, com o tamanho de cada grupo ao lado.</string>
-  <string name="analysis_help_rest_body">Abaixo da tabela, os casos que você nunca resolveu em um só look com este tipo de resolução, agrupados pela situação de cada um em todas as suas resoluções. Toque em um para ver os algoritmos.</string>
+  <string name="analysis_help_rest_body">Abaixo da tabela, os outros casos do conjunto, agrupados pela situação de cada um. Seus treinos e seus outros tipos de resolução também contam. Toque em um caso para ver os algoritmos.</string>
   <string name="analysis_help_sample">Exemplo</string>
   <string name="analysis_help_sample_body">São dados de exemplo, mostrados até a sua primeira resolução com um smart cube.</string>
 

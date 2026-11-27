@@ -1230,7 +1230,7 @@
   <string name="drill_summary_not_recorded">Not recorded</string>
   <string name="drill_help_title">About this drill</string>
   <string name="drill_help_body">Settings for this drill.</string>
-  <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps feed Drill stats and \"Algorithms you know\" in Analysis. Turn it off to practice without affecting them.</string>
+  <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps count in Drill stats and in which cases show as known. Turn it off to practice without affecting them.</string>
   <string name="drill_planning_limit">Planning limit</string>
   <string name="drill_planning_seconds">seconds</string>
   <string name="drill_planning_hint">Off by default: learning the full cross takes longer than the official 15 seconds.</string>
@@ -1734,11 +1734,11 @@
   <string name="analysis_help_delta">Against a typical solve</string>
   <string name="analysis_help_delta_body">Each step\'s share of your solve, against its share in a typical solve. The differences add up to zero, so a fast step makes the others look slow.</string>
   <string name="analysis_help_table">The step table</string>
-  <string name="analysis_help_table_body">Mean, best and spread for each step. Tap a heading to sort by it. Steps that have named cases, OLL and PLL, show an arrow and open them.</string>
+  <string name="analysis_help_table_body">Mean, best and spread for each step. Tap a heading to sort by it. Tap a step with an arrow to see its cases.</string>
   <string name="analysis_help_turning">Moves, TPS, paused</string>
   <string name="analysis_help_turning_body">Per solve. Moves are counted the same way as on each solve\'s own page, and TPS is moves per second over the whole solve. Paused is the pale part of the bar below: the time spent looking rather than turning.</string>
   <string name="analysis_help_spread">Spread</string>
-  <string name="analysis_help_spread_body">How much the time changes from solve to solve. The same mean can come from doing it the same way every time, or from getting stuck now and then.</string>
+  <string name="analysis_help_spread_body">How much the time varies from one solve to the next. The higher it is, the less consistent you are.</string>
   <string name="analysis_help_standard">Standard algorithms</string>
   <string name="analysis_help_standard_body">The cases of the set where you used one of the listed algorithms most of the last three times the case came up. Read from all your solves, whatever the range at the top.</string>
   <string name="analysis_help_extra">Extra moves</string>
@@ -1746,19 +1746,19 @@
   <string name="analysis_help_plan_title">Your plan</string>
   <string name="analysis_help_plan_body">Plans are part of the Cubench coach. The coach reads your smart cube solves, finds what costs you the most time, and turns it into a plan for the week, with drills for your weak points.</string>
   <string name="analysis_help_plan_cards">This week\'s focus</string>
-  <string name="analysis_help_plan_cards_body">Up to three things to work on, the one worth the most first. Each says what is happening, why, and one thing to do about it.</string>
+  <string name="analysis_help_plan_cards_body">Up to three things to work on, the one worth the most first. Each says what is happening, why, and what to do about it.</string>
   <string name="analysis_help_plan_drills">Drills</string>
-  <string name="analysis_help_plan_drills_body">The button on a focus opens a drill made for it. Each case leaves the drill once you have beaten its target a few times.</string>
+  <string name="analysis_help_plan_drills_body">The button on a focus opens a drill made for you. Each case leaves the drill once you have beaten its target a few times.</string>
   <string name="analysis_help_plan_practice_body">Under the plan, the cases costing you the most, ready to practice between plans.</string>
   <string name="analysis_help_plan_new">A new plan</string>
   <string name="analysis_help_plan_new_body">Written from your last 100 smart cube solves, so the first one needs that many. After that a new plan comes every week, once you have done 25 more solves and your session is over.</string>
   <string name="analysis_help_cases_title">Case by case</string>
-  <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look, each over its own last solves: the number at the top. A case that came up only 3 times is read over those 3. Two-look solves are left out.</string>
+  <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look. The number at the top is how many of each case\'s last solves are used, or fewer if it came up less often. Two-look solves are left out.</string>
   <string name="analysis_help_standing">Where a case stands</string>
-  <string name="analysis_help_standing_body">Known: solved in one look, without help, recently enough to still count. Needs review: solved in one look before, but in two looks the last two times. To learn: never solved in one look. All of this comes from your solves and drills.</string>
+  <string name="analysis_help_standing_body">Known: solved in one look, without help, the last time it came up (one slip is allowed). Needs review: solved in one look before, but in two looks the last two times. To learn: never solved in one look. All of this comes from your solves and drills.</string>
   <string name="analysis_help_shape">Shape</string>
   <string name="analysis_help_shape_body">On OLL, a Shape button narrows the table to one group of shapes, with each group\'s size beside it.</string>
-  <string name="analysis_help_rest_body">Under the table, the cases you have never solved in one look with this solve type, grouped by where they stand across all your solves. Tap one for its algorithms.</string>
+  <string name="analysis_help_rest_body">Below the table, the other cases of the set, grouped by where they stand. Your drills and other solve types count too. Tap a case to see its algorithms.</string>
   <string name="analysis_help_sample">Example</string>
   <string name="analysis_help_sample_body">This is example data, shown until your first solve with a smart cube.</string>
 

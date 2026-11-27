@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- What a smart cube brings: the feature rows (filled by SmartCubeFeatures) and the brands it
-     works with. Shared by the news sheet and the connect dialog's intro. -->
+<!-- What a smart cube brings: the brands it works with, then the feature rows (filled by
+     SmartCubeFeatures). Shared by the news sheet and the connect dialog's intro. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    android:layout_width="match_parent"
    android:layout_height="wrap_content"
    android:orientation="vertical">
+
+  <!-- Above the rows, so it reads as part of connecting a cube rather than of the coach's row. -->
+  <TextView
+     android:id="@+id/tvNewsCubes"
+     android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+     android:layout_gravity="center_horizontal"
+     android:layout_marginTop="12dp"
+     android:background="@drawable/smart_cube_pill"
+     android:backgroundTint="@color/pill_scan_bg"
+     android:gravity="center"
+     android:paddingLeft="12dp"
+     android:paddingRight="12dp"
+     android:paddingTop="4dp"
+     android:paddingBottom="4dp"
+     android:text="@string/news_cubes"
+     android:textColor="@color/secondary_text"
+     android:textSize="12.5sp"/>
 
   <LinearLayout
      android:id="@+id/newsFeatures"
@@ -12,14 +30,4 @@
      android:layout_height="wrap_content"
      android:layout_marginTop="6dp"
      android:orientation="vertical"/>
-
-  <TextView
-     android:id="@+id/tvNewsCubes"
-     android:layout_width="match_parent"
-     android:layout_height="wrap_content"
-     android:layout_marginTop="18dp"
-     android:gravity="center"
-     android:text="@string/news_cubes"
-     android:textColor="@color/secondary_text"
-     android:textSize="12.5sp"/>
 </LinearLayout>
