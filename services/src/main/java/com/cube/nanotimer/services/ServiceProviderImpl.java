@@ -1850,6 +1850,11 @@ public class ServiceProviderImpl implements ServiceProvider {
 
   /** An F2L pair's step name and case code start with this ({@code pair_27_rf}, {@code pair_27}). */
   private static final String PAIR_PREFIX = "pair_";
+  /** A part undone by hand, a false start rather than a look: SolveReading's suffix. */
+  private static final String RESTART_PART_SUFFIX = "restart";
+  /** 1 where the solve was stopped inside the row's step, 0 in another, NULL where never. */
+  private static final String STOPPED_IN_STEP = "(h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
+      + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")";
 
   @Override
   public List<DrillCaseStats> getCaseSolveTable(int lastSolves) {
@@ -1969,14 +1974,25 @@ public class ServiceProviderImpl implements ServiceProvider {
         : new StepStats(caseCode, count, total, recognition, best, worst, squares);
   }
 
-  /** The very rows {@link #getCaseSolveStats} is the mean of, each with its whole solve. */
+  /**
+   * The rows {@link #getCaseSolveStats} is the mean of, unmarked, and every other time the case
+   * came up since the oldest of them, marked with why it is not; each with its whole solve.
+   */
   @Override
   public List<CaseSolve> getCaseSolveList(String caseCode, int lastTimes) {
     List<long[]> found = new ArrayList<long[]>(); // {solve, solve type, case time, recognition}
-    Cursor cursor = db.rawQuery(caseSolvesQuery(caseCode, ", h." + DB.COL_ID
-        + ", h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID, lastTimes), caseSolvesArgs(caseCode));
+    List<CaseSolve.Mark> marks = new ArrayList<CaseSolve.Mark>();
+    Cursor cursor = db.rawQuery(caseOccurrencesQuery(caseCode), caseSolvesArgs(caseCode));
     if (cursor != null) {
-      for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+      int counted = 0;
+      for (cursor.moveToFirst(); !cursor.isAfterLast() && counted < lastTimes;
+          cursor.moveToNext()) {
+        CaseSolve.Mark mark = caseMarkOf(cursor.getLong(4), cursor.getInt(5) != 0,
+            cursor.getInt(6), cursor.getInt(7));
+        if (mark == null) {
+          counted++;
+        }
+        marks.add(mark);
         found.add(new long[] { cursor.getLong(2), cursor.getLong(3), cursor.getLong(0),
             cursor.getLong(1) });
       }
@@ -1985,7 +2001,8 @@ public class ServiceProviderImpl implements ServiceProvider {
     Map<Long, SolveType> types = new HashMap<Long, SolveType>();
     Map<Long, SolveTime> solves = new HashMap<Long, SolveTime>();
     List<CaseSolve> list = new ArrayList<CaseSolve>();
-    for (long[] row : found) {
+    for (int i = 0; i < found.size(); i++) {
+      long[] row = found.get(i);
       if (!types.containsKey(row[1])) {
         types.put(row[1], getSolveType((int) row[1]));
       }
@@ -2000,7 +2017,7 @@ public class ServiceProviderImpl implements ServiceProvider {
       }
       SolveTime solve = solves.get(row[0]);
       if (solve != null) {
-        list.add(new CaseSolve(solve, row[3], row[2]));
+        list.add(new CaseSolve(solve, row[3], row[2], marks.get(i)));
       }
     }
     return list;
@@ -2038,30 +2055,56 @@ public class ServiceProviderImpl implements ServiceProvider {
    */
   private static String caseSolvesQuery(String caseCode, String more, int lastTimes) {
     boolean pair = caseCode.startsWith(PAIR_PREFIX);
-    String parts = "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
-        + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
-        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
-        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
-        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
-        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL)";
+    return caseRowsSelect(caseCode, more)
+        + (pair ? "" : "   AND " + partsOf("") + " < 2")
+        + "   AND h." + DB.COL_TIMEHISTORY_TIME + " > 0"
+        + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
+        + "     OR " + STOPPED_IN_STEP + " = 0)"
+        + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC"
+        + " LIMIT " + Math.max(0, lastTimes);
+  }
+
+  /** Every time a case came up in a solve, newest first, with what {@link #caseMarkOf} reads. */
+  private static String caseOccurrencesQuery(String caseCode) {
+    boolean pair = caseCode.startsWith(PAIR_PREFIX);
+    // A pair is a part itself, so the parts of its step are the other pairs, not looks of it.
+    String parts = pair ? "0, 0" : partsOf("") + ", " + partsOf(
+        " AND p." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " LIKE '%" + RESTART_PART_SUFFIX + "'");
+    return caseRowsSelect(caseCode, ", h." + DB.COL_ID + ", h." + DB.COL_TIMEHISTORY_SOLVETYPE_ID
+        + ", h." + DB.COL_TIMEHISTORY_TIME + ", IFNULL(" + STOPPED_IN_STEP + ", 0), " + parts)
+        + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC";
+  }
+
+  /** Why a row is left out of the case's mean, or null where caseSolvesQuery keeps it. */
+  private static CaseSolve.Mark caseMarkOf(long time, boolean stopped, int parts, int restarts) {
+    return time <= 0 ? CaseSolve.Mark.DNF : stopped ? CaseSolve.Mark.STOPPED
+        : parts - restarts >= 2 ? CaseSolve.Mark.TWO_LOOKS
+        : parts >= 2 ? CaseSolve.Mark.RESTART : null;
+  }
+
+  /** A case's rows, binding {@link #caseSolvesArgs}, for a WHERE clause to go on. */
+  private static String caseRowsSelect(String caseCode, String more) {
     return "SELECT " + CASE_TIME
         + ", s." + DB.COL_SMARTCUBE_SOLVESTEP_RECOGNITION + more
         + " FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " s"
         + " JOIN " + DB.TABLE_TIMEHISTORY + " h"
         + "   ON h." + DB.COL_ID + " = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
-        + (pair
+        + (caseCode.startsWith(PAIR_PREFIX)
             // A pair is a part of the F2L step, stored once per slot it went into: pair_27_rf.
             ? " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " GLOB ?"
             + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL"
             : " WHERE s." + DB.COL_SMARTCUBE_SOLVESTEP_NAME + " = ?"
-            + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL"
-            + "   AND " + parts + " < 2")
-        + "   AND h." + DB.COL_TIMEHISTORY_TIME + " > 0"
-        + "   AND (h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP + " IS NULL"
-        + "     OR h." + DB.COL_TIMEHISTORY_SMARTCUBE_STOPPED_STEP
-        + "    <> s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX + ")"
-        + " ORDER BY h." + DB.COL_TIMEHISTORY_TIMESTAMP + " DESC"
-        + " LIMIT " + Math.max(0, lastTimes);
+            + "   AND s." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NULL");
+  }
+
+  /** How many parts the row's step was stored with, {@code and} narrowing which. */
+  private static String partsOf(String and) {
+    return "(SELECT COUNT(*) FROM " + DB.TABLE_SMARTCUBE_SOLVESTEP + " p"
+        + " WHERE p." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_TIMEHISTORY_ID
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "     = s." + DB.COL_SMARTCUBE_SOLVESTEP_STEP_INDEX
+        + "   AND p." + DB.COL_SMARTCUBE_SOLVESTEP_SUB_INDEX + " IS NOT NULL" + and + ")";
   }
 
   /**

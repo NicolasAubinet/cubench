@@ -9,14 +9,19 @@ import java.io.Serializable;
  */
 public class CaseSolve implements Serializable {
 
+  /** Why a time is left out of the case's mean. */
+  public enum Mark { DNF, STOPPED, TWO_LOOKS, RESTART }
+
   private final SolveTime solve;
   private final long recognitionMs;
   private final long totalMs;
+  private final Mark mark;
 
-  public CaseSolve(SolveTime solve, long recognitionMs, long totalMs) {
+  public CaseSolve(SolveTime solve, long recognitionMs, long totalMs, Mark mark) {
     this.solve = solve;
     this.recognitionMs = recognitionMs;
     this.totalMs = totalMs;
+    this.mark = mark;
   }
 
   public SolveTime getSolve() {
@@ -34,5 +39,10 @@ public class CaseSolve implements Serializable {
   /** The case's time, recognition and execution together. */
   public long getTotalMs() {
     return totalMs;
+  }
+
+  /** Null where the time counts in the case's mean. */
+  public Mark getMark() {
+    return mark;
   }
 }
