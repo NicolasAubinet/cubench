@@ -513,7 +513,7 @@
       <li>Any solve can be replayed in 3D</li>
       <li>New Analysis screen: your slowest steps and cases, and the algorithms you use</li>
       <li>New Algorithms screen: OLL, PLL, F2L and CMLL cases, the algorithms cubers use most, and the ones you know</li>
-      <li>New drills, to practise OLL, PLL, F2L, CMLL and cross cases on your own cube</li>
+      <li>New drills, to practice OLL, PLL, F2L, CMLL and cross cases on your own cube</li>
       <li>New coach, by subscription: a weekly practice plan written from your solves, and a short drill every day</li>
       <li>The last cube can be reconnected automatically when the app opens</li>
     </ul>
@@ -1228,7 +1228,7 @@
   <string name="drill_summary_not_recorded">Not recorded</string>
   <string name="drill_help_title">About this drill</string>
   <string name="drill_help_body">Settings for this drill.</string>
-  <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps feed Drill stats and \"Algorithms you know\" in Analysis. Turn it off to practise without affecting them.</string>
+  <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps feed Drill stats and \"Algorithms you know\" in Analysis. Turn it off to practice without affecting them.</string>
   <string name="drill_planning_limit">Planning limit</string>
   <string name="drill_planning_seconds">seconds</string>
   <string name="drill_planning_hint">Off by default: learning the full cross takes longer than the official 15 seconds.</string>
@@ -1425,7 +1425,7 @@
   <string name="coach_written">Read on %1$s</string>
   <string name="coach_uncited">%1$d of this plan\'s claims are not in your history, and are not shown.</string>
   <string name="coach_refused_thin">There isn\'t enough to read yet. Do a few more solves with your smart cube and ask again.</string>
-  <string name="coach_refused_cap">You\'ve already had all this week\'s plans, the next one will be available on %1$s.</string>
+  <string name="coach_refused_cap">You\'ve already had all this week\'s plans. The next one will be available on %1$s.</string>
   <string name="coach_refused_cap_undated">You\'ve already had all this week\'s plans.</string>
   <string name="coach_refused_busy">Too many requests in a short time. Try again in a few minutes.</string>
   <string name="coach_refused_unavailable">The coach isn\'t available right now. Try again later.</string>
@@ -1747,7 +1747,7 @@
   <string name="analysis_help_plan_cards_body">Up to three things to work on, the one worth the most first. Each says what is happening, why, and one thing to do about it.</string>
   <string name="analysis_help_plan_drills">Drills</string>
   <string name="analysis_help_plan_drills_body">The button on a focus opens a drill made for it. Each case leaves the drill once you have beaten its target a few times.</string>
-  <string name="analysis_help_plan_practice_body">Under the plan, the cases costing you the most, ready to practise between plans.</string>
+  <string name="analysis_help_plan_practice_body">Under the plan, the cases costing you the most, ready to practice between plans.</string>
   <string name="analysis_help_plan_new">A new plan</string>
   <string name="analysis_help_plan_new_body">Written from your last 100 smart cube solves, so the first one needs that many. After that a new plan comes every week, once you have done 25 more solves and your session is over.</string>
   <string name="analysis_help_cases_title">Case by case</string>
@@ -1775,7 +1775,7 @@
   <string name="news_analysis_title">Analysis</string>
   <string name="news_analysis_body">Your slowest steps and cases, and the algorithms you really use.</string>
   <string name="news_drills_title">Drills</string>
-  <string name="news_drills_body">Practise your weakest cases, with targets that get you faster.</string>
+  <string name="news_drills_body">Practice your weakest cases, with targets that get you faster.</string>
   <string name="news_learn_title">Learn new algorithms</string>
   <string name="news_learn_body">Pick the cases to learn next, choose an algorithm, and drill it until it sticks. Analysis also shows where you use an unusual one.</string>
   <string name="news_coach_title">AI coach</string>
@@ -1791,7 +1791,7 @@
   <string name="coach_beta_free_while">while the coach is in beta</string>
   <string name="coach_beta_free_nothing">Nothing is charged when it ends</string>
   <string name="coach_beta_loop_plan">Get your plan</string>
-  <string name="coach_beta_loop_practise">Practise</string>
+  <string name="coach_beta_loop_practise">Practice</string>
   <string name="coach_beta_loop_rate">Rate it</string>
   <string name="coach_beta_loop_next">Next plan</string>
   <string name="coach_beta_loop_note">Rating takes a few taps, and unlocks your next weekly plan.</string>

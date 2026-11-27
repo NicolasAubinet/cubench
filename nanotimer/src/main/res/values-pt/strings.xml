@@ -152,7 +152,7 @@
   <string name="solvetypes_steps_count">%1$d etapas</string>
   <string name="solvetypes_no_inspection">Sem inspeção</string>
   <string name="solvetypes_empty_title">Nenhum tipo de resolução</string>
-  <string name="solvetypes_empty_summary">Toque em + para criar um e manter um histórico separado para este quebra-cabeça.</string>
+  <string name="solvetypes_empty_summary">Toque em + para criar um e manter um histórico separado para este puzzle.</string>
   <string name="clear_all_history">Excluir todos os tempos</string>
   <string name="yes">Sim</string>
   <string name="no">Não</string>
@@ -502,7 +502,7 @@
     </ul>
     <b>Outras novidades</b>
     <ul>
-      <li>Depois de uma resolução, o timer mostra a posição do tempo entre todas as suas resoluções, como nos detalhes da resolução</li>
+      <li>Depois de uma resolução, o cronômetro mostra a posição do tempo entre todas as suas resoluções, como nos detalhes da resolução</li>
     </ul>
     <u><b>v2.1.3</b></u><br/>
     <ul>
@@ -885,7 +885,7 @@
   <string name="smart_cube_auto_penalty">+2 e DNF automáticos</string>
   <string name="smart_cube_auto_penalty_summary">Dar um +2 a uma resolução parada a um movimento do resolvido, e um DNF a uma resolução parada mais longe</string>
   <string name="usage_sharing">Compartilhar os algoritmos que uso</string>
-  <string name="usage_sharing_summary">Envia o algoritmo que você executa em cada caso, com um ID aleatório, para mostrar quais os cubistas usam.</string>
+  <string name="usage_sharing_summary">Envia o algoritmo que você executa em cada caso, com um ID aleatório, para mostrar quais são os mais usados pelos cubistas.</string>
   <string name="drill_pause_setting">Pausa entre casos dos treinos</string>
   <string name="drill_pause_off">Nenhuma</string>
   <string name="drill_pause_seconds">%1$s s</string>
@@ -993,7 +993,7 @@
   </plurals>
   <string name="drill_summary_ceiling">Parado após %d repetições.</string>
   <string name="drill_summary_over_target">Ainda acima da meta: %s</string>
-  <string name="drill_summary_still_learning">Ainda não feito sem olhar: %s</string>
+  <string name="drill_summary_still_learning">Ainda não executados sem olhar: %s</string>
   <string name="drill_summary_all_learned">Todos os casos deste treino foram aprendidos. Continue revisando-os até o seu próximo plano.</string>
   <string name="drill_rep_other_alg">outro algoritmo</string>
   <string name="drill_rep_rotated">com uma rotação</string>
@@ -1129,7 +1129,7 @@
   <string name="case_algorithm_yours">O seu</string>
   <string name="case_algorithm_add">Usar o seu próprio algoritmo</string>
   <string name="case_sheet_in_solves">Em resoluções</string>
-  <string name="case_sheet_in_drills">Em exercícios</string>
+  <string name="case_sheet_in_drills">Em treinos</string>
   <string name="case_solves_label">Resoluções</string>
   <string name="case_solves_empty">Nenhuma resolução cronometrou este caso.</string>
   <string name="case_solves_cell_count">Vezes</string>
@@ -1305,8 +1305,8 @@
   <string name="analysis_delta_zero_sum">(as etapas somam zero)</string>
   <string name="analysis_delta_over">+%s</string>
   <string name="analysis_delta_under">\u2212%s</string>
-  <string name="analysis_window_title">Lido sobre</string>
-  <string name="analysis_case_window_title">Cada caso, lido sobre</string>
+  <string name="analysis_window_title">Com base em</string>
+  <string name="analysis_case_window_title">Cada caso, com base em</string>
   <string name="analysis_window_chip">%s \u25be</string>
   <string name="analysis_window_10">Últimas 10</string>
   <string name="analysis_window_50">\u00daltimas 50</string>
@@ -1334,7 +1334,7 @@
   <string name="case_sort_order">Ordem</string>
   <string name="case_sort_status">Status</string>
   <string name="case_sort_solve_mean">Média em resoluções</string>
-  <string name="case_sort_drill_mean">Média em exercícios</string>
+  <string name="case_sort_drill_mean">Média em treinos</string>
   <string name="case_set_no_times">Ainda não há tempos para estes casos.</string>
   <string name="case_set_only_these">Só estes %d</string>
   <plurals name="case_set_cases">
@@ -1373,8 +1373,8 @@
   <string name="analysis_plan_cites">Um plano é escrito a partir das suas próprias resoluções, com cada afirmação citando um número que você pode conferir nas outras duas abas.</string>
   <string name="analysis_plan_not_yet">Ainda não há plano. Resolução e Casos continuam gratuitos de qualquer forma.</string>
   <string name="coach_written">Analisado em %1$s</string>
-  <string name="coach_uncited">%1$d dados deste plano não estão no seu histórico e não são mostrados.</string>
-  <string name="coach_refused_thin">Ainda não há o suficiente para ler. Faça mais algumas resoluções com o smart cube e peça novamente.</string>
+  <string name="coach_uncited">%1$d afirmações deste plano não estão no seu histórico e não são mostradas.</string>
+  <string name="coach_refused_thin">Ainda não há dados suficientes para analisar. Faça mais algumas resoluções com o smart cube e peça novamente.</string>
   <string name="coach_refused_cap">Você já recebeu todos os planos desta semana. O próximo estará disponível em %1$s.</string>
   <string name="coach_refused_cap_undated">Você já recebeu todos os planos desta semana.</string>
   <string name="coach_refused_busy">Muitos pedidos em pouco tempo. Tente novamente em alguns minutos.</string>
@@ -1420,13 +1420,13 @@
   <string name="coach_strip_waiting">esperando o coach</string>
   <string name="coach_retry_unreachable">Não foi possível falar com o coach. Ele tenta de novo sozinho quando você estiver online.</string>
   <string name="coach_retry_unavailable">O coach não está disponível neste momento. Ele tenta de novo sozinho.</string>
-  <string name="coach_gate_title">O coach abre às %1$d resoluções com smart cube</string>
-  <string name="coach_gate_first">Seu primeiro plano chega às %1$d resoluções com smart cube</string>
+  <string name="coach_gate_title">O coach é liberado após %1$d resoluções com smart cube</string>
+  <string name="coach_gate_first">Seu primeiro plano chega após %1$d resoluções com smart cube</string>
   <string name="coach_gate_count">%1$d de %2$d</string>
   <string name="coach_offer_try_free">Experimentar o coach, %1$s grátis</string>
   <string name="coach_offer_try">Obter o coach</string>
   <string name="coach_offer_then">Depois %1$s ou %2$s.</string>
-  <string name="coach_offer_then_less">Depois %1$s ou %2$s, %3$d%% menos para começar.</string>
+  <string name="coach_offer_then_less">Depois %1$s ou %2$s, com %3$d%% de desconto no início.</string>
   <string name="coach_offer_prices">%1$s ou %2$s.</string>
   <string name="coach_ended_title">Sua assinatura do coach terminou</string>
   <string name="coach_ended_title_access">Seu acesso ao coach terminou</string>
@@ -1468,8 +1468,8 @@
   <string name="coach_go">Ir para o coach</string>
   <string name="coach_invite_ready">Você tem %1$d resoluções com seu smart cube, o suficiente para um primeiro plano.</string>
   <string name="coach_purchase_free">%1$s grátis</string>
-  <string name="coach_tile_first_year">o primeiro ano</string>
-  <string name="coach_tile_first_month">o primeiro mês</string>
+  <string name="coach_tile_first_year">no primeiro ano</string>
+  <string name="coach_tile_first_month">no primeiro mês</string>
   <string name="coach_tile_first">durante %1$s</string>
   <string name="coach_tile_year">por ano</string>
   <string name="coach_tile_month">por mês</string>
@@ -1492,11 +1492,11 @@
   <string name="coach_plans_paused">Os planos estão em pausa</string>
   <string name="coach_plans_paused_body">Um plano é escrito para um tipo de resolução 3x3 em CFOP sem scrambles especiais.</string>
   <string name="coach_plans_paused_none">Não resta nenhum.</string>
-  <string name="coach_plans_resume_here">Escrevê-los para %1$s</string>
+  <string name="coach_plans_resume_here">Escrever os planos para %1$s</string>
   <string name="coach_plans_elsewhere">Seu plano semanal está em %1$s</string>
   <string name="coach_plans_elsewhere_body">Aqui, Resolução e Casos leem suas resoluções de %1$s.</string>
   <string name="coach_plans_open">Abrir o plano</string>
-  <string name="coach_plans_move_here">Escrever os planos para %1$s</string>
+  <string name="coach_plans_move_here">Escrever os planos para %1$s em vez disso</string>
   <string name="coach_plans_none_here">Não há plano semanal para este tipo de resolução</string>
   <string name="coach_plans_see_on">Ver o coach em %1$s</string>
   <string name="coach_first_plan_body">Seu primeiro plano é escrito a partir das suas resoluções de %1$s com smart cube assim que houver %2$d.</string>
@@ -1505,8 +1505,8 @@
   <string name="coach_plans_for_note">Seu plano é escrito a partir das resoluções com smart cube deste tipo.</string>
   <string name="coach_settings_title">Coach</string>
   <string name="coach_plans_setting">Planos semanais</string>
-  <string name="coach_id">ID do Coach</string>
-  <string name="coach_id_copied">ID do Coach copiado</string>
+  <string name="coach_id">ID do coach</string>
+  <string name="coach_id_copied">ID do coach copiado</string>
   <string name="coach_code">Código de acesso</string>
   <string name="coach_code_body">Digite o código que você recebeu para usar o coach neste dispositivo.</string>
   <string name="coach_code_refused">Esse código não é válido ou já foi usado.</string>
@@ -1552,7 +1552,7 @@
   <string name="coach_reason_slow_first_pair">Um primeiro par lento</string>
   <string name="coach_reason_unknown">Outra coisa para trabalhar</string>
   <string name="coach_update_app">Atualize o Cubench para ver tudo</string>
-  <string name="coach_case_mean">%1$s contra sua média de %2$s de %3$s</string>
+  <string name="coach_case_mean">%1$s contra sua média de %3$s em %2$s</string>
   <string name="coach_case_expected">%1$s contra %2$s esperados</string>
   <string name="coach_case_cost">%1$d vezes, %2$s perdidos</string>
   <string name="coach_case_gap">%1$s no treino, %2$s a mais na resolução</string>
@@ -1561,13 +1561,13 @@
   <string name="coach_recognition_body">%1$s: %2$s de %3$s passam antes do primeiro movimento.</string>
   <string name="coach_two_look_body">%1$s: 2-look em %2$d das últimas %3$d resoluções.</string>
   <string name="coach_two_look_share">%1$s ocupa %2$s da sua resolução, quando o habitual em 1-look é %3$s.</string>
-  <string name="coach_two_look_to_learn">Suas resoluções mostram %1$d casos que você ainda não coloca com um só algoritmo.</string>
+  <string name="coach_two_look_to_learn">Suas resoluções mostram %1$d casos que você ainda não resolve com um só algoritmo.</string>
   <string name="coach_step_share_body">%1$s ocupa %2$s da sua resolução, quando o habitual é %3$s.</string>
   <string name="coach_stuck_body">%1$s dos seus pares começam com uma peça presa em outro slot. Esses levam %2$s, e os outros %3$s.</string>
-  <string name="coach_first_pair_body">Você procura por %1$s antes do seu primeiro par, e %2$s antes de cada um dos seguintes.</string>
+  <string name="coach_first_pair_body">Você passa %1$s procurando antes do seu primeiro par, e %2$s antes de cada um dos seguintes.</string>
   <string name="coach_reason_long_pair">Pares de F2L com movimentos a mais</string>
-  <string name="coach_long_pair_body">Em %1$d resoluções, o seu F2L levou %2$s movimentos, onde os algoritmos habituais dos seus pares somam %3$s.</string>
-  <string name="coach_unplanned_cross_body">Em %1$d cruzes, você usou %2$s movimentos, onde os mesmos scrambles se resolviam em %3$s.</string>
+  <string name="coach_long_pair_body">Em %1$d resoluções, o seu F2L levou %2$s movimentos, quando os algoritmos habituais dos seus pares somam %3$s.</string>
+  <string name="coach_unplanned_cross_body">Em %1$d cruzes, você usou %2$s movimentos, quando os mesmos scrambles podiam ser resolvidos em %3$s.</string>
   <string name="coach_reason_stalling">Bloqueios ao girar</string>
   <string name="coach_stalling_body">%1$s: %2$s bloqueios por resolução; %3$s dos seus %4$s sem girar.</string>
   <string name="coach_reason_uneven_step">Irregular de resolução para resolução</string>
@@ -1595,13 +1595,13 @@
   </plurals>
   <string name="coach_fig_slower_in_solve">segundos a mais na resolução</string>
   <string name="coach_fig_thrown_out">deles descartados</string>
-  <string name="coach_fig_spent_looking">do seu %1$s vai para a procura</string>
+  <string name="coach_fig_spent_looking">do tempo de %1$s vai para a procura</string>
   <string name="coach_fig_of_seconds">%1$s de %2$s segundos</string>
-  <string name="coach_fig_solve_share">da sua resolução vai para o %1$s</string>
+  <string name="coach_fig_solve_share">da sua resolução vai para %1$s</string>
   <string name="coach_fig_usual_share">o habitual é %1$s</string>
   <string name="coach_fig_two_looks">%1$s em 2-look</string>
   <plurals name="coach_fig_in_last_solves">
-    <item quantity="one">na sua %1$d última resolução</item>
+    <item quantity="one">na sua última resolução</item>
     <item quantity="other">nas suas últimas %1$d resoluções</item>
   </plurals>
   <string name="coach_fig_pairs_stuck">dos seus pares começam presos</string>
@@ -1614,9 +1614,9 @@
     <item quantity="one">em %1$d resolução</item>
     <item quantity="other">em %1$d resoluções</item>
   </plurals>
-  <string name="coach_fig_freezes">bloqueios por resolução no %1$s</string>
+  <string name="coach_fig_freezes">bloqueios por resolução em %1$s</string>
   <string name="coach_fig_frozen_of">%1$s dos seus %2$s</string>
-  <string name="coach_fig_spread">segundos de variação no %1$s</string>
+  <string name="coach_fig_spread">segundos de variação em %1$s</string>
   <string name="coach_fig_average">%1$s em média</string>
   <string name="coach_fig_pairs_rotated">dos seus pares têm uma rotação</string>
   <string name="coach_fig_rotation_adds">cada rotação acrescenta %1$s&#160;s</string>
@@ -1673,13 +1673,13 @@
   <string name="analysis_help_solve_title">Para onde vai seu tempo</string>
   <string name="analysis_help_solve_body">Estes números vêm das suas resoluções com smart cube, no intervalo escolhido no topo.</string>
   <string name="analysis_help_bar">A resolução média</string>
-  <string name="analysis_help_bar_body">Um bloco por etapa, com largura proporcional ao tempo dela. A parte clara é o tempo que você passou olhando, e a parte cheia o tempo girando.</string>
+  <string name="analysis_help_bar_body">Um bloco por etapa, com largura proporcional ao tempo dela. A parte clara é o tempo de procura, e a parte cheia o de execução.</string>
   <string name="analysis_help_delta">Em relação a uma resolução típica</string>
   <string name="analysis_help_delta_body">Quanto cada etapa pesa na sua resolução, comparado ao peso dela numa resolução típica. As diferenças somam zero, então uma etapa rápida faz as outras parecerem lentas.</string>
   <string name="analysis_help_table">A tabela de etapas</string>
   <string name="analysis_help_table_body">Média, melhor e desvio de cada etapa. Toque em um cabeçalho para ordenar por ele. As etapas com casos nomeados, OLL e PLL, têm uma seta e abrem esses casos.</string>
   <string name="analysis_help_turning">Movimentos, TPS, em pausa</string>
-  <string name="analysis_help_turning_body">Por resolução. Os movimentos são contados como na página de cada resolução, e o TPS são os movimentos por segundo na resolução inteira. Em pausa é a parte clara da barra abaixo: o tempo que você passa olhando em vez de girar.</string>
+  <string name="analysis_help_turning_body">Por resolução. Os movimentos são contados como na página de cada resolução, e o TPS é o número de movimentos por segundo na resolução inteira. Em pausa é a parte clara da barra abaixo: o tempo de procura, e não de execução.</string>
   <string name="analysis_help_spread">Desvio</string>
   <string name="analysis_help_spread_body">Quanto o tempo varia de uma resolução para outra. A mesma média pode vir de fazer sempre do mesmo jeito, ou de travar de vez em quando.</string>
   <string name="analysis_help_standard">Algoritmos padrão</string>
@@ -1696,7 +1696,7 @@
   <string name="analysis_help_plan_new">Um novo plano</string>
   <string name="analysis_help_plan_new_body">Feito a partir das suas últimas 100 resoluções com smart cube, então o primeiro só sai depois delas. Depois, chega um plano novo toda semana, quando você tiver feito mais 25 resoluções e a sua sessão tiver terminado.</string>
   <string name="analysis_help_cases_title">Caso a caso</string>
-  <string name="analysis_help_cases_body">Os casos da etapa escolhida que você resolveu em um só look, cada um sobre as suas próprias últimas resoluções: o número no topo. Um caso que apareceu só 3 vezes é lido sobre essas 3. As resoluções em 2-look ficam de fora.</string>
+  <string name="analysis_help_cases_body">Os casos da etapa escolhida que você resolveu em um só look, cada um nas suas próprias últimas resoluções: o número no topo. Um caso que apareceu só 3 vezes é lido nessas 3. As resoluções em 2-look ficam de fora.</string>
   <string name="analysis_help_standing">Situação de um caso</string>
   <string name="analysis_help_standing_body">Conhecido: resolvido em um só look, sem ajuda, e há pouco tempo o bastante para ainda contar. Para revisar: já saiu em um só look, mas precisou de 2-look nas duas últimas vezes. Para aprender: nunca saiu em um só look. Tudo isso vem das suas resoluções e treinos.</string>
   <string name="analysis_help_shape">Forma</string>
@@ -1720,7 +1720,7 @@
   <string name="news_analysis_title">Análise</string>
   <string name="news_analysis_body">Suas etapas e casos mais lentos, e os algoritmos que você realmente usa.</string>
   <string name="news_drills_title">Treinos</string>
-  <string name="news_drills_body">Pratique seus casos mais fracos, com metas que te deixam mais rápido.</string>
+  <string name="news_drills_body">Pratique seus casos mais fracos, com metas que deixam você mais rápido.</string>
   <string name="news_learn_title">Aprenda novos algoritmos</string>
   <string name="news_learn_body">Escolha os próximos casos a aprender, selecione um algoritmo e treine até dominá-lo. A análise também mostra onde você usa um algoritmo pouco comum.</string>
   <string name="news_coach_title">Coach com IA</string>
@@ -1758,7 +1758,7 @@
   <string name="coach_beta_end_button">Ficar com o coach: 2 meses com 50% off</string>
   <string name="coach_fb_focus_question">Isso está certo para você?</string>
   <string name="coach_fb_yes">Sim</string>
-  <string name="coach_fb_not_quite">Não muito</string>
+  <string name="coach_fb_not_quite">Não exatamente</string>
   <string name="coach_fb_a_bit">Um pouco</string>
   <string name="coach_fb_not_really">Na verdade, não</string>
   <string name="coach_fb_whats_off">O que está errado?</string>
@@ -1802,8 +1802,8 @@
   <string name="coach_fb_rate_now">Avaliar ↓</string>
   <string name="coach_fb_due_held">Previsto agora, aguardando sua avaliação</string>
   <string name="coach_fb_due_held_body">O coach o escreve assim que você avaliar este.</string>
-  <string name="coach_menu_feedback_show">Opinar sobre os planos</string>
-  <string name="coach_menu_feedback_hide">Ocultar a opinião sobre os planos</string>
+  <string name="coach_menu_feedback_show">Mostrar a avaliação dos planos</string>
+  <string name="coach_menu_feedback_hide">Ocultar a avaliação dos planos</string>
   <string name="coach_menu_plan_language">Idioma dos planos</string>
   <string name="coach_report_title">Denunciar este plano</string>
   <string name="coach_report_body">Sua denúncia e o plano são enviados ao desenvolvedor para análise.</string>
@@ -1838,11 +1838,11 @@
   </plurals>
   <string name="coach_day_looking">Procura em %1$s</string>
   <string name="coach_day_spread">Variação em %1$s</string>
-  <string name="coach_day_freezes">Paradas em %1$s</string>
+  <string name="coach_day_freezes">Bloqueios em %1$s</string>
   <string name="coach_day_first_pair">Achar o primeiro par</string>
   <string name="coach_day_stuck">Pares que começam presos</string>
   <string name="coach_day_share">Parte da resolução em %1$s</string>
-  <string name="coach_day_two_looks">%1$s em dois looks</string>
+  <string name="coach_day_two_looks">%1$s em 2-look</string>
   <string name="coach_day_seconds">%1$s → %2$s s</string>
   <string name="coach_day_from_to">%1$s → %2$s</string>
   <plurals name="coach_day_drill_reps">
@@ -1875,7 +1875,7 @@
   <string name="coach_plan_ready_setting">Plano pronto</string>
   <string name="coach_plan_ready_setting_summary">Quando seu novo plano semanal é escrito</string>
   <string name="coach_recap_setting">Resumo diário</string>
-  <string name="coach_recap_setting_summary">As resoluções do dia e como seus focos evoluíram, nos dias em que você resolve</string>
+  <string name="coach_recap_setting_summary">As resoluções do dia e como seus pontos evoluíram, nos dias em que você resolve</string>
   <string name="coach_recap_time">Hora do resumo</string>
   <string name="coach_recap_time_summary">A partir das %1$s, quando sua sessão terminar</string>
   <!-- The coach's daily drill, in the Plan tab's Today card and on the drill screen. -->
@@ -1887,9 +1887,9 @@
   <string name="coach_daily_done">Feito · %1$d de %2$d repetições limpas</string>
   <string name="coach_daily_none">Nada pendente hoje: seus OLL e PLL estão firmes.</string>
   <string name="coach_daily_slip">Deslize</string>
-  <string name="coach_daily_pause">Lento para reconhecer</string>
+  <string name="coach_daily_pause">Procura lenta</string>
   <string name="coach_daily_due">Sem ver</string>
-  <string name="coach_daily_focus">Foco do plano</string>
+  <string name="coach_daily_focus">Ponto do plano</string>
   <string name="coach_daily_cost">Custoso</string>
   <string name="coach_daily_today">hoje</string>
   <string name="coach_daily_yesterday">ontem</string>
