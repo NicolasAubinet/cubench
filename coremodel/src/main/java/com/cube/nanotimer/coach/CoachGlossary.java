@@ -191,7 +191,7 @@ public final class CoachGlossary {
         .never(Language.FR, "entraînement", "entraînements")
         .never(Language.ES, "entrenamiento", "entrenamientos")
         .never(Language.PT, "drill", "drills"));
-    terms.add(new Term("reps", "essais", "repeticiones", "repetições"));
+    terms.add(new Term("reps", "reps", "repeticiones", "repetições"));
     terms.add(new Term("scramble", "mélange", "mezcla", "scramble")
         .never(Language.FR, "scramble", "scrambles")
         .never(Language.ES, "scramble", "scrambles")

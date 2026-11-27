@@ -1565,16 +1565,16 @@
   <string name="coach_step_share_body">%1$s ocupa %2$s da sua resolução, quando o habitual é %3$s.</string>
   <string name="coach_stuck_body">%1$s dos seus pares começam com uma peça presa em outro slot. Esses levam %2$s, e os outros %3$s.</string>
   <string name="coach_first_pair_body">Você passa %1$s procurando antes do seu primeiro par, e %2$s antes de cada um dos seguintes.</string>
-  <string name="coach_reason_long_pair">Pares de F2L com movimentos a mais</string>
+  <string name="coach_reason_long_pair">Pares F2L com movimentos a mais</string>
   <string name="coach_long_pair_body">Em %1$d resoluções, o seu F2L levou %2$s movimentos, quando os algoritmos habituais dos seus pares somam %3$s.</string>
   <string name="coach_unplanned_cross_body">Em %1$d cruzes, você usou %2$s movimentos, quando os mesmos scrambles podiam ser resolvidos em %3$s.</string>
   <string name="coach_reason_stalling">Bloqueios ao girar</string>
   <string name="coach_stalling_body">%1$s: %2$s bloqueios por resolução; %3$s dos seus %4$s sem girar.</string>
   <string name="coach_reason_uneven_step">Irregular de resolução para resolução</string>
-  <string name="coach_uneven_body">%1$s: média de %2$s, com uma variação de %3$s, e o seu melhor é %4$s.</string>
+  <string name="coach_uneven_body">%1$s: média de %2$s, com um desvio de %3$s, e o seu melhor é %4$s.</string>
   <string name="coach_reason_f2l_rotations">Rotações do cubo no seu F2L</string>
   <string name="coach_reason_unplanned_cross">Cruzes com movimentos a mais</string>
-  <string name="coach_rotations_body">Em %1$d resoluções, você rodou o cubo em %2$s dos seus pares de F2L, e em %3$s dos básicos.</string>
+  <string name="coach_rotations_body">Em %1$d resoluções, você rodou o cubo em %2$s dos seus pares F2L, e em %3$s dos básicos.</string>
   <string name="coach_rotations_cost">Cada rotação acrescenta %1$s&#160;s entre dois movimentos.</string>
   <string name="coach_pair_extra">%1$s movimentos a mais em média</string>
   <string name="coach_pair_off_list">%1$d vezes, %2$d%% fora dos algoritmos habituais</string>
@@ -1616,7 +1616,7 @@
   </plurals>
   <string name="coach_fig_freezes">bloqueios por resolução em %1$s</string>
   <string name="coach_fig_frozen_of">%1$s dos seus %2$s</string>
-  <string name="coach_fig_spread">segundos de variação em %1$s</string>
+  <string name="coach_fig_spread">segundos de desvio em %1$s</string>
   <string name="coach_fig_average">%1$s em média</string>
   <string name="coach_fig_pairs_rotated">dos seus pares têm uma rotação</string>
   <string name="coach_fig_rotation_adds">cada rotação acrescenta %1$s&#160;s</string>
@@ -1650,7 +1650,7 @@
   <string name="coach_practice_title">Treino livre</string>
   <string name="coach_practice_body">Sempre aqui, atualizado todos os dias com suas últimas resoluções.</string>
   <string name="coach_practice_set">Os seus casos de %1$s mais custosos</string>
-  <string name="coach_practice_pairs">Os seus pares de F2L</string>
+  <string name="coach_practice_pairs">Os seus pares F2L</string>
   <string name="coach_learn_next">Próximos OLL a aprender</string>
   <string name="coach_learn_next_pll">Próximos PLL a aprender</string>
   <string name="learn_pick_suggested">Sugeridos</string>
@@ -1837,7 +1837,7 @@
     <item quantity="other">%d resoluções</item>
   </plurals>
   <string name="coach_day_looking">Procura em %1$s</string>
-  <string name="coach_day_spread">Variação em %1$s</string>
+  <string name="coach_day_spread">Desvio em %1$s</string>
   <string name="coach_day_freezes">Bloqueios em %1$s</string>
   <string name="coach_day_first_pair">Achar o primeiro par</string>
   <string name="coach_day_stuck">Pares que começam presos</string>

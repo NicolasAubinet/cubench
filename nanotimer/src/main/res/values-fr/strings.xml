@@ -843,8 +843,8 @@
   <string name="smart_cube_searching_body">Faites un quart de tour pour réveiller votre cube, et gardez-le près du téléphone.</string>
   <string name="smart_cube_none_yet">Aucun cube pour l\'instant</string>
   <plurals name="smart_cube_found_count">
-    <item quantity="one">%d cube à proximité · appuyez pour vous connecter</item>
-    <item quantity="other">%d cubes à proximité · appuyez pour vous connecter</item>
+    <item quantity="one">%d cube à proximité · appuyez pour connecter</item>
+    <item quantity="other">%d cubes à proximité · appuyez pour connecter</item>
   </plurals>
   <string name="smart_cube_connected_battery">Connecté · %1$d%%</string>
   <string name="smart_cube_bluetooth_off_title">Le Bluetooth est désactivé</string>
@@ -946,7 +946,7 @@
 
   <string name="smartcube_case_headline">%1$s %2$s</string>
   <string name="drill_title">Drill</string>
-  <string name="drill_progress">Essai %1$d sur %2$d</string>
+  <string name="drill_progress">Rep %1$d sur %2$d</string>
   <string name="drill_reset">Recommencer</string>
   <string name="drill_skip">Passer</string>
   <string name="drill_done">Terminé</string>
@@ -954,7 +954,7 @@
   <string name="drill_finished">Drill terminé</string>
   <string name="drill_rep_skipped">Passé</string>
   <string name="drill_summary_nothing_timed">Rien n\'a été chronométré</string>
-  <string name="drill_summary_cell_reps">Essais</string>
+  <string name="drill_summary_cell_reps">Reps</string>
   <string name="drill_summary_cell_of">sur %d</string>
   <string name="drill_summary_cell_mean">Moyenne</string>
   <string name="drill_summary_cell_best">Meilleur</string>
@@ -984,12 +984,12 @@
   <string name="drill_cases_cleared">%1$d cas sur %2$d validés</string>
   <string name="drill_summary_cases_cleared">cas validés</string>
   <string name="drill_summary_pairs">Paires</string>
-  <string name="drill_summary_rep_number">Essai %d</string>
+  <string name="drill_summary_rep_number">Rep %d</string>
   <plurals name="drill_summary_reps">
-    <item quantity="one">%d essai</item>
-    <item quantity="other">%d essais</item>
+    <item quantity="one">%d rep</item>
+    <item quantity="other">%d reps</item>
   </plurals>
-  <string name="drill_summary_ceiling">Arrêté à %d essais.</string>
+  <string name="drill_summary_ceiling">Arrêté à %d reps.</string>
   <string name="drill_summary_over_target">Encore au-dessus de l\'objectif : %s</string>
   <string name="drill_summary_still_learning">Pas encore fait sans aide : %s</string>
   <string name="drill_summary_all_learned">Tous les cas de ce drill sont appris. Continuez à les réviser jusqu\'à votre prochain plan.</string>
@@ -1010,7 +1010,7 @@
     <item quantity="other">Vous connaissez les %1$d OLL %2$s. Dès que vous voyez cette forme, vous avez l\'algorithme.</item>
   </plurals>
   <string name="drill_targets_column_case">Cas</string>
-  <string name="drill_targets_column_reps">Essais</string>
+  <string name="drill_targets_column_reps">Reps</string>
   <string name="drill_targets_column_wins">Réussis</string>
   <string name="drill_targets_column_target">Objectif</string>
   <string name="drill_summary_cell_extra">Mouvements en trop</string>
@@ -1021,11 +1021,11 @@
   <string name="drill_summary_column_execution">Exéc</string>
   <string name="drill_summary_column_total">Total</string>
   <string name="drill_case_revealed">Consulté</string>
-  <string name="drill_case_remove_title">Retirer cet essai ?</string>
-  <string name="drill_case_remove_message">%1$s (essai %2$d), %3$s. Il reste dans la liste, barré, et ne compte nulle part.</string>
+  <string name="drill_case_remove_title">Retirer cette rep ?</string>
+  <string name="drill_case_remove_message">%1$s (rep %2$d), %3$s. Elle reste dans la liste, barrée, et ne compte nulle part.</string>
   <string name="drill_case_seconds">%1$s s</string>
   <string name="drill_case_remove">Retirer</string>
-  <string name="drill_case_removed">Retiré, appuyez pour rétablir</string>
+  <string name="drill_case_removed">Retirée, appuyez pour rétablir</string>
   <string name="drill_stats_title">Stats de drill</string>
   <string name="drill_stats_column_spread">Écart</string>
   <plurals name="drill_stats_cell_cases">
@@ -1042,16 +1042,16 @@
   <string name="drill_stats_window_week_long">7 derniers jours</string>
   <string name="drill_stats_window_month_long">30 derniers jours</string>
   <string name="drill_stats_window_all_long">Depuis le début</string>
-  <string name="drill_case_stats_attempts">Essais</string>
-  <string name="drill_case_stats_hint">Glissez un essai vers la gauche pour le retirer.</string>
-  <string name="drill_case_stats_removed">Essai retiré</string>
-  <string name="drill_case_stats_empty">Aucun essai sur cette période.</string>
+  <string name="drill_case_stats_attempts">Reps</string>
+  <string name="drill_case_stats_hint">Glissez une rep vers la gauche pour la retirer.</string>
+  <string name="drill_case_stats_removed">Rep retirée</string>
+  <string name="drill_case_stats_empty">Aucune rep sur cette période.</string>
   <string name="drill_case_stats_cell_worst">Pire %s</string>
   <plurals name="drill_case_stats_resets">
     <item quantity="one">%d reprise</item>
     <item quantity="other">%d reprises</item>
   </plurals>
-  <string name="drill_case_stats_when">%1$s · essai %2$d</string>
+  <string name="drill_case_stats_when">%1$s · rep %2$d</string>
   <string name="drill_needs_cube">Connectez votre smart cube pour lancer un drill.</string>
   <string name="drill_cube_away">Cube déconnecté. Reconnectez-le pour continuer.</string>
   <string name="drill_no_known_cases">Aucun cas de ce drill ne peut être mélangé par l\'application.</string>
@@ -1167,7 +1167,7 @@
   <string name="case_algorithms_pair_open">Algorithmes pour cette paire</string>
   <string name="case_algorithms_case_open">Algorithmes pour ce cas</string>
   <string name="drill_case_algorithm">Alg</string>
-  <string name="drill_reps">Essais</string>
+  <string name="drill_reps">Reps</string>
   <string name="drill_f2l_basic">Basiques</string>
   <string name="drill_f2l_advanced">Avancés</string>
   <string name="drill_f2l_both">Les deux</string>
@@ -1179,7 +1179,7 @@
   <string name="drill_summary_not_recorded">Non enregistré</string>
   <string name="drill_help_title">À propos de ce drill</string>
   <string name="drill_help_body">Les réglages de ce drill.</string>
-  <string name="drill_help_record">Si activé, chaque essai est enregistré : son temps, et si vous avez affiché l\'algorithme. Ces essais alimentent les Stats de drill et « Algorithmes connus » dans Analyse. Désactivez-le pour vous entraîner sans les modifier.</string>
+  <string name="drill_help_record">Si activé, chaque rep est enregistrée : son temps, et si vous avez affiché l\'algorithme. Ces reps alimentent les Stats de drill et « Algorithmes connus » dans Analyse. Désactivez-le pour vous entraîner sans les modifier.</string>
   <string name="drill_planning_limit">Temps de réflexion limité</string>
   <string name="drill_planning_seconds">secondes</string>
   <string name="drill_planning_hint">Désactivé par défaut : apprendre la croix complète demande plus que les 15 secondes officielles.</string>
@@ -1422,7 +1422,7 @@
   <string name="coach_gate_first">Votre premier plan arrive à %1$d résolutions au smart cube</string>
   <string name="coach_gate_count">%1$d sur %2$d</string>
   <string name="coach_offer_try_free">Essayer le coach gratuitement pendant %1$s</string>
-  <string name="coach_offer_try">Prendre le coach</string>
+  <string name="coach_offer_try">Obtenir le coach</string>
   <string name="coach_offer_then">Puis %1$s ou %2$s.</string>
   <string name="coach_offer_then_less">Puis %1$s ou %2$s, %3$d %% de moins pour commencer.</string>
   <string name="coach_offer_prices">%1$s ou %2$s.</string>
@@ -1844,8 +1844,8 @@
   <string name="coach_day_seconds">%1$s → %2$s s</string>
   <string name="coach_day_from_to">%1$s → %2$s</string>
   <plurals name="coach_day_drill_reps">
-    <item quantity="one">%d essai</item>
-    <item quantity="other">%d essais</item>
+    <item quantity="one">%d rep</item>
+    <item quantity="other">%d reps</item>
   </plurals>
   <plurals name="coach_day_more_solves">
     <item quantity="one">encore %d résolution</item>
@@ -1864,8 +1864,8 @@
   <string name="coach_recap_title_ao5">%1$s, meilleure Ao5 %2$s</string>
   <string name="coach_recap_faster_mean">Votre moyenne du jour : %1$s s de mieux que d\'habitude.</string>
   <string name="coach_recap_faster_step">%1$s : %2$s s de mieux que d\'habitude aujourd\'hui.</string>
-  <string name="coach_recap_drill_waiting">Le drill du jour vous attend : %1$d essais, environ %2$d min.</string>
-  <string name="coach_recap_drill_left">Drill du jour : encore %1$d essais, environ %2$d min.</string>
+  <string name="coach_recap_drill_waiting">Le drill du jour vous attend : %1$d reps, environ %2$d min.</string>
+  <string name="coach_recap_drill_left">Drill du jour : encore %1$d reps, environ %2$d min.</string>
   <string name="coach_notifications">Notifications</string>
   <string name="coach_notifications_summary">Plan prêt, rappel de résolutions et bilan du jour</string>
   <string name="coach_notifications_all">Notifications du coach</string>
@@ -1878,16 +1878,16 @@
   <string name="coach_recap_time_summary">À partir de %1$s, une fois votre session finie</string>
   <!-- The coach's daily drill, in the Plan tab's Today card and on the drill screen. -->
   <string name="coach_daily_title">Drill du jour</string>
-  <string name="coach_daily_reps">%1$d essais · environ %2$d min</string>
+  <string name="coach_daily_reps">%1$d reps · environ %2$d min</string>
   <string name="coach_daily_start">Lancer</string>
   <string name="coach_daily_resume">Reprendre</string>
-  <string name="coach_daily_reps_left">Encore %1$d essais · environ %2$d min</string>
-  <string name="coach_daily_done">Fait · %1$d essais propres sur %2$d</string>
+  <string name="coach_daily_reps_left">Encore %1$d reps · environ %2$d min</string>
+  <string name="coach_daily_done">Fait · %1$d reps propres sur %2$d</string>
   <string name="coach_daily_none">Rien à revoir aujourd\'hui : vos OLL et PLL sont solides.</string>
   <string name="coach_daily_slip">Raté</string>
   <string name="coach_daily_pause">Long à repérer</string>
   <string name="coach_daily_due">Pas vu</string>
-  <string name="coach_daily_focus">Point du plan</string>
+  <string name="coach_daily_focus">Au programme</string>
   <string name="coach_daily_cost">Coûteux</string>
   <string name="coach_daily_today">aujourd\'hui</string>
   <string name="coach_daily_yesterday">hier</string>
@@ -1895,6 +1895,6 @@
   <string name="coach_daily_days">%d j</string>
   <string name="coach_daily_progress">%1$s · %2$d sur %3$d</string>
   <string name="coach_daily_next">Ensuite : %s</string>
-  <string name="coach_daily_summary">%1$d cas, %2$d essais propres sur %3$d.</string>
+  <string name="coach_daily_summary">%1$d cas, %2$d reps propres sur %3$d.</string>
   <string name="coach_daily_summary_slipped">Ratés, à revoir demain : %s.</string>
 </resources>

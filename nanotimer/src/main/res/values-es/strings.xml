@@ -1024,7 +1024,7 @@
   <string name="drill_case_remove_message">%1$s (repetición %2$d), %3$s. Queda en la lista, tachada, y no cuenta para nada.</string>
   <string name="drill_case_seconds">%1$s s</string>
   <string name="drill_case_remove">Quitar</string>
-  <string name="drill_case_removed">Quitado, toca para restaurar</string>
+  <string name="drill_case_removed">Quitada, toca para restaurar</string>
   <string name="drill_stats_title">Estadísticas de drills</string>
   <string name="drill_stats_column_spread">Desvío</string>
   <plurals name="drill_stats_cell_cases">
@@ -1562,7 +1562,7 @@
   <string name="coach_step_share_body">%1$s ocupa el %2$s de tu resolución, cuando lo habitual es el %3$s.</string>
   <string name="coach_stuck_body">El %1$s de tus pares empiezan con una pieza atrapada en otro slot. Esos tardan %2$s, y los demás %3$s.</string>
   <string name="coach_first_pair_body">Buscas %1$s antes de tu primer par, y %2$s antes de cada uno de los siguientes.</string>
-  <string name="coach_reason_long_pair">Pares de F2L con movimientos de más</string>
+  <string name="coach_reason_long_pair">Pares F2L con movimientos de más</string>
   <string name="coach_long_pair_body">En %1$d resoluciones, tu F2L llevó %2$s movimientos, cuando los algoritmos habituales de sus pares suman %3$s.</string>
   <string name="coach_unplanned_cross_body">En %1$d cruces, usaste %2$s movimientos, cuando las mismas mezclas podían resolverse en %3$s.</string>
   <string name="coach_reason_stalling">Bloqueos al girar</string>
@@ -1571,7 +1571,7 @@
   <string name="coach_uneven_body">%1$s: media de %2$s, con una variación de %3$s, y tu mejor es %4$s.</string>
   <string name="coach_reason_f2l_rotations">Rotaciones del cubo en tu F2L</string>
   <string name="coach_reason_unplanned_cross">Cruces con movimientos de más</string>
-  <string name="coach_rotations_body">En %1$d resoluciones, rotaste el cubo en el %2$s de tus pares de F2L, y en el %3$s de los básicos.</string>
+  <string name="coach_rotations_body">En %1$d resoluciones, rotaste el cubo en el %2$s de tus pares F2L, y en el %3$s de los básicos.</string>
   <string name="coach_rotations_cost">Cada rotación añade %1$s&#160;s entre dos giros.</string>
   <string name="coach_pair_extra">%1$s movimientos de más, de media</string>
   <string name="coach_pair_off_list">%1$d veces, %2$d%% fuera de los algoritmos habituales</string>
@@ -1647,7 +1647,7 @@
   <string name="coach_practice_title">Práctica libre</string>
   <string name="coach_practice_body">Siempre aquí, actualizado cada día con tus últimas resoluciones.</string>
   <string name="coach_practice_set">Tus casos de %1$s más costosos</string>
-  <string name="coach_practice_pairs">Tus pares de F2L</string>
+  <string name="coach_practice_pairs">Tus pares F2L</string>
   <string name="coach_learn_next">Próximos OLL por aprender</string>
   <string name="coach_learn_next_pll">Próximos PLL por aprender</string>
   <string name="learn_pick_suggested">Sugeridos</string>
