@@ -1677,11 +1677,11 @@
   <string name="analysis_help_delta">Face à une résolution typique</string>
   <string name="analysis_help_delta_body">La part de chaque étape dans votre résolution, comparée à une résolution typique. Les écarts s\'annulent : une étape rapide fait paraître les autres lentes.</string>
   <string name="analysis_help_table">Le tableau des étapes</string>
-  <string name="analysis_help_table_body">Moyenne, meilleur temps et écart pour chaque étape. Appuyez sur un en-tête pour trier. Les étapes avec des cas nommés (OLL et PLL) ont une flèche et ouvrent leurs cas.</string>
+  <string name="analysis_help_table_body">Moyenne, meilleur temps et écart pour chaque étape. Appuyez sur un en-tête pour trier. Appuyez sur une étape avec une flèche pour voir ses cas.</string>
   <string name="analysis_help_turning">Mouvements, TPS, en pause</string>
   <string name="analysis_help_turning_body">Par résolution. Les mouvements sont comptés comme sur la page de chaque résolution, et le TPS est le nombre de mouvements par seconde sur toute la résolution. En pause est la partie pâle de la barre en dessous : le temps passé en pause plutôt qu\'en exécution.</string>
   <string name="analysis_help_spread">Écart</string>
-  <string name="analysis_help_spread_body">À quel point le temps varie d\'une résolution à l\'autre. Une même moyenne peut venir d\'une exécution toujours régulière, ou de blocages de temps en temps.</string>
+  <string name="analysis_help_spread_body">À quel point le temps varie d\'une résolution à l\'autre. Plus il est élevé, moins vous êtes régulier.</string>
   <string name="analysis_help_standard">Algorithmes standards</string>
   <string name="analysis_help_standard_body">Les cas de l\'ensemble où vous avez utilisé l\'un des algorithmes listés au moins deux des trois dernières fois où le cas est sorti. Lu sur toutes vos résolutions, quelle que soit la période en haut.</string>
   <string name="analysis_help_extra">Coups en trop</string>
@@ -1689,19 +1689,19 @@
   <string name="analysis_help_plan_title">Votre plan</string>
   <string name="analysis_help_plan_body">Les plans font partie du coach Cubench. Le coach lit vos résolutions au smart cube, trouve ce qui vous coûte le plus de temps et en fait un plan pour la semaine, avec des drills pour vos points faibles.</string>
   <string name="analysis_help_plan_cards">À travailler cette semaine</string>
-  <string name="analysis_help_plan_cards_body">Jusqu\'à trois points à travailler, le plus rentable en premier. Chacun explique ce qui se passe, pourquoi, et ce que vous pouvez faire.</string>
+  <string name="analysis_help_plan_cards_body">Jusqu\'à trois points à travailler, le plus rentable en premier. Chacun explique ce qui se passe, pourquoi, et quoi faire.</string>
   <string name="analysis_help_plan_drills">Drills</string>
-  <string name="analysis_help_plan_drills_body">Le bouton d\'un point ouvre un drill fait pour lui. Un cas sort du drill une fois que vous avez battu son objectif quelques fois.</string>
+  <string name="analysis_help_plan_drills_body">Le bouton d\'un point ouvre un drill fait pour vous. Un cas sort du drill une fois que vous avez battu son objectif quelques fois.</string>
   <string name="analysis_help_plan_practice_body">Sous le plan, les cas qui vous coûtent le plus, à travailler entre deux plans.</string>
   <string name="analysis_help_plan_new">Un nouveau plan</string>
   <string name="analysis_help_plan_new_body">Il est écrit à partir de vos 100 dernières résolutions au smart cube : il en faut donc 100 pour le premier. Ensuite, un nouveau plan arrive chaque semaine, dès que vous avez fait 25 résolutions de plus et que votre session est terminée.</string>
   <string name="analysis_help_cases_title">Cas par cas</string>
-  <string name="analysis_help_cases_body">Les cas de l\'étape choisie que vous avez faits en un seul look, chacun sur ses propres dernières résolutions : le nombre indiqué en haut. Un cas vu seulement 3 fois est lu sur ces 3. Les résolutions en 2-look ne comptent pas.</string>
+  <string name="analysis_help_cases_body">Les cas de l\'étape choisie que vous avez faits en un seul look. Le nombre en haut indique combien des dernières résolutions de chaque cas sont prises, ou moins si le cas est sorti moins souvent. Les résolutions en 2-look ne comptent pas.</string>
   <string name="analysis_help_standing">Où en est un cas</string>
   <string name="analysis_help_standing_body">Connu : fait en un seul look, sans aide, assez récemment pour compter. À revoir : fait en un seul look avant, mais en 2-look les deux dernières fois. À apprendre : jamais fait en un seul look. Tout est tiré de vos résolutions et de vos drills.</string>
   <string name="analysis_help_shape">Forme</string>
   <string name="analysis_help_shape_body">En OLL, le bouton Forme limite le tableau à un groupe de formes, avec le nombre de cas de chaque groupe.</string>
-  <string name="analysis_help_rest_body">Sous le tableau, les cas que vous n\'avez jamais faits en un seul look avec ce type de résolution, classés selon où ils en sont sur l\'ensemble de vos résolutions. Appuyez sur l\'un d\'eux pour voir ses algorithmes.</string>
+  <string name="analysis_help_rest_body">Sous le tableau, les autres cas de l\'ensemble, classés selon où ils en sont. Vos drills et vos autres types de résolution comptent aussi. Appuyez sur un cas pour voir ses algorithmes.</string>
   <string name="analysis_help_sample">Exemple</string>
   <string name="analysis_help_sample_body">Ce sont des données d\'exemple, affichées jusqu\'à votre première résolution avec un smart cube.</string>
 
