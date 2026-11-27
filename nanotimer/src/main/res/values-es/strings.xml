@@ -343,7 +343,7 @@
   <string name="cross_neutrality_full">Completa</string>
   <string name="cross_help_title">Sobre el solucionador de cruz</string>
   <string name="cross_help_body">Las cruces más cortas para la mezcla actual. Cada solución que se muestra para un color es la más corta posible para esa cruz.</string>
-  <string name="cross_help_specific">Solo el color que elija abajo.</string>
+  <string name="cross_help_specific">Solo el color que elijas abajo.</string>
   <string name="cross_help_dual">Ese color y su opuesto, la más corta primero.</string>
   <string name="cross_help_full">Los seis colores, la más corta primero y marcada con una estrella.</string>
   <string name="cross_solving">Resolviendo…</string>
@@ -916,9 +916,9 @@
   <string name="history_help_rolling_body">Una estadística con un número en el nombre solo cubre esa cantidad de tus tiempos más recientes, así que cambia con cada resolución que haces.</string>
   <string name="history_help_all">Media total y Prec total</string>
   <string name="history_help_all_body">La media total es la media simple de tus tiempos, sin contar los DNF. La prec total, en los tipos a ciegas, indica con qué frecuencia aciertas. Ambas cubren tus últimos 1000 tiempos de este tipo de resolución.</string>
-  <string name="history_help_pb_body">Su tiempo más rápido en este tipo de resolución, por antiguo que sea.</string>
+  <string name="history_help_pb_body">Tu tiempo más rápido en este tipo de resolución, por antiguo que sea.</string>
   <string name="history_help_average">Media o media simple</string>
-  <string name="history_help_average_body">Una media quita el tiempo más rápido y el más lento, y promedia el resto. Una media simple no quita nada, así que un solo DNF entre sus tiempos la convierte en DNF.</string>
+  <string name="history_help_average_body">Una media quita los tiempos más rápidos y más lentos, y promedia el resto. Una media simple no quita nada, así que un solo DNF entre sus tiempos la convierte en DNF.</string>
   <string name="history_help_blind">Tipos a ciegas</string>
   <string name="history_help_blind_body">El Ao5 no se ofrece, porque los intentos a ciegas se cuentan de tres en tres. La prec indica con qué frecuencia aciertas, y las medias ignoran los DNF y solo usan los aciertos.</string>
   <string name="blind_averages_note">Aquí una media solo cuenta los éxitos: Ao12 es la media de tus últimas doce resoluciones exitosas, retrocediendo más allá de los DNF en vez de contarlos.</string>
@@ -1180,7 +1180,7 @@
   <string name="drill_summary_not_recorded">Sin guardar</string>
   <string name="drill_help_title">Sobre este drill</string>
   <string name="drill_help_body">Los ajustes de este drill.</string>
-  <string name="drill_help_record">Si está activado, se guarda cada repetición: su tiempo y si pediste ver el algoritmo. Esas repeticiones cuentan en Estadísticas de drills y en «Algoritmos que conoces» de Análisis. Desactívalo para practicar sin que cuenten.</string>
+  <string name="drill_help_record">Si está activado, se guarda cada repetición: su tiempo y si pediste ver el algoritmo. Esas repeticiones cuentan en Estadísticas de drills y para saber qué casos conoces. Desactívalo para practicar sin que cuenten.</string>
   <string name="drill_planning_limit">Límite de planificación</string>
   <string name="drill_planning_seconds">segundos</string>
   <string name="drill_planning_hint">Desactivado por defecto: aprender la cruz completa lleva más de los 15 segundos oficiales.</string>
@@ -1682,7 +1682,7 @@
   <string name="analysis_help_spread">Desvío</string>
   <string name="analysis_help_spread_body">Cuánto varía el tiempo de una resolución a otra. Cuanto más alto, menos constante eres.</string>
   <string name="analysis_help_standard">Algoritmos estándar</string>
-  <string name="analysis_help_standard_body">Los casos del grupo en los que usaste uno de los algoritmos de la lista la mayoría de las tres últimas veces que salió el caso. Se lee de todas tus resoluciones, sea cual sea el rango de arriba.</string>
+  <string name="analysis_help_standard_body">Los casos del conjunto en los que usaste uno de los algoritmos de la lista la mayoría de las tres últimas veces que salió el caso. Se lee de todas tus resoluciones, sea cual sea el rango de arriba.</string>
   <string name="analysis_help_extra">Movimientos de más</string>
   <string name="analysis_help_extra_body">Los movimientos de más que te han costado esos casos, comparados con el algoritmo estándar más corto.</string>
   <string name="analysis_help_plan_title">Tu plan</string>
@@ -1697,7 +1697,7 @@
   <string name="analysis_help_cases_title">Caso por caso</string>
   <string name="analysis_help_cases_body">Los casos del paso elegido que resolviste en un solo look. El número de arriba indica cuántas de las últimas resoluciones de cada caso se usan, o menos si salió menos veces. Las resoluciones en 2-look no cuentan.</string>
   <string name="analysis_help_standing">Estado de un caso</string>
-  <string name="analysis_help_standing_body">Conocido: resuelto en un solo look y sin ayuda, hace poco, así que aún cuenta. Para repasar: antes salía en un solo look, pero las dos últimas veces necesitó dos. Para aprender: nunca ha salido en un solo look. Todo esto sale de tus resoluciones y tus drills.</string>
+  <string name="analysis_help_standing_body">Conocido: resuelto en un solo look y sin ayuda la última vez que salió (se permite un fallo). Para repasar: antes salía en un solo look, pero las dos últimas veces necesitó dos. Para aprender: nunca ha salido en un solo look. Todo esto sale de tus resoluciones y tus drills.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">En OLL, el botón Forma limita la tabla a un grupo de formas, con el número de casos de cada grupo al lado.</string>
   <string name="analysis_help_rest_body">Bajo la tabla, los demás casos del conjunto, agrupados según su estado. Tus drills y tus otros tipos de resolución también cuentan. Toca un caso para ver sus algoritmos.</string>

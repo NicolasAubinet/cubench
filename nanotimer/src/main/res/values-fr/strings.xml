@@ -1181,7 +1181,7 @@
   <string name="drill_summary_not_recorded">Non enregistré</string>
   <string name="drill_help_title">À propos de ce drill</string>
   <string name="drill_help_body">Les réglages de ce drill.</string>
-  <string name="drill_help_record">Si activé, chaque rep est enregistrée : son temps, et si vous avez affiché l\'algorithme. Ces reps alimentent les Stats de drill et « Algorithmes connus » dans Analyse. Désactivez-le pour vous entraîner sans les modifier.</string>
+  <string name="drill_help_record">Si activé, chaque rep est enregistrée : son temps, et si vous avez affiché l\'algorithme. Ces reps comptent dans les Stats de drill et pour savoir quels cas sont connus. Désactivez-le pour vous entraîner sans les modifier.</string>
   <string name="drill_planning_limit">Temps de réflexion limité</string>
   <string name="drill_planning_seconds">secondes</string>
   <string name="drill_planning_hint">Désactivé par défaut : apprendre la croix complète demande plus que les 15 secondes officielles.</string>
@@ -1671,7 +1671,7 @@
 
   <string name="analysis_help_title">À propos de ces chiffres</string>
   <string name="analysis_help_solve_title">Où passe votre temps</string>
-  <string name="analysis_help_solve_body">Ces chiffres viennent de vos résolutions faites avec un smart cube, sur la période indiquée en haut.</string>
+  <string name="analysis_help_solve_body">Ces chiffres viennent de vos résolutions faites avec un smart cube, sur la plage indiquée en haut.</string>
   <string name="analysis_help_bar">La résolution moyenne</string>
   <string name="analysis_help_bar_body">Un bloc par étape, proportionnel à sa part du temps. La partie pâle est le temps de pause, la partie pleine le temps d\'exécution.</string>
   <string name="analysis_help_delta">Face à une résolution typique</string>
@@ -1679,11 +1679,11 @@
   <string name="analysis_help_table">Le tableau des étapes</string>
   <string name="analysis_help_table_body">Moyenne, meilleur temps et écart pour chaque étape. Appuyez sur un en-tête pour trier. Appuyez sur une étape avec une flèche pour voir ses cas.</string>
   <string name="analysis_help_turning">Mouvements, TPS, en pause</string>
-  <string name="analysis_help_turning_body">Par résolution. Les mouvements sont comptés comme sur la page de chaque résolution, et le TPS est le nombre de mouvements par seconde sur toute la résolution. En pause est la partie pâle de la barre en dessous : le temps passé en pause plutôt qu\'en exécution.</string>
+  <string name="analysis_help_turning_body">Par résolution. Les mouvements sont comptés comme sur la page de chaque résolution, et le TPS est le nombre de mouvements par seconde sur toute la résolution. En pause correspond à la partie pâle de la barre en dessous : le temps où vous ne tournez pas le cube.</string>
   <string name="analysis_help_spread">Écart</string>
   <string name="analysis_help_spread_body">À quel point le temps varie d\'une résolution à l\'autre. Plus il est élevé, moins vous êtes régulier.</string>
   <string name="analysis_help_standard">Algorithmes standards</string>
-  <string name="analysis_help_standard_body">Les cas de l\'ensemble où vous avez utilisé l\'un des algorithmes listés au moins deux des trois dernières fois où le cas est sorti. Lu sur toutes vos résolutions, quelle que soit la période en haut.</string>
+  <string name="analysis_help_standard_body">Les cas de l\'ensemble où vous avez utilisé l\'un des algorithmes listés au moins deux des trois dernières fois où le cas est sorti. Lu sur toutes vos résolutions, quelle que soit la plage en haut.</string>
   <string name="analysis_help_extra">Coups en trop</string>
   <string name="analysis_help_extra_body">Les mouvements en trop que ces cas vous ont coûtés, par rapport à l\'algorithme standard le plus court.</string>
   <string name="analysis_help_plan_title">Votre plan</string>
@@ -1698,7 +1698,7 @@
   <string name="analysis_help_cases_title">Cas par cas</string>
   <string name="analysis_help_cases_body">Les cas de l\'étape choisie que vous avez faits en un seul look. Le nombre en haut indique combien des dernières résolutions de chaque cas sont prises, ou moins si le cas est sorti moins souvent. Les résolutions en 2-look ne comptent pas.</string>
   <string name="analysis_help_standing">Où en est un cas</string>
-  <string name="analysis_help_standing_body">Connu : fait en un seul look, sans aide, assez récemment pour compter. À revoir : fait en un seul look avant, mais en 2-look les deux dernières fois. À apprendre : jamais fait en un seul look. Tout est tiré de vos résolutions et de vos drills.</string>
+  <string name="analysis_help_standing_body">Connu : fait en un seul look, sans aide, la dernière fois qu\'il est sorti (un raté est toléré). À revoir : fait en un seul look avant, mais en 2-look les deux dernières fois. À apprendre : jamais fait en un seul look. Tout est tiré de vos résolutions et de vos drills.</string>
   <string name="analysis_help_shape">Forme</string>
   <string name="analysis_help_shape_body">En OLL, le bouton Forme limite le tableau à un groupe de formes, avec le nombre de cas de chaque groupe.</string>
   <string name="analysis_help_rest_body">Sous le tableau, les autres cas de l\'ensemble, classés selon où ils en sont. Vos drills et vos autres types de résolution comptent aussi. Appuyez sur un cas pour voir ses algorithmes.</string>

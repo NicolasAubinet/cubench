@@ -1183,7 +1183,7 @@
   <string name="drill_summary_not_recorded">Não salvo</string>
   <string name="drill_help_title">Sobre este treino</string>
   <string name="drill_help_body">As configurações deste treino.</string>
-  <string name="drill_help_record">Quando ativado, cada repetição é salva: o tempo e se você pediu para ver o algoritmo. As repetições salvas alimentam as Estatísticas de treino e \"Algoritmos que você conhece\" em Análise. Desative para treinar sem afetá-las.</string>
+  <string name="drill_help_record">Quando ativado, cada repetição é salva: o tempo e se você pediu para ver o algoritmo. As repetições salvas contam nas Estatísticas de treino e para saber quais casos você conhece. Desative para treinar sem afetá-las.</string>
   <string name="drill_planning_limit">Limite de planejamento</string>
   <string name="drill_planning_seconds">segundos</string>
   <string name="drill_planning_hint">Desativado por padrão: aprender a cruz completa leva mais do que os 15 segundos oficiais.</string>
@@ -1700,7 +1700,7 @@
   <string name="analysis_help_cases_title">Caso a caso</string>
   <string name="analysis_help_cases_body">Os casos da etapa escolhida que você resolveu em um só look. O número no topo diz quantas das últimas resoluções de cada caso são usadas, ou menos se o caso apareceu menos vezes. As resoluções em 2-look ficam de fora.</string>
   <string name="analysis_help_standing">Situação de um caso</string>
-  <string name="analysis_help_standing_body">Conhecido: resolvido em um só look, sem ajuda, e há pouco tempo o bastante para ainda contar. Para revisar: já saiu em um só look, mas precisou de 2-look nas duas últimas vezes. Para aprender: nunca saiu em um só look. Tudo isso vem das suas resoluções e treinos.</string>
+  <string name="analysis_help_standing_body">Conhecido: resolvido em um só look, sem ajuda, na última vez que apareceu (um deslize é tolerado). Para revisar: já saiu em um só look, mas precisou de 2-look nas duas últimas vezes. Para aprender: nunca saiu em um só look. Tudo isso vem das suas resoluções e treinos.</string>
   <string name="analysis_help_shape">Forma</string>
   <string name="analysis_help_shape_body">No OLL, um botão Forma limita a tabela a um grupo de formas, com o tamanho de cada grupo ao lado.</string>
   <string name="analysis_help_rest_body">Abaixo da tabela, os outros casos do conjunto, agrupados pela situação de cada um. Seus treinos e seus outros tipos de resolução também contam. Toque em um caso para ver os algoritmos.</string>

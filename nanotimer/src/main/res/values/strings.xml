@@ -1230,7 +1230,7 @@
   <string name="drill_summary_not_recorded">Not recorded</string>
   <string name="drill_help_title">About this drill</string>
   <string name="drill_help_body">Settings for this drill.</string>
-  <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps feed Drill stats and \"Algorithms you know\" in Analysis. Turn it off to practice without affecting them.</string>
+  <string name="drill_help_record">When on, each rep is saved: its time, and whether you asked to see the algorithm. Saved reps count in Drill stats and in which cases show as known. Turn it off to practice without affecting them.</string>
   <string name="drill_planning_limit">Planning limit</string>
   <string name="drill_planning_seconds">seconds</string>
   <string name="drill_planning_hint">Off by default: learning the full cross takes longer than the official 15 seconds.</string>
@@ -1755,7 +1755,7 @@
   <string name="analysis_help_cases_title">Case by case</string>
   <string name="analysis_help_cases_body">The cases of the selected step that you solved in one look. The number at the top is how many of each case\'s last solves are used, or fewer if it came up less often. Two-look solves are left out.</string>
   <string name="analysis_help_standing">Where a case stands</string>
-  <string name="analysis_help_standing_body">Known: solved in one look, without help, recently enough to still count. Needs review: solved in one look before, but in two looks the last two times. To learn: never solved in one look. All of this comes from your solves and drills.</string>
+  <string name="analysis_help_standing_body">Known: solved in one look, without help, the last time it came up (one slip is allowed). Needs review: solved in one look before, but in two looks the last two times. To learn: never solved in one look. All of this comes from your solves and drills.</string>
   <string name="analysis_help_shape">Shape</string>
   <string name="analysis_help_shape_body">On OLL, a Shape button narrows the table to one group of shapes, with each group\'s size beside it.</string>
   <string name="analysis_help_rest_body">Below the table, the other cases of the set, grouped by where they stand. Your drills and other solve types count too. Tap a case to see its algorithms.</string>
